@@ -16,10 +16,9 @@ export default function InviteRegisterForm() {
     two_factor_enabled: false,
     access_failed_count: 0,
     role: "customer",
-    order_portal_user_id: "",
+    user_id_1C: "",
     auto_confirm_order: false,
     permit_finance_info: false,
-    guid: "",
   });
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -41,14 +40,11 @@ export default function InviteRegisterForm() {
           email_confirmed: data.email_confirmed || false,
           phone_number_confirmed: data.phone_number_confirmed || false,
           two_factor_enabled: data.two_factor_enabled || false,
-          lockout_end_date: data.lockout_end_date || "",
-          lockout_enabled: data.lockout_enabled || false,
           access_failed_count: data.access_failed_count || 0,
           role: data.role || "customer",
           order_portal_user_id: data.user_id_1C || "",
           auto_confirm_order: data.auto_confirm_order || false,
           permit_finance_info: data.permit_finance_info || false,
-          guid: data.guid || "",
         }));
         setLoading(false);
       })
@@ -228,17 +224,6 @@ export default function InviteRegisterForm() {
             className="w-full border border-gray-300 rounded-md px-3 py-2"
           />
         </div>
-
-        <div className="mb-6">
-          <label className="block mb-1 font-semibold text-gray-700">GUID:</label>
-          <input
-            name="guid"
-            value={formData.guid}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-2"
-          />
-        </div>
-
         <button
           type="submit"
           className="w-full bg-[#003d66] text-white font-semibold py-2 rounded-md shadow-md hover:bg-[#00509e]"
