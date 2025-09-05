@@ -1,0 +1,137 @@
+import { useState, useEffect } from "react";
+import axiosInstance from "../api/axios";
+
+export default function AddOrderPage() {
+  const [file, setFile] = useState(null);
+  const [orderNumber, setOrderNumber] = useState("");
+  const [quantity, setQuantity] = useState(0);
+  const [clientComment, setClientComment] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const storedUser = localStorage.getItem("user");
+  const userId = storedUser ? JSON.parse(storedUser).id : null;
+
+  // ⚡️ Витягуємо останній номер замовлення і ставимо +1
+  useEffect(() => {
+    const fetchLastOrderNumber = async () => {
+      if (!userId) return;
+
+      try {
+        const response = await axiosInstance.get("/localorders/last-order-number");
+        const lastNumber = response.data?.LastOrderNumber || 0;
+        setOrderNumber((lastNumber + 1).toString());
+      } catch (error) {
+        console.error("Не вдалося отримати останній номер замовлення:", error);
+      }
+    };
+
+    fetchLastOrderNumber();
+  }, [userId]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userId) {
+      alert("Користувач не знайдений. Будь ласка, увійдіть у систему.");
+      return;
+    }
+
+    const formData = new FormData();
+    if (file) formData.append("File", file);
+    formData.append("OrderNumber", orderNumber);
+    formData.append("UserId", userId.toString());
+    formData.append("ConstructionsCount", quantity.toString());
+    formData.append("Comment", clientComment);
+
+    setLoading(true);
+
+    try {
+      await axiosInstance.post("/localorders/create", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      alert("Замовлення успішно створене ✅");
+      setFile(null);
+      setOrderNumber("");
+      setQuantity(0);
+      setClientComment("");
+    } catch (error) {
+      alert("Помилка: " + (error.response?.data || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mt-8 mx-auto px-6">
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200"
+      >
+        <h2 className="text-2xl font-bold text-[#003d66] mb-6 border-b border-[#003d66] pb-2">
+          Завантажити замовлення
+        </h2>
+
+        {/* Файл */}
+        <label className="block mb-5">
+          <span className="block mb-1 font-semibold text-gray-700">Файл:</span>
+          <input
+            type="file"
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.zkz,.ZKZ"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          />
+        </label>
+
+        {/* Номер замовлення */}
+        <label className="block mb-5">
+          <span className="block mb-1 font-semibold text-gray-700">
+            Номер замовлення:
+          </span>
+          <input
+            type="text"
+            value={orderNumber}
+            onChange={(e) => setOrderNumber(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            placeholder="Введіть номер замовлення"
+          />
+        </label>
+
+        {/* Кількість конструкцій */}
+        <label className="block mb-5">
+          <span className="block mb-1 font-semibold text-gray-700">
+            Кількість конструкцій:
+          </span>
+          <input
+            type="number"
+            value={quantity}
+            min={0}
+            onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            placeholder="0"
+          />
+        </label>
+
+        {/* Коментар */}
+        <label className="block mb-6">
+          <span className="block mb-1 font-semibold text-gray-700">
+            Коментар контрагента:
+          </span>
+          <textarea
+            value={clientComment}
+            onChange={(e) => setClientComment(e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+            rows={4}
+            placeholder="Введіть коментар..."
+          />
+        </label>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-[#003d66] text-white font-semibold py-2 rounded-md shadow-md hover:bg-[#00509e] disabled:opacity-60"
+        >
+          {loading ? "Завантаження..." : "Завантажити замовлення"}
+        </button>
+      </form>
+    </div>
+  );
+}
