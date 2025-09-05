@@ -14,8 +14,6 @@ export default function InviteRegisterForm() {
     email_confirmed: false,
     phone_number_confirmed: false,
     two_factor_enabled: false,
-    lockout_end_date: "",
-    lockout_enabled: false,
     access_failed_count: 0,
     role: "customer",
     order_portal_user_id: "",
@@ -173,7 +171,6 @@ export default function InviteRegisterForm() {
           { name: "email_confirmed", label: "Email підтверджено" },
           { name: "phone_number_confirmed", label: "Телефон підтверджено" },
           { name: "two_factor_enabled", label: "Двофакторна автентифікація" },
-          { name: "lockout_enabled", label: "Блокування увімкнено" },
           { name: "auto_confirm_order", label: "Авто підтвердження замовлення" },
           { name: "permit_finance_info", label: "Доступ до фінансової інформації" },
         ].map((item) => (
@@ -189,18 +186,7 @@ export default function InviteRegisterForm() {
           </div>
         ))}
 
-        <div className="mb-4">
-          <label className="block mb-1 font-semibold text-gray-700">
-            Дата закінчення блокування:
-          </label>
-          <input
-            type="datetime-local"
-            name="lockout_end_date"
-            value={formData.lockout_end_date}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md px-3 py-2"
-          />
-        </div>
+
 
         <div className="mb-4">
           <label className="block mb-1 font-semibold text-gray-700">
