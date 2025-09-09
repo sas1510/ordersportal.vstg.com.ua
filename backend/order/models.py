@@ -64,14 +64,18 @@ import os
 
 from django.utils.text import slugify
 
-def order_file_path(instance, filename):
-    import os
-    # Додаємо timestamp, щоб уникнути колізій
-    timestamp = instance.create_date.strftime("%Y%m%d%H%M%S") if instance.create_date else ""
-    
-    # Без жодних змін у назві файлу, навіть якщо кирилиця
-    return f"orders/{filename}_{timestamp}"
+from django.utils.text import slugify
+import os
+import uuid
 
+def order_file_path(instance, filename):
+    name, ext = os.path.splitext(filename)
+    # Замінюємо всі нелатинські символи на латинські
+    safe_name = slugify(name, allow_unicode=False)
+    if not safe_name:
+        safe_name = uuid.uuid4().hex  # якщо після slugify нічого не лишилось
+    timestamp = instance.create_date.strftime("%Y%m%d%H%M%S") if instance.create_date else ""
+    return f"orders/{safe_name}_{timestamp}{ext}"
 
 class OrdersUnified(models.Model):
     RECORD_TYPES = [
