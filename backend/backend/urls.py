@@ -9,6 +9,7 @@ urlpatterns = [
     # path('api/', include('documents.urls')),  # додай, якщо в тебе app documents
     # path('api/', include('video.urls')),
     # path('api/', include('contact.urls')),
+    path('', include('order.urls')),  # додай, якщо в тебе app orders
     
 
 ]

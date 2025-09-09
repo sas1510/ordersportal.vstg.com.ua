@@ -1,23 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axiosInstance from "../api/axios";
+import { AuthContext } from "../context/AuthContext";
 
 export default function AddOrderPage() {
+  const { isAuthenticated } = useContext(AuthContext);
   const [file, setFile] = useState(null);
   const [orderNumber, setOrderNumber] = useState("");
   const [quantity, setQuantity] = useState(0);
   const [clientComment, setClientComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  const storedUser = localStorage.getItem("user");
-  const userId = storedUser ? JSON.parse(storedUser).id : null;
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (!isAuthenticated) {
+        setLoadingUser(false);
+        return;
+      }
 
-  // ⚡️ Витягуємо останній номер замовлення і ставимо +1
+      try {
+        const response = await axiosInstance.get("/me/");
+        setUserId(response.data.user.id);
+      } catch (error) {
+        console.error("Не вдалося отримати користувача:", error);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    fetchCurrentUser();
+  }, [isAuthenticated]);
+
   useEffect(() => {
     const fetchLastOrderNumber = async () => {
       if (!userId) return;
 
       try {
-        const response = await axiosInstance.get("/localorders/last-order-number");
+        const response = await axiosInstance.get("/last-order-number/");
         const lastNumber = response.data?.LastOrderNumber || 0;
         setOrderNumber((lastNumber + 1).toString());
       } catch (error) {
@@ -30,13 +50,14 @@ export default function AddOrderPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!userId) {
       alert("Користувач не знайдений. Будь ласка, увійдіть у систему.");
       return;
     }
 
     const formData = new FormData();
-    if (file) formData.append("File", file);
+    formData.append("file", file); // ⚡ правильна назва поля
     formData.append("OrderNumber", orderNumber);
     formData.append("UserId", userId.toString());
     formData.append("ConstructionsCount", quantity.toString());
@@ -45,20 +66,32 @@ export default function AddOrderPage() {
     setLoading(true);
 
     try {
-      await axiosInstance.post("/localorders/create", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await axiosInstance.post("/create/", formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`, // ⚡ твій JWT токен
+        },
       });
+ // ⚡ не вказуємо Content-Type
       alert("Замовлення успішно створене ✅");
       setFile(null);
       setOrderNumber("");
       setQuantity(0);
       setClientComment("");
     } catch (error) {
+      console.error(error.response?.data || error);
       alert("Помилка: " + (error.response?.data || error.message));
     } finally {
       setLoading(false);
     }
   };
+
+  if (!isAuthenticated) {
+    return <p className="text-center mt-8">Будь ласка, увійдіть у систему</p>;
+  }
+
+  if (loadingUser) {
+    return <p className="text-center mt-8">Завантаження даних користувача...</p>;
+  }
 
   return (
     <div className="max-w-2xl mt-8 mx-auto px-6">
@@ -70,7 +103,6 @@ export default function AddOrderPage() {
           Завантажити замовлення
         </h2>
 
-        {/* Файл */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">Файл:</span>
           <input
@@ -81,7 +113,6 @@ export default function AddOrderPage() {
           />
         </label>
 
-        {/* Номер замовлення */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
             Номер замовлення:
@@ -95,7 +126,6 @@ export default function AddOrderPage() {
           />
         </label>
 
-        {/* Кількість конструкцій */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
             Кількість конструкцій:
@@ -110,7 +140,6 @@ export default function AddOrderPage() {
           />
         </label>
 
-        {/* Коментар */}
         <label className="block mb-6">
           <span className="block mb-1 font-semibold text-gray-700">
             Коментар контрагента:

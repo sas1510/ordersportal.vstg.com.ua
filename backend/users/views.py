@@ -17,6 +17,9 @@ from rest_framework.decorators import api_view
 # ...existing code...
 from django.contrib.auth.models import update_last_login
 # ...existing code...
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
 # ----------------------
 # Логін
 # ----------------------
@@ -26,7 +29,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
-            # Отримуємо refresh токен
+            # Отримуємо токени
             refresh = response.data.get("refresh")
             access = response.data.get("access")
             user = CustomUser.objects.get(username=request.data["username"])
@@ -34,11 +37,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
             update_last_login(None, user)
 
-
-            # Встановлюємо refresh токен в HttpOnly cookie
+            # Відправляємо refresh токен в HttpOnly cookie
             resp = Response(
                 {
-                    "access": access,
+                    "access": access,          # <-- access повертаємо в JSON
                     "user": {
                         "id": user.id,
                         "username": user.username,
@@ -53,33 +55,32 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 key="refresh_token",
                 value=refresh,
                 httponly=True,
-                secure=False,  # True у production з HTTPS
+                secure=False,  # True у production
                 samesite="Lax",
                 max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
             )
+
             return resp
         return response
 
 # ----------------------
 # Рефреш токена
 # ----------------------
+# users/views.py
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = TokenRefreshSerializer
 
     def post(self, request, *args, **kwargs):
-        # Беремо refresh токен з cookie
         refresh_token = request.COOKIES.get("refresh_token")
         if not refresh_token:
             return Response({"detail": "Refresh token not found"}, status=status.HTTP_401_UNAUTHORIZED)
         
         serializer = self.get_serializer(data={"refresh": refresh_token})
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
-        
+        serializer.is_valid(raise_exception=True)
         access = serializer.validated_data.get("access")
-        return Response({"access": access}, status=status.HTTP_200_OK)
+        user = request.user if request.user.is_authenticated else None
+        role = user.role if user else None
+        return Response({"access": access, "role": role})
 
 # ----------------------
 # Логаут
@@ -101,24 +102,40 @@ class LogoutView(APIView):
 # ----------------------
 # Поточний користувач
 # ----------------------
+# class CurrentUserView(APIView):
+#     def get(self, request):
+#         user = request.user
+#         if not user.is_authenticated:
+#             return Response({"detail": "Not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+#         return Response({
+#             "user": {
+#                 "id": user.id,
+#                 "username": user.username,
+#                 "full_name": user.full_name,
+#                 "role": user.role,
+#             },
+#             "role": user.role,
+#         })
 class CurrentUserView(APIView):
+    # Встановлюємо, що потрібна авторизація
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         user = request.user
         if not user.is_authenticated:
             return Response({"detail": "Not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
+        # Повертаємо потрібні дані
         return Response({
             "user": {
                 "id": user.id,
                 "username": user.username,
-                "full_name": user.full_name,
-                "role": user.role,
+                "full_name": getattr(user, "full_name", ""),
+                "role": getattr(user, "role", ""),
             },
-            "role": user.role,
+            "role": getattr(user, "role", "")
         })
-
-
-
 # ----------------------
 # Завершення реєстрації через інвайт
 # ----------------------
