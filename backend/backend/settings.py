@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'rest_framework',
     # 'api',
-    # 'complaints',
+    'complaints',
     'contact',
     'documents',
     'order',
@@ -121,7 +121,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://ordersportal.vstg.com.ua"
 ]
 
+# Кодування за замовчуванням для всіх файлів і текстових даних
 DEFAULT_CHARSET = 'utf-8'
+FILE_CHARSET = 'utf-8'
+
 
 # Дозволяємо кукі
 

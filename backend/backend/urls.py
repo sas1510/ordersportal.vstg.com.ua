@@ -10,6 +10,7 @@ urlpatterns = [
     # path('api/', include('video.urls')),
     # path('api/', include('contact.urls')),
     path('', include('order.urls')),  # додай, якщо в тебе app orders
+    path('complaints/', include('complaints.urls')),  # додай, якщо в тебе app orders
     
 
 ]

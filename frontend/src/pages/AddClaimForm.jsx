@@ -5,76 +5,112 @@ export default function AddClaimPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [claimDate, setClaimDate] = useState("");
-  const [reason, setReason] = useState("");
-  const [reasonId, setReasonId] = useState(""); // GUID обраної причини
-  const [solution, setSolution] = useState("");
+  const [reasonLink, setReasonLink] = useState(""); 
+  const [solutionLink, setSolutionLink] = useState("");
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [reasonOptions, setReasonOptions] = useState([]);
   const [solutionOptions, setSolutionOptions] = useState([]);
+  const [seriesOptions, setSeriesOptions] = useState([]);
+  const [selectedSeries, setSelectedSeries] = useState([]);
 
-  // Підвантаження причин з API
+  // Завантаження причин
   useEffect(() => {
     const fetchReasons = async () => {
       try {
-        const res = await axiosInstance.get("/complaints/issues");
-        setReasonOptions(res.data); // очікуємо масив { guid, name }
+        const res = await axiosInstance.get("/complaints/issues/");
+        setReasonOptions(res.data.issues || []);
       } catch (error) {
         console.error("Помилка при завантаженні причин:", error);
+        setReasonOptions([]);
       }
     };
     fetchReasons();
   }, []);
 
-  // Підвантаження рішень при зміні обраної причини
+  // Завантаження рішень при зміні причини
   useEffect(() => {
-    if (!reasonId) {
+    if (!reasonLink) {
       setSolutionOptions([]);
-      setSolution("");
+      setSolutionLink("");
       return;
     }
 
     const fetchSolutions = async () => {
       try {
-        const res = await axiosInstance.get(`/complaints/solutions/${reasonId}`);
-        setSolutionOptions(res.data); // очікуємо масив { guid, name }
+        const res = await axiosInstance.get(`/complaints/solutions/${reasonLink}/`);
+        setSolutionOptions(res.data.solutions || []);
       } catch (error) {
         console.error("Помилка при завантаженні рішень:", error);
         setSolutionOptions([]);
       }
     };
     fetchSolutions();
-  }, [reasonId]);
+  }, [reasonLink]);
+
+  // Завантаження серій за номером замовлення
+  useEffect(() => {
+    if (!orderNumber) {
+      setSeriesOptions([]);
+      setSelectedSeries([]);
+      return;
+    }
+
+    const fetchSeries = async () => {
+      try {
+        const res = await axiosInstance.get(`/complaints/get_series/${orderNumber}/`);
+        setSeriesOptions(res.data.series || []);
+        setSelectedSeries([]);
+      } catch (error) {
+        console.error("Помилка при завантаженні серій:", error);
+        setSeriesOptions([]);
+      }
+    };
+    fetchSeries();
+  }, [orderNumber]);
+
+  const handleSeriesChange = (seriesLink) => {
+    setSelectedSeries(prev => prev.includes(seriesLink)
+      ? prev.filter(link => link !== seriesLink)
+      : [...prev, seriesLink]
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append("orderNumber", orderNumber);
-    formData.append("deliveryDate", deliveryDate);
-    formData.append("claimDate", claimDate);
-    formData.append("reason", reason);
-    formData.append("solution", solution);
+    formData.append("order_number", orderNumber);
+    formData.append("order_deliver_date", deliveryDate);
+    formData.append("order_define_date", claimDate);
+    formData.append("complaint_date", new Date().toISOString());
+    formData.append("issue", reasonLink);
+    formData.append("solution", solutionLink);
     formData.append("description", description);
+    formData.append("series", JSON.stringify(selectedSeries));
+    formData.append("create_date", new Date().toISOString());
     if (photo) formData.append("photo", photo);
 
     setLoading(true);
     try {
-      await axiosInstance.post("/claims/", formData, {
+      await axiosInstance.post("/complaints/create_complaints/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Рекламація успішно завантажена");
+
+      // Очистка полів
       setOrderNumber("");
       setDeliveryDate("");
       setClaimDate("");
-      setReason("");
-      setReasonId("");
-      setSolution("");
+      setReasonLink("");
+      setSolutionLink("");
       setSolutionOptions([]);
       setDescription("");
       setPhoto(null);
+      setSeriesOptions([]);
+      setSelectedSeries([]);
     } catch (error) {
       alert(
         "Помилка при завантаженні рекламації: " +
@@ -86,7 +122,7 @@ export default function AddClaimPage() {
   };
 
   return (
-    <div className="w-full max-w-full sm:max-w-xl md:max-w-2xl mx-auto px-4 sm:px-6 mt-8">
+    <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 mt-8">
       <form
         onSubmit={handleSubmit}
         className="mx-auto p-6 bg-gray-50 rounded-xl shadow-md border border-gray-200"
@@ -110,6 +146,28 @@ export default function AddClaimPage() {
           />
         </label>
 
+        {/* Серії */}
+        {seriesOptions.length > 0 && (
+          <div className="block mb-5">
+            <span className="block mb-1 font-semibold text-gray-700">
+              Виберіть серії:
+            </span>
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-2">
+              {seriesOptions.map((s) => (
+                <label key={s.SeriesLink} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedSeries.includes(s.SeriesLink)}
+                    onChange={() => handleSeriesChange(s.SeriesLink)}
+                    className="mr-2"
+                  />
+                  {s.Name} ({s.FullName})
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Дата доставки */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
@@ -124,7 +182,7 @@ export default function AddClaimPage() {
           />
         </label>
 
-        {/* Дата рекламації */}
+        {/* Дата визначення рекламації */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
             Дата визначення рекламації:
@@ -138,52 +196,48 @@ export default function AddClaimPage() {
           />
         </label>
 
-        {/* Причина рекламації */}
+        {/* Причина (issue) */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
             Причина рекламації:
           </span>
           <select
-            value={reason}
-            onChange={(e) => {
-              const selected = reasonOptions.find((opt) => opt.name === e.target.value);
-              setReason(e.target.value);
-              setReasonId(selected?.guid || "");
-            }}
+            value={reasonLink}
+            onChange={(e) => setReasonLink(e.target.value)}
             required
             className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#003d66]"
           >
             <option value="">-- Оберіть причину --</option>
             {reasonOptions.map((opt) => (
-              <option key={opt.guid} value={opt.name}>
-                {opt.name}
+              <option key={opt.Link} value={opt.Link}>
+                {opt.Name}
               </option>
             ))}
           </select>
         </label>
 
-        {/* Варіант вирішення */}
+        {/* Рішення (solution) */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
             Варіант вирішення:
           </span>
           <select
-            value={solution}
-            onChange={(e) => setSolution(e.target.value)}
+            value={solutionLink}
+            onChange={(e) => setSolutionLink(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#003d66]"
             disabled={!solutionOptions.length}
+            className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#003d66]"
           >
             <option value="">-- Оберіть варіант --</option>
             {solutionOptions.map((opt) => (
-              <option key={opt.guid} value={opt.name}>
-                {opt.name}
+              <option key={opt.Link} value={opt.Link}>
+                {opt.Name}
               </option>
             ))}
           </select>
         </label>
 
-        {/* Опис рекламації */}
+        {/* Опис */}
         <label className="block mb-5">
           <span className="block mb-1 font-semibold text-gray-700">
             Опис рекламації:
@@ -198,7 +252,7 @@ export default function AddClaimPage() {
           />
         </label>
 
-        {/* Фото рекламації */}
+        {/* Фото */}
         <label className="block mb-6">
           <span className="block mb-1 font-semibold text-gray-700">
             Фото рекламації:
@@ -211,11 +265,10 @@ export default function AddClaimPage() {
           />
         </label>
 
-        {/* Кнопка відправки */}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full bg-[#003d66] text-white font-semibold py-2 rounded-md shadow-md transition-colors duration-300 hover:bg-[#00509e] disabled:opacity-60 disabled:cursor-not-allowed`}
+          className="w-full bg-[#003d66] text-white font-semibold py-2 rounded-md shadow-md transition-colors duration-300 hover:bg-[#00509e] disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? "Завантаження..." : "Додати рекламацію"}
         </button>

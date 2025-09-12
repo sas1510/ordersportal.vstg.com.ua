@@ -18,7 +18,7 @@ export default function LoginPage() {
     const response = await axiosInstance.post("/login/", { username, password });
 
     // Збереження токенів
-    // localStorage.setItem("access_token", response.data.access);
+    localStorage.setItem("access", response.data.access);
     // localStorage.setItem("refresh_token", response.data.refresh);
 
     // Збереження користувача

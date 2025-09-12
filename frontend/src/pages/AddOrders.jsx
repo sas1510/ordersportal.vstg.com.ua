@@ -9,33 +9,10 @@ export default function AddOrderPage() {
   const [quantity, setQuantity] = useState(0);
   const [clientComment, setClientComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
 
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      if (!isAuthenticated) {
-        setLoadingUser(false);
-        return;
-      }
-
-      try {
-        const response = await axiosInstance.get("/me/");
-        setUserId(response.data.user.id);
-      } catch (error) {
-        console.error("Не вдалося отримати користувача:", error);
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-
-    fetchCurrentUser();
-  }, [isAuthenticated]);
-
+  // Отримуємо останній номер замовлення
   useEffect(() => {
     const fetchLastOrderNumber = async () => {
-      if (!userId) return;
-
       try {
         const response = await axiosInstance.get("/last-order-number/");
         const lastNumber = response.data?.LastOrderNumber || 0;
@@ -45,21 +22,17 @@ export default function AddOrderPage() {
       }
     };
 
-    fetchLastOrderNumber();
-  }, [userId]);
+    if (isAuthenticated) {
+      fetchLastOrderNumber();
+    }
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!userId) {
-      alert("Користувач не знайдений. Будь ласка, увійдіть у систему.");
-      return;
-    }
-
     const formData = new FormData();
-    formData.append("file", file); // ⚡ правильна назва поля
+    formData.append("file", file);
     formData.append("OrderNumber", orderNumber);
-    formData.append("UserId", userId.toString());
     formData.append("ConstructionsCount", quantity.toString());
     formData.append("Comment", clientComment);
 
@@ -67,11 +40,8 @@ export default function AddOrderPage() {
 
     try {
       await axiosInstance.post("/create/", formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`, // ⚡ твій JWT токен
-        },
+        // ⚡ axiosInstance вже додає токен (якщо налаштований interceptor)
       });
- // ⚡ не вказуємо Content-Type
       alert("Замовлення успішно створене ✅");
       setFile(null);
       setOrderNumber("");
@@ -87,10 +57,6 @@ export default function AddOrderPage() {
 
   if (!isAuthenticated) {
     return <p className="text-center mt-8">Будь ласка, увійдіть у систему</p>;
-  }
-
-  if (loadingUser) {
-    return <p className="text-center mt-8">Завантаження даних користувача...</p>;
   }
 
   return (

@@ -10,29 +10,31 @@ export default function AuthProvider({ children }) {
   const { setRole } = useContext(RoleContext);
   const [loading, setLoading] = useState(true);
 
-  // Головна функція для встановлення токена
-  const setAccessToken = (token) => {
+  // --- Встановлення токена та ролі ---
+  const setAccessToken = (token, roleValue = null) => {
     setAccessTokenState(token);
-    setAxiosAccessToken(token); // <- одразу встановлюємо в axios
+    setAxiosAccessToken(token);
+
     if (token) {
       localStorage.setItem("access", token);
       setIsAuthenticated(true);
+      if (roleValue && setRole) setRole(roleValue);
     } else {
       localStorage.removeItem("access");
       setIsAuthenticated(false);
+      if (setRole) setRole(null);
     }
   };
 
-  // Логін
+  // --- Логін ---
   const login = async (username, password) => {
     const res = await axiosInstance.post("/login/", { username, password }, { withCredentials: true });
-    const { access, role: userRole } = res.data;
-    setAccessToken(access); // <- токен одразу доступний для axios
-    setRole(userRole);
-    return res.data; // <- можна використати для редіректу або інших дій
+    const { access, role } = res.data;
+    setAccessToken(access, role);
+    return res.data;
   };
 
-  // Логаут
+  // --- Логаут ---
   const logout = useCallback(async () => {
     try {
       await axiosInstance.post("/logout/", {}, { withCredentials: true });
@@ -40,17 +42,15 @@ export default function AuthProvider({ children }) {
       console.error(err);
     }
     setAccessToken(null);
-    setRole(null);
-  }, [setRole]);
+  }, []);
 
-  // Ініціалізація при старті
+  // --- Ініціалізація при старті ---
   useEffect(() => {
     const initAuth = async () => {
       if (!accessToken) {
         try {
           const res = await axiosInstance.post("/token/refresh/", {}, { withCredentials: true });
-          setAccessToken(res.data.access);
-          setRole(res.data.role);
+          setAccessToken(res.data.access, res.data.role);
         } catch {
           console.log("No valid session");
         }
@@ -58,8 +58,9 @@ export default function AuthProvider({ children }) {
       setLoading(false);
     };
     initAuth();
-  }, [setRole]);
+  }, []);
 
+  // --- Поставити глобальний logout для axios ---
   useEffect(() => {
     setLogoutHandler(logout);
   }, [logout]);

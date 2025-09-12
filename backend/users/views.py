@@ -141,14 +141,15 @@ class CurrentUserView(APIView):
 # ----------------------
 # users/views.py
 from django.utils import timezone
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 
-@api_view(['GET', 'POST'])
-def register_with_invite(request, code):
-    # code_clean = code.replace('-', '').lower()
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes
 
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def register_with_invite(request, code):
     try:
         invite = Invitation.objects.get(code__iexact=code)
     except Invitation.DoesNotExist:
@@ -156,13 +157,11 @@ def register_with_invite(request, code):
 
     now = timezone.now()
 
-    # Перевірка, чи інвайт вже використано або прострочено
     if invite.used:
         return Response({"error": "Це посилання вже використано"}, status=status.HTTP_400_BAD_REQUEST)
     if invite.expire_at and invite.expire_at < now:
         return Response({"error": "Це посилання більше не активне"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # GET: повертаємо дані користувача для форми
     if request.method == 'GET':
         try:
             user = CustomUser.objects.get(user_id_1C=invite.user_id_1C)
@@ -172,7 +171,6 @@ def register_with_invite(request, code):
         serializer = CompleteRegistrationSerializer(user)
         return Response(serializer.data)
 
-    # POST: оновлюємо дані користувача
     if request.method == 'POST':
         try:
             user = CustomUser.objects.get(user_id_1C=invite.user_id_1C)
@@ -182,7 +180,6 @@ def register_with_invite(request, code):
         serializer = CompleteRegistrationSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            # позначаємо інвайт як використаний
             invite.mark_as_used()
             return Response(serializer.data)
         

@@ -2,33 +2,26 @@ import axios from "axios";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://172.20.197.76") + "/api";
 
-let accessToken = localStorage.getItem("access") || null;
 let logoutHandler = null;
 
-// Синхронне оновлення токена для axios
+export function setLogoutHandler(handler) {
+  logoutHandler = handler;
+}
+
 export function setAccessToken(token) {
-  accessToken = token;
-  if (token) {
-    localStorage.setItem("access", token);
-  } else {
-    localStorage.removeItem("access");
-  }
+  if (token) localStorage.setItem("access", token);
+  else localStorage.removeItem("access");
 }
 
 export function getAccessToken() {
   return localStorage.getItem("access");
 }
 
-export function setLogoutHandler(handler) {
-  logoutHandler = handler;
-}
-
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // для HttpOnly refresh cookie
+  withCredentials: true,
 });
 
-// Додаємо токен до всіх запитів
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
@@ -38,12 +31,11 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Рефреш токена при 401
+// --- Refresh токена при 401 ---
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
     const skipRefresh = ["/login/", "/register/", "/token/refresh/", "/logout/"];
     const endpoint = originalRequest.url.replace(API_URL, "");
 
@@ -55,8 +47,9 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const res = await axiosInstance.post("/token/refresh/", {}, { withCredentials: true });
-        const { access } = res.data;
+        const { access, role } = res.data;
         setAccessToken(access);
+        if (window.setRoleGlobal) window.setRoleGlobal(role); // можна прибрати якщо RoleProvider обгортає AuthProvider
         originalRequest.headers["Authorization"] = `Bearer ${access}`;
         return axiosInstance(originalRequest);
       } catch (err) {

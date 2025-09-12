@@ -64,7 +64,6 @@ import os
 
 from django.utils.text import slugify
 
-from django.utils.text import slugify
 import os
 import uuid
 
@@ -77,54 +76,130 @@ def order_file_path(instance, filename):
     timestamp = instance.create_date.strftime("%Y%m%d%H%M%S") if instance.create_date else ""
     return f"orders/{safe_name}_{timestamp}{ext}"
 
-class OrdersUnified(models.Model):
-    RECORD_TYPES = [
-        ('Order', 'Order'),
-        ('Complaint', 'Complaint'),
-        ('OrderPart', 'OrderPart'),
-    ]
+# class OrdersUnified(models.Model):
+#     RECORD_TYPES = [
+#         ('Order', 'Order'),
+#         ('Complaint', 'Complaint'),
+#         ('OrderPart', 'OrderPart'),
+#     ]
 
-    record_id = models.AutoField(primary_key=True)  # Унікальний ключ
-    record_type = models.CharField(max_length=20, choices=RECORD_TYPES)
+#     record_id = models.AutoField(primary_key=True)  # Унікальний ключ
+#     record_type = models.CharField(max_length=20, choices=RECORD_TYPES)
 
-    # Уніфіковані ключові поля
-    order_number = models.TextField(null=True, blank=True)
-    customer_id = models.ForeignKey(
+#     # Уніфіковані ключові поля
+#     order_number = models.TextField(null=True, blank=True)
+#     customer_id = models.ForeignKey(
+#         CustomUser,
+#         on_delete=models.SET_NULL,
+#         null=True,
+#         blank=True,
+#         db_column='customer_id'
+#     )
+
+#     parent_order = models.ForeignKey(
+#         'self',
+#         on_delete=models.SET_NULL,
+#         null=True,
+#         blank=True,
+#         related_name='related_records',
+#         help_text='Вказує на основне замовлення для скарг або дозамовлень'
+#     )
+
+
+#     # manager_id = models.CharField(max_length=128, null=True, blank=True)
+#     # status_id = models.IntegerField(null=True, blank=True)
+
+#     # Уніфіковані дати
+#     create_date = models.DateTimeField(null=True, blank=True)       # OrderDateCreate / ComplaintDate / OrderPartsDate
+#     progress_date = models.DateTimeField(null=True, blank=True)     # OrderDateProgress / ComplaintWorkStartDate / OrderPartsDepartureDate
+#     complete_date = models.DateTimeField(null=True, blank=True)     # OrderDateComplete / ComplaintCompleteDate / OrderPartsDeliveryDate
+#     deliver_date = models.DateTimeField(null=True, blank=True)      # ComplaintOrderDeliverDate / OrderPartsDeliveryDate
+#     define_date = models.DateTimeField(null=True, blank=True)       # ComplaintOrderDefineDate
+#     last_message_time = models.DateTimeField(null=True, blank=True) # тільки Orders
+
+#     # Описові поля
+#     description = models.TextField(null=True, blank=True)           # ComplaintDescription / OrderPartsDescription
+#     result = models.TextField(null=True, blank=True)                # ComplaintResult
+#     object_name = models.TextField(null=True, blank=True)           # ComplaintObject
+#     file = models.FileField(upload_to=order_file_path, null=True, blank=True)
+#            # тільки Orders
+
+#     # Додаткові специфічні атрибути
+#     reason_id = models.IntegerField(null=True, blank=True)          # OrderPartsReasonId
+#     item_id = models.IntegerField(null=True, blank=True)            # OrderPartsItemId
+
+#     act_number = models.TextField(null=True, blank=True)            # ComplaintActNumber
+#     act_date = models.DateTimeField(null=True, blank=True)          # ComplaintActDate
+#     complaint_1c_order = models.TextField(null=True, blank=True)    # Complaint1cOrder
+#     urgent = models.BooleanField(null=True, blank=True)             # ComplaintUrgent
+#     order_number_contructions = models.FloatField(null=True, blank=True)  # Orders
+#     # order_portal_user_id = models.CharField(max_length=128, null=True, blank=True)  # Orders
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     class Meta:
+#         db_table = "OrdersUnified"
+
+
+class Order(models.Model):
+    order_number = models.CharField(max_length=255)
+    customer = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        db_column='customer_id'
+        related_name="orders"
     )
+    create_date = models.DateTimeField(auto_now_add=True)   # коли створено
+    progress_date = models.DateTimeField(null=True, blank=True)  # в роботі
+    complete_date = models.DateTimeField(null=True, blank=True)  # завершено
+    last_message_time = models.DateTimeField(null=True, blank=True)
 
-    # manager_id = models.CharField(max_length=128, null=True, blank=True)
-    # status_id = models.IntegerField(null=True, blank=True)
+    order_number_constructions = models.FloatField(default=0)
 
-    # Уніфіковані дати
-    create_date = models.DateTimeField(null=True, blank=True)       # OrderDateCreate / ComplaintDate / OrderPartsDate
-    progress_date = models.DateTimeField(null=True, blank=True)     # OrderDateProgress / ComplaintWorkStartDate / OrderPartsDepartureDate
-    complete_date = models.DateTimeField(null=True, blank=True)     # OrderDateComplete / ComplaintCompleteDate / OrderPartsDeliveryDate
-    deliver_date = models.DateTimeField(null=True, blank=True)      # ComplaintOrderDeliverDate / OrderPartsDeliveryDate
-    define_date = models.DateTimeField(null=True, blank=True)       # ComplaintOrderDefineDate
-    last_message_time = models.DateTimeField(null=True, blank=True) # тільки Orders
-
-    # Описові поля
-    description = models.TextField(null=True, blank=True)           # ComplaintDescription / OrderPartsDescription
-    result = models.TextField(null=True, blank=True)                # ComplaintResult
-    object_name = models.TextField(null=True, blank=True)           # ComplaintObject
+    # description = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to=order_file_path, null=True, blank=True)
-           # тільки Orders
 
-    # Додаткові специфічні атрибути
-    reason_id = models.IntegerField(null=True, blank=True)          # OrderPartsReasonId
-    item_id = models.IntegerField(null=True, blank=True)            # OrderPartsItemId
-
-    act_number = models.TextField(null=True, blank=True)            # ComplaintActNumber
-    act_date = models.DateTimeField(null=True, blank=True)          # ComplaintActDate
-    complaint_1c_order = models.TextField(null=True, blank=True)    # Complaint1cOrder
-    urgent = models.BooleanField(null=True, blank=True)             # ComplaintUrgent
-    order_number_contructions = models.FloatField(null=True, blank=True)  # Orders
-    # order_portal_user_id = models.CharField(max_length=128, null=True, blank=True)  # Orders
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = "OrdersUnified"
+        db_table = "Orders"
+        ordering = ["-create_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['order_number', 'customer'],
+                name='unique_order_per_customer'
+            )
+        ]
+
+    def __str__(self):
+        return f"Order #{self.order_number}"
+
+
+
+class OrderMessage(models.Model):
+    order = models.ForeignKey(
+        Order,  # замість 'Order'
+        on_delete=models.CASCADE,
+        related_name='messages'
+    )
+    writer = models.ForeignKey(
+        CustomUser, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='order_messages'
+    )
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Коментар до замовлення'
+        verbose_name_plural = 'Коментарі до замовлень'
+        db_table = "OrderMessage"
+
+    def __str__(self):
+        if self.writer:
+            return f"{self.writer.full_name} ({self.created_at:%d.%m.%Y %H:%M}): {self.message[:30]}"
+        return f"Anonymous ({self.created_at:%d.%m.%Y %H:%M}): {self.message[:30]}"

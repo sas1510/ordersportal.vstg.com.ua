@@ -8,18 +8,26 @@
 #         fields = "__all__"
 # backend/orders/serializers.py
 from rest_framework import serializers
-from .models import OrdersUnified
+from .models import Order, OrderMessage
 
-class OrdersUnifiedCreateSerializer(serializers.ModelSerializer):
+class OrderCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrdersUnified
+        model = Order
         fields = [
             "order_number",
-            "customer_id",
-            "order_number_contructions",
+            "customer",
+            "order_number_constructions",
             "file",
-            "description",
             "create_date",
             "last_message_time",
         ]
-        read_only_fields = ["create_date", "last_message_time"]
+        read_only_fields = []
+
+
+
+class OrderMessageSerializer(serializers.ModelSerializer):
+    writer = serializers.StringRelatedField(read_only=True)  # якщо хочеш показувати автора
+
+    class Meta:
+        model = OrderMessage
+        fields = ['id', 'order', 'writer', 'message', 'created_at']

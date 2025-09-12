@@ -128,7 +128,7 @@ class CustomUser(AbstractUser):
     # manager = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="clients")
     # region_manager = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True, related_name="dealers")
     
-    user_id_1C = models.CharField(max_length=255, blank=True)
+    user_id_1C = models.BinaryField(max_length=255, null=True, blank=True)
     auto_confirm_order = models.BooleanField(default=False)
     permit_finance_info = models.BooleanField(default=False)
     # guid = models.CharField(max_length=255, null=True, blank=True)
