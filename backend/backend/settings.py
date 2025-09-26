@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'documents',
     'order',
     # 'order_part',
-    # 'organizations_and_regions',
+    'organizations_and_regions',
     'users',
     'video',
     'corsheaders',

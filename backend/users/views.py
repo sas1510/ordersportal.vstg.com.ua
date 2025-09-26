@@ -20,6 +20,9 @@ from django.contrib.auth.models import update_last_login
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
 # ----------------------
 # Логін
 # ----------------------
@@ -184,3 +187,14 @@ def register_with_invite(request, code):
             return Response(serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_customers(request):
+    """
+    Повертає список клієнтів для менеджера
+    """
+    # Припускаємо, що у User є поле role
+    customers = User.objects.filter(role='customer').values('id', 'full_name')
+    return Response(list(customers))

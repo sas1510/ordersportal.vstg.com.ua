@@ -7,7 +7,7 @@ export default function HeaderWithoutAuth() {
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-[#003d66] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
+    <header className="fixed top-0 left-0 w-full bg-[#45403e] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
         <div style={styles.left}>
         <Link to={"/home"}>
             <img src="/header_logo.svg" alt="Логотип" style={styles.logo} />

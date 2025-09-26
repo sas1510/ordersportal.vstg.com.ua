@@ -13,7 +13,7 @@ const styles = {
     width: "100%",
     padding: "20px",
     textAlign: "center",
-    backgroundColor: "#003d66",
+    backgroundColor: "#45403e",
     // backgroundColor: "rgba(255, 255, 255, 0.85)",
     color: "rgba(255, 255, 255, 0.85)",
     fontSize: "0.9rem",

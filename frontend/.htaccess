@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Якщо файл або папка існує в папці dist — віддавати їх напряму
+  RewriteCond %{DOCUMENT_ROOT}/dist/%{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{DOCUMENT_ROOT}/dist/%{REQUEST_FILENAME} -d
+  RewriteRule ^ dist/%{REQUEST_FILENAME} [L]
+
+  # ВСІ інші запити — index.html з dist
+  RewriteRule ^ dist/index.html [QSA,L]
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType text/css .css
+</IfModule>

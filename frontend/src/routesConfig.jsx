@@ -34,7 +34,8 @@ import CustomerBills from "./pages/CustomerBills"
 import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
 import LocalOrders from "./pages/LocalOrders"
 // import InviteRegisterForm from "./pages/InviteRegisterForm";
-
+import { Dashboards } from "./pages/Dashboards"
+import ComplaintsPages from "./pages/ComplaintsPages";
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -95,6 +96,8 @@ export const dealerRoutes = [
   { path: "finance/bills", element: <CustomerBills /> },
   { path: "create-bill", element: <CreateCustomerBillPage /> },
   { path: "localOrder", element: <LocalOrders /> },
+  { path: "localOrders", element: <Dashboards/> },
+  { path: "localComplaints", element: <ComplaintsPages/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 
@@ -128,6 +131,8 @@ export const managerRoutes = [
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
   { path: "localOrder", element: <LocalOrders /> },
+  { path: "addClaim", element: <AddClaimForm /> },
+    { path: "addOrder", element: <AddOrderPage /> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
 ];

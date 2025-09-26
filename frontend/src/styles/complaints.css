@@ -1,0 +1,48 @@
+/* Базові стилі, щоб зробити інтерфейс схожим на макет */
+.complaint-card {
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.dashed-border {
+  border: 1px dashed rgba(0,0,0,0.08);
+  background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(250,250,250,0.6));
+  padding: 16px;
+  border-radius: 6px;
+}
+
+/* Timeline */
+.timeline .step {
+  flex: 1;
+  position: relative;
+}
+.timeline .step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  right: -50%;
+  left: 50%;
+  height: 2px;
+  background: #e6e6e6;
+  z-index: 0;
+}
+.step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #e6e6e6;
+  margin: 0 auto;
+  z-index: 2;
+  position: relative;
+}
+.step-done {
+  background: #e6ffed;
+  border-color: #7dd3a6;
+}
+
+/* Make cards responsive */
+@media (max-width: 1000px) {
+  .timeline .step:not(:last-child)::after {
+    right: -40%;
+    left: 50%;
+  }
+}

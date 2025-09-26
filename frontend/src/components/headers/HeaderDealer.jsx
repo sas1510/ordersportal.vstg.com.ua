@@ -76,7 +76,7 @@ export default function HeaderDealer() {
   );
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-[#003d66] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
+    <header className="fixed top-0 left-0 w-full bg-[#45403e] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
       <div style={styles.left}>
         <Link to={"/dashboard"}>
           <img src="/header_logo.svg" alt="Логотип" style={styles.logo} />
@@ -164,7 +164,7 @@ export default function HeaderDealer() {
           </button>
 
           <div
-            className={`absolute top-16 font-medium left-0 w-full bg-[#003d66] flex flex-col gap-3 p-4 text-base z-50
+            className={`absolute top-16 font-medium left-0 w-full bg-[#45403e] flex flex-col gap-3 p-4 text-base z-50
               transition-all duration-300 ease-in-out overflow-hidden
               ${mobileMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}`}
             style={{ pointerEvents: mobileMenuOpen ? "auto" : "none" }}

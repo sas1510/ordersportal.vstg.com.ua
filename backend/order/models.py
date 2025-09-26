@@ -66,15 +66,32 @@ from django.utils.text import slugify
 
 import os
 import uuid
+from django.utils import timezone
+
+import os
+from uuid import UUID
 
 def order_file_path(instance, filename):
-    name, ext = os.path.splitext(filename)
-    # Замінюємо всі нелатинські символи на латинські
-    safe_name = slugify(name, allow_unicode=False)
-    if not safe_name:
-        safe_name = uuid.uuid4().hex  # якщо після slugify нічого не лишилось
-    timestamp = instance.create_date.strftime("%Y%m%d%H%M%S") if instance.create_date else ""
-    return f"orders/{safe_name}_{timestamp}{ext}"
+    """
+    Формує шлях для збереження файлу замовлення.
+    orders/<user_id_1C>/<order_number>/<filename>
+    """
+    # Беремо user_id_1C і перетворюємо у UUID (якщо у тебе у моделі BinaryField)
+    user_id_1C_bytes = instance.customer.user_id_1C
+    if user_id_1C_bytes:
+        try:
+            # Перетворюємо bytes у UUID
+            user_id_1C_uuid = UUID(bytes=user_id_1C_bytes)
+        except Exception:
+            # якщо не вдається перетворити, просто hex
+            user_id_1C_uuid = user_id_1C_bytes.hex()
+    else:
+        user_id_1C_uuid = "unknown_user"
+
+    order_number = instance.order_number or "unknown_order"
+
+    return os.path.join("orders", str(user_id_1C_uuid), str(order_number), filename)
+
 
 # class OrdersUnified(models.Model):
 #     RECORD_TYPES = [
@@ -149,10 +166,18 @@ class Order(models.Model):
         blank=True,
         related_name="orders"
     )
-    create_date = models.DateTimeField(auto_now_add=True)   # коли створено
+    author = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_orders"
+    )
+    create_date = models.DateTimeField(default=timezone.now)   # коли створено
     progress_date = models.DateTimeField(null=True, blank=True)  # в роботі
     complete_date = models.DateTimeField(null=True, blank=True)  # завершено
-    last_message_time = models.DateTimeField(null=True, blank=True)
+
+    # last_message_time = models.DateTimeField(null=True, blank=True)
 
     order_number_constructions = models.FloatField(default=0)
 

@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView,
 )
-from .views import register_with_invite
+from .views import register_with_invite, get_customers
 
 
 urlpatterns = [
@@ -14,4 +14,5 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("me/", CurrentUserView.as_view(), name="current_user"),
     path('register/<str:code>/', register_with_invite, name='register-with-invite'),
+    path('customers/', get_customers, name='get_customers'),
 ]

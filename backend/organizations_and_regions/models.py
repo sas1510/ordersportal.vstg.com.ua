@@ -6,6 +6,7 @@ class Organization(models.Model):
     
     name = models.CharField(max_length=255)
     organization_1c_id = models.CharField(max_length=255, blank=True, null=True)
+    organization_1c_link = models.BinaryField(max_length=255, null=True, blank=True)
     update_time = models.DateTimeField(auto_now=True)
     def __str__(self):
         return self.name
@@ -23,12 +24,12 @@ class Organization(models.Model):
 
 
     
-class Region(models.Model):
-    name = models.CharField(max_length=255)
-    update_time = models.DateTimeField(auto_now=True)
+# class Region(models.Model):
+#     name = models.CharField(max_length=255)
+#     update_time = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name
     
-    class Meta:
-        db_table = 'Regions'
+#     class Meta:
+#         db_table = 'Regions'
