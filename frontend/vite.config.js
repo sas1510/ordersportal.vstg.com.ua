@@ -1,19 +1,20 @@
-// import { defineConfig } from 'vite'
-// import react from '@vitejs/plugin-react-swc'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
-// // https://vite.dev/config/
-// export default defineConfig({
-//   plugins: [react()],
-// })
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// export default defineConfig({
-//   plugins: [react()],
-//     base: './',
-//   // base: '/ordersportal.vstg.com.ua/'
-// })
 export default defineConfig({
   plugins: [react()],
   base: '/',
-})
+  resolve: {
+    alias: [
+      {
+        find: 'datatables.net-css',
+        replacement: path.resolve(
+          __dirname,
+          'node_modules/datatables.net-dt/css/jquery.dataTables.min.css'
+        ),
+      },
+    ],
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
+  },
+});

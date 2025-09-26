@@ -6,7 +6,8 @@ export default function ContractorsSelect({ value, onChange, role }) {
   const [contractors, setContractors] = useState([]);
 
   useEffect(() => {
-    if (role === "Dealer") return;
+    if (role === "dealer") return;
+    if (role === "customer") return;
 
     const fetchContractors = async () => {
       try {
@@ -34,6 +35,7 @@ export default function ContractorsSelect({ value, onChange, role }) {
   }, [role]);
 
   if (role === "Dealer") return null;
+  if (role === "customer") return null;
 
   // Знаходимо вибраний option
   const selectedOption = contractors.find(opt => opt.value === value) || null;

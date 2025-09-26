@@ -47,9 +47,11 @@ class Complaint(models.Model):
     # status = models.TextField(blank=True, null=True)
     # work_start_date = models.DateTimeField()
     urgent = models.BooleanField(default=False)
-    create_date = models.DateTimeField()
+    # create_date = models.DateTimeField()
     issue = models.BinaryField(max_length=200)
     solution = models.BinaryField(max_length=200)
+    user_id_1C = models.BinaryField(max_length=255, null=True, blank=True)
+    web_number = models.BigIntegerField(null=True, blank=True)
     
     # complaint_1c_order = models.CharField(max_length=255, blank=True, null=True)
 
@@ -81,6 +83,8 @@ class ComplaintOrderSeries(models.Model):
     serie_link = models.BinaryField(max_length=200, blank=True, null=True)
     serie_name = models.CharField(max_length=255, blank=True, null=True)
     
+    class Meta:
+        db_table = 'ComplaintOrderSeries'
 
 # --- Фото скарги ---
 class ComplaintPhoto(models.Model):
@@ -93,6 +97,36 @@ class ComplaintPhoto(models.Model):
 
     class Meta:
         db_table = 'ComplaintPhotos'
+
+
+class ComplaintPhoto2(models.Model):
+    complaint = models.ForeignKey(
+        'Complaint', 
+        on_delete=models.CASCADE, 
+        related_name="complaint_photos2"
+    )
+    photo = models.ImageField(upload_to='complaint_photos/')
+    # thumbnail = models.ImageField(upload_to='complaint_photos/thumbnails/', blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return self.name or f"Photo {self.id}"
+
+    @property
+    def photo_url(self):
+        if self.photo:
+            return self.photo.url
+        return ''
+    
+    @property
+    def thumbnail_url(self):
+        if self.thumbnail:
+            return self.thumbnail.url
+        return self.photo.url  # fallback
+
+    class Meta:
+        db_table = 'ComplaintPhotos2'
+
 
 # --- Повідомлення по скарзі ---
 # class ComplaintMessage(models.Model):

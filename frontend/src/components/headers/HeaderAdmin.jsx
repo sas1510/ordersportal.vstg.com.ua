@@ -160,7 +160,7 @@ export default function HeaderAdmin() {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-[#003d66] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
+    <header className="fixed top-0 left-0 w-full bg-[#45403e] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
 
       {/* Логотип */}
       <div className="flex items-center">
@@ -303,7 +303,7 @@ export default function HeaderAdmin() {
             </button>
 
         {mobileMenuOpen && (
-          <div className="absolute top-16 left-0 w-full font-medium bg-[#003d66] flex flex-col gap-3 p-4 text-base z-50 transition-all duration-300 ease-in-out">
+          <div className="absolute top-16 left-0 w-full font-medium bg-[#45403e] flex flex-col gap-3 p-4 text-base z-50 transition-all duration-300 ease-in-out">
             {/* Навігаційні посилання без Фінансів */}
             {navLinks}
 
