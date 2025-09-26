@@ -70,7 +70,7 @@ class CustomerOrdersView(APIView):
             return Response({"error": str(e)}, status=500)
 
 
-            
+
 class AddOrderMessageView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -164,7 +164,8 @@ class OrderMessagesView(APIView):
         return Response(serialized, status=200)
 
 
-
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 @csrf_exempt
 def get_order_payment_status(request):
     """
@@ -244,6 +245,9 @@ from django.db import connection, ProgrammingError
 from django.http import JsonResponse
 from collections import defaultdict, Counter
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_orders_by_dealer_and_year(request):
     report_year = request.GET.get('report_year', 2025)
     user_portal_id = request.GET.get('user_portal_id', 5)

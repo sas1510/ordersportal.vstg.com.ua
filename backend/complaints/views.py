@@ -324,17 +324,16 @@ class GetComplaintsFullView(APIView):
     """
 
     def get(self, request):
-        # Отримуємо прапорець
+    # Отримуємо прапорець
         with_dealer = request.query_params.get("with_dealer", "false").lower() == "true"
 
         if with_dealer:
-            user = request.user
-            dealer = getattr(user, "user_id_1C", None)
+            dealer = request.user.id  # int, як потрібно процедурі
         else:
             dealer = None
 
         with connection.cursor() as cursor:
-            cursor.execute("EXEC [dbo].[GetComplaintsFull] @Dealer = %s", [dealer])
+            cursor.execute("EXEC [dbo].[GetComplaintsFull] @User_ID = %s", [dealer])
 
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
@@ -342,6 +341,7 @@ class GetComplaintsFullView(APIView):
         data = [dict(zip(columns, row)) for row in rows]
 
         return Response(data, status=status.HTTP_200_OK)
+
 
 
 # from rest_framework.decorators import api_view
