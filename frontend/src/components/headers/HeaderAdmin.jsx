@@ -1,17 +1,50 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useContext } from "react";
-import { useNavigate } from "react-router-dom";
-import { useMediaQuery } from 'react-responsive';
+import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
 import { RoleContext } from "../../context/RoleContext";
+import "./HeaderAdmin.css";
+import HeaderUserProfile from "./HeaderUserProfile";
+
+
+
+
+/** головні пункти меню */
+const NAV_LINKS = [
+  { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight"  },
+  { title: "Прорахунки", to: "/orders", icon: "icon-calculator" },
+  { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
+  { title: "Дозамовлення", to: "/additional-orders", icon: "icon-add-to-list" },
+  { title: "Статус", to: "/orders-fin", icon: "icon-file-text" },
+  { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
+  { title: "Відео", to: "/videos", icon: "icon-youtube" },
+  { title: "Статистика SOS", to: "/urgentLogs", icon: "icon-stats" },
+];
+
+/** підменю Фінанси */
+const FINANCE_SUBMENU = [
+  { title: "Взаєморозрахунки", to: "/finance/settlements" },
+  { title: "Рух коштів", to: "/finance/money-flow" },
+  { title: "Аналітика", to: "/finance/analytics" },
+  { title: "Оплата", to: "/finance/payments" },
+  { title: "Акція WDS", to: "/promo" },
+  { title: "Рахунки", to: "/finance/bills" },
+];
+
+/** підменю Налаштування */
+const SETTINGS_SUBMENU = [
+  { title: "Організації", to: "/organizations" },
+  { title: "Регіони", to: "/regions" },
+  { title: "Користувачі", to: "/users" },
+  { title: "Контакти", to: "/contacts" },
+];
 
 export default function HeaderAdmin() {
   const isMobile = useMediaQuery({ maxWidth: 1459 });
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { logout } = useContext(AuthContext);  // новий AuthContext
-  const { role, setRole } = useContext(RoleContext);
+  const { logout } = useContext(AuthContext);
 
   const [showSettings, setShowSettings] = useState(false);
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
@@ -23,7 +56,6 @@ export default function HeaderAdmin() {
   const financeRef = useRef();
   const mobileMenuRef = useRef();
 
-  // Закриваємо меню при зміні маршруту
   useEffect(() => {
     setShowSettings(false);
     setShowFinanceMenu(false);
@@ -32,7 +64,6 @@ export default function HeaderAdmin() {
     setMobileMenuOpen(false);
   }, [location]);
 
-  // Обробник кліку поза межами
   useEffect(() => {
     function handleClickOutside(event) {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
@@ -51,118 +82,56 @@ export default function HeaderAdmin() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Новий handleLogout через AuthContext
   const handleLogout = async () => {
-    await logout();  // очищає токени та роль
+    await logout();
     navigate("/home");
   };
 
-  // Навігаційні посилання з уніфікованими стилями
-  const navLinks = (
-    <>
-      <Link
-        to="/promo"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
+  const navLinks = NAV_LINKS.map((link) => (
+      <li
+        key={link.to}
+        className={`${location.pathname.startsWith(link.to) ? "active" : ""} ${link.className || ""}`}
       >
-        Акція WDS
-      </Link>
-      <Link
-        to="/orders"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Замовлення
-      </Link>
-      <Link
-        to="/complaints"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Рекламації
-      </Link>
-      <Link
-        to="/additional-orders"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Дозамовлення
-      </Link>
-      <Link
-        to="/orders-fin"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Статус
-      </Link>
-      <Link
-        to="/files"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Файли
-      </Link>
-      <Link
-        to="/videos"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Відео
-      </Link>
-      <Link
-        to="/urgentLogs"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Статистика SOS
-      </Link>
-      <Link
-        to="/change-password"
-        className="text-white hover:text-blue-500 text-base focus:outline-none"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        Змінити пароль
-      </Link>
-    </>
-  );
 
-  // Відкриваємо тільки одне меню одночасно
+      <Link to={link.to} className="menu-link">
+        <span className={`icon ${link.icon}`}></span>
+        <span>{link.title}</span>
+      </Link>
+    </li>
+
+  ));
+
   const toggleSettingsMenu = () => {
-    setShowSettings(prev => {
+    setShowSettings((prev) => {
       if (!prev) setShowFinanceMenu(false);
       return !prev;
     });
     setShowFinanceMenuMobile(false);
     setShowSettingsMobile(false);
   };
-
   const toggleFinanceMenu = () => {
-    setShowFinanceMenu(prev => {
+    setShowFinanceMenu((prev) => {
       if (!prev) setShowSettings(false);
       return !prev;
     });
     setShowFinanceMenuMobile(false);
     setShowSettingsMobile(false);
   };
-
   const toggleFinanceMenuMobile = () => {
-    setShowFinanceMenuMobile(prev => {
+    setShowFinanceMenuMobile((prev) => {
       if (!prev) setShowSettingsMobile(false);
       return !prev;
     });
   };
-
   const toggleSettingsMenuMobile = () => {
-    setShowSettingsMobile(prev => {
+    setShowSettingsMobile((prev) => {
       if (!prev) setShowFinanceMenuMobile(false);
       return !prev;
     });
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-[#45403e] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
-
-      {/* Логотип */}
+    <header className="portal-header">
       <div className="flex items-center">
         <Link to={"/dashboard"}>
           <img src="/header_logo.svg" alt="Логотип" className="h-10" />
@@ -170,257 +139,114 @@ export default function HeaderAdmin() {
       </div>
 
       {!isMobile ? (
-        <>
-      {/* Десктоп меню */}
-      
-      <nav className="hidden lg:flex gap-4 text-base font-medium items-center" ref={financeRef}>
-        {navLinks}
+        <nav className="menu" ref={financeRef}>
+          <ul>
+            {navLinks}
+            <li>
+              
+              {/* <i className="fa-solid fa-fire"></i> */}
 
-        {/* Фінанси десктоп */}
-        <div className="relative">
-          <button
-            onClick={toggleFinanceMenu}
-            className="text-white hover:text-blue-500 flex items-center gap-1 focus:outline-none"
-          >
-            Фінанси ▾
+              <button className="menu-link" onClick={toggleFinanceMenu}>
+                <i className="icon icon-coin-dollar"></i>
+                Фінанси ▾
+              </button>
+              {showFinanceMenu && (
+                <ul className="submenu">
+                  {FINANCE_SUBMENU.map((item) => (
+                    <li key={item.to}>
+                      <Link to={item.to} className="menu-link" onClick={() => setShowFinanceMenu(false)}>
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+            <li ref={settingsRef}>
+              <button className="menu-link" onClick={toggleSettingsMenu}>
+                Налаштування ▾
+              </button>
+              {showSettings && (
+                <ul className="submenu">
+                  {SETTINGS_SUBMENU.map((item) => (
+                    <li key={item.to}>
+                      <Link to={item.to} className="menu-link" onClick={() => setShowSettings(false)}>
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+            
+                          <li className="dealer-size">
+                          <HeaderUserProfile />
+                        </li>
+            
+
+                              <li className="logout-item">
+                                <button
+                                  className="logout-icon "
+                                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                                  title="Вийти"
+                                >
+                                  <i className="fa fa-sign-out-alt"></i>
+                                </button>
+                              </li>
+
+
+          </ul>
+        </nav>
+      ) : (
+        <div className="mobile-menu" ref={mobileMenuRef}>
+          <button onClick={() => setMobileMenuOpen((prev) => !prev)} className="menu-toggle">
+            ☰
           </button>
-          {showFinanceMenu && (
-            <div className="absolute bg-white text-gray-700 rounded shadow-md mt-2 min-w-[180px] z-50">
-              <Link
-                to="/finance/settlements"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowFinanceMenu(false)}
-              >
-                Взаєморозрахунки
-              </Link>
-              <Link
-                to="/finance/money-flow"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowFinanceMenu(false)}
-              >
-                Рух коштів
-              </Link>
-              <Link
-                to="/finance/analytics"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowFinanceMenu(false)}
-              >
-                Аналітика
-              </Link>
-              <Link
-                to="/finance/payments"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowFinanceMenu(false)}
-              >
-                Оплата
-              </Link>
-              <Link
-                to="/promo"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowFinanceMenu(false)}
-              >
-                Акція WDS
-              </Link>
-              <Link
-                to="/finance/bills"
-                className="block px-4 py-2 hover:bg-gray-100"
-                onClick={() => setShowFinanceMenu(false)}
-              >
-                Рахунки
-              </Link>
+          {mobileMenuOpen && (
+            <div className="mobile-menu-content">
+              <ul>
+                {navLinks}
+                <li>
+                  <button className="menu-link" onClick={toggleFinanceMenuMobile}>
+                    Фінанси ▾
+                  </button>
+                  {showFinanceMenuMobile && (
+                    <ul className="submenu">
+                      {FINANCE_SUBMENU.map((item) => (
+                        <li key={item.to}>
+                          <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
+                            {item.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+                <li>
+                  <button className="menu-link" onClick={toggleSettingsMenuMobile}>
+                    Налаштування ▾
+                  </button>
+                  {showSettingsMobile && (
+                    <ul className="submenu">
+                      {SETTINGS_SUBMENU.map((item) => (
+                        <li key={item.to}>
+                          <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
+                            {item.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+                <li>
+                  <button className="menu-link logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+                    Вийти
+                  </button>
+                </li>
+              </ul>
             </div>
           )}
         </div>
-      </nav>
-
-      {/* Десктоп Налаштування + Вийти */}
-      <div
-        className="hidden lg:flex gap-4 text-base font-medium items-center relative"
-        ref={settingsRef}
-      >
-        <button
-          onClick={toggleSettingsMenu}
-          className="text-white hover:text-blue-500 text-base focus:outline-none"
-        >
-          Налаштування ▾
-        </button>
-        {showSettings && (
-          <div className="bg-white text-gray-700 rounded shadow-md mt-2 absolute left-0 top-full min-w-[180px] z-50">
-            <Link
-              to="/organizations"
-              className="block px-4 py-2 text-base hover:bg-gray-100"
-              onClick={() => setShowSettings(false)}
-            >
-              Організації
-            </Link>
-            <Link
-              to="/regions"
-              className="block px-4 py-2 text-base hover:bg-gray-100"
-              onClick={() => setShowSettings(false)}
-            >
-              Регіони
-            </Link>
-            <Link
-              to="/users"
-              className="block px-4 py-2 text-base hover:bg-gray-100"
-              onClick={() => setShowSettings(false)}
-            >
-              Користувачі
-            </Link>
-            <Link
-              to="/contacts"
-              className="block px-4 py-2 text-base hover:bg-gray-100"
-              onClick={() => setShowSettings(false)}
-            >
-              Контакти
-            </Link>
-          </div>
-        )}
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-base"
-        >
-          Вийти
-        </button>
-      </div>
-        </>
-      ) : (
-        <>
-      {/* Мобільне меню */}
-          <div ref={mobileMenuRef}>
-            <button
-              onClick={() => setMobileMenuOpen(prev => {
-                if (!prev) {
-                  setShowFinanceMenuMobile(false);
-                  setShowSettingsMobile(false);
-                }
-                return !prev;
-              })}
-              className="text-white focus:outline-none text-2xl select-none"
-              aria-label="Відкрити меню"
-            >
-              ☰
-            </button>
-
-        {mobileMenuOpen && (
-          <div className="absolute top-16 left-0 w-full font-medium bg-[#45403e] flex flex-col gap-3 p-4 text-base z-50 transition-all duration-300 ease-in-out">
-            {/* Навігаційні посилання без Фінансів */}
-            {navLinks}
-
-            {/* Фінанси мобільне меню */}
-            <div>
-              <button
-                onClick={toggleFinanceMenuMobile}
-                className="text-left hover:text-blue-500 w-full"
-              >
-                Фінанси ▾
-              </button>
-              {showFinanceMenuMobile && (
-                <div className="bg-white text-gray-700 rounded shadow-md mt-2 flex flex-col">
-                  <Link
-                    to="/finance/settlements"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Взаєморозрахунки
-                  </Link>
-                  <Link
-                    to="/finance/money-flow"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Рух коштів
-                  </Link>
-                  <Link
-                    to="/finance/analytics"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Аналітика
-                  </Link>
-                  <Link
-                    to="/finance/payments"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Оплата
-                  </Link>
-                  <Link
-                    to="/promo"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Акція WDS
-                  </Link>
-                  <Link
-                    to="/finance/bills"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Рахунки
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Налаштування мобільне меню */}
-            <div>
-              <button
-                onClick={toggleSettingsMenuMobile}
-                className="text-left hover:text-blue-500 w-full"
-              >
-                Налаштування ▾
-              </button>
-              {showSettingsMobile && (
-                <div className="bg-white text-gray-700 rounded shadow-md mt-2 flex flex-col">
-                  <Link
-                    to="/organizations"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Організації
-                  </Link>
-                  <Link
-                    to="/regions"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Регіони
-                  </Link>
-                  <Link
-                    to="/users"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Користувачі
-                  </Link>
-                  <Link
-                    to="/contacts"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Контакти
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Кнопка Вийти мобільна */}
-            <button
-              onClick={() => {
-                handleLogout();
-                setMobileMenuOpen(false);
-              }}
-              className="bg-red-500 hover:bg-red-600 w-20 text-white px-2 py-1  rounded-md "
-            >
-              Вийти
-            </button>
-          </div>
-        )}
-      </div>
-
-      
-        </>
       )}
     </header>
   );
