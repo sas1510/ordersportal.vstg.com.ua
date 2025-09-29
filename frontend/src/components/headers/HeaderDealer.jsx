@@ -1,269 +1,178 @@
-import { Link } from "react-router-dom";
-import { useContext, useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect, useContext } from "react";
 import { useMediaQuery } from "react-responsive";
-import { AuthContext } from "../../context/AuthContext"; // імпорт AuthContext
+import { AuthContext } from "../../context/AuthContext";
 import { RoleContext } from "../../context/RoleContext";
+import "./HeaderAdmin.css"; // Використовуємо ті ж стилі
+import HeaderDealerProfile from "./HeaderDealerProfile";
+
+
+const NAV_LINKS = [
+  { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight"  },
+  { title: "Замовлення", to: "/orders", icon: "icon-calculator" },
+  { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
+  { title: "Дозамовлення", to: "/additional-orders", icon: "icon-add-to-list" },
+  { title: "Статус", to: "/orders-fin", icon: "icon-file-text" },
+  { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
+  { title: "Відео", to: "/videos", icon: "icon-youtube" },
+  { title: "Статистика SOS", to: "/emergency-contacts", icon: "icon-stats" },
+];
+
+const FINANCE_SUBMENU = [
+  { title: "Взаєморозрахунки", to: "/finance/settlements" },
+  { title: "Рух коштів", to: "/finance/money-flow" },
+  { title: "Аналітика", to: "/finance/analytics" },
+  { title: "Оплата", to: "/finance/payments" },
+  { title: "Акція WDS", to: "/promo" },
+  { title: "Рахунки", to: "/finance/bills" },
+];
 
 export default function HeaderDealer() {
   const isMobile = useMediaQuery({ maxWidth: 1459 });
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const { logout } = useContext(AuthContext); // отримуємо logout
-  const { role, setRole } = useContext(RoleContext); // роль користувача
+  const { logout } = useContext(AuthContext);
+  const { role } = useContext(RoleContext);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
   const [showFinanceMenuMobile, setShowFinanceMenuMobile] = useState(false);
 
-  const menuRef = useRef();
   const financeRef = useRef();
+  const mobileMenuRef = useRef();
 
-  const handleLogout = async () => {
-    await logout();  // викликаємо logout з AuthContext
-    navigate("/home");
-  };
+  useEffect(() => {
+    setShowFinanceMenu(false);
+    setShowFinanceMenuMobile(false);
+    setMobileMenuOpen(false);
+  }, [location]);
 
-  // Закриття меню при кліку поза межами
   useEffect(() => {
     function handleClickOutside(event) {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMobileMenuOpen(false);
-        setShowFinanceMenuMobile(false);
-      }
       if (financeRef.current && !financeRef.current.contains(event.target)) {
         setShowFinanceMenu(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+        setShowFinanceMenuMobile(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  
-  // Закрити підменю при відкритті іншого
-  const toggleFinanceMenu = () => {
-    setShowFinanceMenu((prev) => {
-      if (!prev) setShowFinanceMenuMobile(false);
-      return !prev;
-    });
+  const handleLogout = async () => {
+    await logout();
+    navigate("/home");
   };
 
-  const toggleFinanceMenuMobile = () => {
-    setShowFinanceMenuMobile((prev) => {
-      if (!prev) setShowFinanceMenu(false);
-      return !prev;
-    });
-  };
+  const navLinks = NAV_LINKS.map((link) => (
+    <li key={link.to} className={`${location.pathname.startsWith(link.to) ? "active" : ""} ${link.className || ""}`}>
+      <Link to={link.to} className="menu-link">
+        <span className={`icon ${link.icon}`}></span>
+        <span>{link.title}</span>
+      </Link>
+    </li>
+  ));
 
-  const navLinks = (
-    <>
-      <Link to="/promo" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Акція WDS</Link>
-      <Link to="/orders" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Замовлення</Link>
-      <Link to="/complaints" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Рекламації</Link>
-      <Link to="/additional-orders" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Дозамовлення</Link>
-      <Link to="/orders-fin" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Статус</Link>
-      <Link to="/files" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Файли</Link>
-      <Link to="/videos" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>Відео</Link>
-      <Link to="/emergency-contacts" className="hover:text-blue-500" onClick={() => setMobileMenuOpen(false)}>SOS</Link>
-                    <Link
-                    to="/change-password"
-                    className="text-white hover:text-blue-500 text-base focus:outline-none"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Змінити пароль
-                  </Link>
-    </>
-  );
+  const toggleFinanceMenu = () => setShowFinanceMenu(prev => !prev);
+  const toggleFinanceMenuMobile = () => setShowFinanceMenuMobile(prev => !prev);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-[#45403e] shadow-md text-white py-4 px-6 flex justify-between items-center z-50">
-      <div style={styles.left}>
+    <header className="portal-header">
+      <div className="flex items-center">
         <Link to={"/dashboard"}>
-          <img src="/header_logo.svg" alt="Логотип" style={styles.logo} />
+          <img src="/header_logo.svg" alt="Логотип" className="h-10" />
         </Link>
       </div>
 
-      {/* Відображаємо меню залежно від ширини */}
-      {!isMobile && (
-        <nav className="flex gap-4 text-base font-medium text-white items-center" ref={financeRef}>
-          {navLinks}
-
-          {/* Фінанси десктоп з дропдауном */}
-          <div className="relative">
-            <button
-              onClick={toggleFinanceMenu}
-              className="hover:text-blue-500 flex items-center gap-1 focus:outline-none"
-            >
-              Фінанси ▾
-            </button>
-            {showFinanceMenu && (
-              <div className="absolute bg-white text-gray-700 rounded shadow-md mt-2 min-w-[180px] z-50">
-                <Link
-                  to="/finance/settlements"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setShowFinanceMenu(false)}
-                >
-                  Взаєморозрахунки
-                </Link>
-                <Link
-                  to="/finance/money-flow"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setShowFinanceMenu(false)}
-                >
-                  Рух коштів
-                </Link>
-                <Link
-                  to="/finance/analytics"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setShowFinanceMenu(false)}
-                >
-                  Аналітика
-                </Link>
-                <Link
-                  to="/finance/payments"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setShowFinanceMenu(false)}
-                >
-                  Оплата
-                </Link>
-                <Link
-                  to="/promo"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setShowFinanceMenu(false)}
-                >
-                  Акція WDS
-                </Link>
-                <Link
-                  to="/finance/bills"
-                  className="block px-4 py-2 hover:bg-gray-100"
-                  onClick={() => setShowFinanceMenu(false)}
-                >
-                  Рахунки
-                </Link>
-
-              </div>
-            )}
-          </div>
-        </nav>
-      )}
-
-      {/* Мобільне меню */}
-      {isMobile && (
-        <div className="" ref={menuRef}>
-          <button
-            onClick={() => {
-              setMobileMenuOpen(prev => {
-                if (!prev) setShowFinanceMenuMobile(false);
-                return !prev;
-              });
-            }}
-            className="text-white focus:outline-none text-2xl select-none"
-            aria-label="Відкрити меню"
-          >
-            ☰
-          </button>
-
-          <div
-            className={`absolute top-16 font-medium left-0 w-full bg-[#45403e] flex flex-col gap-3 p-4 text-base z-50
-              transition-all duration-300 ease-in-out overflow-hidden
-              ${mobileMenuOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"}`}
-            style={{ pointerEvents: mobileMenuOpen ? "auto" : "none" }}
-          >
+      {!isMobile ? (
+        <nav className="menu" ref={financeRef}>
+          <ul>
             {navLinks}
 
-            {/* Фінанси мобільне меню */}
-            <div>
-              <button
-                onClick={toggleFinanceMenuMobile}
-                className="text-left hover:text-blue-500 w-full"
-              >
+            <li>
+              <button className="menu-link" onClick={toggleFinanceMenu}>
+                <i className="icon icon-coin-dollar"></i>
                 Фінанси ▾
               </button>
-              {showFinanceMenuMobile && (
-                <div className="bg-white text-gray-700 rounded shadow-md mt-2 flex flex-col">
-                  <Link
-                    to="/finance/settlements"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Взаєморозрахунки
-                  </Link>
-                  <Link
-                    to="/finance/money-flow"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Рух коштів
-                  </Link>
-                  <Link
-                    to="/finance/analytics"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Аналітика
-                  </Link>
-                  <Link
-                    to="/finance/payments"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Оплата
-                  </Link>
-                  <Link
-                    to="/promo"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Акція WDS
-                  </Link>
-                  <Link
-                    to="/finance/bills"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Рахунки
-                  </Link>
-    
-                </div>
+              {showFinanceMenu && (
+                <ul className="submenu">
+                  {FINANCE_SUBMENU.map(item => (
+                    <li key={item.to}>
+                      <Link to={item.to} className="menu-link" onClick={() => setShowFinanceMenu(false)}>
+                        {item.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               )}
+            </li>
+
+            {/* Профіль дилера */}
+       
+
+              <li className="dealer-size">
+              <HeaderDealerProfile />
+            </li>
+
+      
+                    
+             <li className="logout-item">
+                <button
+                  className="menu-link logout-icon"
+                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  title="Вийти"
+                >
+                  <i className="fa fa-sign-out-alt"></i>
+
+                </button>
+              </li>
+          </ul>
+        </nav>
+      ) : (
+        <div className="mobile-menu" ref={mobileMenuRef}>
+          <button onClick={() => setMobileMenuOpen(prev => !prev)} className="menu-toggle">☰</button>
+          {mobileMenuOpen && (
+            <div className="mobile-menu-content">
+              <ul>
+                {navLinks}
+
+                <li>
+                  <button className="menu-link" onClick={toggleFinanceMenuMobile}>
+                    Фінанси ▾
+                  </button>
+                  {showFinanceMenuMobile && (
+                    <ul className="submenu">
+                      {FINANCE_SUBMENU.map(item => (
+                        <li key={item.to}>
+                          <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
+                            {item.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+
+             <li className="logout-item">
+                <button
+                  className="menu-link logout-icon"
+                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  title="Вийти"
+                >
+                  <i className="fa fa-sign-out-alt"></i>
+
+                </button>
+              </li>
+
+
+              </ul>
             </div>
-
-            <button
-              onClick={() => {
-                handleLogout();
-                setMobileMenuOpen(false);
-                setShowFinanceMenuMobile(false);
-              }}
-              className="bg-red-500 w-20 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-            >
-              Вийти
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Кнопка Вийти для десктопу */}
-      {!isMobile && (
-        <div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-base"
-          >
-            Вийти
-          </button>
+          )}
         </div>
       )}
     </header>
   );
 }
-
-const styles = {
-  left: {
-    display: "flex",
-    alignItems: "center",
-  },
-  logo: {
-    height: "40px",
-    marginRight: "15px",
-  },
-};

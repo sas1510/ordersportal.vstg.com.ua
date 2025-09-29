@@ -1,0 +1,346 @@
+
+
+
+
+:root {
+    --text-color: #606060;
+    --info-color: #5e83bf;
+    --success-color: #76b448;
+    --warning-color: #d3c527;
+    --danger-color: #e46321;
+    --brown-color: #7C5747;
+    --purple-color: #645388;
+    --grey-color: #aaaaaa;
+    --grey-text-color: #b9b9b9;
+    --info-bg-color: #cfdcef99;
+    --success-bg-color: #e9f3e1;
+    --warning-bg-color: #f3f1d5;
+    --danger-bg-color: #fae4d9;
+    --cream-bg-color: #FFF9EC;
+    --purple-bg-color: #EDE7F6;
+    --shadow-color: #00000050;
+    --vs-green-color: #d4d947;
+    --vs-blue-color: #6b98bf;
+    --grey-border-color: #95959563;
+    --exit: #d32f2f;
+
+    --header-height: 50px;
+    --burger-menu-width: 500px;
+    
+}
+
+
+.portal-header {
+  display: flex;
+  align-items: stretch; /* важливо */
+  background: radial-gradient(circle, #424242 15%, #2d2826);
+  color: #ccc;
+  height: 60px;
+  padding: 0 0; /* прибрали падінги */
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+}
+
+/* Логотип */
+.portal-header > div {
+  display: flex;
+  align-items: center;
+  padding: 0 16px; /* невеликий відступ для логотипа */
+}
+
+.portal-header .logo img {
+  height: 100%;
+}
+
+.portal-header .menu {
+  display: flex;
+  flex: 1; /* займе всю ширину */
+  height: 100%; /* важливо */
+}
+
+/* Меню */
+.portal-header .menu ul {
+  display: flex;
+  flex: 1; /* на всю ширину */
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 100%; /* важливо */
+}
+
+.portal-header .menu ul li {
+  flex: 1; /* рівномірна ширина */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* важливо */
+  position: relative;
+  border-right: 1px dashed #555;
+}
+
+.portal-header .menu ul li .menu-link,
+.portal-header .menu ul li button.menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 100%; /* важливо для hover на весь li */
+  text-decoration: none;
+  color: #ccc;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+/* Hover та active на весь пункт */
+.portal-header .menu ul li:hover,
+.portal-header .menu ul li.active {
+  background-color: #6e6e6e;
+  color: #fff;
+}
+
+.portal-header .menu ul li:hover .icon,
+.portal-header .menu ul li.active .icon {
+  color: var(--success-color);
+}
+
+/* Підменю */
+/* Підменю */
+.portal-header .submenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #424242;       /* фон підменю */
+  color: #ccc;
+  min-width: 180px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.portal-header .menu ul li.dealer-size {
+    font-size: 20px;
+    height: 100%;
+    width: 200%;
+}
+
+.portal-header .menu ul li .dealer-icon {
+    color: #17a2b8; /* колір іконки */
+    font-size: 16px;
+}
+
+/* При наведенні на весь li профілю змінюємо колір іконки користувача */
+.profile-item-column:hover .dealer-icon {
+    color: #17a2b8  !important; /* зелений при hover */
+}
+
+.portal-header .menu ul li .money-icon {
+    color: var(--success-color); /* колір іконки */
+    font-size: 16px;
+}
+ 
+/* Всі елементи підменю з тлом */
+.portal-header .submenu li {
+  width: 100%;
+  background-color: #424242; /* фон всіх li */
+}
+
+/* посилання у підменю */
+.portal-header .submenu li .menu-link {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  color: #ccc;
+  text-decoration: none;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ефект наведення */
+.portal-header .submenu li .menu-link:hover {
+  background: #6e6e6e; /* темніше сіре */
+  color: #fff;          /* білий текст */
+}
+
+
+/* Виділений пункт */
+.menu li.highlight {
+  background-color: #ff6600 !important;
+  color: #fff; /* білий текст */
+}
+
+.menu li.highlight > .menu-link,
+.menu li.highlight > .menu-link span {
+  color: #fff;
+  text-decoration: none; /* щоб не було підкреслення */
+}
+
+.menu li.highlight .icon {
+  color: #fff; /* біла іконка */
+}
+
+/* Розширення профілю */
+.profile-item {
+align-items: center;
+    padding: 14px;
+    /*margin-right: 14px;*/
+    /*border-left: 1px dashed var(--grey-border-color);*/
+    cursor: pointer;
+    /*background-color: #424242;*/
+    background-color: var(--text-color);
+    color: #fff;
+  flex-grow: 1; /* займає доступне місце */
+  display: flex;
+}
+
+/* Квадратна кнопка */
+
+
+.square-button:hover {
+  background-color: #d32f2f;
+}
+
+
+/* Головний стиль для профілю дилера */
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 100%;
+}
+
+.profile-item .icon {
+  color: #17a2b8; /* колір іконки */
+  font-size: 20px;
+}
+
+.profile-item .name {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  color: #fff; /* колір тексту */
+  font-weight: 500;
+}
+
+.profile-item .balance {
+  color: #ffc107; /* баланс у жовтому */
+  font-size: 20px;
+  white-space: nowrap;
+}
+
+/* Щоб перекрити стилі HeaderAdmin для дилера */
+.menu .profile-item .icon,
+.menu .profile-item .name,
+.menu .profile-item .balance {
+  color: inherit !important;
+}
+
+.portal-header .menu ul li:last-child {
+  border-right: none;
+}
+.portal-header .menu ul li:not(.profile-item):not(.logout-item) {
+  border-right: 1px dashed #555;
+}
+
+
+/* Переважні стилі для профілю дилера */
+.profile-item {
+    align-items: center !important;
+    padding: 14px !important;
+    /*margin-right: 14px;*/
+    /*border-left: 1px dashed var(--grey-border-color);*/
+    cursor: pointer !important;
+    /*background-color: #424242;*/
+    background-color: var(--text-color)     !important;
+    color: #fff !important;
+}
+
+
+.profile-item-column {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  padding:  14px !important;
+  background-color: var(--text-color)     !important;
+  cursor: pointer !important;
+  color: #fff !important;
+  height: 100% !important;
+}
+
+
+
+
+
+.profile-item-column .icon {
+  font-size: 16px !important;
+}
+
+.profile-item-column .name {
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 16px !important;
+  text-overflow: ellipsis;
+}
+
+.profile-item-column .balance {
+  font-size: 18px !important;
+  white-space: nowrap;
+  color: var(--vs-green-color) !important;
+}
+
+
+
+/* li для кнопки виходу */
+.logout-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: var(--text-color)     !important;
+  flex: 0 0 auto !important;  /* li не розтягується */
+  padding: 0 8px !important;
+  height: 100% !important;
+}
+
+/* кнопка виходу */
+.logout-item .logout-icon {
+  width: 36px !important;          /* ширина кнопки */
+  height: 36px !important;         /* висота кнопки */
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  border-radius: 6px !important;
+  color: #fff !important;
+  border: none !important;
+
+  cursor: pointer !important;
+  font-size: 0 !important;         /* прибираємо текст */
+}
+
+/* іконка всередині кнопки */
+.logout-item .logout-icon i {
+  font-size: 16px !important;      /* розмір іконки */
+  line-height: 1 !important;
+}
+
+
+/* Пунктирна лінія між іменем і балансом */
+.profile-item-column .divider {
+  width: 100%;
+  border-bottom: 1px dashed #e6e3e3;
+  margin: 1px 0;
+}
+
+.logout-icon:hover {
+  background-color: var(--exit) !important; 
+}

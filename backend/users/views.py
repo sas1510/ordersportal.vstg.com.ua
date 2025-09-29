@@ -21,7 +21,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.db import connection
 User = get_user_model()
+
 
 # ----------------------
 # Логін
@@ -198,3 +201,46 @@ def get_customers(request):
     # Припускаємо, що у User є поле role
     customers = User.objects.filter(role='customer').values('id', 'full_name')
     return Response(list(customers))
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_balance_view(request):
+    """
+    Викликає збережену процедуру GetBalance @User_ID і повертає результат.
+    """
+    user_id = request.user.id
+
+    if getattr(request.user, 'role', None) not in ['customer']:
+        return JsonResponse({'detail': 'У вас немає прав для перегляду балансу.'}, status=403)
+
+    with connection.cursor() as cursor:
+        # Виклик збереженої процедури
+        cursor.execute("EXEC dbo.GetBalance @User_ID=%s", [user_id])
+        row = cursor.fetchone()  # очікуємо 1 рядок із сумою
+
+
+    if not row:
+        return JsonResponse({"sum": 0, "full_name": ""})
+
+    return JsonResponse({
+        "sum": row[0],        # Сума
+        "full_name": row[1]   # Ім'я користувача
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_name_view(request):
+    """
+    Повертає ім'я поточного користувача.
+    """
+    full_name = getattr(request.user, 'full_name', '')  # беремо поле full_name з моделі User
+
+    if not full_name:
+        # якщо full_name відсутнє, можна взяти username
+        full_name = request.user.username
+
+    return JsonResponse({"full_name": full_name})
+
+# ----------------------
