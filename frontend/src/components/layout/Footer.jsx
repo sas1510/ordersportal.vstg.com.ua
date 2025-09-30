@@ -17,7 +17,7 @@ const styles = {
     // backgroundColor: "rgba(255, 255, 255, 0.85)",
     color: "rgba(255, 255, 255, 0.85)",
     fontSize: "0.9rem",
-    
+    zIndex: 100,
     // position: "absolute",
     // bottom: 0,
   },
