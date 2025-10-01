@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import axiosInstance from "../../api/axios"; // твій налаштований axios з токенами
+import axiosInstance from "../../api/axios";
+ import "./HeaderAdmin.css"; // твій налаштований axios з токенами
 
 export default function HeaderDealerProfile() {
   const [balance, setBalance] = useState(0);

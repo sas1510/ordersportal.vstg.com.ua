@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { title: "Замовлення", to: "/orders", icon: "icon-calculator" },
   { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
   { title: "Дозамовлення", to: "/additional-orders", icon: "icon-add-to-list" },
-  { title: "Статус", to: "/orders-fin", icon: "icon-file-text" },
+
   { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
   { title: "Відео", to: "/videos", icon: "icon-youtube" },
   { title: "Статистика SOS", to: "/emergency-contacts", icon: "icon-stats" },
@@ -113,7 +113,7 @@ export default function HeaderDealer() {
             {/* Профіль дилера */}
        
 
-              <li className="dealer-size">
+            <li className="dealer-size">
               <HeaderDealerProfile />
             </li>
 

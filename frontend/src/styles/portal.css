@@ -199,21 +199,34 @@ body { overflow: hidden; }
 
 /* ======================= PORTAL BODY ======================= */
 .portal-body {
-    background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
-    height: calc(100% - 110px);
-    width: calc(100% - 224px);
-    overflow-y: hidden;
-    padding: 0 50px;
+    background: var(--portal-bg-color-start);
+    width: 100%;
+    min-height: 100vh; /* або calc(100vh - 60px), якщо хочеш врахувати футер */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 60px 60px 60px; /* нижній паддінг = висоті футера */
+    box-sizing: border-box;
+    
 }
+
+.portal-body > .order-body {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 120px);
+    width: 100%;
+    overflow: hidden;
+    padding: 10px 10% 0 10%;
+    
+}
+
 .portal-body > .content-summary { height: 20px; }
 .portal-body > .content-wrapper {
     height: 100%;
     width: 100%;
     overflow: hidden;
 }
-.portal-body .content-filter {
-    padding: 14px;
-    height: calc(100% - 28px);
+.portal-body .order-body .my-filter {
+    height: calc(100% - 80px);
     width: 350px;
     border-right: 1px dashed var(--grey-border-color);
 }
@@ -300,6 +313,12 @@ body { overflow: hidden; }
     align-items: flex-start;
     text-align: left;
 }
+
+.summary-item.small { width: 50px; }
+.summary-item.medium { width: 120px; }
+.summary-item.large { width: 200px; }
+.summary-item.xlarge { width: 300px; }
+
 .order-item {
     background-color: var(--portal-bg-color-light);
     color: var(--text-color);
@@ -441,10 +460,7 @@ body { overflow: hidden; }
 
 
 
-.summary-item {
-  min-width: 120px; /* або більше */
-  flex: 1;
-}
+
 
 .calc-item .summary-item-icon {
   width: 40px; /* вузька ширина */
@@ -543,3 +559,13 @@ body { overflow: hidden; }
   width: 100%;
 }
 
+
+
+.sidebar {
+  height: calc(100vh - 3%);
+  overflow-y: auto;
+  padding: 0.5rem; /* відповідає p-2 у bootstrap */
+  background-color: #f8f9fa; /* можна змінити під свій дизайн */
+  border-right: 1px solid #ddd; /* опціонально, для візуального розділення */
+  width: 320px; /* фіксована ширина сайдбару */
+}
