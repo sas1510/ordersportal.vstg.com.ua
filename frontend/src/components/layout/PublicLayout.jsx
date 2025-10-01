@@ -25,6 +25,6 @@ const styles = {
    main: {
     flexGrow: 1,
     paddingTop: "60px",   // приблизно висота Header
-    // paddingBottom: "60px" // приблизно висота Footer
+    paddingBottom: "60px" // приблизно висота Footer
   },
 };

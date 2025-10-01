@@ -1,0 +1,52 @@
+.filter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 14px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  margin-bottom: 7px;
+}
+
+.filter-item:hover,
+.filter-item.active {
+  background-color: #fff;
+  border: 1px dashed var(--grey-border-color);
+}
+
+/* Пошук вирівнюємо під filter-item */
+.filter-item.search-item {
+  padding: 0;
+  border: 1px dashed var(--grey-border-color);
+}
+
+.filter-item.search-item input.search-orders {
+  width: 100%;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.filter-item.search-item input.search-orders:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Новий прорахунок */
+.btn-add-calc {
+  background-color: var(--success-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 9px 14px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.btn-add-calc:hover {
+  opacity: 0.8;
+}

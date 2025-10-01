@@ -11,14 +11,16 @@ export default function Footer() {
 const styles = {
   footer: {
     width: "100%",
-    padding: "20px",
+    height: "40px",
+    padding: "8px",
     textAlign: "center",
     backgroundColor: "#45403e",
-    // backgroundColor: "rgba(255, 255, 255, 0.85)",
     color: "rgba(255, 255, 255, 0.85)",
     fontSize: "0.9rem",
+    position: "fixed", // фіксуємо футер
+    bottom: 0,
+    left: 0,
     zIndex: 100,
-    // position: "absolute",
-    // bottom: 0,
   },
 };
+

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
+import "./HeaderAdmin.css";
 
 export default function HeaderUserProfile() {
   const [fullName, setFullName] = useState("Користувач Ім'я");
