@@ -314,10 +314,7 @@ body { overflow: hidden; }
     text-align: left;
 }
 
-.summary-item.small { width: 50px; }
-.summary-item.medium { width: 120px; }
-.summary-item.large { width: 200px; }
-.summary-item.xlarge { width: 300px; }
+
 
 .order-item {
     background-color: var(--portal-bg-color-light);
@@ -460,7 +457,16 @@ body { overflow: hidden; }
 
 
 
+.summary-item {
+ 
+  flex: 0 0 auto;
+  
+}
 
+.summary-item.small { width: 50px; }
+.summary-item.medium { width: 120px; }
+.summary-item.large { width: 200px; }
+.summary-item.xlarge { width: 300px; }
 
 .calc-item .summary-item-icon {
   width: 40px; /* вузька ширина */
