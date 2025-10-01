@@ -104,37 +104,37 @@ export const CalculationItem = ({ calc, isExpanded, onToggle }) => {
           <span className="icon icon-calculator text-success text-2xl"></span>
         </div>
 
-        <div className="summary-item row w-8 no-wrap flex-col">
+        <div className="summary-item medium row w-8 no-wrap flex-col">
           <div className="text-info text-lg border-b">{`№ ${calc.id}`}</div>
           <div className="text-danger">{calc.date}</div>
         </div>
 
-        <div className="summary-item row w-5 no-wrap items-center gap-2" title="Кількість конструкцій">
+        <div className="summary-item  medium row w-5 no-wrap items-center gap-2" title="Кількість конструкцій">
           <span className="icon-layout5 text-info text-2xl"></span>
           <div className="text-danger text-xl">{constructionsCount}</div>
         </div>
 
-        <div className="summary-item row w-5 no-wrap items-center gap-2" title="Кількість замовлень">
+        <div className="summary-item medium row w-5 no-wrap items-center gap-2" title="Кількість замовлень">
           <span className="icon-news text-info text-2xl"></span>
           <div className="text-danger text-xl">{orderCount}</div>
         </div>
 
-        <div className="summary-item row w-12 no-wrap items-center gap-2" title="Сума прорахунку">
+        <div className="summary-item medium row w-12 no-wrap items-center gap-2" title="Сума прорахунку">
           <span className="icon icon-coin-dollar text-success text-2xl"></span>
           <div className="text-danger text-lg">{calc.sum}</div>
         </div>
 
-        <div className="summary-item row w-30 items-center gap-2">
+        <div className="summary-item medium row w-30 items-center gap-2">
           <div className="icon-chat5 text-info text-2xl"></div>
           <div className="text-grey text-xs">{calc.message}</div>
         </div>
 
-        <div className="summary-item row w-10 items-center gap-2">
+        <div className="summary-item medium row w-10 items-center gap-2">
           <div className="icon-document-file-numbers text-success text-2xl"></div>
           <div>{calc.file}</div>
         </div>
 
-        <div className="summary-item row w-15 items-center gap-2">
+        <div className="summary-item large row w-15 items-center gap-2">
           <div className="icon-info-with-circle text-info text-2xl"></div>
           <div className="text-danger text-base">Очікують оплату</div>
         </div>
