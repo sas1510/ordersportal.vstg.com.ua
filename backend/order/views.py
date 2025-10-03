@@ -398,3 +398,91 @@ def get_orders_by_dealer_and_year(request):
         final_orders.append(main_order)
 
     return JsonResponse(final_orders, safe=False)
+
+
+
+# views.py
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db import connection
+
+def portal_view(request):
+    user = request.user
+    customer_id = 5
+
+    # Беремо рік із GET-параметра, якщо не передано — поточний
+    reporting_year = request.GET.get("year")
+    try:
+        reporting_year = int(reporting_year)
+    except (TypeError, ValueError):
+        reporting_year = timezone.now().year
+
+    payload = {
+        "name": "RootController",
+        "class": "RootController",
+        "CustomerID": customer_id,
+        "reportingPeriod": reporting_year,
+        "uuid": f"RootController-{timezone.now().timestamp()}",
+        "calculation": []
+    }
+
+    # Викликаємо процедуру
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            EXEC [dbo].[GetOrdersByDealerAndYear1] @ОтчетныйГод=%s, @ПользовательПортал_ID=%s
+        """, [reporting_year, customer_id])
+
+        columns = [col[0] for col in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Групуємо дані по Calculation_ID
+    calc_map = {}
+    for row in rows:
+        calc_id = row["Просчет_ID"]
+        if calc_id not in calc_map:
+            calc_map[calc_id] = {
+                "uuid": str(calc_id),
+                "class": "Calculation",
+                "File": row["File"],
+                "name": row["НомерПросчета"],
+                "ДатаПросчета": row["ДатаПросчета"].isoformat() if row["ДатаПросчета"] else None,
+                "КоличествоКонструкцийВПросчете": row["КоличествоКонструкцийВПросчете"],
+                "ПросчетСообщения": row["ПросчетСообщения"],
+                "order": []
+            }
+
+        order_dict = {
+            "uuid": str(row["Заказ_ID"]),
+            "class": "Order",
+            "name": row["НомерЗаказа"],
+            "ДатаЗаказа": row["ДатаЗаказа"].isoformat() if row["ДатаЗаказа"] else None,
+            "СостояниеЗаказа": row["СостояниеЗаказа"],
+            "СуммаЗаказа": row["СуммаЗаказа"],
+            "КоличествоКонструкцийВЗаказе": row["КоличествоКонструкцийВЗаказе"],
+            "ПлановаяДатаПроизводстваМакс": row["ПлановаяДатаПроизводстваМакс"].isoformat() if row["ПлановаяДатаПроизводстваМакс"] else None,
+            "ПлановаяДатаПроизводстваМин": row["ПлановаяДатаПроизводстваМин"].isoformat() if row["ПлановаяДатаПроизводстваМин"] else None,
+            "ОплаченоПоЗаказу": row["ОплаченоПоЗаказу"],
+            "ФактическаяДатаПроизводстваМин": row["ФактическаяДатаПроизводстваМин"].isoformat() if row["ФактическаяДатаПроизводстваМин"] else None,
+            "ФактическаяДатаПроизводстваМакс": row["ФактическаяДатаПроизводстваМакс"].isoformat() if row["ФактическаяДатаПроизводстваМакс"] else None,
+            "ПроизведеноВсего": row["ПроизведеноВсего"],
+            "ФактическаяДатаГотовностиМин": row["ФактическаяДатаГотовностиМин"].isoformat() if row["ФактическаяДатаГотовностиМин"] else None,
+            "ФактическаяДатаГотовностиМакс": row["ФактическаяДатаГотовностиМакс"].isoformat() if row["ФактическаяДатаГотовностиМакс"] else None,
+            "ДатаРеализации": row["ДатаРеализации"].isoformat() if row["ДатаРеализации"] else None,
+            "КоличествоРеализовано": row["КоличествоРеализовано"],
+            "АдресДоставки": row["АдресДоставки"],
+            "ПлановаяДатаВыезда": row["ПлановаяДатаВыезда"].isoformat() if row["ПлановаяДатаВыезда"] else None,
+            "КоличествоТоваровВДоставке": row["КоличествоТоваровВДоставке"],
+            "ВремяПрибытия": row["ВремяПрибытия"].isoformat() if row["ВремяПрибытия"] else None,
+            "СостояниеМаршрута": row["СостояниеМаршрута"],
+            "ЭтапВыполненияЗаказа": row["ЭтапВыполненияЗаказа"]
+        }
+
+        calc_map[calc_id]["order"].append(order_dict)
+
+    payload["calculation"] = list(calc_map.values())
+
+    return JsonResponse({
+        "status": "success",
+        "message": "ok",
+        "data": payload
+    })

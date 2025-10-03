@@ -29,22 +29,27 @@ export default function FilterMenu({ calculations = [], onSelect }) {
   };
 
   const getCount = (filterId) => {
-    switch (filterId) {
-      case "all": return calculations.reduce((acc, c) => acc + c.items.length, 0);
-      case "new": return calculations.reduce((acc, c) => acc + c.items.filter(o => o['ЭтапВыполненияЗаказа'] === "Новий").length, 0);
-      case "processing": return calculations.reduce((acc, c) => acc + c.items.filter(o => o['ЭтапВыполненияЗаказа'] === "В обробці").length, 0);
-      case "waiting-payment": return calculations.reduce((acc, c) => acc + c.items.filter(o => parseFloat(o['СуммаЗаказа']) - parseFloat(o['ОплаченоПоЗаказу']) > 0).length, 0);
-      case "waiting-confirm": return calculations.reduce((acc, c) => acc + c.items.filter(o => o['СостояниеЗаказа'] !== "Подтверждено").length, 0);
-      case "production": return calculations.reduce((acc, c) => acc + c.items.filter(o => !!o['ФактическаяДатаПроизводстваМакс']).length, 0);
-      case "ready": return calculations.reduce((acc, c) => acc + c.items.filter(o => !!o['ФактическаяДатаГотовностиМакс']).length, 0);
-      case "delivered": return calculations.reduce((acc, c) => acc + c.items.filter(o => !!o['ДатаРеализации']).length, 0);
-      case "rejected": return calculations.reduce((acc, c) => acc + c.items.filter(o => o['ЭтапВыполненияЗаказа'] === "Відмова").length, 0);
-      default: return 0;
-    }
+    if (!Array.isArray(calculations)) return 0;
+
+    return calculations.reduce((acc, calc) => {
+      const items = Array.isArray(calc.order) ? calc.order : [];
+      switch (filterId) {
+        case "all": return acc + items.length;
+        case "new": return acc + items.filter(o => o.execution_stage === "Новий").length;
+        case "processing": return acc + items.filter(o => o.execution_stage === "В обробці").length;
+        case "waiting-payment": return acc + items.filter(o => parseFloat(o.amount || 0) - parseFloat(o.paid || 0) > 0).length;
+        case "waiting-confirm": return acc + items.filter(o => o.status !== "Подтверждено").length;
+        case "production": return acc + items.filter(o => !!o.fact_production_max).length;
+        case "ready": return acc + items.filter(o => !!o.fact_ready_max).length;
+        case "delivered": return acc + items.filter(o => !!o.realization_date).length;
+        case "rejected": return acc + items.filter(o => o.execution_stage === "Відмова").length;
+        default: return acc;
+      }
+    }, 0);
   };
 
   return (
-    <div className="" style={{ width: '300px' }}>
+    <div style={{ width: '300px' }}>
       <input
         type="text"
         className="search-orders"

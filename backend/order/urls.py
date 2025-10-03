@@ -1,6 +1,6 @@
 # backend/orders/urls.py
 from django.urls import path
-from .views import CreateOrderView, LastOrderNumberView, CustomerOrdersView, AddOrderMessageView, OrderMessagesView, get_order_payment_status, get_filtered_orders, get_orders_by_dealer_and_year
+from .views import CreateOrderView, LastOrderNumberView, CustomerOrdersView, AddOrderMessageView, OrderMessagesView, get_order_payment_status, get_filtered_orders, get_orders_by_dealer_and_year, portal_view
 
 urlpatterns = [
     path("create/", CreateOrderView.as_view(), name="create-order"),
@@ -11,4 +11,5 @@ urlpatterns = [
     path("get_order_payment_status/", get_order_payment_status, name="get_order_payment_status"),
     path("get_filtered_orders/", get_filtered_orders, name="get_filtered_orders"),
     path("get_orders_by_dealer_and_year/", get_orders_by_dealer_and_year, name="get_orders_by_dealer_and_year"),
+    path("get_orders_info/", portal_view, name="get_orders_info"),
 ]
