@@ -1,0 +1,151 @@
+.calculation-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.calculation-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  flex: 1;
+}
+
+.card-title h3 {
+  margin: 0 0 5px 0;
+  color: var(--text-color);
+  font-size: 18px;
+}
+
+.calc-date {
+  color: var(--dark-gray);
+  font-size: 14px;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.orders-count {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px 10px;
+  color: var(--primary-color);
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.order-item {
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.order-name {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.order-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-new {
+  background-color: #3498db;
+  color: white;
+}
+
+.status-processing {
+  background-color: #f39c12;
+  color: white;
+}
+
+.status-waiting-payment {
+  background-color: #e67e22;
+  color: white;
+}
+
+.status-confirmed {
+  background-color: #27ae60;
+  color: white;
+}
+
+.status-waiting-confirm {
+  background-color: #95a5a6;
+  color: white;
+}
+
+.status-production {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.status-ready {
+  background-color: #1abc9c;
+  color: white;
+}
+
+.status-shipped {
+  background-color: #16a085;
+  color: white;
+}
+
+.status-cancelled {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.order-details {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--dark-gray);
+}
+
+.no-orders {
+  text-align: center;
+  padding: 20px;
+  color: var(--dark-gray);
+}
