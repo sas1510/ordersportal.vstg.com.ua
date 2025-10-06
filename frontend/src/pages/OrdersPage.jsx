@@ -6,7 +6,7 @@ import '../components/Portal/PortalOriginal.css';
 const PortalOriginal = () => {
   const [calculationsData, setCalculationsData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-  const [filter, setFilter] = useState({ status: 0, month: 0, name: '' });
+  const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
   const [selectedYear, setSelectedYear] = useState('2025');
   const [loading, setLoading] = useState(true);
   const [expandedCalc, setExpandedCalc] = useState(null);
@@ -35,18 +35,16 @@ const PortalOriginal = () => {
         if (response.data?.status === "success") {
           const rawCalculations = response.data.data.calculation || [];
 
-          // --- Нормалізація даних ---
-          // --- Нормалізація даних ---
           const formattedCalcs = rawCalculations.map(calc => {
             const orders = Array.isArray(calc.order)
               ? calc.order
-                   .filter(order => order.uuid && order.uuid !== 'None')  // <-- тільки ті, які мають id
+                   .filter(order => order.uuid && order.uuid !== 'None')
                   .map(order => ({
                     id: order.uuid,
                     number: order.name || '',
                     dateRaw: order.ДатаЗаказа,
                     date: formatDateHuman(order.ДатаЗаказа),
-                    status: order.ЭтапВыполненияЗаказа || 'Новій',
+                    status: order.ЭтапВыполненияЗаказа || 'Новий',
                     amount: parseFloat(order.СуммаЗаказа || 0),
                     count: Number(order.КоличествоКонструкцийВЗаказе || 0),
                     paid: parseFloat(order.ОплаченоПоЗаказу || 0),
@@ -80,19 +78,15 @@ const PortalOriginal = () => {
               dateRaw: calc.ДатаПросчета,
               date: formatDateHuman(calc.ДатаПросчета),
               orders,
-              orderCountInCalc: orders.length,  // <-- вже враховуються тільки валідні
+              orderCountInCalc: orders.length,
               constructionsCount: orders.reduce((sum, order) => sum + (order.count || 0), 0),
               statuses: statusCounts,
-
               amount: totalAmount,
               file: calc.File || null,
               message: calc.ПросчетСообщения || ''
             };
           });
 
-
-          
-          console.log("Нормалізовані дані:", formattedCalcs);
           setCalculationsData(formattedCalcs);
           setFilteredItems(formattedCalcs);
         } else {
@@ -146,22 +140,10 @@ const PortalOriginal = () => {
   const getFilteredItems = (statusFilter, monthFilter, nameFilter) => {
     let filtered = [...calculationsData];
 
-    if (statusFilter !== 0) {
-      const statusMap = {
-        1: 'Новий',
-        2: 'В обробці',
-        3: 'Очікуємо оплату',
-        4: 'Підтверджений',
-        5: 'Очікуємо підтвердження',
-        6: 'У виробництві',
-        7: 'Готовий',
-        8: 'Відвантажений',
-        9: 'Відмова'
-      };
-      const targetStatus = statusMap[statusFilter];
+    if (statusFilter && statusFilter !== 'Всі') {
       filtered = filtered.filter(calc => {
-        if (calc.orders.length === 0) return targetStatus === 'Новій';
-        return calc.orders.some(order => order.status === targetStatus);
+        if (calc.orders.length === 0) return statusFilter === 'Новий';
+        return calc.orders.some(order => order.status === statusFilter);
       });
     }
 
@@ -183,9 +165,9 @@ const PortalOriginal = () => {
     return filtered;
   };
 
-  const handleFilterClick = (value) => {
-    setFilter(prev => ({ ...prev, status: value }));
-    setFilteredItems(getFilteredItems(value, filter.month, filter.name));
+  const handleFilterClick = (statusKey) => {
+    setFilter(prev => ({ ...prev, status: statusKey }));
+    setFilteredItems(getFilteredItems(statusKey, filter.month, filter.name));
   };
 
   const handleMonthClick = (month) => {
@@ -211,12 +193,12 @@ const PortalOriginal = () => {
   const toggleOrder = (id) => setExpandedOrder(expandedOrder === id ? null : id);
 
   if (loading) 
-  return (
-    <div className="loading-spinner-wrapper">
-      <div className="loading-spinner"></div>
-      <div className="loading-text">Завантаження...</div>
-    </div>
-  );
+    return (
+      <div className="loading-spinner-wrapper">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Завантаження...</div>
+      </div>
+    );
 
   return (
     <div className="column portal-body">
@@ -272,32 +254,31 @@ const PortalOriginal = () => {
           </li>
           
           <ul className="filter column align-center">
-          <li className="delimiter1"></li>
-          {[
-            { id: "all", label: "Всі прорахунки", icon: "icon-calculator", statusKey: "Всі" },
-            { id: "new", label: "Нові прорахунки", icon: "icon-bolt", statusKey: "Новий" },
-            { id: "processing", label: "В обробці", icon: "icon-spin-alt", statusKey: "В обробці" },
-            { id: "waiting-payment", label: "Очікують оплату", icon: "icon-coin-dollar", statusKey: "Очікуємо оплату" },
-            { id: "waiting-confirm", label: "Очікують підтвердження", icon: "icon-clipboard", statusKey: "Очікуємо підтвердження" },
-            { id: "production", label: "Замовлення у виробництві", icon: "icon-cogs", statusKey: "У виробництві" },
-            { id: "ready", label: "Готові замовлення", icon: "icon-layers2", statusKey: "Готовий" },
-            { id: "delivered", label: "Доставлені замовлення", icon: "icon-shipping", statusKey: "Відвантажений" },
-            { id: "rejected", label: "Відмова", icon: "icon-circle-with-cross", statusKey: "Відмова" }
-          ].map(({ id, label, icon, statusKey }, index) => (
-            <li
-              key={id}
-              className={`filter-item ${filter.status === index ? 'active' : ''}`}
-              onClick={() => handleFilterClick(index)}
-            >
-              <span className={`icon ${icon} font-size-24`}></span>
-              <span className="w-100">{label}</span>
-              <span className={statusSummary[statusKey] === 0 ? 'disabled' : ''}>
-                {statusSummary[statusKey]}
-              </span>
-            </li>
-          ))}
-        </ul>
-
+            <li className="delimiter1"></li>
+            {[
+              { id: "all", label: "Всі прорахунки", icon: "icon-calculator", statusKey: "Всі" },
+              { id: "new", label: "Нові прорахунки", icon: "icon-bolt", statusKey: "Новий" },
+              { id: "processing", label: "В обробці", icon: "icon-spin-alt", statusKey: "В обробці" },
+              { id: "waiting-payment", label: "Очікують оплату", icon: "icon-coin-dollar", statusKey: "Очікуємо оплату" },
+              { id: "waiting-confirm", label: "Очікують підтвердження", icon: "icon-clipboard", statusKey: "Очікуємо підтвердження" },
+              { id: "production", label: "Замовлення у виробництві", icon: "icon-cogs", statusKey: "У виробництві" },
+              { id: "ready", label: "Готові замовлення", icon: "icon-layers2", statusKey: "Готовий" },
+              { id: "delivered", label: "Доставлені замовлення", icon: "icon-shipping", statusKey: "Відвантажений" },
+              { id: "rejected", label: "Відмова", icon: "icon-circle-with-cross", statusKey: "Відмова" }
+            ].map(({ id, label, icon, statusKey }) => (
+              <li
+                key={id}
+                className={`filter-item ${filter.status === statusKey ? 'active' : ''}`}
+                onClick={() => handleFilterClick(statusKey)}
+              >
+                <span className={`icon ${icon} font-size-24`}></span>
+                <span className="w-100">{label}</span>
+                <span className={statusSummary[statusKey] === 0 ? 'disabled' : ''}>
+                  {statusSummary[statusKey]}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="content" id="content">
