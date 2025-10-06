@@ -80,7 +80,7 @@ export default function HeaderDealer() {
   const toggleFinanceMenuMobile = () => setShowFinanceMenuMobile(prev => !prev);
 
   return (
-    <header className="portal-header">
+    <header className="portal-header ">
       <div className="flex items-center">
         <Link to={"/dashboard"}>
           <img src="/header_logo.svg" alt="Логотип" className="h-10" />
@@ -88,7 +88,7 @@ export default function HeaderDealer() {
       </div>
 
       {!isMobile ? (
-        <nav className="menu" ref={financeRef}>
+        <nav className="menu z-1000"  ref={financeRef}>
           <ul>
             {navLinks}
 

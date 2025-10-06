@@ -13,4 +13,15 @@ export const formatDate = (dateStr, withTime = false) => {
   if (withTime) options.hour = '2-digit', options.minute = '2-digit';
   return date.toLocaleDateString('uk-UA', options);
 };
-та
+
+
+ export const formatDateHuman = (dateStr) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    if (isNaN(date)) return null;
+    return date.toLocaleDateString('uk-UA', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
