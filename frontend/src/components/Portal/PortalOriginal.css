@@ -1601,7 +1601,9 @@ html {
     align-items: center;
     height: 60px;
     cursor: pointer;
-    overflow: hidden;
+      position: relative; /* щоб absolute меню було прив’язане до кнопки */
+  overflow: visible;
+   
     gap: 8px;
 }
 
@@ -1819,4 +1821,8 @@ white-space: nowrap;
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+
+
 

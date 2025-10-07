@@ -2,6 +2,9 @@
 import React, { useState } from "react";
 import OrderDetails from "./OrderDetails";
 import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
+import CommentsModal from "./CommentsModal";
+import {CalculationMenu} from "./CalculationMenu";
+
 
 export const OrderItemSummary = ({ order }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -111,6 +114,24 @@ export const OrderItemSummary = ({ order }) => {
 export const CalculationItem = ({ calc }) => {
   const [expanded, setExpanded] = useState(false);
   const toggleExpanded = () => setExpanded((prev) => !prev);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [selectedComments, setSelectedComments] = useState([]);
+
+  const handleEdit = (calc) => {
+  console.log("Редагувати розрахунок:", calc);
+  // Тут викликати вашу логіку редагування
+};
+
+const handleDelete = (calc) => {
+  console.log("Видалити розрахунок:", calc);
+  // Тут викликати вашу логіку видалення
+};
+
+
+  const handleViewComments = (comments) => {
+    setSelectedComments(comments);
+    setIsCommentsOpen(true);
+  };
 
   const orderList = Array.isArray(calc.orders) ? calc.orders : [];
 
@@ -168,12 +189,24 @@ export const CalculationItem = ({ calc }) => {
           </div>
         </div>
 
-        <div className="summary-item row w-30 no-wrap">
+        <div className="summary-item row w-30 no-wrap align-center space-between">
           <div className="row gap-14 align-center">
-            <div className="icon-chat5 font-size-24 text-info"></div>
-            <div className="font-size-12 text-grey">{calc.message}</div>
+            <div className="icon-chat5 font-size-24 text-info" />
+            <div className="font-size-12 text-grey truncate">{calc.message || "Без коментарів"}</div>
           </div>
+
+        <button
+          className="btn-comments"
+          onClick={(e) => {
+            e.stopPropagation(); // <-- Ось ця строчка зупиняє спливання кліку
+            handleViewComments(calc.comments || []);
+          }}
+        >
+          💬 Коментарі
+        </button>
+
         </div>
+
 
         <div className="summary-item row w-10 no-wrap">
           <div className="row gap-14 align-center">
@@ -203,6 +236,11 @@ export const CalculationItem = ({ calc }) => {
             </div>
           </div>
         </div>
+        <CalculationMenu 
+  calc={calc} 
+  onEdit={handleEdit} 
+  onDelete={handleDelete} 
+/>
       </div>
 
       {/* ============ CALC DETAILS ============ */}
@@ -221,6 +259,13 @@ export const CalculationItem = ({ calc }) => {
           )}
         </div>
       )}
+
+    <CommentsModal
+      isOpen={isCommentsOpen}
+      onClose={() => setIsCommentsOpen(false)}
+      comments={selectedComments}
+      onAddComment={(text) => console.log("Новий коментар:", text)}
+    />
     </div>
   );
 };

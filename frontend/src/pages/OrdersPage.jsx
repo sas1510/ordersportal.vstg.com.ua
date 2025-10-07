@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axios';
 import { CalculationItem } from '../components/Orders1/OrderComponents';
 import '../components/Portal/PortalOriginal.css';
+import AddOrderModal from '../components/Orders1/AddOrderModal';
 
 const PortalOriginal = () => {
   const [calculationsData, setCalculationsData] = useState([]);
@@ -11,7 +12,18 @@ const PortalOriginal = () => {
   const [loading, setLoading] = useState(true);
   const [expandedCalc, setExpandedCalc] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const handleAddClick = () => setIsModalOpen(true);
+  const handleClose = () => setIsModalOpen(false);
+
+  const handleSave = (newOrder) => {
+    console.log("Новий прорахунок:", newOrder);
+    // Тут можна зробити POST-запит через axiosInstance.post(...)
+  };
+
+
+  // --- Форматування дати ---
   const formatDateHuman = (dateStr) => {
     if (!dateStr) return null;
     const date = new Date(dateStr);
@@ -248,10 +260,18 @@ const PortalOriginal = () => {
           </div>
           <div className="delimiter1"></div> 
 
-          <li className="btn btn-add-calc">
-            <span className="icon icon-plus3"> </span>
-            <span className="uppercase">Новий прорахунок</span>
-          </li>
+                <ul className="buttons">
+                  <li className="btn btn-add-calc" onClick={handleAddClick}>
+                    <span className="icon icon-plus3"> </span>
+                    <span className="uppercase">Новий прорахунок</span>
+                  </li>
+                </ul>
+
+                <AddOrderModal
+                  isOpen={isModalOpen}
+                  onClose={handleClose}
+                  onSave={handleSave}
+                />
           
           <ul className="filter column align-center">
             <li className="delimiter1"></li>
@@ -261,6 +281,7 @@ const PortalOriginal = () => {
               { id: "processing", label: "В обробці", icon: "icon-spin-alt", statusKey: "В обробці" },
               { id: "waiting-payment", label: "Очікують оплату", icon: "icon-coin-dollar", statusKey: "Очікуємо оплату" },
               { id: "waiting-confirm", label: "Очікують підтвердження", icon: "icon-clipboard", statusKey: "Очікуємо підтвердження" },
+              { id: "confirmed", label: "Підтверджені", icon: "icon-check", statusKey: "Підтверджений" },
               { id: "production", label: "Замовлення у виробництві", icon: "icon-cogs", statusKey: "У виробництві" },
               { id: "ready", label: "Готові замовлення", icon: "icon-layers2", statusKey: "Готовий" },
               { id: "delivered", label: "Доставлені замовлення", icon: "icon-shipping", statusKey: "Відвантажений" },
