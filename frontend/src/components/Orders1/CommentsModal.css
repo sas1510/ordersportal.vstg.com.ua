@@ -1,4 +1,4 @@
-.modal-overlay {
+.comments-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
@@ -6,43 +6,73 @@
   justify-content: center;
   align-items: center;
   z-index: 999;
+  animation: comments-fadeIn 0.25s ease forwards;
 }
 
-.calc-modal-window {
+.comments-modal-window {
   width: 500px;
+  max-width: 90%;
   background: #fff;
-  border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
   overflow: hidden;
-  animation: fadeIn 0.2s ease-in-out;
+  padding: 25px;
+  text-align: center;
+  position: relative;
+  transform: scale(0.8);
+  opacity: 0;
+  animation: comments-zoomIn 0.3s forwards;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-.calc-modal-header {
-  background: #76b448;
-  color: white;
-  padding: 10px 16px;
+.comments-modal-border-top,
+.comments-modal-border-bottom {
+  height: 6px;
+  background-color: #76b448;
+  width: 100%;
+  position: absolute;
+  left: 0;
+}
+
+.comments-modal-border-top {
+  height: 50px;
+  top: 0;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+
+}
+
+.comments-modal-border-bottom {
+  bottom: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.comments-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: #fff;
   font-weight: 600;
+  padding: 10px 16px;
 }
 
-.calc-modal-header .icon-cross {
+.comments-close-btn {
   cursor: pointer;
   font-size: 18px;
 }
 
-.calc-modal-body {
+.comments-modal-body {
   padding: 16px;
+  margin-top: 40px;
 }
 
-.comment-form label {
+.comments-form label {
   display: block;
   font-weight: 500;
   margin-bottom: 6px;
 }
 
-.comment-form textarea {
+.comments-form textarea {
   width: 100%;
   min-height: 80px;
   border: 1px solid #ccc;
@@ -58,67 +88,80 @@
   margin: 0 0 12px 0;
 }
 
-.comment-item {
+.comments-item {
   border-bottom: 1px solid #eaeaea;
   padding: 8px 0;
 }
 
-.comment-meta {
+.comments-meta {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   color: #888;
 }
 
-.comment-text {
+.comments-text {
   font-size: 14px;
-  margin-top: 4px;
+  margin-top: 8px;
+  justify-self: flex-end;
+  word-wrap: break-word; /* переносить довгі слова */
+  white-space: normal;   /* дозволяє перенос рядків */
 }
 
-.calc-modal-footer {
+.comments-modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   padding: 10px 16px;
-  border-top: 1px solid #eaeaea;
   gap: 10px;
 }
 
-.btn-cancel,
-.btn-save {
+.comments-btn-cancel,
+.comments-btn-save {
   border: none;
   padding: 8px 16px;
   border-radius: 3px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s, box-shadow 0.2s; /* додано ефект scale + shadow */
 }
 
-.btn-cancel {
+.comments-btn-cancel {
   background: #f46c3b;
   color: #fff;
 }
 
-.btn-cancel:hover {
-  background: #d85c2f;
+.comments-btn-cancel:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
-.btn-save {
+.comments-btn-save {
   background: #76b448;
   color: #fff;
 }
 
-.btn-save:hover {
-  background: #6aa23f;
+.comments-btn-save:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
-.no-comments {
+
+.comments-no-comments {
   color: #777;
   font-size: 14px;
   text-align: center;
   margin-bottom: 10px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
+@keyframes comments-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes comments-zoomIn {
+  from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }
 }

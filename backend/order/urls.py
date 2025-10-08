@@ -1,7 +1,7 @@
 # backend/orders/urls.py
 from django.urls import path
 from .views import CreateOrderView, LastOrderNumberView, CustomerOrdersView, AddOrderMessageView, OrderMessagesView, get_order_payment_status, get_filtered_orders, get_orders_by_dealer_and_year, portal_view
-
+from .views import DeleteOrderView 
 urlpatterns = [
     path("create/", CreateOrderView.as_view(), name="create-order"),
     path("last-order-number/", LastOrderNumberView.as_view(), name="last-order-number"),
@@ -12,4 +12,9 @@ urlpatterns = [
     path("get_filtered_orders/", get_filtered_orders, name="get_filtered_orders"),
     path("get_orders_by_dealer_and_year/", get_orders_by_dealer_and_year, name="get_orders_by_dealer_and_year"),
     path("get_orders_info/", portal_view, name="get_orders_info"),
+
+
+    path('calculations/<int:order_id>/delete/', DeleteOrderView.as_view(), name='delete_order'),
+
+
 ]

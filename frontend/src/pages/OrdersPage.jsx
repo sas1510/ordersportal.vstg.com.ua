@@ -3,8 +3,13 @@ import axiosInstance from '../api/axios';
 import { CalculationItem } from '../components/Orders1/OrderComponents';
 import '../components/Portal/PortalOriginal.css';
 import AddOrderModal from '../components/Orders1/AddOrderModal';
+import NewCalculationModal from '../components/Orders1/NewCalculationModal';
 
 const PortalOriginal = () => {
+
+
+
+  const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [calculationsData, setCalculationsData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
@@ -13,6 +18,10 @@ const PortalOriginal = () => {
   const [expandedCalc, setExpandedCalc] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleDeleteCalculation = (calcId) => {
+    setCalculationsData(prev => prev.filter(calc => calc.id !== calcId));
+    setFilteredItems(prev => prev.filter(calc => calc.id !== calcId));
+  };
 
   const handleAddClick = () => setIsModalOpen(true);
   const handleClose = () => setIsModalOpen(false);
@@ -21,6 +30,37 @@ const PortalOriginal = () => {
     console.log("Новий прорахунок:", newOrder);
     // Тут можна зробити POST-запит через axiosInstance.post(...)
   };
+  const handleSaveCalculation = (newCalc) => {
+  console.log('Saving calculation:', newCalc);
+
+
+
+
+
+  // Форматуємо отримані дані під структуру calculationsData
+  const formattedCalc = {
+    id: newCalc.id || Math.random().toString(36).substr(2, 9), // тимчасовий id, якщо немає uuid
+    number: newCalc.name || `Прорахунок ${calculationsData.length + 1}`,
+    dateRaw: newCalc.dateRaw || new Date().toISOString(),
+    date: new Date(newCalc.dateRaw || new Date()).toLocaleDateString('uk-UA', { day: '2-digit', month: 'short', year: 'numeric' }),
+    orders: [], // новий прорахунок поки без замовлень
+    orderCountInCalc: 0,
+    constructionsCount: newCalc.ConstructionsCount || 0,
+    statuses: {},
+    amount: 0,
+    file: newCalc.file || null,
+    message: newCalc.Comment || ''
+  };
+
+  // Додаємо у список
+  setCalculationsData(prev => [formattedCalc, ...prev]);
+  setFilteredItems(prev => [formattedCalc, ...prev]);
+
+  setIsCalcModalOpen(false);
+
+};
+
+
 
 
   // --- Форматування дати ---
@@ -260,12 +300,12 @@ const PortalOriginal = () => {
           </div>
           <div className="delimiter1"></div> 
 
-                <ul className="buttons">
-                  <li className="btn btn-add-calc" onClick={handleAddClick}>
-                    <span className="icon icon-plus3"> </span>
-                    <span className="uppercase">Новий прорахунок</span>
-                  </li>
-                </ul>
+            <ul className="buttons">
+              <li className="btn btn-add-calc" onClick={() => setIsCalcModalOpen(true)}>
+                <span className="icon icon-plus3"></span>
+                <span className="uppercase">Новий прорахунок</span>
+              </li>
+            </ul>
 
                 <AddOrderModal
                   isOpen={isModalOpen}
@@ -309,20 +349,26 @@ const PortalOriginal = () => {
                 <div className="font-size-24 text-grey">Немає прорахунків для відображення</div>
               </div>
             ) : (
-              sortedItems.map((calc, index) => (
+              sortedItems.map((calc, id) => (
                 <CalculationItem 
-                  key={index} 
+                  key={calc.id}
                   calc={calc}
                   isExpanded={expandedCalc === calc.id}
                   onToggle={() => toggleCalc(calc.id)}
                   expandedOrderId={expandedOrder}
                   onOrderToggle={toggleOrder}
+                  onDelete={handleDeleteCalculation}  
                 />
-              ))
+                        ))
             )}
           </div>
         </div>
-      </div>
+      </div>      
+      <NewCalculationModal 
+        isOpen={isCalcModalOpen} 
+        onClose={() => setIsCalcModalOpen(false)} 
+        onSave={handleSaveCalculation} 
+      />
     </div>
   );
 };
