@@ -19,7 +19,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "order_number_constructions",
             "file",
             "create_date",
-            "last_message_time",
+           
         ]
         read_only_fields = []
 

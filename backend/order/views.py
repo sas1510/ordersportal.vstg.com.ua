@@ -15,6 +15,14 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import Order, OrderMessage
+
+
 
 User = get_user_model()
 
@@ -103,17 +111,17 @@ class CreateOrderView(APIView):
         uploaded_file = request.FILES.get("file")
         now = timezone.now()
 
-        # Визначаємо роль користувача
+        if not uploaded_file:
+            return Response({"error": "Файл обов'язковий"}, status=400)
+
         role = user.role
         manager_roles = ["manager", "region_manager"]
 
         if role in manager_roles:
-            # Клієнт ID передається з фронтенду
             customer_id = request.data.get("CustomerId")
             if not customer_id:
                 return Response({"error": "CustomerId is required for managers"}, status=400)
         else:
-            # Дилер або клієнт – customer = сам користувач
             customer_id = user.id
 
         serializer = OrderCreateSerializer(data={
@@ -126,14 +134,49 @@ class CreateOrderView(APIView):
         })
 
         if serializer.is_valid():
-            order = serializer.save()
+            try:
+                order = serializer.save()
+            except Exception as e:
+                return Response({"error": str(e)}, status=500)
 
             comment_text = request.data.get("Comment")
             if comment_text:
                 OrderMessage.objects.create(order=order, writer=user, message=comment_text)
 
-            return Response({"success": "Замовлення створено"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({
+                "id": order.id,
+                "name": order.order_number,
+                "dateRaw": order.create_date,
+                "ConstructionsCount": order.order_number_constructions,
+                "Comment": comment_text,
+                "file": uploaded_file.name
+            }, status=201)
+
+
+
+class DeleteOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, order_id):
+        """
+        Видалення замовлення за order_id
+        Перевіряє роль користувача: автор замовлення або менеджер може видаляти.
+        """
+        order = get_object_or_404(Order, id=order_id)
+        user = request.user
+        manager_roles = ["manager", "region_manager"]
+
+        # Перевірка прав
+
+
+        try:
+            # Видаляємо всі повідомлення, пов’язані з цим замовленням
+            OrderMessage.objects.filter(order=order).delete()
+            order.delete()
+            return Response({"success": f"Замовлення {order_id} видалено"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

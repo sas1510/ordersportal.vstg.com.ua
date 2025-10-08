@@ -1,0 +1,189 @@
+:root {
+  --success-color: #76b448;
+}
+
+/* ===== Новий прорахунок (модалка) ===== */
+#new-calc-modal .new-calc-form {
+  padding: 20px 22px; /* трохи більше, щоб дихала форма */
+}
+
+
+.gap-7 {
+  gap: 7px;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-14 {
+  gap: 14px;
+}
+
+.gap-15 {
+  gap: 15px;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+/* 🟢 Більші варіанти для модалок та форм */
+.gap-18 {
+  gap: 18px;
+}
+
+.gap-20 {
+  gap: 20px;
+}
+
+.gap-22 {
+  gap: 22px;
+}
+
+.gap-24 {
+  gap: 24px;
+}
+
+.gap-28 {
+  gap: 28px;
+}
+
+.gap-32 {
+  gap: 32px;
+}
+
+#new-calc-modal .buttons-wrapper {
+  padding: 16px 0 8px 0;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+#new-calc-modal .new-calc-form input,
+#new-calc-modal .new-calc-form textarea {
+  outline: none;
+  border: 1px solid var(--grey-text-color);
+  padding: 4px 8px;
+  color: var(--text-color);
+  font-size: 16px;
+  width: 100%;
+  transition: all 0.25s ease;
+  border-radius: 3px;
+}
+
+#new-calc-modal .new-calc-form input::placeholder,
+#new-calc-modal .new-calc-form textarea::placeholder {
+  color: var(--grey-text-color);
+}
+
+#new-calc-modal .new-calc-form input:focus,
+#new-calc-modal .new-calc-form textarea:focus {
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.4);
+  border-color: var(--info-color);
+}
+
+#new-calc-modal .new-calc-form input:hover,
+#new-calc-modal .new-calc-form textarea:hover {
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.25);
+  border-color: var(--info-color);
+}
+
+
+#new-calc-modal .new-calc-form input {
+  font-size: 16px;
+  color: var(--text-color);
+}
+
+/* ===== Таблиці ===== */
+#content .dataTable {
+  max-width: 100% !important;
+}
+
+.dt-end {
+  display: flex !important;
+  flex-direction: row-reverse !important;
+}
+
+.table-ico {
+  text-align: center !important;
+  font-size: 18px !important;
+  vertical-align: middle !important;
+  width: 100%;
+  display: block;
+}
+
+#content .dataTable thead tr th {
+  text-align: center !important;
+  vertical-align: middle;
+  font-size: 12px;
+  background: var(--info-color);
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 4px 6px;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+
+#content .dataTable thead tr {
+  text-align: center !important;
+  vertical-align: middle !important;
+  font-size: 12px;
+  background-color: var(--info-color);
+  color: #fff;
+  padding: 4px;
+  border: 1px solid #fff;
+}
+
+#content .dataTable tbody tr {
+  vertical-align: middle !important;
+  font-size: 12px;
+  padding: 3px !important;
+  border: 1px dashed var(--grey-border-color);
+}
+
+#content .dataTable tbody tr td {
+  vertical-align: middle !important;
+  font-size: 13px;
+  padding: 4px 6px !important;
+  border: 1px dashed var(--grey-border-color);
+  line-height: 1.2;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+#content .dataTable tbody tr:hover {
+  background-color: var(--info-bg-color) !important;
+}
+
+/* ===== Статуси рядків ===== */
+.modal-cel-type-bool {
+  width: 68px !important;
+}
+
+.modal-cel-type-date {
+  width: 90px !important;
+}
+
+.modal-row-status-Ready {
+  background-color: var(--warning-bg-color) !important;
+  color: var(--grey-color) !important;
+}
+
+.modal-row-status-inProduction {
+  background-color: var(--warning-bg-color) !important;
+  color: var(--success-color) !important;
+}
+
+.modal-row-status-Planned {
+  background-color: var(--success-bg-color) !important;
+}
+
+.modal-row-status-inBuffer {
+  background-color: var(--danger-bg-color) !important;
+}
+
+.dt-button {
+  padding: 0 10px !important;
+}

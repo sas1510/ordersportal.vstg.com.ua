@@ -92,6 +92,10 @@ body {
     gap: 14px;
 }
 
+.gap-16 {
+    gap: 16px;
+}
+
 .border-warning {
     border: 1px dashed var(--warning-color);
     border-radius: 3px;
@@ -301,7 +305,7 @@ body {
     background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
     height: calc(100vh);
     width: calc(100%);
-    padding: 60px 80px;
+    padding: 60px 100px;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -576,7 +580,7 @@ body {
     background-color: #ffffff;
     border-bottom: 1px dashed var(--grey-border-color);
     box-shadow: 1px 1px 5px var(--shadow-color);
-    z-index: 999;
+    z-index: 990;
 }
 
 .content-summary .by-month-pagination-wrapper ul {
@@ -1823,6 +1827,21 @@ white-space: nowrap;
 }
 
 
+.comments-text-wrapper-last {
+  font-size: 12px;
+  color: #777;
+  overflow: hidden;                /* обрізаємо те, що не вміщається */
+  display: -webkit-box;            /* для багаторядкових ... */
+  -webkit-line-clamp: 3;           /* кількість рядків */
+  -webkit-box-orient: vertical;
+  line-height: 1.2em;              /* регулює висоту рядка */
+  word-break: break-word;           /* перенос довгих слів */
+  margin-bottom: 4px;
+}
 
 
-
+.btn-comments {
+  align-self: flex-end;          /* кнопка зліва */
+  padding: 4px 8px;
+  font-size: 12px;
+}

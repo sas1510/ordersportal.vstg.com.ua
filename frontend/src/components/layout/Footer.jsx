@@ -20,7 +20,7 @@ const styles = {
     position: "fixed", // фіксуємо футер
     bottom: 0,
     left: 0,
-    zIndex: 100,
+    zIndex: 10000,
   },
 };
 

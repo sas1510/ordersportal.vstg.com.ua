@@ -111,7 +111,7 @@ export const OrderItemSummary = ({ order }) => {
 
 // ================= CalculationItem.jsx =================
 
-export const CalculationItem = ({ calc }) => {
+export const CalculationItem = ({ calc, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
   const toggleExpanded = () => setExpanded((prev) => !prev);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -122,9 +122,8 @@ export const CalculationItem = ({ calc }) => {
   // Тут викликати вашу логіку редагування
 };
 
-const handleDelete = (calc) => {
-  console.log("Видалити розрахунок:", calc);
-  // Тут викликати вашу логіку видалення
+const handleDelete = async () => {
+  if (onDelete) await onDelete(calc.id); // ✅ передаємо id
 };
 
 
@@ -189,22 +188,21 @@ const handleDelete = (calc) => {
           </div>
         </div>
 
-        <div className="summary-item row w-30 no-wrap align-center space-between">
-          <div className="row gap-14 align-center">
-            <div className="icon-chat5 font-size-24 text-info" />
-            <div className="font-size-12 text-grey truncate">{calc.message || "Без коментарів"}</div>
+      <div className="summary-item row w-30 align-start space-between">
+          <div className="column" style={{ flex: 1, minWidth: 0 }}>
+            <div className="comments-text-wrapper-last">
+              {calc.message || "Без коментарів"}
+            </div>
+            <button
+              className="btn-comments"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewComments(calc.comments || []);
+              }}
+            >
+              💬 Історія коментарів
+            </button>
           </div>
-
-        <button
-          className="btn-comments"
-          onClick={(e) => {
-            e.stopPropagation(); // <-- Ось ця строчка зупиняє спливання кліку
-            handleViewComments(calc.comments || []);
-          }}
-        >
-          💬 Коментарі
-        </button>
-
         </div>
 
 
@@ -226,21 +224,35 @@ const handleDelete = (calc) => {
         <div className="summary-item row w-15 no-wrap">
           <div className="row gap-14 align-center">
             <div className="icon-info-with-circle font-size-24 text-info"></div>
+
             <div className="column gap-3 font-size-12 no-wrap scroll-y">
-              {Object.entries(calc.statuses || {}).map(([status, count]) => (
-                <div key={status} className={`row gap-3 left no-wrap calc-status ${getStatusClass(status)}`}>
-                  <div>{status}</div>
-                  <div>({count})</div>
+              {calc.statuses && Object.keys(calc.statuses).length > 0 ? (
+                Object.entries(calc.statuses).map(([status, count]) => (
+                  <div
+                    key={status}
+                    className={`row gap-3 left no-wrap calc-status ${getStatusClass(status)}`}
+                  >
+                    <div>{status}</div>
+                    <div>({count})</div>
+                  </div>
+                ))
+              ) : (
+                <div className="row gap-3 left no-wrap calc-status text-warning">
+                  <div>Новий</div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
+        
+         <div className="summary-item row w-15 no-wrap"></div>
+
         <CalculationMenu 
-  calc={calc} 
-  onEdit={handleEdit} 
-  onDelete={handleDelete} 
-/>
+          calc={calc} 
+          onEdit={handleEdit} 
+          onDelete={handleDelete} 
+        />
+    
       </div>
 
       {/* ============ CALC DETAILS ============ */}
@@ -260,12 +272,23 @@ const handleDelete = (calc) => {
         </div>
       )}
 
-    <CommentsModal
-      isOpen={isCommentsOpen}
-      onClose={() => setIsCommentsOpen(false)}
-      comments={selectedComments}
-      onAddComment={(text) => console.log("Новий коментар:", text)}
-    />
+      <CommentsModal
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+        comments={selectedComments} // можна передавати пустий масив, модалка сама підвантажить
+        orderId={calc.number}            // або calc.PortalOrderId
+        onAddComment={async (text) => {
+          try {
+            await axiosInstance.post(`/calculations/${calc.number}/add-comment/`, { message: text });
+            // оновити локальний стан коментарів
+            const res = await axiosInstance.get(`/calculations/${calc.number}/comments/`);
+            setSelectedComments(res.data);
+          } catch (err) {
+            console.error("Помилка при додаванні коментаря:", err);
+          }
+        }}
+      />
+
     </div>
   );
 };
