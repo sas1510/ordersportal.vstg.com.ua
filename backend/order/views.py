@@ -22,6 +22,14 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import Order, OrderMessage
 
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from django.utils import timezone
+from .models import Order, OrderMessage
+from .serializers import OrderCreateSerializer
+ 
 
 
 User = get_user_model()
@@ -121,17 +129,20 @@ class CreateOrderView(APIView):
             customer_id = request.data.get("CustomerId")
             if not customer_id:
                 return Response({"error": "CustomerId is required for managers"}, status=400)
+            author_id = user.id  # автор — менеджер
         else:
-            customer_id = user.id
+            customer_id = user.id  # клієнт сам собі замовник
+            author_id = user.id    # клієнт сам автор
 
         serializer = OrderCreateSerializer(data={
             "order_number": request.data.get("OrderNumber"),
             "customer": customer_id,
-            "author": user.id,
+            "author": author_id,
             "order_number_constructions": request.data.get("ConstructionsCount", 0),
             "file": uploaded_file,
             "create_date": now,
         })
+
 
         if serializer.is_valid():
             try:
@@ -191,19 +202,24 @@ class OrderMessagesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, order_id):
+        # Витягуємо всі повідомлення для order_id
         messages = OrderMessage.objects.filter(order_id=order_id).select_related("writer")
+
+        # Серіалізація в список словників
         serialized = [
             {
                 "id": m.id,
                 "message": m.message,
                 "author": m.writer.full_name if m.writer else None,
-                "created_at": m.created_at,
-                "updated_at": m.updated_at,
+                "created_at": m.created_at.isoformat(),
+                "updated_at": m.updated_at.isoformat(),
                 "order_id": m.order_id,
                 "writer_id": m.writer.id if m.writer else None,
             }
             for m in messages
         ]
+
+        # Завжди повертаємо список, навіть якщо він порожній
         return Response(serialized, status=200)
 
 
@@ -529,3 +545,67 @@ def portal_view(request):
         "message": "ok",
         "data": payload
     })
+
+
+
+
+
+class EditOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, order_id):
+        """
+        Редагуємо замовлення: змінюємо конструкії, коментар, файл.
+        Order number змінювати заборонено.
+        """
+        user = request.user
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Замовлення не знайдено"}, status=404)
+
+        # Перевірка прав: тільки автор або менеджер може редагувати
+        if not (user.role in ["manager", "region_manager"] or 
+            order.author_id == user.id or 
+            order.customer_id == user.id):
+              return Response({
+                "error": "Немає доступу до редагування",
+                "user_id": user.id,
+                "user_role": user.role,
+                "order_author_id": order.author_id,
+                "order_customer_id": order.customer_id
+            }, status=403)
+
+
+        uploaded_file = request.FILES.get("file")
+        constructions_count = request.data.get("ConstructionsCount")
+        comment_text = request.data.get("Comment")
+
+        # Оновлюємо поля, крім order_number
+        if constructions_count is not None:
+            order.order_number_constructions = constructions_count
+
+        if uploaded_file:
+            order.file = uploaded_file
+
+        order.save()
+
+        # Додаємо новий коментар, якщо є
+        if comment_text:
+            last_message = OrderMessage.objects.filter(order=order, writer=user).order_by("-created_at").first()
+            if last_message:
+                last_message.message = comment_text
+                last_message.save()
+            else:
+                OrderMessage.objects.create(order=order, writer=user, message=comment_text)
+
+
+
+        return Response({
+            "id": order.id,
+            "name": order.order_number,  # номер замовлення не змінюємо
+            "dateRaw": order.create_date,
+            "ConstructionsCount": order.order_number_constructions,
+            "Comment": comment_text,
+            "file": order.file.name if order.file else None
+        }, status=200)

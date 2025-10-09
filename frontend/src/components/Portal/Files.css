@@ -305,9 +305,8 @@ body {
     background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
     height: calc(100vh);
     width: calc(100%);
-    padding: 60px 10%;
-    overflow-y: auto;
-    overflow-x: hidden;
+    padding: 80px 10%;
+
 }
 
 .portal-footer {

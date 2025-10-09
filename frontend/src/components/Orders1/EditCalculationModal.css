@@ -1,4 +1,4 @@
-.new-calc-modal-overlay {
+.edit-calc-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.3);
@@ -6,10 +6,10 @@
   justify-content: center;
   align-items: center;
   z-index: 999;
-  animation: newCalcFadeIn 0.25s ease forwards;
+  animation: editCalcFadeIn 0.25s ease forwards;
 }
 
-.new-calc-modal-window {
+.edit-calc-modal-window {
   width: 550px;
   max-width: 90%;
   background: #fff;
@@ -20,33 +20,33 @@
   position: relative;
   transform: scale(0.8);
   opacity: 0;
-  animation: newCalcZoomIn 0.3s forwards;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  animation: editCalcZoomIn 0.3s forwards;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-.new-calc-modal-border-top,
-.new-calc-modal-border-bottom {
+.edit-calc-modal-border-top,
+.edit-calc-modal-border-bottom {
   height: 6px;
-  background-color: #76b448;
+  background-color: #5e83bf;
   width: 100%;
   position: absolute;
   left: 0;
 }
 
-.new-calc-modal-border-top {
+.edit-calc-modal-border-top {
   height: 50px;
   top: 0;
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
 }
 
-.new-calc-modal-border-bottom {
+.edit-calc-modal-border-bottom {
   bottom: 0;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
 }
 
-.new-calc-modal-header {
+.edit-calc-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -56,31 +56,32 @@
   font-size: 18px;
 }
 
-.new-calc-close-btn {
+.edit-calc-close-btn {
   cursor: pointer;
   font-size: 18px;
   display: inline-block;       /* важливо для transform */
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.new-calc-close-btn:hover {
+.edit-calc-close-btn:hover {
   opacity: 0.8;
   transform: rotate(90deg);
 }
 
-.new-calc-modal-body {
+
+.edit-calc-modal-body {
   padding: 16px;
   margin-top: 40px;
 }
 
-.new-calc-form {
+.edit-calc-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
 /* Завантаження файлу */
-.new-calc-file-upload {
+.edit-calc-file-upload {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -91,12 +92,12 @@
   transition: all 0.3s;
 }
 
-.new-calc-file-upload:hover {
-  border-color: #76b448;
-  background: #f0f8ea;
+.edit-calc-file-upload:hover {
+  border-color: #5e83bf;
+  background: #f0f4ff;
 }
 
-.new-calc-upload-label {
+.edit-calc-upload-label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,11 +109,11 @@
   transition: color 0.2s;
 }
 
-.new-calc-upload-label:hover {
-  color: #76b448;
+.edit-calc-upload-label:hover {
+  color: #5e83bf;
 }
 
-.new-calc-file-name {
+.edit-calc-file-name {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -121,7 +122,7 @@
   font-size: 14px;
 }
 
-.new-calc-clear-file {
+.edit-calc-clear-file {
   border: none;
   background: transparent;
   color: #f46c3b;
@@ -131,13 +132,31 @@
   transition: all 0.2s;
 }
 
-.new-calc-clear-file:hover {
+.edit-calc-clear-file:hover {
   background: #ffe6e0;
   color: #d32f2f;
 }
 
+.edit-calc-download-file {
+  border: 2px solid  var(--grey-border-color);
+  background: transparent;
+  color: #4a90e2;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-calc-download-file:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
 /* Поля вводу */
-.new-calc-label {
+.edit-calc-label {
   display: flex;
   flex-direction: column;
   text-align: left;
@@ -145,7 +164,7 @@
   font-weight: 500;
 }
 
-.new-calc-label-row {
+.edit-calc-label-row {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,27 +172,22 @@
   font-weight: 500;
 }
 
-.new-calc-input,
-.new-calc-input-number {
+.edit-calc-input-number {
+  width: 80px;
+  padding: 8px 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
+  font-size: 16px;
+  text-align: center;
   transition: border-color 0.2s;
 }
 
-.new-calc-input-number {
-  width: 80px;
-  text-align: center;
-}
-
-.new-calc-input:focus,
-.new-calc-input-number:focus {
+.edit-calc-input-number:focus {
   outline: none;
-  border-color: #76b448;
+  border-color: #4a90e2;
 }
 
-.new-calc-textarea {
+.edit-calc-textarea {
   width: 100%;
   min-height: 100px;
   border: 1px solid #ccc;
@@ -185,21 +199,21 @@
   transition: border-color 0.2s;
 }
 
-.new-calc-textarea:focus {
+.edit-calc-textarea:focus {
   outline: none;
-  border-color: #76b448;
+  border-color: #4a90e2;
 }
 
 /* Footer кнопки */
-.new-calc-modal-footer {
+.edit-calc-modal-footer {
   display: flex;
   justify-content: center;
   padding: 10px 16px;
   gap: 10px;
 }
 
-.new-calc-btn-cancel,
-.new-calc-btn-save {
+.edit-calc-btn-cancel,
+.edit-calc-btn-save {
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
@@ -211,45 +225,45 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.new-calc-btn-cancel {
+.edit-calc-btn-cancel {
   background: #f46c3b;
   color: #fff;
 }
 
-.new-calc-btn-cancel:hover {
+.edit-calc-btn-cancel:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
 }
 
-.new-calc-btn-save {
+.edit-calc-btn-save {
   background: #76b448;
   color: #fff;
 }
 
-.new-calc-btn-save:hover {
+.edit-calc-btn-save:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
 }
 
-.new-calc-btn-save:disabled {
+.edit-calc-btn-save:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
 /* Анімації */
-@keyframes newCalcFadeIn {
+@keyframes editCalcFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes newCalcZoomIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
+@keyframes editCalcZoomIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.8); 
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
   }
 }
