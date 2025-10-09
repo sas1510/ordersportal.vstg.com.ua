@@ -19,6 +19,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "order_number_constructions",
             "file",
             "create_date",
+            "author"
            
         ]
         read_only_fields = []

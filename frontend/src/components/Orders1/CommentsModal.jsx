@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
-import { FaTimes, FaSave } from 'react-icons/fa';
+import { FaTimes, FaSave, FaRegCommentDots } from 'react-icons/fa';
 import "./CommentsModal.css";
 
 const CommentsModal = ({ isOpen, onClose, orderId }) => {
@@ -55,7 +55,7 @@ const CommentsModal = ({ isOpen, onClose, orderId }) => {
       <div className="comments-modal-window" onClick={(e) => e.stopPropagation()}>
         <div className="comments-modal-border-top">
           <div className="comments-modal-header">
-            <span className="icon icon-comments"></span>
+            <FaRegCommentDots size={20} style={{ marginRight: 8 }} />
             <h3>Історія коментарів</h3>
             <span className="icon icon-cross comments-close-btn" onClick={onClose}></span>
           </div>

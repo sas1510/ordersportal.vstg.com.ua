@@ -133,45 +133,56 @@ export default function HeaderDealer() {
         </nav>
       ) : (
         <div className="mobile-menu" ref={mobileMenuRef}>
-          <button onClick={() => setMobileMenuOpen(prev => !prev)} className="menu-toggle">☰</button>
-          {mobileMenuOpen && (
-            <div className="mobile-menu-content">
-              <ul>
-                {navLinks}
+    {/* Кнопка бургер-меню */}
+    <button
+      onClick={() => setMobileMenuOpen(prev => !prev)}
+      className="menu-toggle"
+    >
+      ☰
+    </button>
 
-                <li>
-                  <button className="menu-link" onClick={toggleFinanceMenuMobile}>
-                    Фінанси ▾
-                  </button>
-                  {showFinanceMenuMobile && (
-                    <ul className="submenu">
-                      {FINANCE_SUBMENU.map(item => (
-                        <li key={item.to}>
-                          <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
-                            {item.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
+    {/* Вміст меню */}
+    {mobileMenuOpen && (
+      <div className="mobile-menu-content">
+        <ul>
+          {navLinks}
 
-             <li className="logout-item">
-                <button
-                  className="menu-link logout-icon"
-                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                  title="Вийти"
-                >
-                  <i className="fa fa-sign-out-alt"></i>
-
-                </button>
-              </li>
-
-
+          {/* Фінанси */}
+          <li>
+          <div className="menu-link" onClick={toggleFinanceMenuMobile}>
+            Фінанси ▾
+          </div>
+          {showFinanceMenuMobile && (
+            <div className="submenu-wrapper">
+              <ul className="submenu">
+                {FINANCE_SUBMENU.map(item => (
+                  <li key={item.to}>
+                    <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
+                      {item.title}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           )}
-        </div>
+        </li>
+
+
+
+          {/* Кнопка Вихід */}
+          <li className="logout-item">
+            <button
+              className="menu-link logout-icon"
+              onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+              title="Вийти"
+            >
+              <i className="fa fa-sign-out-alt"></i>
+            </button>
+          </li>
+        </ul>
+      </div>
+    )}
+  </div>
       )}
     </header>
   );

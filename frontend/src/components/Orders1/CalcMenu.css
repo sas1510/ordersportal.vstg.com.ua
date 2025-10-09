@@ -13,3 +13,21 @@
   opacity: 0.5;  /* робимо іконку прозорішою */
   cursor: default; /* курсор не активний */
 }
+
+/* для самого меню кнопок редагування/видалення */
+.calc-menu-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px; /* менший проміжок між іконками */
+  padding: 2px 4px; /* мінімальні відступи */
+  height: auto; /* щоб блок не тягнувся на 60px */
+  width: auto; /* тільки під контент */
+  min-width: 0; /* щоб flex не розтягував */
+}
+
+/* іконки всередині */
+.calc-menu-buttons .icon {
+  font-size: 16px; /* або 14px для ще компактніше */
+  cursor: pointer;
+}

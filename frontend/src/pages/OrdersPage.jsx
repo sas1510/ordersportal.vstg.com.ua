@@ -23,6 +23,16 @@ const PortalOriginal = () => {
     setFilteredItems(prev => prev.filter(calc => calc.id !== calcId));
   };
 
+  const handleUpdateCalculation = (updatedCalc) => {
+    setCalculationsData(prev =>
+      prev.map(calc => calc.id === updatedCalc.id ? updatedCalc : calc)
+    );
+    setFilteredItems(prev =>
+      prev.map(calc => calc.id === updatedCalc.id ? updatedCalc : calc)
+    );
+  };
+
+
   const handleAddClick = () => setIsModalOpen(true);
   const handleClose = () => setIsModalOpen(false);
 
@@ -46,6 +56,7 @@ const PortalOriginal = () => {
     orders: [], // новий прорахунок поки без замовлень
     orderCountInCalc: 0,
     constructionsCount: newCalc.ConstructionsCount || 0,
+    constructionsQTY: newCalc.ConstructionsCount || 0,
     statuses: {},
     amount: 0,
     file: newCalc.file || null,
@@ -128,6 +139,7 @@ const PortalOriginal = () => {
               id: calc.uuid || '',
               number: calc.name || '',
               dateRaw: calc.ДатаПросчета,
+              constructionsQTY: Number(calc.КоличествоКонструкцийВПросчете || 0),
               date: formatDateHuman(calc.ДатаПросчета),
               orders,
               orderCountInCalc: orders.length,
@@ -179,11 +191,12 @@ const PortalOriginal = () => {
     calculationsData.forEach(calc => {
       if (!calc.dateRaw) return;
       const month = new Date(calc.dateRaw).getMonth() + 1;
-      summary[month] += calc.orderCountInCalc || 1;
+      summary[month] += 1; // додаємо 1 за кожен прорахунок
     });
 
     return summary;
   };
+
 
   const statusSummary = getStatusSummary();
   const monthSummary = getMonthSummary();
@@ -357,7 +370,8 @@ const PortalOriginal = () => {
                   onToggle={() => toggleCalc(calc.id)}
                   expandedOrderId={expandedOrder}
                   onOrderToggle={toggleOrder}
-                  onDelete={handleDeleteCalculation}  
+                  onDelete={handleDeleteCalculation}
+                  onEdit={handleUpdateCalculation}  
                 />
                         ))
             )}

@@ -344,3 +344,146 @@ align-items: center;
 .logout-icon:hover {
   background-color: var(--exit) !important; 
 }
+
+.portal-header .mobile-menu {
+  flex: 1; /* займе всю ширину хедера */
+  display: flex;
+  justify-content: flex-end; /* бургер завжди справа */
+  position: relative;
+}
+
+/* Кнопка бургер-меню */
+.menu-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0; /* правий край */
+  transform: translateY(-50%);
+  background: none;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 1010;
+}
+
+/* Блок мобільного меню */
+.mobile-menu-content {
+  position: absolute;
+  top: 60px; /* під хедером */
+  right: 0;
+  width: 240px;
+  background-color: #2c2c2c;
+  color: #f5f5f5;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  padding: 10px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+
+  /* Дозволяємо динамічну висоту */
+  height: auto !important;       /* ключова зміна */
+  max-height: none !important;   /* скидаємо будь-які обмеження */
+  overflow: visible !important;  /* щоб підменю не обрізалося */
+}
+
+
+/* Пункти меню */
+.mobile-menu-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Динамічна висота всіх li */
+.mobile-menu-content li {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+
+  /* Дозволяємо li розтягуватись під контент */
+  height: auto !important;
+  min-height: 0;
+}
+
+
+/* Посилання меню */
+.mobile-menu-content .menu-link {
+  color: #f5f5f5;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+
+.mobile-menu-content .menu-link:hover {
+  color: #f46c3b;
+}
+
+/* Фінансове підменю горизонтально */
+.mobile-menu-content .submenu {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding-left: 0;
+  background: none;
+  font-size: 14px;
+}
+
+.mobile-menu-content .submenu li {
+  margin-bottom: 0;
+}
+
+.mobile-menu-content .submenu li .menu-link {
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+/* Кнопка Вихід */
+.mobile-menu-content .logout-item {
+  margin-top: 6px;
+  justify-content: flex-start;
+}
+
+
+/* Фінансове підменю мобільного меню вертикально, як на скріні */
+.mobile-menu-content li .submenu {
+  display: flex;
+  flex-direction: column; /* вертикально */
+  gap: 0; /* без горизонтального проміжку */
+  padding-left: 0; /* прибираємо відступ зліва */
+  margin-top: 4px; /* відступ від основного пункту */
+  background: #2c2c2c; /* темний фон, як на меню */
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Пункти підменю */
+.mobile-menu-content li .submenu li {
+  width: 100%;
+  margin-bottom: 0; /* без проміжку між елементами */
+}
+
+/* Посилання підменю */
+.mobile-menu-content li .submenu li .menu-link {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #f5f5f5;
+  display: block;
+}
+
+/* Hover ефект */
+.mobile-menu-content li .submenu li .menu-link:hover {
+  background-color: #4a4a4a;
+  color: #f46c3b;
+}
+
+.submenu-wrapper {
+  display: block;
+}

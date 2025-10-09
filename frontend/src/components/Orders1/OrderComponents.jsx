@@ -4,11 +4,99 @@ import OrderDetails from "./OrderDetails";
 import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
 import CommentsModal from "./CommentsModal";
 import {CalculationMenu} from "./CalculationMenu";
+import AddClaimModal from "./AddClaimModal";
 
 
 export const OrderItemSummary = ({ order }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const toggleExpand = () => setIsExpanded(!isExpanded);
+  const getButtonState = (status) => {
+    // Мапа доступності кнопок за статусом
+    const state = {
+      confirm: false,
+      pay: false,
+      reorder: false,
+      claim: false,
+    };
+
+    switch (status) {
+      case "Новий":
+        state.confirm = true;
+        state.pay = false;
+        state.reorder = false;
+        state.claim = false;
+        break;
+
+      case "Підтверджений":
+        state.confirm = false;
+        state.pay = true;
+        state.reorder = false;
+        state.claim = true;
+        break;
+
+      case "Очикуємо оплату":
+        state.confirm = false;
+        state.pay = true;
+        state.reorder = false;
+        state.claim = false;
+        break;
+
+      case "Оплачено":
+        state.confirm = false;
+        state.pay = false;
+        state.reorder = true;
+        state.claim = false;
+        break;
+
+      case "Відвантажений":
+      case "Готовий":
+        state.confirm = false;
+        state.pay = false;
+        state.reorder = true;
+        state.claim = true;
+        break;
+
+      case "Відмова":
+        state.confirm = false;
+        state.pay = false;
+        state.reorder = false;
+        state.claim = false;
+        break;
+
+      default:
+        break;
+    }
+
+    return state;
+  };
+
+  const buttonState = getButtonState(order.status);
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "Новий":
+      case "В обробці":
+      case "У виробництві":
+      case "Підтверджений":
+        return "text-info";
+      case "Очікуємо оплату":
+      case "Очікуємо підтвердження":
+      case "Відмова":
+        return "text-danger";
+      case "Готовий":
+      case "Відвантажений":
+        return "text-success";
+      default:
+        return "text-grey";
+    }
+  };
+
+  const openClaimModal = () => {
+    setClaimOrderNumber(order.name || order.number); // автоматично підставляємо номер
+    setIsClaimModalOpen(true);
+  };
 
   return (
     <div className="order-item flex flex-col w-full gap-0">
@@ -23,7 +111,7 @@ export const OrderItemSummary = ({ order }) => {
         </div>
 
         {/* Назва + дата */}
-        <div className="summary-item flex-shrink-0 flex-col">
+        <div className="summary-item row w-9 no-wrap">
           <div className="column">
             <div className="text-info text-lg border-b border-gray-300 pb-0 pt-0 w-full">
               {order.number}
@@ -40,8 +128,10 @@ export const OrderItemSummary = ({ order }) => {
           </div>
         </div>
 
+
+
         {/* PDF */}
-        <div className="summary-item flex items-center justify-center no-wrap">
+        <div className="summary-item flex items-center justify-center no-wrap" onClick={(e) => e.stopPropagation()}>
           <div className="row gap-14 align-center">
             <div className="icon-document-file-pdf font-size-20 text-red"></div>
             <div>{order.name}.pdf</div>
@@ -50,7 +140,7 @@ export const OrderItemSummary = ({ order }) => {
 
 
         {/* Сума замовлення */}
-        <div className="summary-item  flex items-start gap-0 pl-0">
+        <div className="summary-item row w-12 no-wrap gap-0 pl-0">
           <span className="icon icon-coin-dollar text-success text-2xl flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
             <div className="text-info text-lg">{formatMoney(order.amount)}</div>
@@ -61,7 +151,7 @@ export const OrderItemSummary = ({ order }) => {
         </div>
 
         {/* Сума боргу */}
-        <div className="summary-item  flex items-start gap-0 pl-0">
+        <div className="summary-item row w-12 no-wrap gap-0 pl-0">
           <span className="icon icon-coin-dollar text-danger text-2xl flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
             <div className="text-danger text-lg">{formatMoney(order.amount - (order.paid ?? 0))}</div>
@@ -80,23 +170,51 @@ export const OrderItemSummary = ({ order }) => {
         </div>
 
         {/* Кнопки */}
-        <div className="summary-item row">
-          <div className="column align-center button button-first background-success">
+        
+        <div className="summary-item row"  onClick={(e) => e.stopPropagation()}>
+          <button
+            className={`column align-center button button-first background-success ${
+              !buttonState.confirm ? "disabled opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={!buttonState.confirm}
+          >
             <div className="font-size-12">Підтвердити</div>
-          </div>
+          </button>
 
-          <div className="column align-center button background-warning">
+          <button
+            className={`column align-center button background-warning ${
+              !buttonState.pay ? "disabled opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={!buttonState.pay}
+          >
             <div className="font-size-12">Сплатити</div>
-          </div>
+          </button>
 
-          <div className="column align-center button background-info">
+          <button
+            className={`column align-center button background-info ${
+              !buttonState.reorder ? "disabled opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={!buttonState.reorder}
+          >
             <div className="font-size-12">Дозамовлення</div>
-          </div>
+          </button>
 
-          <div className="column align-center button button-last background-danger">
+          <button
+            className={`column align-center button button-last background-danger ${
+              !buttonState.claim ? "disabled opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={!buttonState.claim}
+            onClick={(e) => {
+              e.stopPropagation();
+              setClaimOrderNumber(order.number); // номер для модалки
+              setIsClaimModalOpen(true);
+            }}
+          >
             <div className="font-size-12">Рекламація</div>
-          </div>
+          </button>
+
         </div>
+
       </div>
 
       {/* Деталі замовлення */}
@@ -105,22 +223,31 @@ export const OrderItemSummary = ({ order }) => {
           <OrderDetails order={order} />
         </div>
       )}
+
+      <AddClaimModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        onSave={() => setIsClaimModalOpen(false)}
+        initialOrderNumber={claimOrderNumber}
+      />
+
+
     </div>
   );
 };
 
 // ================= CalculationItem.jsx =================
 
-export const CalculationItem = ({ calc, onDelete }) => {
+export const CalculationItem = ({ calc, onDelete, onEdit }) => {
   const [expanded, setExpanded] = useState(false);
   const toggleExpanded = () => setExpanded((prev) => !prev);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
 
-  const handleEdit = (calc) => {
-  console.log("Редагувати розрахунок:", calc);
-  // Тут викликати вашу логіку редагування
-};
+  const handleEdit = (updatedCalc) => {
+    if (onEdit) onEdit(updatedCalc); // викликаємо метод з PortalOriginal
+  };
+
 
 const handleDelete = async () => {
   if (onDelete) await onDelete(calc.id); // ✅ передаємо id
@@ -141,8 +268,8 @@ const handleDelete = async () => {
       case "У виробництві":
       case "Підтверджений":
         return "text-info";
-      case "Очикуємо оплату":
-      case "Очикуємо підтвердження":
+      case "Очікуємо оплату":
+      case "Очікуємо підтвердження":
       case "Відмова":
         return "text-danger";
       case "Готовий":
@@ -161,16 +288,16 @@ const handleDelete = async () => {
           <span className="icon icon-calculator font-size-24 text-success"></span>
         </div>
 
-        <div className="summary-item row w-8 no-wrap">
+        <div className="summary-item row w-9 no-wrap">
           <div className="column">
             <div className="font-size-18 text-info border-bottom">№ {calc.number}</div>
             <div className="text-danger">{calc.date}</div>
           </div>
         </div>
 
-        <div className="summary-item row w-5 no-wrap" title="Кількість конструкцій">
+        <div className="summary-item row w-6 no-wrap" title="Кількість конструкцій">
           <span className="icon-layout5 font-size-24 text-info"></span>
-          <div className="font-size-24 text-danger">{calc.constructionsCount}</div>
+          <div className="font-size-24 text-danger">{calc.constructionsQTY}</div>
         </div>
 
         <div className="summary-item row w-5 no-wrap" title="Кількість замовлень">
@@ -188,7 +315,7 @@ const handleDelete = async () => {
           </div>
         </div>
 
-      <div className="summary-item row w-30 align-start space-between">
+      <div className="summary-item expandable row w-30 align-start space-between">
           <div className="column" style={{ flex: 1, minWidth: 0 }}>
             <div className="comments-text-wrapper-last">
               {calc.message || "Без коментарів"}
@@ -206,7 +333,7 @@ const handleDelete = async () => {
         </div>
 
 
-        <div className="summary-item row w-10 no-wrap">
+        <div className="summary-item row w-10 no-wrap " onClick={(e) => e.stopPropagation()}>
           <div className="row gap-14 align-center">
             <div className="icon-document-file-numbers font-size-24 text-success"></div>
             <div>
@@ -244,15 +371,18 @@ const handleDelete = async () => {
             </div>
           </div>
         </div>
-        
-         <div className="summary-item row w-15 no-wrap"></div>
+       
 
-        <CalculationMenu 
-          calc={calc} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete} 
+      <div onClick={(e) => e.stopPropagation()}>
+        <CalculationMenu
+          calc={calc}
+          onEdit={onEdit}
+          onDelete={handleDelete}
         />
-    
+      </div>
+
+
+
       </div>
 
       {/* ============ CALC DETAILS ============ */}
@@ -276,7 +406,7 @@ const handleDelete = async () => {
         isOpen={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
         comments={selectedComments} // можна передавати пустий масив, модалка сама підвантажить
-        orderId={calc.number}            // або calc.PortalOrderId
+        orderId={calc.id}            // або calc.PortalOrderId
         onAddComment={async (text) => {
           try {
             await axiosInstance.post(`/calculations/${calc.number}/add-comment/`, { message: text });
