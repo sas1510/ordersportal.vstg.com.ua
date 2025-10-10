@@ -426,24 +426,40 @@ align-items: center;
   color: #f46c3b;
 }
 
-/* Фінансове підменю горизонтально */
+/* лише для мобільного меню */
+.mobile-menu-content .submenu-wrapper {
+  position: static;
+  width: 100%;
+  margin-top: 4px;
+}
+
 .mobile-menu-content .submenu {
+  position: static;
   display: flex;
-  flex-direction: row;
-  gap: 8px;
-  padding-left: 0;
-  background: none;
-  font-size: 14px;
+  flex-direction: column;
+  background-color: #2f2f2f;
+  border-radius: 6px;
+  padding: 6px 0;
+  margin-top: 4px;
 }
 
 .mobile-menu-content .submenu li {
-  margin-bottom: 0;
+  width: 100%;
 }
 
-.mobile-menu-content .submenu li .menu-link {
-  padding: 4px 6px;
-  white-space: nowrap;
+.mobile-menu-content .submenu .menu-link {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  color: #eee;
+  text-decoration: none;
 }
+
+.mobile-menu-content .submenu .menu-link:hover {
+  background-color: #3a3a3a;
+  color: #f46c3b;
+}
+
 
 /* Кнопка Вихід */
 .mobile-menu-content .logout-item {
@@ -484,6 +500,19 @@ align-items: center;
   color: #f46c3b;
 }
 
+
 .submenu-wrapper {
-  display: block;
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+
+
+
+@media (min-width: 769px) {
+  .submenu-wrapper {
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
 }

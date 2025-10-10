@@ -2,16 +2,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
-import { RoleContext } from "../../context/RoleContext";
-import "./HeaderAdmin.css";
 import HeaderUserProfile from "./HeaderUserProfile";
-
-
-
+import "./HeaderAdmin.css";
 
 /** головні пункти меню */
 const NAV_LINKS = [
-  { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight"  },
+  { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight" },
   { title: "Прорахунки", to: "/orders", icon: "icon-calculator" },
   { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
   { title: "Дозамовлення", to: "/additional-orders", icon: "icon-add-to-list" },
@@ -40,40 +36,38 @@ const SETTINGS_SUBMENU = [
 ];
 
 export default function HeaderAdmin() {
-  const isMobile = useMediaQuery({ maxWidth: 1459 });
-  const navigate = useNavigate();
+  const isMobile = useMediaQuery({ query: "(max-width: 1459px)" });
   const location = useLocation();
-
+  const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
 
   const [showSettings, setShowSettings] = useState(false);
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
-  const [showFinanceMenuMobile, setShowFinanceMenuMobile] = useState(false);
   const [showSettingsMobile, setShowSettingsMobile] = useState(false);
+  const [showFinanceMenuMobile, setShowFinanceMenuMobile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const headerRef = useRef();
   const settingsRef = useRef();
   const financeRef = useRef();
-  const mobileMenuRef = useRef();
 
+  // закриття всіх меню при переході сторінки або зміни розміру
   useEffect(() => {
+    setMobileMenuOpen(false);
     setShowSettings(false);
     setShowFinanceMenu(false);
-    setShowFinanceMenuMobile(false);
     setShowSettingsMobile(false);
-    setMobileMenuOpen(false);
-  }, [location]);
+    setShowFinanceMenuMobile(false);
+  }, [location, isMobile]);
 
+  // закриття при кліку поза меню
   useEffect(() => {
     function handleClickOutside(event) {
-      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
-        setShowSettings(false);
-      }
-      if (financeRef.current && !financeRef.current.contains(event.target)) {
-        setShowFinanceMenu(false);
-      }
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        // закриваємо ВСІ меню
         setMobileMenuOpen(false);
+        setShowFinanceMenu(false);
+        setShowSettings(false);
         setShowFinanceMenuMobile(false);
         setShowSettingsMobile(false);
       }
@@ -82,58 +76,19 @@ export default function HeaderAdmin() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/home");
-  };
+  
 
-  const navLinks = NAV_LINKS.map((link) => (
-      <li
-        key={link.to}
-        className={`${location.pathname.startsWith(link.to) ? "active" : ""} ${link.className || ""}`}
-      >
 
-      <Link to={link.to} className="menu-link">
-        <span className={`icon ${link.icon}`}></span>
-        <span>{link.title}</span>
-      </Link>
+  const navLinks = NAV_LINKS.map(link => (
+    <li key={link.to} className={`${location.pathname.startsWith(link.to) ? "active" : ""} ${link.className || ""}`}>
+      <Link to={link.to} className="menu-link">{link.title}</Link>
     </li>
-
   ));
 
-  const toggleSettingsMenu = () => {
-    setShowSettings((prev) => {
-      if (!prev) setShowFinanceMenu(false);
-      return !prev;
-    });
-    setShowFinanceMenuMobile(false);
-    setShowSettingsMobile(false);
-  };
-  const toggleFinanceMenu = () => {
-    setShowFinanceMenu((prev) => {
-      if (!prev) setShowSettings(false);
-      return !prev;
-    });
-    setShowFinanceMenuMobile(false);
-    setShowSettingsMobile(false);
-  };
-  const toggleFinanceMenuMobile = () => {
-    setShowFinanceMenuMobile((prev) => {
-      if (!prev) setShowSettingsMobile(false);
-      return !prev;
-    });
-  };
-  const toggleSettingsMenuMobile = () => {
-    setShowSettingsMobile((prev) => {
-      if (!prev) setShowFinanceMenuMobile(false);
-      return !prev;
-    });
-  };
-
   return (
-    <header className="portal-header">
+    <header className="portal-header" ref={headerRef}>
       <div className="flex items-center">
-        <Link to={"/dashboard"}>
+        <Link to="/dashboard">
           <img src="/header_logo.svg" alt="Логотип" className="h-10" />
         </Link>
       </div>
@@ -142,17 +97,14 @@ export default function HeaderAdmin() {
         <nav className="menu" ref={financeRef}>
           <ul>
             {navLinks}
-            <li>
-              
-              {/* <i className="fa-solid fa-fire"></i> */}
 
-              <button className="menu-link" onClick={toggleFinanceMenu}>
-                <i className="icon icon-coin-dollar"></i>
+            <li>
+              <button className="menu-link" onClick={() => { setShowFinanceMenu(prev => !prev); setShowSettings(false); }}>
                 Фінанси ▾
               </button>
               {showFinanceMenu && (
                 <ul className="submenu">
-                  {FINANCE_SUBMENU.map((item) => (
+                  {FINANCE_SUBMENU.map(item => (
                     <li key={item.to}>
                       <Link to={item.to} className="menu-link" onClick={() => setShowFinanceMenu(false)}>
                         {item.title}
@@ -162,13 +114,15 @@ export default function HeaderAdmin() {
                 </ul>
               )}
             </li>
+
             <li ref={settingsRef}>
-              <button className="menu-link" onClick={toggleSettingsMenu}>
+              <button className="menu-link" onClick={() => { setShowSettings(prev => !prev); setShowFinanceMenu(false); }}>
                 Налаштування ▾
               </button>
               {showSettings && (
-                <ul className="submenu">
-                  {SETTINGS_SUBMENU.map((item) => (
+                <ul className="submenu" style={{ display: showFinanceMenu ? "flex" : "none" }}>
+
+                  {SETTINGS_SUBMENU.map(item => (
                     <li key={item.to}>
                       <Link to={item.to} className="menu-link" onClick={() => setShowSettings(false)}>
                         {item.title}
@@ -178,41 +132,28 @@ export default function HeaderAdmin() {
                 </ul>
               )}
             </li>
-            
-                          <li className="dealer-size">
-                          <HeaderUserProfile />
-                        </li>
-            
 
-                              <li className="logout-item">
-                                <button
-                                  className="logout-icon "
-                                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                                  title="Вийти"
-                                >
-                                  <i className="fa fa-sign-out-alt"></i>
-                                </button>
-                              </li>
-
-
+            <li className="dealer-size"><HeaderUserProfile /></li>
+            <li>
+              <button className="menu-link logout" onClick={logout}>Вийти</button>
+            </li>
           </ul>
         </nav>
       ) : (
-        <div className="mobile-menu" ref={mobileMenuRef}>
-          <button onClick={() => setMobileMenuOpen((prev) => !prev)} className="menu-toggle">
-            ☰
-          </button>
+        <div className="mobile-menu">
+          <button className="menu-toggle" onClick={() => setMobileMenuOpen(prev => !prev)}>☰</button>
           {mobileMenuOpen && (
             <div className="mobile-menu-content">
               <ul>
                 {navLinks}
+
                 <li>
-                  <button className="menu-link" onClick={toggleFinanceMenuMobile}>
+                  <div className="menu-link" onClick={() => { setShowFinanceMenuMobile(prev => !prev); setShowSettingsMobile(false); }}>
                     Фінанси ▾
-                  </button>
+                  </div>
                   {showFinanceMenuMobile && (
                     <ul className="submenu">
-                      {FINANCE_SUBMENU.map((item) => (
+                      {FINANCE_SUBMENU.map(item => (
                         <li key={item.to}>
                           <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
                             {item.title}
@@ -222,13 +163,15 @@ export default function HeaderAdmin() {
                     </ul>
                   )}
                 </li>
+
                 <li>
-                  <button className="menu-link" onClick={toggleSettingsMenuMobile}>
+                  <div className="menu-link" onClick={() => { setShowSettingsMobile(prev => !prev); setShowFinanceMenuMobile(false); }}>
                     Налаштування ▾
-                  </button>
+                  </div>
                   {showSettingsMobile && (
-                    <ul className="submenu">
-                      {SETTINGS_SUBMENU.map((item) => (
+                    <ul className="submenu" style={{ display: showFinanceMenu ? "flex" : "none" }}>
+
+                      {SETTINGS_SUBMENU.map(item => (
                         <li key={item.to}>
                           <Link to={item.to} className="menu-link" onClick={() => setMobileMenuOpen(false)}>
                             {item.title}
@@ -238,10 +181,9 @@ export default function HeaderAdmin() {
                     </ul>
                   )}
                 </li>
+
                 <li>
-                  <button className="menu-link logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
-                    Вийти
-                  </button>
+                  <button className="menu-link logout" onClick={logout}>Вийти</button>
                 </li>
               </ul>
             </div>
