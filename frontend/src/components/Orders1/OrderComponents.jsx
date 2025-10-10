@@ -5,11 +5,14 @@ import { formatMoney } from "../../utils/formatMoney"; // окремий фай�
 import CommentsModal from "./CommentsModal";
 import {CalculationMenu} from "./CalculationMenu";
 import AddClaimModal from "./AddClaimModal";
+import AddReorderModal from "./AddReorderModal"; // шлях до твого нового компоненту
+
 
 
 export const OrderItemSummary = ({ order }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const toggleExpand = () => setIsExpanded(!isExpanded);
   const getButtonState = (status) => {
@@ -97,6 +100,11 @@ export const OrderItemSummary = ({ order }) => {
     setClaimOrderNumber(order.name || order.number); // автоматично підставляємо номер
     setIsClaimModalOpen(true);
   };
+
+  const openReorderModal = () => {
+    setIsReorderModalOpen(true);
+  };
+
 
   return (
     <div className="order-item flex flex-col w-full gap-0">
@@ -195,9 +203,14 @@ export const OrderItemSummary = ({ order }) => {
               !buttonState.reorder ? "disabled opacity-50 cursor-not-allowed" : ""
             }`}
             disabled={!buttonState.reorder}
+            onClick={(e) => {
+              e.stopPropagation(); // щоб клік не розкривав деталі замовлення
+              openReorderModal();
+            }}
           >
             <div className="font-size-12">Дозамовлення</div>
           </button>
+
 
           <button
             className={`column align-center button button-last background-danger ${
@@ -230,6 +243,18 @@ export const OrderItemSummary = ({ order }) => {
         onSave={() => setIsClaimModalOpen(false)}
         initialOrderNumber={claimOrderNumber}
       />
+
+      <AddReorderModal
+        isOpen={isReorderModalOpen}
+        onClose={() => setIsReorderModalOpen(false)}
+        onSave={(formData) => {
+          console.log("Дозамовлення по замовленню", order.number, formData);
+          setIsReorderModalOpen(false);
+
+          // Тут можеш додати axios.post на сервер, щоб відправити дозамовлення
+        }}
+      />
+
 
 
     </div>
