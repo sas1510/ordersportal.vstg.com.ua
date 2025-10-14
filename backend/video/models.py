@@ -1,7 +1,7 @@
 from django.db import models
 from users.models import CustomUser  # підключаємо вашу модель користувача
 
-class VideoContent(models.Model):
+class Video(models.Model):
     url = models.URLField(blank=True, null=True, verbose_name="Посилання на YouTube")
     title = models.CharField(max_length=255, verbose_name="Заголовок відео")
     description = models.TextField(blank=True, null=True)

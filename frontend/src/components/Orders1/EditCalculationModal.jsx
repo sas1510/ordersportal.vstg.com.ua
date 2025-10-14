@@ -95,6 +95,7 @@ const EditCalculationModal = ({ isOpen, onClose, calculation, onSave }) => {
           <form className="edit-calc-form" onSubmit={handleSubmit}>
             
             {/* Завантаження файлу */}
+            {/* Завантаження файлу */}
             <div className="edit-calc-file-upload">
               <label htmlFor="edit-calc-file-input" className="edit-calc-upload-label">
                 <FaUpload size={20} />
@@ -109,20 +110,37 @@ const EditCalculationModal = ({ isOpen, onClose, calculation, onSave }) => {
               </label>
 
               <div className="edit-calc-file-name">
-                <span className={file ? "text-danger" : "text-grey"}>{fileName}</span>
+                <span className={file ? "text-danger" : "text-grey"}>{calculation.number}.zkz</span>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  {!file && calculation?.file && (
-                    <a 
-                      href={calculation.file}
-                      download
+                
+                    <button
+                      type="button"
                       className="edit-calc-download-file"
                       title="Скачати поточний файл"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const response = await axiosInstance.get(
+                            `/calculations/${calculation.id}/download/`,
+                            { responseType: "blob" }
+                          );
+                          const url = window.URL.createObjectURL(response.data);
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.setAttribute("download", `${calculation.number}.zkz`);
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          window.URL.revokeObjectURL(url);
+                        } catch (err) {
+                          console.error("Помилка при скачуванні файлу:", err);
+                        }
+                      }}
                     >
                       <FaDownload size={14} />
                       <span>Скачати</span>
-                    </a>
-                  )}
+                    </button>
+                 
                   {file && (
                     <button 
                       type="button"
@@ -136,6 +154,7 @@ const EditCalculationModal = ({ isOpen, onClose, calculation, onSave }) => {
                 </div>
               </div>
             </div>
+
 
             {/* Кількість конструкцій */}
             <label className="edit-calc-label-row">

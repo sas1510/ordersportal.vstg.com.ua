@@ -1,41 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../../api/axios";
-import { FaTimes, FaSave, FaRegCommentDots } from 'react-icons/fa';
+import { FaTimes, FaSave, FaRegCommentDots } from "react-icons/fa";
 import "./CommentsModal.css";
 
 const CommentsModal = ({ isOpen, onClose, orderId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const commentsEndRef = useRef(null);
 
-  // Функція завантаження коментарів
+  // Завантаження коментарів
   const fetchComments = async () => {
     if (!orderId) return;
     try {
       const res = await axiosInstance.get(`/orders/${orderId}/messages/`);
+      // Не перевертаємо — залишаємо порядок "зверху старі, знизу нові"
       setComments(res.data);
     } catch (err) {
       console.error("Помилка при завантаженні коментарів:", err);
     }
   };
 
-  // Виклик fetchComments при відкритті модалки або зміні orderId
+  // Скрол до останнього коментаря
+  const scrollToBottom = () => {
+    commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Виклик при відкритті модалки
   useEffect(() => {
     if (isOpen) {
       fetchComments();
     }
   }, [isOpen, orderId]);
 
+  // Скрол при зміні коментарів
+  useEffect(() => {
+    scrollToBottom();
+  }, [comments]);
+
   // Додавання нового коментаря
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     setLoading(true);
     try {
-      await axiosInstance.post(`/orders/${orderId}/add-message/`, {
+      const res = await axiosInstance.post(`/orders/${orderId}/add-message/`, {
         message: newComment.trim(),
       });
       setNewComment("");
-      fetchComments(); // оновлюємо список
+
+      // Додаємо новий коментар у кінець списку без повторного fetch
+      setComments((prev) => [...prev, res.data]);
     } catch (err) {
       console.error("Помилка при додаванні коментаря:", err);
     } finally {
@@ -70,11 +84,14 @@ const CommentsModal = ({ isOpen, onClose, orderId }) => {
                 <li key={idx} className="comments-item">
                   <div className="comments-meta">
                     <strong>{c.author || "Користувач"}</strong>
-                    <span>{new Date(c.created_at || c.date).toLocaleString("uk-UA")}</span>
+                    <span>
+                      {new Date(c.created_at || c.date).toLocaleString("uk-UA")}
+                    </span>
                   </div>
                   <div className="comments-text">{c.message || c.text}</div>
                 </li>
               ))}
+              <div ref={commentsEndRef} />
             </ul>
           )}
 

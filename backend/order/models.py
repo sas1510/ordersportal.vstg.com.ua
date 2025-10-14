@@ -182,7 +182,7 @@ class Order(models.Model):
     order_number_constructions = models.FloatField(default=0)
 
     # description = models.TextField(null=True, blank=True)
-    file = models.FileField(upload_to=order_file_path, null=True, blank=True)
+    file = models.TextField(null=True, blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -201,28 +201,31 @@ class Order(models.Model):
 
 
 
-class OrderMessage(models.Model):
-    order = models.ForeignKey(
-        Order,  # замість 'Order'
-        on_delete=models.CASCADE,
-        related_name='messages'
-    )
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
+class Message(models.Model):
+    # Generic ForeignKey для будь-якого об'єкта
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
     writer = models.ForeignKey(
         CustomUser, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
-        related_name='order_messages'
+        related_name='messages'
     )
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        db_table = "Message"
         ordering = ['created_at']
-        verbose_name = 'Коментар до замовлення'
-        verbose_name_plural = 'Коментарі до замовлень'
-        db_table = "OrderMessage"
+        verbose_name = 'Коментар'
+        verbose_name_plural = 'Коментарі'
 
     def __str__(self):
         if self.writer:

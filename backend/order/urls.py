@@ -1,6 +1,6 @@
 # backend/orders/urls.py
 from django.urls import path
-from .views import CreateOrderView, LastOrderNumberView, CustomerOrdersView, AddOrderMessageView, OrderMessagesView, get_order_payment_status, get_filtered_orders, get_orders_by_dealer_and_year, portal_view, DeleteOrderView , EditOrderView
+from .views import CreateOrderView, LastOrderNumberView, CustomerOrdersView, AddOrderMessageView, OrderMessagesView, get_order_payment_status, get_filtered_orders, get_orders_by_dealer_and_year, portal_view, DeleteOrderView , EditOrderView, download_order_file
 
 
 
@@ -19,5 +19,7 @@ urlpatterns = [
     path('calculations/<int:order_id>/delete/', DeleteOrderView.as_view(), name='delete_order'),
     path('calculations/<int:order_id>/delete/', DeleteOrderView.as_view(), name='delete_order'),
     path('calculations/<int:order_id>/edit/', EditOrderView.as_view(), name='edit-order'),
+    path('calculations/<int:order_id>/download/', download_order_file, name='download_order_file'),
+
 
 ]

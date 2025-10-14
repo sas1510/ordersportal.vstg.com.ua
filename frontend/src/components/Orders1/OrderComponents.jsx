@@ -6,7 +6,7 @@ import CommentsModal from "./CommentsModal";
 import {CalculationMenu} from "./CalculationMenu";
 import AddClaimModal from "./AddClaimModal";
 import AddReorderModal from "./AddReorderModal"; // шлях до твого нового компоненту
-
+import axiosInstance from "../../api/axios";
 
 
 export const OrderItemSummary = ({ order }) => {
@@ -272,6 +272,26 @@ export const CalculationItem = ({ calc, onDelete, onEdit }) => {
   const handleEdit = (updatedCalc) => {
     if (onEdit) onEdit(updatedCalc); // викликаємо метод з PortalOriginal
   };
+const handleDownload = async () => {
+  try {
+    const response = await axiosInstance.get(`/calculations/${calc.id}/download/`, {
+      responseType: 'blob', // важливо для файлів
+    });
+
+    const url = window.URL.createObjectURL(response.data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${calc.number}.zkz`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("Помилка при завантаженні файлу:", error);
+  }
+};
+
 
 
 const handleDelete = async () => {
@@ -330,7 +350,7 @@ const handleDelete = async () => {
           <div className="font-size-24 text-danger">{orderList.length}</div>
         </div>
 
-        <div className="summary-item row w-12 no-wrap">
+        <div className="summary-item row w-14 no-wrap">
           <div className="row gap-14 align-center">
             <span className="icon icon-coin-dollar font-size-24 text-success"></span>
             <div className="column">
@@ -358,20 +378,21 @@ const handleDelete = async () => {
         </div>
 
 
-        <div className="summary-item row w-10 no-wrap " onClick={(e) => e.stopPropagation()}>
-          <div className="row gap-14 align-center">
-            <div className="icon-document-file-numbers font-size-24 text-success"></div>
-            <div>
-              {calc.file ? (
-                <a href={calc.file} download={`${calc.number}.zkz`} className="text-link">
-                  {`${calc.number}.zkz`}
-                </a>
-              ) : (
-                <span className="text-grey">Немає файлу</span>
-              )}
-            </div>
-          </div>
-        </div>
+<div
+  className="summary-item row w-10 no-wrap"
+  onClick={(e) => {
+    e.stopPropagation();
+    console.log("Клікнув на завантаження"); // <- перевір
+    handleDownload();
+  }}
+>
+
+  <div className="row gap-14 align-center">
+    <div className="icon-document-file-numbers font-size-24 text-success"></div>
+    <div>{calc.number}.zkz</div>
+  </div>
+</div>
+
 
         <div className="summary-item row w-15 no-wrap">
           <div className="row gap-14 align-center">

@@ -9,7 +9,7 @@ from collections import defaultdict
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from .models import Order, OrderMessage
+from .models import Order, Message
 from .serializers import OrderCreateSerializer, OrderMessageSerializer
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
@@ -20,14 +20,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from .models import Order, OrderMessage
+from .models import Order, Message
+import base64
 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.utils import timezone
-from .models import Order, OrderMessage
+from .models import Order, Message
 from .serializers import OrderCreateSerializer
  
 
@@ -87,6 +88,12 @@ class CustomerOrdersView(APIView):
 
 
 
+from django.contrib.contenttypes.models import ContentType
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Order, Message
+
 class AddOrderMessageView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -98,18 +105,33 @@ class AddOrderMessageView(APIView):
 
         try:
             order = Order.objects.get(id=order_id)
-            message = OrderMessage.objects.create(order=order, writer=user, message=text)
-            serializer = {
-                "message": message.message,
-                "author": message.writer.full_name if message.writer else None,
-                "created_at": message.created_at,
-                "updated_at": message.updated_at,
-                "order_id": message.order_id,
-            }
-            return Response(serializer, status=201)
         except Order.DoesNotExist:
             return Response({"error": "Order not found"}, status=404)
 
+        # Беремо ContentType для Order
+        content_type = ContentType.objects.get_for_model(Order)
+
+        # Створюємо повідомлення
+        message = Message.objects.create(
+            content_type=content_type,
+            object_id=order.id,
+            writer=user,
+            message=text
+        )
+
+        serializer = {
+            "id": message.id,
+            "message": message.message,
+            "author": message.writer.full_name if message.writer else None,
+            "created_at": message.created_at.isoformat(),
+            "updated_at": message.updated_at.isoformat(),
+            "order_id": order.id
+        }
+
+        return Response(serializer, status=201)
+
+
+from django.contrib.contenttypes.models import ContentType
 
 class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
@@ -122,6 +144,10 @@ class CreateOrderView(APIView):
         if not uploaded_file:
             return Response({"error": "Файл обов'язковий"}, status=400)
 
+        # Кодуємо файл у Base64
+        file_bytes = uploaded_file.read()
+        file_base64 = base64.b64encode(file_bytes).decode('utf-8')
+
         role = user.role
         manager_roles = ["manager", "region_manager"]
 
@@ -129,31 +155,32 @@ class CreateOrderView(APIView):
             customer_id = request.data.get("CustomerId")
             if not customer_id:
                 return Response({"error": "CustomerId is required for managers"}, status=400)
-            author_id = user.id  # автор — менеджер
+            author_id = user.id
         else:
-            customer_id = user.id  # клієнт сам собі замовник
-            author_id = user.id    # клієнт сам автор
+            customer_id = user.id
+            author_id = user.id
 
         serializer = OrderCreateSerializer(data={
             "order_number": request.data.get("OrderNumber"),
             "customer": customer_id,
             "author": author_id,
             "order_number_constructions": request.data.get("ConstructionsCount", 0),
-            "file": uploaded_file,
+            "file": file_base64,
             "create_date": now,
         })
 
-
         if serializer.is_valid():
-            try:
-                order = serializer.save()
-            except Exception as e:
-                return Response({"error": str(e)}, status=500)
+            order = serializer.save()
 
             comment_text = request.data.get("Comment")
             if comment_text:
-                OrderMessage.objects.create(order=order, writer=user, message=comment_text)
-
+                content_type = ContentType.objects.get_for_model(Order)
+                Message.objects.create(
+                    content_type=content_type,
+                    object_id=order.id,
+                    writer=user,
+                    message=comment_text
+                )
 
             return Response({
                 "id": order.id,
@@ -161,8 +188,10 @@ class CreateOrderView(APIView):
                 "dateRaw": order.create_date,
                 "ConstructionsCount": order.order_number_constructions,
                 "Comment": comment_text,
-                "file": uploaded_file.name
+                "file": uploaded_file.name  # залишаємо оригінальне ім'я
             }, status=201)
+
+        return Response(serializer.errors, status=400)
 
 
 
@@ -183,7 +212,7 @@ class DeleteOrderView(APIView):
 
         try:
             # Видаляємо всі повідомлення, пов’язані з цим замовленням
-            OrderMessage.objects.filter(order=order).delete()
+            Message.objects.filter(order=order).delete()
             order.delete()
             return Response({"success": f"Замовлення {order_id} видалено"}, status=status.HTTP_200_OK)
         except Exception as e:
@@ -198,14 +227,28 @@ class LastOrderNumberView(APIView):
         return Response({"LastOrderNumber": last_number}, status=status.HTTP_200_OK)
 
 
+from django.contrib.contenttypes.models import ContentType
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Order, Message
+
 class OrderMessagesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, order_id):
-        # Витягуємо всі повідомлення для order_id
-        messages = OrderMessage.objects.filter(order_id=order_id).select_related("writer")
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=404)
 
-        # Серіалізація в список словників
+        # Отримуємо ContentType для Order
+        content_type = ContentType.objects.get_for_model(Order)
+
+        # Витягуємо всі повідомлення, пов'язані з цим замовленням
+        messages = Message.objects.filter(content_type=content_type, object_id=order.id).select_related("writer")
+
+        # Серіалізація
         serialized = [
             {
                 "id": m.id,
@@ -213,13 +256,12 @@ class OrderMessagesView(APIView):
                 "author": m.writer.full_name if m.writer else None,
                 "created_at": m.created_at.isoformat(),
                 "updated_at": m.updated_at.isoformat(),
-                "order_id": m.order_id,
-                "writer_id": m.writer.id if m.writer else None,
+                "order_id": order.id,
+                "writer_id": m.writer.id if m.writer else None
             }
             for m in messages
         ]
 
-        # Завжди повертаємо список, навіть якщо він порожній
         return Response(serialized, status=200)
 
 
@@ -465,9 +507,16 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.db import connection
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def portal_view(request):
     user = request.user
-    customer_id = 5
+    customer_id = getattr(user, 'id', None)
+
+    if not customer_id:
+        return JsonResponse({"error": "User ID is missing"}, status=400)
+
 
     # Беремо рік із GET-параметра, якщо не передано — поточний
     reporting_year = request.GET.get("year")
@@ -502,7 +551,7 @@ def portal_view(request):
             calc_map[calc_id] = {
                 "uuid": str(calc_id),
                 "class": "Calculation",
-                "File": row["File"],
+                # "File": row["File"],
                 "name": row["НомерПросчета"],
                 "ДатаПросчета": row["ДатаПросчета"].isoformat() if row["ДатаПросчета"] else None,
                 "КоличествоКонструкцийВПросчете": row["КоличествоКонструкцийВПросчете"],
@@ -550,62 +599,80 @@ def portal_view(request):
 
 
 
+from django.contrib.contenttypes.models import ContentType
+
 class EditOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, order_id):
-        """
-        Редагуємо замовлення: змінюємо конструкії, коментар, файл.
-        Order number змінювати заборонено.
-        """
         user = request.user
-        try:
-            order = Order.objects.get(id=order_id)
-        except Order.DoesNotExist:
-            return Response({"error": "Замовлення не знайдено"}, status=404)
+        order = get_object_or_404(Order, id=order_id)
 
-        # Перевірка прав: тільки автор або менеджер може редагувати
         if not (user.role in ["manager", "region_manager"] or 
-            order.author_id == user.id or 
-            order.customer_id == user.id):
-              return Response({
-                "error": "Немає доступу до редагування",
-                "user_id": user.id,
-                "user_role": user.role,
-                "order_author_id": order.author_id,
-                "order_customer_id": order.customer_id
-            }, status=403)
-
+                order.author_id == user.id or 
+                order.customer_id == user.id):
+            return Response({"error": "Немає доступу до редагування"}, status=403)
 
         uploaded_file = request.FILES.get("file")
         constructions_count = request.data.get("ConstructionsCount")
         comment_text = request.data.get("Comment")
 
-        # Оновлюємо поля, крім order_number
         if constructions_count is not None:
             order.order_number_constructions = constructions_count
-
         if uploaded_file:
-            order.file = uploaded_file
-
+            file_bytes = uploaded_file.read()
+            order.file = base64.b64encode(file_bytes).decode('utf-8')
         order.save()
 
-        # Додаємо новий коментар, якщо є
         if comment_text:
-            last_message = OrderMessage.objects.filter(order=order, writer=user).order_by("-created_at").first()
+            content_type = ContentType.objects.get_for_model(Order)
+            last_message = Message.objects.filter(
+                content_type=content_type,
+                object_id=order.id,
+                writer=user
+            ).order_by("-created_at").first()
+
             if last_message:
                 last_message.message = comment_text
                 last_message.save()
             else:
-                OrderMessage.objects.create(order=order, writer=user, message=comment_text)
-
-
+                Message.objects.create(
+                    content_type=content_type,
+                    object_id=order.id,
+                    writer=user,
+                    message=comment_text
+                )
 
         return Response({
             "id": order.id,
-            "name": order.order_number,  # номер замовлення не змінюємо
+            "name": order.order_number,
             "dateRaw": order.create_date,
             "ConstructionsCount": order.order_number_constructions,
             "Comment": comment_text,
-            "file": order.file.name if order.file else None
+            "file": uploaded_file.name if uploaded_file else None
         }, status=200)
+
+
+import base64
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+from .models import Order
+
+from django.http import HttpResponse
+import base64
+
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse, FileResponse, Http404
+import base64
+
+def download_order_file(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    if not order.file:
+        raise Http404("Файл не знайдено")
+
+    # Якщо файл у тебе в Base64
+    file_data = base64.b64decode(order.file)
+    response = HttpResponse(file_data, content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{order.order_number}.zkz"'
+    return response

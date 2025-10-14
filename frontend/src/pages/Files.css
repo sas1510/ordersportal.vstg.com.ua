@@ -1,0 +1,374 @@
+/* ===== Overlay ===== */
+.file-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ===== Вікно ===== */
+.file-modal-window {
+  background: #fff;
+  border-radius: 12px;
+  width: 650px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.25s ease;
+}
+
+/* ===== Header ===== */
+.file-modal-header {
+  display: flex;
+  justify-content: space-between; /* кнопка закриття справа */
+  align-items: center;
+  padding: 18px 22px;
+  background: linear-gradient(90deg, #f46c3b, #ff8657);
+  color: #fff;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  
+  gap: 10px; /* відстань між іконкою та текстом */
+}
+
+.file-icon {
+  font-size: 24px; /* розмір іконки */
+  display: flex;
+  align-items: center;
+}
+
+.file-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-self: center;
+  gap: 8px;
+}
+
+.file-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.file-close-btn:hover {
+  opacity: 0.8;
+  transform: rotate(90deg);
+}
+
+/* ===== Форма ===== */
+.file-form {
+
+  padding: 22px 26px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #f46c3b transparent;
+}
+
+.file-form::-webkit-scrollbar {
+  width: 8px;
+}
+.file-form::-webkit-scrollbar-thumb {
+  background: #f46c3b;
+  border-radius: 4px;
+}
+.file-form::-webkit-scrollbar-thumb:hover {
+  background: #d85b2f;
+}
+
+/* ===== Поля ===== */
+.file-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  color: #333;
+}
+
+.file-label span {
+  font-weight: 500;
+}
+
+.file-input,
+.file-textarea,
+.file-select {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.file-input:focus,
+.file-textarea:focus,
+.file-select:focus {
+  border-color: #f46c3b;
+  box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.15);
+  outline: none;
+}
+
+.file-textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+/* ===== Серії ===== */
+.series-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  background: #f9f9f9;
+}
+
+.series-list::-webkit-scrollbar {
+  width: 8px;
+}
+.series-list::-webkit-scrollbar-thumb {
+  background: #f46c3b;
+  border-radius: 4px;
+}
+
+.series-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #444;
+}
+.series-item input[type="checkbox"] {
+  accent-color: #f46c3b;
+}
+
+/* ===== Фото ===== */
+.photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.photo-item {
+  position: relative;
+}
+
+.photo-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.file-clear-file {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #f46c3b;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+.file-clear-file:hover {
+  background: #d85b2f;
+}
+
+/* ===== Рядки дати ===== */
+.file-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+/* ===== Footer ===== */
+/* ===== Footer ===== */
+.file-modal-footer {
+flex-shrink: 0; /* 👈 футер завжди фіксований знизу */
+display: flex;
+  justify-content: center; /* 👈 кнопки по центру */
+  gap: 16px;
+  padding: 18px 22px;
+  padding-bottom: 0;
+  border-top: 1px solid #eee;
+  background: #fff;
+
+  z-index: 1;
+}
+
+/* ===== Кнопки ===== */
+
+
+
+.file-btn-cancel,
+.file-btn-save {
+  border: none;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Сіра кнопка — скасування */
+.file-btn-cancel {
+  background: #f46c3b;
+  color: #fff;
+}
+.file-btn-cancel:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
+}
+
+/* Помаранчева кнопка — зберегти */
+.file-btn-save {
+   background: #76b448;
+  color: #fff;
+}
+
+
+.file-btn-save:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
+}
+
+
+.file-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ===== Фікс ширини select / option ===== */
+/* === Красивий select у межах модалки === */
+select.file-input {
+  width: 100%;
+  max-width: 100%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 34px 8px 10px;
+  font-size: 14px;
+  color: #333;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23f46c3b' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+/* === Опції — 2 рядки, перенос без розтягування === */
+select.file-input option {
+  white-space: normal; /* дозволяє перенос рядків */
+  word-break: break-word;
+  line-height: 1.2;
+  padding: 6px;
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* максимум 2 рядки */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+.file-label.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.add-photo-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(90deg, #f46c3b, #ff8657);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.add-photo-btn:hover {
+  background: linear-gradient(90deg, #ff8657, #f46c3b);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(244, 108, 59, 0.45);
+}
+
+.photo-label-text {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+
+
+/* ===== Анімації ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+
+.loader, .loader-small {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #76b448;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+.loader-small {
+  width: 20px;
+  height: 20px;
+  border-width: 3px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
