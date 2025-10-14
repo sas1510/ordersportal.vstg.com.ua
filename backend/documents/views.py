@@ -1,11 +1,12 @@
+# views.py
 from rest_framework import viewsets
-from .models import Document
-from .serializers import DocumentSerializer
+from .models import UploadFile
+from .serializers import UploadFileSerializer
 from backend.permissions import IsAdminOrReadOnly
 
-class DocumentViewSet(viewsets.ModelViewSet):
-    queryset = Document.objects.all().order_by('-created_at')
-    serializer_class = DocumentSerializer
+class UploadFileViewSet(viewsets.ModelViewSet):
+    queryset = UploadFile.objects.all().order_by('-create_date')
+    serializer_class = UploadFileSerializer
     permission_classes = [IsAdminOrReadOnly]
 
     def perform_create(self, serializer):
@@ -13,7 +14,6 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
-
 
     def perform_destroy(self, instance):
         instance.delete()

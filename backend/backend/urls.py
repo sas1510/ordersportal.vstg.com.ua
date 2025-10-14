@@ -6,8 +6,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('users.urls')),  # твої маршрути користувачів
-    # path('api/', include('documents.urls')),  # додай, якщо в тебе app documents
-    # path('api/', include('video.urls')),
+    path('file/', include('documents.urls')),  # додай, якщо в тебе app documents
+    path('video/', include('video.urls')),
     # path('api/', include('contact.urls')),
     path('', include('order.urls')),  # додай, якщо в тебе app orders
     path('complaints/', include('complaints.urls')),  # додай, якщо в тебе app orders

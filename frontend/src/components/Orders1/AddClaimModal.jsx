@@ -136,39 +136,53 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
     e.preventDefault();
     if (orderNotFound) return;
 
-    const formData = new FormData();
-    formData.append("order_number", orderNumber);
-    formData.append("order_deliver_date", deliveryDate);
-    formData.append("order_define_date", claimDate);
-    formData.append("complaint_date", new Date().toISOString());
-    formData.append("issue", reasonLink);
-    formData.append("solution", solutionLink);
-    formData.append("description", description);
-    formData.append(
-      "series",
-      JSON.stringify(
-        selectedSeries.map((link) => {
-          const serie = seriesOptions.find((s) => s.SeriesLink === link);
-          return { serie_link: link, serie_name: serie?.Name || "" };
-        })
-      )
-    );
-    photos.forEach((p) => formData.append("photos", p));
-
-    setLoading(true);
-    try {
-      await axiosInstance.post("/complaints/create_complaints/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+     const photosBase64 = await Promise.all(
+    photos.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64String = reader.result.split(",")[1]; // забираємо тільки дані після "data:image/png;base64,"
+          resolve({
+            photo_name: file.name,
+            photo_base64: base64String
+          });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
-      alert("✅ Рекламацію додано!");
-      onSave?.();
-      handleCloseWithReset();
-    } catch (err) {
-      alert("❌ Помилка: " + (err.response?.data || err.message));
-    } finally {
-      setLoading(false);
-    }
+    })
+  );
+
+  // 🔹 Формуємо payload JSON
+  const payload = {
+    order_number: orderNumber,
+    order_deliver_date: deliveryDate,
+    order_define_date: claimDate,
+    complaint_date: new Date().toISOString(),
+    issue: reasonLink,
+    solution: solutionLink,
+    description,
+    series: selectedSeries.map((link) => {
+      const serie = seriesOptions.find((s) => s.SeriesLink === link);
+      return { serie_link: link, serie_name: serie?.Name || "" };
+    }),
+    photos: photosBase64
   };
+
+  setLoading(true);
+  try {
+    await axiosInstance.post("/complaints/create_complaints/", payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+    alert("✅ Рекламацію додано!");
+    onSave?.();
+    handleCloseWithReset();
+  } catch (err) {
+    alert("❌ Помилка: " + (err.response?.data || err.message));
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!isOpen) return null;
 

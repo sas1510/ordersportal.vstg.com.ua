@@ -1,12 +1,9 @@
-from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets
 from .models import Video
-from .serializers import VideoSerializer
+from .serializers import VideoContentSerializer
 from backend.permissions import IsAdminOrReadOnly
 
-class VideoViewSet(viewsets.ModelViewSet):
+class VideoContentViewSet(viewsets.ModelViewSet):
     queryset = Video.objects.all().order_by('-created_at')
-    serializer_class = VideoSerializer
+    serializer_class = VideoContentSerializer
     permission_classes = [IsAdminOrReadOnly]

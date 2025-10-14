@@ -1,47 +1,104 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../api/axios';
-import { Link, useNavigate } from 'react-router-dom';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7019';
+import { useNavigate } from 'react-router-dom';
+import { FaPlus, FaTimes, FaSearch } from 'react-icons/fa';
+import { useNotification } from '../components/notification/Notifications';
+import ConfirmModal from '../components/Orders1/ConfirmModal';
+import './Videos.css';
 
 export default function VideosPage() {
   const [videos, setVideos] = useState([]);
+  const [filteredVideos, setFilteredVideos] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [newVideo, setNewVideo] = useState({ title: '', url: '', description: '' });
+  const [loading, setLoading] = useState(true);
+  const [loadingAdd, setLoadingAdd] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
   const role = localStorage.getItem('role');
   const token = localStorage.getItem('access');
+  const isAdmin = role === 'admin';
   const navigate = useNavigate();
-
-  const isAdmin = role === 'Admin';
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     fetchVideos();
   }, []);
 
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = videos.filter(v =>
+        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredVideos(filtered);
+    } else {
+      setFilteredVideos(videos);
+    }
+  }, [searchQuery, videos]);
+
   const fetchVideos = async () => {
+    setLoading(true);
     try {
-      const res = await axiosInstance.get(`/videos/`);
+      const res = await axiosInstance.get('/video/', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setVideos(res.data);
+      setFilteredVideos(res.data);
     } catch (error) {
       console.error('Помилка завантаження відео:', error);
+      addNotification('Помилка завантаження відео', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!isAdmin) return;
-    if (!window.confirm('Ви впевнені, що хочете видалити відео?')) return;
+  const handleAddVideo = async (e) => {
+    e.preventDefault();
+    if (!newVideo.title || !newVideo.url) return addNotification('Заповніть всі поля', 'error');
 
+    setLoadingAdd(true);
     try {
-      await axiosInstance.delete(`/videos/${id}/`, {
+      await axiosInstance.post('/video/', newVideo, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAddModalOpen(false);
+      setNewVideo({ title: '', url: '', description: '' });
+      fetchVideos();
+      addNotification('Відео успішно додано!', 'success');
+    } catch (error) {
+      console.error('Помилка при додаванні відео:', error);
+      addNotification('Не вдалося додати відео', 'error');
+    } finally {
+      setLoadingAdd(false);
+    }
+  };
+
+  const handleDeleteClick = (video) => {
+    setSelectedVideo(video);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await axiosInstance.delete(`/video/${selectedVideo.id}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchVideos();
+      addNotification(`Відео "${selectedVideo.title}" видалено`, 'success');
     } catch (error) {
       console.error('Помилка при видаленні відео:', error);
+      addNotification('Не вдалося видалити відео', 'error');
+    } finally {
+      setDeleteModalOpen(false);
     }
   };
 
   const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleString();
+    if (!isoString) return 'Невідомо';
+    return new Date(isoString).toLocaleDateString('uk-UA', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   const getEmbedUrl = (url) => {
@@ -51,58 +108,169 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-gray-50 rounded-lg shadow-md mt-8">
-      <h2 className="text-3xl font-bold mb-6 text-[#003d66] border-b border-[#003d66] pb-2">
-        🎥 Відео
-      </h2>
-
-      {isAdmin && (
-        <div className="mb-6">
-          <Link
-            to="/videos/add"
-            className="inline-block bg-[#003d66] text-white px-6 py-3 rounded-md font-semibold hover:bg-[#00509e] transition-colors duration-300"
+    <div className="portal-body column gap-14">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-color mt-3 text-4xl font-bold">🎥 Відео</h2>
+        {isAdmin && (
+          <button
+            className="bg-custom-green mt-5 hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3"
+            onClick={() => setAddModalOpen(true)}
           >
-            ➕ Додати відео
-          </Link>
+            <FaPlus size={20} /> Додати відео
+          </button>
+        )}
+      </div>
+
+      {/* Search */}
+      <div className="row gap-14 align-center" style={{ marginBottom: '5px' }}>
+        <div className="row align-center gap-7 search-box" style={{
+          flex: 1,
+          background: 'white',
+          padding: '8px 12px',
+          borderRadius: '10px',
+          border: '1px dashed #ccc',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <FaSearch className="text-grey" style={{ fontSize: '20px' }} />
+          <input
+            type="text"
+            placeholder="Пошук за назвою або описом..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1,
+              border: 'none',
+              outline: 'none',
+              fontSize: '16px',
+              fontWeight: '400',
+              padding: '8px 0'
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ border: '1px dashed #ccc', marginBottom: '10px' }}></div>
+
+      {/* Videos List */}
+      {loading ? (
+        <div className="align-center column" style={{ padding: '50px' }}>
+          <div className="loader"></div>
+        </div>
+      ) : filteredVideos.length === 0 ? (
+        <div className="align-center column" style={{ padding: '50px' }}>
+          <div className="text-grey">{searchQuery ? 'Відео не знайдено' : 'Відео ще немає'}</div>
+        </div>
+      ) : (
+        <div className="column gap-6">
+          {filteredVideos.map((video) => (
+            <div key={video.id} className="claim-item row align-center space-between p-4 border rounded-lg shadow-sm bg-white">
+              <div className="flex-1 column gap-2">
+                <p className="font-semibold text-lg">{video.title}</p>
+                {video.description && <p className="text-gray-700 text-sm">{video.description}</p>}
+                <iframe
+                  className="w-full aspect-video rounded-md"
+                  src={getEmbedUrl(video.url)}
+                  title={video.title}
+                  allowFullScreen
+                ></iframe>
+                <p className="text-sm text-gray-600 mt-1">Дата: {formatDate(video.created_at)}</p>
+              </div>
+
+              {isAdmin && (
+                <div className="row gap-4 align-center">
+                  <button
+                    onClick={() => navigate(`/videos/edit/${video.id}`)}
+                    className="button background-warning row gap-2 align-center text-sm"
+                  >
+                    ✏️ Редагувати
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(video)}
+                    className="button background-danger row gap-2 align-center text-sm"
+                  >
+                    🗑 Видалити
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
-      <ul className="space-y-6">
-        {videos.map((video) => (
-          <li
-            key={video.id}
-            className="p-4 border border-gray-300 rounded-lg bg-white shadow flex flex-col gap-4"
-          >
-            <p className="font-semibold text-lg">{video.title}</p>
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        type="danger"
+        title="Видалення відео"
+        message={`Ви дійсно хочете видалити відео "${selectedVideo?.title}"?`}
+        confirmText="Видалити"
+        cancelText="Скасувати"
+      />
 
-            <iframe
-              className="w-full aspect-video rounded-md"
-              src={getEmbedUrl(video.youtubeUrl)}
-              title={video.title}
-              allowFullScreen
-            ></iframe>
+      {/* Add Video Modal */}
+      {addModalOpen && (
+        <div className="file-modal-overlay" onClick={() => setAddModalOpen(false)}>
+          <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
+            <div className="file-modal-header flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Додати відео</h3>
+              <button onClick={() => setAddModalOpen(false)} className="text-gray-500 hover:text-gray-800">
+                <FaTimes />
+              </button>
+            </div>
 
-            <p className="text-sm text-gray-600">Дата: {formatDate(video.createdAt)}</p>
+            <form className="column gap-4" onSubmit={handleAddVideo}>
+              <label className="column gap-1">
+                <span>Назва відео</span>
+                <input
+                  type="text"
+                  className="file-input p-2 border rounded"
+                  value={newVideo.title}
+                  onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                />
+              </label>
 
-            {isAdmin && (
-              <div className="flex gap-6">
+              <label className="column gap-1">
+                <span>Посилання на YouTube</span>
+                <input
+                  type="url"
+                  className="file-input p-2 border rounded"
+                  value={newVideo.url}
+                  onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
+                />
+              </label>
+
+              <label className="column gap-1">
+                <span>Опис (необов'язково)</span>
+                <textarea
+                  className="file-input p-2 border rounded"
+                  value={newVideo.description}
+                  onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
+                />
+              </label>
+
+              <div className="flex justify-end gap-4 mt-4">
                 <button
-                  onClick={() => navigate(`/videos/edit/${video.id}`)}
-                  className="text-yellow-600 hover:underline text-sm font-semibold"
+                  type="button"
+                  className="file-btn-cancel px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+                  onClick={() => setAddModalOpen(false)}
                 >
-                  ✏️ Редагувати
+                  ✕ Скасувати
                 </button>
                 <button
-                  onClick={() => handleDelete(video.id)}
-                  className="text-red-600 hover:underline text-sm font-semibold"
+                  type="submit"
+                  className="file-btn-save px-4 py-2 rounded bg-[#76b448] hover:bg-[#5f9037] text-white font-semibold"
                 >
-                  🗑 Видалити
+                  {loadingAdd ? <div className="loader-small"></div> : '💾 Додати'}
                 </button>
               </div>
-            )}
-          </li>
-        ))}
-      </ul>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

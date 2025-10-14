@@ -1,14 +1,15 @@
+# serializers.py
 from rest_framework import serializers
-from .models import Document
+from .models import UploadFile
 
-class DocumentSerializer(serializers.ModelSerializer):
+class UploadFileSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField()
-    file = serializers.FileField(required=False, allow_null=True)  # ✨ ключове
+    file_path = serializers.CharField(required=True)  # тут можна замінити на FileField, якщо буде завантаження файлу
 
     class Meta:
-        model = Document
+        model = UploadFile
         fields = '__all__'
-        read_only_fields = ['author', 'created_at']
+        read_only_fields = ['author', 'create_date']
 
     def get_author(self, obj):
         return {

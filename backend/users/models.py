@@ -52,8 +52,13 @@ class CustomUser(AbstractUser):
     permit_finance_info = models.BooleanField(default=False)
     # guid = models.CharField(max_length=255, null=True, blank=True)
     update_time = models.DateTimeField(auto_now=True)
-
-    
+    old_user_id = models.CharField(
+    max_length=128, 
+    null=True, 
+    blank=True, 
+    db_index=True, 
+    verbose_name="Старий User ID"
+)
     def __str__(self):
         return f"{self.username} ({self.role})"
     
@@ -106,3 +111,40 @@ class Invitation(models.Model):
     class Meta:
         db_table = 'Invitations'
         ordering = ['-created_at']
+
+
+
+# class ManagerClient(models.Model):
+#     manager = models.ForeignKey(
+#         CustomUser,
+#         on_delete=models.CASCADE,
+#         limit_choices_to={'role': 'manager'},
+#         related_name='managed_clients'
+#     )
+#     client = models.ForeignKey(
+#         CustomUser,
+#         on_delete=models.CASCADE,
+#         limit_choices_to={'role': 'customer'},
+#         related_name='assigned_managers'
+#     )
+#     assigned_at = models.DateTimeField(auto_now_add=True)
+
+#     class Meta:
+#         unique_together = ('manager', 'client')
+#         db_table = 'ManagerClient'
+
+#     def __str__(self):
+#         return f"Manager {self.manager.username} -> Client {self.client.username}"
+
+
+class ManagerDealer(models.Model):
+    manager_user_id_1C = models.BinaryField(max_length=255)  # зовнішній ідентифікатор менеджера
+    dealer_user_id_1C = models.BinaryField(max_length=255)   # зовнішній ідентифікатор клієнта
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('manager_user_id_1C', 'dealer_user_id_1C')
+        db_table = 'ManagerDealer'
+
+    def __str__(self):
+        return f"Manager {self.manager_user_id_1C} -> Client {self.client_user_id_1C}"

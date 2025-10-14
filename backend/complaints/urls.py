@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import get_issue_complaints, get_gm_solutions, ComplaintViewSet, get_complaint_series_by_order, get_complaint_photos2 
+from .views import get_issue_complaints, get_gm_solutions, ComplaintViewSet, get_complaint_series_by_order, get_complaint_photos
 from .views import GetComplaintsFullView
 
 
@@ -9,7 +9,7 @@ urlpatterns = [
     path('create_complaints/', ComplaintViewSet.as_view({'post': 'create'}), name='create_complaints'),
     path('get_series/<str:order_number>/', get_complaint_series_by_order, name='get_series'),
     path('complaints-full/', GetComplaintsFullView.as_view(), name='complaints-full'),
-    path("<int:complaint_id>/photos/", get_complaint_photos2, name="complaint-photos"),
+    path("<int:complaint_id>/photos/", get_complaint_photos, name="complaint-photos"),
 
 ]
 
