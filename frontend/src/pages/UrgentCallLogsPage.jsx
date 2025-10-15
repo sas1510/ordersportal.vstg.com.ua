@@ -1,131 +1,294 @@
 import React, { useEffect, useState } from "react";
-import axiosInstance from "../api/axios"; // налаштуй axios з базовим URL та авторизацією
+import axiosInstance from "../api/axios";
+import { useNotification } from "../components/notification/Notifications";
+import './UrgentCallLogsPage.css';
 
-export default function UrgentCallLogsPage() {
+export default function EmergencyCallLogsPage() {
   const [logs, setLogs] = useState([]);
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [filteredLogs, setFilteredLogs] = useState([]);
 
+  const { addNotification } = useNotification();
+
+  // ==================== Модал ====================
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editingLog, setEditingLog] = useState(null);
+  const [newContact, setNewContact] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    telegramId: "",
+    department: "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  // ==================== Завантаження логів ====================
   useEffect(() => {
-    async function fetchLogs() {
-      try {
-        const response = await axiosInstance.get("/UrgentCall");
-        setLogs(response.data);
-        setFilteredLogs(response.data);
-      } catch (error) {
-        console.error("Помилка при завантаженні логів:", error);
-      }
-    }
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    setStartDate(firstDay.toISOString().split("T")[0]);
+    setEndDate(lastDay.toISOString().split("T")[0]);
+
     fetchLogs();
   }, []);
 
+  const fetchLogs = async () => {
+    try {
+      const response = await axiosInstance.get("/contacts/");
+      setLogs(response.data);
+    } catch (error) {
+      console.error("Помилка при завантаженні логів:", error);
+      addNotification("❌ Не вдалося завантажити контакти", "error");
+    }
+  };
+
+  // ==================== Фільтрація ====================
   useEffect(() => {
-    const lowerSearch = search.toLowerCase();
+    filterLogs(logs, startDate, endDate, search);
+  }, [logs, startDate, endDate, search]);
 
-    setFilteredLogs(
-      logs.filter((log) => {
-        const logDate = new Date(log.sentAt);
+  const filterLogs = (logsList, start, end, query) => {
+    const lowerSearch = query.toLowerCase();
+    const startDateObj = start ? new Date(start) : null;
+    const endDateObj = end ? new Date(end + "T23:59:59") : null;
 
-        const afterStart = startDate ? logDate >= new Date(startDate) : true;
-        const beforeEnd = endDate ? logDate <= new Date(endDate + "T23:59:59") : true;
+    const filtered = logsList.filter((log) => {
+      const logDate = new Date(log.created_at || log.sentAt || log.date);
+      const afterStart = startDateObj ? logDate >= startDateObj : true;
+      const beforeEnd = endDateObj ? logDate <= endDateObj : true;
 
-        const matchesSearch =
-          log.dealerName.toLowerCase().includes(lowerSearch) ||
-          log.department.toLowerCase().includes(lowerSearch) ||
-          log.managerName.toLowerCase().includes(lowerSearch) ||
-          new Date(log.sentAt).toLocaleString().toLowerCase().includes(lowerSearch);
+      const matchesSearch =
+        (log.contact_name?.toLowerCase().includes(lowerSearch) || false) ||
+        (log.department?.toLowerCase().includes(lowerSearch) || false) ||
+        (log.phone?.toLowerCase().includes(lowerSearch) || false) ||
+        (log.email?.toLowerCase().includes(lowerSearch) || false) ||
+        (log.telegram_id?.toLowerCase().includes(lowerSearch) || false) ||
+        new Date(log.created_at || log.sentAt || log.date).toLocaleString().toLowerCase().includes(lowerSearch);
 
-        return afterStart && beforeEnd && matchesSearch;
-      })
-    );
-  }, [search, logs, startDate, endDate]);
+      return afterStart && beforeEnd && matchesSearch;
+    });
+
+    setFilteredLogs(filtered);
+  };
+
+  // ==================== Додавання / редагування ====================
+  const handleSaveContact = async (e) => {
+    e.preventDefault();
+    const { name, phone, email, telegramId, department } = newContact;
+    if (!name || !phone || !email || !department) {
+      return addNotification("Заповніть всі обов'язкові поля", "warning");
+    }
+    setSaving(true);
+
+    const payload = {
+      contact_name: name,
+      phone,
+      email,
+      telegram_id: telegramId,
+      department,
+    };
+
+    try {
+      let updatedContact;
+      if (editingLog) {
+        const response = await axiosInstance.put(`/contacts/${editingLog.id}/`, payload);
+        updatedContact = response.data;
+        // Оновлюємо локальний стан замість повторного fetch
+        setLogs((prev) => prev.map((log) => log.id === editingLog.id ? updatedContact : log));
+        addNotification("✅ Контакт успішно оновлено", "success");
+      } else {
+        const response = await axiosInstance.post("/contacts/", payload);
+        updatedContact = response.data;
+        setLogs((prev) => [...prev, updatedContact]);
+        addNotification("✅ Контакт успішно додано", "success");
+      }
+
+      closeModal();
+    } catch (error) {
+      console.error("Помилка при збереженні контакту:", error);
+      addNotification("❌ Помилка при збереженні контакту", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEditModal = (log) => {
+    setEditingLog(log);
+    setNewContact({
+      name: log.contact_name,
+      phone: log.phone,
+      email: log.email,
+      telegramId: log.telegram_id || "",
+      department: log.department,
+    });
+    setAddModalOpen(true);
+  };
+
+  const openNewModal = () => {
+    setEditingLog(null);
+    setNewContact({ name: "", phone: "", email: "", telegramId: "", department: "" });
+    setAddModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setAddModalOpen(false);
+    setEditingLog(null);
+    setNewContact({ name: "", phone: "", email: "", telegramId: "", department: "" });
+  };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-gray-50 rounded-md shadow-md mt-8">
-      <h1 className="text-4xl font-extrabold mb-6 text-[#004080] tracking-wide">
-        Журнал термінових дзвінків
-      </h1>
+    <div className="emergency-log-body">
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="emergency-log-title text-color mt-3 text-4xl font-bold mb-0">Журнал термінових дзвінків</h1>
+        <button
+          className="bg-custom-green hover:bg-custom-green-dark text-white px-4 py-2 rounded mt-3"
+          onClick={openNewModal}
+        >
+          + Додати контакт
+        </button>
+      </div>
 
-      {/* Панель фільтрів */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+      <div style={{ border: '1px dashed #ccc', marginBottom: '5px' }}></div>
+      <div className="emergency-log-filters">
         <input
           type="text"
           placeholder="Пошук..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="p-2 border border-gray-400 rounded-md flex-1 max-w-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-base"
+          className="emergency-log-input"
         />
-
-        <div className="flex gap-2 items-center">
-          <label className="text-sm text-gray-700 font-semibold">Від:</label>
+        <div className="emergency-log-date">
+          <label>Від:</label>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-base"
+            className="emergency-log-input"
           />
         </div>
-
-        <div className="flex gap-2 items-center">
-          <label className="text-sm text-gray-700 font-semibold">До:</label>
+        <div className="emergency-log-date">
+          <label>До:</label>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="p-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition text-base"
+            className="emergency-log-input"
           />
         </div>
       </div>
+      <div style={{ border: '1px dashed #ccc', marginBottom: '5px' }}></div>
 
-      {/* Таблиця */}
-      <div className="overflow-x-auto">
-        <table className="min-w-[700px] w-full border-collapse border border-gray-400 text-base">
-          <thead className="bg-gray-200 select-none">
+      <div className="emergency-log-table-wrapper">
+        <table className="emergency-log-table">
+          <thead>
             <tr>
-              <th className="border border-gray-500 px-4 py-2 text-gray-700 font-semibold text-left whitespace-nowrap text-lg">
-                Дата
-              </th>
-              <th className="border border-gray-500 px-4 py-2 text-gray-700 font-semibold text-left whitespace-nowrap text-lg">
-                Дилер
-              </th>
-              <th className="border border-gray-500 px-4 py-2 text-gray-700 font-semibold text-left whitespace-nowrap text-lg">
-                Відділ
-              </th>
-              <th className="border border-gray-500 px-4 py-2 text-gray-700 font-semibold text-left whitespace-nowrap text-lg">
-                Керівник
-              </th>
+              <th>Дата</th>
+              <th>Ім'я</th>
+              <th>Телефон</th>
+              <th>Email</th>
+              <th>Telegram ID</th>
+              <th>Відділ</th>
+              <th>Дії</th>
             </tr>
           </thead>
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center py-4 text-gray-600 text-base">
-                  Немає записів
-                </td>
+                <td colSpan={7} className="emergency-log-empty">Немає записів</td>
               </tr>
             ) : (
               filteredLogs.map((log) => (
-                <tr key={log.sentAt + log.dealerName} className="hover:bg-gray-100">
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 whitespace-nowrap">
-                    {new Date(log.sentAt).toLocaleString()}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 whitespace-nowrap">
-                    {log.dealerName}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 whitespace-nowrap">
-                    {log.department}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2 text-gray-800 whitespace-nowrap">
-                    {log.managerName}
+                <tr key={log.id}>
+                  <td>{log.date ? new Date(log.date).toLocaleString() : "-"}</td>
+                  <td>{log.contact_name}</td>
+                  <td>{log.phone}</td>
+                  <td>{log.email}</td>
+                  <td>{log.telegram_id}</td>
+                  <td>{log.department}</td>
+                  <td>
+                    <button onClick={() => openEditModal(log)}>Редагувати</button>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
+
         </table>
       </div>
+
+      {/* ==================== Модал ==================== */}
+      {addModalOpen && (
+        <div className="video-modal-overlay" onClick={closeModal}>
+          <div className="video-modal-window" onClick={(e) => e.stopPropagation()}>
+            <div className="video-modal-header">
+              <h3>{editingLog ? "✏️ Редагування контакту" : "➕ Додати контакт"}</h3>
+              <button className="video-close-btn" onClick={closeModal}>✕</button>
+            </div>
+            <form className="video-form" onSubmit={handleSaveContact}>
+              <div className="modal-field">
+                <input
+                  name="name"
+                  value={newContact.name}
+                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                  placeholder="Ім'я"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  name="phone"
+                  value={newContact.phone}
+                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                  placeholder="Телефон"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  name="email"
+                  value={newContact.email}
+                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                  placeholder="Email"
+                  type="email"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  name="telegramId"
+                  value={newContact.telegramId}
+                  onChange={(e) => setNewContact({ ...newContact, telegramId: e.target.value })}
+                  placeholder="Telegram ID"
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  name="department"
+                  value={newContact.department}
+                  onChange={(e) => setNewContact({ ...newContact, department: e.target.value })}
+                  placeholder="Відділ"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="video-modal-footer">
+                <button type="button" className="video-btn-cancel" onClick={closeModal}>✕ Скасувати</button>
+                <button type="submit" className="video-btn-save">
+                  {saving ? "Зберігаю..." : editingLog ? "💾 Оновити" : "💾 Додати"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

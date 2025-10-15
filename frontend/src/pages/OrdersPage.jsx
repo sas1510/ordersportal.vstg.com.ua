@@ -133,7 +133,15 @@ const PortalOriginal = () => {
               return acc;
             }, {});
 
-            const totalAmount = orders.reduce((sum, o) => sum + (o.amount || 0), 0);
+            const totalAmount = orders
+              .filter(o => o.status !== 'Відмова')
+              .reduce((sum, o) => sum + (o.amount || 0), 0);
+
+            const totalPaid = orders
+              .filter(o => o.status !== 'Відмова')
+              .reduce((sum, o) => sum + (o.paid || 0), 0);
+
+            const debt = totalAmount - totalPaid;
 
             return {
               id: calc.uuid || '',
@@ -146,6 +154,7 @@ const PortalOriginal = () => {
               constructionsCount: orders.reduce((sum, order) => sum + (order.count || 0), 0),
               statuses: statusCounts,
               amount: totalAmount,
+              debt: debt,
               file: calc.File || null,
               message: calc.ПросчетСообщения || ''
             };

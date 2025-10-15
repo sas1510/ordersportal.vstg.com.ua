@@ -31,25 +31,29 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// --- Refresh токена при 401 ---
+const skipRefresh = ["/login", "/register", "/token/refresh", "/logout"];
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    const skipRefresh = ["/login/", "/register/", "/token/refresh/", "/logout/"];
-    const endpoint = originalRequest.url.replace(API_URL, "");
 
+    // endpoint без query та без кінцевого слешу
+    const url = new URL(originalRequest.url, API_URL);
+    const endpoint = url.pathname.replace(/\/$/, ""); // '/api/login' -> '/api/login'
+
+    // Якщо 401 і не повторно та endpoint не в skipRefresh
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !skipRefresh.some((p) => endpoint.includes(p))
+      !skipRefresh.some((p) => endpoint.endsWith(p)) // перевірка по кінцю
     ) {
       originalRequest._retry = true;
       try {
         const res = await axiosInstance.post("/token/refresh/", {}, { withCredentials: true });
         const { access, role } = res.data;
         setAccessToken(access);
-        if (window.setRoleGlobal) window.setRoleGlobal(role); // можна прибрати якщо RoleProvider обгортає AuthProvider
+        if (window.setRoleGlobal) window.setRoleGlobal(role);
         originalRequest.headers["Authorization"] = `Bearer ${access}`;
         return axiosInstance(originalRequest);
       } catch (err) {
@@ -61,5 +65,6 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default axiosInstance;

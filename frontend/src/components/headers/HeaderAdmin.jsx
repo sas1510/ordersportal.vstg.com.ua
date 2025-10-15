@@ -51,6 +51,13 @@ export default function HeaderAdmin() {
   const settingsRef = useRef();
   const financeRef = useRef();
 
+  
+  const handleLogout = async () => {
+    await logout();
+    navigate("/home");
+  };
+
+
   // закриття всіх меню при переході сторінки або зміни розміру
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -134,9 +141,16 @@ export default function HeaderAdmin() {
             </li>
 
             <li className="dealer-size"><HeaderUserProfile /></li>
-            <li>
-              <button className="menu-link logout" onClick={logout}>Вийти</button>
-            </li>
+            <li className="logout-item">
+                <button
+                  className="menu-link logout-icon"
+                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  title="Вийти"
+                >
+                  <i className="fa fa-sign-out-alt"></i>
+
+                </button>
+              </li>
           </ul>
         </nav>
       ) : (

@@ -244,3 +244,45 @@ def get_user_name_view(request):
     return JsonResponse({"full_name": full_name})
 
 # ----------------------
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from .models import CustomUser, ManagerDealer
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_dealers(request):
+    """
+    Повертає список дилерів для поточного користувача.
+    - Admin бачить всіх дилерів.
+    - Manager бачить тільки своїх дилерів.
+    """
+    user = request.user
+    role = user.role
+
+    if role == "admin":
+        # всі дилери
+        dealers = CustomUser.objects.filter(role="customer", enable=True)
+    elif role == "manager":
+        # тільки дилери, які прив'язані до менеджера через ManagerDealer
+        assigned_ids = ManagerDealer.objects.filter(
+            manager_user_id_1C=user.user_id_1C
+        ).values_list("dealer_user_id_1C", flat=True)
+
+        dealers = CustomUser.objects.filter(
+            user_id_1C__in=assigned_ids, role="customer", enable=True
+        )
+    else:
+        # інші ролі — порожній список
+        dealers = CustomUser.objects.none()
+
+    dealer_list = [
+        {"id": d.id, "full_name": d.full_name or d.username}
+        for d in dealers
+    ]
+
+    return Response({"dealers": dealer_list})
+ 

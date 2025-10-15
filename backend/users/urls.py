@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView,
 )
-from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view
+from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, get_dealers
 
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
     path('customers/', get_customers, name='get_customers'),
     path('balance/', get_balance_view, name='get_balance'),
     path('user-name/', get_user_name_view, name='get_user_name'),
+    path("dealers/", get_dealers, name="get_dealers"),
     
 
 ]

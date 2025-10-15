@@ -7,8 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('users.urls')),  # твої маршрути користувачів
     path('file/', include('documents.urls')),  # додай, якщо в тебе app documents
-    path('video/', include('video.urls')),
-    # path('api/', include('contact.urls')),
+    path('', include('video.urls')),
+    path('', include('contact.urls')),
     path('', include('order.urls')),  # додай, якщо в тебе app orders
     path('complaints/', include('complaints.urls')),  # додай, якщо в тебе app orders
     

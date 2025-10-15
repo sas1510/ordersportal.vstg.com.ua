@@ -195,29 +195,28 @@ class CreateOrderView(APIView):
 
 
 
+
 class DeleteOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, order_id):
-        """
-        Видалення замовлення за order_id
-        Перевіряє роль користувача: автор замовлення або менеджер може видаляти.
-        """
         order = get_object_or_404(Order, id=order_id)
         user = request.user
         manager_roles = ["manager", "region_manager"]
 
-        # Перевірка прав
-
-
         try:
-            # Видаляємо всі повідомлення, пов’язані з цим замовленням
-            Message.objects.filter(order=order).delete()
+            # Видаляємо всі повідомлення, пов’язані з цим замовленням (GenericForeignKey)
+            order_type = ContentType.objects.get_for_model(Order)
+            Message.objects.filter(content_type=order_type, object_id=order.id).delete()
+
+
             order.delete()
-            return Response({"success": f"Замовлення {order_id} видалено"}, status=status.HTTP_200_OK)
+            return Response(
+                {"success": f"Замовлення {order_id} видалено"},
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 class LastOrderNumberView(APIView):

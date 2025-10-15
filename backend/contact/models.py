@@ -10,7 +10,8 @@ class HelpServiceContact(models.Model):
     department = models.CharField(max_length=255, verbose_name="Відділ")
     
     def __str__(self):
-        return f"{self.name} ({self.get_department_display()})"
+        return f"{self.contact_name} ({self.department})"
+
     class Meta:
         db_table = 'HelpServiceContacts'
 
@@ -20,6 +21,7 @@ class HelpServiceLog(models.Model):
     success = models.BooleanField(default=False)
     call_type = models.IntegerField()
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+
 
     class Meta:
         db_table = 'HelpServiceLogs'

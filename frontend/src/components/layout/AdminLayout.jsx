@@ -17,8 +17,8 @@ const styles = {
 
    main: {
     flexGrow: 1,
-    paddingTop: "60px",   // приблизно висота Header
-    paddingBottom: "60px" // приблизно висота Footer
+    height: "calc(100% - 60px)", // висота вікна мінус висота header і footer
+    position: "relative",
   },
 };
 

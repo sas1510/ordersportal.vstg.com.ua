@@ -16,7 +16,7 @@ urlpatterns = [
     path("get_orders_info/", portal_view, name="get_orders_info"),
 
 
-    path('calculations/<int:order_id>/delete/', DeleteOrderView.as_view(), name='delete_order'),
+    
     path('calculations/<int:order_id>/delete/', DeleteOrderView.as_view(), name='delete_order'),
     path('calculations/<int:order_id>/edit/', EditOrderView.as_view(), name='edit-order'),
     path('calculations/<int:order_id>/download/', download_order_file, name='download_order_file'),

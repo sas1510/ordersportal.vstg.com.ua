@@ -1,3 +1,189 @@
+.videos-body {
+  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+  height: 100vh;
+  width: 100%;
+  padding: 80px 30%; /* ✅ більші відступи */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ===== Overlay ===== */
+.video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ===== Вікно ===== */
+.video-modal-window {
+  background: #fff;
+  border-radius: 12px;
+  width: 650px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.25s ease;
+}
+
+/* ===== Header ===== */
+.video-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: linear-gradient(90deg, #f46c3b, #ff8657);
+  color: #fff;
+}
+
+.video-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.video-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.video-close-btn:hover {
+  opacity: 0.8;
+  transform: rotate(90deg);
+}
+
+/* ===== Форма ===== */
+.video-form {
+  padding: 22px 26px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #f46c3b transparent;
+}
+
+.video-form::-webkit-scrollbar {
+  width: 8px;
+}
+.video-form::-webkit-scrollbar-thumb {
+  background: #f46c3b;
+  border-radius: 4px;
+}
+.video-form::-webkit-scrollbar-thumb:hover {
+  background: #d85b2f;
+}
+
+/* ===== Поля ===== */
+.video-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  color: #333;
+}
+
+.video-label span {
+  font-weight: 500;
+}
+
+.video-input,
+.video-textarea,
+.video-select {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.video-input:focus,
+.video-textarea:focus,
+.video-select:focus {
+  border-color: #f46c3b;
+  box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.15);
+  outline: none;
+}
+
+.video-textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+/* ===== Footer ===== */
+.video-modal-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 18px 22px;
+  padding-bottom: 0;
+  border-top: 1px solid #eee;
+  background: #fff;
+  z-index: 1;
+}
+
+/* ===== Кнопки ===== */
+.video-btn-cancel,
+.video-btn-save {
+  border: none;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Скасувати */
+.video-btn-cancel {
+  background: #f46c3b;
+  color: #fff;
+}
+.video-btn-cancel:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
+}
+
+/* Зберегти */
+.video-btn-save {
+  background: #76b448;
+  color: #fff;
+}
+.video-btn-save:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
+}
+.video-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Анімації ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { transform: scale(0.94); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 .loader, .loader-small {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #76b448;
@@ -7,13 +193,11 @@
   animation: spin 1s linear infinite;
   margin: auto;
 }
-
 .loader-small {
   width: 20px;
   height: 20px;
   border-width: 3px;
 }
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

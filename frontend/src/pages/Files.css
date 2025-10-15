@@ -1,3 +1,12 @@
+.file-body {
+  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+  height: 100vh;
+  width: 100%;
+  padding: 80px 25%; /* ✅ більші відступи */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 /* ===== Overlay ===== */
 .file-modal-overlay {
   position: fixed;
@@ -371,4 +380,20 @@ select.file-input option {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+
+/* Edit Modal Styling */
+.edit-modal .file-modal-header {
+  background-color: #1E40AF; /* темно-синій */
+  color: white;
+}
+
+.edit-btn {
+  background-color: #1E40AF;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #2563EB;
 }
