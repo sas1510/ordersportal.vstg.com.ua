@@ -103,3 +103,19 @@
   font-size: 14px;           /* трохи більший шрифт */
   box-sizing: border-box;    /* щоб padding не розширював поле */
 }
+
+
+.btn-emergency {
+  background: linear-gradient(90deg, #e53935, #d81b60);
+  color: white;
+  font-weight: semibold;
+  border-radius: 10px;
+  padding: 7px 14px;
+  transition: 0.3s;
+  margin-left: auto; /* ось ця строчка відсуне кнопку вправо */
+}
+
+.btn-emergency:hover {
+  background: linear-gradient(90deg, #d32f2f, #c2185b);
+  transform: scale(1.05);
+}

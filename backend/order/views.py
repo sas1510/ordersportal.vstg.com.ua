@@ -510,8 +510,12 @@ from django.db import connection
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def portal_view(request):
-    user = request.user
-    customer_id = getattr(user, 'id', None)
+
+    customer_id = request.GET.get("customer_id") or getattr(request.user, "id", None)
+
+    if not customer_id:
+        user = request.user
+        customer_id = getattr(user, 'id', None)
 
     if not customer_id:
         return JsonResponse({"error": "User ID is missing"}, status=400)

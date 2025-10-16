@@ -22,7 +22,51 @@
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+/* Додаємо відступ між кнопками та зменшуємо їх */
+.flex.gap-2 {
+  display: flex;
+  gap: 8px; /* відстань між кнопками */
+}
 
+.emerg-btn-save,
+.emerg-btn-cancel,
+.emergency-button-call {
+  padding: 4px 8px; /* менший padding */
+  font-size: 0.875rem; /* трохи менший текст */
+  border: none;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 3px;
+  margin-right: 3px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+
+/* Скасувати */
+.emerg-btn-cancel {
+  background: #f46c3b;
+  color: #fff;
+}
+
+.emerg-btn-cancel:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
+}
+
+/* Зберегти */
+.emerg-btn-save {
+  background: #76b448;
+  color: #fff;
+}
+.emerg-btn-save:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
+}
 .emergency-contact-item:hover {
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);

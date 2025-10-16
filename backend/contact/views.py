@@ -12,6 +12,11 @@ from rest_framework import viewsets
 from .models import HelpServiceContact
 from .serializers import ContactSerializer
 from backend.permissions import IsAdminManagerOrReadOnly
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import HelpServiceLog
+from .serializers import HelpServiceLogSerializer
 
 
 class ContactViewSet(viewsets.ModelViewSet):
@@ -89,3 +94,22 @@ def urgent_call_request(request):
         response_data['errors'] = errors
 
     return Response(response_data, status=status.HTTP_200_OK)
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import HelpServiceLog
+from .serializers import HelpServiceLogSerializer
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def help_log_list(request):
+    """
+    Повертає список усіх SOS-викликів (для адміністратора/менеджера),
+    включаючи хто викликав і кому.
+    """
+    logs = HelpServiceLog.objects.select_related('contact_id', 'user').order_by('-create_date')
+    serializer = HelpServiceLogSerializer(logs, many=True)
+    return Response(serializer.data)

@@ -15,7 +15,7 @@ const NAV_LINKS = [
 
   { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
   { title: "Відео", to: "/videos", icon: "icon-youtube" },
-  { title: "Статистика SOS", to: "/emergency-contacts", icon: "icon-stats" },
+  { title: "SOS", to: "/emergency-contacts", icon: "icon-stats" },
 ];
 
 const FINANCE_SUBMENU = [

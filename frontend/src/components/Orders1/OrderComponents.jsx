@@ -121,7 +121,7 @@ export const OrderItemSummary = ({ order }) => {
         {/* Назва + дата */}
         <div className="summary-item row w-9 no-wrap">
           <div className="column">
-            <div className="text-info text-lg border-b border-gray-300 pb-0 pt-0 w-full">
+            <div className="text-info font-size-18 border-b border-gray-300 pb-0 pt-0 w-full">
               {order.number}
             </div>
             <div className="text-danger">{order.date}</div>
@@ -129,7 +129,7 @@ export const OrderItemSummary = ({ order }) => {
         </div>
 
         {/* Кількість конструкцій */}
-        <div className="summary-item flex items-center justify-center no-wrap">
+        <div className="summary-item flex items-center w-6  justify-center no-wrap">
           <div className="row gap-5 align-center" title="Кількість конструкцій">
             <span className="icon-layout5 font-size-20 text-info"></span>
             <div className="font-size-20 text-danger">{order.count}</div>
@@ -139,7 +139,7 @@ export const OrderItemSummary = ({ order }) => {
 
 
         {/* PDF */}
-        <div className="summary-item flex items-center justify-center no-wrap" onClick={(e) => e.stopPropagation()}>
+        <div className="summary-item flex w-10 items-center justify-center no-wrap" onClick={(e) => e.stopPropagation()}>
           <div className="row gap-14 align-center">
             <div className="icon-document-file-pdf font-size-20 text-red"></div>
             <div>{order.name}.pdf</div>
@@ -149,10 +149,10 @@ export const OrderItemSummary = ({ order }) => {
 
         {/* Сума замовлення */}
         <div className="summary-item row w-12 no-wrap gap-0 pl-0">
-          <span className="icon icon-coin-dollar text-success text-2xl flex-shrink-0"></span>
+          <span className="icon icon-coin-dollar text-success font-size-16 flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
-            <div className="text-info text-lg">{formatMoney(order.amount)}</div>
-            <div className="text-grey text-xs border-t border-dashed ">
+            <div className="text-info font-size-18">{formatMoney(order.amount)}</div>
+            <div className="text-grey font-size-12 border-t border-dashed ">
               Сума замовлення
             </div>
           </div>
@@ -160,17 +160,17 @@ export const OrderItemSummary = ({ order }) => {
 
         {/* Сума боргу */}
         <div className="summary-item row w-12 no-wrap gap-0 pl-0">
-          <span className="icon icon-coin-dollar text-danger text-2xl flex-shrink-0"></span>
+          <span className="icon icon-coin-dollar text-danger font-size-16 flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
-            <div className="text-danger text-lg">{formatMoney(order.amount - (order.paid ?? 0))}</div>
-            <div className="text-grey text-xs border-t border-dashed ">
+            <div className="text-danger  font-size-18">{formatMoney(order.amount - (order.paid ?? 0))}</div>
+            <div className="text-grey  font-size-12 border-t border-dashed ">
               Сума боргу
             </div>
           </div>
         </div>
 
         {/* Статус */}
-        <div className="summary-item  w-[150px] row justify-start" >
+        <div className="summary-item  w-[140px] row justify-start" >
           <div className="row gap-14 align-center">
             <span className="icon-info-with-circle font-size-20 text-info"></span>
             <div className={`font-size-14 ${order.statusClass || "text-grey"}`}>{order.status}</div>

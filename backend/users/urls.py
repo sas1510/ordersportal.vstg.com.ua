@@ -17,7 +17,7 @@ urlpatterns = [
     path('customers/', get_customers, name='get_customers'),
     path('balance/', get_balance_view, name='get_balance'),
     path('user-name/', get_user_name_view, name='get_user_name'),
-    path("dealers/", get_dealers, name="get_dealers"),
+    path("get_dealers/", get_dealers, name="get_dealers"),
     
 
 ]

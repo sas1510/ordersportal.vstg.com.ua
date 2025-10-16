@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../api/axios";
 import { useNotification } from "../components/notification/Notifications";
 import './UrgentCallLogsPage.css';
+import { useNavigate } from "react-router-dom";
+
 
 export default function EmergencyCallLogsPage() {
   const [logs, setLogs] = useState([]);
@@ -23,6 +25,7 @@ export default function EmergencyCallLogsPage() {
     department: "",
   });
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   // ==================== Завантаження логів ====================
   useEffect(() => {
@@ -38,13 +41,14 @@ export default function EmergencyCallLogsPage() {
 
   const fetchLogs = async () => {
     try {
-      const response = await axiosInstance.get("/contacts/");
+      const response = await axiosInstance.get("/urgent-call-list/");
       setLogs(response.data);
     } catch (error) {
-      console.error("Помилка при завантаженні логів:", error);
-      addNotification("❌ Не вдалося завантажити контакти", "error");
+      console.error("Помилка при завантаженні журналу SOS:", error);
+      addNotification("❌ Не вдалося завантажити журнал SOS-викликів", "error");
     }
   };
+
 
   // ==================== Фільтрація ====================
   useEffect(() => {
@@ -57,7 +61,8 @@ export default function EmergencyCallLogsPage() {
     const endDateObj = end ? new Date(end + "T23:59:59") : null;
 
     const filtered = logsList.filter((log) => {
-      const logDate = new Date(log.created_at || log.sentAt || log.date);
+      const logDate = new Date(log.create_date);
+
       const afterStart = startDateObj ? logDate >= startDateObj : true;
       const beforeEnd = endDateObj ? logDate <= endDateObj : true;
 
@@ -145,7 +150,7 @@ export default function EmergencyCallLogsPage() {
       <div className="flex justify-between items-center mb-2">
         <h1 className="emergency-log-title text-color mt-3 text-4xl font-bold mb-0">Журнал термінових дзвінків</h1>
         <button
-          className="bg-custom-green hover:bg-custom-green-dark text-white px-4 py-2 rounded mt-3"
+          className="bg-custom-green hover:bg-custom-green-dark text-white px-4 py-2 rounded mt-3 text-semibold"
           onClick={openNewModal}
         >
           + Додати контакт
@@ -179,43 +184,51 @@ export default function EmergencyCallLogsPage() {
             className="emergency-log-input"
           />
         </div>
+        <button
+          onClick={() => navigate("/emergency-contacts")}
+          className="btn-emergency"
+        >
+          Сторінка термінових дзвінків
+        </button>
       </div>
       <div style={{ border: '1px dashed #ccc', marginBottom: '5px' }}></div>
 
       <div className="emergency-log-table-wrapper">
         <table className="emergency-log-table">
           <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Дилер</th>
+            <th>Номер дилера</th>
+            <th>Контакт</th>
+            <th>Відділ</th>
+            <th>Телефон</th>
+            <th>Email</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredLogs.length === 0 ? (
             <tr>
-              <th>Дата</th>
-              <th>Ім'я</th>
-              <th>Телефон</th>
-              <th>Email</th>
-              <th>Telegram ID</th>
-              <th>Відділ</th>
-              <th>Дії</th>
+              <td colSpan={7} className="emergency-log-empty">Немає записів</td>
             </tr>
-          </thead>
-          <tbody>
-            {filteredLogs.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="emergency-log-empty">Немає записів</td>
+          ) : (
+            filteredLogs.map((log) => (
+              <tr key={log.id}>
+                <td>{new Date(log.create_date).toLocaleString()}</td>
+                <td>{log.full_name || "-"}</td>
+                <td>{log.user_phone || "-"}</td>
+                <td>{log.contact_name}</td>
+                <td>{log.contact_department}</td>
+                <td>{log.contact_phone}</td>
+                <td>{log.contact_email}</td>
+                <td style={{ color: log.success ? "green" : "red" }}>
+                  {log.success ? "✅ Успішно" : "❌ Помилка"}
+                </td>
               </tr>
-            ) : (
-              filteredLogs.map((log) => (
-                <tr key={log.id}>
-                  <td>{log.date ? new Date(log.date).toLocaleString() : "-"}</td>
-                  <td>{log.contact_name}</td>
-                  <td>{log.phone}</td>
-                  <td>{log.email}</td>
-                  <td>{log.telegram_id}</td>
-                  <td>{log.department}</td>
-                  <td>
-                    <button onClick={() => openEditModal(log)}>Редагувати</button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
+            ))
+          )}
+        </tbody>
 
         </table>
       </div>
