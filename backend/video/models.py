@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import CustomUser  # підключаємо вашу модель користувача
+from backend.users.models import CustomUser  # підключаємо вашу модель користувача
 
 class Video(models.Model):
     url = models.URLField(blank=True, null=True, verbose_name="Посилання на YouTube")

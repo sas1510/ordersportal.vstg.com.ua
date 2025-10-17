@@ -1,6 +1,6 @@
 from django.db import models
-from users.models import CustomUser  # уніфікований користувач
-from order.models import Status
+from backend.users.models import CustomUser  # уніфікований користувач
+from backend.order.models import Status
 
 class OrderPartsItem(models.Model):
     name = models.CharField(max_length=255)

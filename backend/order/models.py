@@ -59,7 +59,7 @@
 #         return self.number or f'1C Order #{self.pk}'
 from django.db import models
 import datetime
-from users.models import CustomUser
+from backend.users.models import CustomUser
 import os
 
 from django.utils.text import slugify
