@@ -16,7 +16,7 @@ urlpatterns = [
 
     path('', include('backend.users.urls')),  # твої маршрути користувачів
     path('api/file/', include('backend.documents.urls')),  # додай, якщо в тебе app documents
-    path('api/video/', include('backend.video.urls')),
+    path('api/', include('backend.video.urls')),
 #    path('api/', include('backend.contact.urls')),
     path('', include('backend.order.urls')),  # додай, якщо в тебе app orders
     path('complaints/', include('backend.complaints.urls')),  # додай, якщо в тебе app orders
