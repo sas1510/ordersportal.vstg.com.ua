@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = (import.meta.env.VITE_API_URL || "http://172.20.197.76") + "/api";
+const API_URL = (import.meta.env.VITE_API_URL || "") + "/api";
 
 let logoutHandler = null;
 

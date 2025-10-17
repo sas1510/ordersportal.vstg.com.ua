@@ -2008,3 +2008,84 @@ white-space: nowrap;
 }
 
 
+@media (max-width: 1604px) {
+  .timeline {
+      width: 100%;
+      margin: 0 auto;
+      padding: 10px 0;
+      position: relative;
+      box-sizing: border-box;
+      min-height: 120px;
+  }
+
+  .timeline ul {
+      padding: 0;
+      list-style: none;
+      position: relative;
+      left: 10px;
+  }
+
+  .timeline ul li {
+      margin: 0 0 10px 0;
+      padding-left: 80px;
+      padding-bottom: 10px;
+      position: relative;
+      display: inline-block;
+      border-top: 1px solid var(--info-color);
+      border-left: 1px solid var(--info-color);
+  }
+
+  .timeline ul li:last-child {
+      border-right: 1px solid var(--info-color);
+  }
+
+  .timeline ul li:first-child {
+      border-top: 1px transparent;
+      border-left: 1px transparent;
+  }
+
+  .timeline ul li .icon {
+      background: #fff;
+      border: 1px solid var(--info-color);
+      color: #fff;
+      display: inline-block;
+      position: relative;
+      left: 15px;
+      top: -17px;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 14px;
+      z-index: 1;
+  }
+
+  .timeline ul li .badge {
+      width: 100px;
+      border: 1px solid var(--info-color);
+      background-color: #fff;
+      color: var(--grey-text-color);
+      display: inline-block;
+      position: absolute;
+      left: 60px;
+      top: 40px;
+      font-size: 10px;
+      z-index: 1;
+  }
+
+  .timeline ul li .badge .badge-title {
+      background-color: var(--info-color);
+      color: #fff;
+      padding: 2px 5px;
+      text-align: center;
+      font-size: 10px;
+  }
+
+  .timeline ul li .badge .badge-content {
+      color: var(--text-color);
+      padding: 2px 5px;
+      text-align: center;
+      font-size: 10px;
+  }
+}
