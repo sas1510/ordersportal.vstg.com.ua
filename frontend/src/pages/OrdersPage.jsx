@@ -4,6 +4,8 @@ import { CalculationItem } from '../components/Orders1/OrderComponents';
 import '../components/Portal/PortalOriginal.css';
 import AddOrderModal from '../components/Orders1/AddOrderModal';
 import NewCalculationModal from '../components/Orders1/NewCalculationModal';
+import DealerSelectModal from '../components/Orders1/DealerSelectModal'; 
+
 
 const PortalOriginal = () => {
 
@@ -18,9 +20,29 @@ const PortalOriginal = () => {
   const [expandedCalc, setExpandedCalc] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDealerModal, setShowDealerModal] = useState(false);
+
+
   const handleDeleteCalculation = (calcId) => {
     setCalculationsData(prev => prev.filter(calc => calc.id !== calcId));
     setFilteredItems(prev => prev.filter(calc => calc.id !== calcId));
+  };
+
+  const [dealer, setDealer] = useState(null);
+
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (role !== 'customer' && !dealer) {
+      setShowDealerModal(true);
+    }
+  }, [dealer]);
+
+
+  
+  const handleDealerSelect = (selectedDealer) => {
+    setDealer(selectedDealer);
+    localStorage.setItem('dealerId', selectedDealer.id); // можна зберегти для повторного використання
+    setShowDealerModal(false);
   };
 
   const handleUpdateCalculation = (updatedCalc) => {
@@ -35,6 +57,7 @@ const PortalOriginal = () => {
 
   const handleAddClick = () => setIsModalOpen(true);
   const handleClose = () => setIsModalOpen(false);
+
 
   const handleSave = (newOrder) => {
     console.log("Новий прорахунок:", newOrder);
@@ -88,86 +111,106 @@ const PortalOriginal = () => {
 
   // --- Завантаження даних з API ---
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstance.get("/get_orders_info/", {
-          params: { year: selectedYear }
+  // Якщо роль клієнт і дилер не обраний — нічого не робимо
+  const role = localStorage.getItem('role');
+
+  // Для клієнтів — завантажуємо завжди (якщо dealer не потрібен)
+  // Для інших ролей — завантажуємо тільки якщо дилер обрано
+  if (role !== 'customer' && !dealer) {
+    setShowDealerModal(true);
+    setLoading(false); // важливо, щоб спіннер не показувався
+    return;
+  }
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = { year: selectedYear };
+      if (dealer) params.customer_id = dealer.id;
+
+      const response = await axiosInstance.get("/get_orders_info/", { params });
+
+      if (response.data?.status === "success") {
+        const rawCalculations = response.data.data.calculation || [];
+
+        const formattedCalcs = rawCalculations.map(calc => {
+          const orders = Array.isArray(calc.order)
+            ? calc.order.filter(order => order.uuid && order.uuid !== 'None')
+                .map(order => ({
+                  id: order.uuid,
+                  number: order.name || '',
+                  dateRaw: order.ДатаЗаказа,
+                  date: formatDateHuman(order.ДатаЗаказа),
+                  status: order.ЭтапВыполненияЗаказа || 'Новий',
+                  amount: parseFloat(order.СуммаЗаказа || 0),
+                  count: Number(order.КоличествоКонструкцийВЗаказе || 0),
+                  paid: parseFloat(order.ОплаченоПоЗаказу || 0),
+                  planProductionMin: order.ПлановаяДатаПроизводстваМин,
+                  planProductionMax: order.ПлановаяДатаПроизводстваМакс,
+                  factProductionMin: order.ФактическаяДатаПроизводстваМин,
+                  factProductionMax: order.ФактическаяДатаПроизводстваМакс,
+                  factReadyMin: order.ФактическаяДатаГотовностиМин,
+                  factReadyMax: order.ФактическаяДатаГотовностиМакс,
+                  realizationDate: order.ДатаРеализации,
+                  quantityRealized: parseFloat(order.КоличествоРеализовано || 0),
+                  deliveryAddress: order.АдресДоставки || '',
+                  planDeparture: order.ПлановаяДатаВыезда,
+                  goodsInDelivery: Number(order.КоличествоТоваровВДоставке || 0),
+                  arrivalTime: order.ВремяПрибытия,
+                  routeStatus: order.СостояниеМаршрута,
+                }))
+            : [];
+
+          const statusCounts = orders.reduce((acc, order) => {
+            if (!order.status) return acc;
+            acc[order.status] = (acc[order.status] || 0) + 1;
+            return acc;
+          }, {});
+
+          const totalAmount = orders
+            .filter(o => o.status !== 'Відмова')
+            .reduce((sum, o) => sum + (o.amount || 0), 0);
+
+          const totalPaid = orders
+            .filter(o => o.status !== 'Відмова')
+            .reduce((sum, o) => sum + (o.paid || 0), 0);
+
+          const debt = totalAmount - totalPaid;
+
+          return {
+            id: calc.uuid || Math.random().toString(36).substr(2, 9),
+            number: calc.name || '',
+            dateRaw: calc.ДатаПросчета,
+            constructionsQTY: Number(calc.КоличествоКонструкцийВПросчете || 0),
+            date: formatDateHuman(calc.ДатаПросчета),
+            orders,
+            orderCountInCalc: orders.length,
+            constructionsCount: orders.reduce((sum, order) => sum + (order.count || 0), 0),
+            statuses: statusCounts,
+            amount: totalAmount,
+            debt,
+            file: calc.File || null,
+            message: calc.ПросчетСообщения || ''
+          };
         });
 
-        if (response.data?.status === "success") {
-          const rawCalculations = response.data.data.calculation || [];
-
-          const formattedCalcs = rawCalculations.map(calc => {
-            const orders = Array.isArray(calc.order)
-              ? calc.order
-                   .filter(order => order.uuid && order.uuid !== 'None')
-                  .map(order => ({
-                    id: order.uuid,
-                    number: order.name || '',
-                    dateRaw: order.ДатаЗаказа,
-                    date: formatDateHuman(order.ДатаЗаказа),
-                    status: order.ЭтапВыполненияЗаказа || 'Новий',
-                    amount: parseFloat(order.СуммаЗаказа || 0),
-                    count: Number(order.КоличествоКонструкцийВЗаказе || 0),
-                    paid: parseFloat(order.ОплаченоПоЗаказу || 0),
-                    planProductionMin: (order.ПлановаяДатаПроизводстваМин),
-                    planProductionMax: (order.ПлановаяДатаПроизводстваМакс),
-                    factProductionMin: (order.ФактическаяДатаПроизводстваМин),
-                    factProductionMax: (order.ФактическаяДатаПроизводстваМакс),
-                    factReadyMin: (order.ФактическаяДатаГотовностиМин),
-                    factReadyMax: (order.ФактическаяДатаГотовностиМакс),
-                    realizationDate: (order.ДатаРеализации),
-                    quantityRealized: parseFloat(order.КоличествоРеализовано || 0),
-                    deliveryAddress: order.АдресДоставки || '',
-                    planDeparture: (order.ПлановаяДатаВыезда),
-                    goodsInDelivery: Number(order.КоличествоТоваровВДоставке || 0),
-                    arrivalTime: (order.ВремяПрибытия),
-                    routeStatus: order.СостояниеМаршрута,
-                  }))
-              : [];
-
-            const statusCounts = orders.reduce((acc, order) => {
-              if (!order.status) return acc;
-              acc[order.status] = (acc[order.status] || 0) + 1;
-              return acc;
-            }, {});
-
-            const totalAmount = orders.reduce((sum, o) => sum + (o.amount || 0), 0);
-
-            return {
-              id: calc.uuid || '',
-              number: calc.name || '',
-              dateRaw: calc.ДатаПросчета,
-              constructionsQTY: Number(calc.КоличествоКонструкцийВПросчете || 0),
-              date: formatDateHuman(calc.ДатаПросчета),
-              orders,
-              orderCountInCalc: orders.length,
-              constructionsCount: orders.reduce((sum, order) => sum + (order.count || 0), 0),
-              statuses: statusCounts,
-              amount: totalAmount,
-              file: calc.File || null,
-              message: calc.ПросчетСообщения || ''
-            };
-          });
-
-          setCalculationsData(formattedCalcs);
-          setFilteredItems(formattedCalcs);
-        } else {
-          setCalculationsData([]);
-          setFilteredItems([]);
-        }
-      } catch (error) {
-        console.error("Помилка запиту:", error);
+        setCalculationsData(formattedCalcs);
+        setFilteredItems(formattedCalcs);
+      } else {
         setCalculationsData([]);
         setFilteredItems([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Помилка запиту:", error);
+      setCalculationsData([]);
+      setFilteredItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, [selectedYear]);
+  fetchData();
+}, [selectedYear, dealer]);
+
 
   // --- Статусні та місячні підсумки ---
   const getStatusSummary = () => {
@@ -267,8 +310,16 @@ const PortalOriginal = () => {
 
   return (
     <div className="column portal-body">
-      <div className="content-summary row w-100 ml-8">
-        <div className="year-selector row gap-14">
+      {showDealerModal && (
+        <DealerSelectModal
+          isOpen={showDealerModal}
+          onClose={() => setShowDealerModal(false)}
+          onSelect={handleDealerSelect}
+        />
+      )}
+
+      <div className="content-summary row w-100">
+        <div className="year-selector row">
           <span>Звітний рік:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
@@ -278,7 +329,7 @@ const PortalOriginal = () => {
         </div>
 
         <div className="by-month-pagination-wrapper">
-          <ul className="gap-7 row no-wrap">
+          <ul className="gap-6 row no-wrap">
             <li className={`pagination-item ${filter.month === 0 ? 'active' : ''}`} onClick={() => handleMonthClick(0)}>
               Весь рік
             </li>
@@ -311,8 +362,19 @@ const PortalOriginal = () => {
             />
             <span className="icon icon-cancel2 clear-search" title="Очистити пошук" onClick={handleClearSearch}></span>
           </div>
-          <div className="delimiter1"></div> 
-
+          
+            {localStorage.getItem('role') !== 'customer' && (
+            <div>
+              <div className="delimiter1"/>
+              <ul className="buttons">
+                <li className="btn btn-select-dealer" onClick={() => setShowDealerModal(true)}>
+                  <span className="icon icon-user-check"></span>
+                  <span className="uppercase">Вибрати дилера</span>
+                </li>
+              </ul>
+              </div>
+            )}
+            <div className="delimiter1"></div> 
             <ul className="buttons">
               <li className="btn btn-add-calc" onClick={() => setIsCalcModalOpen(true)}>
                 <span className="icon icon-plus3"></span>

@@ -7,9 +7,9 @@ class Video(models.Model):
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата додавання")
     added_by = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         related_name="added_videos",
         verbose_name="Додав користувач"
@@ -22,4 +22,4 @@ class Video(models.Model):
         verbose_name = "Відео"
         verbose_name_plural = "Відео"
         ordering = ['-created_at']
-        db_table = 'Video'
+        db_table = 'video'

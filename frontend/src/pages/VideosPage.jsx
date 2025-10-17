@@ -1,31 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../api/axios';
-import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaTimes, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
 import { useNotification } from '../components/notification/Notifications';
 import ConfirmModal from '../components/Orders1/ConfirmModal';
 import './Videos.css';
 
-export default function VideosPage() {
+const VideosPage = () => {
   const [videos, setVideos] = useState([]);
   const [filteredVideos, setFilteredVideos] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newVideo, setNewVideo] = useState({ title: '', url: '', description: '' });
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [loadingAdd, setLoadingAdd] = useState(false);
+  const [loadingSave, setLoadingSave] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videoForm, setVideoForm] = useState({ title: '', url: '', description: '' });
 
   const role = localStorage.getItem('role');
-  const token = localStorage.getItem('access');
   const isAdmin = role === 'admin';
-  const navigate = useNavigate();
+  const token = localStorage.getItem('access');
   const { addNotification } = useNotification();
 
-  useEffect(() => {
-    fetchVideos();
-  }, []);
+  useEffect(() => { fetchVideos(); }, []);
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -34,9 +31,7 @@ export default function VideosPage() {
         v.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredVideos(filtered);
-    } else {
-      setFilteredVideos(videos);
-    }
+    } else setFilteredVideos(videos);
   }, [searchQuery, videos]);
 
   const fetchVideos = async () => {
@@ -45,42 +40,46 @@ export default function VideosPage() {
       const res = await axiosInstance.get('/video/', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setVideos(res.data);
-      setFilteredVideos(res.data);
-    } catch (error) {
-      console.error('Помилка завантаження відео:', error);
+      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setVideos(data);
+      setFilteredVideos(data);
+    } catch {
       addNotification('Помилка завантаження відео', 'error');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  const handleAddVideo = async (e) => {
+  // ====================== Додавання / Редагування ======================
+  const handleSaveVideo = async (e) => {
     e.preventDefault();
-    if (!newVideo.title || !newVideo.url) return addNotification('Заповніть всі поля', 'error');
+    if (!videoForm.title || !videoForm.url)
+      return addNotification('Заповніть усі обов’язкові поля', 'error');
 
-    setLoadingAdd(true);
+    setLoadingSave(true);
     try {
-      await axiosInstance.post('/video/', newVideo, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (editModalOpen) {
+        // 🔹 Редагування
+        await axiosInstance.put(`/video/${selectedVideo.id}/`, videoForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        addNotification('Відео оновлено успішно!', 'success');
+      } else {
+        // 🔹 Додавання
+        await axiosInstance.post('/video/', videoForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        addNotification('Відео додано успішно!', 'success');
+      }
       setAddModalOpen(false);
-      setNewVideo({ title: '', url: '', description: '' });
+      setEditModalOpen(false);
       fetchVideos();
-      addNotification('Відео успішно додано!', 'success');
-    } catch (error) {
-      console.error('Помилка при додаванні відео:', error);
-      addNotification('Не вдалося додати відео', 'error');
-    } finally {
-      setLoadingAdd(false);
-    }
+      setVideoForm({ title: '', url: '', description: '' });
+    } catch {
+      addNotification('Помилка при збереженні відео', 'error');
+    } finally { setLoadingSave(false); }
   };
 
-  const handleDeleteClick = (video) => {
-    setSelectedVideo(video);
-    setDeleteModalOpen(true);
-  };
-
+  // ====================== Видалення ======================
+  const handleDeleteClick = (video) => { setSelectedVideo(video); setDeleteModalOpen(true); };
   const handleDeleteConfirm = async () => {
     try {
       await axiosInstance.delete(`/video/${selectedVideo.id}/`, {
@@ -88,12 +87,19 @@ export default function VideosPage() {
       });
       fetchVideos();
       addNotification(`Відео "${selectedVideo.title}" видалено`, 'success');
-    } catch (error) {
-      console.error('Помилка при видаленні відео:', error);
+    } catch {
       addNotification('Не вдалося видалити відео', 'error');
-    } finally {
-      setDeleteModalOpen(false);
-    }
+    } finally { setDeleteModalOpen(false); }
+  };
+
+  const openEditModal = (video) => {
+    setSelectedVideo(video);
+    setVideoForm({
+      title: video.title || '',
+      url: video.url || '',
+      description: video.description || '',
+    });
+    setEditModalOpen(true);
   };
 
   const formatDate = (isoString) => {
@@ -108,14 +114,14 @@ export default function VideosPage() {
   };
 
   return (
-    <div className="portal-body column gap-14">
+    <div className="videos-body column gap-14">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-color mt-3 text-4xl font-bold">🎥 Відео</h2>
+        <h1 className="text-color mt-3 text-4xl font-bold">🎥 Відео</h1>
         {isAdmin && (
           <button
-            className="bg-custom-green mt-5 hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3"
-            onClick={() => setAddModalOpen(true)}
+            className="bg-custom-green hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3 mt-5"
+            onClick={() => { setAddModalOpen(true); setVideoForm({ title: '', url: '', description: '' }); }}
           >
             <FaPlus size={20} /> Додати відео
           </button>
@@ -123,39 +129,26 @@ export default function VideosPage() {
       </div>
 
       {/* Search */}
-      <div className="row gap-14 align-center" style={{ marginBottom: '5px' }}>
-        <div className="row align-center gap-7 search-box" style={{
-          flex: 1,
-          background: 'white',
-          padding: '8px 12px',
-          borderRadius: '10px',
-          border: '1px dashed #ccc',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
+      <div className="row gap-14 align-center mb-2">
+        <div className="row align-center gap-7 search-box"
+          style={{ flex: 1, background: 'white', padding: '8px 12px', borderRadius: '10px',
+                   border: '1px dashed #ccc', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <FaSearch className="text-grey" style={{ fontSize: '20px' }} />
           <input
             type="text"
             placeholder="Пошук за назвою або описом..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              fontSize: '16px',
-              fontWeight: '400',
-              padding: '8px 0'
-            }}
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '16px', fontWeight: '400', padding: '8px 0' }}
           />
         </div>
       </div>
 
-      {/* Divider */}
-      <div style={{ border: '1px dashed #ccc', marginBottom: '10px' }}></div>
+      <div style={{ border: '1px dashed #ccc', marginBottom: '5px' }}></div>
 
       {/* Videos List */}
       {loading ? (
-        <div className="align-center column" style={{ padding: '50px' }}>
+        <div className="align-center" style={{ padding: '50px' }}>
           <div className="loader"></div>
         </div>
       ) : filteredVideos.length === 0 ? (
@@ -163,43 +156,47 @@ export default function VideosPage() {
           <div className="text-grey">{searchQuery ? 'Відео не знайдено' : 'Відео ще немає'}</div>
         </div>
       ) : (
-        <div className="column gap-6">
-          {filteredVideos.map((video) => (
-            <div key={video.id} className="claim-item row align-center space-between p-4 border rounded-lg shadow-sm bg-white">
-              <div className="flex-1 column gap-2">
-                <p className="font-semibold text-lg">{video.title}</p>
-                {video.description && <p className="text-gray-700 text-sm">{video.description}</p>}
+        <div className="column gap-10">
+          {filteredVideos.map(video => (
+            <div key={video.id} className="claim-item column gap-3">
+              <div className="column gap-2 flex-1">
+                <div className="text-info font-semibold text-lg">{video.title}</div>
+                {video.description && <p className="text-grey text-sm">{video.description}</p>}
+                
                 <iframe
                   className="w-full aspect-video rounded-md"
                   src={getEmbedUrl(video.url)}
                   title={video.title}
                   allowFullScreen
                 ></iframe>
-                <p className="text-sm text-gray-600 mt-1">Дата: {formatDate(video.created_at)}</p>
+
+                <div className="text-sm text-grey mt-1">Дата: {formatDate(video.created_at)}</div>
               </div>
 
+              {/* --- Кнопки під відео --- */}
               {isAdmin && (
-                <div className="row gap-4 align-center">
+                <div className="row gap-7 align-center mt-2 justify-end">
                   <button
-                    onClick={() => navigate(`/videos/edit/${video.id}`)}
-                    className="button background-warning row gap-2 align-center text-sm"
+                    className="button background-warning row gap-5 align-center"
+                    onClick={() => openEditModal(video)}
                   >
-                    ✏️ Редагувати
+                    <FaEdit /> Редагувати
                   </button>
                   <button
+                    className="button background-danger row gap-5 align-center"
                     onClick={() => handleDeleteClick(video)}
-                    className="button background-danger row gap-2 align-center text-sm"
                   >
-                    🗑 Видалити
+                    <FaTrash /> Видалити
                   </button>
                 </div>
               )}
             </div>
           ))}
+
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Confirm Delete */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -211,60 +208,52 @@ export default function VideosPage() {
         cancelText="Скасувати"
       />
 
-      {/* Add Video Modal */}
-      {addModalOpen && (
-        <div className="file-modal-overlay" onClick={() => setAddModalOpen(false)}>
+      {/* Add/Edit Video Modal */}
+      {(addModalOpen || editModalOpen) && (
+        <div className="file-modal-overlay" onClick={() => { setAddModalOpen(false); setEditModalOpen(false); }}>
           <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
-            <div className="file-modal-header flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">Додати відео</h3>
-              <button onClick={() => setAddModalOpen(false)} className="text-gray-500 hover:text-gray-800">
-                <FaTimes />
-              </button>
+            <div className="file-modal-header">
+              <div className="header-content">
+                <div className="file-icon">🎬</div>
+                <h3>{editModalOpen ? 'Редагувати відео' : 'Додати відео'}</h3>
+              </div>
+              <button className="file-close-btn" onClick={() => { setAddModalOpen(false); setEditModalOpen(false); }}>✕</button>
             </div>
 
-            <form className="column gap-4" onSubmit={handleAddVideo}>
-              <label className="column gap-1">
+            <form onSubmit={handleSaveVideo} className="claim-form">
+              <label className="file-label">
                 <span>Назва відео</span>
                 <input
                   type="text"
-                  className="file-input p-2 border rounded"
-                  value={newVideo.title}
-                  onChange={(e) => setNewVideo({ ...newVideo, title: e.target.value })}
+                  className="file-input"
+                  value={videoForm.title}
+                  onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
                 />
               </label>
 
-              <label className="column gap-1">
+              <label className="file-label">
                 <span>Посилання на YouTube</span>
                 <input
                   type="url"
-                  className="file-input p-2 border rounded"
-                  value={newVideo.url}
-                  onChange={(e) => setNewVideo({ ...newVideo, url: e.target.value })}
+                  className="file-input"
+                  value={videoForm.url}
+                  onChange={(e) => setVideoForm({ ...videoForm, url: e.target.value })}
                 />
               </label>
 
-              <label className="column gap-1">
-                <span>Опис (необов'язково)</span>
+              <label className="file-label">
+                <span>Опис</span>
                 <textarea
-                  className="file-input p-2 border rounded"
-                  value={newVideo.description}
-                  onChange={(e) => setNewVideo({ ...newVideo, description: e.target.value })}
+                  className="file-input"
+                  value={videoForm.description}
+                  onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })}
                 />
               </label>
 
-              <div className="flex justify-end gap-4 mt-4">
-                <button
-                  type="button"
-                  className="file-btn-cancel px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
-                  onClick={() => setAddModalOpen(false)}
-                >
-                  ✕ Скасувати
-                </button>
-                <button
-                  type="submit"
-                  className="file-btn-save px-4 py-2 rounded bg-[#76b448] hover:bg-[#5f9037] text-white font-semibold"
-                >
-                  {loadingAdd ? <div className="loader-small"></div> : '💾 Додати'}
+              <div className="file-modal-footer">
+                <button type="button" className="file-btn-cancel" onClick={() => { setAddModalOpen(false); setEditModalOpen(false); }}>✕ Скасувати</button>
+                <button type="submit" className="file-btn-save">
+                  {loadingSave ? <div className="loader-small"></div> : '💾 Зберегти'}
                 </button>
               </div>
             </form>
@@ -273,4 +262,6 @@ export default function VideosPage() {
       )}
     </div>
   );
-}
+};
+
+export default VideosPage;

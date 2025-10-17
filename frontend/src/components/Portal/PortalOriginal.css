@@ -301,11 +301,16 @@ body {
 }
 
 .portal-body {
-    /*background: radial-gradient(circle, var(--portal-bg-color-end) 15%, var(--portal-bg-color-start));*/
     background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
-    height: calc(100vh);
-    width: calc(100%);
-    padding: 60px 10%;
+    height: 100vh;
+    width: 100%;
+    padding-top: 60px;
+    padding-bottom: 60px;
+
+    /* Адаптивні відступи зліва і справа */
+    padding-left: clamp(5px, 5vw, 100px);
+    padding-right: clamp(5px, 5vw, 100px);
+
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -332,9 +337,18 @@ body {
 .portal-body .content-filter {
     padding: 8px;
     height: calc(100% - 28px);
-    width: 350px;
+    width: 100%;          /* базова ширина на маленьких екранах */
+    max-width: 350px;     /* максимум на великих екранах */
     border-right: 1px dashed var(--grey-border-color);
 }
+
+@media (max-width: 1460px) {
+    .portal-body .content-filter {
+        width: 300px;      /* трохи менше на планшетах */
+        max-width: none;
+    }
+}
+
 
 .portal-body .content {
     height: calc(100%);
@@ -454,11 +468,24 @@ body {
     margin: 0px 0px;  /* зовнішні відступи зліва/справа */
 }
 
+.btn-select-dealer {
+            /* буде як ширина батьківського контейнера */
+    height: 50px;      /* висота input з .search-orders */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; 
+    background-color: var(--info-color);
+    color: white;
+    gap: 8px;              /* відстань між іконкою і текстом */
+    padding: 0px 16px; /* внутрішні відступи зліва/справа */ 
+    margin: 0px 0px;  /* зовнішні відступи зліва/справа */
+}
 
-.btn-add-calc:hover {
+
+.btn-select-dealer:hover {
     opacity: 0.8 !important;
     transition: all 0.3s ease;
-    background-color: var(--success-color) !important;
+    background-color: var(--info-color) !important;
     color: #fff !important;
 }
 
@@ -519,19 +546,19 @@ body {
 }
 
 .content-filter .clear-search {
-    cursor: pointer;
-    color: var(--grey-text-color);
-    float: right;
-    margin-top: -34px;
-    margin-right: -8px;
-    font-size: 20px;
-    transition: all 0.3s
-    ease;
-    position: relative;
-    top: -3px;
-    right: -300px;
-    width: 24px;
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all; /* щоб span можна було клікати */
 }
+
 .content-filter .clear-search:hover {
     color: var(--danger-color);
     transition: all 0.3s ease;
@@ -544,8 +571,22 @@ body {
     color: var(--text-color);
     font-size: 16px;
     text-transform: uppercase;
-    width: calc(350px - 32px);
+    width: calc(350px);
     border-right: 1px dashed var(--grey-border-color);
+}
+
+@media (max-width: 1460px) {
+    .content-summary .year-selector {
+        width: 300px;      /* трохи менше на планшетах */
+        max-width: none;
+    }
+}
+
+@media (max-width: 1460px) {
+    .portal-body .content-filter {
+        width: 300px;      /* трохи менше на планшетах */
+        max-width: none;
+    }
 }
 
 .content-summary .year-selector select {
@@ -571,7 +612,7 @@ body {
 }
 
 .content-summary .by-month-pagination-wrapper {
-    padding: 7px 14px;
+    padding: 7px 8px;
     align-items: center;
     justify-content: right;
     color: var(--text-color);
@@ -589,14 +630,14 @@ body {
     padding: 0;
     display: flex;
     flex-direction: row;
-    gap: 7px;
+    gap: 4px;
     align-items: center;
     justify-content: right;
 }
 
 .content-summary .by-month-pagination-wrapper ul li {
     cursor: pointer;
-    padding: 7px 14px;
+    padding: 7px 8px;
     border: 1px solid transparent;
     transition: all 0.3s ease;
     border-radius: 3px;
@@ -1571,28 +1612,16 @@ html {
 }
 
 .content-filter .search-orders {
+  justify-content: center; /* горизонтальне вирівнювання по центру */
+  align-items: center;     /* вертикальне вирівнювання по центру */
   width: 100%;
-  padding: 0px 40px 10px 12px; /* простір для хрестика справа */
+  padding: 0px 40px 0px 12px; /* простір для хрестика справа */
   font-size: 16px;
   border: 1px dashed var(--grey-border-color);
   border-radius: 5px;
   height: 50px;
   color: var(--text-color);
   box-sizing: border-box;
-}
-
-.content-filter .clear-search {
-  position: absolute;
-  right: 28px;
-  top: 110%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 20px;
-  color: var(--text-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: all; /* щоб span можна було клікати */
 }
 
 /* Шрифт іконок */
@@ -1632,13 +1661,13 @@ html {
 .calc-item .summary-item {
   display: flex;
   align-items: center;
-  padding: 3px 6px;
+  padding: 3px 3px;
   font-size: 14px;
   height: 60px;
   cursor: pointer;
   position: relative;
   overflow: visible;
-  gap: 4px;
+  gap: 2px;
   flex: 0 1 auto; /* займає ширину тільки під контент */
   border-right: 1px dashed var(--grey-border-color);
 }
@@ -1681,7 +1710,8 @@ html {
     border-radius: 5px;
     min-height: 40px;
     padding: 7px;
-    width: calc(100% - 14px);
+    gap: 3px;
+    width: calc(100%);
     align-items: flex-start;
 }
 
@@ -1691,7 +1721,7 @@ html {
 
 .order-item .summary-item {
     border-right: 1px dashed var(--grey-border-color);
-    padding: 3px 14px;
+    padding: 3px 10px;
     font-size: 14px;
     align-items: center;
     justify-content: center;
@@ -1705,7 +1735,7 @@ html {
     margin-top: 14px;
     font-size: 12px;
     color: var(--grey-color);
-    width: calc(100% - 21px);
+    width: calc(100% - 10px);
     border-top: 1px dashed var(--grey-border-color);
     border-radius: 5px;
     align-items: flex-start;
@@ -1881,4 +1911,181 @@ white-space: nowrap;
   align-self: flex-end;          /* кнопка зліва */
   padding: 4px 8px;
   font-size: 12px;
+}
+
+@media (max-width: 1800px) {
+.p-7 { padding: 4px !important; }
+    .p-14 { padding: 7px !important; }
+    .m-7 { margin: 4px !important; }
+    .m-14 { margin: 7px !important; }
+    .gap-2 { gap: 1px !important; }
+    .gap-3 { gap: 2px !important; }
+    .gap-4 { gap: 2px !important}
+    .gap-5 { gap: 3px !important; }
+    .gap-7 { gap: 4px !important; }
+    .gap-14 { gap: 8px !important; }
+    .gap-16 { gap: 9px !important; }
+    .gap-18 { gap: 13px !important; }
+
+    .portal-body { padding-top: 60px !important; padding-bottom: 60px !important;  padding-left: 15px !important; padding-right: 15px !important;}
+    .order-item {
+    padding: 1px !important;
+    gap: 1px !important;
+}
+     .panel { padding: 4px !important; }
+    .calc-item { padding: 4px !important; min-height: 60px !important; }
+    .calc-item .summary-item { padding: 2px 4px !important; font-size: 12px !important; height: 60px !important; }
+    .portal-body .content-filter { width: 300px !important; }
+    .portal-body .content {width: calc(100% - 300px) !important;}
+    .content-summary .year-selector { width: 300px !important; font-size: 14px !important; padding: 4px 20px !important; }
+    .content-summary .by-month-pagination-wrapper { font-size: 12px !important; padding: 4px 6px !important; width: calc(100% - 250px - 20px) !important; }
+    .btn-add-calc { height: 40px !important; padding: 2 10px !important; font-size: 14px !important; }
+    .btn-select-dealer { height: 40px !important; padding: 2 10px !important; font-size: 14px !important; }
+    .button { padding: 5px 6px !important; font-size: 11px !important; }
+
+}
+@media (max-width: 1500px) {
+
+    /* Зменшуємо padding і margin для контейнерів */
+    .p-7 { padding: 4px !important; }
+    .p-14 { padding: 7px !important; }
+    .m-7 { margin: 4px !important; }
+    .m-14 { margin: 7px !important; }
+    .gap-2 { gap: 1px !important; }
+    .gap-3 { gap: 2px !important; }
+    .gap-4 { gap: 2px !important}
+    .gap-5 { gap: 3px !important; }
+    .gap-7 { gap: 4px !important; }
+    .gap-14 { gap: 8px !important; }
+    .gap-16 { gap: 9px !important; }
+    .gap-18 { gap: 13px !important; }
+
+    /* Зменшуємо висоту та ширину панелей та блоків */
+    .panel { padding: 4px !important; }
+    .calc-item { padding: 4px !important; min-height: 50px !important; }
+    .calc-item .summary-item { padding: 2px 4px !important; font-size: 12px !important; height: 50px !important; }
+
+    /* Зменшуємо шрифти */
+    .font-size-58 { font-size: 48px !important; }
+    .font-size-42 { font-size: 36px !important; }
+    .font-size-40 { font-size: 34px !important; }
+    .font-size-38 { font-size: 32px !important; }
+    .font-size-36 { font-size: 30px !important; }
+    .font-size-32 { font-size: 28px !important; }
+    .font-size-28 { font-size: 24px !important; }
+    .font-size-26 { font-size: 22px !important; }
+    .font-size-24 { font-size: 20px !important; }
+    .font-size-22 { font-size: 18px !important; }
+    .font-size-20 { font-size: 16px !important; }
+    .font-size-18 { font-size: 14px !important; }
+    .font-size-16 { font-size: 13px !important; }
+    .font-size-14 { font-size: 11px !important; }
+    .font-size-12 { font-size: 8px !important; }
+
+    /* Зменшуємо висоту кнопок */
+    .btn-add-calc { height: 40px !important; padding: 0 12px !important; font-size: 14px !important; }
+    .btn-select-dealer{ height: 40px !important; padding: 0 12px !important; font-size: 14px !important; }
+    .button { padding: 3px 8px !important; font-size: 10px !important; }
+    .content-filter .search-orders { height: 40px !important; font-size: 14px !important; padding: 0 32px 0px 10px !important; }
+    .content-filter .clear-search { font-size: 18px !important; right: 20px !important; top: 50% !important;  }
+    .portal-body .content {width: calc(100% - 300px) !important;}
+    /* Контейнери */
+    .portal-body { padding-top: 60px !important; padding-bottom: 60px !important;  padding-left: 5px !important; padding-right: 5px !important;}
+    .portal-body .content-filter { width: 300px !important; }
+    .content-summary .year-selector { width: 300px !important; font-size: 14px !important; padding: 4px 20px !important; }
+    .content-summary .by-month-pagination-wrapper { font-size: 12px !important; padding: 4px 6px !important; width: calc(100% - 250px - 20px) !important; }
+
+    /* Зменшення шрифту у таблицях */
+    .table td, .table th { padding: 4px 6px !important; font-size: 12px !important; }
+    .portal-body .content-filter .filter li {
+        cursor: pointer;
+        padding: 7px 8px;
+        transition: all 0.5s ease;
+        width: 100%;
+        align-items: center;
+        border: 1px solid transparent;
+    }
+}
+
+
+@media (max-width: 1604px) {
+  .timeline {
+      width: 100%;
+      margin: 0 auto;
+      padding: 10px 0;
+      position: relative;
+      box-sizing: border-box;
+      min-height: 120px;
+  }
+
+  .timeline ul {
+      padding: 0;
+      list-style: none;
+      position: relative;
+      left: 10px;
+  }
+
+  .timeline ul li {
+      margin: 0 0 10px 0;
+      padding-left: 80px;
+      padding-bottom: 10px;
+      position: relative;
+      display: inline-block;
+      border-top: 1px solid var(--info-color);
+      border-left: 1px solid var(--info-color);
+  }
+
+  .timeline ul li:last-child {
+      border-right: 1px solid var(--info-color);
+  }
+
+  .timeline ul li:first-child {
+      border-top: 1px transparent;
+      border-left: 1px transparent;
+  }
+
+  .timeline ul li .icon {
+      background: #fff;
+      border: 1px solid var(--info-color);
+      color: #fff;
+      display: inline-block;
+      position: relative;
+      left: 15px;
+      top: -17px;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 14px;
+      z-index: 1;
+  }
+
+  .timeline ul li .badge {
+      width: 100px;
+      border: 1px solid var(--info-color);
+      background-color: #fff;
+      color: var(--grey-text-color);
+      display: inline-block;
+      position: absolute;
+      left: 60px;
+      top: 40px;
+      font-size: 10px;
+      z-index: 1;
+  }
+
+  .timeline ul li .badge .badge-title {
+      background-color: var(--info-color);
+      color: #fff;
+      padding: 2px 5px;
+      text-align: center;
+      font-size: 10px;
+  }
+
+  .timeline ul li .badge .badge-content {
+      color: var(--text-color);
+      padding: 2px 5px;
+      text-align: center;
+      font-size: 10px;
+  }
 }

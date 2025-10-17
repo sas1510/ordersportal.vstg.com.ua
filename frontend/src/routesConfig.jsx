@@ -69,6 +69,7 @@ export const adminRoutes = [
   { path: "finance/settlements", element: <DebtPage /> },
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
+  { path: "emergency-contacts", element: <EmergencyContactsPage /> },
 
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },

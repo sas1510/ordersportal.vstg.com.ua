@@ -192,6 +192,7 @@ class CreateOrderView(APIView):
             }, status=201)
 
         return Response(serializer.errors, status=400)
+<<<<<<< HEAD
 
 
 
@@ -218,6 +219,33 @@ class DeleteOrderView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+=======
+
+
+
+
+class DeleteOrderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+        user = request.user
+        manager_roles = ["manager", "region_manager"]
+
+        try:
+            # Видаляємо всі повідомлення, пов’язані з цим замовленням (GenericForeignKey)
+            order_type = ContentType.objects.get_for_model(Order)
+            Message.objects.filter(content_type=order_type, object_id=order.id).delete()
+
+
+            order.delete()
+            return Response(
+                {"success": f"Замовлення {order_id} видалено"},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+>>>>>>> 2500e4fb6a092be227e78bc518f857ef462b2367
 
 
 class LastOrderNumberView(APIView):
@@ -511,8 +539,17 @@ from django.db import connection
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def portal_view(request):
+<<<<<<< HEAD
     user = request.user
     customer_id = getattr(user, 'id', None)
+=======
+
+    customer_id = request.GET.get("customer_id") or getattr(request.user, "id", None)
+
+    if not customer_id:
+        user = request.user
+        customer_id = getattr(user, 'id', None)
+>>>>>>> 2500e4fb6a092be227e78bc518f857ef462b2367
 
     if not customer_id:
         return JsonResponse({"error": "User ID is missing"}, status=400)

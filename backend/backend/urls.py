@@ -4,13 +4,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('users.urls')),  # твої маршрути користувачів
-    path('file/', include('documents.urls')),  # додай, якщо в тебе app documents
-    path('video/', include('video.urls')),
-    # path('api/', include('contact.urls')),
-    path('', include('order.urls')),  # додай, якщо в тебе app orders
-    path('complaints/', include('complaints.urls')),  # додай, якщо в тебе app orders
+    path('api/admin/', admin.site.urls),
+    path('api/', include('backend.users.urls')),  # маршрути користувачів
+    path('api/file/', include('backend.documents.urls')), 
+    path('api/', include('backend.video.urls')),
+    path('api/', include('backend.contact.urls')),
+    path('api/', include('backend.order.urls')),  
+    path('api/complaints/', include('backend.complaints.urls')),  
     
 
 ]

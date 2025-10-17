@@ -88,6 +88,8 @@ function AppRoutes() {
         <Route path="home" element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="invite/:code/" element={<InviteRegisterForm />} />
+        {/* <Route path="api/admin" element={<InviteRegisterForm />} /> */}
+
       </Route>
 
       {/* Якщо роль не завантажена і маршрут не публічний — завантаження */}
@@ -96,9 +98,10 @@ function AppRoutes() {
       )}
 
       {/* Якщо неавторизований і маршрут не публічний — редірект на логін */}
-      {!role && location.pathname !== "/" && location.pathname !== "/login" && (
+      {!role && location.pathname !== "/" && location.pathname !== "/login" && !location.pathname.startsWith("/api/admin") && (
         <Route path="*" element={<Navigate to="/login" replace />} />
       )}
+
 
       {/* Авторизовані маршрути */}
       {role && (

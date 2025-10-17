@@ -1,15 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../api/axios';
-import { toast } from 'react-hot-toast';
 import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../components/notification/Notifications';
+import './EmergencyContactsPage.css';
 
 const EmergencyContactsPage = () => {
   const [contacts, setContacts] = useState([]);
   const { user } = useAuth();
+  const { addNotification } = useNotification();
 
-  // Для модального вікна
+  const role = localStorage.getItem('role');
+  const isAdmin = role === 'admin';
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedContactId, setSelectedContactId] = useState(null);
+  const [editingContact, setEditingContact] = useState(null);
+  const [newContact, setNewContact] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    telegramId: '',
+    department: '',
+  });
+
+  const [deleteContactId, setDeleteContactId] = useState(null); // для модалки видалення
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -17,120 +31,252 @@ const EmergencyContactsPage = () => {
 
   const fetchContacts = async () => {
     try {
-      const response = await axiosInstance.get('/contact/');
+      const response = await axiosInstance.get('/contacts/');
       setContacts(response.data);
     } catch (error) {
       console.error('Помилка при отриманні контактів:', error);
-      toast.error('Не вдалося отримати список контактів');
+      addNotification('Не вдалося отримати список контактів', 'error');
     }
   };
 
-  const openModal = (contactId) => {
-    setSelectedContactId(contactId);
+  const openEditModal = (contact) => {
+    setEditingContact(contact);
+    setNewContact({
+      name: contact.contact_name,
+      phone: contact.phone,
+      email: contact.email,
+      telegramId: contact.telegram_id || '',
+      department: contact.department,
+    });
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setSelectedContactId(null);
-    setIsModalOpen(false);
+    if (!isSending) {
+      setEditingContact(null);
+      setDeleteContactId(null);
+      setIsModalOpen(false);
+      setNewContact({ name: '', phone: '', email: '', telegramId: '', department: '' });
+    }
   };
 
-  const handleConfirmCall = async () => {
-    if (!selectedContactId) return;
+  const handleSaveContact = async (e) => {
+    e.preventDefault();
+    const { name, phone, email, telegramId, department } = newContact;
+    if (!name || !phone || !email || !department) {
+      return addNotification('Заповніть всі обов\'язкові поля', 'warning');
+    }
+
+    setIsSending(true);
+    const payload = { contact_name: name, phone, email, telegram_id: telegramId, department };
 
     try {
-      const payload = {
-        contactId: selectedContactId,
-        clientName: user?.first_last_name || user?.username || 'Невідомий користувач',
-        clientPhone: user?.phone || 'Номер не вказано',
-      };
-
-      await axiosInstance.post('/UrgentCall/', payload);
-      toast.success('Повідомлення надіслано');
+      let updatedContact;
+      if (editingContact) {
+        const response = await axiosInstance.put(`/contacts/${editingContact.id}/`, payload);
+        updatedContact = response.data;
+        setContacts((prev) =>
+          prev.map((c) => (c.id === editingContact.id ? updatedContact : c))
+        );
+        addNotification('✅ Контакт оновлено', 'success');
+      } else {
+        const response = await axiosInstance.post('/contacts/', payload);
+        updatedContact = response.data;
+        setContacts((prev) => [...prev, updatedContact]);
+        addNotification('✅ Контакт додано', 'success');
+      }
       closeModal();
     } catch (error) {
+      console.error('Помилка при збереженні контакту:', error);
+      addNotification('❌ Не вдалося зберегти контакт', 'error');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const openDeleteModal = (contactId) => {
+    setDeleteContactId(contactId);
+  };
+
+  const handleDeleteContact = async () => {
+    if (!deleteContactId) return;
+    setIsSending(true);
+    try {
+      await axiosInstance.delete(`/contacts/${deleteContactId}/`);
+      setContacts((prev) => prev.filter((c) => c.id !== deleteContactId));
+      addNotification('✅ Контакт видалено', 'success');
+      closeModal();
+    } catch (error) {
+      console.error('Помилка при видаленні контакту:', error);
+      addNotification('❌ Не вдалося видалити контакт', 'error');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleCallContact = async (contactId) => {
+    if (!contactId || isSending) return;
+    setIsSending(true);
+    addNotification('Повідомлення надсилається...', 'info');
+    try {
+      const payload = {
+        contact_id: contactId,
+        client_name: user?.full_name || user?.username || 'Невідомий користувач',
+      };
+      await axiosInstance.post('/urgent-call/', payload);
+      addNotification('Повідомлення надіслано', 'success');
+    } catch (error) {
       console.error('Помилка при надсиланні повідомлення:', error);
-      toast.error('Не вдалося надіслати повідомлення');
+      addNotification('Не вдалося надіслати повідомлення', 'error');
+    } finally {
+      setIsSending(false);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 relative">
-      <h1 className="text-3xl font-extrabold text-[#003d66] mb-8 border-b-2 border-blue-300 pb-2">
+    <div className="emergency-portal-body">
+      <h1 className="text-color mt-3 text-4xl font-bold pb-0">
         Контакти для термінового дзвінка
       </h1>
+      <div style={{ border: '1px dashed #ccc', marginBottom: '5px' }}></div>
 
       <div className="space-y-6">
         {contacts.length === 0 && (
           <p className="text-center text-gray-500">Контакти не знайдені.</p>
         )}
         {contacts.map((contact) => (
-          <div
-            key={contact.id}
-            className="bg-white shadow-md rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center transition-transform hover:scale-[1.02] hover:shadow-lg"
-          >
-            <div className="mb-4 md:mb-0 space-y-1">
-              <div className="text-xl font-semibold text-[#003d66]">{contact.name}</div>
-              <div className="text-gray-700 flex items-center gap-2">
-                <span className="text-red-500 text-lg">📞</span> {contact.phone}
+          <div key={contact.id} className="emergency-contact-item">
+            <div className="emergency-column">
+              <div className="emergency-text-info">{contact.contact_name}</div>
+              <div className="emergency-text-grey flex items-center gap-2">
+                <span className="text-red-500 text-lg">📞</span> {contact.phone || '-'}
               </div>
-              <div className="text-gray-700 flex items-center gap-2">
-                <span className="text-blue-500 text-lg">✉️</span> {contact.email}
+              <div className="emergency-text-grey flex items-center gap-2">
+                <span className="text-blue-500 text-lg">✉️</span> {contact.email || '-'}
               </div>
-              <div className="text-gray-600 italic text-sm flex items-center gap-2">
-                <span className="text-green-500 text-lg">🧩</span> {contact.department}
+              <div className="emergency-text-grey italic text-sm flex items-center gap-2">
+                <span className="text-green-500 text-lg">🧩</span> {contact.department || '-'}
               </div>
             </div>
-            <button
-              onClick={() => openModal(contact.id)}
-              className="self-stretch md:self-auto bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-colors duration-300"
-            >
-              Терміново зателефонувати
-            </button>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleCallContact(contact.id)}
+                className="emergency-button-call"
+                disabled={isSending}
+              >
+                Терміново зателефонувати
+              </button>
+
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => openEditModal(contact)}
+                    className="emerg-btn-save"
+                  >
+                    Редагувати
+                  </button>
+                  <button
+                    onClick={() => openDeleteModal(contact.id)}
+                    className="emerg-btn-cancel"
+                  >
+                    Видалити
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Модальне вікно */}
+      {/* Модал додавання/редагування */}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={closeModal} // закриття при кліку поза модалом
-        >
-          <div
-            className="bg-white rounded-lg p-6 max-w-sm w-full"
-            onClick={(e) => e.stopPropagation()} // щоб клік в модалі не закривав її
-          >
-            <h2 className="text-xl font-semibold mb-4 text-center text-[#003d66]">Підтвердження</h2>
-            <p className="mb-6 text-center">Ви впевнені, що хочете терміново зателефонувати?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleConfirmCall}
-                className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-              >
-                Так, підтверджую
-              </button>
-              <button
-                onClick={closeModal}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-6 rounded-lg transition-colors"
-              >
-                Відмінити
+        <div className="video-modal-overlay" onClick={closeModal}>
+          <div className="video-modal-window" onClick={(e) => e.stopPropagation()}>
+            <div className="video-modal-header">
+              <h3>{editingContact ? '✏️ Редагування контакту' : '➕ Додати контакт'}</h3>
+              <button className="video-close-btn" onClick={closeModal}>✕</button>
+            </div>
+            <form className="video-form" onSubmit={handleSaveContact}>
+              <div className="modal-field">
+                <input
+                  value={newContact.name}
+                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                  placeholder="Ім'я"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  value={newContact.phone}
+                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                  placeholder="Телефон"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  value={newContact.email}
+                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                  placeholder="Email"
+                  type="email"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  value={newContact.telegramId}
+                  onChange={(e) => setNewContact({ ...newContact, telegramId: e.target.value })}
+                  placeholder="Telegram ID"
+                  className="video-input"
+                />
+              </div>
+              <div className="modal-field">
+                <input
+                  value={newContact.department}
+                  onChange={(e) => setNewContact({ ...newContact, department: e.target.value })}
+                  placeholder="Відділ"
+                  required
+                  className="video-input"
+                />
+              </div>
+              <div className="video-modal-footer">
+                <button type="button" className="video-btn-cancel" onClick={closeModal}>✕ Скасувати</button>
+                <button type="submit" className="video-btn-save">
+                  {isSending ? 'Зберігаю...' : editingContact ? '💾 Оновити' : '💾 Додати'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Модал видалення */}
+      {deleteContactId && (
+        <div className="video-modal-overlay" onClick={closeModal}>
+          <div className="video-modal-window" onClick={(e) => e.stopPropagation()}>
+            <div className="video-modal-header">
+              <h3>⚠️ Підтвердження видалення</h3>
+              <button className="video-close-btn" onClick={closeModal}>✕</button>
+            </div>
+            <p className="p-4 text-center">
+              Ви впевнені, що хочете видалити контакт?
+            </p>
+            <div className="video-modal-footer">
+              <button className="video-btn-cancel" onClick={closeModal} disabled={isSending}>✕ Відмінити</button>
+              <button className="video-btn-save" onClick={handleDeleteContact} disabled={isSending}>
+                {isSending ? 'Видаляю...' : '✅ Видалити'}
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };
-
-// const departmentName = (key) => {
-//   const map = {
-//     sales: 'Відділ продажів',
-//     service: 'Відділ сервісу',
-//     logistics: 'Відділ логістики',
-//   };
-//   return map[key] || 'Інший відділ';
-// };
 
 export default EmergencyContactsPage;
