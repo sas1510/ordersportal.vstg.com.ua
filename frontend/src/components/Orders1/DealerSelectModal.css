@@ -99,3 +99,18 @@
 .dealer-modal-btn-secondary {
   background-color: #ccc;
 }
+
+.dealer-modal-search {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.dealer-modal-search:focus {
+  border-color: #3b82f6;
+  outline: none;
+}

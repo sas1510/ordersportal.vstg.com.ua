@@ -277,18 +277,23 @@ from rest_framework.response import Response
 from django.db import connection
 import base64
 
+
 @api_view(['GET'])
 def get_complaint_series_by_order(request, order_number):
-    """
-    Викликає процедуру GetComplaintSeriesByOrder по номеру замовлення і контрагенту
-    і повертає серії номенклатури.
-    Серії повертаються у base64-форматі.
-    """
     try:
         user = request.user
-        kontragent = getattr(user, "user_id_1C", None)
-        if not kontragent:
-            return Response({"error": "Контрагент не знайдено для користувача"}, status=400)
+        role = (getattr(user, "role", "") or "").lower()
+        manager_roles = ["manager", "region_manager", "admin"]
+        is_manager_or_admin = role in manager_roles
+
+        # Для клієнта беремо його ID
+        if not is_manager_or_admin:
+            kontragent = getattr(user, "user_id_1C", None)
+            if not kontragent:
+                return Response({"error": "Контрагент не знайдено для користувача"}, status=400)
+        else:
+            # Якщо менеджер або адмін, можна брати @order_number без обмежень
+            kontragent = None  # або передавати як null у процедуру
 
         with connection.cursor() as cursor:
             cursor.execute(
@@ -301,20 +306,14 @@ def get_complaint_series_by_order(request, order_number):
 
             for row in cursor.fetchall():
                 row_dict = dict(zip(columns, row))
-                
-                # Перетворюємо VARBINARY(16) у base64 рядок
                 series_link = row_dict.get("SeriesLink")
                 if series_link:
                     row_dict["SeriesLink"] = base64.b64encode(series_link).decode('ascii')
-                
                 results.append(row_dict)
 
-        # Якщо масив порожній, повертаємо null
         return Response({"series": results if results else None})
-
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-
 
 
 from django.db import connection

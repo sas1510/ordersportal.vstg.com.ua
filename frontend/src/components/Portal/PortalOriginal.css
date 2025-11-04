@@ -2089,3 +2089,204 @@ white-space: nowrap;
       font-size: 10px;
   }
 }
+
+
+/* Гамбургер на мобільних */
+.mobile-sidebar-toggle {
+  display: none;
+  cursor: pointer;
+  margin-bottom: 10px;
+  
+}
+
+@media (max-width: 768px) {
+  .mobile-sidebar-toggle {
+    display: block;
+  }
+
+  .content-wrapper {
+    flex-direction: column;
+    
+  }
+
+  
+  .content-filter {
+    position: fixed;
+    top: 60px; /* починаємо під хедером */
+    left: -100%;
+    width: 250px;
+    height: calc(100vh - 120px); /* 100vh мінус хедер і футер */
+    background: #fff;
+    z-index: 999;
+    padding: 20px;
+    overflow-y: auto;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+  }
+
+  .content-filter.open {
+    left: 0;
+  }
+
+  .content-filter.closed {
+    left: -100%;
+  }
+
+
+
+  .portal-body .content {
+    width: 100% !important;
+    
+    }
+
+}
+
+
+/* ===== Вибір місяців ===== */
+
+.by-month-pagination-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.by-month-pagination-wrapper .month-list {
+  display: flex;
+  flex-wrap: nowrap;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.by-month-pagination-wrapper .month-select {
+  display: none;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--grey-border-color);
+  border-radius: 4px;
+  background-color: #fff;
+  color: var(--text-color);
+  font-size: 14px;
+}
+
+/* На малих екранах показуємо select, ховаємо список */
+@media (max-width: 1151px) {
+  .by-month-pagination-wrapper .month-list {
+    display: none;
+  }
+  .by-month-pagination-wrapper .month-select {
+    display: block;
+  }
+}
+/*
+ * 2. Логіка ховання/показу місяців (desktop vs mobile)
+ */
+
+/* * По замовчуванню (мобільні, < 1151px) 
+ * - показуємо випадаючий список 
+ */
+    select.month-select {
+        display: block;
+        width: 100%;
+        margin-top: 1px !important;
+    }
+
+/* * По замовчуванню (мобільні, < 1151px) 
+ * - ховаємо десктопний список примусово 
+ */
+ul.month-list {
+  display: none !important; 
+}
+
+/* * На великих екранах (1151px і ширше) - робимо навпаки 
+ */
+@media (min-width: 1151px) { /* <--- ОСЬ ВАША ЗМІНА */
+  
+  /* Ховаємо мобільний список примусово */
+  select.month-select {
+    display: none !important;
+    margin-top: 1px !important; 
+  }
+
+  /* Показуємо десктопний список примусово */
+  ul.month-list {
+    display: flex !important; 
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+}
+
+
+
+@media (max-width: 640px) {
+
+    
+    .content-summary {
+        /* Дозволяємо елементам переноситись на новий рядок, якщо не влізають */
+        flex-wrap: nowrap; 
+        
+        /* * Динамічний відступ МІЖ елементами (8px по вертикалі, 12px по горизонталі).
+        * Це замість усіх ваших margin: 1px !important 
+        */
+        gap: 4px 1px; 
+        
+        /* * Динамічний відступ ВІД країв екрану (8px зліва та справа).
+        * Це замість усіх ваших padding: 1px !important 
+        */
+        /* padding-left: 8px;
+        padding-right: 8px; */
+
+        /* Скидаємо примусові стилі, якщо вони десь були */
+        margin: 0;
+    }
+
+    .content-summary .mobile-sidebar-toggle {
+        padding-left: 1px !important;
+        padding-right: 1px !important;
+        margin-left: 1px !important;
+        margin-right: 1px !important;
+    }
+
+    .content-summary .year-selector {
+        width: 100%; 
+        max-width: 300px;      /* трохи менше на планшетах */
+        /* max-width: none; */
+        
+    }
+
+    
+
+  .by-month-pagination-wrapper {
+    
+    min-width: 110px !important;
+ 
+  }
+
+
+}
+
+
+.sidebar-header {
+  /* 1. Додаємо фон (можете обрати будь-який колір) */
+
+  
+  /* 2. Додаємо внутрішні відступи, щоб текст не прилипав до країв */
+  padding: 12px 16px;
+  
+  /* 3. Переконуємось, що він займає 100% ширини (це важливо для jc-space-between) */
+  width: 100%;
+  
+  /* 4. Залишаємо ваші стилі для вирівнювання (вони вже є у вас) */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  /* 5. (Опційно) Можна додати нижню рамку для візуального розділення */
+  border-bottom: 1px solid #e9ecef;
+}
+
+/* Робимо іконку закриття "клікабельною" на вигляд */
+.sidebar-header .icon-cross {
+  cursor: pointer;
+}

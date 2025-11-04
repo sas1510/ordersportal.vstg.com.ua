@@ -93,9 +93,9 @@ function AppRoutes() {
       </Route>
 
       {/* Якщо роль не завантажена і маршрут не публічний — завантаження */}
-      {role === null && location.pathname !== "/" && location.pathname !== "/login" && (
+      {/* {role === null && location.pathname !== "/" && location.pathname !== "/login" && (
         <Route path="*" element={<div>Завантаження...</div>} />
-      )}
+      )} */}
 
       {/* Якщо неавторизований і маршрут не публічний — редірект на логін */}
       {!role && location.pathname !== "/" && location.pathname !== "/login" && !location.pathname.startsWith("/api/admin") && (

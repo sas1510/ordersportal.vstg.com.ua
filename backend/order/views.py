@@ -507,60 +507,109 @@ from django.utils import timezone
 from django.db import connection
 
 
+from django.http import JsonResponse
+from django.db import connection
+from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def portal_view(request):
 
-    customer_id = request.GET.get("customer_id") or getattr(request.user, "id", None)
+    # --- Нова логіка для відповідності новій процедурі ---
 
-    if not customer_id:
-        user = request.user
-        customer_id = getattr(user, 'id', None)
-
-    if not customer_id:
-        return JsonResponse({"error": "User ID is missing"}, status=400)
-
-
-    # Беремо рік із GET-параметра, якщо не передано — поточний
-    reporting_year = request.GET.get("year")
+    # 1. Отримуємо ID та роль того, хто робить запит (залогіненого користувача)
     try:
-        reporting_year = int(reporting_year)
+        id_zaprashivayuschego = request.user.id
+        
+        # !!! ВАЖЛИВЕ ПРИПУЩЕННЯ:
+        # Ми припускаємо, що у вашій моделі User (request.user)
+        # є поле 'role', яке зберігає роль ('Admin', 'Operator' і т.д.)
+        # Якщо поле називається інакше (наприклад, profile.role), виправіть це.
+        rol_zaprashivayuschego = request.user.role 
+        
+        if not id_zaprashivayuschego or not rol_zaprashivayuschego:
+            return JsonResponse({"error": "User ID or Role is missing from token"}, status=400)
+            
+    except AttributeError:
+        return JsonResponse({"error": "User object is invalid or missing required fields (id, role)"}, status=400)
+
+    # 2. Отримуємо ОПЦІОНАЛЬНІ фільтри з GET-параметрів
+    
+    # --- ✅ ВИПРАВЛЕННЯ ПОМИЛКИ ---
+    # Фільтр по конкретному користувачу (це ваш старий 'customer_id')
+    # --- Фільтр по користувачу ---
+    filtr_po_polzovatelyu_id_str = request.GET.get("customer_id")
+    filtr_po_polzovatelyu_id = None  # За замовчуванням NULL
+
+    if filtr_po_polzovatelyu_id_str:
+        if filtr_po_polzovatelyu_id_str.lower() != "all":
+            try:
+                filtr_po_polzovatelyu_id = int(filtr_po_polzovatelyu_id_str)
+            except (TypeError, ValueError):
+                return JsonResponse({"error": "Invalid customer_id format. Must be an integer or 'all'."}, status=400)
+        else:
+            # Якщо ?customer_id=all — не фільтруємо
+            filtr_po_polzovatelyu_id = None
+
+    # Беремо рік із GET-параметра
+    reporting_year_str = request.GET.get("year")
+    reporting_year = None # За замовчуванням NULL (означає "всі роки" для процедури)
+    try:
+        if reporting_year_str:
+            reporting_year = int(reporting_year_str)
     except (TypeError, ValueError):
-        reporting_year = timezone.now().year
+        return JsonResponse({"error": "Invalid year format"}, status=400)
+
+    # --- Кінець нової логіки ---
+
+
+    # Визначаємо, чий ID показувати у відповіді
+    payload_customer_id = filtr_po_polzovatelyu_id if filtr_po_polzovatelyu_id else id_zaprashivayuschego
 
     payload = {
         "name": "RootController",
         "class": "RootController",
-        "CustomerID": customer_id,
-        "reportingPeriod": reporting_year,
+        "CustomerID": payload_customer_id, 
+        "reportingPeriod": reporting_year if reporting_year else "All",
         "uuid": f"RootController-{timezone.now().timestamp()}",
         "calculation": []
     }
 
-    # Викликаємо процедуру
+    # Викликаємо оновлену процедуру з 4-ма параметрами
     with connection.cursor() as cursor:
         cursor.execute("""
-            EXEC [dbo].[GetOrdersByDealerAndYear1] @ОтчетныйГод=%s, @ПользовательПортал_ID=%s
-        """, [reporting_year, customer_id])
+            EXEC [dbo].[GetOrdersByDealerAndYear2] 
+                @ОтчетныйГод = %s, 
+                @IDЗапрашивающего = %s, 
+                @РольЗапрашивающего = %s,
+                @ФильтрПоПользователю_ID = %s
+        """, [reporting_year, id_zaprashivayuschego, rol_zaprashivayuschego, filtr_po_polzovatelyu_id])
 
         columns = [col[0] for col in cursor.description]
         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    # Групуємо дані по Calculation_ID
+    # Групуємо дані по Calculation_ID (Просчет_ID)
     calc_map = {}
     for row in rows:
         calc_id = row["Просчет_ID"]
+        
         if calc_id not in calc_map:
             calc_map[calc_id] = {
                 "uuid": str(calc_id),
                 "class": "Calculation",
-                # "File": row["File"],
                 "name": row["НомерПросчета"],
                 "ДатаПросчета": row["ДатаПросчета"].isoformat() if row["ДатаПросчета"] else None,
                 "КоличествоКонструкцийВПросчете": row["КоличествоКонструкцийВПросчете"],
                 "ПросчетСообщения": row["ПросчетСообщения"],
-                "order": []
+                "order": [] 
             }
+
+        if row.get("Заказ_ID") is None:
+            continue 
 
         order_dict = {
             "uuid": str(row["Заказ_ID"]),
@@ -597,6 +646,7 @@ def portal_view(request):
         "message": "ok",
         "data": payload
     })
+
 
 
 
