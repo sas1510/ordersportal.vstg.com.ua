@@ -15,7 +15,8 @@
   background: #fff;
   border-radius: 12px;
   width: 650px;
-  max-height: 90vh;
+  max-width: 90%;        /* 💡 не притискається до країв */
+  max-height: 85vh;  
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -237,6 +238,7 @@ display: flex;
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 120px;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 

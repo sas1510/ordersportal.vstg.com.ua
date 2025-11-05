@@ -1,7 +1,9 @@
 import React from "react";
 import {formatDateHuman} from '../../utils/formatters'
+import {formatDateHumanShorter} from '../../utils/formatters'
+import {formatDate} from '../../utils/formatters'
 
-export default function OrderDetails({ order }) {
+export default function OrderDetailsDesktop({ order }) {
   const isEmpty = (val) => val === undefined || val === null || String(val).trim() === "";
 
   // --- Оплата ---
@@ -100,7 +102,24 @@ export default function OrderDetails({ order }) {
           {/* Виробництво */}
           <li>
             {(() => {
-              const status = getDateStatus(order.planProductionMax, order.factProductionMax);
+              const factDate = order.factProductionMax;
+              const planDate = order.planProductionMax;
+              const status = getDateStatus(planDate, factDate);
+
+              const displayDate = factDate 
+                ? formatDateHuman(factDate)
+                 : planDate 
+                    ? (
+                        <div className="plan-block">
+                          <div className="plan-name">Планово:  </div>
+                          <div >з {formatDateHumanShorter(order.planProductionMin)}</div>
+                          <div className="plan-dates">
+                            по {formatDateHumanShorter(planDate)}
+                          </div>
+                        </div>
+                      )
+                    : "Немає даних";
+
               return (
                 <>
                   <div className={`icon ${status.icon}`}>
@@ -109,13 +128,15 @@ export default function OrderDetails({ order }) {
                   <div className="badge">
                     <div className="badge-title">Виробництво</div>
                     <div className={`badge-content ${status.bg}`}>
-                      {formatDateHuman(order.factProductionMax) || formatDateHuman(order.planProductionMax) || "Немає даних"}
+                      {displayDate}
                     </div>
                   </div>
                 </>
               );
             })()}
           </li>
+
+
 
           {/* Готовність */}
           <li>

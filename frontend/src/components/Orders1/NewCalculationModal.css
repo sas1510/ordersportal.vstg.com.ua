@@ -11,13 +11,21 @@
 
 .new-calc-modal-window {
   width: 550px;
-  max-width: 90%;
+  max-width: 96%;
   background: #fff;
   border-radius: 12px;
-  overflow: hidden;
+  position: relative;
+
   padding: 25px;
   text-align: center;
-  position: relative;
+
+  /* ✅ Не даємо модалці виходити за екран */
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden; /* важливо */
+
   transform: scale(0.8);
   opacity: 0;
   animation: newCalcZoomIn 0.3s forwards;
@@ -69,8 +77,14 @@
 }
 
 .new-calc-modal-body {
+  /* ✅ всередині лише контент пробує прокручуватись */
+  flex: 1;
+  overflow-y: auto;
   padding: 16px;
   margin-top: 40px;
+
+  /* для iOS плавної прокрутки */
+  -webkit-overflow-scrolling: touch;
 }
 
 .new-calc-form {
@@ -251,5 +265,61 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+
+/* ===== МОБІЛЬНА АДАПТАЦІЯ ===== */
+@media (max-width: 480px) {
+
+  /* Вікно модалки — менше відступів */
+  .claim-modal-window {
+    max-width: 94%;
+    max-height: 84vh;
+    border-radius: 10px;
+  }
+
+  /* Хедер — компактніше */
+  .claim-modal-header {
+    padding: 14px 16px;
+  }
+
+  /* Форма прокручувана з меншими відступами */
+  .claim-form {
+    padding: 14px 16px;
+  }
+
+  /* Два поля дати стають одні під одним */
+  .claim-row {
+    grid-template-columns: 1fr; /* ✅ одна колонка */
+    gap: 12px;
+  }
+
+  /* Кнопки займають всю ширину і стоять вертикально */
+  .claim-modal-footer {
+    flex-direction: column;     /* ✅ одна під одною */
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .claim-btn-cancel,
+  .claim-btn-save {
+    width: 100%;               /* ✅ на всю ширину */
+    min-width: unset;
+    font-size: 16px;
+    padding: 12px;
+    justify-content: center;   /* текст по центру */
+  }
+
+  /* Плашка фото та кнопки вирівняти вертикально */
+  .claim-label.row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .add-photo-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -204,3 +204,67 @@
   from { transform: scale(0.94); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+
+/* ===== МОБІЛЬНА АДАПТАЦІЯ ===== */
+@media (max-width: 480px) {
+
+  /* Модалка стає компактнішою */
+  .reorder-modal-window {
+    width: 94%;
+    max-height: 82vh;
+    border-radius: 10px;
+  }
+
+  /* Хедер стискається */
+  .reorder-modal-header {
+    padding: 14px 16px;
+  }
+
+  .reorder-modal-header h3 {
+    font-size: 18px;
+  }
+
+  /* Форма прокручувана і з меншими відступами */
+  .reorder-form {
+    padding: 14px 16px;
+  }
+
+  /* Поля */
+  .reorder-label {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .reorder-input,
+  .reorder-select,
+  .reorder-textarea {
+    font-size: 14px;
+    padding: 9px 10px;
+  }
+
+  /* Чекбокс в один рядок, але компактніший */
+  .reorder-label.reorder-row {
+    gap: 8px;
+  }
+
+  .reorder-label.reorder-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Футер — кнопки одна під одною */
+  .reorder-modal-footer {
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .reorder-btn-cancel,
+  .reorder-btn-save {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    justify-content: center;
+  }
+}

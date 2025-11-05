@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axios';
 import { CalculationItem } from '../components/Orders1/OrderComponents';
+import { CalculationItemMobile } from '../components/Orders1/CalculationItemMobile';
 import '../components/Portal/PortalOriginal.css';
 import AddOrderModal from '../components/Orders1/AddOrderModal';
 import NewCalculationModal from '../components/Orders1/NewCalculationModal';
 import DealerSelectModal from '../components/Orders1/DealerSelectModal'; 
+import useWindowWidth from '../hooks/useWindowWidth';
 
 const PortalOriginal = () => {
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
@@ -20,6 +22,8 @@ const PortalOriginal = () => {
   const [showDealerModal, setShowDealerModal] = useState(false);
   const [dealer, setDealer] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 1024;
 
   useEffect(() => {
     const role = localStorage.getItem('role');
@@ -165,6 +169,7 @@ const handleDeleteCalculation = (calcId) => {
               constructionsCount: orders.reduce((sum, order) => sum + (order.count || 0), 0),
               statuses: statusCounts,
               amount: totalAmount,
+              dealer: calc.ИмяВладельца,
               debt,
               file: calc.File || null,
               message: calc.ПросчетСообщения || ''
@@ -426,28 +431,44 @@ const handleDeleteCalculation = (calcId) => {
         </div>
 
         {/* Основний контент */}
-        <div className="content" id="content">
-          <div className="items-wrapper column gap-14" id="items-wrapper">
-            {sortedItems.length === 0 ? (
-              <div className="no-data column align-center h-100">
-                <div className="font-size-24 text-grey">Немає прорахунків для відображення</div>
-              </div>
-            ) : (
-              sortedItems.map((calc) => (
-                <CalculationItem 
-                  key={calc.id}
-                  calc={calc}
-                  isExpanded={expandedCalc === calc.id}
-                  onToggle={() => toggleCalc(calc.id)}
-                  expandedOrderId={expandedOrder}
-                  onOrderToggle={toggleOrder}
-                  onDelete={handleDeleteCalculation}
-                  onEdit={handleUpdateCalculation}  
-                />
-              ))
-            )}
-          </div>
-        </div>
+        {/* Основний контент */}
+          <div className="content" id="content">
+            <div className="items-wrapper column gap-14" id="items-wrapper">
+              {sortedItems.length === 0 ? (
+                <div className="no-data column align-center h-100">
+                  <div className="font-size-24 text-grey">Немає прорахунків для відображення</div>
+                </div>
+              ) : (
+                sortedItems.map((calc) => (
+                  
+                  isMobile ? (
+                    <CalculationItemMobile 
+                      key={calc.id}
+                      calc={calc}
+                      isExpanded={expandedCalc === calc.id}
+                      onToggle={() => toggleCalc(calc.id)}
+                      expandedOrderId={expandedOrder}
+                      onOrderToggle={toggleOrder}
+                      onDelete={handleDeleteCalculation}
+                      onEdit={handleUpdateCalculation}  
+                    />
+                  ) : (
+                    <CalculationItem 
+                      key={calc.id}
+                      calc={calc}
+                      isExpanded={expandedCalc === calc.id}
+                      onToggle={() => toggleCalc(calc.id)}
+                      expandedOrderId={expandedOrder}
+                      onOrderToggle={toggleOrder}
+                      onDelete={handleDeleteCalculation}
+                      onEdit={handleUpdateCalculation}  
+                    />
+                  )
+
+                ))
+              )}
+            </div>
+        </div>
       </div>      
 
       <NewCalculationModal 
