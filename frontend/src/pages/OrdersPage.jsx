@@ -23,7 +23,7 @@ const PortalOriginal = () => {
   const [dealer, setDealer] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const windowWidth = useWindowWidth();
-  const isMobile = windowWidth < 1024;
+  const isMobile = windowWidth < 1010;
 
   useEffect(() => {
     const role = localStorage.getItem('role');
