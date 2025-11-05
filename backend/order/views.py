@@ -525,10 +525,7 @@ def portal_view(request):
     try:
         id_zaprashivayuschego = request.user.id
         
-        # !!! ВАЖЛИВЕ ПРИПУЩЕННЯ:
-        # Ми припускаємо, що у вашій моделі User (request.user)
-        # є поле 'role', яке зберігає роль ('Admin', 'Operator' і т.д.)
-        # Якщо поле називається інакше (наприклад, profile.role), виправіть це.
+        
         rol_zaprashivayuschego = request.user.role 
         
         if not id_zaprashivayuschego or not rol_zaprashivayuschego:
@@ -539,7 +536,7 @@ def portal_view(request):
 
     # 2. Отримуємо ОПЦІОНАЛЬНІ фільтри з GET-параметрів
     
-    # --- ✅ ВИПРАВЛЕННЯ ПОМИЛКИ ---
+
     # Фільтр по конкретному користувачу (це ваш старий 'customer_id')
     # --- Фільтр по користувачу ---
     filtr_po_polzovatelyu_id_str = request.GET.get("customer_id")
@@ -605,6 +602,7 @@ def portal_view(request):
                 "ДатаПросчета": row["ДатаПросчета"].isoformat() if row["ДатаПросчета"] else None,
                 "КоличествоКонструкцийВПросчете": row["КоличествоКонструкцийВПросчете"],
                 "ПросчетСообщения": row["ПросчетСообщения"],
+                "ИмяВладельца": row["ИмяВладельца"],
                 "order": [] 
             }
 
