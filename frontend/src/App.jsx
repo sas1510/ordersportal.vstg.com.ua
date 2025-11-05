@@ -5,7 +5,8 @@ import { RoleContext } from "./context/RoleContext";
 import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import DealerLayout from "./components/layout/DealerLayout";
-
+// В App.js
+import './styles/mobile-responsive.css';
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import InviteRegisterForm from "./pages/InviteRegisterForm";
