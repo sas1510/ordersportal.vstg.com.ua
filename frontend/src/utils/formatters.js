@@ -25,3 +25,14 @@ export const formatDate = (dateStr, withTime = false) => {
       year: 'numeric'
     });
   };
+
+ export const formatDateHumanShorter = (dateStr) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    if (isNaN(date)) return null;
+    return date.toLocaleDateString('uk-UA', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
