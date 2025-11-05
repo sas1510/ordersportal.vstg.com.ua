@@ -20,7 +20,7 @@
   text-align: center;
 
   /* ✅ Не даємо модалці виходити за екран */
-  max-height: 85vh;
+  max-height: 75vh;
   display: flex;
   flex-direction: column;
 
@@ -275,7 +275,7 @@
   /* Вікно модалки — менше відступів */
   .claim-modal-window {
     max-width: 94%;
-    max-height: 84vh;
+    max-height: 75vh;
     border-radius: 10px;
   }
 

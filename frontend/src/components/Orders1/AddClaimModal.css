@@ -16,7 +16,7 @@
   border-radius: 12px;
   width: 650px;
   max-width: 90%;        /* 💡 не притискається до країв */
-  max-height: 85vh;  
+  max-height: 75vh;  
   overflow: hidden;
   display: flex;
   flex-direction: column;

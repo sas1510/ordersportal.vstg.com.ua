@@ -15,7 +15,7 @@
   background: #fff;
   border-radius: 12px;
   width: 650px;
-  max-height: 90vh;
+  max-height: 75vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -212,7 +212,7 @@
   /* Модалка стає компактнішою */
   .reorder-modal-window {
     width: 94%;
-    max-height: 82vh;
+    max-height: 75vh;
     border-radius: 10px;
   }
 
