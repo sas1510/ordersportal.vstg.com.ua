@@ -2099,7 +2099,7 @@ white-space: nowrap;
   
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1260px) {
   .mobile-sidebar-toggle {
     display: block;
   }
@@ -2289,4 +2289,24 @@ ul.month-list {
 /* Робимо іконку закриття "клікабельною" на вигляд */
 .sidebar-header .icon-cross {
   cursor: pointer;
+}
+
+
+.plan-block {
+  display: flex;
+  flex-direction: column; /* робить "Планово" зверху, дати знизу */
+  align-items: flex-start; /* вирівнює ліворуч */
+}
+
+.plan-name {
+  text-align: center;       /* якщо це текст */
+  justify-self: center;     /* працює тільки у grid */
+  margin: 0 auto;           /* працює у flex або block */
+}
+
+
+.plan-dates {
+text-align: center;       /* якщо це текст */
+  justify-self: center;
+  white-space: nowrap; /* гарантує, що дві дати будуть в одному рядку */
 }
