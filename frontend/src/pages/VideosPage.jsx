@@ -185,7 +185,7 @@ const VideosPage = () => {
       {/* ... (Search bar залишається без змін) ... */}
       <div className="row gap-14 align-center mb-2">
         <div className="row align-center gap-7 search-box"
-          style={{ flex: 1, background: 'white', padding: '8px 12px', borderRadius: '10px',
+          style={{ flex: 1, padding: '8px 12px', borderRadius: '10px',
                    border: '1px dashed #666666ff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <FaSearch className="text-grey" style={{ fontSize: '20px' }} />
           <input
@@ -193,7 +193,7 @@ const VideosPage = () => {
             placeholder="Пошук за назвою або описом..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '16px', fontWeight: '400', padding: '8px 0' }}
+            style={{ flex: 1, border: 'none',  outline: 'none', fontSize: '16px', fontWeight: '400', padding: '8px 0', background: 'transparent' }}
           />
         </div>
       </div>
