@@ -12,9 +12,10 @@ from .models import HelpServiceLog
 
 class HelpServiceLogSerializer(serializers.ModelSerializer):
     # Дані з пов’язаних моделей
-    contact_name = serializers.CharField(source='contact_id.contact_name', read_only=True)
-    contact_phone = serializers.CharField(source='contact_id.phone', read_only=True)
-    contact_department = serializers.CharField(source='contact_id.department', read_only=True)
+    contact_name = serializers.CharField(source='contact.contact_name', read_only=True)
+    contact_phone = serializers.CharField(source='contact.phone', read_only=True)
+    contact_department = serializers.CharField(source='contact.department', read_only=True)
+    contact_email = serializers.CharField(source='contact.email', read_only=True)
     full_name = serializers.CharField(source='user.full_name', read_only=True)
     user_email = serializers.CharField(source='user.email', read_only=True)
     user_phone = serializers.CharField(source='user.phone_number', read_only=True)  # ✅ номер клієнта
@@ -28,6 +29,7 @@ class HelpServiceLogSerializer(serializers.ModelSerializer):
             'call_type',
             'contact_name',
             'contact_phone',
+            'contact_email',
             'contact_department',
             'full_name',
             'user_email',

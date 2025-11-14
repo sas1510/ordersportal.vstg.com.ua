@@ -17,30 +17,39 @@ export default function AddOrderPage() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const role = localStorage.getItem("role");
-  const managerRoles = ["manager", "region_manager"];
+  // === Отримуємо роль і чистимо її
+  const role = (localStorage.getItem("role") || "").trim().toLowerCase();
+  console.log("Role from localStorage:", role);
+
+  const managerRoles = ["manager", "region_manager", "admin"];
   const isManager = managerRoles.includes(role);
+  const isClient = role === "client";
+
+  console.log("isManager:", isManager, "isClient:", isClient);
 
   // ✅ Підтягуємо останній номер замовлення
-useEffect(() => {
-  const fetchLastOrderNumber = async () => {
-    try {
-      const response = await axiosInstance.get("/last-order-number/");
-      const lastNumber = response.data?.LastOrderNumber || 0;
-      setOrderNumber((lastNumber + 1).toString());
-    } catch (error) {
-      console.error("Не вдалося отримати останній номер замовлення:", error);
-    }
-  };
-  fetchLastOrderNumber();
-}, []);
+  useEffect(() => {
+    const fetchLastOrderNumber = async () => {
+      try {
+        const response = await axiosInstance.get("/last-order-number/");
+        const lastNumber = response.data?.LastOrderNumber || 0;
+        setOrderNumber((lastNumber + 1).toString());
+      } catch (error) {
+        console.error("Не вдалося отримати останній номер замовлення:", error);
+      }
+    };
+    fetchLastOrderNumber();
+  }, []);
 
-  // ✅ Підтягуємо клієнтів, якщо менеджер
+  // ✅ Підтягуємо клієнтів, якщо менеджер або адмін
   useEffect(() => {
     if (isManager) {
       axiosInstance
         .get("/customers/")
-        .then((res) => setCustomers(res.data))
+        .then((res) => {
+          console.log("Customers from API:", res.data);
+          setCustomers(res.data);
+        })
         .catch((err) => console.error(err));
     }
   }, [isManager]);
@@ -65,7 +74,6 @@ useEffect(() => {
     try {
       await axiosInstance.post("/create/", formData);
       alert("Замовлення успішно створене ✅");
-      // Скидаємо форму
       setFile(null);
       setOrderNumber("");
       setQuantity(0);
@@ -89,6 +97,7 @@ useEffect(() => {
           <FaFileUpload className="text-gray-600" /> Завантажити замовлення
         </h2>
 
+        {/* Покажемо поле вибору клієнта лише менеджеру або адмінові */}
         {isManager && (
           <label className="block mb-5">
             <span className="block mb-1 font-semibold text-gray-700 flex items-center gap-2">
@@ -102,7 +111,7 @@ useEffect(() => {
               <option value="">Оберіть клієнта</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.full_name}
+                  {c.full_name || c.name}
                 </option>
               ))}
             </select>

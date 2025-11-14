@@ -516,3 +516,177 @@ align-items: center;
     left: 0;
   }
 }
+
+
+/* Стилі для елемента, що містить кнопку теми */
+.theme-toggle-item {
+    /* Скидаємо стилі <li>, якщо це необхідно */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: var(--text-color)     !important;
+    flex: 0 0 auto !important;  /* li не розтягується */
+    padding: 0 8px !important;
+    height: 100% !important;
+}
+
+/* Стилі для самої кнопки теми (перевизначаємо, щоб вона не виглядала як меню-лінк) */
+.theme-toggle-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #fff; /* Колір іконки на темному хедері */
+    padding: 0 14px; /* Забезпечуємо відступ */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.theme-toggle-btn .icon {
+    font-size: 24px; /* Розмір іконки */
+}
+
+.theme-toggle-btn:hover {
+    background-color: var(--grey-border-color); /* Той самий hover-ефект, як у меню */
+    color: var(--success-color);
+}
+
+.theme-toggle-btn:hover .icon {
+     color: var(--success-color);
+}
+
+/* Специфічний стиль для мобільної версії (як елемент списку) */
+.mobile-menu-content .theme-toggle-btn {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px 15px; /* Як у інших посиланнях меню */
+    color: var(--text-color); /* Темний текст у світлому мобільному меню */
+}
+
+/* Оновлення кольору в Dark Theme */
+.dark-theme .portal-header .theme-toggle-btn {
+    color: #fff;
+}
+.dark-theme .portal-header .theme-toggle-btn:hover {
+    background-color: #444;
+}
+
+
+
+.theme-toggle-item .theme-toggle-btn {
+    /* Робимо кнопку Flex-контейнером */
+    width: 36px !important;          /* ширина кнопки */
+      height: 36px !important;         /* висота кнопки */
+      padding: 0 !important;
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+      border-radius: 6px !important;
+      color: #f4ffaf !important;
+      border: none !important;
+
+      cursor: pointer !important;
+      font-size: 0 !important;       
+}
+
+
+/* --- СТИЛІ HEADER PROFIL ДЛЯ DARK MODE --- */
+
+/* Загальний профіль (якщо dark-theme застосована до body) */
+body.dark-theme .profile-item-column {
+    /* Змінюємо фон профілю на темний */
+    background-color: var(--text-color) !important; /* Наприклад, темніший від хедера */
+    color: #fff !important; /* Білий текст */
+}
+
+/* Колір імені */
+body.dark-theme .profile-item-column .name {
+    color: #fff !important;
+}
+
+/* Колір індикатора (іконки дилера) */
+body.dark-theme .profile-item-column .dealer-icon {
+    /* Якщо text-info занадто яскравий, можна використати м'якший */
+    color: var(--info-color) !important;
+}
+
+/* Колір іконки балансу */
+body.dark-theme .profile-item-column .money-icon {
+    color: var(--success-color) !important;
+}
+
+/* Колір тексту балансу */
+/* text-warning (який зараз жовтий) повинен зберігати свій колір, 
+   щоб підкреслити важливість, але давайте його зробимо яскравішим на темному фоні */
+body.dark-theme .profile-item-column .balance {
+    color: #ffda6a !important; /* Яскравіший жовтий для контрасту */
+}
+
+/* Лінія розділювач (divider) */
+body.dark-theme .profile-item-column .divider1 {
+    border-bottom: 1px dashed #666 !important; /* Темна лінія */
+}
+
+
+/* --- СТИЛІ HEADER PROFIL ДЛЯ DARK MODE --- */
+
+body.dark-theme .profile-item-column {
+    /* Змінюємо фон профілю на чорний */
+    background-color: #000000 !important; /* <--- ЗМІНА ТУТ */
+    color: #fff !important; 
+}
+
+body.dark-theme .theme-toggle-item,
+body.dark-theme .logout-item {
+    background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
+}
+
+body.dark-theme .theme-toggle-item 
+{
+    background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
+}
+
+body.dark-theme .theme-toggle-btn:hover,
+body.dark-theme .menu-link.logout-icon:hover {
+    /* Можна зробити hover сірим або червоним, як у світлому режимі */
+    background-color: #333333 !important; /* Темно-сірий hover */
+}
+
+
+/* 3. Колір іконки теми при наведенні */
+body.dark-theme .theme-toggle-btn:hover .fa,
+body.dark-theme .theme-toggle-btn:hover .icon {
+    color: var(--success-color) !important; /* Зелений при наведенні */
+}
+
+
+/* HeaderAdmin.css */
+
+/* Переконайтеся, що Material Icons мають правильний розмір і відображаються коректно */
+.material-icons {
+    /* Цей блок необхідний для правильного рендерингу Material Icons */
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+
+    /* Використовуємо наш бажаний розмір */
+    font-size: 20px !important; 
+    
+    /* Додаємо правило для hover */
+    transition: color 0.3s ease;
+}
+
+/* Колір при наведенні (Hover) */
+.theme-toggle-btn:hover .material-icons {
+    color: var(--success-color) !important; 
+}

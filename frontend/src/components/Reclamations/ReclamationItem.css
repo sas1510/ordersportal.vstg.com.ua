@@ -1,0 +1,227 @@
+/* =========================================== */
+/*           Reclamation Item (Desktop)       */
+/*           (Адаптовано з calc-item)         */
+/* =========================================== */
+
+/* Основний контейнер для однієї рекламації (замінює calc-item) */
+.reclamation-item {
+    background-color: #fff;
+    color: var(--text-color);
+    border: 1px dashed var(--grey-border-color);
+    box-shadow: 1px 1px 5px var(--shadow-color);
+    border-radius: 5px; /* Замість 8px */
+    min-height: 60px;
+    padding: 7px; /* Збільшуємо padding для кращої видимості */
+    width: calc(100%);
+    align-items: flex-start;
+    transition: box-shadow 0.2s ease-in-out;
+    margin-bottom: 14px; /* Відступ між елементами списку */
+    cursor: pointer;
+}
+
+.reclamation-item:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Зберігаємо ефект наведення */
+}
+
+/* Зведена інформація (рядок) - Адаптовано з calc-item .item-summary */
+.reclamation-item .item-summary {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    min-height: 60px; /* Мінімальна висота рядка */
+    gap: 8px;
+}
+
+/* Основний елемент у рядку (колонка) - Адаптовано з calc-item .summary-item */
+.reclamation-item .summary-item {
+    display: flex;
+    align-items: center;
+    padding: 3px 3px;
+    font-size: 14px;
+    height: 60px;
+    cursor: pointer;
+    position: relative;
+    overflow: visible;
+    gap: 2px;
+    flex: 0 1 auto; /* Займає ширину тільки під контент */
+    border-right: 1px dashed var(--grey-border-color);
+}
+
+.reclamation-item .summary-item:last-child {
+    border-right: none;
+}
+
+/* Стилі для колонок всередині summary-item */
+.reclamation-item .summary-item > .column {
+    display: flex;
+    flex-direction: column;
+    gap: 3px; 
+    padding-left: 8px;
+}
+
+/* Стиль для іконки-номера */
+.reclamation-item .summary-item:nth-child(1) .icon-circle-with-cross {
+    color: var(--danger-color);
+    margin-right: 8px;
+}
+
+/* Виділення номера та дати */
+.reclamation-item .summary-item .border-bottom {
+    font-weight: 600;
+    line-height: 1.2;
+    /* Змінюємо колір межі на колір тексту для кращої інтеграції в стиль */
+    border-bottom: 1px dashed var(--text-color); 
+}
+
+/* Статуси */
+.reclamation-item .calc-status {
+    width: fit-content;
+    margin-left: 5px;
+    /* Усуваємо потенційний конфлікт з загальним .calc-status */
+}
+
+/* Сума */
+.reclamation-item .summary-item:nth-child(3) .icon-coin-dollar {
+    margin-right: 8px;
+}
+
+/* Коментар/Опис та Додаткові Деталі (Головний гнучкий контейнер) */
+.reclamation-item .summary-item.expandable {
+    flex: 1 1 auto; /* дозволяємо йому розтягуватися */
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 5px;
+}
+.reclamation-item .summary-item.expandable .column {
+    padding-left: 0; /* Скидаємо лівий відступ, доданий для перших елементів */
+}
+
+
+/* Стилі для поля з описом (Замінює comments-text-wrapper-last) */
+.reclamation-item .comments-text-wrapper-last {
+    font-size: 14px; /* трохи більший шрифт для кращої читабельності */
+    color: var(--text-color);
+    overflow: hidden; 
+    display: -webkit-box; 
+    -webkit-line-clamp: 2; /* 2 рядки для кращого вигляду в списку */
+    -webkit-box-orient: vertical;
+    line-height: 1.3em;
+    word-break: break-word; 
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+/* Стилі для рядка з додатковими деталями (Менеджер, Доставка, Акт) */
+.reclamation-item .summary-item.expandable > .column > .row {
+    font-size: 12px;
+    color: var(--grey-color);
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Кнопка коментарів */
+.reclamation-item .btn-comments {
+    background: none;
+    border: none;
+    color: var(--info-color); /* Колір посилання */
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 0;
+    margin-top: 5px;
+    text-align: left;
+    align-self: flex-start; /* Вирівнюємо ліворуч, щоб не конфліктувало з flex */
+}
+
+.reclamation-item .btn-comments:hover {
+    text-decoration: underline;
+}
+
+
+/* Деталі розкритого елемента (Issues) */
+.reclamation-item .item-details {
+    padding: 7px;
+    padding-left: 28px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--grey-color);
+    width: calc(100% - 7px - 28px);
+    border-top: 1px dashed var(--grey-border-color);
+    align-items: flex-start;
+    text-align: left;
+}
+
+/* Стилі для заглушок IssueItemSummary */
+.issue-item-desktop, .issue-item-mobile {
+    background-color: var(--portal-bg-color-light); /* Легкий фон */
+    border: 1px dashed var(--grey-border-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+.issue-item-desktop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+/* --- DARK THEME OVERRIDES --- */
+
+/* Контейнер рекламації у темній темі */
+.dark-theme .reclamation-item {
+    background-color: var(--cream-bg-color); /* #2c2c2c */
+    border: 1px dashed var(--grey-border-color); /* #444 */
+    box-shadow: none;
+    color: var(--text-color); /* #e0e0e0 */
+}
+
+/* Елементи всередині у темній темі */
+.dark-theme .reclamation-item .summary-item .border-bottom {
+    border-bottom: 1px dashed var(--grey-text-color); /* #a0a0a0 */
+}
+
+.dark-theme .reclamation-item .summary-item {
+    border-right: 1px dashed var(--grey-border-color); /* #444 */
+}
+
+.dark-theme .reclamation-item .comments-text-wrapper-last {
+    color: var(--text-color); /* #e0e0e0 */
+}
+
+.dark-theme .reclamation-item .btn-comments {
+    color: #fff; /* Білий для кращого контрасту */
+}
+
+.dark-theme .issue-item-desktop, 
+.dark-theme .issue-item-mobile {
+    background-color: var(--border-dark-color); /* #333333 */
+    border-color: var(--grey-border-color); /* #444 */
+    color: var(--text-color);
+}
+
+/* Зберігаємо загальні кольори тексту */
+.dark-theme .text-danger { color: var(--danger-color) !important; }
+.dark-theme .text-info { color: var(--info-color) !important; }
+
+
+.dark-theme .reclamation-item .summary-item:last-child {
+    border-right: none;
+    max-width: 50px;
+}
+
+
+.comments-text-wrapper-last {
+  font-size: 12px;
+  color: #777;
+  overflow: hidden;                /* обрізаємо те, що не вміщається */
+  display: -webkit-box;            /* для багаторядкових ... */
+  -webkit-line-clamp: 3;           /* кількість рядків */
+  -webkit-box-orient: vertical;
+  line-height: 1.2em;              /* регулює висоту рядка */
+  word-break: break-word;           /* перенос довгих слів */
+  margin-bottom: 4px;
+}

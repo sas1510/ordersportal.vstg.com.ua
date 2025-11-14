@@ -1,0 +1,401 @@
+.edit-calc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  animation: editCalcFadeIn 0.25s ease forwards;
+}
+
+.edit-calc-modal-window {
+  width: 550px;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 25px;
+  text-align: center;
+  position: relative;
+  transform: scale(0.8);
+  opacity: 0;
+  animation: editCalcZoomIn 0.3s forwards;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.edit-calc-modal-border-top,
+.edit-calc-modal-border-bottom {
+  height: 6px;
+  background-color: #5e83bf;
+  width: 100%;
+  position: absolute;
+  left: 0;
+}
+
+.edit-calc-modal-border-top {
+  height: 50px;
+  top: 0;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.edit-calc-modal-border-bottom {
+  bottom: 0;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.edit-calc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 16px;
+  font-size: 18px;
+}
+
+.edit-calc-close-btn {
+  cursor: pointer;
+  font-size: 18px;
+  display: inline-block;       /* важливо для transform */
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.edit-calc-close-btn:hover {
+  opacity: 0.8;
+  transform: rotate(90deg);
+}
+
+
+.edit-calc-modal-body {
+  padding: 16px;
+  margin-top: 40px;
+}
+
+.edit-calc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Завантаження файлу */
+.edit-calc-file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fafafa;
+  transition: all 0.3s;
+}
+
+.edit-calc-file-upload:hover {
+  border-color: #5e83bf;
+  background: #f0f4ff;
+}
+
+.edit-calc-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #555;
+  font-weight: 500;
+  padding: 10px;
+  transition: color 0.2s;
+}
+
+.edit-calc-upload-label:hover {
+  color: #5e83bf;
+}
+
+.edit-calc-file-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.edit-calc-clear-file {
+  border: none;
+  background: transparent;
+  color: #f46c3b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.edit-calc-clear-file:hover {
+  background: #ffe6e0;
+  color: #d32f2f;
+}
+
+.edit-calc-download-file {
+  border: 2px solid  var(--grey-border-color);
+  background: transparent;
+  color: #4a90e2;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-calc-download-file:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+/* Поля вводу */
+.edit-calc-label {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.edit-calc-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.edit-calc-input-number {
+  width: 80px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.edit-calc-input-number:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.edit-calc-textarea {
+  width: 100%;
+  min-height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.edit-calc-textarea:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+/* Footer кнопки */
+.edit-calc-modal-footer {
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px;
+  gap: 10px;
+}
+
+.edit-calc-btn-cancel,
+.edit-calc-btn-save {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.edit-calc-btn-cancel {
+  background: #f46c3b;
+  color: #fff;
+}
+
+.edit-calc-btn-cancel:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
+}
+
+.edit-calc-btn-save {
+  background: #76b448;
+  color: #fff;
+}
+
+.edit-calc-btn-save:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
+}
+
+.edit-calc-btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Анімації */
+@keyframes editCalcFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes editCalcZoomIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.8); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+/* --- DARK MODE: СТИЛІ МОДАЛЬНОГО ВІКНА EDIT CALC / NEW CALC --- */
+
+/* ===== Overlay ===== */
+body.dark-theme .edit-calc-modal-overlay {
+    /* Робимо затемнення більш насиченим */
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* ===== Вікно (Основний контейнер) ===== */
+body.dark-theme .edit-calc-modal-window {
+    /* Темний фон вікна */
+    background: #1e1e1e;
+    color: #f0f0f0; /* Світлий текст за замовчуванням */
+    /* Темна тінь */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Межі та Header ===== */
+body.dark-theme .edit-calc-modal-border-top,
+body.dark-theme .edit-calc-modal-border-bottom {
+    /* Зберігаємо синій акцентний колір */
+    background-color: #5e83bf;
+}
+
+body.dark-theme .edit-calc-modal-header {
+    color: #f0f0f0;
+    /* Фон успадковує колір від border-top */
+}
+body.dark-theme .edit-calc-close-btn {
+    color: #f0f0f0;
+}
+body.dark-theme .edit-calc-close-btn:hover {
+    opacity: 1;
+    color: #cccccc; /* Світло-сірий hover */
+}
+
+/* ===== Тіло модалки та поля вводу ===== */
+body.dark-theme .edit-calc-modal-body {
+    /* Успадковує фон #1e1e1e */
+}
+
+/* Загальні мітки (Labels) */
+body.dark-theme .edit-calc-label,
+body.dark-theme .edit-calc-label-row {
+    color: #f0f0f0;
+}
+
+/* Поля вводу (Input та Textarea) */
+body.dark-theme .edit-calc-input-number,
+body.dark-theme .edit-calc-textarea {
+    background: #333333; /* Темний фон поля */
+    color: #f0f0f0; /* Світлий текст */
+    border: 1px solid #555555; /* Темна межа */
+}
+body.dark-theme .edit-calc-input-number:focus,
+body.dark-theme .edit-calc-textarea:focus {
+    border-color: #5e83bf; /* Фокус на синьому */
+}
+
+/* ===== Завантаження файлу (File Upload) ===== */
+body.dark-theme .edit-calc-file-upload {
+    border: 2px dashed #555555;
+    background: #2c2c2c; /* Темний фон зони завантаження */
+}
+
+body.dark-theme .edit-calc-file-upload:hover {
+    border-color: #5e83bf;
+    background: #383838; /* Трохи світліше при hover */
+}
+
+body.dark-theme .edit-calc-upload-label {
+    color: #cccccc;
+}
+
+body.dark-theme .edit-calc-upload-label:hover {
+    color: #5e83bf; /* Синій hover */
+}
+
+/* Відображення імені файлу */
+body.dark-theme .edit-calc-file-name {
+    border-top: 1px solid #333333;
+}
+
+/* Кнопка очищення файлу */
+body.dark-theme .edit-calc-clear-file {
+    color: #f46c3b;
+}
+body.dark-theme .edit-calc-clear-file:hover {
+    background: #3a1e1e; /* Темний червонуватий hover */
+    color: #f46c3b; 
+}
+
+/* Кнопка завантаження файлу */
+body.dark-theme .edit-calc-download-file {
+    border: 2px solid #555555;
+    color: #4a90e2;
+}
+body.dark-theme .edit-calc-download-file:hover {
+    background: #333333;
+    color: #50a7f9;
+}
+
+/* ===== Footer кнопки ===== */
+body.dark-theme .edit-calc-modal-footer {
+    background: #1e1e1e; /* Темний фон футера */
+}
+
+/* 1. Кнопка Скасувати */
+body.dark-theme .edit-calc-btn-cancel {
+    background: #c75628; /* Глибокий помаранчевий */
+    color: #fff;
+}
+body.dark-theme .edit-calc-btn-cancel:hover {
+    box-shadow: 0 6px 16px rgba(199, 86, 40, 0.6);
+}
+
+/* 2. Кнопка Зберегти */
+body.dark-theme .edit-calc-btn-save {
+    background: #5c8c38; /* Глибокий зелений */
+    color: #fff;
+}
+body.dark-theme .edit-calc-btn-save:hover {
+    box-shadow: 0 6px 16px rgba(92, 140, 56, 0.6);
+}
+
+/* 3. Неактивна кнопка */
+body.dark-theme .edit-calc-btn-save:disabled {
+    opacity: 0.5;
+    background: #333333 !important; 
+    color: #aaaaaa !important;
+}

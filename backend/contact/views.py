@@ -81,7 +81,7 @@ def urgent_call_request(request):
     try:
         HelpServiceLog.objects.create(
             create_date=datetime.now(),
-            contact_id=contact,
+            contact=contact,
             success=success,
             call_type=1,
             user=request.user
@@ -110,6 +110,6 @@ def help_log_list(request):
     Повертає список усіх SOS-викликів (для адміністратора/менеджера),
     включаючи хто викликав і кому.
     """
-    logs = HelpServiceLog.objects.select_related('contact_id', 'user').order_by('-create_date')
+    logs = HelpServiceLog.objects.select_related('contact', 'user').order_by('-create_date')
     serializer = HelpServiceLogSerializer(logs, many=True)
     return Response(serializer.data)

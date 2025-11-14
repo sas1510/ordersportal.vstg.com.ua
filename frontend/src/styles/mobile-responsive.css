@@ -94,7 +94,7 @@
     top: 0;
     bottom: 0;
     width: 30px;
-    background: linear-gradient(to right, transparent, white);
+    /* background: linear-gradient(to right, transparent, white); */
     pointer-events: none;
   }
   
@@ -462,4 +462,121 @@
     box-shadow: none !important;
     border: 1px solid #e5e7eb !important;
   }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| 1. СТИЛІ ДЛЯ РУЧНОГО ПЕРЕМИКАННЯ (body.dark-theme)
+|--------------------------------------------------------------------------
+*/
+body.dark-theme {
+    /* Основний фон та колір тексту */
+    background-color: #27282a; /* Slate 900 - глибокий темний */
+    color: #e2e8f0; /* Slate 200 - м'який світлий текст */
+}
+
+body.dark-theme .text-dark {
+    color: #f1f5f9 !important; /* Slate 100 */
+}
+
+body.dark-theme .text-grey {
+    color: #d3d5d6 !important; /* Slate 100 */
+}
+
+/* Ваші спеціальні стилі */
+body.dark-theme .profile-item-column .divider {
+    border-bottom: 1px dashed #475569 !important; /* Slate 600 */
+}
+
+body.dark-theme .order-item-summary .summary-item .column > div:first-child.border-b {
+    border-color: #475569 !important; /* Slate 600 */
+}
+
+/* Фони карт та контейнерів */
+body.dark-theme .calc-item,
+body.dark-theme .order-item,
+body.dark-theme .bg-white {
+    background-color: #35373a; /* Slate 800 - карти */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 1px dashed #686767; /* Slate 700 - тонка межа */
+}
+
+/* Зміна світлих фонових класів */
+body.dark-theme .bg-gray-50 { background-color: #494848; } /* Slate 800 */
+body.dark-theme .bg-gray-100 { background-color: #334155; } /* Slate 700 */
+
+/* Кольори для статусів/пігулок */
+body.dark-theme .bg-blue-50 { 
+    color: #1e3a8a; /* Blue 900 */
+    background-color: rgba(14, 83, 168, 0.467); /* Blue 300 */
+    border: 1px dashed #2563eb; /* Blue 600 */
+}
+body.dark-theme .bg-green-50 { 
+    background-color: #2f4d3b; /* Green 900 */
+    color: #e2f6e9 !important; /* Green 300 */
+    border: 1px dashed #16a34a; /* Green 600 */
+}
+body.dark-theme .bg-red-50 { 
+    background-color: #582e2e; /* Red 900 */
+    color: #fca5a5; /* Red 300 */
+    border: 1px dashed #dc2626; /* Red 600 */
+}
+body.dark-theme .bg-yellow-50 { 
+    background-color: #713f12; /* Amber 900 */
+    color: #fcd34d; /* Amber 300 */
+    border: 1px dashed #d97706; /* Amber 600 */
+}
+
+/* Межі та роздільники */
+body.dark-theme .border-gray-200,
+body.dark-theme .border {
+    border-color: #55585c  !important; /* Slate 700 */
+}
+
+/* Таймлайн */
+body.dark-theme .timeline-connector {
+    background: #475569 !important; /* Slate 600 */
+}
+
+
+
+/* Модальні вікна (Modals) */
+body.dark-theme .modal-content,
+body.dark-theme .bottom-sheet,
+body.dark-theme .modal-header {
+    background: #484848; /* Slate 800 */
+    border: 1px dashed #3c3c3c; /* Slate 700 */
+}
+
+body.dark-theme .modal-header {
+    border-bottom-color: #303030; /* Slate 700 */
+}
+
+body.dark-theme .bottom-sheet-handle {
+    background: #475569; /* Slate 600 */
+}
+
+/* Тіні */
+body.dark-theme .calc-item,
+body.dark-theme .order-item {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+:root { /* Light Theme (Default) */
+  --color-bg-primary: #ffffff;
+  --color-bg-subtle: #f9f9f9;
+  --color-text-primary: #404040;
+  --color-text-faded: #555;
+  --color-border-faded: #95959563;
+  --color-border-subtle: #ccc;
+}
+
+body.dark-theme { /* Dark Theme */
+  --color-bg-primary: #282c34;
+  --color-bg-subtle: #333740;
+  --color-text-primary: #e0e0e0;
+  --color-text-faded: #cccccc;
+  --color-border-faded: #555;
+  --color-border-subtle: #555;
 }

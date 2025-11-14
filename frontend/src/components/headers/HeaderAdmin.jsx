@@ -4,6 +4,7 @@ import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
 import HeaderUserProfile from "./HeaderUserProfile";
 import "./HeaderAdmin.css";
+import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КОНТЕКСТУ ТЕМИ
 
 /** головні пункти меню */
 const NAV_LINKS = [
@@ -50,6 +51,7 @@ export default function HeaderAdmin() {
   const headerRef = useRef();
   const settingsRef = useRef();
   const financeRef = useRef();
+  const { theme, toggleTheme } = useTheme(); 
 
   
   const handleLogout = async () => {
@@ -141,6 +143,27 @@ export default function HeaderAdmin() {
             </li>
 
             <li className="dealer-size"><HeaderUserProfile /></li>
+                      <li className="theme-toggle-item">
+              <button 
+                  className="theme-toggle-btn" 
+                  onClick={toggleTheme} 
+                  title="Перемкнути тему"
+              >
+                  <i 
+                      // 👈 ВИКОРИСТОВУЄМО КЛАС MATERIAL ICONS
+                      className="material-icons" 
+                      style={{ 
+                          color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                          fontSize: '20px', // Material Icons часто вимагають 24px або 18px
+                          fontStyle: 'normal' // Щоб уникнути курсиву від тегу <i>
+                      }}
+                  >
+                      {/* Динамічний текст іконки Material Icons */}
+                      {theme === "light" ? "brightness_3" : "wb_sunny"} 
+                  </i>
+
+              </button>
+          </li>
             <li className="logout-item">
                 <button
                   className="menu-link logout-icon"
@@ -194,6 +217,27 @@ export default function HeaderAdmin() {
                       ))}
                     </ul>
                   )}
+                </li>
+                  <li className="theme-toggle-item">
+                    <button 
+                        className="theme-toggle-btn" 
+                        onClick={toggleTheme} 
+                        title="Перемкнути тему"
+                    >
+                        <i 
+                            // 👈 ВИКОРИСТОВУЄМО КЛАС MATERIAL ICONS
+                            className="material-icons" 
+                            style={{ 
+                                color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                                fontSize: '20px', // Material Icons часто вимагають 24px або 18px
+                                fontStyle: 'normal' // Щоб уникнути курсиву від тегу <i>
+                            }}
+                        >
+                            {/* Динамічний текст іконки Material Icons */}
+                            {theme === "light" ? "brightness_3" : "wb_sunny"} 
+                        </i>
+
+                    </button>
                 </li>
 
                 <li>

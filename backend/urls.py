@@ -11,15 +11,15 @@ urlpatterns = [
     path('api/', include('backend.users.urls')), 
     # ИСПРАВЛЕНИЕ 2: Добавляем префикс 'api/' для маршрутов заказов,
     # чтобы устранить новую ошибку 404: /api/get_orders_info/
-    path('api/', include('backend.order.urls')),
-    path('api/complaints/', include('backend.complaints.urls')),  
+    # path('api/', include('backend.order.urls')),
+    # path('api/complaints/', include('backend.complaints.urls')),  
 
-    path('', include('backend.users.urls')),  # твої маршрути користувачів
-    path('api/file/', include('backend.documents.urls')),  # додай, якщо в тебе app documents
-    path('api/', include('backend.video.urls')),
+    # path('', include('backend.users.urls')),  # твої маршрути користувачів
+    # path('api/file/', include('backend.documents.urls')),  # додай, якщо в тебе app documents
+    path('api/', include('backend.records.urls')),
     path('api/', include('backend.contact.urls')),
-    path('', include('backend.order.urls')),  # додай, якщо в тебе app orders
-    path('complaints/', include('backend.complaints.urls')),  # додай, якщо в тебе app orders
+    path('api/', include('backend.portal_media.urls')),  # додай, якщо в тебе app orders
+    # path('complaints/', include('backend.complaints.urls')),  # додай, якщо в тебе app orders
     
 
 ]

@@ -3,7 +3,7 @@
 # # Create your models here.
 # from django.db import models
 # from django.contrib.auth import get_user_model
-# from backend.users.models import CustomUser 
+# from users.models import CustomUser 
 
 # User = get_user_model()
 
@@ -49,7 +49,7 @@
 #     def __str__(self):
 #         return self.file_name
 from django.db import models
-from backend.users.models import CustomUser
+from users.models import CustomUser
 
 class UploadFile(models.Model):
     file_name = models.CharField(max_length=255, verbose_name="Назва файлу")

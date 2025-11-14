@@ -1,0 +1,48 @@
+/* 🌞 Light Mode (оригінальні кольори) */
+.background-success-light { background-color: #e9f3e1 !important; } /* світло-зелений */
+.background-warning-light { background-color: #f3f1d5 !important; } /* світло-жовтий */
+.background-danger-light { background-color: #fae4d9 !important; }  /* світло-червоний */
+
+.badge-content {
+    color: #333333;
+}
+
+/* 🌙 Dark Mode */
+body.dark-theme {
+    --background-dark: #1e1f22;
+    --text-dark: #e0e0e0;
+    background-color: var(--background-dark);
+    color: var(--text-dark);
+}
+
+/* Темні пастельні версії кольорів */
+body.dark-theme .background-success-light { 
+    background-color: #234029 !important; /* темно-зелений з м’яким відтінком */
+    color: #c8e6c9 !important;            /* світло-зелений текст */
+}
+
+body.dark-theme .background-warning-light { 
+    background-color: #463f1e !important; /* темно-жовтувато-коричневий */
+    color: #fff3b0 !important;            /* теплий жовтий текст */
+}
+
+body.dark-theme .background-danger-light { 
+    background-color: #4a1f1f !important; /* темно-червоний */
+    color: #ffcdd2 !important;            /* м’який рожевий текст */
+}
+
+/* Для загального контенту у бейджах */
+body.dark-theme .badge-content {
+    color: #e0e0e0 !important; /* базовий світлий текст */
+}
+
+/* Якщо у бейджів є певний фон — зробимо контрастні відтінки тексту */
+body.dark-theme .badge-content.background-success-light {
+    color: #c8e6c9 !important;
+}
+body.dark-theme .badge-content.background-warning-light {
+    color: #fff3b0 !important;
+}
+body.dark-theme .badge-content.background-danger-light {
+    color: #ffcdd2 !important;
+}

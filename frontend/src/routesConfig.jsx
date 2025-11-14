@@ -32,7 +32,7 @@ import DebtPage from "./pages/DebtPage"
 import WdsPromotion from "./pages/WdsPromotion"
 import CustomerBills from "./pages/CustomerBills"
 import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
-
+import ReclamationPortal from "./pages/ReclamationPortal";
 // import InviteRegisterForm from "./pages/InviteRegisterForm";
 import { Dashboards } from "./pages/Dashboards"
 import ComplaintsPages from "./pages/ComplaintsPages";
@@ -52,7 +52,8 @@ export const adminRoutes = [
   { path: "regions", element: <RegionPage /> },
   { path: "contacts", element: <ContactsPage /> },
   { path: "orders", element: <PortalOriginal /> },
-  { path: "complaints", element: <ComplaintsPage /> },
+  { path: "complaints", element: <ReclamationPortal /> },
+  // { path: "complaints", element: <ComplaintsPage /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
   { path: "orders-fin", element: <OrdersFinancePage /> },
   { path: "change-password", element: <ChangePassword /> },
@@ -84,7 +85,8 @@ export const dealerRoutes = [
   { path: "videos", element: <VideosPage /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "orders", element: <PortalOriginal /> },
-  { path: "complaints", element: <ComplaintsPage /> },
+  // { path: "complaints", element: <ComplaintsPage /> },
+  { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
   { path: "orders-fin", element: <OrdersFinancePage /> },
   { path: "change-password", element: <ChangePassword /> },
@@ -96,6 +98,7 @@ export const dealerRoutes = [
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
   { path: "create-bill", element: <CreateCustomerBillPage /> },
+  { path: "reclamation", element: <ReclamationPortal /> },
 
 
   { path: "localComplaints", element: <ComplaintsPages/> },

@@ -71,7 +71,9 @@ body {
 .m-14 {
     margin: 14px;
 }
-
+.gap-1 {
+    gap: 1px;
+}
 .gap-2 {
     gap: 2px;
 }
@@ -89,7 +91,7 @@ body {
 }
 
 .gap-14 {
-    gap: 14px;
+    gap: 13px;
 }
 
 .gap-16 {
@@ -466,7 +468,9 @@ body {
     gap: 8px;              /* відстань між іконкою і текстом */
     padding: 0px 16px; /* внутрішні відступи зліва/справа */ 
     margin: 0px 0px;  /* зовнішні відступи зліва/справа */
+    border-radius: 3px !important;
 }
+
 
 .btn-select-dealer {
             /* буде як ширина батьківського контейнера */
@@ -1197,6 +1201,10 @@ header_logo_white.svg
     color: var(--info-color) !important;
 }
 
+.text-factory {
+    color: var(--brown-color) !important;
+}
+
 .text-success {
     color: var(--success-color) !important;
 }
@@ -1911,10 +1919,11 @@ white-space: nowrap;
   align-self: flex-end;          /* кнопка зліва */
   padding: 4px 8px;
   font-size: 12px;
+  color: #555555;
 }
 
-@media (max-width: 1800px) {
-.p-7 { padding: 4px !important; }
+@media (max-width: 1850px) {
+    .p-7 { padding: 4px !important; }
     .p-14 { padding: 7px !important; }
     .m-7 { margin: 4px !important; }
     .m-14 { margin: 7px !important; }
@@ -2309,4 +2318,378 @@ ul.month-list {
 text-align: center;       /* якщо це текст */
   justify-self: center;
   white-space: nowrap; /* гарантує, що дві дати будуть в одному рядку */
+}
+
+
+
+
+/* --- СТИЛІ КОМПОНЕНТІВ ДЛЯ ТЕМНОЇ ТЕМИ --- */
+
+/* Фон основної сторінки та прокрутка */
+body.dark-theme {
+    background-color: var(--portal-bg-color-start) !important;
+}
+
+body.dark-theme #main {
+    background-color: var(--portal-bg-color-start) !important;
+}
+
+/* Scrollbar */
+body.dark-theme *::-webkit-scrollbar-track {
+    background: #333; /* колір зони відстеження */
+}
+
+body.dark-theme *::-webkit-scrollbar-thumb {
+    background-color: #5e83bf; /* колір бігунка */
+}
+
+/* Header та Footer */
+.dark-theme .portal-header,
+.dark-theme .portal-footer {
+    background: #282828;
+    color: var(--grey-text-color);
+}
+
+.dark-theme .portal-header > .logo {
+    /* Зміна логотипу на білий, якщо є header_logo_white.svg */
+    background-image: url("https://analytics.vstg.com.ua/assets/img/header_logo_white.svg");
+}
+
+.dark-theme .portal-header > .menu > ul > li:hover,
+.dark-theme .portal-header > .menu > ul > .active {
+    background: #444; /* Фон при наведенні/активний */
+    color: #fff;
+}
+
+.dark-theme .portal-header > .profile {
+    background-color: var(--text-color); /* Світліший фон */
+    color: #fff;
+}
+
+/* Основна панель та фільтри */
+.dark-theme .panel {
+    background-color: #2c2c2c;
+    box-shadow: none;
+}
+
+.dark-theme .content-filter {
+    /* background-color: #2c2c2c; */
+    border-right: 1px dashed var(--grey-border-color);
+}
+
+.dark-theme .portal-body .content-filter .filter li {
+    /* background-color: #2c2c2c; */
+    color: var(--text-color);
+    border: 1px solid transparent;
+}
+
+.dark-theme .portal-body .content-filter .filter li:hover,
+.dark-theme .portal-body .content-filter .filter .active {
+    background-color: #383838;
+    border: 1px dashed var(--grey-border-color);
+    color: #fff;
+}
+
+/* Пошук */
+.dark-theme .content-filter .search-orders {
+    background-color: #383838;
+    color: var(--text-color);
+    border: 1px dashed var(--grey-border-color);
+}
+
+.dark-theme .content-filter .search-orders::placeholder {
+    color: var(--grey-text-color);
+}
+
+.dark-theme .content-filter .clear-search {
+    color: var(--grey-text-color);
+}
+
+/* Вибір року та місяця */
+.dark-theme .content-summary .year-selector {
+    color: var(--text-color);
+    /* background-color: #2c2c2c; */
+    border-right: 1px dashed var(--grey-border-color);
+}
+
+.dark-theme .content-summary .year-selector select {
+    background-color: #383838;
+    color: var(--text-color);
+    border: 1px solid var(--grey-border-color);
+}
+
+.dark-theme .content-summary .by-month-pagination-wrapper {
+    background-color: #2c2c2c;
+    color: var(--text-color);
+    border-bottom: 1px dashed var(--grey-border-color);
+    box-shadow: none;
+}
+
+.dark-theme .content-summary .by-month-pagination-wrapper ul li {
+    color: var(--text-color);
+    border-right: 1px dashed var(--grey-border-color);
+}
+
+.dark-theme .content-summary .by-month-pagination-wrapper ul li:hover,
+.dark-theme .content-summary .by-month-pagination-wrapper ul .active {
+    background-color: #383838;
+    border: 1px solid var(--info-color);
+    color: #fff;
+}
+
+.dark-theme .content-summary .by-month-pagination-wrapper .month-select {
+    background-color: #383838;
+    color: var(--text-color);
+    border: 1px solid var(--grey-border-color);
+}
+
+/* Елементи Прорахунку та Замовлення */
+.dark-theme .calc-item {
+    background-color: #2c2c2c;
+    border: 1px dashed var(--grey-border-color);
+    box-shadow: none;
+}
+
+.dark-theme .btn-comments {
+  align-self: flex-end;          /* кнопка зліва */
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #f2f2f2;
+}
+
+.dark-theme .order-item {
+    /* Використовуємо інший темний фон, щоб відрізняти від calc-item */
+    background-color: #383838; 
+    border: 1px dashed #555;
+    box-shadow: none;
+}
+
+.dark-theme .order-item .order-item-details {
+    background-color: #2c2c2c;
+    color: var(--grey-text-color);
+    border-top: 1px dashed var(--grey-border-color);
+}
+
+/* Timeline (якщо використовується) */
+.dark-theme .timeline ul li {
+    border-top-color: #555;
+    border-left-color: #555;
+}
+.dark-theme .timeline ul li:last-child {
+    border-right-color: #555;
+}
+.dark-theme .timeline ul li .icon {
+    background: #2c2c2c;
+    border-color: #555;
+}
+.dark-theme .timeline ul li .badge {
+    background-color: #383838;
+    border-color: #555;
+}
+.dark-theme .timeline ul li .badge .badge-content {
+    color: var(--text-color);
+}
+
+/* Утиліти */
+.dark-theme .background-white {
+    background-color: #2c2c2c !important;
+}
+
+/* Модальне вікно (якщо стилізовано через css) */
+.dark-theme .modal-css-content {
+    background-color: #2c2c2c;
+    color: var(--text-color);
+}
+
+/* Завантаження (Spinner) */
+.dark-theme .loading-spinner-wrapper {
+    background: rgba(0, 0, 0, 0.8);
+}
+.dark-theme .loading-text {
+    color: #ccc;
+} 
+
+/* --- ГЛОБАЛЬНІ ЗМІННІ ДЛЯ ТЕМНОЇ ТЕМИ --- */
+body.dark-theme {
+    /* Основні кольори */
+    --background-color: #1a1a1a;
+    --text-color: #e0e0e0; /* Основний текст */
+    --grey-text-color: #a0a0a0; /* Текст, що став сірим */
+    --grey-color: #777777; /* Сірий (для індикації) */
+    --grey-border-color: #444444; /* Межі, що стали сірими */
+
+    /* Фони */
+    --portal-bg-color-start: #1a1a1a; /* Основний фон сторінки */
+    --portal-bg-color-end: #1a1a1a;
+    --cream-bg-color: #2c2c2c; /* Основний фон контейнерів (був білим) */
+    --shadow-color: #000000; /* Тінь вимикаємо або робимо чорною */
+
+    /* Світлі фони (для елементів списку, що розширюються) */
+    --info-bg-color: #2c2c2c; /* Інформаційний фон */
+    --success-bg-color: #2c2c2c;
+    --warning-bg-color: #2c2c2c;
+    --danger-bg-color: #2c2c2c;
+
+    /* Кольори акцентів (залишаємо яскравими для контрасту) */
+    --info-color: #5e83bf; /* Синій */
+    --success-color: #76b448; /* Зелений */
+    --warning-color: #d3c527; /* Жовтий */
+    --danger-color: #e46321; /* Помаранчевий */
+
+    /* Специфічні фони */
+    background-color: var(--portal-bg-color-start) !important;
+}
+
+
+/* --- ТЕМНИЙ ФІЛЬТР (SIDEBAR) У DARK MODE --- */
+
+/* Основний контейнер фільтра */
+body.dark-theme .content-filter {
+    /* Фон: Темно-сірий, як у мобільному меню */
+    background-color: #1a1a1a !important; 
+    
+    /* Текст: Світлий (для контрасту) */
+    color: #f0f0f0 !important; 
+    
+    /* Межа та тінь: темні */
+    border-right: 1px dashed #555555; 
+    box-shadow: 2px 0 5px rgba(0,0,0,0.8); 
+}
+
+/* Заголовок та кнопка закриття */
+body.dark-theme .content-filter .sidebar-header span {
+    color: #f0f0f0 !important; /* Світлий текст заголовка */
+}
+
+body.dark-theme .content-filter .sidebar-header .icon-cross:hover {
+    color: var(--danger-color) !important; 
+}
+
+/* Розділювач */
+body.dark-theme .content-filter .delimiter1 {
+    border-bottom: 1px dashed #555555 !important;
+}
+
+body.dark-theme  .delimiter1 {
+    border-bottom: 1px dashed #555555 !important;
+}
+
+body.dark-theme .content-filter .filter .delimiter1 {
+    border-bottom: 1px dashed #555555 !important;
+    margin-top: 0;
+
+
+}
+/* Поле пошуку */
+body.dark-theme .content-filter .search-orders {
+    background-color: #383838 !important; /* Темний фон поля */
+    color: #f0f0f0 !important;
+    border: 1px dashed #555555 !important;
+}
+
+body.dark-theme .content-filter .search-orders::placeholder {
+    color: #aaaaaa !important; /* Світло-сірий placeholder */
+}
+
+/* Кнопка очищення пошуку */
+body.dark-theme .content-filter .clear-search {
+    color: #aaaaaa !important;
+}
+
+/* Кнопки дій (Новий прорахунок, Вибрати дилера) */
+body.dark-theme .content-filter .buttons .btn-add-calc,
+body.dark-theme .content-filter .buttons .btn-select-dealer {
+    /* Зберігаємо яскраві фони, але текст/іконки мають бути білими */
+    color: #ffffff !important; 
+}
+body.dark-theme .content-filter .buttons .btn-add-calc .icon,
+body.dark-theme .content-filter .buttons .btn-select-dealer .icon {
+    color: #ffffff !important;
+}
+
+/* Основний список фільтрів */
+body.dark-theme .content-filter .filter li {
+    color: #f0f0f0 !important; /* Світлий текст */
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+}
+
+/* Активний або Hover-елемент */
+body.dark-theme .content-filter .filter li:hover,
+body.dark-theme .content-filter .filter li.active {
+    background-color: #383838 !important; /* Трохи світліший сірий hover */
+    border: 1px dashed #555555 !important;
+    color: #ffffff !important;
+}
+
+/* Іконки всередині фільтрів */
+body.dark-theme .content-filter .filter li .icon {
+    color: var(--info-color) !important; 
+}
+
+/* --- ГАРАНТУЄМО, ЩО ВСЕ ВСЕРЕДИНІ ФІЛЬТРА ТЕМНЕ --- */
+
+/* Контейнер навколо поля пошуку */
+body.dark-theme .content-filter .search-wrapper {
+    /* Фон повинен успадковувати темний колір від батька (.content-filter)
+       або бути явно встановленим */
+    background-color: inherit; /* Успадкувати #2c2c2c */
+    
+    /* Якщо є якісь межі, переконайтеся, що вони темні */
+    border-top: none !important; 
+    border-bottom: none !important;
+}
+
+/* 2. Перевірка стилів самого поля введення (Input) */
+
+/* Раніше ми вже встановили це, але варто перевірити: */
+body.dark-theme .content-filter .search-orders {
+    background-color: #383838 !important; /* Темний фон самого поля */
+    color: #f0f0f0 !important;
+    border: 1px dashed #555555 !important;
+}
+
+/* Перевірте, чи є у вас правило, подібне до цього, і змініть колір межі */
+body.dark-theme .content-filter .sidebar-header {
+    border-bottom: 0px dashed #555555 !important; /* Встановлюємо темну межу */
+}
+
+
+/* ==== РОЗДІЛЬНИКИ (світла + темна тема однакові) ==== */
+
+
+
+
+/* --- ЗМІНИ У DARK MODE: ЗБЕРЕЖЕННЯ КОНТРАСТНИХ МЕЖ --- */
+
+body.dark-theme {
+    /* ... інші стилі Dark Mode ... */
+    --border-light-color: #555555; /* Темно-сірий, що виділяється на чорному */
+    --border-dark-color: #333333; 
+}
+
+/* 1. Лінія під номером замовлення та у блоках суми */
+/* Припускаємо, що border-b або border-t стосуються світло-сірого */
+body.dark-theme .order-item-summary .summary-item .border-b,
+body.dark-theme .order-item-summary .summary-item .border-t {
+    /* Змінюємо колір межі на світло-сірий, щоб було видно на темному фоні */
+    border-color: #555555 !important; 
+}
+
+/* 2. Лінія-розділювач перед розширеними деталями */
+/* Клас border-gray-300 або його еквівалент */
+body.dark-theme .order-item-details, /* Батьківський контейнер */
+body.dark-theme .mt-4.pt-4.border-t {
+    /* Переконайтеся, що верхня межа (деталей) світла */
+    border-color: #555555 !important; 
+}
+
+/* 3. Лінія-розділювач у профілі дилера (якщо вона там є) */
+body.dark-theme .profile-item-column .divider {
+    border-bottom: 1px dashed #555555 !important;
+}
+
+/* Межа під номером замовлення */
+body.dark-theme .order-item-summary .summary-item .column > div:first-child.border-b {
+    border-color: #555555 !important;
 }

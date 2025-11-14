@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
-import CommentsModal from "../Orders1/CommentsModal";
+import CommentsModal from "../Orders/CommentsModal";
 import "./ClaimItemSummary.css"; 
 import { FaFileCircleExclamation, FaUser  } from "react-icons/fa6";
 import PhotoModal from "./PhotoModal";

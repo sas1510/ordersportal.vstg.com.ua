@@ -1,749 +1,493 @@
-// import React, { useState, useMemo } from "react";
-// import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+// import axiosInstance from '../api/axios'; // Замінено на мокап-дані
+import { CalculationItem } from '../components/Orders/OrderComponents'; // Зберігаємо назви компонентів, як були
+import { CalculationItemMobile } from '../components/Orders/CalculationItemMobile'; // Зберігаємо назви компонентів, як були
+import '../components/Portal/PortalOriginal.css';
+// import AddOrderModal from '../components/Orders/AddOrderModal';
+// import AdditionalOrderMenu from '../components/AdditionalOrder/AdditionalOrderMenu'; // Імпортуємо новий компонент для мобільного
+import AdditionalOrderMenu from '../components/AdditionalOrder/AdditionalOrderMenu'; // Імпортуємо новий компонент для мобільного
+import { AdditionalOrderItem} from '../components/AdditionalOrder/AdditionalOrderItem'; // Імпортуємо новий компонент для мобільного
+import { AdditionalOrderItemMobile } from '../components/AdditionalOrder/AdditionalOrderItemMobile'; // Імпортуємо новий компонент для мобільного
+import NewCalculationModal from '../components/Orders/NewCalculationModal'; // Перейменуємо це для Додаткового Замовлення
+import DealerSelectModal from '../components/Orders/DealerSelectModal';
+import useWindowWidth from '../hooks/useWindowWidth';
+import { useTheme } from '../context/ThemeContext';
 
-// // Тимчасові дані
-// const orderPartsData = {
-//   total: 197,
-//   rows: [
-//     {
-//       OrderPartsId: 1194,
-//       Db1SOrderPartsNumbers: "70-29887",
-//       OrderPartsDate: "05.08.2025 18:08",
-//       OrderPartsItems: "Допи",
-//       OrderPartsReason: "дозамовлення за рахунок замовника",
-//       OrderPartsDescription:
-//         "Розширювач 40/60 зовн антрацит з армуванням квадрат, довжиною 970мм",
-//       ManagerName: "Назарова Яна",
-//       CustomerName: "Гречковський Сергій",
-//       StatusName: "Обробка",
-//     },
-//     {
-//       OrderPartsId: 1193,
-//       Db1SOrderPartsNumbers: "70-29885",
-//       OrderPartsDate: "05.08.2025 17:05",
-//       OrderPartsItems: "Набір фурнітури",
-//       OrderPartsReason: "дозамовлення за рахунок замовника",
-//       OrderPartsDescription: "петлі - 2шт. згідно замовлення",
-//       ManagerName: "Горак Наталія",
-//       CustomerName: "Марусяк Руслан",
-//       StatusName: "В роботі",
-//     },
-//   ],
-// };
-
-// const getUniqueStatuses = (rows) => {
-//   const statuses = rows.map((r) => r.StatusName);
-//   return [...new Set(statuses)];
-// };
-
-// export default function AdditionalOrdersPage() {
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [selectedStatus, setSelectedStatus] = useState("Всі");
-//   const [sortConfig, setSortConfig] = useState({
-//     key: "Db1SOrderPartsNumbers",
-//     ascending: true,
-//   });
-//   const navigate = useNavigate();
-
-//   const statuses = useMemo(
-//     () => ["Всі", ...getUniqueStatuses(orderPartsData.rows)],
-//     []
-//   );
-//   const role = localStorage.getItem("role");
-//   const isDealer = role === "Dealer";
-
-//   const filteredData = useMemo(() => {
-//     let data = orderPartsData.rows;
-
-//     if (selectedStatus !== "Всі") {
-//       data = data.filter((item) => item.StatusName === selectedStatus);
-//     }
-
-//     if (searchTerm) {
-//       data = data.filter((item) =>
-//         Object.values(item).some(
-//           (val) =>
-//             val &&
-//             val.toString().toLowerCase().includes(searchTerm.toLowerCase())
-//         )
-//       );
-//     }
-
-//     return data;
-//   }, [searchTerm, selectedStatus]);
-
-//   const sortedData = useMemo(() => {
-//     const sorted = [...filteredData];
-//     const { key, ascending } = sortConfig;
-
-//     sorted.sort((a, b) => {
-//       let valA = a[key];
-//       let valB = b[key];
-
-//       if (key.toLowerCase().includes("date")) {
-//         valA = valA
-//           ? new Date(valA.split(".").reverse().join("-"))
-//           : new Date(0);
-//         valB = valB
-//           ? new Date(valB.split(".").reverse().join("-"))
-//           : new Date(0);
-//       }
-
-//       if (typeof valA === "number" && typeof valB === "number") {
-//         return ascending ? valA - valB : valB - valA;
-//       }
-
-//       valA = valA ? valA.toString() : "";
-//       valB = valB ? valB.toString() : "";
-
-//       return ascending
-//         ? valA.localeCompare(valB, undefined, { numeric: true })
-//         : valB.localeCompare(valA, undefined, { numeric: true });
-//     });
-
-//     return sorted;
-//   }, [filteredData, sortConfig]);
-
-//   const onSortClick = (key) => {
-//     setSortConfig((prev) => {
-//       if (prev.key === key) return { key, ascending: !prev.ascending };
-//       return { key, ascending: true };
-//     });
-//   };
-
-//   const renderSortArrow = (key) => {
-//     if (sortConfig.key !== key) return " ⇅";
-//     return sortConfig.ascending ? " ↑" : " ↓";
-//   };
-
-//   return (
-//     <div className="p-6 max-w-screen-2xl mx-auto">
-//       <h1 className="text-3xl font-bold mb-6 text-gray-800">Дозамовлення</h1>
-//       <div className="flex justify-between items-center mb-4">
-//         {isDealer && (
-//           <button
-//             onClick={() => navigate("/addReorder")}
-//             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow"
-//           >
-//             ➕ Дозамовлення
-//           </button>
-//         )}
-//       </div>
-
-//       <div className="flex gap-4 mb-6 flex-wrap">
-//         <input
-//           type="text"
-//           placeholder="Пошук по всіх полях"
-//           value={searchTerm}
-//           onChange={(e) => setSearchTerm(e.target.value)}
-//           className="border rounded px-3 py-2 w-full max-w-md focus:ring focus:ring-blue-300"
-//         />
-//         <select
-//           value={selectedStatus}
-//           onChange={(e) => setSelectedStatus(e.target.value)}
-//           className="border rounded px-3 py-2 max-w-xs focus:ring focus:ring-blue-300"
-//         >
-//           {statuses.map((status) => (
-//             <option key={status} value={status}>
-//               {status}
-//             </option>
-//           ))}
-//         </select>
-//       </div>
-
-//       <div className="overflow-x-auto rounded-lg border border-gray-300 shadow">
-//         <table className="min-w-full bg-white text-sm">
-//           <thead className="bg-gray-200 text-gray-800">
-//             <tr>
-//               <th className="border px-3 py-2">№</th>
-//               <th
-//                 className="border px-3 py-2 cursor-pointer"
-//                 onClick={() => onSortClick("Db1SOrderPartsNumbers")}
-//               >
-//                 Номер 1C{renderSortArrow("Db1SOrderPartsNumbers")}
-//               </th>
-//               <th
-//                 className="border px-3 py-2 cursor-pointer"
-//                 onClick={() => onSortClick("OrderPartsDate")}
-//               >
-//                 Дата{renderSortArrow("OrderPartsDate")}
-//               </th>
-//               <th className="border px-3 py-2">Товари</th>
-//               <th className="border px-3 py-2">Причина</th>
-//               <th className="border px-3 py-2">Опис</th>
-//               <th
-//                 className="border px-3 py-2 cursor-pointer"
-//                 onClick={() => onSortClick("ManagerName")}
-//               >
-//                 Менеджер{renderSortArrow("ManagerName")}
-//               </th>
-//               <th
-//                 className="border px-3 py-2 cursor-pointer"
-//                 onClick={() => onSortClick("CustomerName")}
-//               >
-//                 Клієнт{renderSortArrow("CustomerName")}
-//               </th>
-//               <th
-//                 className="border px-3 py-2 cursor-pointer"
-//                 onClick={() => onSortClick("StatusName")}
-//               >
-//                 Статус{renderSortArrow("StatusName")}
-//               </th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {sortedData.length === 0 ? (
-//               <tr>
-//                 <td colSpan="9" className="text-center p-4 text-gray-500">
-//                   Немає даних
-//                 </td>
-//               </tr>
-//             ) : (
-//               sortedData.map((item, idx) => {
-//                 const [date, time] = item.OrderPartsDate.split(" ");
-//                 return (
-//                   <tr
-//                     key={item.OrderPartsId}
-//                     className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-//                   >
-//                     <td className="border px-3 py-2 text-center">{idx + 1}</td>
-//                     <td className="border px-3 py-2 text-center font-medium text-blue-600">
-//                       {item.Db1SOrderPartsNumbers}
-//                     </td>
-//                     <td className="border px-3 py-2 text-center">
-//                       <div className="flex flex-col">
-//                         <span className="font-semibold">{date}</span>
-//                         <span className="text-xs text-gray-500">{time}</span>
-//                       </div>
-//                     </td>
-//                     <td className="border px-3 py-2">{item.OrderPartsItems}</td>
-//                     <td className="border px-3 py-2">{item.OrderPartsReason}</td>
-//                     <td className="border px-3 py-2">{item.OrderPartsDescription}</td>
-//                     <td className="border px-3 py-2">{item.ManagerName}</td>
-//                     <td className="border px-3 py-2">{item.CustomerName}</td>
-//                     <td
-//                       className={`border px-3 py-2 font-semibold ${
-//                         item.StatusName === "Обробка"
-//                           ? "text-yellow-600"
-//                           : "text-green-600"
-//                       }`}
-//                     >
-//                       {item.StatusName}
-//                     </td>
-//                   </tr>
-//                 );
-//               })
-//             )}
-//           </tbody>
-//         </table>
-//       </div>
-
-//       <p className="mt-4 text-gray-600">
-//         Всього дозамовлень: {sortedData.length}
-//       </p>
-//     </div>
-//   );
-// }
-import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-
-const orderPartsData = {
-  total: 197,
-  rows: [
-    {
-      OrderPartsId: 1194,
-      Db1SOrderPartsNumbers: "70-29887",
-      OrderPartsDate: "05.08.2025 18:08",
-      OrderPartsItems: "Допи",
-      OrderPartsReason: "Дозамовлення за рахунок замовника",
-      StatusName: "В обробці",
-    },
-    {
-      OrderPartsId: 1195,
-      Db1SOrderPartsNumbers: "70-29888",
-      OrderPartsDate: "06.08.2025 12:15",
-      OrderPartsItems: "Ручки",
-      OrderPartsReason: "Гарантія",
-      StatusName: "Виконано",
-    },
-  ],
-};
-
-const getStatusClass = (statusName) => {
-  switch (statusName) {
-    case "Завантажено":
-      return "text-green-600 font-bold";
-    case "Очікує підтвердження":
-      return "text-yellow-600 font-semibold";
-    case "Відхилено":
-      return "text-red-600 font-bold";
-    case "Виконано":
-      return "text-blue-600 font-semibold";
-    default:
-      return "text-gray-800";
+// --- MOCK DATA ---
+const mockAdditionalOrdersData = [
+  {
+    id: 'add-ord-001',
+    number: 'Дод. Замовлення 001',
+    mainOrderNumber: '9001',
+    dateRaw: '2025-05-15T10:00:00Z',
+    mainOrderDate: '2025-03-15T10:00:00Z',
+    date: '15 трав. 2025 р.',
+    constructionsQTY: 5,
+    dealer: 'Дилер А',
+    debt: 12000.00,
+    file: 'file-001.pdf',
+    message: 'Примітка до Дод. Замовлення 001',
+    orderCountInCalc: 2,
+    constructionsCount: 3 + 2,
+    amount: 50000.00,
+    orders: [
+      {
+        id: 'order-222', number: 'Замовлення-222', dateRaw: '2025-05-10', date: '10 трав. 2025 р.', status: 'Очікуємо оплату',
+        amount: 20000, count: 2, paid: 18000, realizationDate: null, deliveryAddress: 'Львів, пл. Ринок, 5',
+      },
+    ],
+    statuses: {'Очікуємо оплату': 1 },
+  },
+  {
+    id: 'add-ord-002',
+    number: 'Дод. Замовлення 002',
+    mainOrderNumber: '9trjhr001',
+    dateRaw: '2025-04-20T12:30:00Z',
+    mainOrderDate: '2025-03-15T10:00:00Z',
+    date: '20 квіт. 2025 р.',
+    constructionsQTY: 10,
+    dealer: 'Дилер Б',
+    debt: 0.00,
+    file: null,
+    message: '',
+    orderCountInCalc: 3,
+    constructionsCount: 4 + 4 + 2,
+    amount: 100000.00,
+    orders: [
+     
+      { id: 'order-555', number: 'Замовлення-555', dateRaw: '2025-04-15', date: '15 квіт. 2025 р.', status: 'Готовий', amount: 20000, count: 2, paid: 20000 },
+    ],
+    statuses: {  'Готовий': 1 },
+  },
+  {
+    id: 'add-ord-003',
+    number: 'Дод. Замовлення 003',
+    mainOrderNumber: '90rt6j01',
+    mainOrderDate: '2025-03-15T10:00:00Z',
+    dateRaw: '2025-05-01T08:00:00Z',
+    date: '01 трав. 2025 р.',
+    constructionsQTY: 0,
+    dealer: 'Дилер В',
+    debt: 0.00,
+    file: 'file-003.pdf',
+    message: 'Нове дод. замовлення',
+    orderCountInCalc: 0,
+    constructionsCount: 0,
+    amount: 0,
+    orders: [], // Новий прорахунок (Additional Order) без замовлень
+    statuses: {},
   }
-};
+];
 
+// Перейменовуємо компонент
+const AdditionalOrders = () => {
+  // Перейменовуємо змінні, пов'язані з "Прорахунками" на "Додаткові Замовлення"
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false); // Замість isCalcModalOpen
+  const [additionalOrdersData, setAdditionalOrdersData] = useState([]); // Замість calculationsData
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
+  const [selectedYear, setSelectedYear] = useState('2025');
+  const [loading, setLoading] = useState(true);
+  const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null); // Замість expandedCalc
+  const [expandedOrder, setExpandedOrder] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showDealerModal, setShowDealerModal] = useState(false);
+  const [dealer, setDealer] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 1024;
+  const { theme, toggleTheme } = useTheme();
 
-const OrderPartsPage = () => {
-  const navigate = useNavigate();
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (role !== 'customer' && !dealer) {
+      setShowDealerModal(true);
+    }
+  }, [dealer]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [sortConfig, setSortConfig] = useState({
-    key: "OrderPartsId",
-    ascending: true,
-  });
+  const handleDealerSelect = (selectedDealer) => {
+    if (selectedDealer === null) {
+      setDealer(null);
+      localStorage.removeItem('dealerId');
+    } else {
+      setDealer(selectedDealer);
+      localStorage.setItem('dealerId', selectedDealer.id);
+    }
+    setShowDealerModal(false);
+  };
 
-  const uniqueStatuses = useMemo(() => {
-    return Array.from(new Set(orderPartsData.rows.map((o) => o.StatusName)));
-  }, []);
+  // Додаємо в компонент AdditionalOrders
+  const handleDeleteAdditionalOrder = (additionalOrderId) => { // Замість handleDeleteCalculation
+    // Видаляємо додаткове замовлення з state
+    setAdditionalOrdersData(prev => prev.filter(ord => ord.id !== additionalOrderId));
+    setFilteredItems(prev => prev.filter(ord => ord.id !== additionalOrderId));
+  };
 
-  const filteredData = useMemo(() => {
-    return orderPartsData.rows.filter((part) => {
-      const matchesStatus =
-        statusFilter === "" || part.StatusName === statusFilter;
-      if (!matchesStatus) return false;
+  const handleUpdateAdditionalOrder = (updatedOrder) => { // Замість handleUpdateCalculation
+    setAdditionalOrdersData(prev =>
+      prev.map(ord => ord.id === updatedOrder.id ? updatedOrder : ord)
+    );
+    setFilteredItems(prev =>
+      prev.map(ord => ord.id === updatedOrder.id ? updatedOrder : ord)
+    );
+  };
 
-      if (!searchTerm) return true;
+  const handleAddClick = () => setIsModalOpen(true);
+  const handleClose = () => setIsModalOpen(false);
 
-      return Object.values(part).some(
-        (value) =>
-          value &&
-          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-  }, [searchTerm, statusFilter]);
+  const handleSave = (newOrder) => {
+    console.log("Нове замовлення:", newOrder);
+  };
 
-  const sortableColumns = [
-    "OrderPartsId",
-    "Db1SOrderPartsNumbers",
-    "OrderPartsDate",
-    "OrderPartsItems",
-  ];
+  const handleSaveAdditionalOrder = (newOrder) => { // Замість handleSaveCalculation
+    const formattedOrder = {
+      id: newOrder.id || Math.random().toString(36).substr(2, 9),
+      number: newOrder.name || `Дод. Замовлення ${additionalOrdersData.length + 1}`,
+      dateRaw: newOrder.dateRaw || new Date().toISOString(),
+      date: new Date(newOrder.dateRaw || new Date()).toLocaleDateString('uk-UA', { day: '2-digit', month: 'short', year: 'numeric' }),
+      orders: [],
+      orderCountInCalc: 0,
+      constructionsCount: newOrder.ConstructionsCount || 0,
+      constructionsQTY: newOrder.ConstructionsCount || 0,
+      statuses: {},
+      amount: 0,
+      file: newOrder.file || null,
+      message: newOrder.Comment || ''
+    };
 
-  const sortedData = useMemo(() => {
-    if (!sortableColumns.includes(sortConfig.key)) return filteredData;
-    const sorted = [...filteredData];
-    const { key, ascending } = sortConfig;
+    setAdditionalOrdersData(prev => [formattedOrder, ...prev]);
+    setFilteredItems(prev => [formattedOrder, ...prev]);
+    setIsNewOrderModalOpen(false); // Закриваємо модалку Додаткового Замовлення
+  };
 
-    sorted.sort((a, b) => {
-      let valA = a[key];
-      let valB = b[key];
-
-      if (key.toLowerCase().includes("date")) {
-        valA = valA ? new Date(valA) : new Date(0);
-        valB = valB ? new Date(valB) : new Date(0);
-      }
-
-      if (typeof valA === "number" && typeof valB === "number") {
-        return ascending ? valA - valB : valB - valA;
-      }
-
-      valA = valA ? valA.toString() : "";
-      valB = valB ? valB.toString() : "";
-
-      return ascending
-        ? valA.localeCompare(valB, undefined, { numeric: true })
-        : valB.localeCompare(valA, undefined, { numeric: true });
-    });
-
-    return sorted;
-  }, [filteredData, sortConfig]);
-
-  const onSortClick = (key) => {
-    if (!sortableColumns.includes(key)) return;
-    setSortConfig((prev) => {
-      if (prev.key === key) {
-        return { key, ascending: !prev.ascending };
-      }
-      return { key, ascending: true };
+  const formatDateHuman = (dateStr) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    if (isNaN(date)) return null;
+    return date.toLocaleDateString('uk-UA', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
   };
 
-  const renderSortArrow = (key) => {
-    if (sortConfig.key !== key) return " ⇅";
-    return sortConfig.ascending ? " ▲" : " ▼";
+  // --- MOCK API CALL LOGIC ---
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    if (role !== 'customer' && !dealer) {
+      setShowDealerModal(true);
+      setLoading(false);
+      return;
+    }
+
+    const fetchData = async () => {
+      setLoading(true);
+      
+      // Імітація затримки API
+      await new Promise(resolve => setTimeout(resolve, 500)); 
+
+      try {
+        // Імітація фільтрації за роком та дилером на стороні клієнта (для мокапу)
+        let dataToUse = mockAdditionalOrdersData;
+        
+        if (selectedYear === '2024') {
+             // Імітуємо відсутність даних для 2024 року
+            dataToUse = []; 
+        } 
+        // Логіка для дилера тут ускладнена, тому в мокапі просто ігноруємо, 
+        // але в реальному коді ви маєте фільтрувати за dealer.id
+
+        setAdditionalOrdersData(dataToUse);
+        setFilteredItems(dataToUse);
+      } catch (error) {
+        console.error("Помилка мокапу:", error);
+        setAdditionalOrdersData([]);
+        setFilteredItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedYear, dealer]);
+  // --- END MOCK API CALL LOGIC ---
+
+
+  const getStatusSummary = () => {
+    const summary = { 'Всі': 0, 'Новий': 0, 'В обробці': 0, 'Очікуємо оплату': 0, 'Підтверджений': 0, 'Очікуємо підтвердження': 0, 'У виробництві': 0, 'Готовий': 0, 'Відвантажений': 0, 'Відмова': 0 };
+
+    additionalOrdersData.forEach(additionalOrder => { // Замість calculationsData
+      if (additionalOrder.orders.length === 0) summary['Новий'] += 1;
+      summary['Всі'] += additionalOrder.orders.length;
+      additionalOrder.orders.forEach(order => {
+        if (order.status && summary.hasOwnProperty(order.status)) summary[order.status] += 1;
+      });
+    });
+
+    return summary;
   };
 
-  const role = localStorage.getItem("role");
-  const isDealer = role === "Dealer";
+  const getMonthSummary = () => {
+    const summary = {};
+    for (let i = 1; i <= 12; i++) summary[i] = 0;
+
+    additionalOrdersData.forEach(additionalOrder => { // Замість calculationsData
+      if (!additionalOrder.dateRaw) return;
+      const month = new Date(additionalOrder.dateRaw).getMonth() + 1;
+      summary[month] += 1;
+    });
+
+    return summary;
+  };
+
+  const statusSummary = getStatusSummary();
+  const monthSummary = getMonthSummary();
+
+  const getFilteredItems = (statusFilter, monthFilter, nameFilter) => {
+    let filtered = [...additionalOrdersData]; // Замість calculationsData
+    if (statusFilter && statusFilter !== 'Всі') {
+      filtered = filtered.filter(additionalOrder => {
+        if (additionalOrder.orders.length === 0) return statusFilter === 'Новий';
+        return additionalOrder.orders.some(order => order.status === statusFilter);
+      });
+    }
+    if (monthFilter !== 0) {
+      filtered = filtered.filter(additionalOrder => {
+        const month = new Date(additionalOrder.dateRaw).getMonth() + 1;
+        return month === monthFilter;
+      });
+    }
+    if (nameFilter) {
+      const query = nameFilter.toLowerCase();
+      filtered = filtered.filter(additionalOrder => {
+        if (additionalOrder.number.toLowerCase().includes(query)) return true;
+        return additionalOrder.orders.some(order => order.number?.toLowerCase().includes(query));
+      });
+    }
+    return filtered;
+  };
+
+  const handleFilterClick = (statusKey) => {
+    setFilter(prev => ({ ...prev, status: statusKey }));
+    setFilteredItems(getFilteredItems(statusKey, filter.month, filter.name));
+  };
+
+  const handleMonthClick = (month) => {
+    const newMonth = filter.month === month ? 0 : month;
+    setFilter(prev => ({ ...prev, month: newMonth }));
+    setFilteredItems(getFilteredItems(filter.status, newMonth, filter.name));
+  };
+
+  const handleSearchChange = (e) => {
+    const name = e.target.value;
+    setFilter(prev => ({ ...prev, name }));
+    setFilteredItems(getFilteredItems(filter.status, filter.month, name));
+  };
+
+  const handleClearSearch = () => {
+    setFilter(prev => ({ ...prev, name: '' }));
+    setFilteredItems(getFilteredItems(filter.status, filter.month, ''));
+  };
+
+  const sortedItems = filteredItems.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
+  const toggleAdditionalOrder = (id) => setExpandedAdditionalOrder(expandedAdditionalOrder === id ? null : id); // Замість toggleCalc
+  const toggleOrder = (id) => setExpandedOrder(expandedOrder === id ? null : id);
+
+  if (loading)
+    return (
+      <div className="loading-spinner-wrapper">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">Завантаження...</div>
+      </div>
+    );
 
   return (
-    <div className="p-6 max-w-screen-2xl mx-auto overflow-x-auto bg-gray-50 mt-8 rounded-md shadow-md">
-      <h1 className="text-3xl font-extrabold mb-6 text-[#004080] tracking-wide">
-        Дозамовлення
-      </h1>
-       {/* <div className="flex justify-between items-center mb-4"> */}
-        {isDealer && (
-          <button
-            onClick={() => navigate("/addReorder")}
-            className="mb-6 bg-gradient-to-r from-[#3b82f6] to-[#1e40af] hover:from-[#2563eb] hover:to-[#1e3a8a] text-white px-5 py-2 rounded-md shadow-sm transition-all duration-300"
-          >
-            ➕ Дозамовлення
-          </button>
-        )}
-      {/* </div> */}
+    <div className="column portal-body">
 
-      <div className="mb-6 flex flex-wrap gap-4 items-center">
-        <input
-          type="text"
-          placeholder="Пошук по всіх полях"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-grow max-w-md border border-gray-400 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+      {showDealerModal && (
+        <DealerSelectModal
+          isOpen={showDealerModal}
+          onClose={() => setShowDealerModal(false)}
+          onSelect={handleDealerSelect}
         />
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border border-gray-400 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+      )}
+
+      <div className="content-summary row w-100">
+        {/* Кнопка-гамбургер для мобільного -- ПЕРЕМІЩЕНО СЮДИ */}
+        <div
+          className="mobile-sidebar-toggle"
+          onClick={() => setIsSidebarOpen(true)}
+          style={{ marginTop: '10px' }}
         >
-          <option value="">Усі статуси</option>
-          {uniqueStatuses.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+          <span className="icon icon-menu font-size-24"></span>
+        </div>
+
+        <div className="year-selector row">
+          <span>Звітний рік:</span>
+          <span className="icon icon-calendar2 font-size-24 text-info"></span>
+          <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+          </select>
+        </div>
+
+        <div className="by-month-pagination-wrapper">
+          {/* Для великих екранів — список місяців */}
+          <ul className="gap-6 row no-wrap month-list">
+            <li className={`pagination-item ${filter.month === 0 ? 'active' : ''}`} onClick={() => handleMonthClick(0)}>
+              Весь рік
+            </li>
+            {Array.from({ length: 12 }, (_, i) => {
+              const num = i + 1;
+              const labels = ['Січ.', 'Лют.', 'Бер.', 'Квіт.', 'Трав.', 'Черв.', 'Лип.', 'Сер.', 'Вер.', 'Жов.', 'Лис.', 'Груд.'];
+              return (
+                <li
+                  key={num}
+                  className={`pagination-item ${filter.month === num ? 'active' : ''} ${monthSummary[num] === 0 ? 'disabled' : ''}`}
+                  onClick={() => monthSummary[num] > 0 && handleMonthClick(num)}
+                >
+                  {labels[i]} <span className="text-grey">({monthSummary[num]})</span>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Для малих екранів — випадаючий список */}
+          <select
+            className="month-select"
+            value={filter.month}
+            onChange={(e) => handleMonthClick(Number(e.target.value))}
+          >
+            <option value={0}>Весь рік</option>
+            {Array.from({ length: 12 }, (_, i) => {
+              const num = i + 1;
+              const labels = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
+              return (
+                <option key={num} value={num} disabled={monthSummary[num] === 0}>
+                  {labels[i]} ({monthSummary[num]})
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
       </div>
 
-      <table className="min-w-[800px] w-full border-collapse border border-gray-400">
-        <thead className="bg-gray-200 select-none">
-          <tr>
-            <th
-              className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-              onClick={() => onSortClick("OrderPartsId")}
-            >
-              № {renderSortArrow("OrderPartsId")}
-            </th>
-            <th
-              className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-              onClick={() => onSortClick("Db1SOrderPartsNumbers")}
-            >
-              № 1С {renderSortArrow("Db1SOrderPartsNumbers")}
-            </th>
-            <th
-              className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-              onClick={() => onSortClick("OrderPartsDate")}
-            >
-              Дата {renderSortArrow("OrderPartsDate")}
-            </th>
-            <th
-              className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-              onClick={() => onSortClick("OrderPartsItems")}
-            >
-              Найменування {renderSortArrow("OrderPartsItems")}
-            </th>
-            <th className="border border-gray-500 px-3 py-2 text-lg font-semibold text-gray-700">
-              Причина
-            </th>
-            <th className="border border-gray-500 px-3 py-2 text-lg font-semibold text-gray-700">
-              Статус
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedData.length === 0 ? (
-            <tr>
-              <td colSpan="6" className="text-center p-4 text-gray-600 text-lg">
-                Немає даних
-              </td>
-            </tr>
-          ) : (
-            sortedData.map((part, index) => (
-              <tr
-                key={part.OrderPartsId}
-                className={index % 2 === 0 ? "bg-white" : "bg-gray-100"}
-              >
-                <td className="border border-gray-300 px-3 py-2 text-center">
-                  {part.OrderPartsId}
-                </td>
-                <td className="border border-gray-300 px-3 py-2 text-center">
-                  {part.Db1SOrderPartsNumbers}
-                </td>
-                <td className="border border-gray-300 px-3 py-2 text-center">
-                  {part.OrderPartsDate}
-                </td>
-                <td className="border border-gray-300 px-3 py-2">
-                  {part.OrderPartsItems}
-                </td>
-                <td className="border border-gray-300 px-3 py-2">
-                  {part.OrderPartsReason}
-                </td>
-                 <td className={`border border-gray-300 px-3 py-2 text-base font-semibold ${getStatusClass(part.StatusName)}`}>
-                  {part.StatusName}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+      <div className="content-wrapper row w-100 h-100">
+        {/* Sidebar з фільтрами */}
+        <div className={`content-filter column ${isSidebarOpen ? 'open' : 'closed'}`}>
+          <div className="sidebar-header row ai-center jc-space-between">
+            {isSidebarOpen && <span>Фільтри</span>}
+            {isSidebarOpen && (
+              <span className="icon icon-cross" onClick={() => setIsSidebarOpen(false)}></span>
+            )}
+          </div>
 
-      <p className="mt-6 text-gray-900 text-lg font-semibold">
-        Всього: {sortedData.length}
-      </p>
+          <div className="search-wrapper">
+            <input
+              type="text"
+              className="search-orders"
+              placeholder="номер дод. замовлення, основного замовлення"
+              value={filter.name}
+              onChange={handleSearchChange}
+            />
+            <span className="icon icon-cancel2 clear-search" title="Очистити пошук" onClick={handleClearSearch}></span>
+          </div>
+
+          {localStorage.getItem('role') !== 'customer' && (
+            <div>
+              <div className="delimiter1" />
+              <ul className="buttons">
+                <li className="btn btn-select-dealer" onClick={() => setShowDealerModal(true)}>
+                  <span className="icon icon-user-check"></span>
+                  <span className="uppercase">Вибрати дилера</span>
+                </li>
+              </ul>
+            </div>
+          )}
+
+          <div className="delimiter1"></div>
+          <ul className="buttons">
+            <li className="btn btn-add-calc" onClick={() => setIsNewOrderModalOpen(true)}>
+              <span className="icon icon-plus3"></span>
+              <span className="uppercase">Нове дод. замовлення</span> {/* Змінено текст */}
+            </li>
+          </ul>
+
+          <ul className="filter column align-center">
+            <li className="delimiter1"></li>
+            {[
+              { id: "all", label: "Всі дод. замовлення", icon: "icon-calculator", statusKey: "Всі" }, // Змінено текст
+              { id: "new", label: "Нові дод. замовлення", icon: "icon-bolt", statusKey: "Новий" }, // Змінено текст
+              { id: "processing", label: "В обробці", icon: "icon-spin-alt", statusKey: "В обробці" },
+              { id: "waiting-payment", label: "Очікують оплату", icon: "icon-coin-dollar", statusKey: "Очікуємо оплату" },
+              { id: "waiting-confirm", label: "Очікують підтвердження", icon: "icon-clipboard", statusKey: "Очікуємо підтвердження" },
+              { id: "confirmed", label: "Підтверджені", icon: "icon-check", statusKey: "Підтверджений" },
+              { id: "production", label: "Замовлення у виробництві", icon: "icon-cogs", statusKey: "У виробництві" },
+              { id: "ready", label: "Готові замовлення", icon: "icon-layers2", statusKey: "Готовий" },
+              { id: "delivered", label: "Доставлені замовлення", icon: "icon-shipping", statusKey: "Відвантажений" },
+              { id: "rejected", label: "Відмова", icon: "icon-circle-with-cross", statusKey: "Відмова" }
+            ].map(({ id, label, icon, statusKey }) => (
+              <li
+                key={id}
+                className={`filter-item ${filter.status === statusKey ? 'active' : ''}`}
+                onClick={() => handleFilterClick(statusKey)}
+              >
+                <span className={`icon ${icon} font-size-24`}></span>
+                <span className="w-100">{label}</span>
+                <span className={statusSummary[statusKey] === 0 ? 'disabled' : ''}>
+                  {statusSummary[statusKey]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Основний контент */}
+        <div className="content" id="content">
+          <div className="items-wrapper column gap-14" id="items-wrapper">
+            {sortedItems.length === 0 ? (
+              <div className="no-data column align-center h-100">
+                <div className="font-size-24 text-grey">Немає додаткових замовлень для відображення</div>
+              </div>
+            ) : (
+              sortedItems.map((additionalOrder) => ( // Замість calc
+                isMobile ? (
+                  <AdditionalOrderItemMobile // Зберігаємо ім'я компонента, але він тепер відображає Дод. Замовлення
+                    key={additionalOrder.id}
+                    calc={additionalOrder} // Передаємо дані Дод. Замовлення як calc
+                    isExpanded={expandedAdditionalOrder === additionalOrder.id}
+                    onToggle={() => toggleAdditionalOrder(additionalOrder.id)}
+                    expandedOrderId={expandedOrder}
+                    onOrderToggle={toggleOrder}
+                    onDelete={handleDeleteAdditionalOrder}
+                    onEdit={handleUpdateAdditionalOrder}
+                  />
+                ) : (
+                  <AdditionalOrderItem // Зберігаємо ім'я компонента, але він тепер відображає Дод. Замовлення
+                    key={additionalOrder.id}
+                    calc={additionalOrder} // Передаємо дані Дод. Замовлення як calc
+                    isExpanded={expandedAdditionalOrder === additionalOrder.id}
+                    onToggle={() => toggleAdditionalOrder(additionalOrder.id)}
+                    expandedOrderId={expandedOrder}
+                    onOrderToggle={toggleOrder}
+                    onDelete={handleDeleteAdditionalOrder}
+                    onEdit={handleUpdateAdditionalOrder}
+                  />
+                )
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <NewCalculationModal // Зберігаємо ім'я модалки, але вона використовується для Дод. Замовлення
+        isOpen={isNewOrderModalOpen} // Замість isCalcModalOpen
+        onClose={() => setIsNewOrderModalOpen(false)}
+        onSave={handleSaveAdditionalOrder} // Замість handleSaveCalculation
+      />
     </div>
   );
 };
 
-export default OrderPartsPage;
-
-
-// з беком 
-
-// import React, { useState, useMemo, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-// import axiosInstance from "../api/axios";
-
-// const getStatusClass = (statusName) => {
-//   switch (statusName) {
-//     case "Завантажено":
-//       return "text-green-600 font-bold";
-//     case "Очікує підтвердження":
-//       return "text-yellow-600 font-semibold";
-//     case "Відхилено":
-//       return "text-red-600 font-bold";
-//     case "Виконано":
-//       return "text-blue-600 font-semibold";
-//     default:
-//       return "text-gray-800";
-//   }
-// };
-
-// const OrderPartsPage = () => {
-//   const navigate = useNavigate();
-
-//   const [orderPartsData, setOrderPartsData] = useState({ rows: [] });
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [statusFilter, setStatusFilter] = useState("");
-//   const [sortConfig, setSortConfig] = useState({
-//     key: "OrderPartsId",
-//     ascending: true,
-//   });
-
-//   const role = localStorage.getItem("role");
-//   const isDealer = role === "Dealer";
-
-//   useEffect(() => {
-//     const fetchOrderParts = async () => {
-//       setLoading(true);
-//       setError("");
-//       try {
-//         const res = await axiosInstance.get("/order-parts"); // твій бекенд ендпоінт
-//         if (res.data && Array.isArray(res.data.rows)) {
-//           setOrderPartsData({ rows: res.data.rows });
-//         } else {
-//           setError("Невірний формат даних від сервера");
-//         }
-//       } catch (err) {
-//         console.error(err);
-//         setError("Помилка при завантаженні дозамовлень");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchOrderParts();
-//   }, []);
-
-//   const uniqueStatuses = useMemo(() => {
-//     return Array.from(new Set(orderPartsData.rows.map((o) => o.StatusName)));
-//   }, [orderPartsData.rows]);
-
-//   const filteredData = useMemo(() => {
-//     return orderPartsData.rows.filter((part) => {
-//       const matchesStatus =
-//         statusFilter === "" || part.StatusName === statusFilter;
-//       if (!matchesStatus) return false;
-
-//       if (!searchTerm) return true;
-
-//       return Object.values(part).some(
-//         (value) =>
-//           value &&
-//           value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-//       );
-//     });
-//   }, [searchTerm, statusFilter, orderPartsData.rows]);
-
-//   const sortableColumns = [
-//     "OrderPartsId",
-//     "Db1SOrderPartsNumbers",
-//     "OrderPartsDate",
-//     "OrderPartsItems",
-//   ];
-
-//   const sortedData = useMemo(() => {
-//     if (!sortableColumns.includes(sortConfig.key)) return filteredData;
-//     const sorted = [...filteredData];
-//     const { key, ascending } = sortConfig;
-
-//     sorted.sort((a, b) => {
-//       let valA = a[key];
-//       let valB = b[key];
-
-//       if (key.toLowerCase().includes("date")) {
-//         valA = valA ? new Date(valA) : new Date(0);
-//         valB = valB ? new Date(valB) : new Date(0);
-//       }
-
-//       if (typeof valA === "number" && typeof valB === "number") {
-//         return ascending ? valA - valB : valB - valA;
-//       }
-
-//       valA = valA ? valA.toString() : "";
-//       valB = valB ? valB.toString() : "";
-
-//       return ascending
-//         ? valA.localeCompare(valB, undefined, { numeric: true })
-//         : valB.localeCompare(valA, undefined, { numeric: true });
-//     });
-
-//     return sorted;
-//   }, [filteredData, sortConfig]);
-
-//   const onSortClick = (key) => {
-//     if (!sortableColumns.includes(key)) return;
-//     setSortConfig((prev) => {
-//       if (prev.key === key) {
-//         return { key, ascending: !prev.ascending };
-//       }
-//       return { key, ascending: true };
-//     });
-//   };
-
-//   const renderSortArrow = (key) => {
-//     if (sortConfig.key !== key) return " ⇅";
-//     return sortConfig.ascending ? " ▲" : " ▼";
-//   };
-
-//   return (
-//     <div className="p-6 max-w-screen-2xl mx-auto overflow-x-auto bg-gray-50 mt-8 rounded-md shadow-md">
-//       <h1 className="text-3xl font-extrabold mb-6 text-[#004080] tracking-wide">
-//         Дозамовлення
-//       </h1>
-
-//       {isDealer && (
-//         <button
-//           onClick={() => navigate("/addReorder")}
-//           className="mb-6 bg-gradient-to-r from-[#3b82f6] to-[#1e40af] hover:from-[#2563eb] hover:to-[#1e3a8a] text-white px-5 py-2 rounded-md shadow-sm transition-all duration-300"
-//         >
-//           ➕ Дозамовлення
-//         </button>
-//       )}
-
-//       <div className="mb-6 flex flex-wrap gap-4 items-center">
-//         <input
-//           type="text"
-//           placeholder="Пошук по всіх полях"
-//           value={searchTerm}
-//           onChange={(e) => setSearchTerm(e.target.value)}
-//           className="flex-grow max-w-md border border-gray-400 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-//         />
-//         <select
-//           value={statusFilter}
-//           onChange={(e) => setStatusFilter(e.target.value)}
-//           className="border border-gray-400 rounded-md px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-//         >
-//           <option value="">Усі статуси</option>
-//           {uniqueStatuses.map((status) => (
-//             <option key={status} value={status}>
-//               {status}
-//             </option>
-//           ))}
-//         </select>
-//       </div>
-
-//       {loading ? (
-//         <p className="text-center text-lg text-gray-600 py-10">Завантаження...</p> // текст
-          // <div className="flex justify-center items-center py-10"> //спінер
-          //     <div className="w-12 h-12 border-4 border-blue-400 border-dashed rounded-full animate-spin"></div>
-          //   </div>
-//       ) : error ? (
-//         <p className="text-center text-lg text-red-600 py-10">{error}</p>
-//       ) : (
-//         <>
-//           <table className="min-w-[800px] w-full border-collapse border border-gray-400">
-//             <thead className="bg-gray-200 select-none">
-//               <tr>
-//                 <th
-//                   className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-//                   onClick={() => onSortClick("OrderPartsId")}
-//                 >
-//                   № {renderSortArrow("OrderPartsId")}
-//                 </th>
-//                 <th
-//                   className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-//                   onClick={() => onSortClick("Db1SOrderPartsNumbers")}
-//                 >
-//                   № 1С {renderSortArrow("Db1SOrderPartsNumbers")}
-//                 </th>
-//                 <th
-//                   className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-//                   onClick={() => onSortClick("OrderPartsDate")}
-//                 >
-//                   Дата {renderSortArrow("OrderPartsDate")}
-//                 </th>
-//                 <th
-//                   className="border border-gray-500 px-3 py-2 cursor-pointer text-lg font-semibold text-gray-700"
-//                   onClick={() => onSortClick("OrderPartsItems")}
-//                 >
-//                   Найменування {renderSortArrow("OrderPartsItems")}
-//                 </th>
-//                 <th className="border border-gray-500 px-3 py-2 text-lg font-semibold text-gray-700">
-//                   Причина
-//                 </th>
-//                 <th className="border border-gray-500 px-3 py-2 text-lg font-semibold text-gray-700">
-//                   Статус
-//                 </th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {sortedData.length === 0 ? (
-//                 <tr>
-//                   <td colSpan="6" className="text-center p-4 text-gray-600 text-lg">
-//                     Немає даних
-//                   </td>
-//                 </tr>
-//               ) : (
-//                 sortedData.map((part, index) => (
-//                   <tr
-//                     key={part.OrderPartsId}
-//                     className={index % 2 === 0 ? "bg-white" : "bg-gray-100"}
-//                   >
-//                     <td className="border border-gray-300 px-3 py-2 text-center">
-//                       {part.OrderPartsId}
-//                     </td>
-//                     <td className="border border-gray-300 px-3 py-2 text-center">
-//                       {part.Db1SOrderPartsNumbers}
-//                     </td>
-//                     <td className="border border-gray-300 px-3 py-2 text-center">
-//                       {part.OrderPartsDate}
-//                     </td>
-//                     <td className="border border-gray-300 px-3 py-2">
-//                       {part.OrderPartsItems}
-//                     </td>
-//                     <td className="border border-gray-300 px-3 py-2">
-//                       {part.OrderPartsReason}
-//                     </td>
-//                     <td className={`border border-gray-300 px-3 py-2 text-base font-semibold ${getStatusClass(part.StatusName)}`}>
-//                       {part.StatusName}
-//                     </td>
-//                   </tr>
-//                 ))
-//               )}
-//             </tbody>
-//           </table>
-
-//           <p className="mt-6 text-gray-900 text-lg font-semibold">
-//             Всього: {sortedData.length}
-//           </p>
-//         </>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default OrderPartsPage;
+export default AdditionalOrders;

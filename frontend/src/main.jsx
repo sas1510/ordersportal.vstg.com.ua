@@ -10,7 +10,7 @@ import { NotificationProvider } from './components/notification/Notifications.js
 
 // import "datatables.net-dt/css/jquery.dataTables.css";
 
-
+import { ThemeProvider } from "./context/ThemeContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -18,7 +18,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <RoleProvider>
         <AuthProvider>
           <NotificationProvider>
+              <ThemeProvider>
               <App />
+              </ThemeProvider>
           </NotificationProvider>
         </AuthProvider>
       </RoleProvider>

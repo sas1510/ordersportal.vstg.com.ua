@@ -1,0 +1,173 @@
+.custom-select {
+  position: relative;
+  width: 100%;
+  font-size: 16px;
+  
+}
+
+.select-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #333;
+}
+
+.select-control {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 36px 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: 0.2s ease;
+}
+
+.select-control:hover {
+  border-color: #f46c3b;
+}
+
+.select-value {
+  color: #222;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.select-value.placeholder {
+  color: #888;
+}
+
+.select-arrow {
+  color: #f46c3b;
+  transition: transform 0.2s ease;
+}
+
+.select-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.select-dropdown {
+  position: absolute;
+  z-index: 20;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-top: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  max-height: 220px;
+  overflow-y: auto;
+  animation: fadeIn 0.15s ease;
+}
+
+.select-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #222;
+  transition: 0.1s ease;
+}
+
+.select-option:hover {
+  background: #fdf3ef;
+  color: #f46c3b;
+}
+
+.select-option.selected {
+  font-weight: 600;
+  color: #f46c3b;
+  background: #fff3ee;
+}
+
+.select-empty {
+  padding: 8px 12px;
+
+  text-align: center;
+  font-style: italic;
+}
+
+.check-icon {
+  color: #f46c3b;
+  font-size: 12px;
+}
+
+.disabled .select-control {
+
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- DARK MODE: СТИЛІ CUSTOM SELECT --- */
+
+/* 1. Загальний текст та мітки (Labels) */
+body.dark-theme .select-label {
+    color: #f0f0f0; /* Світла мітка */
+}
+
+/* 2. Основний контрол (Control) */
+body.dark-theme .select-control {
+    background: #333333; /* Темний фон */
+    border: 1px solid #555555; /* Темна межа */
+}
+
+body.dark-theme .select-control:hover {
+    border-color: #f46c3b; /* Акцентний hover залишається */
+}
+
+/* 3. Відображуване значення (Value) */
+body.dark-theme .select-value {
+    color: #f0f0f0; /* Світле значення */
+}
+
+body.dark-theme .select-value.placeholder {
+    color: #aaaaaa; /* Світло-сірий placeholder */
+}
+
+/* 4. Випадаючий список (Dropdown) */
+body.dark-theme .select-dropdown {
+    background: #333333; /* Темний фон списку */
+    border: 1px solid #555555;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Темна тінь */
+}
+
+/* 5. Пункти (Options) */
+body.dark-theme .select-option {
+    color: #f0f0f0; /* Світлий текст пунктів */
+}
+
+body.dark-theme .select-option:hover {
+    background: #444444; /* Темно-сірий hover */
+    color: #ff8657; /* Яскравий текст hover */
+}
+
+/* 6. Вибраний пункт (Selected) */
+body.dark-theme .select-option.selected {
+    font-weight: 600;
+    color: #f46c3b; /* Зберігаємо акцентний колір */
+    background: #282828; /* Дуже темний фон для вибраного пункту */
+}
+
+/* 7. Порожній список (Empty state) */
+body.dark-theme .select-empty {
+    color: #aaaaaa;
+}
+
+/* 8. Іконка "чек" та стрілка */
+body.dark-theme .check-icon,
+body.dark-theme .select-arrow {
+    color: #f46c3b; /* Акцентний колір залишається */
+}
+
+/* 9. Стиль для вимкненого контрола */
+body.dark-theme .disabled .select-control {
+    background: #222222; /* Ще темніший фон для disabled */
+    opacity: 0.6;
+} 

@@ -1,0 +1,57 @@
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: color 0.2s, opacity 0.2s;
+}
+
+.icon.clickable {
+  cursor: pointer;
+}
+
+.icon.text-info {
+  color: #5e83bf;
+}
+
+.icon.text-info:hover {
+  color: #4d6fa3;
+}
+
+.icon.text-danger {
+  color: #e46321;
+}
+
+.icon.text-danger:hover {
+  color: #c74e16;
+}
+
+.icon.inactive {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.gap-10 {
+  gap: 10px;
+}
+/* Додайте до вашого іконочного CSS-файлу */
+
+/* Клас іконки "Олівець/Редагувати" */
+.icon-pencil2:before {
+    content: "\e002"; /* !!! ЗАМІНІТЬ НА ВАШ РЕАЛЬНИЙ UNICODE-КОД !!! */
+}
+
+/* Клас іконки "Кошик/Видалити" */
+.icon-trash:before {
+    content: "\e003"; /* !!! ЗАМІНІТЬ НА ВАШ РЕАЛЬНИЙ UNICODE-КОД !!! */
+}
+
+/* Клас іконки "Три крапки" */
+.icon-ellipsis-v:before {
+    content: "\e001"; /* !!! ЗАМІНІТЬ НА ВАШ РЕАЛЬНИЙ UNICODE-КОД !!! */
+}

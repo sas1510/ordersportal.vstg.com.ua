@@ -59,7 +59,7 @@
 #         return self.number or f'1C Order #{self.pk}'
 from django.db import models
 import datetime
-from backend.users.models import CustomUser
+from users.models import CustomUser
 import os
 
 from django.utils.text import slugify
@@ -206,9 +206,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 class Message(models.Model):
     # Generic ForeignKey для будь-якого об'єкта
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # object_id = models.PositiveIntegerField()
+    # content_object = GenericForeignKey('content_type', 'object_id')
 
     writer = models.ForeignKey(
         CustomUser, 
@@ -219,7 +219,7 @@ class Message(models.Model):
     )
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "Message"

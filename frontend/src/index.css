@@ -22,3 +22,39 @@
   @apply opacity-50 cursor-not-allowed bg-gray-200 text-gray-500;
 }
 
+/* Глобальні стилі для СВІТЛОЇ ТЕМИ (за замовчуванням) */
+body {
+    background-color: #f0f2f5;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s; /* Додаємо плавний перехід */
+}
+
+/* Глобальні стилі для ТЕМНОЇ ТЕМИ */
+body.dark-theme {
+    background-color: #1a1a1a; /* Дуже темний фон */
+    color: #e0e0e0; /* Світлий текст */
+}
+
+/* Приклади для полів і контейнерів */
+.dark-theme input, 
+.dark-theme select,
+.dark-theme textarea {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+/* Приклад, якщо ви використовуєте CSS-змінні */
+:root {
+  --background-color: #f0f2f5;
+  --text-color: #333;
+  --card-background: #ffffff;
+}
+
+.dark-theme {
+  --background-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --card-background: #2c2c2c;
+}
+
+/* Тепер ви можете використовувати ці змінні у всіх ваших компонентах! */

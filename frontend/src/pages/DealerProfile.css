@@ -1,0 +1,47 @@
+/* ========================================================= */
+/* 🌙 АДАПТАЦІЯ ДЛЯ ТЕМНОЇ ТЕМИ (ЗАГАЛЬНІ ЕЛЕМЕНТИ) */
+/* ========================================================= */
+
+/* --- Адаптація фону сторінки --- */
+body.dark-theme .file-body {
+    /* Темний градієнт */
+    --portal-bg-color-start: #121212; 
+    --portal-bg-color-end: #1f1f1f;   
+    background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+    color: #f0f0f0; /* Загальний колір тексту */
+}
+
+/* --- Адаптація заголовків полів --- */
+body.dark-theme .file-label {
+    color: #e0e0e0; /* Світлий текст для label */
+}
+
+/* --- Адаптація полів вводу (Input, Textarea) --- */
+body.dark-theme .file-input,
+body.dark-theme .file-textarea,
+body.dark-theme .file-select {
+    background: #383838; /* Темний фон поля */
+    color: #f0f0f0; /* Світлий текст у полі */
+    border: 1px solid #555; /* Світліша рамка */
+}
+
+/* Адаптація фокусу для темної теми */
+body.dark-theme .file-input:focus,
+body.dark-theme .file-textarea:focus,
+body.dark-theme .file-select:focus {
+    border-color: #f46c3b; /* Акцентний колір */
+    box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.3);
+}
+
+/* Адаптація placeholder */
+body.dark-theme .file-input::placeholder {
+    color: #aaaaaa;
+}
+
+
+/* --- Адаптація кнопок збереження (Загальний .file-btn-save) --- */
+/* Тут він буде застосований до обох секцій, але колір фону буде перевизначений інлайн-стилем */
+body.dark-theme .file-btn-save {
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}

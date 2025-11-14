@@ -6,12 +6,29 @@ export const numToUAMoneyFormat = (num) => {
 
 export const ifZero = (num) => (num === 0 ? '-' : num);
 
-export const formatDate = (dateStr, withTime = false) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-  if (withTime) options.hour = '2-digit', options.minute = '2-digit';
-  return date.toLocaleDateString('uk-UA', options);
+ export const formatDate = (input) => {
+  if (!input || input === "Не вказано") return "Не вказано";
+
+  try {
+    // Якщо це формат типу "24.09.2025 00:00:00"
+    if (/^\d{2}\.\d{2}\.\d{4}/.test(input)) {
+      return input.split(' ')[0]; // обрізаємо все після пробілу
+    }
+
+    // Якщо це формат ISO ("2025-09-24T00:00:00")
+    const date = new Date(input);
+    if (!isNaN(date)) {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+
+    // fallback: якщо не змогли розпарсити
+    return "Не вказано";
+  } catch {
+    return "Не вказано";
+  }
 };
 
 

@@ -86,7 +86,7 @@
 }
 
 .emergency-text-grey {
-  color: var(--grey-text-color, #606060);
+  color:  #606060;
   font-size: 0.875rem;
 }
 
@@ -202,4 +202,119 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+
+/* ========================================================= */
+/* 🌙 АДАПТАЦІЯ ДЛЯ ТЕМНОЇ ТЕМИ (DARK MODE) */
+/* ========================================================= */
+
+/* --- 1. Контейнер сторінки --- */
+body.dark-theme .emergency-portal-body {
+    /* Фон: Дуже темний градієнт */
+    --portal-bg-color-start: #121212; 
+    --portal-bg-color-end: #1f1f1f;   
+    background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+    /* Змінюємо загальний колір тексту за замовчуванням на світлий */
+    color: #f0f0f0; 
+}
+
+/* --- 2. Елемент контактів --- */
+body.dark-theme .emergency-contact-item {
+    background: #2b2b2b; /* Темно-сірий фон картки */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* Темніша тінь */
+}
+
+/* Hover для елемента контактів */
+body.dark-theme .emergency-contact-item:hover {
+    transform: scale(1.02);
+    background: #383838; /* Трохи світліший hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Текст контактів */
+body.dark-theme .emergency-text-info {
+    color: var(--info-color-dark, #4da6ff); /* Світліший акцентний колір для тексту */
+}
+
+body.dark-theme .emergency-text-grey {
+    color: #828181 !important; /* Світло-сірий колір для метаданих */
+    font-weight: 400;
+}
+
+/* --- 3. Кнопки (Зберегти, Скасувати, Виклик) --- */
+
+/* Скасувати (Orange Accent) */
+body.dark-theme .emerg-btn-cancel {
+    background: #f46c3b;
+    color: #fff;
+}
+body.dark-theme .emerg-btn-cancel:hover {
+    box-shadow: 0 6px 16px rgba(244, 108, 59, 0.5);
+}
+
+/* Зберегти (Green Accent) */
+body.dark-theme .emerg-btn-save {
+    background: #76b448;
+    color: #fff;
+}
+body.dark-theme .emerg-btn-save:hover {
+    box-shadow: 0 6px 16px rgba(118, 180, 72, 0.5);
+}
+
+/* Кнопка термінового дзвінка (Red Accent) */
+body.dark-theme .emergency-button-call {
+    background-color: var(--danger-color, #d33); 
+    color: #fff;
+}
+body.dark-theme .emergency-button-call:hover {
+    background-color: #ff5555; /* Трохи світліший hover */
+}
+
+
+/* --- 4. Модальне вікно (Confirm Modal) --- */
+
+body.dark-theme .emergency-modal-overlay {
+    background: rgba(0, 0, 0, 0.7); /* Трохи темніший оверлей */
+}
+
+body.dark-theme .emergency-modal-window {
+    background: #2b2b2b; /* Темний фон вікна */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    color: #f0f0f0; /* Світлий текст у вікні */
+}
+
+/* Кнопка закриття */
+body.dark-theme .emergency-close-btn {
+    color: #b0b0b0; /* Світло-сірий колір */
+}
+body.dark-theme .emergency-close-btn:hover {
+    color: #ffffff;
+}
+
+/* Футер модалки */
+body.dark-theme .emergency-modal-footer {
+    border-top: 1px solid #444; /* Темна лінія, якщо вона є */
+    padding-top: 1.5rem;
+}
+
+
+/* Кнопка "Скасувати" у модалці */
+body.dark-theme .emergency-btn-cancel {
+    background: #444; /* Темно-сірий фон */
+    color: #fff;
+}
+
+body.dark-theme .emergency-btn-cancel:hover {
+    background: #555;
+}
+
+/* Кнопка "Підтвердити" у модалці (залишається акцентною) */
+body.dark-theme .emergency-btn-confirm {
+    background: var(--danger-color, #d33);
+    color: #fff;
+}
+
+body.dark-theme .emergency-btn-confirm:hover {
+    background: #ff5555;
 }
