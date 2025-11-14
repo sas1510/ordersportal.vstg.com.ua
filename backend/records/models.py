@@ -96,7 +96,7 @@ class TransactionFile(models.Model):
 # from .records_models import Record
 
 from django.db import models
-from users.models import CustomUser 
+
 # Імпортуємо модель TransactionType
 from .models import TransactionType # Припускаємо, що TransactionType знаходиться у цьому ж файлі або app.
 
