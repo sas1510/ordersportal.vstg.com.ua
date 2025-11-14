@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import CustomUser
+from backend.users.models import CustomUser
 from django.conf import settings
 # Create your models here.
 class TransactionType(models.Model):

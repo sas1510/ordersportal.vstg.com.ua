@@ -3,7 +3,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from users.models import CustomUser # Переконайтесь, що шлях до CustomUser правильний
+from backend.users.models import CustomUser # Переконайтесь, що шлях до CustomUser правильний
 
 class MediaResource(models.Model):
     

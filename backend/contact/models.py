@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import CustomUser
+from backend.users.models import CustomUser
 
 
 class HelpServiceContact(models.Model):

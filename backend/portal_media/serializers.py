@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 from .models import MediaResource
-from users.models import CustomUser 
+from backend.users.models import CustomUser 
 import base64
 from django.core.files.base import ContentFile
 
