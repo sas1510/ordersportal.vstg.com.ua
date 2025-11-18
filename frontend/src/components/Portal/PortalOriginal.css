@@ -1905,14 +1905,14 @@ white-space: nowrap;
 .comments-text-wrapper-last {
   font-size: 12px;
   color: #777;
-  overflow: hidden;                /* обрізаємо те, що не вміщається */
-  display: -webkit-box;            /* для багаторядкових ... */
-  -webkit-line-clamp: 3;           /* кількість рядків */
-  -webkit-box-orient: vertical;
-  line-height: 1.2em;              /* регулює висоту рядка */
-  word-break: break-word;           /* перенос довгих слів */
-  margin-bottom: 4px;
+  line-height: 1.2em;    /* Висота рядка */
+  max-height: 2.4em;     /* 2 рядки */
+  overflow: hidden;
+  word-break: break-word;
 }
+
+
+
 
 
 .btn-comments {

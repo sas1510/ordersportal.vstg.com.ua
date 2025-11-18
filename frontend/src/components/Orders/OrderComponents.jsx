@@ -169,19 +169,22 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
             handleDownload();
           }}
         >
-          <div className="column gap-1 align-start" style={{ minWidth: "150px" }}>
-            <div className="row gap-14 align-center">
-              <div className="icon-document-file-numbers font-size-24 text-success"></div>
-              <div>{calc.number}.zkz</div>
-            </div>
+  <div className="column gap-1 align-start mr-3" style={{ minWidth: "150px" }}>
 
-            {calc.dealer && (
-              <div className="text-grey font-size-14">
-                <span className="text-dark">{calc.dealer}</span>
+           <div className="row align-start" style={{ gap: 0 }}> 
+               <div className="row align-center" style={{ borderBottom: '1px solid #ddd', paddingBottom: '2px', gap: '3px' }}>
+                    <div className="icon-document-file-numbers font-size-20 text-success mr-0"></div>
+                    <div className="font-size-12 ml-0">{calc.number}.zkz</div>
+                 </div>
+              </div>
+
+             {calc.dealer && (
+               <div className="text-grey font-size-14">
+                 <span className="text-dark">{calc.dealer}</span>
               </div>
             )}
-          </div>
-        </div>
+       </div>
+  </div>
 
         <div className="summary-item row w-15 no-wrap">
           <div className="row gap-14 align-center">

@@ -32,6 +32,7 @@ export default function OrderDetailsDesktop({ order }) {
         return "text-danger";
     }
   };
+  
 
   // --- Дата ---
   const parseDate = (dateStr) => {
@@ -106,23 +107,21 @@ export default function OrderDetailsDesktop({ order }) {
           {/* Виробництво */}
           <li>
             {(() => {
-              const factDate = order.factProductionMax;
-              const planDate = order.planProductionMax;
+              const factDate = order.factStartProduction;
+              const planDate = order.planProduction;
               const status = getDateStatus(planDate, factDate);
 
-              const displayDate = factDate 
-                ? formatDateHuman(factDate)
-                 : planDate 
-                    ? (
-                        <div className="plan-block">
-                          <div className="plan-name">Планово:  </div>
-                          <div >з {formatDateHumanShorter(order.planProductionMin)}</div>
-                          <div className="plan-dates">
-                            по {formatDateHumanShorter(planDate)}
-                          </div>
-                        </div>
-                      )
-                    : "Немає даних";
+            const displayDate = factDate 
+                ? formatDateHumanShorter(factDate)
+                 : planDate 
+                    ? (
+                     
+                        <div className="plan-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div className="plan-name">Планово:</div>
+                          <div> {formatDateHumanShorter(order.planProduction)}</div>
+                        </div>
+                      )
+                    : "Немає даних";
 
               return (
                 <>
@@ -145,7 +144,7 @@ export default function OrderDetailsDesktop({ order }) {
           {/* Готовність */}
           <li>
             {(() => {
-              const status = getDateStatus(order.planReadyMax, order.factReadyMax);
+              const status = getDateStatus(order.planReadyMax, order.factReady);
               return (
                 <>
                   <div className={`icon ${status.icon}`}>
@@ -154,7 +153,7 @@ export default function OrderDetailsDesktop({ order }) {
                   <div className="badge">
                     <div className="badge-title">Готовність</div>
                     <div className={`badge-content ${status.bg}`}>
-                      {formatDateHuman(order.factReadyMax) || "Не готовий"}
+                      {formatDateHumanShorter(order.factReady) || "Немає даних"}
                     </div>
                   </div>
                 </>
@@ -174,7 +173,7 @@ export default function OrderDetailsDesktop({ order }) {
                   <div className="badge">
                     <div className="badge-title">Доставка</div>
                     <div className={`badge-content ${status.bg}`}>
-                      {formatDateHuman(order.realizationDate) || "Не доставлено"}
+                      {formatDateHumanShorter(order.realizationDate) || "Не доставлено"}
                     </div>
                   </div>
                 </>

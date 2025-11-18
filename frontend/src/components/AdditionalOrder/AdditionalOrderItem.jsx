@@ -4,12 +4,12 @@ import CommentsModal from "./CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu"; // Використовуємо перейменоване меню
 // Компоненти для замовлень, які можуть бути вкладені
 import AdditionalOrderItemSummaryDesktop from './AdditionalOrderItemSummaryDesktop';
-import AdditionalOrderItemSummaryMobile from './AdditionalOrderItemSummaryMobile';
+// import AdditionalOrderItemSummaryMobile from './AdditionalOrderItemSummaryMobile';
 import useWindowWidth from '../../hooks/useWindowWidth';
 import axiosInstance from "../../api/axios";
 import { User, ClipboardCheck, LayoutGrid, Calendar } from 'lucide-react'; // Імпорт іконок
 import { formatDateHumanShorter } from "../../utils/formatters"; // Припускаємо, що це ваша утиліта
-
+import "./AdditionalOrderItem.css"
 // ================= AdditionalOrderItem.jsx (Замість CalculationItem.jsx) =================
 
 export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
@@ -22,6 +22,7 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
   const [selectedComments, setSelectedComments] = useState([]);
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
+
 
   // Перевірка наявності даних про основне замовлення
   const hasMainOrder = !!additionalOrder.mainOrderNumber;
@@ -60,7 +61,7 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
   };
 
   const orderList = Array.isArray(additionalOrder.orders) ? additionalOrder.orders : [];
-
+const ordersWithNumbers = orderList.filter(order => order.number);
   const getStatusClass = (status) => {
     switch (status) {
       case "Новий":
@@ -90,10 +91,10 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
           <ClipboardCheck className="font-size-24 text-success" title="Додаткове Замовлення" />
         </div>
 
-        <div className="summary-item row w-9 no-wrap">
+        <div className="summary-item row w-9 no-wrap" style={{ minWidth: '130px' }}>
           <div className="column">
-            <div className="font-size-18 text-info border-bottom">№ {additionalOrder.number}</div>
-            <div className="text-danger">{additionalOrder.date}</div>
+            <div className="font-size-18 text-info border-bottom" >№ {additionalOrder.number}</div>
+            <div className="text-danger">{formatDateHumanShorter(additionalOrder.dateRaw)}</div>
           </div>
         </div>
 
@@ -104,7 +105,7 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
         </div>
 
         {/* 3. Номер Основного Замовлення (з перевіркою) */}
-        <div className="summary-item row w-9 no-wrap" title="Номер Основного Замовлення">
+        <div className="summary-item row w-9 no-wrap" style={{ minWidth: '120px' }} title="Номер Основного Замовлення">
           <div className="column">
             {hasMainOrder ? (
               <>
@@ -114,7 +115,7 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
                 </div>
               </>
             ) : (
-              <div className="font-size-14 text-grey">Без основного замовлення</div>
+              <div className="font-size-14 text-grey" style={{whiteSpace: 'normal'}}>Без основного замовлення</div>
             )}
           </div>
         </div>
@@ -136,6 +137,7 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
             <div className="comments-text-wrapper-last" title="Останній коментар / Опис">
               {additionalOrder.message || "Без опису / коментарів"}
             </div>
+  {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
             <button
               className="btn-comments"
               onClick={(e) => {
@@ -159,16 +161,16 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
         </div>
         
         {/* 7. Статуси */}
-        <div className="summary-item row w-15 no-wrap">
-          <div className="row gap-14 align-center">
+        <div className="summary-item row w-15 ">
+          <div className="row gap-1 align-center">
             <div className="icon-info-with-circle font-size-24 text-info"></div>
 
-            <div className="column gap-3 font-size-12 no-wrap scroll-y">
+            <div className="column gap-3 font-size-12  scroll-y">
               {additionalOrder.statuses && Object.keys(additionalOrder.statuses).length > 0 ? (
                 Object.entries(additionalOrder.statuses).map(([status, count]) => (
                   <div
                     key={status}
-                    className={`row gap-3 left no-wrap calc-status ${getStatusClass(status)}`}
+                    className={`row gap-3 left  calc-status ${getStatusClass(status)}`}
                   >
                     <div>{status}</div>
                     <div>({count})</div>
@@ -198,16 +200,22 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
 
       {/* ============ ORDER DETAILS (Якщо є підпорядковані замовлення) ============ */}
 
+{/* ============ ORDER DETAILS (Якщо є підпорядковані замовлення) ============ */}
+
+{/* ============ ORDER DETAILS (Якщо є підпорядковані замовлення) ============ */}
+
       {expanded && (
         <div className="item-details column gap-14 mt-2">
-          {orderList.length === 0 ? (
+          {/* 🔥 Використовуємо ordersWithNumbers для перевірки */}
+          {ordersWithNumbers.length === 0 ? (
             <div className="order-item column gap-14 w-100 align-center">
               <div className="font-size-22 text-grey uppercase float-center">
                 Це дозамовлення не містить підпорядкованих замовлень
               </div>
             </div>
           ) : (
-            orderList.map((order) => (
+
+            ordersWithNumbers.map((order) => (
 
                 <AdditionalOrderItemSummaryDesktop key={order.number} order={order} />
               

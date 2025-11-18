@@ -247,3 +247,204 @@ def api_get_orders(request):
 
     data = get_orders_by_year_and_contractor(year, contractor_id)
     return Response({"status": "success", "data": {"calculation": data}})
+
+
+
+# from django.db import connection
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+
+# @api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+# def additional_orders_view(request):
+#     """
+#     Повертає дозакази користувача у потрібному JSON-форматі.
+#     """
+#     try:
+#         user_id = request.user.id
+#     except AttributeError:
+#         return Response({"error": "Invalid user object"}, status=400)
+
+#     year_str = request.GET.get("year")
+#     try:
+#         year = int(year_str) if year_str else None
+#     except ValueError:
+#         return Response({"error": "Invalid year format"}, status=400)
+
+#     with connection.cursor() as cursor:
+#         cursor.execute("""
+#             EXEC [dbo].[GetAdditionalOrder] 
+#                 @User_ID = %s,
+#                 @Year = %s
+#         """, [user_id, year])
+
+#         columns = [col[0] for col in cursor.description]
+#         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+#     # Групуємо дозакази та формуємо структуру для фронту
+#     orders_dict = {}
+#     for row in rows:
+#         main_order_number = row.get("OrderNumber") or "unknown"
+#         add_order_id = f"{row.get('AdditionalOrderNumber') or '000'}"
+#         if add_order_id not in orders_dict:
+#             orders_dict[add_order_id] = {
+#                 "id": add_order_id,
+#                 "number": f"Дод. Замовлення {row.get('AdditionalOrderNumber') or '000'}",
+#                 "mainOrderNumber": main_order_number,
+#                 "date": row.get("AdditionalOrderDate") or None,
+#                 "mainOrderDate": row.get("MainOrderDate") or None,
+#                 # "date": row.get("Дата"),  # залишаємо як є (можна форматувати)
+#                 "constructionsQTY": int(row.get("ConstructionsQTY") or 0),
+#                 "dealer": row.get("Customer") or "",
+#                 "debt": float(row.get("DocumentAmount") or 0) - float(row.get("TotalPayments") or 0),
+#                 "file": row.get("File") or "",
+#                 "message": row.get("Message") or "",
+#                 "orderCountInCalc": 0,
+#                 # "constructionsCount": int(row.get("БВ_КоличествоКонструкций") or 0),
+#                 "amount": float(row.get("DocumentAmount") or 0),
+#                 "orders": [],
+#                 "statuses": {}
+#             }
+
+#         # Додаємо вкладені замовлення
+#         order_item = {
+#             "id": f"{row.get('ClaimOrderNumber') or '000'}",
+#             "number": row.get("ClaimOrderNumber") or "",
+#             # "dateRaw": row.get("ClaimOrderDate") or None,
+#             "date": row.get("ClaimOrderDate"),
+#             "status": row.get("StatusName") or "Новий",
+#             "amount": float(row.get("DocumentAmount") or 0),
+#             "count": int(row.get("ConstructionsQTY") or 0),
+#             "paid": float(row.get("TotalPayments") or 0),
+#             "realizationDate": row.get("SoldDate"),
+#             # "deliveryAddress": row.get("DeliveryAddress") or "",
+#         }
+
+#         # Оновлюємо агрегати
+#         add_order = orders_dict[add_order_id]
+#         add_order["orders"].append(order_item)
+#         add_order["orderCountInCalc"] = len(add_order["orders"])
+#         add_order["constructionsCount"] += int(row.get("ConstructionsQTY") or 0)
+#         # Статуси
+#         st = order_item["status"]
+#         add_order["statuses"][st] = add_order["s]()
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def additional_orders_view(request):
+    """
+    Повертає дозакази користувача у потрібному JSON-форматі.
+    Кожен рядок SQL-процедури розглядається як одне Додаткове Замовлення (Претензія).
+    """
+    try:
+        user_id = request.user.id
+    except AttributeError:
+        return Response({"error": "Invalid user object"}, status=400)
+
+    year_str = request.GET.get("year")
+    try:
+        year = int(year_str) if year_str else None
+    except ValueError:
+        return Response({"error": "Invalid year format"}, status=400)
+
+    # --- ФУНКЦІЯ-ПОМІЧНИК ДЛЯ ОЧИЩЕННЯ ДАТИ ---
+    def clean_date_stub(date_value):
+        """Перевіряє, чи не є значення датою-заглушкою, інакше повертає None."""
+        if not date_value:
+            return None
+        
+        date_str = str(date_value).strip()
+        
+        # Дати-заглушки можуть бути: 0001-01-01, 2001-01-01, або 1753-01-01 (SQL min date)
+        # Перевіряємо лише перші 10 символів (YYYY-MM-DD)
+        if date_str.startswith('0001-01-01') or date_str.startswith('2001-01-01') or date_str.startswith('1753-01-01'):
+            return None
+        
+        return date_value
+    # ------------------------------------------
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            EXEC [dbo].[GetAdditionalOrder] 
+                @User_ID = %s,
+                @Year = %s
+        """, [user_id, year])
+
+        columns = [col[0] for col in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    formatted_orders = []
+    
+    for row in rows:
+        # Парсинг AdditionalInformation
+        full_text = row.get('AdditionalInformation')
+        # parse_reclamation_details повинна бути імпортована
+        parsed_info = parse_reclamation_details(full_text) 
+        # Припускаємо, що parsed_info.get('ParsedDescription') повертає None, якщо не знайдено
+        # parsed_info = {'ParsedDescription': None} 
+        
+        # Використовуємо ComplaintNumber як унікальний ID дозамовлення
+        complaint_number = row.get("AdditionalOrderNumber") or "unknown"
+        order_sum = float(row.get("DocumentAmount") or 0)
+        total_paid = float(row.get("TotalPayments") or 0)
+        status_name = row.get("StatusName") or "Новий"
+        constructions_qty = int(row.get("ConstructionsQTY") or 0)
+
+        # Очищення всіх дат від заглушок
+        main_order_date = clean_date_stub(row.get('MainOrderDate'))
+        additional_order_date = clean_date_stub(row.get("AdditionalOrderDate"))
+        claim_order_date = clean_date_stub(row.get("ClaimOrderDate"))
+        sold_date = clean_date_stub(row.get("SoldDate"))
+        date_launched = clean_date_stub(row.get("DateLaunched"))
+        date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
+        produced_date = clean_date_stub(row.get("ProducedDate"))
+        
+        # Створення основного об'єкта дод. замовлення (для фронту це "calc")
+        additional_order = {
+            "id": complaint_number,
+            "number": f"{complaint_number}",
+            "mainOrderNumber": row.get('OrderNumber'),
+            "mainOrderDate": main_order_date, # 🔥 ОЧИЩЕНО
+            "dateRaw": additional_order_date, # 🔥 ОЧИЩЕНО
+            "date": additional_order_date, # 🔥 ОЧИЩЕНО
+            "dealer": row.get("Customer") or row.get("OrganizationName") or "",
+            "managerName": row.get("LastManagerName"),
+            "organizationName": row.get("OrganizationName"),
+            "debt": order_sum - total_paid,
+            "file": None, 
+            "message": parsed_info.get('ParsedDescription') or full_text,
+            "orderCountInCalc": 1, 
+            "constructionsCount": constructions_qty,
+            "constructionsQTY": constructions_qty,
+            "amount": order_sum,
+            "statuses": {status_name: 1}, 
+            "orders": [
+                {
+                    # Використовуємо ComplaintNumber, якщо ClaimOrderNumber порожній/недійсний
+                    "id": row.get('ClaimOrderNumber') or complaint_number, 
+                    "number": row.get('ClaimOrderNumber') or "", # Порожній рядок, якщо номер претензії порожній (для фронту)
+                    "dateRaw": claim_order_date, # 🔥 ОЧИЩЕНО
+                    "date": claim_order_date, # 🔥 ОЧИЩЕНО
+                    "status": status_name,
+                    "amount": order_sum,
+                    "count": constructions_qty,
+                    "paid": total_paid,
+                    "realizationDate": sold_date, # 🔥 ОЧИЩЕНО
+                    "routeStatus": row.get("RouteStatus"),
+                    "seriesList": row.get("SeriesList"),
+                    "resolutionPaths": row.get('ResolutionPaths'),
+                    "organizationName": row.get("OrganizationName"),
+                    "planProduction": date_launched, # 🔥 ОЧИЩЕНО
+                    "factStartProduction" : date_transferred, # 🔥 ОЧИЩЕНО
+                    "factReady" : produced_date, # 🔥 ОЧИЩЕНО
+                }
+            ],
+        }
+        
+        formatted_orders.append(additional_order)
+
+    return Response({
+        "status": "success",
+        "data": {"calculation": formatted_orders} 
+    })

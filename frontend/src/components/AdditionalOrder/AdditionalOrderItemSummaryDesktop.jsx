@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import OrderDetails from "./OrderDetailsDesktop";
 import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
 import CommentsModal from "./CommentsModal";
-import {CalculationMenu} from "./AdditionalOrderMenu";
+import {AdditionalOrderMenu} from "./AdditionalOrderMenu";
 import AddClaimModal from "./AddClaimModal";
 import AddReorderModal from "./AddReorderModal"; // шлях до твого нового компоненту
 import axiosInstance from "../../api/axios";
@@ -33,28 +33,35 @@ export default function AdditionalOrderItemSummaryDesktop  ({ order })  {
       case "Новий":
         state.confirm = true;
         state.pay = false;
-        state.reorder = false;
+        // state.reorder = false;
         state.claim = false;
         break;
 
       case "Підтверджений":
         state.confirm = false;
         state.pay = true;
-        state.reorder = false;
+        // state.reorder = false;
         state.claim = true;
+        break;
+
+      case "Очікуємо підтвердження":
+        state.confirm = true;
+        state.pay = false;
+        // state.reorder = false;
+        state.claim = false;
         break;
 
       case "Очікуємо оплату":
         state.confirm = false;
         state.pay = true;
-        state.reorder = false;
+        // state.reorder = false;
         state.claim = false;
         break;
 
       case "Оплачено":
         state.confirm = false;
         state.pay = false;
-        state.reorder = true;
+        // state.reorder = true;
         state.claim = false;
         break;
 
@@ -62,7 +69,7 @@ export default function AdditionalOrderItemSummaryDesktop  ({ order })  {
       case "Готовий":
         state.confirm = false;
         state.pay = false;
-        state.reorder = true;
+        // state.reorder = true;
         state.claim = false;
         break;
       
@@ -70,7 +77,7 @@ export default function AdditionalOrderItemSummaryDesktop  ({ order })  {
 
         state.confirm = false;
         state.pay = false;
-        state.reorder = true;
+        // state.reorder = true;
         state.claim = true;
         break;
       
@@ -80,7 +87,7 @@ export default function AdditionalOrderItemSummaryDesktop  ({ order })  {
       case "Відмова":
         state.confirm = false;
         state.pay = false;
-        state.reorder = false;
+        // state.reorder = false;
         state.claim = false;
         break;
 
@@ -93,24 +100,26 @@ export default function AdditionalOrderItemSummaryDesktop  ({ order })  {
 
   const buttonState = getButtonState(order.status);
 
-  const getStatusClass = (status) => {
+
+
+    const getStatusClass = (status) => {
     switch (status) {
-      case "Новий":
-      case "В обробці":
-      case "У виробництві":
-      case "Підтверджений":
-        return "text-info";
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
+      case "Новий": return "text-danger";
+      case "В роботі": return "text-info";
+      case "У виробництві": return "text-factory";
+      case "Підтверджений": return "text-info";
+      case "Очикуємо оплату":
+      case "Очикуємо підтвердження":
       case "Відмова":
         return "text-danger";
       case "Готовий":
-      case "Відвантажений":
+      case "Доставлено":
         return "text-success";
       default:
         return "text-grey";
     }
   };
+
 
   const openClaimModal = () => {
     setClaimOrderNumber(order.name || order.number); // автоматично підставляємо номер
@@ -143,6 +152,7 @@ export default function AdditionalOrderItemSummaryDesktop  ({ order })  {
             <div className="text-danger text-center">{order.date}</div>
         </div>
         </div>
+        								{/* <div class="button white anim"><a href="[[*link-category-1]]">[[#[[$langLink?ru_id=`1`]].buttonMore]]</a></div> */}
 
 
         {/* Кількість конструкцій */}

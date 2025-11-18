@@ -3,7 +3,7 @@ import React, { useState } from "react";
 // import OrderDetails from "./OrderDetails";
 import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
-import { CalculationMenu } from "./AdditionalOrderMenu";
+import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
 import AddClaimModal from "./AddClaimModal";
 import AddReorderModal from "./AddReorderModal";
 import axiosInstance from "../../api/axios";
@@ -53,19 +53,18 @@ export default function  AdditionalOrderItemSummaryMobile ({ order })  {
 
   const buttonState = getButtonState(order.status);
 
-  const getStatusClass = (status) => {
+    const getStatusClass = (status) => {
     switch (status) {
-      case "Новий":
-      case "В обробці":
-      case "У виробництві":
-      case "Підтверджений":
-        return "text-info";
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
+      case "Новий": return "text-danger";
+      case "В роботі": return "text-info";
+      case "У виробництві": return "text-factory";
+      case "Підтверджений": return "text-info";
+      case "Очикуємо оплату":
+      case "Очикуємо підтвердження":
       case "Відмова":
         return "text-danger";
       case "Готовий":
-      case "Відвантажений":
+      case "Доставлено":
         return "text-success";
       default:
         return "text-grey";

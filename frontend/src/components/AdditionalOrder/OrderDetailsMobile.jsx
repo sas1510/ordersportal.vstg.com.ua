@@ -23,6 +23,8 @@ export default function OrderDetailsMobile({ order }) {
         return "text-danger";
       case "Готовий":
       case "Відвантажений":
+      case "Доставлено":
+      
         return "text-success";
       default:
         return "text-danger";
@@ -77,20 +79,19 @@ export default function OrderDetailsMobile({ order }) {
       id: "production",
       title: "Виробництво",
       icon: "icon-cogs",
-      factDate: order.factProductionMax,
-      planDateMin: order.planProductionMin,
-      planDateMax: order.planProductionMax,
-      status: getDateStatus(order.planProductionMax, order.factProductionMax),
+      factDate: order.factStartProduction,
+      planDate: order.planProduction,
+      // planDateMax: order.planProductionMax,
+      status: getDateStatus(order.planProductionMax, order.factStartProduction),
       getContent: () => {
-        if (order.factProductionMax) {
-          return formatDateHuman(order.factProductionMax);
+        if (order.factStartProduction) {
+          return formatDateHuman(order.factStartProduction);
         }
-        if (order.planProductionMax) {
+        if (order.planDate) {
           return (
             <div className="flex flex-col gap-1">
               <div className="text-grey font-size-11">Планово:</div>
-              <div className="font-size-12">з {formatDateHumanShorter(order.planProductionMin)}</div>
-              <div className="font-size-12">по {formatDateHumanShorter(order.planProductionMax)}</div>
+              <div className="font-size-12">{formatDateHumanShorter(order.planDate)}</div>
             </div>
           );
         }
@@ -101,8 +102,8 @@ export default function OrderDetailsMobile({ order }) {
       id: "ready",
       title: "Готовність",
       icon: "icon-layers2",
-      status: getDateStatus(order.planReadyMax, order.factReadyMax),
-      content: formatDateHuman(order.factReadyMax) || "Не готовий"
+      status: getDateStatus(order.planReadyMax, order.factReady),
+      content: formatDateHuman(order.factReady) || "Немає даних"
     },
     {
       id: "delivery",
