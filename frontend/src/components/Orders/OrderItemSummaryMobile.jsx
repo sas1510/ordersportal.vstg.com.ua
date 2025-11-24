@@ -12,7 +12,7 @@ import {formatDateHumanShorter} from '../../utils/formatters'
 
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export default React.memo(function  OrderItemSummaryMobile ({ order })  {
-//                                ^^^^^^^^^^
+//                                ^^^^^^^^^^
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
@@ -132,6 +132,41 @@ export default React.memo(function  OrderItemSummaryMobile ({ order })  {
           </div>
         </div>
 
+{(order.organizationName || order.managerName) && (
+    <div className="grid grid-cols-2 gap-2 mb-2 pb-2 border-b border-gray-200">
+
+        {order.organizationName && (
+            <div className="flex flex-col p-2 bg-blue-50 rounded">
+                {/* <div className="flex items-center gap-1 mb-0.5">
+                    <span className="fas fa-building font-size-14 text-info"></span>
+                    <span className="text-grey font-size-14">Організація</span>
+                </div> */}
+                <div className="font-size-18 font-weight-medium text-dark leading-tight">
+                    <span className="fas fa-building font-size-18 text-info mr-1"></span>
+                    {order.organizationName}
+                </div>
+            </div>
+        )}
+
+        {order.managerName && (
+            <div className="flex flex-col p-2 bg-purple-50 rounded">
+                {/* <div className="flex items-center gap-1 mb-0.5">
+                    
+                    <span className="text-grey font-size-14">Менеджер</span>
+                </div> */}
+                <div className="font-size-18 font-weight-medium text-dark leading-tight">
+                    <span className="fas fa-user-tie font-size-18 text-success mr-1"></span>
+                    {order.managerName}
+                </div>
+            </div>
+        )}
+
+    </div>
+)}
+
+
+
+
         {/* Фінанси */}
         <div className="grid grid-cols-2 gap-2 mb-2">
           <div className="flex flex-col">
@@ -160,6 +195,8 @@ export default React.memo(function  OrderItemSummaryMobile ({ order })  {
           onClick={(e) => e.stopPropagation()}>
           <div className="icon-document-file-pdf font-size-16 text-red"></div>
           <div className="font-size-14 text-grey">{order.name}.pdf</div>
+          
+          {/* Тут мав би бути обробник завантаження, але його немає в цьому компоненті. */}
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1.5 py-[2px] -mx-3 px-3 mobile-buttons-scroll"

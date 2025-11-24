@@ -156,7 +156,9 @@ const ComplaintItemDetailView = ({ complaint }) => {
                                 <InfoRow label="Номер замовлення" value={complaint.orderNumber} colors={c} />
                                
                             </HorizontalInfoGroup>
-
+                            <FullWidthInfoGroup colors={c}>
+                                <InfoRow label="Організація" value={complaint.organization} colors={c} />
+                            </FullWidthInfoGroup>
                             <FullWidthInfoGroup isLastInGroup={true} colors={c}>
                                 <InfoRow label="Серії конструкцій" value={complaint.series} colors={c} />
                             </FullWidthInfoGroup>

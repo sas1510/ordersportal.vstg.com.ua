@@ -225,3 +225,67 @@
   word-break: break-word;           /* перенос довгих слів */
   margin-bottom: 4px;
 }
+
+/* ============================================== */
+/* === СТИЛІ RECLAMATION ITEM (КОМПЛЕКСНА ВЕРСІЯ) === */
+/* ============================================== */
+
+/* 1. Базові стилі для ВСІХ рекламацій (Світла тема) */
+.reclamation-item {
+    position: relative;
+    margin-bottom: 14px; /* Відступ між елементами списку */
+    min-height: 60px;
+    padding: 7px; 
+    width: calc(100%);
+    cursor: pointer;
+    align-items: flex-start;
+    transition: all 0.2s ease-in-out;
+
+    /* ФІКС: Уніфікуємо рамку. Використовуємо 1px загальної рамки, але 3px зліва */
+    border: 1px solid #ddd;
+    border-left: 3px solid #f0f0f0; /* Базова товста лінія (Світло-сіра) */
+    
+    background-color: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 2. Стилі для WEB рекламацій (Перекриваємо ліву рамку) */
+.reclamation-item.web-reclamation {
+    border-left: 3px solid #ff9800; /* Товста ЖОВТА лінія */
+    background-color: #fffbef; /* Легкий фон для додаткового виділення */
+}
+
+.reclamation-item:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+}
+
+/* --- DARK THEME OVERRIDES --- */
+
+body.dark-theme .reclamation-item {
+    /* Тут важливе правило: має бути видно і 1px рамки, і 3px лівої */
+    background-color: var(--cream-bg-color, #2c2c2c); 
+    border: 1px solid var(--grey-border-color, #444);
+    border-left: 3px solid var(--grey-border-color, #444); /* Базова лінія темної теми */
+    box-shadow: none;
+}
+
+/* DARK THEME: Стилі для WEB рекламацій */
+body.dark-theme .reclamation-item.web-reclamation {
+    border-left: 3px solid #ff9800; /* ЖОВТА лінія зберігається */
+    background-color: var(--border-dark-color, #333333); 
+}
+
+body.dark-theme .reclamation-item.web-reclamation:hover {
+    box-shadow: 0 0 3px rgba(255, 152, 0, 0.7); 
+}
+
+
+/* Додаткове правило для впевненості, що внутрішній вміст не зміщує рамку */
+.reclamation-item .item-summary {
+    /* Прибираємо margin-left або padding-left, якщо він був причиною зміщення */
+    padding-left: 0 !important; 
+}
+.reclamation-item .summary-item {
+    /* Перевіряємо, чи немає тут негативних margin, що зміщують елементи */
+    margin-left: 0; 
+}

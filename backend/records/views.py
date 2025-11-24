@@ -158,6 +158,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             calcs_dict[calc_id] = {
                 "id": calc_id,
                 "number": row.get("ClientOrderNumber") or "",
+                "webNumber": row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
                 "orders": [],
@@ -176,6 +177,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         # Додаємо ордер до масиву
         order = {
             "id": row.get("OrderID"),
+            # "id": row.get("OrderID"),
             "number": row.get("OrderNumber") or "",
             "dateRaw": row.get("OrderDate"),
             "date": row.get("OrderDate"),
@@ -196,6 +198,9 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
             "arrivalTime": row.get("ArrivalTime"),
             "routeStatus": row.get("RouteStatus"),
+            "organizationName": row.get("OrganizationName"),
+            "managerName": row.get("ManagerName"),
+            
         }
         calcs_dict[calc_id]["orders"].append(order)
 
@@ -404,6 +409,7 @@ def additional_orders_view(request):
         additional_order = {
             "id": complaint_number,
             "number": f"{complaint_number}",
+            "numberWEB": row.get('NumberWEB'),
             "mainOrderNumber": row.get('OrderNumber'),
             "mainOrderDate": main_order_date, # 🔥 ОЧИЩЕНО
             "dateRaw": additional_order_date, # 🔥 ОЧИЩЕНО

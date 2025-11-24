@@ -512,6 +512,15 @@ body.dark-theme .bg-blue-50 {
     background-color: rgba(14, 83, 168, 0.467); /* Blue 300 */
     border: 1px dashed #2563eb; /* Blue 600 */
 }
+
+body.dark-theme .bg-purple-50 { 
+    color: #441e8a; /* Blue 900 */
+    background-color: rgba(86, 14, 168, 0.467); /* Blue 300 */
+    border: 1px dashed #6a25eb; /* Blue 600 */
+}
+
+
+
 body.dark-theme .bg-green-50 { 
     background-color: #2f4d3b; /* Green 900 */
     color: #e2f6e9 !important; /* Green 300 */

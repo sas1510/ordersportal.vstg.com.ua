@@ -28,7 +28,7 @@ import HomePage from "./pages/HomePage";
 import ManagersUpdatePage from "./pages/ManagersUpdatePage";
 import ManagersSync from "./pages/ManagersSync";
 import SyncManagersPage from "./pages/SyncManagersPage"
-import DebtPage from "./pages/DebtPage"
+import PaymentStatus from "./pages/DebtPage"
 import WdsPromotion from "./pages/WdsPromotion"
 import CustomerBills from "./pages/CustomerBills"
 import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
@@ -67,7 +67,7 @@ export const adminRoutes = [
   { path: "managers-update", element: <ManagersUpdatePage /> },
   { path: "managers-sync", element: <ManagersSync /> },
   { path: "managers-dealer-sync", element: <SyncManagersPage /> },
-  { path: "finance/settlements", element: <DebtPage /> },
+  { path: "finance/settlements", element: <PaymentStatus /> },
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
@@ -94,7 +94,7 @@ export const dealerRoutes = [
   { path: "addClaim", element: <AddClaimForm /> },
   { path: "addReorder", element: <AddReorderForm /> },
   // { path: "finance/settlements", element: <SettlementsPage /> },
-  { path: "finance/settlements", element: <DebtPage /> },
+  { path: "finance/settlements", element: <PaymentStatus /> },
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
   { path: "create-bill", element: <CreateCustomerBillPage /> },
@@ -131,7 +131,7 @@ export const managerRoutes = [
   { path: "urgentLogs", element: <UrgentCallLogsPage /> },
   { path: "contacts/:id/edit", element: <ContactFormPage /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
-  { path: "finance/settlements", element: <DebtPage /> },
+  { path: "finance/settlements", element: <PaymentStatus /> },
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
 

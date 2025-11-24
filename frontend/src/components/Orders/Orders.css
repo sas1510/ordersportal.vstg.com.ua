@@ -1,0 +1,67 @@
+/* У вашому файлі стилів (наприклад, CalculationItem.css або загальному стилі) */
+
+.calc-item {
+    /* Базові стилі, якщо вони не визначені в інших місцях */
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+    position: relative;
+    border-left: 5px solid transparent; /* Базовий прозорий бордер для звичайних елементів */
+}
+
+/* Стиль для прорахунків з webNumber - СУЦІЛЬНА та ТОВЩА ЛІНІЯ */
+.calc-item.web-calc {
+    border-left: 3px solid #ff9800; /* Змінено товщину на 8px і тип на solid */
+    /* Якщо у вас є інші стилі, які перебивають border, можливо, доведеться налаштувати */
+}
+
+/* Приклад додаткового стилю при наведенні, якщо потрібно */
+.calc-item.web-calc:hover {
+    box-shadow: 0 0 3px rgba(255, 152, 0, 0.7); /* Трохи посилена тінь при наведенні */
+}
+
+/* Якщо вам потрібно зберегти рамку з інших сторін, але змінити лише ліву,
+   то переконайтеся, що .calc-item має інші властивості border-right, border-top, border-bottom
+   або просто встановіть їх після web-calc класу для .calc-item */
+.calc-item .item-summary {
+    /* Можливо, тут є padding-left, який потрібно буде скоригувати,
+       якщо лінія "залазить" на контент.
+       Наприклад, додати padding-left до .item-summary, якщо він ще не встановлений
+       і якщо ви не хочете, щоб лінія була частиною padding.
+       Якщо item-summary має background і ви хочете, щоб лінія була "під" ним,
+       то використовуйте box-shadow або pseudo-element.
+    */
+}
+
+/* У вашому файлі стилів (наприклад, CalculationItem.css або загальному стилі) */
+
+body.dark-theme  .calc-item {
+    /* Базові стилі, якщо вони не визначені в інших місцях */
+    /* border: 1px solid #ddd; */
+    margin-bottom: 10px;
+    position: relative;
+    border-left: 5px solid transparent; /* Базовий прозорий бордер для звичайних елементів */
+}
+
+/* Стиль для прорахунків з webNumber - СУЦІЛЬНА та ТОВЩА ЛІНІЯ */
+body.dark-theme  .calc-item.web-calc {
+    border-left: 3px solid #ff9800; /* Змінено товщину на 8px і тип на solid */
+    /* Якщо у вас є інші стилі, які перебивають border, можливо, доведеться налаштувати */
+}
+
+/* Приклад додаткового стилю при наведенні, якщо потрібно */
+body.dark-theme  .calc-item.web-calc:hover {
+    box-shadow: 0 0 3px rgba(255, 152, 0, 0.7); /* Трохи посилена тінь при наведенні */
+}
+
+/* Якщо вам потрібно зберегти рамку з інших сторін, але змінити лише ліву,
+   то переконайтеся, що .calc-item має інші властивості border-right, border-top, border-bottom
+   або просто встановіть їх після web-calc класу для .calc-item */
+body.dark-theme  .calc-item .item-summary {
+    /* Можливо, тут є padding-left, який потрібно буде скоригувати,
+       якщо лінія "залазить" на контент.
+       Наприклад, додати padding-left до .item-summary, якщо він ще не встановлений
+       і якщо ви не хочете, щоб лінія була частиною padding.
+       Якщо item-summary має background і ви хочете, щоб лінія була "під" ним,
+       то використовуйте box-shadow або pseudo-element.
+    */
+}

@@ -2693,3 +2693,6 @@ body.dark-theme .profile-item-column .divider {
 body.dark-theme .order-item-summary .summary-item .column > div:first-child.border-b {
     border-color: #555555 !important;
 }
+
+
+.payments-body { padding-top: 60px !important; padding-bottom: 60px !important;  padding-left: 100px !important; padding-right: 100px !important;}

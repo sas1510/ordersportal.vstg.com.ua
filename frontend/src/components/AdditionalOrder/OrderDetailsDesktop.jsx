@@ -106,19 +106,28 @@ export default function OrderDetailsDesktop({ order }) {
 
           {/* Виробництво */}
           <li>
-            {(() => {
-              const factDate = order.factStartProduction;
-              const planDate = order.planProduction;
-              const status = getDateStatus(planDate, factDate);
+            {(() => {
+              // Виробництво: факт = factStartProduction, план = planProduction
+              const factDate = order.factStartProduction;
+              const planDate = order.planProduction;
+              const factReady = order.factReady; // 🆕 Додаємо факт готовності
+              
+              const status = getDateStatus(planDate, factDate || factReady); // Використовуємо факт готовності для статусу, якщо немає факту старту
 
-            const displayDate = factDate 
-                ? formatDateHumanShorter(factDate)
-                 : planDate 
+              const displayDate = factDate 
+                ? formatDateHumanShorter(factDate) // ✅ Є факт початку
+                : factReady // 🆕 Якщо немає факту початку, але є факт готовності
+                  ? (
+                      <div className="plan-block executed-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+{/*                         <div className="plan-name executed-name">Виконано:</div> */}
+                        <div> {formatDateHumanShorter(factReady)}</div>
+                      </div>
+                    )
+                  : planDate 
                     ? (
-                     
                         <div className="plan-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <div className="plan-name">Планово:</div>
-                          <div> {formatDateHumanShorter(order.planProduction)}</div>
+                          <div> {formatDateHumanShorter(planDate)}</div> {/* ВИПРАВЛЕНО: planDate замість order.planProduction */}
                         </div>
                       )
                     : "Немає даних";

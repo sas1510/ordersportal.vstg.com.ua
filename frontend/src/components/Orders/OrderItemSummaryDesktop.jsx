@@ -11,7 +11,7 @@ import {formatDateHumanShorter} from '../../utils/formatters'
 
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export default React.memo(function OrderItemSummaryDesktop  ({ order })  {
-//                                ^^^^^^^^^^
+//                                ^^^^^^^^^^
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
@@ -102,11 +102,11 @@ export default React.memo(function OrderItemSummaryDesktop  ({ order })  {
     return Math.max(0, Math.round(debt * 100) / 100); 
   }, [order.amount, order.paid]);
   
-  // 7. Мемоїзація обробника збереження дозамовлення
-  const handleReorderSave = useCallback((formData) => {
-    console.log("Дозамовлення по замовленню", order.number, formData);
-    setIsReorderModalOpen(false);
-  }, [order.number]);
+  // 7. Мемоїзація обробника збереження дозамовлення
+  const handleReorderSave = useCallback((formData) => {
+    console.log("Дозамовлення по замовленню", order.number, formData);
+    setIsReorderModalOpen(false);
+  }, [order.number]);
 
 
   return (
@@ -121,13 +121,16 @@ export default React.memo(function OrderItemSummaryDesktop  ({ order })  {
           <span className="icon icon-news font-size-20 text-success"></span>
         </div>
 
-        {/* Назва + дата */}
+        {/* Назва + дата + ОРГАНІЗАЦІЯ/МЕНЕДЖЕР */}
         <div className="summary-item row w-9 no-wrap">
         <div className="column items-center w-full">
             <div className="text-info font-size-18 border-b border-gray-300 pb-0 pt-0 w-full text-center">
             {order.number}
             </div>
-            <div className="text-danger text-center">{formatDateHumanShorter(order.date)}</div>
+            <div className="text-danger text-center mb-1">{formatDateHumanShorter(order.date)}</div>
+
+          
+
         </div>
         </div>
 

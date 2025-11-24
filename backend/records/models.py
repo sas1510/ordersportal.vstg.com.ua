@@ -87,6 +87,12 @@ class TransactionFile(models.Model):
         db_column='FileData' # camelCase
     )
 
+    thumbnail_data = models.BinaryField(
+        null=True, 
+        blank=True,
+        db_column='ThumbnailData', # Назва колонки у базі даних
+        verbose_name='Зменшена копія даних'
+    )
 
 
 

@@ -1,0 +1,117 @@
+/* --- СТИЛІ ДЛЯ ВИРІШЕННЯ ПРОБЛЕМИ ПРОКРУТКИ ТА ЗАГАЛЬНОЇ СТРУКТУРИ --- */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Забезпечує, що сторінка займає мінімум весь екран */
+    background-color: var(--color-background-secondary); /* Наприклад, #f4f6f9 */
+    padding: 20px;
+}
+
+.content-wrapper {
+    display: flex;
+    flex: 1; /* Дозволяє контенту займати доступний простір */
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+
+.content-area {
+    flex-grow: 1;
+    padding-left: 20px;
+    overflow-y: auto; /* ✅ ДОЗВОЛЯЄ ПРОКРУТКУ ОСНОВНОГО КОНТЕНТУ */
+    max-height: calc(100vh); /* Приклад: висота вікна мінус висота хедера/відступів */
+}
+
+/* --- СТИЛІ ТАБЛИЦІ --- */
+.finance-table-container {
+    overflow-x: auto; /* Прокрутка, якщо таблиця занадто широка */
+    max-height: 100%; /* Забезпечує прокрутку всередині content-area */
+}
+
+.finance-table {
+    min-width: 800px; /* Мінімальна ширина для кращої читабельності */
+    table-layout: fixed;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.finance-table th, .finance-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border: none;
+    font-size: 14px;
+}
+
+.header-row {
+    background-color: #1e4a6f !important;
+    color: white;
+    position: sticky; /* Фіксує шапку при прокрутці */
+    top: 0;
+    z-index: 10;
+}
+
+/* Стилі для рядків групи (Підсумок дня) */
+.group-header {
+    background-color: #5a8cb8;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    border-top: 2px solid #3d6a8b;
+}
+
+.group-separator {
+    height: 15px;
+    background-color: var(--color-background-secondary); 
+}
+
+/* Стилі для рядків транзакцій */
+.transaction-row {
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.transaction-row.even {
+    background-color: #4d6b82;
+}
+.transaction-row.odd {
+    background-color: #5c7a93;
+}
+.transaction-row:hover {
+    background-color: #3f556d; 
+}
+
+.transaction-detail-cell {
+    font-size: 13px;
+}
+.order-info {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Стилі для шрифтів */
+.text-right { text-align: right; }
+.text-success-strong { color: #28a745 !important; font-weight: 600; } /* Яскраво-зелений */
+.text-danger-strong { color: #dc3545 !important; font-weight: 600; } /* Яскраво-червоний */
+.text-success-light { color: #d4edda; } /* Світло-зелений */
+.text-danger-light { color: #f8d7da; } /* Світло-червоний */
+.text-default-light { color: #f0f0f0; } /* Світло-сірий */
+
+
+/* --- СТИЛІ САЙДБАРУ --- */
+.sidebar {
+    width: 280px;
+    padding: 25px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    z-index: 20;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    transition: transform 0.3s ease-in-out;
+}
+/* ... додайте решту стилів сайдбару, фільтрів та інфо-боксів ... */

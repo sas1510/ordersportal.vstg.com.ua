@@ -82,7 +82,13 @@ const ordersWithNumbers = orderList.filter(order => order.number);
   };
 
   return (
-    <div className="calc-item column">
+    <div className="calc-item column"
+      style={{
+          borderLeft: additionalOrder.numberWEB
+          ? "4px solid #f38721ff" 
+          : "4px solid #5e83bf",
+
+          paddingLeft: "12px"}}>
       {/* ============ ADDITIONAL ORDER SUMMARY ============ */}
       <div className="item-summary row w-100" onClick={toggleExpanded}>
         

@@ -6,7 +6,7 @@ import "./NewCalculationModal.css";
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
-  const [orderNumber, setOrderNumber] = useState("");
+  const [orderNumber, setOrderNumber] = useState(""); // ⬅️ Початкове значення тепер порожнє
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("Файл не обрано");
   const [itemsCount, setItemsCount] = useState(1);
@@ -19,20 +19,15 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const managerRoles = ["manager", "region_manager", "admin"];
   const isManager = managerRoles.includes(role);
 
+  // ❌ Видалено: useEffect для fetchLastOrderNumber
+  /*
   useEffect(() => {
     if (isOpen) fetchLastOrderNumber();
   }, [isOpen]);
+  */
 
-  // ✅ Тепер отримуємо дилерів
-  useEffect(() => {
-    if (isOpen && isManager) {
-      axiosInstance
-        .get("/get_dealers/")
-        .then((res) => setDealers(res.data.dealers || []))
-        .catch((err) => console.error("Помилка отримання дилерів:", err));
-    }
-  }, [isOpen, isManager]);
-
+  // ❌ Видалено: функція fetchLastOrderNumber
+  /*
   const fetchLastOrderNumber = async () => {
     try {
       const response = await axiosInstance.get("/last-order-number/");
@@ -43,6 +38,17 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       addNotification("Не вдалося отримати останній номер замовлення ❌", "error");
     }
   };
+  */
+  
+  // ✅ Отримуємо дилерів (залишаємо, оскільки це незалежна логіка)
+  useEffect(() => {
+    if (isOpen && isManager) {
+      axiosInstance
+        .get("/get_dealers/")
+        .then((res) => setDealers(res.data.dealers || []))
+        .catch((err) => console.error("Помилка отримання дилерів:", err));
+    }
+  }, [isOpen, isManager]);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
@@ -58,7 +64,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   };
 
   const resetForm = () => {
-    setOrderNumber("");
+    setOrderNumber(""); // ⬅️ Скидаємо на порожнє значення
     setFile(null);
     setFileName("Файл не обрано");
     setItemsCount(1);
@@ -74,8 +80,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ⚠️ Оновлена перевірка: OrderNumber тепер завжди обов'язковий і порожній за замовчуванням
     if (!orderNumber || !file || !itemsCount || !comment.trim() || (isManager && !dealerId)) {
-      addNotification("Будь ласка, заповніть усі поля та оберіть файл ❌", "error");
+      addNotification("Будь ласка, заповніть усі обов'язкові поля та оберіть файл ❌", "error");
       return;
     }
 
@@ -117,20 +124,22 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
             <span
               className="icon icon-cross new-calc-close-btn"
               onClick={handleCloseWithReset}
-            ></span>
+            >
+              {/* <FaTimes size={16} /> */}
+            </span>
           </div>
         </div>
 
         <div className="new-calc-modal-body">
           <form className="new-calc-form" onSubmit={handleSubmit}>
-            {/* Номер замовлення */}
+            {/* Номер замовлення: Тепер вводиться вручну */}
             <label className="new-calc-label-row">
               <span>№:</span>
               <input
                 type="text"
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
-                placeholder="Номер замовлення"
+                placeholder="Введіть номер замовлення"
                 className="new-calc-input"
               />
             </label>

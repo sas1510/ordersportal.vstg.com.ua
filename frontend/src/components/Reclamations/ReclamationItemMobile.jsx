@@ -119,8 +119,14 @@ export const ReclamationItemMobile = ({
     };
 
     return (
-        <div className="reclamation-item column">
+        <div className="reclamation-item column" 
+             style={{
+                borderTop: Number(reclamation.numberWEB) > 0 
+                ? "4px solid #f38721ff" 
+                : "4px solid #5e83bf",
 
+                paddingLeft: "12px"
+            }}>
             {/* ============ MOBILE SUMMARY ============ */}
             <div className="flex flex-col w-full p-3 bg-white rounded-lg shadow-md border border-gray-200"
                 onClick={toggleExpanded}>

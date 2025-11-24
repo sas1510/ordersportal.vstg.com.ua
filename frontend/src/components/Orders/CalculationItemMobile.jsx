@@ -93,7 +93,14 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
   }, [calc.number]); 
 
   return (
-    <div className="calc-item column">
+    <div className="calc-item column"
+      style={{
+          borderTop: calc.webNumber
+          ? "4px solid #f38721ff" 
+          : "4px solid #5e83bf",
+
+          paddingLeft: "12px"
+      }}>
 
       {/* ============ MOBILE VERSION (COMPACT) ============ */}
       <div className="md:hidden flex flex-col w-full p-3 bg-white rounded-lg shadow-md border border-gray-200"

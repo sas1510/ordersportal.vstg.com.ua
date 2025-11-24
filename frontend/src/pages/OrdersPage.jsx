@@ -12,6 +12,7 @@ import { useTheme } from '../context/ThemeContext';
 const ITEMS_PER_LOAD = 100; // Константа для кількості елементів, що підвантажуються
 
 const PortalOriginal = () => {
+    // Стан для модальних вікон та даних
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
     const [calculationsData, setCalculationsData] = useState([]);
     const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' }); 
@@ -24,7 +25,7 @@ const PortalOriginal = () => {
     const [dealer, setDealer] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // ✅ Стан для клієнтської пагінації
+    // Стан для клієнтської пагінації
     const [limit, setLimit] = useState(ITEMS_PER_LOAD); 
     const [hasMore, setHasMore] = useState(false);
 
@@ -58,7 +59,13 @@ const PortalOriginal = () => {
     }, []);
 
     const handleAddClick = useCallback(() => setIsModalOpen(true), []);
-    const handleClose = useCallback(() => setIsModalOpen(false), []);
+    
+    // Обробник для AddOrderModal (старий)
+    const handleClose = useCallback(() => setIsModalOpen(false), []); 
+
+    // ✅ НОВИЙ Обробник для NewCalculationModal
+    const handleCloseCalc = useCallback(() => setIsCalcModalOpen(false), []); 
+
     const handleSave = useCallback((newOrder) => {
         console.log("Новий прорахунок:", newOrder);
     }, []);
@@ -66,7 +73,9 @@ const PortalOriginal = () => {
     const handleSaveCalculation = useCallback((newCalc) => {
         const formattedCalc = {
             id: newCalc.id || Math.random().toString(36).substr(2, 9),
-            number: newCalc.name || `Прорахунок ${calculationsData.length + 1}`,
+            number: newCalc.name || ``,
+            webNumber: newCalc.webNumber || ``,
+            
             dateRaw: newCalc.dateRaw || new Date().toISOString(),
             date: new Date(newCalc.dateRaw || new Date()).toLocaleDateString('uk-UA', {
                 day: '2-digit', month: 'short', year: 'numeric'
@@ -83,14 +92,14 @@ const PortalOriginal = () => {
 
         setCalculationsData(prev => [formattedCalc, ...prev]);
         setFilter(prev => ({ ...prev }));
-        setIsCalcModalOpen(false);
+        setIsCalcModalOpen(false); // Закриваємо модалку після збереження
         setLimit(ITEMS_PER_LOAD);
     }, [calculationsData.length]);
 
     const toggleCalc = useCallback((id) => setExpandedCalc(prev => prev === id ? null : id), []);
     const toggleOrder = useCallback((id) => setExpandedOrder(prev => prev === id ? null : id), []);
 
-    // 📌 ФУНКЦІЯ: Збільшення ліміту
+    // ФУНКЦІЯ: Збільшення ліміту
     const handleLoadMore = useCallback(() => {
         if (hasMore) {
             setLimit(prev => prev + ITEMS_PER_LOAD);
@@ -165,7 +174,7 @@ const PortalOriginal = () => {
         return filtered.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
     }, [filter, getFilteredItems]);
 
-    // 📌 ОБМЕЖЕННЯ: Список для рендерингу
+    // ОБМЕЖЕННЯ: Список для рендерингу
     const paginatedItems = useMemo(() => {
         const fullList = memoizedFullFilteredList;
         
@@ -183,6 +192,7 @@ const PortalOriginal = () => {
     }, []);
 
     useEffect(() => {
+        // Скидаємо ліміт при зміні фільтра
         setLimit(ITEMS_PER_LOAD);
     }, [filter]);
 
@@ -234,11 +244,11 @@ const PortalOriginal = () => {
             </div>
         );
 
-    // Допоміжні змінні для кнопки
+    // Допоміжні змінні для кнопки "Завантажити ще"
     const totalFilteredCount = memoizedFullFilteredList.length;
     const remainingCount = totalFilteredCount - limit;
     
-    // ✅ Покращений розрахунок тексту кнопки
+    // Покращений розрахунок тексту кнопки
     const loadAmount = Math.min(ITEMS_PER_LOAD, remainingCount);
     const buttonText = loadAmount < ITEMS_PER_LOAD 
         ? `Завантажити ще (${loadAmount})` // Якщо лишилося менше 100
@@ -355,6 +365,7 @@ const PortalOriginal = () => {
                         </li>
                     </ul>
 
+                    {/* Це AddOrderModal, що використовує handleClose */}
                     <AddOrderModal
                         isOpen={isModalOpen}
                         onClose={handleClose}
@@ -425,9 +436,9 @@ const PortalOriginal = () => {
                             )
                         )}
                         
-                        {/* ✅ КНОПКА "ЗАВАНТАЖИТИ ЩЕ" та лічильник */}
+                        {/* КНОПКА "ЗАВАНТАЖИТИ ЩЕ" та лічильник */}
                         {hasMore && (
-                            <div className="row  w-100" style={{ marginTop: '20px', marginBottom: '20px', justifyContent: 'center'}}>
+                            <div className="row w-100" style={{ marginTop: '20px', marginBottom: '20px', justifyContent: 'center'}}>
                                 <button 
                                     className="btn btn-primary uppercase btn-load-more-big" 
                                     onClick={handleLoadMore}
@@ -448,8 +459,8 @@ const PortalOriginal = () => {
                                 </button>
                             </div>
                         )}
-                         
-                        {/* ℹ️ Повідомлення, якщо всі дані завантажено */}
+                        
+                        {/* Повідомлення, якщо всі дані завантажено */}
                         {!hasMore && totalFilteredCount > ITEMS_PER_LOAD && (
                              <div className="row justify-content-center text-grey" style={{ marginTop: '20px', marginBottom: '20px' }}>
                                 Всі прорахунки завантажено ({totalFilteredCount}).
@@ -459,9 +470,10 @@ const PortalOriginal = () => {
                 </div>
             </div>    
 
+            {/* ✅ NewCalculationModal тепер використовує handleCloseCalc для коректного закриття */}
             <NewCalculationModal 
                 isOpen={isCalcModalOpen} 
-                onClose={handleClose} 
+                onClose={handleCloseCalc} // ЗМІНЕНО
                 onSave={handleSaveCalculation} 
             />
         </div>

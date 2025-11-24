@@ -156,7 +156,16 @@ export const ReclamationItem = ({
 
 
     return (
-        <div className="reclamation-item column">
+        <div 
+            className="reclamation-item column"
+            style={{
+                borderLeft: Number(reclamation.numberWEB) > 0 
+                ? "4px solid #f38721ff" 
+                : "4px solid #5e83bf",
+
+                paddingLeft: "12px"
+            }}
+        >
             {/* ============ RECLAMATION SUMMARY ============ */}
             <div className="item-summary row w-100" onClick={toggleExpanded}>
                 
