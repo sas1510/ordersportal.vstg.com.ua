@@ -503,52 +503,71 @@ def order_files_view(request, order_guid):
 
 import subprocess
 from django.http import StreamingHttpResponse, Http404
+from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+
+# Вам необхідно додати ці імпорти на початку Django views.py
+# from django.conf import settings
+# import subprocess
+
+
+# ======================== ТИМЧАСОВИЙ КОД ДЛЯ ДІАГНОСТИКИ ========================
+import subprocess
+from django.http import StreamingHttpResponse, Http404
 from django.conf import settings
-import os
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_order_file(request, order_guid, file_guid, filename):
-    """
-    Завантаження файлу з Windows SMB через системний smbclient.
-    Найстабільніший спосіб для Ubuntu 20.04 + Python 3.12.
-    """
-
+    
     server = settings.SMB_SERVER
     share = settings.SMB_SHARE
     username = settings.SMB_USERNAME
     password = settings.SMB_PASSWORD
-
-    # SMB шлях (Windows UNC)
-    smb_path = f"//{server}/{share}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
-
-    # Команда smbclient для викачування файлу в stdout
-    command = [
-        "smbclient",
-        f"//{server}/{share}",
-        "-U", username,
-        "-W", "",          # domain пустий
-        "-c", f'get "Заказ покупателя/{order_guid}/{file_guid}/{filename}" -'
+    
+    full_username = f"VSTG\\{username}" 
+    
+    # 🔥🔥🔥 КЛЮЧОВЕ ВИПРАВЛЕННЯ: КОДУВАННЯ КИРИЛИЦІ В ШЛЯХУ 🔥🔥🔥
+    
+    # 1. Складаємо шлях з кирилицею. Кирилиця - це "Заказ покупателя"
+    remote_path_str = f"Заказ покупателя/{order_guid}/{file_guid}/{filename}"
+    
+    # 2. Кодуємо всі аргументи в байтові рядки (UTF-8 є стандартом для Linux)
+    # Якщо UTF-8 не спрацює, спробуйте 'cp866' або 'cp1251'
+    encoding = 'utf-8' 
+    
+    # Аргументи команди мають бути байтовими
+    command_bytes = [
+        "smbclient".encode(encoding),
+        f"//{server}/{share}".encode(encoding),
+        "-U".encode(encoding), 
+        full_username.encode(encoding), 
+        "-c".encode(encoding),
+        # Команда get має бути закодована
+        f'get "{remote_path_str}" -'.encode(encoding)
     ]
-
+    
+    # Пароль передаємо через змінну оточення
+    env_vars = {"PASSWD": password.encode(encoding)}
+    
     try:
-        # subprocess PIPE → потоково передає файл у Django
         process = subprocess.Popen(
-            command,
+            command_bytes, # 🔥 Передаємо байтовий список
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=False,
-            env={"PASSWD": password}
+            text=False, # Залишаємо False, оскільки передаємо бінарні дані
+            env=env_vars 
         )
-
-        # Створюємо стрімінгову відповідь
+        
         response = StreamingHttpResponse(
             streaming_content=process.stdout,
             content_type="application/octet-stream"
         )
+        # Content-Disposition має бути рядком (не байтами), тому тут залишаємо filename
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
