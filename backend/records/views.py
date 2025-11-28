@@ -501,39 +501,57 @@ def order_files_view(request, order_guid):
     return JsonResponse({"status": "success", "files": files}, status=200)
 
 
-import smbprotocol
-from uuid import uuid4
-from django.http import FileResponse, Http404
-from smbprotocol.connection import Connection
-from smbprotocol.session import Session
-from smbprotocol.tree import TreeConnect
-from smbprotocol.open import Open, CreateOptions
-from uuid import uuid4
-from django.http import FileResponse, Http404
-import smbclient
-from django.http import StreamingHttpResponse
+import subprocess
+from django.http import StreamingHttpResponse, Http404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.conf import settings
+import os
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_order_file(request, order_guid, file_guid, filename):
-    server = "192.168.50.60"
-    share = "1c_data"
-    username = "tetiana.flora"
-    password = "902040Mm!"
+    """
+    Завантаження файлу з Windows SMB через системний smbclient.
+    Найстабільніший спосіб для Ubuntu 20.04 + Python 3.12.
+    """
 
-    folder = fr"Заказ покупателя\{order_guid}\{file_guid}"
-    path = fr"\\{server}\{share}\{folder}\{filename}"
+    server = settings.SMB_SERVER
+    share = settings.SMB_SHARE
+    username = settings.SMB_USERNAME
+    password = settings.SMB_PASSWORD
+
+    # SMB шлях (Windows UNC)
+    smb_path = f"//{server}/{share}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
+
+    # Команда smbclient для викачування файлу в stdout
+    command = [
+        "smbclient",
+        f"//{server}/{share}",
+        "-U", username,
+        "-W", "",          # domain пустий
+        "-c", f'get "Заказ покупателя/{order_guid}/{file_guid}/{filename}" -'
+    ]
 
     try:
-        smbclient.register_session(server, username=username, password=password)
-        file_obj = smbclient.open_file(path, mode="rb")
+        # subprocess PIPE → потоково передає файл у Django
+        process = subprocess.Popen(
+            command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=False,
+            env={"PASSWD": password}
+        )
 
+        # Створюємо стрімінгову відповідь
         response = StreamingHttpResponse(
-            file_obj,
+            streaming_content=process.stdout,
             content_type="application/octet-stream"
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
         return response
 
     except Exception as e:
-        raise Http404(str(e))
+        raise Http404(f"Помилка доступу до файлу: {str(e)}")
