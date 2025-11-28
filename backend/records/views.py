@@ -177,6 +177,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         # Додаємо ордер до масиву
         order = {
             "id": row.get("OrderID"),
+            "idGuid": row.get("OrderID_GUID"),
             # "id": row.get("OrderID"),
             "number": row.get("OrderNumber") or "",
             "dateRaw": row.get("OrderDate"),
@@ -454,3 +455,85 @@ def additional_orders_view(request):
         "status": "success",
         "data": {"calculation": formatted_orders} 
     })
+
+
+from django.http import JsonResponse
+from django.db import connection
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def order_files_view(request, order_guid):
+    """
+    Отримує всі файли (ZKZ, фото, документи) для замовлення через SQL.
+    Повертає список файлів для React-модалки.
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            EXEC dbo.GetOrdersFiles @OrderLinkGUID=%s
+        """, [order_guid])
+
+        columns = [col[0] for col in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    files = []
+
+    for row in rows:
+        files.append({
+            # "orderGuid": row.get("Order_Link_GUID"),
+            # "orderNumber": row.get("Order_Number"),
+            # "fileGuid": row.get("File_GUID"),
+            # "fileName": row.get("File_FileName"),
+            # "title": row.get("File_Name"),
+            # "type": row.get("File_DataType_Name"),
+            # "date": row.get("File_Date"),
+            "fileGuid": row["File_GUID"],
+            "fileName": row["File_FileName"],
+            "type": row["File_DataType_Name"],
+            "date": row["File_Date"]
+
+            
+        })
+
+    return JsonResponse({"status": "success", "files": files}, status=200)
+
+
+import smbprotocol
+from uuid import uuid4
+from django.http import FileResponse, Http404
+from smbprotocol.connection import Connection
+from smbprotocol.session import Session
+from smbprotocol.tree import TreeConnect
+from smbprotocol.open import Open, CreateOptions
+from uuid import uuid4
+from django.http import FileResponse, Http404
+import smbclient
+from django.http import StreamingHttpResponse
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def download_order_file(request, order_guid, file_guid, filename):
+    server = "192.168.50.60"
+    share = "1c_data"
+    username = "tetiana.flora"
+    password = "902040Mm!"
+
+    folder = fr"Заказ покупателя\{order_guid}\{file_guid}"
+    path = fr"\\{server}\{share}\{folder}\{filename}"
+
+    try:
+        smbclient.register_session(server, username=username, password=password)
+        file_obj = smbclient.open_file(path, mode="rb")
+
+        response = StreamingHttpResponse(
+            file_obj,
+            content_type="application/octet-stream"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    except Exception as e:
+        raise Http404(str(e))

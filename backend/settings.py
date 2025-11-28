@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
+import smbclient
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -145,3 +146,17 @@ EMAIL_HOST_PASSWORD ='pklovimhigierquu'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BOT_TOKEN = config('BOT_TOKEN', default='')
+
+
+
+SMB_SERVER = config("SMB_SERVER")
+SMB_USERNAME = config("SMB_USERNAME")
+SMB_PASSWORD = config("SMB_PASSWORD")
+SMB_SHARE = config("SMB_SHARE", default="1c_data")
+
+
+smbclient.register_session(
+    SMB_SERVER,
+    username=SMB_USERNAME,
+    password=SMB_PASSWORD
+)

@@ -1,0 +1,237 @@
+/* ===== 1. OVERLAY and MODAL WINDOW ===== */
+
+.orders-file-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.25s ease;
+}
+
+.orders-file-modal-window {
+    background: #fff;
+    border-radius: 12px;
+    width: 500px; /* Фіксована ширина для файлів */
+    max-width: 90%;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    animation: scaleIn 0.25s ease;
+}
+
+/* ===== 2. HEADER (Зелений градієнт) ===== */
+
+.orders-file-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    /* ЗЕЛЕНИЙ ГРАДІЄНТ ДЛЯ ФАЙЛІВ */
+    background: linear-gradient(90deg, #76b448, #92cc5c); 
+    color: #fff;
+}
+
+.orders-file-modal-header .header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.orders-file-modal-header .file-icon {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.orders-file-modal-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.orders-file-modal-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+/* ===== 3. BODY (Список) ===== */
+
+.orders-file-body {
+    padding: 20px 25px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #76b448 transparent;
+}
+
+.orders-file-body::-webkit-scrollbar {
+    width: 8px;
+}
+.orders-file-body::-webkit-scrollbar-thumb {
+    background: #76b448;
+    border-radius: 4px;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.file-info-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.file-icon-wrapper {
+    font-size: 20px;
+    flex-shrink: 0; 
+}
+
+.file-details {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.file-name-b {
+    display: block;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-meta {
+    font-size: 12px;
+    color: #666;
+}
+
+/* ===== 4. FOOTER (Кнопки) ===== */
+
+.orders-file-modal-footer {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding: 18px 22px;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+
+.file-download-btn {
+    padding: 8px 16px;
+    background: #76b448; /* Зелений */
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-left: 15px;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.file-download-btn:hover {
+    background: #5c8c38;
+    transform: scale(1.02);
+}
+
+.order-file-close-btn {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+    background: #f46c3b; /* Помаранчевий */
+    color: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.order-file-close-btn:hover {
+    transform: scale(0.90);
+    box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
+}
+
+
+
+body.dark-theme  .orders-file-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    /* ЗЕЛЕНИЙ ГРАДІЄНТ ДЛЯ ФАЙЛІВ */
+    background: linear-gradient(90deg, #588635, #76a54a); 
+    color: #fff;
+}
+
+/* ===== 5. DARK MODE ===== */
+
+body.dark-theme .orders-file-modal-window {
+    background: #333333;
+}
+body.dark-theme .orders-file-body {
+    background: #333333;
+    scrollbar-color: #5c8c38 transparent;
+}
+body.dark-theme .orders-file-body::-webkit-scrollbar-thumb {
+    background: #5c8c38;
+}
+
+body.dark-theme .file-item {
+    background: #282828;
+    border: 1px solid #444;
+}
+
+body.dark-theme .file-name-b {
+    color: #f0f0f0;
+}
+body.dark-theme .file-meta {
+    color: #ccc;
+}
+body.dark-theme .orders-file-modal-footer {
+    background: #333333;
+    border-top: 1px solid #292828;
+}
+
+/* Адаптація кнопок у Dark Mode */
+body.dark-theme .file-download-btn {
+    background: linear-gradient(90deg, #507e30, #5c8c38);
+    color: #fff;
+}
+body.dark-theme .file-download-btn:hover {
+    background: linear-gradient(90deg, #5c8c38, #507e30);
+}
+
+body.dark-theme .file-close-btn {
+    background: linear-gradient(90deg, #b84c20, #c75628);
+    color: #fff;
+}
+body.dark-theme .file-close-btn:hover {
+    background: linear-gradient(90deg, #c75628, #b84c20);
+}

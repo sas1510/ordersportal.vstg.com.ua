@@ -135,3 +135,18 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+import smbclient
+
+SMB_SERVER = config("SMB_SERVER")
+SMB_USERNAME = config("SMB_USERNAME")
+SMB_PASSWORD = config("SMB_PASSWORD")
+SMB_SHARE = config("SMB_SHARE", default="1c_data")
+
+
+smbclient.register_session(
+    SMB_SERVER,
+    username=SMB_USERNAME,
+    password=SMB_PASSWORD
+)
