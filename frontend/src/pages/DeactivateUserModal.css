@@ -1,0 +1,88 @@
+/* ===== OVERLAY ===== */
+.deactivate-modal-overlay {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.dark-theme .deactivate-modal-overlay {
+    background: rgba(0, 0, 0, 0.65);
+}
+
+/* ===== WINDOW ===== */
+.deactivate-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e6e6e6;
+    color: #1a1a1a;
+}
+
+.dark-theme .deactivate-modal {
+    background: #1f1f1f;
+    border: 1px solid #3a3a3a;
+    color: #e8e8e8;
+}
+
+/* ===== HEADER ===== */
+.deactivate-header {
+    background: linear-gradient(90deg, #dc2626, #b91c1c);
+    color: #ffffff;
+}
+
+.dark-theme .deactivate-header {
+    background: linear-gradient(90deg, #7f1d1d, #991b1b);
+}
+
+/* ===== BODY TEXT ===== */
+.deactivate-body-text {
+    color: #444;
+}
+
+.dark-theme .deactivate-body-text {
+    color: #dcdcdc;
+}
+
+.deactivate-warning-text {
+    color: #dc2626;
+}
+
+.dark-theme .deactivate-warning-text {
+    color: #f87171;
+}
+
+/* ===== FOOTER ===== */
+.deactivate-footer {
+    background: #f7f7f7;
+    border-top: 1px solid #e0e0e0;
+}
+
+.dark-theme .deactivate-footer {
+    background: #262626;
+    border-top: 1px solid #3d3d3d;
+}
+
+/* ===== BUTTONS ===== */
+.deactivate-btn-cancel {
+    background: #d1d5db;
+    color: #1f2937;
+}
+
+.deactivate-btn-cancel:hover {
+    transform: scale(1.03);
+}
+
+.dark-theme .deactivate-btn-cancel {
+    background: #4b5563;
+    color: white;
+}
+
+.deactivate-btn-submit {
+    background: #dc2626;
+    color: white;
+}
+
+.deactivate-btn-submit:hover {
+    transform: scale(1.03);
+}
+
+.dark-theme .deactivate-btn-submit {
+    background: #b91c1c;
+}

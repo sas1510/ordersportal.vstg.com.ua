@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axiosInstance from '../api/axios';
-import { CalculationItem } from '../components/Orders/OrderComponents'; 
+import { CalculationItem } from '../components/Orders/OrderComponents';
 import { CalculationItemMobile } from '../components/Orders/CalculationItemMobile';
 import '../components/Portal/PortalOriginal.css';
 import AddOrderModal from '../components/Orders/AddOrderModal';
 import NewCalculationModal from '../components/Orders/NewCalculationModal';
-import DealerSelectModal from '../components/Orders/DealerSelectModal'; 
+import DealerSelectModal from '../components/Orders/DealerSelectModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
+import useCancelAllRequests from "../hooks/useCancelAllRequests";
 
-const ITEMS_PER_LOAD = 100; // Константа для кількості елементів, що підвантажуються
+const ITEMS_PER_LOAD = 100;
 
 const PortalOriginal = () => {
-    // Стан для модальних вікон та даних
+    const { register, cancelAll } = useCancelAllRequests();
+
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
     const [calculationsData, setCalculationsData] = useState([]);
-    const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' }); 
+    const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
     const [selectedYear, setSelectedYear] = useState('2025');
     const [loading, setLoading] = useState(true);
     const [expandedCalc, setExpandedCalc] = useState(null);
@@ -25,16 +27,19 @@ const PortalOriginal = () => {
     const [dealer, setDealer] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    // Стан для клієнтської пагінації
-    const [limit, setLimit] = useState(ITEMS_PER_LOAD); 
+    const [limit, setLimit] = useState(ITEMS_PER_LOAD);
     const [hasMore, setHasMore] = useState(false);
 
     const windowWidth = useWindowWidth();
     const isMobile = windowWidth < 1024;
     const { theme } = useTheme();
 
-    // --- Обробники ---
+    // --- Cancel all requests on unmount ---
+    useEffect(() => {
+        return () => cancelAll();
+    }, []);
 
+    // --- Dealer selection ---
     const handleDealerSelect = useCallback((selectedDealer) => {
         if (selectedDealer === null) {
             setDealer(null);
@@ -44,12 +49,12 @@ const PortalOriginal = () => {
             localStorage.setItem('dealerId', selectedDealer.id);
         }
         setShowDealerModal(false);
-        setLimit(ITEMS_PER_LOAD); 
+        setLimit(ITEMS_PER_LOAD);
     }, []);
 
     const handleDeleteCalculation = useCallback((calcId) => {
         setCalculationsData(prev => prev.filter(calc => calc.id !== calcId));
-        setLimit(ITEMS_PER_LOAD); 
+        setLimit(ITEMS_PER_LOAD);
     }, []);
 
     const handleUpdateCalculation = useCallback((updatedCalc) => {
@@ -58,24 +63,15 @@ const PortalOriginal = () => {
         );
     }, []);
 
-    const handleAddClick = useCallback(() => setIsModalOpen(true), []);
-    
-    // Обробник для AddOrderModal (старий)
-    const handleClose = useCallback(() => setIsModalOpen(false), []); 
+    const handleClose = useCallback(() => setIsModalOpen(false), []);
+    const handleCloseCalc = useCallback(() => setIsCalcModalOpen(false), []);
 
-    // ✅ НОВИЙ Обробник для NewCalculationModal
-    const handleCloseCalc = useCallback(() => setIsCalcModalOpen(false), []); 
-
-    const handleSave = useCallback((newOrder) => {
-        console.log("Новий прорахунок:", newOrder);
-    }, []);
-    
     const handleSaveCalculation = useCallback((newCalc) => {
         const formattedCalc = {
             id: newCalc.id || Math.random().toString(36).substr(2, 9),
             number: newCalc.name || ``,
             webNumber: newCalc.webNumber || ``,
-            
+
             dateRaw: newCalc.dateRaw || new Date().toISOString(),
             date: new Date(newCalc.dateRaw || new Date()).toLocaleDateString('uk-UA', {
                 day: '2-digit', month: 'short', year: 'numeric'
@@ -91,28 +87,30 @@ const PortalOriginal = () => {
         };
 
         setCalculationsData(prev => [formattedCalc, ...prev]);
-        setFilter(prev => ({ ...prev }));
-        setIsCalcModalOpen(false); // Закриваємо модалку після збереження
+        setIsCalcModalOpen(false);
         setLimit(ITEMS_PER_LOAD);
-    }, [calculationsData.length]);
+    }, []);
+
+    
 
     const toggleCalc = useCallback((id) => setExpandedCalc(prev => prev === id ? null : id), []);
     const toggleOrder = useCallback((id) => setExpandedOrder(prev => prev === id ? null : id), []);
 
-    // ФУНКЦІЯ: Збільшення ліміту
     const handleLoadMore = useCallback(() => {
-        if (hasMore) {
-            setLimit(prev => prev + ITEMS_PER_LOAD);
-        }
+        if (hasMore) setLimit(prev => prev + ITEMS_PER_LOAD);
     }, [hasMore]);
 
-    // --- Обчислення та фільтрація ---
+    const handleSave = useCallback((newOrder) => {
+        console.log("Новий прорахунок:", newOrder);
+    }, []);
+
+    // --- Filtering ---
 
     const statusSummary = useMemo(() => {
-        const summary = { 
-            'Всі': 0, 'Новий': 0, 'В обробці': 0, 'Очікуємо оплату': 0, 
-            'Підтверджений': 0, 'Очікуємо підтвердження': 0, 'У виробництві': 0, 
-            'Готовий': 0, 'Відвантажений': 0, 'Відмова': 0 
+        const summary = {
+            'Всі': 0, 'Новий': 0, 'В обробці': 0, 'Очікуємо оплату': 0,
+            'Підтверджений': 0, 'Очікуємо підтвердження': 0, 'У виробництві': 0,
+            'Готовий': 0, 'Відвантажений': 0, 'Відмова': 0
         };
 
         calculationsData.forEach(calc => {
@@ -124,6 +122,7 @@ const PortalOriginal = () => {
                 }
             });
         });
+
         return summary;
     }, [calculationsData]);
 
@@ -139,7 +138,7 @@ const PortalOriginal = () => {
 
         return summary;
     }, [calculationsData]);
-    
+
     const getFilteredItems = useCallback((statusFilter, monthFilter, nameFilter) => {
         let filtered = [...calculationsData];
 
@@ -168,64 +167,66 @@ const PortalOriginal = () => {
         return filtered;
     }, [calculationsData]);
 
-    // Повний відфільтрований та відсортований список (без обмеження)
     const memoizedFullFilteredList = useMemo(() => {
         const filtered = getFilteredItems(filter.status, filter.month, filter.name);
         return filtered.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
     }, [filter, getFilteredItems]);
 
-    // ОБМЕЖЕННЯ: Список для рендерингу
     const paginatedItems = useMemo(() => {
         const fullList = memoizedFullFilteredList;
-        
         const limited = fullList.slice(0, limit);
-        
+
         setHasMore(fullList.length > limit);
-        
+
         return limited;
     }, [memoizedFullFilteredList, limit]);
-    
-    // --- Обробники фільтрації, що скидають ліміт ---
-    
-    const handleFilterChange = useCallback((key, value) => {
-        setFilter(prev => ({ ...prev, [key]: value }));
-    }, []);
 
     useEffect(() => {
-        // Скидаємо ліміт при зміні фільтра
         setLimit(ITEMS_PER_LOAD);
     }, [filter]);
 
-    // --- Завантаження даних ---
-
+    // --- 📌 MAIN DATA LOADING (fixed) ---
     useEffect(() => {
-        const role = localStorage.getItem('role');
-        if (role !== 'customer' && !dealer) {
+
+        cancelAll();
+
+        const role = localStorage.getItem("role");
+
+        if (role !== "customer" && !dealer) {
             setShowDealerModal(true);
             setLoading(false);
             return;
         }
 
-        const fetchData = async () => {
+        const controller = register();
+
+        const load = async () => {
             setLoading(true);
             try {
                 const params = { year: selectedYear };
                 if (dealer?.id) params.customer_id = dealer.id;
 
-                const response = await axiosInstance.get("/get_orders_info/", { params });
+                const response = await axiosInstance.get("/get_orders_info/", {
+                    params,
+                    signal: controller.signal
+                });
+
                 if (response.data?.status === "success") {
                     const allCalculations = response.data.data.calculation || [];
                     setCalculationsData(allCalculations);
-                    
                     setLimit(ITEMS_PER_LOAD);
                     setHasMore(allCalculations.length > ITEMS_PER_LOAD);
-                    setFilter(prev => ({ ...prev }));
                 } else {
                     setCalculationsData([]);
                     setHasMore(false);
                 }
-            } catch (error) {
-                console.error("Помилка запиту:", error);
+
+            } catch (err) {
+                if (err.name === "CanceledError") {
+                    console.log("Запит скасовано");
+                    return;
+                }
+                console.error("Помилка:", err);
                 setCalculationsData([]);
                 setHasMore(false);
             } finally {
@@ -233,7 +234,8 @@ const PortalOriginal = () => {
             }
         };
 
-        fetchData();
+        load();
+
     }, [selectedYear, dealer]);
 
     if (loading)
@@ -244,16 +246,12 @@ const PortalOriginal = () => {
             </div>
         );
 
-    // Допоміжні змінні для кнопки "Завантажити ще"
     const totalFilteredCount = memoizedFullFilteredList.length;
     const remainingCount = totalFilteredCount - limit;
-    
-    // Покращений розрахунок тексту кнопки
     const loadAmount = Math.min(ITEMS_PER_LOAD, remainingCount);
-    const buttonText = loadAmount < ITEMS_PER_LOAD 
-        ? `Завантажити ще (${loadAmount})` // Якщо лишилося менше 100
-        : `Завантажити ще (100 із ${remainingCount})`; // Якщо лишилося більше 100
-
+    const buttonText = loadAmount < ITEMS_PER_LOAD
+        ? `Завантажити ще (${loadAmount})`
+        : `Завантажити ще (100 із ${remainingCount})`;
 
     return (
         <div className="column portal-body">

@@ -16,7 +16,6 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    // 👇 ДОДАНО: Стан для відстеження GUID файлу, який зараз завантажується
     const [downloadingFileGuid, setDownloadingFileGuid] = useState(null); 
 
     const filesListUrl = `order/${orderGuid}/files/`;
@@ -48,22 +47,32 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
         };
     }, [orderGuid, filesListUrl]);
 
+    // 🔥 ОНОВЛЕНА ФУНКЦІЯ: Різні іконки для PDF та ZKZ
     const getFileIcon = (fileName) => {
         const ext = fileName.split('.').pop().toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-            return <FaRegFileImage style={{ color: '#4a90e2' }} />;
-        }
+        
         if (ext === 'pdf') {
+            // Червона іконка для PDF
             return <FaRegFilePdf style={{ color: '#c0392b' }} />;
         }
+        if (ext === 'zkz') {
+            // Нейтральна або синя іконка для ZKZ
+            return <FaFileAlt style={{ color: '#3498db' }} />; 
+        }
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+            // Синя іконка для зображень
+            return <FaRegFileImage style={{ color: '#4a90e2' }} />;
+        }
         if (['zip', 'rar', '7z'].includes(ext)) {
+            // Помаранчева іконка для архівів
             return <FaFileZipper style={{ color: '#d88a00' }} />; 
         }
+        
+        // Сіра іконка для всіх інших
         return <FaFileAlt style={{ color: '#666' }} />;
     };
 
     const handleDownload = async (fileGuid, fileName) => {
-        // 👇 КРОК 1: Встановлюємо стан завантаження для цього файлу
         setDownloadingFileGuid(fileGuid); 
 
         try {
@@ -91,7 +100,6 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
             console.error("❌ Error downloading file:", err);
             alert("Не вдалося завантажити файл.");
         } finally {
-            // 👇 КРОК 2: Скидаємо стан завантаження, незалежно від результату
             setDownloadingFileGuid(null); 
         }
     };
@@ -122,14 +130,13 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                     {!loading && files.length > 0 && (
                         <ul className="file-list">
                             {files.map(file => {
-                                // 👇 Перевірка, чи саме цей файл завантажується
                                 const isDownloading = downloadingFileGuid === file.fileGuid; 
                                 
                                 return (
                                 <li key={file.fileGuid} className="file-item">
                                     <div className="file-info-group">
                                         <div className="file-icon-wrapper">
-                                            {getFileIcon(file.fileName)}
+                                            {getFileIcon(file.fileName)} {/* <-- ВИКЛИК ОНОВЛЕНОЇ ФУНКЦІЇ */}
                                         </div>
                                         <div className="file-details">
                                             <b className="file-name-b">{file.fileName}</b>
@@ -142,10 +149,9 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                                     <button
                                         onClick={() => handleDownload(file.fileGuid, file.fileName)}
                                         className="file-download-btn"
-                                        disabled={isDownloading} // 👇 Кнопка неактивна під час завантаження
+                                        disabled={isDownloading} 
                                         title={isDownloading ? "Завантаження..." : (file.fileName.toLowerCase().endsWith('.pdf') ? "Переглянути / Завантажити" : "Завантажити")}
                                     >
-                                        {/* 👇 ЗМІНА НАПИСУ */}
                                         {isDownloading 
                                             ? "⏳ Завантаження..."
                                             : file.fileName.toLowerCase().endsWith('.pdf') ? "👁️‍🗨️ PDF" : "⬇️ Скачати"}

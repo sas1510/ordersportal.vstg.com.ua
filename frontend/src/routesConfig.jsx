@@ -36,6 +36,8 @@ import ReclamationPortal from "./pages/ReclamationPortal";
 // import InviteRegisterForm from "./pages/InviteRegisterForm";
 import { Dashboards } from "./pages/Dashboards"
 import ComplaintsPages from "./pages/ComplaintsPages";
+import ChangePasswordPage from "./pages/ChangePasswordPage" 
+import UsersListPage from "./pages/UsersListPage"
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -71,6 +73,7 @@ export const adminRoutes = [
   { path: "promo", element: <WdsPromotion /> },
   { path: "finance/bills", element: <CustomerBills /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
+  { path: "users-list", element: <UsersListPage /> },
 
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
@@ -89,7 +92,7 @@ export const dealerRoutes = [
   { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
   { path: "orders-fin", element: <OrdersFinancePage /> },
-  { path: "change-password", element: <ChangePassword /> },
+  // { path: "change-password", element: <ChangePassword /> },
   { path: "addOrder", element: <AddOrderPage /> },
   { path: "addClaim", element: <AddClaimForm /> },
   { path: "addReorder", element: <AddReorderForm /> },
@@ -102,6 +105,7 @@ export const dealerRoutes = [
 
 
   { path: "localComplaints", element: <ComplaintsPages/> },
+  { path: "change-password", element: <ChangePasswordPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

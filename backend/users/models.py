@@ -4,6 +4,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from datetime import timedelta
 # from .models import CustomUser
+from django.utils import timezone
+from django.contrib.auth.models import Group
+
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
@@ -59,16 +62,34 @@ class CustomUser(AbstractUser):
     old_portal_id = models.CharField(max_length=450, null=True, blank=True, db_index=True, db_column='OldPortalId')
 
     def save(self, *args, **kwargs):
-        # Авто деактивація при простроченні
-        if self.expire_date and self.expire_date < timezone.now():
-            self.is_active = False
+        # ---- БЕЗПЕЧНА перевірка expire_date ----
+        try:
+            if self.expire_date:
+                # Перетворюємо у aware datetime
+                expire = self.expire_date
+                if timezone.is_naive(expire):
+                    expire = timezone.make_aware(expire)
 
+                now = timezone.now()
+
+                # Якщо дата минула – тільки тоді деактивація
+                if expire < now:
+                    self.is_active = False
+        except Exception:
+            # Якщо щось не так — не блокуємо користувача
+            pass
+
+        # ---- Стандартний save ----
         super().save(*args, **kwargs)
 
-        # Синхронізація role → Django Group
-        if self.role:
-            group, _ = Group.objects.get_or_create(name=self.role)
-            self.groups.set([group])
+        # ---- Синхронізація ролей ----
+        try:
+            if self.role:
+                group, _ = Group.objects.get_or_create(name=self.role)
+                self.groups.set([group])
+        except Exception:
+            pass
+
 
     def __str__(self):
         return f"{self.username} ({self.role})"

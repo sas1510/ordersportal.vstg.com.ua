@@ -113,13 +113,14 @@ export default function HeaderDealer() {
               )}
             </li>
 
-            {/* Профіль дилера */}
-            <li className="dealer-size">
-              <HeaderDealerProfile />
-            </li>
+            <li className="dealer-size">
+            <Link to="/change-password" className="dealer-profile-link">
+                <HeaderDealerProfile />
+            </Link>
+            </li>
 
             {/* 👈 КНОПКА ТЕМИ (DESKTOP) */}
-                      <li className="theme-toggle-item">
+            <li className="theme-toggle-item">
               <button 
                   className="theme-toggle-btn" 
                   onClick={toggleTheme} 

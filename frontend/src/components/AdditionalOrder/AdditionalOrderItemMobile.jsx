@@ -69,7 +69,7 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
   return (
     <div className="calc-item column"       
     style={{
-          borderTop: additionalOrder.numberWEB
+          borderTop: calc.numberWEB
           ? "4px solid #f38721ff" 
           : "4px solid #5e83bf",
 

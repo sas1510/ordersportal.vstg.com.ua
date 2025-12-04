@@ -1,0 +1,272 @@
+/* ==== твій CSS, повністю винесений ==== */
+
+.portal-user-edit-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.25s ease;
+}
+
+.portal-user-edit-modal-window {
+    background: #fff;
+    border-radius: 12px;
+    width: 650px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    animation: scaleIn 0.25s ease;
+}
+
+.portal-user-edit-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    background: linear-gradient(90deg, #4a90e2, #50a7f9);
+    color: #fff;
+}
+
+.portal-user-edit-header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.portal-user-edit-icon {
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+}
+
+.portal-user-edit-modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.portal-user-edit-close-btn {
+    background: none;
+    border: none;
+    font-size: 26px;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.portal-user-edit-close-btn:hover {
+    opacity: 0.8;
+    transform: rotate(90deg);
+}
+
+/* Form */
+.portal-user-edit-form {
+    padding: 22px 26px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4a90e2 transparent;
+}
+
+.portal-user-edit-form::-webkit-scrollbar {
+    width: 8px;
+}
+.portal-user-edit-form::-webkit-scrollbar-thumb {
+    background: #4a90e2;
+    border-radius: 4px;
+}
+
+.portal-user-edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.portal-user-edit-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.portal-user-edit-label span {
+    font-weight: 500;
+    color: #003d66;
+    font-size: 16px;
+}
+
+.portal-user-edit-input,
+.portal-user-edit-select {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    width: 100%;
+}
+
+.portal-user-edit-input:focus,
+.portal-user-edit-select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+}
+
+/* Checkboxes */
+.portal-user-edit-checkbox-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding-top: 10px;
+}
+
+.portal-user-edit-checkbox-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #4a90e2;
+}
+
+/* Footer */
+.portal-user-edit-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    padding: 18px 22px;
+    border-top: 1px solid #eee;
+    background: #f8f8f8;
+}
+
+.portal-user-edit-btn-cancel,
+.portal-user-edit-btn-save {
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.portal-user-edit-btn-cancel {
+    background: #f46c3b;
+    color: white;
+}
+.portal-user-edit-btn-cancel:hover {
+    transform: scale(1.02);
+}
+
+.portal-user-edit-btn-save {
+    background: #4a90e2;
+    color: white;
+}
+.portal-user-edit-btn-save:hover:not(:disabled) {
+    transform: scale(1.02);
+}
+.portal-user-edit-btn-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes scaleIn {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+
+
+/* =========================================================
+   🌙 DARK THEME — активується, коли на body є клас .dark-theme
+   ========================================================= */
+
+.dark-theme .portal-user-edit-modal-window {
+    background: #1f1f1f;
+    color: #e8e8e8;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.dark-theme .portal-user-edit-modal-header {
+    background: linear-gradient(90deg, #1f3b5a, #295a80);
+    color: #e8f1ff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-theme .portal-edit-user-icon {
+    color: #cfe3ff;
+}
+
+.dark-theme .portal-user-edit-close-btn {
+    color: #e9f3ff;
+}
+.dark-theme .portal-user-edit-close-btn:hover {
+    opacity: 0.8;
+    transform: rotate(90deg);
+}
+
+/* Form */
+.dark-theme .portal-user-edit-form {
+    background: #1f1f1f;
+    color: #e8e8e8;
+    scrollbar-color: #295a80 transparent;
+}
+
+.dark-theme .portal-user-edit-form::-webkit-scrollbar-thumb {
+    background: #295a80;
+}
+
+.dark-theme .portal-user-edit-label span {
+    color: #d3e7ff;
+}
+
+.dark-theme .portal-user-edit-input,
+.dark-theme .portal-user-edit-select {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    color: #e8e8e8;
+}
+
+.dark-theme .portal-user-edit-input:focus,
+.dark-theme .portal-user-edit-select:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
+}
+
+/* Checkboxes */
+.dark-theme .portal-user-edit-checkbox-row input[type="checkbox"] {
+    accent-color: #4a90e2;
+}
+
+/* Footer */
+.dark-theme .portal-user-edit-modal-footer {
+    background: #262626;
+    border-top: 1px solid #333;
+}
+
+.dark-theme .portal-user-edit-btn-cancel {
+    background: #d45a2c;
+    color: #fff;
+}
+.dark-theme .portal-user-edit-btn-cancel:hover {
+    transform: scale(1.02);
+}
+
+.dark-theme .portal-user-edit-btn-save {
+    background: #2f6fb4;
+    color: white;
+}
+.dark-theme .portal-user-edit-btn-save:hover:not(:disabled) {
+    transform: scale(1.02);
+}
+
+/* Modal overlay */
+.dark-theme .portal-user-edit-modal-overlay {
+    background: rgba(0, 0, 0, 0.6);
+}

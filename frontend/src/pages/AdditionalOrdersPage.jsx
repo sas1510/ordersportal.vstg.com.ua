@@ -37,24 +37,19 @@ const AdditionalOrders = () => {
   const isMobile = windowWidth < 1024;
   const { theme, toggleTheme } = useTheme();
 
-    // --- ІНІЦІАЛІЗАЦІЯ ДИЛЕРА ТА ЕФЕКТИ ---
+    // --- ІНІЦІАЛІЗАЦІЯ ДИЛЕРА ТА ЕФЕКТИ (ОБ'ЄДНАНО) ---
     useEffect(() => {
         const role = localStorage.getItem('role');
         const savedDealerId = localStorage.getItem('dealerId');
+
         if (savedDealerId) {
             setDealer({ id: savedDealerId, name: 'Saved Dealer' });
+        } else if (role !== 'customer') {
+            // Якщо роль не customer і дилера немає, відкриваємо модалку.
+            // Це відбудеться один раз при ініціалізації
+            setShowDealerModal(true); 
         }
-        if (role !== 'customer' && !savedDealerId) {
-            //setShowDealerModal(true); // Відкриття модалки краще обробляти в useEffect для даних
-        }
-    }, []);
-
-    useEffect(() => {
-        const role = localStorage.getItem('role');
-        if (role !== 'customer' && !dealer) {
-            setShowDealerModal(true);
-        }
-    }, [dealer]);
+    }, []); // Викликається лише при монтуванні
 
 
   const handleDealerSelect = (selectedDealer) => {
@@ -130,8 +125,12 @@ const AdditionalOrders = () => {
     }
   };
 
-  // --- API CALL LOGIC (ЗАМІНА MOCK) ---
+  // --- API CALL LOGIC (ОНОВЛЕНО: ВИКОРИСТАННЯ ABORTCONTROLLER) ---
   useEffect(() => {
+    // 1. Ініціалізація AbortController
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const role = localStorage.getItem('role');
     const contractorId = dealer?.id;
     
@@ -144,66 +143,80 @@ const AdditionalOrders = () => {
     const fetchData = async () => {
       setLoading(true);
       
-      // Виклик API для додаткових замовлень
       const url = `/get_additional_orders_info/?year=${selectedYear}`; 
       
       try {
-        const response = await axiosInstance.get(url);
+        // 2. Передача сигналу в запит
+        const response = await axiosInstance.get(url, { signal });
         
+        // Перевірка на скасування перед оновленням стану
+        if (signal.aborted) return;
+
         if (response.data?.status === "success") {
-            // Очікуємо структуру { "data": { "calculation": [...] } }
             const rawData = response.data.data?.calculation || [];
 
-            // Обов'язкове форматування даних
             const allOrders = rawData.map(item => ({
                 ...item,
                 date: formatDateHuman(item.dateRaw), // Форматована дата
                 orders: item.orders.map(order => ({
                     ...order,
                     date: formatDateHuman(order.dateRaw),
-                    
                 })),
             }));
 
             setAdditionalOrdersData(allOrders);
-            // Застосовуємо фільтри до отриманих даних
             setFilteredItems(getFilteredItems(filter.status, filter.month, filter.name, allOrders));
         } else {
             setAdditionalOrdersData([]);
             setFilteredItems([]);
         }
       } catch (error) {
-        console.error("Помилка запиту додаткових замовлень:", error);
-        setAdditionalOrdersData([]);
-        setFilteredItems([]);
+        // Ігноруємо помилки скасування
+        if (axiosInstance.isCancel(error) || error.name === 'AbortError') {
+          console.log("Запит додаткових замовлень скасовано (Abort).");
+        } else {
+          console.error("Помилка запиту додаткових замовлень:", error);
+          if (!signal.aborted) { // Перевірка, щоб не оновлювати стан, якщо було скасовано
+            setAdditionalOrdersData([]);
+            setFilteredItems([]);
+          }
+        }
       } finally {
-        setLoading(false);
-        setDisplayLimit(initialLimit); // Скидаємо ліміт при новому завантаженні даних
+        // Оновлюємо setLoading лише, якщо запит не був скасований
+        if (!signal.aborted) {
+          setLoading(false);
+          setDisplayLimit(initialLimit); // Скидаємо ліміт при новому завантаженні даних
+        }
       }
     };
 
     fetchData();
+
+    // 3. Функція очищення (Cleanup): скасовує запит перед наступним виконанням useEffect
+    return () => {
+      controller.abort();
+    };
   }, [selectedYear, dealer]);
   // --- END API CALL LOGIC ---
 
 
   const getStatusSummary = () => {
-    // 🔥 ОНОВЛЕНИЙ СПИСОК СТАТУСІВ З УРАХУВАННЯМ SQL
+    // 🔥 ОНОВЛЕНИЙ СПИСОК СТАТУСІВ З УРАХУВАННЯМ SQL
     const summary = { 
-        'Всі': 0, 
-        'Новий': 0, 
-        'В роботі': 0, 
-        'Очікуємо оплату': 0, 
-        'Підтверджений': 0, 
-        'Очікуємо підтвердження': 0, 
-        'У виробництві': 0, 
-        // 'На складі': 0, // Додано
-        // 'Вирішено': 0, // Додано
-        'Готовий': 0, 
-        // 'Відвантажений': 0, 
-        'Доставлено': 0, // Додано
-        'Відмова': 0
-    };
+        'Всі': 0, 
+        'Новий': 0, 
+        'В роботі': 0, 
+        'Очікуємо оплату': 0, 
+        'Підтверджений': 0, 
+        'Очікуємо підтвердження': 0, 
+        'У виробництві': 0, 
+        // 'На складі': 0, // Додано
+        // 'Вирішено': 0, // Додано
+        'Готовий': 0, 
+        // 'Відвантажений': 0, 
+        'Доставлено': 0, // Додано
+        'Відмова': 0
+    };
 
     additionalOrdersData.forEach(additionalOrder => { 
       if (additionalOrder.orders.length === 0) summary['Новий'] += 1;
@@ -440,11 +453,11 @@ const AdditionalOrders = () => {
               { id: "waiting-confirm", label: "Очікують підтвердження", icon: "icon-clipboard", statusKey: "Очікуємо підтвердження" },
               { id: "confirmed", label: "Підтверджені", icon: "icon-check", statusKey: "Підтверджений" },
               { id: "production", label: "Замовлення у виробництві", icon: "icon-cogs", statusKey: "У виробництві" },
-              // { id: "in-stock", label: "На складі", icon: "icon-layers2", statusKey: "На складі" }, // Додано
-              // { id: "resolved", label: "Вирішено", icon: "icon-checkmark", statusKey: "Вирішено" }, // Додано
+              // { id: "in-stock", label: "На складі", icon: "icon-layers2", statusKey: "На складі" }, // Додано
+              // { id: "resolved", label: "Вирішено", icon: "icon-checkmark", statusKey: "Вирішено" }, // Додано
               { id: "ready", label: "Готові замовлення", icon: "icon-layers2", statusKey: "Готовий" },
 //               { id: "delivered", label: "Доставлені замовлення", icon: "icon-shipping", statusKey: "Відвантажений" },
-              { id: "shipped", label: "Доставлено", icon: "icon-truck", statusKey: "Доставлено" }, // Додано
+              { id: "shipped", label: "Доставлено", icon: "icon-truck", statusKey: "Доставлено" }, // Додано
               { id: "rejected", label: "Відмова", icon: "icon-circle-with-cross", statusKey: "Відмова" }
             ].map(({ id, label, icon, statusKey }) => (
               <li
@@ -513,7 +526,7 @@ const AdditionalOrders = () => {
                   boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
                   justifySelf: 'center',
                 }}>
-                <span className="icon icon-loop2" style={{ marginRight: '10px' }}></span> 
+                <span className="icon icon-loop2" style={{ marginRight: '10px' }}></span> 
                 {`Завантажити ще (${nextLoadCount} з ${sortedItems.length - displayLimit})`}
               </button>
             </div>

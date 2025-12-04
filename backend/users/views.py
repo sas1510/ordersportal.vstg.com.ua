@@ -479,13 +479,13 @@ def get_balance_view(request):
     """
     Викликає збережену процедуру GetBalance @User_ID і повертає результат.
     """
-    user_id = request.user.id
+    user_id = request.user.user_id_1C
 
     if getattr(request.user, 'role', None) not in ['customer']:
         return JsonResponse({'detail': 'У вас немає прав для перегляду балансу.'}, status=403)
 
     with connection.cursor() as cursor:
-        cursor.execute("EXEC dbo.GetBalance @User_ID=%s", [user_id])
+        cursor.execute("EXEC dbo.GetDealerAdvanceBalance @Контрагент=%s", [user_id])
         row = cursor.fetchone() 
 
     if not row:
@@ -566,3 +566,252 @@ def get_dealers(request):
     ]
 
     return Response({"dealers": dealer_list})
+
+
+
+from rest_framework import status
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import Group
+
+
+## Функція для Клієнта (потрібен старий пароль)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def change_password_client(request):
+    """
+    Дозволяє авторизованому користувачу змінити свій пароль, 
+    вимагаючи введення поточного пароля.
+    
+    Очікує POST-дані: {'old_password': '...', 'new_password': '...'}
+    """
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+
+    if not all([old_password, new_password]):
+        return Response(
+            {"error": "Потрібні обидва поля: old_password та new_password."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Перевірка старого пароля
+    if not user.check_password(old_password):
+        return Response(
+            {"error": "Невірний поточний пароль."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Встановлення нового пароля та збереження користувача
+    try:
+        user.set_password(new_password)
+        user.save()
+        return Response({"status": "success", "message": "Пароль успішно змінено."}, 
+                        status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"error": f"Помилка при збереженні нового пароля: {e}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+    
+
+
+    ## Функція для Адміністратора (не потрібен старий пароль)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def admin_change_user_password(request, user_id):
+    """
+    Адмін змінює пароль іншому користувачу.
+    """
+    if request.user.role != "admin":
+        return Response({"detail": "Доступ заборонено"}, status=403)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    password = request.data.get("password")
+    if not password:
+        return Response({"detail": "Пароль не передано"}, status=400)
+
+    user.set_password(password)
+    user.save()
+
+    return Response({"detail": "Пароль успішно оновлено"})
+
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_all_users_view(request):
+    """
+    Повертає список всіх користувачів з ролями (тільки для ADMIN).
+    Якщо менеджер — повертає тільки його дилерів.
+    """
+    user = request.user
+
+    # --- ADMIN бачить всіх ---
+    if user.role == "admin":
+        users = CustomUser.objects.all().order_by("role", "full_name")
+
+    # --- MANAGER бачить тільки своїх дилерів ---
+    elif user.role == "manager":
+        try:
+            from .models import ManagerDealer
+        except Exception:
+            return Response(
+                {"error": "Модель ManagerDealer не знайдена"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        assigned_ids = ManagerDealer.objects.filter(
+            manager_user_id_1C=user.user_id_1C
+        ).values_list("dealer_user_id_1C", flat=True)
+
+        users = CustomUser.objects.filter(user_id_1C__in=assigned_ids)
+
+    else:
+        return Response(
+            {"detail": "У вас немає прав для перегляду цього списку"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    data = [
+        {
+            "id": u.id,
+            "username": u.username,
+            "full_name": u.full_name,
+            "email": u.email,
+            "role": u.role,
+            "is_active": u.is_active,
+            "phone_number": u.phone_number,
+            "expire_date" : u.expire_date           
+        }
+        for u in users
+    ]
+
+    return Response({"users": data})
+
+
+
+
+from datetime import datetime
+from django.utils.timezone import make_aware, get_current_timezone
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def admin_edit_user_view(request, user_id):
+
+    if request.user.role != "admin":
+        return Response({"detail": "Доступ заборонено"}, status=403)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    allowed_fields = [
+        "username", "full_name", "email", "phone_number", "role",
+        "expire_date", "is_active", "permit_finance_info", "old_portal_id"
+    ]
+
+    incoming = request.data.copy()
+
+    # Checkboxes → bool
+    bool_fields = ["is_active", "permit_finance_info"]
+    for field in bool_fields:
+        if field in incoming:
+            incoming[field] = incoming[field] in ["true", "True", True, "1", 1]
+
+    # 🔥 Робимо expire_date timezone-aware
+    if "expire_date" in incoming and incoming["expire_date"]:
+        try:
+            # перетворюємо YYYY-MM-DD на aware datetime
+            dt = datetime.strptime(incoming["expire_date"], "%Y-%m-%d")
+            incoming["expire_date"] = make_aware(dt, get_current_timezone())
+        except ValueError:
+            return Response({"error": "Невірний формат дати"}, status=400)
+
+    # Оновлення полів
+    for field in allowed_fields:
+        if field in incoming:
+            setattr(user, field, incoming[field])
+
+    user.save()
+
+    return Response({
+        "detail": "Дані користувача успішно оновлено",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "role": user.role,
+            "expire_date": user.expire_date,
+            "is_active": user.is_active,
+            "permit_finance_info": user.permit_finance_info,
+            "old_portal_id": user.old_portal_id,
+        }
+    })
+
+
+
+from datetime import datetime
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import CustomUser
+
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def admin_deactivate_user_view(request, user_id):
+    """
+    Деактивація користувача (is_active = False).
+    Доступ тільки для admin.
+    """
+    # 🔐 Перевірка прав
+    if request.user.role != "admin":
+        return Response({"detail": "Доступ заборонено"}, status=403)
+
+    # 🔎 Отримуємо користувача
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    # 🟥 Деактивуємо
+    user.is_active = False
+
+    # Уникаємо помилок із datetime → date
+    if user.expire_date and hasattr(user.expire_date, "date"):
+        try:
+            user.expire_date = user.expire_date.date()
+        except Exception:
+            pass
+
+    user.save()
+
+    # 📤 Відповідь
+    return Response({
+        "detail": "Користувача деактивовано",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "full_name": user.full_name,
+            "email": user.email,
+            "role": user.role,
+            "is_active": user.is_active,
+            "expire_date": user.expire_date,
+        }
+    }, status=200)
+
+
+

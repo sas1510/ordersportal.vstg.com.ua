@@ -129,6 +129,7 @@
 .portal-header .menu ul li.dealer-size {
     font-size: 20px;
     height: 100%;
+    
     width: 200%;
 }
 
@@ -689,4 +690,13 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 /* Колір при наведенні (Hover) */
 .theme-toggle-btn:hover .material-icons {
     color: var(--success-color) !important; 
+}
+
+.dealer-profile-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  font-size: 20px;
+  height: 100%;
+  width: 200%;
 }
