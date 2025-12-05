@@ -1,17 +1,20 @@
 import React from "react";
-import HeaderWithoutAuth from "../headers/HeaderWithoutAuth"; // 🔁 Або перейменуй у HeaderWithoutAuth
+import HeaderWithoutAuth from "../headers/HeaderWithoutAuth";
 import Footer from "./Footer";
 import { Outlet } from "react-router-dom";
 
 export default function PublicLayout() {
   return (
-    <div style={styles.layout}>
-      <HeaderWithoutAuth />
-      <main style={styles.main}>
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
+    <>
+      <HeaderWithoutAuth />   {/* хедер тепер над layout */}
+      
+      <div style={styles.layout}>
+        <main style={styles.main}>
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </>
   );
 }
 
@@ -22,10 +25,9 @@ const styles = {
     minHeight: "100vh",
     position: "relative",
   },
-   main: {
+  main: {
     flexGrow: 1,
-    paddingTop: "60px",   // приблизно висота Header
     paddingBottom: "40px",
-    overflow: "auto" // приблизно висота Footer
+    overflow: "auto",
   },
 };

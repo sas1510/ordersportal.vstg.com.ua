@@ -816,17 +816,16 @@ body {
 }
 
 /* --- iOS SAFE AREA (гарний варіант) --- */
-@supports(padding: env(safe-area-inset-top)) {
-  .portal-header::before,
-  .auth-header::before {
-    content: "";
-    position: fixed;
-    left: 0;
-    right: 0;
-    /* виносимо фон ВИЩЕ хедера */
-    top: calc(-1 * env(safe-area-inset-top));
-    height: env(safe-area-inset-top);
-    background: radial-gradient(circle, #424242 15%, #2d2826);
-    z-index: 9999; /* нижче за header з 10000/1100, але вище контенту */
-  }
+/* --- FIX SAFE AREA iOS (абсолютно робоча версія) --- */
+@supports (padding: env(safe-area-inset-top)) {
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: env(safe-area-inset-top);
+        background: radial-gradient(circle, #424242 15%, #2d2826);
+        z-index: 99999;
+    }
 }
