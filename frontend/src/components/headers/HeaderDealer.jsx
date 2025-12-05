@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
 import { RoleContext } from "../../context/RoleContext";
-import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КОНТЕКСТУ ТЕМИ
+import { useTheme } from "../../context/ThemeContext"; 
 import "./HeaderAdmin.css"; 
 import HeaderDealerProfile from "./HeaderDealerProfile";
 

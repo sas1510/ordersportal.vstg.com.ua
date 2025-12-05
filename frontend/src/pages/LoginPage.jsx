@@ -1,23 +1,39 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axios";
 import { RoleContext } from "../context/RoleContext";
-import { useTheme } from "../context/ThemeContext"; 
+import { useTheme } from "../context/ThemeContext";
+import "./LoginPage.css";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);   // 🔥 БЛОКУЄМО ДУБЛІ ЗАПИТІВ
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
   const { setRole } = useContext(RoleContext);
   const { theme } = useTheme();
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(prev => !prev);
+  };
+
+  // При завантаженні компонента підтягуємо збережений логін
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("savedUsername");
+    if (savedUsername) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (loading) return;        // 🔥 БЛОКУВАННЯ ПОВТОРНОГО НАТИСКАННЯ
+    if (loading) return;
     setLoading(true);
     setErrorMessage("");
 
@@ -30,6 +46,13 @@ export default function LoginPage() {
       const role = response.data.role;
       localStorage.setItem("role", role);
       setRole(role);
+
+      // При вході зберігаємо логін, якщо checkbox активний
+      if (rememberMe) {
+        localStorage.setItem("savedUsername", username);
+      } else {
+        localStorage.removeItem("savedUsername");
+      }
 
       navigate("/dashboard");
     } catch (error) {
@@ -56,79 +79,205 @@ export default function LoginPage() {
 
   const isDark = theme === "dark";
 
-  /* === Динамічні стилі === */
-
-  const bgClasses = isDark
-    ? "min-h-screen bg-gray-950 flex items-center justify-center px-4"
-    : "min-h-screen bg-gradient-to-br from-blue-100 to-blue-300 flex items-center justify-center px-4";
-
-  const cardClasses = isDark
-    ? "relative bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-2xl max-w-md w-full p-10 transition duration-500 hover:scale-[1.01]"
-    : "bg-white rounded-xl shadow-md max-w-md w-full p-8";
-
-  const headerClasses = isDark
-    ? "text-4xl font-extrabold text-blue-400 mb-8 text-center tracking-wider"
-    : "text-4xl font-extrabold text-blue-800 mb-8 text-center tracking-wide";
-
-  const inputClasses = isDark
-    ? "px-5 py-4 border border-gray-700 bg-gray-700/70 text-white rounded-lg shadow-inner shadow-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-400/50 focus:border-blue-400 transition placeholder-gray-500"
-    : "px-5 py-4 border border-blue-400 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-700 transition";
-
-  const buttonClasses = isDark
-    ? "mt-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 rounded-lg shadow-md shadow-blue-500/30 transition duration-300 transform hover:scale-[1.02]"
-    : "mt-4 bg-blue-700 hover:bg-blue-800 text-white font-semibold py-4 rounded-lg shadow-md transition duration-300";
-
-  const errorClasses = isDark
-    ? "text-red-400 text-center font-medium tracking-wide bg-red-900/30 p-2 rounded-lg border border-red-500/50"
-    : "text-red-600 text-center font-medium tracking-wide";
-
-
   return (
-    <div className={bgClasses}>
-      {isDark && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-950 to-blue-950 opacity-90"></div>
-      )}
+    <div className={`login-page ${isDark ? 'dark' : 'light'}`}>
+      
+      {/* Анімовані фонові елементи */}
+<div className="background-shapes">
+    <div className="shape shape-1" />
+    <div className="shape shape-2" />
+    <div className="shape shape-3" />
 
-      <div className={cardClasses}>
-        <h2 className={headerClasses}>Вхід у систему</h2>
+    {/* COSMIC DUST */}
+    <div className="star s1"></div>
+    <div className="star s2"></div>
+    <div className="star s3"></div>
+    <div className="star s4"></div>
+    <div className="star s5"></div>
+    <div className="star s6"></div>
+    <div className="star s7"></div>
+    <div className="star s8"></div>
+    <div className="star s9"></div>
+    <div className="star s10"></div>
+    <div className="star s11"></div>
+    <div className="star s12"></div>
+    <div className="star s13"></div>
+    <div className="star s14"></div>
+    <div className="star s15"></div>
+</div>
 
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
 
-          <input
-            type="text"
-            placeholder="Логін"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            className={inputClasses}
-          />
 
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className={inputClasses}
-          />
+      {/* Основний контейнер */}
+      <div className="login-container-wrapper">
+        <div className="login-card">
+          <div className="login-grid">
+            
+            {/* Ліва панель - інформаційна */}
+            <div className="info-panel">
+              
+              {/* Декоративні елементи */}
+              <div className="deco-circle deco-circle-1" />
+              <div className="deco-circle deco-circle-2" />
+              <div className="energy-line"></div>
+              <div className="info-content">
+              <div className="welcome-row">
+                <img src="/header_logo_small.png" className="logo-small" alt="Вікна Стиль" />
 
-          {errorMessage && (
-            <div className={errorClasses}>{errorMessage}</div>
-          )}
+                <div className="welcome-divider"></div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className={
-              buttonClasses +
-              (loading
-                ? " opacity-60 cursor-not-allowed pointer-events-none"
-                : "")
-            }
-          >
-            {loading ? "Зачекайте..." : "Увійти"}
-          </button>
-        </form>
+                <div className="welcome-text-block">
+                  <p className="welcome-line">Вітаємо знову!</p>
+                  <p className="welcome-subline">Увійдіть до порталу аналітики та замовленнями</p>
+                </div>
+              </div>
+
+              
+
+
+                <div className="stats-grid">
+
+                  <div className="stat-item">
+                    <i className="fa fa-magic stat-icon"></i>
+                    <div className="stat-label">Естетика</div>
+                  </div>
+
+                  <div className="stat-item">
+                    <i className="fa fa-star stat-icon"></i>
+                    <div className="stat-label">Якість</div>
+                  </div>
+
+                  <div className="stat-item">
+                    <i className="fa fa-tags stat-icon"></i>
+                    <div className="stat-label">Найкраща ціна</div>
+                  </div>
+
+                  <div className="stat-item">
+                    <i className="fa fa-shield-alt stat-icon"></i>
+                    <div className="stat-label">Безпека</div>
+                  </div>
+
+                </div>
+                <div className="energy-line"></div>
+
+              </div>
+            </div>
+
+            {/* Права панель - форма входу */}
+            <div className="form-panel">
+              <div className="form-wrapper">
+                
+                <h2 className="form-title">Вхід у систему</h2>
+                <p className="form-subtitle">Введіть ваші облікові дані для доступу</p>
+
+                <form onSubmit={handleSubmit} noValidate className="login-form">
+                  
+                  {/* Поле логіну */}
+                  <div className="form-group">
+                    <label className="form-label">Ім'я користувача</label>
+                    <div className="input-wrapper">
+                      <span className="input-icon">
+                        <i className="fa fa-user"></i> 
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Введіть логін"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Поле пароля */}
+                  <div className="form-group">
+                    <label className="form-label">Пароль</label>
+                    <div className="input-wrapper">
+                      <span className="input-icon">
+                      <i className="fa fa-lock"></i> 
+                    </span>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Введіть пароль"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="form-input"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="password-toggle"
+                      >
+                        <span 
+                          className="password-toggle-icon" 
+                          onClick={togglePasswordVisibility}
+                        >
+                          <i className={`fa ${showPassword ? "fa-eye" : "fa-eye-slash"}`}></i>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Опції */}
+                  <div className="form-options">
+                    <label className="remember-checkbox">
+                      <input 
+                        type="checkbox" 
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Запам'ятати мене</span>
+                    </label>
+                    {/* <a href="#" className="forgot-link">
+                      Забули пароль?
+                    </a> */}
+                  </div>
+
+
+                  {/* Кнопка входу */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`submit-button ${loading ? 'loading' : ''}`}
+                  >
+                    {loading ? (
+                      <span className="button-content">
+                        <svg className="spinner" viewBox="0 0 24 24">
+                          <circle 
+                            className="spinner-circle" 
+                            cx="12" 
+                            cy="12" 
+                            r="10" 
+                            stroke="currentColor" 
+                            strokeWidth="4" 
+                            fill="none"
+                          />
+                          <path 
+                            className="spinner-path" 
+                            fill="currentColor" 
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Зачекайте...
+                      </span>
+                    ) : (
+                      "Увійти"
+                    )}
+                  </button>
+
+                  
+                  {/* Повідомлення про помилку */}
+                  <div className="error-wrapper">
+                    {errorMessage && <div className="error-inline">{errorMessage}</div>}
+                  </div>
+
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

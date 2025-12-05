@@ -249,7 +249,7 @@ align-items: center;
   border-right: none;
 }
 .portal-header .menu ul li:not(.profile-item):not(.logout-item) {
-  border-right: 1px dashed #555;
+  border-right: none;
 }
 
 
@@ -699,4 +699,109 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   font-size: 20px;
   height: 100%;
   width: 200%;
+}
+
+
+/* Контейнер */
+.auth-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: radial-gradient(circle, #424242 15%, #2d2826);
+  color: white;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px 0px 0px 16px;
+  z-index: 1100;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.dark-theme .auth-header {
+  background: #2c2c2c;
+}
+
+.portal-header .auth-logo img {
+  height: 100%;
+}
+
+/* Контейнер кнопок справа */
+
+/* 🔆 Кнопка теми (ізольована) */
+.auth-theme-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 11px 6px 6px 6px;
+}
+
+.auth-theme-icon {
+  font-size: 23px;
+}
+
+/* 🔐 Кнопка входу */
+.auth-login-btn {
+  background: #4a90e2;
+  border: none;
+  padding: 8px 0px 8px 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0px 0px 4px rgba(255, 255, 255, 0.2);
+  transition: background 0.2s, transform 0.1s;
+}
+
+.auth-login-btn:hover {
+  background: #357ab8;
+}
+
+.auth-login-icon {
+  color: white;
+  font-size: 22px;
+  vertical-align: middle;
+}
+
+
+.auth-login-green {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  border: none;
+  padding: 8px 10px; /* симетрично */
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+  margin-right: 9px;
+
+  transition: background 0.2s ease, transform 0.2s ease;
+  transform-origin: center;  /* 🟢 ВАЖЛИВО */
+}
+
+.auth-login-green:hover {
+  background-color: #2c8a00;
+
+}
+
+.auth-login-green i {
+  font-size: 18px;
+}
+
+
+
+.auth-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* було дуже багато, тепер компактно */
+}
+
+/* роздільник */
+.auth-divider {
+    width: 1px;
+    height: 60px;
+    border-right: 1px dashed #555;
+    margin: 0 4px; /* невеликі відступи між кнопками */
 }
