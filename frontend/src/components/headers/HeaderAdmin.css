@@ -720,7 +720,7 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 }
 
 .dark-theme .auth-header {
-  background: #2c2c2c;
+  background: #2c2c2c
 }
 
 .portal-header .auth-logo img {
@@ -804,28 +804,4 @@ body.dark-theme .theme-toggle-btn:hover .icon {
     height: 60px;
     border-right: 1px dashed #555;
     margin: 0 4px; /* невеликі відступи між кнопками */
-}
-
-
-html {
-   background: radial-gradient(circle, #424242 15%, #2d2826);
-}
-
-body {
-   background: radial-gradient(circle, #424242 15%, #2d2826);
-}
-
-/* --- iOS SAFE AREA (гарний варіант) --- */
-/* --- FIX SAFE AREA iOS (абсолютно робоча версія) --- */
-@supports (padding: env(safe-area-inset-top)) {
-    body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: env(safe-area-inset-top);
-        background: radial-gradient(circle, #424242 15%, #2d2826);
-        z-index: 99999;
-    }
 }
