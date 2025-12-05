@@ -5,6 +5,7 @@ import { FaPlus, FaSearch, FaEdit, FaTrash, FaYoutube, FaTiktok } from 'react-ic
 import { useNotification } from '../components/notification/Notifications';
 import ConfirmModal from '../components/Orders/ConfirmModal';
 import './Videos.css';
+import { useTheme } from '../context/ThemeContext';
 
 const VideosPage = () => {
   const [videos, setVideos] = useState([]);
@@ -24,6 +25,22 @@ const VideosPage = () => {
     description: '', 
     resource_type: 'youtube' // 'youtube' як тип за замовчуванням
   });
+
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+   const darkStyles = {
+        searchBoxBg: '#333333',
+        searchBoxBorder: '1px dashed #555555',
+        searchBoxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+        iconColor: '#aaaaaa',
+        delimiterBorder: '1px dashed #555',
+        fileItemBg: '#2c2c2c',
+        fileItemBorder: '1px solid #444',
+        fileItemShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        lightTextColor: '#f0f0f0', 
+        lightGreyColor: '#aaa',     
+    };
 
   const role = localStorage.getItem('role');
   const isAdmin = role === 'admin';
@@ -183,8 +200,8 @@ const VideosPage = () => {
       </div>
 
       {/* ... (Search bar залишається без змін) ... */}
-      <div className="row gap-14 align-center mb-2">
-        <div className="row align-center gap-7 search-box"
+      <div className="row gap-14 align-center mb-2 ">
+        <div className="row align-center gap-7 search-box " 
           style={{ flex: 1, padding: '8px 12px', borderRadius: '10px',
                    border: '1px dashed #666666ff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           <FaSearch className="text-grey" style={{ fontSize: '20px' }} />
@@ -197,8 +214,10 @@ const VideosPage = () => {
           />
         </div>
       </div>
-      <div style={{ border: '1px dashed #666666ff', marginBottom: '5px' }}></div>
-
+           <div style={{ 
+                borderTop: isDark ? darkStyles.delimiterBorder : '1px dashed #ccc', 
+                marginBottom: '5px' 
+          }}></div> 
 
       {/* Videos List */}
       {loading ? (

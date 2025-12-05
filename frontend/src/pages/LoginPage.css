@@ -959,3 +959,111 @@
 
 
 
+
+/* ===== МОБІЛЬНИЙ АДАПТИВ (до 767px) ===== */
+@media (max-width: 767px) {
+
+  /* Контейнер всієї сторінки */
+  .login-page {
+    height: auto;
+    padding: 20px;
+    padding-top: 40px;
+    overflow-y: auto;
+  }
+
+  .login-container-wrapper {
+    max-width: 100%;
+  }
+
+  /* Сітка стає одною колонкою */
+  .login-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Інфо-панель переноситься НИЖЧЕ */
+  .info-panel {
+    order: 1;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  /* Прибираємо зайві складні анімації на телефонах */
+  .shape,
+  .particle,
+  .star {
+    opacity: 0.25;
+    filter: blur(40px);
+    animation-duration: 18s !important;
+  }
+
+  /* Логотип */
+  .logo-small {
+    width: 60px;
+  }
+
+  /* Вітальний текст */
+  .welcome-line {
+    font-size: 22px;
+  }
+
+  .welcome-subline {
+    font-size: 16px;
+  }
+
+  /* Вертикальний розділювач забираємо */
+  .welcome-divider {
+    display: none;
+  }
+
+    .stats-grid
+   {
+    display: none !important;
+  }
+
+  /* Форма входу */
+  .form-panel {
+    order: 2;
+    padding: 1.5rem;
+  }
+
+  .form-wrapper {
+    max-width: 100%;
+  }
+
+  .form-title {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .form-subtitle {
+    text-align: center;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-input {
+    padding: 0.75rem 1rem 0.75rem 3rem;
+    font-size: 1rem;
+  }
+
+  .submit-button {
+    padding: 0.85rem;
+    font-size: 0.95rem;
+  }
+
+  .password-toggle {
+    font-size: 1rem;
+    right: 0.8rem;
+  }
+
+  /* Енергетична лінія – скромніша на мобільному */
+  .energy-line {
+    height: 2px;
+    margin: 25px 0;
+  }
+
+  /* Помилка */
+  .error-inline {
+    font-size: 0.8rem;
+  }
+}

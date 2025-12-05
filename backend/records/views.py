@@ -574,3 +574,8 @@ def download_order_file(request, order_guid, file_guid, filename):
 
     except Exception as e:
         raise Http404(f"Помилка доступу до файлу: {str(e)}")
+    
+
+
+
+
