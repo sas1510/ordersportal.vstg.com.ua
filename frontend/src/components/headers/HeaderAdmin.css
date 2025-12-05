@@ -805,3 +805,21 @@ body.dark-theme .theme-toggle-btn:hover .icon {
     border-right: 1px dashed #555;
     margin: 0 4px; /* невеликі відступи між кнопками */
 }
+
+
+html {
+   background: radial-gradient(circle, #424242 15%, #2d2826);
+}
+
+body {
+   background: radial-gradient(circle, #424242 15%, #2d2826);
+}
+
+/* --- FIX SAFE AREA FOR iOS --- */
+@supports(padding: env(safe-area-inset-top)) {
+  .portal-header,
+  .auth-header {
+      padding-top: env(safe-area-inset-top);
+      height: calc(60px + env(safe-area-inset-top));
+  }
+}
