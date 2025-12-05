@@ -2694,3 +2694,18 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
 
 
 .payments-body { padding-top: 60px !important; padding-bottom: 60px !important;  padding-left: 100px !important; padding-right: 100px !important;}
+
+
+/* iPhone SAFE AREA FIX */
+@supports (padding: env(safe-area-inset-top)) {
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    background: radial-gradient(circle, #424242 15%, #2d2826);
+    z-index: -1;
+  }
+}

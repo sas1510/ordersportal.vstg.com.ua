@@ -4,8 +4,8 @@ import Footer from "./Footer";
 
 const DealerLayout = () => (
   <>
+   <HeaderDealer />
     <div className="min-h-screen flex flex-col">
-    <HeaderDealer />
     <main style={styles.main}>
       <Outlet />
     </main>

@@ -6,12 +6,14 @@ import { Outlet } from "react-router-dom";
 export default function PublicLayout() {
   return (
     <>
-      <HeaderWithoutAuth />   {/* хедер тепер над layout */}
-      
+      {/* ХЕДЕР МАЄ БУТИ ПЕРЕД layout-контейнером */}
+      <HeaderWithoutAuth />
+
       <div style={styles.layout}>
         <main style={styles.main}>
           <Outlet />
         </main>
+        
         <Footer />
       </div>
     </>
@@ -27,7 +29,7 @@ const styles = {
   },
   main: {
     flexGrow: 1,
-    paddingBottom: "40px",
+    paddingBottom: "40px",  // відступ під футер
     overflow: "auto",
   },
 };
