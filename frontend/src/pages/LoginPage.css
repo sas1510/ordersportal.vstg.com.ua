@@ -130,7 +130,7 @@
 }
 
 .login-card {
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   backdrop-filter: blur(20px);
@@ -614,6 +614,8 @@
     justify-content: center; /* Центрує весь блок на сторінці (якщо потрібно) */
     gap: 15px; /* Додає простір між заголовком (h1) та текстом (p) */
     flex-wrap: wrap; /* Дозволяє переносити на новий рядок на вузьких екранах */
+    margin-left: 40px;
+    margin-right: 40px;
 }
 
 .welcome-title {
@@ -627,6 +629,8 @@
   align-items: center;
   gap: 14px;
   margin-bottom: 2rem;
+  margin-left: 10px;
+  margin-right: 5px;
 }
 
 .logo-small {
@@ -635,9 +639,9 @@
   transition: transform 0.5s ease-in-out;
 }
 
-.logo-small:hover {
+/* .logo-small:hover {
   transform: scale(1.08);
-}
+} */
 
 .welcome-divider {
   width: 1px;
@@ -826,8 +830,8 @@
 
 /* Light theme — темніші частинки */
 .login-page.light .star {
-  background: rgba(0, 0, 0, 0.35);
-  filter: blur(0.5px);
+  background: rgb(43, 43, 44);
+  /* filter: blur(0.5px); */
 }
 
 /* Dark theme — світлі glowing частинки */
@@ -925,7 +929,7 @@
 
 .energy-line {
   width: 100%;
-  height: 4px;
+  height: 3px;
   margin-top: 40px;
   margin-bottom: 40px;
   border-radius: 50px;
@@ -1015,7 +1019,7 @@
     display: none;
   }
 
-    .stats-grid
+  .stats-grid
    {
     display: none !important;
   }

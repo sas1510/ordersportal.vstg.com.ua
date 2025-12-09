@@ -122,13 +122,13 @@ export default function LoginPage() {
               <div className="energy-line"></div>
               <div className="info-content">
               <div className="welcome-row">
-                <img src="/header_logo_small.png" className="logo-small" alt="Вікна Стиль" />
+                <img src="/header_logo_small white.svg" className="logo-small" alt="Вікна Стиль" />
 
                 <div className="welcome-divider"></div>
 
                 <div className="welcome-text-block">
                   <p className="welcome-line">Вітаємо знову!</p>
-                  <p className="welcome-subline">Увійдіть до порталу аналітики та замовленнями</p>
+                  <p className="welcome-subline">Увійдіть до порталу аналітики та замовлень</p>
                 </div>
               </div>
 
