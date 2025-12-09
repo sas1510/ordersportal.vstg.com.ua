@@ -1,0 +1,59 @@
+.payment-card {
+  background: #fff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px var(--shadow-color);
+  border-left: 4px solid var(--vs-blue-color);
+  margin-bottom: 14px;
+  transition: 0.2s ease;
+}
+
+.payment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.payment-card-header {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  color: #fff;
+}
+
+.status-badge.success {
+  background: var(--success-color);
+}
+
+.status-badge.danger {
+  background: var(--danger-color);
+}
+
+.payment-card-body .payment-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.payment-card-body .payment-row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  color: #777;
+  font-weight: 500;
+}
+
+.text-red {
+  color: #d32f2f;
+}
+
+.text-green {
+  color: #388e3c;
+}

@@ -311,6 +311,9 @@ from django.http import JsonResponse
 from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+
 
 User = get_user_model()
 
@@ -323,18 +326,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+
         if response.status_code == 200:
-            # Отримуємо токени
             refresh = response.data.get("refresh")
             access = response.data.get("access")
-            
-            # Всі ці поля існують у новій моделі CustomUser
+
             user = CustomUser.objects.get(username=request.data["username"])
             role = user.role
 
             update_last_login(None, user)
 
-            # Відправляємо refresh токен в HttpOnly cookie
+
+            user_guid_1c = bin_to_guid_1c(user.user_id_1C)
+
             resp = Response(
                 {
                     "access": access,
@@ -343,22 +347,26 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                         "username": user.username,
                         "full_name": user.full_name,
                         "role": role,
+                        "user_id_1c": user_guid_1c,   # ← ДОДАНО
                     },
                     "role": role,
                 },
                 status=status.HTTP_200_OK
             )
+
             resp.set_cookie(
                 key="refresh_token",
                 value=refresh,
                 httponly=True,
-                secure=False,  # Встановіть True у production
+                secure=False,
                 samesite="Lax",
                 max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
             )
 
             return resp
+        
         return response
+
 
 # ----------------------
 # Рефреш токена
@@ -814,4 +822,20 @@ def admin_deactivate_user_view(request, user_id):
     }, status=200)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_current_user(request):
+    user = request.user
 
+
+    user_guid_1c = bin_to_guid_1c(user.user_id_1C) if user.user_id_1C else None
+
+    return Response({
+        "id": user.id,
+        "username": user.username,
+        "full_name": user.full_name,
+        "role": user.role,
+
+        "user_id_1C": user_guid_1c,
+
+    })

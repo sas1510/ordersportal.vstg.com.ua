@@ -2709,3 +2709,55 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
     z-index: -1;
   }
 }
+
+
+.channel-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* БАНК — синій */
+.channel-badge.bank {
+  background-color: #dbe8ff;
+  color: #0b56d0;
+  border: 1px solid #a6c7ff;
+}
+
+/* КАСА — зелений */
+.channel-badge.cash {
+  background-color: #def6d8;
+  color: #2c8a00;
+  border: 1px solid #b4e7a8;
+}
+
+/* Нічого — просто сірий */
+.channel-badge.none {
+  color: #999;
+}
+
+
+.sub-row {
+  background: #f6f6f8;
+}
+
+.sub-info {
+  padding: 10px 20px;
+  border-left: 4px solid #5e83bf;
+  background: #fff;
+}
+
+.sub-title {
+  font-weight: 600;
+  color: #5e83bf;
+  margin-bottom: 6px;
+}
+
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 12px;
+  font-size: 14px;
+}

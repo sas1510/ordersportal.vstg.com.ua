@@ -13,6 +13,7 @@ from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -58,3 +59,66 @@ def get_payment_status_view(request):
 
     # 3. Повернення результату
     return JsonResponse(results, safe=False)
+
+
+
+# /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
+
+from datetime import date
+from django.http import JsonResponse
+from django.db import connection
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+# коректний імпорт
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_payment_status_view(request):
+
+    guid_str = request.GET.get("contractor")
+    if not guid_str:
+        return JsonResponse({"error": "Parameter 'contractor' (GUID) is required"}, status=400)
+
+    try:
+        contractor_binary = guid_to_1c_bin(guid_str)
+    except Exception as e:
+        return JsonResponse({"error": f"Invalid GUID format: {e}"}, status=400)
+
+    date_from = request.GET.get("date_from", "1900-01-01")
+    date_to = request.GET.get("date_to", str(date.today()))
+
+    sql = """
+        EXEC dbo.GetDealerFullLedger
+            @Контрагент = %s,
+            @ДатаЗ = %s,
+            @ДатаПо = %s
+    """
+
+    try:
+        results = []
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [contractor_binary, date_from, date_to])
+            columns = [col[0] for col in cursor.description]
+
+            for row in cursor.fetchall():
+                results.append(dict(zip(columns, row)))
+
+        # ===== FIX JSON serialization =====
+        def convert_bytes(obj):
+            if isinstance(obj, (bytes, bytearray)):
+                return obj.hex().upper()
+            return obj
+
+        results = [
+            {k: convert_bytes(v) for k, v in row.items()}
+            for row in results
+        ]
+
+        return JsonResponse(results, safe=False)
+
+    except Exception as e:
+        return JsonResponse({"error": f"SQL execution error: {e}"}, status=500)

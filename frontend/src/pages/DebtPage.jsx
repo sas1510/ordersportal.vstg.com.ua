@@ -1,474 +1,485 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import axiosInstance from '../api/axios';
-import '../components/Portal/PortalOriginal.css';
-import { useTheme } from '../context/ThemeContext';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import axiosInstance from "../api/axios";
+import "../components/Portal/PortalOriginal.css";
+import "./PaymentStatus.css";
+import { useTheme } from "../context/ThemeContext";
 
-// Отримуємо роль користувача з Local Storage
-const USER_ROLE = localStorage.getItem('role') || '';
-const DEFAULT_CONTRACTOR_GUID = localStorage.getItem('contractor_guid') || '0x811D74867AD9D52511ECE7C2E5415765';
+// ====================================================================
+//                               ДОПОМІЖНІ ФУНКЦІЇ
+// ====================================================================
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('uk-UA', {
+// ========= ФОРМАТУВАННЯ ВАЛЮТИ =========
+const formatCurrency = (value, unit = "грн") => {
+  if (value == null || isNaN(Number(value))) return "—";
+  const num = Number(value);
+
+  const formatter = new Intl.NumberFormat("uk-UA", {
+    style: "decimal",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount);
+  });
+
+  if (unit === "") return formatter.format(num);
+
+  return `${formatter.format(num)} ${unit}`;
 };
+
+// ========= ДІСТАЄМО КОРИСТУВАЧА =========
+const USER = JSON.parse(localStorage.getItem("user") || "{}");
+const USER_ROLE = USER.role || "";
+
+// ========= GUID КОНТРАГЕНТА =========
+const DEFAULT_CONTRACTOR_GUID =
+  USER_ROLE === "customer"
+    ? USER.user_id_1c
+    : localStorage.getItem("contractor_guid");
+
+// ========= ДОП. ФУНКЦІЯ: визначення каналу оплати =========
+const detectPaymentChannel = (item) => {
+  const doc = item.ВидДокумента || item.DealType || "";
+  const hasOrder = item.Сделка || item.НомерЗаказа;
+
+  if (hasOrder) return "order";
+  if (doc === "ППВход") return "bank";
+  if (doc === "ПКО") return "cash";
+  return "none";
+};
+
+// ========= ДОП. ФУНКЦІЯ: Отримання початку і кінця поточного місяця (ОНОВЛЕНО) =========
+const getCurrentMonthDates = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  // Початок місяця (YYYY-MM-01)
+  const dateFrom = new Date(year, month, 1).toISOString().split("T")[0];
+
+  // Кінець місяця (сьогоднішня дата)
+  const dateTo = now.toISOString().split("T")[0];
+
+  return { dateFrom, dateTo };
+};
+
+// ====================================================================
+//                     МЕМОІЗОВАНИЙ КОМПОНЕНТ РЯДКА (GROUP)
+// ====================================================================
+
+const PaymentGroup = React.memo(function PaymentGroup({
+  group,
+  formatCurrency,
+  detectPaymentChannel,
+  expandedRows,
+  toggleRow,
+}) {
+  if (!group || group.items.length === 0) return null;
+
+  const dateRow = (
+    <>
+      <tr className="date-row">
+        <td colSpan={11}>📅 {group.date}</td>
+      </tr>
+
+      <tr className="initial-contracts-row">
+        <td colSpan={11}>
+          <div style={{ padding: "6px 14px", lineHeight: "1.5" }}>
+            Залишки на початок дня:
+            {Object.values(group.initialContracts).map((c, idx) => (
+              <div key={idx} style={{ fontSize: "13px" }}>
+                <span className="contract-name-bold">{c.contractName}</span>
+                {" — "}
+                {formatCurrency(c.initialSaldo)}
+              </div>
+            ))}
+          </div>
+        </td>
+      </tr>
+    </>
+  );
+
+  const rows = group.items.map((item, idx) => {
+    const rowKey = `${group.date}-${idx}`;
+    const isExpanded = expandedRows.has(rowKey);
+    const hasOrder = item.НомерЗаказа;
+
+    const sum = Math.abs(Number(item.DeltaRow || 0));
+    const income = item.InOut === "Прихід" ? sum : 0;
+    const expense = item.InOut === "Витрата" ? sum : 0;
+
+    return (
+      <React.Fragment key={rowKey}>
+        <tr className="data-row">
+          <td>{item.DealType || item.ВидДокумента || "—"}</td>
+          <td>{item.НомерДок || "—"}</td>
+          <td>{formatCurrency(item.CumSaldoStart)}</td>
+          <td className="text-green">
+            {income > 0 ? formatCurrency(income, "") : "—"}
+          </td>
+          <td className="text-red">
+            {expense > 0 ? formatCurrency(expense, "") : "—"}
+          </td>
+          <td className="text-bold">{formatCurrency(item.CumSaldo)}</td>
+          <td>{(item.Период || "").split("T")[1]?.slice(0, 5)}</td>
+
+          <td>
+            <span className={`channel-badge ${detectPaymentChannel(item)}`}>
+              {detectPaymentChannel(item) === "bank" && "БАНК"}
+              {detectPaymentChannel(item) === "cash" && "КАСА"}
+              {detectPaymentChannel(item) === "order" && "ЗАМОВЛ."}
+              {detectPaymentChannel(item) === "none" && "—"}
+            </span>
+          </td>
+
+          <td>
+            {hasOrder ? (
+              <div className="order-cell">
+                <div className="order-num">№ {item.НомерЗаказа}</div>
+                <div className="text-small">
+                  💰 {formatCurrency(item.СуммаЗаказа)}
+                </div>
+
+                <button className="expand-btn" onClick={() => toggleRow(rowKey)}>
+                  {isExpanded ? "▼ Сховати" : "▶ Детальніше"}
+                </button>
+              </div>
+            ) : (
+              "—"
+            )}
+          </td>
+
+          <td>
+            <div className="contract-cell">{item.FinalDogovorName || "—"}</div>
+          </td>
+
+          <td>{item.СтатусОплатиПоЗаказу || item.СтатусЗаказа || "—"}</td>
+        </tr>
+
+        {hasOrder && isExpanded && (
+          <tr className="sub-row">
+            <td colSpan={11}>
+              <div className="sub-info">
+                <div className="sub-title">
+                  💳 Деталі оплати по замовленню № {item.НомерЗаказа}
+                </div>
+
+                <div className="sub-grid">
+                  <div>
+                    <span className="title">Сума замовлення:</span>
+                    <span>{formatCurrency(item.СуммаЗаказа)}</span>
+                  </div>
+                  <div>
+                    <span className="title">Оплачено до документа:</span>
+                    <span className="text-grey">
+                      {formatCurrency(item.ОплаченоДоДокумента)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="title">Оплачено включно:</span>
+                    <span className="text-green">
+                      {formatCurrency(item.ОплаченоВключноДокумент)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="title">Залишок:</span>
+                    <span className="text-red">
+                      {formatCurrency(item.ЗалишокПоЗаказу)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="title">Статус:</span>
+                    <span>{item.СтатусОплатиПоЗаказу || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="title">Дата замовлення:</span>
+                    <span>{(item.ДатаЗаказа || "").split("T")[0]}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
+    );
+  });
+
+  return [
+    dateRow,
+    ...rows,
+    <tr className="total-row" key={"total-" + group.date}>
+      <td colSpan={3}>📊 Разом за {group.date}:</td>
+      <td className="text-green text-bold">
+        {formatCurrency(group.totalIncome, "")}
+      </td>
+      <td className="text-red text-bold">
+        {formatCurrency(group.totalExpense, "")}
+      </td>
+      <td className="text-bold">{formatCurrency(group.balance, "")}</td>
+      <td colSpan={5}></td>
+    </tr>,
+  ];
+});
+
+// ====================================================================
+//                             ГОЛОВНИЙ КОМПОНЕНТ
+// ====================================================================
 
 const PaymentStatus = () => {
   const { theme } = useTheme();
+
+  // Використовуємо функцію для отримання дат поточного місяця
+  const { dateFrom: defaultDateFrom, dateTo: defaultDateTo } =
+    getCurrentMonthDates();
+
   const [paymentsData, setPaymentsData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
   const [filters, setFilters] = useState({
     contractor: DEFAULT_CONTRACTOR_GUID,
-    dateFrom: '2025-01-01',
-    dateTo: new Date().toISOString().split('T')[0],
+    // Встановлюємо фільтри на поточний місяць за замовчуванням
+    dateFrom: defaultDateFrom,
+    dateTo: defaultDateTo,
   });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const API_ENDPOINT = "/get_payment_status_view/";
 
-  // Перевірка чи користувач є customer
-  const isCustomer = USER_ROLE === 'customer';
+  // ==== toggleRow - стабільна функція
+  const toggleRow = useCallback((rowKey) => {
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      newSet.has(rowKey) ? newSet.delete(rowKey) : newSet.add(rowKey);
+      return newSet;
+    });
+  }, []);
 
-  // Завантаження даних з урахуванням ролі
+  // ====================== ЗАВАНТАЖЕННЯ ДАНИХ (ОНОВЛЕНО) ======================
+  // Залежить від усіх фільтрів, але викликається тільки по useEffect (для ініціалізації)
+  // або по кліку на кнопку (для пошуку).
   const fetchData = useCallback(async () => {
-    if (!isCustomer && !filters.contractor) {
-      setError("Ідентифікатор контрагента не знайдено.");
+    console.log("📌 Викликаю fetchData()");
+    console.log("➡ contractor:", filters.contractor);
+    console.log("➡ dateFrom:", filters.dateFrom);
+    console.log("➡ dateTo:", filters.dateTo);
+
+    if (!filters.contractor) {
+      setError("Не знайдено GUID контрагента!");
       return;
     }
 
     setLoading(true);
     setError(null);
-    setPaymentsData([]);
 
     try {
-      const params = {
-        date_from: filters.dateFrom,
-        date_to: filters.dateTo,
-      };
+      const response = await axiosInstance.get(API_ENDPOINT, {
+        params: {
+          contractor: filters.contractor,
+          date_from: filters.dateFrom,
+          date_to: filters.dateTo,
+        },
+      });
 
-      // ===== КЛЮЧОВА ЛОГІКА: контрагент передається ТІЛЬКИ якщо роль НЕ customer =====
-      if (!isCustomer) {
-        params.contractor = filters.contractor;
-      }
-
-      const response = await axiosInstance.get(API_ENDPOINT, { params });
-      
-      if (response.data && Array.isArray(response.data)) {
-        setPaymentsData(response.data);
-      } else {
-        setPaymentsData([]);
-      }
+      console.log("📥 Отримав дані:", response.data);
+      setPaymentsData(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
-      console.error("Помилка запиту статусу оплати:", err);
-      setError("Не вдалося завантажити дані про платежі. Перевірте підключення.");
+      console.error("❌ Помилка axios:", err);
+      setError("Не вдалося завантажити дані.");
     } finally {
       setLoading(false);
     }
-  }, [isCustomer, filters.contractor, filters.dateFrom, filters.dateTo]);
+  }, [filters.contractor, filters.dateFrom, filters.dateTo]);
 
+  // ====================== useEffect (ОНОВЛЕНО) ======================
+  // Викликаємо fetchData лише при першому завантаженні або зміні контрагента.
+  // Зміна дат не викликає автоматичного завантаження.
   useEffect(() => {
+    // Перше завантаження даних за поточний місяць
     fetchData();
-  }, [fetchData]);
+  }, [filters.contractor]); // Змінено: тільки filters.contractor
 
-  const handleFilterChange = useCallback((key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  }, []);
+  // ===== Фільтри ====
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
-  const handleSubmitFilters = useCallback((e) => {
-    e.preventDefault();
-    fetchData();
-  }, [fetchData]);
+  // ============================= ГРУПУВАННЯ =============================
+  const sortedGroups = useMemo(() => {
+    const grouped = {};
 
-  // Групування даних по датах
-  const groupedData = paymentsData.reduce((acc, item) => {
-    const date = item.ДатаТранзакції;
-    if (!acc[date]) {
-      acc[date] = {
-        date: date,
-        items: [],
-        totalIncome: 0,
-        totalExpense: 0,
-        balance: 0,
-        initialBalance: 0
-      };
-    }
-    acc[date].items.push(item);
-    
-    // Розрахунок сум - перевіряємо Доп_Інфо
-    const isIncome = item.Доп_Інфо === 'Каса' || item.Доп_Інфо === 'Банк';
-    if (isIncome) {
-      acc[date].totalIncome += item.СумаДокументу || 0;
-    } else {
-      acc[date].totalExpense += item.СумаДокументу || 0;
-    }
-    
-    return acc;
-  }, {});
+    paymentsData.forEach((item) => {
+      const date = item.Период?.split("T")[0] || "Невідома дата";
 
-  // Перетворюємо об'єкт на масив і сортуємо по даті
-  const sortedGroups = Object.values(groupedData).sort((a, b) => 
-    new Date(b.date) - new Date(a.date)
-  );
+      if (!grouped[date]) {
+        grouped[date] = {
+          date,
+          items: [],
+          totalIncome: 0,
+          totalExpense: 0,
+          balance: 0,
+          lastCumSaldoTotal: 0,
+          initialContracts: {},
+          contractSummary: {},
+        };
+      }
 
-  // Розраховуємо баланси
-  let runningBalance = 0;
-  sortedGroups.reverse().forEach(group => {
-    group.initialBalance = runningBalance;
-    group.balance = runningBalance + group.totalIncome - group.totalExpense;
-    runningBalance = group.balance;
-  });
-  sortedGroups.reverse();
+      grouped[date].items.push(item);
 
-  if (loading) return (
-    <div className={`page-container ${theme}`}>
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Завантаження фінансових даних...</p>
+      const contractName = item.FinalDogovorName || "Без договору";
+      const delta = Number(item.DeltaRow || 0);
+
+      if (!grouped[date].contractSummary[contractName]) {
+        grouped[date].contractSummary[contractName] = {
+          income: 0,
+          expense: 0,
+          lastCumSaldo: 0,
+        };
+      }
+
+      if (item.InOut === "Прихід") {
+        grouped[date].totalIncome += Math.abs(delta);
+        grouped[date].contractSummary[contractName].income += Math.abs(delta);
+      }
+
+      if (item.InOut === "Витрата") {
+        grouped[date].totalExpense += Math.abs(delta);
+        grouped[date].contractSummary[contractName].expense += Math.abs(delta);
+      }
+
+      grouped[date].contractSummary[contractName].lastCumSaldo =
+        item.CumSaldo;
+      grouped[date].lastCumSaldoTotal = item.CumSaldo;
+    });
+
+    let groups = Object.values(grouped).sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    let prevDayFinal = 0;
+    let prevDayContracts = {};
+
+    groups.forEach((g) => {
+      g.initialBalance = g.items[0]?.CumSaldoStart ?? prevDayFinal;
+      g.balance = g.lastCumSaldoTotal;
+      prevDayFinal = g.balance;
+
+      g.initialContracts = {};
+
+      Object.entries(g.contractSummary).forEach(([contractName, summary]) => {
+        g.initialContracts[contractName] = {
+          contractName,
+          initialSaldo: prevDayContracts[contractName] ?? 0,
+        };
+
+        prevDayContracts[contractName] = summary.lastCumSaldo;
+      });
+    });
+
+    return groups.reverse();
+  }, [paymentsData]);
+
+  // ====================================================================
+  //                            RENDER
+  // ====================================================================
+
+  if (loading)
+    return (
+      <div className={`page-container ${theme}`}>
+                    <div className="loading-spinner-wrapper">
+                <div className="loading-spinner"></div>
+                <div className="loading-text">Завантаження...</div>
+            </div>
       </div>
-    </div>
-  );
+    );
+
+  if (error)
+    return (
+      <div className={`page-container ${theme}`}>
+        <div className="error-container">
+          <p>⚠️ Помилка: {error}</p>
+          <p>Спробуйте змінити фільтри або GUID.</p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className={`page-container payments-body ${theme}`}>
-      <div className="content-wrapper">
-        {/* HEADER */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-          flexWrap: 'wrap',
-          gap: '15px'
-        }}>
-          <div>
-            <h1 className="page-title" style={{margin: 0}}>
-              💳 Фінансові Транзакції
-            </h1>
-            {isCustomer && (
-              <span style={{
-                fontSize: '13px',
-                color: '#2196F3',
-                fontWeight: '600',
-                display: 'inline-block',
-                marginTop: '5px'
-              }}>
-                ✓ Особистий кабінет
-              </span>
-            )}
-          </div>
-          <button
-            className="orders-button"
-            onClick={() => setIsSidebarOpen(true)}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              fontWeight: '600',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            🔍 Фільтри
-          </button>
-        </div>
+    <div className={`payments-body ${theme}`}>
+      {/* ------ ФІЛЬТРИ ------- */}
+      <div className="filters-container">
+        <label>
+          З:
+          <input
+            type="date"
+            value={filters.dateFrom}
+            onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+            className="input-date"
+          />
+        </label>
+        <label>
+          По:
+          <input
+            type="date"
+            value={filters.dateTo}
+            onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+            className="input-date"
+          />
+        </label>
 
-        {/* САЙДБАР */}
-        {isSidebarOpen && <div className="sidebar-overlay"></div>}
-        {isSidebarOpen && (
-          <div className="sidebar-backdrop" onClick={() => setIsSidebarOpen(false)}></div>
-        )}
-
-        <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '20px'
-          }}>
-            {/* <h2 style={{margin: 0, fontSize: '18px'}}>🔍 Фільтри</h2> */}
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer',
-                color: '#999'
-              }}
-            >
-              ×
-            </button>
-          </div>
-          
-          <form onSubmit={handleSubmitFilters}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '10px',
-              marginBottom: '15px'
-            }}>
-              <div className="filter-group">
-                <label style={{
-                  display: 'block',
-                  marginBottom: '5px',
-                  fontWeight: '600',
-                  fontSize: '12px',
-                  color: '#555'
-                }}>
-                  📅 З:
-                </label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                  className="search-orders"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    borderRadius: '6px',
-                    border: '1px solid #e0e0e0',
-                    fontSize: '13px'
-                  }}
-                />
-              </div>
-              
-              <div className="filter-group">
-                <label style={{
-                  display: 'block',
-                  marginBottom: '5px',
-                  fontWeight: '600',
-                  fontSize: '12px',
-                  color: '#555'
-                }}>
-                  📅 ПО:
-                </label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                  className="search-orders"
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    borderRadius: '6px',
-                    border: '1px solid #e0e0e0',
-                    fontSize: '13px'
-                  }}
-                />
-              </div>
-            </div>
-            
-            <button type="submit" style={{
-              width: '100%',
-              padding: '10px',
-              borderRadius: '6px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              fontWeight: '600',
-              fontSize: '14px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
-              transition: 'all 0.3s ease'
-            }}>
-              ✓ Застосувати
-            </button>
-          </form>
-          
-          {!isCustomer && (
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-              borderRadius: '8px',
-              borderLeft: '4px solid #667eea'
-            }}>
-              <p style={{
-                fontSize: '11px',
-                color: '#667eea',
-                margin: 0,
-                fontWeight: 'bold',
-                letterSpacing: '0.5px'
-              }}>
-                👨‍💼 РЕЖИМ АДМІНІСТРАТОРА
-              </p>
-              <p style={{
-                fontSize: '11px',
-                marginTop: '8px',
-                color: '#555',
-                lineHeight: '1.4'
-              }}>
-                Контрагент:<br/>
-                <code style={{
-                  fontSize: '10px',
-                  background: 'rgba(255,255,255,0.7)',
-                  padding: '3px 6px',
-                  borderRadius: '4px',
-                  display: 'inline-block',
-                  marginTop: '4px'
-                }}>
-                  {filters.contractor}
-                </code>
-              </p>
-            </div>
-          )}
-
-          {isCustomer && (
-            <div style={{
-              marginTop: '20px',
-              padding: '15px',
-              background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
-              borderRadius: '8px',
-              borderLeft: '4px solid #2196F3'
-            }}>
-              <p style={{
-                fontSize: '11px',
-                color: '#1976D2',
-                margin: 0,
-                fontWeight: 'bold',
-                letterSpacing: '0.5px'
-              }}>
-                👤 ОСОБИСТИЙ КАБІНЕТ
-              </p>
-              <p style={{
-                fontSize: '11px',
-                marginTop: '8px',
-                color: '#555',
-                lineHeight: '1.4'
-              }}>
-                Відображаються тільки ваші транзакції
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* КОНТЕНТ */}
-        <div className="content-area">
-          {error && (
-            <div style={{
-              padding: '20px',
-              background: 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)',
-              border: '2px solid #f44336',
-              borderRadius: '12px',
-              color: '#c62828',
-              marginBottom: '20px',
-              boxShadow: '0 4px 15px rgba(244, 67, 54, 0.2)'
-            }}>
-              <strong>⚠️ Помилка:</strong> {error}
-            </div>
-          )}
-
-          {paymentsData.length === 0 && !loading && !error ? (
-            <div style={{
-              padding: '60px 40px',
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-              borderRadius: '16px',
-              border: '3px dashed #d0d0d0'
-            }}>
-              <div style={{fontSize: '64px', marginBottom: '20px'}}>📊</div>
-              <p style={{fontSize: '22px', color: '#666', margin: 0, fontWeight: '600'}}>
-                Транзакцій не знайдено
-              </p>
-              <p style={{fontSize: '15px', color: '#999', marginTop: '12px'}}>
-                Спробуйте змінити діапазон дат у фільтрах
-              </p>
-            </div>
+        {/* Кнопка викликає fetchData, яка використовує актуальні значення filters */}
+        <button
+          className="btn btn-primary"
+          onClick={fetchData}
+          disabled={loading} // Кнопка неактивна під час завантаження
+        >
+          {loading ? (
+            <>
+              <div className="loading-spinner small"></div> Завантаження...
+            </>
           ) : (
-            <div style={{
-              background: 'white',
-              borderRadius: '12px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              overflow: 'auto',
-              maxHeight: '85vh'
-            }}>
-              <table style={{width: '100%', borderCollapse: 'collapse'}}>
-                <thead style={{position: 'sticky', top: 0, zIndex: 10}}>
-                  <tr style={{background: '#1e4a6f', color: 'white'}}>
-                    <th style={{padding: '15px', textAlign: 'left', fontWeight: '600', fontSize: '14px'}}>Дата</th>
-                    <th style={{padding: '15px', textAlign: 'left', fontWeight: '600', fontSize: '14px'}}>№ замовл.</th>
-                    <th style={{padding: '15px', textAlign: 'right', fontWeight: '600', fontSize: '14px'}}>Залишок на початок</th>
-                    <th style={{padding: '15px', textAlign: 'right', fontWeight: '600', fontSize: '14px'}}>Прихід</th>
-                    <th style={{padding: '15px', textAlign: 'right', fontWeight: '600', fontSize: '14px'}}>Розхід</th>
-                    <th style={{padding: '15px', textAlign: 'right', fontWeight: '600', fontSize: '14px'}}>Залишок</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedGroups.map((group, groupIndex) => (
-                    <React.Fragment key={groupIndex}>
-                      {/* Рядок з датою та початковим залишком */}
-                      <tr style={{background: '#5a8cb8', color: 'white'}}>
-                        <td style={{padding: '12px 15px', fontWeight: 'bold'}}>{group.date}</td>
-                        <td style={{padding: '12px 15px'}}></td>
-                        <td style={{padding: '12px 15px', textAlign: 'right', fontWeight: 'bold'}}>
-                          {formatCurrency(group.initialBalance)}
-                        </td>
-                        <td style={{padding: '12px 15px'}}></td>
-                        <td style={{padding: '12px 15px'}}></td>
-                        <td style={{padding: '12px 15px'}}></td>
-                      </tr>
-
-                      {/* Рядки з транзакціями */}
-                      {group.items.map((item, itemIndex) => {
-                        const isIncome = item.Доп_Інфо === 'Каса' || item.Доп_Інфо === 'Банк';
-                        return (
-                          <tr key={itemIndex} style={{
-                            background: isIncome ? '#6b7f8f' : (itemIndex % 2 === 0 ? '#5c7a93' : '#4d6b82'),
-                            color: 'white'
-                          }}>
-                            <td style={{padding: '10px 15px'}}></td>
-                            <td style={{padding: '10px 15px', fontSize: '13px'}}>
-          
-                              {isIncome ? item.Доп_Інфо : item.Замовлення}
-                            </td>
-                            <td style={{padding: '10px 15px'}}></td>
-                            <td style={{padding: '10px 15px', textAlign: 'right', fontSize: '14px'}}>
-                              {isIncome ? formatCurrency(item.СумаДокументу) : formatCurrency(item.ОплаченоПоЗаказуНаДату_ДО) }
-                            </td>
-                            <td style={{padding: '10px 15px', textAlign: 'right', fontSize: '14px'}}>
-                              {!isIncome ? formatCurrency(item.СумаДокументу) : ''}
-                            </td>
-                            <td style={{padding: '10px 15px', textAlign: 'right'}}>
-                              {item.СтатусОплатыНаДату}
-                            </td>
-                          </tr>
-                        );
-                      })}
-
-                      {/* Рядок підсумку */}
-                      <tr style={{background: '#2d5f3c', color: 'white', fontWeight: 'bold'}}>
-                        <td style={{padding: '12px 15px'}}>Разом:</td>
-                        <td style={{padding: '12px 15px'}}></td>
-                        <td style={{padding: '12px 15px', textAlign: 'right'}}>
-                          {formatCurrency(group.totalIncome)}
-                        </td>
-                        <td style={{padding: '12px 15px', textAlign: 'right'}}>
-                          {formatCurrency(group.totalExpense)}
-                        </td>
-                        <td style={{padding: '12px 15px', textAlign: 'right'}}>
-                          {formatCurrency(group.balance)}
-                        </td>
-                        <td style={{padding: '12px 15px'}}></td>
-                      </tr>
-
-                      {/* Порожній рядок-роздільник */}
-                      <tr style={{height: '10px', background: 'white'}}>
-                        <td colSpan="6"></td>
-                      </tr>
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            "🔍 Пошук"
           )}
-        </div>
+        </button>
       </div>
+
+      <hr />
+
+      {/* ------ ТАБЛИЦЯ ------- */}
+      <div className="table-wrapper">
+        <table className="payments-table">
+          <thead>
+            <tr>
+              <th>Операція</th>
+              <th>№ Док.</th>
+              <th>Зал. на початок</th>
+              <th>Прихід</th>
+              <th>Розхід</th>
+              <th>Залишок</th>
+              <th>Коли</th>
+              <th>Через що</th>
+              <th>Замовлення</th>
+              <th>Договір</th>
+              <th>Статус</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {sortedGroups.map((group) => (
+              <PaymentGroup
+                key={group.date}
+                group={group}
+                formatCurrency={formatCurrency}
+                detectPaymentChannel={detectPaymentChannel}
+                expandedRows={expandedRows}
+                toggleRow={toggleRow}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {paymentsData.length === 0 && !loading && (
+        <div className="text-center p-20">
+          Даних не знайдено за вибраний період.
+        </div>
+      )}
     </div>
   );
 };

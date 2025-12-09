@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView,
 )
-from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, get_dealers, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view
+from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, get_dealers, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user
 
 
 urlpatterns = [
@@ -24,6 +24,8 @@ urlpatterns = [
     path("users/all/", get_all_users_view, name="get_all_users"),
     path("users/<int:user_id>/edit/", admin_edit_user_view),
     path("users/<int:user_id>/deactivate/", admin_deactivate_user_view),
+    path("user/me/", get_current_user),
+
     
 
 ]

@@ -38,6 +38,7 @@ import { Dashboards } from "./pages/Dashboards"
 import ComplaintsPages from "./pages/ComplaintsPages";
 import ChangePasswordPage from "./pages/ChangePasswordPage" 
 import UsersListPage from "./pages/UsersListPage"
+import PaymentStatusV2 from "./pages/PaymentStatusV2"
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -106,6 +107,7 @@ export const dealerRoutes = [
 
   { path: "localComplaints", element: <ComplaintsPages/> },
   { path: "change-password", element: <ChangePasswordPage/> },
+  { path: "finance/paymentV2", element: <PaymentStatusV2/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

@@ -1056,13 +1056,12 @@
     right: 0.8rem;
   }
 
-  /* Енергетична лінія – скромніша на мобільному */
+
   .energy-line {
     height: 2px;
     margin: 25px 0;
   }
 
-  /* Помилка */
   .error-inline {
     font-size: 0.8rem;
   }

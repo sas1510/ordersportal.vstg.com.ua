@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useContext } from "react";
 import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
 import { RoleContext } from "../../context/RoleContext";
-import { useTheme } from "../../context/ThemeContext"; 
+import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КОНТЕКСТУ ТЕМИ
 import "./HeaderAdmin.css"; 
 import HeaderDealerProfile from "./HeaderDealerProfile";
 
@@ -21,7 +21,7 @@ const NAV_LINKS = [
 
 const FINANCE_SUBMENU = [
   { title: "Взаєморозрахунки", to: "/finance/settlements" },
-  { title: "Рух коштів", to: "/finance/money-flow" },
+  { title: "Рух коштів", to: "/finance/paymentV2" },
   { title: "Аналітика", to: "/finance/analytics" },
   { title: "Оплата", to: "/finance/payments" },
   { title: "Акція WDS", to: "/promo" },

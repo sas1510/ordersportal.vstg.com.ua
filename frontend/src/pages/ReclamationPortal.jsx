@@ -964,35 +964,79 @@ const ReclamationPortal = () => {
                 </div>
 
                 {/* Month Filter */}
-                <div className="by-month-pagination-wrapper">
-                    <ul className="gap-6 row no-wrap month-list">
-                        <li
-                            className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
-                            onClick={() => setFilter(prev => ({ ...prev, month: 0 }))}
-                        >
-                            Весь рік
-                        </li>
+                {/* Month Filter */}
+<div className="by-month-pagination-wrapper">
 
-                        {Array.from({ length: 12 }, (_, i) => {
-                            const num = i + 1;
-                            const labels = ['Січ.', 'Лют.', 'Бер.', 'Квіт.', 'Трав.', 'Черв.', 'Лип.', 'Сер.', 'Вер.', 'Жов.', 'Лис.', 'Груд.'];
+    {/* DESKTOP – горизонтальні кнопки */}
+    {!isMobile && (
+        <ul className="gap-6 row no-wrap month-list">
+            <li
+                className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
+                onClick={() => setFilter(prev => ({ ...prev, month: 0 }))}
+            >
+                Весь рік
+            </li>
 
-                            return (
-                                <li
-                                    key={num}
-                                    className={`pagination-item 
-                                        ${filter.month === num ? 'active' : ''} 
-                                        ${monthSummary[num] === 0 ? 'disabled' : ''}`
-                                    }
-                                    onClick={() => monthSummary[num] > 0 && setFilter(prev => ({ ...prev, month: num }))}
-                                >
-                                    {labels[i]} <span className="text-grey">({monthSummary[num]})</span>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </div>
-            </div>
+            {Array.from({ length: 12 }, (_, i) => {
+                const num = i + 1;
+                const labels = [
+                    'Січ.', 'Лют.', 'Бер.', 'Квіт.', 'Трав.', 'Черв.',
+                    'Лип.', 'Сер.', 'Вер.', 'Жов.', 'Лис.', 'Груд.'
+                ];
+
+                return (
+                    <li
+                        key={num}
+                        className={`pagination-item 
+                            ${filter.month === num ? 'active' : ''} 
+                            ${monthSummary[num] === 0 ? 'disabled' : ''}`}
+                        onClick={() =>
+                            monthSummary[num] > 0 &&
+                            setFilter(prev => ({ ...prev, month: num }))
+                        }
+                    >
+                        {labels[i]} <span className="text-grey">({monthSummary[num]})</span>
+                    </li>
+                );
+            })}
+        </ul>
+    )}
+
+    {/* MOBILE – select */}
+    {isMobile && (
+        <select
+            className="month-select"
+            value={filter.month}
+            onChange={(e) => setFilter(prev => ({
+                ...prev,
+                month: Number(e.target.value)
+            }))}
+        >
+            <option value={0}>Весь рік</option>
+
+            {Array.from({ length: 12 }, (_, i) => {
+                const num = i + 1;
+                const labels = [
+                    'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+                    'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
+                ];
+
+                return (
+                    <option
+                        key={num}
+                        value={num}
+                        disabled={monthSummary[num] === 0}
+                    >
+                        {labels[i]} ({monthSummary[num]})
+                    </option>
+                );
+            })}
+        </select>
+    )}
+
+</div>
+</div>
+
 
 
             {/* MAIN WRAPPER */}

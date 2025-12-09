@@ -18,6 +18,7 @@ const PortalOriginal = () => {
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
     const [calculationsData, setCalculationsData] = useState([]);
     const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
+    
     const [selectedYear, setSelectedYear] = useState('2025');
     const [loading, setLoading] = useState(true);
     const [expandedCalc, setExpandedCalc] = useState(null);
@@ -51,6 +52,12 @@ const PortalOriginal = () => {
         setShowDealerModal(false);
         setLimit(ITEMS_PER_LOAD);
     }, []);
+
+    const handleFilterChange = useCallback((key, value) => {
+        setFilter(prev => ({ ...prev, [key]: value }));
+        setLimit(ITEMS_PER_LOAD); // скидаємо пагінацію
+    }, []);
+
 
     const handleDeleteCalculation = useCallback((calcId) => {
         setCalculationsData(prev => prev.filter(calc => calc.id !== calcId));
