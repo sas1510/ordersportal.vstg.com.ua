@@ -215,6 +215,7 @@ label {
 
 /* ЗАМОВЛЕННЯ (Order) використовує синій (Info) */
 .channel-badge.order {
+    border: 1px solid var(--info-color);
     background-color: var(--info-bg-color);
     color: var(--info-color);
 }
@@ -300,8 +301,9 @@ label {
 }
 
 /* --- РОЗГОРНУТИЙ ПІДПУНКТ (Деталі замовлення) --- */
-.sub-row {
-    background: #f6f6f8;
+.payments-table td.sub-row {
+    /* background: #f6f6f8; */
+    padding-left: 100px; 
 }
 
 .sub-info {
@@ -488,8 +490,8 @@ label {
 .order-mini-card {
     background: var(--cream-bg-color);
     border-left: 3px solid var(--info-color);
-    padding: 10px 14px;
-    margin: 0 0 10px 0;
+    padding: 10px 8px;
+    margin: 10px 10px 10px 100px;
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
@@ -520,3 +522,200 @@ label {
     font-size: 14px;
     color: var(--text-color);
 }
+
+
+.mini-green {
+    font-weight: 700;
+    font-size: 14px;
+
+}
+
+
+.mini-red {
+    font-weight: 700;
+    font-size: 14px;
+    color: #e46321; 
+    /* color: var(--text-danger); */
+  
+}
+
+/* ====== ПОВЕРТАЄМО ВІДСТУПИ ДЛЯ ВСІЄЇ ТАБЛИЦІ ====== */
+.payments-table td,
+.payments-table th {
+  padding: 8px 10px !important;
+  box-sizing: border-box;
+}
+
+.payments-table td.sp{
+  padding-left: 50px;
+
+}
+
+/* === 1. РІЗНІ ВІДСТУПИ ДЛЯ КОЛОНОК === */
+
+/* Дата у верхньому синьому рядку */
+.date-row td span {
+  padding-left: 10px;
+  display: inline-block;
+}
+
+/* Час у першій колонці */
+.payments-table td.col-time {
+  padding-left: 30px !important;
+}
+
+/* Кнопка "рознесено", замовлення — третя велика колонка */
+.payments-table td.col-details {
+  padding-left: 60px !important;
+}
+
+
+/* === 2. ПІДСВІЧУВАТИ ВІДКРИТИЙ РЯДОК ДОКУМЕНТА === */
+.data-row.expanded {
+  background-color: #eef6ff !important; /* світло-синій фон */
+  border-left: 4px solid var(--info-color);
+}
+
+.data-row.expanded:hover {
+  background-color: #e5f1ff !important;
+}
+
+
+
+/* Незалежні відступи */
+.indent-date {
+  padding-left: 10px !important;
+}
+
+.indent-time {
+  padding-left: 60px !important;
+}
+
+.indent-details {
+  padding-left: 100px !important;
+}
+
+.indent-subcard {
+  padding-left: 120px !important;
+}
+
+/* Клікабельний ряд документа */
+.data-row.expanded {
+  background-color: #eef6ff !important;
+  border-left: 4px solid var(--info-color);
+}
+
+/* Картка замовлення */
+.clickable-subcard {
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.clickable-subcard:hover {
+  background: #fff8e0;
+}
+
+/* ДАТА — зовсім зліва (10px) */
+span.td-date {
+  padding-right: 0px !important;
+  margin: 0px !important;
+  display: inline-block;
+}
+
+.td-date {
+  padding-right: 0px !important;
+  margin: 0px !important;
+  display: inline-block;
+}
+
+/* ЧАС — трохи правіше (30px) */
+
+
+.payments-table td.td-time {
+  padding-left: 80px !important;
+}
+
+/* ДЕТАЛІ — ще правіше (60px) */
+
+/* КАРТКИ — найправіше (90px) */
+.sub-wrapper {
+  padding-left: 90px !important;
+}
+
+
+.doc-main-row.has-sub {
+  cursor: pointer;
+}
+
+.doc-main-row.has-sub:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+
+.total-row-separator {
+  border-bottom: 2px solid var(--border-color, #ddd);
+  padding-bottom: 12px;
+  margin-bottom: 18px; /* головний відступ */
+}
+
+.total-row td[colspan="3"] {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.contract-totals {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: right;  /* на всяк випадок */
+}
+
+
+.contract-total-line {
+  margin-left: 10px;
+}
+
+
+.contract-amount {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background-color: var(--purple-bg-color); 
+    border: 1px solid var(--purple-color);
+
+}
+
+.total-row.total-row-separator td {
+  padding-bottom: 14px;
+}
+
+.spacer-row td {
+  padding: 14px 0;
+  background: #fff;
+}
+
+
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.doc-main-row.expanded-with-orders {
+    /* Наприклад, синій фон для підсвітки */
+    background-color: #e3f2fd; 
+    border-left: 5px solid #2196f3;
+    cursor: pointer;
+    
+}
+
+
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.doc-main-row.expanded-with-orders:hover {
+    /* Наприклад, синій фон для підсвітки */
+    background-color: #e3f2fd; 
+    border-left: 5px solid #2196f3;
+    cursor: pointer;
+}
+
+

@@ -91,7 +91,7 @@ export function getAccessToken() {
 export function setUser(user) {
   localStorage.setItem("user", JSON.stringify(user));
   localStorage.setItem("role", user.role || "");
-  localStorage.setItem("contractor_guid", user.contractor_guid || "");
+  // localStorage.setItem("contractor_guid", user.contractor_guid || "");
 }
 
 const axiosInstance = axios.create({
