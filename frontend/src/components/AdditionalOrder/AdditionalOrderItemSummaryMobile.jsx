@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
-import AddClaimModal from "./AddClaimModal";
+import AddClaimModal from "../Complaint/AddClaimModal";
 import AddReorderModal from "./AddReorderModal";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from './OrderDetailsMobile';

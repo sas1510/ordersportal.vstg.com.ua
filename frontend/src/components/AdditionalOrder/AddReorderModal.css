@@ -14,12 +14,13 @@
 .reorder-modal-window {
   background: #fff;
   border-radius: 12px;
-  width: 650px;
-  max-height: 90vh;
+  width: 600px; /* 🔥 компактніше */
+  max-width: 92%;
+  max-height: 80vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
   animation: scaleIn 0.25s ease;
 }
 
@@ -69,7 +70,7 @@
 
 /* ===== Форма ===== */
 .reorder-form {
-  padding: 22px 26px;
+  padding: 18px 22px; /* 🔥 менші відступи */
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #4a90e2 transparent;
@@ -91,10 +92,9 @@
 .reorder-label {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-  font-size: 16px; /* трохи менший шрифт */
-  color: #333;
+  gap: 4px;              /* 🔥 менший інтервал */
+  margin-bottom: 12px;   /* 🔥 зменшили */
+  font-size: 15px;
 }
 
 .reorder-label span {
@@ -102,13 +102,13 @@
 }
 
 .reorder-input,
-.reorder-textarea,
-.reorder-select {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
+.reorder-select,
+.reorder-textarea {
+  width: 100%;           /* 🔥 на всю ширину */
+  padding: 8px 10px;
   border-radius: 6px;
-  font-size: 16px; /* трохи менший шрифт */
-  transition: all 0.2s;
+  font-size: 15px;
+  border: 1px solid #ccc;
 }
 
 .reorder-input:focus,
@@ -128,11 +128,10 @@
 /* ===== Рядок чекбоксу ===== */
 /* ===== Рядок чекбоксу ===== */
 .reorder-label.reorder-row {
-  display: flex;
-  flex-direction: row; /* важливо! щоб елементи були в рядок */
-  align-items: center; /* вертикальне вирівнювання */
-  gap: 12px;           /* відстань між текстом і чекбоксом */
-  margin-bottom: 16px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;               /* 🔥 компактніше */
+  margin-bottom: 10px;
 }
 
 .reorder-label.reorder-row input[type="checkbox"] {
@@ -147,8 +146,8 @@
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  gap: 16px;
-  padding: 18px 22px;
+  gap: 12px;
+  padding: 12px 18px;
   padding-bottom: 0;
   border-top: 1px solid #eee;
   background: #fff;
@@ -212,7 +211,7 @@
   /* Модалка стає компактнішою */
   .reorder-modal-window {
     width: 94%;
-    max-height: 82vh;
+    max-height: 80vh;
     border-radius: 10px;
   }
 

@@ -1,0 +1,329 @@
+/* ===== Overlay ===== */
+.pay-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ===== Window ===== */
+.pay-modal-window {
+  background: #fff;
+  width: 420px;
+  max-width: 90%;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: scaleIn 0.25s ease;
+}
+
+/* ===== Header ===== */
+.pay-modal-header {
+  background: linear-gradient(90deg, #1da8df, #22c1e8);
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pay-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pay-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.pay-close-btn:hover {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+/* ===== Body ===== */
+.pay-modal-body {
+  padding: 20px;
+}
+
+.pay-label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+  font-size: 15px;
+  color: #333;
+}
+
+.pay-input {
+  padding: 10px 12px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.pay-input:focus {
+  border-color: #1da8df;
+  box-shadow: 0 0 0 3px rgba(29,168,223,0.25);
+  outline: none;
+}
+
+.pay-debt {
+  font-size: 16px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.pay-available {
+  margin-top: -10px;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+/* ===== Error ===== */
+.pay-error {
+  background: #ffecec;
+  border-left: 4px solid #d9534f;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #b52b27;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.input-error {
+  border-color: #d9534f !important;
+  box-shadow: 0 0 0 2px rgba(217,83,79,0.25) !important;
+}
+
+/* ===== Footer ===== */
+.pay-modal-footer {
+  padding: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #fafafa;
+  border-top: 1px solid #eee;
+}
+
+.pay-btn-cancel {
+  background: #bbb;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pay-btn-cancel:hover {
+  background: #999;
+}
+
+.pay-btn-confirm {
+  background: #1da8df;
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pay-btn-confirm:hover {
+  background: #1693c4;
+}
+
+.pay-btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.93); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+
+/* ===== Блок кнопок ===== */
+.quick-buttons.centered {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 16px 0 10px;
+}
+
+/* ===== Кнопки 50% / 100% ===== */
+.quick-buttons.centered button {
+  padding: 8px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(90deg, #f46c3b, #ff8657);
+  border: none;
+  border-radius: 8px; /* округлення */
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(244, 108, 59, 0.25);
+}
+
+/* ===== Ховер ===== */
+.quick-buttons.centered button:hover {
+  background: linear-gradient(90deg, #ff8657, #f46c3b);
+
+  box-shadow: 0 6px 14px rgba(244, 108, 59, 0.35);
+}
+
+/* ===== Натискання ===== */
+.quick-buttons.centered button:active {
+  transform: scale(0.96);
+}
+
+/* ===== Dark mode ===== */
+body.dark-theme .quick-buttons.centered button {
+  background: linear-gradient(90deg, #c75628, #d9683d);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+}
+
+body.dark-theme .quick-buttons.centered button:hover {
+  background: linear-gradient(90deg, #d9683d, #c75628);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+}
+
+
+/* === КАСТОМНИЙ ВИПАДАЮЧИЙ СПИСОК === */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+    margin-top: 6px;
+}
+
+/* Відображення вибраного значення */
+.dropdown-selected {
+    padding: 10px;
+    background: #fff;
+    border: 1px solid var(--grey-border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.dropdown-selected:hover {
+    border-color: var(--info-color);
+}
+
+.dropdown-selected.active {
+    border-color: var(--info-color);
+    background: #f7fbff;
+}
+
+/* Список опцій */
+.dropdown-menu {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    max-height: 180px; /* ОБМЕЖЕННЯ, ЩОБ НЕ ВИХОДИВ ЗА МЕЖІ */
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--grey-border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 999;
+}
+
+/* Окремий пункт */
+.dropdown-item {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: 0.15s;
+    font-size: 14px;
+    border-bottom: 1px dashed #eee;
+}
+.dropdown-item:hover {
+    background: var(--info-bg-color);
+}
+
+/* Назва договору */
+.item-name {
+    font-weight: 600;
+}
+
+/* Залишок */
+.item-amount {
+    color: var(--info-color);
+    font-weight: 700;
+}
+
+/* === СКРОЛЛБАР === */
+.dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: var(--info-color);
+    border-radius: 3px;
+}
+
+/* === ТЕМНА ТЕМА === */
+.dark-theme .dropdown-selected {
+    background: #2e2e2e;
+    border: 1px solid #555;
+    color: #e6e6e6;
+}
+.dark-theme .dropdown-selected.active {
+    background: #3a3a3a;
+    border-color: var(--info-color);
+}
+
+.dark-theme .dropdown-menu {
+    background: #2e2e2e;
+    border: 1px solid #555;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+
+.dark-theme .dropdown-item {
+    border-bottom: 1px dashed #444;
+    color: #eee;
+}
+.dark-theme .dropdown-item:hover {
+    background: rgba(56, 132, 255, 0.12);
+}
+
+.dark-theme .item-amount {
+    color: #4dabff;
+}
+
+
+/* Стрілка справа */
+.dropdown-arrow {
+    font-size: 12px;
+    margin-left: auto;
+    opacity: 0.7;
+    transition: transform 0.25s ease, opacity 0.2s;
+}
+
+/* Коли меню відкрите */
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+    opacity: 1;
+}

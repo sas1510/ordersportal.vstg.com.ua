@@ -16,12 +16,13 @@
   border-radius: 12px;
   width: 650px;
   max-width: 90%;        /* 💡 не притискається до країв */
-  max-height: 85vh;  
+  max-height: 80vh;  
   overflow: hidden;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   animation: scaleIn 0.25s ease;
+  min-height: 0;
 }
 
 /* ===== Header ===== */
@@ -77,6 +78,7 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #f46c3b transparent;
+    min-height: 0;
 }
 
 .claim-form::-webkit-scrollbar {
@@ -105,7 +107,6 @@
 }
 
 .claim-input,
-.claim-textarea,
 .claim-select {
   padding: 10px 12px;
   border: 1px solid #ccc;
@@ -113,6 +114,18 @@
   font-size: 14px;
   transition: all 0.2s;
 }
+
+
+.claim-textarea
+ {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  width: 100%;
+  box-sizing: border-box; /* щоб padding не ламав ширину */
+}
+
 
 .claim-input:focus,
 .claim-textarea:focus,
@@ -516,4 +529,89 @@ body.dark-theme .add-photo-btn:hover {
 body.dark-theme .claim-clear-file {
     background: #f46c3b;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+
+.claim-row {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Було 12px */
+  margin-bottom: 8px; /* Було 12px */
+}
+
+
+/* Мітка */
+.claim-row .label-text {
+  min-width: 100px;
+  font-weight: 500;
+  color: #333333;
+}
+
+/* Інпут */
+.claim-row .claim-input {
+  flex: 1;
+}
+
+/* Повідомлення про помилку справа */
+.claim-row .error-text {
+  white-space: nowrap;
+  color: #e11d48; /* Tailwind red-600 */
+  font-size: 14px;
+}
+
+
+
+/* ===== МОБІЛЬНА АДАПТАЦІЯ ===== */
+@media (max-width: 480px) {
+
+  /* Вікно модалки — менше відступів */
+  .claim-modal-window {
+    max-width: 94%;
+    max-height: 80vh;
+    border-radius: 10px;
+  }
+
+  /* Хедер — компактніше */
+  .claim-modal-header {
+    padding: 14px 16px;
+  }
+
+  /* Форма прокручувана з меншими відступами */
+  .claim-form {
+    padding: 14px 16px;
+  }
+
+  /* Два поля дати стають одні під одним */
+  .claim-row {
+    grid-template-columns: 1fr; /* ✅ одна колонка */
+    gap: 12px;
+  }
+
+  /* Кнопки займають всю ширину і стоять вертикально */
+  .claim-modal-footer {
+    flex-direction: column;     /* ✅ одна під одною */
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .claim-btn-cancel,
+  .claim-btn-save {
+    width: 100%;               /* ✅ на всю ширину */
+    min-width: unset;
+    font-size: 16px;
+    padding: 12px;
+    justify-content: center;   /* текст по центру */
+  }
+
+  /* Плашка фото та кнопки вирівняти вертикально */
+  .claim-label.row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .add-photo-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { FaTimes, FaPlus } from "react-icons/fa";
 import "./AddReorderModal.css";
 
-export default function AddReorderModal({ isOpen, onClose, onSave }) {
+export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderNumber }) {
   const [orderNumber, setOrderNumber] = useState("");
   const [noOrder, setNoOrder] = useState(false);
   const [itemName, setItemName] = useState("1"); // за замовчуванням перший option
@@ -12,8 +12,11 @@ export default function AddReorderModal({ isOpen, onClose, onSave }) {
   const [comment, setComment] = useState("");
 
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-  }, [isOpen]);
+  if (isOpen) {
+    setOrderNumber(initialOrderNumber || "");  // ✅ ЗАПОВНЮЄМО ПОЛЕ
+  }
+}, [isOpen, initialOrderNumber]);
+
 
   const resetForm = () => {
     setOrderNumber("");
@@ -60,23 +63,29 @@ export default function AddReorderModal({ isOpen, onClose, onSave }) {
         </div>
 
         <form className="reorder-form" onSubmit={handleSubmit}>
-          <label className="reorder-label">
-            <span>Номер замовлення:</span>
-            <input
-              type="text"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              disabled={noOrder}
-              className="reorder-input"
-            />
-          </label>
+      <div className="reorder-label">
+  <div className="reorder-row">
+    <span>Номер замовлення:</span>
+    
+  
+
+  <input
+    type="text"
+    value={orderNumber}
+    onChange={(e) => setOrderNumber(e.target.value)}
+    disabled={noOrder}
+    className="reorder-input"
+  />
+  </div>
+</div>
+
             <label className="reorder-label reorder-row">
             <input
                 type="checkbox"
                 checked={noOrder}
                 onChange={(e) => setNoOrder(e.target.checked)}
             />
-            <span>Без замовлення:</span>
+            <span>Без замовлення</span>
        
             </label>
 
@@ -129,15 +138,7 @@ export default function AddReorderModal({ isOpen, onClose, onSave }) {
             </select>
           </label>
 
-          <label className="reorder-label">
-            <span>Імпост:</span>
-            <input
-              type="text"
-              value={impost}
-              onChange={(e) => setImpost(e.target.value)}
-              className="reorder-input"
-            />
-          </label>
+         
 
           <label className="reorder-label">
             <span>Коментар контрагента:</span>

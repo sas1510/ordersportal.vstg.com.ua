@@ -616,7 +616,7 @@ import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import { ReclamationItem } from '../components/Reclamations/ReclamationItem';
 import { ReclamationItemMobile } from '../components/Reclamations/ReclamationItemMobile';
 
-import AddClaimModal from '../components/Orders/AddClaimModal';
+import AddClaimModal from '../components/Complaint/AddClaimModal';
 import DealerSelectModal from '../components/Orders/DealerSelectModal';
 
 import useWindowWidth from '../hooks/useWindowWidth';

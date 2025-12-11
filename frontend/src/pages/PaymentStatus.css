@@ -381,7 +381,7 @@ label {
 }
 .dark-theme .text-bold, 
 .dark-theme .contract-name {
-    color: #fff;
+    color: #dddddd;
 }
 
 .dark-theme .total-row {
@@ -396,9 +396,6 @@ label {
 .dark-theme .initial-contracts-row td {
     background-color: #383838;
     border-top: 1px dashed #555555;
-}
-.dark-theme .initial-contracts-row .contract-name-bold {
-    color: #fff;
 }
 
 
@@ -423,7 +420,8 @@ label {
 
 /* Деталі замовлення */
 .dark-theme .sub-row {
-    background: #333333;
+    background: #3d3d3d;
+    
 }
 .dark-theme .sub-info {
     background: #383838;
@@ -442,7 +440,7 @@ label {
 .table-wrapper {
     overflow-x: auto;
     /* --- ВАЖЛИВО: ОПТИМІЗАЦІЯ ДЛЯ ПЛАВНОСТІ --- */
-    max-height: calc(100vh - 250px); /* Встановлюємо максимальну висоту для прокрутки */
+    max-height: calc(100vh - 220px); /* Встановлюємо максимальну висоту для прокрутки */
     overflow-y: auto;                  /* Активуємо вертикальну прокрутку */
     will-change: scroll-position;      /* Підказуємо браузеру, що ця область буде прокручуватися */
     /* ------------------------------------------- */
@@ -607,13 +605,20 @@ label {
 
 /* Картка замовлення */
 .clickable-subcard {
-  cursor: pointer;
+  /* cursor: pointer; */
   transition: 0.2s;
 }
 
 .clickable-subcard:hover {
   background: #fff8e0;
 }
+
+
+.dark-theme .clickable-subcard:hover {
+  background: #242424;
+}
+
+
 
 /* ДАТА — зовсім зліва (10px) */
 span.td-date {
@@ -719,3 +724,124 @@ span.td-date {
 }
 
 
+
+
+
+.dark-theme .contract-amount {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #2c2c2c;
+    background-color: var(--purple-bg-color); 
+    border: 1px solid var(--purple-color);
+
+}
+
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.dark-theme .doc-main-row.expanded-with-orders {
+    /* Наприклад, синій фон для підсвітки */
+    background-color: #353535; 
+    border-left: 5px solid #2196f3;
+    cursor: pointer;
+    
+}
+
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.dark-theme .doc-main-row.expanded-with-orders:hover {
+    /* Наприклад, синій фон для підсвітки */
+    background-color: #383838; 
+    border-left: 5px solid #2196f3;
+    cursor: pointer;
+}
+
+
+
+
+
+.dark-theme .contract-total-line {
+    color: #e4e4e4;            /* світлий текст */
+}
+
+.dark-theme .contract-name-bold {
+    color: #cccccc; /* яскравий акцент */
+    font-weight: 700;
+}
+
+
+
+
+.contract-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  background: #5bb89c;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #73d3b6;
+  color: white;
+
+  margin-right: 6px; /* Відступ між баджами */
+}
+
+/* Контрактне імʼя всередині баджа */
+.contract-badge .name {
+  font-weight: 600;
+}
+
+.contract-badge .value {
+  font-weight: 700;
+  color: #fff;
+  font-size: 13.5px;
+  letter-spacing: 0.2px;
+  text-shadow: 0 0 2px rgba(0,0,0,0.4);
+}
+
+
+.btn-refresh {
+  padding: 8px 16px;
+  background-color: var(--purple-color);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-refresh:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+.arrow {
+  font-size: 14px;
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.arrow-in {
+  color: #2ecc71; /* зелена */
+}
+
+.arrow-out {
+  color: #e74c3c; /* червона */
+}
+
+.arrow-none {
+  color: #999; /* нейтральна */
+}

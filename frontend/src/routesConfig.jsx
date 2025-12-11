@@ -39,6 +39,8 @@ import ComplaintsPages from "./pages/ComplaintsPages";
 import ChangePasswordPage from "./pages/ChangePasswordPage" 
 import UsersListPage from "./pages/UsersListPage"
 import PaymentStatusV2 from "./pages/PaymentStatusV2"
+import PaymentsPage from './pages/PaymentsPage'
+
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -107,7 +109,8 @@ export const dealerRoutes = [
 
   { path: "localComplaints", element: <ComplaintsPages/> },
   { path: "change-password", element: <ChangePasswordPage/> },
-  { path: "finance/paymentV2", element: <PaymentStatusV2/> },
+  { path: "finance/paymentMovement", element: <PaymentStatusV2/> },
+  { path: "finance/payment", element: <PaymentsPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

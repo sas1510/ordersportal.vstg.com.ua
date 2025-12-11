@@ -4,7 +4,7 @@ import OrderDetails from "./OrderDetailsDesktop";
 import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
 import CommentsModal from "./CommentsModal";
 import {AdditionalOrderMenu} from "./AdditionalOrderMenu";
-import AddClaimModal from "./AddClaimModal";
+import AddClaimModal from "../Complaint/AddClaimModal";
 import AddReorderModal from "./AddReorderModal"; // шлях до твого нового компоненту
 import axiosInstance from "../../api/axios";
 import OrderDetailsDesktop from './OrderDetailsDesktop';

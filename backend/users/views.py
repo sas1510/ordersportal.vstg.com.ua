@@ -836,6 +836,6 @@ def get_current_user(request):
         "full_name": user.full_name,
         "role": user.role,
 
-        "user_id_1C": user_guid_1c,
+        "user_id_1c": user_guid_1c,
 
     })

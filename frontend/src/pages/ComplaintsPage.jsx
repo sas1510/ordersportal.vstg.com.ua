@@ -3,7 +3,7 @@ import axiosInstance from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import './ComplaintsPage.css';
 import { FaFileCircleExclamation } from "react-icons/fa6";
-import AddClaimModal from '../components/Orders/AddClaimModal';
+import AddClaimModal from '../components/Complaint/AddClaimModal';
 import ClaimItemSummary from '../components/Complaints/ClaimItemSummary';
 
 const getStatusClass = (statusName) => {

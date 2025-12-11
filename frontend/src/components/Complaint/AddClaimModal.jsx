@@ -199,8 +199,9 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
 
 
         <form className="claim-form" onSubmit={handleSubmit}>
-          <label className="claim-label">
-            <span>Номер замовлення:</span>
+          <div className="claim-row">
+            <span className="label-text">Номер замовлення:</span>
+
             <input
               type="text"
               value={orderNumber}
@@ -208,10 +209,12 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
               required
               className="claim-input"
             />
+
             {orderNotFound && (
-              <p className="text-red-600 text-sm mt-1">Замовлення не знайдено</p>
+              <span className="error-text">Замовлення не знайдено</span>
             )}
-          </label>
+          </div>
+
 
           {seriesOptions.length > 0 && (
             <div className="claim-label">

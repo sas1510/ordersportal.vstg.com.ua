@@ -28,9 +28,7 @@ const USER = JSON.parse(localStorage.getItem("user") || "{}");
 const USER_ROLE = USER.role || "";
 
 const DEFAULT_CONTRACTOR_GUID =
-  USER_ROLE === "customer"
-    ? USER.user_id_1C
-    : localStorage.getItem("contractor_guid");
+ USER.user_id_1c;
 
 // ====================================================================
 //                          DETECT PAYMENT CHANNEL
@@ -44,6 +42,20 @@ const detectPaymentChannel = (item) => {
   if (doc === "ПКО") return "cash";
   return "none";
 };
+
+// ====================================================================
+//                        ARROW ICON FOR MOVEMENT
+// ====================================================================
+const getArrowIcon = (item) => {
+  if (item.InOut === "Прихід")
+    return <span className="arrow arrow-in">▲</span>;
+
+  if (item.InOut === "Витрата")
+    return <span className="arrow arrow-out">▼</span>;
+
+  return <span className="arrow arrow-none">•</span>;
+};
+
 
 
 
@@ -101,13 +113,17 @@ const DocumentRow = React.memo(
       >
 
             {/* ЧАС */}
-            <td className="td-time">{(firstItem.Период || "").split("T")[1]?.slice(0, 5)}</td>
+        <td className="td-time">
+          {getArrowIcon(firstItem)}
+          {(firstItem.Период || "").split("T")[1]?.slice(0, 5)}
+        </td>
+
 
           {/* OPERATION */}
           <td  className="td-operation">
             {firstItem.ВидДокумента === "КорректировкаДолга" ? (
               <>
-                Коригування — {firstItem.DescriptionCor}
+                Коригування. {firstItem.DescriptionCor}
                 {firstItem.СделкаНомер ? ", №" + firstItem.СделкаНомер : ""}
               </>
             ) : firstItem.ВидДокумента === "ВозвратОтПокупателя" ? (
@@ -260,7 +276,7 @@ const PaymentGroup = React.memo(
             <div className="date-header">
               <span className="td-date">📅 {group.date}</span>
          
-              <span className="contracts-text">
+              {/* <span className="contracts-text">
                 {Object.values(group.initialContracts).map((c, idx, arr) => (
                   <span key={idx}>
                     <span className="contract-name-bold">{c.contractName}</span>
@@ -272,7 +288,15 @@ const PaymentGroup = React.memo(
                     {idx < arr.length - 1 ? ", " : ""}
                   </span>
                 ))}
-              </span>
+              </span> */}
+               <span className="contracts-text">
+    {Object.values(group.initialContracts).map((c, idx) => (
+      <span key={idx} className="contract-badge">
+        <span className="name">{c.contractName}: </span>
+        <span className="value">{formatCurrency(c.initialSaldo)}</span>
+      </span>
+    ))}
+  </span>
             </div>
           </td>
         </tr>
@@ -555,6 +579,15 @@ summary.lastCumSaldo = item.CumSaldo;
         >
           {loading ? "Завантаження..." : "🔍 Пошук"}
         </button>
+
+        <button
+          className="btn btn-refresh"
+          onClick={fetchData}
+          disabled={loading}
+        >
+          🔄 Оновити
+        </button>
+
       </div>
 
       {/* TABLE */}
