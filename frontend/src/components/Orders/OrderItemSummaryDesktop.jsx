@@ -288,7 +288,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
       {/* DETAILS */}
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-dashed">
+        <div className="border-t border-dashed  w-full">
           <OrderDetailsDesktop order={order} />
         </div>
       )}
