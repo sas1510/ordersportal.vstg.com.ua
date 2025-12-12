@@ -28,7 +28,7 @@
     background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
     height: 100vh;
     width: 100%;
-    padding-top: 60px;
+    padding-top: 70px;
     padding-bottom: 60px;
 
     /* Адаптивні відступи зліва і справа */
@@ -485,7 +485,7 @@ label {
 
 /* --- Мінімалістичні картки підрядків замовлення --- */
 
-.order-mini-card {
+.mini-card {
     background: var(--cream-bg-color);
     border-left: 3px solid var(--info-color);
     padding: 10px 8px;
@@ -501,7 +501,7 @@ label {
     color: var(--info-color);
 }
 
-.order-mini-grid {
+.mini-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 4px 12px;
@@ -609,7 +609,7 @@ label {
   transition: 0.2s;
 }
 
-.clickable-subcard:hover {
+.dark-theme .clickable-subcard:hover {
   background: #fff8e0;
 }
 
@@ -845,3 +845,153 @@ span.td-date {
 .arrow-none {
   color: #999; /* нейтральна */
 }
+
+
+/* ========================================
+   📱 MOBILE ADAPTATION (<= 768px)
+   ======================================== */
+@media (max-width: 768px) {
+
+  /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
+  .payments-body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    height: 100hv;
+  }
+
+  /* --- ФІЛЬТРИ --- */
+  .filters-container {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .filters-container label {
+    font-size: 13px;
+  }
+
+  .input-date {
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-refresh {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  /* --- ТАБЛИЦЯ --- */
+  .table-wrapper {
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .payments-table {
+    font-size: 13px;
+  }
+
+  .payments-table thead th {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+
+  .payments-table td {
+    padding: 6px 6px !important;
+  }
+
+  /* --- ВІДСТУПИ КОЛОНОК — СКИДАЄМО --- */
+  .payments-table td.col-time,
+  .payments-table td.col-details,
+  .payments-table td.td-time,
+  .indent-time,
+  .indent-details,
+  .indent-subcard,
+  .sub-wrapper {
+    padding-left: 8px !important;
+  }
+
+  /* --- ДАТА / ЧАС --- */
+  .date-row td {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .td-date,
+  .td-time {
+    font-size: 12px;
+  }
+
+  /* --- ОСНОВНИЙ РЯД ДОКУМЕНТА --- */
+  .data-row td {
+    font-size: 13px;
+  }
+
+  .doc-main-row.has-sub {
+    cursor: pointer;
+  }
+
+  /* --- КАРТКИ ЗАМОВЛЕНЬ (SUB) --- */
+  .mini-card {
+    margin: 8px 4px;
+    padding: 10px;
+    border-left-width: 4px;
+  }
+
+  .order-mini-header {
+    font-size: 13px;
+  }
+
+  .order-mini-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .mini-label {
+    font-size: 10px;
+  }
+
+  .mini-value {
+    font-size: 13px;
+  }
+
+  /* --- CONTRACT SUMMARY --- */
+  .contract-summary {
+    padding: 10px;
+  }
+
+  .contract-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .contract-item-value {
+    text-align: left;
+  }
+
+  /* --- TOTAL ROW --- */
+  .total-row td[colspan="3"] {
+    justify-content: flex-start;
+  }
+
+  .contract-totals {
+    text-align: left;
+    font-size: 13px;
+  }
+
+  /* --- BADGES --- */
+  .contract-badge {
+    margin-bottom: 6px;
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* --- ARROWS --- */
+  .arrow {
+    font-size: 12px;
+  }
+}
+
+

@@ -1,0 +1,932 @@
+/* ====================================================================
+   MOBILE PAYMENTS VIEW STYLES - З ВИКОРИСТАННЯМ ІСНУЮЧИХ ЗМІННИХ
+   ==================================================================== */
+:root {
+  --info-bg-color: #cfdcef99;   /* напівпрозорий (залишаємо) */
+  --info-bg-solid: #cfdcef;     /* 🔑 НЕпрозорий для sticky */
+}
+
+
+
+.mobile-payments-container {
+  padding: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+}
+
+/* ==================== HEADER ==================== */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 10px 12px 10px 12px;
+
+  background: var(--cream-bg-color);
+
+  border: 1px dashed var(--grey-border-color);
+  border-bottom: none; /* 🔑 */
+  /* border-radius: 10px 10px 0 0; */
+
+  box-shadow: 0 2px 6px var(--shadow-color);
+}
+
+
+.mobile-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.mobile-filter-toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  border: none;
+  background: var(--info-color);
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-filter-toggle:active {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* ==================== FILTERS ==================== */
+.mobile-filters {
+  padding: 14px;
+
+  background: var(--cream-bg-color);
+
+  border: 1px dashed var(--grey-border-color);
+  border-top: none; /* 🔑 */
+
+  border-radius: 0 0 10px 10px;
+
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+
+  animation: slideDown 0.25s ease-out;
+}
+
+.mobile-top-card {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-filter-group {
+  margin-bottom: 12px;
+}
+
+.mobile-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-color);
+}
+
+.mobile-input-date {
+  width: 100%;
+  padding: 7px 14px;
+  border: 1px dashed var(--grey-border-color);
+  border-radius: 3px;
+  font-size: 14px;
+  background: #fff;
+  color: var(--text-color);
+  transition: all 0.2s;
+}
+
+.mobile-input-date:focus {
+  outline: none;
+  border-color: var(--info-color);
+  box-shadow: 0 0 3px var(--info-color);
+}
+
+.mobile-filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mobile-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-btn-primary {
+  background: var(--info-color);
+  color: white;
+}
+
+.mobile-btn-refresh {
+  background: var(--purple-color);
+  color: white;
+  flex: 0 0 50px;
+}
+
+.mobile-btn:active {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+/* ==================== GROUPS LIST ==================== */
+.mobile-groups-list {
+  padding: 8px;
+}
+
+.mobile-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--grey-text-color);
+  font-size: 16px;
+}
+
+/* ==================== DATE GROUP ==================== */
+.mobile-date-group {
+  margin-bottom: 16px;
+}
+
+
+.mobile-contracts-list {
+  background: var(--info-bg-solid);
+  padding: 5px 0 16px 12px;
+  border-radius: 0 0 5px 5px;
+
+  border: 1px dashed var(--grey-border-color);
+  border-top: none; /* 🔥 ОСЬ ГОЛОВНЕ */
+}
+
+.mobile-date-header {
+  background: var(--info-bg-solid);
+  padding: 12px 16px 5px 16px;
+
+  border-radius: 5px 5px 0 0;
+  border: 1px dashed var(--grey-border-color);
+
+  backdrop-filter: none;
+}
+
+.mobile-date-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+ 
+}
+
+.mobile-contracts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ==================== STICKY DATE (як платіж) ==================== */
+.sticky-date {
+  position: sticky;
+  top: 50px; /* ⬅️ нижче header */
+
+  z-index: 20;
+
+
+
+
+}
+
+
+.mobile-contract-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #5bb89c;
+  border: 1px solid #73d3b6;
+  border-radius: 12px;
+  font-size: 13px;
+  color: white;
+}
+
+.mobile-contract-name {
+  font-weight: 600;
+}
+
+.mobile-contract-value {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+/* ==================== DOCUMENT CARD ==================== */
+.mobile-doc-card {
+  background: #fffdf7;
+  border: 1px dashed var(--grey-border-color);
+  border-top: none;
+  margin-bottom: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  /* 🔹 ЛІНІЯ ЗЛІВА */
+  border-left: 4px solid transparent;
+}
+
+
+
+
+
+/* ▲ ПРИХІД */
+.mobile-doc-card.income {
+  border-left-color: var(--success-color); /* зелений */
+}
+
+/* ▼ РОЗХІД */
+.mobile-doc-card.expense {
+  border-left-color: var(--danger-color); /* червоний */
+}
+
+/* • НЕЙТРАЛЬНО */
+.mobile-doc-card.neutral {
+  border-left-color: var(--grey-text-color);
+}
+
+
+.mobile-doc-card:last-child {
+  border-radius: 0 0 5px 5px;
+  margin-bottom: 0;
+}
+
+.mobile-doc-main {
+  padding: 8px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+  border-bottom: none !important;
+  
+}
+
+.mobile-doc-main:active {
+  background: #eef6ff;
+  /* border-left-color: var(--info-color); */
+}
+
+
+
+.mobile-doc-main.expanded {
+  background: #eef6ff;
+  border-bottom: 1px dashed var(--grey-border-color);
+  /* border-left: 4px solid var(--info-color); */
+}
+
+.mobile-doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mobile-doc-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--grey-text-color);
+}
+
+.mobile-arrow {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.mobile-arrow.arrow-in {
+  color: var(--success-color);
+}
+
+.mobile-arrow.arrow-out {
+  color: var(--danger-color);
+}
+
+.mobile-arrow.arrow-none {
+  color: var(--grey-text-color);
+}
+
+.mobile-channel-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mobile-channel-badge.bank {
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
+}
+
+.mobile-channel-badge.cash {
+  background-color: var(--success-bg-color);
+  color: var(--success-color);
+}
+
+.mobile-channel-badge.order {
+  border: 1px solid var(--info-color);
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
+}
+
+.mobile-channel-badge.none {
+  background-color: var(--info-bg-color);
+  color: var(--grey-text-color);
+}
+
+.mobile-doc-operation {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.mobile-doc-operation .operation-text {
+  font-weight: 600;
+}
+
+.mobile-doc-operation .channel-inline {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.mobile-doc-operation .channel-inline.bank {
+  background: var(--info-bg-color);
+  color: var(--info-color);
+}
+
+.mobile-doc-operation .channel-inline.cash {
+  background: var(--success-bg-color);
+  color: var(--success-color);
+}
+
+.mobile-doc-operation .channel-inline.order {
+  background: var(--info-bg-color);
+  color: var(--info-color);
+  border: 1px solid var(--info-color);
+}
+
+.mobile-doc-operation .channel-inline.none {
+  background: var(--info-bg-color);
+  color: var(--grey-text-color);
+}
+
+.mobile-doc-amounts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.mobile-amount-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.mobile-amount-total {
+  grid-column: 1 / -1;
+  padding-top: 8px;
+  border-top: 1px dashed var(--grey-border-color);
+}
+
+.mobile-amount-label {
+  color: var(--grey-text-color);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.mobile-amount-value {
+  font-weight: 700;
+  color: var(--text-color);
+  font-size: 13px;
+}
+
+.mobile-amount-value.text-green {
+  color: var(--success-color);
+  font-size: 13px;
+}
+
+.mobile-amount-value.text-red {
+  color: #e46321;
+  font-size: 13px;
+}
+
+.mobile-contract {
+  padding: 6px 10px;
+  background: var(--portal-bg-color-end);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--grey-text-color);
+  text-align: center;
+  border: 1px dashed var(--grey-border-color);
+}
+
+.mobile-expand-btn {
+  padding: 8px 12px;
+  background: var(--info-color);
+  color: white;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+/* ==================== SUBORDERS ==================== */
+.mobile-suborders {
+  padding: 12px 16px 16px;
+  background: var(--portal-bg-color-end);
+  border-top: 1px dashed var(--grey-border-color) ;
+}
+
+.mobile-order-card {
+  background: var(--cream-bg-color);
+  border: 1px dashed var(--grey-border-color);
+  border-left: 3px solid var(--info-color);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+.mobile-order-card:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-order-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--info-color);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--grey-border-color);
+}
+
+.mobile-order-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+}
+
+.mobile-order-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobile-order-full {
+  grid-column: 1 / -1;
+}
+
+.mobile-order-label {
+  font-size: 11px;
+  color: var(--grey-text-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobile-order-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* ==================== DATE TOTAL ==================== */
+.mobile-date-total {
+  background: var(--purple-bg-color);
+  border: 1px dashed var(--grey-border-color);
+  border-top: 2px solid var(--purple-color);
+  border-radius: 0 0 5px 5px;
+  padding: 12px 16px;
+}
+
+.mobile-total-header {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 10px;
+}
+
+.mobile-contract-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+
+.mobile-contract-total-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.mobile-contract-total-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+.mobile-separator {
+  color: var(--grey-text-color);
+}
+
+/* ==================== COLOR UTILITIES ==================== */
+.text-green {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.text-red {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+
+.text-grey {
+  color: var(--grey-text-color);
+}
+
+.text-bold {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* ==================== DARK THEME ==================== */
+.dark-theme .mobile-header,
+.dark-theme .mobile-filters {
+  background: #2c2c2c;
+  border-color: #555555;
+}
+
+.dark-theme .mobile-title,
+.dark-theme .mobile-label,
+.dark-theme .mobile-date-title {
+  color: #dddddd;
+}
+
+.dark-theme .mobile-input-date {
+  background: #555555;
+  color: #dddddd;
+  border-color: #555555;
+}
+
+.dark-theme .mobile-doc-card {
+  background: #2c2c2c;
+  border-color: #555555;
+}
+
+.dark-theme .mobile-amount-label,
+.dark-theme .mobile-doc-time {
+  color: #adb5bd;
+}
+
+.dark-theme .mobile-amount-value,
+.dark-theme .mobile-doc-operation {
+  color: #f0f0f0;
+}
+
+.dark-theme .mobile-contract {
+  background: #1a1a1a;
+  border-color: #555555;
+  color: #adb5bd;
+}
+
+.dark-theme .mobile-order-card {
+  background: #383838;
+  border-color: #555555;
+}
+
+
+
+.dark-theme .mobile-date-total {
+  background: #383838;
+  border-color: #555555;
+}
+
+.dark-theme .mobile-contract-total-line {
+  background: #2c2c2c;
+  border-color: #555555;
+}
+
+.dark-theme .mobile-contract-total-name {
+  color: #f0f0f0;
+}
+
+.dark-theme .text-bold {
+  color: #fff;
+}
+
+.dark-theme .mobile-channel-badge.none {
+  background-color: #383838;
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
+@media (max-width: 375px) {
+  .mobile-header {
+    padding: 12px;
+  }
+
+  .mobile-title {
+    font-size: 18px;
+  }
+
+  .mobile-doc-amounts {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-amount-item {
+    font-size: 13px;
+  }
+
+  .mobile-contract-total-values {
+    font-size: 13px;
+  }
+  
+  .mobile-order-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==================== DAY SURFACE ==================== */
+.mobile-day-surface {
+
+
+  border-radius: 10px;
+  border: 1px dashed var(--grey-border-color);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  padding: 4px;
+  overflow: visible;
+
+}
+
+
+
+/* ❌ Забороняємо будь-яку UX-реакцію */
+.mobile-doc-main.no-expand {
+  cursor: default;
+}
+
+/* ❌ ВБИВАЄ active */
+.mobile-doc-main.no-expand:active {
+  background: inherit !important;
+  border-left-color: transparent !important;
+}
+
+/* ❌ ВБИВАЄ hover */
+.mobile-doc-main.no-expand:hover {
+  background: inherit;
+}
+
+
+
+.dark-theme .mobile-doc-main.no-expand {
+  cursor: default;
+}
+
+/* ❌ ВБИВАЄ active */
+.dark-theme .mobile-doc-main.no-expand:active {
+  background: inherit !important;
+  border-left-color: transparent !important;
+}
+
+/* ❌ ВБИВАЄ hover */
+.dark-theme .mobile-doc-main.no-expand:hover {
+  background: inherit;
+}
+
+
+
+/* ==================== FILTER OVERLAY BACKDROP ==================== */
+.mobile-filters-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 998;
+}
+ 
+/* ==================== DROPDOWN FILTERS ==================== */
+.mobile-filters-dropdown-wrapper {
+  position: sticky;
+  top: 72px; /* висота header */
+  z-index: 200;
+}
+
+/* сам випадаючий блок */
+.mobile-filters-dropdown {
+  position: relative;
+  margin: 0 8px;
+
+  background: var(--cream-bg-color);
+  border-radius: 10px;
+  border: 1px dashed var(--grey-border-color);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+
+  animation: dropdownSlide 0.25s ease-out;
+}
+
+/* затемнення платежів під фільтрами */
+.mobile-filters-shadow {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.12),
+    transparent
+  );
+  pointer-events: none;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.order-mini-card-mobile {
+  background: var(--cream-bg-color);
+  border: 1px dashed var(--grey-border-color);
+  border-left: 3px solid var(--info-color);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.order-mini-header {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--info-color);
+  margin-bottom: 8px;
+}
+
+.order-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+}
+
+.clickable-subcard {
+  cursor: default;
+}
+
+
+/* ==================== ORDER MINI (SUBORDERS) ==================== */
+
+.order-mini-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.order-mini-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-mini-full-row {
+  grid-column: 1 / -1;
+}
+
+.order-mini-label {
+  font-size: 11px;
+  color: var(--grey-text-color);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 0.6;
+}
+
+.order-mini-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.order-mini-inline-values {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.order-mini-separator {
+  color: var(--grey-text-color);
+}
+
+/* Кольори */
+.order-mini-green {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.order-mini-red {
+  color: var(--danger-color);
+  font-weight: 600;
+}
+.dark-theme .mobile-contracts-list{
+    background-color: #555555;
+}
+
+
+/* ===============================
+   SCROLL TO TOP BUTTON (MOBILE)
+================================ */
+
+
+
+.dark-theme .mobile-doc-card.income {
+  border-left-color: var(--success-color); /* зелений */
+}
+
+/* ▼ РОЗХІД */
+.dark-theme .mobile-doc-card.expense {
+  border-left-color: var(--danger-color); /* червоний */
+}
+
+/* • НЕЙТРАЛЬНО */
+.dark-theme .mobile-doc-card.neutral {
+  border-left-color: var(--grey-text-color);
+}
+
+.dark-theme .mobile-date-header {
+
+  background: #555555;
+
+
+  border-radius: 5px 5px 0 0;
+  border: 1px dashed var(--grey-border-color);
+
+  backdrop-filter: none;
+}
+
+
+
+.dark-theme .mobile-doc-main:active:not(.expanded) {
+  background: #434344;
+}
+
+.dark-theme .mobile-doc-main.expanded {
+  background: #434344 !important;
+  border-bottom: 1px dashed #555555;
+}
+
+
+
+.dark-theme .mobile-suborders {
+  background: #434344;
+  border-top: 1px dashed #777777 ;
+}
+

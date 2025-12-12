@@ -3,6 +3,8 @@ import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
 import "./PaymentStatus.css";
 import { useTheme } from "../context/ThemeContext";
+import MobilePaymentsView from "./MobilePaymentsView";
+
 
 // ====================================================================
 //                           FORMAT CURRENCY
@@ -20,6 +22,21 @@ const formatCurrency = (value, unit = "грн") => {
   if (unit === "") return formatter.format(num);
   return `${formatter.format(num)} ${unit}`;
 };
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(
+    window.matchMedia("(max-width: 768px)").matches
+  );
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 768px)");
+    const listener = (e) => setIsMobile(e.matches);
+
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
+
+  return isMobile;
+};
 
 // ====================================================================
 //                          USER + DEFAULT CONTRACTOR
@@ -29,6 +46,7 @@ const USER_ROLE = USER.role || "";
 
 const DEFAULT_CONTRACTOR_GUID =
  USER.user_id_1c;
+
 
 // ====================================================================
 //                          DETECT PAYMENT CHANNEL
@@ -157,16 +175,25 @@ const DocumentRow = React.memo(
           </td>
 
           {/* DETAILS / CONTRACT */}
-          <td colSpan={3} className="td-details">
-            {docGroup.items.length > 0 &&
+        <td colSpan={3} className="td-details">
+          {docGroup.items.length > 0 &&
           detectPaymentChannel(docGroup.items[0]) === "order" &&
-            (firstItem.ВидДокумента === "ППВход" || firstItem.ВидДокумента === "ПКО") ? (
-              <span className="expand-btn">
-                {isExpanded
-                  ? `▼ Сховати ${docGroup.items.length} замовлень`
-                  : `▶ Рознесено на ${docGroup.items.length} замовлень`}
-              </span>
-            ) : (
+          (firstItem.ВидДокумента === "ППВход" ||
+            firstItem.ВидДокумента === "ПКО") ? (
+            <span className="expand-btn">
+              {isExpanded ? (
+                <>
+                  <i className="fa-solid fa-chevron-up" style={{ marginRight: 6 }} />
+                  Сховати {docGroup.items.length} замовлень
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-chevron-down" style={{ marginRight: 6 }} />
+                  Рознесено на {docGroup.items.length} замовлень
+                </>
+              )}
+            </span>
+          ) : (
               <div className="contract-cell">{firstItem.FinalDogovorName || "—"}</div>
             )}
           </td>
@@ -184,14 +211,14 @@ const DocumentRow = React.memo(
                 {docGroup.items.map((item, idx) => (
                   <div
                     key={`${docKey}-${idx}`}
-                    className="order-mini-card clickable-subcard"
+                    className="mini-card clickable-subcard"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="order-mini-header">
                       Замовлення № {item.НомерЗаказа}
                     </div>
 
-                    <div className="order-mini-grid">
+                    <div className="mini-grid">
                       <div>
                         <span className="mini-label">Сума</span>
                         <span className="mini-value">
@@ -365,6 +392,7 @@ const PaymentGroup = React.memo(
 // ====================================================================
 const PaymentStatusV2 = () => {
   const { theme } = useTheme();
+   const isMobile = useIsMobile();
   const { dateFrom: defaultDateFrom, dateTo: defaultDateTo } =
     getCurrentMonthDates();
 
@@ -549,8 +577,27 @@ summary.lastCumSaldo = item.CumSaldo;
     );
 
   return (
+
+    
     <div className={`payments-body ${theme}`}>
       {/* FILTERS */}
+
+      {isMobile ? (
+      <MobilePaymentsView
+  groups={sortedGroups}
+  formatCurrency={formatCurrency}
+  detectPaymentChannel={detectPaymentChannel}
+  expandedRows={expandedRows}
+  toggleRow={toggleRow}
+
+  // 🆕 ФІЛЬТРИ
+  filters={filters}
+  onFilterChange={handleFilterChange}
+  onSearch={fetchData}
+/>
+
+    ) : (
+<>
       <div className="filters-container">
         <label>
           З:
@@ -577,7 +624,9 @@ summary.lastCumSaldo = item.CumSaldo;
           onClick={fetchData}
           disabled={loading}
         >
-          {loading ? "Завантаження..." : "🔍 Пошук"}
+
+        <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} />
+          Пошук
         </button>
 
         <button
@@ -585,8 +634,10 @@ summary.lastCumSaldo = item.CumSaldo;
           onClick={fetchData}
           disabled={loading}
         >
-          🔄 Оновити
+          <i className="fa-solid fa-rotate-right" style={{ marginRight: 8 }} />
+          Оновити
         </button>
+
 
       </div>
 
@@ -624,7 +675,10 @@ summary.lastCumSaldo = item.CumSaldo;
       {!paymentsData.length && !loading && (
         <div className="text-center p-20">Даних не знайдено</div>
       )}
+      </>
+          )}
     </div>
+
   );
 };
 

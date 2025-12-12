@@ -50,7 +50,7 @@ export default function HomePage() {
   const loopVideos = [...videos, ...videos]; // безшовний цикл
 
   return (
-    <div className="min-h-screen bg-white text-gray-800 font-sans pt-1">
+    <div className="min-h-screen bg-white text-gray-800 font-sans">
       {/* Hero Section */}
       <section
         className="relative min-h-[900px] bg-cover bg-center bg-no-repeat"
