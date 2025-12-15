@@ -135,23 +135,21 @@ class Message(models.Model):
         verbose_name='Тип транзакції'
     )
 
-    writer = models.ForeignKey(
-        CustomUser, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+    writer_id = models.BinaryField(
+        max_length=16,
+        null=True,
         blank=True,
-        related_name='messages', 
-        db_column='WriterID'
+        db_column='WriterID',
+        verbose_name='Автор (GUID)'
     )
     
     message = models.TextField(db_column='Message')
     
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        db_column='CreatedAt'
-    )
     
+    created_at = models.DateTimeField(
+            auto_now_add=True,
+            db_column='CreatedAt'
+        )
+
     def __str__(self):
-        writer_name = self.writer.full_name if self.writer else "Анонім"
-        # Відображаємо тип та номер транзакції
-        return f"[{self.transaction_type.type_name} №{self.transaction_number}] {writer_name}: {self.message[:30]}"
+        return f"[{self.transaction_type.type_name}] {self.message[:30]}"

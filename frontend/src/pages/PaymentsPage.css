@@ -7,421 +7,755 @@
    ========================== */
 
 .payments-page {
-  position: relative;
-  min-height: 100vh;
-  padding-top: 60px !important;
-  padding-bottom: 60px !important;
-  padding-left: clamp(5px, 5vw, 100px) !important;
-  padding-right: clamp(5px, 5vw, 100px) !important;
-  overflow: hidden;
-  background: radial-gradient(circle, #f3f3f3 45%, #e6e6e0);
+    position: relative;
+    min-height: 100vh;
+    padding-top: 60px !important;
+    padding-bottom: 60px !important;
+    padding-left: clamp(5px, 5vw, 100px) !important;
+    padding-right: clamp(5px, 5vw, 100px) !important;
+    overflow: hidden;
+    background: #e6e6e0;
 }
 
 /* Ліве велике коло */
 .payments-page::before {
-  content: "";
-  position: absolute;
-  top: -140px;
-  left: -160px;
-  width: 380px;
-  height: 380px;
-  background: #dce2ed;
-  border-radius: 50%;
-  filter: blur(55px);
-  opacity: 0.55;
-  z-index: -1;
+    content: "";
+    position: absolute;
+    top: -140px;
+    left: -160px;
+    width: 380px;
+    height: 380px;
+    background: #dce2ed;
+    border-radius: 50%;
+    filter: blur(55px);
+    opacity: 0.55;
+    z-index: -1;
 }
 
 /* Праве коло */
 .payments-page::after {
-  content: "";
-  position: absolute;
-  bottom: -140px;
-  right: -160px;
-  width: 400px;
-  height: 400px;
-  background: #e6ebf5;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.45;
-  z-index: -1;
+    content: "";
+    position: absolute;
+    bottom: -140px;
+    right: -160px;
+    width: 400px;
+    height: 400px;
+    background: #e6ebf5;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.45;
+    z-index: -1;
+}
+
+.pp-orders-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px; /* Збільшив до 30px для кращого розділення, як було раніше */
+    margin-bottom: 10px;
 }
 
 /* Темна тема */
 .dark-theme .payments-page {
-  background: radial-gradient(circle, #1e1e1e 35%, #151515);
+    background: radial-gradient(circle, #1e1e1e 35%, #151515);
 }
 
 .dark-theme .payments-page::before {
-  background: #2c2c2c;
-  opacity: 0.35;
+    background: #2c2c2c;
+    opacity: 0.35;
 }
 
 .dark-theme .payments-page::after {
-  background: #3a3a3a;
-  opacity: 0.35;
+    background: #3a3a3a;
+    opacity: 0.35;
 }
 
 
 /* DARK THEME compatibility */
 .dark-theme .payments-page {
-  background: var(--portal-bg-color-start);
+    background: var(--portal-bg-color-start);
 }
 
 /* ---------------- HEADER ---------------- */
 
 .pp-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-  margin-top: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    margin-top: 18px;
 }
 
 
 .pp-title-header {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    
 }
 
 .year-selector {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 16px;
-  color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: var(--text-color);
 }
 
 .year-selector select {
-  padding: 6px 12px;
-  border: 1px dashed var(--grey-border-color);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--text-color);
-  transition: 0.25s;
+    padding: 6px 12px;
+    border: 1px dashed var(--grey-border-color);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--text-color);
+    transition: 0.25s;
 }
 
 .year-selector select:hover {
-  border-color: var(--info-color);
+    border-color: var(--info-color);
 }
 
 .dark-theme .year-selector select {
-  background: #383838;
-  border-color: var(--grey-border-color);
-  color: var(--text-color);
+    background: #383838;
+    border-color: var(--grey-border-color);
+    color: var(--text-color);
 }
 
 /* ---------------- BUTTON ---------------- */
 
 .pp-reload {
-  background: var(--info-color);
-  color: white;
-  padding: 7px 18px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  transition: 0.25s;
+    background: var(--info-color);
+    color: white;
+    padding: 7px 18px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: 0.25s;
 }
 
 .pp-reload:hover {
-  opacity: 0.85;
+    opacity: 0.85;
 }
 
 /* ---------------- LOADER ---------------- */
 
+/* ---------------- LOADER ---------------- */
+
 .pp-loader {
-  text-align: center;
-  margin-top: 40px;
+  position: fixed;          /* 🔑 ключова зміна */
+  inset: 0;                 /* top:0 right:0 bottom:0 left:0 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
   font-size: 18px;
+  background: rgba(255, 255, 255); /* опціонально */
+  backdrop-filter: blur(2px);            /* опціонально */
+
+  z-index: 3000;
+  pointer-events: none; /* не блокує кліки, якщо треба */
 }
 
-.spinner {
-  width: 34px;
-  height: 34px;
-  border: 4px dashed var(--grey-border-color);
-  border-top-color: var(--info-color);
-  border-radius: 50%;
-  margin: 0 auto 10px;
-  animation: spin 0.8s linear infinite;
-}
 
-/* ---------------- ERROR ---------------- */
 
 .pp-error {
-  padding: 15px;
-  background: #fae4d9;
-  color: var(--danger-color);
-  border-left: 3px solid var(--danger-color);
-  margin-bottom: 20px;
-  border-radius: 4px;
+    padding: 15px;
+    background: #fae4d9;
+    color: var(--danger-color);
+    border-left: 3px solid var(--danger-color);
+    margin-bottom: 20px;
+    border-radius: 4px;
 }
 
 /* ---------------- TITLES ---------------- */
 
 .pp-title {
-  font-size: 21px;
-  font-weight: 500;
-  margin-bottom: 12px;
-  color: var(--grey-text-color);
-  margin-top: 20px;
+    font-size: 21px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: var(--grey-text-color);
+    margin-top: 20px;
 }
 
 /* ---------------- ORDER CARD ---------------- */
 
 .pp-order-card {
-  background: var(--cream-bg-color);
-  padding: 14px;
-  border-radius: 6px;
-  border: 1px dashed var(--grey-border-color);
-  margin-bottom: 12px;
-  box-shadow: 1px 1px 4px var(--shadow-color);
-  display: flex;
-  flex-direction: column;
+    background: var(--cream-bg-color);
+    padding: 14px;
+    border-radius: 6px;
+    border: 1px dashed var(--grey-border-color);
+    margin-bottom: 12px;
+    box-shadow: 1px 1px 4px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
 }
 
 .dark-theme .pp-order-card {
-  background: #2c2c2c;
-  border-color: var(--grey-border-color);
+    background: #2c2c2c;
+    border-color: var(--grey-border-color);
 }
 
 .pp-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
 }
+
+/* СТИЛЬ СІТКИ ДЛЯ ВЕЛИКИХ ЕКРАНІВ - ЗАМІНА INLINE STYLES */
+.pp-order-row {
+    display: grid !important;
+    grid-template-columns: 150px 230px 180px 180px 200px auto ;
+    align-items: center;
+    column-gap: 10px;
+}
+
 
 /* Left: number + date */
 .pp-order-col .pp-num {
-  font-size: 18px;
-  font-weight: 600;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .pp-order-col .pp-date {
-  font-size: 12px;
-  color: var(--grey-color);
+    font-size: 12px;
+    color: var(--grey-color);
 }
 
-/* Badge */
+/* Badge (Contract badge, not status pill) */
+.pp-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .pp-badge {
-  padding: 4px 10px;
-  background: var(--info-color);
-  color: #fff;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
+    background: #5b77b8;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 13px;
+    border: 1px solid #9fb5f3;
+    white-space: nowrap;
+    color: #ffffff;
 }
 
-/* Amount columns */
+
 .pp-info span {
-  font-size: 12px;
-  color: var(--grey-text-color);
+    font-size: 13px;
+    padding-right: 5px;
+    color: var(--grey-text-color);
+    display: inline-block; /* Для контролю відображення у flex */
 }
 
 .pp-info strong {
-  font-size: 16px;
+    font-size: 18px;
 }
 
 .pp-green { color: var(--success-color); }
 .pp-red { color: var(--danger-color); }
 .pp-blue { color: var(--info-color); }
 
-/* ---------------- CONTRACTS ---------------- */
-
-.pp-contract-card {
-  background: #fff;
-  padding: 14px;
-  border-radius: 6px;
-  border: 1px dashed var(--grey-border-color);
-  margin-bottom: 12px;
-  box-shadow: 1px 1px 4px var(--shadow-color);
-}
-
-.dark-theme .pp-contract-card {
-  background: #2c2c2c;
-}
-
-.pp-contract-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.pp-contract-sum span {
-  font-size: 12px;
-  color: var(--grey-text-color);
-}
-
-.pp-contract-sum strong {
-  font-size: 18px;
-  color: var(--info-color);
-}
-
 /* ---------------- EMPTY STATE ---------------- */
 
 .pp-empty {
-  padding: 16px;
-  text-align: center;
-  border: 1px dashed var(--grey-border-color);
-  border-radius: 6px;
-  background: var(--cream-bg-color);
-  color: var(--grey-text-color);
-  margin-bottom: 16px;
+    padding: 16px;
+    text-align: center;
+    border: 1px dashed var(--grey-border-color);
+    border-radius: 6px;
+    background: var(--cream-bg-color);
+    color: var(--grey-text-color);
+    margin-bottom: 16px;
 }
 
 /* ---------------- ANIMATIONS ---------------- */
 
 .fade-in {
-  animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.3s ease;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+    to { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-
 
 /* Контейнер для всіх замовлень */
 .pp-orders-wrapper {
-  background: #ffffff; /* теплий світлий фон, як у карток */
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #e6dfd2;
-  margin-top: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e6dfd2;
+    margin-top: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 /* Щоб картки гарно лягали всередину */
 .pp-orders-wrapper .pp-order-card {
-  margin-bottom: 12px;
+    margin-bottom: 12px;
 }
 
 .dark-theme .pp-orders-wrapper {
-  background: #1e1e1e;
-  border-color: #333;
+    background: #1e1e1e;
+    border-color: #333;
 }
 
 
+/* Modal styles (базові стилі, можуть бути в окремому файлі, але залишаю тут) */
 .pp-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
 }
 
 .pp-modal-content {
-  background: var(--bg);
-  padding: 25px;
-  border-radius: 12px;
-  width: 420px;
-  max-width: 90%;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  animation: fadeIn 0.25s ease;
+    background: var(--bg);
+    padding: 25px;
+    border-radius: 12px;
+    width: 420px;
+    max-width: 90%;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    animation: fadeIn 0.25s ease;
 }
 
 .pp-modal-content h3 {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 .pp-modal-content select,
 .pp-modal-content input {
-  margin-bottom: 15px;
-  padding: 8px 10px;
-  width: 100%;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+    margin-bottom: 15px;
+    padding: 8px 10px;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border);
 }
 
 .pp-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }
 
 .pp-cancel-btn {
-  padding: 8px 14px;
-  background: #ccc;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+    padding: 8px 14px;
+    background: #ccc;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
 .pp-confirm-btn {
-  padding: 8px 14px;
-  background: var(--vs-blue);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+    padding: 8px 14px;
+    background: var(--vs-blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
 .pp-pay-btn {
-  margin-left: auto;
-  background-color: var(--success-color);
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  color: rgb(255, 255, 255);
-  font-weight: 600;
+    margin-left: auto;
+    background-color: var(--success-color);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: rgb(255, 255, 255);
+    font-weight: 600;
 }
 
 .pp-pay-btn:hover {
-  transform: scale(1.01);
-  background-color: #5e8b3b;
+    transform: scale(1.01);
+    background-color: #5e8b3b;
 }
-
-
-.pp-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.pp-badge {
-  background: #5b77b8;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 13px;
-  border: 1px solid #9fb5f3;
-}
-
 
 /* БЛОКУЄ прокрутку, але НЕ ховає скролбар */
 .no-scroll {
-  overflow-y: scroll !important;
-  height: 100vh;
-  overscroll-behavior: contain;
-  position: fixed;
-  width: 100%;
+    overflow-y: scroll !important;
+    height: 100vh;
+    overscroll-behavior: contain;
+    position: fixed;
+    width: 100%;
 }
 
 
+/* ===== STATUS FILTER ===== */
+.status-filter {
+    position: relative;
+    width: 280px;
+}
 
-/* Базовий стиль для статусів — ТАКИЙ ЖЕ як pp-badge */
-.pp-status {
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  display: inline-block;
-  border: 1px solid transparent;
-  text-align: center;
+/* Selected */
+.status-selected {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--grey-border-color);
+    border-radius: 10px;
+    background: var(--card-bg-color);
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.status-selected:hover {
+    border-color: var(--info-color);
+}
+
+.status-selected.open {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+/* Dropdown */
+.status-dropdown {
+    position: absolute;
+    top: 110%;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255);
+    border-radius: 10px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+    z-index: 50;
+    padding: 6px;
+}
+
+.status-item {
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.status-item:hover {
+    background: var(--info-bg-color);
+}
+
+/* ===== STATUS PILLS ===== */
+.status-pill {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    
+}
+
+/* COLORS */
+.status-new {
+    background: rgba(33, 150, 243, 0.15);
+    color: #2196f3;
+}
+
+.status-progress {
+    background: rgba(255, 193, 7, 0.18);
+    color: #ff9800;
+}
+
+.status-done {
+    background: rgba(76, 175, 80, 0.18);
+    color: #4caf50;
+}
+
+.status-shipped {
+    background: rgba(156, 39, 176, 0.18);
+    color: #9c27b0;
+}
+
+.status-closed {
+    background: rgba(96, 125, 139, 0.18);
+    color: #607d8b;
+}
+
+.status-all {
+    background: rgba(100, 181, 246, 0.2);
+    color: #64b5f6;
+}
+
+.status-unknown {
+    background: rgba(158, 158, 158, 0.18);
+    color: #9e9e9e;
+}
+
+/* Arrow */
+.dropdown-arrow {
+    margin-left: auto;
+    font-size: 11px;
+    transition: transform 0.25s ease;
+}
+
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+/* ===== DARK THEME ===== */
+.dark-theme .status-selected,
+.dark-theme .status-dropdown {
+    background: #2b2b2b;
+    border-color: #444;
+}
+
+.dark-theme .status-item:hover {
+    background: rgba(77, 171, 255, 0.12);
+}
+
+/* =====================================================
+    АДАПТИВНІСТЬ (≤ 1330px)
+===================================================== */
+@media (max-width: 1330px) {
+
+    .pp-order-row {
+        display: grid;
+        grid-template-columns:
+            100px        /* номер + дата */
+            180px        /* статус */
+            80px    /* сума */
+            80px    /* оплачено */
+            80px   /* до оплати */
+            110px;       /* КНОПКА — ФІКС */
+        column-gap: 6px;
+        align-items: center;
+    }
+
+    /* ********** ВАЖЛИВА ЗМІНА: ВЕРТИКАЛЬНИЙ ВИГЛЯД ********** */
+    .pp-info {
+        display: flex;
+        flex-direction: column; /* Текст зверху, значення знизу */
+        align-items: flex-start; /* Вирівнювання тексту/чисел по лівому краю колонки */
+        line-height: 1.2;
+    }
+    
+    .pp-info span {
+        font-size: 11px; /* Трохи менший шрифт для мітки */
+        margin-bottom: 2px; /* Відступ між міткою та значенням */
+        color: var(--grey-color); /* Послаблюємо колір мітки */
+    }
+
+    .pp-info strong {
+        font-size: 15px;
+    }
+    /* ********************************************************* */
+
+    /* Тексти НЕ переносяться */
+    .pp-info,
+    .pp-order-col {
+        white-space: nowrap;
+    }
+
+    /* Кнопка завжди справа і не ламається */
+    .pp-pay-btn-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        white-space: nowrap;
+    }
+
+    .pp-pay-btn {
+        min-width: 100px;
+        padding: 6px 14px;
+    }
 }
 
 
+/* =====================================================
+    АДАПТИВНІСТЬ (≤ 1190px) — ЗБЕРІГАЄМО ВЕРТИКАЛЬНИЙ ВИГЛЯД
+===================================================== */
+@media (max-width: 1190px) {
 
+    .pp-order-row {
+        grid-template-columns:
+            80px        /* номер + дата: 100px → 80px */
+            180px       /* статус: 160px → 100px */
+            60px   /* сума */
+            60px   /* оплачено */
+            60px    /* до оплати */
+            90px;       /* КНОПКА — 110px → 90px */
+        column-gap: 2px;
+    }
+
+    /* Зберігаємо вертикальне вирівнювання, просто оновлюємо шрифти/розміри */
+    .pp-info strong {
+        font-size: 14px;
+    }
+
+    .pp-pay-btn {
+        min-width: 90px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
+    .pp-info span {
+        font-size: 10px; /* Ще трохи зменшуємо мітку для вузьких екранів */
+    }
+}
+
+
+/* =====================================================
+    📱 MOBILE PAYMENTS (≤ 768px)
+===================================================== */
+@media (max-width: 870px) {
+
+    /* Page padding */
+    .payments-page {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        padding-top: 50px !important;
+    }
+
+    /* Header */
+    .pp-header {
+
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .pp-title {
+      font-size: 17px;
+      margin-top: 5px;
+      margin-bottom: 0;
+    }
+
+    .pp-title-header {
+        font-size: 20px;
+        margin-bottom: 0;
+    }
+
+    .pp-reload {
+        align-self: flex-start;
+        padding: 6px 14px;
+        font-size: 14px;
+    }
+
+    /* Status filter - повна ширина */
+    .status-filter {
+        width: 100%;
+    }
+
+    .status-selected {
+        width: 100%;
+    }
+
+    /* Orders wrapper */
+    .pp-orders-wrapper {
+        padding: 12px;
+    }
+
+    /* Order card */
+    .pp-order-card {
+        padding: 12px;
+    }
+
+    /* Рядок замовлення: grid → flex column */
+    .pp-order-row {
+        display: flex !important;
+        flex-direction: column;
+        gap: 8px; 
+        align-items: stretch; /* розтягуємо на всю ширину */
+    }
+
+    /* Order number + date - вирівнюємо на одному рядку */
+    .pp-order-col {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .pp-order-col .pp-num {
+        font-size: 16px;
+    }
+
+    .pp-order-col .pp-date {
+        font-size: 12px;
+    }
+
+    /* Status - робимо його окремим рядком, вирівняним по лівому краю */
+    .pp-order-row > div:nth-child(2) {
+        text-align: left !important;
+        /* Робить status-pill самостійним блоком */
+    }
+
+    .status-pill {
+        font-size: 13px;
+        padding: 5px 14px;
+        min-width: 140px;
+        text-align: center;
+    }
+
+    /* Amounts grid: ПОВЕРТАЄМО горизонтальне відображення на мобільному */
+    .pp-info {
+        display: flex;
+        flex-direction: row; /* Повертаємо горизонтальне вирівнювання */
+        justify-content: space-between; /* Вирівнює 'Сума:' з цифрою */
+        align-items: center;
+        font-size: 14px;
+        padding: 4px 0;
+    }
+
+    .pp-info span {
+        font-size: 14px; /* Повертаємо нормальний розмір */
+        margin-bottom: 0;
+    }
+
+    .pp-info strong {
+        font-size: 15px;
+    }
+
+    /* Pay button */
+    .pp-pay-btn-wrapper {
+        margin-top: 10px; /* Більший відступ від сум */
+    }
+
+    .pp-pay-btn {
+        width: 100%;
+        padding: 7px;
+        font-size: 15px;
+
+    }
+
+    /* Contracts badges */
+    .pp-badges {
+        flex-direction: column;
+    }
+
+    .pp-badge {
+        width: 100%;
+        text-align: center;
+        color: #ffffff;
+    }
+
+    .pp-orders-header {
+        flex-wrap: wrap; /* На мобільному залишаємо вертикальний стек */
+        align-items: flex-start;
+        margin-top: 20px;
+        gap: 10px;
+    }
+
+
+
+}
+
+
+@media (max-width: 700px) {
+
+  .pp-badge {
+
+      white-space: wrap;
+
+  }
+}
+
+
+.dark-theme .pp-loader {
+
+  background: radial-gradient(circle, #1e1e1e 35%, #151515);
+ 
+}

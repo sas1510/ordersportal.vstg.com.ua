@@ -17,7 +17,6 @@ from rest_framework.permissions import IsAuthenticated
 
 
 
-
 # /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
 
 from datetime import date
@@ -204,3 +203,114 @@ def get_dealer_advance_balance(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from django.http import HttpResponse
+from datetime import date
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.db import connection
+
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def export_payment_status_excel(request):
+
+    guid_str = request.GET.get("contractor")
+    if not guid_str:
+        return HttpResponse("contractor is required", status=400)
+
+    try:
+        contractor_binary = guid_to_1c_bin(guid_str)
+    except Exception as e:
+        return HttpResponse(f"Invalid GUID: {e}", status=400)
+
+    date_from = request.GET.get("date_from", "1900-01-01")
+    date_to = request.GET.get("date_to", str(date.today()))
+
+    sql = """
+        EXEC dbo.GetDealerFullLedger
+            @Контрагент = %s,
+            @ДатаЗ = %s,
+            @ДатаПо = %s
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [contractor_binary, date_from, date_to])
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+
+    # ================== CREATE EXCEL ==================
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Payment Status"
+
+    headers = [
+        "Дата",
+        "Час",
+        "Договір",
+        "Канал",
+        "Залишок на початок",
+        "Прихід",
+        "Розхід",
+        "Залишок на кінець",
+        "№ замовлення",
+        "Сума замовлення",
+        "Оплата",
+        "Залишок по замовленню",
+        "Статус оплати"
+    ]
+
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    for row in rows:
+        r = dict(zip(columns, row))
+
+        period = r.get("Период")
+
+        date_part = period.date().isoformat() if period else ""
+        time_part = period.time().strftime("%H:%M") if period else ""
+
+        ws.append([
+            date_part,
+            time_part,
+
+            r.get("FinalDogovorName"),
+            r.get("DealType"),
+            r.get("CumSaldoStart"),
+
+            # Прихід / Розхід
+            abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Прихід" else "",
+            abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Витрата" else "",
+
+            r.get("CumSaldo"),
+
+            # Замовлення
+            r.get("НомерЗаказа"),
+            r.get("СуммаЗаказа"),
+            abs(r.get("DeltaRow", 0)),
+            r.get("ЗалишокПоЗаказу"),
+            r.get("СтатусОплатиПоЗаказу"),
+        ])
+
+
+    # ================== RESPONSE ==================
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="payment_status_{date_from}_{date_to}.xlsx"'
+    )
+
+    wb.save(response)
+    return response

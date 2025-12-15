@@ -828,6 +828,30 @@ span.td-date {
 }
 
 
+
+.btn-excel {
+  padding: 8px 16px;
+  background-color: #1aaa56;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-refresh:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
 .arrow {
   font-size: 14px;
   margin-right: 6px;
@@ -850,7 +874,7 @@ span.td-date {
 /* ========================================
    📱 MOBILE ADAPTATION (<= 768px)
    ======================================== */
-@media (max-width: 768px) {
+@media (max-width: 1050px) {
 
   /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
   .payments-body {

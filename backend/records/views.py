@@ -463,6 +463,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 
+from django.http import JsonResponse
+from django.db import connection, DatabaseError
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+import logging
+
+logger = logging.getLogger(__name__)
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def order_files_view(request, order_guid):
@@ -471,34 +479,50 @@ def order_files_view(request, order_guid):
     Повертає список файлів для React-модалки.
     """
 
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            EXEC dbo.GetOrdersFiles @OrderLinkGUID=%s
-        """, [order_guid])
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetOrdersFiles @OrderLinkGUID=%s",
+                [order_guid]
+            )
 
-        columns = [col[0] for col in cursor.description]
-        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
 
-    files = []
+        files = [
+            {
+                "fileGuid": row_dict["File_GUID"],
+                "fileName": row_dict["File_FileName"],
+                "type": row_dict["File_DataType_Name"],
+                "date": row_dict["File_Date"],
+            }
+            for row_dict in (dict(zip(columns, row)) for row in rows)
+        ]
 
-    for row in rows:
-        files.append({
-            # "orderGuid": row.get("Order_Link_GUID"),
-            # "orderNumber": row.get("Order_Number"),
-            # "fileGuid": row.get("File_GUID"),
-            # "fileName": row.get("File_FileName"),
-            # "title": row.get("File_Name"),
-            # "type": row.get("File_DataType_Name"),
-            # "date": row.get("File_Date"),
-            "fileGuid": row["File_GUID"],
-            "fileName": row["File_FileName"],
-            "type": row["File_DataType_Name"],
-            "date": row["File_Date"]
+        return JsonResponse(
+            {"status": "success", "files": files},
+            status=200
+        )
 
-            
-        })
+    except DatabaseError as e:
+        logger.exception("DB error in order_files_view")
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Помилка отримання файлів замовлення"
+            },
+            status=500
+        )
 
-    return JsonResponse({"status": "success", "files": files}, status=200)
+    except Exception as e:
+        logger.exception("Unexpected error in order_files_view")
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Внутрішня помилка сервера"
+            },
+            status=500
+        )
 
 
 import subprocess
@@ -519,63 +543,65 @@ from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
+import subprocess
+import logging
+from django.http import StreamingHttpResponse, Http404
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+logger = logging.getLogger(__name__)
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def download_order_file(request, order_guid, file_guid, filename):
-    
     server = settings.SMB_SERVER
     share = settings.SMB_SHARE
     username = settings.SMB_USERNAME
     password = settings.SMB_PASSWORD
-    
-    full_username = f"VSTG\\{username}" 
-    
-    # 🔥🔥🔥 КЛЮЧОВЕ ВИПРАВЛЕННЯ: КОДУВАННЯ КИРИЛИЦІ В ШЛЯХУ 🔥🔥🔥
-    
-    # 1. Складаємо шлях з кирилицею. Кирилиця - це "Заказ покупателя"
-    remote_path_str = f"Заказ покупателя/{order_guid}/{file_guid}/{filename}"
-    
-    # 2. Кодуємо всі аргументи в байтові рядки (UTF-8 є стандартом для Linux)
-    # Якщо UTF-8 не спрацює, спробуйте 'cp866' або 'cp1251'
-    encoding = 'utf-8' 
-    
-    # Аргументи команди мають бути байтовими
-    command_bytes = [
-        "smbclient".encode(encoding),
-        f"//{server}/{share}".encode(encoding),
-        "-U".encode(encoding), 
-        full_username.encode(encoding), 
-        "-c".encode(encoding),
-        # Команда get має бути закодована
-        f'get "{remote_path_str}" -'.encode(encoding)
-    ]
-    
-    # Пароль передаємо через змінну оточення
-    env_vars = {"PASSWD": password.encode(encoding)}
-    
+
+    full_username = f"VSTG\\{username}"
+
+    # Кириличний шлях у 1С
+    remote_path = f'Заказ покупателя/{order_guid}/{file_guid}/{filename}'
+
     try:
         process = subprocess.Popen(
-            command_bytes, # 🔥 Передаємо байтовий список
-            stdin=subprocess.PIPE,
+            [
+                "smbclient",
+                f"//{server}/{share}",
+                "-U", full_username,
+                "-c", f'get "{remote_path}" -'
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=False, # Залишаємо False, оскільки передаємо бінарні дані
-            env=env_vars 
+            env={"PASSWD": password},
         )
-        
+
+        # ❗ ВАЖЛИВО: читаємо stderr одразу
+        stderr = process.stderr.read()
+
+        if stderr:
+            error_msg = stderr.decode("utf-8", errors="ignore")
+            logger.error("SMB error: %s", error_msg)
+
+            raise Http404("Файл не знайдено або доступ заборонено")
+
         response = StreamingHttpResponse(
             streaming_content=process.stdout,
             content_type="application/octet-stream"
         )
-        # Content-Disposition має бути рядком (не байтами), тому тут залишаємо filename
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="{filename}"'
+        )
 
         return response
 
+    except FileNotFoundError:
+        logger.exception("smbclient not installed")
+        raise Http404("Сервіс завантаження файлів недоступний")
+
     except Exception as e:
-        raise Http404(f"Помилка доступу до файлу: {str(e)}")
-    
-
-
-
-
+        logger.exception("Download error")
+        raise Http404(f"Помилка доступу до файлу")

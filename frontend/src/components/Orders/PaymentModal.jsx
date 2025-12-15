@@ -73,26 +73,42 @@ export default function PaymentModal({
     setPaymentAmount(available < debt ? available : debt);
   }, [selectedContract]);
 
+  const getMaxAllowed = () => {
+    const available = getAvailable();
+    return Math.min(available, debt);
+  };
+
+
   // --- ручне введення ---
   const handleAmountChange = (value) => {
-    setAmountError("");
+      setAmountError("");
 
-    if (!selectedContract) {
-      setPaymentAmount(value);
-      return;
-    }
+      // дозволяємо очищення поля
+      if (value === "") {
+        setPaymentAmount("");
+        return;
+      }
 
-    const available = getAvailable();
+      const numericValue = Number(value);
 
-    if (Number(value) > available) {
-      setAmountError(
-        `Сума перевищує доступний залишок (${formatCurrency(available)})`
-      );
-      setPaymentAmount(available);
-    } else {
-      setPaymentAmount(value);
-    }
-  };
+      if (numericValue <= 0) {
+        setPaymentAmount("");
+        return;
+      }
+
+      const maxAllowed = selectedContract ? getMaxAllowed() : debt;
+
+      if (numericValue > maxAllowed) {
+        setAmountError(
+          `Максимальна сума оплати — ${formatCurrency(maxAllowed)}`
+        );
+        setPaymentAmount(maxAllowed.toFixed(2));
+        return;
+      }
+
+      setPaymentAmount(numericValue);
+    };
+
 
   const set50percent = () => {
     const half = debt * 0.5;
@@ -134,7 +150,8 @@ export default function PaymentModal({
 
         <div className="pay-modal-header">
           <h3>Оплата замовлення № {order.OrderNumber}</h3>
-          <button className="pay-close-btn" onClick={onClose}>×</button>
+          <span className="icon icon-cross pay-close-btn" onClick={onClose}></span>
+        
         </div>
 
         <div className="pay-modal-body">

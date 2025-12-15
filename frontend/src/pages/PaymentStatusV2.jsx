@@ -24,11 +24,11 @@ const formatCurrency = (value, unit = "грн") => {
 };
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(
-    window.matchMedia("(max-width: 768px)").matches
+    window.matchMedia("(max-width: 1050px)").matches
   );
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 768px)");
+    const media = window.matchMedia("(max-width: 1050px)");
     const listener = (e) => setIsMobile(e.matches);
 
     media.addEventListener("change", listener);
@@ -47,6 +47,8 @@ const USER_ROLE = USER.role || "";
 const DEFAULT_CONTRACTOR_GUID =
  USER.user_id_1c;
 
+
+ 
 
 // ====================================================================
 //                          DETECT PAYMENT CHANNEL
@@ -407,6 +409,48 @@ const PaymentStatusV2 = () => {
     dateTo: defaultDateTo,
   });
 
+   const downloadExcel = async () => {
+    try {
+      const response = await axiosInstance.get(
+        "/export_payment_status_excel/",
+        {
+          params: {
+            contractor: filters.contractor,
+            date_from: filters.dateFrom,
+            date_to: filters.dateTo,
+          },
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data], {
+        type:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `payment_status_${filters.dateFrom}_${filters.dateTo}.xlsx`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Excel download error:", error);
+
+      if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Data:", error.response.data);
+      }
+
+      alert("Не вдалося завантажити Excel");
+    }
+  };
+
   const API_ENDPOINT = "/get_payment_status_view/";
 
   const toggleRow = useCallback((rowKey) => {
@@ -637,6 +681,16 @@ summary.lastCumSaldo = item.CumSaldo;
           <i className="fa-solid fa-rotate-right" style={{ marginRight: 8 }} />
           Оновити
         </button>
+
+        <button
+          className="btn btn-excel"
+          onClick={downloadExcel}
+        >
+          <i className="fa-solid fa-file-excel" style={{ marginRight: 8 }} />
+          Excel
+        </button>
+
+
 
 
       </div>

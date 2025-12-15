@@ -14,10 +14,27 @@ export default function PaymentsPage() {
 
   // NEW → статус-фільтр
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const STATUS_COLORS = {
+    "Підтверджено": "status-done",
+    "Очікуємо оплату": "status-progress",
+    "Очікуємо підтвердження": "status-new",
+    "Неліквід": "status-closed",
+    "—": "status-unknown",
+  };
+
+  const normalizeStatus = (s) => (s || "—").toString().trim();
+  const getStatusClass = (s) =>
+    STATUS_COLORS[normalizeStatus(s)] || "status-unknown";
+
+
+
 
   const contractorGUID =
     JSON.parse(localStorage.getItem("user") || "{}")?.user_id_1c ||
@@ -107,18 +124,18 @@ export default function PaymentsPage() {
   // ----------------------------- UI -----------------------------
   return (
     <div className={`payments-page ${isDark ? "dark-theme" : ""}`}>
+              {loading && (
+        <div className="pp-loader fade-in">
+          <div className="loading-spinner"></div>
+          <div>Завантаження...</div>
+        </div>
+      )}
 
       <div className="pp-header">
         <div className="pp-title-header">Оплата замовлень</div>
         <button className="pp-reload" onClick={loadData}>⟳ Оновити</button>
       </div>
 
-      {loading && (
-        <div className="pp-loader fade-in">
-          <div className="spinner"></div>
-          <div>Завантаження...</div>
-        </div>
-      )}
 
       {error && <div className="pp-error">{error}</div>}
 
@@ -141,63 +158,55 @@ export default function PaymentsPage() {
           )}
 
           {/* ===== ORDERS TITLE + FILTER ===== */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: "30px",
-              marginBottom: "10px",
-            }}
-          >
-            <h2 className="pp-title">Замовлення з боргом</h2>
+          <div className="pp-orders-header">
+            <h2 className="pp-title">Неоплачені замовлення</h2>
 
-            <select
-  value={statusFilter}
-  onChange={(e) => setStatusFilter(e.target.value)}
-  style={{
-    padding: "8px 14px",
-    border: "1px solid var(--grey-border-color)",
-    borderRadius: "8px",
-    background: isDark ? "#2c2c2c" : "#ffffff",
-    color: "var(--text-color)",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 500,
-    appearance: "none",
-    backgroundImage:
-      isDark
-        ? "url('data:image/svg+xml;utf8,<svg fill=\"%23cccccc\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')"
-        : "url('data:image/svg+xml;utf8,<svg fill=\"%235b77b8\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-    paddingRight: "40px",
-    transition: "0.25s ease",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.08)",
+            <div className="status-filter">
+              <div
+                className={`status-selected ${dropdownOpen ? "open" : ""}`}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                <span>Статус:</span>
+                <span
+                  className={`status-pill ${
+                    statusFilter === "all" ? "status-all" : getStatusClass(statusFilter)
+                  }`}
+                >
+                  {statusFilter === "all" ? "Усі статуси" : normalizeStatus(statusFilter)}
+                </span>
 
-    /* 🔥 Стилізація DROPDOWN меню (максимально дозволена HTML) */
-    scrollbarWidth: "thin",
-  }}
-  onMouseOver={(e) =>
-    (e.target.style.borderColor = "var(--info-color)")
-  }
-  onMouseOut={(e) =>
-    (e.target.style.borderColor = "var(--grey-border-color)")
-  }
->
-<option value="all" className="dropdown-option">
-  Усі статуси
-</option>
+                <span className={`dropdown-arrow ${dropdownOpen ? "open" : ""}`}>▼</span>
+              </div>
 
-{uniqueStatuses.map((s, i) => (
-  <option key={i} value={s} className="dropdown-option">
-    {s}
-  </option>
-))}
+              {dropdownOpen && (
+                <div className="status-dropdown">
+                  <div
+                    className="status-item"
+                    onClick={() => {
+                      setStatusFilter("all");
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    <span className="status-pill status-all">Усі статуси</span>
+                  </div>
 
-</select>
-
-
+                  {uniqueStatuses.map((s, i) => (
+                    <div
+                      key={i}
+                      className="status-item"
+                      onClick={() => {
+                        setStatusFilter(s);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <span className={`status-pill ${STATUS_COLORS[s] || "status-unknown"}`}>
+                        {s}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ===== ORDERS LIST ===== */}
@@ -211,16 +220,7 @@ export default function PaymentsPage() {
                 )
                 .map((o, i) => (
                   <div className="pp-order-card" key={i}>
-                    <div
-                      className="pp-row pp-order-row"
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          "220px 230px 150px 150px 170px auto",
-                        alignItems: "center",
-                        columnGap: "16px",
-                      }}
-                    >
+                    <div className="pp-row pp-order-row">
                       <div className="pp-order-col">
                         <div className="pp-num">№ {o.OrderNumber}</div>
                         <div className="pp-date">
@@ -229,8 +229,8 @@ export default function PaymentsPage() {
                       </div>
 
                       <div style={{ textAlign: "center" }}>
-                        <div className="pp-badge">
-                          {o.OrderStage || "—"}
+                        <div className={`status-pill ${getStatusClass(o.OrderStage)}`}>
+                          {normalizeStatus(o.OrderStage)}
                         </div>
                       </div>
 
@@ -273,6 +273,7 @@ export default function PaymentsPage() {
       {modalOpen && selectedOrder && (
         <PaymentModal
           order={selectedOrder}
+          contracts={contracts} // Передайте контракти в модалку, якщо вони потрібні там для вибору
           onClose={closeModal}
           onConfirm={makePayment}
           formatCurrency={formatCurrency}

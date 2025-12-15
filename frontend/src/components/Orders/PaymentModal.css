@@ -19,6 +19,7 @@
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   animation: scaleIn 0.25s ease;
+  max-height: 80vh;
 }
 
 /* ===== Header ===== */
@@ -37,17 +38,19 @@
   margin: 0;
 }
 
-.pay-close-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 24px;
+
+
+.pay-close-btn{
   cursor: pointer;
-  transition: 0.2s;
+  font-size: 18px;
+  display: inline-block;       /* важливо для transform */
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
-.pay-close-btn:hover {
-  transform: rotate(90deg);
+
+
+.pay-close-btn:hover{
   opacity: 0.8;
+  transform: rotate(90deg);
 }
 
 /* ===== Body ===== */
@@ -326,4 +329,95 @@ body.dark-theme .quick-buttons.centered button:hover {
 .dropdown-arrow.open {
     transform: rotate(180deg);
     opacity: 1;
+}
+
+
+/* =========================
+   DARK THEME — PAY MODAL
+   ========================= */
+
+body.dark-theme .pay-modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+/* ===== Window ===== */
+body.dark-theme .pay-modal-window {
+  background: #2b2b2b;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+}
+
+/* ===== Header ===== */
+body.dark-theme .pay-modal-header {
+  background: linear-gradient(90deg, #1976a3, #1b8fc4);
+  color: #eaf6ff;
+}
+
+/* ===== Body ===== */
+body.dark-theme .pay-modal-body {
+  color: #e6e6e6;
+}
+
+body.dark-theme .pay-label {
+  color: #d0d0d0;
+}
+
+/* ===== Inputs ===== */
+body.dark-theme .pay-input {
+  background: #1f1f1f;
+  border: 1px solid #555;
+  color: #eee;
+}
+
+body.dark-theme .pay-input::placeholder {
+  color: #999;
+}
+
+body.dark-theme .pay-input:focus {
+  border-color: #4dabff;
+  box-shadow: 0 0 0 3px rgba(77,171,255,0.35);
+}
+
+/* ===== Debt info ===== */
+body.dark-theme .pay-debt {
+  color: #f0f0f0;
+}
+
+body.dark-theme .pay-available {
+  color: #aaa;
+}
+
+/* ===== Error ===== */
+body.dark-theme .pay-error {
+  background: rgba(217, 83, 79, 0.18);
+  border-left: 4px solid #d9534f;
+  color: #ffb3b0;
+}
+
+/* ===== Footer ===== */
+body.dark-theme .pay-modal-footer {
+  background: #242424;
+  border-top: 1px solid #444;
+}
+
+/* ===== Buttons ===== */
+body.dark-theme .pay-btn-cancel {
+  background: #555;
+}
+body.dark-theme .pay-btn-cancel:hover {
+  background: #777;
+}
+
+body.dark-theme .pay-btn-confirm {
+  background: linear-gradient(90deg, #1b8fc4, #36a3da);
+}
+body.dark-theme .pay-btn-confirm:hover {
+  background: linear-gradient(90deg, #36a3da, #1b8fc4);
+}
+
+/* ===== Close button ===== */
+body.dark-theme .pay-close-btn {
+  color: #e6f4ff;
+}
+body.dark-theme .pay-close-btn:hover {
+  opacity: 0.85;
 }
