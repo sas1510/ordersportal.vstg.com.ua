@@ -841,12 +841,14 @@ span.td-date {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.btn-refresh:hover {
+.btn-excel:hover {
   opacity: 0.9;
   transform: translateY(-1px);
 }
 
-.btn-refresh:disabled {
+
+
+.btn-excel:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -882,7 +884,7 @@ span.td-date {
     padding-bottom: 40px;
     padding-left: 8px !important;
     padding-right: 8px !important;
-    height: 100hv;
+    height: 100vh;
   }
 
   /* --- ФІЛЬТРИ --- */

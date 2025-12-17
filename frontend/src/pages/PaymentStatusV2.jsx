@@ -627,21 +627,23 @@ summary.lastCumSaldo = item.CumSaldo;
       {/* FILTERS */}
 
       {isMobile ? (
-      <MobilePaymentsView
-  groups={sortedGroups}
-  formatCurrency={formatCurrency}
-  detectPaymentChannel={detectPaymentChannel}
-  expandedRows={expandedRows}
-  toggleRow={toggleRow}
+        <MobilePaymentsView
+          groups={sortedGroups}
+          formatCurrency={formatCurrency}
+          detectPaymentChannel={detectPaymentChannel}
+          expandedRows={expandedRows}
+          toggleRow={toggleRow}
 
-  // 🆕 ФІЛЬТРИ
-  filters={filters}
-  onFilterChange={handleFilterChange}
-  onSearch={fetchData}
-/>
 
-    ) : (
-<>
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onSearch={fetchData}
+
+          onExcel={downloadExcel}
+        />
+
+            ) : (
+        <>
       <div className="filters-container">
         <label>
           З:

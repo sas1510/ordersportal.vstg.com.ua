@@ -10,10 +10,11 @@ const MobilePaymentsView = ({
   filters,
   onFilterChange,
   onSearch,
+  onExcel,
 }) => {
   const [showFilters, setShowFilters] = useState(false);
 
-  // ❌ блок скролу фону при відкритих фільтрах
+
   useEffect(() => {
     document.body.style.overflow = showFilters ? "hidden" : "";
     return () => (document.body.style.overflow = "");
@@ -109,28 +110,35 @@ const scrollToTop = () => {
       </div>
 
       <div className="mobile-filter-actions">
-       <button
-        className="mobile-btn mobile-btn-primary"
-        onClick={() => {
+        <button
+          className="mobile-btn mobile-btn-primary"
+          onClick={() => {
             onSearch();
             setShowFilters(false);
-        }}
+          }}
         >
-        <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} />
-        Пошук
+          <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} />
+          Пошук
         </button>
 
-
-       <button
-        className="mobile-btn mobile-btn-refresh"
-        onClick={onSearch}
-        aria-label="Оновити"
+        <button
+          className="mobile-btn mobile-btn-refresh"
+          onClick={onSearch}
+          aria-label="Оновити"
         >
-        <i className="fa-solid fa-rotate-right" />
+          <i className="fa-solid fa-rotate-right" />
         </button>
 
-
+        {/* 🆕 EXCEL */}
+        <button
+          className="mobile-btn mobile-btn-excel"
+          onClick={onExcel}
+          aria-label="Excel"
+        >
+          <i className="fa-solid fa-file-excel" />
+        </button>
       </div>
+
     </div>
   )}
 </div>

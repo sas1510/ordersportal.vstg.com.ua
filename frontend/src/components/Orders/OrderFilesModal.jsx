@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
+import { FaSpinner, FaEye, FaDownload } from "react-icons/fa";
+
 
 // 3. Імпорт стилів
 import './OrderFilesModal.css'; 
@@ -146,16 +148,25 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={() => handleDownload(file.fileGuid, file.fileName)}
-                                        className="file-download-btn"
-                                        disabled={isDownloading} 
-                                        title={isDownloading ? "Завантаження..." : (file.fileName.toLowerCase().endsWith('.pdf') ? "Переглянути / Завантажити" : "Завантажити")}
-                                    >
-                                        {isDownloading 
-                                            ? "⏳ Завантаження..."
-                                            : file.fileName.toLowerCase().endsWith('.pdf') ? "👁️‍🗨️ PDF" : "⬇️ Скачати"}
-                                    </button>
+                                    <button className=" file-download-btn" disabled={isDownloading}>
+                                        {isDownloading ? (
+                                            <>
+                                            <FaSpinner className="fa-spin" />
+                                            <span className="btn-text"> Завантаження...</span>
+                                            </>
+                                        ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
+                                            <>
+                                            <FaEye />
+                                            <span className="btn-text"> PDF</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                            <FaDownload />
+                                            <span className="btn-text"> Скачати</span>
+                                            </>
+                                        )}
+                                        </button>
+
                                 </li>
                             )})}
                         </ul>

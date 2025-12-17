@@ -9,3 +9,19 @@ def bin_to_guid_1c(bin_value: bytes) -> str | None:
     part5 = bin_value[2:8].hex()     # bytes 3-8
 
     return f"{part1}-{part2}-{part3}-{part4}-{part5}".lower()
+
+
+
+
+
+def convert_row(row: dict) -> dict:
+    """
+    Convert all bytes / bytearray values in row to GUID string
+    """
+    out = {}
+    for k, v in row.items():
+        if isinstance(v, (bytes, bytearray)):
+            out[k] = bin_to_guid_1c(v)
+        else:
+            out[k] = v
+    return out

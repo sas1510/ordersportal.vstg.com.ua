@@ -314,3 +314,127 @@ def export_payment_status_excel(request):
 
     wb.save(response)
     return response
+
+
+
+from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+from django.db import connection
+
+
+
+
+
+def dealer_bills_add_info(contractor_guid: str):
+    contractor_bin = guid_to_1c_bin_2(contractor_guid)
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "EXEC dbo.GetDealerBillsAdd %s",
+            [contractor_bin]
+        )
+
+        # ---------- 1️⃣ Contractor ----------
+        row = cursor.fetchone()
+        contractor = (
+            convert_row(
+                dict(zip([c[0] for c in cursor.description], row))
+            )
+            if row else None
+        )
+
+        # ---------- 2️⃣ Addresses ----------
+        cursor.nextset()
+        addresses = [
+            convert_row(dict(zip([c[0] for c in cursor.description], r)))
+            for r in cursor.fetchall()
+        ]
+
+        # ---------- 3️⃣ Accounts ----------
+        cursor.nextset()
+        accounts = [
+            convert_row(dict(zip([c[0] for c in cursor.description], r)))
+            for r in cursor.fetchall()
+        ]
+
+        # ---------- 4️⃣ Nomenclature ----------
+        cursor.nextset()
+        nomenclature = [
+            dict(zip([c[0] for c in cursor.description], r))
+            for r in cursor.fetchall()
+        ]
+
+    return {
+        "contractor": contractor,
+        "addresses": addresses,
+        "accounts": accounts,
+        "nomenclature": nomenclature,
+    }
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+
+
+@api_view(["GET"])
+def dealer_bills_add_info_view(request, contractor_guid):
+    try:
+        data = dealer_bills_add_info(contractor_guid)
+    except ValueError:
+        raise ValidationError("Invalid GUID format")
+
+    return Response(data)
+
+
+
+
+
+from django.db import connection
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+
+from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+
+
+
+@api_view(["GET"])
+def customer_bills_view(request, contractor_guid):
+    """
+    GET /api/dealers/<uuid:contractor_guid>/bills/
+    ?date_from=2024-01-01
+    &date_to=2024-12-31
+    """
+
+    date_from = request.query_params.get("date_from")
+    date_to = request.query_params.get("date_to")
+
+    try:
+        contractor_bin = guid_to_1c_bin_2(contractor_guid)
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetCustomerBillsByContractorAndDates
+                    @ContractorBin = %s,
+                    @DateFrom = %s,
+                    @DateTo = %s
+                """,
+                [contractor_bin, date_from, date_to],
+            )
+
+            columns = [c[0] for c in cursor.description]
+            rows = cursor.fetchall()
+
+        data = [
+            convert_row(dict(zip(columns, row)))
+            for row in rows
+        ]
+
+    except Exception as e:
+        raise ValidationError(str(e))
+
+    return Response(data)
+

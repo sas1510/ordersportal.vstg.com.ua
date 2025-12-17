@@ -930,3 +930,14 @@
   border-top: 1px dashed #777777 ;
 }
 
+
+
+.mobile-btn-excel {
+  background-color: #1f7f43; 
+  color: #fff;
+  max-width: 40px;
+}
+
+.mobile-btn-excel:hover {
+  opacity: 0.85;
+}

@@ -25,7 +25,6 @@ urlpatterns = [
     path("users/<int:user_id>/edit/", admin_edit_user_view),
     path("users/<int:user_id>/deactivate/", admin_deactivate_user_view),
     path("user/me/", get_current_user),
-
     
-
+    
 ]

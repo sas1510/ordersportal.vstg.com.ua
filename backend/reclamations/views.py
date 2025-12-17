@@ -19,6 +19,7 @@ import uuid
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from rest_framework.decorators import api_view
+from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 
 @csrf_exempt
@@ -108,7 +109,7 @@ def get_complaint_series_by_order(request, order_number):
                 row_dict = dict(zip(columns, row))
                 series_link = row_dict.get("SeriesLink")
                 if series_link:
-                    row_dict["SeriesLink"] = base64.b64encode(series_link).decode('ascii')
+                    row_dict["SeriesLink"] = bin_to_guid_1c(series_link)
                 results.append(row_dict)
 
         return Response({"series": results if results else None})

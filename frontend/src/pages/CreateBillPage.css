@@ -1,0 +1,470 @@
+/* ======================================================
+   CREATE BILL PAGE — PREMIUM STYLE
+   ====================================================== */
+
+
+/* DARK */
+.dark-theme .create-bill-body {
+  background: #2c2c2c;
+  box-shadow: none;
+}
+
+/* ======================================================
+   HEADER
+   ====================================================== */
+
+.create-bill-header {
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    rgba(94,131,191,0.15),
+    rgba(160,200,255,0.25)
+  );
+  border: 1px solid rgba(94,131,191,0.25);
+  margin-bottom: 10px;
+}
+
+.dark-theme .create-bill-header {
+  background: linear-gradient(
+    135deg,
+    rgba(120,160,255,0.25),
+    rgba(70,90,140,0.35)
+  );
+  border-color: rgba(120,160,255,0.35);
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--info-color);
+  margin-bottom: 4px;
+}
+
+.dark-theme .page-title {
+  color: #8fb3ff;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #4a5a78;
+}
+
+.dark-theme .page-subtitle {
+  color: #b8c8ff;
+}
+
+/* ======================================================
+   LABELS & INPUTS
+   ====================================================== */
+
+.create-bill-body label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.create-bill-body label::before {
+  content: "●";
+  font-size: 10px;
+  color: var(--info-color);
+  opacity: 0.7;
+}
+
+.dark-theme .create-bill-body label {
+  color: #d0d0d0;
+}
+
+.dark-theme .create-bill-body label::before {
+  color: #8fb3ff;
+}
+
+.create-bill-body input,
+.create-bill-body textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--grey-border-color);
+  font-size: 14px;
+  background: #ffffff;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+}
+
+.create-bill-body textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.create-bill-body input:focus,
+.create-bill-body textarea:focus {
+  outline: none;
+  border-color: var(--info-color);
+  box-shadow: 0 0 0 2px rgba(94,131,191,0.15);
+}
+
+/* DARK INPUTS */
+.dark-theme .create-bill-body input,
+.dark-theme .create-bill-body textarea {
+  background: #383838;
+  color: #f0f0f0;
+  border-color: #555555;
+}
+
+/* DISABLED */
+.create-bill-body input[disabled] {
+  background: #eef3ff;
+  color: #003366;
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
+.dark-theme .create-bill-body input[disabled] {
+  background: #2f3a4a;
+  color: #9fc3ff;
+}
+
+/* ======================================================
+   DIVIDER
+   ====================================================== */
+
+.form-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #cccccc,
+    transparent
+  );
+  margin: 12px 0;
+}
+
+.dark-theme .form-divider {
+  background: linear-gradient(
+    to right,
+    transparent,
+    #555555,
+    transparent
+  );
+}
+
+/* ======================================================
+   ITEMS
+   ====================================================== */
+
+.bill-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bill-item-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.8fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f7f9fc;
+  border: 1px dashed var(--grey-border-color);
+  transition: background 0.2s ease;
+}
+
+.bill-item-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--info-color);
+  opacity: 0.35;
+}
+
+.bill-item-row:hover {
+  background: #eef3ff;
+}
+
+/* DARK ITEMS */
+.dark-theme .bill-item-row {
+  background: #383838;
+  border-color: #555555;
+}
+
+.dark-theme .bill-item-row::before {
+  background: #8fb3ff;
+}
+
+.dark-theme .bill-item-row:hover {
+  background: #3f3f3f;
+}
+
+/* ======================================================
+   TOTAL
+   ====================================================== */
+
+.bill-total {
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(
+    to right,
+    #eef3ff,
+    #ffffff
+  ) !important;
+  border: 1px solid var(--info-color) !important;
+}
+
+.dark-theme .bill-total {
+  background: linear-gradient(
+    to right,
+    #2f3a4a,
+    #2c2c2c
+  ) !important;
+  color: #9fc3ff !important;
+}
+
+/* ======================================================
+   WARNINGS
+   ====================================================== */
+
+.bill-warning {
+  font-size: 13px;
+  color: var(--danger-color);
+  margin-top: 6px;
+}
+
+/* ======================================================
+   BUTTONS
+   ====================================================== */
+
+.btn-danger {
+  background: var(--danger-color);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  opacity: 0.85;
+}
+
+.btn-success {
+  align-self: flex-start;
+  background: var(--success-color);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.btn-success:hover {
+  opacity: 0.9;
+}
+
+.btn-add-bill {
+  margin-top: 12px;
+  align-self: flex-end;
+  background: var(--info-color);
+  color: #ffffff;
+  padding: 10px 26px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.btn-add-bill:hover {
+  opacity: 0.9;
+}
+
+.btn-add-bill:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ======================================================
+   CUSTOM SELECT
+   ====================================================== */
+
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select__control {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--grey-border-color);
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dark-theme .custom-select__control {
+  background: #383838;
+  color: #f0f0f0;
+  border-color: #555;
+}
+
+.custom-select__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+  z-index: 9999;
+}
+
+.dark-theme .custom-select__menu {
+  background: #2f2f2f;
+}
+
+.custom-select__option {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.custom-select__option:hover {
+  background: linear-gradient(
+    to right,
+    rgba(94,131,191,0.15),
+    transparent
+  );
+}
+
+.dark-theme .custom-select__option:hover {
+  background: #3f3f3f;
+}
+
+.arrow {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* ======================================================
+   LOADING & ERROR
+   ====================================================== */
+
+.loading-spinner-wrapper {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 9999;
+}
+
+.dark-theme .loading-spinner-wrapper {
+  background: rgba(0,0,0,0.85);
+}
+
+.loading-spinner {
+  width: 34px;
+  height: 34px;
+  border: 4px dashed var(--grey-border-color);
+  border-top-color: var(--info-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text {
+  font-size: 15px;
+  color: #555555;
+}
+
+.dark-theme .loading-text {
+  color: #cccccc;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.create-bill-error {
+  text-align: center;
+  font-size: 18px;
+  color: var(--danger-color);
+}
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media (max-width: 900px) {
+  .create-bill-body {
+    padding: 18px;
+  }
+
+  .bill-item-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .btn-add-bill {
+    align-self: stretch;
+    text-align: center;
+  }
+}
+
+@media (max-width: 520px) {
+  .page-title {
+    font-size: 20px;
+  }
+
+  .create-bill-body {
+    border-radius: 10px;
+  }
+}
+
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+
+
+.create-bill-body {
+  max-width: 1100px;
+  margin: 100px auto;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 60px 30px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: pageFadeIn 0.55s cubic-bezier(.22,.61,.36,1);
+}

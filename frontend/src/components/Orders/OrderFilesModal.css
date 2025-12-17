@@ -152,6 +152,7 @@
     cursor: pointer;
     font-weight: 600;
     margin-left: 15px;
+    white-space: nowrap;
     transition: background 0.2s, transform 0.2s;
 }
 
@@ -177,9 +178,19 @@
 
 .order-file-close-btn:hover {
     transform: scale(0.90);
+    transform: rotateX('90');
     box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
 }
 
+.fa-spin {
+  animation: fa-spin 1s linear infinite;
+}
+
+@keyframes fa-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 
 body.dark-theme  .orders-file-modal-header {

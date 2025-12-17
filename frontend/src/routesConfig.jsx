@@ -40,7 +40,8 @@ import ChangePasswordPage from "./pages/ChangePasswordPage"
 import UsersListPage from "./pages/UsersListPage"
 import PaymentStatusV2 from "./pages/PaymentStatusV2"
 import PaymentsPage from './pages/PaymentsPage'
-
+import CreateBillPage from './pages/CreateBillPage'
+import CustomerBillsPage from './pages/CustomerBillsPage'
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -102,7 +103,7 @@ export const dealerRoutes = [
   // { path: "finance/settlements", element: <SettlementsPage /> },
   { path: "finance/settlements", element: <PaymentStatus /> },
   { path: "promo", element: <WdsPromotion /> },
-  { path: "finance/bills", element: <CustomerBills /> },
+  // { path: "finance/bills", element: <CustomerBills /> },
   { path: "create-bill", element: <CreateCustomerBillPage /> },
   { path: "reclamation", element: <ReclamationPortal /> },
 
@@ -111,6 +112,8 @@ export const dealerRoutes = [
   { path: "change-password", element: <ChangePasswordPage/> },
   { path: "finance/paymentMovement", element: <PaymentStatusV2/> },
   { path: "finance/payment", element: <PaymentsPage/> },
+  { path: "finance/create-bill", element: <CreateBillPage/> },
+  { path: "finance/customer-bills", element: <CustomerBillsPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

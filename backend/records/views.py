@@ -6,6 +6,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Message
+from .serializers import MessageSerializer
+
+
 import re
 # Вам потрібно переконатися, що 'import re' додано на початку вашого файлу Django views.
 
@@ -549,6 +556,8 @@ from django.http import StreamingHttpResponse, Http404
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
 
 logger = logging.getLogger(__name__)
 
@@ -578,7 +587,7 @@ def download_order_file(request, order_guid, file_guid, filename):
             env={"PASSWD": password},
         )
 
-        # ❗ ВАЖЛИВО: читаємо stderr одразу
+
         stderr = process.stderr.read()
 
         if stderr:
@@ -605,3 +614,22 @@ def download_order_file(request, order_guid, file_guid, filename):
     except Exception as e:
         logger.exception("Download error")
         raise Http404(f"Помилка доступу до файлу")
+
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_message(request):
+    serializer = MessageSerializer(data=request.data)
+
+    if serializer.is_valid():
+        message = serializer.save()
+        return Response(
+            MessageSerializer(message).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

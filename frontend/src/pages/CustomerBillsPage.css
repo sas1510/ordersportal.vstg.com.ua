@@ -1,0 +1,376 @@
+.customer-bills-body {
+  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+
+  border-radius: 8px;
+
+}
+
+.page-title {
+  font-size: 22px;
+  margin-bottom: 14px;
+}
+
+.bills-filter {
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+
+.bills-filter input {
+  height: 36px;
+  padding: 0 8px;
+}
+
+.bills-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bills-table th,
+.bills-table td {
+  padding: 10px;
+  border-bottom: 1px dashed #ccc;
+}
+
+.bills-table th {
+  text-align: left;
+  background: #f5f6f8;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.success {
+  background: #e3f4dc;
+  color: #2c8a00;
+}
+
+.badge.warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge.danger {
+  background: #fde2e1;
+  color: #b00020;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+}
+
+
+.customer-bills-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 60px 7%;
+}
+
+.customer-bills-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.customer-bills-header .page-title {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+.bills-filter {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  background-color: #e9ebee;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px dashed var(--grey-border-color);
+}
+
+.filter-item-bill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-item-bill label {
+  font-size: 12px;
+  color: var(--grey-text-color);
+}
+
+.filter-item-bill input {
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 4px;
+  border: 1px dashed var(--grey-border-color);
+  background-color: #fff;
+  color: var(--text-color);
+}
+
+.btn-filter {
+  height: 36px;
+  padding: 0 16px;
+  background-color: var(--info-color);
+  color: #fff;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-filter:hover {
+  opacity: 0.85;
+}
+
+
+.customer-bills-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+}
+.customer-bills-table thead th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--grey-text-color);
+  border-bottom: 2px solid var(--info-color);
+  background: #f7f7f9;
+}
+
+.customer-bills-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px dashed var(--grey-border-color);
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.customer-bills-table tbody tr:hover {
+  background-color: var(--info-bg-color);
+}
+
+.customer-bills-table .right {
+  text-align: right;
+}
+
+.customer-bills-table .center {
+  text-align: center;
+}
+
+.btn-bill-download {
+  background-color: #fff4ec;
+  color: #2c2c2c;
+  border: 1px dashed #ccc;
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+}
+
+.btn-bill-download:hover {
+  background-color: #fff;
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+body.dark-theme .bills-filter {
+  background-color: #2c2c2c;
+}
+
+body.dark-theme .filter-item-bill input {
+  background-color: #383838;
+  color: var(--text-color);
+}
+
+
+body.dark-theme .customer-bills-table {
+  background-color: #2c2c2c;
+}
+
+body.dark-theme .customer-bills-table thead th {
+  background-color: #383838;
+  color: var(--grey-text-color);
+}
+
+body.dark-theme .customer-bills-table tbody tr:hover {
+  background-color: #333;
+}
+
+body.dark-theme .btn-bill-download {
+  background-color:  #5a534e;
+  border-color: #acacac;
+  color: #cccccc;
+}
+
+
+
+body.dark-theme  .btn-bill-download:hover {
+  background-color: #2c2c2c;
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+/* PDF ICON */
+
+.btn-bill-download .pdf-icon {
+  font-size: 16px;
+  color: var(--red-pdf-color); /* #ff0000 */
+  transition: all 0.25s ease;
+}
+
+
+.btn-create-bill {
+  height: 36px;
+  padding: 0 16px;
+  background-color: var(--success-color);
+  color: #fff;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-create-bill:hover {
+  opacity: 0.85;
+}
+
+/* =========================
+   RESPONSIVE (≤ 768px)
+   ========================= */
+@media (max-width: 768px) {
+
+  /* Фільтр */
+  .bills-filter {
+    padding: 8px;
+    gap: 10px;
+    border-width: 1px;              /* тонше */
+    border-style: solid;            /* замість dashed */
+  }
+
+  .filter-item-bill input {
+    height: 34px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 4px;
+  }
+
+  /* Таблиця */
+  .customer-bills-table thead th {
+    padding: 8px 10px;
+    font-size: 12px;
+    border-bottom-width: 1px;       /* було 2px */
+  }
+
+  .customer-bills-table tbody td {
+    padding: 8px 10px;
+    font-size: 13px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;     /* замість dashed */
+  }
+
+  /* Кнопка PDF */
+  .btn-bill-download {
+    padding: 4px 10px;
+    font-size: 11px;
+    border-width: 1px;
+    border-style: solid;
+  }
+
+  .btn-bill-download .pdf-icon {
+    font-size: 14px;
+  }
+
+  /* Кнопки дій */
+  .btn-filter,
+  .btn-create-bill {
+    height: 34px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  /* Заголовок */
+  .customer-bills-header .page-title {
+    font-size: 22px;
+  }
+
+  /* Контейнер */
+  .customer-bills-page {
+    margin: 10px;
+    gap: 11px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  body.dark-theme .bills-filter,
+  body.dark-theme .filter-item-bill input,
+  body.dark-theme .btn-bill-download {
+    border-color: #555;
+  }
+
+  body.dark-theme .customer-bills-table tbody td {
+    border-bottom-color: #444;
+  }
+}
+
+/* =========================
+   RESPONSIVE ≤ 600px
+   ========================= */
+/* =========================
+   RESPONSIVE ≤ 600px
+   ========================= */
+@media (max-width: 600px) {
+
+  .bills-filter {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* інпути — перший рядок */
+  .bills-filter .filter-item-bill {
+    flex: 1 1 140px;
+  }
+
+  /* 🔴 КЛЮЧОВЕ: перша кнопка ламає рядок */
+  .bills-filter .btn-filter {
+    margin-top: 8px;
+    margin-left: 0;
+    flex-basis: 100%;      /* ⬅ переносить ОБИДВІ кнопки вниз */
+    display: flex;
+    justify-content: center;
+  }
+
+
+  .bills-filter .btn-create-bill {
+    margin-top: 8px;
+    margin-left: 0;
+    flex-basis: 100%;      
+    display: flex;
+    justify-content: center;
+  }
+}
+
+
+@keyframes fadeSlideInSoft {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+.customer-bills-panel {
+  animation: fadeSlideInSoft 0.55s cubic-bezier(.22,.61,.36,1);
+}

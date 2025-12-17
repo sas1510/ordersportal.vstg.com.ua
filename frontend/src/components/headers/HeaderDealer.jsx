@@ -25,7 +25,7 @@ const FINANCE_SUBMENU = [
   { title: "Аналітика", to: "/finance/analytics" },
   { title: "Оплата", to: "/finance/payment" },
   { title: "Акція WDS", to: "/promo" },
-  { title: "Рахунки", to: "/finance/bills" },
+  { title: "Рахунки", to: "/finance/customer-bills" },
 ];
 
 export default function HeaderDealer() {
