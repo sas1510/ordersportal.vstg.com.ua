@@ -617,7 +617,9 @@ import { ReclamationItem } from '../components/Reclamations/ReclamationItem';
 import { ReclamationItemMobile } from '../components/Reclamations/ReclamationItemMobile';
 
 import AddClaimModal from '../components/Complaint/AddClaimModal';
-import DealerSelectModal from '../components/Orders/DealerSelectModal';
+
+import DealerSelect from "./DealerSelect";
+import { useDealerContext } from "../hooks/useDealerContext";
 
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
@@ -680,11 +682,6 @@ function formatApiData(data) {
 /* --------------------------------------------------------
  *   GET INITIAL DEALER
  * -------------------------------------------------------- */
-const getInitialDealer = () => {
-    const id = localStorage.getItem('dealerId');
-    const name = localStorage.getItem('dealerName');
-    return id && name ? { id, name } : null;
-};
 
 
 /* ========================================================
@@ -705,9 +702,13 @@ const ReclamationPortal = () => {
 
     const [expandedReclamation, setExpandedReclamation] = useState(null);
     const [expandedIssue, setExpandedIssue] = useState(null);
+    const {
+        dealerGuid,
+        setDealerGuid,
+        isAdmin,
+        currentUser
+    } = useDealerContext();
 
-    const [showDealerModal, setShowDealerModal] = useState(false);
-    const [dealer, setDealer] = useState(getInitialDealer);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -717,31 +718,7 @@ const ReclamationPortal = () => {
     const { theme } = useTheme();
 
 
-    /* --------------------------------------------------------
-     *  Dealer Logic
-     * -------------------------------------------------------- */
-    useEffect(() => {
-        const role = localStorage.getItem('role');
-
-        if (role !== 'customer' && !dealer) {
-            setShowDealerModal(true);
-        }
-    }, [dealer]);
-
-    const handleDealerSelect = useCallback((selectedDealer) => {
-        if (!selectedDealer) {
-            setDealer(null);
-            localStorage.removeItem('dealerId');
-            localStorage.removeItem('dealerName');
-        } else {
-            setDealer(selectedDealer);
-            localStorage.setItem('dealerId', selectedDealer.id);
-            localStorage.setItem('dealerName', selectedDealer.name);
-        }
-
-        setShowDealerModal(false);
-        setVisibleItemsCount(ITEMS_PER_LOAD);
-    }, []);
+    
 
 
     /* --------------------------------------------------------
@@ -766,47 +743,52 @@ const ReclamationPortal = () => {
         setVisibleItemsCount(ITEMS_PER_LOAD);
     }, []);
 
+    
 
     /* --------------------------------------------------------
      *  FETCH DATA WITH CANCELLATION (LIKE PortalOriginal)
      * -------------------------------------------------------- */
     useEffect(() => {
-
         cancelAll();
 
-        const role = localStorage.getItem("role");
 
-        if (role !== "customer" && !dealer) {
+
+
+        // 🔴 Адмін без дилера → просто показуємо UI
+        if (isAdmin && !dealerGuid) {
             setReclamationsData([]);
             setLoading(false);
             return;
         }
 
+        // 🟢 Customer або admin з дилером
+        if (!dealerGuid) return;
+
         const controller = register();
 
         const loadData = async () => {
             setLoading(true);
-
             try {
-                const params = { year: selectedYear };
-                if (dealer?.id) params.dealerId = dealer.id;
+                const params = {
+                    year: selectedYear,
+                    contractor: dealerGuid // 👈 ВАЖЛИВО
+                };
 
-                const response = await axiosInstance.get(RECLAMATIONS_API_URL, {
-                    params,
-                    signal: controller.signal
-                });
+                const response = await axiosInstance.get(
+                    RECLAMATIONS_API_URL,
+                    {
+                        params,
+                        signal: controller.signal
+                    }
+                );
 
                 const formatted = formatApiData(response.data.data || []);
                 setReclamationsData(formatted);
                 setVisibleItemsCount(ITEMS_PER_LOAD);
 
             } catch (err) {
-                if (err.name === "CanceledError") {
-                    console.log("Запит рекламацій скасовано");
-                    return;
-                }
-
-                console.error("Помилка:", err);
+                if (err.name === "CanceledError") return;
+                console.error(err);
                 setReclamationsData([]);
             } finally {
                 setLoading(false);
@@ -815,8 +797,11 @@ const ReclamationPortal = () => {
 
         loadData();
 
-    }, [selectedYear, dealer]);
+    }, [selectedYear, dealerGuid, isAdmin]);
 
+
+
+    
 
     /* --------------------------------------------------------
      *  Filtering logic
@@ -914,31 +899,12 @@ const ReclamationPortal = () => {
             </div>
         );
 
-    const role = localStorage.getItem('role');
 
-    if (role !== 'customer' && !dealer) {
-        return (
-            <div className="column portal-body">
-                <DealerSelectModal
-                    isOpen={showDealerModal}
-                    onClose={() => setShowDealerModal(false)}
-                    onSelect={handleDealerSelect}
-                />
-            </div>
-        );
-    }
 
     return (
         <div className="column portal-body">
 
-            {/* Dealer modal */}
-            {showDealerModal && (
-                <DealerSelectModal
-                    isOpen={showDealerModal}
-                    onClose={() => setShowDealerModal(false)}
-                    onSelect={handleDealerSelect}
-                />
-            )}
+
 
             {/* SUMMARY BLOCK */}
             <div className="content-summary row w-100">
@@ -1002,7 +968,7 @@ const ReclamationPortal = () => {
         </ul>
     )}
 
-    {/* MOBILE – select */}
+
     {isMobile && (
         <select
             className="month-select"
@@ -1070,18 +1036,20 @@ const ReclamationPortal = () => {
                     </div>
 
 
-                    {/* Dealer Button */}
-                    {role !== 'customer' && (
+                    {isAdmin && (
                         <>
                             <div className="delimiter1" />
-                            <ul className="buttons">
-                                <li className="btn btn-select-dealer" onClick={() => setShowDealerModal(true)}>
-                                    <span className="icon icon-user-check"></span>
-                                    <span className="uppercase">Вибрати дилера</span>
+                            <ul className="">
+                                <li className="">
+                                    <DealerSelect
+                                        value={dealerGuid}
+                                        onChange={setDealerGuid}
+                                    />
                                 </li>
                             </ul>
                         </>
                     )}
+
 
                     {/* Add New Reclamation */}
                     <div className="delimiter1" />

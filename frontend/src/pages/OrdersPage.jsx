@@ -5,27 +5,38 @@ import { CalculationItemMobile } from '../components/Orders/CalculationItemMobil
 import '../components/Portal/PortalOriginal.css';
 import AddOrderModal from '../components/Orders/AddOrderModal';
 import NewCalculationModal from '../components/Orders/NewCalculationModal';
-import DealerSelectModal from '../components/Orders/DealerSelectModal';
+
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
+
+import DealerSelect from "./DealerSelect";
+import { useDealerContext } from "../hooks/useDealerContext";
+
 
 const ITEMS_PER_LOAD = 100;
 
 const PortalOriginal = () => {
     const { register, cancelAll } = useCancelAllRequests();
 
+    const {
+        dealerGuid,
+        setDealerGuid,
+        isAdmin,
+        currentUser,
+        } = useDealerContext();
+
+    
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
     const [calculationsData, setCalculationsData] = useState([]);
     const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
     
     const [selectedYear, setSelectedYear] = useState('2025');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+
     const [expandedCalc, setExpandedCalc] = useState(null);
     const [expandedOrder, setExpandedOrder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [showDealerModal, setShowDealerModal] = useState(false);
-    const [dealer, setDealer] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const [limit, setLimit] = useState(ITEMS_PER_LOAD);
@@ -44,10 +55,8 @@ const PortalOriginal = () => {
     const handleDealerSelect = useCallback((selectedDealer) => {
         if (selectedDealer === null) {
             setDealer(null);
-            localStorage.removeItem('dealerId');
         } else {
             setDealer(selectedDealer);
-            localStorage.setItem('dealerId', selectedDealer.id);
         }
         setShowDealerModal(false);
         setLimit(ITEMS_PER_LOAD);
@@ -194,13 +203,11 @@ const PortalOriginal = () => {
 
     // --- 📌 MAIN DATA LOADING (fixed) ---
     useEffect(() => {
-
         cancelAll();
 
-        const role = localStorage.getItem("role");
-
-        if (role !== "customer" && !dealer) {
-            setShowDealerModal(true);
+        // 👑 ADMIN: чекаємо вибір дилера
+        if (isAdmin && !dealerGuid) {
+            setCalculationsData([]);
             setLoading(false);
             return;
         }
@@ -210,40 +217,43 @@ const PortalOriginal = () => {
         const load = async () => {
             setLoading(true);
             try {
-                const params = { year: selectedYear };
-                if (dealer?.id) params.customer_id = dealer.id;
+            const params = {
+                year: selectedYear,
+                contractor_guid: dealerGuid, // ✅ єдиний стандарт
+            };
 
-                const response = await axiosInstance.get("/get_orders_info/", {
-                    params,
-                    signal: controller.signal
-                });
-
-                if (response.data?.status === "success") {
-                    const allCalculations = response.data.data.calculation || [];
-                    setCalculationsData(allCalculations);
-                    setLimit(ITEMS_PER_LOAD);
-                    setHasMore(allCalculations.length > ITEMS_PER_LOAD);
-                } else {
-                    setCalculationsData([]);
-                    setHasMore(false);
+            const response = await axiosInstance.get(
+                "/get_orders_info/",
+                {
+                params,
+                signal: controller.signal,
                 }
+            );
 
-            } catch (err) {
-                if (err.name === "CanceledError") {
-                    console.log("Запит скасовано");
-                    return;
-                }
-                console.error("Помилка:", err);
+            if (response.data?.status === "success") {
+                const allCalculations =
+                response.data.data.calculation || [];
+
+                setCalculationsData(allCalculations);
+                setLimit(ITEMS_PER_LOAD);
+                setHasMore(allCalculations.length > ITEMS_PER_LOAD);
+            } else {
                 setCalculationsData([]);
                 setHasMore(false);
+            }
+            } catch (err) {
+            if (err.name === "CanceledError") return;
+            console.error("Помилка:", err);
+            setCalculationsData([]);
+            setHasMore(false);
             } finally {
-                setLoading(false);
+            setLoading(false);
             }
         };
 
         load();
+        }, [selectedYear, dealerGuid, isAdmin]);
 
-    }, [selectedYear, dealer]);
 
     if (loading)
         return (
@@ -263,13 +273,7 @@ const PortalOriginal = () => {
     return (
         <div className="column portal-body">
 
-            {showDealerModal && (
-                <DealerSelectModal
-                    isOpen={showDealerModal}
-                    onClose={() => setShowDealerModal(false)}
-                    onSelect={handleDealerSelect}
-                />
-            )}
+           
 
             <div className="content-summary row w-100">
                 <div 
@@ -350,7 +354,7 @@ const PortalOriginal = () => {
                         <span className="icon icon-cancel2 clear-search" title="Очистити пошук" onClick={() => handleFilterChange('name', '')}></span>
                     </div>
 
-                    {localStorage.getItem('role') !== 'customer' && (
+                    {/* {localStorage.getItem('role') !== 'customer' && (
                         <div>
                             <div className="delimiter1"/>
                             <ul className="buttons">
@@ -360,7 +364,26 @@ const PortalOriginal = () => {
                                 </li>
                             </ul>
                         </div>
+                    )} */}
+                    <div>
+
+                    {isAdmin && 
+                    <div className="delimiter1" />
+                    }
+              
+
+                    {isAdmin && (
+                        <ul className="buttons">
+                        <li className="">
+                            <DealerSelect
+                            value={dealerGuid}
+                            onChange={setDealerGuid}
+                            />
+                        </li>
+                        </ul>
                     )}
+                    </div>
+
 
                     <div className="delimiter1"></div> 
                     <ul className="buttons">

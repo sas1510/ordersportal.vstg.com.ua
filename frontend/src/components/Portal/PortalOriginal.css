@@ -442,9 +442,9 @@ body {
     pointer-events: none; /* Відключає взаємодію */
     margin: 14px 0;       /* відступ зверху і знизу */
     border-bottom: 1px dashed var(--grey-border-color); /* тільки горизонтальна лінія */
-    width: calc(100% - 14px); /* ширина лінії з урахуванням відступів з боків */
+    width: 100%; /* ширина лінії з урахуванням відступів з боків */
  
-    margin-right: 14px;   /* відступ справа */
+
 }
 
 
@@ -2765,4 +2765,31 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 6px 12px;
   font-size: 14px;
+}
+
+
+/* li як кнопка */
+.dealer-select-btn {
+  padding: 0;
+  cursor: default;
+}
+
+/* контейнер селекта */
+.dealer-select {
+  width: 100%;
+  min-width: 0;
+}
+
+/* сам control */
+.dealer-select__control {
+  width: 100%;
+  height: 40px;
+  border-radius: 8px;
+}
+
+/* dropdown не вилазить */
+.dealer-select__dropdown {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }

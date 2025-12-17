@@ -82,11 +82,6 @@
 
 /* ---------- Divider ---------- */
 
-.delimiter1 {
-  margin: 14px 0;
-  border-bottom: 1px dashed var(--grey-border-color);
-  width: calc(100% - 14px);
-}
 
 /* ---------- Filters list ---------- */
 

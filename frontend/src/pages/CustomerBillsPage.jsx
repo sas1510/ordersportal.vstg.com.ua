@@ -4,11 +4,11 @@ import "./CustomerBillsPage.css";
 import { FaFilePdf } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaPlus } from "react-icons/fa";
+import DealerSelect from "./DealerSelect";
+import { useDealerContext } from "../hooks/useDealerContext";
 
 
-const USER = JSON.parse(localStorage.getItem("user") || "{}");
-const CONTRACTOR_GUID = USER.user_id_1c;
-const USER_ROLE = USER.role; 
+
 
 
 const getCurrentMonthRange = () => {
@@ -31,8 +31,19 @@ const getCurrentMonthRange = () => {
 
 const CustomerBillsPage = () => {
   const [bills, setBills] = useState([]);
-  const [loading, setLoading] = useState(true);
+  
   const [error, setError] = useState("");
+
+  const {
+    dealerGuid,
+    setDealerGuid,
+    isAdmin,
+    currentUser,
+  } = useDealerContext();
+
+  const [loading, setLoading] = useState(!isAdmin);
+
+  const USER_ROLE = currentUser?.role;
 
   const { dateFrom: defaultFrom, dateTo: defaultTo } = getCurrentMonthRange();
 
@@ -43,32 +54,51 @@ const CustomerBillsPage = () => {
   const navigate = useNavigate();
 
   const fetchBills = async () => {
-    setLoading(true);
-    setError("");
+  if (!dealerGuid) {
+    setBills([]);
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const res = await axiosInstance.get(
-        `/dealers/${CONTRACTOR_GUID}/bills/`,
-        {
-          params: {
-            date_from: dateFrom || null,
-            date_to: dateTo || null,
-          },
-        }
-      );
+  setLoading(true);
+  setError("");
 
-      setBills(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error(err);
-      setError("Помилка при завантаженні рахунків");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const res = await axiosInstance.get(
+      `/dealers/${dealerGuid}/bills/`,
+      {
+        params: {
+          date_from: dateFrom,
+          date_to: dateTo,
+        },
+      }
+    );
 
-  useEffect(() => {
+    setBills(Array.isArray(res.data) ? res.data : []);
+  } catch (err) {
+    console.error(err);
+    setError("Помилка при завантаженні рахунків");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+
+useEffect(() => {
+  if (!isAdmin && dealerGuid) {
     fetchBills();
-  }, []);
+  }
+
+  if (isAdmin && !dealerGuid) {
+    setLoading(false);
+  }
+}, [dealerGuid, isAdmin]);
+
+
+
 
   /* =========================
      HELPERS
@@ -114,6 +144,7 @@ const CustomerBillsPage = () => {
       <h1 className="page-title">Рахунки</h1>
 
       <div className="bills-filter">
+        {/* Дати */}
         <div className="filter-item-bill">
           <label>Дата з</label>
           <input
@@ -132,7 +163,22 @@ const CustomerBillsPage = () => {
           />
         </div>
 
-        <button className="btn btn-filter" onClick={fetchBills}>
+        {/* 🔥 ADMIN: вибір дилера */}
+        {isAdmin && (
+          <div className="filter-item-bill">
+            <label>Дилер</label>
+            <DealerSelect
+              value={dealerGuid}
+              onChange={setDealerGuid}
+            />
+          </div>
+        )}
+
+        <button
+          className="btn btn-filter"
+          onClick={fetchBills}
+          disabled={!dealerGuid}
+        >
           <FaSearch className="btn-icon" />
           <span>Пошук</span>
         </button>
@@ -146,8 +192,8 @@ const CustomerBillsPage = () => {
             <span>Додати рахунок</span>
           </button>
         )}
-
       </div>
+
     </div>
 
     {/* ===== CONTENT PANEL ===== */}

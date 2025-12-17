@@ -5,7 +5,8 @@ import "./PaymentStatus.css";
 import { useTheme } from "../context/ThemeContext";
 import MobilePaymentsView from "./MobilePaymentsView";
 import { formatDateHuman } from "../utils/formatters";
-
+import { useDealerContext } from "../hooks/useDealerContext";
+import DealerSelect from './DealerSelect'
 // ====================================================================
 //                           FORMAT CURRENCY
 // ====================================================================
@@ -38,15 +39,6 @@ const useIsMobile = () => {
 
   return isMobile;
 };
-
-// ====================================================================
-//                          USER + DEFAULT CONTRACTOR
-// ====================================================================
-const USER = JSON.parse(localStorage.getItem("user") || "{}");
-const USER_ROLE = USER.role || "";
-
-const DEFAULT_CONTRACTOR_GUID =
- USER.user_id_1c;
 
 
  
@@ -387,7 +379,17 @@ const PaymentGroup = React.memo(
 // ====================================================================
 const PaymentStatusV2 = () => {
   const { theme } = useTheme();
-   const isMobile = useIsMobile();
+  const isMobile = useIsMobile();
+
+  
+  const {
+    isAdmin,
+    dealerGuid,
+    setDealerGuid,
+  } = useDealerContext();
+
+
+
   const { dateFrom: defaultDateFrom, dateTo: defaultDateTo } =
     getCurrentMonthDates();
 
@@ -397,10 +399,12 @@ const PaymentStatusV2 = () => {
   const [expandedRows, setExpandedRows] = useState(new Set());
 
   const [filters, setFilters] = useState({
-    contractor: DEFAULT_CONTRACTOR_GUID,
+    contractor: dealerGuid,
     dateFrom: defaultDateFrom,
     dateTo: defaultDateTo,
   });
+
+
 
    const downloadExcel = async () => {
     try {
@@ -476,8 +480,25 @@ const PaymentStatusV2 = () => {
   }, [filters.contractor, filters.dateFrom, filters.dateTo]);
 
   useEffect(() => {
-    fetchData();
-  }, [filters.contractor]);
+    if (!isAdmin) {
+      fetchData(); // дилер = поточний користувач
+    }
+  }, []); // ⬅️ лише при старті
+
+
+
+  
+
+
+
+  useEffect(() => {
+    if (dealerGuid) {
+      setFilters((prev) => ({
+        ...prev,
+        contractor: dealerGuid,
+      }));
+    }
+  }, [dealerGuid]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -658,11 +679,29 @@ summary.lastCumSaldo = item.CumSaldo;
           />
         </label>
 
+
+        
+        {isAdmin && (
+          <label>
+            Дилер:
+            <DealerSelect
+              value={filters.contractor}
+              onChange={(id) => setDealerGuid(id)}
+            />
+
+          </label>
+        )}
+
+
+        
+
         <button
           className="btn btn-primary"
           onClick={fetchData}
           disabled={loading}
         >
+
+        
 
         <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} />
           Пошук
@@ -684,6 +723,9 @@ summary.lastCumSaldo = item.CumSaldo;
           <i className="fa-solid fa-file-excel" style={{ marginRight: 8 }} />
           Excel
         </button>
+
+
+
 
 
 

@@ -12,11 +12,11 @@ import ContactsPage from "./pages/ContactsPage";
 import PortalOriginal from "./pages/OrdersPage";
 import ComplaintsPage from "./pages/ComplaintsPage";
 import AdditionalOrdersPage from "./pages/AdditionalOrdersPage";
-import OrdersFinancePage from "./pages/OrdersFinancePage";
+
 import ChangePassword from "./pages/ChangePassword";
 import EditUserPage from "./pages/EditUserPage";
 import SettlementsPage from "./pages/SettlementsPage";
-import CashFlowPage from "./pages/CashFlowPage";
+
 import ContactFormPage from "./pages/ContactFormPage";
 import UrgentCallLogsPage from "./pages/UrgentCallLogsPage";
 import EmergencyContactsPage from './pages/EmergencyContactsPage';
@@ -29,13 +29,12 @@ import ManagersUpdatePage from "./pages/ManagersUpdatePage";
 import ManagersSync from "./pages/ManagersSync";
 import SyncManagersPage from "./pages/SyncManagersPage"
 import PaymentStatus from "./pages/DebtPage"
-import WdsPromotion from "./pages/WdsPromotion"
-import CustomerBills from "./pages/CustomerBills"
+
+
 import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
 import ReclamationPortal from "./pages/ReclamationPortal";
 // import InviteRegisterForm from "./pages/InviteRegisterForm";
-import { Dashboards } from "./pages/Dashboards"
-import ComplaintsPages from "./pages/ComplaintsPages";
+// import { Dashboards } from "./pages/Dashboards"
 import ChangePasswordPage from "./pages/ChangePasswordPage" 
 import UsersListPage from "./pages/UsersListPage"
 import PaymentStatusV2 from "./pages/PaymentStatusV2"
@@ -61,11 +60,12 @@ export const adminRoutes = [
   { path: "complaints", element: <ReclamationPortal /> },
   // { path: "complaints", element: <ComplaintsPage /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
-  { path: "orders-fin", element: <OrdersFinancePage /> },
+
   { path: "change-password", element: <ChangePassword /> },
   { path: "users/:id/edit", element: <EditUserPage /> },
   // { path: "finance/settlements", element: <SettlementsPage /> },
-  { path: "finance/money-flow", element: <CashFlowPage /> },
+
+
   { path: "contacts/new", element: <ContactFormPage /> },
   { path: "urgentLogs", element: <UrgentCallLogsPage /> },
   { path: "contacts/:id/edit", element: <ContactFormPage /> },
@@ -74,10 +74,14 @@ export const adminRoutes = [
   { path: "managers-sync", element: <ManagersSync /> },
   { path: "managers-dealer-sync", element: <SyncManagersPage /> },
   { path: "finance/settlements", element: <PaymentStatus /> },
-  { path: "promo", element: <WdsPromotion /> },
-  { path: "finance/bills", element: <CustomerBills /> },
+
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "users-list", element: <UsersListPage /> },
+
+  { path: "finance/paymentMovement", element: <PaymentStatusV2/> },
+  { path: "finance/payment", element: <PaymentsPage/> },
+  { path: "finance/create-bill", element: <CreateBillPage/> },
+  { path: "finance/customer-bills", element: <CustomerBillsPage/> },
 
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
@@ -95,20 +99,20 @@ export const dealerRoutes = [
   // { path: "complaints", element: <ComplaintsPage /> },
   { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
-  { path: "orders-fin", element: <OrdersFinancePage /> },
+
   // { path: "change-password", element: <ChangePassword /> },
   { path: "addOrder", element: <AddOrderPage /> },
   { path: "addClaim", element: <AddClaimForm /> },
   { path: "addReorder", element: <AddReorderForm /> },
   // { path: "finance/settlements", element: <SettlementsPage /> },
   { path: "finance/settlements", element: <PaymentStatus /> },
-  { path: "promo", element: <WdsPromotion /> },
+
   // { path: "finance/bills", element: <CustomerBills /> },
   { path: "create-bill", element: <CreateCustomerBillPage /> },
   { path: "reclamation", element: <ReclamationPortal /> },
 
 
-  { path: "localComplaints", element: <ComplaintsPages/> },
+
   { path: "change-password", element: <ChangePasswordPage/> },
   { path: "finance/paymentMovement", element: <PaymentStatusV2/> },
   { path: "finance/payment", element: <PaymentsPage/> },
@@ -134,18 +138,18 @@ export const managerRoutes = [
   { path: "orders", element: <PortalOriginal /> },
   { path: "complaints", element: <ComplaintsPage /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
-  { path: "orders-fin", element: <OrdersFinancePage /> },
+
   { path: "change-password", element: <ChangePassword /> },
   { path: "users/:id/edit", element: <EditUserPage /> },
   // { path: "finance/settlements", element: <SettlementsPage /> },
-  { path: "finance/money-flow", element: <CashFlowPage /> },
+
   { path: "contacts/new", element: <ContactFormPage /> },
   { path: "urgentLogs", element: <UrgentCallLogsPage /> },
   { path: "contacts/:id/edit", element: <ContactFormPage /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "finance/settlements", element: <PaymentStatus /> },
-  { path: "promo", element: <WdsPromotion /> },
-  { path: "finance/bills", element: <CustomerBills /> },
+
+
 
   { path: "addClaim", element: <AddClaimForm /> },
     { path: "addOrder", element: <AddOrderPage /> },

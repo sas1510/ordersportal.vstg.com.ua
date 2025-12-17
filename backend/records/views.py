@@ -69,13 +69,11 @@ def parse_reclamation_details(text):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def complaints_view(request):
-    try:
-        user_id = request.user.id
-    except AttributeError:
-        return JsonResponse({"error": "Invalid user object"}, status=400)
 
     # Отримуємо рік із GET-параметра або беремо поточний
     year_str = request.GET.get("year")
+    contractor_id_guid = request.GET.get("contractor")
+    contractor_id = guid_to_1c_bin(contractor_id_guid)
     try:
         year = int(year_str) if year_str else None
     except ValueError:
@@ -85,9 +83,9 @@ def complaints_view(request):
         # Викликаємо процедуру
         cursor.execute("""
             EXEC [dbo].[GetComplaintsFull] 
-                @User_ID = %s, 
+                @User1C_ID = %s, 
                 @Year = %s
-        """, [user_id, year])
+        """, [contractor_id, year])
 
         # Отримуємо дані (якщо процедура повертає SELECT)
         columns = [col[0] for col in cursor.description]
@@ -256,7 +254,10 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 @permission_classes([IsAuthenticated])
 def api_get_orders(request):
     year = int(request.GET.get("year"))
-    contractor_id = request.user.user_id_1C 
+    contractor_id_guid = request.GET.get("contractor_guid")
+    contractor_id = guid_to_1c_bin(contractor_id_guid)
+
+
 
     data = get_orders_by_year_and_contractor(year, contractor_id)
     return Response({"status": "success", "data": {"calculation": data}})
@@ -557,6 +558,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from backend.utils.BinToGuid1C import bin_to_guid_1c
+from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 
 logger = logging.getLogger(__name__)

@@ -98,7 +98,7 @@ export default function HeaderAdmin() {
     <header className="portal-header" ref={headerRef}>
       <div className="flex items-center">
         <Link to="/dashboard">
-          <img src="/header_logo.svg" alt="Логотип" className="h-10" />
+          <img src="/header_logo.svg" alt="Логотип" className="height-logo" />
         </Link>
       </div>
 

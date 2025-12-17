@@ -421,14 +421,6 @@ body {
     color: var(--info-color);
 }
 
-.delimiter1 {
-    pointer-events: none; /* Відключає взаємодію */
-    margin: 14px 0;       /* відступ зверху і знизу */
-    border-bottom: 1px dashed var(--grey-border-color); /* тільки горизонтальна лінія */
-    width: calc(100% - 14px); /* ширина лінії з урахуванням відступів з боків */
- 
-    margin-right: 14px;   /* відступ справа */
-}
 
 
 /* СТИЛИ КНОПКИ ДОБАВЛЕНИЯ ПРОСЧЕТА */

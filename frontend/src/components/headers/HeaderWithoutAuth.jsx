@@ -11,7 +11,7 @@ export default function HeaderWithoutAuth() {
 
       <div className="flex items-center">
         <Link to="/home">
-          <img src="/header_logo.svg" alt="Логотип" className="h-10" />
+          <img src="/header_logo.svg" alt="Логотип" className="height-logo" />
         </Link>
       </div>
 

@@ -1,0 +1,81 @@
+/* ===============================
+   DEALER SELECT (SEARCHABLE)
+   =============================== */
+
+.dealer-select {
+  position: relative;
+
+}
+
+.dealer-select {
+  width: 100%;
+  min-width: 0;
+}
+
+
+.dealer-select__control {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.dealer-select__control .placeholder {
+  color: #999;
+}
+
+.dealer-select__control .arrow {
+  margin-left: 8px;
+  font-size: 12px;
+}
+
+.dealer-select__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  z-index: 1000;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+.dealer-select__search {
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid #eee;
+  outline: none;
+}
+
+.dealer-select__list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.dealer-select__option {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.dealer-select__option:hover {
+  background: #f0f4ff;
+}
+
+.dealer-select__empty {
+  padding: 10px;
+  text-align: center;
+  color: #999;
+}
+
+
+.dealer-select__option.active {
+  background: #e6eeff;
+  font-weight: 500;
+}
