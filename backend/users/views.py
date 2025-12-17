@@ -839,3 +839,48 @@ def get_current_user(request):
         "user_id_1c": user_guid_1c,
 
     })
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import connection
+
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_dealer_portal_users(request):
+    """
+    Returns contractors who are users of the Web Portal (VS)
+    Only for admin users
+    """
+
+    # 🔒 Перевірка ролі
+    if request.user.role != "admin":
+        return Response(
+            {"detail": "Access denied. Admin role required."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetDealerPortalUsers")
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+
+    data = []
+
+    for row in rows:
+        record = dict(zip(columns, row))
+
+        # ✅ Binary(1C) → GUID
+        if record.get("ContractorID"):
+            record["ContractorID"] = bin_to_guid_1c(
+                record["ContractorID"]
+            )
+
+        data.append(record)
+
+    return Response(data)

@@ -17,6 +17,13 @@
     background: #e6e6e0;
 }
 
+.pp-title-header .icon-menu {
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+
 /* Ліве велике коло */
 .payments-page::before {
     content: "";
@@ -83,7 +90,7 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 18px;
-    margin-top: 18px;
+    margin-top: 12px;
 }
 
 
@@ -206,9 +213,9 @@
 /* СТИЛЬ СІТКИ ДЛЯ ВЕЛИКИХ ЕКРАНІВ - ЗАМІНА INLINE STYLES */
 .pp-order-row {
     display: grid !important;
-    grid-template-columns: 150px 230px 180px 180px 200px auto ;
+    grid-template-columns: 150px 200px 170px 170px 180px auto ;
     align-items: center;
-    column-gap: 10px;
+    column-gap: 7px;
 }
 
 
@@ -216,6 +223,7 @@
 .pp-order-col .pp-num {
     font-size: 18px;
     font-weight: 600;
+    color: #696969;
 }
 
 .pp-order-col .pp-date {
@@ -441,15 +449,6 @@
     background: var(--info-bg-color);
 }
 
-/* ===== STATUS PILLS ===== */
-.status-pill {
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    
-}
 
 /* COLORS */
 .status-new {
@@ -509,10 +508,33 @@
     background: rgba(77, 171, 255, 0.12);
 }
 
+
+
+.payment-filter-headers-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--grey-text-color);
+    margin-top: 12px;
+    margin-bottom: 10px;
+} 
+
+.p-30 {
+    padding-left: 30px !important;
+    padding-right: 30px  !important;
+}
+
+@media (max-width: 1410px) {
+
+    .p-30 {
+        padding-left: 20px !important;
+        padding-right: 20px  !important;
+    }
+}
+
 /* =====================================================
     АДАПТИВНІСТЬ (≤ 1330px)
 ===================================================== */
-@media (max-width: 1330px) {
+@media (max-width: 1515px) {
 
     .pp-order-row {
         display: grid;
@@ -565,7 +587,12 @@
     }
 }
 
-
+@media (max-width: 1260px) {
+    
+    .payment-filter-headers-name {
+        display: none;
+    }
+}
 /* =====================================================
     АДАПТИВНІСТЬ (≤ 1190px) — ЗБЕРІГАЄМО ВЕРТИКАЛЬНИЙ ВИГЛЯД
 ===================================================== */
@@ -614,7 +641,7 @@
     /* Header */
     .pp-header {
 
-        align-items: flex-start;
+        /* align-items: flex-start; */
         gap: 10px;
     }
 
@@ -758,4 +785,125 @@
 
   background: radial-gradient(circle, #1e1e1e 35%, #151515);
  
+}
+
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 999;
+}
+
+
+
+
+
+.pp-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 160px;
+}
+
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* ===============================
+   BASE STATUS PILL
+================================ */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* ===============================
+   STATUS COLORS
+================================ */
+
+/* 🟢 Підтверджено */
+.status-confirmed {
+  background: #e7f7ef;
+  color: #1e7f4d;
+}
+
+/* 🔵 Очікуємо підтвердження */
+.status-wait-confirm {
+  background: #e8f1ff;
+  color: #1f5fd3;
+}
+
+/* 🟡 Очікуємо оплату */
+.status-wait-payment {
+  background: #fff4d6;
+  color: #a26a00;
+}
+
+/* 🟣 Резервування */
+.status-reserved {
+  background: #f0ecff;
+  color: #5b4fcf;
+}
+
+/* ⚙️ В роботі */
+.status-in-work {
+  background: #eef3f7;
+  color: #4a5a6a;
+}
+
+/* 🏭 У виробництві */
+.status-production {
+  background: #f3f3f3;
+  color: #555555;
+}
+
+/* 📦 Готовий */
+.status-ready {
+  background: #dbb36d;
+  color: #503910;
+}
+
+/* 🚚 Відвантажений */
+.status-shipped {
+  background: #e6f6f4;
+  color: #0f766e;
+}
+
+/* ❌ Неліквід */
+.status-closed {
+  background: #fbeaea;
+  color: #9b2c2c;
+}
+
+/* ❓ Невідомо */
+.status-unknown {
+  background: #eeeeee;
+  color: #666666;
+}
+
+
+
+.pp-status-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 160px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  text-align: center;
 }

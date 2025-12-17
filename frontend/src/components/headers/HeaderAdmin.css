@@ -650,8 +650,7 @@ body.dark-theme .theme-toggle-item
     background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
 }
 
-body.dark-theme .theme-toggle-btn:hover,
-body.dark-theme .menu-link.logout-icon:hover {
+body.dark-theme .theme-toggle-btn:hover {
     /* Можна зробити hover сірим або червоним, як у світлому режимі */
     background-color: #333333 !important; /* Темно-сірий hover */
 }

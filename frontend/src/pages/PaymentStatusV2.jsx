@@ -4,7 +4,7 @@ import "../components/Portal/PortalOriginal.css";
 import "./PaymentStatus.css";
 import { useTheme } from "../context/ThemeContext";
 import MobilePaymentsView from "./MobilePaymentsView";
-
+import { formatDateHuman } from "../utils/formatters";
 
 // ====================================================================
 //                           FORMAT CURRENCY
@@ -22,6 +22,7 @@ const formatCurrency = (value, unit = "грн") => {
   if (unit === "") return formatter.format(num);
   return `${formatter.format(num)} ${unit}`;
 };
+
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(
     window.matchMedia("(max-width: 1050px)").matches
@@ -63,9 +64,7 @@ const detectPaymentChannel = (item) => {
   return "none";
 };
 
-// ====================================================================
-//                        ARROW ICON FOR MOVEMENT
-// ====================================================================
+
 const getArrowIcon = (item) => {
   if (item.InOut === "Прихід")
     return <span className="arrow arrow-in">▲</span>;
@@ -80,9 +79,6 @@ const getArrowIcon = (item) => {
 
 
 
-// ====================================================================
-//                        CURRENT MONTH DATE RANGE
-// ====================================================================
 const getCurrentMonthDates = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -96,9 +92,6 @@ const getCurrentMonthDates = () => {
 
 
 
-// ====================================================================
-//                        DOCUMENT ROW COMPONENT
-// ====================================================================
 const DocumentRow = React.memo(
   ({ docGroup, formatCurrency, detectPaymentChannel, expandedRows, toggleRow }) => {
     const docKey = docGroup.docKey;
@@ -111,13 +104,13 @@ const DocumentRow = React.memo(
 
     const shouldShowSubRow = 
     isExpanded &&
-    detectPaymentChannel(firstItem) === "order" && // Використовуємо firstItem, якщо docGroup.items[0] посилається на нього
+    detectPaymentChannel(firstItem) === "order" && 
     (firstItem.ВидДокумента === "ППВход" || firstItem.ВидДокумента === "ПКО") &&
     docGroup.items.length > 0;
 
 
     const cursorShow = 
-    detectPaymentChannel(firstItem) === "order" && // Використовуємо firstItem, якщо docGroup.items[0] посилається на нього
+    detectPaymentChannel(firstItem) === "order" && 
     (firstItem.ВидДокумента === "ППВход" || firstItem.ВидДокумента === "ПКО") &&
     docGroup.items.length > 0;
 
@@ -126,7 +119,7 @@ const DocumentRow = React.memo(
         {/* ===================== DOCUMENT MAIN ROW ===================== */}
        <tr
           className={`data-row doc-main-row 
-              ${shouldShowSubRow ? "expanded-with-orders" : ""}  /* <-- ВИКОРИСТОВУЄМО ТУТ НОВИЙ КЛАС */
+              ${shouldShowSubRow ? "expanded-with-orders" : ""} 
               ${cursorShow ? "has-sub" : ""}`
           }
           onClick={() => toggleRow(docKey)}
@@ -270,7 +263,7 @@ const DocumentRow = React.memo(
                       <div>
                         <span className="mini-label">Дата замовлення</span>
                         <span className="mini-value">
-                          {(item.ДатаЗаказа || "").split("T")[0]}
+                          {(formatDateHuman(item.ДатаЗаказа) || "").split("T")[0]}
                         </span>
                       </div>
                     </div>
@@ -303,7 +296,7 @@ const PaymentGroup = React.memo(
 
 
             <div className="date-header">
-              <span className="td-date">📅 {group.date}</span>
+              <span className="td-date">📅 {formatDateHuman(group.date)}</span>
          
               {/* <span className="contracts-text">
                 {Object.values(group.initialContracts).map((c, idx, arr) => (
@@ -346,7 +339,7 @@ const PaymentGroup = React.memo(
         {/* TOTAL ROW */}
 <tr className="total-row total-row-separator">
   <td colSpan={4}>
-    📊 Разом за {group.date}:
+    📊 Разом за {formatDateHuman(group.date)}:
   </td>
 {/* 
   <td className="text-green text-bold">

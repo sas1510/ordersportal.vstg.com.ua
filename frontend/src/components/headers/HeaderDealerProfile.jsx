@@ -6,23 +6,58 @@ import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТУЄ�
 import "./HeaderAdmin.css"; 
 
 
+const BALANCE_CACHE_KEY = "dealer_balance_cache";
+
+
 export default function HeaderDealerProfile() {
-  const [balance, setBalance] = useState(0);
-  const [fullName, setFullName] = useState("Дилер Ім'я");
+
   const { theme } = useTheme();
 
+  const cached = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(BALANCE_CACHE_KEY));
+    } catch {
+      return null;
+    }
+  })();
+
+  const [balance, setBalance] = useState(cached?.sum ?? 0);
+  const [fullName, setFullName] = useState(
+    cached?.full_name ?? "Дилер Ім'я"
+  );
+
+  // 👉 2. фонове оновлення
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchBalance() {
       try {
         const response = await axiosInstance.get("/balance/");
         const data = response.data;
+
+        if (!isMounted) return;
+
         setBalance(data.sum);
         setFullName(data.full_name || "Дилер Ім'я");
+
+        // 👉 3. оновлюємо кеш
+        localStorage.setItem(
+          BALANCE_CACHE_KEY,
+          JSON.stringify({
+            sum: data.sum,
+            full_name: data.full_name,
+            updatedAt: Date.now(),
+          })
+        );
       } catch (error) {
         console.error("Помилка отримання балансу:", error);
       }
     }
+
     fetchBalance();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const formattedBalance = new Intl.NumberFormat("uk-UA", {

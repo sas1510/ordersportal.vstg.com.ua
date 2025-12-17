@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./MobilePaymentsView.css";
 
+import { formatDateHuman } from "../utils/formatters";
+
+
+
+
 const MobilePaymentsView = ({
   groups,
   formatCurrency,
@@ -156,7 +161,7 @@ const scrollToTop = () => {
               {/* DATE HEADER */}
                <div className="mobile-date-header sticky-date">
       <div className="mobile-date-title">
-        📅 {group.date}
+        📅 {formatDateHuman(group.date)}
       </div>
     </div>
 
@@ -371,7 +376,7 @@ const scrollToTop = () => {
   <div className="order-mini-col">
     <span className="order-mini-label">Дата</span>
     <span className="order-mini-value">
-      {(item.ДатаЗаказа || "").split("T")[0]}
+      {(formatDateHuman(item.ДатаЗаказа) || "").split("T")[0]}
     </span>
   </div>
 </div>
