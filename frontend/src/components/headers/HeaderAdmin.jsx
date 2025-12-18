@@ -21,11 +21,11 @@ const NAV_LINKS = [
 /** підменю Фінанси */
 const FINANCE_SUBMENU = [
   { title: "Взаєморозрахунки", to: "/finance/settlements" },
-  { title: "Рух коштів", to: "/finance/money-flow" },
+  { title: "Рух коштів", to: "/finance/paymentMovement" },
   { title: "Аналітика", to: "/finance/analytics" },
   { title: "Оплата", to: "/finance/payments" },
   { title: "Акція WDS", to: "/promo" },
-  { title: "Рахунки", to: "/finance/bills" },
+  { title: "Рахунки", to: "/finance/customer-bills" },
 ];
 
 /** підменю Налаштування */
