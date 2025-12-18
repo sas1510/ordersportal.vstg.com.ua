@@ -8,6 +8,10 @@ import AddReorderModal from '../components/AdditionalOrder/AddReorderModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 
+import DealerSelect from "./DealerSelect";
+import { useDealerContext } from "../hooks/useDealerContext";
+
+
 // --- MOCK DATA (ЗАЛИШАЄМО, АЛЕ НЕ ВИКОРИСТОВУЄМО) ---
 const mockAdditionalOrdersData = [
   // ... (ваш мок-код тут)
@@ -19,6 +23,13 @@ const initialLimit = 100;
 
 // Перейменовуємо компонент
 const AdditionalOrders = () => {
+
+  const {
+    dealerGuid,
+    setDealerGuid,
+    isAdmin
+  } = useDealerContext();
+
   // Перейменовуємо змінні, пов'язані з "Прорахунками" на "Додаткові Замовлення"
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false); // Замість isCalcModalOpen
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]); // Замість calculationsData
@@ -131,17 +142,28 @@ const AdditionalOrders = () => {
 
 
   // --- API CALL LOGIC (ОНОВЛЕНО: ВИДАЛЕНО ЛОГІКУ З `dealer`) ---
-  useEffect(() => {
+ useEffect(() => {
   const controller = new AbortController();
   const signal = controller.signal;
 
   const fetchData = async () => {
     setLoading(true);
 
-    const url = `/get_additional_orders_info/?year=${selectedYear}`;
-
     try {
-      const response = await axiosInstance.get(url, { signal });
+      const params = {
+        year: selectedYear,
+      };
+
+      // ✅ ADMIN + вибраний дилер
+      if (isAdmin && dealerGuid) {
+        params.contractor = dealerGuid;
+      }
+
+      // 🔥 ОДИН єдиний запит
+      const response = await axiosInstance.get(
+        '/get_additional_orders_info/',
+        { params, signal }
+      );
 
       if (signal.aborted) return;
 
@@ -151,25 +173,22 @@ const AdditionalOrders = () => {
         const allOrders = rawData.map(item => ({
           ...item,
           date: formatDateHuman(item.dateRaw),
-          orders: item.orders.map(order => ({
+          orders: (item.orders || []).map(order => ({
             ...order,
             date: formatDateHuman(order.dateRaw)
           }))
         }));
 
         setAdditionalOrdersData(allOrders);
-
-        // ❗ Фільтрація без перезапуску API
         setFilteredItems(
           getFilteredItems(filter.status, filter.month, filter.name, allOrders)
         );
-
       } else {
         setAdditionalOrdersData([]);
         setFilteredItems([]);
       }
     } catch (error) {
-      if (!(error.name === "AbortError")) {
+      if (error.name !== "CanceledError") {
         console.error("Помилка запиту:", error);
         setAdditionalOrdersData([]);
         setFilteredItems([]);
@@ -182,9 +201,17 @@ const AdditionalOrders = () => {
     }
   };
 
+  // ❗ ADMIN без вибраного дилера — не вантажимо
+  if (isAdmin && !dealerGuid) {
+    setAdditionalOrdersData([]);
+    setFilteredItems([]);
+    setLoading(false);
+    return;
+  }
+
   fetchData();
   return () => controller.abort();
-}, [selectedYear]);   // ← ← ← ЄДИНА залежність!
+}, [selectedYear, dealerGuid, isAdmin]);
 
   const getStatusSummary = useMemo(() => {
     return () => {
@@ -390,6 +417,19 @@ const AdditionalOrders = () => {
             </li>
             
           </ul>
+
+          {isAdmin && (
+            <>
+              <div className="delimiter1" />
+              <div className="dealer-select-wrapper">
+                <DealerSelect
+                  value={dealerGuid}
+                  onChange={setDealerGuid}
+                />
+              </div>
+            </>
+          )}
+
 
           <ul className="filter column align-center">
             <li className="delimiter1"></li>

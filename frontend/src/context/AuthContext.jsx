@@ -21,6 +21,9 @@ export default function AuthProvider({ children }) {
       if (roleValue && setRole) setRole(roleValue);
     } else {
       localStorage.removeItem("access");
+      localStorage.removeItem("user");
+
+
       setIsAuthenticated(false);
       if (setRole) setRole(null);
     }
@@ -38,6 +41,7 @@ export default function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       await axiosInstance.post("/logout/", {}, { withCredentials: true });
+      
     } catch (err) {
       console.error(err);
     }
@@ -73,3 +77,5 @@ export default function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+

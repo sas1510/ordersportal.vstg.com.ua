@@ -66,19 +66,7 @@
   box-shadow: 0 0 5px rgba(94, 131, 191, 0.5);
 }
 
-.content-filter-payment .clear-search {
-  position: absolute;
-  right: 28px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 20px;
-  color: var(--text-color);
-}
 
-.content-filter-payment .clear-search:hover {
-  color: var(--danger-color);
-}
 
 /* ---------- Divider ---------- */
 
@@ -190,9 +178,6 @@ body.dark-theme .content-filter-payment .search-orders::placeholder {
   color: #aaaaaa;
 }
 
-body.dark-theme .content-filter-payment .clear-search {
-  color: #aaaaaa;
-}
 
 body.dark-theme .content-filter-payment .filter li {
   color: #f0f0f0;

@@ -907,3 +907,29 @@
   min-width: 180px;
   text-align: center;
 }
+
+
+
+
+
+.content-filter-payment  .search-wrapper-payment .clear-search-payment {
+
+    position: relative;
+    right: -90%;
+    top: -50%;
+    transform: translateY(50%);
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-color);
+    line-height: 1;
+
+}
+
+
+.content-filter-payment .clear-search-payment:hover {
+  color: var(--danger-color);
+}
+
+body.dark-theme .content-filter-payment .clear-search-payment {
+  color: #aaaaaa;
+}

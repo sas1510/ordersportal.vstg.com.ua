@@ -256,7 +256,7 @@ const STATUS_FILTERS = [
         />
         {!!search && (
           <span
-            className="icon icon-cancel2 clear-search"
+            className="icon icon-cancel2 clear-search-payment"
             title="Очистити пошук"
             onClick={() => setSearch("")}
           />

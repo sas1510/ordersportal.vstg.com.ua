@@ -411,7 +411,7 @@ const PortalOriginal = () => {
                             { id: "confirmed", label: "Підтверджені", icon: "icon-check", statusKey: "Підтверджений" },
                             { id: "production", label: "У виробництві", icon: "icon-cogs", statusKey: "У виробництві" },
                             { id: "ready", label: "Готові замовлення", icon: "icon-layers2", statusKey: "Готовий" },
-                            { id: "delivered", label: "Доставлені", icon: "icon-shipping", statusKey: "Відвантажений" },
+                            { id: "delivered", label: "Відвантажені", icon: "icon-shipping", statusKey: "Відвантажений" },
                             { id: "rejected", label: "Відмова", icon: "icon-circle-with-cross", statusKey: "Відмова" }
                         ].map(({ id, label, icon, statusKey }) => (
                             <li

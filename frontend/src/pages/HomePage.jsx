@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
+import './Dashboard.css'
+
 const videos = [
   "https://www.tiktok.com/@viknastyle/video/7537601329863200005?is_from_webapp=1",
   "https://www.tiktok.com/@viknastyle/video/7537322053884497208?is_from_webapp=1",
@@ -52,7 +54,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans">
       {/* Hero Section */}
-      <section
+      {/* <section
         className="relative min-h-[900px] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/3.jpg')" }}
       >
@@ -65,6 +67,23 @@ export default function HomePage() {
           >
             Вікна Стиль — 18 років на ринку України та Європи
           </motion.h1>
+        </div>
+      </section> */}
+
+       <section className="dashboard-hero">
+        <div className="dashboard-hero-overlay" />
+
+        <div className="dashboard-hero-content">
+          <h1 className="font-size-42 text-white text-bold text-center">
+            Вікна Стиль — 18 років на ринку України та Європи
+          </h1>
+{/* 
+          <div className="glass-badge">
+            <span className="badge-icon">🏭</span>
+            <span className="badge-text">
+              Власне виробництво • Європейські стандарти • Надійне партнерство
+            </span>
+          </div> */}
         </div>
       </section>
 

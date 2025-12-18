@@ -351,12 +351,20 @@ def additional_orders_view(request):
     Повертає дозакази користувача у потрібному JSON-форматі.
     Кожен рядок SQL-процедури розглядається як одне Додаткове Замовлення (Претензія).
     """
-    try:
-        user_id = request.user.id
-    except AttributeError:
-        return Response({"error": "Invalid user object"}, status=400)
+    # try:
+    #     user_id = request.user.id
+    # except AttributeError:
+    #     return Response({"error": "Invalid user object"}, status=400)
 
     year_str = request.GET.get("year")
+    contractor_guid = request.GET.get("contractor")
+
+    if contractor_guid:
+        user_id = guid_to_1c_bin(contractor_guid)
+    else:
+        user_id = request.user.user_id_1C
+
+
     try:
         year = int(year_str) if year_str else None
     except ValueError:
@@ -381,7 +389,7 @@ def additional_orders_view(request):
     with connection.cursor() as cursor:
         cursor.execute("""
             EXEC [dbo].[GetAdditionalOrder] 
-                @User_ID = %s,
+                @User1C_ID = %s,
                 @Year = %s
         """, [user_id, year])
 
@@ -623,7 +631,11 @@ def download_order_file(request, order_guid, file_guid, filename):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_message(request):
-    serializer = MessageSerializer(data=request.data)
+    serializer = MessageSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
 
     if serializer.is_valid():
         message = serializer.save()
