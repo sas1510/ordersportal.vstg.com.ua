@@ -36,24 +36,24 @@
   background: #f5f6f8;
 }
 
-.badge {
+.badge-bill {
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.badge.success {
+.badge-bill.success {
   background: #e3f4dc;
   color: #2c8a00;
 }
 
-.badge.warning {
+.badge-bill.warning {
   background: #fff3cd;
   color: #856404;
 }
 
-.badge.danger {
+.badge-bill.danger {
   background: #fde2e1;
   color: #b00020;
 }

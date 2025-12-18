@@ -1753,33 +1753,7 @@ html {
     z-index: 1;
 }
 
-.timeline ul li .badge {
-    width: 120px;
-    border: 1px solid var(--info-color);
-    background-color: #ffff;
-    color: var(--grey-text-color);
-    display: inline-block;
-    position: absolute;
-    left: 130px;
-    top: 60px;
-    /*    padding: 3px 7px;*/
-    font-size: 12px;
-    z-index: 1;
-}
 
-.timeline ul li .badge .badge-title {
-    background-color: var(--info-color);
-    color: #fff;
-    padding: 3px 7px;
-    text-align: center;
-}
-
-.timeline ul li .badge .badge-content {
-    /*background-color: var(--info-color);*/
-    color: var(--text-color);
-    padding: 3px 7px;
-    text-align: center;
-}
 
 
 .calc-item .summary-item.small {

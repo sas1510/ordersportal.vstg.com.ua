@@ -6,7 +6,7 @@ import HeaderUserProfile from "./HeaderUserProfile";
 import "./HeaderAdmin.css";
 import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КОНТЕКСТУ ТЕМИ
 
-/** головні пункти меню */
+
 const NAV_LINKS = [
   { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight" },
   { title: "Прорахунки", to: "/orders", icon: "icon-calculator" },
@@ -18,7 +18,7 @@ const NAV_LINKS = [
   { title: "Статистика SOS", to: "/urgentLogs", icon: "icon-stats" },
 ];
 
-/** підменю Фінанси */
+
 const FINANCE_SUBMENU = [
   { title: "Взаєморозрахунки", to: "/finance/settlements" },
   { title: "Рух коштів", to: "/finance/paymentMovement" },
@@ -28,7 +28,7 @@ const FINANCE_SUBMENU = [
   { title: "Рахунки", to: "/finance/customer-bills" },
 ];
 
-/** підменю Налаштування */
+
 const SETTINGS_SUBMENU = [
   { title: "Організації", to: "/organizations" },
   { title: "Регіони", to: "/regions" },
@@ -60,7 +60,7 @@ export default function HeaderAdmin() {
   };
 
 
-  // закриття всіх меню при переході сторінки або зміни розміру
+
   useEffect(() => {
     setMobileMenuOpen(false);
     setShowSettings(false);
@@ -69,11 +69,11 @@ export default function HeaderAdmin() {
     setShowFinanceMenuMobile(false);
   }, [location, isMobile]);
 
-  // закриття при кліку поза меню
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (headerRef.current && !headerRef.current.contains(event.target)) {
-        // закриваємо ВСІ меню
+
         setMobileMenuOpen(false);
         setShowFinanceMenu(false);
         setShowSettings(false);
