@@ -2793,3 +2793,10 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
   max-width: 100%;
   box-sizing: border-box;
 }
+
+
+.dark-theme .loading-spinner-wrapper {
+
+  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start)) !important; /* трохи затемнити фон */
+
+}
