@@ -397,6 +397,8 @@ const PaymentStatusV2 = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [excelLoading, setExcelLoading] = useState(false);
+
 
   const [filters, setFilters] = useState({
     contractor: dealerGuid,
@@ -407,6 +409,9 @@ const PaymentStatusV2 = () => {
 
 
    const downloadExcel = async () => {
+    if (excelLoading) return; // ⛔ захист від дабл-кліку
+
+    setExcelLoading(true);
     try {
       const response = await axiosInstance.get(
         "/export_payment_status_excel/",
@@ -445,7 +450,9 @@ const PaymentStatusV2 = () => {
       }
 
       alert("Не вдалося завантажити Excel");
-    }
+    } finally {
+    setExcelLoading(false); // ✅ ОБОВʼЯЗКОВО
+  }
   };
 
   const API_ENDPOINT = "/get_payment_status_view/";
@@ -719,9 +726,9 @@ summary.lastCumSaldo = item.CumSaldo;
         <button
           className="btn btn-excel"
           onClick={downloadExcel}
+          disabled={excelLoading}
         >
-          <i className="fa-solid fa-file-excel" style={{ marginRight: 8 }} />
-          Excel
+          {excelLoading ? "Генерація..." : "Excel"}
         </button>
 
 

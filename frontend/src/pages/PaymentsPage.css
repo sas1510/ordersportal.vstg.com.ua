@@ -933,3 +933,24 @@
 body.dark-theme .content-filter-payment .clear-search-payment {
   color: #aaaaaa;
 }
+
+
+
+/* Left: number + date */
+.dark-theme .pp-order-col .pp-num {
+    font-size: 18px;
+    font-weight: 600;
+    color: #d0d0d0;
+}
+
+
+/* Світла тема */
+.order-sum {
+  color: #696969;
+  font-weight: 600;
+}
+
+/* Темна тема */
+body.dark-theme .order-sum {
+  color: #d0d0d0; /* м’який світлий, не різкий */
+}

@@ -79,3 +79,69 @@
   background: #e6eeff;
   font-weight: 500;
 }
+
+
+
+/* ===============================
+   DEALER SELECT — DARK THEME
+   =============================== */
+
+body.dark-theme .dealer-select__control {
+  background: #2b2b2b;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+body.dark-theme .dealer-select__control .placeholder {
+  color: #888;
+}
+
+body.dark-theme .dealer-select__control .arrow {
+  color: #aaa;
+}
+
+/* Dropdown */
+body.dark-theme .dealer-select__dropdown {
+  background: #2b2b2b;
+  border-color: #444;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+/* Search input */
+body.dark-theme .dealer-select__search {
+  background: #1f1f1f;
+  color: #e0e0e0;
+  border-bottom: 1px solid #444;
+}
+
+body.dark-theme .dealer-select__search::placeholder {
+  color: #888;
+}
+
+/* List */
+body.dark-theme .dealer-select__list {
+  background: #2b2b2b;
+}
+
+/* Options */
+body.dark-theme .dealer-select__option {
+  color: #e0e0e0;
+}
+
+body.dark-theme .dealer-select__option:hover {
+  background: #3a3f4b;
+}
+
+body.dark-theme .dealer-select__option.active {
+  background: #404861;
+  font-weight: 500;
+}
+
+/* Empty / error */
+body.dark-theme .dealer-select__empty {
+  color: #aaa;
+}
+
+body.dark-theme .dealer-select__empty.error {
+  color: #ff6b6b;
+}

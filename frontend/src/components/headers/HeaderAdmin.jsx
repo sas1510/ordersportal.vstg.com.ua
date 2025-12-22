@@ -9,10 +9,9 @@ import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КО
 
 const NAV_LINKS = [
   { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight" },
-  { title: "Прорахунки", to: "/orders", icon: "icon-calculator" },
+  { title: "Прорахунки", to: "/admin-order", icon: "icon-calculator" },
   { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
-  { title: "Дозамовлення", to: "/additional-orders", icon: "icon-add-to-list" },
-  { title: "Статус", to: "/orders-fin", icon: "icon-file-text" },
+  { title: "Дозамовлення", to: "/admin-additional-order", icon: "icon-add-to-list" },
   { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
   { title: "Відео", to: "/videos", icon: "icon-youtube" },
   { title: "Статистика SOS", to: "/urgentLogs", icon: "icon-stats" },
@@ -20,7 +19,7 @@ const NAV_LINKS = [
 
 
 const FINANCE_SUBMENU = [
-  { title: "Взаєморозрахунки", to: "/finance/settlements" },
+  // { title: "Взаєморозрахунки", to: "/finance/settlements" },
   { title: "Рух коштів", to: "/finance/paymentMovement" },
   { title: "Аналітика", to: "/finance/analytics" },
   { title: "Оплата", to: "/finance/payments" },

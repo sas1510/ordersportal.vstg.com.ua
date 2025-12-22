@@ -383,9 +383,10 @@ const STATUS_FILTERS = [
 
                     <div className="pp-info">
                       <span>Сума: </span>
-                      <strong style={{ color: "#696969" }}>
+                      <strong className="order-sum">
                         {formatCurrency(o.OrderSum)}
                       </strong>
+
 
                     </div>
 

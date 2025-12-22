@@ -3,6 +3,8 @@ import axiosInstance from "../../api/axios.js";
 import { FaTimes, FaSave, FaUpload, FaTrash, FaUserAlt } from "react-icons/fa";
 import { useNotification } from "../notification/Notifications.jsx";
 import "./NewCalculationModal.css";
+import DealerSelect from "../../pages/DealerSelect";
+
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
@@ -41,14 +43,14 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   */
   
   // ✅ Отримуємо дилерів (залишаємо, оскільки це незалежна логіка)
-  useEffect(() => {
-    if (isOpen && isManager) {
-      axiosInstance
-        .get("/get_dealers/")
-        .then((res) => setDealers(res.data.dealers || []))
-        .catch((err) => console.error("Помилка отримання дилерів:", err));
-    }
-  }, [isOpen, isManager]);
+  // useEffect(() => {
+  //   if (isOpen && isManager) {
+  //     axiosInstance
+  //       .get("/get_dealers/")
+  //       .then((res) => setDealers(res.data.dealers || []))
+  //       .catch((err) => console.error("Помилка отримання дилерів:", err));
+  //   }
+  // }, [isOpen, isManager]);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
@@ -146,23 +148,19 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
             {/* Вибір дилера для менеджера */}
             {isManager && (
-              <label className="new-calc-label-row flex items-center gap-2">
-                <FaUserAlt className="text-gray-600" />
-                <span>Дилер:</span>
-                <select
+              <div className="new-calc-label-row">
+                <span className="flex items-center gap-2">
+                  <FaUserAlt className="text-gray-600" />
+                  <span>Дилер:</span>
+                </span>
+
+                <DealerSelect
                   value={dealerId}
-                  onChange={(e) => setDealerId(e.target.value)}
-                  className="new-calc-input flex-1"
-                >
-                  <option value="">Оберіть дилера</option>
-                  {dealers.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.full_name || d.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  onChange={setDealerId}
+                />
+              </div>
             )}
+
 
             {/* Завантаження файлу */}
             <div className="new-calc-file-upload">

@@ -12,11 +12,6 @@ import DealerSelect from "./DealerSelect";
 import { useDealerContext } from "../hooks/useDealerContext";
 
 
-// --- MOCK DATA (ЗАЛИШАЄМО, АЛЕ НЕ ВИКОРИСТОВУЄМО) ---
-const mockAdditionalOrdersData = [
-  // ... (ваш мок-код тут)
-];
-// --- END MOCK DATA ---
 
 // Константа для ліміту відображення
 const initialLimit = 100;
@@ -407,17 +402,7 @@ const AdditionalOrders = () => {
             <span className="icon icon-cancel2 clear-search" title="Очистити пошук" onClick={handleClearSearch}></span>
           </div>
 
-          {/* ⚠️ ВИДАЛЕНО блок вибору дилера */}
-
-          <div className="delimiter1"></div>
-          <ul className="buttons">
-            <li className="btn btn-add-calc" onClick={() => setIsNewOrderModalOpen(true)}>
-              <span className="icon icon-plus3"></span>
-              <span className="uppercase">Нове дод. замовлення</span> {/* Змінено текст */}
-            </li>
-            
-          </ul>
-
+          
           {isAdmin && (
             <>
               <div className="delimiter1" />
@@ -429,6 +414,18 @@ const AdditionalOrders = () => {
               </div>
             </>
           )}
+
+          {/* ⚠️ ВИДАЛЕНО блок вибору дилера */}
+
+          <div className="delimiter1"></div>
+          <ul className="buttons">
+            <li className="btn btn-add-calc" onClick={() => setIsNewOrderModalOpen(true)}>
+              <span className="icon icon-plus3"></span>
+              <span className="uppercase">Нове дод. замовлення</span> {/* Змінено текст */}
+            </li>
+            
+          </ul>
+
 
 
           <ul className="filter column align-center">

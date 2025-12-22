@@ -4,6 +4,9 @@ import axiosInstance from "../api/axios";
 import { RoleContext } from "../context/RoleContext";
 import { useTheme } from "../context/ThemeContext";
 import "./LoginPage.css";
+import { useNotification } from "../components/notification/Notifications";
+
+
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -12,6 +15,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const { addNotification } = useNotification();
+
 
   const navigate = useNavigate();
   const { setRole } = useContext(RoleContext);
@@ -55,24 +60,31 @@ export default function LoginPage() {
       }
 
       navigate("/dashboard");
-    } catch (error) {
-      if (error.response) {
-        if (error.response.status === 401) {
-          const message =
-            typeof error.response.data === "string"
-              ? error.response.data
-              : error.response.data?.message || "Невірний логін або пароль";
-
-          setErrorMessage(message);
-        } else {
-          setErrorMessage("Помилка авторизації: " + error.response.status);
+     } catch (error) {
+          if (error.response) {
+            if (error.response.status === 401) {
+              addNotification(
+                "Невірний логін або пароль",
+                "error"
+              );
+            } else {
+              addNotification(
+                `Помилка авторизації (${error.response.status})`,
+                "error"
+              );
+            }
+          } else if (error.request) {
+            addNotification(
+              "Сервер недоступний. Перевірте підключення.",
+              "warning"
+            );
+          } else {
+            addNotification(
+              "Сталася помилка: " + error.message,
+              "error"
+            );
+          }
         }
-      } else if (error.request) {
-        setErrorMessage("Сервер недоступний. Перевірте підключення.");
-      } else {
-        setErrorMessage("Сталася помилка: " + error.message);
-      }
-    }
 
     setLoading(false);
   };

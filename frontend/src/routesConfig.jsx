@@ -29,6 +29,7 @@ import ManagersUpdatePage from "./pages/ManagersUpdatePage";
 import ManagersSync from "./pages/ManagersSync";
 import SyncManagersPage from "./pages/SyncManagersPage"
 import PaymentStatus from "./pages/DebtPage"
+import AdminAdditionalOrders from './pages/AdminAdditionalOrders'
 
 
 import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
@@ -41,6 +42,8 @@ import PaymentStatusV2 from "./pages/PaymentStatusV2"
 import PaymentsPage from './pages/PaymentsPage'
 import CreateBillPage from './pages/CreateBillPage'
 import CustomerBillsPage from './pages/CustomerBillsPage'
+import AdminPortalOriginal from './pages/AdminOrderPage'
+import AdminReclamationPortal from './pages/AdminReclamationPortal'
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -82,6 +85,9 @@ export const adminRoutes = [
   { path: "finance/payment", element: <PaymentsPage/> },
   { path: "finance/create-bill", element: <CreateBillPage/> },
   { path: "finance/customer-bills", element: <CustomerBillsPage/> },
+  { path: "admin-additional-order", element: <AdminAdditionalOrders/> },
+  { path: "admin-order", element: <AdminPortalOriginal/> },
+  { path: "admin-reclamation", element: <AdminReclamationPortal/> },
 
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
@@ -152,7 +158,7 @@ export const managerRoutes = [
 
 
   { path: "addClaim", element: <AddClaimForm /> },
-    { path: "addOrder", element: <AddOrderPage /> },
+  { path: "addOrder", element: <AddOrderPage /> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
 ];

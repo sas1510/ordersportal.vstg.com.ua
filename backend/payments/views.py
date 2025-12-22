@@ -218,92 +218,156 @@ from django.db import connection
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 
+# @api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+# def export_payment_status_excel(request):
+
+#     guid_str = request.GET.get("contractor")
+#     if not guid_str:
+#         return HttpResponse("contractor is required", status=400)
+
+#     try:
+#         contractor_binary = guid_to_1c_bin(guid_str)
+#     except Exception as e:
+#         return HttpResponse(f"Invalid GUID: {e}", status=400)
+
+#     date_from = request.GET.get("date_from", "1900-01-01")
+#     date_to = request.GET.get("date_to", str(date.today()))
+
+#     sql = """
+#         EXEC dbo.GetDealerFullLedger
+#             @Контрагент = %s,
+#             @ДатаЗ = %s,
+#             @ДатаПо = %s
+#     """
+
+#     with connection.cursor() as cursor:
+#         cursor.execute(sql, [contractor_binary, date_from, date_to])
+#         columns = [col[0] for col in cursor.description]
+#         rows = cursor.fetchall()
+
+#     # ================== CREATE EXCEL ==================
+
+#     wb = Workbook()
+#     ws = wb.active
+#     ws.title = "Payment Status"
+
+#     headers = [
+#         "Дата",
+#         "Час",
+#         "Договір",
+#         "Канал",
+#         "Залишок на початок",
+#         "Прихід",
+#         "Розхід",
+#         "Залишок на кінець",
+#         "№ замовлення",
+#         "Сума замовлення",
+#         "Оплата",
+#         "Залишок по замовленню",
+#         "Статус оплати"
+#     ]
+
+#     ws.append(headers)
+#     for cell in ws[1]:
+#         cell.font = Font(bold=True)
+
+#     for row in rows:
+#         r = dict(zip(columns, row))
+
+#         period = r.get("Период")
+
+#         date_part = period.date().isoformat() if period else ""
+#         time_part = period.time().strftime("%H:%M") if period else ""
+
+#         ws.append([
+#             date_part,
+#             time_part,
+
+#             r.get("FinalDogovorName"),
+#             r.get("DealType"),
+#             r.get("CumSaldoStart"),
+
+#             # Прихід / Розхід
+#             abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Прихід" else "",
+#             abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Витрата" else "",
+
+#             r.get("CumSaldo"),
+
+#             # Замовлення
+#             r.get("НомерЗаказа"),
+#             r.get("СуммаЗаказа"),
+#             abs(r.get("DeltaRow", 0)),
+#             r.get("ЗалишокПоЗаказу"),
+#             r.get("СтатусОплатиПоЗаказу"),
+#         ])
+
+
+#     # ================== RESPONSE ==================
+
+#     response = HttpResponse(
+#         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+#     )
+#     response["Content-Disposition"] = (
+#         f'attachment; filename="payment_status_{date_from}_{date_to}.xlsx"'
+#     )
+
+#     wb.save(response)
+#     return response
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def export_payment_status_excel(request):
+    contractor_binary = guid_to_1c_bin(request.GET["contractor"])
+    date_from = request.GET.get("date_from")
+    date_to = request.GET.get("date_to")
 
-    guid_str = request.GET.get("contractor")
-    if not guid_str:
-        return HttpResponse("contractor is required", status=400)
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet("Payment Status")
 
-    try:
-        contractor_binary = guid_to_1c_bin(guid_str)
-    except Exception as e:
-        return HttpResponse(f"Invalid GUID: {e}", status=400)
-
-    date_from = request.GET.get("date_from", "1900-01-01")
-    date_to = request.GET.get("date_to", str(date.today()))
-
-    sql = """
-        EXEC dbo.GetDealerFullLedger
-            @Контрагент = %s,
-            @ДатаЗ = %s,
-            @ДатаПо = %s
-    """
+    ws.append([
+        "Дата", "Час", "Договір", "Канал",
+        "Зал. поч.", "Прихід", "Розхід",
+        "Зал. кін.", "№ зам.", "Сума зам.",
+        "Оплата", "Зал. зам.", "Статус"
+    ])
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [contractor_binary, date_from, date_to])
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
+        cursor.execute("""
+            EXEC dbo.GetDealerFullLedger
+              @Контрагент = %s,
+              @ДатаЗ = %s,
+              @ДатаПо = %s
+        """, [contractor_binary, date_from, date_to])
 
-    # ================== CREATE EXCEL ==================
+        cols = [c[0] for c in cursor.description]
+        idx = {c: i for i, c in enumerate(cols)}
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Payment Status"
+        while True:
+            rows = cursor.fetchmany(2000)
+            if not rows:
+                break
 
-    headers = [
-        "Дата",
-        "Час",
-        "Договір",
-        "Канал",
-        "Залишок на початок",
-        "Прихід",
-        "Розхід",
-        "Залишок на кінець",
-        "№ замовлення",
-        "Сума замовлення",
-        "Оплата",
-        "Залишок по замовленню",
-        "Статус оплати"
-    ]
+            for r in rows:
+                period = r[idx["Период"]]
+                delta = r[idx["DeltaRow"]] or 0
+                inout = r[idx["InOut"]]
 
-    ws.append(headers)
-    for cell in ws[1]:
-        cell.font = Font(bold=True)
-
-    for row in rows:
-        r = dict(zip(columns, row))
-
-        period = r.get("Период")
-
-        date_part = period.date().isoformat() if period else ""
-        time_part = period.time().strftime("%H:%M") if period else ""
-
-        ws.append([
-            date_part,
-            time_part,
-
-            r.get("FinalDogovorName"),
-            r.get("DealType"),
-            r.get("CumSaldoStart"),
-
-            # Прихід / Розхід
-            abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Прихід" else "",
-            abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Витрата" else "",
-
-            r.get("CumSaldo"),
-
-            # Замовлення
-            r.get("НомерЗаказа"),
-            r.get("СуммаЗаказа"),
-            abs(r.get("DeltaRow", 0)),
-            r.get("ЗалишокПоЗаказу"),
-            r.get("СтатусОплатиПоЗаказу"),
-        ])
-
-
-    # ================== RESPONSE ==================
+                ws.append([
+                    period.date().isoformat() if period else "",
+                    period.time().strftime("%H:%M") if period else "",
+                    r[idx["FinalDogovorName"]],
+                    r[idx["DealType"]],
+                    r[idx["CumSaldoStart"]],
+                    abs(delta) if inout == "Прихід" else "",
+                    abs(delta) if inout == "Витрата" else "",
+                    r[idx["CumSaldo"]],
+                    r[idx["НомерЗаказа"]],
+                    r[idx["СуммаЗаказа"]],
+                    abs(delta),
+                    r[idx["ЗалишокПоЗаказу"]],
+                    r[idx["СтатусОплатиПоЗаказу"]],
+                ])
 
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"

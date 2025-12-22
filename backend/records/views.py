@@ -647,3 +647,421 @@ def create_message(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import connection
+
+from backend.utils.BinToGuid1C import convert_row
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import connection
+
+from backend.utils.BinToGuid1C import convert_row
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_additional_orders_info_all(request):
+    """
+    ADMIN ONLY
+    Повертає ВСІ дозакази за місяць
+    СТРУКТУРА = additional_orders_view
+    """
+
+    # ⚠️ тимчасово (краще JWT)
+    if getattr(request.user, "role", None) != "admin":
+        return Response({"detail": "Access denied"}, status=403)
+
+    year = request.GET.get("year")
+    month = request.GET.get("month")
+
+    if not year or not month:
+        return Response(
+            {"error": "year and month are required"},
+            status=400
+        )
+
+    try:
+        year = int(year)
+        month = int(month)
+        if not 1 <= month <= 12:
+            raise ValueError
+    except ValueError:
+        return Response(
+            {"error": "Invalid year or month"},
+            status=400
+        )
+
+    # ---------- helper ----------
+    def clean_date_stub(date_value):
+        if not date_value:
+            return None
+        s = str(date_value)
+        if s.startswith(("0001-01-01", "2001-01-01", "1753-01-01")):
+            return None
+        return date_value
+    # ---------------------------
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers]
+                @Year = %s,
+                @Month = %s
+            """,
+            [year, month]
+        )
+
+        columns = [c[0] for c in cursor.description]
+        raw_rows = cursor.fetchall()
+
+    rows = [
+        convert_row(dict(zip(columns, r)))
+        for r in raw_rows
+    ]
+
+    formatted_orders = []
+
+    for row in rows:
+        full_text = row.get("AdditionalInformation")
+        parsed_info = parse_reclamation_details(full_text)
+
+        complaint_number = row.get("AdditionalOrderNumber") or "unknown"
+
+        order_sum = float(row.get("DocumentAmount") or 0)
+        total_paid = float(row.get("TotalPayments") or 0)
+        constructions_qty = int(row.get("ConstructionsQTY") or 0)
+        status_name = row.get("StatusName") or "Новий"
+
+        additional_order_date = clean_date_stub(row.get("AdditionalOrderDate"))
+        main_order_date = clean_date_stub(row.get("MainOrderDate"))
+        claim_order_date = clean_date_stub(row.get("ClaimOrderDate"))
+
+        sold_date = clean_date_stub(row.get("SoldDate"))
+        date_launched = clean_date_stub(row.get("DateLaunched"))
+        date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
+        produced_date = clean_date_stub(row.get("ProducedDate"))
+
+        calc = {
+            "id": complaint_number,
+            "number": f"{complaint_number}",
+            "numberWEB": row.get("NumberWEB"),
+            "mainOrderNumber": row.get("OrderNumber"),
+            "mainOrderDate": main_order_date,
+            "dateRaw": additional_order_date,
+            "date": additional_order_date,
+            "dealer": row.get("Customer") or row.get("OrganizationName") or "",
+            "managerName": row.get("ResponsibleName"),
+            "organizationName": row.get("OrganizationName"),
+            "debt": order_sum - total_paid,
+            "file": None,
+            "message": parsed_info.get("ParsedDescription") or full_text,
+            "orderCountInCalc": 1,
+            "constructionsCount": constructions_qty,
+            "constructionsQTY": constructions_qty,
+            "amount": order_sum,
+            "statuses": {status_name: 1},
+            "orders": [
+                {
+                    "id": row.get("ClaimOrderNumber") or complaint_number,
+                    "number": row.get("ClaimOrderNumber") or "",
+                    "dateRaw": claim_order_date,
+                    "date": claim_order_date,
+                    "status": status_name,
+                    "amount": order_sum,
+                    "count": constructions_qty,
+                    "paid": total_paid,
+                    "realizationDate": sold_date,
+                    "routeStatus": row.get("RouteStatus"),
+                    "seriesList": row.get("SeriesList"),
+                    "resolutionPaths": row.get("ResolutionPaths"),
+                    "organizationName": row.get("OrganizationName"),
+                    "planProduction": date_launched,
+                    "factStartProduction": date_transferred,
+                    "factReady": produced_date,
+                }
+            ],
+        }
+
+        formatted_orders.append(calc)
+
+    return Response({
+        "status": "success",
+        "data": {
+            "calculation": formatted_orders
+        }
+    })
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
+from django.db import connection
+
+from backend.utils.BinToGuid1C import convert_row
+# from .utils import parse_reclamation_details
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def complaints_view_all_by_month(request):
+    """
+    ADMIN ONLY
+    Повертає ВСІ рекламації за МІСЯЦЬ
+    СТРУКТУРА = complaints_view
+    SQL: GetComplaintsFull_ByMonth
+
+    GET params:
+      - year  (int)
+      - month (int)
+    """
+
+    # ⛔ контроль доступу (аналогічно іншим all-view)
+    if getattr(request.user, "role", None) != "admin":
+        return JsonResponse(
+            {"detail": "Access denied"},
+            status=403
+        )
+
+    year_str = request.GET.get("year")
+    month_str = request.GET.get("month")
+
+    if not year_str or not month_str:
+        return JsonResponse(
+            {"error": "year and month are required"},
+            status=400
+        )
+
+    try:
+        year = int(year_str)
+        month = int(month_str)
+        if not 1 <= month <= 12:
+            raise ValueError
+    except ValueError:
+        return JsonResponse(
+            {"error": "Invalid year or month"},
+            status=400
+        )
+
+    # =========================
+    # SQL
+    # =========================
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC [dbo].[GetComplaintsFull_ByMonth]
+                @Year = %s,
+                @Month = %s
+            """,
+            [year, month]
+        )
+
+        columns = [col[0] for col in cursor.description]
+        raw_rows = cursor.fetchall()
+
+    # =========================
+    # SAFE ROWS (GUID → str)
+    # =========================
+    rows = [
+        convert_row(dict(zip(columns, row)))
+        for row in raw_rows
+    ]
+
+    # =========================
+    # PARSE AdditionalInformation
+    # (ідентично complaints_view)
+    # =========================
+    processed_rows = []
+
+    for row in rows:
+        full_text = row.get("AdditionalInformation")
+
+        parsed_info = parse_reclamation_details(full_text)
+
+        row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
+        row["DeterminationDateText"] = parsed_info.get("ParsedDeterminationDate")
+        row["ParsedDescription"] = (
+            parsed_info.get("ParsedDescription") or full_text
+        )
+
+        processed_rows.append(row)
+
+    return JsonResponse({
+        "status": "success",
+        "data": processed_rows
+    })
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
+from django.db import connection
+
+from backend.utils.BinToGuid1C import convert_row
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.http import JsonResponse
+from django.db import connection
+
+# from backend.utils.BinToGuid1C import convert_row
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def orders_view_all_by_month(request):
+    """
+    ADMIN ONLY
+    Повертає ВСІ замовлення порталу за МІСЯЦЬ
+    Структура ПОВНІСТЮ ідентична get_orders_by_year_and_contractor
+    """
+
+    # ⛔ тільки admin
+    if getattr(request.user, "role", None) != "admin":
+        return JsonResponse({"detail": "Access denied"}, status=403)
+
+    year_str = request.GET.get("year")
+    month_str = request.GET.get("month")
+
+    if not year_str or not month_str:
+        return JsonResponse({"error": "year and month are required"}, status=400)
+
+    try:
+        year = int(year_str)
+        month = int(month_str)
+        if not 1 <= month <= 12:
+            raise ValueError
+    except ValueError:
+        return JsonResponse({"error": "Invalid year or month"}, status=400)
+
+    # =====================================================
+    # SQL
+    # =====================================================
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC [dbo].[GetOrdersMonth]
+                @Year = %s,
+                @Month = %s
+            """,
+            [year, month]
+        )
+        columns = [col[0] for col in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # =====================================================
+    # GROUP → CALCULATION (1:1 логіка)
+    # =====================================================
+    calcs_dict = {}
+
+    for row in rows:
+        calc_id = row.get("ClientOrderNumber") or "default"
+
+        constructions_count = int(row.get("ConstructionsCount") or 0)
+        calculation_date = row.get("CalculationDate")
+        order_date = row.get("OrderDate")
+
+        if calc_id not in calcs_dict:
+            calcs_dict[calc_id] = {
+                "id": calc_id,
+                "number": row.get("ClientOrderNumber") or "",
+                "webNumber": row.get("WebNumber") or "",
+                "dateRaw": calculation_date,
+                "date": calculation_date,
+                "orders": [],
+                "dealer": row.get("Customer"),
+                "constructionsQTY": constructions_count,
+                "file": row.get("File"),
+                "message": row.get("Message"),
+                "raw_order_dates": [order_date] if order_date else [],
+            }
+        else:
+            calcs_dict[calc_id]["constructionsQTY"] += constructions_count
+            if order_date:
+                calcs_dict[calc_id]["raw_order_dates"].append(order_date)
+
+        # ---------- ORDER ----------
+        order = {
+            "id": row.get("OrderID"),
+            "idGuid": row.get("OrderID_GUID"),
+            "number": row.get("OrderNumber") or "",
+            "dateRaw": row.get("OrderDate"),
+            "date": row.get("OrderDate"),
+            "status": row.get("OrderStage") or "Новий",
+            "amount": float(row.get("OrderSum") or 0),
+            "count": constructions_count,
+            "paid": float(row.get("PaidAmount") or 0),
+            "planProductionMin": row.get("ProductionDateMin"),
+            "planProductionMax": row.get("ProductionDateMax"),
+            "factProductionMin": row.get("ProductionStartDateMin"),
+            "factProductionMax": row.get("ProductionStartDateMax"),
+            "factReadyMin": row.get("ProductionReadyDateMin"),
+            "factReadyMax": row.get("ProductionReadyDateMax"),
+            "realizationDate": row.get("SaleDate"),
+            "quantityRealized": float(row.get("SoldQuantity") or 0),
+            "deliveryAddress": row.get("DeliveryAddress") or "",
+            "planDeparture": row.get("PlannedDepartureDate"),
+            "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
+            "arrivalTime": row.get("ArrivalTime"),
+            "routeStatus": row.get("RouteStatus"),
+            "organizationName": row.get("OrganizationName"),
+            "managerName": row.get("ManagerName"),
+        }
+
+        calcs_dict[calc_id]["orders"].append(order)
+
+    # =====================================================
+    # AGGREGATES
+    # =====================================================
+    formatted_calcs = []
+
+    for calc in calcs_dict.values():
+        orders = calc["orders"]
+        status_counts = {}
+        total_amount = 0
+        total_paid = 0
+
+        # 📌 дата прорахунку (fallback)
+        if not calc["dateRaw"] and calc["raw_order_dates"]:
+            min_date = min(d for d in calc["raw_order_dates"] if d)
+            calc["dateRaw"] = min_date
+            calc["date"] = min_date
+
+        del calc["raw_order_dates"]
+
+        for o in orders:
+            st = o["status"]
+            if st:
+                status_counts[st] = status_counts.get(st, 0) + 1
+
+            if st != "Відмова":
+                total_amount += o["amount"]
+                total_paid += o["paid"]
+
+        calc["statuses"] = status_counts
+        calc["orderCountInCalc"] = len(orders)
+        calc["constructionsCount"] = calc["constructionsQTY"]
+        calc["amount"] = total_amount
+        calc["debt"] = total_amount - total_paid
+
+        formatted_calcs.append(calc)
+
+    # =====================================================
+    # RESPONSE
+    # =====================================================
+    return JsonResponse(
+        {
+            "status": "success",
+            "data": {
+                "calculation": formatted_calcs
+            }
+        },
+        safe=False
+    )
