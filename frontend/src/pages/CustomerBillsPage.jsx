@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../api/axios";
 import "./CustomerBillsPage.css";
-import { FaFilePdf } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { FaSearch, FaPlus } from "react-icons/fa";
+import { FaFilePdf, FaSearch } from "react-icons/fa";
 import DealerSelect from "./DealerSelect";
 import { useDealerContext } from "../hooks/useDealerContext";
+import CreateCustomerBillModal from "./CreateCustomerBillModal";
 
-
-
-
+/* =========================
+   HELPERS
+   ========================= */
 
 const getCurrentMonthRange = () => {
   const now = new Date();
@@ -27,13 +26,20 @@ const getCurrentMonthRange = () => {
   return { dateFrom, dateTo };
 };
 
+const formatDate = (d) =>
+  d ? new Date(d).toLocaleDateString("uk-UA") : "—";
 
+const formatMoney = (v) =>
+  Number(v || 0).toLocaleString("uk-UA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+/* =========================
+   COMPONENT
+   ========================= */
 
 const CustomerBillsPage = () => {
-  const [bills, setBills] = useState([]);
-  
-  const [error, setError] = useState("");
-
   const {
     dealerGuid,
     setDealerGuid,
@@ -41,80 +47,73 @@ const CustomerBillsPage = () => {
     currentUser,
   } = useDealerContext();
 
-  const [loading, setLoading] = useState(!isAdmin);
-
   const USER_ROLE = currentUser?.role;
 
-  const { dateFrom: defaultFrom, dateTo: defaultTo } = getCurrentMonthRange();
+  const { dateFrom: defaultFrom, dateTo: defaultTo } =
+    getCurrentMonthRange();
 
+  const [bills, setBills] = useState([]);
   const [dateFrom, setDateFrom] = useState(defaultFrom);
   const [dateTo, setDateTo] = useState(defaultTo);
 
+  const [loading, setLoading] = useState(!isAdmin);
+  const [error, setError] = useState("");
 
-  const navigate = useNavigate();
-
-  const fetchBills = async () => {
-  if (!dealerGuid) {
-    setBills([]);
-    setLoading(false);
-    return;
-  }
-
-  setLoading(true);
-  setError("");
-
-  try {
-    const res = await axiosInstance.get(
-      `/dealers/${dealerGuid}/bills/`,
-      {
-        params: {
-          date_from: dateFrom,
-          date_to: dateTo,
-        },
-      }
-    );
-
-    setBills(Array.isArray(res.data) ? res.data : []);
-  } catch (err) {
-    console.error(err);
-    setError("Помилка при завантаженні рахунків");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
-
-useEffect(() => {
-  if (!isAdmin && dealerGuid) {
-    fetchBills();
-  }
-
-  if (isAdmin && !dealerGuid) {
-    setLoading(false);
-  }
-}, [dealerGuid, isAdmin]);
-
-
-
+  const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
 
   /* =========================
-     HELPERS
+     FETCH
      ========================= */
-  const formatDate = (d) =>
-    d ? new Date(d).toLocaleDateString("uk-UA") : "—";
 
-  const formatMoney = (v) =>
-    Number(v || 0).toLocaleString("uk-UA", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  const fetchBills = async () => {
+    if (!dealerGuid) {
+      setBills([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await axiosInstance.get(
+        `/dealers/${dealerGuid}/bills/`,
+        {
+          params: {
+            date_from: dateFrom,
+            date_to: dateTo,
+          },
+        }
+      );
+
+      setBills(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error(err);
+      setError("Помилка при завантаженні рахунків");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================
+     EFFECTS
+     ========================= */
+
+  useEffect(() => {
+    if (!isAdmin && dealerGuid) {
+      fetchBills();
+    }
+
+    if (isAdmin && !dealerGuid) {
+      setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dealerGuid, isAdmin]);
 
   /* =========================
      STATES
      ========================= */
+
   if (loading) {
     return (
       <div className="loading-spinner-wrapper">
@@ -136,111 +135,121 @@ useEffect(() => {
   /* =========================
      RENDER
      ========================= */
+
   return (
-  <div className="customer-bills-page">
+    <div className="customer-bills-page">
 
-    {/* ===== PAGE HEADER ===== */}
-    <div className="customer-bills-header">
-      <h1 className="page-title">Рахунки</h1>
+      {/* ===== PAGE HEADER ===== */}
+      <div className="customer-bills-header">
+        <h1 className="page-title">Рахунки</h1>
 
-      <div className="bills-filter">
-        {/* Дати */}
-        <div className="filter-item-bill">
-          <label>Дата з</label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
-        </div>
+        <div className="bills-filter">
 
-        <div className="filter-item-bill">
-          <label>Дата по</label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
-        </div>
-
-        {/* 🔥 ADMIN: вибір дилера */}
-        {isAdmin && (
+          {/* Dates */}
           <div className="filter-item-bill">
-            <label>Дилер</label>
-            <DealerSelect
-              value={dealerGuid}
-              onChange={setDealerGuid}
+            <label>Дата з</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
             />
           </div>
-        )}
 
-        <button
-          className="btn btn-filter"
-          onClick={fetchBills}
-          disabled={!dealerGuid}
-        >
-          <FaSearch className="btn-icon" />
-          <span>Пошук</span>
-        </button>
+          <div className="filter-item-bill">
+            <label>Дата по</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
 
-        {USER_ROLE === "customer" && (
+          {/* ADMIN: dealer select */}
+          {isAdmin && (
+            <div className="filter-item-bill">
+              <label>Дилер</label>
+              <DealerSelect
+                value={dealerGuid}
+                onChange={setDealerGuid}
+              />
+            </div>
+          )}
+
+          {/* Search */}
           <button
-            className="btn btn-create-bill"
-            onClick={() => navigate("/finance/create-bill")}
+            className="btn btn-filter"
+            onClick={fetchBills}
+            disabled={!dealerGuid}
           >
-            <FaPlus className="btn-icon" />
-            <span>Додати рахунок</span>
+            <FaSearch className="btn-icon" />
+            <span>Пошук</span>
           </button>
+
+          {/* CREATE BILL */}
+          {USER_ROLE === "customer" && (
+            <button
+              className="btn btn-create-bill"
+              onClick={() => setIsCreateBillOpen(true)}
+            >
+              <i className="fa-solid fa-plus" />
+              Додати рахунок
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ===== CONTENT ===== */}
+      <div className="customer-bills-panel">
+        {bills.length === 0 ? (
+          <div className="no-data">Немає рахунків</div>
+        ) : (
+          <table className="customer-bills-table">
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>№ рахунку</th>
+                <th className="center">Сума</th>
+                <th className="center">Файл</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {bills.map((b) => (
+                <tr key={b.BillGUID}>
+                  <td>{formatDate(b.BillDate)}</td>
+                  <td className="text-bold">{b.BillNumber}</td>
+                  <td className="center">
+                    {formatMoney(b.TotalAmount)}
+                  </td>
+                  <td className="center">
+                    <button
+                      className="btn-bill-download"
+                      title="Завантажити PDF (скоро)"
+                      onClick={() => console.log("PDF MOCK", b.BillGUID)}
+                    >
+                      <FaFilePdf className="pdf-icon" />
+                      <span>PDF</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
-    </div>
+      {/* ===== MODAL ===== */}
+      <CreateCustomerBillModal
+        isOpen={isCreateBillOpen}
+        onClose={() => setIsCreateBillOpen(false)}
+        onSuccess={fetchBills}
+        contractorGuid={dealerGuid}   // ✅ ВАЖЛИВО
+      />
 
-    {/* ===== CONTENT PANEL ===== */}
-    <div className="customer-bills-panel">
-
-      {bills.length === 0 ? (
-        <div className="no-data">Немає рахунків</div>
-      ) : (
-        <table className="customer-bills-table">
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>№ рахунку</th>
-              <th className="center">Сума</th>
-              <th className="center">Файл</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {bills.map((b) => (
-              <tr key={b.BillGUID}>
-                <td>{formatDate(b.BillDate)}</td>
-                <td className="text-bold">{b.BillNumber}</td>
-                <td className="center">
-                  {formatMoney(b.TotalAmount)}
-                </td>
-
-                <td className="center">
-                  <button
-                    className="btn-bill-download"
-                    title="Завантажити PDF (скоро)"
-                    onClick={() => console.log("PDF MOCK", b.BillGUID)}
-                  >
-                    <FaFilePdf className="pdf-icon" />
-                    <span>PDF</span>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
 
     </div>
-  </div>
-);
+    
+  );
 };
-
 
 export default CustomerBillsPage;

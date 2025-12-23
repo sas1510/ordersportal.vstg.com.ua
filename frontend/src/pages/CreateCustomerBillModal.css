@@ -1,0 +1,163 @@
+:root {
+  --blue-main: #2f80ed;
+  --blue-light: #56a6ff;
+  --blue-bg: #f4f8ff;
+  --blue-border: #cfe0ff;
+  --blue-hover: #1f6fe0;
+  --green-save: #6fcf97;
+  --text-muted: #5f6f8c;
+}
+
+.bill-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.bill-modal-window {
+  width: 720px;
+  max-width: 95%;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.bill-modal-header {
+  background: linear-gradient(90deg, var(--blue-main), var(--blue-light));
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bill-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* BODY SCROLL */
+.bill-form-scroll {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.bill-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ITEM CARD */
+.series-list-product {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  border: 1px dashed #ddd;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.series-list-product .full {
+  grid-column: 1 / -1;
+}
+
+/* REMOVE */
+.remove-item-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: #ff5a5a;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.series-list-product:only-child .remove-item-btn {
+  display: none;
+}
+
+/* FIELDS */
+.bill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bill-field__label {
+  font-size: 13px;
+  color: #666;
+}
+
+.bill-input,
+.bill-textarea {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #56a6ff;
+  font-size: 14px;
+}
+
+.bill-textarea {
+  height: 80px;
+  padding-top: 8px;
+  resize: none;
+}
+
+/* BUTTONS */
+.add-product-btn {
+  align-self: flex-start;
+  background: #56a6ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.add-product-btn:hover {
+  background: linear-gradient(90deg, #56a6ff, #68afff);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(59, 139, 244, 0.45);
+}
+
+.bill-modal-footer {
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #eee;
+}
+
+.bill-btn-cancel {
+  background: #ff7a45;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+}
+
+.bill-btn-save {
+  background: #7ac142;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+}
