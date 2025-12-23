@@ -23,7 +23,7 @@
   max-width: 95%;
   max-height: 90vh;
   background: #fff;
-  border-radius: 14px;
+  border-radius: 4px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -68,7 +68,7 @@
   gap: 12px;
   padding: 14px;
   border: 1px dashed #ddd;
-  border-radius: 10px;
+  border-radius: 4px;
   background: #fafafa;
 }
 
@@ -111,7 +111,7 @@
 .bill-textarea {
   height: 44px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #56a6ff;
   font-size: 14px;
 }
@@ -128,14 +128,13 @@
   background: #56a6ff;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 10px 14px;
   cursor: pointer;
 }
 
 .add-product-btn:hover {
   background: linear-gradient(90deg, #56a6ff, #68afff);
-  transform: translateY(-2px);
   box-shadow: 0 5px 14px rgba(59, 139, 244, 0.45);
 }
 
@@ -150,7 +149,7 @@
   background: #ff7a45;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 10px 18px;
 }
 
@@ -158,6 +157,99 @@
   background: #7ac142;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 10px 18px;
+}
+
+/* ================= DARK THEME ================= */
+body.dark-theme {
+
+  /* ===== VARIABLES ===== */
+  --blue-main: #3b82f6;
+  --blue-light: #60a5fa;
+  --blue-bg: #111827;
+  --blue-border: #2f3a52;
+  --blue-hover: #2563eb;
+  --green-save: #22c55e;
+  --text-muted: #9aa6c7;
+
+  /* ===== OVERLAY ===== */
+  .bill-modal-overlay {
+    background: rgba(16, 30, 59, 0.75);
+  }
+
+  /* ===== WINDOW ===== */
+  .bill-modal-window {
+    background: #0f172a;
+    color: #e5e7eb;
+  }
+
+  /* ===== HEADER ===== */
+  .bill-modal-header {
+    background: linear-gradient(90deg, #1e3a8a, #2563eb);
+  }
+
+  /* ===== BODY ===== */
+  .bill-form-scroll {
+    background: #020617;
+  }
+
+  /* ===== ITEM CARD ===== */
+  .series-list-product {
+    background: #020617;
+    border: 1px dashed #334155;
+  }
+
+  /* ===== REMOVE ===== */
+  .remove-item-btn {
+    background: #dc2626;
+  }
+
+  /* ===== LABELS ===== */
+  .bill-field__label {
+    color: var(--text-muted);
+  }
+
+  /* ===== INPUTS ===== */
+  .bill-input,
+  .bill-textarea {
+    background: #020617;
+    border: 1px solid var(--blue-border);
+    color: #e5e7eb;
+  }
+
+  .bill-input::placeholder,
+  .bill-textarea::placeholder {
+    color: #64748b;
+  }
+
+  .bill-input:focus,
+  .bill-textarea:focus {
+    outline: none;
+    border-color: var(--blue-main);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  }
+
+  /* ===== ADD PRODUCT ===== */
+  .add-product-btn {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+  }
+
+  .add-product-btn:hover {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.45);
+  }
+
+  /* ===== FOOTER ===== */
+  .bill-modal-footer {
+    border-top: 1px solid #1e293b;
+    background: #020617;
+  }
+
+  /* ===== BUTTONS ===== */
+  .bill-btn-cancel {
+    background: #f97316;
+  }
+
+
 }
