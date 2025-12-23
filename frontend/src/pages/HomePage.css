@@ -64,6 +64,17 @@
   letter-spacing: 0.1em;
 }
 
+
+.hero-title-authorized {
+  font-size: 2.95rem;
+  font-weight: 300;
+  color: white;
+  margin-bottom: 1rem;
+  margin-top: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 @media (min-width: 768px) {
   .hero-title { font-size: 4.5rem; }
 }
