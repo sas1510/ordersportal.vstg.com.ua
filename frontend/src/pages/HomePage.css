@@ -321,3 +321,158 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+
+/* ===============================
+   DARK THEME OVERRIDES
+   =============================== */
+
+body.dark-theme {
+  --color-bg: #1f1f1f;
+  --color-info: #8fb1ff;
+  --color-success: #8fd16a;
+  --color-danger: #ff8a4c;
+  --color-text: #e5e5e5;
+  --color-border: rgba(255, 255, 255, 0.15);
+  --color-dark: #121212;
+}
+
+/* ===============================
+   GLOBAL
+   =============================== */
+
+body.dark-theme .homepage-container {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ===============================
+   HERO
+   =============================== */
+
+body.dark-theme .hero-section {
+  background-color: var(--color-dark);
+}
+
+body.dark-theme .hero-gradient {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 0, 0, 0.85)
+  );
+}
+
+body.dark-theme .hero-subtitle {
+  color: #bdbdbd;
+}
+
+/* ===============================
+   STATS
+   =============================== */
+
+body.dark-theme .stat-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark-theme .stat-label {
+  color: #9e9e9e;
+}
+
+/* ===============================
+   ABOUT / INFO BOXES
+   =============================== */
+
+body.dark-theme .info-box,
+body.dark-theme .tech-cycle-card {
+  background-color: #262626;
+  border-color: var(--color-border);
+}
+
+body.dark-theme .section-title {
+  color: #f0f0f0;
+}
+
+/* ===============================
+   TECH CYCLE
+   =============================== */
+
+body.dark-theme .tech-label {
+  color: #cfcfcf;
+}
+
+body.dark-theme .tech-item {
+  border-bottom-color: var(--color-border);
+}
+
+/* ===============================
+   VALUES
+   =============================== */
+
+body.dark-theme .values-section {
+  background-color: #1c1c1c;
+}
+
+body.dark-theme .value-icon-container {
+  border-color: var(--color-border);
+}
+
+body.dark-theme .value-card:hover .value-icon-container {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-theme .value-desc {
+  color: #a3a3a3;
+}
+
+/* ===============================
+   MEDIA / VIDEO
+   =============================== */
+
+body.dark-theme .media-section {
+  background-color: #1f1f1f;
+}
+
+body.dark-theme .nav-btn {
+  background-color: #262626;
+  border-color: var(--color-border);
+  color: #e0e0e0;
+}
+
+body.dark-theme .nav-btn:hover {
+  color: var(--color-info);
+}
+
+body.dark-theme .video-card {
+  background-color: #000;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark-theme .tiktok-iframe {
+  filter: grayscale(0.15) contrast(1.15) brightness(0.95);
+}
+
+/* ===============================
+   CTA
+   =============================== */
+
+body.dark-theme .cta-section {
+  background-color: #111;
+  border-top-color: var(--color-success);
+}
+
+body.dark-theme .cta-desc {
+  color: #b0b0b0;
+}
+
+body.dark-theme .cta-button {
+  background-color: var(--color-success);
+}
+
+/* ===============================
+   SCROLL INDICATOR
+   =============================== */
+
+body.dark-theme .scroll-indicator {
+  color: rgba(255, 255, 255, 0.25);
+}
