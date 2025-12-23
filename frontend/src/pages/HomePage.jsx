@@ -1,5 +1,7 @@
 import React, { useRef } from "react";
 import "./HomePage.css";
+
+
 import { motion, useScroll, useTransform } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -44,6 +46,20 @@ export default function HomePage() {
     <div className="homepage-container">
       {/* Hero Section */}
       <section className="hero-section">
+        {/* Background shapes like Login */}
+      <div className="hero-background-shapes">
+        <div className="hero-shape hero-shape-1" />
+        <div className="hero-shape hero-shape-2" />
+        <div className="hero-shape hero-shape-3" />
+
+        {/* subtle stars */}
+        <div className="hero-star s1" />
+        <div className="hero-star s2" />
+        <div className="hero-star s3" />
+        <div className="hero-star s4" />
+        <div className="hero-star s5" />
+      </div>
+
         <motion.div style={{ opacity }} className="hero-overlay">
           <div className="hero-gradient"></div>
         </motion.div>
