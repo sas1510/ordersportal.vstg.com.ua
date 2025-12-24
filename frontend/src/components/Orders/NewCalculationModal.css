@@ -391,3 +391,144 @@ body.dark-theme .new-calc-btn-save:disabled {
     color: #aaaaaa !important;
 }
 
+
+
+/* ===== Address Dropdown ===== */
+
+.address-dropdown-wrapper {
+  position: relative;
+}
+
+.address-dropdown {
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+}
+
+.address-dropdown-selected {
+  padding: 8px 10px;
+  border: 1px solid var(--grey-border-color, #ccc);
+  border-radius: 6px;
+  background: var(--input-bg, #fff);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.address-dropdown.open .address-dropdown-selected {
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.address-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 180px;               /* 🔥 головне */
+  overflow-y: auto;
+  background: var(--input-bg, #fff);
+  border: 1px solid var(--grey-border-color, #ccc);
+  border-radius: 6px;
+  z-index: 50;                     /* всередині модалки */
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.address-dropdown-item {
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.address-dropdown-item:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.address-dropdown-item.active {
+  background: rgba(59,130,246,0.15);
+  font-weight: 500;
+}
+
+.address-dropdown-item.disabled {
+  color: #999;
+  cursor: default;
+}
+
+/* ===== Dark theme (optional) ===== */
+body.dark-theme .address-dropdown-selected,
+body.dark-theme .address-dropdown-menu {
+  background: #2c2c2c;
+  color: #eee;
+  border-color: #444;
+}
+
+body.dark-theme .address-dropdown-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+/* Контейнер вибраного значення */
+.address-dropdown-selected {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Стиль іконки стрілки */
+.dropdown-arrow-icon {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.3s ease;
+}
+
+/* Поворот стрілки при відкритті */
+.dropdown-arrow-icon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Меню з адресами */
+.address-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+/* Елемент списку */
+.address-dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.address-dropdown-item:hover {
+  background-color: #f0f7ff;
+}
+
+.address-dropdown-item.active {
+  background-color: #e3efff;
+  font-weight: bold;
+  color: #0056b3;
+}
+
+/* Лінія-розділювач */
+.address-divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 0 10px;
+}
+
+/* Щоб wrapper мав context для absolute menu */
+.address-dropdown-wrapper {
+  position: relative;
+}

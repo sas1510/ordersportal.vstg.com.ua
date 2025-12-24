@@ -1065,3 +1065,145 @@ def orders_view_all_by_month(request):
         },
         safe=False
     )
+
+
+import json
+import base64
+
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+
+
+class CreateCalculationViewSet(viewsets.ViewSet):
+    """
+    Створення прорахунку + відправка в 1С
+    JSON + base64 (без multipart)
+    """
+
+    def create(self, request):
+        try:
+            contractor_guid = request.data.get("contractor_guid")
+            order_number = request.data.get("order_number")
+            items_count = request.data.get("items_count")
+            comment = request.data.get("comment", "")
+            address_guid = request.data.get("delivery_address_guid")
+
+            if not contractor_guid or not order_number:
+                raise ValueError("contractor_guid і order_number обовʼязкові")
+
+            # ---------- FILE FROM JSON ----------
+            file_data = request.data.get("file")
+            if not file_data:
+                raise ValueError("Файл прорахунку обовʼязковий")
+
+            file_name = file_data.get("fileName")
+            file_b64 = file_data.get("fileDataB64")
+
+            if not file_name or not file_b64:
+                raise ValueError("Некоректні дані файлу")
+
+            # 🔹 base64 → bytes
+            try:
+                file_bytes = base64.b64decode(file_b64)
+            except Exception:
+                raise ValueError("Невалідний base64 у файлі")
+
+            # ---------- PAYLOAD ДЛЯ 1С ----------
+            payload = {
+                "kontragentGUID": contractor_guid,
+                "orderNumber": order_number,
+                "itemsCount": int(items_count),
+                "addressGUID": address_guid,
+                "comment": comment,
+                "file": {
+                    "fileName": file_name,
+                    "fileDataB64": file_b64,  # ❗ передаємо назад як є
+                }
+            }
+
+            # 🔥 ВІДПРАВКА В 1С (поки mock)
+            result = self._send_to_1c(payload)
+
+            if not result.get("success"):
+                raise ValueError("1C не змогла створити прорахунок")
+
+            return Response(
+                {
+                    "success": True,
+                    "calculationGuid": result.get("calculationGuid")
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        except Exception as e:
+            return Response(
+                {
+                    "success": False,
+                    "error": str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def _send_to_1c(self, payload):
+        """
+        MOCK 1C (JSON → JSON)
+        """
+
+        print("📤 PAYLOAD TO 1C:")
+        print(json.dumps(payload, indent=2, ensure_ascii=False))
+
+        return {
+            "success": True,
+            "calculationGuid": f"mock-{payload['orderNumber']}",
+        }
+
+        # 🔥 КОЛИ БУДЕ РЕАЛЬНА 1C:
+        # response = requests.post(
+        #     "https://1c-endpoint/calculations",
+        #     json=payload,
+        #     timeout=20
+        # )
+        # response.raise_for_status()
+        # return response.json()
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import connection
+
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_dealer_addresses(request):
+    """
+    Повертає адреси доставки / юридичні адреси дилера
+    з процедури GetDealerAddresses
+    """
+
+    contractor_guid = request.GET.get("contractor")
+
+    if contractor_guid:
+        contractor_bin = guid_to_1c_bin(contractor_guid)
+
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetDealerAddresses @ContractorLink = %s
+            """,
+            [contractor_bin]
+        )
+
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+
+    data = [dict(zip(columns, row)) for row in rows]
+
+    return Response({
+        "success": True,
+        "addresses": data
+    })

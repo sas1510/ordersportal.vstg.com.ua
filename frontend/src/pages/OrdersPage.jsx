@@ -393,12 +393,6 @@ const PortalOriginal = () => {
                         </li>
                     </ul>
 
-                    {/* Це AddOrderModal, що використовує handleClose */}
-                    <AddOrderModal
-                        isOpen={isModalOpen}
-                        onClose={handleClose}
-                        onSave={handleSave}
-                    />
 
                     <ul className="filter column align-center">
                         <li className="delimiter1"></li>

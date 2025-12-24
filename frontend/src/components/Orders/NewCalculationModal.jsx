@@ -1,57 +1,114 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios.js";
-import { FaTimes, FaSave, FaUpload, FaTrash, FaUserAlt } from "react-icons/fa";
+
 import { useNotification } from "../notification/Notifications.jsx";
 import "./NewCalculationModal.css";
 import DealerSelect from "../../pages/DealerSelect";
-
+import { FaTimes, FaSave, FaUpload, FaTrash, FaUserAlt, FaChevronDown } from "react-icons/fa";
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
-  const [orderNumber, setOrderNumber] = useState(""); // ⬅️ Початкове значення тепер порожнє
+
+  const [orderNumber, setOrderNumber] = useState("");
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("Файл не обрано");
   const [itemsCount, setItemsCount] = useState(1);
   const [comment, setComment] = useState("");
+
   const [dealerId, setDealerId] = useState("");
-  const [dealers, setDealers] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [addressGuid, setAddressGuid] = useState("");
+  const [addressesLoading, setAddressesLoading] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const role = (localStorage.getItem("role") || "").trim().toLowerCase();
-  const managerRoles = ["manager", "region_manager", "admin"];
-  const isManager = managerRoles.includes(role);
+  const isManager = ["manager", "region_manager", "admin"].includes(role);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
 
-  // ❌ Видалено: useEffect для fetchLastOrderNumber
-  /*
-  useEffect(() => {
-    if (isOpen) fetchLastOrderNumber();
-  }, [isOpen]);
-  */
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // ❌ Видалено: функція fetchLastOrderNumber
-  /*
-  const fetchLastOrderNumber = async () => {
-    try {
-      const response = await axiosInstance.get("/last-order-number/");
-      const lastNumber = response.data?.LastOrderNumber || 0;
-      setOrderNumber(lastNumber + 1);
-    } catch (error) {
-      console.error("Не вдалося отримати останній номер замовлення:", error);
-      addNotification("Не вдалося отримати останній номер замовлення ❌", "error");
+  /* =========================
+     📦 Завантаження адрес
+     ========================= */
+  const loadAddresses = async (contractorGuid) => {
+  if (!contractorGuid) return;
+
+  setAddressesLoading(true);
+  setAddresses([]);
+  setAddressGuid("");
+
+  try {
+    const res = await axiosInstance.get("/dealer-addresses/", {
+      params: { contractor: contractorGuid }
+    });
+
+    const list = res.data?.addresses || [];
+
+    // ✅ БЕРЕМО ВСІ АДРЕСИ ДОСТАВКИ (як приходять з 1C)
+    const deliveryAddresses = list.filter(
+      (a) =>
+        typeof a.AddressKind === "string" &&
+        a.AddressKind.toLowerCase().includes("достав")
+    );
+
+    setAddresses(deliveryAddresses);
+
+    // ✅ Коректно визначаємо default
+    const def = deliveryAddresses.find(
+      (a) =>
+        a.IsDefault === "\u0001" ||
+        a.IsDefault === 1 ||
+        a.IsDefault === true
+    );
+
+    if (def) {
+      setAddressGuid(def.AddressKindGUID);
     }
-  };
-  */
-  
-  // ✅ Отримуємо дилерів (залишаємо, оскільки це незалежна логіка)
-  // useEffect(() => {
-  //   if (isOpen && isManager) {
-  //     axiosInstance
-  //       .get("/get_dealers/")
-  //       .then((res) => setDealers(res.data.dealers || []))
-  //       .catch((err) => console.error("Помилка отримання дилерів:", err));
-  //   }
-  // }, [isOpen, isManager]);
 
+  } catch (err) {
+    console.error("Помилка завантаження адрес:", err);
+    addNotification("Не вдалося завантажити адресу доставки ❌", "error");
+  } finally {
+    setAddressesLoading(false);
+  }
+};
+
+
+  /* =========================
+     🧠 Логіка при відкритті
+     ========================= */
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // 🟢 ДИЛЕР
+    if (!isManager) {
+      const contractorGuid = user.user_id_1c;
+      setDealerId(contractorGuid);
+      loadAddresses(contractorGuid);
+    }
+  }, [isOpen]);
+
+  /* =========================
+     🧠 Менеджер: зміна дилера
+     ========================= */
+  useEffect(() => {
+    setIsAddressOpen(false);
+
+    if (!isOpen) return;
+    if (!isManager) return;
+
+    if (dealerId) {
+      loadAddresses(dealerId);
+    } else {
+      setAddresses([]);
+      setAddressGuid("");
+    }
+  }, [dealerId, isOpen]);
+
+  /* =========================
+     📁 File handlers
+     ========================= */
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
@@ -66,12 +123,16 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   };
 
   const resetForm = () => {
-    setOrderNumber(""); // ⬅️ Скидаємо на порожнє значення
+    setOrderNumber("");
     setFile(null);
     setFileName("Файл не обрано");
     setItemsCount(1);
     setComment("");
     setDealerId("");
+    setAddresses([]);
+    setAddressGuid("");
+    setIsAddressOpen(false);
+
   };
 
   const handleCloseWithReset = () => {
@@ -79,36 +140,75 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     onClose();
   };
 
+  /* =========================
+     🚀 Submit
+     ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ⚠️ Оновлена перевірка: OrderNumber тепер завжди обов'язковий і порожній за замовчуванням
-    if (!orderNumber || !file || !itemsCount || !comment.trim() || (isManager && !dealerId)) {
-      addNotification("Будь ласка, заповніть усі обов'язкові поля та оберіть файл ❌", "error");
+    const contractorGuid = isManager ? dealerId : user.user_id_1c;
+
+    if (
+      !contractorGuid ||
+      !orderNumber ||
+      !file ||
+      !itemsCount ||
+      !comment.trim() ||
+      !addressGuid
+    ) {
+      addNotification(
+        "Заповніть усі поля та оберіть адресу доставки ❌",
+        "error"
+      );
       return;
     }
 
-    const formData = new FormData();
-    formData.append("OrderNumber", orderNumber);
-    formData.append("ConstructionsCount", itemsCount);
-    formData.append("file", file);
-    formData.append("Comment", comment);
-
-    if (isManager) formData.append("CustomerId", dealerId);
-
     setLoading(true);
+
     try {
-      const response = await axiosInstance.post("/create/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const fileBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
 
-      addNotification(`Прорахунок №${orderNumber} успішно створено ✅`, "success");
-      if (onSave) onSave(response.data);
+      const payload = {
+        contractor_guid: contractorGuid,
+        order_number: orderNumber,
+        delivery_address_guid: addressGuid,
+        items_count: Number(itemsCount),
+        comment,
+        file: {
+          fileName: file.name,
+          fileDataB64: fileBase64
+        }
+      };
+
+      const response = await axiosInstance.post(
+        "/calculations/create/",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      addNotification(`Прорахунок №${orderNumber} створено ✅`, "success");
+
+      onSave?.({
+        ...response.data,
+        OrderNumber: orderNumber,
+        ConstructionsCount: itemsCount,
+        Comment: comment
+      });
+
       resetForm();
       onClose();
     } catch (error) {
-      console.error("Помилка при створенні:", error);
-      addNotification("Помилка при збереженні прорахунку ❌", "error");
+      console.error("Помилка створення прорахунку:", error);
+      addNotification(
+        error.response?.data?.error ||
+          "Помилка при збереженні прорахунку ❌",
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -118,72 +218,115 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   return (
     <div className="new-calc-modal-overlay" onClick={onClose}>
-      <div className="new-calc-modal-window" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="new-calc-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="new-calc-modal-border-top">
           <div className="new-calc-modal-header">
-            <span className="icon icon-calculator"></span>
+            <span className="icon icon-calculator" />
             <h3>Створити новий прорахунок</h3>
             <span
               className="icon icon-cross new-calc-close-btn"
               onClick={handleCloseWithReset}
-            >
-              {/* <FaTimes size={16} /> */}
-            </span>
+            />
           </div>
         </div>
 
         <div className="new-calc-modal-body">
           <form className="new-calc-form" onSubmit={handleSubmit}>
-            {/* Номер замовлення: Тепер вводиться вручну */}
             <label className="new-calc-label-row">
               <span>№:</span>
               <input
                 type="text"
                 value={orderNumber}
                 onChange={(e) => setOrderNumber(e.target.value)}
-                placeholder="Введіть номер замовлення"
                 className="new-calc-input"
+                placeholder="Введіть номер замовлення"
               />
             </label>
 
-            {/* Вибір дилера для менеджера */}
             {isManager && (
               <div className="new-calc-label-row">
                 <span className="flex items-center gap-2">
-                  <FaUserAlt className="text-gray-600" />
+                  <FaUserAlt />
                   <span>Дилер:</span>
                 </span>
-
-                <DealerSelect
-                  value={dealerId}
-                  onChange={setDealerId}
-                />
+                <DealerSelect value={dealerId} onChange={setDealerId} />
               </div>
             )}
 
+            <div className="new-calc-label-row address-dropdown-wrapper">
+              {/* ===== LABEL ===== */}
+              <span>Адреса доставки:</span>
 
-            {/* Завантаження файлу */}
+              {/* ===== DROPDOWN WRAPPER ===== */}
+              <div className={`address-dropdown ${isAddressOpen ? "open" : ""}`} onClick={() => !addressesLoading && setIsAddressOpen(p => !p)}>
+              <div className="address-dropdown-selected">
+                <span>
+                  {addressesLoading
+                    ? "Завантаження адрес..."
+                    : addresses.find(a => a.AddressKindGUID === addressGuid)?.AddressValue
+                      || "Оберіть адресу доставки"}
+                </span>
+                {/* Додаємо іконку стрілки */}
+                <FaChevronDown className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`} />
+              </div>
+
+              {isAddressOpen && (
+                <div className="address-dropdown-menu">
+                  {addresses.length === 0 && (
+                    <div className="address-dropdown-item disabled">
+                      Немає адрес доставки
+                    </div>
+                  )}
+
+                  {addresses.map((a, index) => (
+                    <React.Fragment key={a.AddressKindGUID}>
+                      <div
+                        className={`address-dropdown-item ${addressGuid === a.AddressKindGUID ? "active" : ""}`}
+                        onClick={e => {
+                          e.stopPropagation();
+                          setAddressGuid(a.AddressKindGUID);
+                          setIsAddressOpen(false);
+                        }}
+                      >
+                        {a.AddressValue}
+                      </div>
+                      {/* Додаємо лінію-розділювач між елементами, крім останнього */}
+                      {index < addresses.length - 1 && <div className="address-divider" />}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            </div>
+
+
+
             <div className="new-calc-file-upload">
               <label htmlFor="new-calc-file" className="new-calc-upload-label">
                 <FaUpload size={20} />
-                <span>Завантажити файл прорахунку (.zkz)</span>
+                <span>Завантажити файл (.zkz)</span>
                 <input
                   type="file"
                   id="new-calc-file"
                   accept=".zkz"
                   onChange={handleFileChange}
-                  style={{ display: "none" }}
+                  hidden
                 />
               </label>
 
               <div className="new-calc-file-name">
-                <span className={file ? "text-danger" : "text-grey"}>{fileName}</span>
+                <span className={file ? "text-danger" : "text-grey"}>
+                  {fileName}
+                </span>
                 {file && (
                   <button
                     type="button"
                     className="new-calc-clear-file"
                     onClick={handleClearFile}
-                    title="Очистити файл"
                   >
                     <FaTrash size={14} />
                   </button>
@@ -191,26 +334,23 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               </div>
             </div>
 
-            {/* Кількість конструкцій */}
             <label className="new-calc-label-row">
               <span>Кількість конструкцій:</span>
               <input
                 type="number"
-                value={itemsCount}
                 min="1"
+                value={itemsCount}
                 onChange={(e) => setItemsCount(e.target.value)}
                 className="new-calc-input-number"
               />
             </label>
 
-            {/* Коментар */}
             <label className="new-calc-label">
               <span>Коментар:</span>
               <textarea
-                placeholder="Введіть коментар..."
+                rows={4}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                rows={4}
                 className="new-calc-textarea"
               />
             </label>
@@ -218,16 +358,18 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
         </div>
 
         <div className="new-calc-modal-footer">
-          <button className="new-calc-btn-cancel" onClick={handleCloseWithReset}>
-            <FaTimes size={16} color="#fff" /> Відмінити
+          <button
+            className="new-calc-btn-cancel"
+            onClick={handleCloseWithReset}
+          >
+            <FaTimes /> Відмінити
           </button>
-
           <button
             className="new-calc-btn-save"
             onClick={handleSubmit}
             disabled={loading}
           >
-            <FaSave size={16} color="#fff" /> {loading ? "Створюємо..." : "Зберегти"}
+            <FaSave /> {loading ? "Створюємо..." : "Зберегти"}
           </button>
         </div>
 

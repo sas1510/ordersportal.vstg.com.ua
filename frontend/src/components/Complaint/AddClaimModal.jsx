@@ -8,7 +8,7 @@ import { FaClipboardList } from "react-icons/fa";
 
 
 
-export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNumber = "" }) {
+export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNumber = "", initialOrderGUID = ''  }) {
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [claimDate, setClaimDate] = useState("");
@@ -103,6 +103,19 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
     );
   };
 
+  const getContractorGuid = () => {
+    try {
+      const userRaw = localStorage.getItem("user");
+      if (!userRaw) return null;
+
+      const user = JSON.parse(userRaw);
+      return user?.user_id_1c || null;
+    } catch {
+      return null;
+    }
+  };
+
+
   const handleAddPhoto = (e) => {
     const file = e.target.files[0];
     if (file) setPhotos((prev) => [...prev, file]);
@@ -132,57 +145,83 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
   };
 
   // 🔹 Сабміт
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (orderNotFound) return;
-
-     const photosBase64 = await Promise.all(
-    photos.map(file => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64String = reader.result.split(",")[1]; // забираємо тільки дані після "data:image/png;base64,"
-          resolve({
-            photo_name: file.name,
-            photo_base64: base64String
-          });
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    })
-  );
-
-  // 🔹 Формуємо payload JSON
-  const payload = {
-    order_number: orderNumber,
-    order_deliver_date: deliveryDate,
-    order_define_date: claimDate,
-    complaint_date: new Date().toISOString(),
-    issue: reasonLink,
-    solution: solutionLink,
-    description,
-    series: selectedSeries.map((link) => {
-      const serie = seriesOptions.find((s) => s.SeriesLink === link);
-      return { serie_link: link, serie_name: serie?.Name || "" };
-    }),
-    photos: photosBase64
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (orderNotFound) return;
 
   setLoading(true);
+
   try {
-    await axiosInstance.post("/complaints/create_complaints/", payload, {
-      headers: { "Content-Type": "application/json" },
-    });
+    // ✅ 1. Фото → base64
+    const photosBase64 = await Promise.all(
+      photos.map(file => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64 = reader.result.split(",")[1]; // ❗ без data:image/*
+            resolve({
+              photo_name: file.name,
+              photo_base64: base64
+            });
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      })
+    );
+
+    const contractorGuid = getContractorGuid();
+
+    if (!contractorGuid) {
+      alert("❌ Не знайдено контрагента користувача");
+      return;
+    }
+
+    const payload = {
+      contractor_guid: contractorGuid,   // 👈 ОЦЕ ГОЛОВНЕ
+
+      order_number: orderNumber.trim(),
+      order_GUID: initialOrderGUID,
+
+      order_deliver_date: deliveryDate,
+      order_define_date: claimDate,
+      complaint_date: new Date().toISOString(),
+
+      issue: reasonLink,
+      solution: solutionLink,
+      description,
+
+      series: selectedSeries.map(link => {
+        const serie = seriesOptions.find(s => s.SeriesLink === link);
+        return {
+          serie_link: link,
+          serie_name: serie?.Name || ""
+        };
+      }),
+
+      photos: photosBase64
+    };
+
+    // ✅ 3. JSON POST
+    await axiosInstance.post(
+      "/complaints/create_complaints/",
+      payload,
+      { headers: { "Content-Type": "application/json" } }
+    );
+
     alert("✅ Рекламацію додано!");
     onSave?.();
     handleCloseWithReset();
+
   } catch (err) {
-    alert("❌ Помилка: " + (err.response?.data || err.message));
+    console.error(err);
+    alert("❌ Помилка: " + (err.response?.data?.error || err.message));
   } finally {
     setLoading(false);
   }
 };
+
+
 
   if (!isOpen) return null;
 

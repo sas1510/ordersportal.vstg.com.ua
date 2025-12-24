@@ -20,11 +20,13 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+  
 
   // ---- ONLY PAYMENT MODAL FLAG ----
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
+  const [claimOrderGuid, setClaimOrderGuid] = useState("");
 
   // ========================= BUTTON STATES =========================
   const toggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
@@ -91,8 +93,10 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
   const openClaimModal = useCallback(() => {
     setClaimOrderNumber(order.number);
+    setClaimOrderGuid(order.idGuid); // ✅ ОСЬ ТУТ
     setIsClaimModalOpen(true);
-  }, []);
+  }, [order.number, order.idGuid]);
+
 
   const openReorderModal = useCallback(() => {
     setIsReorderModalOpen(true);
@@ -193,7 +197,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
         {/* FILES */}
         <div
-          className="summary-item flex w-10 items-center justify-center cursor-pointer bg-gray-100 rounded-md py-2 px-1"
+          className="summary-item flex w-10 items-center justify-center cursor-pointer bg-gray-100 rounded-md py-2 px-1  pl-2"
           onClick={openFilesModal}
         >
           <div className="row gap-1 align-center">
@@ -317,7 +321,9 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
         initialOrderNumber={claimOrderNumber}
+        initialOrderGUID={claimOrderGuid}
       />
+
 
       {/* REORDER */}
       <AddReorderModal

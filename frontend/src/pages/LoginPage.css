@@ -69,7 +69,8 @@
   left: 50%;
   width: 20rem;
   height: 20rem;
-  background-color: rgba(211, 197, 39, 0.35); /* Яскравіший жовтий */
+  /* background-color: rgba(211, 197, 39, 0.35); Яскравіший жовтий */
+  background-color: #e5004538; /* Яскравіший жовтий */
   animation-duration: 12s;
   animation-delay: 4s;
   transform: translate(-50%, -50%);
@@ -100,7 +101,7 @@
   left: 50%;
   width: 20rem;
   height: 20rem;
-  background-color: rgba(211, 197, 39, 0.25);
+  background-color: #e5004544;
   animation-duration: 12s;
   animation-delay: 4s;
   transform: translate(-50%, -50%);

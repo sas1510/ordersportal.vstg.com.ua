@@ -2,7 +2,13 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import order_files_view, download_order_file,  create_message
+from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses
+
+
+create_calculation = CreateCalculationViewSet.as_view({
+    "post": "create"
+})
+
 
 urlpatterns = [
     # Визначаємо URL для виклику функції complaints_view
@@ -15,6 +21,8 @@ urlpatterns = [
     path('create_message/', views.create_message, name='create_message'),
     path("order/<str:order_guid>/files/", order_files_view),
     path("order/<str:order_guid>/files/<str:file_guid>/<str:filename>/download/", download_order_file),
+    path("calculations/create/", create_calculation),
+    path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"),
     
 ]
 

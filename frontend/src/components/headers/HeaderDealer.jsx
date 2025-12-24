@@ -20,7 +20,6 @@ const NAV_LINKS = [
 ];
 
 const FINANCE_SUBMENU = [
-  { title: "Взаєморозрахунки", to: "/finance/settlements1" },
   { title: "Рух коштів", to: "/finance/paymentMovement" },
   { title: "Аналітика", to: "/finance/analytics" },
   { title: "Оплата", to: "/finance/payment" },
