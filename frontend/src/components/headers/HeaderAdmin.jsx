@@ -10,7 +10,7 @@ import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КО
 const NAV_LINKS = [
   { title: "Акції WDS", to: "/promo-wds-codes", icon: "icon-fire", className: "highlight" },
   { title: "Прорахунки", to: "/admin-order", icon: "icon-calculator" },
-  { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
+  { title: "Рекламації", to: "/admin-reclamation", icon: "icon-tools2" },
   { title: "Дозамовлення", to: "/admin-additional-order", icon: "icon-add-to-list" },
   { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
   { title: "Відео", to: "/videos", icon: "icon-youtube" },
@@ -18,20 +18,20 @@ const NAV_LINKS = [
 ];
 
 
+
 const FINANCE_SUBMENU = [
   // { title: "Взаєморозрахунки", to: "/finance/settlements" },
   { title: "Рух коштів", to: "/finance/paymentMovement" },
   { title: "Аналітика", to: "/finance/analytics" },
-  { title: "Оплата", to: "/finance/payments" },
+  // { title: "Оплата", to: "/finance/payments" },
   { title: "Рахунки", to: "/finance/customer-bills" },
 ];
 
 
 const SETTINGS_SUBMENU = [
-  { title: "Організації", to: "/organizations" },
-  { title: "Регіони", to: "/regions" },
-  { title: "Користувачі", to: "/users" },
-  { title: "Контакти", to: "/contacts" },
+
+  { title: "Користувачі", to: "/users-list" },
+
 ];
 
 export default function HeaderAdmin() {
@@ -87,10 +87,17 @@ export default function HeaderAdmin() {
 
 
   const navLinks = NAV_LINKS.map(link => (
-    <li key={link.to} className={`${location.pathname.startsWith(link.to) ? "active" : ""} ${link.className || ""}`}>
-      <Link to={link.to} className="menu-link">{link.title}</Link>
+    <li
+      key={link.to}
+      className={`${location.pathname.startsWith(link.to) ? "active" : ""} ${link.className || ""}`}
+    >
+      <Link to={link.to} className="menu-link">
+        <span className={`icon ${link.icon}`}></span>
+        <span>{link.title}</span>
+      </Link>
     </li>
   ));
+
 
   return (
     <header className="portal-header" ref={headerRef}>
@@ -107,6 +114,7 @@ export default function HeaderAdmin() {
 
             <li>
               <button className="menu-link" onClick={() => { setShowFinanceMenu(prev => !prev); setShowSettings(false); }}>
+                 <span className="icon icon-coin-dollar"></span>
                 Фінанси ▾
               </button>
               {showFinanceMenu && (
@@ -123,11 +131,11 @@ export default function HeaderAdmin() {
             </li>
 
             <li ref={settingsRef}>
-              <button className="menu-link" onClick={() => { setShowSettings(prev => !prev); setShowFinanceMenu(false); }}>
+              <button className="menu-link" onClick={() => { setShowSettings(prev => !prev); setShowFinanceMenu(false);}}>
                 Налаштування ▾
               </button>
               {showSettings && (
-                <ul className="submenu" style={{ display: showFinanceMenu ? "flex" : "none" }}>
+                <ul className="submenu" >
 
                   {SETTINGS_SUBMENU.map(item => (
                     <li key={item.to}>
@@ -139,8 +147,9 @@ export default function HeaderAdmin() {
                 </ul>
               )}
             </li>
+  
 
-            <li className="dealer-size"><HeaderUserProfile /></li>
+            <li className="dealer-size"><Link to="/change-password" className="dealer-profile-link"><HeaderUserProfile /></Link></li>
                       <li className="theme-toggle-item">
               <button 
                   className="theme-toggle-btn" 
@@ -184,6 +193,7 @@ export default function HeaderAdmin() {
 
                 <li>
                   <div className="menu-link" onClick={() => { setShowFinanceMenuMobile(prev => !prev); setShowSettingsMobile(false); }}>
+                     <span className="icon icon-coin-dollar"></span>
                     Фінанси ▾
                   </div>
                   {showFinanceMenuMobile && (
@@ -200,11 +210,11 @@ export default function HeaderAdmin() {
                 </li>
 
                 <li>
-                  <div className="menu-link" onClick={() => { setShowSettingsMobile(prev => !prev); setShowFinanceMenuMobile(false); }}>
+                  <div className="menu-link" onClick={() => { setShowSettingsMobile(prev => !prev); setShowFinanceMenu(false);}}>
                     Налаштування ▾
                   </div>
                   {showSettingsMobile && (
-                    <ul className="submenu" style={{ display: showFinanceMenu ? "flex" : "none" }}>
+                    <ul className="submenu">
 
                       {SETTINGS_SUBMENU.map(item => (
                         <li key={item.to}>

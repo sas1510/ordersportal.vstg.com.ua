@@ -65,7 +65,7 @@ export const adminRoutes = [
   // { path: "complaints", element: <ComplaintsPage /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
-  { path: "change-password", element: <ChangePassword /> },
+  { path: "change-password", element: <ChangePasswordPage /> },
   { path: "users/:id/edit", element: <EditUserPage /> },
   // { path: "finance/settlements", element: <SettlementsPage /> },
 

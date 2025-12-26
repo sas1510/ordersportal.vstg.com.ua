@@ -3,7 +3,7 @@ import "./MobilePaymentsView.css";
 
 import { formatDateHuman } from "../utils/formatters";
 
-
+import DealerSelect from "./DealerSelect";
 
 
 const MobilePaymentsView = ({
@@ -16,6 +16,8 @@ const MobilePaymentsView = ({
   onFilterChange,
   onSearch,
   onExcel,
+  isAdmin,
+  setDealerGuid,
 }) => {
   const [showFilters, setShowFilters] = useState(false);
 
@@ -113,6 +115,21 @@ const scrollToTop = () => {
           className="mobile-input-date"
         />
       </div>
+      {isAdmin && (
+        <div className="mobile-filter-group">
+          <label className="mobile-label">Дилер:</label>
+
+          <DealerSelect
+            value={filters.contractor}
+            onChange={(id) => {
+              setDealerGuid(id);
+              onFilterChange("contractor", id);
+            }}
+            isMobile
+          />
+        </div>
+      )}
+
 
       <div className="mobile-filter-actions">
         <button

@@ -23,28 +23,32 @@ const routeTitles = {
   "/files/add": "Додати файли",
   "/files/edit/:id": "Редагування файлів",
   "/videos": "Відео",
-  "/videos/add": "Додати відео",
-  "/videos/edit/:id": "Редагування відео",
   "/addUser": "Додати користувача",
   "/organizations": "Організації",
   "/regions": "Регіони",
   "/contacts": "Контакти SOS",
   "/orders": "Замовлення",
+  "/admin-order": "Замовлення",
   "/complaints": "Рекламації",
+  "/admin-reclamation": "Рекламації",
   "/additional-orders": "Список дозамовлень",
+  "/admin-additional-order": "Список дозамовлень",
   "/orders-fin": "Фінанси",
   "/change-password": "Зміна паролю",
   "/users/:id/edit": "Редагування користувача",
   "/finance/settlements": "Взаєморозрахунки",
-  "/finance/money-flow": "Рух коштів",
+  "/finance/paymentMovement": "Рух коштів",
   "/contacts/new": "Додання контактів SOS",
   // "/contacts/new": "Вхід — Портал замовлень",
   "/urgentLogs": "Звернення SOS",
   "/contacts/:id/edit": "Редагування контактів SOS",
   "/emergency-contacts": "SOS",
-  "/addOrder": "Завантажити замовлення",
-  "/addClaim": "Рекламація",
-  "/addReorder": "Дозамовлення",
+
+  "/promo-wds-codes": "Акція WDS",
+  "/finance/payment": "Оплата",
+  "/finance/customer-bills": "Рахунки",
+
+
 
 
 };

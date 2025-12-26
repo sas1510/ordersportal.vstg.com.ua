@@ -662,6 +662,8 @@ summary.lastCumSaldo = item.CumSaldo;
           onSearch={fetchData}
 
           onExcel={downloadExcel}
+          isAdmin={isAdmin}
+          setDealerGuid={setDealerGuid}
         />
 
             ) : (
