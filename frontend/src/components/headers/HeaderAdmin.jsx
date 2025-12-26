@@ -8,7 +8,7 @@ import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КО
 
 
 const NAV_LINKS = [
-  { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight" },
+  { title: "Акції WDS", to: "/promo-wds-codes", icon: "icon-fire", className: "highlight" },
   { title: "Прорахунки", to: "/admin-order", icon: "icon-calculator" },
   { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
   { title: "Дозамовлення", to: "/admin-additional-order", icon: "icon-add-to-list" },

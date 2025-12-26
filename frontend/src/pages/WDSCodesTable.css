@@ -1,0 +1,302 @@
+/* ===== LAYOUT ===== */
+
+.wds-codes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 70px 7%;
+}
+
+.customer-bills-header {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-title .icon {
+  color: var(--danger-color);
+}
+
+/* ===== FILTER ===== */
+
+.wds-filter {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  background: #fcf2f2;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px dashed var(--danger-color);
+}
+
+.filter-item-bill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn-filter {
+  background: var(--danger-color);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* ===== PANEL ===== */
+
+.wds-codes-panel {
+  background: #fff;
+  border-radius: 8px;
+  border-top: 4px solid var(--danger-color);
+  overflow: hidden;
+}
+
+/* ===== TABLE ===== */
+
+.wds-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wds-table th,
+.wds-table td {
+  padding: 12px;
+  border-bottom: px dashed #eee;
+}
+
+.wds-table th {
+  background: #fdf8f8;
+  text-align: left;
+  border-bottom: 2px solid var(--danger-color);
+}
+
+/* ===== BADGE ===== */
+
+.badge-wds {
+  background: #fff4ec;
+  color: #f36d00;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+/* ===== MOBILE CARDS ===== */
+
+.wds-mobile-list {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wds-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 5px;
+  border-left: 4px solid var(--danger-color);
+  box-shadow: 0 4px 8px rgba(0,0,0,.06);
+}
+
+.wds-card .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.wds-card .row:last-child {
+  border-bottom: none;
+}
+
+/* ===== VISIBILITY ===== */
+
+.desktop-only { display: block; }
+.mobile-only { display: none; }
+
+/* ===== DARK THEME ===== */
+
+body.dark-theme .wds-codes-panel,
+body.dark-theme .wds-card {
+  background: #2c2c2c;
+}
+
+body.dark-theme .wds-filter {
+  background: #352a2a;
+  border-color: #634343;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .desktop-only { display: none; }
+  .mobile-only { display: block; }
+
+
+  .wds-filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .wds-filter .filter-item-bill {
+    width: 100%;
+  }
+
+  .wds-filter .btn-filter {
+    width: 100%;
+    margin-top: 8px;      /* відступ зверху */
+    justify-content: center;
+  }
+  .wds-codes-page {
+    margin: 10px;
+  }
+}
+
+
+
+/* =========================================================
+   🌙 DARK THEME — WDS CODES
+   ========================================================= */
+
+body.dark-theme {
+  --wds-bg-main: #1f1f1f;
+  --wds-bg-panel: #2a2a2a;
+  --wds-bg-soft: #323232;
+  --wds-border-soft: #3d3d3d;
+  --wds-text-main: #e6e6e6;
+  --wds-text-muted: #a0a0a0;
+  --wds-accent: #ff6b6b;
+  --wds-accent-soft: #4a2b2b;
+}
+
+/* ===== PAGE ===== */
+
+body.dark-theme .wds-codes-page {
+  background: transparent;
+}
+
+/* ===== HEADER ===== */
+
+body.dark-theme .page-title {
+  color: var(--wds-text-main);
+}
+
+/* ===== FILTER ===== */
+
+body.dark-theme .wds-filter {
+  background: linear-gradient(
+    180deg,
+    #2b2424 0%,
+    #241e1e 100%
+  );
+  border: 1px dashed #5a3b3b;
+}
+
+body.dark-theme .filter-item-bill label {
+  color: var(--wds-text-muted);
+}
+
+body.dark-theme .filter-item-bill input,
+body.dark-theme .filter-item-bill select {
+  background-color: var(--wds-bg-soft);
+  border: 1px solid var(--wds-border-soft);
+  color: var(--wds-text-main);
+}
+
+body.dark-theme .filter-item-bill input:focus,
+body.dark-theme .filter-item-bill select:focus {
+  outline: none;
+  border-color: var(--wds-accent);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.15);
+}
+
+/* ===== BUTTON ===== */
+
+body.dark-theme .btn-filter {
+  background:  var(--danger-color);
+  color: #fff;
+}
+
+body.dark-theme .btn-filter:hover {
+  filter: brightness(1.05);
+}
+
+body.dark-theme .btn-filter:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+/* ===== PANEL ===== */
+
+body.dark-theme .wds-codes-panel {
+  background: var(--wds-bg-panel);
+  border-top-color: var(--danger-color);
+}
+
+/* ===== TABLE ===== */
+
+body.dark-theme .wds-table th {
+  background: #2f2f2f;
+  color: var(--wds-text-muted);
+  border-bottom: 2px solid var(--danger-color);
+}
+
+body.dark-theme .wds-table td {
+  color: var(--wds-text-main);
+  border-bottom: 1px dashed var(--wds-border-soft);
+}
+
+body.dark-theme .wds-table tbody tr:hover {
+  background: #2e2e2e;
+}
+
+/* ===== BADGE (WDS CODE) ===== */
+
+body.dark-theme .badge-wds {
+  background: linear-gradient(
+    180deg,
+    #3a2418 0%,
+    #2f1d13 100%
+  );
+  color: #ffb36b;
+  border: 1px solid #5a3b1e;
+}
+
+/* ===== MOBILE CARDS ===== */
+
+body.dark-theme .wds-card {
+  background: var(--wds-bg-soft);
+  border-left-color: var(--danger-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme .wds-card .row {
+  border-bottom: 1px dashed var(--wds-border-soft);
+}
+
+body.dark-theme .wds-card .row span {
+  color: var(--wds-text-muted);
+}
+
+body.dark-theme .wds-card .row b,
+body.dark-theme .wds-card .row .badge-wds {
+  color: var(--wds-text-main);
+}
+
+/* ===== EMPTY / ERROR ===== */
+
+body.dark-theme .no-data {
+  color: var(--wds-text-muted);
+}

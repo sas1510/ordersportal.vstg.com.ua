@@ -1207,3 +1207,93 @@ def get_dealer_addresses(request):
         "success": True,
         "addresses": data
     })
+
+
+
+# views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.db import connection
+
+from datetime import datetime
+from django.db import connection
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def wds_codes_by_contractor(request):
+    """
+    Повертає WDS-коди по контрагенту
+    SQL: dbo.GetWDSCodes_ByContractor
+    """
+
+    contractor_guid = request.GET.get("contractor")
+    date_from = request.GET.get("date_from")
+    date_to = request.GET.get("date_to")
+
+    if not contractor_guid:
+        return Response(
+            {"error": "contractor parameter is required"},
+            status=400
+        )
+
+    # --- GUID -> BINARY(16) ---
+    try:
+        contractor_bin = guid_to_1c_bin(contractor_guid)
+    except Exception:
+        return Response(
+            {"error": "invalid contractor GUID format"},
+            status=400
+        )
+
+    # --- Парсинг дат ---
+    def parse_date(value, field_name):
+        if not value:
+            return None
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValueError(f"invalid {field_name} format, expected YYYY-MM-DD")
+
+    try:
+        date_from_parsed = parse_date(date_from, "date_from")
+        date_to_parsed = parse_date(date_to, "date_to")
+    except ValueError as e:
+        return Response(
+            {"error": str(e)},
+            status=400
+        )
+
+    # --- SQL ---
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetWDSCodes_ByContractor
+                @Контрагент = %s,
+                @DateFrom   = %s,
+                @DateTo     = %s
+            """,
+            [
+                contractor_bin,
+                date_from_parsed,
+                date_to_parsed,
+            ]
+        )
+
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+
+    data = [dict(zip(columns, row)) for row in rows]
+
+    return Response({
+        "contractor": contractor_guid,
+        "date_from": date_from,
+        "date_to": date_to,
+        "count": len(data),
+        "items": data
+    })

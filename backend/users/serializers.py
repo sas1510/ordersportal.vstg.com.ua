@@ -46,6 +46,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Invitation # 'CustomUser' імпортується через get_user_model
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 User = get_user_model()
 
@@ -63,25 +65,36 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
+class Guid1CBinaryField(serializers.Field):
+    def to_representation(self, value):
+        if value is None:
+            return None
+        return bin_to_guid_1c(value)  # 👉 повертає 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+
+    def to_internal_value(self, data):
+        if not data:
+            return None
+        return guid_to_1c_bin(data)
+
+
 class CompleteRegistrationSerializer(serializers.ModelSerializer):
-    """
-    Серіалізатор для оновлення користувача при завершенні реєстрації.
-    """
+    user_id_1C = Guid1CBinaryField(read_only=True)
+
     class Meta:
         model = User
-        # ВИПРАВЛЕНО: Оновлено список полів відповідно до нової моделі
         fields = [
-            'password', 
-            'full_name', 
-            'phone_number', 
-            'username', 
-            'expire_date', # Це поле є в новій моделі
-            'role', 
+            'password',
+            'full_name',
+            'phone_number',
+            'username',
+            'expire_date',
+            'role',
             'user_id_1C',
             'permit_finance_info',
             'old_portal_id'
         ]
         extra_kwargs = {'password': {'write_only': True}}
+
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)

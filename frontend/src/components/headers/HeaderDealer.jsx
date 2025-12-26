@@ -9,7 +9,7 @@ import HeaderDealerProfile from "./HeaderDealerProfile";
 
 
 const NAV_LINKS = [
-  { title: "Акції WDS", to: "/promo", icon: "icon-fire", className: "highlight"  },
+  { title: "Акції WDS", to: "/promo-wds-codes", icon: "icon-fire", className: "highlight"  },
   { title: "Замовлення", to: "/orders", icon: "icon-calculator" },
   { title: "Рекламації", to: "/complaints", icon: "icon-tools2" },
   { title: "Дозамовлення", to: "/additional-orders", icon: "icon-add-to-list" },

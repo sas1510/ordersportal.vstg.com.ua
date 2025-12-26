@@ -434,40 +434,74 @@ class CurrentUserView(APIView):
 # ----------------------
 # Завершення реєстрації через інвайт
 # ----------------------
-@api_view(['GET', 'POST'])
+from datetime import timedelta
+from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+
+from .models import Invitation, CustomUser
+from .serializers import CompleteRegistrationSerializer
+
+
+@api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def register_with_invite(request, code):
+    # ---------- INVITE ----------
     try:
         invite = Invitation.objects.get(code__iexact=code)
     except Invitation.DoesNotExist:
-        return Response({"error": "Invalid invite code"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Invalid invite code"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
-    # Перевірка на 24 години (з вашої моделі)
-    if timezone.now() > invite.created_at + timedelta(hours=24):
-        return Response({"error": "Це посилання більше не активне"}, status=status.HTTP_400_BAD_REQUEST)
-    
+    # ---------- CHECKS ----------
     if invite.used:
-        return Response({"error": "Це посилання вже використано"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Це посилання вже використано"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
+    if timezone.now() > invite.created_at + timedelta(hours=24):
+        return Response(
+            {"error": "Це посилання більше не активне"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # ---------- USER ----------
     try:
-        # 'user_id_1C' є в новій моделі
         user = CustomUser.objects.get(user_id_1C=invite.user_id_1C)
     except CustomUser.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "User not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
-    if request.method == 'GET':
+    # ---------- GET ----------
+    if request.method == "GET":
         serializer = CompleteRegistrationSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    if request.method == 'POST':
-        serializer = CompleteRegistrationSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            # 'markAsUsed' є в моделі Invitation
-            invite.markAsUsed() 
-            return Response(serializer.data)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # ---------- POST ----------
+    serializer = CompleteRegistrationSerializer(
+        user,
+        data=request.data,
+        partial=True
+    )
+
+    if not serializer.is_valid():
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    serializer.save()
+    invite.markAsUsed()
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['GET'])
@@ -848,7 +882,7 @@ from rest_framework import status
 from django.db import connection
 
 from backend.utils.BinToGuid1C import bin_to_guid_1c
-
+from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

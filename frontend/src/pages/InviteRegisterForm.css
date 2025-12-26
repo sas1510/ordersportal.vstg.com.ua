@@ -1,0 +1,53 @@
+.invite-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.invite-panel {
+  width: 100%;
+}
+
+.invite-panel input,
+.invite-panel select {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px dashed var(--grey-border-color);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--text-color);
+}
+
+.invite-panel label {
+  font-size: 14px;
+  margin-bottom: 3px;
+  color: var(--grey-text-color);
+}
+
+.invite-panel input:focus,
+.invite-panel select:focus {
+  outline: none;
+  border-color: var(--info-color);
+  box-shadow: 0 0 5px var(--info-color);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.checkbox input {
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .w-50 {
+    width: 100% !important;
+  }
+}
