@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'users',
-    'records'
+    # 'records'
     # 'complaints',
     # 'contact',
     # 'documents',

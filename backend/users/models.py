@@ -44,7 +44,12 @@ class CustomUser(AbstractUser):
     full_name = models.CharField(max_length=255, blank=True, null=True, db_column='FullName')
     phone_number = models.CharField(max_length=20, blank=True, null=True, db_column='PhoneNumber')
     expire_date = models.DateTimeField(blank=True, null=True, db_column='ExpireDate')
-
+    
+    email_confirmed = models.BooleanField(
+        default=False,
+        verbose_name="Email підтверджено",
+        db_column='EmailConfirmed'
+    )
     ROLE_CHOICES = [
         ("admin", "Адміністратор"),
         ("manager", "Менеджер"),

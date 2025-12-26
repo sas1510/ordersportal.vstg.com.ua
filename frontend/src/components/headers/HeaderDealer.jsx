@@ -23,7 +23,6 @@ const FINANCE_SUBMENU = [
   { title: "Рух коштів", to: "/finance/paymentMovement" },
   { title: "Аналітика", to: "/finance/analytics" },
   { title: "Оплата", to: "/finance/payment" },
-  { title: "Акція WDS", to: "/promo" },
   { title: "Рахунки", to: "/finance/customer-bills" },
 ];
 

@@ -77,35 +77,42 @@ class Guid1CBinaryField(serializers.Field):
         return guid_to_1c_bin(data)
 
 
-class CompleteRegistrationSerializer(serializers.ModelSerializer):
-    user_id_1C = Guid1CBinaryField(read_only=True)
 
+class CompleteRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
             'password',
             'full_name',
             'phone_number',
-            'username',
-            'expire_date',
-            'role',
-            'user_id_1C',
-            'permit_finance_info',
-            'old_portal_id'
-        ]
-        extra_kwargs = {'password': {'write_only': True}}
+            'email',
 
+
+            # 👁️ READ-ONLY для фронту
+            'role',
+            'expire_date',
+            'username'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'role': {'read_only': True},
+            'expire_date': {'read_only': True},
+            'username' : {'read_only': True}
+        }
 
     def update(self, instance, validated_data):
+        # 🔐 пароль
         password = validated_data.pop('password', None)
         if password:
             instance.set_password(password)
-        
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        
-        # ВИПРАВЛЕНО: 'enable' -> 'is_active'
-        # Встановлюємо is_active=True, оскільки реєстрація завершена
-        instance.is_active = True 
+
+        # ✏️ дозволені поля
+        for field in ['full_name', 'phone_number', 'email']:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+
+        # ✅ реєстрація завершена
+        instance.is_active = True
         instance.save()
+
         return instance
