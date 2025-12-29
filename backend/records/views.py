@@ -4,14 +4,15 @@ from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
+from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Message
 from .serializers import MessageSerializer
-
+from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
+from backend.utils.BinToGuid1C import convert_row
 
 import re
 # Вам потрібно переконатися, що 'import re' додано на початку вашого файлу Django views.
@@ -66,57 +67,109 @@ def parse_reclamation_details(text):
 
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from backend.permissions import IsAuthenticatedOr1CApiKey
+
+from django.http import JsonResponse
+from django.db import connection
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+from django.http import JsonResponse
+from django.db import connection
+
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def complaints_view(request):
 
-    # Отримуємо рік із GET-параметра або беремо поточний
+    # ---------- PARAMS ----------
     year_str = request.GET.get("year")
-    contractor_id_guid = request.GET.get("contractor")
-    contractor_id = guid_to_1c_bin(contractor_id_guid)
+    contractor_guid = request.GET.get("contractor")
+
+    if not contractor_guid:
+        return JsonResponse(
+            {"error": "Parameter 'contractor' is required"},
+            status=400
+        )
+
+    try:
+        contractor_bin = guid_to_1c_bin(contractor_guid)
+    except Exception:
+        return JsonResponse(
+            {"error": "Invalid contractor GUID"},
+            status=400
+        )
+
     try:
         year = int(year_str) if year_str else None
     except ValueError:
-        return JsonResponse({"error": "Invalid year format"}, status=400)
+        return JsonResponse(
+            {"error": "Invalid year format"},
+            status=400
+        )
 
+    # ---------- 🔐 ACCESS CONTROL ----------
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return Response(
+                    {"detail": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_bin != user_contractor:
+                return Response(
+                    {"detail": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # ---------- 🧾 DATA ----------
     with connection.cursor() as cursor:
-        # Викликаємо процедуру
-        cursor.execute("""
-            EXEC [dbo].[GetComplaintsFull] 
-                @User1C_ID = %s, 
+        cursor.execute(
+            """
+            EXEC [dbo].[GetComplaintsFull]
+                @User1C_ID = %s,
                 @Year = %s
-        """, [contractor_id, year])
+            """,
+            [contractor_bin, year]
+        )
 
-        # Отримуємо дані (якщо процедура повертає SELECT)
         columns = [col[0] for col in cursor.description]
         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-
-    # safe_rows = decode_bytes(rows)
-
-    # Крок 2: Парсинг додаткової інформації та додавання нових полів
-    processed_rows = []
+    # ---------- 🧠 PARSING ----------
     for row in rows:
-        # Поле, в якому зберігаються всі неструктуровані дані
-        full_text = row.get('AdditionalInformation')
-        
-        # Парсинг, навіть якщо AdditionalInformation є None або порожнє
-        parsed_info = parse_reclamation_details(full_text)
-        
-        # Додаємо нові, розпаршені поля до словника
-        row['DeliveryDateText'] = parsed_info.get('ParsedDeliveryDate')
-        row['DeterminationDateText'] = parsed_info.get('ParsedDeterminationDate')
-        
-        # Якщо в AdditionalInformation не було знайдено явного "Опису рекламації:",
-        # залишаємо оригінальний AdditionalInformation в описі.
-        row['ParsedDescription'] = parsed_info.get('ParsedDescription') or full_text
-        
-        processed_rows.append(row)
+        if row.get("ComplaintGuid"):
+            row["ComplaintGuid"] = bin_to_guid_1c(row["ComplaintGuid"])
 
-    return JsonResponse({
-        "status": "success",
-        "data": rows
-    })
+        full_text = row.get("AdditionalInformation")
+        parsed_info = parse_reclamation_details(full_text)
+
+        row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
+        row["DeterminationDateText"] = parsed_info.get("ParsedDeterminationDate")
+        row["ParsedDescription"] = (
+            parsed_info.get("ParsedDescription") or full_text
+        )
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "data": rows
+        },
+        safe=False
+    )
 
 
 
@@ -250,17 +303,76 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
     return formatted_calcs
 
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def api_get_orders(request):
-    year = int(request.GET.get("year"))
-    contractor_id_guid = request.GET.get("contractor_guid")
-    contractor_id = guid_to_1c_bin(contractor_id_guid)
+    # ---------- PARAMS ----------
+    year_str = request.GET.get("year")
+    contractor_guid = request.GET.get("contractor_guid")
 
+    if not year_str or not contractor_guid:
+        return Response(
+            {"error": "year and contractor_guid are required"},
+            status=400
+        )
 
+    try:
+        year = int(year_str)
+    except ValueError:
+        return Response(
+            {"error": "Invalid year"},
+            status=400
+        )
 
-    data = get_orders_by_year_and_contractor(year, contractor_id)
-    return Response({"status": "success", "data": {"calculation": data}})
+    try:
+        contractor_bin = guid_to_1c_bin(contractor_guid)
+    except Exception:
+        return Response(
+            {"error": "Invalid contractor GUID"},
+            status=400
+        )
+
+    # ---------- 🔐 ACCESS CONTROL ----------
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return Response(
+                    {"detail": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_bin != user_contractor:
+                return Response(
+                    {"detail": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # ---------- 📦 DATA ----------
+    data = get_orders_by_year_and_contractor(year, contractor_bin)
+
+    return Response(
+        {
+            "status": "success",
+            "data": {
+                "calculation": data
+            }
+        }
+    )
 
 
 
@@ -345,131 +457,154 @@ def api_get_orders(request):
 #         add_order["statuses"][st] = add_order["s]()
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def additional_orders_view(request):
     """
-    Повертає дозакази користувача у потрібному JSON-форматі.
-    Кожен рядок SQL-процедури розглядається як одне Додаткове Замовлення (Претензія).
+    Повертає дозакази (Additional Orders)
     """
-    # try:
-    #     user_id = request.user.id
-    # except AttributeError:
-    #     return Response({"error": "Invalid user object"}, status=400)
 
     year_str = request.GET.get("year")
     contractor_guid = request.GET.get("contractor")
 
-    if contractor_guid:
-        user_id = guid_to_1c_bin(contractor_guid)
-    else:
-        user_id = request.user.user_id_1C
+    if not contractor_guid:
+        return Response(
+            {"error": "Parameter 'contractor' is required"},
+            status=400
+        )
 
+    try:
+        contractor_bin = guid_to_1c_bin(contractor_guid)
+    except Exception:
+        return Response(
+            {"error": "Invalid contractor GUID"},
+            status=400
+        )
 
     try:
         year = int(year_str) if year_str else None
     except ValueError:
-        return Response({"error": "Invalid year format"}, status=400)
+        return Response(
+            {"error": "Invalid year format"},
+            status=400
+        )
 
-    # --- ФУНКЦІЯ-ПОМІЧНИК ДЛЯ ОЧИЩЕННЯ ДАТИ ---
-    def clean_date_stub(date_value):
-        """Перевіряє, чи не є значення датою-заглушкою, інакше повертає None."""
-        if not date_value:
-            return None
-        
-        date_str = str(date_value).strip()
-        
-        # Дати-заглушки можуть бути: 0001-01-01, 2001-01-01, або 1753-01-01 (SQL min date)
-        # Перевіряємо лише перші 10 символів (YYYY-MM-DD)
-        if date_str.startswith('0001-01-01') or date_str.startswith('2001-01-01') or date_str.startswith('1753-01-01'):
-            return None
-        
-        return date_value
-    # ------------------------------------------
+    # -------------------------------------------------
+    # 🔐 ACCESS CONTROL
+    # -------------------------------------------------
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
 
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return Response(
+                    {"detail": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_bin != user_contractor:
+                return Response(
+                    {"detail": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # -------------------------------------------------
+    # 📦 SQL
+    # -------------------------------------------------
     with connection.cursor() as cursor:
         cursor.execute("""
             EXEC [dbo].[GetAdditionalOrder] 
                 @User1C_ID = %s,
                 @Year = %s
-        """, [user_id, year])
+        """, [contractor_bin, year])
 
         columns = [col[0] for col in cursor.description]
         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+    # -------------------------------------------------
+    # 🧹 DATE CLEANER
+    # -------------------------------------------------
+    def clean_date_stub(date_value):
+        if not date_value:
+            return None
+        date_str = str(date_value).strip()
+        if (
+            date_str.startswith("0001-01-01")
+            or date_str.startswith("2001-01-01")
+            or date_str.startswith("1753-01-01")
+        ):
+            return None
+        return date_value
+
+    # -------------------------------------------------
+    # 🎛 FORMAT DATA
+    # -------------------------------------------------
     formatted_orders = []
-    
+
     for row in rows:
-        # Парсинг AdditionalInformation
-        full_text = row.get('AdditionalInformation')
-        # parse_reclamation_details повинна бути імпортована
-        parsed_info = parse_reclamation_details(full_text) 
-        # Припускаємо, що parsed_info.get('ParsedDescription') повертає None, якщо не знайдено
-        # parsed_info = {'ParsedDescription': None} 
-        
-        # Використовуємо ComplaintNumber як унікальний ID дозамовлення
+        full_text = row.get("AdditionalInformation")
+        parsed_info = parse_reclamation_details(full_text)
+
+        if row.get("AdditionalOrderGuid"):
+            row["AdditionalOrderGuid"] = bin_to_guid_1c(row["AdditionalOrderGuid"])
+
         complaint_number = row.get("AdditionalOrderNumber") or "unknown"
         order_sum = float(row.get("DocumentAmount") or 0)
         total_paid = float(row.get("TotalPayments") or 0)
         status_name = row.get("StatusName") or "Новий"
         constructions_qty = int(row.get("ConstructionsQTY") or 0)
 
-        # Очищення всіх дат від заглушок
-        main_order_date = clean_date_stub(row.get('MainOrderDate'))
-        additional_order_date = clean_date_stub(row.get("AdditionalOrderDate"))
-        claim_order_date = clean_date_stub(row.get("ClaimOrderDate"))
-        sold_date = clean_date_stub(row.get("SoldDate"))
-        date_launched = clean_date_stub(row.get("DateLaunched"))
-        date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
-        produced_date = clean_date_stub(row.get("ProducedDate"))
-        
-        # Створення основного об'єкта дод. замовлення (для фронту це "calc")
         additional_order = {
+            "guid": row.get("AdditionalOrderGuid"),
             "id": complaint_number,
-            "number": f"{complaint_number}",
-            "numberWEB": row.get('NumberWEB'),
-            "mainOrderNumber": row.get('OrderNumber'),
-            "mainOrderDate": main_order_date, # 🔥 ОЧИЩЕНО
-            "dateRaw": additional_order_date, # 🔥 ОЧИЩЕНО
-            "date": additional_order_date, # 🔥 ОЧИЩЕНО
+            "number": complaint_number,
+            "numberWEB": row.get("NumberWEB"),
+            "mainOrderNumber": row.get("OrderNumber"),
+            "mainOrderDate": clean_date_stub(row.get("MainOrderDate")),
+            "dateRaw": clean_date_stub(row.get("AdditionalOrderDate")),
+            "date": clean_date_stub(row.get("AdditionalOrderDate")),
             "dealer": row.get("Customer") or row.get("OrganizationName") or "",
             "managerName": row.get("LastManagerName"),
             "organizationName": row.get("OrganizationName"),
             "debt": order_sum - total_paid,
-            "file": None, 
-            "message": parsed_info.get('ParsedDescription') or full_text,
-            "orderCountInCalc": 1, 
+            "file": None,
+            "message": parsed_info.get("ParsedDescription") or full_text,
+            "orderCountInCalc": 1,
             "constructionsCount": constructions_qty,
             "constructionsQTY": constructions_qty,
             "amount": order_sum,
-            "statuses": {status_name: 1}, 
+            "statuses": {status_name: 1},
             "orders": [
                 {
-                    # Використовуємо ComplaintNumber, якщо ClaimOrderNumber порожній/недійсний
-                    "id": row.get('ClaimOrderNumber') or complaint_number, 
-                    "number": row.get('ClaimOrderNumber') or "", # Порожній рядок, якщо номер претензії порожній (для фронту)
-                    "dateRaw": claim_order_date, # 🔥 ОЧИЩЕНО
-                    "date": claim_order_date, # 🔥 ОЧИЩЕНО
+                    "id": row.get("ClaimOrderNumber") or complaint_number,
+                    "number": row.get("ClaimOrderNumber") or "",
+                    "dateRaw": clean_date_stub(row.get("ClaimOrderDate")),
+                    "date": clean_date_stub(row.get("ClaimOrderDate")),
                     "status": status_name,
                     "amount": order_sum,
                     "count": constructions_qty,
                     "paid": total_paid,
-                    "realizationDate": sold_date, # 🔥 ОЧИЩЕНО
+                    "realizationDate": clean_date_stub(row.get("SoldDate")),
                     "routeStatus": row.get("RouteStatus"),
                     "seriesList": row.get("SeriesList"),
-                    "resolutionPaths": row.get('ResolutionPaths'),
+                    "resolutionPaths": row.get("ResolutionPaths"),
                     "organizationName": row.get("OrganizationName"),
-                    "planProduction": date_launched, # 🔥 ОЧИЩЕНО
-                    "factStartProduction" : date_transferred, # 🔥 ОЧИЩЕНО
-                    "factReady" : produced_date, # 🔥 ОЧИЩЕНО
+                    "planProduction": clean_date_stub(row.get("DateLaunched")),
+                    "factStartProduction": clean_date_stub(row.get("DateTransferredToWarehouse")),
+                    "factReady": clean_date_stub(row.get("ProducedDate")),
                 }
             ],
         }
-        
+
         formatted_orders.append(additional_order)
 
     return Response({
         "status": "success",
-        "data": {"calculation": formatted_orders} 
+        "data": {"calculation": formatted_orders}
     })
 
 
@@ -488,7 +623,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def order_files_view(request, order_guid):
     """
     Отримує всі файли (ZKZ, фото, документи) для замовлення через SQL.
@@ -572,7 +707,7 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 logger = logging.getLogger(__name__)
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def download_order_file(request, order_guid, file_guid, filename):
     server = settings.SMB_SERVER
     share = settings.SMB_SHARE
@@ -629,7 +764,7 @@ def download_order_file(request, order_guid, file_guid, filename):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def create_message(request):
     serializer = MessageSerializer(
             data=request.data,
@@ -665,7 +800,7 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminJWTOr1CApiKey])
 def get_additional_orders_info_all(request):
     """
     ADMIN ONLY
@@ -673,18 +808,11 @@ def get_additional_orders_info_all(request):
     СТРУКТУРА = additional_orders_view
     """
 
-    # ⚠️ тимчасово (краще JWT)
-    if getattr(request.user, "role", None) != "admin":
-        return Response({"detail": "Access denied"}, status=403)
-
     year = request.GET.get("year")
     month = request.GET.get("month")
 
     if not year or not month:
-        return Response(
-            {"error": "year and month are required"},
-            status=400
-        )
+        return Response({"error": "year and month are required"}, status=400)
 
     try:
         year = int(year)
@@ -692,10 +820,7 @@ def get_additional_orders_info_all(request):
         if not 1 <= month <= 12:
             raise ValueError
     except ValueError:
-        return Response(
-            {"error": "Invalid year or month"},
-            status=400
-        )
+        return Response({"error": "Invalid year or month"}, status=400)
 
     # ---------- helper ----------
     def clean_date_stub(date_value):
@@ -716,14 +841,23 @@ def get_additional_orders_info_all(request):
             """,
             [year, month]
         )
-
         columns = [c[0] for c in cursor.description]
         raw_rows = cursor.fetchall()
 
-    rows = [
-        convert_row(dict(zip(columns, r)))
-        for r in raw_rows
-    ]
+    # ✅ ПРАВИЛЬНО формуємо rows
+    rows = []
+    for r in raw_rows:
+        raw = dict(zip(columns, r))
+
+        # ⬅️ ГАРАНТОВАНО зберігаємо binary GUID
+        raw_guid = raw.get("AdditionalOrderGuid")
+
+        if isinstance(raw_guid, memoryview):
+            raw_guid = raw_guid.tobytes()
+
+        raw["_AdditionalOrderGuid_raw"] = raw_guid
+
+        rows.append(raw)
 
     formatted_orders = []
 
@@ -747,9 +881,14 @@ def get_additional_orders_info_all(request):
         date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
         produced_date = clean_date_stub(row.get("ProducedDate"))
 
+        # ✅ ТУТ guid 100% не буде null
+        raw_guid = row.get("_AdditionalOrderGuid_raw")
+        additional_order_guid = bin_to_guid_1c(raw_guid) if raw_guid else None
+
         calc = {
+            "guid": additional_order_guid,
             "id": complaint_number,
-            "number": f"{complaint_number}",
+            "number": complaint_number,
             "numberWEB": row.get("NumberWEB"),
             "mainOrderNumber": row.get("OrderNumber"),
             "mainOrderDate": main_order_date,
@@ -806,27 +945,14 @@ from django.db import connection
 from backend.utils.BinToGuid1C import convert_row
 # from .utils import parse_reclamation_details
 
-
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminJWTOr1CApiKey])
 def complaints_view_all_by_month(request):
     """
     ADMIN ONLY
     Повертає ВСІ рекламації за МІСЯЦЬ
-    СТРУКТУРА = complaints_view
     SQL: GetComplaintsFull_ByMonth
-
-    GET params:
-      - year  (int)
-      - month (int)
     """
-
-    # ⛔ контроль доступу (аналогічно іншим all-view)
-    if getattr(request.user, "role", None) != "admin":
-        return JsonResponse(
-            {"detail": "Access denied"},
-            status=403
-        )
 
     year_str = request.GET.get("year")
     month_str = request.GET.get("month")
@@ -864,23 +990,28 @@ def complaints_view_all_by_month(request):
         columns = [col[0] for col in cursor.description]
         raw_rows = cursor.fetchall()
 
-    # =========================
-    # SAFE ROWS (GUID → str)
-    # =========================
-    rows = [
-        convert_row(dict(zip(columns, row)))
-        for row in raw_rows
-    ]
-
-    # =========================
-    # PARSE AdditionalInformation
-    # (ідентично complaints_view)
-    # =========================
     processed_rows = []
 
-    for row in rows:
-        full_text = row.get("AdditionalInformation")
+    for r in raw_rows:
+        row = dict(zip(columns, r))
 
+        # =========================
+        # GUID: BINARY(16) → string
+        # =========================
+        raw_guid = row.get("ComplaintGuid")
+
+        if isinstance(raw_guid, memoryview):
+            raw_guid = raw_guid.tobytes()
+
+        if isinstance(raw_guid, (bytes, bytearray)):
+            row["ComplaintGuid"] = bin_to_guid_1c(raw_guid)
+        else:
+            row["ComplaintGuid"] = None
+
+        # =========================
+        # PARSE AdditionalInformation
+        # =========================
+        full_text = row.get("AdditionalInformation")
         parsed_info = parse_reclamation_details(full_text)
 
         row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
@@ -898,24 +1029,19 @@ def complaints_view_all_by_month(request):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse
-from django.db import connection
-
-from backend.utils.BinToGuid1C import convert_row
-
-
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from django.db import connection
+
+
+
 
 # from backend.utils.BinToGuid1C import convert_row
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminJWTOr1CApiKey])
 def orders_view_all_by_month(request):
     """
     ADMIN ONLY
@@ -923,9 +1049,6 @@ def orders_view_all_by_month(request):
     Структура ПОВНІСТЮ ідентична get_orders_by_year_and_contractor
     """
 
-    # ⛔ тільки admin
-    if getattr(request.user, "role", None) != "admin":
-        return JsonResponse({"detail": "Access denied"}, status=403)
 
     year_str = request.GET.get("year")
     month_str = request.GET.get("month")
@@ -1177,7 +1300,7 @@ from django.db import connection
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_dealer_addresses(request):
     """
     Повертає адреси доставки / юридичні адреси дилера
@@ -1225,7 +1348,7 @@ from rest_framework.response import Response
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def wds_codes_by_contractor(request):
     """
     Повертає WDS-коди по контрагенту

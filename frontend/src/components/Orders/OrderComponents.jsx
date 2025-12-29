@@ -190,7 +190,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
 
              {calc.dealer && (
                <div className="text-grey font-size-12">
-                 <span className="text-dark">{calc.dealer}</span>
+                 <span className="text-dark dealer-wrap">{calc.dealer}</span>
               </div>
             )}
        </div>
@@ -227,7 +227,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
 
       {/* ============ CALC DETAILS ============ */}
       {expanded && (
-        <div className="item-details column gap-14 mt-2">
+        <div className="item-details column gap-14">
           {orderList.length === 0 ? (
             <div className="order-item column gap-14 w-100 align-center">
               <div className="font-size-22 text-grey uppercase float-center">

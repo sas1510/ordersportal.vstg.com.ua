@@ -76,6 +76,7 @@ function formatApiData(data) {
         };
     });
 }
+
 /* =========================================================
  * MAIN COMPONENT
  * ========================================================= */
@@ -262,12 +263,13 @@ const AdminReclamationPortal = () => {
     }, [reclamationsData]);
 
     /* =====================================================
-     * HANDLERS (NO FETCH)
+     * HANDLERS
      * ===================================================== */
     const handleStatusClick = status => {
         setFilter(prev => ({ ...prev, status }));
         setFilteredItems(getFilteredItems(status, filter.month, filter.name));
         setVisibleItemsCount(ITEMS_PER_LOAD);
+        if (isMobile) setIsSidebarOpen(false); // Закриваємо на мобілці після вибору
     };
 
     const handleMonthClick = month => {
@@ -330,7 +332,7 @@ const AdminReclamationPortal = () => {
     }
 
     return (
-        <div className="column portal-body">
+        <div className={`column portal-body ${theme}`}>
 
             {/* ================= HEADER + MONTHS ================= */}
             <div className="content-summary row w-100">
@@ -351,51 +353,110 @@ const AdminReclamationPortal = () => {
                 </div>
 
                 <div className="by-month-pagination-wrapper">
-                    <ul className="gap-6 row no-wrap month-list">
 
-                        {dealerGuid !== ALL_DEALERS_VALUE && (
-                            <li
-                                className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
-                                onClick={() => handleMonthClick(0)}
-                            >
-                                Весь рік
-                            </li>
-                        )}
+                    {/* ===== DESKTOP: кнопки ===== */}
+                    {!isMobile && (
+                        <ul className="gap-6 row no-wrap month-list">
 
-                        {Array.from({ length: 12 }, (_, i) => {
-                            const num = i + 1;
-                            const labels = [
-                                'Січ.', 'Лют.', 'Бер.', 'Квіт.', 'Трав.', 'Черв.',
-                                'Лип.', 'Сер.', 'Вер.', 'Жов.', 'Лис.', 'Груд.'
-                            ];
-
-                            const disabled =
-                                dealerGuid !== ALL_DEALERS_VALUE &&
-                                monthSummary[num] === 0;
-
-                            return (
+                            {dealerGuid !== ALL_DEALERS_VALUE && (
                                 <li
-                                    key={num}
-                                    className={`pagination-item 
-                                        ${filter.month === num ? 'active' : ''} 
-                                        ${disabled ? 'disabled' : ''}`}
-                                    onClick={() => !disabled && handleMonthClick(num)}
+                                    className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
+                                    onClick={() => handleMonthClick(0)}
                                 >
-                                    {labels[i]}
-                                    {dealerGuid !== ALL_DEALERS_VALUE &&
-                                        <span className="text-grey"> ({monthSummary[num]})</span>}
+                                    Весь рік
                                 </li>
-                            );
-                        })}
-                    </ul>
+                            )}
+
+                            {Array.from({ length: 12 }, (_, i) => {
+                                const num = i + 1;
+                                const labels = [
+                                    'Січ.', 'Лют.', 'Бер.', 'Квіт.', 'Трав.', 'Черв.',
+                                    'Лип.', 'Сер.', 'Вер.', 'Жов.', 'Лис.', 'Груд.'
+                                ];
+
+                                const disabled =
+                                    dealerGuid !== ALL_DEALERS_VALUE &&
+                                    monthSummary[num] === 0;
+
+                                return (
+                                    <li
+                                        key={num}
+                                        className={`pagination-item 
+                                            ${filter.month === num ? 'active' : ''} 
+                                            ${disabled ? 'disabled' : ''}`}
+                                        onClick={() => !disabled && handleMonthClick(num)}
+                                    >
+                                        {labels[i]}
+                                        {dealerGuid !== ALL_DEALERS_VALUE &&
+                                            <span className="text-grey"> ({monthSummary[num]})</span>}
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+
+                    {/* ===== MOBILE: select ===== */}
+                    {isMobile && (
+                        <select
+                            className="month-select"
+                            value={filter.month}
+                            onChange={(e) => handleMonthClick(Number(e.target.value))}
+                        >
+                            <option value={0}>Весь рік</option>
+
+                            {Array.from({ length: 12 }, (_, i) => {
+                                const num = i + 1;
+                                const labels = [
+                                    'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+                                    'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
+                                ];
+
+                                return (
+                                    <option
+                                        key={num}
+                                        value={num}
+                                        disabled={
+                                            dealerGuid !== ALL_DEALERS_VALUE &&
+                                            monthSummary[num] === 0
+                                        }
+                                    >
+                                        {labels[i]}
+                                        {dealerGuid !== ALL_DEALERS_VALUE
+                                            ? ` (${monthSummary[num]})`
+                                            : ''}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                    )}
+
                 </div>
+
             </div>
 
             {/* ================= CONTENT ================= */}
             <div className="content-wrapper row w-100 h-100">
 
+                {/* OVERLAY (Background for mobile sidebar) */}
+                {isMobile && isSidebarOpen && (
+                    <div 
+                        className="sidebar-overlay" 
+                        onClick={() => setIsSidebarOpen(false)} 
+                    />
+                )}
+
                 {/* SIDEBAR */}
                 <div className={`content-filter column ${isSidebarOpen ? 'open' : 'closed'}`}>
+                    
+                    {/* КНОПКА ЗАКРИТТЯ САЙДБАРУ (Тільки для мобілки) */}
+                    {isMobile && (
+                        <div className="sidebar-close-row row align-end justify-end w-100">
+                             <span 
+                                className="icon icon-cancel2 font-size-24 cursor-pointer" 
+                                onClick={() => setIsSidebarOpen(false)}
+                            />
+                        </div>
+                    )}
 
                     <div className="search-wrapper">
                         <input
@@ -416,7 +477,15 @@ const AdminReclamationPortal = () => {
                     {isAdmin && (
                         <>
                             <div className="delimiter1" />
-                            <DealerSelectWithAll value={dealerGuid} onChange={setDealerGuid} />
+                            {/* Якщо DealerSelectWithAll теж має закривати сайдбар, 
+                                можна передати обгортку в onChange */}
+                            <DealerSelectWithAll 
+                                value={dealerGuid} 
+                                onChange={(val) => {
+                                    setDealerGuid(val);
+                                    if(isMobile) setIsSidebarOpen(false);
+                                }} 
+                            />
                         </>
                     )}
 
@@ -427,7 +496,10 @@ const AdminReclamationPortal = () => {
                             <ul className="buttons">
                                 <li
                                     className="btn btn-add-calc"
-                                    onClick={() => setIsNewReclamationModalOpen(true)}
+                                    onClick={() => {
+                                        setIsNewReclamationModalOpen(true);
+                                        if(isMobile) setIsSidebarOpen(false);
+                                    }}
                                 >
                                     <span className="icon icon-plus3"></span>
                                     <span className="uppercase">Нова рекламація</span>
@@ -437,7 +509,7 @@ const AdminReclamationPortal = () => {
                     )}
 
 
-                    {/* ===== FILTERS WITH ICONS (ORIGINAL STYLE) ===== */}
+                    {/* ===== FILTERS WITH ICONS ===== */}
                     <ul className="filter column align-center">
                         <li className="delimiter1"></li>
 
@@ -529,4 +601,5 @@ const AdminReclamationPortal = () => {
         </div>
     );
 };
+
 export default AdminReclamationPortal;

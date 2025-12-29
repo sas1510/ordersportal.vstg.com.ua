@@ -3,12 +3,16 @@ from datetime import timedelta
 from decouple import config, Csv
 import smbclient
 
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+
+ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
@@ -112,9 +116,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        "backend.authentication.OneCApiKeyAuthentication", 
+        
     )
 }
 
@@ -125,6 +128,11 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+    "AUTH_COOKIE": "refresh",
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_SECURE": False,   # True на https
+    "AUTH_COOKIE_SAMESITE": "Lax",
+
 }
 
 # CORS

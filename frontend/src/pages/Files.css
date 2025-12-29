@@ -509,3 +509,109 @@ body.dark-theme .search-box input[type="text"]::placeholder {
     color: #888888;
 }
 
+
+/* =========================================================
+   DARK THEME — FILE MODALS
+   Активується коли body має клас .dark-theme
+   ========================================================= */
+
+body.dark-theme .file-modal-overlay {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+/* ===== WINDOW ===== */
+body.dark-theme .file-modal-window {
+    background: #2b2b2b;
+    color: #f0f0f0;
+    border: 1px solid #444;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* ===== HEADER ===== */
+body.dark-theme .file-modal-header {
+    background: linear-gradient(90deg, #b84c20, #c75628);
+    border-bottom: 1px solid #444;
+}
+
+body.dark-theme .file-modal-header h3 {
+    color: #ffffff;
+}
+
+body.dark-theme .file-icon {
+    filter: brightness(1.2);
+}
+
+/* ===== CLOSE BUTTON ===== */
+body.dark-theme .file-close-btn {
+    color: #bbbbbb ;
+    background: #c75628 !important;
+}
+
+body.dark-theme .file-close-btn:hover {
+    color: #ffffff;
+    background: #c75628 !important;
+}
+
+/* ===== FORM ===== */
+body.dark-theme .file-form {
+    background: transparent;
+}
+
+body.dark-theme .file-label span {
+    color: #cccccc;
+}
+
+/* ===== INPUTS ===== */
+body.dark-theme .file-input {
+    background: #1f1f1f;
+    border: 1px solid #555;
+    color: #ffffff;
+}
+
+body.dark-theme .file-input::placeholder {
+    color: #888;
+}
+
+body.dark-theme .file-input:focus {
+    border-color: #6bbcff;
+    box-shadow: 0 0 0 1px rgba(107, 188, 255, 0.4);
+}
+
+/* ===== FOOTER ===== */
+body.dark-theme .file-modal-footer {
+    background: #262626;
+    border-top: 1px solid #444;
+}
+
+/* ===== BUTTONS ===== */
+body.dark-theme .file-btn-cancel {
+    background: #3a3a3a;
+    color: #ddd;
+    border: 1px solid #555;
+}
+
+body.dark-theme .file-btn-cancel:hover {
+    background: #444;
+}
+
+body.dark-theme .file-btn-save {
+    background: #4caf50;
+    color: #ffffff;
+}
+
+body.dark-theme .file-btn-save:hover {
+    background: #43a047;
+}
+
+/* ===== EDIT MODAL SPECIAL ===== */
+body.dark-theme .edit-modal .file-modal-header {
+    background: linear-gradient(135deg, #3f2f2f, #2b2b2b);
+}
+
+body.dark-theme .edit-modal .file-btn-save.edit-btn {
+    background: #ff9800;
+}
+
+body.dark-theme .edit-modal .file-btn-save.edit-btn:hover {
+    background: #fb8c00;
+}

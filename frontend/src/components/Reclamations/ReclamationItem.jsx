@@ -278,7 +278,7 @@ export const ReclamationItem = ({
             {/* ============ RECLAMATION DETAILS (ВИКОРИСТОВУЄМО ТІЛЬКИ ОДИН КОМПОНЕНТ) ============ */}
 
             {expanded && (
-                <div className="item-details column gap-14 mt-2">
+                <div className="item-details column gap-14">
                     
                     {/* Відображаємо деталі самої рекламації/завдання */}
                     <ComplaintItemDetailView 

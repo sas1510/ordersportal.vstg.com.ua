@@ -1,6 +1,6 @@
 from rest_framework import permissions
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-
+from django.conf import settings
 
 
 class IsAdminManagerOrReadOnly(BasePermission):
@@ -42,3 +42,103 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         # Перевіряємо, чи користувач автентифікований (request.user.is_authenticated)
         # та чи його роль 'admin'
         return bool(request.user and request.user.is_authenticated and request.user.role == 'admin')
+
+
+
+# permissions.py
+from rest_framework.permissions import BasePermission
+from django.conf import settings
+import secrets
+
+
+class Is1CApiKey(BasePermission):
+    """
+    Дозволяє доступ тільки при наявності валідного API key від 1С
+    Заголовок:
+        X-API-KEY: <uuid>
+    """
+
+    def has_permission(self, request, view):
+        api_key = request.headers.get("X-API-KEY")
+
+        if not api_key:
+            return False
+
+        api_key = api_key.strip().lower()
+
+        allowed_keys = [
+            key.strip().lower()
+            for key in getattr(settings, "ONE_C_API_KEYS", [])
+            if key
+        ]
+
+        for valid_key in allowed_keys:
+            if secrets.compare_digest(api_key, valid_key):
+                return True
+
+        return False
+
+
+from rest_framework.authentication import BaseAuthentication
+from django.conf import settings
+import secrets
+
+
+class OneCApiKeyAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        api_key = request.headers.get("X-API-KEY")
+        if not api_key:
+            return None  # 🔴 ВАЖЛИВО: не raise!
+
+        api_key = api_key.strip().lower()
+
+        allowed_keys = [
+            key.strip().lower()
+            for key in settings.ONE_C_API_KEYS
+        ]
+
+        for valid_key in allowed_keys:
+            if secrets.compare_digest(api_key, valid_key):
+                return (None, None)  # ← authentication OK
+
+        return None
+
+from rest_framework.permissions import BasePermission
+
+class IsAdminJWTOr1CApiKey(BasePermission):
+
+    def has_permission(self, request, view):
+
+        # 🔐 JWT (React)
+        if request.user and request.user.is_authenticated:
+            return request.user.role == "admin"
+
+        # 🔑 1C API KEY
+        if request.auth == "1C_API_KEY":
+            return True
+
+        return False
+
+
+# backend/permissions.py
+from rest_framework.permissions import BasePermission
+
+
+class IsAuthenticatedOr1CApiKey(BasePermission):
+    """
+    Доступ:
+    - будь-який JWT-користувач
+    - або API KEY (1C)
+    """
+
+    def has_permission(self, request, view):
+
+        # 🔐 JWT (будь-який користувач)
+        if request.user and request.user.is_authenticated:
+            return True
+
+        # 🔑 API KEY (1C)
+        if request.auth == "1C_API_KEY":
+            return True
+
+        return False

@@ -313,6 +313,8 @@ from django.utils import timezone
 from datetime import timedelta
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
+from backend.permissions import  IsAdminJWTOr1CApiKey
+
 
 
 User = get_user_model()
@@ -391,7 +393,7 @@ class CustomTokenRefreshView(TokenRefreshView):
         # 'request.user' тут буде доступний завдяки refresh токену
         user = request.user if request.user.is_authenticated else None
         role = user.role if user else None
-        return Response({"access": access, "role": role})
+        return Response({"access": access})
 
 # ----------------------
 # Логаут
@@ -558,56 +560,6 @@ def get_user_name_view(request):
 # Цей код припускає, що вона існує і має поля 
 # 'manager_user_id_1C' та 'dealer_user_id_1C'.
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_dealers(request):
-    """
-    Повертає список дилерів для поточного користувача.
-    - Admin бачить всіх дилерів.
-    - Manager бачить тільки своїх дилерів.
-    """
-    user = request.user
-    role = user.role
-
-    # !!! ПОПЕРЕДЖЕННЯ: Модель 'ManagerDealer' не визначена.
-    # Вам потрібно імпортувати її (напр. 'from .models import ManagerDealer')
-    # для того, щоб ця логіка запрацювала.
-    try:
-        # Припустимо, що ManagerDealer знаходиться в тому ж 'users/models.py'
-        from .models import ManagerDealer 
-    except ImportError:
-        if role == "manager":
-             # Якщо модель не знайдена, повертаємо помилку для менеджера
-             return Response(
-                 {"error": "Модель ManagerDealer не налаштована на сервері."}, 
-                 status=status.HTTP_501_NOT_IMPLEMENTED
-             )
-        # Адмін може працювати і без неї
-        ManagerDealer = None 
-
-    if role == "admin":
-        # ВИПРАВЛЕНО: 'enable=True' -> 'is_active=True'
-        dealers = CustomUser.objects.filter(role="customer", is_active=True)
-    
-    elif role == "manager" and ManagerDealer:
-        # 'user_id_1C' є в новій моделі
-        assigned_ids = ManagerDealer.objects.filter(
-            manager_user_id_1C=user.user_id_1C
-        ).values_list("dealer_user_id_1C", flat=True)
-
-        # ВИПРАВЛЕНО: 'enable=True' -> 'is_active=True'
-        dealers = CustomUser.objects.filter(
-            user_id_1C__in=assigned_ids, role="customer", is_active=True
-        )
-    else:
-        dealers = CustomUser.objects.none()
-
-    dealer_list = [
-        {"id": d.id, "full_name": d.full_name or d.username}
-        for d in dealers
-    ]
-
-    return Response({"dealers": dealer_list})
 
 
 
@@ -701,21 +653,7 @@ def get_all_users_view(request):
     if user.role == "admin":
         users = CustomUser.objects.all().order_by("role", "full_name")
 
-    # --- MANAGER бачить тільки своїх дилерів ---
-    elif user.role == "manager":
-        try:
-            from .models import ManagerDealer
-        except Exception:
-            return Response(
-                {"error": "Модель ManagerDealer не знайдена"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
-        assigned_ids = ManagerDealer.objects.filter(
-            manager_user_id_1C=user.user_id_1C
-        ).values_list("dealer_user_id_1C", flat=True)
-
-        users = CustomUser.objects.filter(user_id_1C__in=assigned_ids)
 
     else:
         return Response(
@@ -885,19 +823,9 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminJWTOr1CApiKey])
 def get_dealer_portal_users(request):
-    """
-    Returns contractors who are users of the Web Portal (VS)
-    Only for admin users
-    """
-
-    # 🔒 Перевірка ролі
-    if request.user.role != "admin":
-        return Response(
-            {"detail": "Access denied. Admin role required."},
-            status=status.HTTP_403_FORBIDDEN
-        )
+    # ❌ НІЯКИХ request.user.role тут
 
     with connection.cursor() as cursor:
         cursor.execute("EXEC dbo.GetDealerPortalUsers")
@@ -905,16 +833,10 @@ def get_dealer_portal_users(request):
         rows = cursor.fetchall()
 
     data = []
-
     for row in rows:
         record = dict(zip(columns, row))
-
-        # ✅ Binary(1C) → GUID
         if record.get("ContractorID"):
-            record["ContractorID"] = bin_to_guid_1c(
-                record["ContractorID"]
-            )
-
+            record["ContractorID"] = bin_to_guid_1c(record["ContractorID"])
         data.append(record)
 
     return Response(data)

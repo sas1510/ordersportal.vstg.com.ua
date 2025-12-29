@@ -30,19 +30,59 @@ from rest_framework.permissions import IsAuthenticated
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
+from datetime import date
+from rest_framework.decorators import api_view, permission_classes
+from django.http import JsonResponse
+from django.db import connection
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_payment_status_view(request):
 
-    guid_str = request.GET.get("contractor")
-    if not guid_str:
-        return JsonResponse({"error": "Parameter 'contractor' (GUID) is required"}, status=400)
+    # 🔹 визначаємо тип доступу
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
+    # 🔹 contractor з query
+    contractor_guid = request.GET.get("contractor")
+    if not contractor_guid:
+        return JsonResponse(
+            {"error": "Parameter 'contractor' (GUID) is required"},
+            status=400
+        )
 
     try:
-        contractor_binary = guid_to_1c_bin(guid_str)
+        contractor_binary = guid_to_1c_bin(contractor_guid)
     except Exception as e:
-        return JsonResponse({"error": f"Invalid GUID format: {e}"}, status=400)
+        return JsonResponse(
+            {"error": f"Invalid GUID format: {e}"},
+            status=400
+        )
+
+    # 🔐 JWT логіка
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            # дилер → тільки свій контрагент
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return JsonResponse(
+                    {"error": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_binary != user_contractor:
+                return JsonResponse(
+                    {"error": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # 🔑 API key (1C) → без обмежень
 
     date_from = request.GET.get("date_from", "1900-01-01")
     date_to = request.GET.get("date_to", str(date.today()))
@@ -63,11 +103,11 @@ def get_payment_status_view(request):
             for row in cursor.fetchall():
                 results.append(dict(zip(columns, row)))
 
-        # ===== FIX JSON serialization =====
-        def convert_bytes(obj):
-            if isinstance(obj, (bytes, bytearray)):
-                return obj.hex().upper()
-            return obj
+        # 🔧 JSON safe
+        def convert_bytes(value):
+            if isinstance(value, (bytes, bytearray)):
+                return value.hex().upper()
+            return value
 
         results = [
             {k: convert_bytes(v) for k, v in row.items()}
@@ -77,7 +117,10 @@ def get_payment_status_view(request):
         return JsonResponse(results, safe=False)
 
     except Exception as e:
-        return JsonResponse({"error": f"SQL execution error: {e}"}, status=500)
+        return JsonResponse(
+            {"error": f"SQL execution error: {e}"},
+            status=500
+        )
 
 
 from django.http import JsonResponse
@@ -87,24 +130,58 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import date
 
 
+from rest_framework.decorators import api_view, permission_classes
+from django.http import JsonResponse
+from django.db import connection
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_dealer_payment_page_data_view(request):
+
+    # 🔹 визначаємо тип доступу
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
+    # 🔹 contractor з query
     guid_str = request.GET.get("contractor")
     if not guid_str:
-        return JsonResponse({"error": "Parameter 'contractor' (GUID) is required"}, status=400)
+        return JsonResponse(
+            {"error": "Parameter 'contractor' (GUID) is required"},
+            status=400
+        )
 
     try:
         contractor_binary = guid_to_1c_bin(guid_str)
     except Exception as e:
-        return JsonResponse({"error": f"Invalid GUID format: {e}"}, status=400)
+        return JsonResponse(
+            {"error": f"Invalid GUID format: {e}"},
+            status=400
+        )
 
-    # YEAR
-    year_str = request.GET.get("year")
-    try:
-        year = int(year_str) if year_str else None
-    except:
-        return JsonResponse({"error": "Invalid 'year' parameter"}, status=400)
+    # 🔐 JWT логіка
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return JsonResponse(
+                    {"error": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_binary != user_contractor:
+                return JsonResponse(
+                    {"error": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # 🔑 API key (1C) → без обмежень
+    # 👑 Admin → без обмежень
 
     sql = """
         EXEC dbo.GetDealerPaymentPageData
@@ -114,9 +191,7 @@ def get_dealer_payment_page_data_view(request):
     try:
         with connection.cursor() as cursor:
 
-            # ------------------------
-            # FIRST RESULTSET (orders)
-            # ------------------------
+            # -------- FIRST RESULTSET (orders)
             cursor.execute(sql, [contractor_binary])
             columns1 = [col[0] for col in cursor.description]
             orders = [
@@ -124,32 +199,32 @@ def get_dealer_payment_page_data_view(request):
                 for row in cursor.fetchall()
             ]
 
-            # ------------------------
-            # MOVE TO NEXT RESULTSET
-            # ------------------------
+            # -------- SECOND RESULTSET (contracts)
             contracts = []
-            if cursor.nextset():  # <--- ПЕРЕХІД ДО ДРУГОГО SELECT
+            if cursor.nextset():
                 columns2 = [col[0] for col in cursor.description]
                 contracts = [
                     dict(zip(columns2, row))
                     for row in cursor.fetchall()
                 ]
 
-        # convert bytes → hex
+        # 🔧 bytes → hex
         def fix(v):
             return v.hex().upper() if isinstance(v, (bytes, bytearray)) else v
 
         orders = [{k: fix(v) for k, v in r.items()} for r in orders]
         contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
 
-        # RETURN BOTH ARRAYS TOGETHER
         return JsonResponse({
             "orders": orders,
             "contracts": contracts
         }, safe=False)
 
     except Exception as e:
-        return JsonResponse({"error": f"SQL execution error: {e}"}, status=500)
+        return JsonResponse(
+            {"error": f"SQL execution error: {e}"},
+            status=500
+        )
 
 
 
@@ -315,13 +390,56 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 #     wb.save(response)
 #     return response
 
+from rest_framework.decorators import api_view, permission_classes
+from django.http import HttpResponse
+from django.db import connection
+from openpyxl import Workbook
+
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def export_payment_status_excel(request):
-    contractor_binary = guid_to_1c_bin(request.GET["contractor"])
+
+    # 🔹 визначаємо тип доступу
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
+    # ---------- PARAMS ----------
+    guid_str = request.GET.get("contractor")
+    if not guid_str:
+        return HttpResponse("contractor is required", status=400)
+
+    try:
+        contractor_binary = guid_to_1c_bin(guid_str)
+    except Exception:
+        return HttpResponse("Invalid contractor GUID", status=400)
+
     date_from = request.GET.get("date_from")
     date_to = request.GET.get("date_to")
 
+    # ---------- 🔐 ACCESS CONTROL ----------
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return HttpResponse(
+                    "User has no contractor assigned",
+                    status=403
+                )
+
+            if contractor_binary != user_contractor:
+                return HttpResponse(
+                    "Access denied for this contractor",
+                    status=403
+                )
+
+    # ---------- 📊 EXCEL ----------
     wb = Workbook(write_only=True)
     ws = wb.create_sheet("Payment Status")
 
@@ -441,8 +559,45 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+
+
 @api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def dealer_bills_add_info_view(request, contractor_guid):
+    # 🔹 хто звертається
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
+    try:
+        contractor_bin = guid_to_1c_bin_2(contractor_guid)
+    except Exception:
+        raise ValidationError("Invalid contractor GUID")
+
+    # ---------- 🔐 ACCESS CONTROL ----------
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return Response(
+                    {"detail": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_bin != user_contractor:
+                return Response(
+                    {"detail": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # ---------- 🧾 DATA ----------
     try:
         data = dealer_bills_add_info(contractor_guid)
     except ValueError:
@@ -463,8 +618,17 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin_2
 from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from django.db import connection
+
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def customer_bills_view(request, contractor_guid):
     """
     GET /api/dealers/<uuid:contractor_guid>/bills/
@@ -472,12 +636,39 @@ def customer_bills_view(request, contractor_guid):
     &date_to=2024-12-31
     """
 
+    # 🔹 хто звертається
+    is_1c = request.auth == "1C_API_KEY"
+    user = request.user
+
     date_from = request.query_params.get("date_from")
     date_to = request.query_params.get("date_to")
 
     try:
         contractor_bin = guid_to_1c_bin_2(contractor_guid)
+    except Exception:
+        raise ValidationError("Invalid contractor GUID")
 
+    # ---------- 🔐 ACCESS CONTROL ----------
+    if not is_1c:
+        role = (getattr(user, "role", "") or "").lower()
+
+        if role != "admin":
+            user_contractor = getattr(user, "user_id_1C", None)
+
+            if not user_contractor:
+                return Response(
+                    {"detail": "User has no contractor assigned"},
+                    status=403
+                )
+
+            if contractor_bin != user_contractor:
+                return Response(
+                    {"detail": "Access denied for this contractor"},
+                    status=403
+                )
+
+    # ---------- 🧾 DATA ----------
+    try:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
@@ -501,4 +692,3 @@ def customer_bills_view(request, contractor_guid):
         raise ValidationError(str(e))
 
     return Response(data)
-

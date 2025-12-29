@@ -65,3 +65,45 @@ body.dark-theme  .calc-item .item-summary {
        то використовуйте box-shadow або pseudo-element.
     */
 }
+.no-wrap .text-grey.font-size-12 {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.no-wrap .dealer-wrap {
+  display: inline-block;
+  max-width: 120px;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
+ @media (max-width: 1500px) {
+ .no-wrap .dealer-wrap {
+    display: inline-block;
+    max-width: 100px;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+ }}
+
+
+@media (max-width: 1400px) {
+ .no-wrap .dealer-wrap {
+    display: inline-block;
+    max-width: 80px;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+ }}
+
+
+ .separator-border {
+    border-top: 1px dashed #ccc ;
+ }
+
+
+ body.dark-theme .separator-border {
+    border-top: 1px dashed #555 ;
+ }

@@ -18,10 +18,13 @@ import os
 import uuid
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
+
+
+from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -30,7 +33,8 @@ from django.db import connection
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 
-@csrf_exempt
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_issue_complaints(request):
     if request.method != "GET":
         return JsonResponse({"error": "GET method required"}, status=405)
@@ -62,7 +66,8 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 
-@csrf_exempt
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_gm_solutions(request, reason_id):
     """
     Отримання рішень рекламації по reason_id (GUID).
@@ -100,23 +105,51 @@ def get_gm_solutions(request, reason_id):
 
 
 
-
-@api_view(['GET'])
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_complaint_series_by_order(request, order_number):
     try:
-        user = request.user
-        role = (getattr(user, "role", "") or "").lower()
-        manager_roles = ["manager", "region_manager", "admin"]
-        is_manager_or_admin = role in manager_roles
+        # 🔹 чи це 1C по API key
+        is_1c = request.auth == "1C_API_KEY"
 
-        # Для клієнта беремо його ID
-        if not is_manager_or_admin:
-            kontragent = getattr(user, "user_id_1C", None)
-            if not kontragent:
-                return Response({"error": "Контрагент не знайдено для користувача"}, status=400)
-        else:
-            # Якщо менеджер або адмін, можна брати @order_number без обмежень
-            kontragent = None  # або передавати як null у процедуру
+        # 🔹 contractor з фронту (GUID)
+        contractor_guid = request.GET.get("contractor")
+        kontragent = None
+
+        if contractor_guid:
+            kontragent = guid_to_1c_bin(contractor_guid)
+
+        if not is_1c:
+            # 🔐 JWT користувач
+            user = request.user
+            role = (getattr(user, "role", "") or "").lower()
+            manager_roles = ["manager", "region_manager", "admin"]
+            is_manager_or_admin = role in manager_roles
+
+            if not is_manager_or_admin:
+                # ❗ клієнт → дозволяємо ТІЛЬКИ свій контрагент
+                user_contractor = getattr(user, "user_id_1C", None)
+
+                if not user_contractor:
+                    return Response(
+                        {"error": "Контрагент не знайдено для користувача"},
+                        status=400
+                    )
+
+                # якщо фронт передав contractor — перевіряємо
+                if kontragent and kontragent != user_contractor:
+                    return Response(
+                        {"error": "Доступ заборонено до цього контрагента"},
+                        status=403
+                    )
+
+                kontragent = user_contractor
+
+            # менеджер / адмін → можна будь-якого або None
+            # kontragent вже або з query, або None
+
+        # 🔹 1C → kontragent беремо тільки з query (або None)
+        # жодних role / user перевірок
 
         with connection.cursor() as cursor:
             cursor.execute(
@@ -129,15 +162,14 @@ def get_complaint_series_by_order(request, order_number):
 
             for row in cursor.fetchall():
                 row_dict = dict(zip(columns, row))
-                series_link = row_dict.get("SeriesLink")
-                if series_link:
-                    row_dict["SeriesLink"] = bin_to_guid_1c(series_link)
+                if row_dict.get("SeriesLink"):
+                    row_dict["SeriesLink"] = bin_to_guid_1c(row_dict["SeriesLink"])
                 results.append(row_dict)
 
-        return Response({"series": results if results else None})
+        return Response({"series": results or None})
+
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-
 
 
 import xml.etree.ElementTree as ET

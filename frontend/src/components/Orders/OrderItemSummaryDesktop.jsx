@@ -197,7 +197,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
         {/* FILES */}
         <div
-          className="summary-item flex w-10 items-center justify-center cursor-pointer bg-gray-100 rounded-md py-2 px-1  pl-2"
+          className="summary-item flex w-10 items-start justify-start cursor-pointer w-full bg-gray-100 rounded-md "
           onClick={openFilesModal}
         >
           <div className="row gap-1 align-center">
@@ -292,7 +292,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
       {/* DETAILS */}
       {isExpanded && (
-        <div className="border-t border-dashed  w-full">
+        <div className="separator-border w-full">
           <OrderDetailsDesktop order={order} />
         </div>
       )}

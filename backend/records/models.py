@@ -56,8 +56,6 @@ class TransactionFile(models.Model):
         verbose_name='Тип транзакції'
     )
 
-
-    
     
     file_type = models.ForeignKey(
         FileType, 

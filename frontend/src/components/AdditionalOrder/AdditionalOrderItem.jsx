@@ -211,7 +211,7 @@ const ordersWithNumbers = orderList.filter(order => order.number);
 {/* ============ ORDER DETAILS (Якщо є підпорядковані замовлення) ============ */}
 
       {expanded && (
-        <div className="item-details column gap-14 mt-2">
+        <div className="item-details column gap-14">
           {/* 🔥 Використовуємо ordersWithNumbers для перевірки */}
           {ordersWithNumbers.length === 0 ? (
             <div className="order-item column gap-14 w-100 align-center">

@@ -147,12 +147,10 @@ const AdditionalOrders = () => {
     try {
       const params = {
         year: selectedYear,
+        contractor: dealerGuid,
       };
 
-      // ✅ ADMIN + вибраний дилер
-      if (isAdmin && dealerGuid) {
-        params.contractor = dealerGuid;
-      }
+
 
       // 🔥 ОДИН єдиний запит
       const response = await axiosInstance.get(
