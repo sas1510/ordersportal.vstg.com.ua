@@ -221,17 +221,20 @@ export const ReclamationItem = ({
 
 
                 {/* 5. Дилер та Файл (якщо є) */}
-                <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }}>
-                    <div className="column gap-1 align-center justify-center">
-                        {reclamation.dealer && (
-                            <div className="text-grey font-size-14">
-                                <span className="icon icon-user text-dark mr-1"></span>
-                                <span className="text-dark">{reclamation.dealer}</span>
-                            </div>
-                        )}
-          
-                    </div>
-                </div>
+<div
+  className="summary-item flex items-center whitespace-normal"
+  style={{ flexBasis: "15%" }}
+>
+  {reclamation.dealer && (
+    <div className="flex items-center gap-1 text-grey font-size-14 break-words">
+      <span className="icon icon-user text-dark shrink-0"></span>
+      <span className="text-dark leading-snug">
+        {reclamation.dealer}
+      </span>
+    </div>
+  )}
+</div>
+
 
                  <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }}>
                     <div className="icon-info-with-circle font-size-24 text-info"></div>

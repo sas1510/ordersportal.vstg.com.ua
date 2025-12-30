@@ -112,7 +112,9 @@ const AdminReclamationPortal = () => {
     const [isNewReclamationModalOpen, setIsNewReclamationModalOpen] = useState(false);
 
     const windowWidth = useWindowWidth();
-    const isMobile = windowWidth < 1024;
+    const isMobile = windowWidth < 1260;
+    const isMobilePagination = windowWidth < 1150;
+
     const { theme } = useTheme();
 
     const currentMonth = useMemo(
@@ -355,7 +357,7 @@ const AdminReclamationPortal = () => {
                 <div className="by-month-pagination-wrapper">
 
                     {/* ===== DESKTOP: кнопки ===== */}
-                    {!isMobile && (
+                    {!isMobilePagination && (
                         <ul className="gap-6 row no-wrap month-list">
 
                             {dealerGuid !== ALL_DEALERS_VALUE && (
@@ -396,7 +398,7 @@ const AdminReclamationPortal = () => {
                     )}
 
                     {/* ===== MOBILE: select ===== */}
-                    {isMobile && (
+                    {isMobilePagination && (
                         <select
                             className="month-select"
                             value={filter.month}
@@ -548,7 +550,7 @@ const AdminReclamationPortal = () => {
                             </div>
                         ) : (
                             itemsToShow.map(r =>
-                                isMobile ? (
+                                isMobilePagination ? (
                                     <ReclamationItemMobile
                                         key={r.id}
                                         reclamation={r}

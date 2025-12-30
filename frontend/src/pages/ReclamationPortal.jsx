@@ -969,7 +969,7 @@ const ReclamationPortal = () => {
     )}
 
 
-    {isMobile && (
+ 
         <select
             className="month-select"
             value={filter.month}
@@ -998,7 +998,7 @@ const ReclamationPortal = () => {
                 );
             })}
         </select>
-    )}
+
 
 </div>
 </div>

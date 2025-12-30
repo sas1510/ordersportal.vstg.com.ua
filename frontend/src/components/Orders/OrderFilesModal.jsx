@@ -1,194 +1,224 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
-import { FaSpinner, FaEye, FaDownload } from "react-icons/fa";
 
+import {
+  FaSpinner,
+  FaEye,
+  FaDownload,
+  FaTimes,
+  FaFileAlt
+} from "react-icons/fa";
 
-// 3. Імпорт стилів
-import './OrderFilesModal.css'; 
+import {
+  FaRegFileImage,
+  FaRegFilePdf,
+  FaFileZipper
+} from "react-icons/fa6";
 
-// 1. Іконки з Font Awesome 5
-import { FaTimes, FaFileAlt } from "react-icons/fa"; 
-
-// 2. Іконки з Font Awesome 6.
-import { FaRegFileImage, FaRegFilePdf, FaFileZipper } from "react-icons/fa6"; 
+import "./OrderFilesModal.css";
 
 const OrderFilesModal = ({ orderGuid, onClose }) => {
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [downloadingFileGuid, setDownloadingFileGuid] = useState(null);
 
-    const [files, setFiles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [downloadingFileGuid, setDownloadingFileGuid] = useState(null); 
+  const filesListUrl = `order/${orderGuid}/files/`;
 
-    const filesListUrl = `order/${orderGuid}/files/`;
+  /* =========================
+     LOAD FILES
+  ========================= */
+  useEffect(() => {
+    if (!orderGuid) return;
 
-    useEffect(() => {
-        document.body.style.overflow = "hidden";
-        
-        const loadFiles = async () => {
-            try {
-                const response = await axiosInstance.get(filesListUrl);
+    document.body.style.overflow = "hidden";
 
-                if (response.data.status === "success") {
-                    setFiles(response.data.files);
-                } else {
-                    setError("Сервер повернув помилку.");
-                }
-            } catch (err) {
-                console.error("❌ Error fetching files:", err);
-                setError("Не вдалося отримати файли.");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const loadFiles = async () => {
+      try {
+        const response = await axiosInstance.get(filesListUrl);
 
-        if (orderGuid) loadFiles();
-        
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [orderGuid, filesListUrl]);
-
-    // 🔥 ОНОВЛЕНА ФУНКЦІЯ: Різні іконки для PDF та ZKZ
-    const getFileIcon = (fileName) => {
-        const ext = fileName.split('.').pop().toLowerCase();
-        
-        if (ext === 'pdf') {
-            // Червона іконка для PDF
-            return <FaRegFilePdf style={{ color: '#c0392b' }} />;
+        if (response.data?.status === "success") {
+          setFiles(response.data.files || []);
+        } else {
+          setError("Сервер повернув помилку.");
         }
-        if (ext === 'zkz') {
-            // Нейтральна або синя іконка для ZKZ
-            return <FaFileAlt style={{ color: '#3498db' }} />; 
-        }
-        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-            // Синя іконка для зображень
-            return <FaRegFileImage style={{ color: '#4a90e2' }} />;
-        }
-        if (['zip', 'rar', '7z'].includes(ext)) {
-            // Помаранчева іконка для архівів
-            return <FaFileZipper style={{ color: '#d88a00' }} />; 
-        }
-        
-        // Сіра іконка для всіх інших
-        return <FaFileAlt style={{ color: '#666' }} />;
+      } catch (err) {
+        console.error("❌ Error fetching files:", err);
+        setError("Не вдалося отримати файли.");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const handleDownload = async (fileGuid, fileName) => {
-        setDownloadingFileGuid(fileGuid); 
+    loadFiles();
 
-        try {
-            const url = `order/${orderGuid}/files/${fileGuid}/${fileName}/download/`;
-
-            const response = await axiosInstance.get(url, {
-                responseType: "blob"
-            });
-
-            const blob = new Blob([response.data]);
-
-            if (fileName.toLowerCase().endsWith(".pdf")) {
-                const pdfUrl = window.URL.createObjectURL(blob);
-                window.open(pdfUrl, "_blank");
-            } else {
-                const downloadUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = downloadUrl;
-                a.download = fileName;
-                a.click();
-                window.URL.revokeObjectURL(downloadUrl);
-            }
-
-        } catch (err) {
-            console.error("❌ Error downloading file:", err);
-            alert("Не вдалося завантажити файл.");
-        } finally {
-            setDownloadingFileGuid(null); 
-        }
+    return () => {
+      document.body.style.overflow = "";
     };
+  }, [orderGuid]);
 
+  /* =========================
+     FILE ICON
+  ========================= */
+  const getFileIcon = (fileName = "") => {
+    const ext = fileName.split(".").pop().toLowerCase();
 
-    if (!orderGuid) return null;
+    if (ext === "pdf") return <FaRegFilePdf style={{ color: "#c0392b" }} />;
+    if (ext === "zkz") return <FaFileAlt style={{ color: "#3498db" }} />;
+    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext))
+      return <FaRegFileImage style={{ color: "#4a90e2" }} />;
+    if (["zip", "rar", "7z"].includes(ext))
+      return <FaFileZipper style={{ color: "#d88a00" }} />;
 
-    const content = (
-        <div className="orders-file-modal-overlay" onClick={onClose}>
-            <div className="orders-file-modal-window" onClick={(e) => e.stopPropagation()}>
-                
-                {/* 1. HEADER */}
-                <div className="orders-file-modal-header"> 
-                    <div className="header-content">
-                        <span className="file-icon"><FaFileAlt /></span>
-                        <h3>Файли замовлення</h3>
-                    </div>
-                    <FaTimes className="close-btn" onClick={onClose} />
-                </div>
-                
-                {/* 2. BODY (Список файлів) */}
-                <div className="orders-file-body"> 
+    return <FaFileAlt style={{ color: "#666" }} />;
+  };
 
-                    {loading && <p>Завантаження файлів...</p>}
-                    {error && <p style={{ color: '#c0392b' }}>Помилка: {error}</p>}
-                    {!loading && !error && files.length === 0 && <p>Файлів для цього замовлення не знайдено.</p>}
+  /* =========================
+     DOWNLOAD FILE (NEW LOGIC)
+  ========================= */
+  const handleDownload = async (fileGuid, fileName) => {
+    setDownloadingFileGuid(fileGuid);
 
-                    {!loading && files.length > 0 && (
-                        <ul className="file-list">
-                            {files.map(file => {
-                                const isDownloading = downloadingFileGuid === file.fileGuid; 
-                                
-                                return (
-                                <li key={file.fileGuid} className="file-item">
-                                    <div className="file-info-group">
-                                        <div className="file-icon-wrapper">
-                                            {getFileIcon(file.fileName)} {/* <-- ВИКЛИК ОНОВЛЕНОЇ ФУНКЦІЇ */}
-                                        </div>
-                                        <div className="file-details">
-                                            <b className="file-name-b">{file.fileName}</b>
-                                            <div className="file-meta">
-                                                {file.type} | Дата: {new Date(file.date).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                            </div>
-                                        </div>
-                                    </div>
+    try {
+      // 🔑 filename ТІЛЬКИ через query
+      const params = new URLSearchParams({ filename: fileName });
 
-                                    <button className=" file-download-btn" disabled={isDownloading}>
-                                        {isDownloading ? (
-                                            <>
-                                            <FaSpinner className="fa-spin" />
-                                            <span className="btn-text"> Завантаження...</span>
-                                            </>
-                                        ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
-                                            <>
-                                            <FaEye />
-                                            <span className="btn-text"> PDF</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                            <FaDownload />
-                                            <span className="btn-text"> Скачати</span>
-                                            </>
-                                        )}
-                                        </button>
+      const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
 
-                                </li>
-                            )})}
-                        </ul>
-                    )}
-                </div>
+      const response = await axiosInstance.get(url, {
+        responseType: "blob",
+        validateStatus: (status) => status >= 200 && status < 500,
+      });
 
-                {/* 3. FOOTER */}
-                <div className="orders-file-modal-footer">
-                    <button
-                        type="button"
-                        className="order-file-close-btn"
-                        onClick={onClose}
-                    >
-                        <FaTimes /> Закрити
-                    </button>
-                </div>
+      if (response.status !== 200) {
+        throw new Error("Download failed");
+      }
 
-            </div>
+      const blob = new Blob([response.data]);
+      const objectUrl = window.URL.createObjectURL(blob);
+
+      // PDF → preview
+      if (fileName.toLowerCase().endsWith(".pdf")) {
+        window.open(objectUrl, "_blank");
+      }
+      // інші → download
+      else {
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error("❌ Error downloading file:", err);
+      alert("Не вдалося завантажити файл.");
+    } finally {
+      setDownloadingFileGuid(null);
+    }
+  };
+
+  if (!orderGuid) return null;
+
+  /* =========================
+     UI
+  ========================= */
+  return createPortal(
+    <div className="orders-file-modal-overlay" onClick={onClose}>
+      <div
+        className="orders-file-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* HEADER */}
+        <div className="orders-file-modal-header">
+          <div className="header-content">
+            <FaFileAlt />
+            <h3>Файли замовлення</h3>
+          </div>
+          <FaTimes className="close-btn" onClick={onClose} />
         </div>
-    );
 
-    return createPortal(content, document.body);
+        {/* BODY */}
+        <div className="orders-file-body">
+          {loading && <p>Завантаження файлів…</p>}
+          {error && <p className="error-text">{error}</p>}
+
+          {!loading && !error && files.length === 0 && (
+            <p>Файлів для цього замовлення не знайдено.</p>
+          )}
+
+          {!loading && files.length > 0 && (
+            <ul className="file-list">
+              {files.map((file) => {
+                const isDownloading =
+                  downloadingFileGuid === file.fileGuid;
+
+                return (
+                  <li key={file.fileGuid} className="file-item">
+                    <div className="file-info-group">
+                      <div className="file-icon-wrapper">
+                        {getFileIcon(file.fileName)}
+                      </div>
+
+                      <div className="file-details">
+                        <b className="file-name-b">{file.fileName}</b>
+                        <div className="file-meta">
+                          {file.type} |{" "}
+                          {new Date(file.date).toLocaleString("uk-UA")}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      className="file-download-btn"
+                      disabled={isDownloading}
+                      onClick={() =>
+                        handleDownload(file.fileGuid, file.fileName)
+                      }
+                    >
+                      {isDownloading ? (
+                        <>
+                          <FaSpinner className="fa-spin" />
+                          <span className="btn-text">Завантаження...</span>
+                        </>
+                      ) : file.fileName
+                          .toLowerCase()
+                          .endsWith(".pdf") ? (
+                        <>
+                          <FaEye />
+                          <span className="btn-text">PDF</span>
+                        </>
+                      ) : (
+                        <>
+                          <FaDownload />
+                          <span className="btn-text">Скачати</span>
+                        </>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* FOOTER */}
+        <div className="orders-file-modal-footer">
+          <button
+            type="button"
+            className="order-file-close-btn"
+            onClick={onClose}
+          >
+            <FaTimes /> Закрити
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
 };
 
 export default OrderFilesModal;

@@ -20,7 +20,7 @@ urlpatterns = [
     path('get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
     path('create_message/', views.create_message, name='create_message'),
     path("order/<str:order_guid>/files/", order_files_view), # без логіки дилер
-    path("order/<str:order_guid>/files/<str:file_guid>/<str:filename>/download/", download_order_file), #  без логіки дилер
+    path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"),
     path("calculations/create/", create_calculation), #  без логіки дилер
     path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"), #  без логіки дилер
     path("get_wds_codes/", wds_codes_by_contractor, name="get_wds_codes"), #  без логіки дилер

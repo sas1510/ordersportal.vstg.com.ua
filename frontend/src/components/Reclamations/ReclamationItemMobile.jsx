@@ -149,7 +149,7 @@ export const ReclamationItemMobile = ({
                         
                         {/* 1. Дилер (зверху) */}
                         {reclamation.dealer && (
-                            <div className="text-grey font-size-10 mb-0 text-right max-w-[200px] truncate">
+                            <div className="text-grey font-size-10 mb-0 text-right max-w-[200px] whitespace-normal">
                                 <span className="text-dark font-weight-medium">{reclamation.dealer}</span>
                             </div>
                         )}

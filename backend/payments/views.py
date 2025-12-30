@@ -114,7 +114,12 @@ def get_payment_status_view(request):
             for row in results
         ]
 
-        return JsonResponse(results, safe=False)
+        return JsonResponse(
+            results,
+            safe=False,
+            json_dumps_params={"ensure_ascii": False}
+        )
+
 
     except Exception as e:
         return JsonResponse(
@@ -218,7 +223,9 @@ def get_dealer_payment_page_data_view(request):
         return JsonResponse({
             "orders": orders,
             "contracts": contracts
-        }, safe=False)
+        },
+        json_dumps_params={"ensure_ascii": False  },
+        safe=False)
 
     except Exception as e:
         return JsonResponse(

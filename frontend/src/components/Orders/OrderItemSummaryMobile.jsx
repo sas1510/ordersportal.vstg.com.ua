@@ -162,7 +162,7 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
                     <div className="grid grid-cols-2 gap-2 mb-2 pb-2 border-b border-gray-200">
                         {order.organizationName && (
                             <div className="flex flex-col p-2 bg-blue-50 rounded">
-                                <div classNameošs="font-size-18 font-weight-medium text-dark leading-tight">
+                                <div className="font-size-18 font-weight-medium text-dark leading-tight">
                                     <span className="fas fa-building font-size-18 text-info mr-1"></span>
                                     {order.organizationName}
                                 </div>

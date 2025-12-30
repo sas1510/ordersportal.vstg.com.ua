@@ -168,6 +168,7 @@ def complaints_view(request):
             "status": "success",
             "data": rows
         },
+        json_dumps_params={"ensure_ascii": False},
         safe=False
     )
 
@@ -652,8 +653,10 @@ def order_files_view(request, order_guid):
 
         return JsonResponse(
             {"status": "success", "files": files},
-            status=200
+            status=200,
+            json_dumps_params={"ensure_ascii": False}
         )
+
 
     except DatabaseError as e:
         logger.exception("DB error in order_files_view")
@@ -705,20 +708,74 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 
 logger = logging.getLogger(__name__)
+import subprocess
+import logging
+from urllib.parse import unquote
+from django.http import StreamingHttpResponse, Http404
+from rest_framework.decorators import api_view, permission_classes
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+# views.py
+
+import subprocess
+import logging
+import mimetypes
+from urllib.parse import unquote
+
+from django.conf import settings
+from django.http import StreamingHttpResponse, Http404
+from django.views.decorators.http import require_GET
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+
+
+
+
+logger = logging.getLogger(__name__)
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
-def download_order_file(request, order_guid, file_guid, filename):
-    server = settings.SMB_SERVER
-    share = settings.SMB_SHARE
-    username = settings.SMB_USERNAME
+def download_order_file(request, order_guid, file_guid):
+    """
+    Завантажує файл замовлення з SMB (1С).
+
+    Обовʼязковий query-параметр:
+        ?filename=СР42749.ZKZ
+    """
+
+    # =========================
+    # PARAMS
+    # =========================
+    filename = request.GET.get("filename")
+    if not filename:
+        raise Http404("Filename is required")
+
+    # decode кирилиці
+    filename = unquote(filename)
+
+    # =========================
+    # SMB CONFIG
+    # =========================
+    server = settings.SMB_SERVER      # наприклад: "1c"
+    share = settings.SMB_SHARE        # наприклад: "1c_data"
+    username = settings.SMB_USERNAME  # наприклад: "tetiana.flora"
     password = settings.SMB_PASSWORD
 
     full_username = f"VSTG\\{username}"
 
-    # Кириличний шлях у 1С
-    remote_path = f'Заказ покупателя/{order_guid}/{file_guid}/{filename}'
+    # =========================
+    # SMB PATH (ПЕРЕВІРЕНИЙ)
+    # =========================
+    remote_path = (
+        f'Заказ покупателя/{order_guid}/{file_guid}/{filename}'
+    )
 
+    # =========================
+    # SMB DOWNLOAD
+    # =========================
     try:
         process = subprocess.Popen(
             [
@@ -732,18 +789,25 @@ def download_order_file(request, order_guid, file_guid, filename):
             env={"PASSWD": password},
         )
 
+        stdout, stderr = process.communicate()
 
-        stderr = process.stderr.read()
-
-        if stderr:
-            error_msg = stderr.decode("utf-8", errors="ignore")
-            logger.error("SMB error: %s", error_msg)
-
+        if process.returncode != 0:
+            logger.error(
+                "SMB error (%s): %s",
+                process.returncode,
+                stderr.decode("utf-8", errors="ignore")
+            )
             raise Http404("Файл не знайдено або доступ заборонено")
 
+        # =========================
+        # RESPONSE
+        # =========================
+        content_type, _ = mimetypes.guess_type(filename)
+        content_type = content_type or "application/octet-stream"
+
         response = StreamingHttpResponse(
-            streaming_content=process.stdout,
-            content_type="application/octet-stream"
+            stdout,
+            content_type=content_type
         )
 
         response["Content-Disposition"] = (
@@ -756,11 +820,9 @@ def download_order_file(request, order_guid, file_guid, filename):
         logger.exception("smbclient not installed")
         raise Http404("Сервіс завантаження файлів недоступний")
 
-    except Exception as e:
+    except Exception:
         logger.exception("Download error")
-        raise Http404(f"Помилка доступу до файлу")
-
-
+        raise Http404("Помилка доступу до файлу")
 
 
 @api_view(["POST"])
@@ -1025,7 +1087,7 @@ def complaints_view_all_by_month(request):
     return JsonResponse({
         "status": "success",
         "data": processed_rows
-    })
+    }, json_dumps_params={"ensure_ascii": False})
 
 
 
@@ -1186,6 +1248,7 @@ def orders_view_all_by_month(request):
                 "calculation": formatted_calcs
             }
         },
+        json_dumps_params={"ensure_ascii": False},
         safe=False
     )
 
