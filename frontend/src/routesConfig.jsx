@@ -16,7 +16,7 @@ import AdditionalOrdersPage from "./pages/AdditionalOrdersPage";
 import ChangePassword from "./pages/ChangePassword";
 import EditUserPage from "./pages/EditUserPage";
 import SettlementsPage from "./pages/SettlementsPage";
-
+import DealerAddressesPage from "./pages/DealerAddressesPage"
 import ContactFormPage from "./pages/ContactFormPage";
 import UrgentCallLogsPage from "./pages/UrgentCallLogsPage";
 import EmergencyContactsPage from './pages/EmergencyContactsPage';
@@ -126,6 +126,7 @@ export const dealerRoutes = [
   { path: "finance/create-bill", element: <CreateBillPage/> },
   { path: "finance/customer-bills", element: <CustomerBillsPage/> },
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
+  { path: "edit-addresses", element: <DealerAddressesPage/> },
 
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];

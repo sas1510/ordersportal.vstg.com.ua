@@ -332,6 +332,7 @@ const AdditionalOrders = () => {
           <span>Звітний рік:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+            <option value="2026">2026</option>
             <option value="2025">2025</option>
             <option value="2024">2024</option>
           </select>

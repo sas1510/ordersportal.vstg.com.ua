@@ -7,6 +7,8 @@ import { RoleProvider } from "./context/RoleContext";
 import AuthProvider from "./context/AuthContext";
 import { NotificationProvider } from './components/notification/Notifications.jsx';
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import 'leaflet/dist/leaflet.css';
+
 // import './styles/datatables.css';
 
 // import "datatables.net-dt/css/jquery.dataTables.css";

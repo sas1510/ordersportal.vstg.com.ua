@@ -156,7 +156,7 @@ export default function CreateCustomerBillModal({
                     placeholder="— оберіть IBAN —"
                     getValue={(i) => i.AccountGUID}
                     getLabel={(i) =>
-                      `${i.НомерСчета} — ${i.AccountName}`
+                      `${i.NumberBills} — ${i.AccountName}`
                     }
                     onChange={setSelectedIban}
                   />

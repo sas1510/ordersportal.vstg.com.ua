@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView,
 )
-from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users
+from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change
 
 
 
@@ -27,6 +27,7 @@ urlpatterns = [
     path("users/<int:user_id>/deactivate/", admin_deactivate_user_view),
     path("user/me/", get_current_user),
     path("dealer-portal-users/",get_dealer_portal_users,name="get_dealer_portal_users"),
+    path("get_dealer_addresses_change/", get_dealer_addresses_change, name="get_dealer_addresses_change"),
     
     
 ]

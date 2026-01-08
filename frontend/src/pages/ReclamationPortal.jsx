@@ -921,7 +921,7 @@ const ReclamationPortal = () => {
                     <span className="icon icon-calendar2 font-size-24 text-info"></span>
 
                     <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
-                        {Array.from({ length: new Date().getFullYear() - 2024 + 1 }, (_, i) =>
+                        {Array.from({ length: new Date().getFullYear() - 4 + 1 }, (_, i) =>
                             (new Date().getFullYear() - i).toString()
                         ).map(y =>
                             <option key={y} value={y}>{y}</option>

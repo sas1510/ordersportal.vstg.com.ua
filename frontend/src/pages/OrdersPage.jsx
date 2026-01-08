@@ -30,8 +30,9 @@ const PortalOriginal = () => {
     const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
     const [calculationsData, setCalculationsData] = useState([]);
     const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
-    
-    const [selectedYear, setSelectedYear] = useState('2025');
+    const currentYear = new Date().getFullYear().toString();
+    const [selectedYear, setSelectedYear] = useState(currentYear);
+
     const [loading, setLoading] = useState(false);
 
     const [expandedCalc, setExpandedCalc] = useState(null);
@@ -45,6 +46,7 @@ const PortalOriginal = () => {
     const windowWidth = useWindowWidth();
     const isMobile = windowWidth < 1024;
     const { theme } = useTheme();
+
 
     // --- Cancel all requests on unmount ---
     useEffect(() => {
@@ -288,9 +290,11 @@ const PortalOriginal = () => {
                     <span>Звітний рік:</span>
                     <span className="icon icon-calendar2 font-size-24 text-info"></span>
                     <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+                        <option value="2026">2026</option>
                         <option value="2025">2025</option>
                         <option value="2024">2024</option>
                     </select>
+
                 </div>
 
                 <div className="by-month-pagination-wrapper">

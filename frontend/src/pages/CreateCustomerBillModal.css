@@ -11,7 +11,7 @@
 .bill-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.45);
+  background:#212121bf;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,7 +175,7 @@ body.dark-theme {
 
   /* ===== OVERLAY ===== */
   .bill-modal-overlay {
-    background: rgba(16, 30, 59, 0.75);
+    background: #212121bf;
   }
 
   /* ===== WINDOW ===== */

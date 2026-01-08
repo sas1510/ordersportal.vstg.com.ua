@@ -1,0 +1,263 @@
+.page-container-address {
+  padding: 80px;
+  margin-bottom: 100px
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 16px;
+  height: calc(100vh - 120px);
+}
+
+.address-list {
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+}
+
+.address-item {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.address-item.active {
+  background: #f3f6ff;
+}
+
+.title {
+  font-weight: 500;
+}
+
+.meta {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.badge-address {
+  background: #d33;
+  color: #fff;
+  padding: 2px 6px;
+  margin-left: 6px;
+  border-radius: 4px;
+}
+
+.warning {
+  color: #c00;
+  font-size: 12px;
+}
+
+.edit-badge {
+  color: #1976d2;
+  font-size: 12px;
+}
+
+.map-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.search-box {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  z-index: 1001;
+}
+
+.suggestions div {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestions div:hover {
+  background: #f0f0f0;
+}
+
+.leaflet-container {
+  flex: 1;
+}
+
+.map-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-top: 1px solid #ddd;
+  
+}
+
+.btn-primary {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+
+.drag-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.drag-toggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+
+.layout { display: flex; gap: 20px; height: 90vh; }
+.address-list { width: 300px; overflow-y: auto; border-right: 1px solid #ddd; }
+.map-column { flex: 1; display: flex; flex-direction: column; gap: 10px; position: relative; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.form-grid input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+.search-box { position: relative; z-index: 1001; }
+.suggestions { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; }
+.suggestion-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
+.suggestion-item:hover { background: #f0f0f0; }
+.map-footer { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+.address-comparison { margin-bottom: 10px; font-size: 0.9em; }
+.highlighted { color: #007bff; font-weight: 500; }
+.footer-actions { display: flex; justify-content: space-between; align-items: center; }
+.btn-save { background: #28a745; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; }
+.btn-save:disabled { background: #ccc; }
+
+
+.layout {
+  display: flex;
+  height: calc(100vh - 100px);
+  gap: 20px;
+  padding: 20px;
+}
+
+.address-list {
+  width: 320px;
+  overflow-y: auto;
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.address-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.address-item.active {
+  border-color: #007bff;
+  background: #eef6ff;
+}
+
+.map-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* КАРТА МАЄ МАТИ ВИСОТУ */
+.map-holder {
+  flex: 1; /* Займає весь вільний простір */
+  min-height: 400px; 
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.address-optimizer-form .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.form-grid input, .search-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.search-box {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  z-index: 10000; /* Має бути вище карти */
+  border: 1px solid #ccc;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.suggestion-item:hover {
+  background: #f8f9fa;
+}
+
+.map-footer {
+  background: white;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+
+}
+
+.blue-text { color: #007bff; }
+
+.btn-save {
+  background: #28a745;
+  color: white;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.map-holder {
+  height: 500px; /* або 100%, якщо батьківський елемент має висоту */
+  width: 100%;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.map-column {
+  padding-bottom: 80px;
+}
+
+

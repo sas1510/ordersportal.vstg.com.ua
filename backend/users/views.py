@@ -313,7 +313,7 @@ from django.utils import timezone
 from datetime import timedelta
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
-from backend.permissions import  IsAdminJWTOr1CApiKey
+from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 
 
 
@@ -840,3 +840,49 @@ def get_dealer_portal_users(request):
         data.append(record)
 
     return Response(data)
+
+
+
+
+from django.db import connection
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def get_dealer_addresses_change(request):
+    """
+    Повертає адреси дилера
+    (виклик процедури dbo.GetDealerAddresses)
+    """
+
+    contractor_guid = request.GET.get("contractor")
+
+    if not contractor_guid:
+        return Response(
+            {"error": "contractor parameter is required"},
+            status=400
+        )
+
+    contractor_bin = guid_to_1c_bin(contractor_guid)
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetDealerAddressesParsed @ContractorLink = %s
+            """,
+            [contractor_bin]
+        )
+
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
+
+    addresses = [dict(zip(columns, row)) for row in rows]
+
+    return Response({
+        "success": True,
+        "addresses": addresses
+    })

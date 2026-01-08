@@ -9,12 +9,12 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
   const dropdownRef = useRef(null);
 
   const selectedItem = items.find(
-    (i) => i.КодВРегбазе === value
+    (i) => i.CodeInDB === value
   );
 
   const filteredItems = useMemo(() => {
     return items.filter((i) =>
-      i.Наименование.toLowerCase().includes(search.toLowerCase())
+      i.NameBills.toLowerCase().includes(search.toLowerCase())
     );
   }, [items, search]);
 
@@ -55,7 +55,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
       >
         <span className={selectedItem ? "" : "placeholder"}>
           {selectedItem
-            ? `${selectedItem.Наименование} (${selectedItem.ЕдИзм})`
+            ? `${selectedItem.NameBills} (${selectedItem.EdIzm})`
             : placeholder || "— оберіть товар —"}
         </span>
         <span className="arrow">▾</span>
@@ -86,22 +86,22 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
               )}
 
               {filteredItems.map((i) => {
-                const selected = i.КодВРегбазе === value;
+                const selected = i.CodeInDB === value;
 
                 return (
                   <div
-                    key={i.КодВРегбазе}
+                    key={i.CodeInDB}
                     className={`bill-select__option ${
                       selected ? "selected" : ""
                     }`}
                     onClick={() => {
-                      onChange(i.КодВРегбазе);
+                      onChange(i.CodeInDB);
                       setOpen(false);
                       setSearch("");
                     }}
                   >
-                    {i.Наименование}
-                    <span className="unit">({i.ЕдИзм})</span>
+                    {i.NameBills}
+                    <span className="unit">({i.EdIzm})</span>
                   </div>
                 );
               })}
