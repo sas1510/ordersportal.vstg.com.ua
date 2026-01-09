@@ -30,8 +30,18 @@ const AdminAdditionalOrders = () => {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
   const { theme } = useTheme();
-
+  
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const availableYears = useMemo(() => {
+      const startYear = 2024;
+      const years = [];
+      for (let y = currentYear; y >= startYear; y--) {
+        years.push(String(y));
+      }
+      return years;
+    }, [currentYear]);
+
 
   const formatDateHuman = (dateStr) => {
     if (!dateStr) return null;
@@ -320,9 +330,13 @@ const AdminAdditionalOrders = () => {
           <span>Звітний рік:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
           </select>
+
         </div>
 
         <div className="by-month-pagination-wrapper">

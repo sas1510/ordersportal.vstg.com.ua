@@ -48,8 +48,8 @@ const useIsMobile = () => {
 //                          DETECT PAYMENT CHANNEL
 // ====================================================================
 const detectPaymentChannel = (item) => {
-  const doc = item.ВидДокумента || item.DealType || "";
-  const hasOrder = item.Сделка || item.НомерЗаказа;
+  const doc = item.DocumentType || item.DealType || "";
+  const hasOrder = item.Сделка || item.OrderNumber;
 
   if (hasOrder) return "order";
   if (doc === "ППВход") return "bank";
@@ -59,10 +59,10 @@ const detectPaymentChannel = (item) => {
 
 
 const getArrowIcon = (item) => {
-  if (item.InOut === "Прихід")
+  if (item.FlowDirection === "Прихід")
     return <span className="arrow arrow-in">▲</span>;
 
-  if (item.InOut === "Витрата")
+  if (item.FlowDirection === "Витрата")
     return <span className="arrow arrow-out">▼</span>;
 
   return <span className="arrow arrow-none">•</span>;
@@ -98,13 +98,13 @@ const DocumentRow = React.memo(
     const shouldShowSubRow = 
     isExpanded &&
     detectPaymentChannel(firstItem) === "order" && 
-    (firstItem.ВидДокумента === "ППВход" || firstItem.ВидДокумента === "ПКО") &&
+    (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
     docGroup.items.length > 0;
 
 
     const cursorShow = 
     detectPaymentChannel(firstItem) === "order" && 
-    (firstItem.ВидДокумента === "ППВход" || firstItem.ВидДокумента === "ПКО") &&
+    (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
     docGroup.items.length > 0;
 
     return (
@@ -121,24 +121,24 @@ const DocumentRow = React.memo(
             {/* ЧАС */}
         <td className="td-time">
           {getArrowIcon(firstItem)}
-          {(firstItem.Период || "").split("T")[1]?.slice(0, 5)}
+          {(firstItem.Date || "").split("T")[1]?.slice(0, 5)}
         </td>
 
 
           {/* OPERATION */}
           <td  className="td-operation">
-            {firstItem.ВидДокумента === "КорректировкаДолга" ? (
+            {firstItem.DocumentType === "КорректировкаДолга" ? (
               <>
-                Коригування. {firstItem.DescriptionCor}
-                {firstItem.СделкаНомер ? ", №" + firstItem.СделкаНомер : ""}
+                Коригування. {firstItem.CorrectionDescription}
+                {firstItem.DealNumber ? ", №" + firstItem.DealNumber : ""}
               </>
-            ) : firstItem.ВидДокумента === "ВозвратОтПокупателя" ? (
+            ) : firstItem.DocumentType === "ВозвратОтПокупателя" ? (
               <>
-                {firstItem.DealType || firstItem.ВидДокумента}
-                {firstItem.СделкаНомер ? ", №" + firstItem.СделкаНомер : ""}
+                {firstItem.DealType || firstItem.DocumentType}
+                {firstItem.DealNumber ? ", №" + firstItem.DealNumber : ""}
               </>
             ) : (
-              firstItem.DealType || firstItem.ВидДокумента || "—"
+              firstItem.DealType || firstItem.DocumentType || "—"
             )}
           </td>
 
@@ -166,8 +166,8 @@ const DocumentRow = React.memo(
         <td colSpan={3} className="td-details">
           {docGroup.items.length > 0 &&
           detectPaymentChannel(docGroup.items[0]) === "order" &&
-          (firstItem.ВидДокумента === "ППВход" ||
-            firstItem.ВидДокумента === "ПКО") ? (
+          (firstItem.DocumentType === "ППВход" ||
+            firstItem.DocumentType === "ПКО") ? (
             <span className="expand-btn">
               {isExpanded ? (
                 <>
@@ -190,7 +190,7 @@ const DocumentRow = React.memo(
         {/* ===================== SUBROWS (ORDERS) ===================== */}
         {isExpanded &&
           detectPaymentChannel(docGroup.items[0]) === "order" && 
-          (firstItem.ВидДокумента === "ППВход" || firstItem.ВидДокумента === "ПКО") &&
+          (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
           docGroup.items.length > 0 && (
 
           <tr className="sub-row">
@@ -203,21 +203,21 @@ const DocumentRow = React.memo(
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="order-mini-header">
-                      Замовлення № {item.НомерЗаказа}
+                      Замовлення № {item.OrderNumber}
                     </div>
 
                     <div className="mini-grid">
                       <div>
                         <span className="mini-label">Сума</span>
                         <span className="mini-value">
-                          {formatCurrency(item.СуммаЗаказа)}
+                          {formatCurrency(item.OrderAmount)}
                         </span>
                       </div>
 
                       <div>
                         <span className="mini-label">Оплачено до</span>
                         <span className="mini-value text-grey">
-                          {formatCurrency(item.ОплаченоДоДокумента)}
+                          {formatCurrency(item.PaidBefore)}
                         </span>
                       </div>
 
@@ -225,7 +225,7 @@ const DocumentRow = React.memo(
                         <span className="mini-label">Оплата</span>
                         <span
                           className={
-                            item.InOut === "Прихід"
+                            item.FlowDirection === "Прихід"
                               ? "text-green mini-green"
                               : "text-red mini-red"
                           }
@@ -237,13 +237,13 @@ const DocumentRow = React.memo(
                       <div>
                         <span className="mini-label">Залишок</span>
                         <span className="mini-red">
-                          {formatCurrency(item.ЗалишокПоЗаказу)}
+                          {formatCurrency(item.OrderBalance)}
                         </span>
                       </div>
 
                       <div>
                         <span className="mini-label">Статус</span>
-                        <span>{item.СтатусОплатиПоЗаказу || "—"}</span>
+                        <span>{item.PaymentStatus || "—"}</span>
                       </div>
 
                       <div>
@@ -256,7 +256,7 @@ const DocumentRow = React.memo(
                       <div>
                         <span className="mini-label">Дата замовлення</span>
                         <span className="mini-value">
-                          {(formatDateHuman(item.ДатаЗаказа) || "").split("T")[0]}
+                          {(formatDateHuman(item.OrderDate) || "").split("T")[0]}
                         </span>
                       </div>
                     </div>
@@ -513,112 +513,138 @@ const PaymentStatusV2 = () => {
   };
 
   // ======================== GROUPING ============================
-  const sortedGroups = useMemo(() => {
-    const groupedByDate = {};
+const sortedGroups = useMemo(() => {
+  const groupedByDate = {};
 
-    paymentsData.forEach((item) => {
-      const date = item.Период?.split("T")[0] || "Невідома дата";
-      const docKey = item.НомерДок || item.ВидДокумента || `no-doc-${date}`;
-
-      if (!groupedByDate[date]) {
-        groupedByDate[date] = {
-          date,
-          documentGroups: {},
-          totalIncome: 0,
-          totalExpense: 0,
-          balance: 0,
-          lastCumSaldoTotal: 0,
-          initialContracts: {},
-          contractSummary: {},
-        };
-      }
-
-      const group = groupedByDate[date];
-
-      if (!group.documentGroups[docKey]) {
-        group.documentGroups[docKey] = {
-          docKey,
-          items: [],
-          totalIncome: 0,
-          totalExpense: 0,
-          lastCumSaldo: item.CumSaldo,
-          CumSaldoStart: item.CumSaldoStart,
-        };
-      }
-
-      const docGroup = group.documentGroups[docKey];
-      docGroup.items.push(item);
-
-      const delta = Number(item.DeltaRow || 0);
-      const absDelta = Math.abs(delta);
-
-      if (item.InOut === "Прихід") {
-        group.totalIncome += absDelta;
-        docGroup.totalIncome += absDelta;
-      }
-      if (item.InOut === "Витрата") {
-        group.totalExpense += absDelta;
-        docGroup.totalExpense += absDelta;
-      }
-
-      group.lastCumSaldoTotal = item.CumSaldo;
-      docGroup.lastCumSaldo = item.CumSaldo;
-
-      const contractName = item.FinalDogovorName || "Без договору";
-
-if (!group.contractSummary[contractName]) {
-  group.contractSummary[contractName] = {
-    contractName,
-    income: 0,
-    expense: 0,
-    balance: 0,
-    lastCumSaldo: 0,
+  // helper: safe number
+  const toNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
   };
-}
 
-const summary = group.contractSummary[contractName];
+  paymentsData.forEach((item) => {
+    const date = item.Date?.split("T")[0] || "Невідома дата";
 
+    // ✅ docKey має бути унікальним: тип+номер+registrarId(+дата)
+    // RegistrarId — найкращий ключ для одного документа
+    const docKey =
+      item.RegistrarId ||
+      `${item.DocumentType || "DOC"}|${item.DocumentNumber || "NO"}|${item.DocumentDate || item.Date || date}`;
 
-// Прихід
-if (item.InOut === "Прихід") {
-  summary.income += absDelta;
-}
+    if (!groupedByDate[date]) {
+      groupedByDate[date] = {
+        date,
+        documentGroups: {},
+        totalIncome: 0,
+        totalExpense: 0,
+        balance: 0,
+        lastCumSaldoTotal: null,   // важливо
+        initialContracts: {},
+        contractSummary: {},
+      };
+    }
 
-// Витрата
-if (item.InOut === "Витрата") {
-  summary.expense += absDelta;
-}
+    const group = groupedByDate[date];
 
-// Фінальний баланс за договором НА КІНЕЦЬ ДНЯ
-summary.balance = summary.income - summary.expense;
+    if (!group.documentGroups[docKey]) {
+      group.documentGroups[docKey] = {
+        docKey,
+        items: [],
+        totalIncome: 0,
+        totalExpense: 0,
 
-// Оновити кінцеве сальдо по договору
-summary.lastCumSaldo = item.CumSaldo;
+        // ✅ старт/кінець як числа
+        CumSaldoStart: toNum(item.CumSaldoStart),
+        lastCumSaldo: toNum(item.CumSaldo),
 
+        // ✅ для коректного загального балансу дня
+        maxDocDateTime: item.Date || item.DocumentDate || "",
+      };
+    }
+
+    const docGroup = group.documentGroups[docKey];
+    docGroup.items.push(item);
+
+    const absDelta = Math.abs(toNum(item.DeltaRow));
+
+    // totals по документу
+    if (item.FlowDirection === "Прихід") {
+      group.totalIncome += absDelta;
+      docGroup.totalIncome += absDelta;
+    } else if (item.FlowDirection === "Витрата") {
+      group.totalExpense += absDelta;
+      docGroup.totalExpense += absDelta;
+    }
+
+    // ✅ CumSaldoStart = MIN, lastCumSaldo = MAX (критично для "рознесено на N замовлень")
+    docGroup.CumSaldoStart = Math.min(docGroup.CumSaldoStart, toNum(item.CumSaldoStart));
+    docGroup.lastCumSaldo = Math.max(docGroup.lastCumSaldo, toNum(item.CumSaldo));
+
+    // ✅ останнє сальдо дня: беремо по найпізнішому часу
+    const tPrev = Date.parse(docGroup.maxDocDateTime) || 0;
+    const tCur = Date.parse(item.Date || item.DocumentDate || "") || 0;
+    if (tCur >= tPrev) docGroup.maxDocDateTime = item.Date || item.DocumentDate || "";
+
+    const gPrev = Date.parse(group.lastCumSaldoTotal?.__t || "") || 0;
+    if (tCur >= gPrev) {
+      group.lastCumSaldoTotal = { value: toNum(item.CumSaldo), __t: item.Date || item.DocumentDate || "" };
+    }
+
+    // ================= Contract summary =================
+    const contractName = item.FinalDogovorName || "Без договору";
+
+    if (!group.contractSummary[contractName]) {
+      group.contractSummary[contractName] = {
+        contractName,
+        income: 0,
+        expense: 0,
+        lastCumSaldo: null,
+        __t: "",
+      };
+    }
+
+    const summary = group.contractSummary[contractName];
+
+    if (item.FlowDirection === "Прихід") summary.income += absDelta;
+    else if (item.FlowDirection === "Витрата") summary.expense += absDelta;
+
+    // ✅ останнє сальдо по договору теж по найпізнішому часу
+    const sPrev = Date.parse(summary.__t) || 0;
+    if (tCur >= sPrev) {
+      summary.lastCumSaldo = toNum(item.CumSaldo);
+      summary.__t = item.Date || item.DocumentDate || "";
+    }
+  });
+
+  // перетворюємо lastCumSaldoTotal назад в число
+  const groups = Object.values(groupedByDate)
+    .map((g) => ({
+      ...g,
+      lastCumSaldoTotal: g.lastCumSaldoTotal?.value ?? 0,
+    }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // ✅ initialSaldo по договорах: беремо попередній день, якщо є
+  const prevDayContracts = {};
+
+  groups.forEach((g) => {
+    g.balance = g.lastCumSaldoTotal;
+
+    g.initialContracts = {};
+    Object.entries(g.contractSummary).forEach(([contractName, s]) => {
+      const last = s.lastCumSaldo ?? 0;
+
+      g.initialContracts[contractName] = {
+        contractName,
+        initialSaldo: prevDayContracts[contractName] ?? last,
+      };
+
+      prevDayContracts[contractName] = last;
     });
+  });
 
-    let groups = Object.values(groupedByDate).sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
-    );
-
-    let prevDayContracts = {};
-
-    groups.forEach((g) => {
-      g.balance = g.lastCumSaldoTotal;
-
-      g.initialContracts = {};
-      Object.entries(g.contractSummary).forEach(([contractName, summary]) => {
-        g.initialContracts[contractName] = {
-          contractName,
-          initialSaldo: prevDayContracts[contractName] ?? summary.lastCumSaldo,
-        };
-
-        prevDayContracts[contractName] = summary.lastCumSaldo;
-      });
-    });
-
-    return groups.reverse();
-  }, [paymentsData]);
+  return groups.reverse();
+}, [paymentsData]);
 
   // ============================ RENDER ============================
 

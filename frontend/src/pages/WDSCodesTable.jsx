@@ -142,7 +142,7 @@ const WDSCodesTable = () => {
                 <tbody>
                   {items.map((row, index) => (
                     <tr key={index}>
-                      <td>{formatDateHumanShorter(row.Дата)}</td>
+                      <td>{formatDateHumanShorter(row.Date)}</td>
                       <td><span className="badge-wds">{row.WDSCode}</span></td>
                       <td className="text-bold">{row.OrderNumber}</td>
                       <td>{row.SerieName || "Стандарт"}</td>
@@ -156,7 +156,7 @@ const WDSCodesTable = () => {
             <div className="mobile-only wds-mobile-list">
               {items.map((row, index) => (
                 <div className="wds-card" key={index}>
-                  <div className="row"><span>Дата</span><b>{formatDateHumanShorter(row.Дата)}</b></div>
+                  <div className="row"><span>Дата</span><b>{formatDateHumanShorter(row.Date)}</b></div>
                   <div className="row"><span>WDS</span><span className="badge-wds">{row.WDSCode}</span></div>
                   <div className="row"><span>Замовлення</span><b>{row.OrderNumber}</b></div>
                   <div className="row"><span>Серія</span>{row.SerieName || "Стандарт"}</div>

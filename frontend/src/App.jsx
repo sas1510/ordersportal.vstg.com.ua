@@ -11,7 +11,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import InviteRegisterForm from "./pages/InviteRegisterForm";
 
-
+import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
 
 const routeTitles = {
@@ -57,6 +57,12 @@ function AppRoutes() {
   const { role } = useContext(RoleContext);
   const location = useLocation();
 
+  const publicPaths = ["/", "/home", "/login"];
+  const isInvite = location.pathname.startsWith("/invite/");
+  const isPublicRoute =
+    publicPaths.includes(location.pathname) || isInvite;
+
+
   useEffect(() => {
     const title = routeTitles[location.pathname] || "Портал замовлень";
     document.title = title;
@@ -84,6 +90,11 @@ function AppRoutes() {
     LayoutComponent = AdminLayout;
     routes = managerRoutes;
   }
+
+  // if (role === null && !isPublicRoute) {
+  //   return <PortalLoader />;
+  // }
+
 
   return (
     <Routes>

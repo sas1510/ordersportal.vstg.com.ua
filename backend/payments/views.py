@@ -474,9 +474,9 @@ def export_payment_status_excel(request):
                 break
 
             for r in rows:
-                period = r[idx["Период"]]
+                period = r[idx["Date"]]
                 delta = r[idx["DeltaRow"]] or 0
-                inout = r[idx["InOut"]]
+                inout = r[idx["FlowDirection"]]
 
                 ws.append([
                     period.date().isoformat() if period else "",
@@ -487,11 +487,11 @@ def export_payment_status_excel(request):
                     abs(delta) if inout == "Прихід" else "",
                     abs(delta) if inout == "Витрата" else "",
                     r[idx["CumSaldo"]],
-                    r[idx["НомерЗаказа"]],
-                    r[idx["СуммаЗаказа"]],
+                    r[idx["OrderNumber"]],
+                    r[idx["OrderAmount"]],
                     abs(delta),
-                    r[idx["ЗалишокПоЗаказу"]],
-                    r[idx["СтатусОплатиПоЗаказу"]],
+                    r[idx["OrderBalance"]],
+                    r[idx["PaymentStatus"]],
                 ])
 
     response = HttpResponse(

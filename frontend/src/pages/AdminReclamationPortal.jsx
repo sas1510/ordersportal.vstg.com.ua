@@ -122,6 +122,16 @@ const AdminReclamationPortal = () => {
         []
     );
 
+    const currentYear = useMemo(() => new Date().getFullYear(), []);
+    const availableYears = useMemo(() => {
+        const startYear = 2024;
+        const years = [];
+        for (let y = currentYear; y >= startYear; y--) {
+            years.push(String(y));
+        }
+        return years;
+        }, [currentYear]);
+
     /* =====================================================
      * CLIENT-SIDE FILTERING
      * ===================================================== */
@@ -349,9 +359,13 @@ const AdminReclamationPortal = () => {
                 <div className="year-selector row">
                     <span>Рік:</span>
                     <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
-                        <option value="2025">2025</option>
-                        <option value="2024">2024</option>
+                    {availableYears.map(year => (
+                        <option key={year} value={year}>
+                        {year}
+                        </option>
+                    ))}
                     </select>
+
                 </div>
 
                 <div className="by-month-pagination-wrapper">
