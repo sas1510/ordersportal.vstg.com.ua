@@ -795,7 +795,7 @@ useEffect(() => {
                   </button>
                 </div>
               </div>
-              <div className="location-paste-box">
+              {/* <div className="location-paste-box">
               <input
                 className="search-input"
                 placeholder="Вставте локацію (Telegram / Viber / Apple / Google Maps)"
@@ -810,7 +810,7 @@ useEffect(() => {
               >
                 📍 Використати локацію
               </button>
-            </div>
+            </div> */}
 
 
               <div className="search-box-address">

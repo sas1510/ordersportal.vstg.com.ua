@@ -1,0 +1,93 @@
+/* ================= CLIENT ADDRESS FORM ================= */
+
+.client-address-form {
+  margin-bottom: 14px;
+}
+
+/* ----- GRID ----- */
+.client-address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+
+/* inputs */
+.client-address-grid input {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #b9bbc0;
+  font-size: 14px;
+  color: #303133;
+}
+
+.client-address-grid input::placeholder {
+  color: #909399;
+}
+
+/* обовʼязкове поле */
+.client-address-grid input[placeholder*="*"] {
+  border-color: #ffdb70;
+}
+
+/* ----- ACTIONS ----- */
+.client-address-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+/* кнопка пошуку */
+.client-address-find-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #2e7d32;
+  color: #fff;
+
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+
+  transition: background 0.2s ease;
+}
+
+.client-address-find-btn:hover {
+  background: #256628;
+}
+
+.client-address-search {
+  margin-bottom: 12px; /* або 16px */
+}
+
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 720px) {
+  .client-address-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.client-address-block {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.client-address-search {
+    border: 1px solid #b9bbc0;
+}
+.dark-theme .client-address-grid input {
+  color: #ffffff;
+}
+
+.section-title-address {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 1.75rem;
+}
