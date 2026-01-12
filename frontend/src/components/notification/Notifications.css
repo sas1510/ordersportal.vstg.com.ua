@@ -53,7 +53,7 @@
 .notification.info { background-color: var(--info-color); }
 .notification.success { background-color: var(--success-color); }
 .notification.error { background-color: var(--danger-color); }
-.notification.warning { background-color: var(--warning-color); color: #333; }
+.notification.warning { background-color: var(--warning-color); color: #333 !important; }
 
 @keyframes slideIn {
   to { transform: translateY(0); opacity: 0.95; }
