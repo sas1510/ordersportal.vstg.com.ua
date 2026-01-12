@@ -14,6 +14,32 @@ import { useNotification } from "../../components/notification/Notifications";
 /* ================= CONSTANTS ================= */
 const DEFAULT_CENTER = [48.3794, 31.1656];
 
+/* ================= HELPERS ================= */
+
+// Валідація: рівно 13 символів, формат +380...
+const isValidPhoneUA = (phone) => {
+  return /^\+380\d{9}$/.test(phone);
+};
+
+// Розумне форматування телефону під час введення
+const formatPhoneInput = (value) => {
+  let digits = value.replace(/[^\d]/g, ""); // тільки цифри
+
+  if (!digits) return "";
+
+  // Авто-підстановка коду країни
+  if (digits.startsWith("0")) {
+    digits = "38" + digits;
+  } else if (digits.startsWith("9")) {
+    digits = "380" + digits;
+  } else if (digits.startsWith("80")) {
+    digits = "3" + digits;
+  }
+
+  // Завжди додаємо плюс на початок і обмежуємо довжину до 13 символів (+380...)
+  return ("+" + digits).slice(0, 13);
+};
+
 /* ================= MAP HELPERS ================= */
 function ClickHandler({ onSelect, onAddressFound }) {
   useMapEvents({
@@ -50,14 +76,11 @@ const reverseGeocode = async (lat, lon) => {
   }
 };
 
-/* ================= HELPERS ================= */
+/* ================= BUILD ADDRESS ================= */
 const buildAddressFromForm = (f) =>
   [f.region, f.district, f.city, f.street, f.house]
     .filter(Boolean)
     .join(", ");
-
-const isValidPhone = (phone) =>
-  /^\+?\d[\d\s\-()]{8,}$/.test(phone);
 
 /* ================= COMPONENT ================= */
 const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
@@ -65,25 +88,24 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
 
   /* ===== ADDRESS FORM ===== */
   const [formAddr, setFormAddr] = useState({
-    region: "",
-    district: "",
-    city: "",
-    street: "",
-    house: "",
-    apartment: "",
-    entrance: "",
-    floor: "",
-    note: "",
+    region: initialValue?.region || "",
+    district: initialValue?.district || "",
+    city: initialValue?.city || "",
+    street: initialValue?.street || "",
+    house: initialValue?.house || "",
+    apartment: initialValue?.apartment || "",
+    entrance: initialValue?.entrance || "",
+    floor: initialValue?.floor || "",
+    note: initialValue?.note || "",
   });
 
-  /* ===== CLIENT CONTACT FORM ===== */
+  /* ===== CONTACT FORM ===== */
   const [clientContact, setClientContact] = useState({
     fullName: initialValue?.fullName || "",
     phone: initialValue?.phone || "",
     extraInfo: initialValue?.extraInfo || "",
   });
 
-  /* ===== MAP STATE ===== */
   const [selectedCoords, setSelectedCoords] = useState(
     initialValue?.lat && initialValue?.lng
       ? [initialValue.lat, initialValue.lng]
@@ -97,11 +119,10 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showDragHint, setShowDragHint] = useState(false);
-  const [isPreciseLocation, setIsPreciseLocation] = useState(false);
+  const [isPreciseLocation, setIsPreciseLocation] = useState(!!initialValue?.lat);
 
   const debounceRef = useRef(null);
 
-  /* ================= REQUIRED FIELDS ================= */
   const requiredFields = useMemo(
     () => ["region", "district", "city", "street", "house"],
     []
@@ -138,10 +159,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     const addr = buildAddressFromForm(formAddr);
 
     if (!addr) {
-      addNotification(
-        "Заповніть обовʼязкові поля адреси",
-        "warning"
-      );
+      addNotification("Заповніть обовʼязкові поля адреси", "error");
       return;
     }
 
@@ -170,31 +188,30 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const handleSave = () => {
     for (const k of requiredFields) {
       if (!String(formAddr[k]).trim()) {
-        addNotification("Заповніть усі обовʼязкові поля адреси", "error");
+        addNotification(`Заповніть обовʼязкове поле: ${k}`, "error");
         return;
       }
     }
 
-    if (!clientContact.fullName.trim()) {
-      addNotification("Вкажіть ПІБ клієнта", "error");
+    // Валідація ПІБ (мінімум 2 слова)
+    if (!clientContact.fullName.trim() || clientContact.fullName.trim().split(" ").length < 2) {
+      addNotification("Вкажіть ПІБ клієнта (Прізвище та Ім'я)", "error");
       return;
     }
 
-    if (!isValidPhone(clientContact.phone)) {
-      addNotification("Вкажіть коректний номер телефону", "error");
+    // Валідація телефону
+    if (!isValidPhoneUA(clientContact.phone)) {
+      addNotification("Некоректний формат телефону (+380XXXXXXXXX)", "error");
       return;
     }
 
     if (!selectedCoords) {
-      addNotification("Оберіть точку на карті", "warning");
+      addNotification("Оберіть точку на карті", "error");
       return;
     }
 
     if (!isPreciseLocation) {
-      addNotification(
-        "Уточніть точку: перетягніть маркер або клацніть точніше",
-        "warning"
-      );
+      addNotification("Уточніть точку: перетягніть маркер або клацніть точніше", "error");
       return;
     }
 
@@ -202,49 +219,55 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
       text: mapDisplayName || buildAddressFromForm(formAddr),
       lat: selectedCoords[0],
       lng: selectedCoords[1],
-
       ...formAddr,
-
       fullName: clientContact.fullName.trim(),
       phone: clientContact.phone.trim(),
       extraInfo: clientContact.extraInfo.trim(),
     });
 
-    addNotification("Адресу та контакти збережено ✅", "success");
+    addNotification("Дані успішно збережено ✅", "success");
     onClose();
   };
 
+  /* ================= UI ================= */
   return (
     <div className="new-calc-modal-overlay" onClick={onClose}>
       <div className="new-calc-modal-window" onClick={(e) => e.stopPropagation()}>
         <div className="new-calc-modal-border-top">
           <div className="new-calc-modal-header">
-            <h3>Адреса та контакти клієнта</h3>
+            <h3>🏠 Клієнтська адреса</h3>
             <span className="icon icon-cross new-calc-close-btn" onClick={onClose} />
           </div>
         </div>
 
-
         <div className="new-calc-modal-body">
-            {/* ===== CLIENT CONTACT FORM ===== */}
+          {/* ===== CONTACT FORM ===== */}
           <div className="client-address-form">
-            <h4 className="section-title-address">Контакти клієнта</h4>
-
+            <h4 className="section-title">Контакти клієнта</h4>
             <div className="client-address-grid">
               <input
-                placeholder="ПІБ клієнта *"
+                placeholder="ПІБ клієнта (Прізвище та Ім'я) *"
                 value={clientContact.fullName}
                 onChange={(e) =>
                   setClientContact((p) => ({ ...p, fullName: e.target.value }))
                 }
               />
+
               <input
-                placeholder="Номер телефону *"
+                placeholder="Телефон (+380...) *"
                 value={clientContact.phone}
-                onChange={(e) =>
-                  setClientContact((p) => ({ ...p, phone: e.target.value }))
-                }
+                maxLength={13}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Дозволяємо видалення символів без авто-дописування
+                  if (e.nativeEvent.inputType === "deleteContentBackward") {
+                    setClientContact((p) => ({ ...p, phone: val }));
+                  } else {
+                    setClientContact((p) => ({ ...p, phone: formatPhoneInput(val) }));
+                  }
+                }}
               />
+
               <input
                 placeholder="Додаткова інформація"
                 value={clientContact.extraInfo}
@@ -254,9 +277,10 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
               />
             </div>
           </div>
+
           {/* ===== ADDRESS FORM ===== */}
           <div className="client-address-form">
-            <h4 className="section-title-address">Адреса</h4>
+            <h4 className="section-title">Адреса доставки</h4>
 
             <div className="client-address-grid">
               {[
@@ -281,21 +305,17 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
               ))}
             </div>
 
-            <div className="client-address-actions">
-              <button
-                type="button"
-                className="client-address-find-btn"
-                onClick={handleFindOnMap}
-              >
-                <FaSearch /> Знайти на карті
-              </button>
-            </div>
+            <button
+              type="button"
+              className="client-address-find-btn"
+              onClick={handleFindOnMap}
+            >
+              <FaSearch /> Знайти на карті
+            </button>
           </div>
 
-          
-
           {/* ===== SEARCH ===== */}
-          <div className="search-box-address client-address-search-wrap">
+          <div className="search-container">
             <input
               className="search-input client-address-search"
               value={search}
@@ -317,8 +337,8 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
                       setMapDisplayName(s.display_name);
                       setSearch(s.display_name);
                       setSuggestions([]);
-                      setIsPreciseLocation(Number(s.place_rank) === 30);
-                      setShowDragHint(Number(s.place_rank) !== 30);
+                      setIsPreciseLocation(true);
+                      setShowDragHint(false);
                     }}
                   >
                     {s.display_name}
@@ -329,12 +349,12 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
           </div>
 
           {showDragHint && (
-            <div className="warning">Перетягніть точку максимально точно</div>
+            <div className="warning">Перетягніть маркер для уточнення точки</div>
           )}
 
           {/* ===== MAP ===== */}
-          <div className="map-holder">
-            <MapContainer center={DEFAULT_CENTER} zoom={6}>
+          <div className="map-holder-modal">
+            <MapContainer center={DEFAULT_CENTER} zoom={6} style={{ height: "300px", borderRadius: "8px" }}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <MapViewUpdater center={selectedCoords} />
               <ClickHandler
@@ -354,7 +374,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
 
         <div className="new-calc-modal-footer">
           <button className="new-calc-btn-cancel" onClick={onClose}>
-            <FaTimes /> Відмінити
+            <FaTimes /> Скасувати
           </button>
           <button className="new-calc-btn-save" onClick={handleSave}>
             <FaSave /> Зберегти

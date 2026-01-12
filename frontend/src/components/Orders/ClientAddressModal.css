@@ -39,7 +39,7 @@
 /* кнопка пошуку */
 .client-address-find-btn {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
 
   background: #2e7d32;
@@ -48,6 +48,7 @@
   padding: 10px 16px;
   border-radius: 6px;
   border: none;
+  margin-top: 10px;
 
   cursor: pointer;
   font-size: 14px;
@@ -90,4 +91,40 @@
     font-weight: 700;
     text-transform: uppercase;
     margin-bottom: 1.75rem;
+}
+
+.map-holder-modal {
+    margin-top: 10px;
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  max-height: 240px;
+  overflow-y: auto;
+
+  z-index: 9999; /* 🔴 КРИТИЧНО */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.suggestion-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.suggestion-item:hover {
+  background: #f2f2f2;
 }

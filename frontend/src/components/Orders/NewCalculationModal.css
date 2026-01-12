@@ -20,7 +20,7 @@
   text-align: center;
 
   /* ✅ Не даємо модалці виходити за екран */
-  max-height: 85vh;
+  max-height: 80vh;
   display: flex;
   flex-direction: column;
 

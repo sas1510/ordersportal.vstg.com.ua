@@ -299,7 +299,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   >
                     <div className="address-dropdown-selected">
                       <span>
-                        {addressesLoading
+                        {  addressesLoading
                           ? "Завантаження адрес..."
                           : addresses.find(
                               (a) => a.AddressKindGUID === addressGuid
