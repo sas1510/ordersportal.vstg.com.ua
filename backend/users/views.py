@@ -559,7 +559,7 @@ from .serializers import CompleteRegistrationSerializer
         },
     ),
     post=extend_schema(
-        tags=["Auth / Registration"],
+        tags=["Auth"],
         summary="Завершити реєстрацію за invite-кодом",
         description="""
 Завершує реєстрацію користувача за invite-посиланням.
