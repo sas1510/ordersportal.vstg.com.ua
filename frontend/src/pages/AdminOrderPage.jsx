@@ -111,12 +111,12 @@ const AdminPortalOriginal = () => {
       setLoading(true);
 
       try {
-        let endpoint = '/get_orders_info/';
+        let endpoint = '/order/get_orders_info/';
         const params = { year: selectedYear };
 
         // 🔥 ADMIN + ALL DEALERS
         if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
-          endpoint = '/get_orders_info_all/';
+          endpoint = '/order/get_orders_info_all/';
           params.month = filter.month || currentMonth; // month обов’язковий
         }
         // 👤 ADMIN (ONE DEALER) або USER

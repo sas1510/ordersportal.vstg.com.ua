@@ -116,7 +116,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       }
     } catch (err) {
       console.error(err);
-      addNotification("Не вдалося завантажити адресу доставки ❌", "error");
+      addNotification("Не вдалося завантажити адресу доставки ", "error");
     } finally {
       setAddressesLoading(false);
     }
@@ -193,12 +193,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     const contractorGuid = isManager ? dealerId : user.user_id_1c;
 
     if (!contractorGuid || !orderNumber || !file || !itemsCount || !comment.trim()) {
-      addNotification("Заповніть усі поля ❌", "error");
+      addNotification("Заповніть усі поля ", "error");
       return;
     }
 
     if (addressMode === "dealer" && !addressGuid) {
-      addNotification("Оберіть адресу доставки ❌", "error");
+      addNotification("Оберіть адресу доставки ", "error");
       return;
     }
 
@@ -206,7 +206,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       addressMode === "client" &&
       (!customAddress.text || !customAddress.lat || !customAddress.lng)
     ) {
-      addNotification("Оберіть клієнтську адресу ❌", "error");
+      addNotification("Оберіть клієнтську адресу ", "error");
       return;
     }
 
@@ -247,7 +247,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      addNotification("Помилка при збереженні ❌", "error");
+      addNotification("Помилка при збереженні ", "error");
     } finally {
       setLoading(false);
     }

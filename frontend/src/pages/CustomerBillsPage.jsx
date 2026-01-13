@@ -77,7 +77,7 @@ const CustomerBillsPage = () => {
 
     try {
       const res = await axiosInstance.get(
-        `/dealers/${dealerGuid}/bills/`,
+        `/payments/dealers/${dealerGuid}/bills/`,
         {
           params: {
             date_from: dateFrom,

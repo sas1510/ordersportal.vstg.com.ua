@@ -52,7 +52,7 @@ export default function CreateCustomerBillModal({
 
     const fetchProfile = async () => {
       const res = await axiosInstance.get(
-        `/dealers/${contractorGuid}/profile/`
+        `/payments/dealers/${contractorGuid}/profile/`
       );
       const data = res.data || {};
 
@@ -119,7 +119,7 @@ export default function CreateCustomerBillModal({
     };
 
     try {
-      await axiosInstance.post("/customerbill/create", dto);
+      await axiosInstance.post("/payments/customerbill/create", dto);
       onSuccess?.();
       onClose();
     } finally {

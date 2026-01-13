@@ -126,11 +126,11 @@ const AdminAdditionalOrders = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        let endpoint = '/get_additional_orders_info/';
+        let endpoint = '/additional_orders/get_additional_orders_info/';
         const params = { year: selectedYear };
 
         if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
-          endpoint = '/get_additional_orders_info_all/';
+          endpoint = '/additional_orders/get_additional_orders_info_all/';
           params.month = filter.month || currentMonth; // month обов’язковий
         } else if (dealerGuid) {
           // конкретний дилер / звичайний юзер

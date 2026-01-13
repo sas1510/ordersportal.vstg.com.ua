@@ -225,7 +225,7 @@ const PortalOriginal = () => {
             };
 
             const response = await axiosInstance.get(
-                "/get_orders_info/",
+                "/order/get_orders_info/",
                 {
                 params,
                 signal: controller.signal,

@@ -8,6 +8,8 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 
+import backend.authentication_schema
+
 # authentication.py
 from rest_framework.authentication import BaseAuthentication
 from django.conf import settings

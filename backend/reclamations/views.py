@@ -29,16 +29,25 @@ from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection
-
+from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer, OpenApiParameter
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
+@extend_schema(
+    summary="Отримати довідник причин рекламацій",
+    description=(
+        "Повертає список **причин рекламацій**.\n\n"
+        "📌 Дані беруться з SQL-процедури **dbo.GetComplaintsIssue**.\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT (користувач порталу)\n"
+        "- або **1C API Key**\n\n"
+        "🧾 Поле **Link** повертається як **GUID string** "
+        "(конвертація з BINARY(16))."
+    ),
 
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_issue_complaints(request):
-    if request.method != "GET":
-        return JsonResponse({"error": "GET method required"}, status=405)
-
     try:
         with connection.cursor() as cursor:
             cursor.execute("EXEC dbo.GetComplaintsIssue")
@@ -48,16 +57,19 @@ def get_issue_complaints(request):
             for row in cursor.fetchall():
                 row_dict = dict(zip(columns, row))
 
-                # 🔹 Link: BINARY(16) → GUID string
+                # BINARY(16) → GUID
                 if isinstance(row_dict.get("Link"), (bytes, bytearray)):
                     row_dict["Link"] = bin_to_guid_1c(row_dict["Link"])
 
                 results.append(row_dict)
 
-        return JsonResponse({"issues": results}, safe=False)
+        return Response({"issues": results})
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return Response({"error": str(e)}, status=500)
+    
+
+
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import connection
@@ -65,7 +77,29 @@ from django.db import connection
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
-
+@extend_schema(
+    summary="Отримати способів вирішення рекламації",
+    description=(
+        "Повертає список **вирішень рекламації** для заданої причини.\n\n"
+        "📌 **reason_id** — GUID причини рекламації (рядок).\n\n"
+        "📦 Дані беруться з SQL-процедури **dbo.GetComplaintSolutions**.\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT (користувач порталу)\n"
+        "- або **1C API Key**\n\n"
+        "🧾 Поле **Link** у відповіді повертається як **GUID string** "
+        "(конвертація з BINARY(16))."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="reason_id",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID причини рекламації",
+            required=True,
+        ),
+    ],
+    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_gm_solutions(request, reason_id):
@@ -105,6 +139,41 @@ def get_gm_solutions(request, reason_id):
 
 
 
+@extend_schema(
+    summary="Отримати серії рекламації по замовленню",
+    description=(
+        "Повертає **серії рекламації** для вказаного номера замовлення.\n\n"
+        "📌 Дані беруться з SQL-процедури **dbo.GetComplaintSeriesByOrder**.\n\n"
+        "🔐 **Доступ:**\n"
+        "- **JWT**:\n"
+        "  - *admin * → доступ до будь-якого контрагента\n"
+        "  - *customer* → тільки до **свого** контрагента\n"
+        "- **1C API Key** → доступ без обмежень\n\n"
+        "📎 **contractor (query-параметр)**:\n"
+        "- необовʼязковий\n"
+        "- GUID контрагента\n"
+        "- для JWT customer ігнорується (береться з user.user_id_1C)\n\n"
+        "🧾 Поле **SeriesLink** у відповіді повертається як **GUID string** "
+        "(конвертація з BINARY(16))."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="order_number",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.PATH,
+            description="Номер замовлення",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            description="GUID контрагента (необовʼязково)",
+            required=False,
+        ),
+    ],
+
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_complaint_series_by_order(request, order_number):

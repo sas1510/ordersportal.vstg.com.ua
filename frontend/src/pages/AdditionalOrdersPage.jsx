@@ -154,7 +154,7 @@ const AdditionalOrders = () => {
 
       // 🔥 ОДИН єдиний запит
       const response = await axiosInstance.get(
-        '/get_additional_orders_info/',
+        '/additional_orders/get_additional_orders_info/',
         { params, signal }
       );
 

@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    
+    "drf_spectacular",
     'backend.users',
     'backend.contact',
     'backend.records',
@@ -118,7 +118,8 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "backend.authentication.OneCApiKeyAuthentication", 
         
-    )
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # JWT
@@ -168,3 +169,29 @@ smbclient.register_session(
     username=SMB_USERNAME,
     password=SMB_PASSWORD
 )
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Orders Portal API",
+    "DESCRIPTION": "API документація (JWT + 1C API Key)",
+    "VERSION": "1.0.0",
+
+    # 🔐 ОГОЛОШЕННЯ ВСІХ AUTH
+    "SECURITY_SCHEMES": {
+        "jwtAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        },
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-API-KEY",
+        },
+    },
+
+    # 🔴 ГЛОБАЛЬНО: які auth доступні
+    "SECURITY": [
+        {"jwtAuth": []},
+        {"ApiKeyAuth": []},
+    ],
+}

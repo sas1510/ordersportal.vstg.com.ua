@@ -14,6 +14,11 @@ from .serializers import MessageSerializer
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 from backend.utils.BinToGuid1C import convert_row
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, inline_serializer, OpenApiResponse
+from rest_framework import serializers
+from rest_framework.decorators import api_view, permission_classes
+
+from drf_spectacular.types import OpenApiTypes
 import re
 # Вам потрібно переконатися, що 'import re' додано на початку вашого файлу Django views.
 
@@ -82,7 +87,38 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from django.http import JsonResponse
 from django.db import connection
 
+@extend_schema(
+    summary="Get complaints by contractor",
+    description=(
+        "Повертає рекламації за контрагентом.\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT: admin → всі контрагенти, інші ролі → тільки свій контрагент\n"
+        "- 1C API key → доступ до будь-якого контрагента\n\n"
+        "📌 **Параметри:**\n"
+        "- contractor — GUID контрагента (обовʼязково)\n"
+        "- year — рік (необовʼязково, якщо не передано — всі роки)"
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="GUID контрагента",
+       
+        ),
+        OpenApiParameter(
+            name="year",
+            type=int,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="Рік (якщо не передано — всі роки)",
+  
+        ),
+    ],
 
+
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def complaints_view(request):
@@ -311,7 +347,26 @@ from rest_framework.response import Response
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
+@extend_schema(
+    summary="Отримання інформації про замовлення",
+    description="Повертає список замовлень за вказаний рік для конкретного контрагента.",
+    parameters=[
+        OpenApiParameter(
+            name='year', 
+            type=int, 
+            location=OpenApiParameter.QUERY, 
+            description='Рік (наприклад, 2025)', 
+            required=True
+        ),
+        OpenApiParameter(
+            name='contractor_guid', 
+            type=str, 
+            location=OpenApiParameter.QUERY, 
+            description='GUID контрагента з 1С', 
+            required=True
+        ),
+    ]
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def api_get_orders(request):
@@ -457,6 +512,32 @@ def api_get_orders(request):
 #         st = order_item["status"]
 #         add_order["statuses"][st] = add_order["s]()
 
+
+@extend_schema(
+    summary="Повертає дозакази (Additional Orders)",
+    description=(
+        "Повертає дозакази за контрагентом.\n\n"
+        "- **JWT**: доступ тільки до свого контрагента\n"
+        "- **1C API key**: доступ до будь-якого контрагента"
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            description="GUID контрагента (обовʼязково)",
+            required=True,
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+        ),
+        OpenApiParameter(
+            name="year",
+            description="Рік (необовʼязково). Якщо не передано — всі роки",
+            required=False,
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+        ),
+    ],
+    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def additional_orders_view(request):
@@ -623,6 +704,59 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+
+@extend_schema(
+    summary="Отримати файли замовлення",
+    description=(
+        "Повертає **всі файли замовлення** (ZKZ, фото, документи), "
+        "які зберігаються в 1С.\n\n"
+        "📦 Дані отримуються через SQL-процедуру **dbo.GetOrdersFiles**.\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT (авторизований користувач порталу)\n"
+        "- або 1C API Key\n\n"
+        "🖥 Використовується для відображення файлів у React-модалці."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="order_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID замовлення",
+            required=True,
+        ),
+    ],
+    responses={
+        200: inline_serializer(
+            name="OrderFilesResponse",
+            fields={
+                "status": serializers.CharField(
+                ),
+                "files": serializers.ListField(
+                    child=inline_serializer(
+                        name="OrderFileItem",
+                        fields={
+                            "fileGuid": serializers.CharField(
+                                help_text="GUID файлу"
+                            ),
+                            "fileName": serializers.CharField(
+                                help_text="Назва файлу"
+                            ),
+                            "type": serializers.CharField(
+                                help_text="Тип файлу (ZKZ, фото, документ тощо)"
+                            ),
+                            "date": serializers.DateTimeField(
+                                help_text="Дата додавання файлу"
+                            ),
+                        },
+                    ),
+                    help_text="Список файлів замовлення",
+                ),
+            },
+        ),
+    },
+    tags=["order"],
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def order_files_view(request, order_guid):
@@ -736,6 +870,58 @@ from rest_framework.permissions import IsAuthenticated
 logger = logging.getLogger(__name__)
 
 
+
+@extend_schema(
+    summary="Завантажити файл замовлення",
+    description=(
+        "Завантажує **файл замовлення** (ZKZ, фото, документ) "
+        "безпосередньо з файлового сховища **1С (SMB)**.\n\n"
+        "📦 Файл зчитується зі спільного ресурсу 1С по шляху:\n"
+        "`Заказ покупателя/{order_guid}/{file_guid}/{filename}`\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT (авторизований користувач порталу)\n"
+        "- або **1C API Key**\n\n"
+        "⚠️ **Обовʼязково:** параметр `filename` має бути переданий у query.\n\n"
+        "⬇️ Відповідь повертається як **binary stream** з заголовком "
+        "`Content-Disposition: attachment`."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="order_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID замовлення",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="file_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID файлу замовлення",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="filename",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description="Назва файлу (наприклад: СР42749.ZKZ)",
+            required=True,
+        ),
+    ],
+    responses={
+        200: {
+            "description": "Файл успішно завантажено (binary stream)",
+            "content": {
+                "application/octet-stream": {}
+            },
+        },
+        401: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+        404: OpenApiTypes.OBJECT,
+        500: OpenApiTypes.OBJECT,
+    },
+    tags=["order"],
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def download_order_file(request, order_guid, file_guid):
@@ -860,7 +1046,33 @@ from django.db import connection
 from backend.utils.BinToGuid1C import convert_row
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
+@extend_schema(
+    summary="Повертає всі дозакази за місяць (ADMIN)",
+    description=(
+        "ADMIN ONLY.\n\n"
+        "Повертає **всі дозакази** за вказаний рік і місяць.\n\n"
+        "🔐 Доступ:\n"
+        "- JWT (роль admin)\n"
+        "- або 1C API Key\n\n"
+        "📦 Структура відповіді **ідентична additional_orders_view**."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="year",
+            description="Рік (наприклад 2025)",
+            required=True,
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+        ),
+        OpenApiParameter(
+            name="month",
+            description="Місяць (1–12)",
+            required=True,
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsAdminJWTOr1CApiKey])
 def get_additional_orders_info_all(request):
@@ -943,7 +1155,6 @@ def get_additional_orders_info_all(request):
         date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
         produced_date = clean_date_stub(row.get("ProducedDate"))
 
-        # ✅ ТУТ guid 100% не буде null
         raw_guid = row.get("_AdditionalOrderGuid_raw")
         additional_order_guid = bin_to_guid_1c(raw_guid) if raw_guid else None
 
@@ -1007,6 +1218,33 @@ from django.db import connection
 from backend.utils.BinToGuid1C import convert_row
 # from .utils import parse_reclamation_details
 
+@extend_schema(
+    summary="Усі рекламації за місяць (ADMIN)",
+    description=(
+        "🔒 **ADMIN ONLY**\n\n"
+        "Повертає **всі рекламації** за вказаний рік і місяць.\n\n"
+        "**Доступ:**\n"
+        "- JWT (користувач з роллю `admin`)\n"
+        "- або 1C API Key\n\n"
+        "**SQL:** `GetComplaintsFull_ByMonth`"
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="year",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            description="Рік (наприклад 2025)",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="month",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            description="Місяць (1–12)",
+            required=True,
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsAdminJWTOr1CApiKey])
 def complaints_view_all_by_month(request):
@@ -1101,7 +1339,26 @@ from django.db import connection
 
 
 # from backend.utils.BinToGuid1C import convert_row
-
+@extend_schema(
+    summary="Усі замовлення за місяць (ADMIN)",
+    description="Повертає ВСІ замовлення порталу за вказаний місяць",
+    parameters=[
+        OpenApiParameter(
+            name="year",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            description="Рік (наприклад 2025)",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="month",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.QUERY,
+            description="Місяць (1–12)",
+            required=True,
+        ),
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsAdminJWTOr1CApiKey])
 def orders_view_all_by_month(request):
@@ -1361,7 +1618,34 @@ from django.db import connection
 
 
 
-
+@extend_schema(
+    summary="Адреси дилера (доставка / юридичні)",
+    description=(
+        "Повертає список **адрес дилера** (адреси доставки та/або юридичні адреси).\n\n"
+        "📌 Дані беруться з SQL-процедури **dbo.GetDealerAddresses**.\n\n"
+        "🔐 **Доступ:**\n"
+        "- **JWT**:\n"
+        "  - admin / manager → будь-який дилер\n"
+        "  - customer → тільки свій дилер\n"
+        "- **1C API Key** → доступ без обмежень\n\n"
+        "📥 **Параметри:**\n"
+        "- `contractor` — GUID контрагента (1C)"
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description="GUID контрагента (1C)",
+            required=False,
+        ),
+    ],
+    tags=["Dealer information"],
+    auth=[
+        {"jwtAuth": []},
+        {"ApiKeyAuth": []},
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_dealer_addresses(request):
@@ -1409,7 +1693,73 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 
-
+@extend_schema(
+    summary="Отримати WDS-коди по контрагенту",
+    description=(
+        "Повертає список **WDS-кодів** для вказаного контрагента.\n\n"
+        "📌 Дані отримуються з процедури **dbo.GetWDSCodes_ByContractor**.\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT (користувач порталу)\n"
+        "- або **1C API Key**\n\n"
+        "📅 Можна обмежити вибірку датами (`date_from`, `date_to`).\n"
+        "Формат дат: **YYYY-MM-DD**."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            description="GUID контрагента (обовʼязковий)",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            description="Дата початку періоду (YYYY-MM-DD)",
+            required=False,
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            description="Дата кінця періоду (YYYY-MM-DD)",
+            required=False,
+        ),
+    ],
+    responses={
+        200: inline_serializer(
+            name="WDSCodesResponse",
+            fields={
+                "contractor": serializers.UUIDField(
+                    help_text="GUID контрагента"
+                ),
+                "date_from": serializers.DateField(
+                    allow_null=True,
+                    help_text="Дата початку періоду"
+                ),
+                "date_to": serializers.DateField(
+                    allow_null=True,
+                    help_text="Дата кінця періоду"
+                ),
+                "count": serializers.IntegerField(
+                    help_text="Кількість WDS-кодів"
+                ),
+                "items": serializers.ListField(
+                    child=serializers.DictField(),
+                    help_text="Список WDS-кодів"
+                ),
+            },
+        ),
+        400: OpenApiTypes.OBJECT,
+        401: OpenApiTypes.OBJECT,
+    },
+    tags=["Dealer information"],
+    auth=[
+        {"jwtAuth": []},
+        {"ApiKeyAuth": []},
+    ],
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def wds_codes_by_contractor(request):

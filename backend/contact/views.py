@@ -17,8 +17,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import HelpServiceLog
 from .serializers import HelpServiceLogSerializer
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import serializers
 
-
+@extend_schema(
+    auth=[{"jwtAuth": []}],
+)
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = HelpServiceContact.objects.all()
     serializer_class = ContactSerializer
@@ -27,7 +31,50 @@ class ContactViewSet(viewsets.ModelViewSet):
 
 BOT_TOKEN = settings.BOT_TOKEN
 
-
+@extend_schema(
+    summary="Терміновий дзвінок клієнту (SOS)",
+    description=(
+        "Надсилає **терміновий запит на дзвінок** для обраного контакту служби підтримки.\n\n"
+        "📌 Повідомлення відправляється:\n"
+        "- у **Telegram** (якщо вказано telegram_id)\n"
+        "- на **Email** (обовʼязково)\n\n"
+        "🧾 Повідомлення містить:\n"
+        "- імʼя клієнта\n"
+        "- номер телефону клієнта\n\n"
+        "📊 Результат зберігається в журналі SOS-викликів."
+    ),
+    tags=["urgent-call"],
+    auth=[{"jwtAuth": []}],
+    request=inline_serializer(
+        name="UrgentCallRequest",
+        fields={
+            "contact_id": serializers.IntegerField(
+                help_text="ID контакту служби підтримки, якому буде надіслано SOS-запит"
+            )
+        }
+    ),
+    responses={
+        200: inline_serializer(
+            name="UrgentCallResponse",
+            fields={
+                "detail": serializers.CharField(),
+                "success": serializers.BooleanField(),
+                "errors": serializers.ListField(
+                    child=serializers.CharField(),
+                    required=False
+                ),
+            }
+        ),
+        400: inline_serializer(
+            name="UrgentCallError400",
+            fields={"error": serializers.CharField()}
+        ),
+        404: inline_serializer(
+            name="UrgentCallError404",
+            fields={"error": serializers.CharField()}
+        ),
+    },
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def urgent_call_request(request):
@@ -102,7 +149,23 @@ from rest_framework.response import Response
 from .models import HelpServiceLog
 from .serializers import HelpServiceLogSerializer
 
-
+@extend_schema(
+    summary="Журнал SOS-викликів",
+    description=(
+        "Повертає список **усіх термінових (SOS) викликів**.\n\n"
+        "📌 Містить інформацію:\n"
+        "- хто ініціював виклик\n"
+        "- кому було відправлено повідомлення\n"
+        "- дату та час\n"
+        "- статус успішності\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT\n"
+        "- зазвичай використовується адміністраторами"
+    ),
+    
+    tags=["urgent-call"],
+    auth=[{"jwtAuth": []}],
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def help_log_list(request):

@@ -12,12 +12,12 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 urlpatterns = [
     # Визначаємо URL для виклику функції complaints_view
-    path('get_reclamation_info/', views.complaints_view, name='reclamation_data'),
-    path('get_orders_info/', views.api_get_orders, name='get_order_info'),
-    path('get_additional_orders_info/', views.additional_orders_view, name='get_additional_orders_info'),
-    path('get_additional_orders_info_all/', views.get_additional_orders_info_all, name='get_additional_orders_info_all'),
-    path('get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
-    path('get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
+    path('complaints/get_reclamation_info/', views.complaints_view, name='reclamation_data'),
+    path('order/get_orders_info/', views.api_get_orders, name='get_order_info'),
+    path('additional_orders/get_additional_orders_info/', views.additional_orders_view, name='get_additional_orders_info'),
+    path('additional_orders/get_additional_orders_info_all/', views.get_additional_orders_info_all, name='get_additional_orders_info_all'),
+    path('complaints/get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
+    path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
     path('create_message/', views.create_message, name='create_message'),
     path("order/<str:order_guid>/files/", order_files_view), # без логіки дилер
     path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"),

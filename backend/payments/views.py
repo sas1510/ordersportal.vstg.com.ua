@@ -13,7 +13,9 @@ from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParameter, OpenApiRequest, OpenApiResponse, OpenApiTypes
 
+from rest_framework import serializers
 
 
 
@@ -37,7 +39,22 @@ from django.db import connection
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
+@extend_schema(
+    summary="Отримати фінансовий леджер дилера",
+    description=(
+        "Повертає повний фінансовий леджер дилера за період.\n\n"
+        "🔐 Доступ:\n"
+        "- JWT (admin → будь-який дилер, dealer → тільки свій)\n"
+        "- 1C API Key → без обмежень\n\n"
+        "📌 SQL: dbo.GetDealerFullLedger"
+    ),
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter("contractor", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
+        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+    ]
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_payment_status_view(request):
@@ -141,7 +158,23 @@ from django.db import connection
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
+@extend_schema(
+    summary="Дані сторінки «Оплата» дилера",
+    description="Повертає замовлення та договори дилера для сторінки Оплата.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter("contractor", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
+    ],
+    responses={
+        200: inline_serializer(
+            name="DealerPaymentPageData",
+            fields={
+                "orders": serializers.ListField(child=serializers.DictField()),
+                "contracts": serializers.ListField(child=serializers.DictField()),
+            }
+        )
+    }
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_dealer_payment_page_data_view(request):
@@ -244,7 +277,18 @@ import uuid
 
 
 
+
+@extend_schema(
+    summary="Авансові залишки дилера",
+    description="Повертає всі авансові баланси дилера.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter("contractor_guid", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
+    ],
+    responses={200: serializers.ListSerializer(child=serializers.DictField())}
+)
 @api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_dealer_advance_balance(request):
     contractor_guid = request.query_params.get("contractor_guid")
 
@@ -405,7 +449,21 @@ from openpyxl import Workbook
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
+@extend_schema(
+    summary="Експорт статусу оплат в Excel",
+    description="Генерує XLSX-файл з фінансовим леджером дилера.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter("contractor", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
+        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+    ],
+    responses={
+        200: OpenApiTypes.BINARY,
+        400: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+    }
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def export_payment_status_excel(request):
@@ -513,7 +571,25 @@ from django.db import connection
 
 
 
-
+@extend_schema(
+    summary="Додаткова інформація для рахунків дилера",
+    description="Контрагент, адреси, рахунки, номенклатура.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter("contractor_guid", OpenApiTypes.UUID, OpenApiParameter.PATH),
+    ],
+    responses={
+        200: inline_serializer(
+            name="DealerBillsAddInfo",
+            fields={
+                "contractor": serializers.DictField(),
+                "addresses": serializers.ListField(child=serializers.DictField()),
+                "accounts": serializers.ListField(child=serializers.DictField()),
+                "nomenclature": serializers.ListField(child=serializers.DictField()),
+            }
+        )
+    }
+)
 def dealer_bills_add_info(contractor_guid: str):
     contractor_bin = guid_to_1c_bin_2(contractor_guid)
 
@@ -572,6 +648,30 @@ from rest_framework.exceptions import ValidationError
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin_2
 
+@extend_schema(
+    summary="Додаткова інформація для рахунків дилера",
+    description=(
+        "Повертає додаткову інформацію, необхідну для створення або відображення рахунків дилера."
+
+
+        "\n- **Адміністратор** — доступ до будь-якого контрагента"
+        "\n- **Звичайний користувач** — тільки до власного contractor"
+        "\n- **1C API KEY** — повний доступ"
+
+   
+        "\n- JWT авторизація або 1C API KEY"
+        "\n- Перевірка відповідності contractor_guid користувачу"
+        ),
+    parameters=[
+        OpenApiParameter(
+            name="contractor_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID контрагента (1C)",
+            required=True,
+        ),
+    ],
+)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
@@ -633,7 +733,45 @@ from django.db import connection
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin_2
 
+@extend_schema(
+    summary="Рахунки клієнта (дилера) за період",
+    description="""
+Повертає список рахунків (bills) для заданого контрагента за вибраний період.
 
+### Авторизація:
+- **Admin** — доступ до будь-якого контрагента
+- **Customer / Dealer** — тільки до власного contractor
+- **1C API KEY** — повний доступ
+
+### Джерело даних:
+SQL Server stored procedure  
+`dbo.GetCustomerBillsByContractorAndDates`
+""",
+    parameters=[
+        OpenApiParameter(
+            name="contractor_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID контрагента (1C)",
+            required=True,
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            description="Початкова дата періоду (YYYY-MM-DD)",
+            required=False,
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            description="Кінцева дата періоду (YYYY-MM-DD)",
+            required=False,
+        ),
+    ],
+    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def customer_bills_view(request, contractor_guid):

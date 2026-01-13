@@ -139,7 +139,7 @@ const STATUS_FILTERS = [
     setError("");
 
     try {
-      const res = await axiosInstance.get("/get_dealer_payment_page_data/", {
+      const res = await axiosInstance.get("/payments/get_dealer_payment_page_data/", {
         params: { contractor: contractorGUID },
       });
 
@@ -210,7 +210,7 @@ const STATUS_FILTERS = [
     }
 
     try {
-      await axiosInstance.post("/make_payment_from_advance/", {
+      await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractID,
         order_id: selectedOrder.OrderID_GUID,
         amount: Number(amount),

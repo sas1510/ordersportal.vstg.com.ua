@@ -626,7 +626,7 @@ import { useTheme } from '../context/ThemeContext';
 
 import '../components/Reclamations/ReclamationItem.css';
 
-const RECLAMATIONS_API_URL = '/get_reclamation_info/';
+const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
 const ITEMS_PER_LOAD = 100;
 
 /* --------------------------------------------------------
@@ -921,7 +921,8 @@ const ReclamationPortal = () => {
                     <span className="icon icon-calendar2 font-size-24 text-info"></span>
 
                     <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
-                        {Array.from({ length: new Date().getFullYear() - 4 + 1 }, (_, i) =>
+              
+                        {Array.from({ length: 3 }, (_, i) =>
                             (new Date().getFullYear() - i).toString()
                         ).map(y =>
                             <option key={y} value={y}>{y}</option>
@@ -929,8 +930,7 @@ const ReclamationPortal = () => {
                     </select>
                 </div>
 
-                {/* Month Filter */}
-                {/* Month Filter */}
+
 <div className="by-month-pagination-wrapper">
 
     {/* DESKTOP – горизонтальні кнопки */}

@@ -375,9 +375,7 @@ const PaymentGroup = React.memo(
   }
 );
 
-// ====================================================================
-//                          MAIN COMPONENT
-// ====================================================================
+
 const PaymentStatusV2 = () => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
@@ -415,7 +413,7 @@ const PaymentStatusV2 = () => {
     setExcelLoading(true);
     try {
       const response = await axiosInstance.get(
-        "/export_payment_status_excel/",
+        "/payments/export_payment_status_excel/",
         {
           params: {
             contractor: filters.contractor,
@@ -456,7 +454,7 @@ const PaymentStatusV2 = () => {
   }
   };
 
-  const API_ENDPOINT = "/get_payment_status_view/";
+  const API_ENDPOINT = "/payments/get_payment_status_view/";
 
   const toggleRow = useCallback((rowKey) => {
     setExpandedRows((prev) => {

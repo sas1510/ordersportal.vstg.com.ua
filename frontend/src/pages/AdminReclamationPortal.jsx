@@ -22,8 +22,8 @@ import { useTheme } from '../context/ThemeContext';
 import '../components/Reclamations/ReclamationItem.css';
 
 /* ================= CONSTANTS ================= */
-const RECLAMATIONS_API_URL = '/get_reclamation_info/';
-const RECLAMATIONS_API_ALL_URL = '/get_reclamation_info_all/';
+const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
+const RECLAMATIONS_API_ALL_URL = '/complaints/get_reclamation_info_all/';
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
 
