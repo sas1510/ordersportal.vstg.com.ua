@@ -78,10 +78,23 @@ body.dark-theme .preview-error-page {
 }
 
 .filename-highlight {
+  display: block;                 /* ⬅ перенос на новий рядок */
+  margin: 8px 0;
+  padding: 8px 10px;
+
+  max-width: 100%;
+  word-break: break-all;          /* ⬅ розбиває довгі хеші */
+  overflow-wrap: anywhere;        /* ⬅ сучасний стандарт */
+  white-space: normal;
+
+  background: rgba(52, 152, 219, 0.08);
+  border-radius: 6px;
+
   color: var(--text-main);
   font-weight: 600;
-  text-decoration: underline;
+  font-size: 14px;
 }
+
 
 .preview-error-actions {
   display: flex;
@@ -105,4 +118,22 @@ body.dark-theme .preview-error-page {
 
 .btn-portal:active {
   transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .preview-error-card {
+    padding: 24px;
+  }
+
+  .preview-error-card h1 {
+    font-size: 20px;
+  }
+
+  .preview-error-card p {
+    font-size: 14px;
+  }
+
+  .filename-highlight {
+    font-size: 13px;
+  }
 }

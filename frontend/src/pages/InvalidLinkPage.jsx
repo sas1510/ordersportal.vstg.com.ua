@@ -10,15 +10,20 @@ export default function InvalidLinkPage() {
         <div className="preview-error-icon">🔒</div>
         <h1>Посилання недійсне</h1>
 
-        <p>
-          {filename ? (
-            <>
-              Файл <span className="filename-highlight">{filename}</span> недоступний або термін дії посилання закінчився.
-            </>
-          ) : (
-            "Посилання недійсне або застаріле."
-          )}
-        </p>
+<p>
+  {filename ? (
+    <>
+      Файл
+      <span className="filename-highlight">
+        {filename}
+      </span>
+      недоступний або термін дії посилання закінчився.
+    </>
+  ) : (
+    "Посилання недійсне або застаріле."
+  )}
+</p>
+
 
         <div className="preview-error-actions">
           <a href="/dashboard" className="btn-portal">

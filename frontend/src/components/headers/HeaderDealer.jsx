@@ -40,28 +40,49 @@ export default function HeaderDealer() {
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
   const [showFinanceMenuMobile, setShowFinanceMenuMobile] = useState(false);
 
+  const [showProfileMenuMobile, setShowProfileMenuMobile] = useState(false);
+
+
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef();
+
   const financeRef = useRef();
   const mobileMenuRef = useRef();
+  const toggleProfileMenuMobile = () => {
+    setShowProfileMenuMobile(prev => !prev);
+    setShowFinanceMenuMobile(false); 
+    };
+
 
   useEffect(() => {
     setShowFinanceMenu(false);
     setShowFinanceMenuMobile(false);
     setMobileMenuOpen(false);
+    setProfileOpen(false);
+    setShowProfileMenuMobile(false);
   }, [location]);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (financeRef.current && !financeRef.current.contains(event.target)) {
-        setShowFinanceMenu(false);
-      }
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
-        setMobileMenuOpen(false);
-        setShowFinanceMenuMobile(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  function handleClickOutside(event) {
+    if (financeRef.current && !financeRef.current.contains(event.target)) {
+      setShowFinanceMenu(false);
+    }
+
+    if (profileRef.current && !profileRef.current.contains(event.target)) {
+      setProfileOpen(false);
+    }
+
+    if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+      setMobileMenuOpen(false);
+      setShowFinanceMenuMobile(false);
+      setShowProfileMenuMobile(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
+
 
   const handleLogout = async () => {
     await logout();
@@ -77,8 +98,16 @@ export default function HeaderDealer() {
     </li>
   ));
 
-  const toggleFinanceMenu = () => setShowFinanceMenu(prev => !prev);
-  const toggleFinanceMenuMobile = () => setShowFinanceMenuMobile(prev => !prev);
+  const toggleFinanceMenu = () => {
+    setShowFinanceMenu(prev => !prev);
+    setProfileOpen(false); 
+    };
+
+  const toggleFinanceMenuMobile = () => {
+    setShowFinanceMenuMobile(prev => !prev);
+    setShowProfileMenuMobile(false); // 👈 ЗАКРИВАЄМО ПРОФІЛЬ
+    };
+
 
   return (
     <header className="portal-header ">
@@ -92,6 +121,7 @@ export default function HeaderDealer() {
         <nav className="menu z-1000"  ref={financeRef}>
           <ul>
             {navLinks}
+            
 
             <li>
               <button className="menu-link" onClick={toggleFinanceMenu}>
@@ -111,11 +141,43 @@ export default function HeaderDealer() {
               )}
             </li>
 
-            <li className="dealer-size">
-            <Link to="/change-password" className="dealer-profile-link">
-                <HeaderDealerProfile />
-            </Link>
-            </li>
+                        <li ref={profileRef}>
+  <button
+    className="menu-link dealer-profile-link"
+    onClick={() => {
+        setProfileOpen(prev => !prev);
+        setShowFinanceMenu(false); // 👈 ЗАКРИВАЄМО ФІНАНСИ
+    }}
+
+  >
+    <HeaderDealerProfile />
+
+  </button>
+
+  {profileOpen && (
+    <ul className="submenu">
+      <li>
+        <Link
+          to="/change-password"
+          className="menu-link"
+          onClick={() => setProfileOpen(false)}
+        >
+           Змінити пароль
+        </Link>
+      </li>
+
+      <li>
+        <Link
+          to="/edit-addresses"
+          className="menu-link"
+          onClick={() => setProfileOpen(false)}
+        >
+           Адреси доставки
+        </Link>
+      </li>
+    </ul>
+  )}
+</li>
 
             {/* 👈 КНОПКА ТЕМИ (DESKTOP) */}
             <li className="theme-toggle-item">
@@ -187,6 +249,40 @@ export default function HeaderDealer() {
             </div>
           )}
         </li>
+
+{/* ПРОФІЛЬ — як Фінанси */}
+<li>
+  <div className="menu-link" onClick={toggleProfileMenuMobile}>
+    Профіль ▾
+  </div>
+
+  {showProfileMenuMobile && (
+    <div className="submenu-wrapper">
+      <ul className="submenu">
+        <li>
+          <Link
+            to="/change-password"
+            className="menu-link"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Змінити пароль
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            to="/edit-addresses"
+            className="menu-link"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Адреси доставки
+          </Link>
+        </li>
+      </ul>
+    </div>
+  )}
+</li>
+
 
             {/* 👈 КНОПКА ТЕМИ (MOBILE) */}
        
