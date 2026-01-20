@@ -1,0 +1,108 @@
+:root {
+  /* Світла тема за замовчуванням */
+  --bg-color: #f4f7f9;
+  --card-bg: #ffffff;
+  --text-main: #2c3e50;
+  --text-muted: #5e6d7a;
+  --accent-color: #3498db;
+  --accent-hover: #2980b9;
+  --border-color: #e1e8ed;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Темна тема */
+    --bg-color: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text-main: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --accent-color: #5dade2;
+    --accent-hover: #3498db;
+    --border-color: #404040;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Якщо ваш портал додає клас .dark-mode до body вручну */
+body.dark-theme .preview-error-page {
+    --bg-color: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text-main: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --accent-color: #5dade2;
+    --accent-hover: #3498db;
+    --border-color: #404040;
+}
+
+.preview-error-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease;
+  padding: 20px;
+}
+
+.preview-error-card {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.preview-error-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.preview-error-card h1 {
+  color: var(--text-main);
+  font-size: 24px;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.preview-error-card p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 30px;
+  font-size: 16px;
+}
+
+.filename-highlight {
+  color: var(--text-main);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.preview-error-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-portal {
+  background-color: var(--accent-color);
+  color: white;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-portal:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-portal:active {
+  transform: translateY(0);
+}

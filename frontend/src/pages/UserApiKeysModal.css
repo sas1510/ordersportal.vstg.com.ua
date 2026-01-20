@@ -1,0 +1,277 @@
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+
+.api-keys-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+}
+
+/* =========================================================
+   WINDOW
+   ========================================================= */
+
+.api-keys-window {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 720px;
+  max-height: 80vh;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.25s ease;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.api-keys-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: linear-gradient(90deg, #6b4eff, #8a6cff);
+  color: #fff;
+}
+
+.api-keys-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.api-keys-close {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.api-keys-close:hover {
+  opacity: 0.85;
+  transform: rotate(90deg);
+}
+
+/* =========================================================
+   BODY
+   ========================================================= */
+
+.api-keys-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.api-keys-loading,
+.api-keys-empty {
+  text-align: center;
+  padding: 40px 0;
+  font-size: 16px;
+  color: #666;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.api-keys-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.api-keys-table th {
+  text-align: left;
+  padding: 12px;
+  font-weight: 600;
+  color: #444;
+  border-bottom: 2px solid #eee;
+}
+
+.api-keys-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.api-keys-table tr:hover {
+  background: #f7f9ff;
+}
+
+/* =========================================================
+   STATUS BADGES
+   ========================================================= */
+
+.badge-active {
+  background: #d7f5e8;
+  color: #1e824c;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-disabled {
+  background: #f1f1f1;
+  color: #777;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.api-keys-actions {
+  text-align: right;
+  width: 60px;
+}
+
+.btn-deactivate {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #e74c3c;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s, transform 0.15s, opacity 0.15s;
+}
+
+.btn-deactivate:hover:not(:disabled) {
+  background: rgba(231, 76, 60, 0.1);
+  transform: scale(1.1);
+}
+
+.btn-deactivate:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.api-keys-footer {
+  padding: 16px 22px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #6b4eff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-create:hover {
+  background: #5a3ee0;
+  transform: scale(1.02);
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   DARK THEME
+   Активується, коли є клас .dark-theme на body
+   ========================================================= */
+
+.dark-theme .api-keys-window {
+  background: #1f1f1f;
+  color: #e8e8e8;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+}
+
+.dark-theme .api-keys-header {
+  background: linear-gradient(90deg, #3a2f8f, #4b3ea5);
+}
+
+.dark-theme .api-keys-body {
+  background: #1f1f1f;
+}
+
+.dark-theme .api-keys-table th {
+  color: #dcdcdc;
+  border-bottom-color: #333;
+}
+
+.dark-theme .api-keys-table td {
+  border-bottom-color: #333;
+}
+
+.dark-theme .api-keys-table tr:hover {
+  background: #262626;
+}
+
+.dark-theme .badge-active {
+  background: rgba(46, 204, 113, 0.2);
+  color: #7bed9f;
+}
+
+.dark-theme .badge-disabled {
+  background: #333;
+  color: #aaa;
+}
+
+.dark-theme .api-keys-footer {
+  background: #262626;
+  border-top-color: #333;
+}
+
+.dark-theme .btn-create {
+  background: #5b4ad1;
+}
+
+.dark-theme .btn-create:hover {
+  background: #4a3bc0;
+}
+
+.dark-theme .api-keys-overlay {
+  background: rgba(0, 0, 0, 0.6);
+}

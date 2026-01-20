@@ -315,6 +315,15 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.contractor import resolve_contractor
 from backend.utils.dates import clean_date, parse_date
 from backend.utils.api_helpers import safe_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+
+from backend.permissions import IsAdminJWT
+from backend.users.models import UserApiKey
+
 
 
 from drf_spectacular.utils import OpenApiResponse, OpenApiParameter
@@ -1432,3 +1441,126 @@ def get_dealer_addresses_change(request):
         "success": True,
         "addresses": rows
     })
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from datetime import datetime
+import secrets
+
+from backend.permissions import IsAdminJWT
+from backend.users.models import UserApiKey, CustomUser
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminJWT])
+def create_api_key(request):
+    """
+    ADMIN генерує API-key для вибраного дилера
+    """
+    dealer_id = request.data.get("user_id")
+    name = request.data.get("name", "API access")
+    expire_date_raw = request.data.get("expire_date")  # 👈 ISO date
+
+    if not dealer_id or not expire_date_raw:
+        return Response(
+            {"detail": "user_id and expire_date are required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        dealer = CustomUser.objects.get(id=dealer_id, role="customer")
+    except CustomUser.DoesNotExist:
+        return Response(
+            {"detail": "Dealer not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    try:
+        # очікуємо YYYY-MM-DD
+        expire_date = datetime.strptime(expire_date_raw, "%Y-%m-%d")
+        expire_date = timezone.make_aware(expire_date)
+    except ValueError:
+        return Response(
+            {"detail": "expire_date must be in YYYY-MM-DD format"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if expire_date <= timezone.now():
+        return Response(
+            {"detail": "expire_date must be in the future"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    api_key_value = secrets.token_urlsafe(32)
+
+    key = UserApiKey.objects.create(
+        api_key=api_key_value,
+        name=name,
+        is_active=True,
+        expire_date=expire_date,
+        created_by=request.user,  # admin
+        user=dealer,              # dealer
+    )
+
+    return Response(
+        {
+            "id": key.id,
+            "api_key": api_key_value,   # ⚠️ показати один раз
+            "expire_date": key.expire_date.date(),
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAdminJWT])
+def list_user_api_keys(request, user_id):
+    keys = UserApiKey.objects.filter(user_id=user_id).order_by("-created_at")
+
+    return Response({
+        "keys": [
+            {
+                "id": k.id,
+                "name": k.name,
+                "is_active": k.is_active,
+                "expire_date": k.expire_date.date().isoformat(),
+            }
+            for k in keys
+        ]
+    })
+
+
+
+
+# admin_api_keys/views.py
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminJWT])
+def deactivate_api_key(request, key_id):
+    try:
+        key = UserApiKey.objects.get(id=key_id)
+    except UserApiKey.DoesNotExist:
+        return Response(
+            {"detail": "API key not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if not key.is_active:
+        return Response(
+            {"detail": "API key already inactive"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    key.is_active = False
+    key.save(update_fields=["is_active"])
+
+    return Response(
+        {"detail": "API key deactivated"},
+        status=status.HTTP_200_OK,
+    )
+

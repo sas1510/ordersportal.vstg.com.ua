@@ -45,6 +45,8 @@ import CustomerBillsPage from './pages/CustomerBillsPage'
 import AdminPortalOriginal from './pages/AdminOrderPage'
 import AdminReclamationPortal from './pages/AdminReclamationPortal'
 import WDSCodesTable from './pages/WDSCodesTable'
+import InvalidLinkPage from './pages/InvalidLinkPage'
+
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -90,6 +92,7 @@ export const adminRoutes = [
   { path: "admin-order", element: <AdminPortalOriginal/> },
   { path: "admin-reclamation", element: <AdminReclamationPortal/> },
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
+  { path: "file-preview/invalid", element: <InvalidLinkPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
 
@@ -127,7 +130,7 @@ export const dealerRoutes = [
   { path: "finance/customer-bills", element: <CustomerBillsPage/> },
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
   { path: "edit-addresses", element: <DealerAddressesPage/> },
-
+  { path: "file-preview/invalid", element: <InvalidLinkPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 
@@ -160,7 +163,7 @@ export const managerRoutes = [
   { path: "finance/settlements", element: <PaymentStatus /> },
 
 
-
+  { path: "promo-wds-codes", element: <WDSCodesTable/> },
   { path: "addClaim", element: <AddClaimForm /> },
   { path: "addOrder", element: <AddOrderPage /> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },

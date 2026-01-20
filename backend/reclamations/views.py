@@ -525,6 +525,10 @@ import tempfile
 import subprocess
 import mimetypes
 import os
+from django.shortcuts import redirect
+from django.conf import settings
+from urllib.parse import unquote, quote
+
 @api_view(["GET"])
 @permission_classes([])  # Доступ регулюється медіа-токеном
 def preview_complaint_file(request, claim_guid):
@@ -532,11 +536,15 @@ def preview_complaint_file(request, claim_guid):
     filename = request.GET.get("filename")
 
     if not token or not filename:
-        raise Http404("Missing parameters")
+        redirect(settings.FRONTEND_URL + "/file-preview/invalid")
+
 
     file_guid = verify_media_token(token)
     if not file_guid:
-        raise Http404("Invalid token")
+        return redirect(
+            f"{settings.FRONTEND_URL}/file-preview/invalid"
+            f"?filename={quote(filename)}"
+        )
 
     filename = unquote(filename)
     content_type, _ = mimetypes.guess_type(filename)

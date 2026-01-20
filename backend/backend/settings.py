@@ -176,3 +176,6 @@ SPECTACULAR_SETTINGS = {
         {"ApiKeyAuth": []},
     ],
 }
+
+
+# FRONTEND_URL = "http://172.17.19.107"
