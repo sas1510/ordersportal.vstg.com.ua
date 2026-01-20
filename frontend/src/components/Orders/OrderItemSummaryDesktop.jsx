@@ -167,7 +167,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
       {/* --- SUMMARY ROW --- */}
       <div
-        className="order-item-summary flex w-full cursor-pointer items-center gap-4"
+        className="order-item-summary flex w-full cursor-pointer items-center"
         onClick={toggleExpand}
       >
         {/* ICON */}

@@ -105,19 +105,23 @@ class OneCApiKeyAuthentication(BaseAuthentication):
 
 from rest_framework.permissions import BasePermission
 
+
 class IsAdminJWTOr1CApiKey(BasePermission):
 
     def has_permission(self, request, view):
 
-        # 🔐 JWT (React)
-        if request.user and request.user.is_authenticated:
-            return request.user.role == "admin"
-
-        # 🔑 1C API KEY
+        # 🔑 1C API KEY — дозволено
         if request.auth == "1C_API_KEY":
             return True
 
+        # 🔐 JWT admin
+        if request.user and request.user.is_authenticated:
+            return request.user.role == "admin"
+
         return False
+    
+
+    
 
 
 # backend/permissions.py
@@ -142,3 +146,20 @@ class IsAuthenticatedOr1CApiKey(BasePermission):
             return True
 
         return False
+
+
+
+from rest_framework.permissions import BasePermission
+
+
+class IsAdminJWT(BasePermission):
+    """
+    Доступ ТІЛЬКИ для JWT admin
+    """
+
+    def has_permission(self, request, view):
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.role == "admin"
+        )

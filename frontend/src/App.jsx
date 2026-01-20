@@ -125,6 +125,11 @@ function AppRoutes() {
           {routes.map(({ path, element }) => (
             <Route key={path} path={path} element={element} />
           ))}
+          {/* <Route
+  path="complaints/:claimGuid/files/:fileGuid/preview/*"
+  element={null}
+/> */}
+
           {/* Фолбек для невідомих маршрутів */}
           <Route path="*" element={<Navigate to= "/dashboard" replace />} />
         </Route>

@@ -12,7 +12,7 @@ urlpatterns = [
     # path("full-ledger/", get_payment_status_view, name="get_dealer_full_ledger"),
     path("get_dealer_advance_balance/", get_dealer_advance_balance, name="get_dealer_advance_balance"),
     path("export_payment_status_excel/", export_payment_status_excel , name="export_payment_status_excel"),
-    path("dealers/<uuid:contractor_guid>/profile/", dealer_bills_add_info_view , name="dealer_bills_add_info_view"),
-    path("dealers/<uuid:contractor_guid>/bills/", customer_bills_view, name="customer_bills_view" ),
+    path("dealers/profile/", dealer_bills_add_info_view , name="dealer_bills_add_info_view"),
+    path("dealers/bills/", customer_bills_view, name="customer_bills_view" ),
 
 ]

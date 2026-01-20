@@ -618,8 +618,7 @@ import { ReclamationItemMobile } from '../components/Reclamations/ReclamationIte
 
 import AddClaimModal from '../components/Complaint/AddClaimModal';
 
-import DealerSelect from "./DealerSelect";
-import { useDealerContext } from "../hooks/useDealerContext";
+
 
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
@@ -644,7 +643,7 @@ function formatApiData(data) {
             id: item.ComplaintNumber,
             number: item.ClaimOrderNumber,
             actNumber: item.ComplaintNumber,
-
+            guid : item.ComplaintGuid,
             numberWEB: item.NumberWEB,
             orderNumber: item.OrderNumber,
             organization: item.OrganizationName,
@@ -698,16 +697,12 @@ const ReclamationPortal = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
     const [loading, setLoading] = useState(true);
+
+    const [reloading, setReloading] = useState(false);
     const [visibleItemsCount, setVisibleItemsCount] = useState(ITEMS_PER_LOAD);
 
     const [expandedReclamation, setExpandedReclamation] = useState(null);
     const [expandedIssue, setExpandedIssue] = useState(null);
-    const {
-        dealerGuid,
-        setDealerGuid,
-        isAdmin,
-        currentUser
-    } = useDealerContext();
 
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -717,6 +712,39 @@ const ReclamationPortal = () => {
 
     const { theme } = useTheme();
 
+    const reloadReclamations = useCallback(async () => {
+        cancelAll();
+
+        const controller = register();
+        setReloading(true);
+
+        try {
+            const year = new Date().getFullYear().toString();
+            setSelectedYear(year);
+
+            const response = await axiosInstance.get(
+                RECLAMATIONS_API_URL,
+                {
+                    params: { year },
+                    signal: controller.signal
+                }
+            );
+
+            setReclamationsData(
+                formatApiData(response.data.data || [])
+            );
+            setVisibleItemsCount(ITEMS_PER_LOAD);
+
+        } catch (err) {
+            if (err.name === "CanceledError") return;
+            console.error("Reload reclamations error:", err);
+        } finally {
+            setReloading(false);
+        }
+    }, [cancelAll, register]);
+
+
+
 
     
 
@@ -724,24 +752,36 @@ const ReclamationPortal = () => {
     /* --------------------------------------------------------
      *  Add New Reclamation
      * -------------------------------------------------------- */
-    const handleSaveReclamation = useCallback((newReclamation) => {
-        const formatted = {
-            id: 'RCL' + Math.random().toString(36).substr(2, 5).toUpperCase(),
-            number: newReclamation.name || `РКЛ-${Date.now()}`,
-            dateRaw: newReclamation.dateRaw || new Date().toISOString(),
-            date: new Date().toLocaleDateString('uk-UA'),
+    // const handleSaveReclamation = useCallback((newReclamation) => {
+    //     // const formatted = {
+    //     //     id: 'RCL' + Math.random().toString(36).substr(2, 5).toUpperCase(),
+    //     //     number: newReclamation.name || `РКЛ-${Date.now()}`,
+    //     //     dateRaw: newReclamation.dateRaw || new Date().toISOString(),
+    //     //     date: new Date().toLocaleDateString('uk-UA'),
 
-            issues: [],
-            issueCount: 0,
-            amount: 0,
-            status: 'Новий',
-            file: newReclamation.file || null,
-            message: newReclamation.Comment || ''
-        };
+    //     //     issues: [],
+    //     //     issueCount: 0,
+    //     //     amount: 0,
+    //     //     status: 'Новий',
+    //     //     file: newReclamation.file || null,
+    //     //     message: newReclamation.Comment || ''
+    //     // };
 
-        setReclamationsData(prev => [formatted, ...prev]);
-        setVisibleItemsCount(ITEMS_PER_LOAD);
-    }, []);
+    //     // setReclamationsData(prev => [formatted, ...prev]);
+    //     // setVisibleItemsCount(ITEMS_PER_LOAD);
+
+    //     setIsNewReclamationModalOpen(false);
+
+    //     await reloadReclamations();
+    // }, []);
+
+    const handleSaveReclamation = useCallback(async () => {
+        // addNotification("Рекламацію успішно створено", "success");
+        setIsNewReclamationModalOpen(false);
+        await reloadReclamations();
+
+    }, [reloadReclamations]);
+
 
     
 
@@ -749,55 +789,39 @@ const ReclamationPortal = () => {
      *  FETCH DATA WITH CANCELLATION (LIKE PortalOriginal)
      * -------------------------------------------------------- */
     useEffect(() => {
-        cancelAll();
+    cancelAll();
 
+    const controller = register();
 
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            const response = await axiosInstance.get(
+                RECLAMATIONS_API_URL,
+                {
+                    params: { year: selectedYear },
+                    signal: controller.signal
+                }
+            );
 
+            setReclamationsData(
+                formatApiData(response.data.data || [])
+            );
+            setVisibleItemsCount(ITEMS_PER_LOAD);
 
-        // 🔴 Адмін без дилера → просто показуємо UI
-        if (isAdmin && !dealerGuid) {
+        } catch (err) {
+            if (err.name === "CanceledError") return;
+            console.error(err);
             setReclamationsData([]);
+        } finally {
             setLoading(false);
-            return;
         }
+    };
 
-        // 🟢 Customer або admin з дилером
-        if (!dealerGuid) return;
+    loadData();
 
-        const controller = register();
+}, [selectedYear]);
 
-        const loadData = async () => {
-            setLoading(true);
-            try {
-                const params = {
-                    year: selectedYear,
-                    contractor: dealerGuid // 👈 ВАЖЛИВО
-                };
-
-                const response = await axiosInstance.get(
-                    RECLAMATIONS_API_URL,
-                    {
-                        params,
-                        signal: controller.signal
-                    }
-                );
-
-                const formatted = formatApiData(response.data.data || []);
-                setReclamationsData(formatted);
-                setVisibleItemsCount(ITEMS_PER_LOAD);
-
-            } catch (err) {
-                if (err.name === "CanceledError") return;
-                console.error(err);
-                setReclamationsData([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadData();
-
-    }, [selectedYear, dealerGuid, isAdmin]);
 
 
 
@@ -891,13 +915,18 @@ const ReclamationPortal = () => {
      *   UI
      * ======================================================== */
 
-    if (loading)
+    if (loading || reloading)
         return (
             <div className="loading-spinner-wrapper">
                 <div className="loading-spinner"></div>
-                <div className="loading-text">Завантаження даних по рекламаціях...</div>
+                <div className="loading-text">
+                    {loading
+                        ? 'Завантаження даних по рекламаціях...'
+                        : 'Оновлення списку рекламацій...'}
+                </div>
             </div>
         );
+
 
 
 
@@ -1036,19 +1065,6 @@ const ReclamationPortal = () => {
                     </div>
 
 
-                    {isAdmin && (
-                        <>
-                            <div className="delimiter1" />
-                            <ul className="">
-                                <li className="">
-                                    <DealerSelect
-                                        value={dealerGuid}
-                                        onChange={setDealerGuid}
-                                    />
-                                </li>
-                            </ul>
-                        </>
-                    )}
 
 
                     {/* Add New Reclamation */}

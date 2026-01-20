@@ -1,122 +1,168 @@
 .photo-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 9999;
-  animation: fadeIn 0.25s ease;
 }
 
 .photo-modal-window {
   position: relative;
-  background: #fff;
-  border-radius: 12px;
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 90vw;
+  max-height: 75vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: scaleIn 0.25s ease;
-  overflow: hidden;
+  margin: 20px;
 }
 
-.photo-modal-content img {
-  max-width: 100%;
-  max-height: 80vh;
-  border-radius: 6px;
+.photo-modal-content-my  {
+  max-width: 100vw;
+  margin: 10px;
+  position: relative;
+
+} 
+
+.photo-modal-content-my img {
+  max-width: 100vw;
+  max-height: 72vh;
+  border-radius: 8px;
+  user-select: none;
 }
 
-/* Анімований хрестик */
+/* CLOSE */
 .photo-modal-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 36px;
-  height: 36px;
-  background: #f46c3b; /* або будь-який градієнт, як у AddClaimModal */
+  top: 16px;
+  right: 16px;
+  background: rgba(0, 0, 0, 0.6);
   border: none;
-  border-radius: 50%; /* 👈 робимо круглим */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  z-index: 10;
-  transition: transform 0.2s, opacity 0.2s;
-}
-
-.photo-modal-close:hover {
-  transform: rotate(90deg);
-  opacity: 0.85;
-}
-
-.photo-modal-close svg {
   color: #fff;
-  font-size: 18px;
+  font-size: 20px;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
-.close-line {
+/* DOWNLOAD */
+.photo-modal-download {
   position: absolute;
-  width: 100%;
-  height: 3px;
-  background: #fff;
-  top: 50%;
-  left: 0;
-  transform-origin: center;
-  transition: all 0.3s ease;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
-.line1 {
-  transform: rotate(45deg);
+.photo-modal-download:hover {
+  background: rgba(0, 0, 0, 0.8);
 }
 
-.line2 {
-  transform: rotate(-45deg);
-}
-
-.photo-modal-close:hover .line1,
-.photo-modal-close:hover .line2 {
-  transform: scale(1.2) rotate(45deg);
-  background: #f46c3b;
-}
-
-/* Кнопки перемикання */
+/* NAV */
 .photo-modal-prev,
 .photo-modal-next {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(0,0,0,0.3);
-  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
   border: none;
-  font-size: 24px;
-  padding: 8px 12px;
-  border-radius: 6px;
+  color: #fff;
+  font-size: 22px;
+  padding: 12px;
+  border-radius: 50%;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.photo-modal-prev:hover,
-.photo-modal-next:hover {
-  background: rgba(0,0,0,0.6);
 }
 
 .photo-modal-prev {
-  left: 10px;
+  left: -56px;
 }
 
 .photo-modal-next {
-  right: 10px;
+  right: -56px;
 }
 
-/* Анімації */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* THUMBNAILS */
+.photo-modal-thumbs {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.658);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
 }
 
-@keyframes scaleIn {
-  from { transform: scale(0.94); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.photo-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: 0.5;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.photo-thumb:hover {
+  opacity: 0.8;
+}
+
+.photo-thumb.active {
+  opacity: 1;
+  border-color: #fff;
+}
+
+
+/* NAV BUTTONS */
+.photo-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.photo-nav:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.photo-nav-prev {
+  left: 16px;
+}
+
+.photo-nav-next {
+  right: 16px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .photo-nav {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
 }

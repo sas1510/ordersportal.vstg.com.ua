@@ -49,6 +49,10 @@ export const ReclamationItem = ({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const menuRef = useRef(null);
+    const userRaw = localStorage.getItem("user");
+    const user = userRaw ? JSON.parse(userRaw) : null;
+
+    const writerGuid = user?.user_id_1c;
 
     // Закриття меню при кліку поза ним
     useEffect(() => {
@@ -293,23 +297,13 @@ export const ReclamationItem = ({
 
             {/* Модалка для коментарів */}
             <CommentsModal
-                isOpen={isCommentsOpen}
-                onClose={() => setIsCommentsOpen(false)}
-                comments={reclamation.comments || []}
-                orderId={reclamation.id} // ID для прив'язки коментарів
-                onAddComment={async (text) => {
-                    // Приклад API для додавання коментаря до рекламації
-                    try {
-                        await axiosInstance.post(`/complaints/${reclamation.id}/add-comment/`, { message: text });
-                        // Оновлення коментарів
-                        // Вам потрібно буде оновити стан батьківського компонента або отримати свіжі коментарі
-                        // const res = await axiosInstance.get(`/complaints/${reclamation.id}/comments/`);
-                        // setSelectedComments(res.data);
-                    } catch (err) {
-                        console.error("Помилка при додаванні коментаря:", err);
-                    }
-                }}
-            />
+                isOpen={isCommentsOpen}
+                onClose={() => setIsCommentsOpen(false)}
+
+                baseTransactionGuid={reclamation.guid}      // 🔑 GUID з 1С
+                transactionTypeId={2}                       // 🔑 ID типу "Рекламація"
+               
+                />
         </div>
     );
 };

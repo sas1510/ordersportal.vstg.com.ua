@@ -1980,7 +1980,7 @@ white-space: nowrap;
     /* Зменшуємо висоту та ширину панелей та блоків */
     .panel { padding: 4px !important; }
     .calc-item { padding: 4px !important; min-height: 50px !important; }
-    .calc-item .summary-item { padding: 2px 4px !important; font-size: 12px !important; height: 50px !important; }
+    .calc-item .summary-item { padding: 2px 4px !important; font-size: 11px !important; height: 50px !important; }
 
     /* Зменшуємо шрифти */
     .font-size-58 { font-size: 48px !important; }
@@ -2009,7 +2009,7 @@ white-space: nowrap;
     /* Контейнери */
     .portal-body { padding-top: 60px !important; padding-bottom: 60px !important;  padding-left: 5px !important; padding-right: 5px !important;}
     .portal-body .content-filter { width: 300px !important; }
-    .content-summary .year-selector { width: 300px !important; font-size: 14px !important; padding: 4px 20px !important; }
+    .content-summary .year-selector { width: 300px !important; font-size: 14px !important; padding: 4px 5px !important; }
     .content-summary .by-month-pagination-wrapper { font-size: 12px !important; padding: 4px 6px !important; width: calc(100% - 250px - 20px) !important; }
 
     /* Зменшення шрифту у таблицях */
@@ -2801,4 +2801,82 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
 
   background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start)) !important; /* трохи затемнити фон */
 
+}
+
+
+/* =========================================================
+   SAFE FILTER SCROLL (НЕ ЛАМАЄ ІСНУЮЧІ СТИЛІ)
+   тільки додає скрол
+========================================================= */
+
+/* 1️⃣ Обмежуємо висоту сайдбару */
+.portal-body .content-filter {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* скрол НЕ тут */
+}
+
+/* 2️⃣ Скрол ТІЛЬКИ для списку фільтрів */
+.portal-body .content-filter .filter {
+  flex: 1 1 auto;
+  min-height: 0;              /* 🔥 КЛЮЧОВЕ */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 20px;
+}
+/* =========================================================
+   FINAL MOBILE SIDEBAR FIX (HIDE + SCROLL)
+   ВСТАВИТИ В САМ КІНЕЦЬ CSS
+========================================================= */
+
+@media (max-width: 1260px) {
+
+  /* БАЗОВО — СХОВАНИЙ */
+  .portal-body .content-filter {
+    position: fixed !important;
+   
+    left: -100% !important;
+
+    height: calc(100vh - 100px) !important; /* header + footer */
+
+
+    background: #fff !important;
+    z-index: 999 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+
+    transition: left 0.3s ease !important;
+  }
+
+  /* ВІДКРИТИЙ */
+  .portal-body .content-filter.open {
+    left: 0 !important;
+  }
+
+  /* ЯВНО ЗАКРИТИЙ */
+  .portal-body .content-filter.closed {
+    left: -100% !important;
+  }
+
+  /* ✅ СКРОЛ ТІЛЬКИ ВСЕРЕДИНІ ФІЛЬТРІВ */
+  .portal-body .content-filter .filter {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;   /* КРИТИЧНО */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-bottom: 20px;
+  }
+}
+
+
+/* 4️⃣ Скрол виглядає акуратно */
+.portal-body .content-filter .filter::-webkit-scrollbar {
+  width: 4px;
+}
+
+.portal-body .content-filter .filter::-webkit-scrollbar-thumb {
+  background-color: var(--info-color);
+  border-radius: 2px;
 }

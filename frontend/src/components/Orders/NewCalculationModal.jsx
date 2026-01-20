@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios.js";
 import { useNotification } from "../notification/Notifications.jsx";
 import "./NewCalculationModal.css";
@@ -45,7 +45,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const role = (localStorage.getItem("role") || "").trim().toLowerCase();
   const isManager = ["manager", "region_manager", "admin"].includes(role);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   /* =========================
       ❗ Перевірка координат
@@ -53,24 +52,24 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const checkAddressCoordinates = (addressObj) => {
     if (!addressObj) return;
 
-    // Перевірка на наявність Latitude/Longitude (залежно від назв у вашому API)
     const lat = addressObj.Latitude || addressObj.lat;
     const lng = addressObj.Longitude || addressObj.lng;
 
-    const hasCoords = lat && lng && parseFloat(lat) !== 0 && parseFloat(lng) !== 0;
+    const hasCoords =
+      lat && lng && parseFloat(lat) !== 0 && parseFloat(lng) !== 0;
 
     if (!hasCoords) {
       addNotification(
         <div style={{ lineHeight: "1.4" }}>
           <strong>Увага!</strong> Відсутні гео-координати для цієї адреси. <br />
           Замовлення не зможе бути оброблене коректно. <br />
-          <a 
-            href="https://ordersportal.vstg.com.ua/edit-addresses" 
-            target="_blank" 
+          <a
+            href="https://ordersportal.vstg.com.ua/edit-addresses"
+            target="_blank"
             rel="noopener noreferrer"
             style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
           >
-            Додайте точку на карті за посиланням
+            Додайте точку на карті
           </a>
         </div>,
         "warning"
@@ -81,16 +80,14 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   /* =========================
       📦 Завантаження адрес
      ========================= */
-  const loadAddresses = async (contractorGuid) => {
-    if (!contractorGuid) return;
-
+  const loadAddresses = async (contractorGuid = null) => {
     setAddressesLoading(true);
     setAddresses([]);
     setAddressGuid("");
 
     try {
       const res = await axiosInstance.get("/dealer-addresses/", {
-        params: { contractor: contractorGuid },
+        params: contractorGuid ? { contractor: contractorGuid } : {}
       });
 
       const list = res.data?.addresses || [];
@@ -116,35 +113,25 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       }
     } catch (err) {
       console.error(err);
-      addNotification("Не вдалося завантажити адресу доставки ", "error");
+      addNotification("Не вдалося завантажити адресу доставки", "error");
     } finally {
       setAddressesLoading(false);
     }
   };
 
   /* =========================
-      🧠 Ефекти та обробники
+      🧠 Effects
      ========================= */
   useEffect(() => {
     if (!isOpen) return;
-    if (!isManager) {
-      const contractorGuid = user.user_id_1c;
-      setDealerId(contractorGuid);
-      loadAddresses(contractorGuid);
-    }
-  }, [isOpen]);
 
-  useEffect(() => {
-    setIsAddressOpen(false);
-    if (!isOpen || !isManager) return;
-
-    if (dealerId) {
-      loadAddresses(dealerId);
+    if (isManager) {
+      if (dealerId) loadAddresses(dealerId);
     } else {
-      setAddresses([]);
-      setAddressGuid("");
+      // дилер → без contractor
+      loadAddresses();
     }
-  }, [dealerId, isOpen]);
+  }, [isOpen, dealerId]);
 
   const handleAddressSelect = (addr) => {
     setAddressGuid(addr.AddressKindGUID);
@@ -190,15 +177,13 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const contractorGuid = isManager ? dealerId : user.user_id_1c;
-
-    if (!contractorGuid || !orderNumber || !file || !itemsCount || !comment.trim()) {
-      addNotification("Заповніть усі поля ", "error");
+    if (!orderNumber || !file || !itemsCount || !comment.trim()) {
+      addNotification("Заповніть усі поля", "error");
       return;
     }
 
     if (addressMode === "dealer" && !addressGuid) {
-      addNotification("Оберіть адресу доставки ", "error");
+      addNotification("Оберіть адресу доставки", "error");
       return;
     }
 
@@ -206,7 +191,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       addressMode === "client" &&
       (!customAddress.text || !customAddress.lat || !customAddress.lng)
     ) {
-      addNotification("Оберіть клієнтську адресу ", "error");
+      addNotification("Оберіть клієнтську адресу", "error");
       return;
     }
 
@@ -221,7 +206,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       });
 
       const payload = {
-        contractor_guid: contractorGuid,
+        ...(isManager && dealerId && { contractor_guid: dealerId }),
         order_number: orderNumber,
         items_count: Number(itemsCount),
         comment,
@@ -240,14 +225,18 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
             }),
       };
 
-      const response = await axiosInstance.post("/calculations/create/", payload);
+      const response = await axiosInstance.post(
+        "/calculations/create/",
+        payload
+      );
+
       addNotification(`Прорахунок №${orderNumber} створено ✅`, "success");
       onSave?.(response.data);
       resetForm();
       onClose();
     } catch (error) {
       console.error(error);
-      addNotification("Помилка при збереженні ", "error");
+      addNotification("Помилка при збереженні", "error");
     } finally {
       setLoading(false);
     }
@@ -258,7 +247,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   return (
     <>
       <div className="new-calc-modal-overlay" onClick={onClose}>
-        <div className="new-calc-modal-window" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="new-calc-modal-window"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="new-calc-modal-border-top">
             <div className="new-calc-modal-header">
               <span className="icon icon-calculator" />
@@ -291,8 +283,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <DealerSelect value={dealerId} onChange={setDealerId} />
                 </div>
               )}
-
-              <div className="address-mode-switch">
+<div className="address-mode-switch">
                 <label>
                   <input
                     type="radio"

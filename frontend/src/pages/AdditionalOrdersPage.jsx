@@ -8,22 +8,14 @@ import AddReorderModal from '../components/AdditionalOrder/AddReorderModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 
-import DealerSelect from "./DealerSelect";
-import { useDealerContext } from "../hooks/useDealerContext";
 
 
 
-// Константа для ліміту відображення
 const initialLimit = 100;
 
 // Перейменовуємо компонент
 const AdditionalOrders = () => {
 
-  const {
-    dealerGuid,
-    setDealerGuid,
-    isAdmin
-  } = useDealerContext();
 
   // Перейменовуємо змінні, пов'язані з "Прорахунками" на "Додаткові Замовлення"
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false); // Замість isCalcModalOpen
@@ -136,7 +128,6 @@ const AdditionalOrders = () => {
   }, [additionalOrdersData]);
 
 
-  // --- API CALL LOGIC (ОНОВЛЕНО: ВИДАЛЕНО ЛОГІКУ З `dealer`) ---
  useEffect(() => {
   const controller = new AbortController();
   const signal = controller.signal;
@@ -145,17 +136,12 @@ const AdditionalOrders = () => {
     setLoading(true);
 
     try {
-      const params = {
-        year: selectedYear,
-        contractor: dealerGuid,
-      };
-
-
-
-      // 🔥 ОДИН єдиний запит
       const response = await axiosInstance.get(
         '/additional_orders/get_additional_orders_info/',
-        { params, signal }
+        {
+          params: { year: selectedYear },
+          signal,
+        }
       );
 
       if (signal.aborted) return;
@@ -168,8 +154,8 @@ const AdditionalOrders = () => {
           date: formatDateHuman(item.dateRaw),
           orders: (item.orders || []).map(order => ({
             ...order,
-            date: formatDateHuman(order.dateRaw)
-          }))
+            date: formatDateHuman(order.dateRaw),
+          })),
         }));
 
         setAdditionalOrdersData(allOrders);
@@ -194,17 +180,11 @@ const AdditionalOrders = () => {
     }
   };
 
-  // ❗ ADMIN без вибраного дилера — не вантажимо
-  if (isAdmin && !dealerGuid) {
-    setAdditionalOrdersData([]);
-    setFilteredItems([]);
-    setLoading(false);
-    return;
-  }
-
   fetchData();
   return () => controller.abort();
-}, [selectedYear, dealerGuid, isAdmin]);
+}, [selectedYear]);
+
+
 
   const getStatusSummary = useMemo(() => {
     return () => {
@@ -402,18 +382,7 @@ const AdditionalOrders = () => {
           </div>
 
           
-          {isAdmin && (
-            <>
-              <div className="delimiter1" />
-              <div className="dealer-select-wrapper">
-                <DealerSelect
-                  value={dealerGuid}
-                  onChange={setDealerGuid}
-                />
-              </div>
-            </>
-          )}
-
+        
           {/* ⚠️ ВИДАЛЕНО блок вибору дилера */}
 
           <div className="delimiter1"></div>

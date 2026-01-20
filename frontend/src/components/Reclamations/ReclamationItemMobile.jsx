@@ -231,18 +231,12 @@ export const ReclamationItemMobile = ({
             <CommentsModal
                 isOpen={isCommentsOpen}
                 onClose={() => setIsCommentsOpen(false)}
-                comments={selectedComments}
-                orderId={reclamation.id} 
-                onAddComment={async (text) => {
-                    try {
-                        await axiosInstance.post(`/complaints/${reclamation.id}/add-comment/`, { message: text });
-                        const res = await axiosInstance.get(`/complaints/${reclamation.id}/comments/`);
-                        setSelectedComments(res.data);
-                    } catch (err) {
-                        console.error("Помилка при додаванні коментаря:", err);
-                    }
-                }}
-            />
+
+                baseTransactionGuid={reclamation.guid}      // 🔑 GUID з 1С
+                transactionTypeId={2}                       // 🔑 ID типу "Рекламація"
+                // writerGuid={localStorage.getItem("user_id_1C")} // або з context
+                />
+
              {/* Модальне вікно підтвердження видалення (залишаємо тут для контексту) */}
              {isDeleteModalOpen && (
                 <DeleteConfirmationModal

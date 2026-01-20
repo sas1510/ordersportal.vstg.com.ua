@@ -5,7 +5,7 @@ import { FaTimes, FaPlus } from "react-icons/fa";
 import "./AddClaimModal.css";
 import CustomSelect from "./CustomSelect";
 import { FaClipboardList } from "react-icons/fa";
-
+import { useNotification } from "../notification/Notifications";
 
 
 export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNumber = "", initialOrderGUID = ''  }) {
@@ -24,6 +24,8 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
   const [selectedSeries, setSelectedSeries] = useState([]);
   const [orderNotFound, setOrderNotFound] = useState(false);
   const fileInputRef = useRef(null);
+  
+  const { addNotification } = useNotification();
 
   // 🔹 При відкритті блокуємо скрол сторінки
   useEffect(() => {
@@ -152,34 +154,30 @@ const handleSubmit = async (e) => {
   setLoading(true);
 
   try {
-    // ✅ 1. Фото → base64
+    // 🖼️ Фото → base64
     const photosBase64 = await Promise.all(
-      photos.map(file => {
-        return new Promise((resolve, reject) => {
+      photos.map(file =>
+        new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onload = () => {
-            const base64 = reader.result.split(",")[1]; // ❗ без data:image/*
+          reader.onload = () =>
             resolve({
               photo_name: file.name,
-              photo_base64: base64
+              photo_base64: reader.result.split(",")[1],
             });
-          };
           reader.onerror = reject;
           reader.readAsDataURL(file);
-        });
-      })
+        })
+      )
     );
 
     const contractorGuid = getContractorGuid();
-
     if (!contractorGuid) {
-      alert("❌ Не знайдено контрагента користувача");
+      addNotification("Не знайдено контрагента користувача", "error");
       return;
     }
 
     const payload = {
-      contractor_guid: contractorGuid,   // 👈 ОЦЕ ГОЛОВНЕ
-
+      contractor_guid: contractorGuid,
       order_number: orderNumber.trim(),
       order_GUID: initialOrderGUID,
 
@@ -195,32 +193,35 @@ const handleSubmit = async (e) => {
         const serie = seriesOptions.find(s => s.SeriesLink === link);
         return {
           serie_link: link,
-          serie_name: serie?.Name || ""
+          serie_name: serie?.Name || "",
         };
       }),
 
-      photos: photosBase64
+      photos: photosBase64,
     };
 
-    // ✅ 3. JSON POST
     await axiosInstance.post(
       "/complaints/create_complaints/",
       payload,
       { headers: { "Content-Type": "application/json" } }
     );
 
-    alert("✅ Рекламацію додано!");
-    onSave?.();
+    // ✅ SUCCESS
+    addNotification("Рекламацію успішно додано", "success");
+    onSave?.();              // 🔁 reload у батьківському компоненті
     handleCloseWithReset();
 
   } catch (err) {
     console.error(err);
-    alert("❌ Помилка: " + (err.response?.data?.error || err.message));
+
+    addNotification(
+      err.response?.data?.error || "Помилка при створенні рекламації",
+      "error"
+    );
   } finally {
     setLoading(false);
   }
 };
-
 
 
   if (!isOpen) return null;

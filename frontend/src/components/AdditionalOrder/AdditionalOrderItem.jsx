@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
-import CommentsModal from "./CommentsModal";
+import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu"; // Використовуємо перейменоване меню
 // Компоненти для замовлень, які можуть бути вкладені
 import AdditionalOrderItemSummaryDesktop from './AdditionalOrderItemSummaryDesktop';
@@ -22,7 +22,10 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
   const [selectedComments, setSelectedComments] = useState([]);
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
+  const userRaw = localStorage.getItem("user");
+  const user = userRaw ? JSON.parse(userRaw) : null;
 
+  // const writerGuid = user?.user_id_1c;
 
   // Перевірка наявності даних про основне замовлення
   const hasMainOrder = !!additionalOrder.mainOrderNumber;
@@ -237,7 +240,7 @@ const ordersWithNumbers = orderList.filter(order => order.number);
       )}
 
       {/* Модалка коментарів */}
-      <CommentsModal
+{/*       <CommentsModal
         isOpen={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
         comments={selectedComments}
@@ -252,7 +255,16 @@ const ordersWithNumbers = orderList.filter(order => order.number);
             console.error("Помилка при додаванні коментаря:", err);
           }
         }}
-      />
+      /> */}
+
+    <CommentsModal
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+
+        baseTransactionGuid={additionalOrder.guid}      // 🔑 GUID з 1С
+        transactionTypeId={3}                       // 🔑 ID типу "Рекламація"
+        // writerGuid={writerGuid} // або з context
+        />
 
     </div>
   );

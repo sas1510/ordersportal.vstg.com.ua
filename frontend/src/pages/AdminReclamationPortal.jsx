@@ -40,6 +40,7 @@ function formatApiData(data) {
 
         return {
             id: item.ComplaintNumber,
+            guid : item.ComplaintGuid,
             number: item.ClaimOrderNumber,
             actNumber: item.ComplaintNumber,
 

@@ -41,6 +41,7 @@ export default function PaymentsPage() {
   // filters
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [contractFilter, setContractFilter] = useState("all");
 
   // mobile sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -70,6 +71,21 @@ export default function PaymentsPage() {
 
 
   const normalizeStatus = (s) => (s || "—").toString().trim();
+  const contractFilters = useMemo(() => {
+    const map = new Map();
+
+    orders.forEach((o) => {
+      if (o.Dogovor_GUID && o.DogovorName) {
+        map.set(o.Dogovor_GUID, o.DogovorName);
+      }
+    });
+
+    return Array.from(map.entries()).map(([guid, name]) => ({
+      guid,
+      name,
+      count: orders.filter((o) => o.Dogovor_GUID === guid).length,
+    }));
+  }, [orders]);
 
   const getStatusClass = (status) =>
     STATUS_COLORS[normalizeStatus(status)] || "status-unknown";
@@ -151,6 +167,7 @@ const STATUS_FILTERS = [
     } finally {
       setLoading(false);
     }
+
   }, [contractorGUID]);
 
   useEffect(() => {
@@ -176,19 +193,24 @@ const STATUS_FILTERS = [
   // FILTERED ORDERS
   // =====================================================
   const filteredOrders = useMemo(() => {
-    return orders.filter((o) => {
-      const statusOk = statusFilter === "all" || o.OrderStage === statusFilter;
+      return orders.filter((o) => {
+        const statusOk =
+          statusFilter === "all" || o.OrderStage === statusFilter;
 
-      const searchOk =
-        !search ||
-        (o.OrderNumber || "")
-          .toString()
-          .toLowerCase()
-          .includes(search.toLowerCase());
+        const contractOk =
+          contractFilter === "all" || o.Dogovor_GUID === contractFilter;
 
-      return statusOk && searchOk;
-    });
-  }, [orders, statusFilter, search]);
+        const searchOk =
+          !search ||
+          (o.OrderNumber || "")
+            .toString()
+            .toLowerCase()
+            .includes(search.toLowerCase());
+
+        return statusOk && contractOk && searchOk;
+      });
+    }, [orders, statusFilter, contractFilter, search]);
+
 
   // =====================================================
   // MODAL
@@ -289,6 +311,45 @@ const STATUS_FILTERS = [
           );
         })}
       </ul>
+      <div className="delimiter1" />
+
+      {/* CONTRACT FILTERS */}
+      <span className="payment-filter-headers-name">Договори</span>
+
+      <ul className="filter column align-center">
+        <li
+          className={`filter-item ${contractFilter === "all" ? "active" : ""}`}
+          onClick={() => {
+            setContractFilter("all");
+            if (isMobile) setIsSidebarOpen(false);
+          }}
+        >
+          <span className="icon icon-files-empty font-size-24" />
+          <span className="w-100">Усі договори</span>
+          <span>{orders.length}</span>
+        </li>
+
+        {contractFilters.map((c) => (
+          <li
+            key={c.guid}
+            className={`filter-item ${
+              contractFilter === c.guid ? "active" : ""
+            }`}
+            onClick={() => {
+              if (c.count === 0) return;
+              setContractFilter(c.guid);
+              if (isMobile) setIsSidebarOpen(false);
+            }}
+          >
+            <span className="icon icon-file-text2 font-size-24" />
+            <span className="w-100" title={c.name}>
+              {c.name}
+            </span>
+            <span>{c.count}</span>
+          </li>
+        ))}
+      </ul>
+
     </div>
   );
 
@@ -350,7 +411,7 @@ const STATUS_FILTERS = [
             <div className="pp-badges">
               {contracts.map((c, i) => (
                 <div key={i} className="pp-badge">
-                  {c.Договор} — <strong>{formatCurrency(c.ОстатокПоДоговору)} грн</strong>
+                  {c.DogovorName} — <strong>{formatCurrency(c.DogovorBalance)} грн</strong>
                 </div>
               ))}
             </div>

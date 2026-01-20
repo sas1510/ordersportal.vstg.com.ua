@@ -15,50 +15,25 @@ from rest_framework.authentication import BaseAuthentication
 from django.conf import settings
 import secrets
 
-import secrets
-from django.utils import timezone
-from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
-
-from backend.users.models import CustomUser
-from backend.users.models import UserApiKey
-
-
 class OneCApiKeyAuthentication(BaseAuthentication):
-    """
-    Аутентифікація через API key з БД
-    """
-
     def authenticate(self, request):
         api_key = request.headers.get("X-API-KEY")
         if not api_key:
-            return None  # ❗ даємо шанс JWT
+            return None
 
-        api_key = api_key.strip()
+        api_key = api_key.strip().lower()
+        
+        # settings.ONE_C_API_KEYS вже є списком завдяки cast=Csv()
+        allowed_keys = [key.strip().lower() for key in settings.ONE_C_API_KEYS if key]
 
-        try:
-            key_obj = (
-                UserApiKey.objects
-                .select_related("user")
-                .get(api_key=api_key, is_active=True)
-            )
-        except UserApiKey.DoesNotExist:
-            raise AuthenticationFailed("Invalid API key")
+        for valid_key in allowed_keys:
+            if secrets.compare_digest(api_key, valid_key):
+                # Повертаємо (None, "1C_API_KEY")
+                # None — бо користувача (User) немає
+                # "1C_API_KEY" — потрапить у request.auth
+                return (None, "1C_API_KEY")
 
-        # 🔒 перевірка терміну дії
-        if key_obj.expire_date and key_obj.expire_date < timezone.now():
-            raise AuthenticationFailed("API key expired")
-
-        user = key_obj.user
-        if not user or not user.is_active:
-            raise AuthenticationFailed("User inactive")
-
-        # можна оновлювати last_used_at
-        key_obj.last_used_at = timezone.now()
-        key_obj.save(update_fields=["last_used_at"])
-
-        # 👇 КЛЮЧОВЕ
-        return (user, "1C_API_KEY")
+        return None
 
 # class OneCApiKeyAuthentication(BaseAuthentication):
 #     """

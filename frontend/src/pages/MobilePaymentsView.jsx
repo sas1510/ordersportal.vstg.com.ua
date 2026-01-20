@@ -48,9 +48,9 @@ const scrollToTop = () => {
 
 
   const getArrowIcon = (item) => {
-    if (item.InOut === "Прихід")
+    if (item.FlowDirection === "Прихід")
       return <span className="mobile-arrow arrow-in">▲</span>;
-    if (item.InOut === "Витрата")
+    if (item.FlowDirection === "Витрата")
       return <span className="mobile-arrow arrow-out">▼</span>;
     return <span className="mobile-arrow arrow-none">•</span>;
   };
@@ -205,17 +205,17 @@ const scrollToTop = () => {
 
                 const canExpand =
                   channel === "order" &&
-                  (firstItem.ВидДокумента === "ППВход" ||
-                    firstItem.ВидДокумента === "ПКО") &&
+                  (firstItem.DocumentType === "ППВход" ||
+                    firstItem.DocumentType === "ПКО") &&
                   docGroup.items.length > 0;
 
                 return (
                   <div
                     key={docKey}
                     className={`mobile-doc-card ${
-                      firstItem.InOut === "Прихід"
+                      firstItem.FlowDirection === "Прихід"
                         ? "income"
-                        : firstItem.InOut === "Витрата"
+                        : firstItem.FlowDirection === "Витрата"
                         ? "expense"
                         : "neutral"
                     }`}
@@ -231,7 +231,7 @@ const scrollToTop = () => {
                         <div className="mobile-doc-time">
                           {getArrowIcon(firstItem)}
                           <span>
-                            {(firstItem.Период || "")
+                            {(firstItem.Date || "")
                               .split("T")[1]
                               ?.slice(0, 5)}
                           </span>
@@ -240,11 +240,11 @@ const scrollToTop = () => {
                       </div>
 
                       <div className="mobile-doc-operation">
-                        {firstItem.ВидДокумента ===
+                        {firstItem.DocumentType ===
                         "КорректировкаДолга"
                           ? `Коригування. ${firstItem.DescriptionCor || ""}`
                           : firstItem.DealType ||
-                            firstItem.ВидДокумента ||
+                            firstItem.DocumentType ||
                             "—"}
                       </div>
 
@@ -318,7 +318,7 @@ const scrollToTop = () => {
   <div className="mobile-suborders">
     {docGroup.items.map((item, idx) => {
       const payment = Math.abs(Number(item.DeltaRow || 0));
-      const debt = Number(item.ЗалишокПоЗаказу || 0);
+      const debt = Number(item.OrderBalance || 0);
 
       return (
         <div
@@ -329,7 +329,7 @@ const scrollToTop = () => {
           {/* HEADER */}
           <div className="order-mini-header">
             <i className="fa-solid fa-file-invoice" /> Замовлення №{" "}
-            {item.НомерЗаказа}
+            {item.OrderNumber}
           </div>
 
           {/* GRID */}
@@ -338,7 +338,7 @@ const scrollToTop = () => {
   <div className="order-mini-col">
     <span className="order-mini-label">Сума</span>
     <span className="order-mini-value">
-      {formatCurrency(item.СуммаЗаказа)}
+      {formatCurrency(item.OrderAmount)}
     </span>
   </div>
 
@@ -346,7 +346,7 @@ const scrollToTop = () => {
   <div className="order-mini-col">
     <span className="order-mini-label">Оплачено до</span>
     <span className="order-mini-value text-grey">
-      {formatCurrency(item.ОплаченоДоДокумента)}
+      {formatCurrency(item.PaidBefore)}
     </span>
   </div>
 
@@ -355,7 +355,7 @@ const scrollToTop = () => {
       <span className="order-mini-label">Оплата</span>
       <span
         className={
-          item.InOut === "Прихід"
+          item.FlowDirection === "Прихід"
             ? "order-mini-green"
             : "order-mini-red"
         }
@@ -368,7 +368,7 @@ const scrollToTop = () => {
     <div className="order-mini-col">
       <span className="order-mini-label">Борг</span>
       <span className="order-mini-red">
-        {formatCurrency(Math.abs(Number(item.Debt || 0)))}
+        {formatCurrency(Math.abs(Number(item.DeltaRow || 0)))}
       </span>
     </div>
  
@@ -377,7 +377,7 @@ const scrollToTop = () => {
   <div className="order-mini-col">
     <span className="order-mini-label">Статус</span>
     <span className="order-mini-value">
-      {item.СтатусОплатиПоЗаказу || "—"}
+      {item.FinalDogovorName || "—"}
     </span>
   </div>
 
@@ -393,7 +393,7 @@ const scrollToTop = () => {
   <div className="order-mini-col">
     <span className="order-mini-label">Дата</span>
     <span className="order-mini-value">
-      {(formatDateHuman(item.ДатаЗаказа) || "").split("T")[0]}
+      {(formatDateHuman(item.OrderDate) || "").split("T")[0]}
     </span>
   </div>
 </div>

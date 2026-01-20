@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor
+from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages
 
 
 create_calculation = CreateCalculationViewSet.as_view({
@@ -18,12 +18,13 @@ urlpatterns = [
     path('additional_orders/get_additional_orders_info_all/', views.get_additional_orders_info_all, name='get_additional_orders_info_all'),
     path('complaints/get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
     path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
-    path('create_message/', views.create_message, name='create_message'),
+    path('messages/create/', views.create_message, name='create_message'),
     path("order/<str:order_guid>/files/", order_files_view), # без логіки дилер
     path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"),
     path("calculations/create/", create_calculation), #  без логіки дилер
     path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"), #  без логіки дилер
     path("get_wds_codes/", wds_codes_by_contractor, name="get_wds_codes"), #  без логіки дилер
-    
+    path("messages/", get_messages, name="get-messages"),
+
 ]
 

@@ -1,92 +1,98 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
+import {
+  FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
 import "./PhotoModal.css";
-import { FaTimes } from "react-icons/fa";
-import { useNotification } from '../notification/Notifications.jsx';
 
-export default function PhotoModal({ isOpen, onClose, photos, currentIndex, setCurrentIndex }) {
-    const { addNotification } = useNotification();
-    const [validPhoto, setValidPhoto] = useState(true);
+export default function PhotoModal({
+  isOpen,
+  onClose,
+  photos = [],
+  currentIndex = 0,
+  setCurrentIndex,
+}) {
+  const prev = () =>
+    setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
 
-    useEffect(() => {
-        if (!isOpen) return;
+  const next = () =>
+    setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
 
-        const currentPhotoData = photos[currentIndex];
-        if (!currentPhotoData) {
-            addNotification("Не вдалося завантажити фото: дані відсутні.", 'error', 4000);
-            setValidPhoto(false);
-            return;
-        }
+  useEffect(() => {
+    if (!isOpen) return;
 
-        const isUrl = /^https?:\/\//i.test(currentPhotoData);
-        const isBase64 = /^[A-Za-z0-9+/=\s]+$/.test(currentPhotoData) && currentPhotoData.length > 100;
-
-        if (!isUrl && !isBase64) {
-            addNotification("Не вдалося відобразити фото: дані некоректні або пошкоджені.", 'error', 4000);
-            setValidPhoto(false);
-            return;
-        }
-
-        setValidPhoto(true);
-    }, [isOpen, currentIndex, photos, addNotification]);
-
-    if (!isOpen || !validPhoto) return null;
-
-    const handlePrev = (e) => {
-        e.stopPropagation();
-        setCurrentIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
     };
 
-    const handleNext = (e) => {
-        e.stopPropagation();
-        setCurrentIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
-    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
-    const currentPhotoData = photos[currentIndex];
+  if (!isOpen || !photos.length) return null;
 
-    const getPhotoSource = (data) => {
-        if (!data) return null;
-        if (data.startsWith('http://') || data.startsWith('https://')) return data;
-        return `data:image/jpeg;base64,${data}`;
-    };
+  const src = photos[currentIndex];
 
-    const photoSrc = getPhotoSource(currentPhotoData);
+  return createPortal(
+    <div className="photo-modal-overlay" onClick={onClose}>
+      <div
+        className="photo-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* CLOSE */}
+        <button className="photo-modal-close" onClick={onClose}>
+          <FaTimes />
+        </button>
 
-    return createPortal(
-        <div className="photo-modal-overlay" onClick={onClose}>
-            <div className="photo-modal-window" onClick={(e) => e.stopPropagation()}>
-                <button className="photo-modal-close" onClick={onClose}>
-                    <FaTimes />
-                </button>
+        {/* IMAGE */}
+        <div className="photo-modal-content-my">
+          <img src={src} alt={`Фото ${currentIndex + 1}`} />
+        </div>
 
-                <div className="photo-modal-content">
-                    {photoSrc ? (
-                        <img
-                            src={photoSrc}
-                            alt={`Фото ${currentIndex + 1} з ${photos.length}`}
-                            onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.style.display = 'none';
-                                addNotification("❌ Помилка: Не вдалося відобразити фото.", 'error', 4000);
-                            }}
-                        />
-                    ) : (
-                        <div className="text-white">Фото не завантажено</div>
-                    )}
-                </div>
+        {/* ⬅️ PREV */}
+        {photos.length > 1 && (
+          <button
+            className="photo-nav photo-nav-prev"
+            onClick={prev}
+            aria-label="Попереднє фото"
+          >
+            <FaChevronLeft />
+          </button>
+        )}
 
-                <div className="photo-modal-counter">
-                    {currentIndex + 1} / {photos.length}
-                </div>
+        {/* ➡️ NEXT */}
+        {photos.length > 1 && (
+          <button
+            className="photo-nav photo-nav-next"
+            onClick={next}
+            aria-label="Наступне фото"
+          >
+            <FaChevronRight />
+          </button>
+        )}
 
-                {photos.length > 1 && (
-                    <>
-                        <button className="photo-modal-prev" onClick={handlePrev}>◀</button>
-                        <button className="photo-modal-next" onClick={handleNext}>▶</button>
-                    </>
-                )}
-            </div>
-        </div>,
-        document.body
-    );
+        {/* THUMBNAILS */}
+        {photos.length > 1 && (
+          <div className="photo-modal-thumbs">
+            {photos.map((photo, i) => (
+              <img
+                key={i}
+                src={photo}
+                alt={`thumb-${i}`}
+                className={`photo-thumb ${
+                  i === currentIndex ? "active" : ""
+                }`}
+                onClick={() => setCurrentIndex(i)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
 }

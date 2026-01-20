@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import AdditionalOrderItemSummaryMobile from './AdditionalOrderItemSummaryMobile';
 import { formatMoney } from "../../utils/formatMoney";
-import CommentsModal from "./CommentsModal";
+import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
 import axiosInstance from "../../api/axios";
 
@@ -10,7 +10,10 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
+  const userRaw = localStorage.getItem("user");
+  const user = userRaw ? JSON.parse(userRaw) : null;
 
+  // const writerGuid = user?.user_id_1c;
   const toggleExpanded = () => setExpanded((prev) => !prev);
 
   const handleEdit = (updatedCalc) => {
@@ -216,22 +219,14 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
         </div>
       )}
 
-      {/* Модальне вікно (без змін) */}
       <CommentsModal
         isOpen={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
-        comments={selectedComments}
-        orderId={calc.id}
-        onAddComment={async (text) => {
-          try {
-            await axiosInstance.post(`/calculations/${calc.number}/add-comment/`, { message: text });
-            const res = await axiosInstance.get(`/calculations/${calc.number}/comments/`);
-            setSelectedComments(res.data);
-          } catch (err) {
-            console.error("Помилка при додаванні коментаря:", err);
-          }
-        }}
-      />
+
+        baseTransactionGuid={calc.guid}      // 🔑 GUID з 1С
+        transactionTypeId={3}                       // 🔑 ID типу "Рекламація"
+        // writerGuid={writerGuid} // або з context
+        />
     </div>
   );
 };

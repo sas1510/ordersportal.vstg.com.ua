@@ -127,3 +127,7 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
                 "detail": "Доступ заборонено. Тільки адміністратори та менеджери можуть виконувати цю дію."
             }
         return response
+    
+
+
+    

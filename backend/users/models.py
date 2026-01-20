@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.models import Group
 
+from django.conf import settings
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
@@ -324,3 +325,49 @@ class Invitation(models.Model):
 
 
 
+
+import secrets
+
+
+
+
+class UserApiKey(models.Model):
+    class Meta:
+        db_table = "UserApiKeys"
+
+    id = models.BigAutoField(primary_key=True)
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="api_keys"
+    )
+
+    api_key = models.CharField(
+        max_length=256,
+        unique=True,
+        editable=False,
+        db_index=True
+    )
+
+    name = models.CharField(max_length=100, null=True, blank=True)
+
+    is_active = models.BooleanField(default=True)
+
+    expire_date = models.DateTimeField(null=True, blank=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_api_keys"
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.api_key:
+            self.api_key = secrets.token_hex(32)  # 64 символи
+        super().save(*args, **kwargs)

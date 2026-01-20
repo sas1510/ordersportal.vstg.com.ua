@@ -12,17 +12,23 @@
 .comments-modal-window {
   width: 500px;
   max-width: 90%;
+  max-height: 80vh;            
   background: #fff;
   border-radius: 12px;
-  overflow: hidden;
-  padding: 25px;
+  overflow: hidden;            
+  padding: 0;                    
   text-align: center;
   position: relative;
+
+  display: flex;                
+  flex-direction: column;        
+
   transform: scale(0.8);
   opacity: 0;
   animation: comments-zoomIn 0.3s forwards;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
+
 
 .comments-modal-border-top,
 .comments-modal-border-bottom {
@@ -33,18 +39,21 @@
   left: 0;
 }
 
+
 .comments-modal-border-top {
   height: 50px;
-  top: 0;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-
+  background-color: #76b448;
+  width: 100%;
+  flex-shrink: 0;
+  position: relative; /* або взагалі прибрати */
 }
 
+
 .comments-modal-border-bottom {
-  bottom: 0;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  height: 6px;
+  background-color: #76b448;
+  width: 100%;
+  flex-shrink: 0;                /* ⭐ */
 }
 
 .comments-modal-header {
@@ -56,6 +65,7 @@
   padding: 10px 16px;
   font-size: 18px;
 }
+
 
 .comments-close-btn {
   cursor: pointer;
@@ -71,9 +81,12 @@
 }
 
 .comments-modal-body {
+  flex: 1;                       /* ⭐ займає весь вільний простір */
+  overflow-y: auto;              /* ⭐ вертикальна прокрутка */
   padding: 16px;
-  margin-top: 40px;
+  margin-top: 0;                 /* прибираємо старий margin */
 }
+
 
 .comments-form label {
   display: block;
@@ -92,31 +105,53 @@
 }
 
 .comments-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 12px 0;
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-bottom: 12px;
 }
 
 .comments-item {
   border-bottom: 1px solid #eaeaea;
-  padding: 8px 0;
+  padding: 12px;           /* ⭐ більше повітря */
 }
+
+
+.comments-item {
+  position: relative;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+
+  background: #f9f9f9;
+
+  /* ✅ Один раз задаємо border-left повністю */
+  border-left: 4px solid var(--author-color, #76b448);
+
+  /* опціонально */
+  border-bottom: 1px solid #eaeaea;
+}
+
 
 .comments-meta {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   color: #888;
+  padding: 10px;
 }
 
 .comments-text {
   font-size: 14px;
-  margin-top: 8px;
-  justify-self: flex-end;
-  word-wrap: break-word; /* переносить довгі слова */
-  white-space: normal;   /* дозволяє перенос рядків */
-  text-align: justify;   /* розтягує рядки рівномірно */
+  margin-top: 10px;          /* ⭐ відступ від автора */
+  padding-left: 6px;         /* ⭐ легкий відступ зліва */
+  padding-right: 6px;        /* ⭐ легкий відступ справа */
+
+  line-height: 1.5;          /* ⭐ читабельність */
+  word-wrap: break-word;
+  white-space: pre-wrap;     /* ⭐ зберігає переноси рядків */
+  text-align: left;          /* краще для коментарів */
 }
+
 
 
 .comments-modal-footer {
@@ -124,7 +159,10 @@
   justify-content: center;
   padding: 10px 16px;
   gap: 10px;
+  flex-shrink: 0;                /* ⭐ */
+  background: inherit;
 }
+
 
 .comments-btn-cancel,
 .comments-btn-save {
@@ -270,3 +308,10 @@ body.dark-theme .comments-btn-save:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 16px rgba(92, 140, 56, 0.6) !important;
 }
+body.dark-theme .comments-item {
+  background: #2a2f35;
+  border-bottom: 1px solid #333333;
+  /* ✅ НЕ треба тут border-left / border-left-color взагалі */
+}
+
+

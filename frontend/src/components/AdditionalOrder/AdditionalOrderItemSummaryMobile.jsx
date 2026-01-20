@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 // import OrderDetails from "./OrderDetails";
 import { formatMoney } from "../../utils/formatMoney";
-import CommentsModal from "./CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
 import AddClaimModal from "../Complaint/AddClaimModal";
 import AddReorderModal from "./AddReorderModal";

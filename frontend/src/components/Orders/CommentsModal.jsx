@@ -1,54 +1,96 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axiosInstance from "../../api/axios";
 import { FaTimes, FaSave, FaRegCommentDots } from "react-icons/fa";
 import "./CommentsModal.css";
 
-const CommentsModal = ({ isOpen, onClose, orderId }) => {
+
+const AUTHOR_COLORS = [
+  "#4fd1ac", 
+  "#ffee00", 
+  "#612ae0", 
+  "#141e29", 
+  "#76b448", 
+  "#53a9ff", 
+];
+
+const getAuthorColor = (author) => {
+  if (!author) return "#f0f0f0";
+
+  const str =
+    author.full_name ||
+    author.username ||
+    author.id_1c ||
+    "unknown";
+
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash) % AUTHOR_COLORS.length;
+  return AUTHOR_COLORS[index];
+};
+
+
+const CommentsModal = ({
+  isOpen,
+  onClose,
+  baseTransactionGuid,
+  transactionTypeId
+}) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
   const commentsEndRef = useRef(null);
 
-  // Завантаження коментарів
-  const fetchComments = async () => {
-    if (!orderId) return;
+  /* ================= LOAD COMMENTS ================= */
+  const fetchComments = useCallback(async () => {
+    if (!baseTransactionGuid || !transactionTypeId) return;
+
     try {
-      const res = await axiosInstance.get(`/orders/${orderId}/messages/`);
-      // Не перевертаємо — залишаємо порядок "зверху старі, знизу нові"
+      const res = await axiosInstance.get("/messages/", {
+        params: {
+          base_transaction_guid: baseTransactionGuid,
+          transaction_type_id: transactionTypeId
+        }
+      });
+
       setComments(res.data);
     } catch (err) {
       console.error("Помилка при завантаженні коментарів:", err);
     }
-  };
+  }, [baseTransactionGuid, transactionTypeId]);
 
-  // Скрол до останнього коментаря
-  const scrollToBottom = () => {
-    commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Виклик при відкритті модалки
+  /* ================= OPEN / CLOSE ================= */
   useEffect(() => {
     if (isOpen) {
       fetchComments();
+    } else {
+      setComments([]);
+      setNewComment("");
     }
-  }, [isOpen, orderId]);
+  }, [isOpen, fetchComments]);
 
-  // Скрол при зміні коментарів
+  /* ================= SCROLL ================= */
   useEffect(() => {
-    scrollToBottom();
+    commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comments]);
 
-  // Додавання нового коментаря
+  /* ================= ADD COMMENT ================= */
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
-    setLoading(true);
-    try {
-      const res = await axiosInstance.post(`/orders/${orderId}/add-message/`, {
-        message: newComment.trim(),
-      });
-      setNewComment("");
 
-      // Додаємо новий коментар у кінець списку без повторного fetch
+    setLoading(true);
+
+    try {
+      const res = await axiosInstance.post("/messages/create/", {
+        transaction_type_id: transactionTypeId,
+        base_transaction_guid: baseTransactionGuid,
+        // writer_guid: writerGuid,
+        message: newComment.trim()
+      });
+
+      setNewComment("");
       setComments((prev) => [...prev, res.data]);
     } catch (err) {
       console.error("Помилка при додаванні коментаря:", err);
@@ -64,37 +106,64 @@ const CommentsModal = ({ isOpen, onClose, orderId }) => {
 
   if (!isOpen) return null;
 
+  /* ================= RENDER ================= */
   return (
     <div className="comments-modal-overlay" onClick={onClose}>
-      <div className="comments-modal-window" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="comments-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* ===== HEADER ===== */}
         <div className="comments-modal-border-top">
           <div className="comments-modal-header">
             <FaRegCommentDots size={20} style={{ marginRight: 8 }} />
             <h3>Історія коментарів</h3>
-            <span className="icon icon-cross comments-close-btn" onClick={onClose}></span>
+            <span
+              className="icon icon-cross comments-close-btn"
+              onClick={onClose}
+            />
           </div>
         </div>
 
+        {/* ===== BODY ===== */}
         <div className="comments-modal-body">
           {comments.length === 0 ? (
-            <div className="comments-no-comments">Коментарів ще немає</div>
+            <div className="comments-no-comments">
+              Коментарів ще немає
+            </div>
           ) : (
             <ul className="comments-list">
-              {comments.map((c, idx) => (
-                <li key={idx} className="comments-item">
+              {comments.map((c) => (
+               <li
+                  key={c.id}
+                  className="comments-item"
+                  style={{
+                    ["--author-color"]: getAuthorColor(c.author),
+                    borderLeftColor: getAuthorColor(c.author), // ✅ fallback, якщо змінна не підхопилась
+                  }}
+                >
+
+
+
                   <div className="comments-meta">
-                    <strong>{c.author || "Користувач"}</strong>
+                    <strong>
+                      {c.author?.full_name || "Користувач"}
+                    </strong>
                     <span>
-                      {new Date(c.created_at || c.date).toLocaleString("uk-UA")}
+                      {new Date(c.created_at).toLocaleString("uk-UA")}
                     </span>
                   </div>
-                  <div className="comments-text">{c.message || c.text}</div>
+
+                  <div className="comments-text">
+                    {c.message}
+                  </div>
                 </li>
               ))}
               <div ref={commentsEndRef} />
             </ul>
           )}
 
+          {/* ===== FORM ===== */}
           <form className="comments-form" onSubmit={handleSubmit}>
             <label>Новий коментар:</label>
             <textarea
@@ -102,13 +171,17 @@ const CommentsModal = ({ isOpen, onClose, orderId }) => {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               rows={3}
-            ></textarea>
+            />
           </form>
         </div>
 
+        {/* ===== FOOTER ===== */}
         <div className="comments-modal-footer">
-          <button className="comments-btn-cancel" onClick={onClose}>
-            <FaTimes size={16} color="#fff" /> Відмінити
+          <button
+            className="comments-btn-cancel"
+            onClick={onClose}
+          >
+            <FaTimes size={16} /> Відмінити
           </button>
 
           <button
@@ -116,7 +189,8 @@ const CommentsModal = ({ isOpen, onClose, orderId }) => {
             onClick={handleAddComment}
             disabled={loading}
           >
-            <FaSave size={16} color="#fff" /> {loading ? "Додаємо..." : "Зберегти"}
+            <FaSave size={16} />
+            {loading ? " Додаємо..." : " Зберегти"}
           </button>
         </div>
 

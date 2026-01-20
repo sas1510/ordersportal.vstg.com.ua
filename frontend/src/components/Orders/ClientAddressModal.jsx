@@ -225,7 +225,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
       extraInfo: clientContact.extraInfo.trim(),
     });
 
-    addNotification("Дані успішно збережено ✅", "success");
+    addNotification("Дані про адресу клієнта успішно збережено ✅", "success");
     onClose();
   };
 

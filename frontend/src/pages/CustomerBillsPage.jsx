@@ -66,49 +66,58 @@ const CustomerBillsPage = () => {
      ========================= */
 
   const fetchBills = async () => {
-    if (!dealerGuid) {
-      setBills([]);
-      setLoading(false);
-      return;
+  setLoading(true);
+  setError("");
+
+  try {
+    const params = {
+      date_from: dateFrom,
+      date_to: dateTo,
+    };
+
+    // 👑 ТІЛЬКИ admin передає contractor
+    if (isAdmin) {
+      if (!dealerGuid) {
+        setBills([]);
+        setLoading(false);
+        return;
+      }
+      params.contractor = dealerGuid;
     }
 
-    setLoading(true);
-    setError("");
+    const res = await axiosInstance.get(
+      "/payments/dealers/bills/",
+      { params }
+    );
 
-    try {
-      const res = await axiosInstance.get(
-        `/payments/dealers/${dealerGuid}/bills/`,
-        {
-          params: {
-            date_from: dateFrom,
-            date_to: dateTo,
-          },
-        }
-      );
+    setBills(res.data?.items || []);
+  } catch (err) {
+    console.error(err);
+    setError("Помилка при завантаженні рахунків");
+  } finally {
+    setLoading(false);
+  }
+};
 
-      setBills(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      console.error(err);
-      setError("Помилка при завантаженні рахунків");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   /* =========================
      EFFECTS
      ========================= */
 
   useEffect(() => {
-    if (!isAdmin && dealerGuid) {
-      fetchBills();
-    }
+  // dealer / customer → одразу вантажимо
+  if (!isAdmin) {
+    fetchBills();
+    return;
+  }
 
-    if (isAdmin && !dealerGuid) {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dealerGuid, isAdmin]);
+  // admin → тільки після вибору дилера
+  if (isAdmin && dealerGuid) {
+    fetchBills();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [dealerGuid, isAdmin]);
+
 
   /* =========================
      STATES
@@ -243,7 +252,7 @@ const CustomerBillsPage = () => {
         isOpen={isCreateBillOpen}
         onClose={() => setIsCreateBillOpen(false)}
         onSuccess={fetchBills}
-        contractorGuid={dealerGuid}   // ✅ ВАЖЛИВО
+        // contractorGuid={dealerGuid}   // ✅ ВАЖЛИВО
       />
 
 

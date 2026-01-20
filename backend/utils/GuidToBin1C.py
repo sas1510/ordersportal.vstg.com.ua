@@ -1,6 +1,10 @@
 def guid_to_1c_bin(guid_str: str) -> bytes | None:
     if not guid_str:
         return None
+    
+    if isinstance(guid_str, uuid.UUID):
+        guid_str = str(guid_str)
+
 
     hex_str = guid_str.replace("-", "").lower()
 

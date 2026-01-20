@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import OrderDetails from "./OrderDetailsDesktop";
 import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
-import CommentsModal from "./CommentsModal";
+
 import {AdditionalOrderMenu} from "./AdditionalOrderMenu";
 import AddClaimModal from "../Complaint/AddClaimModal";
 import AddReorderModal from "./AddReorderModal"; // шлях до твого нового компоненту

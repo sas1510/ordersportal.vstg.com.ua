@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -115,6 +115,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # REST framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # "rest_framework.authentication.SessionAuthentication",
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         "backend.authentication.OneCApiKeyAuthentication", 
         
@@ -137,11 +138,19 @@ SIMPLE_JWT = {
 }
 
 # CORS
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = [
-    "http://172.20.197.76",
-    "http://ordersportal.vstg.com.ua"
-]
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://172.20.197.76",
+#     "http://ordersportal.vstg.com.ua",
+#     "http://172.17.19.107",
+# ]
+
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://172.17.19.107",
+#     "http://ordersportal.vstg.com.ua",
+#     "http://172.20.197.76",
+# ]
+
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -195,3 +204,6 @@ SPECTACULAR_SETTINGS = {
         {"ApiKeyAuth": []},
     ],
 }
+
+
+# SESSION_COOKIE_AGE = 60 * 60 * 8   

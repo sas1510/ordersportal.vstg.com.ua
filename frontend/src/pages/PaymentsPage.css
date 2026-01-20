@@ -910,6 +910,30 @@
 
 
 
+/* ===============================
+   SCROLL FOR PAYMENT FILTERS
+================================ */
+
+.content-filter-payment {
+  height: calc(100vh - 60px); /* висота вікна мінус хедер порталу */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* гарний скрол */
+.content-filter-payment::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content-filter-payment::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.dark-theme .content-filter-payment::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 
 
 .content-filter-payment  .search-wrapper-payment .clear-search-payment {

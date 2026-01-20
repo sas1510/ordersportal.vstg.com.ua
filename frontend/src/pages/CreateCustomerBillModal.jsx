@@ -15,7 +15,7 @@ export default function CreateCustomerBillModal({
   isOpen,
   onClose,
   onSuccess,
-  contractorGuid,
+
 }) {
   if (!isOpen) return null;
 
@@ -47,26 +47,20 @@ export default function CreateCustomerBillModal({
   const [loading, setLoading] = useState(false);
 
   /* ===================== LOAD PROFILE ===================== */
-  useEffect(() => {
-    if (!contractorGuid) return;
+useEffect(() => {
+  if (!isOpen) return;
 
-    const fetchProfile = async () => {
-      const res = await axiosInstance.get(
-        `/payments/dealers/${contractorGuid}/profile/`
-      );
-      const data = res.data || {};
+  const fetchProfile = async () => {
+    const res = await axiosInstance.get(`/payments/dealers/profile/`);
+    const data = res.data || {};
 
-      setAddresses(data.addresses || []);
-      setIbans(data.accounts || []);
-      setItemsList(data.nomenclature || []);
+    setAddresses(data.data.addresses || []);
+    setIbans(data.data.accounts || []);
+    setItemsList(data.data.nomenclature || []);
+  };
 
-      if (data.contractor?.ContractorGUID) {
-        setSelectedContragent(data.contractor.ContractorGUID);
-      }
-    };
-
-    fetchProfile();
-  }, [contractorGuid]);
+  fetchProfile();
+}, [isOpen]);
 
   /* ===================== ITEMS ===================== */
   const handleAddItem = () => {

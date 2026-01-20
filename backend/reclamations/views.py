@@ -21,6 +21,9 @@ from django.core.files.storage import FileSystemStorage
 from rest_framework.decorators import api_view, permission_classes
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.contractor import resolve_contractor
+from backend.utils.api_helpers import safe_view
+from backend.utils.dates import parse_date, clean_date
 
 
 
@@ -168,7 +171,7 @@ def get_gm_solutions(request, reason_id):
             name="contractor",
             type=OpenApiTypes.UUID,
             location=OpenApiParameter.QUERY,
-            description="GUID контрагента (необовʼязково)",
+            description="GUID контрагента (admin)",
             required=False,
         ),
     ],
@@ -176,70 +179,50 @@ def get_gm_solutions(request, reason_id):
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def get_complaint_series_by_order(request, order_number):
-    try:
-        # 🔹 чи це 1C по API key
-        is_1c = request.auth == "1C_API_KEY"
+    """
+    Повертає серії рекламації по замовленню.
+    Безпека:
+    - dealer / customer → тільки своє замовлення
+    - admin / manager → будь-яке
+    - 1C API key → без обмежень (або по contractor)
+    """
 
-        # 🔹 contractor з фронту (GUID)
-        contractor_guid = request.GET.get("contractor")
-        kontragent = None
+    # 🔐 ЄДИНА ТОЧКА ВИЗНАЧЕННЯ КОНТРАГЕНТА
+    contractor_bin, _ = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+    )
 
-        if contractor_guid:
-            kontragent = guid_to_1c_bin(contractor_guid)
+    # 📦 SQL
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetComplaintSeriesByOrder
+                @OrderNumber = %s,
+                @Контрагент  = %s
+            """,
+            [order_number, contractor_bin]
+        )
 
-        if not is_1c:
-            # 🔐 JWT користувач
-            user = request.user
-            role = (getattr(user, "role", "") or "").lower()
-            manager_roles = ["manager", "region_manager", "admin"]
-            is_manager_or_admin = role in manager_roles
+        columns = [col[0] for col in cursor.description]
+        rows = cursor.fetchall()
 
-            if not is_manager_or_admin:
-                # ❗ клієнт → дозволяємо ТІЛЬКИ свій контрагент
-                user_contractor = getattr(user, "user_id_1C", None)
+    # 🎛 FORMAT
+    results = []
+    for row in rows:
+        row_dict = dict(zip(columns, row))
 
-                if not user_contractor:
-                    return Response(
-                        {"error": "Контрагент не знайдено для користувача"},
-                        status=400
-                    )
+        if row_dict.get("SeriesLink"):
+            row_dict["SeriesLink"] = bin_to_guid_1c(row_dict["SeriesLink"])
 
-                # якщо фронт передав contractor — перевіряємо
-                if kontragent and kontragent != user_contractor:
-                    return Response(
-                        {"error": "Доступ заборонено до цього контрагента"},
-                        status=403
-                    )
+        results.append(row_dict)
 
-                kontragent = user_contractor
-
-            # менеджер / адмін → можна будь-якого або None
-            # kontragent вже або з query, або None
-
-        # 🔹 1C → kontragent беремо тільки з query (або None)
-        # жодних role / user перевірок
-
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "EXEC dbo.GetComplaintSeriesByOrder @OrderNumber=%s, @Контрагент=%s",
-                [order_number, kontragent]
-            )
-
-            columns = [col[0] for col in cursor.description]
-            results = []
-
-            for row in cursor.fetchall():
-                row_dict = dict(zip(columns, row))
-                if row_dict.get("SeriesLink"):
-                    row_dict["SeriesLink"] = bin_to_guid_1c(row_dict["SeriesLink"])
-                results.append(row_dict)
-
-        return Response({"series": results or None})
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
-
+    return Response({
+        "series": results or None
+    })
 
 import xml.etree.ElementTree as ET
 import base64
@@ -273,7 +256,9 @@ from rest_framework.response import Response
 
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
+import uuid
 
+MOCK_1C = True
 
 class ReclamationViewSet(viewsets.ViewSet):
     """
@@ -318,18 +303,16 @@ class ReclamationViewSet(viewsets.ViewSet):
             "photos": prepared_photos
         }
 
-    # --------------------------------------------------
-    # 🧾 CREATE: створення рекламації
-    # --------------------------------------------------
+        # --------------------------------------------------
+        # 🧾 CREATE: створення рекламації
+        # --------------------------------------------------
     def create(self, request):
         try:
-            # ---------- MAIN DATA ----------
             contractor_guid = request.data.get("contractor_guid")
             if not contractor_guid:
                 raise ValueError("contractor_guid is required")
 
             main_data = {
-                # ❗ ВАЖЛИВО: ВСЕ STRING
                 "kontragentGUID": contractor_guid,
                 "complaintDate": request.data.get("complaint_date"),
                 "orderNumber": request.data.get("order_number"),
@@ -337,14 +320,31 @@ class ReclamationViewSet(viewsets.ViewSet):
                 "orderDefineDate": request.data.get("order_define_date"),
                 "description": request.data.get("description"),
                 "urgent": bool(request.data.get("urgent", False)),
-
                 "issue": request.data.get("issue"),
                 "solution": request.data.get("solution"),
             }
 
             payload = self._generate_reclamation_json(request, main_data)
 
-            # 🔥 ВІДПРАВКА В 1C
+            # ==================================================
+            # 🧪 MOCK MODE (без 1C)
+            # ==================================================
+            if MOCK_1C:
+                fake_guid = str(uuid.uuid4())
+
+                return Response(
+                    {
+                        "success": True,
+                        # "reclamationGuid": fake_guid,
+                        # "mock": True,
+                        # "payloadPreview": payload  # 🔍 зручно для дебагу
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+
+            # ==================================================
+            # 🔥 REAL MODE (1C)
+            # ==================================================
             result = self._send_to_1c(payload)
 
             reclamation_guid = result.get("reclamationGuid")
@@ -354,7 +354,7 @@ class ReclamationViewSet(viewsets.ViewSet):
             return Response(
                 {
                     "success": True,
-                    "reclamationGuid": reclamation_guid  # GUID string
+                    # "reclamationGuid": reclamation_guid
                 },
                 status=status.HTTP_201_CREATED
             )
@@ -377,6 +377,7 @@ class ReclamationViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
     # --------------------------------------------------
     # 🔁 Відправка у 1С (JSON → JSON)
     # --------------------------------------------------
@@ -393,3 +394,221 @@ class ReclamationViewSet(viewsets.ViewSet):
 
         response.raise_for_status()
         return response.json()
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from django.db import connection
+
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+@extend_schema(
+    summary="Отримати файли претензії (БВ)",
+    description=(
+        "Повертає **всі файли претензії** (фото, відео, pdf).\n\n"
+        "📌 Дані беруться з SQL-процедури **dbo.GetClaimFiles_BV**.\n\n"
+        "🔐 Доступ:\n"
+        "- JWT\n"
+        "- або 1C API Key\n\n"
+        "📎 File_GUID та Claim_GUID повертаються як GUID string."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="claim_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            required=True,
+            description="GUID претензії (БВ)"
+        )
+    ]
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def get_claim_files(request, claim_guid):
+    try:
+        # 🔹 GUID → BINARY(16)
+        claim_link_bin = guid_to_1c_bin(claim_guid)
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetClaimFiles_BV @ClaimLink=%s",
+                [claim_link_bin]
+            )
+
+            columns = [col[0] for col in cursor.description]
+            files = []
+
+            for row in cursor.fetchall():
+                row_dict = dict(zip(columns, row))
+
+                # 🔹 GUID конвертації
+                if isinstance(row_dict.get("Claim_GUID"), (bytes, bytearray)):
+                    row_dict["Claim_GUID"] = bin_to_guid_1c(row_dict["Claim_GUID"])
+
+                if isinstance(row_dict.get("File_GUID"), (bytes, bytearray)):
+                    row_dict["File_GUID"] = bin_to_guid_1c(row_dict["File_GUID"])
+
+                files.append(row_dict)
+
+        return Response({"files": files})
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+import mimetypes
+import subprocess
+import logging
+from urllib.parse import unquote
+
+from django.conf import settings
+from django.http import StreamingHttpResponse, Http404
+from rest_framework.decorators import api_view, permission_classes
+
+logger = logging.getLogger(__name__)
+import tempfile
+from django.http import FileResponse
+import mimetypes
+import subprocess
+import tempfile
+from urllib.parse import unquote
+
+from django.conf import settings
+from django.http import FileResponse, Http404
+from rest_framework.decorators import api_view, permission_classes
+
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication
+from django.http import FileResponse, Http404
+import subprocess, tempfile, mimetypes
+from urllib.parse import unquote
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from .utils import generate_media_token, load_file_from_db, extract_1c_binary
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def generate_media_token_view(request):
+    file_guid = request.data.get("file_guid")
+
+    if not file_guid:
+        return Response({"error": "file_guid required"}, status=400)
+
+    token = generate_media_token(file_guid, ttl_seconds=180) 
+
+    return Response({"token": token})
+
+
+import subprocess
+import tempfile
+import mimetypes
+from urllib.parse import unquote
+from django.conf import settings
+from django.http import FileResponse, Http404
+from rest_framework.decorators import api_view, permission_classes
+
+from .utils import verify_media_token
+
+from django.http import FileResponse, Http404, HttpResponse
+from rest_framework.decorators import api_view, permission_classes
+from urllib.parse import unquote
+import tempfile
+import subprocess
+import mimetypes
+import os
+@api_view(["GET"])
+@permission_classes([])  # Доступ регулюється медіа-токеном
+def preview_complaint_file(request, claim_guid):
+    token = request.GET.get("token")
+    filename = request.GET.get("filename")
+
+    if not token or not filename:
+        raise Http404("Missing parameters")
+
+    file_guid = verify_media_token(token)
+    if not file_guid:
+        raise Http404("Invalid token")
+
+    filename = unquote(filename)
+    content_type, _ = mimetypes.guess_type(filename)
+
+    # ======================================================
+    # 1️⃣ ЕТАП: ПЕРЕВІРКА В ФАЙЛОВІЙ СИСТЕМІ (SMB)
+    # ======================================================
+    remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{filename}'
+    full_username = f"VSTG\\{settings.SMB_USERNAME}"
+
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp.close()
+
+    try:
+        subprocess.run(
+            [
+                "smbclient", f"//{settings.SMB_SERVER}/{settings.SMB_SHARE}",
+                "-U", full_username,
+                "-c", f'get "{remote_path}" "{tmp.name}"'
+            ],
+            env={"PASSWD": settings.SMB_PASSWORD},
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        # Якщо файл знайдено — повертаємо його і завершуємо функцію
+        return FileResponse(
+            open(tmp.name, "rb"),
+            content_type=content_type or "application/octet-stream",
+            headers={
+                "Content-Disposition": f'inline; filename="{filename}"',
+                "Accept-Ranges": "bytes",
+            }
+        )
+    except subprocess.CalledProcessError:
+        # Файла немає в SMB, йдемо далі до БД
+        if os.path.exists(tmp.name):
+            os.unlink(tmp.name)
+    finally:
+        # Це спрацює тільки якщо ми ВЖЕ віддали FileResponse вище
+        pass 
+
+    # ======================================================
+    # 2️⃣ ЕТАП: FALLBACK — ПОШУК У БД (1С Хранилище)
+    # ======================================================
+    try:
+        binary_guid = guid_to_1c_bin(file_guid) # Конвертація GUID у Binary(16)
+
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC [dbo].[GetBinaryFile] @FileLink = %s", [binary_guid])
+            row = cursor.fetchone()
+            
+            if not row or not row[0]:
+                raise Http404("File not found in DB")
+
+            raw_db_blob = row[0]  # Поле [Хранилище]
+            db_filename = row[1]  # Поле [ИмяФайла]
+
+        # Декодування сирих даних 1С за вашою логікою
+        file_bytes = extract_1c_binary(raw_db_blob)
+        
+        if not file_bytes:
+            raise Http404("Could not decode file from DB")
+
+        return HttpResponse(
+            file_bytes,
+            content_type=content_type or "application/octet-stream",
+            headers={
+                "Content-Disposition": f'inline; filename="{filename or db_filename}"',
+                "Accept-Ranges": "bytes",
+            }
+        )
+    except Exception as e:
+        # Можна додати логування помилки БД тут
+        raise Http404("File not found")

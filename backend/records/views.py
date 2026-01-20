@@ -10,17 +10,46 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Message
-from .serializers import MessageSerializer
+# from .serializers import MessageSerializer
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 from backend.utils.BinToGuid1C import convert_row
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, inline_serializer, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, inline_serializer, OpenApiResponse, OpenApiExample
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 
 from drf_spectacular.types import OpenApiTypes
 import re
-# Вам потрібно переконатися, що 'import re' додано на початку вашого файлу Django views.
+
+from backend.permissions import IsAdminJWT
+from .serializers import MessageCreateSerializer
+from .services.messages import save_message
+from backend.users.models import CustomUser
+
+
+from backend.utils.contractor import resolve_contractor
+from backend.utils.api_helpers import safe_view
+from backend.utils.dates import parse_date, clean_date
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from backend.permissions import IsAuthenticatedOr1CApiKey
+
+from django.http import JsonResponse
+from django.db import connection
+from django.db import connection
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from datetime import datetime
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+from django.http import JsonResponse
+from django.db import connection
+
 
 def parse_reclamation_details(text):
     """
@@ -72,40 +101,27 @@ def parse_reclamation_details(text):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from backend.permissions import IsAuthenticatedOr1CApiKey
-
-from django.http import JsonResponse
-from django.db import connection
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from django.http import JsonResponse
-from django.db import connection
 
 @extend_schema(
     summary="Get complaints by contractor",
     description=(
         "Повертає рекламації за контрагентом.\n\n"
         "🔐 **Доступ:**\n"
-        "- JWT: admin → всі контрагенти, інші ролі → тільки свій контрагент\n"
-        "- 1C API key → доступ до будь-якого контрагента\n\n"
+        "- JWT:\n"
+        "  - admin → може передати contractor\n"
+        "  - інші ролі → тільки свій контрагент\n"
+        "- 1C API key → автоматично використовується UserId1C\n\n"
         "📌 **Параметри:**\n"
-        "- contractor — GUID контрагента (обовʼязково)\n"
-        "- year — рік (необовʼязково, якщо не передано — всі роки)"
+        "- contractor — GUID контрагента (обовʼязково ТІЛЬКИ для admin)\n"
+        "- year — рік (необовʼязково)"
     ),
     parameters=[
         OpenApiParameter(
             name="contractor",
             type=str,
             location=OpenApiParameter.QUERY,
-            required=True,
-            description="GUID контрагента",
-       
+            required=False,
+            description="GUID контрагента (обовʼязково ТІЛЬКИ для admin через JWT, інакше ігнорується)",
         ),
         OpenApiParameter(
             name="year",
@@ -113,79 +129,26 @@ from django.db import connection
             location=OpenApiParameter.QUERY,
             required=False,
             description="Рік (якщо не передано — всі роки)",
-  
         ),
     ],
-
-
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def complaints_view(request):
 
-    # ---------- PARAMS ----------
-    year_str = request.GET.get("year")
-    contractor_guid = request.GET.get("contractor")
+    contractor_bin, _ = resolve_contractor(request)
+    year = int(request.GET.get("year")) if request.GET.get("year") else None
 
-    if not contractor_guid:
-        return JsonResponse(
-            {"error": "Parameter 'contractor' is required"},
-            status=400
-        )
-
-    try:
-        contractor_bin = guid_to_1c_bin(contractor_guid)
-    except Exception:
-        return JsonResponse(
-            {"error": "Invalid contractor GUID"},
-            status=400
-        )
-
-    try:
-        year = int(year_str) if year_str else None
-    except ValueError:
-        return JsonResponse(
-            {"error": "Invalid year format"},
-            status=400
-        )
-
-    # ---------- 🔐 ACCESS CONTROL ----------
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
-
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return Response(
-                    {"detail": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_bin != user_contractor:
-                return Response(
-                    {"detail": "Access denied for this contractor"},
-                    status=403
-                )
-
-    # ---------- 🧾 DATA ----------
     with connection.cursor() as cursor:
         cursor.execute(
-            """
-            EXEC [dbo].[GetComplaintsFull]
-                @User1C_ID = %s,
-                @Year = %s
-            """,
+            "EXEC dbo.GetComplaintsFull @User1C_ID=%s, @Year=%s",
             [contractor_bin, year]
         )
 
-        columns = [col[0] for col in cursor.description]
-        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        columns = [c[0] for c in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-    # ---------- 🧠 PARSING ----------
     for row in rows:
         if row.get("ComplaintGuid"):
             row["ComplaintGuid"] = bin_to_guid_1c(row["ComplaintGuid"])
@@ -199,22 +162,11 @@ def complaints_view(request):
             parsed_info.get("ParsedDescription") or full_text
         )
 
-    return JsonResponse(
-        {
-            "status": "success",
-            "data": rows
-        },
-        json_dumps_params={"ensure_ascii": False},
-        safe=False
-    )
+    return Response({"status": "success", "data": rows})
 
 
 
-from django.db import connection
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from datetime import datetime
+
 
 def format_date_human(date_str):
     if not date_str:
@@ -342,189 +294,79 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-
 @extend_schema(
     summary="Отримання інформації про замовлення",
     description="Повертає список замовлень за вказаний рік для конкретного контрагента.",
     parameters=[
         OpenApiParameter(
-            name='year', 
-            type=int, 
-            location=OpenApiParameter.QUERY, 
-            description='Рік (наприклад, 2025)', 
-            required=True
+            name="year",
+            type=int,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Рік (наприклад, 2025)",
         ),
         OpenApiParameter(
-            name='contractor_guid', 
-            type=str, 
-            location=OpenApiParameter.QUERY, 
-            description='GUID контрагента з 1С', 
-            required=True
+            name="contractor_guid",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
         ),
-    ]
+    ],
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def api_get_orders(request):
     # ---------- PARAMS ----------
     year_str = request.GET.get("year")
-    contractor_guid = request.GET.get("contractor_guid")
-
-    if not year_str or not contractor_guid:
-        return Response(
-            {"error": "year and contractor_guid are required"},
-            status=400
-        )
+    if not year_str:
+        return Response({"error": "year is required"}, status=400)
 
     try:
         year = int(year_str)
     except ValueError:
-        return Response(
-            {"error": "Invalid year"},
-            status=400
-        )
+        return Response({"error": "Invalid year"}, status=400)
 
+    # ---------- 🔐 CONTRACTOR (DRY) ----------
     try:
-        contractor_bin = guid_to_1c_bin(contractor_guid)
-    except Exception:
-        return Response(
-            {"error": "Invalid contractor GUID"},
-            status=400
+        contractor_bin, _ = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
         )
-
-    # ---------- 🔐 ACCESS CONTROL ----------
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
-
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return Response(
-                    {"detail": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_bin != user_contractor:
-                return Response(
-                    {"detail": "Access denied for this contractor"},
-                    status=403
-                )
+    except ValueError as e:
+        return Response({"error": str(e)}, status=400)
+    except PermissionError as e:
+        return Response({"detail": str(e)}, status=403)
 
     # ---------- 📦 DATA ----------
     data = get_orders_by_year_and_contractor(year, contractor_bin)
 
-    return Response(
-        {
-            "status": "success",
-            "data": {
-                "calculation": data
-            }
+    return Response({
+        "status": "success",
+        "data": {
+            "calculation": data
         }
-    )
-
-
-
-# from django.db import connection
-# from rest_framework.decorators import api_view, permission_classes
-# from rest_framework.permissions import IsAuthenticated
-# from rest_framework.response import Response
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def additional_orders_view(request):
-#     """
-#     Повертає дозакази користувача у потрібному JSON-форматі.
-#     """
-#     try:
-#         user_id = request.user.id
-#     except AttributeError:
-#         return Response({"error": "Invalid user object"}, status=400)
-
-#     year_str = request.GET.get("year")
-#     try:
-#         year = int(year_str) if year_str else None
-#     except ValueError:
-#         return Response({"error": "Invalid year format"}, status=400)
-
-#     with connection.cursor() as cursor:
-#         cursor.execute("""
-#             EXEC [dbo].[GetAdditionalOrder] 
-#                 @User_ID = %s,
-#                 @Year = %s
-#         """, [user_id, year])
-
-#         columns = [col[0] for col in cursor.description]
-#         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-#     # Групуємо дозакази та формуємо структуру для фронту
-#     orders_dict = {}
-#     for row in rows:
-#         main_order_number = row.get("OrderNumber") or "unknown"
-#         add_order_id = f"{row.get('AdditionalOrderNumber') or '000'}"
-#         if add_order_id not in orders_dict:
-#             orders_dict[add_order_id] = {
-#                 "id": add_order_id,
-#                 "number": f"Дод. Замовлення {row.get('AdditionalOrderNumber') or '000'}",
-#                 "mainOrderNumber": main_order_number,
-#                 "date": row.get("AdditionalOrderDate") or None,
-#                 "mainOrderDate": row.get("MainOrderDate") or None,
-#                 # "date": row.get("Дата"),  # залишаємо як є (можна форматувати)
-#                 "constructionsQTY": int(row.get("ConstructionsQTY") or 0),
-#                 "dealer": row.get("Customer") or "",
-#                 "debt": float(row.get("DocumentAmount") or 0) - float(row.get("TotalPayments") or 0),
-#                 "file": row.get("File") or "",
-#                 "message": row.get("Message") or "",
-#                 "orderCountInCalc": 0,
-#                 # "constructionsCount": int(row.get("БВ_КоличествоКонструкций") or 0),
-#                 "amount": float(row.get("DocumentAmount") or 0),
-#                 "orders": [],
-#                 "statuses": {}
-#             }
-
-#         # Додаємо вкладені замовлення
-#         order_item = {
-#             "id": f"{row.get('ClaimOrderNumber') or '000'}",
-#             "number": row.get("ClaimOrderNumber") or "",
-#             # "dateRaw": row.get("ClaimOrderDate") or None,
-#             "date": row.get("ClaimOrderDate"),
-#             "status": row.get("StatusName") or "Новий",
-#             "amount": float(row.get("DocumentAmount") or 0),
-#             "count": int(row.get("ConstructionsQTY") or 0),
-#             "paid": float(row.get("TotalPayments") or 0),
-#             "realizationDate": row.get("SoldDate"),
-#             # "deliveryAddress": row.get("DeliveryAddress") or "",
-#         }
-
-#         # Оновлюємо агрегати
-#         add_order = orders_dict[add_order_id]
-#         add_order["orders"].append(order_item)
-#         add_order["orderCountInCalc"] = len(add_order["orders"])
-#         add_order["constructionsCount"] += int(row.get("ConstructionsQTY") or 0)
-#         # Статуси
-#         st = order_item["status"]
-#         add_order["statuses"][st] = add_order["s]()
+    })
 
 
 @extend_schema(
     summary="Повертає дозакази (Additional Orders)",
     description=(
         "Повертає дозакази за контрагентом.\n\n"
-        "- **JWT**: доступ тільки до свого контрагента\n"
-        "- **1C API key**: доступ до будь-якого контрагента"
+        "🔐 **Доступ:**\n"
+        "- JWT admin → може передати contractor\n"
+        "- JWT dealer/customer → тільки свій контрагент\n"
+        "- 1C API key → автоматично по UserId1C\n\n"
+        "📌 **Параметри:**\n"
+        "- contractor — GUID контрагента (обовʼязково ТІЛЬКИ для admin)\n"
+        "- year — рік (необовʼязково)"
     ),
     parameters=[
         OpenApiParameter(
             name="contractor",
-            description="GUID контрагента (обовʼязково)",
-            required=True,
+            description="GUID контрагента (тільки для admin)",
+            required=False,
             type=OpenApiTypes.UUID,
             location=OpenApiParameter.QUERY,
         ),
@@ -536,157 +378,101 @@ def api_get_orders(request):
             location=OpenApiParameter.QUERY,
         ),
     ],
-    
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def additional_orders_view(request):
-    """
-    Повертає дозакази (Additional Orders)
-    """
-
-    year_str = request.GET.get("year")
-    contractor_guid = request.GET.get("contractor")
-
-    if not contractor_guid:
-        return Response(
-            {"error": "Parameter 'contractor' is required"},
-            status=400
-        )
-
-    try:
-        contractor_bin = guid_to_1c_bin(contractor_guid)
-    except Exception:
-        return Response(
-            {"error": "Invalid contractor GUID"},
-            status=400
-        )
-
-    try:
-        year = int(year_str) if year_str else None
-    except ValueError:
-        return Response(
-            {"error": "Invalid year format"},
-            status=400
-        )
+    # -------------------------------------------------
+    # PARAMS
+    # -------------------------------------------------
+    year = int(request.GET.get("year")) if request.GET.get("year") else None
 
     # -------------------------------------------------
-    # 🔐 ACCESS CONTROL
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
     # -------------------------------------------------
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
-
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return Response(
-                    {"detail": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_bin != user_contractor:
-                return Response(
-                    {"detail": "Access denied for this contractor"},
-                    status=403
-                )
+    contractor_bin, _ = resolve_contractor(request)
 
     # -------------------------------------------------
     # 📦 SQL
     # -------------------------------------------------
     with connection.cursor() as cursor:
-        cursor.execute("""
-            EXEC [dbo].[GetAdditionalOrder] 
+        cursor.execute(
+            """
+            EXEC dbo.GetAdditionalOrder
                 @User1C_ID = %s,
                 @Year = %s
-        """, [contractor_bin, year])
+            """,
+            [contractor_bin, year]
+        )
 
-        columns = [col[0] for col in cursor.description]
-        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    # -------------------------------------------------
-    # 🧹 DATE CLEANER
-    # -------------------------------------------------
-    def clean_date_stub(date_value):
-        if not date_value:
-            return None
-        date_str = str(date_value).strip()
-        if (
-            date_str.startswith("0001-01-01")
-            or date_str.startswith("2001-01-01")
-            or date_str.startswith("1753-01-01")
-        ):
-            return None
-        return date_value
+        columns = [c[0] for c in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
     # -------------------------------------------------
     # 🎛 FORMAT DATA
     # -------------------------------------------------
-    formatted_orders = []
+    formatted = []
 
-    for row in rows:
-        full_text = row.get("AdditionalInformation")
-        parsed_info = parse_reclamation_details(full_text)
+    for r in rows:
+        if r.get("AdditionalOrderGuid"):
+            r["AdditionalOrderGuid"] = bin_to_guid_1c(r["AdditionalOrderGuid"])
 
-        if row.get("AdditionalOrderGuid"):
-            row["AdditionalOrderGuid"] = bin_to_guid_1c(row["AdditionalOrderGuid"])
+        parsed = parse_reclamation_details(r.get("AdditionalInformation"))
 
-        complaint_number = row.get("AdditionalOrderNumber") or "unknown"
-        order_sum = float(row.get("DocumentAmount") or 0)
-        total_paid = float(row.get("TotalPayments") or 0)
-        status_name = row.get("StatusName") or "Новий"
-        constructions_qty = int(row.get("ConstructionsQTY") or 0)
+        order_sum = float(r.get("DocumentAmount") or 0)
+        total_paid = float(r.get("TotalPayments") or 0)
+        qty = int(r.get("ConstructionsQTY") or 0)
+        status = r.get("StatusName") or "Новий"
+        number = r.get("AdditionalOrderNumber") or "unknown"
 
-        additional_order = {
-            "guid": row.get("AdditionalOrderGuid"),
-            "id": complaint_number,
-            "number": complaint_number,
-            "numberWEB": row.get("NumberWEB"),
-            "mainOrderNumber": row.get("OrderNumber"),
-            "mainOrderDate": clean_date_stub(row.get("MainOrderDate")),
-            "dateRaw": clean_date_stub(row.get("AdditionalOrderDate")),
-            "date": clean_date_stub(row.get("AdditionalOrderDate")),
-            "dealer": row.get("Customer") or row.get("OrganizationName") or "",
-            "managerName": row.get("LastManagerName"),
-            "organizationName": row.get("OrganizationName"),
+        formatted.append({
+            "guid": r.get("AdditionalOrderGuid"),
+            "id": number,
+            "number": number,
+            "numberWEB": r.get("NumberWEB"),
+            "mainOrderNumber": r.get("OrderNumber"),
+            "mainOrderDate": clean_date(r.get("MainOrderDate")),
+            "dateRaw": clean_date(r.get("AdditionalOrderDate")),
+            "date": clean_date(r.get("AdditionalOrderDate")),
+            "dealer": r.get("Customer") or r.get("OrganizationName") or "",
+            "managerName": r.get("LastManagerName"),
+            "organizationName": r.get("OrganizationName"),
             "debt": order_sum - total_paid,
             "file": None,
-            "message": parsed_info.get("ParsedDescription") or full_text,
+            "message": parsed.get("ParsedDescription") or r.get("AdditionalInformation"),
             "orderCountInCalc": 1,
-            "constructionsCount": constructions_qty,
-            "constructionsQTY": constructions_qty,
+            "constructionsCount": qty,
+            "constructionsQTY": qty,
             "amount": order_sum,
-            "statuses": {status_name: 1},
+            "statuses": {status: 1},
             "orders": [
                 {
-                    "id": row.get("ClaimOrderNumber") or complaint_number,
-                    "number": row.get("ClaimOrderNumber") or "",
-                    "dateRaw": clean_date_stub(row.get("ClaimOrderDate")),
-                    "date": clean_date_stub(row.get("ClaimOrderDate")),
-                    "status": status_name,
+                    "id": r.get("ClaimOrderNumber") or number,
+                    "number": r.get("ClaimOrderNumber") or "",
+                    "dateRaw": clean_date(r.get("ClaimOrderDate")),
+                    "date": clean_date(r.get("ClaimOrderDate")),
+                    "status": status,
                     "amount": order_sum,
-                    "count": constructions_qty,
+                    "count": qty,
                     "paid": total_paid,
-                    "realizationDate": clean_date_stub(row.get("SoldDate")),
-                    "routeStatus": row.get("RouteStatus"),
-                    "seriesList": row.get("SeriesList"),
-                    "resolutionPaths": row.get("ResolutionPaths"),
-                    "organizationName": row.get("OrganizationName"),
-                    "planProduction": clean_date_stub(row.get("DateLaunched")),
-                    "factStartProduction": clean_date_stub(row.get("DateTransferredToWarehouse")),
-                    "factReady": clean_date_stub(row.get("ProducedDate")),
+                    "realizationDate": clean_date(r.get("SoldDate")),
+                    "routeStatus": r.get("RouteStatus"),
+                    "seriesList": r.get("SeriesList"),
+                    "resolutionPaths": r.get("ResolutionPaths"),
+                    "organizationName": r.get("OrganizationName"),
+                    "planProduction": clean_date(r.get("DateLaunched")),
+                    "factStartProduction": clean_date(r.get("DateTransferredToWarehouse")),
+                    "factReady": clean_date(r.get("ProducedDate")),
                 }
             ],
-        }
-
-        formatted_orders.append(additional_order)
+        })
 
     return Response({
         "status": "success",
-        "data": {"calculation": formatted_orders}
+        "data": {
+            "calculation": formatted
+        }
     })
 
 
@@ -1011,23 +797,23 @@ def download_order_file(request, order_guid, file_guid):
         raise Http404("Помилка доступу до файлу")
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticatedOr1CApiKey])
-def create_message(request):
-    serializer = MessageSerializer(
-            data=request.data,
-            context={"request": request}
-        )
+# @api_view(["POST"])
+# @permission_classes([IsAuthenticatedOr1CApiKey])
+# def create_message(request):
+#     serializer = MessageSerializer(
+#             data=request.data,
+#             context={"request": request}
+#         )
 
 
-    if serializer.is_valid():
-        message = serializer.save()
-        return Response(
-            MessageSerializer(message).data,
-            status=status.HTTP_201_CREATED
-        )
+#     if serializer.is_valid():
+#         message = serializer.save()
+#         return Response(
+#             MessageSerializer(message).data,
+#             status=status.HTTP_201_CREATED
+#         )
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -1072,9 +858,12 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
             location=OpenApiParameter.QUERY,
         ),
     ],
+    auth=[
+        {"jwtAuth": []},
+    ],
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWTOr1CApiKey])
+@permission_classes([IsAdminJWT])
 def get_additional_orders_info_all(request):
     """
     ADMIN ONLY
@@ -1244,9 +1033,12 @@ from backend.utils.BinToGuid1C import convert_row
             required=True,
         ),
     ],
+    auth=[
+        {"jwtAuth": []},
+    ],
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWTOr1CApiKey])
+@permission_classes([IsAdminJWT])
 def complaints_view_all_by_month(request):
     """
     ADMIN ONLY
@@ -1358,9 +1150,12 @@ from django.db import connection
             required=True,
         ),
     ],
+    auth=[
+        {"jwtAuth": []},
+    ],
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWTOr1CApiKey])
+@permission_classes([IsAdminJWT])
 def orders_view_all_by_month(request):
     """
     ADMIN ONLY
@@ -1516,25 +1311,71 @@ import base64
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 
-
+@extend_schema(
+    summary="Створення прорахунку та відправка в 1С",
+    description=(
+        "Створює новий прорахунок та відправляє його в 1С.\n\n"
+        "📌 **Формат:** JSON (без multipart)\n"
+        "📎 **Файл:** base64\n\n"
+        "🔐 **Доступ:**\n"
+        "- JWT (portal)\n"
+        "- 1C API key\n\n"
+        "❗ Контрагент:\n"
+        "- admin / manager → передається в payload\n"
+        "- dealer / api key → визначається автоматично"
+    ),
+    request=inline_serializer(
+        name="CreateCalculationRequest",
+        fields={
+            "contractor_guid": serializers.UUIDField(
+                required=False,
+                allow_null=True,
+                help_text="GUID контрагента (тільки для admin)"
+            ),
+            "order_number": serializers.CharField(),
+            "items_count": serializers.IntegerField(),
+            "delivery_address_guid": serializers.UUIDField(
+                required=False,
+                allow_null=True
+            ),
+            "comment": serializers.CharField(
+                required=False,
+                allow_blank=True
+            ),
+            "file": inline_serializer(
+                name="CalculationFile",
+                fields={
+                    "fileName": serializers.CharField(),
+                    "fileDataB64": serializers.CharField(),
+                }
+            ),
+        }
+    ),
+    responses={201: ..., 400: ...},
+    tags={"order"}
+)
 class CreateCalculationViewSet(viewsets.ViewSet):
-    """
-    Створення прорахунку + відправка в 1С
-    JSON + base64 (без multipart)
-    """
+
+    permission_classes = [IsAuthenticatedOr1CApiKey]
 
     def create(self, request):
         try:
-            contractor_guid = request.data.get("contractor_guid")
+            # ---------- 🔐 CONTRACTOR (DRY, ЄДИНЕ МІСЦЕ) ----------
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+
             order_number = request.data.get("order_number")
             items_count = request.data.get("items_count")
             comment = request.data.get("comment", "")
             address_guid = request.data.get("delivery_address_guid")
 
-            if not contractor_guid or not order_number:
-                raise ValueError("contractor_guid і order_number обовʼязкові")
+            if not order_number:
+                raise ValueError("order_number обовʼязковий")
 
-            # ---------- FILE FROM JSON ----------
+            # ---------- FILE ----------
             file_data = request.data.get("file")
             if not file_data:
                 raise ValueError("Файл прорахунку обовʼязковий")
@@ -1545,9 +1386,8 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             if not file_name or not file_b64:
                 raise ValueError("Некоректні дані файлу")
 
-            # 🔹 base64 → bytes
             try:
-                file_bytes = base64.b64decode(file_b64)
+                base64.b64decode(file_b64)
             except Exception:
                 raise ValueError("Невалідний base64 у файлі")
 
@@ -1560,31 +1400,21 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 "comment": comment,
                 "file": {
                     "fileName": file_name,
-                    "fileDataB64": file_b64,  # ❗ передаємо назад як є
+                    "fileDataB64": file_b64,
                 }
             }
 
-            # 🔥 ВІДПРАВКА В 1С (поки mock)
             result = self._send_to_1c(payload)
 
             if not result.get("success"):
                 raise ValueError("1C не змогла створити прорахунок")
 
-            return Response(
-                {
-                    "success": True,
-                    "calculationGuid": result.get("calculationGuid")
-                },
-                status=status.HTTP_201_CREATED
-            )
+            return Response({"success": True}, status=201)
 
         except Exception as e:
             return Response(
-                {
-                    "success": False,
-                    "error": str(e)
-                },
-                status=status.HTTP_400_BAD_REQUEST
+                {"success": False, "error": str(e)},
+                status=400
             )
 
     def _send_to_1c(self, payload):
@@ -1597,7 +1427,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
         return {
             "success": True,
-            "calculationGuid": f"mock-{payload['orderNumber']}",
+            # "calculationGuid": f"mock-{payload['orderNumber']}",
         }
 
         # 🔥 КОЛИ БУДЕ РЕАЛЬНА 1C:
@@ -1617,26 +1447,25 @@ from rest_framework.response import Response
 from django.db import connection
 
 
-
 @extend_schema(
     summary="Адреси дилера (доставка / юридичні)",
     description=(
-        "Повертає список **адрес дилера** (адреси доставки та/або юридичні адреси).\n\n"
+        "Повертає список **адрес дилера** (доставка та/або юридичні).\n\n"
         "📌 Дані беруться з SQL-процедури **dbo.GetDealerAddresses**.\n\n"
         "🔐 **Доступ:**\n"
-        "- **JWT**:\n"
-        "  - admin / manager → будь-який дилер\n"
-        "  - customer → тільки свій дилер\n"
-        "- **1C API Key** → доступ без обмежень\n\n"
+        "- JWT:\n"
+        "  - admin   → можуть передати contractor\n"
+        "  - customer / dealer → тільки свій контрагент\n"
+        "- 1C API Key → автоматично по UserId1C\n\n"
         "📥 **Параметри:**\n"
-        "- `contractor` — GUID контрагента (1C)"
+        "- `contractor` — GUID контрагента (обовʼязково ТІЛЬКИ для admin)"
     ),
     parameters=[
         OpenApiParameter(
             name="contractor",
             type=OpenApiTypes.STR,
             location=OpenApiParameter.QUERY,
-            description="GUID контрагента (1C)",
+            description="GUID контрагента (тільки для admin )",
             required=False,
         ),
     ],
@@ -1648,35 +1477,24 @@ from django.db import connection
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def get_dealer_addresses(request):
-    """
-    Повертає адреси доставки / юридичні адреси дилера
-    з процедури GetDealerAddresses
-    """
 
-    contractor_guid = request.GET.get("contractor")
-
-    if contractor_guid:
-        contractor_bin = guid_to_1c_bin(contractor_guid)
-
+    contractor_bin, _ = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor"
+    )
 
     with connection.cursor() as cursor:
         cursor.execute(
-            """
-            EXEC dbo.GetDealerAddresses @ContractorLink = %s
-            """,
+            "EXEC dbo.GetDealerAddresses @ContractorLink=%s",
             [contractor_bin]
         )
+        columns = [c[0] for c in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
-
-    data = [dict(zip(columns, row)) for row in rows]
-
-    return Response({
-        "success": True,
-        "addresses": data
-    })
+    return Response({"success": True, "addresses": rows})
 
 
 
@@ -1696,11 +1514,13 @@ from rest_framework.response import Response
 @extend_schema(
     summary="Отримати WDS-коди по контрагенту",
     description=(
-        "Повертає список **WDS-кодів** для вказаного контрагента.\n\n"
+        "Повертає список **WDS-кодів** для контрагента.\n\n"
         "📌 Дані отримуються з процедури **dbo.GetWDSCodes_ByContractor**.\n\n"
         "🔐 **Доступ:**\n"
-        "- JWT (користувач порталу)\n"
-        "- або **1C API Key**\n\n"
+        "- JWT:\n"
+        "  - admin → може передати contractor\n"
+        "  - dealer / customer → тільки свій контрагент\n"
+        "- 1C API Key → автоматично по UserId1C\n\n"
         "📅 Можна обмежити вибірку датами (`date_from`, `date_to`).\n"
         "Формат дат: **YYYY-MM-DD**."
     ),
@@ -1709,8 +1529,8 @@ from rest_framework.response import Response
             name="contractor",
             type=OpenApiTypes.UUID,
             location=OpenApiParameter.QUERY,
-            description="GUID контрагента (обовʼязковий)",
-            required=True,
+            description="GUID контрагента (обовʼязковий ТІЛЬКИ для admin)",
+            required=False,
         ),
         OpenApiParameter(
             name="date_from",
@@ -1727,33 +1547,6 @@ from rest_framework.response import Response
             required=False,
         ),
     ],
-    responses={
-        200: inline_serializer(
-            name="WDSCodesResponse",
-            fields={
-                "contractor": serializers.UUIDField(
-                    help_text="GUID контрагента"
-                ),
-                "date_from": serializers.DateField(
-                    allow_null=True,
-                    help_text="Дата початку періоду"
-                ),
-                "date_to": serializers.DateField(
-                    allow_null=True,
-                    help_text="Дата кінця періоду"
-                ),
-                "count": serializers.IntegerField(
-                    help_text="Кількість WDS-кодів"
-                ),
-                "items": serializers.ListField(
-                    child=serializers.DictField(),
-                    help_text="Список WDS-кодів"
-                ),
-            },
-        ),
-        400: OpenApiTypes.OBJECT,
-        401: OpenApiTypes.OBJECT,
-    },
     tags=["Dealer information"],
     auth=[
         {"jwtAuth": []},
@@ -1762,50 +1555,14 @@ from rest_framework.response import Response
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def wds_codes_by_contractor(request):
-    """
-    Повертає WDS-коди по контрагенту
-    SQL: dbo.GetWDSCodes_ByContractor
-    """
 
-    contractor_guid = request.GET.get("contractor")
-    date_from = request.GET.get("date_from")
-    date_to = request.GET.get("date_to")
+    contractor_bin, contractor_guid = resolve_contractor(request)
 
-    if not contractor_guid:
-        return Response(
-            {"error": "contractor parameter is required"},
-            status=400
-        )
+    date_from = parse_date(request.GET.get("date_from"), "date_from")
+    date_to = parse_date(request.GET.get("date_to"), "date_to")
 
-    # --- GUID -> BINARY(16) ---
-    try:
-        contractor_bin = guid_to_1c_bin(contractor_guid)
-    except Exception:
-        return Response(
-            {"error": "invalid contractor GUID format"},
-            status=400
-        )
-
-    # --- Парсинг дат ---
-    def parse_date(value, field_name):
-        if not value:
-            return None
-        try:
-            return datetime.strptime(value, "%Y-%m-%d").date()
-        except ValueError:
-            raise ValueError(f"invalid {field_name} format, expected YYYY-MM-DD")
-
-    try:
-        date_from_parsed = parse_date(date_from, "date_from")
-        date_to_parsed = parse_date(date_to, "date_to")
-    except ValueError as e:
-        return Response(
-            {"error": str(e)},
-            status=400
-        )
-
-    # --- SQL ---
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -1814,22 +1571,278 @@ def wds_codes_by_contractor(request):
                 @DateFrom   = %s,
                 @DateTo     = %s
             """,
-            [
-                contractor_bin,
-                date_from_parsed,
-                date_to_parsed,
-            ]
+            [contractor_bin, date_from, date_to]
         )
 
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
-
-    data = [dict(zip(columns, row)) for row in rows]
+        columns = [c[0] for c in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
     return Response({
         "contractor": contractor_guid,
-        "date_from": date_from,
-        "date_to": date_to,
-        "count": len(data),
-        "items": data
+        "date_from": request.GET.get("date_from"),
+        "date_to": request.GET.get("date_to"),
+        "count": len(rows),
+        "items": rows
     })
+
+
+
+
+
+
+@extend_schema(
+    summary="Створити коментар до транзакції",
+   description="""
+Створює новий коментар для транзакції (замовлення, додаткового замовлення тощо).
+
+Коментар привʼязується до:
+
+• Типу транзакції (`transaction_type_id`):
+  - **1** — Прорахунок (прорахунок клієнта)
+  - **2** — Рекламація (рекламація клієнта)
+  - **3** — Доп. замовлення (додаткове замовлення клієнта)
+
+• Конкретного документа 1C (`base_transaction_guid`)
+
+
+""",
+    request=MessageCreateSerializer,
+    responses={
+        201: OpenApiResponse(
+            description="Коментар успішно створений",
+            examples=[
+                OpenApiExample(
+                    name="Success",
+                    value={
+                        "id": 54,
+                        "created_at": "2026-01-14T10:06:51Z",
+                        "message": "Текст коментаря",
+                        "author": {
+                            "username": "shop_ruta",
+                            "full_name": "Магазин Рута"
+                        }
+                    },
+                )
+            ],
+        ),
+        400: OpenApiResponse(
+            description="Помилка валідації",
+            examples=[
+                OpenApiExample(
+                    name="Validation error",
+                    value={"error": "Invalid input data"},
+                )
+            ],
+        ),
+        401: OpenApiResponse(
+            description="Неавторизовано",
+            examples=[
+                OpenApiExample(
+                    name="Unauthorized",
+                    value={"detail": "Authentication credentials were not provided."},
+                )
+            ],
+        ),
+    },
+    tags=["Messages"],
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def create_message(request):
+    serializer = MessageCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    user = request.user
+    is_1c = request.auth == "1C_API_KEY"
+
+    # 🔐 ВИЗНАЧАЄМО АВТОРА
+    writer_id_1c = None
+
+    if is_1c:
+        # 🔑 1C API key → writer = user.user_id_1C
+        writer_id_1c = getattr(user, "user_id_1C", None)
+        if not writer_id_1c:
+            raise PermissionError("API key user has no UserId1C")
+    else:
+        # 🔐 JWT → writer = поточний користувач
+        writer_id_1c = getattr(user, "user_id_1C", None)
+
+    # ❗ writer може бути None (наприклад, системні коментарі)
+    message = save_message(
+        transaction_type_id=serializer.validated_data["transaction_type_id"],
+        base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
+        message_text=serializer.validated_data["message"],
+        writer_guid=bin_to_guid_1c(writer_id_1c) if writer_id_1c else None,
+    )
+
+    # 👤 ФОРМУЄМО АВТОРА ДЛЯ ВІДПОВІДІ
+    author = None
+    if writer_id_1c:
+        user_obj = CustomUser.objects.filter(user_id_1C=writer_id_1c).first()
+        if user_obj:
+            author = {
+                "username": user_obj.username,
+                "full_name": (
+                    user_obj.full_name
+                    or f"{user_obj.first_name} {user_obj.last_name}".strip()
+                )
+            }
+
+    return Response(
+        {
+            "id": message.id,
+            "created_at": message.created_at,
+            "message": message.message,
+            "author": author
+        },
+        status=201
+    )
+
+
+
+# records/views.py
+
+
+
+@extend_schema(
+    summary="Отримати історію коментарів транзакції",
+    description="""
+Повертає список коментарів для заданої транзакції.
+
+Коментарі:
+- фільтруються за `base_transaction_guid`
+- фільтруються за `transaction_type_id`
+- відсортовані за датою створення (від старих до нових)
+
+""",
+    parameters=[
+        OpenApiParameter(
+            name="base_transaction_guid",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="GUID транзакції з 1C",
+        ),
+        OpenApiParameter(
+            name="transaction_type_id",
+            type=int,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Тип транзакції",
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            description="Список коментарів",
+            examples=[
+                OpenApiExample(
+                    name="Success",
+                    value=[
+                        {
+                            "id": 3,
+                            "created_at": "2026-01-14T10:03:02Z",
+                            "message": "3",
+                            "author": {
+                                "id_1c": "84551b88-b55b-11f0-9b71-4cd98f08e56d",
+                                "username": "shop_ruta",
+                                "full_name": "Магазин Рута"
+                            }
+                        },
+                        {
+                            "id": 4,
+                            "created_at": "2026-01-14T10:05:46Z",
+                            "message": "4",
+                            "author": None
+                        }
+                    ],
+                )
+            ],
+        ),
+        400: OpenApiResponse(
+            description="Некоректні параметри",
+            examples=[
+                OpenApiExample(
+                    name="Bad request",
+                    value={
+                        "error": "base_transaction_guid and transaction_type_id are required"
+                    },
+                )
+            ],
+        ),
+        401: OpenApiResponse(
+            description="Неавторизовано",
+            examples=[
+                OpenApiExample(
+                    name="Unauthorized",
+                    value={"detail": "Authentication credentials were not provided."},
+                )
+            ],
+        ),
+    },
+    tags=["Messages"],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_messages(request):
+    base_transaction_guid = request.GET.get("base_transaction_guid")
+    transaction_type_id = request.GET.get("transaction_type_id")
+
+    if not base_transaction_guid or not transaction_type_id:
+        return Response(
+            {"error": "base_transaction_guid and transaction_type_id are required"},
+            status=400
+        )
+
+    try:
+        base_transaction_bin = guid_to_1c_bin(base_transaction_guid)
+    except Exception:
+        return Response({"error": "Invalid base_transaction_guid"}, status=400)
+
+    messages = (
+        Message.objects
+        .filter(
+            base_transaction_id=base_transaction_bin,
+            transaction_type_id=transaction_type_id
+        )
+        .order_by("created_at")
+    )
+
+    writer_ids = {
+        m.writer_id
+        for m in messages
+        if isinstance(m.writer_id, (bytes, bytearray))
+    }
+
+    users_map = {
+        u.user_id_1C: u
+        for u in CustomUser.objects.filter(user_id_1C__in=writer_ids)
+    }
+
+    result = []
+
+    for m in messages:
+        author = None
+
+        if isinstance(m.writer_id, (bytes, bytearray)):
+            user = users_map.get(m.writer_id)
+
+            if user:
+                author = {
+  
+                    "id_1c": bin_to_guid_1c(m.writer_id),
+                    "username": user.username,
+                    "full_name": (
+                        user.full_name
+                        or f"{user.first_name} {user.last_name}".strip()
+                    )
+                }
+
+        result.append({
+            "id": m.id,
+            "message": m.message,
+            "created_at": m.created_at,
+            "author": author
+        })
+
+    return Response(result)

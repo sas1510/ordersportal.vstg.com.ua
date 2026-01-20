@@ -18,6 +18,9 @@ from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParam
 from rest_framework import serializers
 
 
+from backend.utils.contractor import resolve_contractor
+from backend.utils.api_helpers import safe_view
+from backend.utils.dates import parse_date, clean_date
 
 # /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
 
@@ -50,60 +53,51 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     ),
     tags=["payments"],
     parameters=[
-        OpenApiParameter("contractor", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
-        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
-        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Дата початку періоду (YYYY-MM-DD)",
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Дата кінця періоду (YYYY-MM-DD)",
+        ),
     ]
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def get_payment_status_view(request):
+    # -------------------------------------------------
+    # 📅 DATES (ОБОВʼЯЗКОВІ)
+    # -------------------------------------------------
+    date_from = parse_date(request.GET.get("date_from"), "date_from")
+    date_to = parse_date(request.GET.get("date_to"), "date_to")
 
-    # 🔹 визначаємо тип доступу
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_binary, _ = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+    )
 
-    # 🔹 contractor з query
-    contractor_guid = request.GET.get("contractor")
-    if not contractor_guid:
-        return JsonResponse(
-            {"error": "Parameter 'contractor' (GUID) is required"},
-            status=400
-        )
-
-    try:
-        contractor_binary = guid_to_1c_bin(contractor_guid)
-    except Exception as e:
-        return JsonResponse(
-            {"error": f"Invalid GUID format: {e}"},
-            status=400
-        )
-
-    # 🔐 JWT логіка
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            # дилер → тільки свій контрагент
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return JsonResponse(
-                    {"error": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_binary != user_contractor:
-                return JsonResponse(
-                    {"error": "Access denied for this contractor"},
-                    status=403
-                )
-
-    # 🔑 API key (1C) → без обмежень
-
-    date_from = request.GET.get("date_from", "1900-01-01")
-    date_to = request.GET.get("date_to", str(date.today()))
-
+    # -------------------------------------------------
+    # 📦 SQL
+    # -------------------------------------------------
     sql = """
         EXEC dbo.GetDealerFullLedger
             @Контрагент = %s,
@@ -111,38 +105,32 @@ def get_payment_status_view(request):
             @ДатаПо = %s
     """
 
-    try:
-        results = []
-        with connection.cursor() as cursor:
-            cursor.execute(sql, [contractor_binary, date_from, date_to])
-            columns = [col[0] for col in cursor.description]
+    results = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [contractor_binary, date_from, date_to])
+        columns = [col[0] for col in cursor.description]
 
-            for row in cursor.fetchall():
-                results.append(dict(zip(columns, row)))
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
 
-        # 🔧 JSON safe
-        def convert_bytes(value):
-            if isinstance(value, (bytes, bytearray)):
-                return value.hex().upper()
-            return value
+    # -------------------------------------------------
+    # 🔧 bytes → HEX (НЕ міняємо структуру)
+    # -------------------------------------------------
+    def convert_bytes(value):
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            return value.hex().upper()
+        return value
 
-        results = [
-            {k: convert_bytes(v) for k, v in row.items()}
-            for row in results
-        ]
+    results = [
+        {k: convert_bytes(v) for k, v in row.items()}
+        for row in results
+    ]
 
-        return JsonResponse(
-            results,
-            safe=False,
-            json_dumps_params={"ensure_ascii": False}
-        )
-
-
-    except Exception as e:
-        return JsonResponse(
-            {"error": f"SQL execution error: {e}"},
-            status=500
-        )
+    return JsonResponse(
+        results,
+        safe=False,
+        json_dumps_params={"ensure_ascii": False}
+    )
 
 
 from django.http import JsonResponse
@@ -163,7 +151,13 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     description="Повертає замовлення та договори дилера для сторінки Оплата.",
     tags=["payments"],
     parameters=[
-        OpenApiParameter("contractor", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
     ],
     responses={
         200: inline_serializer(
@@ -177,94 +171,61 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def get_dealer_payment_page_data_view(request):
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_binary, _ = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+    )
 
-    # 🔹 визначаємо тип доступу
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
-
-    # 🔹 contractor з query
-    guid_str = request.GET.get("contractor")
-    if not guid_str:
-        return JsonResponse(
-            {"error": "Parameter 'contractor' (GUID) is required"},
-            status=400
-        )
-
-    try:
-        contractor_binary = guid_to_1c_bin(guid_str)
-    except Exception as e:
-        return JsonResponse(
-            {"error": f"Invalid GUID format: {e}"},
-            status=400
-        )
-
-    # 🔐 JWT логіка
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return JsonResponse(
-                    {"error": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_binary != user_contractor:
-                return JsonResponse(
-                    {"error": "Access denied for this contractor"},
-                    status=403
-                )
-
-    # 🔑 API key (1C) → без обмежень
-    # 👑 Admin → без обмежень
-
+    # -------------------------------------------------
+    # 📦 SQL
+    # -------------------------------------------------
     sql = """
         EXEC dbo.GetDealerPaymentPageData
             @Contractor = %s
     """
 
-    try:
-        with connection.cursor() as cursor:
+    with connection.cursor() as cursor:
 
-            # -------- FIRST RESULTSET (orders)
-            cursor.execute(sql, [contractor_binary])
-            columns1 = [col[0] for col in cursor.description]
-            orders = [
-                dict(zip(columns1, row))
+        # -------- FIRST RESULTSET (orders)
+        cursor.execute(sql, [contractor_binary])
+        columns1 = [col[0] for col in cursor.description]
+        orders = [
+            dict(zip(columns1, row))
+            for row in cursor.fetchall()
+        ]
+
+        # -------- SECOND RESULTSET (contracts)
+        contracts = []
+        if cursor.nextset():
+            columns2 = [col[0] for col in cursor.description]
+            contracts = [
+                dict(zip(columns2, row))
                 for row in cursor.fetchall()
             ]
 
-            # -------- SECOND RESULTSET (contracts)
-            contracts = []
-            if cursor.nextset():
-                columns2 = [col[0] for col in cursor.description]
-                contracts = [
-                    dict(zip(columns2, row))
-                    for row in cursor.fetchall()
-                ]
+    # -------------------------------------------------
+    # 🔧 bytes → HEX (НЕ міняємо структуру)
+    # -------------------------------------------------
+    def fix(v):
+        return v.hex().upper() if isinstance(v, (bytes, bytearray, memoryview)) else v
 
-        # 🔧 bytes → hex
-        def fix(v):
-            return v.hex().upper() if isinstance(v, (bytes, bytearray)) else v
+    orders = [{k: fix(v) for k, v in r.items()} for r in orders]
+    contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
 
-        orders = [{k: fix(v) for k, v in r.items()} for r in orders]
-        contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
-
-        return JsonResponse({
+    return JsonResponse(
+        {
             "orders": orders,
             "contracts": contracts
         },
-        json_dumps_params={"ensure_ascii": False  },
-        safe=False)
-
-    except Exception as e:
-        return JsonResponse(
-            {"error": f"SQL execution error: {e}"},
-            status=500
-        )
+        json_dumps_params={"ensure_ascii": False},
+        safe=False
+    )
 
 
 
@@ -276,59 +237,77 @@ from django.db import connection
 import uuid
 
 
-
-
 @extend_schema(
     summary="Авансові залишки дилера",
-    description="Повертає всі авансові баланси дилера.",
+    description=(
+        "Повертає всі авансові баланси дилера.\n\n"
+        "Доступ:\n"
+        "- admin → може передати contractor_guid\n"
+        "- dealer / customer → тільки свій contractor\n"
+        "- 1C API KEY → автоматично по UserId1C"
+    ),
     tags=["payments"],
     parameters=[
-        OpenApiParameter("contractor_guid", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
+        OpenApiParameter(
+            name="contractor_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
     ],
-    responses={200: serializers.ListSerializer(child=serializers.DictField())}
+    responses={
+        200: serializers.ListSerializer(child=serializers.DictField()),
+        400: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+    }
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def get_dealer_advance_balance(request):
-    contractor_guid = request.query_params.get("contractor_guid")
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (DRY, ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_bin, _ = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor_guid",
+    )
 
-    if not contractor_guid:
-        return Response({"error": "contractor_guid is required"}, status=400)
+    # -------------------------------------------------
+    # 📦 SQL
+    # -------------------------------------------------
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetDealerAllAdvancedBalance
+                @Контрагент = %s
+            """,
+            [contractor_bin]
+        )
 
-    contractor_bin = guid_to_1c_bin(contractor_guid)
-    if contractor_bin is None:
-        return Response({"error": "Invalid contractor GUID"}, status=400)
+        rows = cursor.fetchall()
+        columns = [col[0] for col in cursor.description]
 
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                EXEC [dbo].[GetDealerAllAdvancedBalance] @Контрагент = %s
-            """, [contractor_bin])
+    # -------------------------------------------------
+    # 🔄 FORMAT (НЕ МІНЯЄМО СТРУКТУРУ)
+    # -------------------------------------------------
+    result = []
 
-            rows = cursor.fetchall()
-            columns = [col[0] for col in cursor.description]
+    for row in rows:
+        row_dict = {}
 
-        result = []
+        for col, val in zip(columns, row):
+            # 🔥 binary(16) → GUID
+            if isinstance(val, (bytes, bytearray, memoryview)):
+                row_dict[col] = bin_to_guid_1c(bytes(val))
+            else:
+                row_dict[col] = val
 
-        for row in rows:
-            row_dict = {}
+        result.append(row_dict)
 
-            for col, val in zip(columns, row):
-
-                # ------------------------------
-                # 🔥 Перетворення binary -> GUID
-                # ------------------------------
-                if isinstance(val, (bytes, bytearray)):
-                    row_dict[col] = bin_to_guid_1c(val)
-                else:
-                    row_dict[col] = val
-
-            result.append(row_dict)
-
-        return Response(result, status=200)
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+    return Response(result, status=200)
 
 
 
@@ -448,15 +427,40 @@ from openpyxl import Workbook
 
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin
-
 @extend_schema(
     summary="Експорт статусу оплат в Excel",
-    description="Генерує XLSX-файл з фінансовим леджером дилера.",
+    description=(
+        "Генерує XLSX-файл з фінансовим леджером дилера.\n\n"
+        "### Доступ:\n"
+        "- **Admin** — може передати `contractor`\n"
+        "- **Dealer / Customer** — тільки власний contractor\n"
+        "- **1C API KEY** — автоматично по UserId1C\n\n"
+        "### Обовʼязкові параметри:\n"
+        "- date_from, date_to"
+    ),
     tags=["payments"],
     parameters=[
-        OpenApiParameter("contractor", OpenApiTypes.UUID, OpenApiParameter.QUERY, required=True),
-        OpenApiParameter("date_from", OpenApiTypes.DATE, OpenApiParameter.QUERY),
-        OpenApiParameter("date_to", OpenApiTypes.DATE, OpenApiParameter.QUERY),
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Початкова дата (YYYY-MM-DD)",
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Кінцева дата (YYYY-MM-DD)",
+        ),
     ],
     responses={
         200: OpenApiTypes.BINARY,
@@ -466,45 +470,22 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def export_payment_status_excel(request):
+    # -------------------------------------------------
+    # 📅 DATES (ОБОВʼЯЗКОВІ)
+    # -------------------------------------------------
+    date_from = parse_date(request.GET.get("date_from"), "date_from")
+    date_to = parse_date(request.GET.get("date_to"), "date_to")
 
-    # 🔹 визначаємо тип доступу
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_bin, contractor_guid = resolve_contractor(request)
 
-    # ---------- PARAMS ----------
-    guid_str = request.GET.get("contractor")
-    if not guid_str:
-        return HttpResponse("contractor is required", status=400)
-
-    try:
-        contractor_binary = guid_to_1c_bin(guid_str)
-    except Exception:
-        return HttpResponse("Invalid contractor GUID", status=400)
-
-    date_from = request.GET.get("date_from")
-    date_to = request.GET.get("date_to")
-
-    # ---------- 🔐 ACCESS CONTROL ----------
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return HttpResponse(
-                    "User has no contractor assigned",
-                    status=403
-                )
-
-            if contractor_binary != user_contractor:
-                return HttpResponse(
-                    "Access denied for this contractor",
-                    status=403
-                )
-
-    # ---------- 📊 EXCEL ----------
+    # -------------------------------------------------
+    # 📊 EXCEL
+    # -------------------------------------------------
     wb = Workbook(write_only=True)
     ws = wb.create_sheet("Payment Status")
 
@@ -516,12 +497,15 @@ def export_payment_status_excel(request):
     ])
 
     with connection.cursor() as cursor:
-        cursor.execute("""
+        cursor.execute(
+            """
             EXEC dbo.GetDealerFullLedger
               @Контрагент = %s,
               @ДатаЗ = %s,
               @ДатаПо = %s
-        """, [contractor_binary, date_from, date_to])
+            """,
+            [contractor_bin, date_from, date_to]
+        )
 
         cols = [c[0] for c in cursor.description]
         idx = {c: i for i, c in enumerate(cols)}
@@ -561,7 +545,6 @@ def export_payment_status_excel(request):
 
     wb.save(response)
     return response
-
 
 
 from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
@@ -647,72 +630,49 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin_2
-
 @extend_schema(
     summary="Додаткова інформація для рахунків дилера",
     description=(
-        "Повертає додаткову інформацію, необхідну для створення або відображення рахунків дилера."
+        "Повертає додаткову інформацію, необхідну для створення або "
+        "відображення рахунків дилера.\n\n"
 
+        "### Доступ:\n"
+        "- **Admin** — може передати `contractor`\n"
+        "- **Dealer / Customer** — тільки власний contractor\n"
+        "- **1C API KEY** — автоматично по UserId1C\n\n"
 
-        "\n- **Адміністратор** — доступ до будь-якого контрагента"
-        "\n- **Звичайний користувач** — тільки до власного contractor"
-        "\n- **1C API KEY** — повний доступ"
-
-   
-        "\n- JWT авторизація або 1C API KEY"
-        "\n- Перевірка відповідності contractor_guid користувачу"
-        ),
+        "### Авторизація:\n"
+        "- JWT або 1C API KEY"
+    ),
     parameters=[
         OpenApiParameter(
-            name="contractor_guid",
+            name="contractor",
             type=OpenApiTypes.UUID,
-            location=OpenApiParameter.PATH,
-            description="GUID контрагента (1C)",
-            required=True,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
         ),
     ],
+    tags=["payments"],
 )
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
-def dealer_bills_add_info_view(request, contractor_guid):
-    # 🔹 хто звертається
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
+@safe_view
+def dealer_bills_add_info_view(request):
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_bin, contractor_guid = resolve_contractor(request)
 
-    try:
-        contractor_bin = guid_to_1c_bin_2(contractor_guid)
-    except Exception:
-        raise ValidationError("Invalid contractor GUID")
+    # -------------------------------------------------
+    # 📦 DATA
+    # -------------------------------------------------
+    data = dealer_bills_add_info(contractor_guid)
 
-    # ---------- 🔐 ACCESS CONTROL ----------
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
-
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return Response(
-                    {"detail": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_bin != user_contractor:
-                return Response(
-                    {"detail": "Access denied for this contractor"},
-                    status=403
-                )
-
-    # ---------- 🧾 DATA ----------
-    try:
-        data = dealer_bills_add_info(contractor_guid)
-    except ValueError:
-        raise ValidationError("Invalid GUID format")
-
-    return Response(data)
-
-
+    return Response({
+        # "contractor": contractor_guid,
+        "data": data
+    })
 
 
 
@@ -733,107 +693,87 @@ from django.db import connection
 from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin_2
 
+
 @extend_schema(
     summary="Рахунки клієнта (дилера) за період",
     description="""
-Повертає список рахунків (bills) для заданого контрагента за вибраний період.
+Універсальний endpoint для отримання рахунків.
 
-### Авторизація:
-- **Admin** — доступ до будь-якого контрагента
-- **Customer / Dealer** — тільки до власного contractor
-- **1C API KEY** — повний доступ
+### Логіка доступу:
+- **Admin (JWT)** — ОБОВʼЯЗКОВО передає `contractor` у query
+- **Dealer / Customer (JWT)** — `contractor` ІГНОРУЄТЬСЯ, береться з токена
+- **1C API Key** — автоматично по `UserId1C`
 
-### Джерело даних:
-SQL Server stored procedure  
-`dbo.GetCustomerBillsByContractorAndDates`
+### Параметри:
+- `contractor` — GUID контрагента (**тільки для admin**)
+- `date_from` — YYYY-MM-DD
+- `date_to` — YYYY-MM-DD
 """,
     parameters=[
         OpenApiParameter(
-            name="contractor_guid",
+            name="contractor",
             type=OpenApiTypes.UUID,
-            location=OpenApiParameter.PATH,
-            description="GUID контрагента (1C)",
-            required=True,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (обовʼязковий ТІЛЬКИ для admin)",
         ),
         OpenApiParameter(
             name="date_from",
             type=OpenApiTypes.DATE,
             location=OpenApiParameter.QUERY,
-            description="Початкова дата періоду (YYYY-MM-DD)",
-            required=False,
+            required=True,
         ),
         OpenApiParameter(
             name="date_to",
             type=OpenApiTypes.DATE,
             location=OpenApiParameter.QUERY,
-            description="Кінцева дата періоду (YYYY-MM-DD)",
-            required=False,
+            required=True,
         ),
     ],
-    
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
-def customer_bills_view(request, contractor_guid):
-    """
-    GET /api/dealers/<uuid:contractor_guid>/bills/
-    ?date_from=2024-01-01
-    &date_to=2024-12-31
-    """
+@safe_view
+def customer_bills_view(request):
+    # -------------------------------------------------
+    # 📅 DATES
+    # -------------------------------------------------
+    date_from = parse_date(request.GET.get("date_from"), "date_from")
+    date_to = parse_date(request.GET.get("date_to"), "date_to")
 
-    # 🔹 хто звертається
-    is_1c = request.auth == "1C_API_KEY"
-    user = request.user
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_bin, contractor_guid = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+    )
 
-    date_from = request.query_params.get("date_from")
-    date_to = request.query_params.get("date_to")
+    # -------------------------------------------------
+    # 📦 SQL
+    # -------------------------------------------------
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetCustomerBillsByContractorAndDates
+                @ContractorBin = %s,
+                @DateFrom = %s,
+                @DateTo = %s
+            """,
+            [contractor_bin, date_from, date_to]
+        )
 
-    try:
-        contractor_bin = guid_to_1c_bin_2(contractor_guid)
-    except Exception:
-        raise ValidationError("Invalid contractor GUID")
+        columns = [c[0] for c in cursor.description]
+        rows = cursor.fetchall()
 
-    # ---------- 🔐 ACCESS CONTROL ----------
-    if not is_1c:
-        role = (getattr(user, "role", "") or "").lower()
+    data = [
+        convert_row(dict(zip(columns, row)))
+        for row in rows
+    ]
 
-        if role != "admin":
-            user_contractor = getattr(user, "user_id_1C", None)
-
-            if not user_contractor:
-                return Response(
-                    {"detail": "User has no contractor assigned"},
-                    status=403
-                )
-
-            if contractor_bin != user_contractor:
-                return Response(
-                    {"detail": "Access denied for this contractor"},
-                    status=403
-                )
-
-    # ---------- 🧾 DATA ----------
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                EXEC dbo.GetCustomerBillsByContractorAndDates
-                    @ContractorBin = %s,
-                    @DateFrom = %s,
-                    @DateTo = %s
-                """,
-                [contractor_bin, date_from, date_to],
-            )
-
-            columns = [c[0] for c in cursor.description]
-            rows = cursor.fetchall()
-
-        data = [
-            convert_row(dict(zip(columns, row)))
-            for row in rows
-        ]
-
-    except Exception as e:
-        raise ValidationError(str(e))
-
-    return Response(data)
+    return Response({
+        "contractor": contractor_guid,
+        "count": len(data),
+        "items": data
+    })

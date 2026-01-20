@@ -312,6 +312,10 @@ from django.db import connection
 from django.utils import timezone
 from datetime import timedelta
 from backend.utils.BinToGuid1C import bin_to_guid_1c
+from backend.utils.contractor import resolve_contractor
+from backend.utils.dates import clean_date, parse_date
+from backend.utils.api_helpers import safe_view
+
 
 from drf_spectacular.utils import OpenApiResponse, OpenApiParameter
 
@@ -323,14 +327,14 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from rest_framework import serializers
-from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
+from backend.permissions import  IsAdminJWT, IsAuthenticatedOr1CApiKey
 
 from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer
 from rest_framework import serializers
 
 User = get_user_model()
 
-
+from django.contrib.auth import login
 # ----------------------
 # Логін
 # ----------------------
@@ -361,6 +365,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
             user = CustomUser.objects.get(username=request.data["username"])
             role = user.role
+            
+            # login(request, user)
 
             update_last_login(None, user)
 
@@ -480,7 +486,7 @@ class LogoutView(APIView):
     )
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
-        resp = Response(status=status.HTTP_205_RESET_CONTENT)
+
         if refresh_token:
             try:
                 token = RefreshToken(refresh_token)
@@ -489,7 +495,10 @@ class LogoutView(APIView):
                 # Токен вже недійсний або в чорному списку
                 pass
         # Очищаємо cookie
+        resp = Response(status=status.HTTP_205_RESET_CONTENT)
         resp.delete_cookie("refresh_token")
+        # resp.delete_cookie("sessionid")
+        # resp.delete_cookie("csrftoken")
         return resp
 
 # ----------------------
@@ -1327,12 +1336,11 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     ),
     tags=["Dealer information"],
     auth=[
-        {"jwtAuth": []},
-        {"ApiKeyAuth": []},
+        {"jwtAuth": []}
     ],
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWTOr1CApiKey])
+@permission_classes([IsAdminJWT])
 def get_dealer_portal_users(request):
     # ❌ НІЯКИХ request.user.role тут
 
@@ -1357,9 +1365,6 @@ from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-
-
-
 @extend_schema(
     summary="Отримати адреси дилера (розширені)",
     description=(
@@ -1367,22 +1372,23 @@ from rest_framework.response import Response
         "у розширеному та **розпарсеному вигляді**.\n\n"
         "📌 Дані беруться з SQL-процедури **dbo.GetDealerAddressesParsed**.\n\n"
         "🔐 **Доступ:**\n"
-        "- **JWT** (авторизований користувач порталу)\n"
-        "- **1C API Key**\n\n"
-        "📥 **Обмеження доступу:**\n"
-        "- Для JWT користувачів фактичні обмеження можуть додатково "
-        "застосовуватись на рівні permission або бізнес-логіки."
+        "- JWT:\n"
+        "  - admin → можуть передати contractor\n"
+        "  - dealer → тільки свій контрагент\n"
+        "- 1C API Key → автоматично по UserId1C\n\n"
+        "📥 **Параметри:**\n"
+        "- `contractor` — GUID контрагента "
+        "(обовʼязковий ТІЛЬКИ для admin )"
     ),
     parameters=[
         OpenApiParameter(
             name="contractor",
             type=OpenApiTypes.UUID,
             location=OpenApiParameter.QUERY,
-            required=True,
-            description="GUID контрагента (1C)",
+            required=False,
+            description="GUID контрагента (тільки для admin )",
         ),
     ],
-    
     tags=["Dealer information"],
     auth=[
         {"jwtAuth": []},
@@ -1391,36 +1397,38 @@ from rest_framework.response import Response
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
 def get_dealer_addresses_change(request):
     """
-    Повертає адреси дилера
-    (виклик процедури dbo.GetDealerAddresses)
+    Повертає адреси дилера (розширені)
+    з процедури dbo.GetDealerAddressesParsed
     """
 
-    contractor_guid = request.GET.get("contractor")
+    # -------------------------------------------------
+    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
+    # -------------------------------------------------
+    contractor_bin, _ = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+    )
 
-    if not contractor_guid:
-        return Response(
-            {"error": "contractor parameter is required"},
-            status=400
-        )
-
-    contractor_bin = guid_to_1c_bin(contractor_guid)
-
+    # -------------------------------------------------
+    # 📦 SQL
+    # -------------------------------------------------
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            EXEC dbo.GetDealerAddressesParsed @ContractorLink = %s
+            EXEC dbo.GetDealerAddressesParsed
+                @ContractorLink = %s
             """,
             [contractor_bin]
         )
 
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
-
-    addresses = [dict(zip(columns, row)) for row in rows]
+        columns = [c[0] for c in cursor.description]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
     return Response({
         "success": True,
-        "addresses": addresses
+        "addresses": rows
     })
