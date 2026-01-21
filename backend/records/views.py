@@ -861,6 +861,7 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     auth=[
         {"jwtAuth": []},
     ],
+    exclude=True
 )
 @api_view(["GET"])
 @permission_classes([IsAdminJWT])
@@ -1036,6 +1037,7 @@ from backend.utils.BinToGuid1C import convert_row
     auth=[
         {"jwtAuth": []},
     ],
+    exclude=True
 )
 @api_view(["GET"])
 @permission_classes([IsAdminJWT])
@@ -1153,6 +1155,7 @@ from django.db import connection
     auth=[
         {"jwtAuth": []},
     ],
+    exclude=True
 )
 @api_view(["GET"])
 @permission_classes([IsAdminJWT])

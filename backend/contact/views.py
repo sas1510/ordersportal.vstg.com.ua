@@ -20,9 +20,10 @@ from .serializers import HelpServiceLogSerializer
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
 
-@extend_schema(
-    auth=[{"jwtAuth": []}],
-)
+# @extend_schema(
+#     auth=[{"jwtAuth": []}],
+# )
+@extend_schema(exclude=True)
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = HelpServiceContact.objects.all()
     serializer_class = ContactSerializer
@@ -74,6 +75,7 @@ BOT_TOKEN = settings.BOT_TOKEN
             fields={"error": serializers.CharField()}
         ),
     },
+    exclude=True
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -165,6 +167,7 @@ from .serializers import HelpServiceLogSerializer
     
     tags=["urgent-call"],
     auth=[{"jwtAuth": []}],
+    exclude=True
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

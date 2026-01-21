@@ -528,16 +528,28 @@ import os
 from django.shortcuts import redirect
 from django.conf import settings
 from urllib.parse import unquote, quote
+from urllib.parse import unquote, quote
+import mimetypes
+import tempfile
+import subprocess
+import os
+
+from django.http import Http404
+from django.shortcuts import redirect
+from django.db import connection
+from rest_framework.decorators import api_view, permission_classes
+
+from ranged_fileresponse import RangedFileResponse
+
 
 @api_view(["GET"])
-@permission_classes([])  # Доступ регулюється медіа-токеном
+@permission_classes([])  # доступ через media-token
 def preview_complaint_file(request, claim_guid):
     token = request.GET.get("token")
     filename = request.GET.get("filename")
 
     if not token or not filename:
-        redirect(settings.FRONTEND_URL + "/file-preview/invalid")
-
+        return redirect(settings.FRONTEND_URL + "/file-preview/invalid")
 
     file_guid = verify_media_token(token)
     if not file_guid:
@@ -548,9 +560,10 @@ def preview_complaint_file(request, claim_guid):
 
     filename = unquote(filename)
     content_type, _ = mimetypes.guess_type(filename)
+    content_type = content_type or "application/octet-stream"
 
     # ======================================================
-    # 1️⃣ ЕТАП: ПЕРЕВІРКА В ФАЙЛОВІЙ СИСТЕМІ (SMB)
+    # 1️⃣ SMB
     # ======================================================
     remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{filename}'
     full_username = f"VSTG\\{settings.SMB_USERNAME}"
@@ -561,7 +574,8 @@ def preview_complaint_file(request, claim_guid):
     try:
         subprocess.run(
             [
-                "smbclient", f"//{settings.SMB_SERVER}/{settings.SMB_SHARE}",
+                "smbclient",
+                f"//{settings.SMB_SERVER}/{settings.SMB_SHARE}",
                 "-U", full_username,
                 "-c", f'get "{remote_path}" "{tmp.name}"'
             ],
@@ -570,53 +584,55 @@ def preview_complaint_file(request, claim_guid):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-        # Якщо файл знайдено — повертаємо його і завершуємо функцію
-        return FileResponse(
+
+        response = RangedFileResponse(
+            request,
             open(tmp.name, "rb"),
-            content_type=content_type or "application/octet-stream",
-            headers={
-                "Content-Disposition": f'inline; filename="{filename}"',
-                "Accept-Ranges": "bytes",
-            }
+            content_type=content_type
         )
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+        return response
+
     except subprocess.CalledProcessError:
-        # Файла немає в SMB, йдемо далі до БД
         if os.path.exists(tmp.name):
             os.unlink(tmp.name)
-    finally:
-        # Це спрацює тільки якщо ми ВЖЕ віддали FileResponse вище
-        pass 
 
     # ======================================================
-    # 2️⃣ ЕТАП: FALLBACK — ПОШУК У БД (1С Хранилище)
+    # 2️⃣ FALLBACK — 1C DB
     # ======================================================
     try:
-        binary_guid = guid_to_1c_bin(file_guid) # Конвертація GUID у Binary(16)
+        binary_guid = guid_to_1c_bin(file_guid)
 
         with connection.cursor() as cursor:
-            cursor.execute("EXEC [dbo].[GetBinaryFile] @FileLink = %s", [binary_guid])
+            cursor.execute(
+                "EXEC [dbo].[GetBinaryFile] @FileLink = %s",
+                [binary_guid]
+            )
             row = cursor.fetchone()
-            
+
             if not row or not row[0]:
                 raise Http404("File not found in DB")
 
-            raw_db_blob = row[0]  # Поле [Хранилище]
-            db_filename = row[1]  # Поле [ИмяФайла]
+            raw_db_blob = row[0]
+            db_filename = row[1]
 
-        # Декодування сирих даних 1С за вашою логікою
         file_bytes = extract_1c_binary(raw_db_blob)
-        
         if not file_bytes:
             raise Http404("Could not decode file from DB")
 
-        return HttpResponse(
-            file_bytes,
-            content_type=content_type or "application/octet-stream",
-            headers={
-                "Content-Disposition": f'inline; filename="{filename or db_filename}"',
-                "Accept-Ranges": "bytes",
-            }
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        tmp.write(file_bytes)
+        tmp.close()
+
+        response = RangedFileResponse(
+            request,
+            open(tmp.name, "rb"),
+            content_type=content_type
         )
-    except Exception as e:
-        # Можна додати логування помилки БД тут
+        response["Content-Disposition"] = (
+            f'inline; filename="{filename or db_filename}"'
+        )
+        return response
+
+    except Exception:
         raise Http404("File not found")

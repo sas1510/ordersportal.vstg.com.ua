@@ -360,6 +360,7 @@ from django.contrib.auth import login
     ),
     auth=[{"jwtAuth": []}],
     tags=["Auth"],
+    exclude=True
 
 )
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -415,7 +416,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 # Рефреш токена
 # ----------------------
 
-
+@extend_schema(exclude=True)
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = TokenRefreshSerializer
 
@@ -476,7 +477,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 # Логаут
 # ----------------------
 
-
+@extend_schema(exclude=True)
 class LogoutView(APIView):
     @extend_schema(
         summary="Вихід з системи (Logout)",
@@ -543,72 +544,74 @@ from rest_framework import status
 from .models import Invitation, CustomUser
 from .serializers import CompleteRegistrationSerializer
 
-@extend_schema_view(
-    get=extend_schema(
-        tags=["Auth"],
-        summary="Отримати дані для завершення реєстрації",
-        description="""
-Повертає дані користувача, повʼязаного з invite-кодом.
+# @extend_schema_view(
+#     get=extend_schema(
+#         tags=["Auth"],
+#         summary="Отримати дані для завершення реєстрації",
+#         description="""
+# Повертає дані користувача, повʼязаного з invite-кодом.
 
-### Логіка:
-- invite має існувати
-- invite не використаний
-- invite дійсний 24 години
-- користувач уже існує в системі
+# ### Логіка:
+# - invite має існувати
+# - invite не використаний
+# - invite дійсний 24 години
+# - користувач уже існує в системі
 
-Використовується для заповнення форми завершення реєстрації.
-""",
-        parameters=[
-            OpenApiParameter(
-                name="code",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.PATH,
-                description="Invite-код з посилання",
-                required=True,
-            ),
-        ],
-        responses={
-            200: OpenApiResponse(
-                response=CompleteRegistrationSerializer,
-                description="Дані користувача для реєстрації",
-            ),
-            404: OpenApiResponse(description="Invalid invite code або user not found"),
-            400: OpenApiResponse(description="Invite неактивний або вже використаний"),
-        },
-    ),
-    post=extend_schema(
-        tags=["Auth"],
-        summary="Завершити реєстрацію за invite-кодом",
-        description="""
-Завершує реєстрацію користувача за invite-посиланням.
+# Використовується для заповнення форми завершення реєстрації.
+# """,
+#         parameters=[
+#             OpenApiParameter(
+#                 name="code",
+#                 type=OpenApiTypes.STR,
+#                 location=OpenApiParameter.PATH,
+#                 description="Invite-код з посилання",
+#                 required=True,
+#             ),
+#         ],
+#         responses={
+#             200: OpenApiResponse(
+#                 response=CompleteRegistrationSerializer,
+#                 description="Дані користувача для реєстрації",
+#             ),
+#             404: OpenApiResponse(description="Invalid invite code або user not found"),
+#             400: OpenApiResponse(description="Invite неактивний або вже використаний"),
+#         },
+#     ),
+#     post=extend_schema(
+#         tags=["Auth"],
+#         summary="Завершити реєстрацію за invite-кодом",
+#         description="""
+# Завершує реєстрацію користувача за invite-посиланням.
 
-### Дії:
-- валідація даних
-- збереження користувача
-- позначення invite як використаного
+# ### Дії:
+# - валідація даних
+# - збереження користувача
+# - позначення invite як використаного
 
-Після успішного виконання invite стає недійсним.
-""",
-        parameters=[
-            OpenApiParameter(
-                name="code",
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.PATH,
-                description="Invite-код з посилання",
-                required=True,
-            ),
-        ],
-        request=CompleteRegistrationSerializer,
-        responses={
-            200: OpenApiResponse(
-                response=CompleteRegistrationSerializer,
-                description="Реєстрація завершена",
-            ),
-            400: OpenApiResponse(description="Помилка валідації"),
-            404: OpenApiResponse(description="Invalid invite code або user not found"),
-        },
-    ),
-)
+# Після успішного виконання invite стає недійсним.
+# """,
+#         parameters=[
+#             OpenApiParameter(
+#                 name="code",
+#                 type=OpenApiTypes.STR,
+#                 location=OpenApiParameter.PATH,
+#                 description="Invite-код з посилання",
+#                 required=True,
+#             ),
+#         ],
+#         request=CompleteRegistrationSerializer,
+#         responses={
+#             200: OpenApiResponse(
+#                 response=CompleteRegistrationSerializer,
+#                 description="Реєстрація завершена",
+#             ),
+#             400: OpenApiResponse(description="Помилка валідації"),
+#             404: OpenApiResponse(description="Invalid invite code або user not found"),
+#         },
+#     ),
+#     exclude=True
+# )
+@extend_schema(exclude=True)
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def register_with_invite(request, code):
@@ -703,7 +706,8 @@ def get_customers(request):
     ),
     
     auth=[{"jwtAuth": []}],
-    tags=["Auth"]
+    tags=["Auth"],
+    exclude=True
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -732,6 +736,7 @@ def get_balance_view(request):
 @extend_schema(
     tags=["users"],
     auth=[{"jwtAuth":[]}],
+    exclude=True
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -802,6 +807,7 @@ from django.contrib.auth.models import Group
     auth=[
         {"jwtAuth": []}
     ],
+    exclude=True
 )
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -901,6 +907,7 @@ def change_password_client(request):
     },
     tags=["users"],
     auth=[{"jwtAuth": []}],
+    exclude=True
 )
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -973,6 +980,7 @@ def admin_change_user_password(request, user_id):
     },
     tags=["users"],
     auth=[{"jwtAuth": []}],
+    exclude=True
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1105,6 +1113,7 @@ from django.utils.timezone import make_aware, get_current_timezone
     },
     tags=["users"],
     auth=[{"jwtAuth": []}],
+    exclude=True
 )
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated])
@@ -1227,6 +1236,7 @@ from .models import CustomUser
     },
     tags=["users"],
     auth=[{"jwtAuth": []}],
+    exclude=True
 )
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated])
@@ -1301,6 +1311,7 @@ def admin_deactivate_user_view(request, user_id):
     },
     tags=["Auth"],
     auth=[{"jwtAuth": []}],
+    exclude=True
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -1347,6 +1358,7 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     auth=[
         {"jwtAuth": []}
     ],
+    exclude=True
 )
 @api_view(["GET"])
 @permission_classes([IsAdminJWT])
@@ -1403,6 +1415,7 @@ from rest_framework.response import Response
         {"jwtAuth": []},
         {"ApiKeyAuth": []},
     ],
+
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
@@ -1453,7 +1466,7 @@ import secrets
 from backend.permissions import IsAdminJWT
 from backend.users.models import UserApiKey, CustomUser
 
-
+@extend_schema(exclude=True)
 @api_view(["POST"])
 @permission_classes([IsAdminJWT])
 def create_api_key(request):
@@ -1515,7 +1528,7 @@ def create_api_key(request):
     )
 
 
-
+@extend_schema(exclude=True)
 @api_view(["GET"])
 @permission_classes([IsAdminJWT])
 def list_user_api_keys(request, user_id):
@@ -1526,6 +1539,7 @@ def list_user_api_keys(request, user_id):
             {
                 "id": k.id,
                 "name": k.name,
+                "key" : k.api_key,
                 "is_active": k.is_active,
                 "expire_date": k.expire_date.date().isoformat(),
             }
@@ -1538,7 +1552,7 @@ def list_user_api_keys(request, user_id):
 
 # admin_api_keys/views.py
 
-
+@extend_schema(exclude=True)
 @api_view(["POST"])
 @permission_classes([IsAdminJWT])
 def deactivate_api_key(request, key_id):

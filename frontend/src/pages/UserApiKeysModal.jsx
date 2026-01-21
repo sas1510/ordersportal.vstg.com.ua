@@ -4,7 +4,7 @@ import { X, Plus, Key, Ban } from "lucide-react";
 
 import GenerateApiKeyModal from "./GenerateApiKeyModal";
 import ConfirmModal from "./ConfirmModal";
-
+import {formatDateHumanShorter} from '../utils/formatters'
 import "./UserApiKeysModal.css";
 
 export default function UserApiKeysModal({ user, onClose }) {
@@ -96,6 +96,7 @@ export default function UserApiKeysModal({ user, onClose }) {
                 <thead>
                   <tr>
                     <th>Назва</th>
+                    <th>Ключ</th>
                     <th>Дійсний до</th>
                     <th>Статус</th>
                     <th />
@@ -106,7 +107,8 @@ export default function UserApiKeysModal({ user, onClose }) {
                   {keys.map((k) => (
                     <tr key={k.id}>
                       <td>{k.name}</td>
-                      <td>{k.expire_date}</td>
+                      <td>{k.key}</td>
+                      <td>{formatDateHumanShorter(k.expire_date)}</td>
                       <td>
                         {k.is_active ? (
                           <span className="badge-active">Активний</span>
