@@ -215,14 +215,38 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           fileDataB64: fileBase64,
         },
         ...(addressMode === "dealer"
-          ? { delivery_address_guid: addressGuid }
-          : {
-              client_address: {
-                text: customAddress.text,
-                lat: customAddress.lat,
-                lng: customAddress.lng,
-              },
-            }),
+  ? {
+      delivery_address_guid: addressGuid,
+    }
+  : {
+      client_address: {
+        /* ===== GEO ===== */
+        text: customAddress.text,
+        lat: customAddress.lat,
+        lng: customAddress.lng,
+
+        /* ===== ADDRESS ===== */
+        region: customAddress.region,
+        district: customAddress.district,
+        city: customAddress.city,
+        street: customAddress.street,
+        house: customAddress.house,
+        apartment: customAddress.apartment,
+        entrance: customAddress.entrance,
+        floor: customAddress.floor,
+        note: customAddress.note,
+
+        /* ===== CLIENT CONTACT ===== */
+        full_name: customAddress.fullName,
+        phone: customAddress.phone,
+        extra_info: customAddress.extraInfo,
+
+        /* ===== CONTRACTOR ===== */
+        contractor_guid:
+          customAddress.contractor_guid || dealerId || null,
+      },
+    }),
+
       };
 
       const response = await axiosInstance.post(
@@ -421,13 +445,18 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
       {isClientAddressModalOpen && (
         <ClientAddressModal
-          initialValue={customAddress}
-          onClose={() => setIsClientAddressModalOpen(false)}
-          onSave={(addr) => {
-            setCustomAddress(addr);
-            setIsClientAddressModalOpen(false);
-          }}
-        />
+  initialValue={{
+    ...customAddress,
+    contractor_guid: dealerId,
+  }}
+  contractorGuid={dealerId}
+  onClose={() => setIsClientAddressModalOpen(false)}
+  onSave={(addr) => {
+    setCustomAddress(addr);
+    setIsClientAddressModalOpen(false);
+  }}
+/>
+
       )}
     </>
   );

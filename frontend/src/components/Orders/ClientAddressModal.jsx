@@ -216,14 +216,23 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     }
 
     onSave({
+      /* ===== GEO ===== */
       text: mapDisplayName || buildAddressFromForm(formAddr),
       lat: selectedCoords[0],
       lng: selectedCoords[1],
+
+      /* ===== ADDRESS ===== */
       ...formAddr,
+
+      /* ===== CLIENT ===== */
       fullName: clientContact.fullName.trim(),
       phone: clientContact.phone.trim(),
       extraInfo: clientContact.extraInfo.trim(),
+
+      /* ===== CONTRACTOR ===== */
+      contractor_guid: contractorGuid || initialValue?.contractor_guid || null,
     });
+
 
     addNotification("Дані про адресу клієнта успішно збережено ✅", "success");
     onClose();

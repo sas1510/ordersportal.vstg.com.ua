@@ -302,6 +302,7 @@ export const ReclamationItem = ({
 
                 baseTransactionGuid={reclamation.guid}      // 🔑 GUID з 1С
                 transactionTypeId={2}                       // 🔑 ID типу "Рекламація"
+                activePersonId={reclamation.dealerId}
                
                 />
         </div>

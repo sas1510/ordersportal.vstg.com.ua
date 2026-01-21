@@ -225,6 +225,7 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
 
         baseTransactionGuid={calc.guid}      // 🔑 GUID з 1С
         transactionTypeId={3}                       // 🔑 ID типу "Рекламація"
+        activePersonId={additionalOrder.dealerId }
         // writerGuid={writerGuid} // або з context
         />
     </div>
