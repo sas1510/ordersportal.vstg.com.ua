@@ -205,9 +205,22 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
 
   const handleVideoClick = async (file) => {
     const url = await getSecureUrl(file);
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
-    else alert("❌ Не вдалося відкрити відео");
+    if (!url) {
+      alert("❌ Не вдалося відкрити відео");
+      return;
+    }
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+      // 🔴 Safari workaround: відкриваємо як файл (не popup)
+      window.location.href = url;
+    } else {
+      // ✅ Chrome / Android / Desktop
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   };
+
 
   return (
     <div className="w-full" style={{ backgroundColor: c.background }}>

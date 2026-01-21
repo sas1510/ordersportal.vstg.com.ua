@@ -163,9 +163,22 @@ const ComplaintItemDetailView = ({ complaint }) => {
     // Для відео (ідентично вашому прикладу)
     const handleVideoClick = async (file) => {
         const url = await getSecureUrl(file);
-        if (url) window.open(url, "_blank", "noopener,noreferrer");
-        else alert("❌ Не вдалося відкрити відео");
+        if (!url) {
+            alert("❌ Не вдалося відкрити відео");
+            return;
+        }
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        if (isIOS) {
+            // 🔴 Safari workaround: відкриваємо як файл (не popup)
+            window.location.href = url;
+        } else {
+            // ✅ Chrome / Android / Desktop
+            window.open(url, "_blank", "noopener,noreferrer");
+        }
     };
+
 
     // Для фото - генеруємо токени для ВСІХ фото перед відкриттям модалки
     const handlePhotoClick = async (index) => {
