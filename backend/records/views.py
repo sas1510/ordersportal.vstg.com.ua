@@ -5,7 +5,7 @@ from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from backend.utils.BinToGuid1C import bin_to_guid_1c
-
+from .utils import get_author_from_1c
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -152,6 +152,7 @@ def complaints_view(request):
     for row in rows:
         if row.get("ComplaintGuid"):
             row["ComplaintGuid"] = bin_to_guid_1c(row["ComplaintGuid"])
+            row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
 
         full_text = row.get("AdditionalInformation")
         parsed_info = parse_reclamation_details(full_text)
@@ -210,6 +211,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
                 "orders": [],
                 "dealer": row.get("Customer"),
+                "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": current_order_count, 
                 "file": row.get("File"),
                 "message": row.get("Message"),
@@ -436,6 +438,7 @@ def additional_orders_view(request):
             "dateRaw": clean_date(r.get("AdditionalOrderDate")),
             "date": clean_date(r.get("AdditionalOrderDate")),
             "dealer": r.get("Customer") or r.get("OrganizationName") or "",
+            "dealerId": bin_to_guid_1c(r.get("CustomerID")),
             "managerName": r.get("LastManagerName"),
             "organizationName": r.get("OrganizationName"),
             "debt": order_sum - total_paid,
@@ -958,6 +961,7 @@ def get_additional_orders_info_all(request):
             "dateRaw": additional_order_date,
             "date": additional_order_date,
             "dealer": row.get("Customer") or row.get("OrganizationName") or "",
+            "dealerId": bin_to_guid_1c(row.get("CustomerID")),
             "managerName": row.get("ResponsibleName"),
             "organizationName": row.get("OrganizationName"),
             "debt": order_sum - total_paid,
@@ -1088,7 +1092,7 @@ def complaints_view_all_by_month(request):
 
     for r in raw_rows:
         row = dict(zip(columns, r))
-
+        row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
         # =========================
         # GUID: BINARY(16) → string
         # =========================
@@ -1217,6 +1221,7 @@ def orders_view_all_by_month(request):
                 "date": calculation_date,
                 "orders": [],
                 "dealer": row.get("Customer"),
+                "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": constructions_count,
                 "file": row.get("File"),
                 "message": row.get("Message"),
@@ -1811,12 +1816,14 @@ def get_messages(request):
         .order_by("created_at")
     )
 
+    # --------- Writer IDs з повідомлень ----------
     writer_ids = {
         m.writer_id
         for m in messages
         if isinstance(m.writer_id, (bytes, bytearray))
     }
 
+    # --------- Користувачі порталу ----------
     users_map = {
         u.user_id_1C: u
         for u in CustomUser.objects.filter(user_id_1C__in=writer_ids)
@@ -1828,24 +1835,30 @@ def get_messages(request):
         author = None
 
         if isinstance(m.writer_id, (bytes, bytearray)):
+            # 1️⃣ Спроба знайти в порталі
             user = users_map.get(m.writer_id)
 
             if user:
                 author = {
-  
                     "id_1c": bin_to_guid_1c(m.writer_id),
                     "username": user.username,
                     "full_name": (
                         user.full_name
                         or f"{user.first_name} {user.last_name}".strip()
-                    )
+                    ),
+                    "type": "PortalUser",
                 }
+            else:
+                # 2️⃣ Fallback → 1С
+                author_1c = get_author_from_1c(m.writer_id)
+                if author_1c:
+                    author = author_1c
 
         result.append({
             "id": m.id,
             "message": m.message,
             "created_at": m.created_at,
-            "author": author
+            "author": author,
         })
 
     return Response(result)

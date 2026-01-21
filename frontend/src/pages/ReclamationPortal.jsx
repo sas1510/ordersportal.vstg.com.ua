@@ -667,6 +667,7 @@ function formatApiData(data) {
 
             amount: parseFloat(item.DocumentAmount || item.DocumentSum || item.CompensationAmount || 0),
             dealer: item.Customer || 'N/A',
+            dealerId: item.CustomerLink || 'N/A',
 
             file: !!item.AdditionalInformation,
             issueCount: 0,
@@ -880,6 +881,7 @@ const ReclamationPortal = () => {
                 const q = filter.name.toLowerCase();
                 out = out.filter(r =>
                     (r.number || '').toLowerCase().includes(q) ||
+                    (r.actNumber || '').toLowerCase().includes(q) ||
                     (r.manager || '').toLowerCase().includes(q)
                 );
             }

@@ -262,7 +262,9 @@ const ordersWithNumbers = orderList.filter(order => order.number);
         onClose={() => setIsCommentsOpen(false)}
 
         baseTransactionGuid={additionalOrder.guid}      // 🔑 GUID з 1С
-        transactionTypeId={3}                       // 🔑 ID типу "Рекламація"
+        transactionTypeId={3}
+        activePersonId={additionalOrder.dealerId }
+                             // 🔑 ID типу "Рекламація"
         // writerGuid={writerGuid} // або з context
         />
 
