@@ -9,6 +9,9 @@ from .utils import get_author_from_1c
 from rest_framework.response import Response
 from rest_framework import status
 
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
+
 from .models import Message
 # from .serializers import MessageSerializer
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
@@ -22,10 +25,14 @@ from drf_spectacular.types import OpenApiTypes
 import re
 
 from backend.permissions import IsAdminJWT
-from .serializers import MessageCreateSerializer
+from .serializers import MessageCreateSerializer, CalculationCreateSerializer
 from .services.messages import save_message
 from backend.users.models import CustomUser
 
+import requests
+from django.conf import settings
+from requests.auth import HTTPBasicAuth
+from rest_framework.exceptions import ValidationError
 
 from backend.utils.contractor import resolve_contractor
 from backend.utils.api_helpers import safe_view
@@ -49,7 +56,7 @@ from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from django.http import JsonResponse
 from django.db import connection
-
+from datetime import timezone
 
 def parse_reclamation_details(text):
     """
@@ -1313,6 +1320,122 @@ def orders_view_all_by_month(request):
     )
 
 
+def safe_float(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+
+def build_address_name(addr: dict | None) -> str:
+    if not isinstance(addr, dict):
+        return ""
+
+    parts = []
+
+    def add(prefix, key, suffix=""):
+        val = addr.get(key)
+        if isinstance(val, str) and val.strip():
+            parts.append(f"{prefix}{val.strip()}{suffix}")
+
+    add("", "region")
+    add("", "district", " район")
+    add("м. ", "city")
+    add("вул. ", "street")
+    add("буд. ", "house")
+    add("кв. ", "apartment")
+    add("під'їзд ", "entrance")
+    add("поверх ", "floor")
+
+    return ", ".join(parts)
+
+def build_1c_payload(
+    *,
+    order_number,
+    items_count,
+    comment,
+    contractor_guid,
+    delivery_address_guid=None,
+    delivery_address_coordinates=None,
+    client_address: dict | None = None,
+    file_name=None,
+    file_b64=None,
+):
+    payload = {
+        "calculations": [
+            {
+                "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
+
+                "calculationNumber": order_number,
+                "itemsCount": int(items_count),
+                "comment": comment or "",
+
+                "kontragentGUID": str(contractor_guid),
+                "authorGUID": str(contractor_guid),
+
+                "file": [
+                    {
+                        "fileName": file_name,
+                        "fileDataB64": file_b64,
+                        "fileExtension": "ZKZ",
+                    }
+                ],
+
+                # ❗ orderGUID не передаємо, якщо його немає
+                "orders": [],
+            }
+        ]
+    }
+
+    calc = payload["calculations"][0]
+
+    # =====================================================
+    # 🏠 СЦЕНАРІЙ 1: доставка дилеру
+    # =====================================================
+    if delivery_address_guid:
+        calc["address"] = {
+            "addressGUID": str(delivery_address_guid),
+            "addressName": None,
+            "addressCoordinates": {
+                "lat": delivery_address_coordinates.get("lat"),
+                "lng": delivery_address_coordinates.get("lng"),
+            },
+            "addressAdditionalInfo": None,
+            }
+        
+        return payload
+
+    # =====================================================
+    # 👤 СЦЕНАРІЙ 2: доставка клієнту
+    # =====================================================
+    if not isinstance(client_address, dict):
+        raise ValidationError("client_address is required for client delivery")
+
+    address_name = build_address_name(client_address)
+
+    calc["address"] = {
+        "addressGUID": None,
+        "addressName": address_name,
+        "addressCoordinates": {
+            "lat": safe_float(client_address.get("lat")),
+            "lng": safe_float(client_address.get("lng")),
+        },
+        "addressAdditionalInfo": client_address.get("note", ""),
+    }
+
+    calc["recipient"] = {
+        "recipientName": client_address.get("full_name"),
+        "recipientPhone": client_address.get("phone"),
+        "recipientAddionalInformation":
+            client_address.get("extra_info", "") or "",
+    }
+
+    return payload
+
+
+
+
 import json
 import base64
 
@@ -1364,88 +1487,100 @@ from rest_framework.response import Response
 )
 class CreateCalculationViewSet(viewsets.ViewSet):
 
+
     permission_classes = [IsAuthenticatedOr1CApiKey]
 
-    def create(self, request):
+        
+        
+    def _send_to_1c(self, payload: dict) -> dict:
         try:
-            # ---------- 🔐 CONTRACTOR (DRY, ЄДИНЕ МІСЦЕ) ----------
-            contractor_bin, contractor_guid = resolve_contractor(
-                request,
-                allow_admin=True,
-                admin_param="contractor_guid",
+            auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
+            auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
+
+            response = requests.post(
+                settings.ONE_C_URL,
+ 
+                json=payload,
+                headers={
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Authorization": f"Basic {auth_b64}",
+                    "Query": "CreateCalculation"
+                },
+                timeout=30,
+                verify=settings.ONE_C_VERIFY_SSL,
             )
 
-            order_number = request.data.get("order_number")
-            items_count = request.data.get("items_count")
-            comment = request.data.get("comment", "")
-            address_guid = request.data.get("delivery_address_guid")
+            response.raise_for_status()
 
-            if not order_number:
-                raise ValueError("order_number обовʼязковий")
+        except requests.exceptions.RequestException as e:
+            raise ValidationError({
+                "detail": "Помилка зʼєднання з 1С",
+                "error": str(e),
+                "payload_sent_to_1c": payload,
+            })
 
-            # ---------- FILE ----------
-            file_data = request.data.get("file")
-            if not file_data:
-                raise ValueError("Файл прорахунку обовʼязковий")
+        try:
+            return response.json()
+        except ValueError:
+            raise ValidationError({
+                "detail": "1С повернула не JSON",
+                "response_text": response.text,
+                "payload_sent_to_1c": payload,
+            })
 
-            file_name = file_data.get("fileName")
-            file_b64 = file_data.get("fileDataB64")
 
-            if not file_name or not file_b64:
-                raise ValueError("Некоректні дані файлу")
 
-            try:
-                base64.b64decode(file_b64)
-            except Exception:
-                raise ValueError("Невалідний base64 у файлі")
 
-            # ---------- PAYLOAD ДЛЯ 1С ----------
-            payload = {
-                "kontragentGUID": contractor_guid,
-                "orderNumber": order_number,
-                "itemsCount": int(items_count),
-                "addressGUID": address_guid,
-                "comment": comment,
-                "file": {
-                    "fileName": file_name,
-                    "fileDataB64": file_b64,
+    def create(self, request):
+        serializer = CalculationCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        contractor_bin, contractor_guid = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
+        )
+
+        file = data["file"]
+
+        payload = build_1c_payload(
+            order_number=data["order_number"],
+            items_count=data["items_count"],
+            comment=data.get("comment", ""),
+            contractor_guid=contractor_guid,
+            delivery_address_guid=data.get("delivery_address_guid"),
+            delivery_address_coordinates=data.get("delivery_address_coordinates"),
+            client_address=data.get("client_address"),
+            file_name=file["fileName"],
+            file_b64=file["fileDataB64"],
+        )
+
+        result = self._send_to_1c(payload)
+
+        if not result.get("success", True):
+            raise ValidationError(
+                {
+                    "detail": "1С повернула помилку",
+                    "1c_response": result,
+                    "payload_sent_to_1c": payload,
                 }
-            }
-
-            result = self._send_to_1c(payload)
-
-            if not result.get("success"):
-                raise ValueError("1C не змогла створити прорахунок")
-
-            return Response({"success": True}, status=201)
-
-        except Exception as e:
-            return Response(
-                {"success": False, "error": str(e)},
-                status=400
             )
 
-    def _send_to_1c(self, payload):
-        """
-        MOCK 1C (JSON → JSON)
-        """
+        return Response(
+            {
+                "success": True,
+                "calculation_guid": result.get("calculationGUID"),
 
-        print("📤 PAYLOAD TO 1C:")
-        print(json.dumps(payload, indent=2, ensure_ascii=False))
+                "payload_sent_to_1c": payload,
 
-        return {
-            "success": True,
-            # "calculationGuid": f"mock-{payload['orderNumber']}",
-        }
+      
+                "result_1c": result,
+            },
+            status=201,
+        )
 
-        # 🔥 КОЛИ БУДЕ РЕАЛЬНА 1C:
-        # response = requests.post(
-        #     "https://1c-endpoint/calculations",
-        #     json=payload,
-        #     timeout=20
-        # )
-        # response.raise_for_status()
-        # return response.json()
 
 
 

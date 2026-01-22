@@ -34,6 +34,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   /* 🔀 режим адреси */
   const [addressMode, setAddressMode] = useState("dealer"); // dealer | client
 
+  /* 📍 координати dealer-адреси */
+  const [dealerCoords, setDealerCoords] = useState(null); // { lat, lng }
+
   /* 📍 клієнтська адреса */
   const [customAddress, setCustomAddress] = useState({
     text: "",
@@ -46,19 +49,42 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const role = (localStorage.getItem("role") || "").trim().toLowerCase();
   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
-  /* =========================
-      ❗ Перевірка координат
-     ========================= */
+  /* ======================================================
+     ❗ Перевірка + витяг координат з адреси
+     ====================================================== */
+  const extractCoordinates = (addressObj) => {
+    if (!addressObj) return null;
+
+    let lat = null;
+    let lng = null;
+
+    // 1️⃣ формат "48.26,25.93"
+    if (typeof addressObj.Coordinates === "string") {
+      const [latStr, lngStr] = addressObj.Coordinates.split(",");
+      lat = parseFloat(latStr);
+      lng = parseFloat(lngStr);
+    }
+
+    // 2️⃣ fallback
+    lat = lat ?? addressObj.Latitude ?? addressObj.lat;
+    lng = lng ?? addressObj.Longitude ?? addressObj.lng;
+
+    if (
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      lat !== 0 &&
+      lng !== 0
+    ) {
+      return { lat, lng };
+    }
+
+    return null;
+  };
+
   const checkAddressCoordinates = (addressObj) => {
-    if (!addressObj) return;
+    const coords = extractCoordinates(addressObj);
 
-    const lat = addressObj.Latitude || addressObj.lat;
-    const lng = addressObj.Longitude || addressObj.lng;
-
-    const hasCoords =
-      lat && lng && parseFloat(lat) !== 0 && parseFloat(lng) !== 0;
-
-    if (!hasCoords) {
+    if (!coords) {
       addNotification(
         <div style={{ lineHeight: "1.4" }}>
           <strong>Увага!</strong> Відсутні гео-координати для цієї адреси. <br />
@@ -72,9 +98,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
             Додайте точку на карті
           </a>
         </div>,
-        "warning"
+        "warning",
+        0
       );
     }
+
+    return coords;
   };
 
   /* =========================
@@ -84,6 +113,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setAddressesLoading(true);
     setAddresses([]);
     setAddressGuid("");
+    setDealerCoords(null);
 
     try {
       const res = await axiosInstance.get("/dealer-addresses/", {
@@ -109,7 +139,8 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
       if (def) {
         setAddressGuid(def.AddressKindGUID);
-        checkAddressCoordinates(def);
+        const coords = checkAddressCoordinates(def);
+        setDealerCoords(coords);
       }
     } catch (err) {
       console.error(err);
@@ -128,7 +159,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     if (isManager) {
       if (dealerId) loadAddresses(dealerId);
     } else {
-      // дилер → без contractor
       loadAddresses();
     }
   }, [isOpen, dealerId]);
@@ -136,7 +166,8 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const handleAddressSelect = (addr) => {
     setAddressGuid(addr.AddressKindGUID);
     setIsAddressOpen(false);
-    checkAddressCoordinates(addr);
+    const coords = checkAddressCoordinates(addr);
+    setDealerCoords(coords);
   };
 
   const handleFileChange = (e) => {
@@ -161,6 +192,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setDealerId("");
     setAddresses([]);
     setAddressGuid("");
+    setDealerCoords(null);
     setIsAddressOpen(false);
     setAddressMode("dealer");
     setCustomAddress({ text: "", lat: null, lng: null });
@@ -215,38 +247,36 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           fileDataB64: fileBase64,
         },
         ...(addressMode === "dealer"
-  ? {
-      delivery_address_guid: addressGuid,
-    }
-  : {
-      client_address: {
-        /* ===== GEO ===== */
-        text: customAddress.text,
-        lat: customAddress.lat,
-        lng: customAddress.lng,
+          ? {
+              delivery_address_guid: addressGuid,
+              ...(dealerCoords && {
+                delivery_address_coordinates: dealerCoords,
+              }),
+            }
+          : {
+              client_address: {
+                text: customAddress.text,
+                lat: customAddress.lat,
+                lng: customAddress.lng,
 
-        /* ===== ADDRESS ===== */
-        region: customAddress.region,
-        district: customAddress.district,
-        city: customAddress.city,
-        street: customAddress.street,
-        house: customAddress.house,
-        apartment: customAddress.apartment,
-        entrance: customAddress.entrance,
-        floor: customAddress.floor,
-        note: customAddress.note,
+                region: customAddress.region,
+                district: customAddress.district,
+                city: customAddress.city,
+                street: customAddress.street,
+                house: customAddress.house,
+                apartment: customAddress.apartment,
+                entrance: customAddress.entrance,
+                floor: customAddress.floor,
+                note: customAddress.note,
 
-        /* ===== CLIENT CONTACT ===== */
-        full_name: customAddress.fullName,
-        phone: customAddress.phone,
-        extra_info: customAddress.extraInfo,
+                full_name: customAddress.fullName,
+                phone: customAddress.phone,
+                extra_info: customAddress.extraInfo,
 
-        /* ===== CONTRACTOR ===== */
-        contractor_guid:
-          customAddress.contractor_guid || dealerId || null,
-      },
-    }),
-
+                contractor_guid:
+                  customAddress.contractor_guid || dealerId || null,
+              },
+            }),
       };
 
       const response = await axiosInstance.post(
@@ -268,6 +298,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   if (!isOpen) return null;
 
+  
   return (
     <>
       <div className="new-calc-modal-overlay" onClick={onClose}>

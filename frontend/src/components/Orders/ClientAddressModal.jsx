@@ -230,7 +230,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
       extraInfo: clientContact.extraInfo.trim(),
 
       /* ===== CONTRACTOR ===== */
-      contractor_guid: contractorGuid || initialValue?.contractor_guid || null,
+      // contractor_guid: contractorGuid || initialValue?.contractor_guid || null,
     });
 
 
