@@ -1,80 +1,53 @@
-:root {
-    --text-color: #606060;
-    --info-color: #5e83bf;
-    --success-color: #76b448;
-    --warning-color: #d3c527;
-    --danger-color: #e46321;
-    --brown-color: #7C5747;
-    --purple-color: #645388;
-    --grey-color: #aaaaaa;
-    --grey-text-color: #b9b9b9;
-    --info-bg-color: #cfdcef99;
-    --success-bg-color: #e9f3e1;
-    --warning-bg-color: #f3f1d5;
-    --danger-bg-color: #fae4d9;
-    --cream-bg-color: #FFF9EC;
-    --purple-bg-color: #EDE7F6;
-    --shadow-color: #00000050;
-    --vs-green-color: #d4d947;
-    --vs-blue-color: #6b98bf;
-    --grey-border-color: #95959563;
-
-    --header-height: 50px;
-    --burger-menu-width: 500px;
-}
-
 .notification-wrapper {
   position: fixed;
-  bottom: 50px;  /* трохи вище від нижнього краю */
+  bottom: 50px;
   right: 20px;
   z-index: 99999;
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: 10px;
 }
 
+/* базовий стан */
 .notification {
   min-width: 220px;
   padding: 16px 18px;
-  border-radius: 0;           /* квадратні кути */
-  border: 1px solid rgba(0,0,0,0.2);  /* тонка рамка */
-  color: white;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
   font-weight: 500;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.25); /* легка тінь */
-  opacity: 0;
-  transform: translateY(50px);
-  animation: slideIn 0.3s forwards, fadeOut 0.3s forwards 2.7s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   text-align: center;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards;
 }
 
-.notification.info { background-color: var(--info-color); }
-.notification.success { background-color: var(--success-color); }
-.notification.error { background-color: var(--danger-color); }
-.notification.warning { background-color: var(--warning-color); color: #333 !important; }
+/* закриття */
+.notification.closing {
+  animation: fadeOut 0.3s forwards;
+}
 
-@keyframes slideIn {
-  to { transform: translateY(0); opacity: 0.95; }
+.notification.info    { background: var(--info-color); color: #fff; }
+.notification.success { background: var(--success-color); color: #fff; }
+.notification.warning { background: var(--warning-color); color: #333; }
+.notification.error   { background: var(--danger-color); color: #fff; }
+
+@keyframes fadeIn {
+  to { opacity: 0.95; }
 }
 
 @keyframes fadeOut {
-  to { opacity: 0; transform: translateY(50px); }
+  to { opacity: 0; }
 }
-
-
 
 .notification-close {
   position: absolute;
-  top: 8px;
+  top: 6px;
   right: 8px;
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .notification-close:hover {
   opacity: 1;
-  transform: scale(1.1);
 }
+
+

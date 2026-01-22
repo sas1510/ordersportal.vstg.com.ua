@@ -67,6 +67,7 @@ function formatApiData(data) {
 
             amount: parseFloat(item.DocumentAmount || item.DocumentSum || item.CompensationAmount || 0),
             dealer: item.Customer || 'N/A',
+            dealerId: item.CustomerLink || 'N/A',
 
             file: !!item.AdditionalInformation,
             issueCount: 0,

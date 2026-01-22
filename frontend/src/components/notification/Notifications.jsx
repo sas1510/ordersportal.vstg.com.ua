@@ -9,38 +9,51 @@ export const useNotification = () => useContext(NotificationContext);
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
-  const removeNotification = useCallback((id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const closeNotification = useCallback((id) => {
+    setNotifications(prev =>
+      prev.map(n =>
+        n.id === id ? { ...n, closing: true } : n
+      )
+    );
+
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 300); // ⏱ fadeOut duration
   }, []);
 
   const addNotification = useCallback(
-    (message, type = "info", duration = 20000) => {
-      const id = Math.random().toString(36).substr(2, 9);
+  (message, type = "info", duration) => {
+    const id = Math.random().toString(36).slice(2);
 
-      setNotifications((prev) => [...prev, { id, message, type }]);
+    const timeout = typeof duration === "number" ? duration : 7000;
 
-      if (duration !== 0) {
-        setTimeout(() => {
-          removeNotification(id);
-        }, duration);
-      }
-    },
-    [removeNotification]
-  );
+    setNotifications(prev => [
+      ...prev,
+      { id, message, type, closing: false }
+    ]);
+
+    if (timeout > 0) {
+      setTimeout(() => closeNotification(id), timeout);
+    }
+  },
+  [closeNotification]
+);
 
   return (
     <NotificationContext.Provider value={{ addNotification }}>
       {children}
 
       <div className="notification-wrapper">
-        {notifications.map((n) => (
-          <div key={n.id} className={`notification ${n.type}`}>
+        {notifications.map(n => (
+          <div
+            key={n.id}
+            className={`notification ${n.type} ${n.closing ? "closing" : ""}`}
+          >
             <span className="notification-text">{n.message}</span>
 
-            {/* ✖ закрити */}
             <FaTimes
               className="notification-close"
-              onClick={() => removeNotification(n.id)}
+              onClick={() => closeNotification(n.id)}
             />
           </div>
         ))}

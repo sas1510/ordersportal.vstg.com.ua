@@ -1825,6 +1825,7 @@ def create_message(request):
         user_obj = CustomUser.objects.filter(user_id_1C=writer_id_1c).first()
         if user_obj:
             author = {
+                "id_1c": bin_to_guid_1c(user_obj.user_id_1C),
                 "username": user_obj.username,
                 "full_name": (
                     user_obj.full_name

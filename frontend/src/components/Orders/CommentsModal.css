@@ -315,3 +315,29 @@ body.dark-theme .comments-item {
 }
 
 
+/* ===== Messenger alignment ===== */
+
+.comments-item {
+  max-width: 80%;
+}
+
+/* Повідомлення інших — ЗЛІВА */
+.comment-left {
+  margin-right: auto;
+  text-align: left;
+}
+
+/* Моє повідомлення — СПРАВА */
+.comment-right {
+  margin-left: auto;
+  text-align: left;
+}
+
+.comments-meta {
+  display: flex;
+  justify-content: space-between; /* імʼя зліва, дата справа */
+  font-size: 12px;
+  color: #888;
+}
+
+

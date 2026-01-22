@@ -3,14 +3,13 @@ import axiosInstance from "../../api/axios";
 import { FaTimes, FaSave, FaRegCommentDots } from "react-icons/fa";
 import "./CommentsModal.css";
 
-
 const AUTHOR_COLORS = [
-  "#4fd1ac", 
-  "#ffee00", 
-  "#612ae0", 
-  "#141e29", 
-  "#76b448", 
-  "#53a9ff", 
+  "#4fd1ac",
+  "#ffee00",
+  "#612ae0",
+  "#141e29",
+  "#76b448",
+  "#53a9ff",
 ];
 
 const getAuthorColor = (author) => {
@@ -31,12 +30,12 @@ const getAuthorColor = (author) => {
   return AUTHOR_COLORS[index];
 };
 
-
 const CommentsModal = ({
   isOpen,
   onClose,
   baseTransactionGuid,
-  transactionTypeId
+  transactionTypeId,
+  activePersonId, // 🔑 GUID дилера
 }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -51,11 +50,11 @@ const CommentsModal = ({
       const res = await axiosInstance.get("/messages/", {
         params: {
           base_transaction_guid: baseTransactionGuid,
-          transaction_type_id: transactionTypeId
-        }
+          transaction_type_id: transactionTypeId,
+        },
       });
 
-      setComments(res.data);
+      setComments(res.data || []);
     } catch (err) {
       console.error("Помилка при завантаженні коментарів:", err);
     }
@@ -86,8 +85,7 @@ const CommentsModal = ({
       const res = await axiosInstance.post("/messages/create/", {
         transaction_type_id: transactionTypeId,
         base_transaction_guid: baseTransactionGuid,
-        // writer_guid: writerGuid,
-        message: newComment.trim()
+        message: newComment.trim(),
       });
 
       setNewComment("");
@@ -97,11 +95,6 @@ const CommentsModal = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    handleAddComment();
   };
 
   if (!isOpen) return null;
@@ -133,38 +126,44 @@ const CommentsModal = ({
             </div>
           ) : (
             <ul className="comments-list">
-              {comments.map((c) => (
-               <li
-                  key={c.id}
-                  className="comments-item"
-                  style={{
-                    ["--author-color"]: getAuthorColor(c.author),
-                    borderLeftColor: getAuthorColor(c.author), // ✅ fallback, якщо змінна не підхопилась
-                  }}
-                >
+              {comments.map((c) => {
+                const isMine = c.author?.id_1c === activePersonId;
+
+                return (
+                  <li
+                    key={c.id}
+                    className={`comments-item ${
+                      isMine ? "comment-right" : "comment-left"
+                    }`}
+                    style={{
+                      ["--author-color"]: getAuthorColor(c.author),
+                    }}
+                  >
+                    {/* META */}
+                    <div className="comments-meta">
+                      <strong className="comments-author">
+                        {c.author?.full_name || "Користувач"}
+                      </strong>
+
+                      <span className="comments-date">
+                        {new Date(c.created_at).toLocaleString("uk-UA")}
+                      </span>
+                    </div>
 
 
-
-                  <div className="comments-meta">
-                    <strong>
-                      {c.author?.full_name || "Користувач"}
-                    </strong>
-                    <span>
-                      {new Date(c.created_at).toLocaleString("uk-UA")}
-                    </span>
-                  </div>
-
-                  <div className="comments-text">
-                    {c.message}
-                  </div>
-                </li>
-              ))}
+                    {/* TEXT */}
+                    <div className="comments-text">
+                      {c.message}
+                    </div>
+                  </li>
+                );
+              })}
               <div ref={commentsEndRef} />
             </ul>
           )}
 
           {/* ===== FORM ===== */}
-          <form className="comments-form" onSubmit={handleSubmit}>
+          <form className="comments-form" onSubmit={(e) => e.preventDefault()}>
             <label>Новий коментар:</label>
             <textarea
               placeholder="Введіть коментар..."
