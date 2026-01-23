@@ -76,9 +76,16 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
   );
 
   // 3. Мемоїзація даних/списків
-  const orderList = useMemo(() => {
-    return Array.isArray(calc.orders) ? calc.orders : [];
-  }, [calc.orders]);
+  const orderList = useMemo(() => {
+    if (!Array.isArray(calc.orders)) return [];
+
+    // Фільтруємо замовлення: залишаємо тільки ті, де номер не порожній 
+    // і не складається лише з пробілів. 
+    // Це відсікає об'єкти з "number": "" з вашого JSON.
+    return calc.orders.filter(
+      (order) => order.number && String(order.number).trim() !== ""
+    );
+  }, [calc.orders]);
 
   // КРОК 2: Мемоїзація масиву статусів
   const statusEntries = useMemo(() => {

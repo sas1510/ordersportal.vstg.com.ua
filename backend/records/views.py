@@ -433,6 +433,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
         calc["amount"] = total_amount
         calc["debt"] = total_amount - total_paid
+        if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
+            calc["constructionsQTY"] = row.get("CalcConstructionsCount")
 
         formatted_calcs.append(calc)
 
