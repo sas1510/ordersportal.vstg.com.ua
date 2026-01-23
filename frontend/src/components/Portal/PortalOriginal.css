@@ -2236,6 +2236,10 @@ ul.month-list {
 
 @media (max-width: 768px) {
     .portal-body { padding-bottom: 25px !important; padding-top: 50px !important; }
+    .portal-body .content-filter.open {
+        margin-top: 50px !important ;
+    }
+
 }
 
 
