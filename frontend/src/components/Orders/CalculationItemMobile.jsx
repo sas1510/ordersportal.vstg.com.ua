@@ -6,13 +6,16 @@ import CommentsModal from "./CommentsModal";
 import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
 import {formatDateHumanShorter} from '../../utils/formatters'
-
+import { useNotification } from "../notification/Notifications.jsx";
+import CounterpartyInfoModal from "./CounterpartyInfoModal";
 // КРОК 1: Змінюємо експорт на React.memo
 export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => {
-//                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+//                                 
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
+  const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
+  const { addNotification } = useNotification();
 
   // 1. Мемоїзація функцій-обробників за допомогою useCallback
   const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
@@ -21,25 +24,45 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
     if (onEdit) onEdit(updatedCalc);
   }, [onEdit]);
 
-  const handleDownload = useCallback(async () => {
-    try {
-      const response = await axiosInstance.get(`/calculations/${calc.id}/download/`, {
-        responseType: 'blob',
-      });
+  const handleDownload = useCallback(
+    async () => {
+      try {
+        
+        const fileName = calc.fileName;
 
-      const url = window.URL.createObjectURL(response.data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${calc.number}.zkz`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Помилка при завантаженні файлу:", error);
-    }
-  }, [calc.id, calc.number]);
+       
+        const response = await axiosInstance.get(
+          `/calculations/${calc.id}/files/${calc.file}/download/`,
+          {
+            params: { filename: fileName }, 
+            responseType: "blob",           
+          }
+        );
 
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        
+    
+        link.setAttribute("download", fileName);
+        
+        document.body.appendChild(link);
+        link.click();
+        
+
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Помилка при завантаженні файлу прорахунку:", error);
+        addNotification("Не вдалося завантажити файл. Можливо, він відсутній на сервері.");
+      }
+    },
+    [calc.id, calc.fileGuid, calc.file, calc.number] 
+  );
+
+
+  
   const handleDelete = useCallback(async () => {
     if (onDelete) await onDelete(calc.id);
   }, [onDelete, calc.id]);
@@ -50,9 +73,16 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
   }, []);
 
   // 2. Мемоїзація списку замовлень за допомогою useMemo
-  const orderList = useMemo(() => {
-      return Array.isArray(calc.orders) ? calc.orders : [];
-  }, [calc.orders]);
+  const orderList = useMemo(() => {
+    if (!Array.isArray(calc.orders)) return [];
+
+    // Фільтруємо замовлення: залишаємо тільки ті, де номер не порожній 
+    // і не складається лише з пробілів. 
+    // Це відсікає об'єкти з "number": "" з вашого JSON.
+    return calc.orders.filter(
+      (order) => order.number && String(order.number).trim() !== ""
+    );
+  }, [calc.orders]);
   
   // КРОК 3: Мемоїзація Object.entries (не обов'язково, але корисно для великих об'єктів)
   const statusEntries = useMemo(() => {
@@ -122,8 +152,12 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
 
         {/* Дилер якщо є */}
         {calc.dealer && (
-          <div className="mb-2 pb-1.5 border-b border-gray-200">
-            <div className="text-grey font-size-11">Дилер: {calc.dealer}</div>
+          <div className="mb-2 pb-1.5 border-b border-gray-200" >
+            <div className="text-grey font-size-11  dealer-clickable" onClick={(e) => {
+                    e.stopPropagation();
+                    // setSelectedCalc(calc);
+                    setIsCounterpartyOpen(true);
+                  }}>Дилер: {calc.dealer}</div>
           </div>
         )}
 
@@ -203,15 +237,21 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
 
         {/* Файл ZKZ */}
         <div className="flex items-center justify-between p-1.5 bg-green-50 rounded border border-green-200"
+          style={{
+                  cursor: calc.file && calc.file !== '' ? "pointer" : "default",
+                  width: "100%"
+                }}
           onClick={(e) => {
             e.stopPropagation();
+            if (!calc.file || calc.file === '') return;
             handleDownload(); 
           }}>
           <div className="flex items-center gap-1.5">
             <div className="icon-document-file-numbers font-size-18 text-success"></div>
-            <div className="font-size-13 text-dark">{calc.number}.zkz</div>
+            <div className="font-size-13 text-dark">{calc.file && calc.file !== '' ? `${calc.number}.zkz` : 'Немає файлу'}</div>
           </div>
-          <span className="icon-download font-size-16 text-success"></span>
+
+          {calc.file && calc.file !== '' ? <span className="icon-download font-size-16 text-success"></span> : ''}
         </div>
 
         {/* Індикатор розкриття */}
@@ -250,6 +290,18 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
         orderId={calc.id}
         onAddComment={handleAddComment}
       />
+
+      <CounterpartyInfoModal
+        isOpen={isCounterpartyOpen}
+        onClose={() => setIsCounterpartyOpen(false)}
+        data={{
+          name: calc.recipient,
+          phone: calc.recipientPhone,
+          address: calc.deliveryAddresses,
+          organizationName: calc.organizationName,
+          recipientAdditionalInfo: calc.recipientAdditionalInfo,
+        }}
+      />
     </div>
 
 )});
