@@ -248,3 +248,31 @@ body.dark-theme .file-close-btn {
 body.dark-theme .file-close-btn:hover {
     background: linear-gradient(90deg, #c75628, #b84c20);
 }
+
+
+/* В основний файл CSS */
+
+.file-download-btn {
+  display: inline-flex;    /* Робимо кнопку флекс-контейнером */
+  align-items: center;     /* Вирівнюємо іконку та текст по вертикалі */
+  justify-content: center; /* Центруємо вміст */
+  gap: 8px;                /* Відстань між іконкою та текстом */
+  white-space: nowrap;     /* Забороняємо будь-яке перенесення */
+  min-width: max-content;  /* Кнопка розширюється під текст */
+  padding: 8px 16px;       /* Достатній відступ */
+}
+
+.btn-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-text {
+  white-space: nowrap;     /* Гарантуємо відсутність переносу для тексту */
+}
+
+.no-wrap {
+  white-space: nowrap !important;
+}

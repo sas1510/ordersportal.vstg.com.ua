@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages
+from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file
 
 
 create_calculation = CreateCalculationViewSet.as_view({
@@ -25,6 +25,7 @@ urlpatterns = [
     path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"), #  без логіки дилер
     path("get_wds_codes/", wds_codes_by_contractor, name="get_wds_codes"), #  без логіки дилер
     path("messages/", get_messages, name="get-messages"),
+    path("calculations/<str:calc_guid>/files/<str:file_guid>/download/", download_calculation_file, name="download_calculation_file"),
 
 ]
 

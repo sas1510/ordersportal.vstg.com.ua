@@ -184,6 +184,132 @@ def format_date_human(date_str):
         return date.strftime("%d %b %Y")  # наприклад, "14 Nov 2025"
     except ValueError:
         return None
+    
+
+
+# Попередня версія без прорахунку 
+# def get_orders_by_year_and_contractor(year: int, contractor_id: str):
+#     """
+#     Викликає SQL-процедуру [GetOrdersByYearAndContractor] 
+#     та повертає результат у вигляді готової структури для фронту.
+    
+#     Якщо CalculationDate відсутня, використовує найранішу OrderDate.
+#     """
+#     # Тут замінено замовлення  на замовлення з прорахунками
+#     # query = """
+#     #     EXEC [GetOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
+#     # """
+
+
+#     query = """
+#         EXEC [GetCalculationsWithOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
+#     """
+
+#     with connection.cursor() as cursor:
+#         cursor.execute(query, [year, contractor_id])
+#         columns = [col[0] for col in cursor.description]
+#         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+#     calcs_dict = {}
+#     for row in rows:
+#         calc_id = row.get("ClientOrderNumber") or "default"
+        
+#         current_order_count = int(row.get("ConstructionsCount") or 0) 
+#         calculation_date = row.get("CalculationDate")
+#         order_date = row.get("OrderDate")
+        
+#         if calc_id not in calcs_dict:
+#             calcs_dict[calc_id] = {
+#                 "id": calc_id,
+#                 "number": row.get("ClientOrderNumber") or "",
+#                 "webNumber": row.get("WebNumber") or "",
+#                 "dateRaw": calculation_date,
+#                 "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
+#                 "orders": [],
+#                 "dealer": row.get("Customer"),
+#                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
+#                 "constructionsQTY": current_order_count, 
+#                 "file": row.get("File"),
+#                 "message": row.get("Message"),
+#                 "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
+#             }
+#         else:
+#             calcs_dict[calc_id]["constructionsQTY"] += current_order_count
+#             if order_date:
+#                  calcs_dict[calc_id]["raw_order_dates"].append(order_date)
+
+
+#         # Додаємо ордер до масиву
+#         order = {
+#             "id": row.get("OrderID"),
+#             "idGuid": row.get("OrderID_GUID"),
+#             # "id": row.get("OrderID"),
+#             "number": row.get("OrderNumber") or "",
+#             "dateRaw": row.get("OrderDate"),
+#             "date": row.get("OrderDate"),
+#             "status": row.get("OrderStage") or "Новий",
+#             "amount": float(row.get("OrderSum") or 0),
+#             "count": current_order_count,
+#             "paid": float(row.get("PaidAmount") or 0),
+#             "planProductionMin": row.get("ProductionDateMin"),
+#             "planProductionMax": row.get("ProductionDateMax"),
+#             "factProductionMin": row.get("ProductionStartDateMin"),
+#             "factProductionMax": row.get("ProductionStartDateMax"),
+#             "factReadyMin": row.get("ProductionReadyDateMin"),
+#             "factReadyMax": row.get("ProductionReadyDateMax"),
+#             "realizationDate": row.get("SaleDate"),
+#             "quantityRealized": float(row.get("SoldQuantity") or 0),
+#             "deliveryAddress": row.get("DeliveryAddress") or "",
+#             "planDeparture": row.get("PlannedDepartureDate"),
+#             "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
+#             "arrivalTime": row.get("ArrivalTime"),
+#             "routeStatus": row.get("RouteStatus"),
+#             "organizationName": row.get("OrganizationName"),
+#             "managerName": row.get("ManagerName"),
+            
+#         }
+#         calcs_dict[calc_id]["orders"].append(order)
+
+#     # --- Обчислюємо агрегати ---
+#     formatted_calcs = []
+#     for calc in calcs_dict.values():
+#         orders = calc["orders"]
+#         status_counts = {}
+#         total_amount = 0
+#         total_paid = 0
+
+#         # ВИЗНАЧЕННЯ ДАТИ ПРОРАХУНКУ, ЯКЩО ВОНА ВІДСУТНЯ
+#         if not calc["dateRaw"] and calc["raw_order_dates"]:
+#             # Знаходимо найменшу (найранішу) дату серед замовлень
+#             min_date = min(
+#                 (d for d in calc["raw_order_dates"] if d), default=None
+#             )
+#             calc["dateRaw"] = min_date
+#             calc["date"] = min_date 
+        
+#         # Видаляємо тимчасове поле
+#         del calc["raw_order_dates"]
+        
+#         # Агрегати на рівні ордера (статуси, суми)
+#         for o in orders:
+#             st = o["status"]
+#             if st:
+#                 status_counts[st] = status_counts.get(st, 0) + 1
+#             if st != "Відмова":
+#                 total_amount += o["amount"]
+#                 total_paid += o["paid"]
+
+#         # Агрегати на рівні просчету
+#         calc["statuses"] = status_counts
+#         calc["orderCountInCalc"] = len(orders)
+#         calc["constructionsCount"] = calc["constructionsQTY"] 
+#         calc["amount"] = total_amount
+#         calc["debt"] = total_amount - total_paid
+
+#         formatted_calcs.append(calc)
+
+#     return formatted_calcs
+
 
 def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     """
@@ -192,8 +318,14 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     
     Якщо CalculationDate відсутня, використовує найранішу OrderDate.
     """
+    # Тут замінено замовлення  на замовлення з прорахунками
+    # query = """
+    #     EXEC [GetOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
+    # """
+
+
     query = """
-        EXEC [GetOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
+        EXEC [GetCalculationsWithOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
     """
 
     with connection.cursor() as cursor:
@@ -203,24 +335,29 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
     calcs_dict = {}
     for row in rows:
-        calc_id = row.get("ClientOrderNumber") or "default"
+        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or "default"
         
         current_order_count = int(row.get("ConstructionsCount") or 0) 
-        calculation_date = row.get("CalculationDate")
+        calculation_date = row.get("CalcDate") or row.get("CalculationDate")
         order_date = row.get("OrderDate")
         
         if calc_id not in calcs_dict:
             calcs_dict[calc_id] = {
                 "id": calc_id,
-                "number": row.get("ClientOrderNumber") or "",
-                "webNumber": row.get("WebNumber") or "",
+                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or "",
+                "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
                 "orders": [],
                 "dealer": row.get("Customer"),
                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": current_order_count, 
-                "file": row.get("File"),
+                "recipient": row.get("Recipient") or row.get("Customer"), 
+                "recipientPhone": row.get("RecipientPhone") or '', 
+                "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
+                "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
+                "file": bin_to_guid_1c(row.get("FileLink")) or '',
+                "fileName": row.get("CalcFileName") or '',
                 "message": row.get("Message"),
                 "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
             }
@@ -293,14 +430,13 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         # Агрегати на рівні просчету
         calc["statuses"] = status_counts
         calc["orderCountInCalc"] = len(orders)
-        calc["constructionsCount"] = calc["constructionsQTY"] 
+        calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
         calc["amount"] = total_amount
         calc["debt"] = total_amount - total_paid
 
         formatted_calcs.append(calc)
 
     return formatted_calcs
-
 
 
 @extend_schema(
@@ -1998,3 +2134,75 @@ def get_messages(request):
         })
 
     return Response(result)
+
+
+
+@extend_schema(
+    summary="Завантажити файл заявки на прорахунок",
+    description=(
+        "Завантажує файл зі сховища **1С (SMB)** для заявок на прорахунок (ВМ).\n\n"
+        "📦 Шлях у сховищі:\n"
+        "`Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}`"
+    ),
+    parameters=[
+        OpenApiParameter(name="calc_guid", type=OpenApiTypes.UUID, location=OpenApiParameter.PATH, description="GUID заявки (прорахунку)", required=True),
+        OpenApiParameter(name="file_guid", type=OpenApiTypes.UUID, location=OpenApiParameter.PATH, description="GUID файлу", required=True),
+        OpenApiParameter(name="filename", type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, description="Назва файлу з розширенням", required=True),
+    ],
+    responses={200: {"content": {"application/octet-stream": {}}}, 404: OpenApiTypes.OBJECT},
+    tags=["finance"],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def download_calculation_file(request, calc_guid, file_guid):
+    """
+    Завантажує файл заявки на прорахунок (ВМ) з SMB.
+    """
+    filename = request.GET.get("filename")
+    if not filename:
+        raise Http404("Filename is required")
+
+    filename = unquote(filename)
+
+    # SMB CONFIG
+    server = settings.SMB_SERVER
+    share = settings.SMB_SHARE
+    full_username = f"VSTG\\{settings.SMB_USERNAME}"
+    password = settings.SMB_PASSWORD
+
+    # =========================
+    # НОВИЙ ШЛЯХ (Заявка на просчет)
+    # =========================
+    remote_path = f'Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}'
+
+    try:
+        process = subprocess.Popen(
+            [
+                "smbclient",
+                f"//{server}/{share}",
+                "-U", full_username,
+                "-c", f'get "{remote_path}" -'
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={"PASSWD": password},
+        )
+
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            logger.error("SMB error: %s", stderr.decode("utf-8", errors="ignore"))
+            raise Http404("Файл не знайдено")
+
+        content_type, _ = mimetypes.guess_type(filename)
+        response = StreamingHttpResponse(
+            stdout,
+            content_type=content_type or "application/octet-stream"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        return response
+
+    except Exception:
+        logger.exception("Calculation download error")
+        raise Http404("Помилка завантаження")

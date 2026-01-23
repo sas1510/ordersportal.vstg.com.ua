@@ -2,16 +2,20 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
+import CounterpartyInfoModal from "./CounterpartyInfoModal";
 import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
 import OrderItemSummaryDesktop from "./OrderItemSummaryDesktop";
 import { formatDateHumanShorter } from "../../utils/formatters";
 import './Orders.css'
+import { useNotification } from "../notification/Notifications.jsx";
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
+  const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
+  const { addNotification } = useNotification();
 
   // 1. Мемоїзація простих обробників
   const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
@@ -28,27 +32,41 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
 
   // 2. Мемоїзація асинхронних обробників
   const handleDownload = useCallback(
-    async () => {
-      try {
-        const response = await axiosInstance.get(
-          `/calculations/${calc.id}/download/`,
-          { responseType: "blob" }
-        );
+    async () => {
+      try {
+        
+        const fileName = calc.fileName;
 
-        const url = window.URL.createObjectURL(response.data);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `${calc.number}.zkz`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } catch (error) {
-        console.error("Помилка при завантаженні файлу:", error);
-      }
-    },
-    [calc.id, calc.number]
-  );
+       
+        const response = await axiosInstance.get(
+          `/calculations/${calc.id}/files/${calc.file}/download/`,
+          {
+            params: { filename: fileName }, 
+            responseType: "blob",           
+          }
+        );
+
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        
+    
+        link.setAttribute("download", fileName);
+        
+        document.body.appendChild(link);
+        link.click();
+        
+
+        link.parentNode.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Помилка при завантаженні файлу прорахунку:", error);
+        addNotification("Не вдалося завантажити файл. Можливо, він відсутній на сервері.");
+      }
+    },
+    [calc.id, calc.fileGuid, calc.file, calc.number] 
+  );
 
   const handleDelete = useCallback(
     async () => {
@@ -172,29 +190,55 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
           </div>
         </div>
 
-        <div
-          className="summary-item row w-10 no-wrap"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDownload();
-          }}
-        >
-  <div className="column gap-1 align-start mr-3" style={{ minWidth: "300px" }}>
+       <div className="summary-item row w-10 no-wrap">
+          <div className="column gap-1 align-start mr-3" style={{ minWidth: "300px" }}>
 
-           <div className="row align-start" style={{ gap: 0 }}> 
-               <div className="row align-center" style={{ borderBottom: '1px dashed #ddd', paddingBottom: '2px', gap: '3px' }}>
-                    <div className="icon-document-file-numbers font-size-20 text-success mr-0"></div>
-                    <div className="font-size-12 ml-0">{calc.number}.zkz</div>
-                 </div>
-              </div>
+            {/* 📄 Файл — ЗАВАНТАЖЕННЯ */}
+            <div className="row align-start" style={{ gap: 0 }}>
+              <div
+                className="row file-download"
+                style={{
+                  borderBottom: "1px dashed #ddd",
+                  paddingBottom: "2px",
+                  gap: "3px",
+                  cursor: calc.file && calc.file !== '' ? "pointer" : "default",
+                  width: "100%"
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!calc.file || calc.file === '') return;
+                  handleDownload(calc);
+                }}
+              >
+                <div className="icon-document-file-numbers font-size-20 text-success mr-0" />
+                <div className="font-size-12 ml-0">
+                  
+                  <div className="order-number">
+                    {calc.file && calc.file !== '' ? `${calc.number}.zkz` : 'Немає файлу'}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-             {calc.dealer && (
-               <div className="text-grey font-size-12">
-                 <span className="text-dark dealer-wrap">{calc.dealer}</span>
-              </div>
-            )}
-       </div>
-  </div>
+            {/* 👤 Дилер — ВІДКРИТТЯ МОДАЛКИ */}
+            {calc.dealer && (
+              <div className="text-grey font-size-12">
+                <span
+                  className="text-dark dealer-wrap dealer-clickable"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // setSelectedCalc(calc);
+                    setIsCounterpartyOpen(true);
+                  }}
+                >
+                  {calc.dealer}
+                </span>
+              </div>
+            )}
+
+          </div>
+        </div>
+
 
         <div className="summary-item row w-16 no-wrap">
           <div className="row gap-14 align-center">
@@ -249,6 +293,18 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
         orderId={calc.id}
         onAddComment={handleAddComment}
       />
+
+      <CounterpartyInfoModal
+        isOpen={isCounterpartyOpen}
+        onClose={() => setIsCounterpartyOpen(false)}
+        data={{
+          name: calc.recipient,
+          phone: calc.recipientPhone,
+          address: calc.deliveryAddresses,
+          organizationName: calc.organizationName,
+          recipientAdditionalInfo: calc.recipientAdditionalInfo,
+        }}
+      />
     </div>
   );
 });

@@ -173,31 +173,25 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                     </div>
 
                     <button
-                      className="file-download-btn"
-                      disabled={isDownloading}
-                      onClick={() =>
-                        handleDownload(file.fileGuid, file.fileName)
-                      }
-                    >
-                      {isDownloading ? (
-                        <>
-                          <FaSpinner className="fa-spin" />
-                          <span className="btn-text">Завантаження...</span>
-                        </>
-                      ) : file.fileName
-                          .toLowerCase()
-                          .endsWith(".pdf") ? (
-                        <>
-                          <FaEye />
-                          <span className="btn-text">PDF</span>
-                        </>
-                      ) : (
-                        <>
-                          <FaDownload />
-                          <span className="btn-text">Скачати</span>
-                        </>
-                      )}
-                    </button>
+                        className="file-download-btn no-wrap"
+                        disabled={isDownloading}
+                        onClick={() => handleDownload(file.fileGuid, file.fileName)}
+                      >
+                        {isDownloading ? (
+                          <div className="btn-content">
+                            <FaSpinner className="fa-spin" />
+                            <span className="btn-text">Завантаження...</span>
+                          </div>
+                        ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
+                          <div className="btn-content">
+                            <FaEye /> <span className="btn-text">PDF</span>
+                          </div>
+                        ) : (
+                          <div className="btn-content">
+                            <FaDownload /> <span className="btn-text">Скачати</span>
+                          </div>
+                        )}
+                      </button>
                   </li>
                 );
               })}

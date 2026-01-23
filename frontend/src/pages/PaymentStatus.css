@@ -1021,3 +1021,7 @@ span.td-date {
 }
 
 
+
+@media (max-width: 768px) {
+    .payments-body { padding-bottom: 25px !important; padding-top: 50px !important; }
+}

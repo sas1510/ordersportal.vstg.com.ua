@@ -17,6 +17,9 @@
     background: #e6e6e0;
 }
 
+
+
+
 .pp-title-header .icon-menu {
   line-height: 1;
   display: flex;
@@ -977,4 +980,9 @@ body.dark-theme .content-filter-payment .clear-search-payment {
 /* Темна тема */
 body.dark-theme .order-sum {
   color: #d0d0d0; /* м’який світлий, не різкий */
+}
+
+
+@media (max-width: 768px) {
+    .payments-page { padding-bottom: 25px !important; padding-top: 50px !important; }
 }

@@ -804,3 +804,14 @@ body.dark-theme .theme-toggle-btn:hover .icon {
     border-right: 1px dashed #555;
     margin: 0 4px; /* невеликі відступи між кнопками */
 }
+
+
+
+@media (max-width: 768px) {
+  .portal-header {
+    height: 50px !important;
+  }
+
+
+  
+}

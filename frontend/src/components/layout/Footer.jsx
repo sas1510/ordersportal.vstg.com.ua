@@ -1,20 +1,29 @@
 // Footer.jsx
-
 import React from "react";
 import { useTheme } from "../../context/ThemeContext"; 
 import { useMediaQuery } from "react-responsive";
 
 export default function Footer() {
-
   const { theme } = useTheme(); 
-  
+  const isMobile = useMediaQuery({ maxWidth: 768 });
 
-  const currentStyles = theme === 'dark' ? styles.footerDark : styles.footer;
+  // Базовий стиль за темою
+  const baseStyle = theme === 'dark' ? styles.footerDark : styles.footer;
+
+  // Модифікація для мобілки
+  const mobileOverride = isMobile ? {
+    height: "20px",      // Менша висота
+    padding: "3px",      // Менші відступи
+    fontSize: "0.7rem", // Дрібніший шрифт
+  } : {};
+
+  const currentStyles = { ...baseStyle, ...mobileOverride };
 
   return (
- 
     <footer style={currentStyles}>
-      <p>© 2015 - {new Date().getFullYear()} Вікна Стиль. Усі права захищені.</p>
+      <p style={{ margin: 0 }}>
+        © 2015 - {new Date().getFullYear()} Вікна Стиль. Усі права захищені.
+      </p>
     </footer>
   );
 }
