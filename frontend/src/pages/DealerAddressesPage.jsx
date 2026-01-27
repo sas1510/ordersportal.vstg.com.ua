@@ -681,27 +681,54 @@ useEffect(() => {
   };
 
   const saveCoords = async () => {
-    setIsConfirmModalOpen(false);
-    setSaving(true);
-    try {
-      if (!isNewAddress && selectedAddress) {
-        await axiosInstance.post("/save_dealer_address_coords/", {
-          contractorGuid,
-          addressKindGUID: selectedAddress.AddressKindGUID,
-          latitude: selectedCoords[0],
-          longitude: selectedCoords[1],
-          house: formAddr.house, street: formAddr.street, city: formAddr.city,
-          region: formAddr.region, district: formAddr.district
-        });
-      }
-      addNotification("✅ Дані успішно оновлено", "success");
-      loadAddresses();
-    } catch (err) {
-      addNotification("❌ Помилка збереження", "error");
-    } finally {
-      setSaving(false);
+  setIsConfirmModalOpen(false);
+  setSaving(true);
+  try {
+    if (!selectedCoords || !isPreciseLocation) {
+      addNotification("Будь ласка, вкажіть точну точку на карті", "warning");
+      return;
     }
-  };
+
+    // POST для збереження координат
+    await axiosInstance.post("/save_dealer_address_coords/", {
+      contractorGuid,
+      addressKindGUID: selectedAddress?.AddressKindGUID || null,
+      latitude: selectedCoords[0],
+      longitude: selectedCoords[1],
+      house: formAddr.house,
+      street: formAddr.street,
+      city: formAddr.city,
+      region: formAddr.region,
+      district: formAddr.district,
+      apartment: formAddr.apartment,
+      entrance: formAddr.entrance,
+      floor: formAddr.floor,
+      note: formAddr.note,
+    });
+
+    addNotification("✅ Дані успішно оновлено", "success");
+
+    // 🔄 Тепер оновлюємо список адрес із 1С
+    await loadAddresses();
+
+    // Опційно: виділяємо останню збережену адресу
+    if (selectedCoords) {
+      const lastSaved = addresses.find(a => {
+        const coords = parseCoords(a.Coordinates);
+        return coords && coords[0] === selectedCoords[0] && coords[1] === selectedCoords[1];
+      });
+      if (lastSaved) setSelectedAddress(lastSaved);
+      setIsNewAddress(false);
+    }
+
+  } catch (err) {
+    console.error(err);
+    addNotification("❌ Помилка збереження", "error");
+  } finally {
+    setSaving(false);
+  }
+};
+
 
   const onAddNewAddress = () => {
     setIsNewAddress(true);
@@ -796,7 +823,7 @@ useEffect(() => {
                 </div>
               </div>
               <div className="location-paste-box">
-              <input
+              {/* <input
                 className="search-input"
                 placeholder="Вставте локацію (Telegram / Viber / Apple / Google Maps)"
                 value={locationLink}
@@ -809,7 +836,7 @@ useEffect(() => {
                 style={{ marginTop: "6px", width: "100%" }}
               >
                 📍 Використати локацію
-              </button>
+              </button> */}
             </div>
 
 

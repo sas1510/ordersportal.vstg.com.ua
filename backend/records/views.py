@@ -8,6 +8,10 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c
 from .utils import get_author_from_1c
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import Q
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
 
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
@@ -143,22 +147,46 @@ def parse_reclamation_details(text):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def complaints_view(request):
-
     contractor_bin, _ = resolve_contractor(request)
     year = int(request.GET.get("year")) if request.GET.get("year") else None
 
+    # 1. Отримуємо дані з 1С через збережену процедуру
     with connection.cursor() as cursor:
         cursor.execute(
             "EXEC dbo.GetComplaintsFull @User1C_ID=%s, @Year=%s",
             [contractor_bin, year]
         )
-
         columns = [c[0] for c in cursor.description]
         rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
+    # 2. Збираємо всі Binary GUID рекламацій для перевірки повідомлень
+    complaint_bins = [
+        row["ComplaintGuid"] 
+        for row in rows 
+        if row.get("ComplaintGuid")
+    ]
+
+    # 3. Шукаємо унікальні ID рекламацій, де є непрочитані повідомлення від менеджера
+    # Виключаємо повідомлення, написані самим дилером
+    unread_complaint_bins = set(
+        Message.objects.filter(
+            base_transaction_id__in=complaint_bins,
+            is_read=False
+        )
+        .exclude(writer_id=contractor_bin)
+        .values_list('base_transaction_id', flat=True)
+        .distinct()
+    )
+
+    # 4. Обробка рядків та "збагачення" статусом повідомлень
     for row in rows:
-        if row.get("ComplaintGuid"):
-            row["ComplaintGuid"] = bin_to_guid_1c(row["ComplaintGuid"])
+        c_guid_bin = row.get("ComplaintGuid")
+        
+        # Перевіряємо наявність у нашому set (працює миттєво)
+        row["HasUnreadMessages"] = c_guid_bin in unread_complaint_bins
+
+        if c_guid_bin:
+            row["ComplaintGuid"] = bin_to_guid_1c(c_guid_bin)
             row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
 
         full_text = row.get("AdditionalInformation")
@@ -176,15 +204,6 @@ def complaints_view(request):
 
 
 
-def format_date_human(date_str):
-    if not date_str:
-        return None
-    try:
-        date = datetime.fromisoformat(date_str)
-        return date.strftime("%d %b %Y")  # наприклад, "14 Nov 2025"
-    except ValueError:
-        return None
-    
 
 
 # Попередня версія без прорахунку 
@@ -598,6 +617,7 @@ def additional_orders_view(request):
                 {
                     "id": r.get("ClaimOrderNumber") or number,
                     "number": r.get("ClaimOrderNumber") or "",
+                    "guid": bin_to_guid_1c(r.get("OrderGUID")) or "",
                     "dateRaw": clean_date(r.get("ClaimOrderDate")),
                     "date": clean_date(r.get("ClaimOrderDate")),
                     "status": status,
@@ -771,8 +791,6 @@ from django.http import StreamingHttpResponse, Http404
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 
 logger = logging.getLogger(__name__)
@@ -2081,14 +2099,25 @@ def get_messages(request):
     except Exception:
         return Response({"error": "Invalid base_transaction_guid"}, status=400)
 
-    messages = (
-        Message.objects
-        .filter(
-            base_transaction_id=base_transaction_bin,
-            transaction_type_id=transaction_type_id
-        )
-        .order_by("created_at")
-    )
+    # 1. Отримуємо QuerySet повідомлень
+    messages_qs = Message.objects.filter(
+        base_transaction_id=base_transaction_bin,
+        transaction_type_id=transaction_type_id
+    ).order_by("created_at")
+
+    # 2. ЛОГІКА ПРОЧИТАННЯ:
+    # Позначаємо прочитаними всі повідомлення, які написав НЕ цей користувач
+    # (тобто менеджер 1С). Це прибере "червоний кружечок" при наступному оновленні списку.
+    user_guid_bin = request.user.user_id_1C
+    
+    messages_qs.filter(
+        is_read=False
+    ).exclude(
+        writer_id=user_guid_bin
+    ).update(is_read=True)
+
+    # 3. Виконуємо запит для отримання даних (вже оновлених)
+    messages = list(messages_qs)
 
     # --------- Writer IDs з повідомлень ----------
     writer_ids = {
@@ -2104,26 +2133,18 @@ def get_messages(request):
     }
 
     result = []
-
     for m in messages:
         author = None
-
         if isinstance(m.writer_id, (bytes, bytearray)):
-            # 1️⃣ Спроба знайти в порталі
             user = users_map.get(m.writer_id)
-
             if user:
                 author = {
                     "id_1c": bin_to_guid_1c(m.writer_id),
                     "username": user.username,
-                    "full_name": (
-                        user.full_name
-                        or f"{user.first_name} {user.last_name}".strip()
-                    ),
+                    "full_name": (user.full_name or f"{user.first_name} {user.last_name}".strip()),
                     "type": "PortalUser",
                 }
             else:
-                # 2️⃣ Fallback → 1С
                 author_1c = get_author_from_1c(m.writer_id)
                 if author_1c:
                     author = author_1c
@@ -2132,6 +2153,7 @@ def get_messages(request):
             "id": m.id,
             "message": m.message,
             "created_at": m.created_at,
+            "is_read": m.is_read, # Повертаємо актуальний статус
             "author": author,
         })
 
@@ -2208,3 +2230,44 @@ def download_calculation_file(request, calc_guid, file_guid):
     except Exception:
         logger.exception("Calculation download error")
         raise Http404("Помилка завантаження")
+    
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
+# from .onec_integration import set_customer_bill
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def confirm_order(request, order_id):
+    """
+    Приймає JSON з фронтенду і передає його у 1С,
+    використовуючи order_id (GUID) з URL.
+    """
+    try:
+        # Витягуємо GUID замовлення
+        order_guid = str(order_id)  # перетворюємо у рядок, якщо це UUID
+
+        # Додаємо GUID у DTO для 1С
+        dto = request.data
+        dto['order_id'] = order_guid
+
+        # Виклик функції для 1С
+        # set_customer_bill(dto)
+
+        return Response({
+            "message": "Data received and sent to 1С",
+            "order_id": order_guid,
+            "sent_data": dto
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({
+            "error": str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+

@@ -24,6 +24,7 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.contractor import resolve_contractor
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
+from rest_framework.exceptions import ValidationError
 
 
 
@@ -189,23 +190,51 @@ def get_complaint_series_by_order(request, order_number):
     - 1C API key → без обмежень (або по contractor)
     """
 
-    # 🔐 ЄДИНА ТОЧКА ВИЗНАЧЕННЯ КОНТРАГЕНТА
-    contractor_bin, _ = resolve_contractor(
-        request,
-        allow_admin=True,
-        admin_param="contractor",
-    )
+    user = request.user
+    role = (getattr(user, "role", "") or "").lower()
+    is_1c = request.auth == "1C_API_KEY"
+
+    contractor_bin = None  # дефолт
+
+    if is_1c:
+        contractor_bin = getattr(user, "user_id_1C", None)
+        if not contractor_bin:
+            raise PermissionError("API key user has no UserId1C")
+    elif role in ("dealer", "customer"):
+        contractor_bin = getattr(user, "user_id_1C", None)
+        if not contractor_bin:
+            raise PermissionError("User has no contractor assigned")
+    elif role == "admin":
+        # admin може передати contractor, але необов'язково
+        contractor_guid = request.GET.get("contractor")
+        if contractor_guid:
+            try:
+                contractor_bin = guid_to_1c_bin(contractor_guid)
+            except Exception:
+                raise ValueError("Invalid contractor GUID")
+        # якщо не передано – contractor_bin залишається None → SQL не фільтрує
 
     # 📦 SQL
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetComplaintSeriesByOrder
-                @OrderNumber = %s,
-                @Контрагент  = %s
-            """,
-            [order_number, contractor_bin]
-        )
+        if contractor_bin:
+            cursor.execute(
+                """
+                EXEC dbo.GetComplaintSeriesByOrder
+                    @OrderNumber = %s,
+                    @Контрагент  = %s
+                """,
+                [order_number, contractor_bin]
+            )
+        else:
+            # contractor_bin = None → повертаємо всі серії
+            cursor.execute(
+                """
+                EXEC dbo.GetComplaintSeriesByOrder
+                    @OrderNumber = %s,
+                    @Контрагент  = NULL
+                """,
+                [order_number]
+            )
 
         columns = [col[0] for col in cursor.description]
         rows = cursor.fetchall()
@@ -214,15 +243,14 @@ def get_complaint_series_by_order(request, order_number):
     results = []
     for row in rows:
         row_dict = dict(zip(columns, row))
-
         if row_dict.get("SeriesLink"):
             row_dict["SeriesLink"] = bin_to_guid_1c(row_dict["SeriesLink"])
-
         results.append(row_dict)
 
     return Response({
         "series": results or None
     })
+
 
 import xml.etree.ElementTree as ET
 import base64
@@ -260,6 +288,7 @@ import uuid
 
 MOCK_1C = True
 
+
 class ReclamationViewSet(viewsets.ViewSet):
     """
     Приймає JSON з фронту
@@ -267,8 +296,10 @@ class ReclamationViewSet(viewsets.ViewSet):
     Отримує JSON з 1C
     """
 
+    permission_classes = [IsAuthenticatedOr1CApiKey]
+
     # --------------------------------------------------
-    # 🔒 Формування payload для 1C (JSON ONLY)
+    # 🔒 Формування payload для 1C
     # --------------------------------------------------
     def _generate_reclamation_json(self, request, main_data):
         # ---------- SERIES ----------
@@ -278,8 +309,8 @@ class ReclamationViewSet(viewsets.ViewSet):
 
         prepared_series = [
             {
-                "serieLink": s.get("serie_link"),   # GUID string
-                "serieName": s.get("serie_name")
+                "serieLink": s.get("serie_link"),
+                "serieName": s.get("serie_name"),
             }
             for s in series_list
         ]
@@ -292,7 +323,7 @@ class ReclamationViewSet(viewsets.ViewSet):
         prepared_photos = [
             {
                 "fileName": p.get("photo_name"),
-                "photoDataB64": p.get("photo_base64")
+                "photoDataB64": p.get("photo_base64"),
             }
             for p in photos_list
         ]
@@ -300,26 +331,57 @@ class ReclamationViewSet(viewsets.ViewSet):
         return {
             **main_data,
             "series": prepared_series,
-            "photos": prepared_photos
+            "photos": prepared_photos,
         }
 
-        # --------------------------------------------------
-        # 🧾 CREATE: створення рекламації
-        # --------------------------------------------------
+    # --------------------------------------------------
+    # 🧾 CREATE
+    # --------------------------------------------------
     def create(self, request):
         try:
-            contractor_guid = request.data.get("contractor_guid")
-            if not contractor_guid:
-                raise ValueError("contractor_guid is required")
+            user = request.user
 
+            # 🧠 Визначаємо роль
+            role = getattr(user, "role", None)
+            role = role.lower() if role else ""
+
+            is_admin = role in ("admin", "manager", "region_manager")
+
+            # --------------------------------------------------
+            # 🧩 contractor_guid
+            # --------------------------------------------------
+            if is_admin:
+                contractor_guid = request.data.get("contractor_guid")
+                if not contractor_guid:
+                    raise ValueError("contractor_guid is required for admin")
+            else:
+                # ❗ дилер / клієнт — беремо з користувача
+                contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
+                if not contractor_guid:
+                    raise ValueError("contractor_guid not found for user")
+
+
+            # --------------------------------------------------
+            # 👤 author_guid — ЗАВЖДИ з користувача
+            # --------------------------------------------------
+            author_guid = bin_to_guid_1c(
+                getattr(user, "user_id_1C", None)
+            )
+            if not author_guid:
+                raise ValueError("author_guid not found for user")
+
+            # --------------------------------------------------
+            # 🧾 Основні дані
+            # --------------------------------------------------
             main_data = {
                 "kontragentGUID": contractor_guid,
+                "authorGUID": author_guid, 
                 "complaintDate": request.data.get("complaint_date"),
                 "orderNumber": request.data.get("order_number"),
                 "orderDeliverDate": request.data.get("order_deliver_date"),
                 "orderDefineDate": request.data.get("order_define_date"),
                 "description": request.data.get("description"),
-                "urgent": bool(request.data.get("urgent", False)),
+                # "urgent": bool(request.data.get("urgent", False)),
                 "issue": request.data.get("issue"),
                 "solution": request.data.get("solution"),
             }
@@ -327,23 +389,20 @@ class ReclamationViewSet(viewsets.ViewSet):
             payload = self._generate_reclamation_json(request, main_data)
 
             # ==================================================
-            # 🧪 MOCK MODE (без 1C)
+            # 🧪 MOCK MODE
             # ==================================================
             if MOCK_1C:
-                fake_guid = str(uuid.uuid4())
-
                 return Response(
                     {
                         "success": True,
-                        # "reclamationGuid": fake_guid,
-                        # "mock": True,
-                        # "payloadPreview": payload  # 🔍 зручно для дебагу
+                        "payload": payload,   # 🔍 ПОВЕРТАЄМО НА ФРОНТ
+                        "mock": True,
                     },
-                    status=status.HTTP_201_CREATED
+                    status=status.HTTP_201_CREATED,
                 )
 
             # ==================================================
-            # 🔥 REAL MODE (1C)
+            # 🔥 REAL MODE
             # ==================================================
             result = self._send_to_1c(payload)
 
@@ -354,46 +413,72 @@ class ReclamationViewSet(viewsets.ViewSet):
             return Response(
                 {
                     "success": True,
-                    # "reclamationGuid": reclamation_guid
+                    "payload": payload,   # 🔍 теж повертаємо
+                    # "reclamationGuid": reclamation_guid,
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_201_CREATED,
             )
 
         except requests.RequestException as e:
             return Response(
                 {
                     "success": False,
-                    "error": f"Помилка звʼязку з 1C: {str(e)}"
+                    "error": f"Помилка звʼязку з 1C: {str(e)}",
                 },
-                status=status.HTTP_502_BAD_GATEWAY
+                status=status.HTTP_502_BAD_GATEWAY,
             )
 
         except Exception as e:
             return Response(
                 {
                     "success": False,
-                    "error": str(e)
+                    "error": str(e),
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-
     # --------------------------------------------------
-    # 🔁 Відправка у 1С (JSON → JSON)
+    # 🔁 Відправка у 1С
     # --------------------------------------------------
-    def _send_to_1c(self, payload):
-        """
-        ❗ payload МІСТИТЬ ТІЛЬКИ JSON-СУМІСНІ ТИПИ
-        """
+    def _send_to_1c(self, payload: dict) -> dict:
+        try:
+            auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
+            auth_b64 = base64.b64encode(
+                auth_raw.encode("utf-8")
+            ).decode("ascii")
 
-        response = requests.post(
-            "https://1c-endpoint/reclamations",
-            json=payload,          # ❗ ТІЛЬКИ JSON
-            timeout=20
-        )
+            response = requests.post(
+                settings.ONE_C_URL,
+                json=payload,
+                headers={
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Authorization": f"Basic {auth_b64}",
+                    "Query": "CreateReclamation",   # ❗ інший Query
+                },
+                timeout=30,
+                verify=settings.ONE_C_VERIFY_SSL,
+            )
 
-        response.raise_for_status()
-        return response.json()
+            response.raise_for_status()
+
+        except requests.exceptions.RequestException as e:
+            raise ValidationError({
+                "detail": "Помилка зʼєднання з 1С (Reclamation)",
+                "error": str(e),
+                "payload_sent_to_1c": payload,
+            })
+
+        try:
+            return response.json()
+
+        except ValueError:
+            raise ValidationError({
+                "detail": "1С повернула не JSON (Reclamation)",
+                "response_text": response.text,
+                "payload_sent_to_1c": payload,
+            })
+
 
 
 from rest_framework.decorators import api_view, permission_classes

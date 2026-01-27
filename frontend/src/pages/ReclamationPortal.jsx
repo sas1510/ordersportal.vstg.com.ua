@@ -643,6 +643,7 @@ function formatApiData(data) {
             id: item.ComplaintNumber,
             number: item.ClaimOrderNumber,
             actNumber: item.ComplaintNumber,
+            hasUnreadMessages: item.HasUnreadMessages,
             guid : item.ComplaintGuid,
             numberWEB: item.NumberWEB,
             orderNumber: item.OrderNumber,
@@ -748,7 +749,12 @@ const ReclamationPortal = () => {
 
 
     
-
+    const handleMarkAsRead = (complaintId) => {
+        // Оновлюємо стан локально, щоб UI відреагував миттєво
+        setReclamationsData(prev => prev.map(item => 
+            item.id === complaintId ? { ...item, hasUnreadMessages: false } : item
+        ));
+    };
 
     /* --------------------------------------------------------
      *  Add New Reclamation
@@ -1136,6 +1142,7 @@ const ReclamationPortal = () => {
                                         onIssueToggle={(id) =>
                                             setExpandedIssue(expandedIssue === id ? null : id)
                                         }
+                                        onMarkAsRead={handleMarkAsRead}
                                     />
                                 ) : (
                                     <ReclamationItem
@@ -1149,6 +1156,7 @@ const ReclamationPortal = () => {
                                         onIssueToggle={(id) =>
                                             setExpandedIssue(expandedIssue === id ? null : id)
                                         }
+                                        onMarkAsRead={handleMarkAsRead}
                                     />
                                 )
                             )

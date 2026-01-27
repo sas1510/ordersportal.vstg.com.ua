@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
+import { useNotification } from "../notification/Notifications";
 
 import {
   FaSpinner,
@@ -19,6 +20,8 @@ import {
 import "./OrderFilesModal.css";
 
 const OrderFilesModal = ({ orderGuid, onClose }) => {
+
+  const { addNotification } = useNotification();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -114,8 +117,8 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
 
       window.URL.revokeObjectURL(objectUrl);
     } catch (err) {
-      console.error("❌ Error downloading file:", err);
-      alert("Не вдалося завантажити файл.");
+     
+      addNotification("Не вдалося завантажити файл.", "error");
     } finally {
       setDownloadingFileGuid(null);
     }

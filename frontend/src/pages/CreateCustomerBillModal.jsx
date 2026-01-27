@@ -26,7 +26,7 @@ export default function CreateCustomerBillModal({
   const [itemsList, setItemsList] = useState([]);
   const [ibans, setIbans] = useState([]);
 
-  const [selectedContragent, setSelectedContragent] = useState("");
+  // const [selectedContragent, setSelectedContragent] = useState("");
   const [selectedIban, setSelectedIban] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
 
@@ -94,9 +94,9 @@ useEffect(() => {
     setLoading(true);
 
     const dto = {
-      OrderNumber: `ORD-${Date.now()}`,
-      OrderContrAgentGUID: selectedContragent,
-      OrderIbanGUID: selectedIban,
+      // OrderNumber: `ORD-${Date.now()}`,
+      // selectedContragent: selectedContragent,
+      IbanGUID: selectedIban,
       AddressGUID: selectedAddress,
       OrderSuma: totalSum,
       InternalComment: internalComment,
@@ -113,7 +113,7 @@ useEffect(() => {
     };
 
     try {
-      await axiosInstance.post("/payments/customerbill/create", dto);
+      await axiosInstance.post("/payments/create_invoice/", dto);
       onSuccess?.();
       onClose();
     } finally {

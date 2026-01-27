@@ -6,13 +6,15 @@ import AddClaimModal from "../Complaint/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
 import { formatDateHumanShorter } from "../../utils/formatters";
-
+import { useNotification } from "../notification/Notifications";
 // --- МОДАЛКИ ---
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
 
 export default React.memo(function OrderItemSummaryDesktop({ order }) {
+
+  const { addNotification } = useNotification();
 
   // =========================== UI STATE ===========================
   const [isExpanded, setIsExpanded] = useState(false);
@@ -21,7 +23,10 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   
-
+  const user = useMemo(() => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  }, []);
   // ---- ONLY PAYMENT MODAL FLAG ----
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
@@ -31,41 +36,83 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
   // ========================= BUTTON STATES =========================
   const toggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
 
+  // const getButtonState = useCallback((status) => {
+  //   const state = { confirm: false, pay: false, reorder: false, claim: false };
+
+  //   switch (status) {
+  //     case "Новий":
+  //     case "Очікуємо підтвердження":
+  //       state.pay = true;
+  //       state.confirm = true;
+  //       break;
+
+  //     case "Підтверджений":
+  //       state.pay = true;
+  //       state.claim = true;
+  //       break;
+
+  //     case "Очікуємо оплату":
+  //       state.pay = true;
+  //       break;
+
+  //     case "Оплачено":
+  //     case "Готовий":
+  //     case "Відвантажений":
+  //       state.pay = true;
+  //       state.reorder = true;
+  //       if (status === "Відвантажений") state.claim = true;
+  //       break;
+  //   }
+
+  //   return state;
+  // }, []);
   const getButtonState = useCallback((status) => {
-    const state = { confirm: false, pay: false, reorder: false, claim: false };
+    // Всі кнопки за замовчуванням вимкнені
+    const state = {
+      confirm: false,
+      pay: false,
+      reorder: false,
+      claim: false,
+    };
 
-    switch (status) {
-      case "Новий":
-      case "Очікуємо підтвердження":
-        state.pay = true;
-        state.confirm = true;
-        break;
+    // Логіка на основі статусу
+    const statusConfig = {
+      "Новий": { confirm: true, pay: true },
+      "Очікуємо підтвердження": { confirm: true, pay: true },
+      "Підтверджений": { pay: true,confirm: true,reorder: true},
+      "Очікуємо оплату": { pay: true, reorder: true },
+      "Оплачено": { pay: true, reorder: true },
+      "Готовий": { pay: true, reorder: true },
+      "Відвантажений": { pay: true, reorder: true, claim: true },
+    };
 
-      case "Підтверджений":
-        state.pay = true;
-        state.claim = true;
-        break;
-
-      case "Очікуємо оплату":
-        state.pay = true;
-        break;
-
-      case "Оплачено":
-      case "Готовий":
-      case "Відвантажений":
-        state.pay = true;
-        state.reorder = true;
-        if (status === "Відвантажений") state.claim = true;
-        break;
+    // Якщо статус є в конфігу — застосовуємо значення
+    if (statusConfig[status]) {
+      Object.assign(state, statusConfig[status]);
     }
 
     return state;
   }, []);
 
-  const buttonState = useMemo(
-    () => getButtonState(order.status),
-    [order.status]
-  );
+    // ========================= DEBT =========================
+  const debtAmount = useMemo(() => {
+    const paid = order.paid ?? 0;
+    const debt = parseFloat(order.amount) - parseFloat(paid);
+    return Math.max(0, Math.round(debt * 100) / 100);
+  }, [order.amount, order.paid]);
+
+
+
+  const buttonState = useMemo(() => {
+      const state = getButtonState(order.status);
+
+      // Блокувати оплату, якщо борг 0
+      if (debtAmount <= 0) {
+          state.pay = false;
+      }
+
+      return state;
+  }, [order.status, debtAmount, getButtonState]);
 
   const getStatusClass = useCallback((status) => {
     switch (status) {
@@ -124,39 +171,33 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
     console.log("ОПЛАТА:", { contractID, amount, orderID: order.id });
 
     try {
-      await axiosInstance.post("/make_payment_from_advance/", {
+      await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractID,
-        order_id: order.id,
+        order_id: order.idGuid,
         amount: Number(amount),
       });
 
-      alert("Оплату виконано!");
+      addNotification("Оплату успішно виконано!", "success");
       setIsPaymentOpen(false);
     } catch (error) {
       console.error(error);
-      alert("Помилка виконання оплати");
+      addNotification("Помилка при виконанні оплати", "error");
     }
   };
 
   // ========================= CONFIRM ORDER =========================
   const handleConfirmOrder = useCallback(async () => {
     try {
-      const response = await axiosInstance.post(`/orders/${order.id}/confirm/`);
+      const response = await axiosInstance.post(`/orders/${order.idGuid}/confirm/`);
 
       if (response.status === 200 || response.status === 204) {
-        alert(`Замовлення ${order.number} підтверджено!`);
+        addNotification(`Замовлення ${order.number} успішно підтверджено!`, "success");
       }
     } catch (error) {
-      alert(`Помилка: ${error.message}`);
+      addNotification(`Помилка підтвердження: ${error.message}`, "error");
     }
   }, []);
 
-  // ========================= DEBT =========================
-  const debtAmount = useMemo(() => {
-    const paid = order.paid ?? 0;
-    const debt = parseFloat(order.amount) - parseFloat(paid);
-    return Math.max(0, Math.round(debt * 100) / 100);
-  }, [order.amount, order.paid]);
 
   // =================================================================
   // ============================== RENDER =============================
@@ -244,27 +285,33 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
         {/* BUTTONS */}
         <div className="summary-item row" onClick={(e) => e.stopPropagation()}>
-          {/* CONFIRM */}
-          <button
-            className={`column align-center button button-first background-success ${
-              !buttonState.confirm ? "disabled opacity-50" : ""
-            }`}
-            disabled={!buttonState.confirm}
-            onClick={openConfirmModal}
-          >
-            <div className="font-size-12">Підтвердити</div>
-          </button>
+ 
+           {user.role !== "admin" && (
+                <>
+                  {/* CONFIRM */}
+                  <button
+                    className={`column align-center button button-first background-success ${
+                      !buttonState.confirm ? "disabled opacity-50" : ""
+                    }`}
+                    disabled={!buttonState.confirm}
+                    onClick={openConfirmModal}
+                  >
+                    <div className="font-size-12">Підтвердити</div>
+                  </button>
 
-          {/* PAY */}
-          <button
-            className={`column align-center button background-warning ${
-              !buttonState.pay ? "disabled opacity-50" : ""
-            }`}
-            disabled={!buttonState.pay}
-            onClick={openPaymentModal}
-          >
-            <div className="font-size-12">Сплатити</div>
-          </button>
+                  {/* PAY */}
+                  <button
+                    className={`column align-center button background-warning ${
+                      !buttonState.pay ? "disabled opacity-50" : ""
+                    }`}
+                    disabled={!buttonState.pay}
+                    onClick={openPaymentModal}
+                  >
+                    <div className="font-size-12">Сплатити</div>
+                  </button>
+                </>
+              )}
+
 
           {/* REORDER */}
           <button

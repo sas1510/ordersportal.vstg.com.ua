@@ -13,52 +13,78 @@ import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from './OrderDetailsMobile';
 import {formatDateHumanShorter} from '../../utils/formatters'
+import PaymentModal from "./PaymentModal";
+import { useNotification } from "../notification/Notifications";
 
 
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export default React.memo(function OrderItemSummaryMobile ({ order }) {
-    
+    const { addNotification } = useNotification();
     const [isExpanded, setIsExpanded] = useState(false);
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
     const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     // --- ДОДАНО СТАН ДЛЯ МОДАЛКИ ФАЙЛІВ ---
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false); 
-    // ------------------------------------
+    
+    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+
+        // ------------------------------------
     const [claimOrderNumber, setClaimOrderNumber] = useState("");
-    
+     const user = useMemo(() => {
+        const userData = localStorage.getItem("user");
+        return userData ? JSON.parse(userData) : null;
+    }, []);
     // 1. Мемоїзація простого обробника стану
     const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
     
-    // 2. Мемоїзація функції, що обчислює доступність кнопок (без змін)
-    const getButtonState = useCallback((status) => {
-        const state = { confirm: false, pay: false, reorder: false, claim: false };
-        switch (status) {
-            case "Новий":
-            case "Очікуємо підтвердження":
-                state.confirm = true;
-                break;
-            case "Підтверджений":
-                state.pay = true;
-                state.claim = true;
-                break;
-            case "Очікуємо оплату":
-                state.pay = true;
-                break;
-            case "Оплачено":
-            case "Готовий":
-            case "Відвантажений":
-                state.reorder = true;
-                if (status === "Відвантажений") state.claim = true;
-                break;
-            default:
-                break;
-        }
-        return state;
-    }, []); 
+
+const getButtonState = useCallback((status) => {
+  // Всі кнопки за замовчуванням вимкнені
+  const state = {
+    confirm: false,
+    pay: false,
+    reorder: false,
+    claim: false,
+  };
+
+  // Логіка на основі статусу
+  const statusConfig = {
+    "Новий": { confirm: true, pay: true },
+    "Очікуємо підтвердження": { confirm: true, pay: true },
+    "Підтверджений": { confirm: true, pay: true, reorder: true},
+    "Очікуємо оплату": { pay: true, reorder: true },
+    "Оплачено": { pay: true, reorder: true },
+    "Готовий": { pay: true, reorder: true },
+    "Відвантажений": { pay: true, reorder: true, claim: true },
+  };
+
+  // Якщо статус є в конфігу — застосовуємо значення
+  if (statusConfig[status]) {
+    Object.assign(state, statusConfig[status]);
+  }
+
+  return state;
+}, []);
+
+        // 5. Мемоїзація обчислення боргу (без змін)
+    const debtAmount = useMemo(() => {
+        const paid = order.paid ?? 0;
+        const debt = parseFloat(order.amount) - parseFloat(paid);
+        return Math.max(0, Math.round(debt * 100) / 100); 
+    }, [order.amount, order.paid]);
 
     // 3. Мемоїзація результату обчислення стану кнопок (без змін)
-    const buttonState = useMemo(() => getButtonState(order.status), [order.status, getButtonState]);
+    const buttonState = useMemo(() => {
+    const state = getButtonState(order.status);
+
+        // Блокувати оплату, якщо борг 0
+        if (debtAmount <= 0) {
+            state.pay = false;
+        }
+
+        return state;
+    }, [order.status, debtAmount, getButtonState]);
 
     // 4. Мемоїзація функції стилю статусу (без змін)
     const getStatusClass = useCallback((status) => {
@@ -70,12 +96,34 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
         }
     }, []); 
 
-    // 5. Мемоїзація обчислення боргу (без змін)
-    const debtAmount = useMemo(() => {
-        const paid = order.paid ?? 0;
-        const debt = parseFloat(order.amount) - parseFloat(paid);
-        return Math.max(0, Math.round(debt * 100) / 100); 
-    }, [order.amount, order.paid]);
+    const openPaymentModal = useCallback((e) => {
+            e.stopPropagation();
+            setIsPaymentOpen(true);
+        }, []);
+
+    const handlePaymentConfirm = async (contractID, amount) => {
+        console.log("ОПЛАТА:", {
+            contractID,
+            amount,
+            orderID: order.idGuid,
+        });
+
+        try {
+            await axiosInstance.post("/payments/make_payment_from_advance/", {
+                contract: contractID,
+                order_id: order.idGuid,
+                amount: Number(amount),
+            });
+
+            addNotification("Оплату успішно виконано!", "success");
+            setIsPaymentOpen(false);
+        } catch (error) {
+            console.error(error);
+            addNotification("Оплату успішно виконано!", "success");
+        }
+    };
+
+
 
     // 6. Мемоїзація обробників модальних вікон
     const openClaimModal = useCallback(() => {
@@ -112,19 +160,20 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
         
         try {
             // Припускаємо, що API очікує лише POST-запит для зміни статусу
-            const response = await axiosInstance.post(`/orders/${order.id}/confirm/`);
+            const response = await axiosInstance.post(`/orders/${order.idGuid}/confirm/`);
             
             if (response.status === 200 || response.status === 204) {
-                alert(`✅ Замовлення ${order.number} успішно підтверджено!`);
+                addNotification(`Замовлення ${order.number} успішно підтверджено!`, "success");
                 // !!! ТУТ МАЄ БУТИ ВИКЛИК ФУНКЦІЇ ОНОВЛЕННЯ БАТЬКІВСЬКОГО СПИСКУ !!!
             } else {
-                 alert(`⚠️ Не вдалося підтвердити замовлення: ${response.data.error || response.statusText}`);
+                addNotification(`⚠️ Не вдалося підтвердити замовлення: ${response.data.error || response.statusText}`, "error");
+
             }
         } catch (error) {
-            alert(`❌ Помилка з'єднання: ${error.message}`);
+            addNotification(`Помилка підтвердження: ${error.message}`, "error");
         }
         
-    }, [order.id, order.number]);
+    }, [order.idGuid, order.number]);
 
 
     return (
@@ -223,8 +272,8 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
                 {/* КНОПКИ (Скролл-меню) (без змін) */}
                 <div className="flex gap-2 overflow-x-auto pb-1.5 py-[2px] -mx-3 px-3 mobile-buttons-scroll"
                     onClick={(e) => e.stopPropagation()}>
-
-                    {/* Підтвердити */}
+                    {user?.role !== "admin" && (
+                    <>
                     <button 
                         className="grow shrink-0 basis-0 h-6 flex items-center justify-center px-1.5 background-success text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-center"
                         disabled={!buttonState.confirm}
@@ -237,9 +286,12 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
                     <button 
                         className="grow shrink-0 basis-0 h-6 flex items-center justify-center px-1.5 background-warning text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-center"
                         disabled={!buttonState.pay}
+                        onClick={openPaymentModal}
                     >
                         Сплатити
                     </button>
+                    </>
+                    )}
 
                     {/* Дозамовлення */}
                     <button 
@@ -310,6 +362,20 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
                 onClose={() => setIsReorderModalOpen(false)}
                 onSave={handleReorderSave} 
             />
+
+            {isPaymentOpen && (
+                <PaymentModal
+                    order={{
+                        OrderNumber: order.number,
+                        DebtAmount: debtAmount,
+                        OrderID: order.idGuid,
+                    }}
+                    onClose={() => setIsPaymentOpen(false)}
+                    onConfirm={handlePaymentConfirm}
+                    formatCurrency={formatMoney}
+                />
+            )}
+
         </div>
     );
 }

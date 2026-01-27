@@ -25,7 +25,8 @@ export const ReclamationItemMobile = ({
     isExpanded, 
     onToggle, 
     expandedIssueId,
-    onIssueToggle
+    onIssueToggle,
+    onMarkAsRead
 }) => {
     // === 🚨 ВИПРАВЛЕННЯ: ЗАХИСТ ВІД UNDEFINED 🚨 ===
     if (!reclamation) {
@@ -92,7 +93,12 @@ export const ReclamationItemMobile = ({
     };
 
     const handleViewComments = (e, comments) => {
+        
         e.stopPropagation();
+
+        if (onMarkAsRead) {
+            onMarkAsRead(reclamation.id);
+        }
         setSelectedComments(comments);
         setIsCommentsOpen(true);
     };
@@ -203,6 +209,20 @@ export const ReclamationItemMobile = ({
                         className="text-info font-size-11 underline flex items-center flex-shrink-0 ml-2"
                         onClick={(e) => handleViewComments(e, reclamation.comments || [])}>
                         💬 Переглянути
+                        {reclamation.hasUnreadMessages && (
+                              <span
+                                  style={{
+                                      position: 'relative',
+                                      top: '-4px',
+                                      right: '-1px',
+                                      width: '5px',
+                                      height: '5px',
+                                      borderRadius: '50%',
+                                      backgroundColor: 'red',
+                                      display: 'inline-block'
+                                  }}
+                              />
+                          )}
                     </button>
                 </div>
 

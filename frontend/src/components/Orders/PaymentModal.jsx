@@ -37,7 +37,7 @@ export default function PaymentModal({
     const loadContracts = async () => {
       try {
         const res = await axiosInstance.get(
-          `/payments/get_dealer_advance_balance/?contractor_guid=${contractorGUID}`
+          `/payments/get_dealer_advance_balance/`
         );
 
         const data = res.data || [];

@@ -1746,7 +1746,7 @@ html {
 }
 
 .order-item .order-item-details {
-    padding: 7px;
+    padding: 15px;
     margin-top: 14px;
     font-size: 12px;
     color: var(--grey-color);
@@ -2694,6 +2694,12 @@ body.dark-theme .order-item-summary .summary-item .border-t {
 /* Клас border-gray-300 або його еквівалент */
 body.dark-theme .order-item-details, /* Батьківський контейнер */
 body.dark-theme .mt-4.pt-4.border-t {
+    /* Переконайтеся, що верхня межа (деталей) світла */
+    border-color: #555555 !important; 
+}
+
+
+body.dark-theme .pt-1.border-t {
     /* Переконайтеся, що верхня межа (деталей) світла */
     border-color: #555555 !important; 
 }

@@ -6,33 +6,13 @@ import useWindowWidth from '../../hooks/useWindowWidth';
 import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; // Додаємо, оскільки це використовується всередині вбудованого меню
 import { ComplaintItemDetailView } from './ComplaintItemSummaryDesktop'; // Використовуємо новий DetailView
 
-// ================= [ЗАГЛУШКИ] =================
-// Заглушки залишаються, але не використовуються для відображення деталей, оскільки 
-// деталі тепер відображає ComplaintItemDetailView.
-const IssueItemSummaryDesktop = ({ issue, isExpanded, onToggle }) => (
-    <div className="issue-item-desktop p-3 border rounded-lg bg-light-grey">
-        **Завдання:** {issue.number} | Статус: {issue.status} | Сума: {formatMoney(issue.amount || 0)}
-        <button onClick={onToggle}>Деталі</button>
-    </div>
-);
-const IssueItemSummaryMobile = ({ issue, isExpanded, onToggle }) => (
-    <div className="issue-item-mobile p-2 border-b bg-light-grey">
-        **Завдання:** {issue.number} ({issue.status})
-    </div>
-);
-// ===============================================
-
-// ================= ReclamationItem.jsx =================
-
-/**
- * Відображає зведену інформацію про одну рекламацію, яка тепер є завданням.
- */
 export const ReclamationItem = ({ 
     reclamation, 
     onDelete, 
     onEdit, 
     isExpanded, 
-    onToggle
+    onToggle,
+    onMarkAsRead
     // expandedIssueId та onIssueToggle більше не потрібні, якщо немає вкладеності,
     // але ми залишаємо їх у пропсах для сумісності, якщо потрібно.
 }) => {
@@ -49,10 +29,10 @@ export const ReclamationItem = ({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const menuRef = useRef(null);
-    const userRaw = localStorage.getItem("user");
-    const user = userRaw ? JSON.parse(userRaw) : null;
+    // const userRaw = localStorage.getItem("user");
+    // const user = userRaw ? JSON.parse(userRaw) : null;
 
-    const writerGuid = user?.user_id_1c;
+    // const writerGuid = user?.user_id_1c;
 
     // Закриття меню при кліку поза ним
     useEffect(() => {
@@ -123,9 +103,16 @@ export const ReclamationItem = ({
 
 
     const handleViewComments = (comments) => {
-        setSelectedComments(comments);
-        setIsCommentsOpen(true);
-    };
+        // 1. Повідомляємо батьківський компонент, що прочитано
+        // Це прибере червоний кружечок у UI
+        if (onMarkAsRead) {
+            onMarkAsRead(reclamation.id);
+        }
+
+        // 2. Відкриваємо модалку (вона зробить API запит і оновить IsRead в БД)
+        setSelectedComments(comments);
+        setIsCommentsOpen(true);
+    };
 
     // issueList тепер не використовується, оскільки дані не згруповані.
     // const issueList = Array.isArray(reclamation.issues) ? reclamation.issues : [];
@@ -202,42 +189,52 @@ export const ReclamationItem = ({
                
 
                 <div className="summary-item expandable row w-30 align-start space-between">
-                    {/* !!! ЗМІНА ТУТ: Додано w-full для примусового розтягування колонки на всю ширину. */}
-                    
-                    <div className="column w-full" style={{ flex: 1, minWidth: 0 }}> 
-                        <div className="comments-text-wrapper-last">
-                        {reclamation.message || "Без коментарів"}
-                        </div>
-                        <button
-                        className="btn-comments self-end"
-                        style={{ alignSelf: 'flex-end' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewComments(reclamation.message || []);
-                        }}
-                        >
-                        💬 Історія коментарів
-                        </button>
-                    </div>
-                </div>
+                  <div className="column w-full" style={{ flex: 1, minWidth: 0 }}> 
+                      <div className="comments-text-wrapper-last">
+                          {reclamation.message || "Без коментарів"}
+                      </div>
+                      <button
+                          className="btn-comments self-end"
+                          style={{ alignSelf: 'flex-end', position: 'relative' }}
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewComments(reclamation.message || []);
+                          }}
+                      >
+                          💬 Історія коментарів
+                          {/* 🔴 Підсвітка непрочитаних повідомлень */}
+                          {reclamation.hasUnreadMessages && (
+                              <span
+                                  style={{
+                                      position: 'absolute',
+                                      top: '-0.5px',
+                                      right: '-1px',
+                                      width: '5px',
+                                      height: '5px',
+                                      borderRadius: '50%',
+                                      backgroundColor: 'red',
+                                      display: 'inline-block'
+                                  }}
+                              />
+                          )}
+                      </button>
+                  </div>
+              </div>
 
 
-
-
-                {/* 5. Дилер та Файл (якщо є) */}
-<div
-  className="summary-item flex items-center whitespace-normal"
-  style={{ flexBasis: "15%" }}
->
-  {reclamation.dealer && (
-    <div className="flex items-center gap-1 text-grey font-size-14 break-words">
-      <span className="icon icon-user text-dark shrink-0"></span>
-      <span className="text-dark leading-snug">
-        {reclamation.dealer}
-      </span>
-    </div>
-  )}
-</div>
+              <div
+                className="summary-item flex items-center whitespace-normal"
+                style={{ flexBasis: "15%" }}
+              >
+                {reclamation.dealer && (
+                  <div className="flex items-center gap-1 text-grey font-size-14 break-words">
+                    <span className="icon icon-user text-dark shrink-0"></span>
+                    <span className="text-dark leading-snug">
+                      {reclamation.dealer}
+                    </span>
+                  </div>
+                )}
+              </div>
 
 
                  <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }}>

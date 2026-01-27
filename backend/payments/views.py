@@ -8,7 +8,7 @@ from datetime import date
 from binascii import unhexlify
 
 from django.shortcuts import render
-
+from backend.utils.send_to_1c import send_to_1c
 from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
@@ -21,6 +21,7 @@ from rest_framework import serializers
 from backend.utils.contractor import resolve_contractor
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
+from backend.utils.send_to_1c import send_to_1c
 
 # /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
 
@@ -777,3 +778,113 @@ def customer_bills_view(request):
         "count": len(data),
         "items": data
     })
+
+
+
+import binascii
+
+def get_contractor_guid_from_db(user):
+    if not user.user_id_1C:
+        return None
+
+    # binary → hex string
+    return bin_to_guid_1c(user.user_id_1C)
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def create_invoice(request):
+    user = request.user
+    data = request.data
+
+    contractor_guid = get_contractor_guid_from_db(user)
+
+    if not contractor_guid:
+        return Response(
+            {"error": "User has no 1C contractor GUID"},
+            status=400
+        )
+
+    payload_1c = {
+        "contragentGUID": contractor_guid,
+        "addressGUID": data.get("AddressGUID"),
+        "ibanGUID": data.get("IbanGUID"),
+        "createDate": data.get("OrderCreateDate"),
+        "deliveryDate": data.get("OrderDeliveryDate"),
+        "paymentDate": data.get("OrderPaymentDate"),
+        "comment": data.get("InternalComment", ""),
+        "totalSum": data.get("OrderSuma"),
+        "items": [
+            {
+                "itemID": i.get("ItemGUID"),
+                "count": i.get("Count"),
+                "price": i.get("Price"),
+                "width": i.get("Width"),
+                "height": i.get("Height"),
+            }
+            for i in data.get("OrderItemsLIST", [])
+        ],
+    }
+
+    result = send_to_1c(
+        payload=payload_1c,
+        query="CreateInvoice",
+    )
+
+    return Response({"status": "ok", "data": result}, status=201)
+
+
+
+import requests
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def make_payment_from_advance(request):
+    data = request.data
+
+    amount = data.get("amount")
+    contract = data.get("contract")
+    order_id = data.get("order_id")
+
+    if not amount or not contract or not order_id:
+        return Response(
+            {
+                "error": "Поля amount, contract, order_id є обовʼязковими"
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    payload_1c = {
+        "amount": amount,
+        "contract": contract,
+        "order_id": order_id,
+    }
+
+
+    response_1c = send_to_1c(
+        payload=payload_1c,
+        query="MakePaymentFromAdvance",
+        # url НЕ передаємо — візьметься settings.ONE_C_URL
+        # method="POST" — за замовчуванням
+    )
+
+    return Response(
+        {
+            "success": True,
+            "sent_to_1c": payload_1c,
+            "response_1c": response_1c,
+        },
+        status=status.HTTP_200_OK,
+    )

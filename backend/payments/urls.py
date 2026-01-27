@@ -3,7 +3,7 @@
 from django.urls import path
 from . import views  
 from django.urls import path
-from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view
+from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view, create_invoice, make_payment_from_advance
 
 
 urlpatterns = [
@@ -14,5 +14,7 @@ urlpatterns = [
     path("export_payment_status_excel/", export_payment_status_excel , name="export_payment_status_excel"),
     path("dealers/profile/", dealer_bills_add_info_view , name="dealer_bills_add_info_view"),
     path("dealers/bills/", customer_bills_view, name="customer_bills_view" ),
+    path("create_invoice/", create_invoice, name="create_invoice" ),
+    path("make_payment_from_advance/", make_payment_from_advance, name="make_payment_from_advance"),
 
 ]

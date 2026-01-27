@@ -1578,3 +1578,63 @@ def deactivate_api_key(request, key_id):
         status=status.HTTP_200_OK,
     )
 
+def get_contractor_guid_from_db(user):
+    """
+    Повертає GUID контрагента з бази по користувачу.
+    """
+    if not user.user_id_1C:
+        return None
+
+    # Припустимо, у тебе є функція для конвертації binary → GUID 1С
+    return bin_to_guid_1c(user.user_id_1C)
+
+
+# views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def save_dealer_address_coords(request):
+    """
+    Приймає дані адреси від фронтенду і повертає їх у форматі для 1С.
+    """
+    user = request.user
+    data = request.data
+
+    # Замість data.get("contractorGuid")
+    contractor_guid = get_contractor_guid_from_db(user)
+
+    required_fields = ["house", "latitude", "longitude"]
+    for f in required_fields:
+        if f not in data or data[f] in [None, ""]:
+            return Response({"error": f"Поле {f} обов'язкове"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Переформатуємо координати
+    coordinates = {
+        "latitude": data["latitude"],
+        "longitude": data["longitude"]
+    }
+
+    # Формуємо об'єкт для відправки в 1С
+    address_for_1c = {
+        "contractorGuid": contractor_guid,
+        "addressKindGUID": data.get("addressKindGUID")or None,
+        "region": data.get("region", ""),
+        "district": data.get("district", ""),
+        "city": data.get("city", ""),
+        "street": data.get("street", ""),
+        "house": data.get("house", ""),
+        "apartment": data.get("apartment", ""),
+        "entrance": data.get("entrance", ""),
+        "floor": data.get("floor", ""),
+        "note": data.get("note", ""),
+        "coordinates": coordinates
+    }
+
+    # Тут можна викликати функцію, яка відправляє дані в 1С
+    # send_to_1c(address_for_1c)
+
+    return Response({"success": True, "address": address_for_1c})

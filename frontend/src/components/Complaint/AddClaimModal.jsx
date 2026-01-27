@@ -1,75 +1,113 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
-import { FaTimes, FaPlus } from "react-icons/fa";
+import { FaTimes, FaPlus, FaClipboardList, FaUserAlt } from "react-icons/fa";
 import "./AddClaimModal.css";
 import CustomSelect from "./CustomSelect";
-import { FaClipboardList } from "react-icons/fa";
+import DealerSelect from "../../pages/DealerSelect";
 import { useNotification } from "../notification/Notifications";
 
+export default function AddClaimModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialOrderNumber = "",
+  initialOrderGUID = "",
+}) {
+  /* =========================
+      🔔 Notifications
+     ========================= */
+  const { addNotification } = useNotification();
 
-export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNumber = "", initialOrderGUID = ''  }) {
+  /* =========================
+      👤 Role
+     ========================= */
+  const role = (localStorage.getItem("role") || "").trim().toLowerCase();
+  const isManager = ["manager", "region_manager", "admin"].includes(role);
+
+  /* =========================
+      🧠 State
+     ========================= */
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [claimDate, setClaimDate] = useState("");
   const [reasonLink, setReasonLink] = useState("");
   const [solutionLink, setSolutionLink] = useState("");
   const [description, setDescription] = useState("");
-  const [photos, setPhotos] = useState([]);
 
+  const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [reasonOptions, setReasonOptions] = useState([]);
   const [solutionOptions, setSolutionOptions] = useState([]);
+
   const [seriesOptions, setSeriesOptions] = useState([]);
   const [selectedSeries, setSelectedSeries] = useState([]);
   const [orderNotFound, setOrderNotFound] = useState(false);
-  const fileInputRef = useRef(null);
-  
-  const { addNotification } = useNotification();
 
-  // 🔹 При відкритті блокуємо скрол сторінки
+  const [dealerId, setDealerId] = useState("");
+
+  const fileInputRef = useRef(null);
+
+  /* =========================
+      🔒 Lock scroll
+     ========================= */
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
   }, [isOpen]);
 
-  // 🔹 Скидання номера при повторному відкритті
+  /* =========================
+      🔄 Reset order number
+     ========================= */
   useEffect(() => {
     if (isOpen) setOrderNumber(initialOrderNumber);
   }, [isOpen, initialOrderNumber]);
 
-  // 🔹 Отримати список причин
+  /* =========================
+      📋 Load reasons
+     ========================= */
   useEffect(() => {
     if (!isOpen) return;
+
     const fetchReasons = async () => {
       try {
         const res = await axiosInstance.get("/complaints/issues/");
-        setReasonOptions(res.data.issues || []);
+        setReasonOptions(res.data?.issues || []);
       } catch {
         setReasonOptions([]);
       }
     };
+
     fetchReasons();
   }, [isOpen]);
 
-  // 🔹 Отримати рішення для вибраної причини
+  /* =========================
+      📋 Load solutions
+     ========================= */
   useEffect(() => {
     if (!reasonLink) {
       setSolutionOptions([]);
       setSolutionLink("");
       return;
     }
+
     const fetchSolutions = async () => {
       try {
-        const res = await axiosInstance.get(`/complaints/solutions/${reasonLink}/`);
-        setSolutionOptions(res.data.solutions || []);
+        const res = await axiosInstance.get(
+          `/complaints/solutions/${reasonLink}/`
+        );
+        setSolutionOptions(res.data?.solutions || []);
       } catch {
         setSolutionOptions([]);
       }
     };
+
     fetchSolutions();
   }, [reasonLink]);
 
-  // 🔹 Отримати серії за номером замовлення
+  /* =========================
+      📦 Load series
+     ========================= */
   useEffect(() => {
     if (!orderNumber) {
       setSeriesOptions([]);
@@ -80,8 +118,11 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
 
     const fetchSeries = async () => {
       try {
-        const res = await axiosInstance.get(`/complaints/get_series/${orderNumber}/`);
-        if (!res.data.series || res.data.series.length === 0) {
+        const res = await axiosInstance.get(
+          `/complaints/get_series/${orderNumber}/`
+        );
+
+        if (!res.data?.series?.length) {
           setSeriesOptions([]);
           setSelectedSeries([]);
           setOrderNotFound(true);
@@ -95,39 +136,26 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
         setOrderNotFound(true);
       }
     };
+
     fetchSeries();
   }, [orderNumber]);
 
-  // 🔹 Хендлери
-  const handleSeriesChange = (link) => {
-    setSelectedSeries((prev) =>
-      prev.includes(link) ? prev.filter((l) => l !== link) : [...prev, link]
-    );
-  };
-
-  const getContractorGuid = () => {
-    try {
-      const userRaw = localStorage.getItem("user");
-      if (!userRaw) return null;
-
-      const user = JSON.parse(userRaw);
-      return user?.user_id_1c || null;
-    } catch {
-      return null;
-    }
-  };
-
-
-  const handleAddPhoto = (e) => {
-    const file = e.target.files[0];
-    if (file) setPhotos((prev) => [...prev, file]);
+  /* =========================
+      🖼️ Photos
+     ========================= */
+  const handleAddPhotos = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length) setPhotos((p) => [...p, ...files]);
     e.target.value = null;
   };
 
-  const handleRemovePhoto = (i) => {
-    setPhotos((prev) => prev.filter((_, idx) => idx !== i));
+  const removePhoto = (index) => {
+    setPhotos((p) => p.filter((_, i) => i !== index));
   };
 
+  /* =========================
+      🔄 Reset
+     ========================= */
   const resetForm = () => {
     setOrderNumber("");
     setDeliveryDate("");
@@ -139,6 +167,7 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
     setSeriesOptions([]);
     setSelectedSeries([]);
     setOrderNotFound(false);
+    setDealerId("");
   };
 
   const handleCloseWithReset = () => {
@@ -146,115 +175,129 @@ export default function AddClaimModal({ isOpen, onClose, onSave, initialOrderNum
     onClose();
   };
 
-  // 🔹 Сабміт
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (orderNotFound) return;
+  /* =========================
+      🚀 Submit
+     ========================= */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  setLoading(true);
+    if (orderNotFound) return;
 
-  try {
-    // 🖼️ Фото → base64
-    const photosBase64 = await Promise.all(
-      photos.map(file =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () =>
-            resolve({
-              photo_name: file.name,
-              photo_base64: reader.result.split(",")[1],
-            });
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        })
-      )
-    );
-
-    const contractorGuid = getContractorGuid();
-    if (!contractorGuid) {
-      addNotification("Не знайдено контрагента користувача", "error");
+    if (isManager && !dealerId) {
+      addNotification("Оберіть дилера", "error");
       return;
     }
 
-    const payload = {
-      contractor_guid: contractorGuid,
-      order_number: orderNumber.trim(),
-      order_GUID: initialOrderGUID,
+    setLoading(true);
 
-      order_deliver_date: deliveryDate,
-      order_define_date: claimDate,
-      complaint_date: new Date().toISOString(),
+    try {
+      const photosBase64 = await Promise.all(
+        photos.map(
+          (file) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () =>
+                resolve({
+                  photo_name: file.name,
+                  photo_base64: reader.result.split(",")[1],
+                });
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            })
+        )
+      );
 
-      issue: reasonLink,
-      solution: solutionLink,
-      description,
+      const payload = {
+        ...(isManager && dealerId && { contractor_guid: dealerId }),
 
-      series: selectedSeries.map(link => {
-        const serie = seriesOptions.find(s => s.SeriesLink === link);
-        return {
-          serie_link: link,
-          serie_name: serie?.Name || "",
-        };
-      }),
+        order_number: orderNumber.trim(),
+        order_GUID: initialOrderGUID,
 
-      photos: photosBase64,
-    };
+        order_deliver_date: deliveryDate,
+        order_define_date: claimDate,
+        complaint_date: new Date().toISOString(),
 
-    await axiosInstance.post(
-      "/complaints/create_complaints/",
-      payload,
-      { headers: { "Content-Type": "application/json" } }
-    );
+        issue: reasonLink,
+        solution: solutionLink,
+        description,
 
-    // ✅ SUCCESS
-    addNotification("Рекламацію успішно додано", "success");
-    onSave?.();              // 🔁 reload у батьківському компоненті
-    handleCloseWithReset();
+        series: selectedSeries.map((link) => {
+          const serie = seriesOptions.find((s) => s.SeriesLink === link);
+          return {
+            serie_link: link,
+            serie_name: serie?.Name || "",
+          };
+        }),
 
-  } catch (err) {
-    console.error(err);
+        photos: photosBase64,
+      };
 
-    addNotification(
-      err.response?.data?.error || "Помилка при створенні рекламації",
-      "error"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      await axiosInstance.post(
+        "/complaints/create_complaints/",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
 
+      addNotification("Рекламацію успішно додано", "success");
+      onSave?.();
+      handleCloseWithReset();
+    } catch (err) {
+      console.error(err);
+      addNotification(
+        err.response?.data?.error || "Помилка при створенні рекламації",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
+  /* =========================
+      🧩 Render
+     ========================= */
   return createPortal(
-    <div className="claim-modal-overlay" onClick={onClose}>
-      <div className="claim-modal-window" onClick={(e) => e.stopPropagation()}>
+    <div className="claim-modal-overlay" onClick={handleCloseWithReset}>
+      <div
+        className="claim-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="claim-modal-header">
-        <div className="header-content">
-            <span className="claim-icon"><FaClipboardList /></span>
+          <div className="header-content">
+            <span className="claim-icon">
+              <FaClipboardList />
+            </span>
             <h3>Додати рекламацію</h3>
+          </div>
+          <FaTimes
+            className="claim-close-btn"
+            onClick={handleCloseWithReset}
+          />
         </div>
-        <FaTimes className="claim-close-btn" onClick={handleCloseWithReset} />
-        </div>
-
 
         <form className="claim-form" onSubmit={handleSubmit}>
           <div className="claim-row">
             <span className="label-text">Номер замовлення:</span>
-
             <input
-              type="text"
+              className="claim-input"
               value={orderNumber}
               onChange={(e) => setOrderNumber(e.target.value)}
               required
-              className="claim-input"
             />
-
             {orderNotFound && (
               <span className="error-text">Замовлення не знайдено</span>
             )}
           </div>
 
+          {isManager && (
+            <div className="claim-row">
+              <span className="label-text flex items-center gap-2">
+                <FaUserAlt /> Дилер:
+              </span>
+              <DealerSelect value={dealerId} onChange={setDealerId} />
+            </div>
+          )}
 
           {seriesOptions.length > 0 && (
             <div className="claim-label">
@@ -265,7 +308,13 @@ const handleSubmit = async (e) => {
                     <input
                       type="checkbox"
                       checked={selectedSeries.includes(s.SeriesLink)}
-                      onChange={() => handleSeriesChange(s.SeriesLink)}
+                      onChange={() =>
+                        setSelectedSeries((p) =>
+                          p.includes(s.SeriesLink)
+                            ? p.filter((x) => x !== s.SeriesLink)
+                            : [...p, s.SeriesLink]
+                        )
+                      }
                     />
                     {s.Name} ({s.FullName})
                   </label>
@@ -279,103 +328,91 @@ const handleSubmit = async (e) => {
               <span>Дата доставки:</span>
               <input
                 type="date"
+                className="claim-input"
                 value={deliveryDate}
                 onChange={(e) => setDeliveryDate(e.target.value)}
                 required
-                className="claim-input"
               />
             </label>
+
             <label className="claim-label">
               <span>Дата рекламації:</span>
               <input
                 type="date"
+                className="claim-input"
                 value={claimDate}
                 onChange={(e) => setClaimDate(e.target.value)}
                 required
-                className="claim-input"
               />
             </label>
           </div>
-          <label className="claim-label">
+
           <CustomSelect
             label="Причина рекламації:"
             options={reasonOptions}
             value={reasonLink}
             onChange={setReasonLink}
-            />
-            </label>
+          />
 
-            <label className="claim-label">
-            <CustomSelect
+          <CustomSelect
             label="Варіант вирішення:"
             options={solutionOptions}
             value={solutionLink}
             onChange={setSolutionLink}
             disabled={!solutionOptions.length}
-            />
-            </label>
+          />
+
           <label className="claim-label">
             <span>Опис:</span>
             <textarea
               rows={4}
+              className="claim-textarea"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              className="claim-textarea"
             />
           </label>
 
-         <div className="claim-label row align-center justify-between">
-            <span className="photo-label-text">Фото рекламації:</span>
-
+          <div className="claim-label row justify-between align-center">
+            <span>Фото рекламації:</span>
             <button
-                type="button"
-                className="add-photo-btn"
-                onClick={() => fileInputRef.current.click()}
+              type="button"
+              className="add-photo-btn"
+              onClick={() => fileInputRef.current.click()}
             >
-                <FaPlus style={{ marginRight: 6 }} /> Додати фото
+              <FaPlus /> Додати фото
             </button>
-            </div>
+          </div>
 
-            <input
+          <input
+            ref={fileInputRef}
             type="file"
             accept="image/*"
             multiple
-            ref={fileInputRef}
-            style={{ display: "none" }}
-            onChange={(e) => {
-                const files = Array.from(e.target.files);
-                if (files.length) setPhotos((prev) => [...prev, ...files]);
-                e.target.value = null;
-            }}
-            />
+            hidden
+            onChange={handleAddPhotos}
+          />
 
-            {/* Превʼю фото */}
-            {photos.length > 0 && (
+          {photos.length > 0 && (
             <div className="photo-preview">
-                {photos.map((f, i) => (
+              {photos.map((f, i) => (
                 <div key={i} className="photo-item">
-                    <img
+                  <img
                     src={URL.createObjectURL(f)}
-                    alt={`Фото ${i + 1}`}
+                    alt=""
                     className="photo-thumb"
-                    />
-                    <button
+                  />
+                  <button
                     type="button"
                     className="claim-clear-file"
-                    onClick={() =>
-                        setPhotos((prev) => prev.filter((_, idx) => idx !== i))
-                    }
-                    >
+                    onClick={() => removePhoto(i)}
+                  >
                     ×
-                    </button>
+                  </button>
                 </div>
-                ))}
+              ))}
             </div>
-            )}
-
-
-
+          )}
 
           <div className="claim-modal-footer">
             <button
@@ -385,12 +422,17 @@ const handleSubmit = async (e) => {
             >
               <FaTimes /> Відмінити
             </button>
+
             <button
               type="submit"
               className="claim-btn-save"
               disabled={loading || orderNotFound}
             >
-              {loading ? "Завантаження..." : <><FaPlus /> Додати рекламацію</>}
+              {loading ? "Завантаження..." : (
+                <>
+                  <FaPlus /> Додати рекламацію
+                </>
+              )}
             </button>
           </div>
         </form>

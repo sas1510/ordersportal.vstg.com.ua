@@ -26,7 +26,7 @@ INSTALLED_APPS = [
     'corsheaders',
     "drf_spectacular",
     'users',
-    # 'records'
+    'records'
     # 'complaints',
     # 'contact',
     # 'documents',

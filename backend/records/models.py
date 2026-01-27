@@ -1,5 +1,6 @@
 from django.db import models
 from backend.users.models import CustomUser
+# from users.models import CustomUser
 from django.conf import settings
 # Create your models here.
 class TransactionType(models.Model):
@@ -143,6 +144,12 @@ class Message(models.Model):
     
     message = models.TextField(db_column='Message')
     
+
+    is_read = models.BooleanField(
+        default=False, 
+        db_column='IsRead', 
+        verbose_name='Прочитано'
+    )
     
     created_at = models.DateTimeField(
             auto_now_add=True,
