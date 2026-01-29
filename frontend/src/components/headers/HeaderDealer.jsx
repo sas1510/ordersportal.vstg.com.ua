@@ -16,13 +16,14 @@ const NAV_LINKS = [
 
   { title: "Файли", to: "/files", icon: "icon-document-file-pdf" },
   { title: "Відео", to: "/videos", icon: "icon-youtube" },
-  { title: "SOS", to: "/emergency-contacts", icon: "icon-stats" },
+  { title: "Оплата", to: "/finance/payment", icon: "icon-wallet"   },
+//   { title: "SOS", to: "/emergency-contacts", icon: "icon-stats" },
 ];
 
 const FINANCE_SUBMENU = [
-  { title: "Рух коштів", to: "/finance/paymentMovement" },
+  { title: "Рух коштів", to: "/finance/cash-flow" },
   { title: "Аналітика", to: "/finance/analytics" },
-  { title: "Оплата", to: "/finance/payment" },
+//   { title: "Оплата", to: "/finance/payment" },
   { title: "Рахунки", to: "/finance/customer-bills" },
 ];
 
@@ -175,6 +176,16 @@ export default function HeaderDealer() {
            Адреси доставки
         </Link>
       </li>
+      <li>
+      <Link
+        to="/emergency-contacts"
+        className="menu-link menu-link--sos" // Можна додати спец. клас для червоного кольору
+        onClick={() => setProfileOpen(false)}
+      >
+       Гаряча лінія 
+      </Link> 
+      {/* Зворотний зв'язок*/ }
+    </li>
     </ul>
   )}
 </li>
@@ -278,6 +289,17 @@ export default function HeaderDealer() {
             Адреси доставки
           </Link>
         </li>
+        <li>
+        <Link
+          to="/emergency-contacts"
+          className="menu-link menu-link--sos" // Можна додати спец. клас для червоного кольору
+          onClick={() => setProfileOpen(false)}
+        >
+        Гаряча лінія 
+        </Link> 
+        {/* Зворотний зв'язок*/ }
+      </li>
+        
       </ul>
     </div>
   )}

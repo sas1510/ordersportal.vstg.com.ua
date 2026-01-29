@@ -84,7 +84,7 @@ export const adminRoutes = [
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "users-list", element: <UsersListPage /> },
 
-  { path: "finance/paymentMovement", element: <PaymentStatusV2/> },
+  { path: "finance/cash-flow", element: <PaymentStatusV2/> },
   { path: "finance/payment", element: <PaymentsPage/> },
   { path: "finance/create-bill", element: <CreateBillPage/> },
   { path: "finance/customer-bills", element: <CustomerBillsPage/> },
@@ -124,7 +124,7 @@ export const dealerRoutes = [
 
 
   { path: "change-password", element: <ChangePasswordPage/> },
-  { path: "finance/paymentMovement", element: <PaymentStatusV2/> },
+  { path: "finance/cash-flow", element: <PaymentStatusV2/> },
   { path: "finance/payment", element: <PaymentsPage/> },
   { path: "finance/create-bill", element: <CreateBillPage/> },
   { path: "finance/customer-bills", element: <CustomerBillsPage/> },

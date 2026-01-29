@@ -253,3 +253,28 @@ body.dark-theme {
 
 
 }
+
+
+
+.bill-progress-container {
+  width: 100%;
+  height: 4px;
+  background-color: #e9ecef;
+  overflow: hidden;
+  position: relative;
+}
+
+.bill-progress-bar {
+  height: 100%;
+  background-color: #28a745; /* Зелений колір успіху */
+  transition: width 0.3s ease-in-out; /* Плавна анімація руху */
+  box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+}
+
+/* Опціонально: стилізація тексту кроку, щоб він був помітнішим */
+.step-info {
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: normal;
+  margin-left: 8px;
+}

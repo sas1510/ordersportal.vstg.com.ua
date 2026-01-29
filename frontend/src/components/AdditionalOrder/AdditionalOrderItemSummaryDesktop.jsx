@@ -84,7 +84,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
 
   const handleConfirmOrder = async () => {
     try {
-      const response = await axiosInstance.post(`/orders/${order.guid}/confirm/`);
+      const response = await axiosInstance.post(`/additional-orders/${order.guid}/confirm/`);
       if (response.status === 200 || response.status === 204) {
         addNotification(`Замовлення ${order.number} підтверджено!`, "success");
         setIsConfirmModalOpen(false);

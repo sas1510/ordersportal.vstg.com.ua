@@ -3,12 +3,19 @@ import axiosInstance from "../api/axios";
 import BillItemSelect from "./BillItemSelect";
 import BillSelect from "./BillSelect";
 import "./CreateCustomerBillModal.css";
+import { useNotification } from "../components/notification/Notifications";
 
 /* ===================== STEPS ===================== */
 const STEPS = {
   BASE: 1,
   ITEMS: 2,
   CONFIRM: 3,
+};
+
+const STEP_LABELS = {
+  [STEPS.BASE]: "Вибір реквізитів",
+  [STEPS.ITEMS]: "Додавання товарів",
+  [STEPS.CONFIRM]: "Підтвердження",
 };
 
 export default function CreateCustomerBillModal({
@@ -19,7 +26,8 @@ export default function CreateCustomerBillModal({
 }) {
   if (!isOpen) return null;
 
-  /* ===================== STATE ===================== */
+
+  const { addNotification } = useNotification();
   const [step, setStep] = useState(STEPS.BASE);
 
   const [addresses, setAddresses] = useState([]);
@@ -48,20 +56,20 @@ export default function CreateCustomerBillModal({
 
   /* ===================== LOAD PROFILE ===================== */
 useEffect(() => {
-  if (!isOpen) return;
-
-  const fetchProfile = async () => {
-    const res = await axiosInstance.get(`/payments/dealers/profile/`);
-    const data = res.data || {};
-
-    setAddresses(data.data.addresses || []);
-    setIbans(data.data.accounts || []);
-    setItemsList(data.data.nomenclature || []);
-  };
-
-  fetchProfile();
-}, [isOpen]);
-
+    if (!isOpen) return;
+    const fetchProfile = async () => {
+      try {
+        const res = await axiosInstance.get(`/payments/dealers/profile/`);
+        const data = res.data || {};
+        setAddresses(data.data.addresses || []);
+        setIbans(data.data.accounts || []);
+        setItemsList(data.data.nomenclature || []);
+      } catch (err) {
+        addNotification("Помилка завантаження профілю, спробуйте відкрити форму заново", "error");
+      }
+    };
+    fetchProfile();
+  }, [isOpen, addNotification]);
   /* ===================== ITEMS ===================== */
   const handleAddItem = () => {
     setOrderItems((prev) => [
@@ -114,8 +122,11 @@ useEffect(() => {
 
     try {
       await axiosInstance.post("/payments/create_invoice/", dto);
+      addNotification("Рахунок успішно створено!", "success");
       onSuccess?.();
       onClose();
+    } catch (error) {
+      addNotification("Не вдалося створити рахунок. Спробуйте ще раз.", "error");
     } finally {
       setLoading(false);
     }
@@ -125,15 +136,21 @@ useEffect(() => {
   return (
     <div className="bill-modal-overlay">
       <div className="bill-modal-window">
-        {/* ===== HEADER ===== */}
+
         <div className="bill-modal-header">
           <h3>
             🧾 Створення рахунку
-            <span className="step-info"> • крок {step} з 3</span>
+            <span className="step-info"> • {STEP_LABELS[step]}</span>
           </h3>
-          <button className="bill-close-btn" onClick={onClose}>
-            ✕
-          </button>
+          <button className="bill-close-btn" onClick={onClose}>✕</button>
+        </div>
+
+        {/* ===== PROGRESS BAR ===== */}
+        <div className="bill-progress-container">
+          <div 
+            className="bill-progress-bar" 
+            style={{ width: `${(step / 3) * 100}%` }}
+          ></div>
         </div>
 
         {/* ===== BODY (SCROLLABLE) ===== */}
@@ -352,13 +369,39 @@ useEffect(() => {
           )}
 
           {step < 3 && (
-            <button
-              className="bill-btn-save"
-              onClick={() => setStep(step + 1)}
-            >
-              Далі →
-            </button>
-          )}
+  <button
+    className="bill-btn-save"
+    onClick={() => {
+      // 1. Перевірка для першого кроку
+      if (step === STEPS.BASE) {
+        if (!selectedIban || !selectedAddress) {
+          addNotification("Будь ласка, оберіть IBAN та адресу доставки", "info");
+          return;
+        }
+      }
+
+      // 2. Перевірка для другого кроку
+      if (step === STEPS.ITEMS) {
+        const hasInvalidItems = orderItems.some(
+          i => !i.itemGUID || Number(i.quantity) <= 0 || Number(i.price) <= 0
+        );
+
+        if (orderItems.length === 0 || hasInvalidItems) {
+          addNotification("Перевірте товари: назва, кількість та ціна мають бути заповнені", "info");
+          return;
+        }
+      }
+
+      // Якщо перевірки пройдені — йдемо далі
+      setStep(step + 1);
+    }}
+    // Тепер ми НЕ використовуємо атрибут disabled, щоб спрацьовував onClick
+    // Але можемо додати клас для візуального напів-прозорого стану, якщо хочете
+    style={{ opacity: (step === STEPS.BASE && (!selectedIban || !selectedAddress)) || (step === STEPS.ITEMS && orderItems.some(i => !i.itemGUID)) ? 0.7 : 1 }}
+  >
+    Далі →
+  </button>
+)}
 
           {step === 3 && (
             <button

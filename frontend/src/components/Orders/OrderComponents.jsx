@@ -17,6 +17,34 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
   const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
   const { addNotification } = useNotification();
 
+  const user = useMemo(() => {
+      try {
+        return JSON.parse(localStorage.getItem("user"));
+      } catch {
+        return null;
+      }
+    }, []);
+
+
+  const isDealerRecipient = useMemo(() => {
+    if (!calc.recipient || !calc.dealer) return false;
+
+    return calc.recipient.trim().toLowerCase() ===
+          calc.dealer.trim().toLowerCase();
+  }, [calc.recipient, calc.dealer]);
+
+  const isAdmin = user?.role === "admin";
+
+  
+  const recipientIconClass = isDealerRecipient
+    ? "text-success"   // дилер = отримувач
+    : "text-warning";  // менеджер / інший отримувач
+
+  // const recipientLabel = 
+  //   ? "Отримувач"
+  //   : calc.dealer || "Контрагент";
+
+
   // 1. Мемоїзація простих обробників
   const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
   const handleEdit = useCallback(
@@ -227,21 +255,36 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
               </div>
             </div>
 
-            {/* 👤 Дилер — ВІДКРИТТЯ МОДАЛКИ */}
+ 
             {calc.dealer && (
-              <div className="text-grey font-size-12">
+              <div className="text-grey font-size-12 row align-start gap-1">
+                <i
+                  className={`fa fa-address-card mt-0.5 mr-0.5 ${recipientIconClass}`}
+                  aria-hidden="true"
+                  title={
+                    isDealerRecipient
+                      ? "Отримувач — дилер"
+                      : "Отримувач — інший контрагент"
+                  }
+                />
+
                 <span
                   className="text-dark dealer-wrap dealer-clickable"
                   onClick={(e) => {
                     e.stopPropagation();
-                    // setSelectedCalc(calc);
                     setIsCounterpartyOpen(true);
                   }}
                 >
-                  {calc.dealer}
+                  {isAdmin ? (
+                    <span>{calc.dealer}</span>
+                  ) : (
+                    <span >Отримувач</span>
+                  )}
                 </span>
               </div>
             )}
+
+
 
           </div>
         </div>

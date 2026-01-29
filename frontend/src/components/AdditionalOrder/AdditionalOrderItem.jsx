@@ -12,7 +12,7 @@ import { formatDateHumanShorter } from "../../utils/formatters"; // Припус
 import "./AdditionalOrderItem.css"
 // ================= AdditionalOrderItem.jsx (Замість CalculationItem.jsx) =================
 
-export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
+export const AdditionalOrderItem = ({ calc, onDelete, onEdit, onMarkAsRead }) => {
   // calc тепер представляє Additional Order (Додаткове Замовлення)
   const additionalOrder = calc; 
   
@@ -25,16 +25,16 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
   const userRaw = localStorage.getItem("user");
   const user = userRaw ? JSON.parse(userRaw) : null;
 
-  // const writerGuid = user?.user_id_1c;
 
-  // Перевірка наявності даних про основне замовлення
+
+ 
   const hasMainOrder = !!additionalOrder.mainOrderNumber;
 
   const handleEdit = (updatedOrder) => { 
     if (onEdit) onEdit(updatedOrder);
   };
   
-  // ... handleDownload, handleDelete, handleViewComments (логіка залишається незмінною) ...
+  
   const handleDownload = async () => {
     try {
       const response = await axiosInstance.get(`/additional-orders/${additionalOrder.id}/download/file/`, { 
@@ -59,9 +59,18 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit }) => {
   };
 
   const handleViewComments = (comments) => {
-    setSelectedComments(comments);
-    setIsCommentsOpen(true);
-  };
+
+        if (onMarkAsRead) {
+            onMarkAsRead(additionalOrder.id);
+        }
+
+    
+        setSelectedComments(comments);
+        setIsCommentsOpen(true);
+    };
+
+
+
 
   const orderList = Array.isArray(additionalOrder.orders) ? additionalOrder.orders : [];
 const ordersWithNumbers = orderList.filter(order => order.number);
@@ -154,7 +163,16 @@ const ordersWithNumbers = orderList.filter(order => order.number);
                 handleViewComments(additionalOrder.comments || []);
               }}
             >
-              💬 Історія коментарів
+               <i
+                className="fas fa-comments"
+                style={{
+
+                    color: additionalOrder.hasUnreadMessages ? 'var(--danger-color)' : 'inherit', 
+                    transition: 'color 0.3s' ,
+                    marginRight: '3px'
+
+                }}
+                ></i> Історія коментарів
             </button>
           </div>
         </div>

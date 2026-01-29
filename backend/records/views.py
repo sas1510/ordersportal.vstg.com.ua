@@ -559,6 +559,8 @@ def additional_orders_view(request):
     # -------------------------------------------------
     contractor_bin, _ = resolve_contractor(request)
 
+
+
     # -------------------------------------------------
     # 📦 SQL
     # -------------------------------------------------
@@ -575,12 +577,33 @@ def additional_orders_view(request):
         columns = [c[0] for c in cursor.description]
         rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
+    additional_order_bins = [
+            r["AdditionalOrderGuid"]
+            for r in rows
+            if r.get("AdditionalOrderGuid")
+        ]
+
+    unread_additional_orders = set(
+        Message.objects.filter(
+            base_transaction_id__in=additional_order_bins,
+            is_read=False
+        )
+        .exclude(writer_id=contractor_bin)
+        .values_list("base_transaction_id", flat=True)
+        .distinct()
+    )
+
+
     # -------------------------------------------------
     # 🎛 FORMAT DATA
     # -------------------------------------------------
     formatted = []
 
     for r in rows:
+        additional_guid_bin = r.get("AdditionalOrderGuid")
+
+        has_unread = additional_guid_bin in unread_additional_orders
+    
         if r.get("AdditionalOrderGuid"):
             r["AdditionalOrderGuid"] = bin_to_guid_1c(r["AdditionalOrderGuid"])
 
@@ -596,6 +619,7 @@ def additional_orders_view(request):
             "guid": r.get("AdditionalOrderGuid"),
             "id": number,
             "number": number,
+            "hasUnreadMessages": has_unread,
             "numberWEB": r.get("NumberWEB"),
             "mainOrderNumber": r.get("OrderNumber"),
             "mainOrderDate": clean_date(r.get("MainOrderDate")),
@@ -1352,9 +1376,10 @@ def orders_view_all_by_month(request):
     # SQL
     # =====================================================
     with connection.cursor() as cursor:
+        #  EXEC [dbo].[GetOrdersMonth]
         cursor.execute(
             """
-            EXEC [dbo].[GetOrdersMonth]
+            EXEC [dbo].[GetOrdersMonthWithCalculations]
                 @Year = %s,
                 @Month = %s
             """,
@@ -1369,24 +1394,29 @@ def orders_view_all_by_month(request):
     calcs_dict = {}
 
     for row in rows:
-        calc_id = row.get("ClientOrderNumber") or "default"
+        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or "default"
 
         constructions_count = int(row.get("ConstructionsCount") or 0)
-        calculation_date = row.get("CalculationDate")
+        calculation_date = row.get("CalcDate") or row.get("CalculationDate")
         order_date = row.get("OrderDate")
 
         if calc_id not in calcs_dict:
             calcs_dict[calc_id] = {
                 "id": calc_id,
-                "number": row.get("ClientOrderNumber") or "",
-                "webNumber": row.get("WebNumber") or "",
+                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or "",
+                "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date,
                 "orders": [],
                 "dealer": row.get("Customer"),
                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": constructions_count,
-                "file": row.get("File"),
+                "recipient": row.get("Recipient") or row.get("Customer"), 
+                "recipientPhone": row.get("RecipientPhone") or '', 
+                "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
+                "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
+                "file": bin_to_guid_1c(row.get("FileLink")) or '',
+                "fileName": row.get("CalcFileName") or '',
                 "message": row.get("Message"),
                 "raw_order_dates": [order_date] if order_date else [],
             }
@@ -1455,9 +1485,12 @@ def orders_view_all_by_month(request):
 
         calc["statuses"] = status_counts
         calc["orderCountInCalc"] = len(orders)
-        calc["constructionsCount"] = calc["constructionsQTY"]
+        calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
         calc["amount"] = total_amount
         calc["debt"] = total_amount - total_paid
+        if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
+            calc["constructionsQTY"] = row.get("CalcConstructionsCount")
+
 
         formatted_calcs.append(calc)
 

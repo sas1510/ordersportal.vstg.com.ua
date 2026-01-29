@@ -1961,6 +1961,12 @@ white-space: nowrap;
     .button { padding: 5px 6px !important; font-size: 11px !important; }
 
 }
+
+ @media (max-width: 1600px) {
+     .font-size-12 { font-size: 10px !important; }
+    }
+
+    
 @media (max-width: 1500px) {
 
     /* Зменшуємо padding і margin для контейнерів */

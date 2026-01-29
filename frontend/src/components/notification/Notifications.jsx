@@ -25,7 +25,7 @@ export const NotificationProvider = ({ children }) => {
   (message, type = "info", duration) => {
     const id = Math.random().toString(36).slice(2);
 
-    const timeout = typeof duration === "number" ? duration : 7000;
+    const timeout = typeof duration === "number" ? duration : 6000;
 
     setNotifications(prev => [
       ...prev,

@@ -208,21 +208,19 @@ export const ReclamationItemMobile = ({
                     <button
                         className="text-info font-size-11 underline flex items-center flex-shrink-0 ml-2"
                         onClick={(e) => handleViewComments(e, reclamation.comments || [])}>
-                        💬 Переглянути
-                        {reclamation.hasUnreadMessages && (
-                              <span
-                                  style={{
-                                      position: 'relative',
-                                      top: '-4px',
-                                      right: '-1px',
-                                      width: '5px',
-                                      height: '5px',
-                                      borderRadius: '50%',
-                                      backgroundColor: 'red',
-                                      display: 'inline-block'
-                                  }}
-                              />
-                          )}
+                            <i
+                            className="fas fa-comments"
+                            style={{
+
+                                color: reclamation.hasUnreadMessages ? 'var(--danger-color)' : 'inherit', 
+                                transition: 'color 0.3s' ,
+                                marginRight: '3px'
+
+                            }}
+                            ></i>
+                            Переглянути
+
+                
                     </button>
                 </div>
 

@@ -67,7 +67,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
       case "Відмова": return "text-danger";
       case "Підтверджений": return "text-info";
       case "Готовий":
-      case "Відвантажений": return "text-success";
+      case "Доставлено": return "text-success";
       default: return "text-grey";
     }
   };
@@ -77,7 +77,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
 
   const handleConfirmOrder = async () => {
     try {
-      const response = await axiosInstance.post(`/orders/${order.guid}/confirm/`);
+      const response = await axiosInstance.post(`/additional-orders/${order.guid}/confirm/`);
       if (response.status === 200 || response.status === 204) {
         addNotification(`Замовлення ${order.number} підтверджено!`, "success");
         setIsConfirmModalOpen(false);

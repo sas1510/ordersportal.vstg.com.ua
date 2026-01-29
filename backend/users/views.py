@@ -985,23 +985,21 @@ def admin_change_user_password(request, user_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_all_users_view(request):
-    """
-    Повертає список всіх користувачів з ролями (тільки для ADMIN).
-    Якщо менеджер — повертає тільки його дилерів.
-    """
     user = request.user
 
-    # --- ADMIN бачить всіх ---
     if user.role == "admin":
         users = CustomUser.objects.all().order_by("role", "full_name")
-
-
-
     else:
         return Response(
             {"detail": "У вас немає прав для перегляду цього списку"},
             status=status.HTTP_403_FORBIDDEN
         )
+
+    # Отримуємо всі інвайти, щоб не робити запит до БД в циклі (Optimization)
+    invites_map = {
+        i.user_id_1C: i.used 
+        for i in Invitation.objects.all()
+    }
 
     data = [
         {
@@ -1012,7 +1010,10 @@ def get_all_users_view(request):
             "role": u.role,
             "is_active": u.is_active,
             "phone_number": u.phone_number,
-            "expire_date" : u.expire_date           
+            "expire_date": u.expire_date,
+            # Додаємо статус інвайту
+            "is_invited": invites_map.get(u.user_id_1C) is not None, # Чи створювався інвайт взагалі
+            "invite_accepted": invites_map.get(u.user_id_1C, False)   # Чи був він використаний (used)
         }
         for u in users
     ]

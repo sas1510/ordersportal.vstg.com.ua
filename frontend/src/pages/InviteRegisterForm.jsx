@@ -174,11 +174,13 @@ export default function InviteRegisterForm() {
   if (success)
     return (
       <div className="portal-body align-center">
-        <div className="panel invite-panel text-success text-center invite-padding">
-          <i className="fa-solid fa-circle-check font-size-32 mb-10"></i>
-          <div>Реєстрацію успішно завершено! Тепер ви можете увійти в систему.</div>
-        </div>
-      </div>
+  <div className="panel invite-panel text-success invite-padding">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+      <i className="fa-solid fa-circle-check font-size-32"></i>
+      <span>Реєстрацію успішно завершено! Тепер ви можете увійти в систему.</span>
+    </div>
+  </div>
+</div>
     );
 
   /* ================= RENDER ================= */

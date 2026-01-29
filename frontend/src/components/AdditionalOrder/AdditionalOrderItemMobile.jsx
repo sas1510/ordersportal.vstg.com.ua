@@ -6,7 +6,7 @@ import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
 import axiosInstance from "../../api/axios";
 
-export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
+export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit, onMarkAsRead }) => {
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
@@ -43,10 +43,18 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
     if (onDelete) await onDelete(calc.id);
   };
 
-  const handleViewComments = (comments) => {
-    setSelectedComments(comments);
-    setIsCommentsOpen(true);
-  };
+   const handleViewComments = (comments) => {
+
+        if (onMarkAsRead) {
+            onMarkAsRead(calc.id);
+        }
+
+    
+        setSelectedComments(comments);
+        setIsCommentsOpen(true);
+    };
+
+
 
   const orderList = Array.isArray(calc.orders) ? calc.orders : [];
 
@@ -78,7 +86,7 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
 
           paddingLeft: "12px"}}>
 
-      {/* ============ MOBILE VERSION (COMPACT) ============ */}
+
       <div className="md:hidden flex flex-col w-full p-3 bg-white rounded-lg shadow-md border border-gray-200"
         onClick={toggleExpanded}>
         
@@ -117,16 +125,16 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
             </div> */}
           </div>
 
-          {/* Замовлення (з урахуванням, що його може не бути) */}
+
           <div className="flex flex-col p-1.5 bg-blue-50 rounded">
             {calc.mainOrderNumber ? (
-              // Варіант 1: Основне замовлення існує
+              
               <div className="flex items-center gap-1 mb-0.5" title="Номер Основного Замовлення">
                 <span className="font-size-22 text-info">№</span>
                 <span className="font-size-22 text-danger font-weight-bold">{calc.mainOrderNumber}</span>
               </div>
             ) : (
-              // Варіант 2: Основне замовлення відсутнє
+      
               <div className="flex items-center justify-center h-full mb-0.5">
                 <span className="font-size-16 text-grey font-weight-bold">Без замовлення</span>
               </div>
@@ -156,7 +164,7 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
           </div>
         </div>
 
-        {/* Статуси замовлень */}
+
         {calc.statuses && Object.keys(calc.statuses).length > 0 && (
           <div className="mb-2 p-1.5 bg-gray-50 rounded">
             <div className="flex items-center gap-1.5 mb-1.5">
@@ -174,7 +182,7 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
           </div>
         )}
 
-        {/* Коментар */}
+
         <div className="mb-2 p-1.5 bg-yellow-50 rounded flex items-center justify-between">
             <div className="text-grey font-size-11">Коментар: </div>
 
@@ -184,7 +192,16 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
                 e.stopPropagation();
                 handleViewComments(calc.message || []);
                 }}>
-                💬 Переглянути
+                <i
+                className="fas fa-comments"
+                style={{
+
+                    color: calc.hasUnreadMessages ? 'var(--danger-color)' : 'inherit', 
+                    transition: 'color 0.3s' ,
+                    marginRight: '3px'
+
+                }}
+                ></i> Переглянути
             </button>
             </div>
 
@@ -201,9 +218,9 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit }) => {
         </div>
       </div>
 
-      {/* ============ CALC DETAILS (для обох версій) ============ */}
+
       {expanded && (
-        // Зменшено mt- (margin-top) і gap-
+
         <div className="item-details column gap-2.5 mt-2">
           {orderList.length === 0 ? (
             <div className="order-item column gap-14 w-100 align-center p-3 md:p-8">

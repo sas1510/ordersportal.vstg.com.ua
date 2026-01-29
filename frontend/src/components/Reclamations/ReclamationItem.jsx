@@ -157,10 +157,10 @@ export const ReclamationItem = ({
                 paddingLeft: "12px"
             }}
         >
-            {/* ============ RECLAMATION SUMMARY ============ */}
+
             <div className="item-summary row w-100" onClick={toggleExpanded}>
                 
-                {/* 1. Іконка та Номер рекламації */}
+   
                 <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }}>
                     <span className="icon icon-circle-with-cross font-size-22 text-danger"></span> 
                     <div className="column">
@@ -201,22 +201,19 @@ export const ReclamationItem = ({
                               handleViewComments(reclamation.message || []);
                           }}
                       >
-                          💬 Історія коментарів
-                          {/* 🔴 Підсвітка непрочитаних повідомлень */}
-                          {reclamation.hasUnreadMessages && (
-                              <span
-                                  style={{
-                                      position: 'absolute',
-                                      top: '-0.5px',
-                                      right: '-1px',
-                                      width: '5px',
-                                      height: '5px',
-                                      borderRadius: '50%',
-                                      backgroundColor: 'red',
-                                      display: 'inline-block'
-                                  }}
-                              />
-                          )}
+                        <i
+                        className="fas fa-comments"
+                        style={{
+
+                            color: reclamation.hasUnreadMessages ? 'var(--danger-color)' : 'inherit', 
+                            transition: 'color 0.3s' ,
+                            marginRight: '3px'
+
+                        }}
+                        ></i>
+                        Історія коментарів
+
+                         
                       </button>
                   </div>
               </div>

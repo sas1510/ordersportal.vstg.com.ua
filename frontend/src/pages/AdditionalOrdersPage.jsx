@@ -59,6 +59,24 @@ const AdditionalOrders = () => {
   const handleAddClick = () => setIsModalOpen(true);
   const handleClose = () => setIsModalOpen(false);
 
+  const handleAdditionalOrderRead = useCallback((id) => {
+    setAdditionalOrdersData(prev =>
+        prev.map(o =>
+          o.id === id
+            ? { ...o, hasUnreadMessages: false }
+            : o
+        )
+      );
+
+      setFilteredItems(prev =>
+        prev.map(o =>
+          o.id === id
+            ? { ...o, hasUnreadMessages: false }
+            : o
+        )
+      );
+    }, []);
+
   // const handleSave = (newOrder) => { // Не використовується
   //   console.log("Нове замовлення:", newOrder);
   // };
@@ -445,6 +463,7 @@ const AdditionalOrders = () => {
                     onOrderToggle={toggleOrder}
                     onDelete={handleDeleteAdditionalOrder}
                     onEdit={handleUpdateAdditionalOrder}
+                    onMarkAsRead={handleAdditionalOrderRead}
                   />
                 ) : (
                   <AdditionalOrderItem // Зберігаємо ім'я компонента, але він тепер відображає Дод. Замовлення
@@ -456,6 +475,7 @@ const AdditionalOrders = () => {
                     onOrderToggle={toggleOrder}
                     onDelete={handleDeleteAdditionalOrder}
                     onEdit={handleUpdateAdditionalOrder}
+                    onMarkAsRead={handleAdditionalOrderRead}
                   />
                 )
               ))
