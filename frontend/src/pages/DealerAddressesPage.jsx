@@ -589,12 +589,22 @@ useEffect(() => {
   };
 
   /* ================= LOAD ADDRESSES ================= */
-  const loadAddresses = useCallback(() => {
-    if (!contractorGuid) return;
-    axiosInstance
-      .get("/get_dealer_addresses_change/", { params: { contractor: contractorGuid } })
-      .then((res) => setAddresses(res.data.addresses || []));
-  }, [contractorGuid]);
+  const loadAddresses = useCallback(async () => {
+  if (!contractorGuid) return;
+
+  const res = await axiosInstance.get(
+    "/get_dealer_addresses_change/"
+  );
+
+  const list = res.data.addresses || [];
+  setAddresses(list);
+
+  // ✅ АВТОВИБІР АДРЕСИ
+  if (!selectedAddress && list.length > 0) {
+    onSelectAddress(list[0]); // перша адреса
+  }
+}, [selectedAddress]);
+
 
   useEffect(() => {
     loadAddresses();

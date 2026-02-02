@@ -10,6 +10,7 @@ import './styles/mobile-responsive.css';
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import InviteRegisterForm from "./pages/InviteRegisterForm";
+import FilePreviewErrorPage from './pages/FilePreviewErrorPage'
 
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
@@ -105,6 +106,7 @@ function AppRoutes() {
         <Route path="login" element={<LoginPage />} />
         <Route path="invite/:code/" element={<InviteRegisterForm />} />
         {/* <Route path="api/admin" element={<InviteRegisterForm />} /> */}
+        {/* <Route path="file-preview/:errorType" element={<FilePreviewErrorPage />} /> */}
 
       </Route>
 

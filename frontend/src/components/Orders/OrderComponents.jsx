@@ -146,24 +146,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
     }
   }, []);
 
-  // 5. Додавання коментаря
-  const handleAddComment = useCallback(
-    async (text) => {
-      try {
-        await axiosInstance.post(
-          `/calculations/${calc.number}/add-comment/`,
-          { message: text }
-        );
-        const res = await axiosInstance.get(
-          `/calculations/${calc.number}/comments/`
-        );
-        setSelectedComments(res.data);
-      } catch (err) {
-        console.error("Помилка при додаванні коментаря:", err);
-      }
-    },
-    [calc.number]
-  );
+ 
 
   return (
     <div className={`calc-item column`}  style={{
@@ -341,7 +324,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
         onClose={() => setIsCommentsOpen(false)}
         comments={selectedComments}
         orderId={calc.id}
-        onAddComment={handleAddComment}
+ 
       />
 
       <CounterpartyInfoModal

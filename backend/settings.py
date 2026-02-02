@@ -207,7 +207,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # SESSION_COOKIE_AGE = 60 * 60 * 8   
-FRONTEND_URL = "https://ordersportal.vstg.com.ua/"
+FRONTEND_URL = "http://172.17.19.107/"
 
 
 ONE_C_URL = "http://192.168.50.50/oknastyle_hp/hs/gp-obmen/"

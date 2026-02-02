@@ -12,6 +12,7 @@ import {
 import axiosInstance from "../../api/axios";
 import PhotoModal from "./PhotoModal";
 import { formatDate } from "../../utils/formatters";
+import { useNotification } from "../notification/Notifications.jsx";
 
 // =================================================================================
 // === ДОПОМІЖНІ КОМПОНЕНТИ (InfoRow, HorizontalInfoGroup, FullWidthInfoGroup) ===
@@ -123,6 +124,7 @@ const isVideo = (name) => /\.(mp4|webm|ogg)$/i.test(name);
 const ComplaintItemDetailView = ({ complaint }) => {
     const { theme } = useTheme();
     const c = theme === 'dark' ? colorsSet.dark : colorsSet.light;
+    const { addNotification } = useNotification();
 
     const [files, setFiles] = useState([]);
     const [photoIndex, setPhotoIndex] = useState(0);
@@ -131,57 +133,75 @@ const ComplaintItemDetailView = ({ complaint }) => {
     const [isMediaLoading, setIsMediaLoading] = useState(false);
 
     /* ================= 1. ЗАВАНТАЖЕННЯ СПИСКУ ФАЙЛІВ ================= */
-    useEffect(() => {
-        if (!complaint?.guid) return;
 
-        axiosInstance
-            .get(`/complaints/${complaint.guid}/files/`)
-            .then(res => setFiles(res.data.files || []))
-            .catch(err => console.error("Error loading files list:", err));
-    }, [complaint?.guid]);
 
     const imageFiles = files.filter(f => isImage(f.File_FileName));
     const videoFiles = files.filter(f => isVideo(f.File_FileName));
 
-    /* ================= 2. ФУНКЦІЯ ОТРИМАННЯ URL З ТОКЕНОМ ================= */
-    const getSecureUrl = async (file) => {
-        try {
-            const res = await axiosInstance.post("/complaints/media-token/", {
-                file_guid: file.File_GUID,
-            });
-            const token = res.data.token;
-            // Формуємо URL з токеном для запиту без JWT заголовка (для відкриття у вкладці/тегах)
-            return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(file.File_FileName)}&token=${token}`;
-        } catch (e) {
-            console.error("❌ Помилка токена для:", file.File_FileName);
-            return null;
-        }
-    };
+    const loadFiles = useCallback(async () => {
+        if (!complaint?.guid) return;
 
+        try {
+            const res = await axiosInstance.get(`/complaints/${complaint.guid}/files/`);
+            setFiles(res.data.files || []);
+        } catch (err) {
+            console.error("Error loading files list:", err);
+            
+            // Сповіщення з кнопкою по центру
+            addNotification(
+                <div className="flex flex-col gap-2 items-center text-center"> 
+                    <span>Не вдалося завантажити медіа-файли рекламації.</span>
+                    <button 
+                        onClick={() => loadFiles()} 
+                        className="bg-white text-red-600 px-3 py-1.5 rounded text-xs font-bold w-fit shadow-md active:scale-95 transition-transform"
+                    >
+                        Спробувати ще раз
+                    </button>
+                </div>,
+                "warning", 
+                0 // 0 означає, що сповіщення не зникне саме (якщо ваша система це підтримує)
+            );
+        }
+    }, [complaint?.guid, addNotification]);
+
+    useEffect(() => {
+        loadFiles();
+    }, [loadFiles]);
+
+    /* ================= 2. ФУНКЦІЯ ОТРИМАННЯ URL З ТОКЕНОМ ================= */
+    const getSecureUrl = useCallback(async (file) => {
+  try {
+    const res = await axiosInstance.post("/complaints/media-token/", {
+      file_guid: file.File_GUID,
+    });
+    const token = res.data.token;
+    
+    // Переконайтеся, що URL формується правильно
+    return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(file.File_FileName)}&token=${token}`;
+  } catch (e) {
+    console.error("❌ Token error:", file?.File_FileName, e);
+    return null; // Якщо помилка, повертаємо null
+  }
+}, [complaint?.guid]);
     /* ================= 3. ОБРОБНИКИ КЛІКІВ ================= */
     
     // Для відео (ідентично вашому прикладу)
     const handleVideoClick = async (file) => {
         const url = await getSecureUrl(file);
-        if (!url) {
-            alert("❌ Не вдалося відкрити відео");
-            return;
-        }
+        if (!url) return; // addNotification вже спрацює всередині getSecureUrl
 
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
         if (isIOS) {
-            // 🔴 Safari workaround: відкриваємо як файл (не popup)
             window.location.href = url;
         } else {
-            // ✅ Chrome / Android / Desktop
             window.open(url, "_blank", "noopener,noreferrer");
         }
     };
 
-
     // Для фото - генеруємо токени для ВСІХ фото перед відкриттям модалки
     const handlePhotoClick = async (index) => {
+        if (imageFiles.length === 0) return;
+        
         setIsMediaLoading(true);
         try {
             const urls = await Promise.all(imageFiles.map(file => getSecureUrl(file)));
@@ -192,8 +212,10 @@ const ComplaintItemDetailView = ({ complaint }) => {
                 setPhotoIndex(index);
                 setPhotoOpen(true);
             } else {
-                alert("❌ Не вдалося отримати доступ до фото");
+                addNotification("Не вдалося відкрити фото для перегляду", "warning");
             }
+        } catch (err) {
+            addNotification("Сталася помилка при завантаженні зображень", "danger");
         } finally {
             setIsMediaLoading(false);
         }
@@ -260,9 +282,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                             <h3 className="text-base font-bold">Відповідальний менеджер:</h3>
                         </div>
                         <div className="flex items-center gap-6">
-                            <div className="h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style={{ backgroundColor: c.iconManager }}>
-                                {complaint.manager ? complaint.manager.split(' ').map(n => n[0]).join('') : '?'}
-                            </div>
+                      
                             <div className="text-sm font-medium" style={{ color: c.text }}>
                                 {complaint.manager || 'Не вказано'}
                             </div>

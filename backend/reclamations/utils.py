@@ -4,14 +4,9 @@ import hashlib
 import base64
 from django.conf import settings
 
-
 SECRET = settings.SECRET_KEY.encode()
 
-
 def generate_media_token(file_guid: str, ttl_seconds: int = 180) -> str:
-    """
-    Генерує підписаний токен для доступу до файлу (10 хв за замовчуванням)
-    """
     exp = int(time.time()) + ttl_seconds
     payload = f"{file_guid}|{exp}".encode()
 
@@ -21,16 +16,33 @@ def generate_media_token(file_guid: str, ttl_seconds: int = 180) -> str:
         hashlib.sha256
     ).digest()
 
-    token = base64.urlsafe_b64encode(payload + b"." + signature).decode()
+    # 🔐 без "=" → ідеально для URL
+    token = base64.urlsafe_b64encode(
+        payload + b"." + signature
+    ).decode().rstrip("=")
+
     return token
 
 
+from urllib.parse import unquote
+import time
+import hmac
+import hashlib
+import base64
+
 def verify_media_token(token: str) -> str | None:
-    """
-    Перевіряє токен і повертає file_guid або None
-    """
     try:
-        raw = base64.urlsafe_b64decode(token.encode())
+        # 🔓 якщо прийшов quoted
+        token = unquote(token)
+
+        # 🔁 повертаємо padding
+        padding = "=" * (-len(token) % 4)
+        raw = base64.urlsafe_b64decode(token + padding)
+
+        # 🔍 чітка валідація формату
+        if b"." not in raw:
+            return None
+
         payload, signature = raw.rsplit(b".", 1)
 
         expected_sig = hmac.new(
@@ -42,11 +54,17 @@ def verify_media_token(token: str) -> str | None:
         if not hmac.compare_digest(signature, expected_sig):
             return None
 
-        file_guid, exp = payload.decode().split("|")
+        decoded = payload.decode(errors="strict")
+        if "|" not in decoded:
+            return None
+
+        file_guid, exp = decoded.split("|", 1)
+
         if int(exp) < int(time.time()):
             return None
 
         return file_guid
+
     except Exception:
         return None
 

@@ -7,7 +7,7 @@ import AddReorderModal from '../components/AdditionalOrder/AddReorderModal';
 // import DealerSelectModal from '../components/Orders/DealerSelectModal'; // Видалено
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
-
+import useCancelAllRequests from "../hooks/useCancelAllRequests";
 
 
 
@@ -15,7 +15,7 @@ const initialLimit = 100;
 
 // Перейменовуємо компонент
 const AdditionalOrders = () => {
-
+  const { register, cancelAll } = useCancelAllRequests();
 
   // Перейменовуємо змінні, пов'язані з "Прорахунками" на "Додаткові Замовлення"
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false); // Замість isCalcModalOpen
@@ -34,6 +34,9 @@ const AdditionalOrders = () => {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
   const { theme, toggleTheme } = useTheme();
+
+  const [error, setError] = useState(null); 
+  const [reloading, setReloading] = useState(false);
 
   // ⚠️ ВИДАЛЕНО: ІНІЦІАЛІЗАЦІЯ ДИЛЕРА ТА ПОВ'ЯЗАНІ useEffect
   // ⚠️ ВИДАЛЕНО: handleDealerSelect
@@ -77,9 +80,7 @@ const AdditionalOrders = () => {
       );
     }, []);
 
-  // const handleSave = (newOrder) => { // Не використовується
-  //   console.log("Нове замовлення:", newOrder);
-  // };
+
 
   const handleSaveAdditionalOrder = useCallback((newOrder) => { // Замість handleSaveCalculation
     const formattedOrder = {
@@ -147,60 +148,95 @@ const AdditionalOrders = () => {
 
 
  useEffect(() => {
-  const controller = new AbortController();
-  const signal = controller.signal;
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-  const fetchData = async () => {
-    setLoading(true);
+    const fetchData = async () => {
+        setLoading(true);
+        setError(null); // Важливо скидати помилку при зміні року
+
+        try {
+            const response = await axiosInstance.get(
+                '/additional_orders/get_additional_orders_info/',
+                { params: { year: selectedYear }, signal }
+            );
+
+            if (signal.aborted) return;
+
+            if (response.data?.status === "success") {
+                const rawData = response.data.data?.calculation || [];
+                const allOrders = rawData.map(item => ({
+                    ...item,
+                    date: formatDateHuman(item.dateRaw),
+                    orders: (item.orders || []).map(order => ({
+                        ...order,
+                        date: formatDateHuman(order.dateRaw),
+                    })),
+                }));
+
+                setAdditionalOrdersData(allOrders);
+                setFilteredItems(getFilteredItems(filter.status, filter.month, filter.name, allOrders));
+            } else {
+                setError("Помилка завантаження даних із сервера.");
+            }
+        } catch (error) {
+            if (error.name !== "CanceledError") {
+                setError("Не вдалося завантажити дані. Перевірте підключення.");
+                setAdditionalOrdersData([]);
+                setFilteredItems([]);
+            }
+        } finally {
+            if (!signal.aborted) {
+                setLoading(false);
+                setDisplayLimit(initialLimit);
+            }
+        }
+    };
+
+    fetchData();
+    return () => controller.abort();
+}, [selectedYear]); // Залиште тільки selectedYear, щоб уникнути циклів
+
+const reloadAdditionalOrders = useCallback(async () => {
+    cancelAll();
+    const controller = register();
+    setReloading(true);
+    setError(null); // Очищуємо попередню помилку
 
     try {
-      const response = await axiosInstance.get(
-        '/additional_orders/get_additional_orders_info/',
-        {
-          params: { year: selectedYear },
-          signal,
-        }
-      );
-
-      if (signal.aborted) return;
-
-      if (response.data?.status === "success") {
-        const rawData = response.data.data?.calculation || [];
-
-        const allOrders = rawData.map(item => ({
-          ...item,
-          date: formatDateHuman(item.dateRaw),
-          orders: (item.orders || []).map(order => ({
-            ...order,
-            date: formatDateHuman(order.dateRaw),
-          })),
-        }));
-
-        setAdditionalOrdersData(allOrders);
-        setFilteredItems(
-          getFilteredItems(filter.status, filter.month, filter.name, allOrders)
+        const response = await axiosInstance.get(
+            '/additional_orders/get_additional_orders_info/',
+            { params: { year: selectedYear }, signal: controller.signal }
         );
-      } else {
-        setAdditionalOrdersData([]);
-        setFilteredItems([]);
-      }
-    } catch (error) {
-      if (error.name !== "CanceledError") {
-        console.error("Помилка запиту:", error);
-        setAdditionalOrdersData([]);
-        setFilteredItems([]);
-      }
-    } finally {
-      if (!signal.aborted) {
-        setLoading(false);
-        setDisplayLimit(initialLimit);
-      }
-    }
-  };
 
-  fetchData();
-  return () => controller.abort();
-}, [selectedYear]);
+        if (response.data?.status === "success") {
+            const rawData = response.data.data?.calculation || [];
+            
+            const formatted = rawData.map(item => ({
+                ...item,
+                date: formatDateHuman(item.dateRaw),
+                orders: (item.orders || []).map(order => ({
+                    ...order,
+                    date: formatDateHuman(order.dateRaw),
+                })),
+            }));
+
+            setAdditionalOrdersData(formatted);
+            // Фільтрація відбудеться автоматично через useMemo (якщо ви перейшли на нього) 
+            // або вручну:
+            setFilteredItems(getFilteredItems(filter.status, filter.month, filter.name, formatted));
+            setDisplayLimit(initialLimit);
+        } else {
+            setError("Сервер повернув помилку при оновленні даних.");
+        }
+    } catch (err) {
+        if (err.name !== "CanceledError") {
+            setError("Не вдалося оновити дані. Перевірте з'єднання.");
+        }
+    } finally {
+        setReloading(false);
+    }
+}, [cancelAll, register, selectedYear, filter, getFilteredItems]);
 
 
 
@@ -445,12 +481,30 @@ const AdditionalOrders = () => {
 
         {/* Основний контент */}
         <div className="content" id="content">
-          <div className="items-wrapper column gap-14" id="items-wrapper">
-            {sortedItems.length === 0 ? (
-              <div className="no-data column align-center h-100">
-                <div className="font-size-24 text-grey">Немає додаткових замовлень для відображення</div>
-              </div>
-            ) : (
+    <div className="items-wrapper column gap-14" id="items-wrapper">
+        {error ? (
+            /* --- СТАН ПОМИЛКИ --- */
+            <div className="error-empty-state column align-center jc-center">
+                <span className="icon icon-warning text-red font-size-48 mb-16"></span>
+                <h3 className="font-size-20 weight-600 mb-8">Упс! Не вдалося завантажити дані</h3>
+                <p className="text-grey mb-24 text-center">
+                    Виникла проблема під час з'єднання із сервером. <br/>
+                    Перевірте інтернет та спробуйте ще раз.
+                </p>
+                <button 
+                    className="btn btn-primary btn-load-more-big" 
+                    onClick={reloadAdditionalOrders}
+                >
+                    <span className="icon icon-loop2 mr-10"></span>
+                    Спробувати знову
+                </button>
+            </div>
+        ) : sortedItems.length === 0 ? (
+            /* --- СТАН ПУСТО --- */
+            <div className="no-data column align-center h-100">
+                <div className="font-size-24 text-grey">Немає додаткових замовлень для відображення</div>
+            </div>
+        ) : (
               // ВИКОРИСТОВУЄМО itemsToDisplay ДЛЯ ПАГІНАЦІЇ
               itemsToDisplay.map((additionalOrder) => ( 
                 isMobile ? (

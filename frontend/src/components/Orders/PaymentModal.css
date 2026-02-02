@@ -421,3 +421,25 @@ body.dark-theme .pay-close-btn {
 body.dark-theme .pay-close-btn:hover {
   opacity: 0.85;
 }
+
+
+
+
+.btn-notification-retry {
+  background: white;
+  color: #d32f2f; /* Червоний для помилок */
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  margin-right: 7px;
+  font-weight: bold;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.1s;
+}
+
+.btn-notification-retry:active {
+  transform: scale(0.95);
+}

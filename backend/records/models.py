@@ -150,6 +150,12 @@ class Message(models.Model):
         db_column='IsRead', 
         verbose_name='Прочитано'
     )
+
+    is_send = models.BooleanField(
+        default=False, 
+        db_column='IsSend', 
+        verbose_name='Сповіщення надіслано'
+    )
     
     created_at = models.DateTimeField(
             auto_now_add=True,

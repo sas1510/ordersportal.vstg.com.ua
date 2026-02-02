@@ -1,0 +1,44 @@
+.preview-error-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f3f3; /* або ваша тема */
+}
+
+.preview-error-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 450px;
+  width: 90%;
+}
+
+.preview-error-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.filename-highlight {
+  font-weight: bold;
+  color: #5e83bf; /* ваш фірмовий колір */
+  word-break: break-all;
+}
+
+.btn-portal {
+  display: inline-block;
+  margin-top: 25px;
+  padding: 12px 24px;
+  background-color: #5e83bf;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-portal:hover {
+  background-color: #4a6a9d;
+}

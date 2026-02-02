@@ -12,6 +12,7 @@ import ContactsPage from "./pages/ContactsPage";
 import PortalOriginal from "./pages/OrdersPage";
 import ComplaintsPage from "./pages/ComplaintsPage";
 import AdditionalOrdersPage from "./pages/AdditionalOrdersPage";
+import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 
 import ChangePassword from "./pages/ChangePassword";
 import EditUserPage from "./pages/EditUserPage";
@@ -92,9 +93,11 @@ export const adminRoutes = [
   { path: "admin-order", element: <AdminPortalOriginal/> },
   { path: "admin-reclamation", element: <AdminReclamationPortal/> },
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
-  { path: "file-preview/invalid", element: <InvalidLinkPage/> },
+  // { path: "file-preview/invalid", element: <InvalidLinkPage/> },
+  { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
+  
 
   
 ];
@@ -131,6 +134,7 @@ export const dealerRoutes = [
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
   { path: "edit-addresses", element: <DealerAddressesPage/> },
   { path: "file-preview/invalid", element: <InvalidLinkPage/> },
+  { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

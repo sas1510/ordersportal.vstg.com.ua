@@ -614,3 +614,35 @@ body.dark-theme .claim-clear-file {
     justify-content: center;
   }
 }
+
+
+.error-inline-retry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #f5222d;
+}
+
+.error-inline-retry button {
+    background: none;
+    border: none;
+    color: #5e83bf;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0;
+}
+
+.error-inline-retry button:hover {
+    color: #4a6fa5;
+}
+
+.select-wrapper-with-error {
+    margin-bottom: 15px; /* компенсуємо місце під помилку */
+}
+
+.input-error {
+    border-color: #ffa39e !important;
+}

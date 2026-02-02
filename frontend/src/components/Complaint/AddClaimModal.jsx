@@ -14,20 +14,14 @@ export default function AddClaimModal({
   initialOrderNumber = "",
   initialOrderGUID = "",
 }) {
-  /* =========================
-      🔔 Notifications
-     ========================= */
+
   const { addNotification } = useNotification();
 
-  /* =========================
-      👤 Role
-     ========================= */
+
   const role = (localStorage.getItem("role") || "").trim().toLowerCase();
   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
-  /* =========================
-      🧠 State
-     ========================= */
+
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [claimDate, setClaimDate] = useState("");
@@ -46,6 +40,13 @@ export default function AddClaimModal({
   const [orderNotFound, setOrderNotFound] = useState(false);
 
   const [dealerId, setDealerId] = useState("");
+
+  // Нові стани для помилок завантаження
+  const [fetchErrors, setFetchErrors] = useState({
+    reasons: null,
+    solutions: null,
+    series: null,
+  });
 
   const fileInputRef = useRef(null);
 
@@ -66,77 +67,78 @@ export default function AddClaimModal({
   /* =========================
       📋 Load reasons
      ========================= */
-  useEffect(() => {
+  const fetchReasons = async () => {
     if (!isOpen) return;
+    setFetchErrors((p) => ({ ...p, reasons: null }));
+    try {
+      const res = await axiosInstance.get("/complaints/issues/");
+      setReasonOptions(res.data?.issues || []);
+    } catch (err) {
+      setReasonOptions([]);
+      setFetchErrors((p) => ({ ...p, reasons: "Помилка завантаження причин рекламації" }));
+    }
+  };
 
-    const fetchReasons = async () => {
-      try {
-        const res = await axiosInstance.get("/complaints/issues/");
-        setReasonOptions(res.data?.issues || []);
-      } catch {
-        setReasonOptions([]);
-      }
-    };
-
+  useEffect(() => {
     fetchReasons();
   }, [isOpen]);
 
-  /* =========================
-      📋 Load solutions
-     ========================= */
-  useEffect(() => {
+
+  const fetchSolutions = async () => {
     if (!reasonLink) {
       setSolutionOptions([]);
       setSolutionLink("");
       return;
     }
+    setFetchErrors((p) => ({ ...p, solutions: null }));
+    try {
+      const res = await axiosInstance.get(
+        `/complaints/solutions/${reasonLink}/`
+      );
+      setSolutionOptions(res.data?.solutions || []);
+    } catch (err) {
+      setSolutionOptions([]);
+      setFetchErrors((p) => ({ ...p, solutions: "Помилка завантаження варіантів вирішення" }));
+    }
+  };
 
-    const fetchSolutions = async () => {
-      try {
-        const res = await axiosInstance.get(
-          `/complaints/solutions/${reasonLink}/`
-        );
-        setSolutionOptions(res.data?.solutions || []);
-      } catch {
-        setSolutionOptions([]);
-      }
-    };
-
+  useEffect(() => {
     fetchSolutions();
   }, [reasonLink]);
 
-  /* =========================
-      📦 Load series
-     ========================= */
-  useEffect(() => {
+
+  const fetchSeries = async () => {
     if (!orderNumber) {
       setSeriesOptions([]);
       setSelectedSeries([]);
       setOrderNotFound(false);
+      setFetchErrors((p) => ({ ...p, series: null }));
       return;
     }
 
-    const fetchSeries = async () => {
-      try {
-        const res = await axiosInstance.get(
-          `/complaints/get_series/${orderNumber}/`
-        );
+    setFetchErrors((p) => ({ ...p, series: null }));
+    try {
+      const res = await axiosInstance.get(
+        `/complaints/get_series/${orderNumber}/`
+      );
 
-        if (!res.data?.series?.length) {
-          setSeriesOptions([]);
-          setSelectedSeries([]);
-          setOrderNotFound(true);
-        } else {
-          setSeriesOptions(res.data.series);
-          setSelectedSeries([]);
-          setOrderNotFound(false);
-        }
-      } catch {
+      if (!res.data?.series?.length) {
         setSeriesOptions([]);
+        setSelectedSeries([]);
         setOrderNotFound(true);
+      } else {
+        setSeriesOptions(res.data.series);
+        setSelectedSeries([]);
+        setOrderNotFound(false);
       }
-    };
+    } catch (err) {
+      setSeriesOptions([]);
+      setOrderNotFound(false);
+      setFetchErrors((p) => ({ ...p, series: "Не вдалося отримати дані про серії конструкцій" }));
+    }
+  };
 
+  useEffect(() => {
     fetchSeries();
   }, [orderNumber]);
 
@@ -168,6 +170,7 @@ export default function AddClaimModal({
     setSelectedSeries([]);
     setOrderNotFound(false);
     setDealerId("");
+    setFetchErrors({ reasons: null, solutions: null, series: null });
   };
 
   const handleCloseWithReset = () => {
@@ -277,16 +280,24 @@ export default function AddClaimModal({
         </div>
 
         <form className="claim-form" onSubmit={handleSubmit}>
-          <div className="claim-row">
-            <span className="label-text">Номер замовлення:</span>
-            <input
-              className="claim-input"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              required
-            />
+          <div className="claim-row column">
+            <div className="row ai-center gap-10 w-100">
+              <span className="label-text">Номер замовлення:</span>
+              <input
+                className="claim-input"
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value)}
+                required
+              />
+            </div>
             {orderNotFound && (
               <span className="error-text">Замовлення не знайдено</span>
+            )}
+            {fetchErrors.series && (
+              <div className="error-inline-retry">
+                <span>{fetchErrors.series}</span>
+                <button type="button" onClick={fetchSeries}>Повторити</button>
+              </div>
             )}
           </div>
 
@@ -347,20 +358,36 @@ export default function AddClaimModal({
             </label>
           </div>
 
-          <CustomSelect
-            label="Причина рекламації:"
-            options={reasonOptions}
-            value={reasonLink}
-            onChange={setReasonLink}
-          />
+          <div className="claim-select-container">
+            <CustomSelect
+              label="Причина рекламації:"
+              options={reasonOptions}
+              value={reasonLink}
+              onChange={setReasonLink}
+            />
+            {fetchErrors.reasons && (
+              <div className="error-inline-retry">
+                <span>{fetchErrors.reasons}</span>
+                <button type="button" onClick={fetchReasons}>Повторити</button>
+              </div>
+            )}
+          </div>
 
-          <CustomSelect
-            label="Варіант вирішення:"
-            options={solutionOptions}
-            value={solutionLink}
-            onChange={setSolutionLink}
-            disabled={!solutionOptions.length}
-          />
+          <div className="claim-select-container">
+            <CustomSelect
+              label="Варіант вирішення:"
+              options={solutionOptions}
+              value={solutionLink}
+              onChange={setSolutionLink}
+              disabled={!solutionOptions.length}
+            />
+            {fetchErrors.solutions && (
+              <div className="error-inline-retry">
+                <span>{fetchErrors.solutions}</span>
+                <button type="button" onClick={fetchSolutions}>Повторити</button>
+              </div>
+            )}
+          </div>
 
           <label className="claim-label">
             <span>Опис:</span>

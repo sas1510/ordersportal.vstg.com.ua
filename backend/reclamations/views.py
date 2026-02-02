@@ -632,16 +632,21 @@ from ranged_fileresponse import RangedFileResponse
 def preview_complaint_file(request, claim_guid):
     token = request.GET.get("token")
     filename = request.GET.get("filename")
+    is_video = filename.lower().endswith(('.mp4', '.webm', '.ogg'))
 
     if not token or not filename:
-        return redirect(settings.FRONTEND_URL + "/file-preview/invalid")
+        if is_video:
+            return redirect(settings.FRONTEND_URL + "file-preview/invalid")
+        return HttpResponse(status=404)
 
     file_guid = verify_media_token(token)
     if not file_guid:
-        return redirect(
-            f"{settings.FRONTEND_URL}/file-preview/invalid"
-            f"?filename={quote(filename)}"
-        )
+        if is_video:
+            return redirect(
+                f"{settings.FRONTEND_URL}file-preview/invalid"
+                f"?filename={quote(filename)}"
+            )
+        return HttpResponse(status=404)
 
     filename = unquote(filename)
     content_type, _ = mimetypes.guess_type(filename)
@@ -696,14 +701,14 @@ def preview_complaint_file(request, claim_guid):
             row = cursor.fetchone()
 
             if not row or not row[0]:
-                raise Http404("File not found in DB")
+                return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
 
             raw_db_blob = row[0]
             db_filename = row[1]
 
         file_bytes = extract_1c_binary(raw_db_blob)
         if not file_bytes:
-            raise Http404("Could not decode file from DB")
+            return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
 
         tmp = tempfile.NamedTemporaryFile(delete=False)
         tmp.write(file_bytes)
@@ -720,4 +725,4 @@ def preview_complaint_file(request, claim_guid):
         return response
 
     except Exception:
-        raise Http404("File not found")
+        return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")

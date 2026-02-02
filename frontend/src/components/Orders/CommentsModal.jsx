@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axiosInstance from "../../api/axios";
 import { FaTimes, FaSave, FaRegCommentDots } from "react-icons/fa";
 import "./CommentsModal.css";
+import { useNotification } from "../notification/Notifications.jsx";
 
 const AUTHOR_COLORS = [
   "#4fd1ac",
@@ -42,6 +43,8 @@ const CommentsModal = ({
   const [loading, setLoading] = useState(false);
   const commentsEndRef = useRef(null);
 
+  const { addNotification } = useNotification();
+
   /* ================= LOAD COMMENTS ================= */
   const fetchComments = useCallback(async () => {
     if (!baseTransactionGuid || !transactionTypeId) return;
@@ -57,6 +60,7 @@ const CommentsModal = ({
       setComments(res.data || []);
     } catch (err) {
       console.error("Помилка при завантаженні коментарів:", err);
+      addNotification("Не вдалося завантажити історію коментарів. Спробуйте відкрити модалку заново.");
     }
   }, [baseTransactionGuid, transactionTypeId]);
 
@@ -90,8 +94,10 @@ const CommentsModal = ({
 
       setNewComment("");
       setComments((prev) => [...prev, res.data]);
+      addNotification("Коментар успішно додано!", "success");
     } catch (err) {
-      console.error("Помилка при додаванні коментаря:", err);
+      // console.error("Помилка при додаванні коментаря:", err);
+      addNotification("Помилка при відправці коментаря. Перевірте з'єднання.");
     } finally {
       setLoading(false);
     }

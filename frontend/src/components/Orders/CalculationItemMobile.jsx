@@ -17,6 +17,27 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
   const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
   const { addNotification } = useNotification();
 
+    const user = useMemo(() => {
+      try {
+        return JSON.parse(localStorage.getItem("user"));
+      } catch {
+        return null;
+      }
+    }, []);
+
+    const isAdmin = user?.role === "admin";
+
+    // Перевірка, чи є дилер отримувачем
+    const isDealerRecipient = useMemo(() => {
+      if (!calc.recipient || !calc.dealer) return false;
+      return calc.recipient.trim().toLowerCase() === calc.dealer.trim().toLowerCase();
+    }, [calc.recipient, calc.dealer]);
+
+    // Клас для іконки залежно від типу отримувача
+    const recipientIconClass = isDealerRecipient
+      ? "text-success"   // дилер = отримувач
+      : "text-warning";  // менеджер / інший отримувач
+
   // 1. Мемоїзація функцій-обробників за допомогою useCallback
   const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
 
@@ -110,27 +131,16 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
     }
   }, []); // Немає залежностей, оскільки логіка є статичною
 
-  // 4. Мемоїзація функції додавання коментаря для Modal
-  const handleAddComment = useCallback(async (text) => {
-    try {
-      await axiosInstance.post(`/calculations/${calc.number}/add-comment/`, { message: text });
-      // Після успішного додавання, оновлюємо список коментарів
-      const res = await axiosInstance.get(`/calculations/${calc.number}/comments/`);
-      setSelectedComments(res.data);
-    } catch (err) {
-      console.error("Помилка при додаванні коментаря:", err);
-    }
-  }, [calc.number]); 
 
-  return (
-    <div className="calc-item column"
-      style={{
-          borderTop: calc.webNumber
-          ? "4px solid #f38721ff" 
-          : "4px solid #5e83bf",
+    return (
+      <div className="calc-item column"
+        style={{
+            borderTop: calc.webNumber
+            ? "4px solid #f38721ff" 
+            : "4px solid #5e83bf",
 
-          paddingLeft: "12px"
-      }}>
+            paddingLeft: "12px"
+        }}>
 
       {/* ============ MOBILE VERSION (COMPACT) ============ */}
       <div className="md:hidden flex flex-col w-full p-3 bg-white rounded-lg shadow-md border border-gray-200"
@@ -152,14 +162,24 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
 
         {/* Дилер якщо є */}
         {calc.dealer && (
-          <div className="mb-2 pb-1.5 border-b border-gray-200" >
-            <div className="text-grey font-size-11  dealer-clickable" onClick={(e) => {
-                    e.stopPropagation();
-                    // setSelectedCalc(calc);
-                    setIsCounterpartyOpen(true);
-                  }}>Дилер: {calc.dealer}</div>
-          </div>
-        )}
+          <div className="mb-2 pb-1.5 border-b border-gray-200">
+            <div 
+              className="text-dark font-size-18 flex items-center gap-2 dealer-clickable" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsCounterpartyOpen(true);
+              }}
+            >
+              <i 
+                className={`fa fa-address-card mr-1 ${recipientIconClass}`} 
+                title={isDealerRecipient ? "Отримувач — дилер" : "Отримувач — інший контрагент"}
+              />
+              <span className="font-weight-bold">
+                {isAdmin ? calc.dealer : "Отримувач"}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Статистика - Grid 2x2 */}
         <div className="grid grid-cols-2 gap-2 mb-2">
@@ -288,7 +308,7 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
         onClose={() => setIsCommentsOpen(false)}
         comments={selectedComments}
         orderId={calc.id}
-        onAddComment={handleAddComment}
+
       />
 
       <CounterpartyInfoModal

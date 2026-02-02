@@ -6,18 +6,7 @@ import CommentsModal from "../Orders/CommentsModal";
 import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; 
 import { ComplaintItemDetailViewMobile } from './ComplaintItemSummaryMobile';
 
-// ================= [ЗАГЛУШКИ] (Потрібні, якщо ви їх використовуєте) =================
-const IssueItemSummaryMobile = ({ issue, isExpanded, onToggle }) => (
-    <div className="issue-item-mobile p-2 border-b bg-light-grey">
-        **Завдання:** {issue?.number || '—'} ({issue?.status || '—'})
-    </div>
-);
-// =========================================================================
 
-
-/**
- * Відображає зведену інформацію про одну рекламацію (мобільна версія).
- */
 export const ReclamationItemMobile = ({ 
     reclamation, 
     onDelete, 

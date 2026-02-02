@@ -12,7 +12,7 @@ from django.db.models import Q
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
+from zoneinfo import ZoneInfo
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 
@@ -61,6 +61,9 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from django.http import JsonResponse
 from django.db import connection
 from datetime import timezone
+
+
+kyiv_time = datetime.now(ZoneInfo("Europe/Kyiv"))
 
 def parse_reclamation_details(text):
     """
@@ -1554,8 +1557,9 @@ def build_1c_payload(
     payload = {
         "calculations": [
             {
-                "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
-
+                # "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
+                "createdAt": kyiv_time.strftime("%Y-%m-%d %H:%M:%S"),
+            
                 "calculationNumber": order_number,
                 "itemsCount": int(items_count),
                 "comment": comment or "",

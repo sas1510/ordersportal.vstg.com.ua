@@ -22,7 +22,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const [fileName, setFileName] = useState("Файл не обрано");
   const [itemsCount, setItemsCount] = useState(1);
   const [comment, setComment] = useState("");
-
+  const [submitError, setSubmitError] = useState(null);
   const [dealerId, setDealerId] = useState("");
   const [addresses, setAddresses] = useState([]);
   const [addressGuid, setAddressGuid] = useState("");
@@ -99,7 +99,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           </a>
         </div>,
         "warning",
-        0
+        10000
       );
     }
 
@@ -144,7 +144,31 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       }
     } catch (err) {
       console.error(err);
-      addNotification("Не вдалося завантажити адресу доставки", "error");
+      addNotification(
+        <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: '250px' }}>
+          <span>Не вдалося завантажити адреси:</span>
+          <button 
+            onClick={() => loadAddresses(contractorGuid)} 
+            style={{
+              background: 'white',
+              color: '#d32f2f', // колір для помилки
+              border: 'none',
+              borderRadius: '4px',
+              padding: '4px 4px',
+              marginRight: '8px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            ПОВТОРИТИ
+          </button>
+        </div>,
+        "error",
+        0
+        // 10000 // Збільшуємо час відображення до 10 сек, щоб користувач встиг натиснути
+      );
     } finally {
       setAddressesLoading(false);
     }
@@ -208,15 +232,38 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
      ========================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setSubmitError(null);
+    
     if (!orderNumber || !file || !itemsCount || !comment.trim()) {
       addNotification("Заповніть усі поля", "error");
       return;
     }
 
-    if (addressMode === "dealer" && !addressGuid) {
-      addNotification("Оберіть адресу доставки", "error");
-      return;
+    if (addressMode === "dealer") {
+        if (!addressGuid) {
+            addNotification("Оберіть адресу доставки", "error");
+            return;
+        }
+        // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
+        if (!dealerCoords) {
+            addNotification(
+              <div style={{ lineHeight: "1.4" }}>
+                <strong>Помилка!</strong> Обрана адреса не має гео-координат. <br />
+                Будь ласка, оберіть іншу адресу або додайте точку на карті. <br />
+                <a
+                  href="https://ordersportal.vstg.com.ua/edit-addresses"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
+                >
+                  Додати точку на карті
+                </a>
+              </div>,
+              "warning",
+              12000
+            );
+            return;
+        }
     }
 
     if (
@@ -290,7 +337,33 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       onClose();
     } catch (error) {
       console.error(error);
-      addNotification("Помилка при збереженні", "error");
+      addNotification(
+            <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: '250px' }}>
+                <div className="column">
+                    <strong>Помилка створення: </strong>
+                    {/* <span style={{ fontSize: '13px', opacity: 0.9 }}>{serverMessage}</span> */}
+                </div>
+                <button 
+                    onClick={handleSubmit} 
+                    style={{
+                        background: 'white',
+                        color: '#d32f2f',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '5px 10px',
+                        marginRight: '7px',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                >
+                    ПОВТОРИТИ
+                </button>
+            </div>,
+            "error",
+            10000 // 0 означає, що нотифікація не зникне сама, поки користувач не натисне або не закриє
+        );
     } finally {
       setLoading(false);
     }

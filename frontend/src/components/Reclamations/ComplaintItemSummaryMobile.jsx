@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import {
   Calendar,
@@ -12,6 +12,8 @@ import {
 import PhotoModal from "./PhotoModal";
 import { formatDate } from "../../utils/formatters";
 import axiosInstance from "../../api/axios";
+
+import { useNotification } from "../notification/Notifications.jsx";
 
 /* ================= HELPERS ДЛЯ ФАЙЛІВ ================= */
 const isImage = (name) => /\.(jpg|jpeg|png|webp)$/i.test(name);
@@ -145,23 +147,50 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
 
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [photoIndex, setPhotoIndex] = useState(0);
+  const { addNotification } = useNotification();
 
   const [files, setFiles] = useState([]);
   const [photoUrls, setPhotoUrls] = useState([]);
   const [isMediaLoading, setIsMediaLoading] = useState(false);
 
   /* ================= 1. ЗАВАНТАЖЕННЯ СПИСКУ ФАЙЛІВ ================= */
-  useEffect(() => {
+  const loadFiles = useCallback(async () => {
     if (!complaint?.guid) return;
 
-    axiosInstance
-      .get(`/complaints/${complaint.guid}/files/`)
-      .then((res) => setFiles(res.data.files || []))
-      .catch((err) => console.error("Error loading files list:", err));
-  }, [complaint?.guid]);
+    try {
+      const res = await axiosInstance.get(`/complaints/${complaint.guid}/files/`);
+      setFiles(res.data.files || []);
+    } catch (err) {
+      console.error("Error loading files list:", err);
+      
+      addNotification(
+        <div className="flex flex-col gap-2 items-center text-center"> 
+          {/* Додано items-center для вирівнювання кнопки та text-center для тексту */}
+          <span>Не вдалося завантажити медіа-файли.</span>
+          <button 
+            onClick={() => loadFiles()} 
+            className="bg-white text-red-600 px-3 py-1.5 rounded text-xs font-bold w-fit shadow-md active:scale-95 transition-transform"
+          >
+            Спробувати ще раз
+          </button>
+        </div>,
+        "warning", 
+      );
+    }
+  }, [complaint?.guid, addNotification]);
+
+
+  
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
 
   const imageFiles = files.filter((f) => isImage(f.File_FileName));
   const videoFiles = files.filter((f) => isVideo(f.File_FileName));
+
+
+
 
   /* ================= 2. URL З ТОКЕНОМ ================= */
   const getSecureUrl = async (file) => {
@@ -324,12 +353,12 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
               </div>
 
               <div className="flex items-center gap-3">
-                <div
+                {/* <div
                   className="hidden md:flex w-10 h-10 rounded-full items-center justify-center text-white font-bold text-base flex-shrink-0"
                   style={{ backgroundColor: c.iconManager }}
                 >
                   {complaint.manager ? complaint.manager.split(" ").map((n) => n[0]).join("") : "?"}
-                </div>
+                </div> */}
 
                 <div className="text-sm font-medium whitespace-nowrap" style={{ color: c.text }}>
                   {complaint.manager || "Не вказано"}

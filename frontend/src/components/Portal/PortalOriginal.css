@@ -2914,3 +2914,51 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
   text-decoration: underline;
   color: #76b448;
 }
+
+/*  */
+
+/* Великий блок помилки в центрі */
+.error-empty-state {
+    padding: 60px 20px;
+    background: #fcfcfc;
+    border: 2px dashed #eee;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.mr-10 { margin-right: 10px; }
+
+/* Компактне повідомлення зверху списку */
+.error-toast-inline {
+    background: #e74c3c;
+    padding: 8px 16px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    animation: slideInDown 0.3s ease;
+}
+
+.btn-retry-white {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-retry-white:hover {
+    background: #fff;
+    color: #e74c3c;
+}
+
+@keyframes slideInDown {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.font-size-48 {
+    font-size: 48px;
+}
