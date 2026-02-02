@@ -210,7 +210,7 @@ SPECTACULAR_SETTINGS = {
 FRONTEND_URL = "http://172.17.19.107/"
 
 
-ONE_C_URL = "http://192.168.50.50/oknastyle_hp/hs/gp-obmen/"
+ONE_C_URL = "http://192.168.50.50/oknastyle_vmm/hs/gp-obmen/"
 ONE_C_USER = "Мендришора_В"
 ONE_C_PASSWORD = "1987"
 ONE_C_VERIFY_SSL = False
