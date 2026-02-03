@@ -158,7 +158,7 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit, onMar
     return (
       <div className="calc-item column"
         style={{
-            borderTop: calc.webNumber
+            borderTop: calc.dealerId === calc.authorGuid
             ? "4px solid #f38721ff" 
             : "4px solid #5e83bf",
 

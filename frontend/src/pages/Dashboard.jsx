@@ -507,7 +507,7 @@ export default function Dashboard() {
           <p className="cta-desc">
             Станьте частиною надійної дилерської мережі "Вікна Стиль". 18 років досвіду та європейські стандарти якості для вашого бізнесу.
           </p>
-          <button className="cta-button">Стати партнером</button>
+          {/* <button className="cta-button">Стати партнером</button> */}
         </div>
       </section>
     </div>

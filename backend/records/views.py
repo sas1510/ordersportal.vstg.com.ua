@@ -63,7 +63,7 @@ from django.db import connection
 from datetime import timezone
 
 
-kyiv_time = datetime.now(ZoneInfo("Europe/Kyiv"))
+current_time = datetime.now(ZoneInfo("Europe/Kyiv")).strftime("%Y-%m-%d %H:%M:%S")
 
 def parse_reclamation_details(text):
     """
@@ -375,6 +375,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "dealer": row.get("Customer"),
                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": current_order_count, 
+                "authorGuid": row.get("CalcAuthor_GUID") or "", 
+                "authorName": row.get("CalcAuthorName") or "", 
                 "recipient": row.get("Recipient") or row.get("Customer"), 
                 "recipientPhone": row.get("RecipientPhone") or '', 
                 "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
@@ -536,8 +538,6 @@ def api_get_orders(request):
     
     for calc in data:
         calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
-
-
 
 
     return Response({
@@ -1443,6 +1443,8 @@ def orders_view_all_by_month(request):
                 "dealer": row.get("Customer"),
                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": constructions_count,
+                "authorGuid": row.get("CalcAuthor_GUID") or "", 
+                "authorName": row.get("CalcAuthorName") or "", 
                 "recipient": row.get("Recipient") or row.get("Customer"), 
                 "recipientPhone": row.get("RecipientPhone") or '', 
                 "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
@@ -1587,7 +1589,7 @@ def build_1c_payload(
         "calculations": [
             {
                 # "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
-                "createdAt": kyiv_time.strftime("%Y-%m-%d %H:%M:%S"),
+                "createdAt": current_time,
             
                 "calculationNumber": order_number,
                 "itemsCount": int(items_count),

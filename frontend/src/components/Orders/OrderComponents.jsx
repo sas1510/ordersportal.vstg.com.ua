@@ -159,7 +159,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRea
 
   return (
     <div className={`calc-item column`}  style={{
-          borderLeft: calc.webNumber
+          borderLeft: calc.dealerId === calc.authorGuid
           ? "4px solid #f38721ff" 
           : "4px solid #5e83bf",
 

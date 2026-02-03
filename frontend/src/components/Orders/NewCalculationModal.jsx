@@ -234,7 +234,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     e.preventDefault();
     setSubmitError(null);
     
-    if (!orderNumber || !file || !itemsCount || !comment.trim()) {
+    if (!orderNumber || !file || !itemsCount) {
       addNotification("Заповніть усі поля", "error");
       return;
     }
