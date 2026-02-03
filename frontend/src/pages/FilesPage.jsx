@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axios';
-import { FaFileAlt, FaFilePdf, FaFileWord, FaFileExcel, FaTrash, FaEdit, FaDownload, FaPlus, FaSearch } from 'react-icons/fa';
+import { FaFileAlt, FaFilePdf, FaFileWord, FaFileExcel, FaTrash, FaEdit, FaDownload, FaPlus, FaSearch, FaFolderOpen } from 'react-icons/fa';
 import ConfirmModal from '../components/Orders/ConfirmModal';
 import { useNotification } from '../components/notification/Notifications';
 import './Files.css';
@@ -214,7 +214,10 @@ const FilesPage = () => {
         <div className="file-body column gap-14">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-color mt-3 text-4xl font-bold">📁 Файли</h1>
+                <h1 className="text-color mt-3 text-4xl font-bold flex items-center gap-3"> 
+                    <span className="text-custom-green icon-document-file-pdf  mr-2" /> 
+                    <span>Файли</span>
+                </h1>
                 {isAdmin && (
                     <button
                         className="bg-custom-green hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3 mt-5"

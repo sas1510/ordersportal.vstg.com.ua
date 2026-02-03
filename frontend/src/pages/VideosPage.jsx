@@ -188,7 +188,12 @@ const VideosPage = () => {
     <div className="videos-body column gap-14">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-color mt-3 text-4xl font-bold">🎥 Відео</h1>
+
+         <h1 className="text-color mt-3 text-4xl font-bold flex items-center gap-3"> 
+                <span className="mt-1 text-custom-green icon-youtube mr-2" /> 
+                <span>Відео</span>
+            </h1>
+       
         {isAdmin && (
           <button
             className="bg-custom-green hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3 mt-5"
