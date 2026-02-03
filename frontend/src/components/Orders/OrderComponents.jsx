@@ -6,7 +6,7 @@ import CounterpartyInfoModal from "./CounterpartyInfoModal";
 import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
 import OrderItemSummaryDesktop from "./OrderItemSummaryDesktop";
-import { formatDateHumanShorter } from "../../utils/formatters";
+import { formatDateHumanShorter, formatDateTimeShort } from "../../utils/formatters";
 import './Orders.css'
 import { useNotification } from "../notification/Notifications.jsx";
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
@@ -174,7 +174,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRea
         <div className="summary-item row w-9 no-wrap" style={{ minWidth: "150px" }}>
           <div className="column">
             <div className="font-size-18 text-info border-bottom">№ {calc.number}</div>
-            <div className="text-danger">{formatDateHumanShorter(calc.date)}</div>
+            <div className="text-danger">{formatDateTimeShort(calc.date)}</div>
           </div>
         </div>
 

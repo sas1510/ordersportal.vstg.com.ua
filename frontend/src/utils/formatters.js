@@ -53,3 +53,44 @@ export const ifZero = (num) => (num === 0 ? '-' : num);
       year: 'numeric'
     });
   };
+
+
+  export const formatDateTimeCustom = (input) => {
+    if (!input || input === "Не вказано") return "Не вказано";
+
+    const date = new Date(input);
+    
+    // Перевірка на валідність дати
+    if (isNaN(date)) return "Не вказано";
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${day}.${month}.${year} | ${hours}:${minutes}`;
+  };
+
+
+  export const formatDateTimeShort = (input) => {
+    if (!input || input === "Не вказано") return "Не вказано";
+
+    const date = new Date(input);
+    if (isNaN(date)) return "Не вказано";
+
+    // Отримуємо дату: "2 лют."
+    const datePart = date.toLocaleDateString('uk-UA', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).replace('.', ''); // Прибираємо крапку після місяця, якщо вона не потрібна
+
+    // Отримуємо час: "15:40"
+    const timePart = date.toLocaleTimeString('uk-UA', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    return `${datePart} ${timePart}`;
+};

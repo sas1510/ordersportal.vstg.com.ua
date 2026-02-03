@@ -5,7 +5,7 @@ import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
-import {formatDateHumanShorter} from '../../utils/formatters'
+import {formatDateHumanShorter, formatDateTimeShort} from '../../utils/formatters'
 import { useNotification } from "../notification/Notifications.jsx";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
 
@@ -175,7 +175,7 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit, onMar
             <span className="icon icon-calculator font-size-24 text-success"></span>
             <div className="column gap-0.5">
               <div className="font-size-20 text-info font-weight-bold border-bottom">№ {calc.number}</div>
-              <div className="text-danger font-size-11">{formatDateHumanShorter(calc.date)}</div>
+              <div className="text-danger font-size-11">{formatDateTimeShort(calc.date)}</div>
             </div>
           </div>
 

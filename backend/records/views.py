@@ -419,6 +419,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "routeStatus": row.get("RouteStatus"),
             "organizationName": row.get("OrganizationName"),
             "managerName": row.get("ManagerName"),
+            "dateDelay": row.get("DateDelays"),
+            
             
         }
         calcs_dict[calc_id]["orders"].append(order)
@@ -1485,6 +1487,7 @@ def orders_view_all_by_month(request):
             "routeStatus": row.get("RouteStatus"),
             "organizationName": row.get("OrganizationName"),
             "managerName": row.get("ManagerName"),
+            "dateDelay": row.get("DateDelays"),
         }
 
         calcs_dict[calc_id]["orders"].append(order)

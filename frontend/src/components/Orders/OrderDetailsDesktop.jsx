@@ -92,13 +92,27 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
 
   // Готовність
   const readyStatus = useMemo(() => {
-    return getDateStatus(order.planReadyMax, order.factReadyMax);
-  }, [order.planReadyMax, order.factReadyMax, getDateStatus]);
+    const isDelayed = !order.factReadyMax && order.dateDelay;
+    
+    // Якщо є затримка, повертаємо "агресивний" червоний статус
+    if (isDelayed) {
+      return { 
+        icon: "text-danger", 
+        bg: "background-danger-light", 
+        isDelayed: true 
+      };
+    }
+    
+    return getDateStatus(order.planReadyMax, order.factReadyMax);
+  }, [order.planReadyMax, order.factReadyMax, order.dateDelay, getDateStatus]);
 
   // Доставка
   const deliveryStatus = useMemo(() => {
     return getDateStatus(order.planDelivery, order.realizationDate);
   }, [order.planDelivery, order.realizationDate, getDateStatus]);
+
+
+
 
 
   return (
@@ -162,17 +176,24 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
 
           {/* Готовність */}
           <li>
-              <div className={`icon ${readyStatus.icon}`}>
-                <span className="icon-layers2 font-size-20"></span>
-              </div>
-              <div className="badge">
-                <div className="badge-title">Готовність</div>
-                <div className={`badge-content ${readyStatus.bg}`}>
-                  {formatDateHuman(order.factReadyMax) || "Не готовий"}
-                </div>
-              </div>
-          </li>
-
+              <div className={`icon ${readyStatus.icon}`}>
+                <span className="icon-layers2 font-size-20"></span>
+              </div>
+              <div className="badge">
+                {/* Міняємо заголовок, якщо це затримка */}
+                <div className="badge-title">
+                  {readyStatus.isDelayed ? "Затримка" : "Готовність"}
+                </div>
+                <div className={`badge-content ${readyStatus.bg}`}>
+                  {order.factReadyMax 
+                    ? formatDateHumanShorter(order.factReadyMax) 
+                    : (order.dateDelay 
+                        ? formatDateHumanShorter(order.dateDelay) 
+                        : "Не готовий")
+                  }
+                </div>
+              </div>
+          </li>
           {/* Доставка */}
           <li>
               <div className={`icon ${deliveryStatus.icon}`}>
