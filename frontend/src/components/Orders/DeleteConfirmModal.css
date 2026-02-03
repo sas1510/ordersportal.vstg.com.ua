@@ -8,7 +8,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 1001;
   animation: fadeIn 0.25s ease forwards;
 }
 
@@ -102,14 +102,16 @@
   box-shadow: 0 6px 16px rgba(0,0,0,0.2);
 }
 
-.btn-grey {
+.btn-grey-delete {
   background: #ccc;
   color: #333;
+  border-radius: 4px !important;
 }
 
-.btn-danger {
+.btn-danger-delete {
   background: #e74c3c;
   color: #fff;
+  border-radius: 4px !important;
 }
 
 /* Анімації */
@@ -177,24 +179,24 @@ body.dark-theme .modal-body .description {
 /* ===== Footer та Кнопки ===== */
 
 /* 1. Кнопка "Сіра" (btn-grey) */
-body.dark-theme .btn-grey {
+body.dark-theme .btn-grey-delete {
     background: #555555; /* Темно-сірий фон */
     color: #f0f0f0; /* Світлий текст */
 }
 
-body.dark-theme .btn-grey:hover {
+body.dark-theme .btn-grey-delete:hover {
     transform: scale(1.05);
     background: #666666; /* Трохи світліший hover */
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* 2. Кнопка "Небезпека" (btn-danger) */
-body.dark-theme .btn-danger {
+body.dark-theme .btn-danger-delete {
     background: #b53729; /* Глибший, насичений червоний */
     color: #fff;
 }
 
-body.dark-theme .btn-danger:hover {
+body.dark-theme .btn-danger-delete:hover {
     transform: scale(1.05);
     background: #c23c2d; /* Трохи світліший hover */
     box-shadow: 0 6px 16px rgba(181, 55, 41, 0.6); /* Темна тінь з червоним відтінком */

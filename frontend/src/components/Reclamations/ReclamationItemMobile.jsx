@@ -132,9 +132,9 @@ export const ReclamationItemMobile = ({
                     {/* ЛІВА ЧАСТИНА: Номер і Дата */}
                     <div className="flex items-center gap-1.5">
                         {/* Іконка рекламації */}
-                        <span className="icon icon-circle-with-cross font-size-24 text-danger"></span> 
+                        <span className="icon icon-tools2 font-size-24 text-success"></span> 
                         <div className="column gap-0.5">
-                            <div className="font-size-20 text-danger font-weight-bold border-bottom">№ {reclamation.id}</div>
+                            <div className="font-size-20 text-info font-weight-bold border-bottom">№ {reclamation.id}</div>
                             <div className="text-grey font-size-11">від {reclamation.date}</div>
                         </div>
                     </div>
@@ -154,17 +154,7 @@ export const ReclamationItemMobile = ({
                         {/* 3. Дії (Редагувати/Видалити) - В ОДНОМУ РЯДКУ, ЗБІЛЬШЕНІ */}
                         <div className="flex items-center gap-0 mt-0">
                             
-                            {/* ✏️ Редагувати */}
-                            <button
-                                className={`p-0 -mr-4 ml-0  ${!canEdit ? 'opacity-30 cursor-not-allowed' : 'text-info hover:text-dark'}`}
-                                title={!canEdit ? 'Недоступно для редагування' : 'Редагувати'}
-                                onClick={handleEditClick}
-                                disabled={!canEdit}
-                                aria-label="Редагувати рекламацію"
-                            >
-                                <span className="icon icon-pencil2 font-size-20" /> {/* Збільшено до 22 */}
-                            </button>
-
+                          
                             {/* 🗑️ Видалити */}
                             <button
                                 className={`p-0 -mr-1 ml-0 ${!canDelete ? 'opacity-30 cursor-not-allowed' : 'text-danger hover:text-dark'}`}

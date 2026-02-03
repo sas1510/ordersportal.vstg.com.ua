@@ -106,7 +106,7 @@ const ordersWithNumbers = orderList.filter(order => order.number);
         
         {/* 1. Іконка та номер Дод. Замовлення */}
         <div className="summary-item row  no-wrap">
-          <ClipboardCheck className="font-size-24 text-success" title="Додаткове Замовлення" />
+          <span className="font-size-24 icon-add-to-list text-success" title="Додаткове Замовлення" />
         </div>
 
         <div className="summary-item row w-9 no-wrap" style={{ minWidth: '130px' }}>

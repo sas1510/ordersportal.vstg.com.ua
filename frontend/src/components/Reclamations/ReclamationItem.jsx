@@ -161,10 +161,15 @@ export const ReclamationItem = ({
             <div className="item-summary row w-100" onClick={toggleExpanded}>
                 
    
-                <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }}>
-                    <span className="icon icon-circle-with-cross font-size-22 text-danger"></span> 
+                <div className="summary-item row no-wrap" style={{ flexBasis: '3%' }}>
+                    <span className="icon icon-tools2 font-size-22 text-success"></span> 
+                    
+                </div>
+
+                   <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }}>
+                    
                     <div className="column">
-                        <div className="font-size-18 text-danger border-bottom">№ {reclamation.id}</div>
+                        <div className="font-size-18 text-info border-bottom">№ {reclamation.id}</div>
                         <div className="text-grey">{reclamation.date}</div>
                     </div>
                 </div>
@@ -248,12 +253,7 @@ export const ReclamationItem = ({
                     style={{ flexBasis: '5%' }}
                     onClick={(e) => e.stopPropagation()}
                     >
-                    {/* ✏️ Редагувати */}
-                    <div
-                        className={`icon icon-pencil2 font-size-16 ${!canEdit ? 'inactive' : 'clickable text-info'}`}
-                        title={!canEdit ? 'Недоступно для редагування' : 'Редагувати'}
-                        onClick={handleEditClick}
-                    />
+                    
 
                     {/* 🗑️ Видалити */}
                     <div

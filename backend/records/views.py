@@ -357,7 +357,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
     calcs_dict = {}
     for row in rows:
-        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or "default"
+        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
         
         current_order_count = int(row.get("ConstructionsCount") or 0) 
         calculation_date = row.get("CalcDate") or row.get("CalculationDate")
@@ -366,11 +366,12 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         if calc_id not in calcs_dict:
             calcs_dict[calc_id] = {
                 "id": calc_id,
-                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or "",
+                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
                 "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
                 "orders": [],
+                "calcConstructionsFromSQL": row.get("CalcConstructionsCount"),
                 "dealer": row.get("Customer"),
                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
                 "constructionsQTY": current_order_count, 
@@ -380,7 +381,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
                 "file": bin_to_guid_1c(row.get("FileLink")) or '',
                 "fileName": row.get("CalcFileName") or '',
-                "message": row.get("Message"),
+                "message": row.get("CalcComment"),
                 "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
             }
         else:
@@ -452,11 +453,16 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         # Агрегати на рівні просчету
         calc["statuses"] = status_counts
         calc["orderCountInCalc"] = len(orders)
-        calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
+        
         calc["amount"] = total_amount
         calc["debt"] = total_amount - total_paid
-        if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
-            calc["constructionsQTY"] = row.get("CalcConstructionsCount")
+        if calc.get("calcConstructionsFromSQL") is not None:
+                constructions_qty = int(calc["calcConstructionsFromSQL"])
+        else:
+            constructions_qty = sum(o["count"] for o in orders)
+
+        calc["constructionsQTY"] = constructions_qty
+        calc["constructionsCount"] = constructions_qty
 
         formatted_calcs.append(calc)
 
@@ -510,6 +516,29 @@ def api_get_orders(request):
 
     # ---------- 📦 DATA ----------
     data = get_orders_by_year_and_contractor(year, contractor_bin)
+
+    calc_bins = [
+        guid_to_1c_bin(calc["id"])
+        for calc in data
+        if calc.get("id")
+    ]
+
+    unread_calc_bins = set(
+        Message.objects.filter(
+            base_transaction_id__in=calc_bins,
+            is_read=False
+        )
+        .exclude(writer_id=contractor_bin)
+        .values_list("base_transaction_id", flat=True)
+        .distinct()
+    )
+
+    
+    for calc in data:
+        calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
+
+
+
 
     return Response({
         "status": "success",
@@ -1397,7 +1426,7 @@ def orders_view_all_by_month(request):
     calcs_dict = {}
 
     for row in rows:
-        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or "default"
+        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
 
         constructions_count = int(row.get("ConstructionsCount") or 0)
         calculation_date = row.get("CalcDate") or row.get("CalculationDate")
@@ -1406,8 +1435,8 @@ def orders_view_all_by_month(request):
         if calc_id not in calcs_dict:
             calcs_dict[calc_id] = {
                 "id": calc_id,
-                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or "",
-                "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
+                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
+                "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber")  or row.get("OrderNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date,
                 "orders": [],

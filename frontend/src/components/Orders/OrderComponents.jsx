@@ -1,5 +1,5 @@
 // ================= CalculationItem.jsx (Final Optimization) =================
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect  } from "react";
 import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
@@ -10,12 +10,13 @@ import { formatDateHumanShorter } from "../../utils/formatters";
 import './Orders.css'
 import { useNotification } from "../notification/Notifications.jsx";
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
-export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
+export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRead }) => {
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
   const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
   const { addNotification } = useNotification();
+
 
   const user = useMemo(() => {
       try {
@@ -35,7 +36,8 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
 
   const isAdmin = user?.role === "admin";
 
-  
+
+
   const recipientIconClass = isDealerRecipient
     ? "text-success"   // дилер = отримувач
     : "text-warning";  // менеджер / інший отримувач
@@ -43,6 +45,8 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
   // const recipientLabel = 
   //   ? "Отримувач"
   //   : calc.dealer || "Контрагент";
+
+
 
 
   // 1. Мемоїзація простих обробників
@@ -53,11 +57,16 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
     },
     [onEdit]
   );
-  const handleViewComments = useCallback((comments) => {
-    setSelectedComments(comments);
-    setIsCommentsOpen(true);
-  }, []);
 
+  const handleViewComments = useCallback((comments) => {
+    setSelectedComments(comments);
+    setIsCommentsOpen(true);
+    
+    // Якщо є непрочитані — викликаємо функцію "прочитано"
+    if (calc.hasUnreadMessages && onMarkAsRead) {
+      onMarkAsRead(calc.id);
+    }
+  }, [calc.id, calc.hasUnreadMessages, onMarkAsRead]);
   // 2. Мемоїзація асинхронних обробників
   const handleDownload = useCallback(
     async () => {
@@ -197,14 +206,24 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
               {calc.message || "Без коментарів"}
             </div>
             <button
-              className="btn-comments"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewComments(calc.comments || []);
-              }}
-            >
-              💬 Історія коментарів
-            </button>
+                className="btn-comments"
+                style={{ position: "relative" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewComments(calc.comments || []);
+                }}
+              >
+                <i
+                  className="fas fa-comments"
+                  style={{
+                    color: calc.hasUnreadMessages ? 'var(--danger-color)' : 'inherit',
+                    transition: 'color 0.3s',
+                    marginRight: '4px'
+                  }}
+                />
+
+                Історія коментарів
+              </button>
           </div>
         </div>
 
@@ -319,13 +338,19 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit }) => {
         </div>
       )}
 
-      <CommentsModal
-        isOpen={isCommentsOpen}
-        onClose={() => setIsCommentsOpen(false)}
-        comments={selectedComments}
-        orderId={calc.id}
- 
-      />
+
+       <CommentsModal
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+
+        baseTransactionGuid={calc.id}      
+        transactionTypeId={1}                       
+        activePersonId={calc.dealerId}
+        
+        />
+
+
+
 
       <CounterpartyInfoModal
         isOpen={isCounterpartyOpen}

@@ -1,5 +1,5 @@
 // ================= CalculationItemMobile.jsx (Final Optimization) =================
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import OrderItemSummaryMobile from './OrderItemSummaryMobile';
 import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
@@ -8,14 +8,21 @@ import axiosInstance from "../../api/axios";
 import {formatDateHumanShorter} from '../../utils/formatters'
 import { useNotification } from "../notification/Notifications.jsx";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
+
+import DeleteConfirmModal from './DeleteConfirmModal';
+
+
 // КРОК 1: Змінюємо експорт на React.memo
-export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => {
+export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit, onMarkAsRead }) => {
 //                                 
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [selectedComments, setSelectedComments] = useState([]);
   const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   const { addNotification } = useNotification();
+
 
     const user = useMemo(() => {
       try {
@@ -44,6 +51,13 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
   const handleEdit = useCallback((updatedCalc) => {
     if (onEdit) onEdit(updatedCalc);
   }, [onEdit]);
+
+  const hasOrders = useMemo(() => 
+      Array.isArray(calc.orders) && calc.orders.some(o => o.number && String(o.number).trim() !== ""),
+      [calc.orders]
+    );
+
+
 
   const handleDownload = useCallback(
     async () => {
@@ -83,15 +97,24 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
   );
 
 
+
+
+
   
   const handleDelete = useCallback(async () => {
     if (onDelete) await onDelete(calc.id);
   }, [onDelete, calc.id]);
 
-  const handleViewComments = useCallback((comments) => {
-    setSelectedComments(comments);
-    setIsCommentsOpen(true);
-  }, []);
+   const handleViewComments = useCallback((comments) => {
+    setSelectedComments(comments);
+    setIsCommentsOpen(true);
+    
+    // Якщо є непрочитані — викликаємо функцію "прочитано"
+    if (calc.hasUnreadMessages && onMarkAsRead) {
+      onMarkAsRead(calc.id);
+    }
+  }, [calc.id, calc.hasUnreadMessages, onMarkAsRead]);
+
 
   // 2. Мемоїзація списку замовлень за допомогою useMemo
   const orderList = useMemo(() => {
@@ -155,8 +178,26 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
               <div className="text-danger font-size-11">{formatDateHumanShorter(calc.date)}</div>
             </div>
           </div>
+
+{/* <button
+  type="button"
+  className={`icon icon-trash font-size-18 bg-transparent border-0 
+    ${hasOrders ? 'inactive' : 'clickable text-danger'}`}
+  title={hasOrders ? 'Недоступно для видалення' : 'Видалити'}
+  onClick={handleDeleteClick}
+/> */}
+
           <div onClick={(e) => e.stopPropagation()}>
-            <CalculationMenu calc={calc} onEdit={handleEdit} onDelete={handleDelete} />
+            <button
+            className={`btn-delete-mobile ${hasOrders ? 'opacity-20' : 'text-danger'}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!hasOrders) setIsDeleteModalOpen(true);
+            }}
+            disabled={hasOrders}
+          >
+            <span className="icon icon-trash font-size-20"></span>
+          </button>
           </div>
         </div>
 
@@ -244,14 +285,23 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
         <div className="mb-2 p-1.5 bg-yellow-50 rounded flex items-center justify-between">
             <div className="text-grey font-size-11">Коментар:</div>
 
-            <button
-                className="text-info font-size-11 underline flex items-center"
-                onClick={(e) => {
-                e.stopPropagation();
-                handleViewComments(calc.comments || []);
-                }}>
-                💬 Переглянути
-            </button>
+           <button
+                className="text-info font-size-11 underline flex items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewComments(calc.comments || []);
+                }}
+              >
+                <i
+                  className="fas fa-comments"
+                  style={{
+                    color: calc.hasUnreadMessages ? 'var(--danger-color)' : 'inherit',
+                    transition: 'color 0.3s'
+                  }}
+                />
+                Переглянути
+              </button>
+
             </div>
 
 
@@ -302,14 +352,30 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit }) => 
         </div>
       )}
 
-      {/* Модальне вікно (без змін) */}
-      <CommentsModal
-        isOpen={isCommentsOpen}
-        onClose={() => setIsCommentsOpen(false)}
-        comments={selectedComments}
-        orderId={calc.id}
 
-      />
+
+
+       <CommentsModal
+        isOpen={isCommentsOpen}
+        onClose={() => setIsCommentsOpen(false)}
+
+        baseTransactionGuid={calc.id}      
+        transactionTypeId={1}                       
+        activePersonId={calc.dealerId}
+        
+        />
+
+        <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onDeleted={() => {
+          onDelete(calc.id);
+          setIsDeleteModalOpen(false);
+        }}
+        itemData={calc}
+        itemType="calculation"
+      />
+
 
       <CounterpartyInfoModal
         isOpen={isCounterpartyOpen}

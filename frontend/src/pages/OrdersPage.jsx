@@ -63,6 +63,14 @@ const PortalOriginal = () => {
         );
     }, []);
 
+
+    const handleMarkAsRead = (orderId) => {
+
+        setOrdersData(prev => prev.map(item => 
+            item.id === orderId ? { ...item, hasUnreadMessages: false } : item
+        ));
+    };
+
     const handleCloseCalc = useCallback(() => setIsCalcModalOpen(false), []);
 
     const reloadCalculations = useCallback(async () => {
@@ -424,6 +432,7 @@ return (
                                         onOrderToggle={toggleOrder}
                                         onDelete={handleDeleteCalculation}
                                         onEdit={handleUpdateCalculation}
+                                        onMarkAsRead={handleMarkAsRead}
                                     />
                                 ) : (
                                     <CalculationItem 
@@ -435,6 +444,7 @@ return (
                                         onOrderToggle={toggleOrder}
                                         onDelete={handleDeleteCalculation}
                                         onEdit={handleUpdateCalculation}
+                                        onMarkAsRead={handleMarkAsRead}
                                     />
                                 )
                             )

@@ -62,6 +62,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
   if (!isOpen) return null;
 
   return (
+    
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content-square" onClick={(e) => e.stopPropagation()}>
         <div className="modal-border-top" />
@@ -80,10 +81,17 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
           </p>
         </div>
         <div className="modal-footer">
-          <button className="btn btn-grey" onClick={onClose}>
+          <button 
+            type="button" // Обов'язково додайте тип
+            className="btn btn-grey-delete" 
+            onClick={(e) => {
+              e.stopPropagation(); // Зупиняємо спливання події
+              onClose();
+            }}
+          >
             <FaTimes style={{ marginRight: 6 }} /> Скасувати
           </button>
-          <button className="btn btn-danger" onClick={handleDelete}>
+          <button className="btn btn-danger-delete" onClick={handleDelete}>
             <FaTrash style={{ marginRight: 6 }} /> Видалити
           </button>
         </div>

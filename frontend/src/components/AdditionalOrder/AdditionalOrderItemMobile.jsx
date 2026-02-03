@@ -93,7 +93,7 @@ export const AdditionalOrderItemMobile = ({ calc, onDelete, onEdit, onMarkAsRead
         {/* Header - Номер, дата і меню */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <span className="icon icon-calculator font-size-24 text-success"></span>
+            <span className="icon icon-add-to-list font-size-24 text-success"></span>
             <div className="column gap-0.5">
               <div className="font-size-20 text-info font-weight-bold border-bottom">№ {calc.number}</div>
               <div className="text-danger font-size-11">{calc.date}</div>
