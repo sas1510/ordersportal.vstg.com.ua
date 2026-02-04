@@ -27,3 +27,5 @@ def get_author_from_1c(writer_id_bin):
         "full_name": author_name,
         "extra": extra_info,
     }
+
+

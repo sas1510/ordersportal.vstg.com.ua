@@ -79,12 +79,12 @@ export const ifZero = (num) => (num === 0 ? '-' : num);
     const date = new Date(input);
     if (isNaN(date)) return "Не вказано";
 
-    // Отримуємо дату: "2 лют."
+    // Отримуємо дату: "2 лют. "
     const datePart = date.toLocaleDateString('uk-UA', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
-    }).replace('.', ''); // Прибираємо крапку після місяця, якщо вона не потрібна
+    }); 
 
     // Отримуємо час: "15:40"
     const timePart = date.toLocaleTimeString('uk-UA', {

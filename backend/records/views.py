@@ -1661,6 +1661,44 @@ def build_1c_payload(
     return payload
 
 
+def extract_calculation_guid(result) -> str | None:
+    if not isinstance(result, dict):
+        return None
+
+    results = result.get("results")
+
+    if not isinstance(results, list) or not results:
+        return None
+
+    first = results[0]
+    if not isinstance(first, dict):
+        return None
+
+    return first.get("calculationGUID")
+
+
+def save_calculation_comment(
+    *,
+    calculation_bin: bytes,
+    comment: str,
+    writer_guid: bytes | None,
+):
+    if not comment:
+        return
+
+
+
+  
+
+    Message.objects.create(
+        base_transaction_id=calculation_bin,
+        transaction_type_id=1,   # 👈 явний FK
+        writer_id=writer_guid,
+        message=comment,
+        is_read=False,
+        is_send=False,
+    )
+
 
 
 import json
@@ -1794,6 +1832,33 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                     "payload_sent_to_1c": payload,
                 }
             )
+        
+        calculation_guid = extract_calculation_guid(result)
+
+        if not calculation_guid:
+            raise ValidationError({
+                "detail": "1С не повернула calculationGUID",
+                "1c_response": result,
+            })
+
+        # ---------- ЗБЕРІГАЄМО КОМЕНТАР ----------
+        writer_guid = None
+        if request.user and request.user.is_authenticated:
+            writer_guid = request.user.user_id_1C
+
+        save_calculation_comment(
+            calculation_bin=guid_to_1c_bin(calculation_guid),
+            comment=data.get("comment", ""),
+            writer_guid=writer_guid,
+        )
+
+        # save_message(
+        #     transaction_type_id=serializer.validated_data["transaction_type_id"],
+        #     base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
+        #     message_text=serializer.validated_data["comment"],
+        #     writer_guid=writer_guid,
+        # )
+
 
         return Response(
             {
@@ -2026,19 +2091,19 @@ def create_message(request):
     user = request.user
     is_1c = request.auth == "1C_API_KEY"
 
-    # 🔐 ВИЗНАЧАЄМО АВТОРА
+
     writer_id_1c = None
 
     if is_1c:
-        # 🔑 1C API key → writer = user.user_id_1C
+    
         writer_id_1c = getattr(user, "user_id_1C", None)
         if not writer_id_1c:
             raise PermissionError("API key user has no UserId1C")
     else:
-        # 🔐 JWT → writer = поточний користувач
+        
         writer_id_1c = getattr(user, "user_id_1C", None)
 
-    # ❗ writer може бути None (наприклад, системні коментарі)
+  
     message = save_message(
         transaction_type_id=serializer.validated_data["transaction_type_id"],
         base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
@@ -2046,7 +2111,6 @@ def create_message(request):
         writer_guid=bin_to_guid_1c(writer_id_1c) if writer_id_1c else None,
     )
 
-    # 👤 ФОРМУЄМО АВТОРА ДЛЯ ВІДПОВІДІ
     author = None
     if writer_id_1c:
         user_obj = CustomUser.objects.filter(user_id_1C=writer_id_1c).first()
