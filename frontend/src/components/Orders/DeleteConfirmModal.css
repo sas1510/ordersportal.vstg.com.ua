@@ -138,6 +138,12 @@ body.dark-theme .modal-overlay {
     background: rgba(0, 0, 0, 0.7);
 }
 
+body.dark-theme .modal-header {
+    background: #1e1e1e;
+    border: none;
+ 
+}
+
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .modal-content-square {
     /* Темний фон вікна */

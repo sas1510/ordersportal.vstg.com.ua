@@ -15,7 +15,7 @@ import OrderDetailsMobile from './OrderDetailsMobile';
 import {formatDateHumanShorter} from '../../utils/formatters'
 import PaymentModal from "./PaymentModal";
 import { useNotification } from "../notification/Notifications";
-
+import { useAuth } from '../../hooks/useAuth';
 
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export default React.memo(function OrderItemSummaryMobile ({ order }) {
@@ -31,10 +31,8 @@ export default React.memo(function OrderItemSummaryMobile ({ order }) {
 
         // ------------------------------------
     const [claimOrderNumber, setClaimOrderNumber] = useState("");
-     const user = useMemo(() => {
-        const userData = localStorage.getItem("user");
-        return userData ? JSON.parse(userData) : null;
-    }, []);
+    const { user, role } = useAuth();
+    const isAdmin = role === "admin";
     // 1. Мемоїзація простого обробника стану
     const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
     

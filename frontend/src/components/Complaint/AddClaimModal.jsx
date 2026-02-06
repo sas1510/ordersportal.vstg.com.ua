@@ -6,6 +6,7 @@ import "./AddClaimModal.css";
 import CustomSelect from "./CustomSelect";
 import DealerSelect from "../../pages/DealerSelect";
 import { useNotification } from "../notification/Notifications";
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AddClaimModal({
   isOpen,
@@ -17,8 +18,8 @@ export default function AddClaimModal({
 
   const { addNotification } = useNotification();
 
-
-  const role = (localStorage.getItem("role") || "").trim().toLowerCase();
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
 

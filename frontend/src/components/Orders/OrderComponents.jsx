@@ -9,6 +9,8 @@ import OrderItemSummaryDesktop from "./OrderItemSummaryDesktop";
 import { formatDateHumanShorter, formatDateTimeShort } from "../../utils/formatters";
 import './Orders.css'
 import { useNotification } from "../notification/Notifications.jsx";
+import { useAuth } from '../../hooks/useAuth';
+
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRead }) => {
   const [expanded, setExpanded] = useState(false);
@@ -18,14 +20,8 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRea
   const { addNotification } = useNotification();
 
 
-  const user = useMemo(() => {
-      try {
-        return JSON.parse(localStorage.getItem("user"));
-      } catch {
-        return null;
-      }
-    }, []);
-
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
 
   const isDealerRecipient = useMemo(() => {
     if (!calc.recipient || !calc.dealer) return false;
@@ -34,7 +30,6 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRea
           calc.dealer.trim().toLowerCase();
   }, [calc.recipient, calc.dealer]);
 
-  const isAdmin = user?.role === "admin";
 
 
 

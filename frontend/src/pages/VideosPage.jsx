@@ -6,6 +6,7 @@ import { useNotification } from '../components/notification/Notifications';
 import ConfirmModal from '../components/Orders/ConfirmModal';
 import './Videos.css';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../hooks/useAuth';
 
 const VideosPage = () => {
   const [videos, setVideos] = useState([]);
@@ -17,6 +18,9 @@ const VideosPage = () => {
   const [loadingSave, setLoadingSave] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
 
   // Форма тепер містить resource_type
   const [videoForm, setVideoForm] = useState({ 
@@ -42,8 +46,7 @@ const VideosPage = () => {
         lightGreyColor: '#aaa',     
     };
 
-  const role = localStorage.getItem('role');
-  const isAdmin = role === 'admin';
+
   const { addNotification } = useNotification();
 
   useEffect(() => { fetchVideos(); }, []);

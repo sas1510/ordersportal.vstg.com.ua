@@ -46,7 +46,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
           return;
       }
 
-      await axiosInstance.delete(endpoint);
+      await axiosInstance.post(endpoint);
 
       if (onDeleted) onDeleted(itemData.id);
 

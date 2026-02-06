@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 
 import ClientAddressModal from "./ClientAddressModal";
+import { useAuth } from '../../hooks/useAuth';
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
@@ -46,7 +47,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const [isClientAddressModalOpen, setIsClientAddressModalOpen] = useState(false);
 
-  const role = (localStorage.getItem("role") || "").trim().toLowerCase();
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
+
   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
   /* ======================================================

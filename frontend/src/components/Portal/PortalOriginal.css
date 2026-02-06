@@ -2962,3 +2962,12 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
 .font-size-48 {
     font-size: 48px;
 }
+
+
+.dark-theme .error-empty-state {
+
+    background: #2c2c2c;
+    border: 2px dashed #888888;
+
+
+}

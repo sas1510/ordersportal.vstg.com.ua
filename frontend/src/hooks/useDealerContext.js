@@ -1,18 +1,28 @@
-import { useState, useEffect } from "react";
-import { getCurrentUser, isAdmin } from "../utils/auth";
+import { useContext, useEffect, useState } from "react";
+import { RoleContext } from "../context/RoleContext";
 
 export const useDealerContext = () => {
-  const user = getCurrentUser();
-  const admin = isAdmin();
+  const { user, role, isLoading } = useContext(RoleContext);
 
-  const [dealerGuid, setDealerGuid] = useState(
-    admin ? null : user.user_id_1c
-  );
+  const isAdmin = role === "admin";
+
+  const [dealerGuid, setDealerGuid] = useState(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAdmin) {
+        setDealerGuid(null); // admin може обирати дилера
+      } else {
+        setDealerGuid(user?.user_id_1c || null);
+      }
+    }
+  }, [isAdmin, user, isLoading]);
 
   return {
-    isAdmin: admin,
+    isAdmin,
     dealerGuid,
     setDealerGuid,
     currentUser: user,
+    isLoading,
   };
 };

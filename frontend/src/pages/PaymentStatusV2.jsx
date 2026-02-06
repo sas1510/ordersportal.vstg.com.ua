@@ -7,6 +7,7 @@ import MobilePaymentsView from "./MobilePaymentsView";
 import { formatDateHuman } from "../utils/formatters";
 import { useDealerContext } from "../hooks/useDealerContext";
 import DealerSelect from './DealerSelect'
+import { useNotification } from "../components/notification/Notifications";
 
 // ====================================================================
 //                           FORMAT CURRENCY
@@ -404,55 +405,66 @@ const PaymentStatusV2 = () => {
     dateFrom: defaultDateFrom,
     dateTo: defaultDateTo,
   });
+   
+  const { addNotification } = useNotification();
 
 
+  const downloadExcel = async () => {
+      if (excelLoading) return;
 
-   const downloadExcel = async () => {
-    if (excelLoading) return; // ⛔ захист від дабл-кліку
+      setExcelLoading(true);
+      try {
+        const response = await axiosInstance.get(
+          "/payments/export_payment_status_excel/",
+          {
+            params: {
+              contractor: filters.contractor,
+              date_from: filters.dateFrom,
+              date_to: filters.dateTo,
+            },
+            responseType: "blob",
+          }
+        );
 
-    setExcelLoading(true);
-    try {
-      const response = await axiosInstance.get(
-        "/payments/export_payment_status_excel/",
-        {
-          params: {
-            contractor: filters.contractor,
-            date_from: filters.dateFrom,
-            date_to: filters.dateTo,
-          },
-          responseType: "blob",
-        }
-      );
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
 
-      const blob = new Blob([response.data], {
-        type:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `payment_status_${filters.dateFrom}_${filters.dateTo}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
 
-      const url = window.URL.createObjectURL(blob);
+        // Додаємо успішне сповіщення (опціонально)
+        addNotification("Excel успішно завантажено", "success");
 
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `payment_status_${filters.dateFrom}_${filters.dateTo}.xlsx`;
+      } catch (error) {
+        console.error("Excel download error:", error);
 
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Excel download error:", error);
-
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Data:", error.response.data);
+        // ОСНОВНА ЧАСТИНА: Передаємо downloadExcel у кнопку Retry
+        addNotification(
+          <div className="flex flex-col gap-2 items-center text-center">
+            <span>Не вдалося завантажити Excel-файл.</span>
+            <button 
+              onClick={() => {
+                // Тут ми викликаємо саму себе
+                downloadExcel(); 
+              }} 
+              className="bg-white text-red-600 px-3 py-1.5 rounded text-xs font-bold w-fit shadow-md active:scale-95 transition-transform"
+            >
+              Спробувати ще раз
+            </button>
+          </div>,
+          "warning"
+        );
+      } finally {
+        setExcelLoading(false);
       }
-
-      alert("Не вдалося завантажити Excel");
-    } finally {
-    setExcelLoading(false); // ✅ ОБОВʼЯЗКОВО
-  }
-  };
+    };
 
   const API_ENDPOINT = "/payments/get_payment_status_view/";
 
@@ -477,9 +489,26 @@ const PaymentStatusV2 = () => {
         },
       });
 
-      setPaymentsData(Array.isArray(response.data) ? response.data : []);
+      // Перевірка чи прийшли дані
+      if (response.data && Array.isArray(response.data)) {
+          setPaymentsData(response.data);
+      } else {
+          // Якщо запит успішний, але даних немає (наприклад, порожній масив)
+          setPaymentsData([]);
+      }
     } catch (err) {
-      setError("Не вдалося завантажити дані.");
+      console.error("Fetch Error Detail:", err);
+      
+      // Обробка різних типів збоїв
+      if (!navigator.onLine) {
+          setError("Відсутній інтернет. Перевірте з'єднання.");
+      } else if (err.response) {
+          // Сервер відповів з помилкою (4xx, 5xx)
+          setError(`Помилка сервера: ${err.response.status}. Спробуйте пізніше.`);
+      } else {
+          // Запит взагалі не дійшов або таймаут
+          setError("Сервер недоступний або перевищено час очікування.");
+      }
     } finally {
       setLoading(false);
     }
@@ -656,15 +685,30 @@ const sortedGroups = useMemo(() => {
       </div>
     );
 
-  if (error)
+  // Додайте цей блок замість вашого поточного if (error)
+if (error) {
     return (
-      <div className={`page-container ${theme}`}>
-        <div className="error-container">
-          <p>⚠️ Помилка: {error}</p>
-          <p>Спробуйте змінити фільтри або GUID.</p>
+      <div className={`page-container ${theme} error-state`} style={{marginTop: "80px", marginLeft: "40px",  marginRight: "40px"}}>
+        <div className="error-empty-state column align-center jc-center">
+            <span className="icon icon-warning text-red font-size-48 mb-16"></span>
+            <h3 className="font-size-20 weight-600 mb-8">Упс! Не вдалося завантажити дані</h3>
+            <p className="text-grey mb-24 text-center">
+                Виникла проблема під час з'єднання із сервером. <br/>
+                Перевірте інтернет та спробуйте ще раз.
+            </p>
+               <button 
+            className="btn btn-primary" 
+            onClick={fetchData}
+          >
+            <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }} />
+            Спробувати ще раз
+          </button>
+      
         </div>
       </div>
     );
+  }
+  
 
   return (
 

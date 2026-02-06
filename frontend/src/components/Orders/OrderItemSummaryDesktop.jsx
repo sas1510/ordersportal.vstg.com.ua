@@ -11,6 +11,7 @@ import { useNotification } from "../notification/Notifications";
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
+import { useAuth } from '../../hooks/useAuth';
 
 export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
@@ -23,10 +24,8 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   
-  const user = useMemo(() => {
-    const userData = localStorage.getItem("user");
-    return userData ? JSON.parse(userData) : null;
-  }, []);
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
   // ---- ONLY PAYMENT MODAL FLAG ----
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 

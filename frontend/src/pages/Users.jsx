@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../hooks/useAuth';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -8,8 +9,9 @@ export default function AdminUsersPage() {
   const [sortConfig, setSortConfig] = useState({ key: "username", ascending: true });
   const navigate = useNavigate();
 
-  const role = localStorage.getItem("role");
-  const isAdmin = role === "Admin";
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
+
 
   useEffect(() => {
     fetchUsers();

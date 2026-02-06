@@ -10,6 +10,7 @@ import { useNotification } from "../notification/Notifications.jsx";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
 
 import DeleteConfirmModal from './DeleteConfirmModal';
+import { useAuth } from '../../hooks/useAuth';
 
 
 // КРОК 1: Змінюємо експорт на React.memo
@@ -24,16 +25,8 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit, onMar
   const { addNotification } = useNotification();
 
 
-    const user = useMemo(() => {
-      try {
-        return JSON.parse(localStorage.getItem("user"));
-      } catch {
-        return null;
-      }
-    }, []);
-
-    const isAdmin = user?.role === "admin";
-
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
     // Перевірка, чи є дилер отримувачем
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;

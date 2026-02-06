@@ -5,6 +5,8 @@ import CommentsModal from "../Orders/CommentsModal";
 import useWindowWidth from '../../hooks/useWindowWidth';
 import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; // Додаємо, оскільки це використовується всередині вбудованого меню
 import { ComplaintItemDetailView } from './ComplaintItemSummaryDesktop'; // Використовуємо новий DetailView
+import { useAuth } from '../../hooks/useAuth';
+
 
 export const ReclamationItem = ({ 
     reclamation, 
@@ -74,7 +76,8 @@ export const ReclamationItem = ({
     };
 
     // Обмеження доступу для меню
-    const role = localStorage.getItem('role');
+    const { user, role } = useAuth();
+
     const isCustomer = role === 'customer';
     const canEdit = !isCustomer && reclamation.status !== 'Закрита';
     const canDelete = reclamation.status === 'Нова';

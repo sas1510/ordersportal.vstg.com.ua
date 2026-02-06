@@ -5,7 +5,7 @@ import { FaFilePdf, FaSearch } from "react-icons/fa";
 import DealerSelect from "./DealerSelect";
 import { useDealerContext } from "../hooks/useDealerContext";
 import CreateCustomerBillModal from "./CreateCustomerBillModal";
-
+import { useNotification } from "../components/notification/Notifications";
 /* =========================
    HELPERS
    ========================= */
@@ -21,6 +21,7 @@ const getCurrentMonthRange = () => {
 
   const dateTo = new Date(year, month + 1, 0)
     .toISOString()
+    
     .split("T")[0];
 
   return { dateFrom, dateTo };
@@ -60,44 +61,48 @@ const CustomerBillsPage = () => {
   const [error, setError] = useState("");
 
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
+  const { addNotification } = useNotification();
 
   /* =========================
      FETCH
      ========================= */
 
   const fetchBills = async () => {
-  setLoading(true);
-  setError("");
+    setLoading(true);
+    setError("");
 
-  try {
-    const params = {
-      date_from: dateFrom,
-      date_to: dateTo,
-    };
+    try {
+      const params = {
+        date_from: dateFrom,
+        date_to: dateTo,
+      };
 
-    // 👑 ТІЛЬКИ admin передає contractor
-    if (isAdmin) {
-      if (!dealerGuid) {
-        setBills([]);
-        setLoading(false);
-        return;
+      if (isAdmin) {
+        if (!dealerGuid) {
+          setBills([]);
+          setLoading(false);
+          return;
+        }
+        params.contractor = dealerGuid;
       }
-      params.contractor = dealerGuid;
+
+      const res = await axiosInstance.get(
+        "/payments/dealers/bills/",
+        { params }
+      );
+
+      setBills(res.data?.items || []);
+    } catch (err) {
+      console.error(err);
+      const errorMsg = "Не вдалося завантажити список рахунків";
+      setError(errorMsg);
+
+      // ⬅️ Додаємо сповіщення про помилку
+     
+    } finally {
+      setLoading(false);
     }
-
-    const res = await axiosInstance.get(
-      "/payments/dealers/bills/",
-      { params }
-    );
-
-    setBills(res.data?.items || []);
-  } catch (err) {
-    console.error(err);
-    setError("Помилка при завантаженні рахунків");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
 
   /* =========================
@@ -132,14 +137,7 @@ const CustomerBillsPage = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="column align-center gap-14">
-        <span className="icon icon-warning font-size-58 text-danger"></span>
-        <div className="font-size-24 text-danger">{error}</div>
-      </div>
-    );
-  }
+  
 
   /* =========================
      RENDER
@@ -206,10 +204,29 @@ const CustomerBillsPage = () => {
           )}
         </div>
       </div>
+      
 
       {/* ===== CONTENT ===== */}
       <div className="customer-bills-panel">
-        {bills.length === 0 ? (
+        {error ? (
+    
+          <div className="error-empty-state column align-center jc-center">
+            <span className="icon icon-warning text-red font-size-48 mb-16"></span>
+            <h3 className="font-size-20 weight-600 mb-8">Упс! Не вдалося завантажити дані</h3>
+            <p className="text-grey mb-24 text-center">
+                Виникла проблема під час з'єднання із сервером. <br/>
+                Перевірте інтернет та спробуйте ще раз.
+            </p>
+               <button 
+            className="btn btn-primary" 
+            onClick={fetchBills}
+          >
+            <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }} />
+            Спробувати ще раз
+          </button>
+      
+        </div>
+        ) : bills.length === 0 ? (
           <div className="no-data">Немає рахунків</div>
         ) : (
           <table className="customer-bills-table">

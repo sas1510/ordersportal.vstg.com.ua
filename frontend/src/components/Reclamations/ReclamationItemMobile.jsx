@@ -5,7 +5,7 @@ import CommentsModal from "../Orders/CommentsModal";
 // Для вбудованого меню потрібен модал підтвердження:
 import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; 
 import { ComplaintItemDetailViewMobile } from './ComplaintItemSummaryMobile';
-
+import { useAuth } from '../../hooks/useAuth';
 
 export const ReclamationItemMobile = ({ 
     reclamation, 
@@ -33,7 +33,8 @@ export const ReclamationItemMobile = ({
     // === ЛОГІКА ДІЙ ===
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     
-    const role = localStorage.getItem('role');
+    const { user, role } = useAuth();
+
     const isCustomer = role === 'customer';
     
     const canEdit = !isCustomer && reclamation.status !== 'Закрита';

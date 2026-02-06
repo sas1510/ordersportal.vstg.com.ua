@@ -27,7 +27,7 @@
 
 .notification.info    { background: var(--info-color); color: #fff; }
 .notification.success { background: var(--success-color); color: #fff; }
-.notification.warning { background: var(--warning-color); color: #333; }
+.notification.warning { background: var(--warning-color); color: #333 !important; }
 .notification.error   { background: var(--danger-color); color: #fff; }
 
 @keyframes fadeIn {

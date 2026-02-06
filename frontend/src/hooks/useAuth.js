@@ -1,5 +1,7 @@
 // src/hooks/useAuth.js
+import { useContext } from "react";
+import { RoleContext } from "../context/RoleContext";
+
 export const useAuth = () => {
-  const user = JSON.parse(localStorage.getItem('user')); // збережений user
-  return { user };
+  return useContext(RoleContext);
 };

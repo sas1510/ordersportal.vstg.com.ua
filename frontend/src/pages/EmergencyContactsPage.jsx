@@ -4,12 +4,14 @@ import { useAuth } from '../hooks/useAuth';
 import { useNotification } from '../components/notification/Notifications';
 import './EmergencyContactsPage.css';
 
+
 const EmergencyContactsPage = () => {
   const [contacts, setContacts] = useState([]);
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const { addNotification } = useNotification();
 
-  const role = localStorage.getItem('role');
+  // const role = localStorage.getItem('role');
+  // const isAdmin = role === 'admin';
   const isAdmin = role === 'admin';
   
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -264,7 +264,7 @@ const scrollToTop = () => {
                               Прихід:
                             </span>
                             <span className="mobile-amount-value text-green">
-                              +{formatCurrency(docGroup.totalIncome, "")}
+                              {formatCurrency(docGroup.totalIncome, "")} грн
                             </span>
                           </div>
                         )}
@@ -275,7 +275,7 @@ const scrollToTop = () => {
                               Розхід:
                             </span>
                             <span className="mobile-amount-value text-red">
-                              -{formatCurrency(docGroup.totalExpense, "")}
+                              {formatCurrency(docGroup.totalExpense, "")} грн
                             </span>
                           </div>
                         )}
@@ -377,7 +377,7 @@ const scrollToTop = () => {
   <div className="order-mini-col">
     <span className="order-mini-label">Статус</span>
     <span className="order-mini-value">
-      {item.FinalDogovorName || "—"}
+      {item.PaymentStatus || "—"}
     </span>
   </div>
 

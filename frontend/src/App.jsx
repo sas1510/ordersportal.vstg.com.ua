@@ -55,14 +55,17 @@ const routeTitles = {
 };
 
 function AppRoutes() {
-  const { role } = useContext(RoleContext);
+  const { role, isLoading } = useContext(RoleContext);
   const location = useLocation();
+
+  // 1. Поки вантажиться роль - СТОЇМО НА МІСЦІ (показуємо лоадер)
+  if (isLoading) {
+    return <PortalLoader />;
+  }
 
   const publicPaths = ["/", "/home", "/login"];
   const isInvite = location.pathname.startsWith("/invite/");
-  const isPublicRoute =
-    publicPaths.includes(location.pathname) || isInvite;
-
+  const isPublicRoute = publicPaths.includes(location.pathname) || isInvite;
 
   useEffect(() => {
     const title = routeTitles[location.pathname] || "Портал замовлень";
@@ -92,53 +95,37 @@ function AppRoutes() {
     routes = managerRoutes;
   }
 
-  // if (role === null && !isPublicRoute) {
-  //   return <PortalLoader />;
-  // }
 
 
   return (
     <Routes>
-      {/* Публічні */}
+      {/* Публічні маршрути */}
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="home" element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="invite/:code/" element={<InviteRegisterForm />} />
-        {/* <Route path="api/admin" element={<InviteRegisterForm />} /> */}
-        {/* <Route path="file-preview/:errorType" element={<FilePreviewErrorPage />} /> */}
-
       </Route>
 
-      {/* Якщо роль не завантажена і маршрут не публічний — завантаження */}
-      {/* {role === null && location.pathname !== "/" && location.pathname !== "/login" && (
-        <Route path="*" element={<div>Завантаження...</div>} />
-      )} */}
-
-      {/* Якщо неавторизований і маршрут не публічний — редірект на логін */}
-      {!role && location.pathname !== "/" && location.pathname !== "/login" && !location.pathname.startsWith("/api/admin") && (
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      )}
-
-
       {/* Авторизовані маршрути */}
-      {role && (
+      {role ? (
         <Route path="/" element={<LayoutComponent />}>
           {routes.map(({ path, element }) => (
             <Route key={path} path={path} element={element} />
           ))}
-          {/* <Route
-  path="complaints/:claimGuid/files/:fileGuid/preview/*"
-  element={null}
-/> */}
-
-          {/* Фолбек для невідомих маршрутів */}
-          <Route path="*" element={<Navigate to= "/dashboard" replace />} />
+          {/* Якщо зайшли на неіснуючу сторінку всередині адмінки */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
+      ) : (
+        /* ЯКЩО РОЛІ НЕМАЄ:
+          Якщо ми НЕ на публічному роуті - кидаємо на логін, 
+          але ЗАПАМ'ЯТОВУЄМО, де був юзер (state: { from: location })
+        */
+        !isPublicRoute && <Route path="*" element={<Navigate to="/login" state={{ from: location }} replace />} />
       )}
     </Routes>
   );
 }
 
-
 export default AppRoutes;
+

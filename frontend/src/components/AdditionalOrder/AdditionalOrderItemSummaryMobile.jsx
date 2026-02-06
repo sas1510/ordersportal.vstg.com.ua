@@ -10,6 +10,7 @@ import ConfirmModal from "../Orders/ConfirmModal";
 import PaymentModal from "../Orders/PaymentModal";
 import OrderFilesModal from "../Orders/OrderFilesModal";
 import { useNotification } from "../notification/Notifications";
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AdditionalOrderItemSummaryMobile({ order }) {
   // =========================== UI STATE ===========================
@@ -23,10 +24,8 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
   const { addNotification } = useNotification();
 
   // =========================== DATA & AUTH ===========================
-  const user = useMemo(() => {
-    const userData = localStorage.getItem("user");
-    return userData ? JSON.parse(userData) : null;
-  }, []);
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
 
   const debtAmount = useMemo(() => {
     const paid = order.paid ?? 0;

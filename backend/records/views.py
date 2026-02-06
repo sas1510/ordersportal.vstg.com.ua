@@ -61,9 +61,19 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from django.http import JsonResponse
 from django.db import connection
 from datetime import timezone
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
-current_time = datetime.now(ZoneInfo("Europe/Kyiv")).strftime("%Y-%m-%d %H:%M:%S")
+def get_current_time_kyiv() -> str:
+    return (
+        datetime.now(timezone.utc)
+        .astimezone(ZoneInfo("Europe/Kyiv"))
+        .strftime("%Y-%m-%d %H:%M:%S")
+    )
+
 
 def parse_reclamation_details(text):
     """
@@ -206,131 +216,6 @@ def complaints_view(request):
 
 
 
-
-
-
-# Попередня версія без прорахунку 
-# def get_orders_by_year_and_contractor(year: int, contractor_id: str):
-#     """
-#     Викликає SQL-процедуру [GetOrdersByYearAndContractor] 
-#     та повертає результат у вигляді готової структури для фронту.
-    
-#     Якщо CalculationDate відсутня, використовує найранішу OrderDate.
-#     """
-#     # Тут замінено замовлення  на замовлення з прорахунками
-#     # query = """
-#     #     EXEC [GetOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
-#     # """
-
-
-#     query = """
-#         EXEC [GetCalculationsWithOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
-#     """
-
-#     with connection.cursor() as cursor:
-#         cursor.execute(query, [year, contractor_id])
-#         columns = [col[0] for col in cursor.description]
-#         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-#     calcs_dict = {}
-#     for row in rows:
-#         calc_id = row.get("ClientOrderNumber") or "default"
-        
-#         current_order_count = int(row.get("ConstructionsCount") or 0) 
-#         calculation_date = row.get("CalculationDate")
-#         order_date = row.get("OrderDate")
-        
-#         if calc_id not in calcs_dict:
-#             calcs_dict[calc_id] = {
-#                 "id": calc_id,
-#                 "number": row.get("ClientOrderNumber") or "",
-#                 "webNumber": row.get("WebNumber") or "",
-#                 "dateRaw": calculation_date,
-#                 "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
-#                 "orders": [],
-#                 "dealer": row.get("Customer"),
-#                 "dealerId": bin_to_guid_1c(row.get("ContractorID")),
-#                 "constructionsQTY": current_order_count, 
-#                 "file": row.get("File"),
-#                 "message": row.get("Message"),
-#                 "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
-#             }
-#         else:
-#             calcs_dict[calc_id]["constructionsQTY"] += current_order_count
-#             if order_date:
-#                  calcs_dict[calc_id]["raw_order_dates"].append(order_date)
-
-
-#         # Додаємо ордер до масиву
-#         order = {
-#             "id": row.get("OrderID"),
-#             "idGuid": row.get("OrderID_GUID"),
-#             # "id": row.get("OrderID"),
-#             "number": row.get("OrderNumber") or "",
-#             "dateRaw": row.get("OrderDate"),
-#             "date": row.get("OrderDate"),
-#             "status": row.get("OrderStage") or "Новий",
-#             "amount": float(row.get("OrderSum") or 0),
-#             "count": current_order_count,
-#             "paid": float(row.get("PaidAmount") or 0),
-#             "planProductionMin": row.get("ProductionDateMin"),
-#             "planProductionMax": row.get("ProductionDateMax"),
-#             "factProductionMin": row.get("ProductionStartDateMin"),
-#             "factProductionMax": row.get("ProductionStartDateMax"),
-#             "factReadyMin": row.get("ProductionReadyDateMin"),
-#             "factReadyMax": row.get("ProductionReadyDateMax"),
-#             "realizationDate": row.get("SaleDate"),
-#             "quantityRealized": float(row.get("SoldQuantity") or 0),
-#             "deliveryAddress": row.get("DeliveryAddress") or "",
-#             "planDeparture": row.get("PlannedDepartureDate"),
-#             "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
-#             "arrivalTime": row.get("ArrivalTime"),
-#             "routeStatus": row.get("RouteStatus"),
-#             "organizationName": row.get("OrganizationName"),
-#             "managerName": row.get("ManagerName"),
-            
-#         }
-#         calcs_dict[calc_id]["orders"].append(order)
-
-#     # --- Обчислюємо агрегати ---
-#     formatted_calcs = []
-#     for calc in calcs_dict.values():
-#         orders = calc["orders"]
-#         status_counts = {}
-#         total_amount = 0
-#         total_paid = 0
-
-#         # ВИЗНАЧЕННЯ ДАТИ ПРОРАХУНКУ, ЯКЩО ВОНА ВІДСУТНЯ
-#         if not calc["dateRaw"] and calc["raw_order_dates"]:
-#             # Знаходимо найменшу (найранішу) дату серед замовлень
-#             min_date = min(
-#                 (d for d in calc["raw_order_dates"] if d), default=None
-#             )
-#             calc["dateRaw"] = min_date
-#             calc["date"] = min_date 
-        
-#         # Видаляємо тимчасове поле
-#         del calc["raw_order_dates"]
-        
-#         # Агрегати на рівні ордера (статуси, суми)
-#         for o in orders:
-#             st = o["status"]
-#             if st:
-#                 status_counts[st] = status_counts.get(st, 0) + 1
-#             if st != "Відмова":
-#                 total_amount += o["amount"]
-#                 total_paid += o["paid"]
-
-#         # Агрегати на рівні просчету
-#         calc["statuses"] = status_counts
-#         calc["orderCountInCalc"] = len(orders)
-#         calc["constructionsCount"] = calc["constructionsQTY"] 
-#         calc["amount"] = total_amount
-#         calc["debt"] = total_amount - total_paid
-
-#         formatted_calcs.append(calc)
-
-#     return formatted_calcs
 
 
 def get_orders_by_year_and_contractor(year: int, contractor_id: str):
@@ -1592,7 +1477,7 @@ def build_1c_payload(
         "calculations": [
             {
                 # "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
-                "createdAt": current_time,
+                "createdAt": get_current_time_kyiv(),
             
                 "calculationNumber": order_number,
                 "itemsCount": int(items_count),
@@ -1872,6 +1757,10 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             },
             status=201,
         )
+
+
+
+
 
 
 
@@ -2406,3 +2295,64 @@ def confirm_order(request, order_id):
 
 
 
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from django.conf import settings
+import base64
+import requests
+
+class DeleteCalculationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, calculation_guid):
+        """
+        Видалення прорахунку + відправка в 1С
+        """
+
+
+        payload = {
+            "calculation_id": str(calculation_guid),
+        }
+
+        result = self._send_to_1c(payload)
+        # result = None
+        if not result.get("success", True):
+            return Response(
+                {
+                    "detail": "1С повернула помилку",
+                    "result_1c": result,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "calculation_id": str(calculation_guid),
+                "result_1c": result,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def _send_to_1c(self, payload: dict) -> dict:
+        auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
+        auth_b64 = base64.b64encode(auth_raw.encode()).decode()
+
+        response = requests.post(
+            settings.ONE_C_URL,
+            json=payload,
+            headers={
+                "Authorization": f"Basic {auth_b64}",
+                "Content-Type": "application/json",
+                "Query": "DeleteCalculation",
+            },
+            timeout=30,
+            verify=settings.ONE_C_VERIFY_SSL,
+        )
+
+        response.raise_for_status()
+        return response.json()

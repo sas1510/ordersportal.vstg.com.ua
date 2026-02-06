@@ -2,6 +2,7 @@ import './ReclamationMenu.css';
 import { useState } from 'react';
 import DeleteConfirmationModal from '../Orders/DeleteConfirmModal';
 // import EditReclamationModal from './EditReclamationModal'; // якщо згодом буде потрібно
+import { useAuth } from '../../hooks/useAuth';
 
 export const ReclamationMenu = ({ reclamation, onEdit, onDelete }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -10,7 +11,8 @@ export const ReclamationMenu = ({ reclamation, onEdit, onDelete }) => {
   if (!reclamation) return null;
 
   // 🔐 Ролі користувачів
-  const role = localStorage.getItem('role');
+  const { user, role } = useAuth();
+ 
   const isCustomer = role === 'customer';
 
   // ⚙️ Доступ до дій

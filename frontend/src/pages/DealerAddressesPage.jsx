@@ -529,9 +529,11 @@ function extractCoordsFromText(text) {
 
 /* ================= PAGE ================= */
 export default function DealerAddressesPage() {
-  const dealerCtx = useDealerContext?.();
+
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const contractorGuid = dealerCtx?.dealerGuid || localStorage.getItem("user_id_1C");
+  const dealerCtx = useDealerContext();
+  const contractorGuid = dealerCtx?.dealerGuid || dealerCtx?.currentUser?.user_id_1c;
+
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);

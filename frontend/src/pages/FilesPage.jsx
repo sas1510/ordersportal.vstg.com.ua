@@ -4,6 +4,7 @@ import { FaFileAlt, FaFilePdf, FaFileWord, FaFileExcel, FaTrash, FaEdit, FaDownl
 import ConfirmModal from '../components/Orders/ConfirmModal';
 import { useNotification } from '../components/notification/Notifications';
 import './Files.css';
+import { useAuth } from '../hooks/useAuth';
 
 // ==========================================================
 // КОНСТАНТИ
@@ -30,8 +31,10 @@ const FilesPage = () => {
     const [editNewFile, setEditNewFile] = useState(null);
     const [editingFile, setEditingFile] = useState(null);
 
-    const role = localStorage.getItem('role');
-    const isAdmin = role === 'admin';
+
+
+    const { user, role } = useAuth();
+    const isAdmin = role === "admin";
     const { addNotification } = useNotification();
 
     // Визначаємо, чи активна темна тема
