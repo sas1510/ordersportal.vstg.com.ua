@@ -1,0 +1,386 @@
+.border-primary {
+  border: 2px solid #0088FE;
+  background: #f0f7ff;
+}
+
+.order-tag {
+  display: inline-block;
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 4px 10px;
+  margin: 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.stat-badge {
+  font-size: 16px;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+
+.production-stats-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.kpi-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  border-left: 4px solid #0088fe;
+}
+
+.kpi-card .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #8898aa;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.kpi-card .value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #32325d;
+}
+
+.kpi-card .value small { font-size: 13px; color: #adb5bd; }
+.badge-red { border-left-color: #f5365c; }
+.badge-green { border-left-color: #2dce89; }
+
+/* Charts */
+.main-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.chart-wrapper-card {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+.chart-wrapper-card h4 {
+  font-size: 15px;
+  margin-bottom: 20px;
+  color: #444;
+  font-weight: 600;
+}
+
+/* Tabs */
+.tab-navigation {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  padding: 8px 18px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s;
+}
+
+.tab-btn.active {
+  background: #0088fe;
+  color: white;
+  border-color: #0088fe;
+  box-shadow: 0 4px 10px rgba(0, 136, 254, 0.2);
+}
+
+/* Order Panel */
+.order-details-panel {
+  background: #f8fbff;
+  border: 1px solid #0088fe;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.orders-tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.order-tag {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: 'Monaco', monospace;
+  font-size: 12px;
+  color: #4a5568;
+}
+
+/* Animations */
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+.animate-slide-up { animation: slideUp 0.4s ease-out; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn-back {
+  padding: 8px 16px;
+  background: #32325d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-close-details {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-close-details:hover {
+  background: #e2e8f0;
+  color: #ef4444;
+}
+
+.color-primary {
+  color: #0088fe;
+}
+
+/* Плавний перехід для появи секції */
+.drilldown-view {
+  transition: all 0.5s ease-in-out;
+}
+
+.mt-24 { margin-top: 24px; }
+.mb-24 { margin-bottom: 24px; }
+
+/* Додатково для скролу */
+html {
+  scroll-behavior: smooth;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+.kpi-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.kpi-card .label { color: #888; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
+.kpi-card .value { font-size: 24px; font-weight: 800; color: #1a1d23; }
+
+.stats-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.grid-span-2 { grid-column: span 2; }
+
+.chart-wrapper-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sub-nav-tabs {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.tab-link {
+    padding: 8px 16px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.tab-link:hover {
+    background: #e2e8f0;
+}
+
+.tab-link.active {
+    background: #0088FE;
+    color: white;
+    border-color: #0088FE;
+    box-shadow: 0 4px 6px -1px rgba(0, 136, 254, 0.3);
+}
+
+.sub-title-arrow {
+    color: #94a3b8;
+    font-weight: 400;
+    margin-left: 8px;
+}
+
+/* Основний контейнер для карток */
+.kpi-grid-6 {
+  display: grid;
+  /* Створюємо 6 колонок однакової ширини */
+  grid-template-columns: repeat(6, 1fr); 
+  gap: 16px; /* Відстань між картками */
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+/* Стиль самої картки */
+.kpi-card {
+  background: #ffffff;
+  padding: 20px 15px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center; /* Центруємо вміст */
+  text-align: center;
+  min-height: 100px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+/* Стилі тексту всередині */
+.kpi-card .label {
+  font-size: 12px;
+  color: #8c8c8c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.kpi-card .value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1d23;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.kpi-card .value small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8c8c8c;
+}
+
+/* Адаптивність: якщо екран малий, переносимо на наступні рядки */
+@media (max-width: 1200px) {
+  .kpi-grid-6 {
+    grid-template-columns: repeat(3, 1fr); /* 3 в ряд на планшетах */
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-grid-6 {
+    grid-template-columns: repeat(2, 1fr); /* 2 в ряд на телефонах */
+  }
+}
+
+.drilldown-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    background: rgba(0, 136, 254, 0.03);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 136, 254, 0.1);
+}
+
+.d-mini-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.d-mini-card.highlight .d-value {
+    color: #0088FE;
+}
+
+.d-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8c8c8c;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.d-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1d23;
+}
+
+.d-value small {
+    font-size: 12px;
+    font-weight: 400;
+    color: #8c8c8c;
+}
+
+.sub-title-arrow {
+    margin: 0 8px;
+    color: #bfbfbf;
+    font-weight: 300;
+}

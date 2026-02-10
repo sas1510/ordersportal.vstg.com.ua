@@ -15,7 +15,7 @@ export default function PortalLoader() {
 
       {/* === CONTENT === */}
       <motion.div
-        className="portal-loader-content column align-center gap-7"
+        className=" column align-center gap-7"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.25 }}
@@ -26,7 +26,7 @@ export default function PortalLoader() {
           className="portal-loader-text text-center"
           transition={{ repeat: Infinity, duration: 1.4 }}
         >
-          Завантаження порталу…
+          Завантаження…
         </motion.div>
       </motion.div>
     </div>

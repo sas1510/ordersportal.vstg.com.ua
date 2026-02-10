@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from backend.utils.BinToGuid1C import bin_to_guid_1c
+
 from .utils import get_author_from_1c
 from rest_framework.response import Response
 from rest_framework import status
@@ -2356,3 +2356,207 @@ class DeleteCalculationView(APIView):
 
         response.raise_for_status()
         return response.json()
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db import connection
+
+from backend.utils.contractor import resolve_contractor
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db import connection
+import collections
+
+class ProductionStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        year = int(request.GET.get("year", 2025))
+        top_count = int(request.GET.get("top", 100000))
+
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                EXEC dbo.GetProductionStatistics
+                    @Year = %s,
+                    @Contractor_ID = %s,
+                    @TopCount = %s
+            """, [year, contractor_bin, top_count])
+
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+            
+        # Формуємо основний список даних
+        items = [dict(zip(columns, row)) for row in rows]
+
+        # 📊 Агрегація для головної кругової діаграми (Pie Chart)
+        summary = collections.defaultdict(float)
+        for item in items:
+            cat = item.get('CategoryName_UA', 'Інше')
+            summary[cat] += float(item.get('TotalQuantity', 0))
+
+        # Перетворюємо в формат, зручний для графіків (наприклад, Chart.js)
+        chart_data = {
+            "labels": list(summary.keys()),
+            "values": list(summary.values())
+        }
+
+        return Response({
+            "contractor_guid": contractor_guid,
+            "year": year,
+            "summary_chart": chart_data, # Дані для Pie Chart
+            "items": items,              # Дані для детальної таблиці/Bar Charts
+        })
+    
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db import connection
+from backend.utils.contractor import resolve_contractor # Використовуємо вашу існуючу логіку
+
+class DealerDetailedStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 1. Використовуємо вашу перевірену логіку для визначення контрагента
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        # 2. Отримуємо параметри року
+        year = int(request.GET.get("year", 2025))
+
+        # 3. Викликаємо нову процедуру
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                EXEC [dbo].[GetDetailedDealerStatistics]
+                    @Year = %s,
+                    @Contractor_ID = %s
+            """, [year, contractor_bin])
+
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+
+        # 4. Формуємо дані
+        items = [dict(zip(columns, row)) for row in rows]
+
+        # 5. Витягуємо загальні KPI (вони однакові в кожному рядку через OVER())
+        summary = {
+            "avg_check" : items[0]["AvgOrderValue"] if items else 0,
+            "avg_production": items[0]["AvgProductionDays"] if items else 0,
+            "avg_delivery": items[0]["AvgDeliveryDaysFact"] if items else 0,
+            "total_lifecycle": items[0]["AvgTotalLifecycleDays"] if items else 0,
+            "complaint_rate": items[0]["ComplaintRatePercent"] if items else 0,
+            "total_sum": items[0]["TotalSumYear"] if items else 0,
+        }
+
+        return Response({
+            "contractor_guid": contractor_guid,
+            "year": year,
+            "kpi": summary,      # Готові цифри для верхніх карток дашборду
+            "items": items,      # Список для детальної таблиці
+        })
+    
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.db import connection
+
+class DealerFullAnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # 1. Визначаємо контрагента через вашу функцію resolve_contractor
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        year = int(request.GET.get("year", 2025))
+
+        with connection.cursor() as cursor:
+            # --- ТОЧКА 1: Детальні замовлення та загальні KPI ---
+            cursor.execute("EXEC [dbo].[GetDetailedDealerStatistics] %s, %s", [year, contractor_bin])
+            detailed_items = self.dictfetchall(cursor)
+
+            # --- ТОЧКА 2: Швидкість та черги за категоріями ---
+            cursor.execute("EXEC [dbo].[GetAvgProductionTimeByCategory] %s, %s", [year, contractor_bin])
+            category_speed = self.dictfetchall(cursor)
+
+            # --- ТОЧКА 3: Технічний склад (Кількість, Вага, Складність) ---
+            cursor.execute("EXEC [dbo].[GetProductionStatistics] %s, %s, 100000", [year, contractor_bin])
+            tech_items = self.dictfetchall(cursor)
+
+            # --- ТОЧКА 4: Сезонність та середній чек по місяцях ---
+            cursor.execute("EXEC [dbo].[GetContractorMonthlyTop] %s, %s", [year, contractor_bin])
+            monthly_stats = self.dictfetchall(cursor)
+
+        # 2. Формуємо верхні KPI картки (беремо з першого рядка детальної статистики)
+        kpi_summary = {
+            "total_sum": detailed_items[0]["TotalSumYear"] if detailed_items else 0,
+            "avg_check": detailed_items[0]["AvgOrderValue"] if detailed_items else 0,
+            "avg_days": detailed_items[0]["AvgProductionDays"] if detailed_items else 0,
+            "total_orders": detailed_items[0]["TotalOrdersCount"] if detailed_items else 0,
+            "kpi_orders_count": detailed_items[0]["OrdersInKpiCount"] if detailed_items else 0,
+            "complaint_rate": detailed_items[0]["ComplaintRatePercent"] if detailed_items else 0,
+            "avg_delivery": detailed_items[0]["AvgDeliveryDaysFact"] if detailed_items else 0,
+            "total_lifecycle": detailed_items[0]["AvgTotalLifecycleDays"] if detailed_items else 0,
+        }
+
+        # 3. Підготовка даних для графіків
+        # Графік категорій (Pie Chart) - виключаємо підсумок
+        pie_chart = {
+            "labels": [c["CategoryName"] for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---'],
+            "values": [c["TotalOrders"] for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---']
+        }
+
+        # Графік швидкості (Bar Chart)
+        speed_chart = {
+            "labels": [c["CategoryName"] for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---'],
+            "queue_days": [float(c["AvgWaitInQueueDays"]) for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---'],
+            "prod_days": [float(c["AvgPureProductionDays"]) for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---']
+        }
+
+        return Response({
+            "contractor_guid": contractor_guid,
+            "year": year,
+            "summary": kpi_summary,      # Ключові цифри (картки)
+            "charts": {
+                "distribution": pie_chart, # Розподіл по категоріях
+                "speed": speed_chart,      # Час виробництва (черга vs робота)
+                "monthly": monthly_stats   # Сезонність
+            },
+            "tables": {
+                "categories": category_speed, # Таблиця з термінами по групах
+                "tech_details": tech_items,   # Таблиця зі складністю та кількістю
+                # "orders": detailed_items      # Повний список замовлень
+            }
+        })
+
+    def dictfetchall(self, cursor):
+        "Повертає всі рядки з курсору як словник"
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]

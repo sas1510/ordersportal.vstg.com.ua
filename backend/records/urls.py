@@ -3,7 +3,7 @@
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
 from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView
-
+from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView
 
 create_calculation = CreateCalculationViewSet.as_view({
     "post": "create"
@@ -28,6 +28,9 @@ urlpatterns = [
     path("calculations/<str:calc_guid>/files/<str:file_guid>/download/", download_calculation_file, name="download_calculation_file"),
     path('orders/<uuid:order_id>/confirm/', confirm_order, name='confirm-order'),
     path("calculations/<uuid:calculation_guid>/delete/", DeleteCalculationView.as_view(),name="delete-calculation",),
+    path("production-statistics/", ProductionStatisticsView.as_view()),
+    path("kpi-statistics/", DealerDetailedStatisticsView.as_view()),
+    path("full-statistics/", DealerFullAnalyticsView.as_view()),
 
 ]
 

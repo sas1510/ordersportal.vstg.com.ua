@@ -22,7 +22,7 @@ const NAV_LINKS = [
 
 const FINANCE_SUBMENU = [
   { title: "Рух коштів", to: "/finance/cash-flow" },
-  { title: "Аналітика", to: "/finance/analytics" },
+  { title: "Аналітика", to: "/finance/statistics" },
 //   { title: "Оплата", to: "/finance/payment" },
   { title: "Рахунки", to: "/finance/customer-bills" },
 ];
