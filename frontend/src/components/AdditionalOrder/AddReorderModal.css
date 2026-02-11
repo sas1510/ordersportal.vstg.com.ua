@@ -41,13 +41,13 @@
 }
 
 .reorder-icon {
-  font-size: 28px; /* збільшили іконку */
+  font-size: 24px;
   display: flex;
   align-items: center;
 }
 
 .reorder-modal-header h3 {
-  font-size: 22px; /* більший заголовок */
+  font-size: 18px; /* більший заголовок */
   font-weight: 600;
   margin: 0;
   display: flex;

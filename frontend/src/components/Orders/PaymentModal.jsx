@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import axiosInstance from "../../api/axios";
 import "./PaymentModal.css";
 import { useNotification } from "../notification/Notifications.jsx";
+import { FaCheck, FaTimes } from 'react-icons/fa';
+
 
 export default function PaymentModal({
   order,
@@ -202,12 +204,13 @@ export default function PaymentModal({
         </div>
 
         <div className="pay-modal-footer">
-          <button className="pay-btn-cancel" onClick={onClose}>Скасувати</button>
+          <button className="pay-btn-cancel" onClick={onClose}> <FaTimes size={16} color="#fff" />  Скасувати</button>
           <button
             className="pay-btn-confirm"
             disabled={loading || !!loadError || !paymentAmount || !!amountError}
             onClick={() => onConfirm(selectedContract, Number(paymentAmount))}
           >
+            <FaCheck size={16} color="#fff" />
             Оплатити
           </button>
         </div>

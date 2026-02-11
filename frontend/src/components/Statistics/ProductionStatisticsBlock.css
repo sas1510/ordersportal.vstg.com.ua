@@ -1,3 +1,97 @@
+:root {
+    --text-color: #606060;
+    --info-color: #5e83bf;
+    --success-color: #76b448;
+    --warning-color: #d3c527;
+    --danger-color: #e46321;
+    --brown-color: #7C5747;
+    --purple-color: #645388;
+    --grey-color: #aaaaaa;
+    --grey-text-color: #b9b9b9;
+    --info-bg-color: #cfdcef99;
+    --success-bg-color: #e9f3e1;
+    --warning-bg-color: #f3f1d5;
+    --danger-bg-color: #fae4d9;
+    --cream-bg-color: #FFF9EC;
+    --purple-bg-color: #EDE7F6;
+    --shadow-color: #00000050;
+    --vs-green-color: #d4d947;
+    --vs-blue-color: #6b98bf;
+    --grey-border-color: #95959563;
+
+    --header-height: 50px;
+    --burger-menu-width: 500px;
+
+    /* Змінні для динамічної зміни теми */
+    --body-bg: #f8fafc;
+    --card-bg: #ffffff;
+    --card-text: #1a1d23;
+    --card-label: #8c8c8c;
+    --border-color: #e2e8f0;
+    --tab-bg: #f1f5f9;
+}
+
+/* ТЕМНА ТЕМА - Тільки зміна кольорів */
+.dark-theme {
+    --info-color: #5e83bf;
+    --body-bg: #121212;
+    --card-bg: #3b3b3b;
+    --card-text: #e2e8f0;
+    --card-label: #a0aec0;
+    --border-color: #333333;
+    --tab-bg: #2d2d2d;
+    --shadow-color: #00000090;
+    --grey-border-color: #ffffff20;
+    
+    color-scheme: dark;
+}
+
+.dark-theme .chart-wrapper-card,
+.dark-theme .kpi-card,
+.dark-theme .stat-badge,
+.dark-theme .order-tag,
+.dark-theme .tab-btn,
+.dark-theme .order-details-panel {
+    background-color: var(--card-bg);
+    color: var(--card-text);
+    /* border-color: var(--border-color); */
+}
+
+.dark-theme .kpi-card {
+  border-left: 4px solid var(--info-color);
+}
+
+.dark-theme .kpi-card .value,
+.dark-theme .d-value,
+.dark-theme .section-title,
+.dark-theme .chart-wrapper-card h4 {
+    color: var(--card-text);
+}
+
+.dark-theme .kpi-card .label,
+.dark-theme .d-label,
+.dark-theme .text-grey,
+.dark-theme .kpi-card .value small {
+    color: var(--card-label);
+}
+
+.dark-theme .drilldown-metrics-grid {
+    background: rgba(0, 136, 254, 0.1);
+    border-color: rgba(0, 136, 254, 0.2);
+}
+
+.dark-theme .tab-link {
+    background: var(--tab-bg);
+    color: var(--card-label);
+    border-color: var(--border-color);
+}
+
+.dark-theme .order-tag {
+    color: var(--card-text);
+}
+
+/* Кінець блоку темної теми */
+
 .border-primary {
   border: 2px solid #0088FE;
   background: #f0f7ff;
@@ -32,15 +126,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #999;
-}
-
-
 .production-stats-container {
   padding: 20px;
   display: flex;
@@ -54,34 +139,6 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
-
-.kpi-card {
-  background: #fff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  border-left: 4px solid #0088fe;
-}
-
-.kpi-card .label {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #8898aa;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.kpi-card .value {
-  font-size: 22px;
-  font-weight: 700;
-  color: #32325d;
-}
-
-.kpi-card .value small { font-size: 13px; color: #adb5bd; }
-.badge-red { border-left-color: #f5365c; }
-.badge-green { border-left-color: #2dce89; }
 
 /* Charts */
 .main-charts-row {
@@ -217,6 +274,7 @@ html {
   border-radius: 12px;
   display: flex;
   flex-direction: column;
+  border-left: 4px solid var(--info-color)
 }
 .kpi-card .label { color: #888; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
 .kpi-card .value { font-size: 24px; font-weight: 800; color: #1a1d23; }
@@ -274,9 +332,8 @@ html {
 /* Основний контейнер для карток */
 .kpi-grid-6 {
   display: grid;
-  /* Створюємо 6 колонок однакової ширини */
   grid-template-columns: repeat(6, 1fr); 
-  gap: 16px; /* Відстань між картками */
+  gap: 16px; 
   width: 100%;
   margin-bottom: 32px;
 }
@@ -289,15 +346,13 @@ html {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center; /* Центруємо вміст */
+  align-items: center; 
   text-align: center;
   min-height: 100px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid #f0f0f0;
 }
 
 .kpi-card:hover {
-  transform: translateY(-4px);
   box-shadow: 0 10px 20px rgba(0,0,0,0.08);
 }
 
@@ -329,13 +384,13 @@ html {
 /* Адаптивність: якщо екран малий, переносимо на наступні рядки */
 @media (max-width: 1200px) {
   .kpi-grid-6 {
-    grid-template-columns: repeat(3, 1fr); /* 3 в ряд на планшетах */
+    grid-template-columns: repeat(3, 1fr); 
   }
 }
 
 @media (max-width: 768px) {
   .kpi-grid-6 {
-    grid-template-columns: repeat(2, 1fr); /* 2 в ряд на телефонах */
+    grid-template-columns: repeat(2, 1fr); 
   }
 }
 
@@ -384,3 +439,76 @@ html {
     color: #bfbfbf;
     font-weight: 300;
 }
+
+.badge-reclamation { border-left-color: var(--danger-color); }
+.badge-order { border-left-color: var(--success-color); }
+
+.drilldown-header {
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  align-items: center; 
+  width: 100%; 
+  gap: 16px; 
+}
+
+.section-title {
+  margin: 0; 
+  display: flex;
+  align-items: center; 
+  flex-wrap: wrap; 
+}
+
+.btn-close-details-analytics {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; 
+  
+  background: #f1f1f1;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-close-details-analytics:hover {
+  background-color: #e0e0e0; 
+  color: #333; 
+  transform: rotate(90deg); 
+}
+
+.dark-theme .btn-close-details-analytics {
+  background: #333;
+  color: #ccc;
+}
+
+
+.dark-theme .trend-stats {
+  background: #45494d
+}
+.dark-theme .heatmap-legend {
+  background: #45494d
+}
+
+.dark-theme .heatmap-legend .legend-title {
+  color: var(--card-text);
+}
+
+
+.dark-theme .heatmap-legend .legend-items {
+  color: var(--card-text);
+}
+
+.dark-theme .heatmap-legend .legend-items .legend-item {
+  color: var(--card-text);
+}
+
+
+
+.dark-theme .badge-reclamation { border-left-color: var(--danger-color); }
+.dark-theme .badge-order { border-left-color: var(--success-color); }
+
+

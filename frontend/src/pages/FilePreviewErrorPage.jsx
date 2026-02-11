@@ -48,7 +48,7 @@ export default function FilePreviewErrorPage() {
         </p>
 
         <div className="preview-error-actions">
-          <a href="/dashboard" className="btn-portal">
+          <a href="/complaints" className="btn-portal">
             Повернутися в портал
           </a>
         </div>

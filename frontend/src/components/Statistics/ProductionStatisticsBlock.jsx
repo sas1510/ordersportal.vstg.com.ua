@@ -359,116 +359,99 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
   // 1. Головне кільце (Рівень 1)
   // 1. Головне кільце (Рівень 1) - Агрегуємо дані прямо з tech_details
 const mainDonutData = useMemo(() => {
-  if (!data?.tables?.tech_details) return [];
-  
-  const groups = {};
-  
-  data.tables.tech_details.forEach(item => {
-    const rawSub = item.ConstructionTypeName_UA?.trim();
-    // Визначаємо до якої групи (Вікна, Двері, Додатки) належить підкатегорія
-    const groupName = CATEGORY_MAPPING[rawSub] || "Додатки";
-    const qty = parseFloat(item.TotalQuantity || 0);
-
-    if (!groups[groupName]) {
-      groups[groupName] = 0;
-    }
-    groups[groupName] += qty;
-  });
-
-  return Object.entries(groups)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-}, [data]);
-
-// 2. Список підкатегорій для табів (Рівень 2 - Навігація)
-const availableSubCategories = useMemo(() => {
-  if (!selectedCategory || !data?.tables?.tech_details) return [];
-  
-  const subs = data.tables.tech_details
-    .filter(item => {
-      const cleanSub = item.ConstructionTypeName_UA?.trim();
-      return (CATEGORY_MAPPING[cleanSub] || "Додатки") === selectedCategory;
-    })
-    .map(item => item.ConstructionTypeName_UA?.trim());
-
-  return [...new Set(subs)].sort();
-}, [selectedCategory, data]);
-
-// 3. Детальні дані для графіків (Рівень 2 - Контент)
-// 1. Отримуємо унікальні підкатегорії для вибраної групи (напр. "Лиштва", "Сітки" для групи "Додатки")
-const subCategories = useMemo(() => {
-    if (!selectedCategory || !data?.tables?.tech_details) return [];
+    const details = data?.tables?.tech_details;
+    if (!Array.isArray(details) || details.length === 0) return [];
     
-    const subs = data.tables.tech_details
+    const groups = {};
+    details.forEach(item => {
+      const rawSub = item.ConstructionTypeName_UA?.trim() || "Інше";
+      const groupName = CATEGORY_MAPPING[rawSub] || "Додатки";
+      const qty = parseFloat(item.TotalQuantity || 0);
+
+      groups[groupName] = (groups[groupName] || 0) + qty;
+    });
+
+    return Object.entries(groups)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  // 2. Список підкатегорій (Рівень 2 - Навігація) - БЕЗПЕЧНА ФІЛЬТРАЦІЯ
+  const subCategories = useMemo(() => {
+    const details = data?.tables?.tech_details;
+    if (!selectedCategory || !Array.isArray(details)) return [];
+    
+    const subs = details
         .filter(item => {
-            const cleanName = item.ConstructionTypeName_UA?.trim();
+            const cleanName = item.ConstructionTypeName_UA?.trim() || "";
             return (CATEGORY_MAPPING[cleanName] || "Додатки") === selectedCategory;
         })
-        .map(item => item.ConstructionTypeName_UA?.trim());
+        .map(item => item.ConstructionTypeName_UA?.trim())
+        .filter(Boolean); // Видаляємо null/undefined
         
     return [...new Set(subs)].sort();
-}, [selectedCategory, data]);
+  }, [selectedCategory, data]);
 
-// 2. Фільтруємо дані для графіків та хмари замовлень
-const filteredCategoryDetails = useMemo(() => {
-    if (!selectedCategory || !data?.tables?.tech_details) return [];
+  // 3. Детальні дані для графіків - ЗАХИСТ ВІД NULL ТА ПОРОЖНІХ РЯДКІВ
+  const filteredCategoryDetails = useMemo(() => {
+    const details = data?.tables?.tech_details;
+    if (!selectedCategory || !Array.isArray(details)) return [];
 
-    return data.tables.tech_details
+    return details
         .filter(item => {
-            const cleanName = item.ConstructionTypeName_UA?.trim();
+            const cleanName = item.ConstructionTypeName_UA?.trim() || "";
             const parentGroup = CATEGORY_MAPPING[cleanName] || "Додатки";
-            
-            // Перевірка головної групи
             const isRightGroup = parentGroup === selectedCategory;
-            
-            // Перевірка обраної підкатегорії (якщо вибрано таб)
-            const isRightSub = activeSubCategory 
-                ? cleanName === activeSubCategory 
-                : true;
+            const isRightSub = activeSubCategory ? cleanName === activeSubCategory : true;
 
             return isRightGroup && isRightSub;
         })
         .map(item => ({
-            name: `${item.ConstructionTypeName_UA?.trim()} (${item.Складність_UA?.trim()})`,
-            value: item.TotalQuantity,
-            uniqueOrders: item.UniqueOrdersCount,
-            orders: item.OrderNumbers,
-            subCategory: item.ConstructionTypeName_UA?.trim()
+            name: `${item.ConstructionTypeName_UA?.trim() || "Невідомо"} (${item.Складність_UA?.trim() || "Стандарт"})`,
+            value: parseFloat(item.TotalQuantity || 0),
+            uniqueOrders: parseInt(item.UniqueOrdersCount || 0),
+            orders: item.OrderNumbers || "",
+            subCategory: item.ConstructionTypeName_UA?.trim() || ""
         }))
+        .filter(item => item.value > 0) // Показуємо тільки реальні об'єми
         .sort((a, b) => b.value - a.value);
-}, [selectedCategory, activeSubCategory, data]);
+  }, [selectedCategory, activeSubCategory, data]);
 
-// Розрахунок метрик для обраної категорії або підкатегорії
-const activeMetrics = useMemo(() => {
-    if (!selectedCategory || !data?.tables?.categories) return null;
+  // 4. Метрики часу - ЗАХИСТ ВІД ДІЛЕННЯ НА НУЛЬ
+  const activeMetrics = useMemo(() => {
+    const categories = data?.tables?.categories;
+    if (!selectedCategory || !Array.isArray(categories)) return null;
 
     let relevantRows = [];
-
     if (activeSubCategory) {
-        // Якщо вибрано конкретний таб (напр. "Лиштва")
-        relevantRows = data.tables.categories.filter(c => c.CategoryName === activeSubCategory);
+        relevantRows = categories.filter(c => c.CategoryName === activeSubCategory);
     } else {
-        // Якщо вибрано "Всі товари групи", шукаємо всі підкатегорії, що належать до групи (напр. до "Двері")
-        relevantRows = data.tables.categories.filter(cat => 
+        relevantRows = categories.filter(cat => 
             (CATEGORY_MAPPING[cat.CategoryName] || "Додатки") === selectedCategory
         );
     }
 
-    if (relevantRows.length === 0) return null;
+    const totalOrders = relevantRows.reduce((s, r) => s + (parseInt(r.TotalOrders) || 0), 0);
+    if (totalOrders === 0) return { avgFull: 0, avgQueue: 0, avgProd: 0, totalQty: 0 };
 
-    // Рахуємо середні значення (зважені на кількість замовлень)
-    const totalOrders = relevantRows.reduce((s, r) => s + r.TotalOrders, 0);
-    
     return {
-        avgFull: (relevantRows.reduce((s, r) => s + (r.AvgFullCycleDays * r.TotalOrders), 0) / totalOrders).toFixed(1),
-        avgQueue: (relevantRows.reduce((s, r) => s + (r.AvgWaitInQueueDays * r.TotalOrders), 0) / totalOrders).toFixed(1),
-        avgProd: (relevantRows.reduce((s, r) => s + (r.AvgPureProductionDays * r.TotalOrders), 0) / totalOrders).toFixed(1),
-        totalQty: relevantRows.reduce((s, r) => s + r.TotalQuantity, 0)
+        avgFull: (relevantRows.reduce((s, r) => s + ((r.AvgFullCycleDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
+        avgQueue: (relevantRows.reduce((s, r) => s + ((r.AvgWaitInQueueDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
+        avgProd: (relevantRows.reduce((s, r) => s + ((r.AvgPureProductionDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
+        totalQty: relevantRows.reduce((s, r) => s + (parseInt(r.TotalQuantity) || 0), 0)
     };
-}, [selectedCategory, activeSubCategory, data]);
+  }, [selectedCategory, activeSubCategory, data]);
 
-
-  if (loading) return <div className="loading-container"><div className="spinner"></div><p>Аналізуємо об'єми...</p></div>;
+  if (loading) {
+        return (
+            <div className="loading-spinner-wrapper">
+                <div className="loading-spinner"></div>
+                <div className="loading-text">
+                    { "Завантаження..."}
+                </div>
+            </div>
+        );
+    }
   if (!data) return <div className="error-msg">Дані не завантажено</div>;
 
   return (
@@ -480,12 +463,12 @@ const activeMetrics = useMemo(() => {
           <span className="label">Оборот {selectedYear}</span>
           <span className="value text-green">{data.summary.total_sum?.toLocaleString()} <small>грн</small></span>
         </div> */}
-        <div className="kpi-card shadow-sm">
+        <div className="kpi-card shadow-sm badge-order">
           <span className="label">Замовлень</span>
           <span className="value">{data.summary.total_orders} <small>шт</small></span>
         </div>
         <div className="kpi-card shadow-sm">
-          <span className="label">Сер. чек</span>
+          <span className="label">Середній чек</span>
           <span className="value">{Math.round(data.summary.avg_check || 0).toLocaleString()} <small>грн</small></span>
         </div>
         <div className="kpi-card shadow-sm">
@@ -500,7 +483,7 @@ const activeMetrics = useMemo(() => {
           <span className="label">Середній час повного циклу</span>
           <span className="value color-red">{Number(data.summary.total_lifecycle || 0).toFixed(1)}<small>дн.</small></span>
         </div>
-        <div className="kpi-card shadow-sm border-amber">
+        <div className="kpi-card shadow-sm border-amber badge-reclamation">
           <span className="label">Рекламації</span>
           <span className="value color-red">{Number(data.summary.complaint_rate || 0).toFixed(1)}%</span>
         </div>
@@ -517,7 +500,7 @@ const activeMetrics = useMemo(() => {
          </div>
 
          <div className="chart-wrapper-card">
-           <h4 className="chart-title">🔥 Тепловий календар активності</h4>
+           <h4 className="chart-title">🔥 Календар активності</h4>
            <MonthlyHeatmapChart data={data.charts.monthly} />
         </div>
           </div>
@@ -550,7 +533,7 @@ const activeMetrics = useMemo(() => {
                 Аналіз групи: <span className="color-primary">{selectedCategory}</span>
                 {activeSubCategory && <span className="sub-title-arrow"> → {activeSubCategory}</span>}
             </h3>
-            <button className="btn-close" onClick={() => {
+            <button className="btn-close-details-analytics" onClick={() => {
                 setSelectedCategory(null);
                 setActiveSubCategory(null);
             }}>✕</button>

@@ -86,10 +86,11 @@ const WDSCodesTable = () => {
   /* ===================== RENDER ===================== */
 
   return (
-    <div className="wds-codes-page">
+    //  <div className="wds-codes-page"></div>
+    <div className="portal-body">
       {/* ===== HEADER ===== */}
       <div className="customer-bills-header">
-        <h1 className="page-title">
+        <h1 className="page-title" style={{marginTop: '10px'}}>
           <FaPercent className="icon" />
           Акційні WDS-коди
         </h1>

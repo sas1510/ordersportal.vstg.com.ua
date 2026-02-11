@@ -797,7 +797,7 @@ useEffect(() => {
   };
 
   return (
-    <div className="page-container-address">
+    <div className="portal-body" style={{marginTop: '10px'}}>
       <div className="layout">
         <div className="address-list">
           <h3>Адреси: </h3>

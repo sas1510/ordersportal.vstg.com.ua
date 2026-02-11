@@ -51,7 +51,7 @@ const ConfirmModal = ({
             <span style={{ display: 'flex', alignItems: 'center' }}>
               {getTypeIcon()}
             </span>
-            <h3>{title}</h3>
+            <h3  style={{ fontSize: '18px'}}>{title}</h3>
             <span className="icon icon-cross confirm-close-btn" onClick={onClose}></span>
           </div>
         </div>
@@ -66,7 +66,7 @@ const ConfirmModal = ({
         </div>
 
         <div className="confirm-modal-footer">
-          <button className="confirm-btn-cancel" onClick={onClose}>
+          <button className="confirm-btn-cancel-confirm" onClick={onClose}>
             <FaTimes size={16} color="#fff" /> {cancelText}
           </button>
 

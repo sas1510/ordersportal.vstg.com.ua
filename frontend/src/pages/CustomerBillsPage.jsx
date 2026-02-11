@@ -144,7 +144,7 @@ const CustomerBillsPage = () => {
      ========================= */
 
   return (
-    <div className="customer-bills-page">
+    <div className="portal-body">
 
       {/* ===== PAGE HEADER ===== */}
       <div className="customer-bills-header">

@@ -9,7 +9,7 @@ export default function ProductionStatisticsPage() {
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   return (
-    <div className="portal-body column gap-24" style={{marginTop: "60px"}}>
+    <div className="portal-body column gap-2" >
       <div className="row ai-center jc-between stats-page-header">
         <h2 className="page-title">Статистика</h2>
 

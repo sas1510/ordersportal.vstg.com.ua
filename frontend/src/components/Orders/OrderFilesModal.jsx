@@ -141,7 +141,8 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
             <FaFileAlt />
             <h3>Файли замовлення</h3>
           </div>
-          <FaTimes className="close-btn" onClick={onClose} />
+          <span className="icon icon-cross file-cross-close-btn" onClick={onClose}></span>
+    
         </div>
 
         {/* BODY */}
