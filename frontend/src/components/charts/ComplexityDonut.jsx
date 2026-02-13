@@ -1,129 +1,125 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { useMemo } from "react";
+import React, { useMemo } from 'react';
+import ReactECharts from 'echarts-for-react';
 
+// Використовуємо кольори з вашої схеми
 const COLORS = [
-  "#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", 
-  "#82ca9d", "#58deff", "#8ac1ff", "#7ED321", "#D0021B", 
-  "#d8af6d", "#BD10E0", "#9013FE", "#50E3C2", "#B8E986"
+  "#5e83bf", // --info-color
+  "#76b448", // --success-color
+  "#d3c527", // --warning-color
+  "#e46321", // --danger-color
+  "#7C5747", // --brown-color
+  "#645388", // --purple-color
+  "#aaaaaa", // --grey-color
+  "#d4d947", // --vs-green-color
+  "#6b98bf"  // --vs-blue-color
 ];
 
 export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
   const total = useMemo(() => data.reduce((s, i) => s + i.value, 0), [data]);
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (!active || !payload || !payload.length) return null;
-    const percentage = ((payload[0].value / total) * 100).toFixed(1);
-    
-    return (
-      <div className="donut-tooltip">
-        <div className="tooltip-title">{payload[0].name}</div>
-        <div className="tooltip-body">
-          <div className="tooltip-row">
-            <span>Кількість:</span>
-            <strong>{payload[0].value.toLocaleString()} шт</strong>
+  const option = {
+    color: COLORS,
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: '#fff',
+      borderRadius: 8,
+      padding: 0,
+      // Тінь згідно з вашим --shadow-color (00000050)
+      extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #95959563; z-index: 1001;',
+      formatter: (params) => {
+        const percentage = ((params.value / total) * 100).toFixed(1);
+        return `
+          <div style="padding: 12px; min-width: 140px; font-family: sans-serif;">
+            <div style="font-weight: 700; font-size: 13px; color: #606060; margin-bottom: 8px; border-bottom: 1px solid #95959563; padding-bottom: 4px;">
+              ${params.name}
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: #606060;">
+              <span>Кількість:</span>
+              <strong style="margin-left: 8px;">${params.value.toLocaleString()} шт</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #606060;">
+              <span>Частка:</span>
+              <strong style="margin-left: 8px;">${percentage}%</strong>
+            </div>
           </div>
-          <div className="tooltip-row">
-            <span>Частка:</span>
-            <strong>{percentage}%</strong>
-          </div>
-        </div>
-      </div>
-    );
+        `;
+      }
+    },
+    legend: {
+      orient: 'horizontal',
+      bottom: 10,
+      left: 'center',
+      icon: 'circle',
+      itemWidth: 10,
+      itemGap: 20,
+      textStyle: { color: '#606060', fontSize: 12 }
+    },
+    series: [
+      {
+        name: 'Complexity',
+        type: 'pie',
+        // Зменшений розмір кола
+        radius: isDetail ? [0, '35%'] : ['30%', '50%'],
+        center: ['50%', isDetail ? '50%' : '42%'],
+        avoidLabelOverlap: true,
+        itemStyle: {
+          borderRadius: isDetail ? 0 : 4,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: !isDetail,
+          position: 'outside',
+          formatter: (params) => {
+            return `{name|${params.name}}\n{val|${params.value.toLocaleString()} шт (${params.percent.toFixed(1)}%)}`;
+          },
+          rich: {
+            name: {
+              fontSize: 12,
+              fontWeight: 600,
+              color: '#606060',
+              padding: [0, 0, 4, 0]
+            },
+            val: {
+              fontSize: 11,
+              color: '#aaaaaa' // --grey-color
+            }
+          }
+        },
+        labelLine: {
+          show: !isDetail,
+          length: 15,
+          length2: 20,
+          lineStyle: { color: '#95959563' }
+        },
+        data: data,
+        emphasis: {
+          scale: true,
+          scaleSize: 8,
+        },
+        animationType: 'expansion',
+        animationDuration: 1000
+      }
+    ]
   };
 
-  // Функція для малювання ліній (тільки для головного екрану, де НЕ суцільний круг)
-  const renderCustomizedLabel = (props) => {
-    if (isDetail) return null; // Прибираємо лінії в деталях
-
-    const { cx, cy, midAngle, innerRadius, outerRadius, percent, name, value } = props;
-    if (percent < 0.02) return null;
-
-    const RADIAN = Math.PI / 180;
-    const sin = Math.sin(-RADIAN * midAngle);
-    const cos = Math.cos(-RADIAN * midAngle);
-    const sx = cx + (outerRadius + 10) * cos;
-    const sy = cy + (outerRadius + 10) * sin;
-    const mx = cx + (outerRadius + 30) * cos;
-    const my = cy + (outerRadius + 30) * sin;
-    const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-    const ey = my;
-    const textAnchor = cos >= 0 ? 'start' : 'end';
-
-    return (
-      <g>
-        <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke="#d1d5db" fill="none" />
-        <circle cx={ex} cy={ey} r={2} fill="#9ca3af" stroke="none" />
-        <text 
-          x={ex + (cos >= 0 ? 1 : -1) * 12} 
-          y={ey} 
-          textAnchor={textAnchor} 
-          fill="#374151" 
-          dominantBaseline="central"
-          style={{ fontSize: '12px', fontWeight: 600 }}
-        >
-          {name}
-        </text>
-        <text 
-          x={ex + (cos >= 0 ? 1 : -1) * 12} 
-          y={ey + 18} 
-          textAnchor={textAnchor} 
-          fill="#9ca3af" 
-          dominantBaseline="central"
-          style={{ fontSize: '11px' }}
-        >
-          {`${value.toLocaleString()} шт (${(percent * 100).toFixed(1)}%)`}
-        </text>
-      </g>
-    );
+  const onEvents = {
+    click: (params) => {
+      if (onSectorClick) onSectorClick(params.name);
+    }
   };
 
   return (
-    <div className="donut-wrapper" style={{ width: '100%', height: isDetail ? 400 : 550, position: 'relative' }}>
-      <ResponsiveContainer>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy={isDetail ? "50%" : "45%"}
-            innerRadius={isDetail ? 0 : 100} 
-            outerRadius={isDetail ? 140 : 160}
-            paddingAngle={isDetail ? 0 : 2}
-            stroke="#fff"
-            strokeWidth={2}
-            onClick={(d) => onSectorClick && onSectorClick(d.name)}
-            cursor={onSectorClick ? "pointer" : "default"}
-            label={isDetail ? false : renderCustomizedLabel} 
-            animationDuration={800}
-          >
-            {data.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
-                fill={COLORS[index % COLORS.length]}
-                style={{ outline: 'none' }}
-              />
-            ))}
-          </Pie>
-          
-          {/* Додаємо wrapperStyle з високим zIndex */}
-          <Tooltip 
-            content={<CustomTooltip />} 
-            wrapperStyle={{ zIndex: 1000 }} 
-          />
-          
-          <Legend 
-            layout="horizontal" 
-            verticalAlign="bottom" 
-            align="center" 
-            iconType="circle"
-            wrapperStyle={{ paddingTop: isDetail ? 10 : 40 }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+    <div className="donut-wrapper" style={{ width: '100%', height: isDetail ? 400 : 500, position: 'relative' }}>
+      <ReactECharts 
+        option={option} 
+        style={{ height: '100%', width: '100%' }} 
+        onEvents={onEvents}
+        notMerge={true}
+      />
       
       {!isDetail && (
-        <div className="donut-center-badge" style={{ top: '40%' }}>
+        <div className="donut-center-badge">
           <div className="badge-label">Всього за рік</div>
           <div className="badge-value">{total.toLocaleString()}</div>
           <div className="badge-unit">одиниць</div>
@@ -131,36 +127,40 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
       )}
 
       <style jsx>{`
-        .donut-wrapper { position: relative; animation: fadeIn 0.6s ease-out; }
-        
+        .donut-wrapper { 
+          position: relative; 
+          animation: fadeIn 0.6s ease-out; 
+        }
+
         .donut-center-badge {
           position: absolute;
           left: 50%;
-          /* Ставимо z-index нижче, ніж у тултіпа */
-          z-index: 1; 
+          top: 42%;
           transform: translate(-50%, -50%);
           text-align: center;
           pointer-events: none;
           background: white;
-          padding: 24px 28px;
           border-radius: 50%;
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+          /* Використання вашого кольору тіні */
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          width: 115px;
+          height: 115px;
+          z-index: 1;
+          border: 1px solid #95959563;
         }
 
-        /* Стилі для кастомного тултіпа */
-        .donut-tooltip { 
-          background: white; 
-          padding: 16px; 
-          border-radius: 12px; 
-          box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-          border: 1px solid #f0f0f0;
-          position: relative;
-          /* Гарантуємо, що вміст тултіпа теж має високий пріоритет */
-          z-index: 1001; 
-        }
+        .badge-label { font-size: 11px; color: #aaaaaa; margin-bottom: 2px; }
+        .badge-value { font-size: 20px; font-weight: 700; color: #606060; line-height: 1.1; }
+        .badge-unit { font-size: 11px; color: #b9b9b9; margin-top: 2px; }
 
-        .badge-value { font-size: 32px; font-weight: 900; color: #1a1d23; }
-        .tooltip-title { font-weight: 800; font-size: 14px; color: #1a1d23; margin-bottom: 12px; }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
       `}</style>
     </div>
   );

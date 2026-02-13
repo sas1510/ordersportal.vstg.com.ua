@@ -299,6 +299,9 @@ import ABCAnalysisChart from "../charts/ABCAnalysisChart";
 import BCGMatrixChart from "../charts/BCGMatrixChart";
 import DealerSelect from "../../pages/DealerSelect";
 import './ProductionStatisticsBlock.css';
+import ComplexityTreemap from "../charts/ComplexityTreeMap";
+import EfficiencyChart from '../charts/EfficiencyChart';
+import VolumeChart from '../charts/VolumeChart';
 
 // Мапінг для групування сирих категорій у великі бізнес-групи
 const CATEGORY_MAPPING = {
@@ -307,6 +310,7 @@ const CATEGORY_MAPPING = {
   "Вікно вкл склопакет": "Вікна",
   "Розсувні системи SL76": "Вікна",
   "Двері безшовне зварювання": "Двері",
+  "Двері": "Двері",
   "Міжкімнатні двері": "Двері",
   "Технічні двері ПВХ": "Двері",
   "Двері Lampre": "Двері",
@@ -467,22 +471,25 @@ const mainDonutData = useMemo(() => {
           <span className="label">Замовлень</span>
           <span className="value">{data.summary.total_orders} <small>шт</small></span>
         </div>
+        <div className="kpi-card shadow-sm badge-order">
+          <span className="label">Кількість конструкцій</span>
+          <span className="value">{data.summary.total_orders} <small>шт</small></span>
+        </div>
+
         <div className="kpi-card shadow-sm">
           <span className="label">Середній чек</span>
           <span className="value">{Math.round(data.summary.avg_check || 0).toLocaleString()} <small>грн</small></span>
+        </div>
+
+        <div className="kpi-card shadow-sm">
+          <span className="label">Оборот</span>
+          <span className="value">{Math.round(data.summary.total_sum || 0).toLocaleString()} <small>грн</small></span>
         </div>
         <div className="kpi-card shadow-sm">
           <span className="label">Середній час виробництва</span>
           <span className="value">{Number(data.summary.avg_days || 0).toFixed(1)} <small>дн.</small></span>
         </div>
-        <div className="kpi-card shadow-sm border-amber">
-          <span className="label">Середній час доставки</span>
-          <span className="value color-red">{Number(data.summary.avg_delivery || 0).toFixed(1)}<small>дн.</small></span>
-        </div>
-        <div className="kpi-card shadow-sm border-amber">
-          <span className="label">Середній час повного циклу</span>
-          <span className="value color-red">{Number(data.summary.total_lifecycle || 0).toFixed(1)}<small>дн.</small></span>
-        </div>
+
         <div className="kpi-card shadow-sm border-amber badge-reclamation">
           <span className="label">Рекламації</span>
           <span className="value color-red">{Number(data.summary.complaint_rate || 0).toFixed(1)}%</span>
@@ -494,15 +501,19 @@ const mainDonutData = useMemo(() => {
         </div> */}
       </div>
       <div className="stats-grid-2 mb-20">
-      <div className="chart-wrapper-card" style={{marginBottom: '10px'}}>
-           <h4 className="chart-title">📈 Динаміка продажів та середнього чеку</h4>
-           <MonthlyTrendChart data={data.charts.monthly} />
-         </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
+        <div className="chart-wrapper-card">
+          <EfficiencyChart data={data.charts.monthly} />
+        </div>
+        <div className="chart-wrapper-card">
+          <VolumeChart data={data.charts.monthly} />
+        </div>
+      </div>
 
-         <div className="chart-wrapper-card">
+         {/* <div className="chart-wrapper-card">
            <h4 className="chart-title">🔥 Календар активності</h4>
            <MonthlyHeatmapChart data={data.charts.monthly} />
-        </div>
+        </div> */}
           </div>
 
 
@@ -584,12 +595,12 @@ const mainDonutData = useMemo(() => {
         <div className="stats-grid-2">
             <div className="chart-card">
                 <h5>Розподіл за складністю (шт)</h5>
-                <ComplexityDonut data={filteredCategoryDetails} isDetail={true} />
+                <ComplexityTreemap data={filteredCategoryDetails} isDetail={true} />
             </div>
-            <div className="chart-card">
+            {/* <div className="chart-card">
                 <h5>ТОП позицій</h5>
                 <TopProductsChart data={filteredCategoryDetails} metric="value" />
-            </div>
+            </div> */}
         </div>
 
         {/* НОМЕРИ ЗАМОВЛЕНЬ */}

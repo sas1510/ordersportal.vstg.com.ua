@@ -1,230 +1,97 @@
-import { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React from 'react';
+import ReactECharts from 'echarts-for-react';
 
 export default function MonthlyTrendChart({ data }) {
-  // Сортуємо по номеру місяця
+  // Сортування за номером місяця для правильного порядку на осі
   const sortedData = [...data].sort((a, b) => a.MonthNumber - b.MonthNumber);
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload || !payload.length) return null;
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'cross' },
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      formatter: (params) => {
+        let res = `<div style="font-weight:800; margin-bottom:8px; border-bottom:1px solid #f0f0f0;">${params[0].name}</div>`;
+        params.forEach(item => {
+          let val = item.value;
+          if (item.seriesName === 'Оборот') val = (val / 1000000).toFixed(2) + 'M грн';
+          else if (item.seriesName === 'Сер. чек') val = val.toLocaleString() + ' грн';
+          // else if (item.seriesName === 'Час виготовлення') val = Number(val).toFixed(1) + ' дн.';
+          else val = val + ' шт';
+          
+          res += `<div style="display:flex; justify-content:space-between; gap:20px; font-size:12px; margin-bottom:4px;">
+                    <span style="color:${item.color}">● ${item.seriesName}:</span>
+                    <span style="font-weight:700">${val}</span>
+                  </div>`;
+        });
+        return res;
+      }
+    },
+    legend: {
+      data: ['Замовлення', 'Сер. чек', 'Оборот'],
+      bottom: 0 // Перенесемо вниз, щоб не заважати заголовку
+    },
+    grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: sortedData.map(d => d.MonthName),
+      axisPointer: { type: 'shadow' }
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: 'Замовлення / Дні',
+        position: 'left',
+        min: 0,
+        // Максимум автоматичний, або можна зафіксувати трохи вище за макс. кількість замовлень
+        axisLine: { show: true, lineStyle: { color: '#8884d8' } },
+        splitLine: { show: true, lineStyle: { type: 'dashed' } }
+      },
+      {
+        type: 'value',
+        name: 'Гроші (грн)',
+        position: 'right',
+        axisLine: { show: true, lineStyle: { color: '#82ca9d' } },
+        axisLabel: { 
+          formatter: (value) => value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : value 
+        }
+      }
+    ],
+    series: [
+      {
+        name: 'Замовлення',
+        type: 'line',
+        yAxisIndex: 0,
+        data: sortedData.map(d => d.OrdersCount),
+        smooth: true,
+        symbol: 'circle',
+        areaStyle: { opacity: 0.1 },
+        itemStyle: { color: '#8884d8' }
+      },
     
-    return (
-      <div className="trend-tooltip">
-        <div className="tooltip-title">{label}</div>
-        <div className="tooltip-grid">
-          {payload.map((entry, index) => (
-            <div key={index} className="tooltip-row">
-              <span className="tooltip-label" style={{ color: entry.color }}>
-                {entry.name}:
-              </span>
-              <span className="tooltip-value">
-                {entry.name === 'Оборот' 
-                  ? `${(entry.value / 1000000).toFixed(2)}M грн`
-                  : entry.name === 'Сер. чек'
-                  ? `${entry.value.toLocaleString()} грн`
-                  : `${entry.value} шт`
-                }
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+      {
+        name: 'Сер. чек',
+        type: 'line',
+        yAxisIndex: 1, // ПРИВ'ЯЗКА ДО ПРАВОЇ ОСІ (Гроші)
+        data: sortedData.map(d => d.AvgCheck),
+        smooth: true,
+        itemStyle: { color: '#82ca9d' }
+      },
+      {
+        name: 'Оборот',
+        type: 'line',
+        yAxisIndex: 1,
+        data: sortedData.map(d => d.MonthlySum),
+        smooth: true,
+        lineStyle: { type: 'dashed', width: 2 },
+        itemStyle: { color: '#FF8042' }
+      }
+    ]
   };
 
   return (
-    <div className="trend-chart-container">
-      <ResponsiveContainer width="100%" height={350}>
-        <ComposedChart 
-          data={sortedData} 
-          margin={{ top: 20, right: 30, bottom: 20, left: 20 }}
-        >
-          <CartesianGrid stroke="#f5f5f5" strokeDasharray="3 3" vertical={false} />
-          
-          <XAxis 
-            dataKey="MonthName" 
-            scale="point" 
-            tick={{ fontSize: 12 }}
-          />
-          
-          {/* Ліва вісь - Замовлення */}
-          <YAxis 
-            yAxisId="left" 
-            orientation="left" 
-            stroke="#8884d8"
-            tick={{ fontSize: 12 }}
-            label={{ value: 'Замовлення', angle: -90, position: 'insideLeft' }}
-          />
-          
-          {/* Права вісь 1 - Середній чек */}
-          <YAxis 
-            yAxisId="right1" 
-            orientation="right" 
-            stroke="#82ca9d"
-            tick={{ fontSize: 12 }}
-            label={{ value: 'Чек (грн)', angle: 90, position: 'insideRight' }}
-          />
-          
-          {/* Права вісь 2 - Оборот */}
-          <YAxis 
-            yAxisId="right2" 
-            orientation="right" 
-            stroke="#FF8042"
-            tick={{ fontSize: 12 }}
-            tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-            hide
-          />
-          
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            verticalAlign="top" 
-            height={36}
-            iconType="circle"
-          />
-          
-          {/* Кількість замовлень - область */}
-          <Area 
-            yAxisId="left" 
-            type="monotone" 
-            dataKey="OrdersCount" 
-            fill="#8884d8" 
-            stroke="#8884d8" 
-            name="Замовлення" 
-            fillOpacity={0.3}
-            strokeWidth={2}
-          />
-          
-          {/* Середній чек - лінія */}
-          <Line 
-            yAxisId="right1" 
-            type="monotone" 
-            dataKey="AvgCheck" 
-            stroke="#82ca9d" 
-            strokeWidth={3} 
-            name="Сер. чек" 
-            dot={{ r: 5, fill: '#82ca9d', strokeWidth: 2, stroke: '#fff' }}
-            activeDot={{ r: 7 }}
-          />
-          
-          {/* Загальний оборот - лінія */}
-          <Line 
-            yAxisId="right2" 
-            type="monotone" 
-            dataKey="MonthlySum" 
-            stroke="#FF8042" 
-            strokeWidth={3} 
-            name="Оборот" 
-            dot={{ r: 5, fill: '#FF8042', strokeWidth: 2, stroke: '#fff' }}
-            activeDot={{ r: 7 }}
-            strokeDasharray="5 5"
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
-
-      {/* Швидка статистика */}
-      <div className="trend-stats">
-        <div className="stat-item-chart">
-          <span className="stat-label">Найкращий місяць:</span>
-          <span className="stat-value text-green">
-            {sortedData.reduce((max, m) => m.MonthlySum > max.MonthlySum ? m : max).MonthName}
-          </span>
-        </div>
-        <div className="stat-item-chart">
-          <span className="stat-label">Найгірший місяць:</span>
-          <span className="stat-value text-red">
-            {sortedData.reduce((min, m) => m.MonthlySum < min.MonthlySum ? m : min).MonthName}
-          </span>
-        </div>
-        <div className="stat-item-chart">
-          <span className="stat-label">Середньомісячно:</span>
-          <span className="stat-value text-blue">
-            {(sortedData.reduce((s, m) => s + m.MonthlySum, 0) / sortedData.length / 1000000).toFixed(2)}M грн
-          </span>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .trend-chart-container {
-          width: 100%;
-        }
-
-        .trend-tooltip {
-          background: white;
-          padding: 16px;
-          border-radius: 12px;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-          border: none;
-          min-width: 200px;
-        }
-
-        .tooltip-title {
-          font-weight: 800;
-          font-size: 14px;
-          color: #1a1d23;
-          margin-bottom: 12px;
-          padding-bottom: 8px;
-          border-bottom: 2px solid #f0f0f0;
-        }
-
-        .tooltip-grid {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .tooltip-row {
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
-        }
-
-        .tooltip-label {
-          font-weight: 600;
-        }
-
-        .tooltip-value {
-          color: #1a1d23;
-          font-weight: 700;
-        }
-
-        .trend-stats {
-          display: flex;
-          justify-content: space-around;
-          padding: 16px;
-          background: #f8f9fa;
-          border-radius: 12px;
-          margin-top: 20px;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-
-        .stat-item-chart {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .stat-label {
-          font-size: 11px;
-          color: #666;
-          font-weight: 500;
-        }
-
-        .stat-value {
-          font-size: 16px;
-          font-weight: 800;
-        }
-
-        .text-green { color: #00C49F; }
-        .text-red { color: #FF8042; }
-        .text-blue { color: #0088FE; }
-
-        @media (max-width: 768px) {
-          .trend-stats {
-            flex-direction: column;
-          }
-        }
-      `}</style>
+    <div className="chart-wrapper-card">
+      <ReactECharts option={option} style={{ height: '400px', width: '100%' }} />
     </div>
   );
 }

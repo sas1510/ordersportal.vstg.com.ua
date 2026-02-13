@@ -1,447 +1,78 @@
-:root {
-    --text-color: #606060;
-    --info-color: #5e83bf;
-    --success-color: #76b448;
-    --warning-color: #d3c527;
-    --danger-color: #e46321;
-    --brown-color: #7C5747;
-    --purple-color: #645388;
-    --grey-color: #aaaaaa;
-    --grey-text-color: #b9b9b9;
-    --info-bg-color: #cfdcef99;
-    --success-bg-color: #e9f3e1;
-    --warning-bg-color: #f3f1d5;
-    --danger-bg-color: #fae4d9;
-    --cream-bg-color: #FFF9EC;
-    --purple-bg-color: #EDE7F6;
-    --shadow-color: #00000050;
-    --vs-green-color: #d4d947;
-    --vs-blue-color: #6b98bf;
-    --grey-border-color: #95959563;
+/* ==========================================================================
+   PRODUCTION ANALYTICS STYLES (Adapted for Main Template)
+   ========================================================================== */
 
-    --header-height: 50px;
-    --burger-menu-width: 500px;
-
-    /* Змінні для динамічної зміни теми */
-    --body-bg: #f8fafc;
-    --card-bg: #ffffff;
-    --card-text: #1a1d23;
-    --card-label: #8c8c8c;
-    --border-color: #e2e8f0;
-    --tab-bg: #f1f5f9;
-}
-
-/* ТЕМНА ТЕМА - Тільки зміна кольорів */
-.dark-theme {
-    --info-color: #5e83bf;
-    --body-bg: #121212;
-    --card-bg: #3b3b3b;
-    --card-text: #e2e8f0;
-    --card-label: #a0aec0;
-    --border-color: #333333;
-    --tab-bg: #2d2d2d;
-    --shadow-color: #00000090;
-    --grey-border-color: #ffffff20;
-    
-    color-scheme: dark;
-}
-
-.dark-theme .chart-wrapper-card,
-.dark-theme .kpi-card,
-.dark-theme .stat-badge,
-.dark-theme .order-tag,
-.dark-theme .tab-btn,
-.dark-theme .order-details-panel {
-    background-color: var(--card-bg);
-    color: var(--card-text);
-    /* border-color: var(--border-color); */
-}
-
-.dark-theme .kpi-card {
-  border-left: 4px solid var(--info-color);
-}
-
-.dark-theme .kpi-card .value,
-.dark-theme .d-value,
-.dark-theme .section-title,
-.dark-theme .chart-wrapper-card h4 {
-    color: var(--card-text);
-}
-
-.dark-theme .kpi-card .label,
-.dark-theme .d-label,
-.dark-theme .text-grey,
-.dark-theme .kpi-card .value small {
-    color: var(--card-label);
-}
-
-.dark-theme .drilldown-metrics-grid {
-    background: rgba(0, 136, 254, 0.1);
-    border-color: rgba(0, 136, 254, 0.2);
-}
-
-.dark-theme .tab-link {
-    background: var(--tab-bg);
-    color: var(--card-label);
-    border-color: var(--border-color);
-}
-
-.dark-theme .order-tag {
-    color: var(--card-text);
-}
-
-/* Кінець блоку темної теми */
-
-.border-primary {
-  border: 2px solid #0088FE;
-  background: #f0f7ff;
-}
-
-.order-tag {
-  display: inline-block;
-  background: white;
-  border: 1px solid #d1d5db;
-  padding: 4px 10px;
-  margin: 4px;
-  border-radius: 4px;
-  font-family: monospace;
-  font-size: 13px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.stat-badge {
-  font-size: 16px;
-  background: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* 1. Глобальні налаштування для нових компонентів */
 .production-stats-container {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-/* KPI Cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-}
-
-/* Charts */
-.main-charts-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.chart-wrapper-card {
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
-}
-
-.chart-wrapper-card h4 {
-  font-size: 15px;
-  margin-bottom: 20px;
-  color: #444;
-  font-weight: 600;
-}
-
-/* Tabs */
-.tab-navigation {
-  display: flex;
-  gap: 8px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #edf2f7;
-  overflow-x: auto;
-}
-
-.tab-btn {
-  padding: 8px 18px;
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: 0.2s;
-}
-
-.tab-btn.active {
-  background: #0088fe;
-  color: white;
-  border-color: #0088fe;
-  box-shadow: 0 4px 10px rgba(0, 136, 254, 0.2);
-}
-
-/* Order Panel */
-.order-details-panel {
-  background: #f8fbff;
-  border: 1px solid #0088fe;
-  border-radius: 16px;
-  padding: 24px;
-}
-
-.orders-tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 16px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.order-tag {
-  background: white;
-  border: 1px solid #e2e8f0;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-family: 'Monaco', monospace;
-  font-size: 12px;
-  color: #4a5568;
-}
-
-/* Animations */
-.animate-fade-in { animation: fadeIn 0.4s ease-out; }
-.animate-slide-up { animation: slideUp 0.4s ease-out; }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-.btn-back {
-  padding: 8px 16px;
-  background: #32325d;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-close-details {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-close-details:hover {
-  background: #e2e8f0;
-  color: #ef4444;
-}
-
-.color-primary {
-  color: #0088fe;
-}
-
-/* Плавний перехід для появи секції */
-.drilldown-view {
-  transition: all 0.5s ease-in-out;
-}
-
-.mt-24 { margin-top: 24px; }
-.mb-24 { margin-bottom: 24px; }
-
-/* Додатково для скролу */
-html {
-  scroll-behavior: smooth;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-}
-.kpi-card {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  border-left: 4px solid var(--info-color)
-}
-.kpi-card .label { color: #888; font-size: 13px; margin-bottom: 8px; text-transform: uppercase; }
-.kpi-card .value { font-size: 24px; font-weight: 800; color: #1a1d23; }
-
-.stats-main-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-.grid-span-2 { grid-column: span 2; }
-
-.chart-wrapper-card {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.sub-nav-tabs {
+    padding: 14px; /* Синхронізація з твоїми стандартними відступами */
     display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 5px;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.tab-link {
-    padding: 8px 16px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #475569;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.tab-link:hover {
-    background: #e2e8f0;
-}
-
-.tab-link.active {
-    background: #0088FE;
-    color: white;
-    border-color: #0088FE;
-    box-shadow: 0 4px 6px -1px rgba(0, 136, 254, 0.3);
-}
-
-.sub-title-arrow {
-    color: #94a3b8;
-    font-weight: 400;
-    margin-left: 8px;
-}
-
-/* Основний контейнер для карток */
+/* 2. KPI Cards - Адаптація під 6 колонок */
 .kpi-grid-6 {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr); 
-  gap: 16px; 
-  width: 100%;
-  margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 14px; 
+    width: 100%;
+    margin-bottom: 28px;
 }
 
-/* Стиль самої картки */
 .kpi-card {
-  background: #ffffff;
-  padding: 20px 15px;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center; 
-  text-align: center;
-  min-height: 100px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 3px; /* Більше відповідає стилю labels у шаблоні */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+    text-align: center;
+    min-height: 90px;
+    border-left: 4px solid var(--info-color);
+    box-shadow: 0 2px 5px var(--shadow-color);
+    transition: transform 0.2s ease;
 }
 
 .kpi-card:hover {
-  box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
 }
 
-/* Стилі тексту всередині */
 .kpi-card .label {
-  font-size: 12px;
-  color: #8c8c8c;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  font-weight: 600;
+    background-color: transparent; /* Скидання твого глобального .label */
+    color: var(--grey-text-color);
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 5px;
+    padding: 0 !important;
 }
 
 .kpi-card .value {
-  font-size: 20px;
-  font-weight: 800;
-  color: #1a1d23;
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--text-color);
 }
 
-.kpi-card .value small {
-  font-size: 12px;
-  font-weight: 500;
-  color: #8c8c8c;
+/* 3. Charts & Wrappers */
+.chart-wrapper-card {
+    background: #ffffff;
+    padding: 21px;
+    border-radius: 3px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    border: 1px dashed var(--grey-border-color);
 }
 
-/* Адаптивність: якщо екран малий, переносимо на наступні рядки */
-@media (max-width: 1200px) {
-  .kpi-grid-6 {
-    grid-template-columns: repeat(3, 1fr); 
-  }
+.chart-wrapper-card h4 {
+    margin-top: 0;
+    font-size: 16px;
+    color: var(--info-color);
+    border-bottom: 1px dashed var(--grey-border-color);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
 }
 
-@media (max-width: 768px) {
-  .kpi-grid-6 {
-    grid-template-columns: repeat(2, 1fr); 
-  }
-}
 
-.drilldown-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    background: rgba(0, 136, 254, 0.03);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 136, 254, 0.1);
-}
-
-.d-mini-card {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.d-mini-card.highlight .d-value {
-    color: #0088FE;
-}
-
-.d-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #8c8c8c;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.d-value {
-    font-size: 20px;
-    font-weight: 800;
-    color: #1a1d23;
-}
-
-.d-value small {
-    font-size: 12px;
-    font-weight: 400;
-    color: #8c8c8c;
-}
-
-.sub-title-arrow {
-    margin: 0 8px;
-    color: #bfbfbf;
-    font-weight: 300;
-}
-
-.badge-reclamation { border-left-color: var(--danger-color); }
-.badge-order { border-left-color: var(--success-color); }
 
 .drilldown-header {
   display: flex; 
@@ -457,6 +88,78 @@ html {
   display: flex;
   align-items: center; 
   flex-wrap: wrap; 
+}
+
+/* 4. Tabs & Navigation */
+.sub-nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.tab-link {
+    padding: 6px 14px;
+    background: #fff;
+    border: 1px solid var(--grey-border-color);
+    border-radius: 3px;
+    font-size: 13px;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-link.active {
+    background: var(--info-color);
+    color: #fff;
+    border-color: var(--info-color);
+}
+
+/* 5. Drilldown Section */
+.drilldown-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    background: var(--info-bg-color);
+    padding: 15px;
+    border-radius: 3px;
+    border: 1px dashed var(--info-color);
+}
+
+/* 6. DARK THEME OVERRIDES (Адаптація під .dark-theme) */
+.dark-theme .kpi-card,
+.dark-theme .chart-wrapper-card,
+.dark-theme .tab-link {
+    background-color: #2a2a2a; /* Темніший фон для карток */
+    color: #e0e0e0;
+
+}
+
+.dark-theme .kpi-card .value,
+.dark-theme .d-value {
+    color: #ffffff;
+}
+
+.dark-theme .kpi-card .label {
+    color: #aaaaaa;
+}
+
+.dark-theme .drilldown-metrics-grid {
+    background: rgba(94, 131, 191, 0.1);
+    border-color: var(--info-color);
+}
+
+.dark-theme .btn-close-details-analytics {
+    background: #444;
+    color: #fff;
+}
+
+/* Адаптивність для сітки KPI */
+@media (max-width: 1400px) {
+    .kpi-grid-6 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .kpi-grid-6 { grid-template-columns: repeat(2, 1fr); }
 }
 
 .btn-close-details-analytics {
@@ -486,29 +189,5 @@ html {
 }
 
 
-.dark-theme .trend-stats {
-  background: #45494d
-}
-.dark-theme .heatmap-legend {
-  background: #45494d
-}
-
-.dark-theme .heatmap-legend .legend-title {
-  color: var(--card-text);
-}
-
-
-.dark-theme .heatmap-legend .legend-items {
-  color: var(--card-text);
-}
-
-.dark-theme .heatmap-legend .legend-items .legend-item {
-  color: var(--card-text);
-}
-
-
-
-.dark-theme .badge-reclamation { border-left-color: var(--danger-color); }
-.dark-theme .badge-order { border-left-color: var(--success-color); }
-
-
+.badge-reclamation { border-left-color: var(--danger-color); }
+.badge-order { border-left-color: var(--success-color); }

@@ -2484,9 +2484,9 @@ from django.db import connection
 class DealerFullAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
+
     def get(self, request):
         try:
-            # 1. Визначаємо контрагента через вашу функцію resolve_contractor
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
                 allow_admin=True,
@@ -2498,32 +2498,37 @@ class DealerFullAnalyticsView(APIView):
         year = int(request.GET.get("year", 2025))
 
         with connection.cursor() as cursor:
-            # --- ТОЧКА 1: Детальні замовлення та загальні KPI ---
-            cursor.execute("EXEC [dbo].[GetDetailedDealerStatistics] %s, %s", [year, contractor_bin])
+            # ОБОВ'ЯЗКОВО: Об'єднуємо налаштування і виклик процедури через крапку з комою
+            # Це гарантує, що драйвер отримає результат процедури як єдиний батч
+            
+            # 1. Загальні KPI
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetDetailedDealerStatistics] %s, %s", [year, contractor_bin])
             detailed_items = self.dictfetchall(cursor)
 
-            # --- ТОЧКА 2: Швидкість та черги за категоріями ---
-            cursor.execute("EXEC [dbo].[GetAvgProductionTimeByCategory] %s, %s", [year, contractor_bin])
+            # 2. Швидкість
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetAvgProductionTimeByCategory] %s, %s", [year, contractor_bin])
             category_speed = self.dictfetchall(cursor)
 
-            # --- ТОЧКА 3: Технічний склад (Кількість, Вага, Складність) ---
-            cursor.execute("EXEC [dbo].[GetProductionStatistics] %s, %s, 100000", [year, contractor_bin])
+            # 3. Технічні деталі
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, 100000", [year, contractor_bin])
             tech_items = self.dictfetchall(cursor)
 
-            # --- ТОЧКА 4: Сезонність та середній чек по місяцях ---
-            cursor.execute("EXEC [dbo].[GetContractorMonthlyTop] %s, %s", [year, contractor_bin])
+            # 4. Сезонність
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s", [year, contractor_bin])
             monthly_stats = self.dictfetchall(cursor)
 
-        # 2. Формуємо верхні KPI картки (беремо з першого рядка детальної статистики)
+        # Безпечне отримання KPI (захист від порожніх списків)
+        first_row = detailed_items[0] if detailed_items else {}
+
         kpi_summary = {
-            "total_sum": detailed_items[0]["TotalSumYear"] if detailed_items else 0,
-            "avg_check": detailed_items[0]["AvgOrderValue"] if detailed_items else 0,
-            "avg_days": detailed_items[0]["AvgProductionDays"] if detailed_items else 0,
-            "total_orders": detailed_items[0]["TotalOrdersCount"] if detailed_items else 0,
-            "kpi_orders_count": detailed_items[0]["OrdersInKpiCount"] if detailed_items else 0,
-            "complaint_rate": detailed_items[0]["ComplaintRatePercent"] if detailed_items else 0,
-            "avg_delivery": detailed_items[0]["AvgDeliveryDaysFact"] if detailed_items else 0,
-            "total_lifecycle": detailed_items[0]["AvgTotalLifecycleDays"] if detailed_items else 0,
+            "total_sum": first_row.get("TotalSumYear", 0),
+            "avg_check": first_row.get("AvgOrderValue", 0),
+            "avg_days": first_row.get("AvgProductionDays", 0),
+            "total_orders": first_row.get("TotalOrdersCount", 0),
+            "kpi_orders_count": first_row.get("OrdersInKpiCount", 0),
+            "complaint_rate": first_row.get("ComplaintRatePercent", 0),
+            "avg_delivery": first_row.get("AvgDeliveryDaysFact", 0),
+            "total_lifecycle": first_row.get("AvgTotalLifecycleDays", 0),
         }
 
         # 3. Підготовка даних для графіків
