@@ -14,6 +14,7 @@ import FilePreviewErrorPage from './pages/FilePreviewErrorPage'
 
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
+import { useCacheBuster } from './hooks/useCacheBuster';
 
 const routeTitles = {
   "/login": "Вхід — Портал замовлень",
@@ -49,6 +50,8 @@ const routeTitles = {
   "/finance/payment": "Оплата",
   "/finance/customer-bills": "Рахунки",
   "/finance/statistics": "Аналітика",
+  "/finance/cash-flow": "Рух коштів",
+  "/edit-addresses": "Редагування адрес",
 
 
 
@@ -131,6 +134,9 @@ const routeTitles = {
 // export default AppRoutes;
 
 function AppRoutes() {
+
+
+  useCacheBuster();
   const { role, isLoading } = useContext(RoleContext);
   const location = useLocation();
 

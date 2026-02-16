@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "cp .htaccess.template dist/.htaccess",
+    "postbuild": "cp .htaccess.template dist/.htaccess && echo \"{\\\"version\\\": \\\"$npm_package_version\\\", \\\"buildTime\\\": $(date +%s)}\" > dist/version.json",
     "lint": "eslint .",
     "preview": "vite preview"
   },
