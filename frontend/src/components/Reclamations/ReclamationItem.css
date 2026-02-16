@@ -68,7 +68,7 @@
 
 /* Виділення номера та дати */
 .reclamation-item .summary-item .border-bottom {
-    font-weight: 600;
+    /* font-weight: 600; */
     line-height: 1.2;
     /* Змінюємо колір межі на колір тексту для кращої інтеграції в стиль */
     border-bottom: 1px dashed var(--text-color); 

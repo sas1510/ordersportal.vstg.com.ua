@@ -2479,7 +2479,7 @@ class DealerDetailedStatisticsView(APIView):
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db import connection
+from django.db import connections
 
 class DealerFullAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2497,7 +2497,9 @@ class DealerFullAnalyticsView(APIView):
 
         year = int(request.GET.get("year", 2025))
 
-        with connection.cursor() as cursor:
+        db_alias = 'db_2'
+        # with connection.cursor() as cursor:
+        with connections[db_alias].cursor() as cursor:
             # ОБОВ'ЯЗКОВО: Об'єднуємо налаштування і виклик процедури через крапку з комою
             # Це гарантує, що драйвер отримає результат процедури як єдиний батч
             
@@ -2519,7 +2521,8 @@ class DealerFullAnalyticsView(APIView):
 
         # Безпечне отримання KPI (захист від порожніх списків)
         first_row = detailed_items[0] if detailed_items else {}
-
+        total_row = next((c for c in category_speed if c["CategoryName"] == '--- УСЬОГО ---'), {})
+        total_constructions = total_row.get("TotalQuantity", 0)
         kpi_summary = {
             "total_sum": first_row.get("TotalSumYear", 0),
             "avg_check": first_row.get("AvgOrderValue", 0),
@@ -2529,6 +2532,7 @@ class DealerFullAnalyticsView(APIView):
             "complaint_rate": first_row.get("ComplaintRatePercent", 0),
             "avg_delivery": first_row.get("AvgDeliveryDaysFact", 0),
             "total_lifecycle": first_row.get("AvgTotalLifecycleDays", 0),
+            "total_constructions": total_constructions,
         }
 
         # 3. Підготовка даних для графіків

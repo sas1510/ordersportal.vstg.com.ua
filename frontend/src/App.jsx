@@ -48,6 +48,7 @@ const routeTitles = {
   "/promo-wds-codes": "Акція WDS",
   "/finance/payment": "Оплата",
   "/finance/customer-bills": "Рахунки",
+  "/finance/statistics": "Аналітика",
 
 
 

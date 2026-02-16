@@ -337,7 +337,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
     const loadData = async () => {
       setLoading(true);
       try {
-        const params = { year: 2025 };
+        const params = { year: selectedYear };
         if (isAdmin && dealerGuid) params.contractor_guid = dealerGuid;
         const res = await axiosInstance.get("/full-statistics/", { params });
         setData(res.data);
@@ -456,13 +456,28 @@ const mainDonutData = useMemo(() => {
             </div>
         );
     }
+
+  
   if (!data) return <div className="error-msg">Дані не завантажено</div>;
+ 
+  if (!data || data.summary.total_orders === 0) {
+      return (
+          <div className="no-data-placeholder">
+              <h3>Немає даних для відображення</h3>
+              <p>За вибраний період ({selectedYear}) активність відсутня.</p>
+          </div>
+      );
+  }
+
+
+
 
   return (
     <div className="production-stats-container">
       
       {/* 1. ПАНЕЛЬ KPI */}
-      <div className="kpi-grid-6 mb-32">
+      
+      <div className="kpi-grid-6 ">
         {/* <div className="kpi-card shadow-sm">
           <span className="label">Оборот {selectedYear}</span>
           <span className="value text-green">{data.summary.total_sum?.toLocaleString()} <small>грн</small></span>
@@ -472,8 +487,8 @@ const mainDonutData = useMemo(() => {
           <span className="value">{data.summary.total_orders} <small>шт</small></span>
         </div>
         <div className="kpi-card shadow-sm badge-order">
-          <span className="label">Кількість конструкцій</span>
-          <span className="value">{data.summary.total_orders} <small>шт</small></span>
+          <span className="label">Конструкцій</span>
+          <span className="value">{data.summary.total_constructions} <small>шт</small></span>
         </div>
 
         <div className="kpi-card shadow-sm">
@@ -500,7 +515,7 @@ const mainDonutData = useMemo(() => {
            {isAdmin && <DealerSelect value={dealerGuid} onChange={setDealerGuid} />}
         </div> */}
       </div>
-      <div className="stats-grid-2 mb-20">
+      <div className="stats-grid-2">
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
         <div className="chart-wrapper-card">
           <EfficiencyChart data={data.charts.monthly} />
@@ -518,9 +533,9 @@ const mainDonutData = useMemo(() => {
 
 
       {/* 2. ПОРТФЕЛЬ ТА СКАТТЕР */}
-      <div className="stats-grid-2 mb-32">
+      <div className="stats-grid-2">
         <div className="chart-wrapper-card">
-          <h4 className="chart-title">🎯 Розподіл категорій</h4>
+          <h4 className="chart-title">Категорії</h4>
           <p className="chart-subtitle">Натисніть на групу для деталізації</p>
           <ComplexityDonut 
             data={mainDonutData} 
@@ -553,20 +568,20 @@ const mainDonutData = useMemo(() => {
         {/* НОВИЙ БЛОК: СЕРЕДНІЙ ЧАС ПО КАТЕГОРІЇ */}
         {activeSubCategory && activeMetrics && (
       <div className="drilldown-metrics-grid mb-24">
-          <div className="d-mini-card">
+          {/* <div className="d-mini-card">
               <span className="d-label">Середній час очікування запуска виробництва</span>
               <span className="d-value">{activeMetrics.avgQueue} <small>дн.</small></span>
           </div>
           <div className="d-mini-card">
               <span className="d-label">Середній час виробництва</span>
               <span className="d-value">{activeMetrics.avgProd} <small>дн.</small></span>
-          </div>
+          </div> */}
           <div className="d-mini-card highlight">
-              <span className="d-label">Разом тривалість виготовлення</span>
+              <span className="d-label">Середня тривалість виготовлення: </span>
               <span className="d-value">{activeMetrics.avgFull} <small>дн.</small></span>
           </div>
           <div className="d-mini-card">
-              <span className="d-label">Об'єм підкатегорії</span>
+              <span className="d-label">Об'єм підкатегорії: </span>
               <span className="d-value">{activeMetrics.totalQty.toLocaleString()} <small>шт</small></span>
           </div>
       </div>

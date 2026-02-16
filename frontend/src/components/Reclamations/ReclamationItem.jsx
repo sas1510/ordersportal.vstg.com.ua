@@ -6,7 +6,7 @@ import useWindowWidth from '../../hooks/useWindowWidth';
 import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; // Додаємо, оскільки це використовується всередині вбудованого меню
 import { ComplaintItemDetailView } from './ComplaintItemSummaryDesktop'; // Використовуємо новий DetailView
 import { useAuth } from '../../hooks/useAuth';
-
+import { formatDateHumanShorter } from "../../utils/formatters";
 
 export const ReclamationItem = ({ 
     reclamation, 
@@ -173,7 +173,7 @@ export const ReclamationItem = ({
                     
                     <div className="column">
                         <div className="font-size-18 text-info border-bottom">№ {reclamation.id}</div>
-                        <div className="text-grey">{reclamation.date}</div>
+                        <div className="text-danger">{formatDateHumanShorter(reclamation.dateRaw)}</div>
                     </div>
                 </div>
 

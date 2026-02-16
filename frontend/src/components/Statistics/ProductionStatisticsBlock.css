@@ -4,7 +4,7 @@
 
 /* 1. Глобальні налаштування для нових компонентів */
 .production-stats-container {
-    padding: 14px; /* Синхронізація з твоїми стандартними відступами */
+    /* padding: 14px; Синхронізація з твоїми стандартними відступами */
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -16,7 +16,7 @@
     grid-template-columns: repeat(6, 1fr); 
     gap: 14px; 
     width: 100%;
-    margin-bottom: 28px;
+ 
 }
 
 .kpi-card {
@@ -191,3 +191,48 @@
 
 .badge-reclamation { border-left-color: var(--danger-color); }
 .badge-order { border-left-color: var(--success-color); }
+
+
+/* Відступи для групування блоків */
+.mb-32 {
+    margin-bottom: 32px !important;
+}
+
+.mb-24 {
+    margin-bottom: 24px !important;
+}
+
+/* Стиль для стану, коли даних немає */
+.no-data-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px; /* Трохи збільшив падінг для кращого вигляду */
+    background: #f9fafb; /* Світло-сірий фон, щоб відрізнявся від білих карток */
+    border-radius: 3px;
+    border: 2px dashed #d1d5db;
+    text-align: center;
+    margin: 20px 0;
+    color: #6b7280;
+}
+
+.no-data-placeholder h3 {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.no-data-placeholder p {
+    font-size: 1.1rem;
+    max-width: 450px;
+    line-height: 1.5;
+}
+
+.no-data-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    filter: grayscale(1);
+    opacity: 0.4;
+}

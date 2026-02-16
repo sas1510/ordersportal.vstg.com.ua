@@ -88,7 +88,22 @@ DATABASES = {
             'driver': 'ODBC Driver 17 for SQL Server',
             'trusted_connection': 'yes',
         },
-    }
+        
+
+    },
+    'db_2': {
+            'ENGINE': config('DB_ENGINE'),
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST_2'),
+            'PORT': '',
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',
+                'trusted_connection': 'yes',
+            },
+
+        }
 }
 
 
