@@ -12,7 +12,7 @@ export default function ProductionStatisticsPage() {
   return (
     <div className="portal-body column gap-2">
   <div className="stats-page-header column ">
-    {/* <h2 className="page-title">Статистика</h2> */}
+    <h2 className="page-title">Статистика</h2>
 
     <div className="year-selector row ai-center gap-2">
       <span className="text-grey">Звітний рік:</span>
