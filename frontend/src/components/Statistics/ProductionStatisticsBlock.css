@@ -1,111 +1,150 @@
 /* ==========================================================================
-   PRODUCTION ANALYTICS STYLES (Adapted for Main Template)
+   PRODUCTION ANALYTICS BLOCK (Fully Adapted to Main Template)
    ========================================================================== */
 
-/* 1. Глобальні налаштування для нових компонентів */
 .production-stats-container {
-    /* padding: 14px; Синхронізація з твоїми стандартними відступами */
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 28px; /* Кратне 7: var(--gap-28) */
+    padding: 14px 0;
 }
 
-/* 2. KPI Cards - Адаптація під 6 колонок */
+/* --- Сітка та Картки KPI --- */
 .kpi-grid-6 {
     display: grid;
-    grid-template-columns: repeat(6, 1fr); 
-    gap: 14px; 
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px; /* Кратне 7: var(--gap-14) */
     width: 100%;
- 
 }
 
 .kpi-card {
     background: #ffffff;
-    padding: 15px;
-    border-radius: 3px; /* Більше відповідає стилю labels у шаблоні */
+    padding: 14px;
+    border-radius: 3px; /* Згідно з вашим .label та .task */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center; 
+    align-items: center;
     text-align: center;
-    min-height: 90px;
+    min-height: 91px; /* Кратне 7 */
     border-left: 4px solid var(--info-color);
-    box-shadow: 0 2px 5px var(--shadow-color);
-    transition: transform 0.2s ease;
-}
-
-.kpi-card:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 0 10px var(--shadow-color); /* Згідно з вашим .toast */
+    
+    /* Рамки згідно з вашим стилем .task */
+    border-top: 1px dashed var(--grey-border-color);
+    border-right: 1px dashed var(--grey-border-color);
+    border-bottom: 1px dashed var(--grey-border-color);
 }
 
 .kpi-card .label {
-    background-color: transparent; /* Скидання твого глобального .label */
+    /* Скидання глобального .label для внутрішнього тексту */
+    background-color: transparent !important;
+    border: none !important;
     color: var(--grey-text-color);
     font-size: 11px;
     text-transform: uppercase;
     font-weight: 600;
-    margin-bottom: 5px;
+    margin-bottom: 7px;
     padding: 0 !important;
 }
 
 .kpi-card .value {
-    font-size: 22px;
+    font-size: 21px; /* Наближено до вашого font-size-22, кратне 7 */
     font-weight: bold;
     color: var(--text-color);
 }
 
-/* 3. Charts & Wrappers */
+/* --- Графіки та Контейнери --- */
+.stats-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(448px, 1fr)); /* 448 кратне 7 */
+    gap: 28px;
+    width: 100%;
+}
+
 .chart-wrapper-card {
     background: #ffffff;
-    padding: 21px;
+    padding: 21px; /* Кратне 7 */
     border-radius: 3px;
-    box-shadow: 0 2px 5px var(--shadow-color);
+    box-shadow: 0 0 10px var(--shadow-color);
     border: 1px dashed var(--grey-border-color);
 }
 
-.chart-wrapper-card h4 {
-    margin-top: 0;
-    font-size: 16px;
+.chart-title-unified {
+    font-size: 18px; /* font-size-18 */
     color: var(--info-color);
-    border-bottom: 1px dashed var(--grey-border-color);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    /* Стиль заголовка як у ваших таблиць .table-responsive > thead */
+    border-bottom: 2px solid var(--info-color); 
+    padding-bottom: 7px;
+    margin-bottom: 14px;
+    margin-top: 0;
+    text-transform: none;
 }
 
-
-
-.drilldown-header {
-  display: flex; 
-  flex-direction: row; 
-  justify-content: space-between; 
-  align-items: center; 
-  width: 100%; 
-  gap: 16px; 
-}
+.drilldown-header-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; 
+    align-items: center;            
+    width: 100%;
+    margin-bottom: 7px;
+    /* Додаємо невеликий відступ, щоб текст не торкався кнопки */
+    gap: 14px; 
+} 
 
 .section-title {
-  margin: 0; 
-  display: flex;
-  align-items: center; 
-  flex-wrap: wrap; 
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    /* Запобігає розриву заголовка на два рядки */
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* 4. Tabs & Navigation */
+.btn-close-details-analytics {
+    background: var(--info-bg-color);
+    border: none;
+    width: 28px; 
+    height: 28px;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    /* Запобігає стисканню кнопки */
+    flex-shrink: 0; 
+    align-items: center;
+    justify-content: center;
+    color: var(--info-color);
+    transition: all 0.2s ease;
+}
+
+.btn-close-details-analytics:hover {
+    background-color: var(--danger-color);
+    color: #fff;
+}
+/* --- Навігація в Drilldown --- */
 .sub-nav-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 14px;
 }
 
 .tab-link {
-    padding: 6px 14px;
+    padding: 7px 14px;
     background: #fff;
-    border: 1px solid var(--grey-border-color);
+    border: 1px solid var(--grey-color);
     border-radius: 3px;
-    font-size: 13px;
+    font-size: 13px; /* font-size-13 */
     color: var(--text-color);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.1s ease-in-out;
+}
+
+.tab-link:hover {
+    background-color: var(--info-bg-color);
+    color: var(--info-color);
 }
 
 .tab-link.active {
@@ -114,125 +153,26 @@
     border-color: var(--info-color);
 }
 
-/* 5. Drilldown Section */
-.drilldown-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
-    background: var(--info-bg-color);
-    padding: 15px;
-    border-radius: 3px;
-    border: 1px dashed var(--info-color);
+
+/* --- Допоміжні класи --- */
+.badge-reclamation { border-left-color: var(--danger-color); }
+.badge-order { border-left-color: var(--success-color); }
+
+.card-padding {
+    padding: 14px !important;
 }
 
-/* 6. DARK THEME OVERRIDES (Адаптація під .dark-theme) */
-.dark-theme .kpi-card,
-.dark-theme .chart-wrapper-card,
-.dark-theme .tab-link {
-    background-color: #2a2a2a; /* Темніший фон для карток */
-    color: #e0e0e0;
-
-}
-
-.dark-theme .kpi-card .value,
-.dark-theme .d-value {
-    color: #ffffff;
-}
-
-.dark-theme .kpi-card .label {
-    color: #aaaaaa;
-}
-
-.dark-theme .drilldown-metrics-grid {
-    background: rgba(94, 131, 191, 0.1);
-    border-color: var(--info-color);
-}
-
-.dark-theme .btn-close-details-analytics {
-    background: #444;
-    color: #fff;
-}
-
-/* Адаптивність для сітки KPI */
+/* Адаптивність */
 @media (max-width: 1400px) {
     .kpi-grid-6 { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) {
     .kpi-grid-6 { grid-template-columns: repeat(2, 1fr); }
-}
-
-.btn-close-details-analytics {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0; 
-  
-  background: #f1f1f1;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-close-details-analytics:hover {
-  background-color: #e0e0e0; 
-  color: #333; 
-  transform: rotate(90deg); 
-}
-
-.dark-theme .btn-close-details-analytics {
-  background: #333;
-  color: #ccc;
+    .stats-grid-2 { grid-template-columns: 1fr; }
 }
 
 
-.badge-reclamation { border-left-color: var(--danger-color); }
-.badge-order { border-left-color: var(--success-color); }
 
 
-/* Відступи для групування блоків */
-.mb-32 {
-    margin-bottom: 32px !important;
-}
 
-.mb-24 {
-    margin-bottom: 24px !important;
-}
-
-/* Стиль для стану, коли даних немає */
-.no-data-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 80px 20px; /* Трохи збільшив падінг для кращого вигляду */
-    background: #f9fafb; /* Світло-сірий фон, щоб відрізнявся від білих карток */
-    border-radius: 3px;
-    border: 2px dashed #d1d5db;
-    text-align: center;
-    margin: 20px 0;
-    color: #6b7280;
-}
-
-.no-data-placeholder h3 {
-    font-size: 1.5rem;
-    margin-bottom: 12px;
-    color: #374151;
-    font-weight: 600;
-}
-
-.no-data-placeholder p {
-    font-size: 1.1rem;
-    max-width: 450px;
-    line-height: 1.5;
-}
-
-.no-data-icon {
-    font-size: 64px;
-    margin-bottom: 20px;
-    filter: grayscale(1);
-    opacity: 0.4;
-}

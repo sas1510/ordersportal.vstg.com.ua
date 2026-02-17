@@ -87,6 +87,7 @@ DATABASES = {
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
             'trusted_connection': 'yes',
+            'unicode_results': True,
         },
         
 
@@ -101,6 +102,7 @@ DATABASES = {
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',
                 'trusted_connection': 'yes',
+                'unicode_results': True,
             },
 
         }

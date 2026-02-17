@@ -1,291 +1,3 @@
-// import { useEffect, useState, useMemo, useRef } from "react";
-// import axiosInstance from "../../api/axios";
-// import ComplexityDonut from "../charts/ComplexityDonut";
-// import FrequencyVolumeChart from "../charts/FrequencyVolumeChart";
-// import ProductionTimelineChart from "../charts/ProductionTimelineChart";
-// import MonthlyTrendChart from "../charts/MonthlyTrendChart";
-// import MonthlyHeatmapChart from "../charts/MonthlyHeatmapChart";
-// import TopProductsChart from "../charts/TopProductsChart";
-// import ProductionFunnelChart from "../charts/ProductionFunnelChart";
-// import ComplexityProfitScatter from "../charts/ComplexityProfitScatter";
-// import ABCAnalysisChart from "../charts/ABCAnalysisChart";
-// import BCGMatrixChart from "../charts/BCGMatrixChart";
-// import CategoryTrendChart from "../charts/CategoryTrendChart";
-// import DealerSelect from "../../pages/DealerSelect";
-// import './ProductionStatisticsBlock.css';
-
-// // Мапінг для групування категорій
-// const CATEGORY_MAPPING = {
-//   "Вікна безшовне зварювання": "Вікна",
-//   "Вікно": "Вікна",
-//   "Вікно вкл склопакет": "Вікна",
-//   "Розсувні системи SL76": "Вікна",
-//   "Двері безшовне зварювання": "Двері",
-//   "Міжкімнатні двері": "Двері",
-//   "Технічні двері ПВХ": "Двері",
-//   "Двері Lampre": "Двері",
-//   "Лиштва": "Додатки",
-//   "Москітні сітки": "Додатки",
-//   "Підвіконня": "Додатки",
-//   "Відливи": "Додатки",
-//   "Інше": "Додатки"
-// };
-
-// export default function ProductionStatisticsBlock({ selectedYear }) {
-//   const isAdmin = localStorage.getItem("role") === "admin";
-//   const drillDownRef = useRef(null);
-  
-//   const [data, setData] = useState(null);
-//   const [dealerGuid, setDealerGuid] = useState("");
-//   const [loading, setLoading] = useState(true);
-//   const [selectedCategory, setSelectedCategory] = useState(null);
-
-//   useEffect(() => {
-//     const loadData = async () => {
-//       setLoading(true);
-//       try {
-//         const params = { year: 2025 };
-//         if (isAdmin && dealerGuid) params.contractor_guid = dealerGuid;
-//         const res = await axiosInstance.get("/full-statistics/", { params });
-//         setData(res.data);
-//       } catch (err) {
-//         console.error(err);
-//       } finally { 
-//         setLoading(false); 
-//       }
-//     };
-//     loadData();
-//   }, [selectedYear, dealerGuid]);
-
-//   // Обчислення для KPI
-//   const bestMonth = useMemo(() => {
-//     if (!data?.charts?.monthly) return { name: '-', sum: 0 };
-//     const sorted = [...data.charts.monthly].sort((a, b) => b.MonthlySum - a.MonthlySum);
-//     return { name: sorted[0]?.MonthName || '-', sum: sorted[0]?.MonthlySum || 0 };
-//   }, [data]);
-
-//   // Головний Donut - розподіл по групах
-//   const mainDonutData = useMemo(() => {
-//     if (!data?.charts?.distribution) return [];
-//     const groups = {};
-//     data.charts.distribution.labels.forEach((label, i) => {
-//       const groupName = CATEGORY_MAPPING[label] || "Інше";
-//       groups[groupName] = (groups[groupName] || 0) + data.charts.distribution.values[i];
-//     });
-//     return Object.entries(groups).map(([name, value]) => ({ name, value }));
-//   }, [data]);
-
-//   // ТОП-10 продуктів за виручкою (потрібно додати в бекенді середній чек * кількість)
-//   const topByRevenue = useMemo(() => {
-//     if (!data?.tables?.tech_details) return [];
-//     return data.tables.tech_details
-//       .map(item => ({
-//         name: item.ConstructionTypeName_UA,
-//         revenue: item.TotalQuantity * 20000, // Приблизно, треба точні дані
-//         orders: item.UniqueOrdersCount,
-//         quantity: item.TotalQuantity
-//       }))
-//       .sort((a, b) => b.revenue - a.revenue)
-//       .slice(0, 10);
-//   }, [data]);
-
-//   // ТОП-10 за кількістю замовлень
-//   const topByOrders = useMemo(() => {
-//     if (!data?.tables?.tech_details) return [];
-//     return data.tables.tech_details
-//       .map(item => ({
-//         name: item.ConstructionTypeName_UA,
-//         orders: item.UniqueOrdersCount,
-//         quantity: item.TotalQuantity
-//       }))
-//       .sort((a, b) => b.orders - a.orders)
-//       .slice(0, 10);
-//   }, [data]);
-
-//   // Деталізація для drill-down
-//   const categoryDetails = useMemo(() => {
-//     if (!selectedCategory || !data) return [];
-//     return data.tables.tech_details
-//       .filter(item => (CATEGORY_MAPPING[item.ConstructionTypeName_UA] || "Інше") === selectedCategory)
-//       .map(item => ({
-//         name: `${item.ConstructionTypeName_UA} (${item.Складність_UA})`,
-//         value: item.TotalQuantity,
-//         orders: item.OrderNumbers,
-//         uniqueOrders: item.UniqueOrdersCount
-//       }))
-//       .sort((a, b) => b.value - a.value);
-//   }, [selectedCategory, data]);
-
-//   // Дані для BCG Matrix
-//   const bcgData = useMemo(() => {
-//     if (!data?.tables?.tech_details) return [];
-//     const totalRevenue = data.summary.total_sum;
-    
-//     return data.tables.tech_details.map(item => ({
-//       name: item.ConstructionTypeName_UA,
-//       marketShare: (item.UniqueOrdersCount / data.summary.total_orders) * 100,
-//       growthRate: Math.random() * 30 - 10, // TODO: порівняти з минулим роком
-//       revenue: item.TotalQuantity * 20000,
-//       orders: item.UniqueOrdersCount
-//     })).filter(item => item.orders > 5); // Фільтруємо малі категорії
-//   }, [data]);
-
-//   if (loading) return <div className="loading-spinner">Завантаження аналітики...</div>;
-//   if (!data) return <div className="error-message">Дані не знайдено</div>;
-
-//   return (
-//     <div className="production-stats-container">
-      
-//       {/* ============ 1. KPI ВЕРХНІЙ РЯД (6 карток) ============ */}
-//       <div className="kpi-grid-6 mb-32">
-//         <div className="kpi-card shadow-sm">
-//           <span className="label">Річний оборот</span>
-//           <span className="value text-green">{Number(data.summary.total_sum).toLocaleString()} <small>грн</small></span>
-//         </div>
-        
-//         <div className="kpi-card shadow-sm">
-//           <span className="label">Замовлень (KPI)</span>
-//           <span className="value">{data.summary.kpi_orders_count} <small>/ {data.summary.total_orders}</small></span>
-//         </div>
-        
-//         <div className="kpi-card shadow-sm">
-//           <span className="label">Середній чек</span>
-//           <span className="value">{Number(data.summary.avg_check).toLocaleString()} <small>грн</small></span>
-//         </div>
-        
-//         <div className="kpi-card shadow-sm">
-//           <span className="label">Час виготовлення</span>
-//           <span className="value">{Number(data.summary.avg_days).toFixed(1)} <small>дн.</small></span>
-//         </div>
-        
-//         <div className="kpi-card shadow-sm border-amber">
-//           <span className="label">Найкращий місяць</span>
-//           <span className="value text-amber">{bestMonth.name} <small>{(bestMonth.sum / 1000000).toFixed(1)}M</small></span>
-//         </div>
-        
-//         <div className="kpi-card shadow-sm border-red">
-//           <span className="label">Рекламації</span>
-//           <span className="value color-red">{Number(data.summary.complaint_rate).toFixed(1)}%</span>
-//         </div>
-//       </div>
-
-//       {/* ============ 2. ТРЕНДИ ТА СЕЗОННІСТЬ (2 колонки) ============ */}
-//       <div className="stats-grid-2 mb-32">
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">📈 Динаміка продажів та середнього чеку</h4>
-//           <MonthlyTrendChart data={data.charts.monthly} />
-//         </div>
-
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">🔥 Тепловий календар активності</h4>
-//           <MonthlyHeatmapChart data={data.charts.monthly} />
-//         </div>
-//       </div>
-
-//       {/* ============ 3. ПОРТФЕЛЬ ПРОДУКТІВ (3 колонки) ============ */}
-//       <div className="stats-grid-3 mb-32">
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">🎯 Розподіл портфеля</h4>
-//           <p className="chart-subtitle">Клік на сектор для деталізації</p>
-//           <ComplexityDonut 
-//             data={mainDonutData} 
-//             onSectorClick={(name) => {
-//               setSelectedCategory(name);
-//               setTimeout(() => drillDownRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-//             }} 
-//           />
-//         </div>
-
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">💰 ТОП-10 за виручкою</h4>
-//           <TopProductsChart data={topByRevenue} metric="revenue" />
-//         </div>
-
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">🔢 ТОП-10 за замовленнями</h4>
-//           <TopProductsChart data={topByOrders} metric="orders" />
-//         </div>
-//       </div>
-
-//       {/* ============ 4. ОПЕРАЦІЙНА ЕФЕКТИВНІСТЬ (2 колонки) ============ */}
-//       <div className="stats-grid-2 mb-32">
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">⏱️ Де витрачається час?</h4>
-//           <ProductionTimelineChart data={data.charts.speed} />
-//         </div>
-
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">🎲 Складність vs Прибутковість</h4>
-//           <ComplexityProfitScatter data={data.tables.categories} />
-//         </div>
-//       </div>
-
-//       {/* ============ 5. DRILL-DOWN СЕКЦІЯ ============ */}
-//       {selectedCategory && (
-//         <div className="drilldown-section animate-fade-in" ref={drillDownRef}>
-//           <div className="drilldown-header">
-//             <div>
-//               <h3 className="section-title">Деталізація групи: <span className="color-primary">{selectedCategory}</span></h3>
-//               <p className="section-subtitle">Підкатегорії, тренди та ключові продукти</p>
-//             </div>
-//             <button className="btn-close" onClick={() => setSelectedCategory(null)}>
-//               ✕ Закрити
-//             </button>
-//           </div>
-
-//           <div className="stats-grid-2 mb-24">
-//             <div className="chart-wrapper-card">
-//               <h5>Розподіл підкатегорій</h5>
-//               <ComplexityDonut data={categoryDetails} isDetail={true} />
-//             </div>
-
-//             <div className="chart-wrapper-card">
-//               <h5>ТОП позицій за кількістю</h5>
-//               <TopProductsChart 
-//                 data={categoryDetails.slice(0, 10)} 
-//                 metric="value"
-//               />
-//             </div>
-//           </div>
-
-//           {/* Номери замовлень */}
-//           <div className="card-p24 bg-gray-50 rounded-12">
-//             <h5 className="mb-16">📋 Номери замовлень ({categoryDetails.reduce((s, d) => s + d.uniqueOrders, 0)} шт)</h5>
-//             <div className="orders-tag-cloud">
-//               {Array.from(new Set(categoryDetails.flatMap(d => d.orders.split(',')))).slice(0, 100).map((order, idx) => (
-//                 <span key={idx} className="order-tag">{order.trim()}</span>
-//               ))}
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* ============ 6. СТРАТЕГІЧНА АНАЛІТИКА (2 колонки) ============ */}
-//       <div className="stats-grid-2 mb-32">
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">📊 ABC-аналіз продуктів</h4>
-//           <p className="chart-subtitle">Розподіл за принципом Парето</p>
-//           <ABCAnalysisChart data={data.tables.tech_details} />
-//         </div>
-
-//         <div className="chart-wrapper-card">
-//           <h4 className="chart-title">⭐ BCG Матриця</h4>
-//           <p className="chart-subtitle">Зірки, Корови, Знаки питання, Собаки</p>
-//           <BCGMatrixChart data={bcgData} />
-//         </div>
-//       </div>
-
-//       {/* ============ 7. ДЕТАЛЬНИЙ СКАТТЕР (повна ширина) ============ */}
-//       <div className="chart-wrapper-card">
-//         <h4 className="chart-title">🔍 Матриця ефективності: Замовлення vs Об'єм</h4>
-//         <FrequencyVolumeChart data={data.tables.tech_details} />
-//       </div>
-
-//     </div>
-//   );
-// }
-
-
 import { useEffect, useState, useMemo, useRef } from "react";
 import axiosInstance from "../../api/axios";
 import ComplexityDonut from "../charts/ComplexityDonut";
@@ -302,6 +14,12 @@ import './ProductionStatisticsBlock.css';
 import ComplexityTreemap from "../charts/ComplexityTreeMap";
 import EfficiencyChart from '../charts/EfficiencyChart';
 import VolumeChart from '../charts/VolumeChart';
+
+// Імпорт нових компонентів ECharts
+import FurnitureChart from "../charts/FurnitureChart";
+import ProfileColorChart from "../charts/ProfileColorChart";
+import ProfileSystemChart from "../charts/ProfileSystemChart";
+import ColorSystemHeatmap from "../charts/ColorSystemHeatmap";
 
 // Мапінг для групування сирих категорій у великі бізнес-групи
 const CATEGORY_MAPPING = {
@@ -329,6 +47,12 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
   const [data, setData] = useState(null);
   const [dealerGuid, setDealerGuid] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Стани для нових даних з процедури GetDealerSummaryReport
+  const [colorData, setColorData] = useState([]);
+  const [furnitureData, setFurnitureData] = useState([]);
+  const [systemsData, setSystemsData] = useState([]);
+  const [heatmapData, setHeatmapData] = useState([]);
   
   const [selectedCategory, setSelectedCategory] = useState(null); // Напр. "Додатки"
   const [activeSubCategory, setActiveSubCategory] = useState(null); // Напр. "Лиштва"
@@ -339,16 +63,71 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
       try {
         const params = { year: selectedYear };
         if (isAdmin && dealerGuid) params.contractor_guid = dealerGuid;
-        const res = await axiosInstance.get("/full-statistics/", { params });
-        setData(res.data);
+
+        const [resFull, resDealer] = await Promise.all([
+          axiosInstance.get("/full-statistics/", { params }),
+          axiosInstance.get("/order-statistics/", { params })
+        ]);
+
+        setData(resFull.data);
+
+        if (resDealer.data) {
+          setSystemsData(resDealer.data.profile_system || []);
+          setColorData(resDealer.data.profile_color || []);
+          setFurnitureData(resDealer.data.hardware?.items || []);
+
+        }
       } catch (err) {
-        console.error("Помилка аналітики:", err);
-      } finally { 
-        setLoading(false); 
+        console.error("Помилка при завантаженні даних:", err);
+      } finally {
+        setLoading(false);
       }
     };
     loadData();
   }, [selectedYear, dealerGuid, isAdmin]);
+
+
+  const calculatedHeatmapData = useMemo(() => {
+  if (!systemsData.length || !colorData.length) return [];
+
+  const result = [];
+
+  systemsData.forEach(sys => {
+    // Перетворюємо рядок номерів "01-123, 01-124" у масив ["01-123", "01-124"]
+    const sysOrders = sys.OrdersNumber ? sys.OrdersNumber.split(',').map(n => n.trim()) : [];
+    const sysName = sys.ProfileSystem;
+
+    colorData.forEach(col => {
+      const colOrders = col.OrdersNumber ? col.OrdersNumber.split(',').map(n => n.trim()) : [];
+      const colName = col.ProfileColor;
+
+      // Знаходимо спільні номери замовлень (перетин)
+      const intersection = sysOrders.filter(order => colOrders.includes(order));
+
+      if (intersection.length > 0) {
+        result.push({
+          system: sysName,
+          color: colName,
+          value: intersection.length
+        });
+      }
+    });
+  });
+
+  return result;
+}, [systemsData, colorData]);
+
+// Оновлюємо стан heatmapData, коли розрахунок готовий
+useEffect(() => {
+  setHeatmapData(calculatedHeatmapData);
+}, [calculatedHeatmapData]);
+
+  const colorChartData = useMemo(() => {
+    return colorData.map(item => ({
+      name: item["Колір профілю"],
+      value: item["Кількість замовлень"]
+    }));
+  }, [colorData]);
 
   useEffect(() => {
     if (selectedCategory && drillDownRef.current) {
@@ -356,13 +135,10 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
     }
   }, [selectedCategory]);
 
-
-
   // --- ОБРОБКА ДАНИХ ---
 
-  // 1. Головне кільце (Рівень 1)
   // 1. Головне кільце (Рівень 1) - Агрегуємо дані прямо з tech_details
-const mainDonutData = useMemo(() => {
+  const mainDonutData = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!Array.isArray(details) || details.length === 0) return [];
     
@@ -380,7 +156,7 @@ const mainDonutData = useMemo(() => {
       .sort((a, b) => b.value - a.value);
   }, [data]);
 
-  // 2. Список підкатегорій (Рівень 2 - Навігація) - БЕЗПЕЧНА ФІЛЬТРАЦІЯ
+  // 2. Список підкатегорій (Рівень 2 - Навігація)
   const subCategories = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!selectedCategory || !Array.isArray(details)) return [];
@@ -391,12 +167,12 @@ const mainDonutData = useMemo(() => {
             return (CATEGORY_MAPPING[cleanName] || "Додатки") === selectedCategory;
         })
         .map(item => item.ConstructionTypeName_UA?.trim())
-        .filter(Boolean); // Видаляємо null/undefined
+        .filter(Boolean); 
         
     return [...new Set(subs)].sort();
   }, [selectedCategory, data]);
 
-  // 3. Детальні дані для графіків - ЗАХИСТ ВІД NULL ТА ПОРОЖНІХ РЯДКІВ
+  // 3. Детальні дані для графіків
   const filteredCategoryDetails = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!selectedCategory || !Array.isArray(details)) return [];
@@ -417,11 +193,11 @@ const mainDonutData = useMemo(() => {
             orders: item.OrderNumbers || "",
             subCategory: item.ConstructionTypeName_UA?.trim() || ""
         }))
-        .filter(item => item.value > 0) // Показуємо тільки реальні об'єми
+        .filter(item => item.value > 0) 
         .sort((a, b) => b.value - a.value);
   }, [selectedCategory, activeSubCategory, data]);
 
-  // 4. Метрики часу - ЗАХИСТ ВІД ДІЛЕННЯ НА НУЛЬ
+  // 4. Метрики часу
   const activeMetrics = useMemo(() => {
     const categories = data?.tables?.categories;
     if (!selectedCategory || !Array.isArray(categories)) return null;
@@ -450,13 +226,10 @@ const mainDonutData = useMemo(() => {
         return (
             <div className="loading-spinner-wrapper">
                 <div className="loading-spinner"></div>
-                <div className="loading-text">
-                    { "Завантаження..."}
-                </div>
+                <div className="loading-text">Завантаження...</div>
             </div>
         );
     }
-
   
   if (!data) return <div className="error-msg">Дані не завантажено</div>;
  
@@ -469,19 +242,11 @@ const mainDonutData = useMemo(() => {
       );
   }
 
-
-
-
   return (
     <div className="production-stats-container">
       
       {/* 1. ПАНЕЛЬ KPI */}
-      
-      <div className="kpi-grid-6 ">
-        {/* <div className="kpi-card shadow-sm">
-          <span className="label">Оборот {selectedYear}</span>
-          <span className="value text-green">{data.summary.total_sum?.toLocaleString()} <small>грн</small></span>
-        </div> */}
+      <div className="kpi-grid-6">
         <div className="kpi-card shadow-sm badge-order">
           <span className="label">Замовлень</span>
           <span className="value">{data.summary.total_orders} <small>шт</small></span>
@@ -490,12 +255,10 @@ const mainDonutData = useMemo(() => {
           <span className="label">Конструкцій</span>
           <span className="value">{data.summary.total_constructions} <small>шт</small></span>
         </div>
-
         <div className="kpi-card shadow-sm">
           <span className="label">Середній чек</span>
           <span className="value">{Math.round(data.summary.avg_check || 0).toLocaleString()} <small>грн</small></span>
         </div>
-
         <div className="kpi-card shadow-sm">
           <span className="label">Оборот</span>
           <span className="value">{Math.round(data.summary.total_sum || 0).toLocaleString()} <small>грн</small></span>
@@ -504,19 +267,14 @@ const mainDonutData = useMemo(() => {
           <span className="label">Середній час виробництва</span>
           <span className="value">{Number(data.summary.avg_days || 0).toFixed(1)} <small>дн.</small></span>
         </div>
-
         <div className="kpi-card shadow-sm border-amber badge-reclamation">
           <span className="label">Рекламації</span>
           <span className="value color-red">{Number(data.summary.complaint_rate || 0).toFixed(1)}%</span>
         </div>
-        
-
-        {/* <div className="kpi-card shadow-sm">
-           {isAdmin && <DealerSelect value={dealerGuid} onChange={setDealerGuid} />}
-        </div> */}
       </div>
+
+      {/* ГРАФІКИ ЕФЕКТИВНОСТІ (Щомісячно) */}
       <div className="stats-grid-2">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '20px' }}>
         <div className="chart-wrapper-card">
           <EfficiencyChart data={data.charts.monthly} />
         </div>
@@ -525,15 +283,34 @@ const mainDonutData = useMemo(() => {
         </div>
       </div>
 
-         {/* <div className="chart-wrapper-card">
-           <h4 className="chart-title">🔥 Календар активності</h4>
-           <MonthlyHeatmapChart data={data.charts.monthly} />
-        </div> */}
-          </div>
-
-
-      {/* 2. ПОРТФЕЛЬ ТА СКАТТЕР */}
+      {/* БЛОК: КОЛЬОРИ ТА СИСТЕМИ (50/50) */}
       <div className="stats-grid-2">
+        <div className="chart-wrapper-card card-padding">
+          <h4 className="chart-title-unified">Популярність кольорів</h4>
+          <ProfileColorChart data={colorData} />
+        </div>
+        <div className="chart-wrapper-card card-padding">
+          <h4 className="chart-title-unified">Профільні системи</h4>
+          <ProfileSystemChart data={systemsData} />
+        </div>
+      </div>
+
+      <div className="chart-wrapper-card card-padding">
+        <h4 className="chart-title-unified">Аналіз перетину: Система × Колір</h4>
+        <p className="chart-subtitle" style={{ fontSize: '12px', color: '#888', marginBottom: '14px' }}>
+            Візуалізація популярності кольорів у розрізі кожної профільної системи
+        </p>
+        <ColorSystemHeatmap data={heatmapData} />
+    </div>
+
+      {/* БЛОК: ФУРНІТУРА (На всю ширину) */}
+      <div className="chart-wrapper-card card-padding">
+          <h4 className="chart-title-unified">Фурнітура — кількість замовлень</h4>
+          <FurnitureChart data={furnitureData} />
+      </div>
+
+      {/* ПОРТФЕЛЬ КАТЕГОРІЙ */}
+      <div className="stats-single-column">
         <div className="chart-wrapper-card">
           <h4 className="chart-title">Категорії</h4>
           <p className="chart-subtitle">Натисніть на групу для деталізації</p>
@@ -545,104 +322,62 @@ const mainDonutData = useMemo(() => {
             }} 
           />
         </div>
-        {/* <div className="chart-wrapper-card">
-          <h4 className="chart-title">🔍 Матриця ефективності</h4>
-          <FrequencyVolumeChart data={data.tables.tech_details} />
-        </div> */}
       </div>
 
-      {/* 3. DRILL-DOWN (Деталізація) */}
-{selectedCategory && (
-    <div className="chart-wrapper-card drilldown-view animate-fade-in" ref={drillDownRef}>
-        <div className="drilldown-header row jc-sb ai-center mb-16">
-            <h3 className="section-title">
-                Аналіз групи: <span className="color-primary">{selectedCategory}</span>
-                {activeSubCategory && <span className="sub-title-arrow"> → {activeSubCategory}</span>}
-            </h3>
-            <button className="btn-close-details-analytics" onClick={() => {
-                setSelectedCategory(null);
-                setActiveSubCategory(null);
-            }}>✕</button>
-        </div>
-
-        {/* НОВИЙ БЛОК: СЕРЕДНІЙ ЧАС ПО КАТЕГОРІЇ */}
-        {activeSubCategory && activeMetrics && (
-      <div className="drilldown-metrics-grid mb-24">
-          {/* <div className="d-mini-card">
-              <span className="d-label">Середній час очікування запуска виробництва</span>
-              <span className="d-value">{activeMetrics.avgQueue} <small>дн.</small></span>
-          </div>
-          <div className="d-mini-card">
-              <span className="d-label">Середній час виробництва</span>
-              <span className="d-value">{activeMetrics.avgProd} <small>дн.</small></span>
-          </div> */}
-          <div className="d-mini-card highlight">
-              <span className="d-label">Середня тривалість виготовлення: </span>
-              <span className="d-value">{activeMetrics.avgFull} <small>дн.</small></span>
-          </div>
-          <div className="d-mini-card">
-              <span className="d-label">Об'єм підкатегорії: </span>
-              <span className="d-value">{activeMetrics.totalQty.toLocaleString()} <small>шт</small></span>
-          </div>
-      </div>
-  )}
-
-        {/* БЛОК ФІЛЬТРІВ (ТАБИ) */}
-        <div className="sub-nav-tabs mb-24">
-            <button 
-                className={`tab-link ${!activeSubCategory ? 'active' : ''}`}
-                onClick={() => setActiveSubCategory(null)}
-            >
-                Всі товари групи
-            </button>
-            {subCategories.map(sub => (
-                <button 
-                    key={sub}
-                    className={`tab-link ${activeSubCategory === sub ? 'active' : ''}`}
-                    onClick={() => setActiveSubCategory(sub)}
-                >
-                    {sub}
+      {/* DRILL-DOWN (Деталізація) */}
+      {selectedCategory && (
+        <div className="chart-wrapper-card drilldown-view animate-fade-in" ref={drillDownRef}>
+            <div className="drilldown-header-row">
+                <h3 className="section-title">
+                    Аналіз групи: <span className="color-primary">{selectedCategory}</span>
+                    {activeSubCategory && <span className="sub-title-arrow"> → {activeSubCategory}</span>}
+                </h3>
+                
+                <button className="btn-close-details-analytics" onClick={() => {
+                    setSelectedCategory(null);
+                    setActiveSubCategory(null);
+                }}>
+                    ✕
                 </button>
-            ))}
-        </div>
+            </div>
 
-        {/* ГРАФІКИ */}
-        <div className="stats-grid-2">
+            {activeSubCategory && activeMetrics && (
+              <div className="drilldown-metrics-grid mb-24">
+                  <div className="d-mini-card highlight">
+                      <span className="d-label">Середня тривалість виготовлення: </span>
+                      <span className="d-value">{activeMetrics.avgFull} <small>дн.</small></span>
+                  </div>
+                  <div className="d-mini-card">
+                      <span className="d-label">Кількість конструкцій: </span>
+                      <span className="d-value">{activeMetrics.totalQty.toLocaleString()} <small>шт</small></span>
+                  </div>
+              </div>
+            )}
+
+            <div className="sub-nav-tabs mb-24">
+                <button 
+                    className={`tab-link ${!activeSubCategory ? 'active' : ''}`}
+                    onClick={() => setActiveSubCategory(null)}
+                >
+                    Всі товари групи
+                </button>
+                {subCategories.map(sub => (
+                    <button 
+                        key={sub}
+                        className={`tab-link ${activeSubCategory === sub ? 'active' : ''}`}
+                        onClick={() => setActiveSubCategory(sub)}
+                    >
+                        {sub}
+                    </button>
+                ))}
+            </div>
+
             <div className="chart-card">
                 <h5>Розподіл за складністю (шт)</h5>
                 <ComplexityTreemap data={filteredCategoryDetails} isDetail={true} />
             </div>
-            {/* <div className="chart-card">
-                <h5>ТОП позицій</h5>
-                <TopProductsChart data={filteredCategoryDetails} metric="value" />
-            </div> */}
         </div>
-
-        {/* НОМЕРИ ЗАМОВЛЕНЬ */}
-        {/* <div className="mt-24 card-p24 bg-light rounded-12">
-            <h5 className="mb-12">📋 Замовлення ({activeSubCategory || selectedCategory})</h5>
-            <div className="orders-tag-cloud">
-                {Array.from(new Set(filteredCategoryDetails.flatMap(d => d.orders.split(','))))
-                    .map((order, idx) => (
-                        <span key={idx} className="order-tag">{order.trim()}</span>
-                    ))}
-            </div>
-        </div> */}
-    </div>
-)}
-
-      {/* 4. ТЕРМІНИ ТА ТРЕНДИ */}
-      {/* <div className="stats-grid-2 mb-32 mt-32">
-        <div className="chart-wrapper-card">
-          <h4 className="chart-title">⏱️ Аналіз затримок (Черга vs Виробництво)</h4>
-          <ProductionTimelineChart data={data.charts.speed} />
-        </div>
-        <div className="chart-wrapper-card">
-          <h4 className="chart-title">📈 Продажі та середній чек</h4>
-          <MonthlyTrendChart data={data.charts.monthly} />
-        </div>
-      </div> */}
-
+      )}
     </div>
   );
 }

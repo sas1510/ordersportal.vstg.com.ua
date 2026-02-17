@@ -25,7 +25,7 @@ from backend.utils.contractor import resolve_contractor
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
 from rest_framework.exceptions import ValidationError
-
+from backend.utils.onec_api import send_to_1c
 
 
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
@@ -404,7 +404,7 @@ class ReclamationViewSet(viewsets.ViewSet):
             # ==================================================
             # 🔥 REAL MODE
             # ==================================================
-            result = self._send_to_1c(payload)
+            result = send_to_1c("CreateReclamation", payload)
 
             reclamation_guid = result.get("reclamationGuid")
             if not reclamation_guid:

@@ -27,6 +27,7 @@ from rest_framework.decorators import api_view, permission_classes
 
 from drf_spectacular.types import OpenApiTypes
 import re
+from backend.utils.onec_api import send_to_1c
 
 from backend.permissions import IsAdminJWT
 from .serializers import MessageCreateSerializer, CalculationCreateSerializer
@@ -2318,7 +2319,7 @@ class DeleteCalculationView(APIView):
             "calculation_id": str(calculation_guid),
         }
 
-        result = self._send_to_1c(payload)
+        result = send_to_1c("DeleteCalculation", payload)
         # result = None
         if not result.get("success", True):
             return Response(
@@ -2338,24 +2339,7 @@ class DeleteCalculationView(APIView):
             status=status.HTTP_200_OK,
         )
 
-    def _send_to_1c(self, payload: dict) -> dict:
-        auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
-        auth_b64 = base64.b64encode(auth_raw.encode()).decode()
-
-        response = requests.post(
-            settings.ONE_C_URL,
-            json=payload,
-            headers={
-                "Authorization": f"Basic {auth_b64}",
-                "Content-Type": "application/json",
-                "Query": "DeleteCalculation",
-            },
-            timeout=30,
-            verify=settings.ONE_C_VERIFY_SSL,
-        )
-
-        response.raise_for_status()
-        return response.json()
+   
 
 
 
@@ -2569,3 +2553,82 @@ class DealerFullAnalyticsView(APIView):
         "Повертає всі рядки з курсору як словник"
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    
+
+
+from django.db import connections
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+class OrdersDealerStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 1️⃣ Визначаємо контрагента (залишаємо вашу логіку)
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        # 2️⃣ Рік
+        year = int(request.GET.get("year", 2026)) # Враховуємо поточний 2026 рік
+
+        db_alias = 'db_2'
+        with connections[db_alias].cursor() as cursor:
+
+            # ==============================
+            # 1. Фурнітура (GetHardwareStats)
+            # ==============================
+            cursor.execute("EXEC [dbo].[GetHardwareStats] @Year = %s, @Contractor_ID = %s", 
+                           [year, contractor_bin])
+            
+            hardware_columns = [col[0] for col in cursor.description]
+            hardware_rows = cursor.fetchall()
+            hardware_items = [dict(zip(hardware_columns, row)) for row in hardware_rows]
+
+            # Оновлюємо мапінг KPI згідно з новими назвами колонок
+            # Використовуємо .get() для уникнення KeyError
+            hardware_kpi = {
+                "total_orders": hardware_items[0].get("КількістьЗамовлень") if hardware_items else 0,
+                "delivery_days": hardware_items[0].get("СрокПоставки") if hardware_items else 0,
+                "abc_class": hardware_items[0].get("ABC") if hardware_items else None,
+            }
+
+            # ==============================
+            # 2. Колір профілю (GetProfileColor)
+            # ==============================
+            cursor.execute("EXEC [dbo].[GetProfileColor] @Year = %s, @Contractor_ID = %s", 
+                           [year, contractor_bin])
+
+            color_columns = [col[0] for col in cursor.description]
+            color_rows = cursor.fetchall()
+            profile_color_items = [dict(zip(color_columns, row)) for row in color_rows]
+
+            # ==============================
+            # 3. Профільні системи (GetProfileSystemStats)
+            # ==============================
+            cursor.execute("EXEC [dbo].[GetProfileSystemStats] @Year = %s, @Contractor_ID = %s", 
+                           [year, contractor_bin])
+
+            system_columns = [col[0] for col in cursor.description]
+            system_rows = cursor.fetchall()
+            profile_system_items = [dict(zip(system_columns, row)) for row in system_rows]
+
+        # ==============================
+        # 4️⃣ Фінальна відповідь
+        # ==============================
+        return Response({
+            "contractor_guid": contractor_guid,
+            "year": year,
+            "hardware": {
+                "kpi": hardware_kpi,
+                "items": hardware_items, # Тут будуть поля: Фурнитура, КількістьЗамовлень, НомериЗамовлень
+            },
+            "profile_color": profile_color_items,   # Тут будуть поля: Колір профілю, Кількість замовлень
+            "profile_system": profile_system_items, # Тут будуть поля: ПрофильнаяСистема, КількістьЗамовлень
+        })
