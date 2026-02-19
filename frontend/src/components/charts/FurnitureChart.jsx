@@ -2,8 +2,8 @@ import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
 const FurnitureChart = ({ data }) => {
-  const infoColor = '#5e83bf'; 
-  const dangerColor = '#e46321';
+  const infoColor = '#645388'; 
+  const dangerColor = '#606060';
 
   const sortedData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];

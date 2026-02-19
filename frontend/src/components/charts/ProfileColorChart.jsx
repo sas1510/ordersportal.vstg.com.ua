@@ -3,7 +3,7 @@ import ReactECharts from 'echarts-for-react';
 
 const ProfileColorChart = ({ data }) => {
   const infoColor = '#5e83bf';
-  const dangerColor = '#e46321';
+  const dangerColor = '#606060';
 
   const sortedData = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
