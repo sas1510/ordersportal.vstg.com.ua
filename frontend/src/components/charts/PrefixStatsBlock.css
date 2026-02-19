@@ -1,0 +1,93 @@
+/* Сітка для карток префіксів */
+.prefix-stats-grid-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+/* Основна картка */
+.prefix-card-unit {
+    border: 1px solid var(--grey-border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.prefix-card-unit:hover {
+    transform: translateY(-2px);
+}
+
+/* Заголовок картки */
+.prefix-card-header {
+    padding: 10px 15px;
+    font-size: 16px;
+    letter-spacing: 0.8px;
+}
+
+/* Контейнер для цифр */
+.prefix-card-body {
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+    min-height: 85px;
+}
+
+/* Кожна колонка з даними */
+.p-stat-item {
+    flex: 1;
+    padding: 12px 5px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Пунктирний розділювач у вашому стилі */
+.p-stat-item.border-right {
+    border-right: 1px dashed var(--grey-text-color) !important;
+}
+
+/* Стилі значень */
+.p-value {
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+/* Стилі підписів */
+.p-label {
+    letter-spacing: 0.3px;
+    font-weight: 500;
+}
+
+/* Тінь */
+.shadow-sm {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Підсвітка для фінальної картки "Разом" */
+.border-highlight {
+    border: 2px solid var(--info-color) !important;
+}
+
+.bg-highlight-light {
+    background-color: #f8faff; /* Легкий відтінок для виділення підсумку */
+}
+
+.prefix-card-unit.border-highlight .p-label {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.prefix-card-footer {
+    padding: 4px;
+    background-color: #fdfdfd;
+}
+
+.prefix-stats-grid-wrapper {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); /* Збільшено ширину для 5 колонок */
+    gap: 20px;
+}

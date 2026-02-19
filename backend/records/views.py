@@ -2561,11 +2561,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+
+
 class OrdersDealerStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 1️⃣ Визначаємо контрагента (залишаємо вашу логіку)
+        # 1️⃣ Визначаємо контрагента
         try:
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
@@ -2576,7 +2578,7 @@ class OrdersDealerStatisticsView(APIView):
             return Response({"detail": str(e)}, status=400)
 
         # 2️⃣ Рік
-        year = int(request.GET.get("year", 2026)) # Враховуємо поточний 2026 рік
+        year = int(request.GET.get("year", 2026)) 
 
         db_alias = 'db_2'
         with connections[db_alias].cursor() as cursor:
@@ -2591,8 +2593,6 @@ class OrdersDealerStatisticsView(APIView):
             hardware_rows = cursor.fetchall()
             hardware_items = [dict(zip(hardware_columns, row)) for row in hardware_rows]
 
-            # Оновлюємо мапінг KPI згідно з новими назвами колонок
-            # Використовуємо .get() для уникнення KeyError
             hardware_kpi = {
                 "total_orders": hardware_items[0].get("КількістьЗамовлень") if hardware_items else 0,
                 "delivery_days": hardware_items[0].get("СрокПоставки") if hardware_items else 0,
@@ -2619,16 +2619,27 @@ class OrdersDealerStatisticsView(APIView):
             system_rows = cursor.fetchall()
             profile_system_items = [dict(zip(system_columns, row)) for row in system_rows]
 
+            # ==============================
+            # 4. Префікси замовлень (GetDealerPrefixStatistics) ⬅️ НОВЕ
+            # ==============================
+            cursor.execute("EXEC [dbo].[GetDealerPrefixStatistics] @Year = %s, @Contractor_ID = %s", 
+                           [year, contractor_bin])
+            
+            prefix_columns = [col[0] for col in cursor.description]
+            prefix_rows = cursor.fetchall()
+            prefix_items = [dict(zip(prefix_columns, row)) for row in prefix_rows]
+
         # ==============================
-        # 4️⃣ Фінальна відповідь
+        # 5️⃣ Фінальна відповідь
         # ==============================
         return Response({
             "contractor_guid": contractor_guid,
             "year": year,
             "hardware": {
                 "kpi": hardware_kpi,
-                "items": hardware_items, # Тут будуть поля: Фурнитура, КількістьЗамовлень, НомериЗамовлень
+                "items": hardware_items,
             },
-            "profile_color": profile_color_items,   # Тут будуть поля: Колір профілю, Кількість замовлень
-            "profile_system": profile_system_items, # Тут будуть поля: ПрофильнаяСистема, КількістьЗамовлень
+            "profile_color": profile_color_items,
+            "profile_system": profile_system_items,
+            "prefixes": prefix_items,  # Додано результати за категоріями (15-, 01-, тощо)
         })

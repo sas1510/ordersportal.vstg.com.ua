@@ -14,7 +14,7 @@ import './ProductionStatisticsBlock.css';
 import ComplexityTreemap from "../charts/ComplexityTreeMap";
 import EfficiencyChart from '../charts/EfficiencyChart';
 import VolumeChart from '../charts/VolumeChart';
-
+import PrefixCategoryDisplay from "../charts/PrefixCategoryDisplay";
 // Імпорт нових компонентів ECharts
 import FurnitureChart from "../charts/FurnitureChart";
 import ProfileColorChart from "../charts/ProfileColorChart";
@@ -53,6 +53,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
   const [furnitureData, setFurnitureData] = useState([]);
   const [systemsData, setSystemsData] = useState([]);
   const [heatmapData, setHeatmapData] = useState([]);
+  const [prefixData, setprefixData] = useState([]);
   
   const [selectedCategory, setSelectedCategory] = useState(null); // Напр. "Додатки"
   const [activeSubCategory, setActiveSubCategory] = useState(null); // Напр. "Лиштва"
@@ -75,7 +76,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
           setSystemsData(resDealer.data.profile_system || []);
           setColorData(resDealer.data.profile_color || []);
           setFurnitureData(resDealer.data.hardware?.items || []);
-
+          setprefixData(resDealer.data.prefixes)
         }
       } catch (err) {
         console.error("Помилка при завантаженні даних:", err);
@@ -271,6 +272,12 @@ useEffect(() => {
           <span className="label">Рекламації</span>
           <span className="value color-red">{Number(data.summary.complaint_rate || 0).toFixed(1)}%</span>
         </div>
+      </div>
+
+
+      <div className="m-bottom-28">
+          <h4 className="window-title uppercase m-bottom-28">Статистика за категоріями</h4>
+          <PrefixCategoryDisplay prefixData={prefixData} />
       </div>
 
       {/* ГРАФІКИ ЕФЕКТИВНОСТІ (Щомісячно) */}
