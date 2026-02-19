@@ -2465,9 +2465,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import connections
 
+
+
+
 class DealerFullAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
-
 
     def get(self, request):
         try:
@@ -2480,42 +2482,37 @@ class DealerFullAnalyticsView(APIView):
             return Response({"detail": str(e)}, status=400)
 
         year = int(request.GET.get("year", 2025))
-
         db_alias = 'db_2'
-        # with connection.cursor() as cursor:
-        with connections[db_alias].cursor() as cursor:
-            # ОБОВ'ЯЗКОВО: Об'єднуємо налаштування і виклик процедури через крапку з комою
-            # Це гарантує, що драйвер отримає результат процедури як єдиний батч
-            
-            # 1. Загальні KPI
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetDetailedDealerStatistics] %s, %s", [year, contractor_bin])
-            detailed_items = self.dictfetchall(cursor)
 
-            # 2. Швидкість
+        with connections[db_alias].cursor() as cursor:
+            # 1. Швидкість (тепер це перший запит)
             cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetAvgProductionTimeByCategory] %s, %s", [year, contractor_bin])
             category_speed = self.dictfetchall(cursor)
 
-            # 3. Технічні деталі
+            # 2. Технічні деталі
             cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, 100000", [year, contractor_bin])
             tech_items = self.dictfetchall(cursor)
 
-            # 4. Сезонність
+            # 3. Сезонність
             cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s", [year, contractor_bin])
             monthly_stats = self.dictfetchall(cursor)
 
-        # Безпечне отримання KPI (захист від порожніх списків)
-        first_row = detailed_items[0] if detailed_items else {}
+        # Безпечне отримання підсумків з таблиці швидкості
         total_row = next((c for c in category_speed if c["CategoryName"] == '--- УСЬОГО ---'), {})
         total_constructions = total_row.get("TotalQuantity", 0)
+        total_orders = total_row.get("TotalOrders", 0)
+
+        # Формуємо summary. Поля, які раніше йшли з GetDetailedDealerStatistics, 
+        # тепер заповнюємо нулями або даними з наявних таблиць.
         kpi_summary = {
-            "total_sum": first_row.get("TotalSumYear", 0),
-            "avg_check": first_row.get("AvgOrderValue", 0),
-            "avg_days": first_row.get("AvgProductionDays", 0),
-            "total_orders": first_row.get("TotalOrdersCount", 0),
-            "kpi_orders_count": first_row.get("OrdersInKpiCount", 0),
-            "complaint_rate": first_row.get("ComplaintRatePercent", 0),
-            "avg_delivery": first_row.get("AvgDeliveryDaysFact", 0),
-            "total_lifecycle": first_row.get("AvgTotalLifecycleDays", 0),
+            "total_sum": 0,  # Якщо потрібно, суму можна витягнути з tech_items
+            "avg_check": 0,
+            "avg_days": total_row.get("AvgTotalProductionDays", 0),
+            "total_orders": total_orders,
+            "kpi_orders_count": 0,
+            "complaint_rate": 0,
+            "avg_delivery": 0,
+            "total_lifecycle": 0,
             "total_constructions": total_constructions,
         }
 
@@ -2545,15 +2542,15 @@ class DealerFullAnalyticsView(APIView):
             "tables": {
                 "categories": category_speed, # Таблиця з термінами по групах
                 "tech_details": tech_items,   # Таблиця зі складністю та кількістю
-                # "orders": detailed_items      # Повний список замовлень
             }
         })
 
     def dictfetchall(self, cursor):
         "Повертає всі рядки з курсору як словник"
+        if cursor.description is None:
+            return []
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
-    
 
 
 from django.db import connections

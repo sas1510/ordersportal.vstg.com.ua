@@ -49,7 +49,7 @@ const ColorSystemHeatmap = ({ data }) => {
       top: 'center',
       itemWidth: 15,
       inRange: {
-        color: ['#bfd5f3', '#5e83bf'] // Від світлого до основного кольору теми
+        color: ['#d8e7cd', '#5db31c'] // Від світлого до основного кольору теми
       }
     },
     series: [{

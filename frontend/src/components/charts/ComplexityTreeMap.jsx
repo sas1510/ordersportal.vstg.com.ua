@@ -1,18 +1,30 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import * as echarts from "echarts";
 
-const COLORS = [
-  "#5e83bf", "#76b448", "#d3c527", "#e46321", "#7C5747", 
-  "#645388", "#aaaaaa", "#d4d947", "#6b98bf", "#9dc08b", 
-  "#c2d66b", "#bc4b1a", "#91817a", "#9b72aa"
-];
+// Ваші палітри кольорів
+const CATEGORY_PALETTES_EXTENDED = {
+  "Вікна": [
+    "#5e83bf", "#6e9fdf", "#8caeda", "#b3c8e6", "#d9e3f1", 
+    "#4b6999", "#384f73", "#26354d", "#131a26"
+  ],
+  "Двері": [
+    "#76b448", "#92c56b", "#add390", "#c9e2b5", "#e4f0da", 
+    "#5e903a", "#476c2b", "#2f481d", "#18240e"
+  ],
+  "Додатки": [
+    "#d3c527", "#dad153", "#e3dc7f", "#ede8aa", "#f6f3d4", 
+    "#a99e1f", "#7f7617", "#554f10", "#2a2708"
+  ],
+  "Інше": [
+    "#aaaaaa", "#bbbbbb", "#cccccc", "#dddddd", "#eeeeee", 
+    "#888888", "#666666", "#444444", "#222222"
+  ]
+};
 
-export default function ComplexityTreemap({ data, onSectorClick, isDetail }) {
+export default function ComplexityTreemap({ data, onSectorClick, isDetail, activeGroup }) {
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
   const [isDark, setIsDark] = useState(document.body.classList.contains("dark-theme"));
-  
-  // Використовуємо звичайний стан
   const [selectedSector, setSelectedSector] = useState(null);
 
   useEffect(() => {
@@ -42,6 +54,9 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail }) {
 
     const myChart = chartInstanceRef.current;
 
+    // Визначаємо палітру на основі activeGroup
+    const currentPalette = CATEGORY_PALETTES_EXTENDED[activeGroup] || CATEGORY_PALETTES_EXTENDED["Інше"];
+
     const option = {
       backgroundColor: 'transparent',
       tooltip: {
@@ -64,7 +79,7 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail }) {
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 12px;">
                 <span style="opacity: 0.7;">Частка:</span>
-                <strong style="color: #5e83bf;">${percent}%</strong>
+                <strong style="color: ${currentPalette[0]};">${percent}%</strong>
               </div>
             </div>`;
         }
@@ -76,9 +91,10 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail }) {
           name: item.name,
           value: item.value,
           itemStyle: {
-            color: COLORS[index % COLORS.length],
+            // Використання кольору з обраної палітри
+            color: currentPalette[index % currentPalette.length],
             borderColor: theme.borderColor,
-            borderWidth: 3
+            borderWidth: 2
           }
         })),
         roam: false,
@@ -87,7 +103,7 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail }) {
           show: true,
           formatter: '{name|{b}}\n{val|{c} шт}',
           rich: {
-            name: { fontSize: 12, fontWeight: 'bold', color: '#fff', padding: [0, 0, 5, 0] },
+            name: { fontSize: 11, fontWeight: 'bold', color: '#fff', padding: [0, 0, 5, 0] },
             val: { fontSize: 10, color: 'rgba(255,255,255,0.8)' }
           }
         },
@@ -101,66 +117,31 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail }) {
     
     const handleResize = () => myChart.resize();
     window.addEventListener('resize', handleResize);
-    
-   // --- ВИПРАВЛЕНИЙ БЛОК ОБРОБКИ КЛІКІВ ---
 
-myChart.off('click');
-myChart.on('click', (params) => {
-  setSelectedSector(prev => {
-    // Перевіряємо, чи ми клікнули на вже обраний сектор
-    const isSameSelection = prev === params.name;
-    const newSelection = isSameSelection ? null : params.name;
+    // Логіка кліків (залишається без змін...)
+    myChart.off('click');
+    myChart.on('click', (params) => {
+      setSelectedSector(prev => {
+        const isSameSelection = prev === params.name;
+        const newSelection = isSameSelection ? null : params.name;
+        if (onSectorClick) onSectorClick(newSelection);
 
-    // 1. Викликаємо зовнішній колбек
-    if (onSectorClick) onSectorClick(newSelection);
-
-    // 2. Керуємо зумом (Zoom Logic)
-    if (isSameSelection) {
-      // Якщо клікнули повторно — повертаємося до кореня
-      myChart.dispatchAction({
-        type: 'treemapZoomToNode',
-        nodeId: 'root' 
+        if (isSameSelection) {
+          myChart.dispatchAction({ type: 'treemapZoomToNode', nodeId: 'root' });
+          myChart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+        } else {
+          myChart.dispatchAction({ type: 'treemapZoomToNode', targetNodeId: params.name });
+          myChart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
+          myChart.dispatchAction({ type: 'highlight', seriesIndex: 0, name: params.name });
+        }
+        return newSelection;
       });
-      myChart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
-    } else {
-      // Якщо клікнули вперше — зумимо до конкретного вузла
-      // Важливо: переконайтеся, що nodeId відповідає імені в даних
-      myChart.dispatchAction({
-        type: 'treemapZoomToNode',
-        targetNodeId: params.name 
-      });
-
-      // Візуальне підсвічування
-      myChart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
-      myChart.dispatchAction({
-        type: 'highlight',
-        seriesIndex: 0,
-        name: params.name
-      });
-    }
-
-    return newSelection;
-  });
-});
-
-// Скидання при кліку на порожнє поле
-myChart.getZr().off('click');
-myChart.getZr().on('click', (event) => {
-  if (!event.target) {
-    setSelectedSector(null);
-    if (onSectorClick) onSectorClick(null);
-    
-    myChart.dispatchAction({
-      type: 'treemapZoomToNode',
-      nodeId: 'root'
     });
-    myChart.dispatchAction({ type: 'downplay', seriesIndex: 0 });
-  }
-});
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data, total, theme, isDetail, onSectorClick]); // selectedSector НЕ потрібен в залежностях
+  }, [data, total, theme, isDetail, onSectorClick, activeGroup]); // Додано activeGroup у залежності
 
   return (
     <div className="treemap-wrapper" style={{ 
@@ -169,7 +150,6 @@ myChart.getZr().on('click', (event) => {
       position: 'relative'
     }}>
       <div ref={chartRef} style={{ width: '100%', height: '100%' }} />
-
       {!isDetail && (
         <div className="total-badge" style={{ 
           backgroundColor: theme.cardBg, 
@@ -180,23 +160,6 @@ myChart.getZr().on('click', (event) => {
           <div className="badge-value">{total.toLocaleString()}</div>
         </div>
       )}
-
-      <style jsx>{`
-        .total-badge {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          padding: 10px 18px;
-          border-radius: 10px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-          border: 1px solid;
-          z-index: 10;
-          text-align: right;
-          pointer-events: none;
-        }
-        .badge-label { font-size: 10px; color: #aaaaaa; margin-bottom: 2px; }
-        .badge-value { font-size: 22px; font-weight: 800; line-height: 1; }
-      `}</style>
     </div>
   );
 }

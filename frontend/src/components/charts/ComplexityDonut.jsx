@@ -2,23 +2,18 @@ import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
 // Використовуємо кольори з вашої схеми
-const COLORS = [
-  "#5e83bf", // --info-color
-  "#76b448", // --success-color
-  "#d3c527", // --warning-color
-  "#e46321", // --danger-color
-  "#7C5747", // --brown-color
-  "#645388", // --purple-color
-  "#aaaaaa", // --grey-color
-  "#d4d947", // --vs-green-color
-  "#6b98bf"  // --vs-blue-color
-];
+const CATEGORY_COLORS = {
+  "Вікна": "#5e83bf",  // --info-color
+  "Двері": "#76b448",  // --success-color
+  "Додатки": "#d3c527", // --warning-color
+  "Інше": "#aaaaaa"    // --grey-color
+};
 
 export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
   const total = useMemo(() => data.reduce((s, i) => s + i.value, 0), [data]);
-
+  const chartColors = data.map(item => CATEGORY_COLORS[item.name] || "#aaaaaa");
   const option = {
-    color: COLORS,
+    color: chartColors,
     tooltip: {
       trigger: 'item',
       backgroundColor: '#fff',

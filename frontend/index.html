@@ -1,31 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="uk">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/header_logo_small.svg" />
-    <!-- <link rel="alternate icon" type="image/png" href="/header_logo_small.png" /> -->
-
-    <!-- IcoMoon -->
-    <!-- IcoMoon (локальні кастомні іконки) -->
-     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <title>Портал замовлень</title>
 
     <link rel="stylesheet" href="/src/assets/css/icomoon/icomoon.css" />
-    <!-- В index.html -->
     <link rel="stylesheet" href="mobile-responsive.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" 
-          rel="stylesheet">
-    <!-- Font Awesome (CDN) -->
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/izimodal/js/iziModal.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izimodal/css/iziModal.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/izimodal/js/iziModal.min.js" defer></script>
 
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Портал замовлень</title>
+    <script>
+      // Перевірка версії: виконуємо відразу, щоб уникнути завантаження застарілого бандла
+      (function() {
+        fetch('/version.json?t=' + Date.now())
+          .then(res => res.ok ? res.json() : Promise.reject())
+          .then(data => {
+            const currentVersion = localStorage.getItem('app_version');
+            if (data.version && currentVersion && data.version !== currentVersion) {
+              localStorage.setItem('app_version', data.version);
+              // Очищення кешу через hard reload (наскільки це можливо скриптом)
+              window.location.reload(); 
+            } else if (data.version) {
+              localStorage.setItem('app_version', data.version);
+            }
+          })
+          .catch(err => console.log('Version check failed', err));
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

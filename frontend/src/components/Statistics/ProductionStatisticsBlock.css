@@ -5,7 +5,7 @@
 .production-stats-container {
     display: flex;
     flex-direction: column;
-    gap: 28px; /* Кратне 7: var(--gap-28) */
+    gap: 21px; 
     padding: 14px 0;
 }
 
@@ -58,7 +58,7 @@
 .stats-grid-2 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(448px, 1fr)); /* 448 кратне 7 */
-    gap: 28px;
+    gap: 21px;
     width: 100%;
 }
 

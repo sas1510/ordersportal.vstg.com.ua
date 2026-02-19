@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 
 const ProfileSystemChart = ({ data }) => {
-  const purpleColor = '#645388';
+  const purpleColor = '#d3c527';
   const dangerColor = '#e46321';
 
   const sortedData = useMemo(() => {
@@ -20,7 +20,7 @@ const ProfileSystemChart = ({ data }) => {
       inverse: true,
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: '#606060', align: 'left', margin: 170, fontSize: 11 }
+      axisLabel: { color: '#606060', overflow: 'break', width: 200, align: 'left', margin: 170, fontSize: 11 }
     },
     series: [{
       type: 'bar',
@@ -37,7 +37,7 @@ const ProfileSystemChart = ({ data }) => {
     }]
   };
 
-  return <ReactECharts option={option} style={{ height: '400px' }} opts={{ renderer: 'svg' }} />;
+  return <ReactECharts option={option} style={{ height: '500px' }} opts={{ renderer: 'svg' }} />;
 };
 
 

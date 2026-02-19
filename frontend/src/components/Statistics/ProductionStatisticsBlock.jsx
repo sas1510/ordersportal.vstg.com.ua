@@ -247,7 +247,7 @@ useEffect(() => {
     <div className="production-stats-container">
       
       {/* 1. ПАНЕЛЬ KPI */}
-      <div className="kpi-grid-6">
+      {/* <div className="kpi-grid-6">
         <div className="kpi-card shadow-sm badge-order">
           <span className="label">Замовлень</span>
           <span className="value">{data.summary.total_orders} <small>шт</small></span>
@@ -272,11 +272,11 @@ useEffect(() => {
           <span className="label">Рекламації</span>
           <span className="value color-red">{Number(data.summary.complaint_rate || 0).toFixed(1)}%</span>
         </div>
-      </div>
+      </div> */}
 
 
       <div className="m-bottom-28">
-          <h4 className="window-title uppercase m-bottom-28">Статистика за категоріями</h4>
+          {/* <h4 className="window-title uppercase m-bottom-28">Статистика за категоріями</h4> */}
           <PrefixCategoryDisplay prefixData={prefixData} />
       </div>
 
@@ -303,7 +303,7 @@ useEffect(() => {
       </div>
 
       <div className="chart-wrapper-card card-padding">
-        <h4 className="chart-title-unified">Аналіз перетину: Система × Колір</h4>
+        <h4 className="chart-title-unified">Профільна система × Колір</h4>
         <p className="chart-subtitle" style={{ fontSize: '12px', color: '#888', marginBottom: '14px' }}>
             Візуалізація популярності кольорів у розрізі кожної профільної системи
         </p>
@@ -312,7 +312,7 @@ useEffect(() => {
 
       {/* БЛОК: ФУРНІТУРА (На всю ширину) */}
       <div className="chart-wrapper-card card-padding">
-          <h4 className="chart-title-unified">Фурнітура — кількість замовлень</h4>
+          <h4 className="chart-title-unified">Фурнітура:</h4>
           <FurnitureChart data={furnitureData} />
       </div>
 
@@ -381,7 +381,7 @@ useEffect(() => {
 
             <div className="chart-card">
                 <h5>Розподіл за складністю (шт)</h5>
-                <ComplexityTreemap data={filteredCategoryDetails} isDetail={true} />
+                <ComplexityTreemap data={filteredCategoryDetails} isDetail={true} activeGroup={selectedCategory}/>
             </div>
         </div>
       )}

@@ -690,6 +690,7 @@ header_logo_white.svg
     --success-bg-color: #e9f3e1;
     --warning-bg-color: #f3f1d5;
     --danger-bg-color: #fae4d9;
+    --danger-bg-color-an: #f8a880;
     --cream-bg-color: #FFF9EC;
     --purple-bg-color: #EDE7F6;
     --shadow-color: #00000050;
@@ -1269,9 +1270,15 @@ header_logo_white.svg
     background-color: var(--danger-bg-color) !important;
 }
 
+.background-danger-light-an {
+    background-color: var(--danger-bg-color-an) !important;
+}
+
 .background-warning-light {
     background-color: var(--warning-bg-color) !important;
 }
+
+
 
 .background-success-light {
     background-color: var(--success-bg-color) !important;

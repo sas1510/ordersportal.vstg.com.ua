@@ -20,7 +20,7 @@ const ProfileColorChart = ({ data }) => {
       inverse: true,
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: '#606060', align: 'left', margin: 170, fontSize: 11 }
+      axisLabel: { color: '#606060', overflow: 'break', width: 250, align: 'left', margin: 170, fontSize: 11 }
     },
     series: [{
       type: 'bar',
@@ -37,6 +37,6 @@ const ProfileColorChart = ({ data }) => {
     }]
   };
 
-  return <ReactECharts option={option} style={{ height: '400px' }} opts={{ renderer: 'svg' }} />;
+  return <ReactECharts option={option} style={{ height: '500px' }} opts={{ renderer: 'svg' }} />;
 };
 export default ProfileColorChart;
