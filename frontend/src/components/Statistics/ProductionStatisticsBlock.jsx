@@ -243,11 +243,11 @@ if (!data || !hasTechDetails) {
     return (
         <div className="no-data-placeholder">
             <div className="no-data-content">
-                <span className="no-data-icon">📊</span>
+                <i class="fa fa-area-chart font-size-32" aria-hidden="true"></i>
                 <h3>Немає даних для відображення</h3>
                 <p>За вибраний період ({dateRange.from} — {dateRange.to}) активність відсутня або дані ще не синхронізовані.</p>
                 <button 
-                    className="btn-search-stats" 
+                    className="btn-search-stats-re load" 
                     onClick={() => window.location.reload()}
                 >
                     Оновити сторінку
