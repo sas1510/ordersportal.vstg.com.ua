@@ -40,7 +40,7 @@ const CATEGORY_MAPPING = {
   "Французький балкон": "Вікна"
 };
 
-export default function ProductionStatisticsBlock({ selectedYear }) {
+export default function ProductionStatisticsBlock({ dateRange }) {
   const isAdmin = localStorage.getItem("role") === "admin";
   const drillDownRef = useRef(null);
   
@@ -62,7 +62,10 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
     const loadData = async () => {
       setLoading(true);
       try {
-        const params = { year: selectedYear };
+         const params = { 
+          date_from: dateRange.from, 
+          date_to: dateRange.to 
+        };
         if (isAdmin && dealerGuid) params.contractor_guid = dealerGuid;
 
         const [resFull, resDealer] = await Promise.all([
@@ -85,7 +88,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
       }
     };
     loadData();
-  }, [selectedYear, dealerGuid, isAdmin]);
+  }, [dateRange, dealerGuid, isAdmin]);
 
 
   const calculatedHeatmapData = useMemo(() => {
@@ -199,29 +202,29 @@ useEffect(() => {
   }, [selectedCategory, activeSubCategory, data]);
 
   // 4. Метрики часу
-  const activeMetrics = useMemo(() => {
-    const categories = data?.tables?.categories;
-    if (!selectedCategory || !Array.isArray(categories)) return null;
+  // const activeMetrics = useMemo(() => {
+  //   const categories = data?.tables?.categories;
+  //   if (!selectedCategory || !Array.isArray(categories)) return null;
 
-    let relevantRows = [];
-    if (activeSubCategory) {
-        relevantRows = categories.filter(c => c.CategoryName === activeSubCategory);
-    } else {
-        relevantRows = categories.filter(cat => 
-            (CATEGORY_MAPPING[cat.CategoryName] || "Додатки") === selectedCategory
-        );
-    }
+  //   let relevantRows = [];
+  //   if (activeSubCategory) {
+  //       relevantRows = categories.filter(c => c.CategoryName === activeSubCategory);
+  //   } else {
+  //       relevantRows = categories.filter(cat => 
+  //           (CATEGORY_MAPPING[cat.CategoryName] || "Додатки") === selectedCategory
+  //       );
+  //   }
 
-    const totalOrders = relevantRows.reduce((s, r) => s + (parseInt(r.TotalOrders) || 0), 0);
-    if (totalOrders === 0) return { avgFull: 0, avgQueue: 0, avgProd: 0, totalQty: 0 };
+  //   const totalOrders = relevantRows.reduce((s, r) => s + (parseInt(r.TotalOrders) || 0), 0);
+  //   if (totalOrders === 0) return { avgFull: 0, avgQueue: 0, avgProd: 0, totalQty: 0 };
 
-    return {
-        avgFull: (relevantRows.reduce((s, r) => s + ((r.AvgFullCycleDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
-        avgQueue: (relevantRows.reduce((s, r) => s + ((r.AvgWaitInQueueDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
-        avgProd: (relevantRows.reduce((s, r) => s + ((r.AvgPureProductionDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
-        totalQty: relevantRows.reduce((s, r) => s + (parseInt(r.TotalQuantity) || 0), 0)
-    };
-  }, [selectedCategory, activeSubCategory, data]);
+  //   return {
+  //       avgFull: (relevantRows.reduce((s, r) => s + ((r.AvgFullCycleDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
+  //       avgQueue: (relevantRows.reduce((s, r) => s + ((r.AvgWaitInQueueDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
+  //       avgProd: (relevantRows.reduce((s, r) => s + ((r.AvgPureProductionDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
+  //       totalQty: relevantRows.reduce((s, r) => s + (parseInt(r.TotalQuantity) || 0), 0)
+  //   };
+  // }, [selectedCategory, activeSubCategory, data]);
 
   if (loading) {
         return (
@@ -234,13 +237,25 @@ useEffect(() => {
   
   if (!data) return <div className="error-msg">Дані не завантажено</div>;
  
-  if (!data || data.summary.total_orders === 0) {
-      return (
-          <div className="no-data-placeholder">
-              <h3>Немає даних для відображення</h3>
-              <p>За вибраний період ({selectedYear}) активність відсутня.</p>
-          </div>
-      );
+ const hasTechDetails = data?.tables?.tech_details && data.tables.tech_details.length > 0;
+
+if (!data || !hasTechDetails) {
+    return (
+        <div className="no-data-placeholder">
+            <div className="no-data-content">
+                <span className="no-data-icon">📊</span>
+                <h3>Немає даних для відображення</h3>
+                <p>За вибраний період ({dateRange.from} — {dateRange.to}) активність відсутня або дані ще не синхронізовані.</p>
+                <button 
+                    className="btn-search-stats" 
+                    onClick={() => window.location.reload()}
+                >
+                    Оновити сторінку
+                </button>
+            </div>
+        </div>
+    );
+
   }
 
   return (
@@ -348,18 +363,7 @@ useEffect(() => {
                 </button>
             </div>
 
-            {activeSubCategory && activeMetrics && (
-              <div className="drilldown-metrics-grid mb-24">
-                  <div className="d-mini-card highlight">
-                      <span className="d-label">Середня тривалість виготовлення: </span>
-                      <span className="d-value">{activeMetrics.avgFull} <small>дн.</small></span>
-                  </div>
-                  <div className="d-mini-card">
-                      <span className="d-label">Кількість конструкцій: </span>
-                      <span className="d-value">{activeMetrics.totalQty.toLocaleString()} <small>шт</small></span>
-                  </div>
-              </div>
-            )}
+
 
             <div className="sub-nav-tabs mb-24">
                 <button 

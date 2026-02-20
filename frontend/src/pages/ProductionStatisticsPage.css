@@ -15,10 +15,9 @@
 
 .year-select-custom {
     padding: 7px 14px;
-    border-radius: 8px;
-    border: 1px solid #dce1e7;
-    background-color: #fff;
-    color: #334155;
+    border-radius: 3px;
+    border: 1px solid var(--grey-border-color);
+
     font-weight: 500;
     font-size: 14px;
     cursor: pointer;
@@ -48,9 +47,33 @@
     padding: 7px 14px;
     border: 1px solid var(--grey-border-color);
     border-radius: 3px;
-    background-color: #fff;
+
     color: var(--grey-text-color);
     font-size: 14px;
     cursor: pointer;
     transition: all .3s ease;
+}
+
+.btn-search-stats {
+    background-color: var(--info-color); /* або ваш брендовий колір */
+    color: white;
+    margin: 7px;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+  
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.btn-search-stats:hover {
+    background-color: #0056b3;
+}
+
+.btn-search-stats:active {
+    transform: translateY(1px);
 }

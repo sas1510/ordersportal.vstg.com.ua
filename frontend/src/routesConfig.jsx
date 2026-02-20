@@ -48,7 +48,7 @@ import AdminReclamationPortal from './pages/AdminReclamationPortal'
 import WDSCodesTable from './pages/WDSCodesTable'
 import InvalidLinkPage from './pages/InvalidLinkPage'
 import ProductionStatisticsPage from './pages/ProductionStatisticsPage'
-
+import DashboardPage from "./pages/DashboardPage";
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -97,6 +97,7 @@ export const adminRoutes = [
   // { path: "file-preview/invalid", element: <InvalidLinkPage/> },
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
+   { path: "dashboardpage", element: <DashboardPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
   
@@ -137,6 +138,7 @@ export const dealerRoutes = [
   { path: "edit-addresses", element: <DealerAddressesPage/> },
   { path: "file-preview/invalid", element: <InvalidLinkPage/> },
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
+  { path: "dashboardpage", element: <DashboardPage/> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];

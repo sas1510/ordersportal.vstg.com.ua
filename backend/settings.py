@@ -84,6 +84,7 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': '',
+        'CONN_MAX_AGE': 600,
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
             'trusted_connection': 'yes',
@@ -99,6 +100,7 @@ DATABASES = {
             'PASSWORD': config('DB_PASSWORD'),
             'HOST': config('DB_HOST_2'),
             'PORT': '',
+            'CONN_MAX_AGE': 600,
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',
                 'trusted_connection': 'yes',

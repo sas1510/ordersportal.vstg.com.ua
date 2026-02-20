@@ -176,3 +176,30 @@
 
 
 
+.no-data-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.no-data-content h3 {
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.no-data-content p {
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.no-data-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 10px;
+}

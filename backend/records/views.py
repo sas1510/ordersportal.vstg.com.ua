@@ -2465,9 +2465,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import connections
 
-
-
-
 class DealerFullAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -2481,77 +2478,48 @@ class DealerFullAnalyticsView(APIView):
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
 
-        year = int(request.GET.get("year", 2025))
+        # Отримуємо дати з запиту. Якщо їх немає — ставимо дефолт за поточний рік
+        date_from = request.GET.get("date_from", "2026-01-01")
+        date_to = request.GET.get("date_to", "2026-12-31")
+        
         db_alias = 'db_2'
 
         with connections[db_alias].cursor() as cursor:
-            # 1. Швидкість (тепер це перший запит)
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetAvgProductionTimeByCategory] %s, %s", [year, contractor_bin])
-            category_speed = self.dictfetchall(cursor)
-
-            # 2. Технічні деталі
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, 100000", [year, contractor_bin])
+            # 1. Технічні деталі
+            # Передаємо дати замість року. Переконайтеся, що процедура в SQL оновлена під ці параметри!
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000", 
+                           [date_from, date_to, contractor_bin])
             tech_items = self.dictfetchall(cursor)
 
-            # 3. Сезонність
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s", [year, contractor_bin])
+            # 2. Сезонність
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s", 
+                           [date_from, date_to, contractor_bin])
             monthly_stats = self.dictfetchall(cursor)
 
-        # Безпечне отримання підсумків з таблиці швидкості
-        total_row = next((c for c in category_speed if c["CategoryName"] == '--- УСЬОГО ---'), {})
-        total_constructions = total_row.get("TotalQuantity", 0)
-        total_orders = total_row.get("TotalOrders", 0)
-
-        # Формуємо summary. Поля, які раніше йшли з GetDetailedDealerStatistics, 
-        # тепер заповнюємо нулями або даними з наявних таблиць.
-        kpi_summary = {
-            "total_sum": 0,  # Якщо потрібно, суму можна витягнути з tech_items
-            "avg_check": 0,
-            "avg_days": total_row.get("AvgTotalProductionDays", 0),
-            "total_orders": total_orders,
-            "kpi_orders_count": 0,
-            "complaint_rate": 0,
-            "avg_delivery": 0,
-            "total_lifecycle": 0,
-            "total_constructions": total_constructions,
-        }
-
-        # 3. Підготовка даних для графіків
-        # Графік категорій (Pie Chart) - виключаємо підсумок
-        pie_chart = {
-            "labels": [c["CategoryName"] for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---'],
-            "values": [c["TotalOrders"] for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---']
-        }
-
-        # Графік швидкості (Bar Chart)
-        speed_chart = {
-            "labels": [c["CategoryName"] for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---'],
-            "queue_days": [float(c["AvgWaitInQueueDays"]) for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---'],
-            "prod_days": [float(c["AvgPureProductionDays"]) for c in category_speed if c["CategoryName"] != '--- УСЬОГО ---']
-        }
-
+        total_constructions = sum(item.get("TotalQuantity", 0) for item in tech_items)
+        
         return Response({
             "contractor_guid": contractor_guid,
-            "year": year,
-            "summary": kpi_summary,      # Ключові цифри (картки)
+            "period": {"from": date_from, "to": date_to},
             "charts": {
-                "distribution": pie_chart, # Розподіл по категоріях
-                "speed": speed_chart,      # Час виробництва (черга vs робота)
-                "monthly": monthly_stats   # Сезонність
+                "monthly": monthly_stats
             },
             "tables": {
-                "categories": category_speed, # Таблиця з термінами по групах
-                "tech_details": tech_items,   # Таблиця зі складністю та кількістю
+                "tech_details": tech_items,
             }
         })
 
     def dictfetchall(self, cursor):
-        "Повертає всі рядки з курсору як словник"
-        if cursor.description is None:
-            return []
+        if cursor.description is None: return []
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    
 
+
+    
+
+
+    
 
 from django.db import connections
 from rest_framework.views import APIView
@@ -2575,7 +2543,8 @@ class OrdersDealerStatisticsView(APIView):
             return Response({"detail": str(e)}, status=400)
 
         # 2️⃣ Рік
-        year = int(request.GET.get("year", 2026)) 
+        date_from = request.GET.get("date_from", "2026-01-01")
+        date_to = request.GET.get("date_to", "2026-12-31")
 
         db_alias = 'db_2'
         with connections[db_alias].cursor() as cursor:
@@ -2583,8 +2552,8 @@ class OrdersDealerStatisticsView(APIView):
             # ==============================
             # 1. Фурнітура (GetHardwareStats)
             # ==============================
-            cursor.execute("EXEC [dbo].[GetHardwareStats] @Year = %s, @Contractor_ID = %s", 
-                           [year, contractor_bin])
+            cursor.execute("EXEC [dbo].[GetHardwareStats] %s, %s, %s", 
+               [date_from, date_to, contractor_bin])
             
             hardware_columns = [col[0] for col in cursor.description]
             hardware_rows = cursor.fetchall()
@@ -2599,8 +2568,8 @@ class OrdersDealerStatisticsView(APIView):
             # ==============================
             # 2. Колір профілю (GetProfileColor)
             # ==============================
-            cursor.execute("EXEC [dbo].[GetProfileColor] @Year = %s, @Contractor_ID = %s", 
-                           [year, contractor_bin])
+            cursor.execute("EXEC [dbo].[GetProfileColor] %s, %s, %s", 
+               [date_from, date_to, contractor_bin])
 
             color_columns = [col[0] for col in cursor.description]
             color_rows = cursor.fetchall()
@@ -2609,8 +2578,8 @@ class OrdersDealerStatisticsView(APIView):
             # ==============================
             # 3. Профільні системи (GetProfileSystemStats)
             # ==============================
-            cursor.execute("EXEC [dbo].[GetProfileSystemStats] @Year = %s, @Contractor_ID = %s", 
-                           [year, contractor_bin])
+            cursor.execute("EXEC [dbo].[GetProfileSystemStats] %s, %s, %s", 
+               [date_from, date_to, contractor_bin])
 
             system_columns = [col[0] for col in cursor.description]
             system_rows = cursor.fetchall()
@@ -2619,8 +2588,8 @@ class OrdersDealerStatisticsView(APIView):
             # ==============================
             # 4. Префікси замовлень (GetDealerPrefixStatistics) ⬅️ НОВЕ
             # ==============================
-            cursor.execute("EXEC [dbo].[GetDealerPrefixStatistics] @Year = %s, @Contractor_ID = %s", 
-                           [year, contractor_bin])
+            cursor.execute("EXEC [dbo].[GetDealerPrefixStatistics] %s, %s, %s", 
+               [date_from, date_to, contractor_bin])
             
             prefix_columns = [col[0] for col in cursor.description]
             prefix_rows = cursor.fetchall()
@@ -2631,7 +2600,7 @@ class OrdersDealerStatisticsView(APIView):
         # ==============================
         return Response({
             "contractor_guid": contractor_guid,
-            "year": year,
+            # "year": year,
             "hardware": {
                 "kpi": hardware_kpi,
                 "items": hardware_items,
@@ -2640,3 +2609,7 @@ class OrdersDealerStatisticsView(APIView):
             "profile_system": profile_system_items,
             "prefixes": prefix_items,  # Додано результати за категоріями (15-, 01-, тощо)
         })
+    
+
+
+
