@@ -26,7 +26,7 @@
     position: fixed;
     right: 0;
     top: 150px;
-    z-index: 1001;
+    z-index: 1100;
     background: var(--info-color, #1890ff);
     color: white;
     border: none;
@@ -35,12 +35,12 @@
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+
     transition: 0.3s;
 }
 
 .palette-toggle.active {
-    right: 220px;
+    transform: translateX(-220px);
     background: var(--danger-color);
 }
 
@@ -173,7 +173,7 @@
 
 .control-label {
     font-size: 10px;
-    color: #a0aec0;
+    color: var(--text-mute);
 }
 
 .size-controls {
@@ -195,7 +195,7 @@
 
 .size-btn:hover {
     color: #1890ff;
-    background: #edf2f7;
+
 }
 
 .delete-btn {
@@ -205,6 +205,8 @@
     cursor: pointer;
     font-size: 14px;
     margin-left: 5px;
+    display: inline-block;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .delete-btn:hover {
@@ -331,4 +333,134 @@
   0% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7); }
   70% { box-shadow: 0 0 0 15px rgba(52, 152, 219, 0); }
   100% { box-shadow: 0 0 0 0 rgba(52, 152, 219, 0); }
+}
+
+.builder-toolbar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.save-layout-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.save-layout-btn:hover {
+    background: #218838;
+}
+
+.loading-config {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+:root {
+    /* Світла тема (дефолт) */
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-header: #ffffff;
+    --text-main: #333333;
+    --text-mute: #999;
+    --border-color: #edf2f7;
+    --palette-bg: #ffffff;
+    --thumb-bg: #fafafa;
+    --shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.dark-theme {
+    /* Темна тема */
+    --bg-page: #0f172a;        /* Глибокий синій/чорний */
+    --bg-card: #333333;        /* Колір карток */
+    --bg-header: #333333;
+    --text-main: #f1f5f9;      /* Майже білий текст */
+    --text-mute: #999;     /* Сірий текст */
+    --border-color: #555555;   /* Темні межі */
+    --palette-bg: #1e293b;
+    --thumb-bg: #334155;
+    --shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+
+
+/* Container */
+.builder-page {
+    background-color: radial-gradient(circle,var(--portal-bg-color-end) 45%,var(--portal-bg-color-start));
+    color: var(--text-main);
+    transition: background-color 0.3s ease;
+}
+
+/* Widget Palette */
+.widget-palette {
+    background: var(--palette-bg);
+    border-left: 1px solid var(--border-color);
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+}
+
+.palette-header {
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.thumb-box {
+    background: var(--thumb-bg);
+    border: 1px solid var(--border-color);
+}
+
+.thumb-label {
+    color: var(--text-mute);
+}
+
+/* Widget Card */
+.widget-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+}
+
+.widget-header {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.title-analytics-block {
+    color: var(--text-main);
+}
+
+
+.size-controls {
+    background: var(--border-color); /* Використовуємо колір бордера як фон для кнопок */
+}
+
+.size-btn {
+    color: var(--text-mute);
+}
+
+.sub-tab {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-mute);
+}
+
+/* Scrollbars для темної теми */
+.scrollable-chart-area::-webkit-scrollbar-track {
+    background: var(--bg-card);
+}
+
+.scrollable-chart-area::-webkit-scrollbar-thumb {
+    background: var(--border-color);
 }

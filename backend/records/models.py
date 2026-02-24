@@ -164,3 +164,47 @@ class Message(models.Model):
 
     def __str__(self):
         return f"[{self.transaction_type.type_name}] {self.message[:30]}"
+
+
+
+
+from django.db import models
+from django.conf import settings
+
+class UserDashboardConfig(models.Model):
+    class Meta:
+        # Зберігаємо ваш стиль іменування таблиць
+        db_table = "UserDashboard"
+        verbose_name = 'Налаштування дашборду'
+        verbose_name_plural = 'Налаштування дашбордів'
+
+    # MS SQL використовує BIGINT для BigAutoField
+    id = models.BigAutoField(primary_key=True, db_column='ID')
+    
+    # ForeignKey до вашого кастомного користувача
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        db_column='UserID',
+        related_name='dashboard_configs'
+    )
+    
+    layout_name = models.CharField(
+        max_length=255, 
+        default='default', 
+        db_column='LayoutName'
+    )
+    
+    # Для MS SQL Django розгорне це в NVARCHAR(MAX)
+    config = models.JSONField(
+        db_column='Config',
+        help_text="Масив конфігурації віджетів у форматі JSON"
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now=True, 
+        db_column='UpdatedAt'
+    )
+
+    def __str__(self):
+        return f"{self.user} - {self.layout_name}"

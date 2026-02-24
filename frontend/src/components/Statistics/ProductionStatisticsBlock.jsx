@@ -13,6 +13,7 @@ import ProfileSystemChart from "../charts/ProfileSystemChart";
 import ColorSystemHeatmap from "../charts/ColorSystemHeatmap";
 
 import './ProductionStatisticsBlock.css';
+import { formatDate } from "../../utils/formatters";
 
 // Мапінг для групування
 const CATEGORY_MAPPING = {
@@ -133,8 +134,8 @@ export default function ProductionStatisticsBlock({ rawData, dealerData, dateRan
   if (!data || !data.tables?.tech_details?.length) return (
     <div className="no-data-placeholder">
       <i className="fa fa-area-chart"></i>
-      <h3>Немає активності за цей період</h3>
-      <p>{dateRange.from} — {dateRange.to}</p>
+      <h3 style={{margin: '5px'}}>Немає активності за цей період:</h3>
+      <p>{formatDate(dateRange.from)} — {formatDate(dateRange.to)}</p>
     </div>
   );
 

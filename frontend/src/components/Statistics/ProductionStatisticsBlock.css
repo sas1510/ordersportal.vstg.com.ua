@@ -1,12 +1,20 @@
 /* ==========================================================================
    PRODUCTION ANALYTICS BLOCK (Fully Adapted to Main Template)
    ========================================================================== */
+:root{
+    --chart-wrapper-card-bg: #ffffff;
+}
 
+.dark-theme{
+    --chart-wrapper-card-bg: #2c2c2c;
+
+}
 .production-stats-container {
     display: flex;
     flex-direction: column;
     gap: 21px; 
     padding: 14px 0;
+    padding-bottom: 100px;
 }
 
 /* --- Сітка та Картки KPI --- */
@@ -63,7 +71,7 @@
 }
 
 .chart-wrapper-card {
-    background: #ffffff;
+    background: var(--chart-wrapper-card-bg);
     padding: 21px; /* Кратне 7 */
     border-radius: 3px;
     box-shadow: 0 0 10px var(--shadow-color);
@@ -182,7 +190,7 @@
     align-items: center;
     min-height: 400px;
     background: #f8f9fa;
-    border-radius: 12px;
+    border-radius: 3px;
     border: 2px dashed #dee2e6;
     text-align: center;
     margin: 20px 0;
@@ -202,4 +210,12 @@
     font-size: 48px;
     display: block;
     margin-bottom: 10px;
+}
+
+
+.dark-theme .no-data-placeholder {
+
+    background: #333333;
+    border: 2px dashed #555555;
+
 }

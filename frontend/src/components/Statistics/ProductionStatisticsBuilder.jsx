@@ -36,7 +36,21 @@ const CATEGORY_MAPPING = {
   "Відливи": "Додатки", "Інше": "Додатки"
 };
 
-// --- Допоміжний компонент для сортування ---
+
+const WIDGET_DEFAULTS = {
+  PrefixCategoryDisplay: { colSpan: 12, rowSpan: 25 },
+  EfficiencyChart:       { colSpan: 6,  rowSpan: 13 },
+  VolumeChart:           { colSpan: 6,  rowSpan: 13 },
+  ProfileColorChart:     { colSpan: 6,  rowSpan: 17 },
+  ProfileSystemChart:    { colSpan: 6,  rowSpan: 17 },
+  ColorSystemHeatmap:    { colSpan: 12, rowSpan: 17 },
+  FurnitureChart:        { colSpan: 12, rowSpan: 17 },
+  ComplexityDonut:       { colSpan: 12, rowSpan: 17 },
+  ComplexityTreemap:     { colSpan: 12, rowSpan: 13 },
+};
+
+
+
 function SortableItem({ id, children, colSpan, rowSpan, isNew }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
@@ -60,7 +74,6 @@ function SortableItem({ id, children, colSpan, rowSpan, isNew }) {
   );
 }
 
-// --- Основний компонент ---
 export default function ProductionStatisticsBuilder({ rawData, dealerData }) {
   const GRID_COLUMNS = 12; 
   const GRID_ROW_HEIGHT = 15;
@@ -74,14 +87,48 @@ export default function ProductionStatisticsBuilder({ rawData, dealerData }) {
   const [lastAddedId, setLastAddedId] = useState(null);
 
   // Початковий набір віджетів
-  const [components, setComponents] = useState([
-    { id: "comp-1", type: "PrefixCategoryDisplay", colSpan: 12, rowSpan: 22 },
-    { id: "comp-2", type: "ComplexityDonut", colSpan: 6, rowSpan: 28 },
-    { id: "comp-3", type: "ComplexityTreemap", colSpan: 6, rowSpan: 28 }
-  ]);
+  // В середині ProductionStatisticsBuilder
+const [components, setComponents] = useState([
+  { id: "comp-1", type: "PrefixCategoryDisplay", colSpan: 12, rowSpan: 25 },
+  { id: "comp-2", type: "EfficiencyChart", colSpan: 6, rowSpan: 13 },
+  { id: "comp-3", type: "VolumeChart", colSpan: 6, rowSpan: 13 },
+  { id: "comp-4", type: "ProfileColorChart", colSpan: 6, rowSpan: 17 },
+  { id: "comp-5", type: "ProfileSystemChart", colSpan: 6, rowSpan: 17 },
+  { id: "comp-6", type: "ColorSystemHeatmap", colSpan: 12, rowSpan: 17 },
+  { id: "comp-7", type: "FurnitureChart", colSpan: 12, rowSpan: 17 },
+  { id: "comp-8", type: "ComplexityDonut", colSpan: 12, rowSpan: 17 },
+  { id: "comp-9", type: "ComplexityTreemap", colSpan: 12, rowSpan: 13 },
+]);
 
   // Скидаємо підкатегорію при зміні основної категорії
   useEffect(() => { setActiveSubCategory(null); }, [selectedCategory]);
+
+// 1. Завантаження збереженого лейауту
+    useEffect(() => {
+      const fetchLayout = async () => {
+        try {
+        const res = await axiosInstance.get("/user-dashboard-settings/");
+        if (res.data && res.data.components) {
+          setComponents(res.data.components);
+        }
+      } catch (err) {
+        console.log("Використовуємо дефолтний лейаут");
+      }
+    };
+    fetchLayout();
+  }, []);
+
+    // 2. Функція збереження
+    const saveLayout = async () => {
+      try {
+        await axiosInstance.post("/user-dashboard-settings/", {
+          components: components // Зберігаємо тільки структуру (id, type, colSpan, rowSpan)
+        });
+        alert("Дашборд збережено успішно!");
+      } catch (err) {
+        console.error("Помилка збереження:", err);
+      }
+    };
 
   const subCategories = useMemo(() => {
     const details = rawData?.tables?.tech_details;
@@ -165,8 +212,18 @@ export default function ProductionStatisticsBuilder({ rawData, dealerData }) {
 const addWidget = (type) => {
     const newId = `id-${Date.now()}`;
     
-    // 1. Додаємо компонент у стейт
-    setComponents(prev => [...prev, { id: newId, type, colSpan: 6, rowSpan: 20 }]);
+ 
+   // 1. Отримуємо стандартні розміри з нашого об'єкта (Single Source of Truth)
+  const defaultConfig = WIDGET_DEFAULTS[type] || { colSpan: 6, rowSpan: 15 };
+
+  const newWidget = { 
+    id: newId, 
+    type, 
+    ...defaultConfig 
+  };
+
+  // 2. ОНОВЛЮЄМО СТЕЙТ (додаємо в кінець списку)
+  setComponents(prev => [...prev, newWidget]);
     
     // 2. Помічаємо його як "щойно доданий" для підсвічування
     setLastAddedId(newId);
@@ -237,7 +294,7 @@ const addWidget = (type) => {
     <div className="builder-page">
       <button className={`palette-toggle ${paletteOpen ? 'active' : ''}`} onClick={() => setPaletteOpen(!paletteOpen)}>
         <i className={`fa ${paletteOpen ? 'fa-times' : 'fa-plus'}`}></i>
-        <span>{paletteOpen ? '' : 'Віджети'}</span>
+        {!paletteOpen && <span style={{ margin: '3px' }}>Віджети</span>}
       </button>
 
       <div className={`widget-palette ${paletteOpen ? 'open' : ''}`}>
@@ -262,8 +319,7 @@ const addWidget = (type) => {
               display: "grid",
               gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)`,
               gridAutoRows: `${GRID_ROW_HEIGHT}px`,
-              gap: `${GAP}px`,
-              paddingRight: paletteOpen ? '240px' : '0px',
+              gap: `${GAP}px`
             }}
           >
             {components.map(comp => {
@@ -330,7 +386,8 @@ function WidgetCard({
             <button className="size-btn" onClick={(e) => onAdjustSize(e, comp.id, "h", 2)}>+</button>
             <button className="size-btn" onClick={(e) => onAdjustSize(e, comp.id, "h", -2)}>-</button>
           </div>
-          <button className="delete-btn" onClick={onDelete}>✕</button>
+          <button className="icon icon-cross delete-btn" onClick={onDelete}></button>
+         
         </div>
       </div>
 

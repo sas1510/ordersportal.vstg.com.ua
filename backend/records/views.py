@@ -2599,3 +2599,63 @@ class OrdersDealerStatisticsView(APIView):
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from .models import UserDashboardConfig
+from .serializers import UserDashboardConfigSerializer
+
+class DashboardConfigView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_default_layout(self):
+        """Повна копія структури вашого статичного блоку"""
+        return [
+            {"id": "comp-1", "type": "PrefixCategoryDisplay", "colSpan": 12, "rowSpan": 22},
+            {"id": "comp-2", "type": "EfficiencyChart", "colSpan": 6, "rowSpan": 28},
+            {"id": "comp-3", "type": "VolumeChart", "colSpan": 6, "rowSpan": 28},
+            {"id": "comp-4", "type": "ProfileColorChart", "colSpan": 6, "rowSpan": 28},
+            {"id": "comp-5", "type": "ProfileSystemChart", "colSpan": 6, "rowSpan": 28},
+            {"id": "comp-6", "type": "ColorSystemHeatmap", "colSpan": 12, "rowSpan": 30},
+            {"id": "comp-7", "type": "FurnitureChart", "colSpan": 12, "rowSpan": 25},
+            {"id": "comp-8", "type": "ComplexityDonut", "colSpan": 12, "rowSpan": 30},
+            {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 35},
+        ]
+
+    def get(self, request):
+        config_obj = UserDashboardConfig.objects.filter(
+            user=request.user, 
+            layout_name='default'
+        ).first()
+
+        if config_obj:
+            return Response(config_obj.config)
+        
+        # Якщо запису ще немає — віддаємо дефолт
+        return Response(self.get_default_layout())
+
+    def post(self, request):
+        new_config = request.data.get('config')
+        
+        if not new_config:
+            return Response(
+                {"error": "Config data is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # update_or_create знайде запис за user та layout_name, 
+        # і оновить поле config, або створить новий запис
+        config_obj, created = UserDashboardConfig.objects.update_or_create(
+            user=request.user,
+            layout_name='default',
+            defaults={'config': new_config}
+        )
+
+        return Response({
+            "status": "success",
+            "message": "Dashboard saved successfully"
+        }, status=status.HTTP_200_OK)

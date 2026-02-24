@@ -2690,7 +2690,7 @@ body.dark-theme .content-filter .sidebar-header {
 /* --- ЗМІНИ У DARK MODE: ЗБЕРЕЖЕННЯ КОНТРАСТНИХ МЕЖ --- */
 
 body.dark-theme {
-    /* ... інші стилі Dark Mode ... */
+
     --border-light-color: #555555; /* Темно-сірий, що виділяється на чорному */
     --border-dark-color: #333333; 
 }
