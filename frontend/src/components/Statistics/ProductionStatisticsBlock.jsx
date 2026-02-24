@@ -227,32 +227,7 @@ export default function ProductionStatisticsBlock({ rawData, dealerData, dateRan
         </div>
       )}
 
-      <style jsx>{`
-        .production-stats-container { display: flex; flex-direction: column; gap: 24px; padding-bottom: 50px; }
-        .stats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .chart-wrapper-card { background: #fff; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .card-padding { padding: 20px; }
-        .chart-title-unified { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #333; }
-        .chart-subtitle-grey { font-size: 12px; color: #888; margin-bottom: 15px; margin-top: -10px; }
-        
-        .drilldown-view { margin-top: 10px; border: 2px solid #1890ff15; padding: 25px; background: #fafbfc; }
-        .drilldown-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .text-highlight { color: #1890ff; }
-        .btn-close-details { border: none; background: #eee; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
-        .btn-close-details:hover { background: #ff4d4f; color: #fff; }
-
-        .sub-nav-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .tab-link { border: 1px solid #e8e8e8; background: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.2s; }
-        .tab-link:hover { border-color: #1890ff; color: #1890ff; }
-        .tab-link.active { background: #1890ff; color: #fff; border-color: #1890ff; }
-
-        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        @media (max-width: 1024px) {
-          .stats-grid-2 { grid-template-columns: 1fr; }
-        }
-      `}</style>
+  
     </div>
   );
 }
