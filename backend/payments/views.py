@@ -17,11 +17,11 @@ from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParam
 
 from rest_framework import serializers
 
-
 from backend.utils.contractor import resolve_contractor
+
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
-from backend.utils.send_to_1c import send_to_1c
+from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
 
 # /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
 
@@ -888,3 +888,57 @@ def make_payment_from_advance(request):
         },
         status=status.HTTP_200_OK,
     )
+
+import base64
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
+
+class GetBillPDF(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, bill_guid):
+        # 1. Перевірка доступу (resolve_contractor)
+        try:
+            _, _ = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        if not bill_guid or bill_guid == "undefined":
+            return Response({"detail": "BillGuid не передано"}, status=400)
+
+        # 2. Отримання сирого b64 через нову функцію
+        try:
+            pdf_b64 = fetch_file_from_1c(
+                payload={"BillGuid": str(bill_guid)},
+                query="CustomerBillPdf"
+            )
+        except ValidationError as e:
+            return Response(e.detail, status=400)
+
+        if not pdf_b64:
+            return Response({"detail": "1С повернула порожній файл"}, status=404)
+
+        # 3. Формування PDF відповіді
+        try:
+            pdf_binary = base64.b64decode(pdf_b64)
+            
+            response = HttpResponse(pdf_binary, content_type='application/pdf')
+            # Використовуємо BillGuid для назви файлу
+            filename = f"Bill_{bill_guid[:8]}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
+
+        except Exception as e:
+            return Response(
+                {"detail": f"Помилка обробки файлу: {str(e)}"},
+                status=500
+            )

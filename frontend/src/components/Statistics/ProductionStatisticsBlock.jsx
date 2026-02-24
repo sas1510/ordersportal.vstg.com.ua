@@ -1,311 +1,164 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import axiosInstance from "../../api/axios";
+
+// Імпорт графіків
 import ComplexityDonut from "../charts/ComplexityDonut";
-import FrequencyVolumeChart from "../charts/FrequencyVolumeChart";
-import ProductionTimelineChart from "../charts/ProductionTimelineChart";
-import MonthlyTrendChart from "../charts/MonthlyTrendChart";
-import MonthlyHeatmapChart from "../charts/MonthlyHeatmapChart";
-import TopProductsChart from "../charts/TopProductsChart";
-import ComplexityProfitScatter from "../charts/ComplexityProfitScatter";
-import ABCAnalysisChart from "../charts/ABCAnalysisChart";
-import BCGMatrixChart from "../charts/BCGMatrixChart";
-import DealerSelect from "../../pages/DealerSelect";
-import './ProductionStatisticsBlock.css';
 import ComplexityTreemap from "../charts/ComplexityTreeMap";
 import EfficiencyChart from '../charts/EfficiencyChart';
 import VolumeChart from '../charts/VolumeChart';
 import PrefixCategoryDisplay from "../charts/PrefixCategoryDisplay";
-// Імпорт нових компонентів ECharts
 import FurnitureChart from "../charts/FurnitureChart";
 import ProfileColorChart from "../charts/ProfileColorChart";
 import ProfileSystemChart from "../charts/ProfileSystemChart";
 import ColorSystemHeatmap from "../charts/ColorSystemHeatmap";
 
-// Мапінг для групування сирих категорій у великі бізнес-групи
+import './ProductionStatisticsBlock.css';
+
+// Мапінг для групування
 const CATEGORY_MAPPING = {
-  "Вікна безшовне зварювання": "Вікна",
-  "Вікно": "Вікна",
-  "Вікно вкл склопакет": "Вікна",
-  "Розсувні системи SL76": "Вікна",
-  "Двері безшовне зварювання": "Двері",
-  "Двері": "Двері",
-  "Міжкімнатні двері": "Двері",
-  "Технічні двері ПВХ": "Двері",
-  "Двері Lampre": "Двері",
-  "Лиштва": "Додатки",
-  "Москітні сітки": "Додатки",
-  "Підвіконня": "Додатки",
-  "Відливи": "Додатки",
-  "Інше": "Додатки",
-  "Французький балкон": "Вікна"
+  "Вікна безшовне зварювання": "Вікна", "Вікно": "Вікна", "Вікно вкл склопакет": "Вікна",
+  "Розсувні системи SL76": "Вікна", "Французький балкон": "Вікна",
+  "Двері безшовне зварювання": "Двері", "Двері": "Двері", "Міжкімнатні двері": "Двері",
+  "Технічні двері ПВХ": "Двері", "Двері Lampre": "Двері",
+  "Лиштва": "Додатки", "Москітні сітки": "Додатки", "Підвіконня": "Додатки",
+  "Відливи": "Додатки", "Інше": "Додатки"
 };
 
-export default function ProductionStatisticsBlock({ dateRange }) {
-  const isAdmin = localStorage.getItem("role") === "admin";
+export default function ProductionStatisticsBlock({ rawData, dealerData, dateRange }) {
   const drillDownRef = useRef(null);
   
-  const [data, setData] = useState(null);
-  const [dealerGuid, setDealerGuid] = useState("");
-  const [loading, setLoading] = useState(true);
+  // Використовуємо дані з пропсів, якщо вони є, або внутрішній стан
+  const [internalData, setInternalData] = useState(null);
+  const [loading, setLoading] = useState(!rawData);
 
-  // Стани для нових даних з процедури GetDealerSummaryReport
-  const [colorData, setColorData] = useState([]);
-  const [furnitureData, setFurnitureData] = useState([]);
-  const [systemsData, setSystemsData] = useState([]);
-  const [heatmapData, setHeatmapData] = useState([]);
-  const [prefixData, setprefixData] = useState([]);
-  
-  const [selectedCategory, setSelectedCategory] = useState(null); // Напр. "Додатки"
-  const [activeSubCategory, setActiveSubCategory] = useState(null); // Напр. "Лиштва"
+  const data = rawData || internalData;
+  const systemsData = dealerData?.profile_system || [];
+  const colorData = dealerData?.profile_color || [];
+  const furnitureData = dealerData?.hardware?.items || [];
+  const prefixData = dealerData?.prefixes || [];
 
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [activeSubCategory, setActiveSubCategory] = useState(null);
+
+  // Завантаження, якщо дані не передані зверху
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-         const params = { 
-          date_from: dateRange.from, 
-          date_to: dateRange.to 
-        };
-        if (isAdmin && dealerGuid) params.contractor_guid = dealerGuid;
-
-        const [resFull, resDealer] = await Promise.all([
-          axiosInstance.get("/full-statistics/", { params }),
-          axiosInstance.get("/order-statistics/", { params })
-        ]);
-
-        setData(resFull.data);
-
-        if (resDealer.data) {
-          setSystemsData(resDealer.data.profile_system || []);
-          setColorData(resDealer.data.profile_color || []);
-          setFurnitureData(resDealer.data.hardware?.items || []);
-          setprefixData(resDealer.data.prefixes)
+    if (!rawData) {
+      const loadData = async () => {
+        setLoading(true);
+        try {
+          const params = { date_from: dateRange.from, date_to: dateRange.to };
+          const res = await axiosInstance.get("/full-statistics/", { params });
+          setInternalData(res.data);
+        } catch (err) {
+          console.error("Fetch error:", err);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Помилка при завантаженні даних:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, [dateRange, dealerGuid, isAdmin]);
+      };
+      loadData();
+    }
+  }, [dateRange, rawData]);
 
-
-  const calculatedHeatmapData = useMemo(() => {
-  if (!systemsData.length || !colorData.length) return [];
-
-  const result = [];
-
-  systemsData.forEach(sys => {
-    // Перетворюємо рядок номерів "01-123, 01-124" у масив ["01-123", "01-124"]
-    const sysOrders = sys.OrdersNumber ? sys.OrdersNumber.split(',').map(n => n.trim()) : [];
-    const sysName = sys.ProfileSystem;
-
-    colorData.forEach(col => {
-      const colOrders = col.OrdersNumber ? col.OrdersNumber.split(',').map(n => n.trim()) : [];
-      const colName = col.ProfileColor;
-
-      // Знаходимо спільні номери замовлень (перетин)
-      const intersection = sysOrders.filter(order => colOrders.includes(order));
-
-      if (intersection.length > 0) {
-        result.push({
-          system: sysName,
-          color: colName,
-          value: intersection.length
-        });
-      }
+  // Розрахунок матриці Колір х Система
+  const heatmapData = useMemo(() => {
+    if (!systemsData.length || !colorData.length) return [];
+    const result = [];
+    systemsData.forEach(sys => {
+      const sysOrders = sys.OrdersNumber ? sys.OrdersNumber.split(',').map(n => n.trim()) : [];
+      colorData.forEach(col => {
+        const colOrders = col.OrdersNumber ? col.OrdersNumber.split(',').map(n => n.trim()) : [];
+        const intersection = sysOrders.filter(order => colOrders.includes(order));
+        if (intersection.length > 0) {
+          result.push({ system: sys.ProfileSystem, color: col.ProfileColor, value: intersection.length });
+        }
+      });
     });
-  });
+    return result;
+  }, [systemsData, colorData]);
 
-  return result;
-}, [systemsData, colorData]);
-
-// Оновлюємо стан heatmapData, коли розрахунок готовий
-useEffect(() => {
-  setHeatmapData(calculatedHeatmapData);
-}, [calculatedHeatmapData]);
-
-  const colorChartData = useMemo(() => {
-    return colorData.map(item => ({
-      name: item["Колір профілю"],
-      value: item["Кількість замовлень"]
-    }));
-  }, [colorData]);
-
+  // Прокрутка до деталей
   useEffect(() => {
     if (selectedCategory && drillDownRef.current) {
       drillDownRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [selectedCategory]);
 
-  // --- ОБРОБКА ДАНИХ ---
-
-  // 1. Головне кільце (Рівень 1) - Агрегуємо дані прямо з tech_details
+  // Рівень 1: Дані для Donut Chart
   const mainDonutData = useMemo(() => {
     const details = data?.tables?.tech_details;
-    if (!Array.isArray(details) || details.length === 0) return [];
-    
+    if (!Array.isArray(details)) return [];
     const groups = {};
     details.forEach(item => {
-      const rawSub = item.ConstructionTypeName_UA?.trim() || "Інше";
-      const groupName = CATEGORY_MAPPING[rawSub] || "Додатки";
-      const qty = parseFloat(item.TotalQuantity || 0);
-
-      groups[groupName] = (groups[groupName] || 0) + qty;
+      const groupName = CATEGORY_MAPPING[item.ConstructionTypeName_UA?.trim()] || "Додатки";
+      groups[groupName] = (groups[groupName] || 0) + parseFloat(item.TotalQuantity || 0);
     });
-
-    return Object.entries(groups)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
+    return Object.entries(groups).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   }, [data]);
 
-  // 2. Список підкатегорій (Рівень 2 - Навігація)
+  // Рівень 2: Навігація по підкатегоріях
   const subCategories = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!selectedCategory || !Array.isArray(details)) return [];
-    
     const subs = details
-        .filter(item => {
-            const cleanName = item.ConstructionTypeName_UA?.trim() || "";
-            return (CATEGORY_MAPPING[cleanName] || "Додатки") === selectedCategory;
-        })
+        .filter(item => (CATEGORY_MAPPING[item.ConstructionTypeName_UA?.trim()] || "Додатки") === selectedCategory)
         .map(item => item.ConstructionTypeName_UA?.trim())
         .filter(Boolean); 
-        
     return [...new Set(subs)].sort();
   }, [selectedCategory, data]);
 
-  // 3. Детальні дані для графіків
-  const filteredCategoryDetails = useMemo(() => {
+  // Рівень 3: Дані для Treemap
+  const filteredTreemapData = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!selectedCategory || !Array.isArray(details)) return [];
-
     return details
         .filter(item => {
             const cleanName = item.ConstructionTypeName_UA?.trim() || "";
             const parentGroup = CATEGORY_MAPPING[cleanName] || "Додатки";
-            const isRightGroup = parentGroup === selectedCategory;
-            const isRightSub = activeSubCategory ? cleanName === activeSubCategory : true;
-
-            return isRightGroup && isRightSub;
+            return parentGroup === selectedCategory && (!activeSubCategory || cleanName === activeSubCategory);
         })
         .map(item => ({
-            name: `${item.ConstructionTypeName_UA?.trim() || "Невідомо"} (${item.Складність_UA?.trim() || "Стандарт"})`,
-            value: parseFloat(item.TotalQuantity || 0),
-            uniqueOrders: parseInt(item.UniqueOrdersCount || 0),
-            orders: item.OrderNumbers || "",
-            subCategory: item.ConstructionTypeName_UA?.trim() || ""
+            name: `${item.ConstructionTypeName_UA?.trim()} (${item.Складність_UA?.trim() || "Стандарт"})`,
+            value: parseFloat(item.TotalQuantity || 0)
         }))
-        .filter(item => item.value > 0) 
-        .sort((a, b) => b.value - a.value);
+        .filter(item => item.value > 0);
   }, [selectedCategory, activeSubCategory, data]);
 
-  // 4. Метрики часу
-  // const activeMetrics = useMemo(() => {
-  //   const categories = data?.tables?.categories;
-  //   if (!selectedCategory || !Array.isArray(categories)) return null;
+  if (loading) return (
+    <div className="loading-spinner-wrapper">
+      <div className="loading-spinner"></div>
+      <div className="loading-text">Аналізуємо дані...</div>
+    </div>
+  );
 
-  //   let relevantRows = [];
-  //   if (activeSubCategory) {
-  //       relevantRows = categories.filter(c => c.CategoryName === activeSubCategory);
-  //   } else {
-  //       relevantRows = categories.filter(cat => 
-  //           (CATEGORY_MAPPING[cat.CategoryName] || "Додатки") === selectedCategory
-  //       );
-  //   }
-
-  //   const totalOrders = relevantRows.reduce((s, r) => s + (parseInt(r.TotalOrders) || 0), 0);
-  //   if (totalOrders === 0) return { avgFull: 0, avgQueue: 0, avgProd: 0, totalQty: 0 };
-
-  //   return {
-  //       avgFull: (relevantRows.reduce((s, r) => s + ((r.AvgFullCycleDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
-  //       avgQueue: (relevantRows.reduce((s, r) => s + ((r.AvgWaitInQueueDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
-  //       avgProd: (relevantRows.reduce((s, r) => s + ((r.AvgPureProductionDays || 0) * r.TotalOrders), 0) / totalOrders).toFixed(1),
-  //       totalQty: relevantRows.reduce((s, r) => s + (parseInt(r.TotalQuantity) || 0), 0)
-  //   };
-  // }, [selectedCategory, activeSubCategory, data]);
-
-  if (loading) {
-        return (
-            <div className="loading-spinner-wrapper">
-                <div className="loading-spinner"></div>
-                <div className="loading-text">Завантаження...</div>
-            </div>
-        );
-    }
-  
-  if (!data) return <div className="error-msg">Дані не завантажено</div>;
- 
- const hasTechDetails = data?.tables?.tech_details && data.tables.tech_details.length > 0;
-
-if (!data || !hasTechDetails) {
-    return (
-        <div className="no-data-placeholder">
-            <div className="no-data-content">
-                <i class="fa fa-area-chart font-size-32" aria-hidden="true"></i>
-                <h3>Немає даних для відображення</h3>
-                <p>За вибраний період ({dateRange.from} — {dateRange.to}) активність відсутня або дані ще не синхронізовані.</p>
-                <button 
-                    className="btn-search-stats-re load" 
-                    onClick={() => window.location.reload()}
-                >
-                    Оновити сторінку
-                </button>
-            </div>
-        </div>
-    );
-
-  }
+  if (!data || !data.tables?.tech_details?.length) return (
+    <div className="no-data-placeholder">
+      <i className="fa fa-area-chart"></i>
+      <h3>Немає активності за цей період</h3>
+      <p>{dateRange.from} — {dateRange.to}</p>
+    </div>
+  );
 
   return (
     <div className="production-stats-container">
       
-      {/* 1. ПАНЕЛЬ KPI */}
-      {/* <div className="kpi-grid-6">
-        <div className="kpi-card shadow-sm badge-order">
-          <span className="label">Замовлень</span>
-          <span className="value">{data.summary.total_orders} <small>шт</small></span>
-        </div>
-        <div className="kpi-card shadow-sm badge-order">
-          <span className="label">Конструкцій</span>
-          <span className="value">{data.summary.total_constructions} <small>шт</small></span>
-        </div>
-        <div className="kpi-card shadow-sm">
-          <span className="label">Середній чек</span>
-          <span className="value">{Math.round(data.summary.avg_check || 0).toLocaleString()} <small>грн</small></span>
-        </div>
-        <div className="kpi-card shadow-sm">
-          <span className="label">Оборот</span>
-          <span className="value">{Math.round(data.summary.total_sum || 0).toLocaleString()} <small>грн</small></span>
-        </div>
-        <div className="kpi-card shadow-sm">
-          <span className="label">Середній час виробництва</span>
-          <span className="value">{Number(data.summary.avg_days || 0).toFixed(1)} <small>дн.</small></span>
-        </div>
-        <div className="kpi-card shadow-sm border-amber badge-reclamation">
-          <span className="label">Рекламації</span>
-          <span className="value color-red">{Number(data.summary.complaint_rate || 0).toFixed(1)}%</span>
-        </div>
-      </div> */}
-
-
+      {/* KPI & ПРЕФІКСИ */}
       <div className="m-bottom-28">
-          {/* <h4 className="window-title uppercase m-bottom-28">Статистика за категоріями</h4> */}
           <PrefixCategoryDisplay prefixData={prefixData} />
       </div>
 
-      {/* ГРАФІКИ ЕФЕКТИВНОСТІ (Щомісячно) */}
+      {/* ЕФЕКТИВНІСТЬ ТА ОБСЯГИ */}
       <div className="stats-grid-2">
-        <div className="chart-wrapper-card">
-          <EfficiencyChart data={data.charts.monthly} />
+        <div className="chart-wrapper-card card-padding">
+          <h4 className="chart-title-unified">Динаміка ефективності</h4>
+          <EfficiencyChart data={data.charts?.monthly || []} />
         </div>
-        <div className="chart-wrapper-card">
-          <VolumeChart data={data.charts.monthly} />
+        <div className="chart-wrapper-card card-padding">
+          <h4 className="chart-title-unified">Обсяги виробництва</h4>
+          <VolumeChart data={data.charts?.monthly || []} />
         </div>
       </div>
 
-      {/* БЛОК: КОЛЬОРИ ТА СИСТЕМИ (50/50) */}
+      {/* КОЛЬОРИ ТА СИСТЕМИ */}
       <div className="stats-grid-2">
         <div className="chart-wrapper-card card-padding">
           <h4 className="chart-title-unified">Популярність кольорів</h4>
@@ -317,25 +170,24 @@ if (!data || !hasTechDetails) {
         </div>
       </div>
 
-      <div className="chart-wrapper-card card-padding">
-        <h4 className="chart-title-unified">Профільна система × Колір</h4>
-        <p className="chart-subtitle" style={{ fontSize: '12px', color: '#888', marginBottom: '14px' }}>
-            Візуалізація популярності кольорів у розрізі кожної профільної системи
-        </p>
+      {/* ТЕПЛОВА КАРТА */}
+      <div className="chart-wrapper-card card-padding m-bottom-28">
+        <h4 className="chart-title-unified">Матриця Система × Колір</h4>
+        <p className="chart-subtitle-grey">Кількість замовлень на перетині параметрів</p>
         <ColorSystemHeatmap data={heatmapData} />
-    </div>
+      </div>
 
-      {/* БЛОК: ФУРНІТУРА (На всю ширину) */}
-      <div className="chart-wrapper-card card-padding">
-          <h4 className="chart-title-unified">Фурнітура:</h4>
+      {/* ФУРНІТУРА */}
+      <div className="chart-wrapper-card card-padding m-bottom-28">
+          <h4 className="chart-title-unified">Аналітика фурнітури</h4>
           <FurnitureChart data={furnitureData} />
       </div>
 
-      {/* ПОРТФЕЛЬ КАТЕГОРІЙ */}
+      {/* КАТЕГОРІЇ (ОСНОВНИЙ ПОРТФЕЛЬ) */}
       <div className="stats-single-column">
-        <div className="chart-wrapper-card">
-          <h4 className="chart-title">Категорії</h4>
-          <p className="chart-subtitle">Натисніть на групу для деталізації</p>
+        <div className="chart-wrapper-card card-padding">
+          <h4 className="chart-title-unified">Портфель категорій</h4>
+          <p className="chart-subtitle-grey">Натисніть на сектор для детального аналізу конструкцій</p>
           <ComplexityDonut 
             data={mainDonutData} 
             onSectorClick={(name) => {
@@ -346,49 +198,61 @@ if (!data || !hasTechDetails) {
         </div>
       </div>
 
-      {/* DRILL-DOWN (Деталізація) */}
+      {/* DRILL-DOWN (ДЕТАЛІЗАЦІЯ) */}
       {selectedCategory && (
         <div className="chart-wrapper-card drilldown-view animate-fade-in" ref={drillDownRef}>
             <div className="drilldown-header-row">
                 <h3 className="section-title">
-                    Аналіз групи: <span className="color-primary">{selectedCategory}</span>
+                    Деталізація: <span className="text-highlight">{selectedCategory}</span>
                     {activeSubCategory && <span className="sub-title-arrow"> → {activeSubCategory}</span>}
                 </h3>
-                
-                <button className="btn-close-details-analytics" onClick={() => {
-                    setSelectedCategory(null);
-                    setActiveSubCategory(null);
-                }}>
-                    ✕
-                </button>
+                <button className="btn-close-details" onClick={() => { setSelectedCategory(null); setActiveSubCategory(null); }}>✕</button>
             </div>
 
-
-
-            <div className="sub-nav-tabs mb-24">
-                <button 
-                    className={`tab-link ${!activeSubCategory ? 'active' : ''}`}
-                    onClick={() => setActiveSubCategory(null)}
-                >
-                    Всі товари групи
-                </button>
+            <div className="sub-nav-tabs">
+                <button className={`tab-link ${!activeSubCategory ? 'active' : ''}`} onClick={() => setActiveSubCategory(null)}>Всі типи</button>
                 {subCategories.map(sub => (
-                    <button 
-                        key={sub}
-                        className={`tab-link ${activeSubCategory === sub ? 'active' : ''}`}
-                        onClick={() => setActiveSubCategory(sub)}
-                    >
-                        {sub}
-                    </button>
+                    <button key={sub} className={`tab-link ${activeSubCategory === sub ? 'active' : ''}`} onClick={() => setActiveSubCategory(sub)}>{sub}</button>
                 ))}
             </div>
 
-            <div className="chart-card">
-                <h5>Розподіл за складністю (шт)</h5>
-                <ComplexityTreemap data={filteredCategoryDetails} isDetail={true} activeGroup={selectedCategory}/>
+            <div className="detail-chart-container">
+                <h5 className="detail-chart-title">Розподіл за складністю виготовлення (шт)</h5>
+                <ComplexityTreemap 
+                  data={filteredTreemapData} 
+                  isDetail={true} 
+                  activeGroup={selectedCategory}
+                />
             </div>
         </div>
       )}
+
+      <style jsx>{`
+        .production-stats-container { display: flex; flex-direction: column; gap: 24px; padding-bottom: 50px; }
+        .stats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .chart-wrapper-card { background: #fff; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .card-padding { padding: 20px; }
+        .chart-title-unified { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #333; }
+        .chart-subtitle-grey { font-size: 12px; color: #888; margin-bottom: 15px; margin-top: -10px; }
+        
+        .drilldown-view { margin-top: 10px; border: 2px solid #1890ff15; padding: 25px; background: #fafbfc; }
+        .drilldown-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .text-highlight { color: #1890ff; }
+        .btn-close-details { border: none; background: #eee; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .btn-close-details:hover { background: #ff4d4f; color: #fff; }
+
+        .sub-nav-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .tab-link { border: 1px solid #e8e8e8; background: #fff; padding: 6px 16px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .tab-link:hover { border-color: #1890ff; color: #1890ff; }
+        .tab-link.active { background: #1890ff; color: #fff; border-color: #1890ff; }
+
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 1024px) {
+          .stats-grid-2 { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </div>
   );
 }

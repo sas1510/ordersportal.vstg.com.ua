@@ -2527,12 +2527,16 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 
+from django.db import connections
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 class OrdersDealerStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 1️⃣ Визначаємо контрагента
+        # 1. Визначаємо контрагента
         try:
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
@@ -2542,74 +2546,56 @@ class OrdersDealerStatisticsView(APIView):
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
 
-        # 2️⃣ Рік
+        # 2. Отримуємо параметри дати
         date_from = request.GET.get("date_from", "2026-01-01")
         date_to = request.GET.get("date_to", "2026-12-31")
 
         db_alias = 'db_2'
+        
         with connections[db_alias].cursor() as cursor:
-
-            # ==============================
-            # 1. Фурнітура (GetHardwareStats)
-            # ==============================
-            cursor.execute("EXEC [dbo].[GetHardwareStats] %s, %s, %s", 
-               [date_from, date_to, contractor_bin])
+            # Викликаємо одну "майстер-процедуру", яка повертає 4 набори даних
+            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetFullDealerAnalytics] %s, %s, %s", 
+                           [date_from, date_to, contractor_bin])
             
-            hardware_columns = [col[0] for col in cursor.description]
-            hardware_rows = cursor.fetchall()
-            hardware_items = [dict(zip(hardware_columns, row)) for row in hardware_rows]
-
+            # --- 1. Фурнітура (Result Set #1) ---
+            hardware_items = self.dictfetchall(cursor)
+            
+            # Формуємо KPI на основі першого рядка фурнітури
             hardware_kpi = {
                 "total_orders": hardware_items[0].get("КількістьЗамовлень") if hardware_items else 0,
                 "delivery_days": hardware_items[0].get("СрокПоставки") if hardware_items else 0,
                 "abc_class": hardware_items[0].get("ABC") if hardware_items else None,
             }
 
-            # ==============================
-            # 2. Колір профілю (GetProfileColor)
-            # ==============================
-            cursor.execute("EXEC [dbo].[GetProfileColor] %s, %s, %s", 
-               [date_from, date_to, contractor_bin])
+            # --- 2. Колір профілю (Result Set #2) ---
+            cursor.nextset()
+            profile_color_items = self.dictfetchall(cursor)
 
-            color_columns = [col[0] for col in cursor.description]
-            color_rows = cursor.fetchall()
-            profile_color_items = [dict(zip(color_columns, row)) for row in color_rows]
+            # --- 3. Профільні системи (Result Set #3) ---
+            cursor.nextset()
+            profile_system_items = self.dictfetchall(cursor)
 
-            # ==============================
-            # 3. Профільні системи (GetProfileSystemStats)
-            # ==============================
-            cursor.execute("EXEC [dbo].[GetProfileSystemStats] %s, %s, %s", 
-               [date_from, date_to, contractor_bin])
+            # --- 4. Префікси (Result Set #4) ---
+            cursor.nextset()
+            prefix_items = self.dictfetchall(cursor)
 
-            system_columns = [col[0] for col in cursor.description]
-            system_rows = cursor.fetchall()
-            profile_system_items = [dict(zip(system_columns, row)) for row in system_rows]
-
-            # ==============================
-            # 4. Префікси замовлень (GetDealerPrefixStatistics) ⬅️ НОВЕ
-            # ==============================
-            cursor.execute("EXEC [dbo].[GetDealerPrefixStatistics] %s, %s, %s", 
-               [date_from, date_to, contractor_bin])
-            
-            prefix_columns = [col[0] for col in cursor.description]
-            prefix_rows = cursor.fetchall()
-            prefix_items = [dict(zip(prefix_columns, row)) for row in prefix_rows]
-
-        # ==============================
-        # 5️⃣ Фінальна відповідь
-        # ==============================
+        # 3. Фінальна відповідь
         return Response({
             "contractor_guid": contractor_guid,
-            # "year": year,
+            "period": {"from": date_from, "to": date_to},
             "hardware": {
                 "kpi": hardware_kpi,
                 "items": hardware_items,
             },
             "profile_color": profile_color_items,
             "profile_system": profile_system_items,
-            "prefixes": prefix_items,  # Додано результати за категоріями (15-, 01-, тощо)
+            "prefixes": prefix_items,
         })
-    
 
-
+    def dictfetchall(self, cursor):
+        """Допоміжний метод для перетворення результатів курсора в список словників"""
+        if cursor.description is None:
+            return []
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
 

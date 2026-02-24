@@ -286,7 +286,6 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 import uuid
 
-MOCK_1C = True
 
 
 class ReclamationViewSet(viewsets.ViewSet):
@@ -387,19 +386,6 @@ class ReclamationViewSet(viewsets.ViewSet):
             }
 
             payload = self._generate_reclamation_json(request, main_data)
-
-            # ==================================================
-            # 🧪 MOCK MODE
-            # ==================================================
-            if MOCK_1C:
-                return Response(
-                    {
-                        "success": True,
-                        "payload": payload,   # 🔍 ПОВЕРТАЄМО НА ФРОНТ
-                        "mock": True,
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
 
             # ==================================================
             # 🔥 REAL MODE
