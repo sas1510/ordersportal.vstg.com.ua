@@ -1,18 +1,42 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 
-export default function EfficiencyChart({ data }) {
+export default function EfficiencyChart({ data, height = '350px'  }) {
+  // 1. Стан для теми
+  const [isDark, setIsDark] = useState(document.body.classList.contains('dark-theme'));
+  const chartRef = useRef(null);
+  // 2. Слідкуємо за зміною класу на body
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.body.classList.contains('dark-theme'));
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+
+
+  useEffect(() => {
+    if (chartRef.current) {
+      const echartsInstance = chartRef.current.getEchartsInstance();
+      echartsInstance.resize();
+    }
+  }, [height]);
+
   const sortedData = useMemo(() => 
     [...data].sort((a, b) => a.MonthNumber - b.MonthNumber), 
     [data]
   );
 
-  const isDark = document.body.classList.contains('dark-theme');
+
+
+  // 3. Кольори тепер залежать від стану isDark
   const textColor = isDark ? '#aaaaaa' : '#606060';
   const splitLineColor = isDark ? '#333333' : '#e6e6e6';
   const axisLineColor = isDark ? '#444444' : '#aaaaaa';
 
-  const option = {
+  const option = useMemo(() => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
@@ -25,7 +49,7 @@ export default function EfficiencyChart({ data }) {
         return `
           <div style="font-weight:800; margin-bottom:8px; border-bottom:1px dashed ${isDark ? '#666' : '#aaa'};">${item.MonthName}</div>
           <div style="display:flex; justify-content:space-between; gap:20px; font-size:12px; margin-bottom:4px;">
-            <span>● Мін. чек:</span> <b style="color:#5e83bf">${item.MinSum.toLocaleString()} грн</b>
+            <span>● Мін. чек:</span> <b style="color:#d3c527">${item.MinSum.toLocaleString()} грн</b>
           </div>
           <div style="display:flex; justify-content:space-between; gap:20px; font-size:12px; margin-bottom:4px;">
             <span>● Макс. чек:</span> <b style="color:#6b98bf">${item.MaxSum.toLocaleString()} грн</b>
@@ -42,41 +66,36 @@ export default function EfficiencyChart({ data }) {
       data: ['Мін. чек', 'Макс. чек', 'Сер. чек']
     },
     grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
-    xAxis: [
-      {
-        type: 'category',
-        data: sortedData.map(d => d.MonthName),
-        axisLine: { lineStyle: { color: axisLineColor } },
-        axisLabel: { color: textColor }
-      }
-    ],
-    yAxis: [
-      {
-        type: 'value',
-        name: 'Грн',
-        nameTextStyle: { color: textColor },
-        axisLine: { show: true, lineStyle: { color: axisLineColor } },
-        axisLabel: { 
-          color: textColor,
-          formatter: (v) => v >= 1000 ? `${(v / 1000).toFixed(0)}к` : v
-        },
-        splitLine: { lineStyle: { type: 'dashed', color: splitLineColor } }
-      }
-    ],
+    xAxis: [{
+      type: 'category',
+      data: sortedData.map(d => d.MonthName),
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: textColor }
+    }],
+    yAxis: [{
+      type: 'value',
+      name: 'Грн',
+      nameTextStyle: { color: textColor },
+      axisLine: { show: true, lineStyle: { color: axisLineColor } },
+      axisLabel: { 
+        color: textColor,
+        formatter: (v) => v >= 1000 ? `${(v / 1000).toFixed(0)}к` : v
+      },
+      splitLine: { lineStyle: { type: 'dashed', color: splitLineColor } }
+    }],
     series: [
       {
         name: 'Мін. чек',
         type: 'bar',
-        barGap: '10%', // Відступ між стовпцями всередині одного місяця
-        barCategoryGap: '30%', // Відступ між групами місяців
+        barGap: '10%',
         data: sortedData.map(d => d.MinSum),
-        itemStyle: { color: '#d3c527', borderRadius: [2, 2, 0, 0] } // --info-color
+        itemStyle: { color: '#d3c527', borderRadius: [2, 2, 0, 0] }
       },
       {
         name: 'Макс. чек',
         type: 'bar',
         data: sortedData.map(d => d.MaxSum),
-        itemStyle: { color: '#6b98bf', borderRadius: [2, 2, 0, 0] } // --vs-blue-color
+        itemStyle: { color: '#6b98bf', borderRadius: [2, 2, 0, 0] }
       },
       {
         name: 'Сер. чек',
@@ -85,11 +104,17 @@ export default function EfficiencyChart({ data }) {
         symbol: 'circle',
         symbolSize: 8,
         data: sortedData.map(d => d.AvgCheck),
-        itemStyle: { color: '#76b448' }, // --success-color
+        itemStyle: { color: '#76b448' },
         lineStyle: { width: 3 }
       }
     ]
-  };
+  }), [isDark, sortedData, textColor, axisLineColor, splitLineColor]);
 
-  return <ReactECharts option={option} style={{ height: '350px', width: '100%' }} />;
+  return (
+    <ReactECharts 
+      option={option} 
+      style={{ height: height, width: '100%' }} 
+      notMerge={true} // Важливо: змушує ECharts повністю оновити конфіг
+    />
+  );
 }

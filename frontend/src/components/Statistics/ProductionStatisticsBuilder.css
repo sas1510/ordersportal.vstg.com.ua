@@ -57,6 +57,8 @@
     top: 0;
     width: 220px;
     height: 100vh;
+    padding-top: 60px;
+    padding-bottom: 60px;
     background: #fff;
     border-left: 1px solid #eee;
     z-index: 1000;
@@ -92,7 +94,7 @@
 .thumb-box {
     height: 70px;
     border: 1px solid #eee;
-    border-radius: 8px;
+    border-radius: 3px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -102,8 +104,15 @@
 }
 
 .thumb-box:hover {
-    border-color: #1890ff;
-    background: #e6f7ff;
+
+    background: rgb(219, 218, 218);
+    transform: translateY(-2px);
+}
+
+
+.dark-theme .thumb-box:hover {
+
+    background: rgb(255, 255, 255);
     transform: translateY(-2px);
 }
 
@@ -225,6 +234,8 @@
 
 .scrollable-chart-area {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 4px;
@@ -252,6 +263,14 @@
     width: 100%;
     position: relative;
     min-height: 150px;
+}
+
+/* Оновлюємо .chart-wrapper */
+.chart-wrapper {
+    width: 100%;
+    flex: 1; /* Графік тепер заповнить весь доступний простір .scrollable-chart-area */
+    position: relative;
+    /* ВИДАЛІТЬ min-height: 150px, якщо він заважає маленьким карткам */
 }
 
 /* Sub-filters */
@@ -384,14 +403,14 @@
 
 .dark-theme {
     /* Темна тема */
-    --bg-page: #0f172a;        /* Глибокий синій/чорний */
+    --bg-page: #1f232e;        /* Глибокий синій/чорний */
     --bg-card: #333333;        /* Колір карток */
     --bg-header: #333333;
     --text-main: #f1f5f9;      /* Майже білий текст */
-    --text-mute: #999;     /* Сірий текст */
+    --text-mute: #cccccc;     /* Сірий текст */
     --border-color: #555555;   /* Темні межі */
-    --palette-bg: #1e293b;
-    --thumb-bg: #334155;
+    --palette-bg: #333333;
+    --thumb-bg: #555555;
     --shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
@@ -463,4 +482,206 @@
 
 .scrollable-chart-area::-webkit-scrollbar-thumb {
     background: var(--border-color);
+}
+
+
+
+
+
+
+.autosave-status {
+    font-size: 12px;
+    margin-left: 15px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #f0f0f0;
+    color: #666;
+    min-width: 100px;
+    text-align: center;
+}
+.autosave-status.saving { color: #f39c12; }
+.autosave-status.saved { color: #27ae60; background: #e8f5e9; }
+.autosave-status.error { color: #e74c3c; background: #fdeaea; }
+
+
+/* ===== Overlay ===== */
+.builder-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: builderFadeIn 0.25s ease;
+}
+
+/* ===== Window ===== */
+.builder-modal-window {
+  background: #fff;
+  width: 420px;
+  max-width: 95%;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: builderScaleIn 0.25s ease;
+}
+
+/* ===== Header ===== */
+.builder-modal-header {
+  background: linear-gradient(90deg, #1da8df, #22c1e8);
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.builder-modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.builder-close-btn {
+  cursor: pointer;
+  font-size: 18px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.builder-close-btn:hover {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+/* ===== Body ===== */
+.builder-modal-body {
+  padding: 24px 20px;
+}
+
+.builder-modal-text-center {
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.builder-highlight {
+  color: #1da8df;
+  font-size: 18px;
+}
+
+.builder-modal-subtext {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #888;
+}
+
+.builder-modal-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.builder-modal-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b6b6b;
+  margin-bottom: 6px;
+}
+
+.builder-modal-input {
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.builder-modal-input:focus {
+  border-color: #1da8df;
+  box-shadow: 0 0 0 3px rgba(29, 168, 223, 0.2);
+  outline: none;
+}
+
+/* ===== Footer ===== */
+.builder-modal-footer {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  background: #fafafa;
+  border-top: 1px solid #eee;
+}
+
+.builder-btn-confirm,
+.builder-btn-cancel {
+  border: none;
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  font-size: 14px;
+}
+
+.builder-btn-cancel {
+  background: #999;
+  color: #fff;
+}
+
+.builder-btn-confirm {
+  background: #1da8df;
+  color: #fff;
+}
+
+.builder-btn-confirm.danger {
+  background: #e74c3c;
+}
+
+.builder-btn-confirm:hover, 
+.builder-btn-cancel:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.builder-btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ===== Animations ===== */
+@keyframes builderFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes builderScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ===== Dark Theme Support ===== */
+body.dark-theme .builder-modal-window {
+  background: #2b2b2b;
+  color: #eee;
+}
+body.dark-theme .builder-modal-body .builder-modal-text-center {
+  color: #eee;
+}
+body.dark-theme .builder-modal-input {
+  background: #1f1f1f;
+  border-color: #444;
+  color: #fff;
+}
+body.dark-theme .builder-modal-footer {
+  background: #242424;
+  border-top-color: #444;
+}
+
+.dashboards-toolbar {
+    margin-bottom: 14px;
 }

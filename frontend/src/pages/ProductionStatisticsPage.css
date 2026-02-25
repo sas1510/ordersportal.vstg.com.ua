@@ -26,10 +26,10 @@
     --bg-card: #333333;        /* Колір карток */
     --bg-header: #333333;
     --text-main: #f1f5f9;      /* Майже білий текст */
-    --text-mute: #999;     /* Сірий текст */
+    /* --text-mute: #999;     Сірий текст */
     --border-color: #555555;   /* Темні межі */
-    --palette-bg: #1e293b;
-    --thumb-bg: #334155;
+    /* --palette-bg: #1e293b; */
+    /* --thumb-bg: #334155; */
     --shadow: 0 4px 12px rgba(0,0,0,0.3);
     --text-toggle: #636363;
     --toggle-color: #999;
@@ -48,7 +48,7 @@
 /* Контейнер рядка керування */
 .controls-row {
   width: 100%;
-  padding: 10px 0;
+  padding: 14px 0;
 }
 
 /* Спільні правила для однакової висоти */

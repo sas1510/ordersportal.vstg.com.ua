@@ -2601,30 +2601,41 @@ class OrdersDealerStatisticsView(APIView):
 
 
 
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import UserDashboardConfig
-from .serializers import UserDashboardConfigSerializer
+
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 class DashboardConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_default_layout(self):
-        """Повна копія структури вашого статичного блоку"""
-        return [
-            {"id": "comp-1", "type": "PrefixCategoryDisplay", "colSpan": 12, "rowSpan": 22},
-            {"id": "comp-2", "type": "EfficiencyChart", "colSpan": 6, "rowSpan": 28},
-            {"id": "comp-3", "type": "VolumeChart", "colSpan": 6, "rowSpan": 28},
-            {"id": "comp-4", "type": "ProfileColorChart", "colSpan": 6, "rowSpan": 28},
-            {"id": "comp-5", "type": "ProfileSystemChart", "colSpan": 6, "rowSpan": 28},
-            {"id": "comp-6", "type": "ColorSystemHeatmap", "colSpan": 12, "rowSpan": 30},
-            {"id": "comp-7", "type": "FurnitureChart", "colSpan": 12, "rowSpan": 25},
-            {"id": "comp-8", "type": "ComplexityDonut", "colSpan": 12, "rowSpan": 30},
-            {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 35},
-        ]
+        # Повертаємо структуру з одним стандартним дашбордом
+        return {
+            "dashboards": [
+                {
+                    "id": 1, 
+                    "name": "Основний", 
+                    "components": [
+                        {"id": "comp-1", "type": "PrefixCategoryDisplay", "colSpan": 12, "rowSpan": 25},
+                        {"id": "comp-2", "type": "EfficiencyChart", "colSpan": 6, "rowSpan": 13},
+                        {"id": "comp-3", "type": "VolumeChart", "colSpan": 6, "rowSpan": 13},
+                        {"id": "comp-4", "type": "ProfileColorChart", "colSpan": 6, "rowSpan": 17},
+                        {"id": "comp-5", "type": "ProfileSystemChart", "colSpan": 6, "rowSpan": 17},
+                        {"id": "comp-6", "type": "ColorSystemHeatmap", "colSpan": 12, "rowSpan": 17},
+                        {"id": "comp-7", "type": "FurnitureChart", "colSpan": 12, "rowSpan": 17},
+                        {"id": "comp-8", "type": "ComplexityDonut", "colSpan": 12, "rowSpan": 17},
+                        {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 13},
+                    ]
+                }
+            ]
+        }
 
     def get(self, request):
         config_obj = UserDashboardConfig.objects.filter(
@@ -2633,29 +2644,31 @@ class DashboardConfigView(APIView):
         ).first()
 
         if config_obj:
-            return Response(config_obj.config)
+            data = config_obj.config
+            # Перевірка на "старий" формат: якщо в базі лежить {"components": [...]}, 
+            # конвертуємо на льоту в новий формат для фронтенда
+            if "components" in data and "dashboards" not in data:
+                return Response({
+                    "dashboards": [
+                        {"id": 1, "name": "Мій Дашборд", "components": data["components"]}
+                    ]
+                })
+            return Response(data)
         
-        # Якщо запису ще немає — віддаємо дефолт
         return Response(self.get_default_layout())
 
     def post(self, request):
-        new_config = request.data.get('config')
+        new_config_data = request.data
         
-        if not new_config:
-            return Response(
-                {"error": "Config data is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # Оновлена перевірка: шукаємо або 'dashboards', або старий 'components'
+        if not new_config_data.get('dashboards') and not new_config_data.get('components'):
+            return Response({"error": "Config data is required (dashboards or components)"}, status=400)
 
-        # update_or_create знайде запис за user та layout_name, 
-        # і оновить поле config, або створить новий запис
+        # Оновлюємо або створюємо запис
         config_obj, created = UserDashboardConfig.objects.update_or_create(
             user=request.user,
             layout_name='default',
-            defaults={'config': new_config}
+            defaults={'config': new_config_data}
         )
 
-        return Response({
-            "status": "success",
-            "message": "Dashboard saved successfully"
-        }, status=status.HTTP_200_OK)
+        return Response({"status": "success", "message": "Saved"}, status=status.HTTP_200_OK)

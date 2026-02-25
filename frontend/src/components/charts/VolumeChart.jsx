@@ -1,15 +1,43 @@
-import React from 'react';
+import React, { useMemo, useState, useEffect , useRef  } from 'react';
 import ReactECharts from 'echarts-for-react';
 
-export default function VolumeChart({ data }) {
-  const sortedData = [...data].sort((a, b) => a.MonthNumber - b.MonthNumber);
+export default function VolumeChart({ data, height = '350px' }) {
 
-  const isDark = document.body.classList.contains('dark-theme');
+  const chartRef = useRef(null);
+  // 1. Стан для відстеження теми
+  const [isDark, setIsDark] = useState(document.body.classList.contains('dark-theme'));
+
+  // 2. Ефект для "прослуховування" зміни теми на body
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.body.classList.contains('dark-theme'));
+    });
+
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+
+  useEffect(() => {
+    if (chartRef.current) {
+      const echartsInstance = chartRef.current.getEchartsInstance();
+      echartsInstance.resize();
+    }
+  }, [height]);
+
+  // 3. Сортування даних (кешуємо для продуктивності)
+  const sortedData = useMemo(() => 
+    [...data].sort((a, b) => a.MonthNumber - b.MonthNumber), 
+    [data]
+  );
+
+  // Кольори, що залежать від теми
   const textColor = isDark ? '#aaaaaa' : '#606060';
   const splitLineColor = isDark ? '#333333' : '#e6e6e6';
   const axisLineColor = isDark ? '#444444' : '#aaaaaa';
 
-  const option = {
+  // 4. Опції графіка (перераховуються при зміні теми або даних)
+  const option = useMemo(() => ({
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
@@ -20,7 +48,9 @@ export default function VolumeChart({ data }) {
       formatter: (params) => {
         let res = `<div style="font-weight:800; margin-bottom:8px; border-bottom:1px dashed ${isDark ? '#666' : '#aaa'};">${params[0].name}</div>`;
         params.forEach(item => {
-          const val = item.seriesName === 'Оборот' ? (item.value / 1000000).toFixed(2) + 'M грн' : item.value + ' шт';
+          const val = item.seriesName === 'Оборот' 
+            ? (item.value / 1000000).toFixed(2) + 'M грн' 
+            : item.value + ' шт';
           res += `<div style="display:flex; justify-content:space-between; gap:20px; font-size:12px; margin-bottom:4px;">
                     <span style="color:${item.color}">● ${item.seriesName}:</span>
                     <span style="font-weight:700">${val}</span>
@@ -75,7 +105,13 @@ export default function VolumeChart({ data }) {
         lineStyle: { width: 3, type: 'dashed' }
       }
     ]
-  };
+  }), [isDark, sortedData, textColor, axisLineColor, splitLineColor]);
 
-  return <ReactECharts option={option} style={{ height: '350px', width: '100%' }} />;
+  return (
+    <ReactECharts 
+      option={option} 
+      style={{ height: height, width: '100%' }} 
+      notMerge={true} // Обов'язково для коректної зміни кольорів
+    />
+  );
 }

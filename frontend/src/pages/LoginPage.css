@@ -128,13 +128,15 @@
   z-index: 10;
   width: 100%;
   max-width: 80rem;
+
 }
 
 .login-card {
   border-radius: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+  overflow-y: hidden; 
   backdrop-filter: blur(20px);
+  max-height: calc(100vh - 120px);
 }
 
 .login-page.light .login-card {
@@ -1069,5 +1071,12 @@
 
   .error-inline {
     font-size: 0.8rem;
+  }
+}
+
+
+@media (max-height: 599px) {
+  .login-card {
+    overflow-y: auto;
   }
 }

@@ -1,38 +1,63 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 
-// Використовуємо кольори з вашої схеми
 const CATEGORY_COLORS = {
-  "Вікна": "#5e83bf",  // --info-color
-  "Двері": "#76b448",  // --success-color
-  "Додатки": "#d3c527", // --warning-color
-  "Інше": "#aaaaaa"    // --grey-color
+  "Вікна": "#5e83bf",
+  "Двері": "#76b448",
+  "Додатки": "#d3c527",
+  "Інше": "#aaaaaa"
 };
 
-export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
+// Додано дефолтне значення height
+export default function ComplexityDonut({ data, onSectorClick, isDetail, height = '500px' }) {
+  const chartRef = useRef(null); // Додано ref для ресайзу
+  const [isDark, setIsDark] = useState(document.body.classList.contains('dark-theme'));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.body.classList.contains('dark-theme'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // ПРИМУСОВИЙ РЕСАЙЗ при зміні висоти (важливо для Builder)
+  useEffect(() => {
+    if (chartRef.current) {
+      const echartsInstance = chartRef.current.getEchartsInstance();
+      echartsInstance.resize();
+    }
+  }, [height]);
+
   const total = useMemo(() => data.reduce((s, i) => s + i.value, 0), [data]);
   const chartColors = data.map(item => CATEGORY_COLORS[item.name] || "#aaaaaa");
-  const option = {
+
+  const textColor = isDark ? '#aaaaaa' : '#606060';
+  const labelColor = isDark ? '#eee' : '#606060';
+  const tooltipBg = isDark ? 'rgba(33, 33, 33, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const borderColor = isDark ? '#333333' : '#fff';
+
+  const option = useMemo(() => ({
     color: chartColors,
     tooltip: {
       trigger: 'item',
-      backgroundColor: '#fff',
+      backgroundColor: tooltipBg,
       borderRadius: 8,
       padding: 0,
-      // Тінь згідно з вашим --shadow-color (00000050)
-      extraCssText: 'box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); border: 1px solid #95959563; z-index: 1001;',
+      borderColor: isDark ? '#444' : '#95959563',
+      extraCssText: `box-shadow: 0 4px 12px ${isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.3)'}; z-index: 1001;`,
       formatter: (params) => {
         const percentage = ((params.value / total) * 100).toFixed(1);
         return `
-          <div style="padding: 12px; min-width: 140px; font-family: sans-serif;">
-            <div style="font-weight: 700; font-size: 13px; color: #606060; margin-bottom: 8px; border-bottom: 1px solid #95959563; padding-bottom: 4px;">
+          <div style="padding: 12px; min-width: 140px; font-family: sans-serif; color: ${isDark ? '#eee' : '#606060'};">
+            <div style="font-weight: 700; font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid ${isDark ? '#444' : '#95959563'}; padding-bottom: 4px;">
               ${params.name}
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: #606060;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
               <span>Кількість:</span>
               <strong style="margin-left: 8px;">${params.value.toLocaleString()} шт</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #606060;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px;">
               <span>Частка:</span>
               <strong style="margin-left: 8px;">${percentage}%</strong>
             </div>
@@ -47,19 +72,19 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
       icon: 'circle',
       itemWidth: 10,
       itemGap: 20,
-      textStyle: { color: '#606060', fontSize: 12 }
+      textStyle: { color: textColor, fontSize: 12 }
     },
     series: [
       {
         name: 'Complexity',
         type: 'pie',
-        // Зменшений розмір кола
+        // Використовуємо % для радіусів, щоб вони тягнулися за висотою
         radius: isDetail ? [0, '35%'] : ['30%', '50%'],
         center: ['50%', isDetail ? '50%' : '42%'],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: isDetail ? 0 : 4,
-          borderColor: '#fff',
+          borderColor: borderColor,
           borderWidth: 2
         },
         label: {
@@ -72,12 +97,12 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
             name: {
               fontSize: 12,
               fontWeight: 600,
-              color: '#606060',
+              color: labelColor,
               padding: [0, 0, 4, 0]
             },
             val: {
               fontSize: 11,
-              color: '#aaaaaa' // --grey-color
+              color: isDark ? '#888' : '#aaaaaa'
             }
           }
         },
@@ -85,7 +110,7 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
           show: !isDetail,
           length: 15,
           length2: 20,
-          lineStyle: { color: '#95959563' }
+          lineStyle: { color: isDark ? '#444' : '#95959563' }
         },
         data: data,
         emphasis: {
@@ -96,7 +121,7 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
         animationDuration: 1000
       }
     ]
-  };
+  }), [isDark, data, chartColors, total, isDetail, textColor, labelColor, tooltipBg, borderColor]);
 
   const onEvents = {
     click: (params) => {
@@ -105,8 +130,10 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
   };
 
   return (
-    <div className="donut-wrapper" style={{ width: '100%', height: isDetail ? 400 : 500, position: 'relative' }}>
+    /* Використовуємо пропс height для обгортки */
+    <div className="donut-wrapper" style={{ width: '100%', height: height }}>
       <ReactECharts 
+        ref={chartRef}
         option={option} 
         style={{ height: '100%', width: '100%' }} 
         onEvents={onEvents}
@@ -121,6 +148,7 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
         </div>
       )}
 
+      {/* Ваші стилі залишені без змін */}
       <style jsx>{`
         .donut-wrapper { 
           position: relative; 
@@ -134,10 +162,9 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
           transform: translate(-50%, -50%);
           text-align: center;
           pointer-events: none;
-          background: white;
+          background: ${isDark ? '#cccccc' : 'white'};
           border-radius: 50%;
-          /* Використання вашого кольору тіні */
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 4px 12px ${isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.1)'};
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -145,12 +172,13 @@ export default function ComplexityDonut({ data, onSectorClick, isDetail }) {
           width: 115px;
           height: 115px;
           z-index: 1;
-          border: 1px solid #95959563;
+          border: 1px solid ${isDark ? '#444' : '#95959563'};
+          transition: background 0.3s ease, border 0.3s ease;
         }
 
-        .badge-label { font-size: 11px; color: #aaaaaa; margin-bottom: 2px; }
+        .badge-label { font-size: 11px; color: ${isDark ? '#888' : '#aaaaaa'}; margin-bottom: 2px; }
         .badge-value { font-size: 20px; font-weight: 700; color: #606060; line-height: 1.1; }
-        .badge-unit { font-size: 11px; color: #b9b9b9; margin-top: 2px; }
+        .badge-unit { font-size: 11px; color: ${isDark ? '#666' : '#b9b9b9'}; margin-top: 2px; }
 
         @keyframes fadeIn {
           from { opacity: 0; }

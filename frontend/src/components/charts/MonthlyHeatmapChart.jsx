@@ -1,19 +1,37 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 
 export default function MonthlyHeatmapChart({ data }) {
-  // Сортуємо дані за номером місяця
+  // 1. Відстеження теми
+  const [isDark, setIsDark] = useState(document.body.classList.contains('dark-theme'));
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.body.classList.contains('dark-theme'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // 2. Підготовка даних
   const sortedData = useMemo(() => 
     [...data].sort((a, b) => a.MonthNumber - b.MonthNumber),
     [data]
   );
 
-  const option = {
+  // Кольори залежно від теми
+  const textColor = isDark ? '#aaaaaa' : '#666666';
+  const labelColor = isDark ? '#ffffff' : '#1a1d23';
+  const tooltipBg = isDark ? 'rgba(33, 33, 33, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const borderColor = isDark ? '#1a1d23' : '#ffffff'; // Колір проміжків між плитками
+
+  const option = useMemo(() => ({
     tooltip: {
       position: 'top',
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backgroundColor: tooltipBg,
       borderRadius: 8,
-      textStyle: { color: '#1a1d23' },
+      textStyle: { color: isDark ? '#eee' : '#1a1d23' },
+      borderColor: isDark ? '#555' : '#ccc',
       formatter: (params) => {
         const item = sortedData[params.dataIndex];
         return `
@@ -33,37 +51,35 @@ export default function MonthlyHeatmapChart({ data }) {
     xAxis: {
       type: 'category',
       data: sortedData.map(d => d.MonthName),
-      splitArea: { show: true },
+      splitArea: { show: false },
       axisLine: { show: false },
-      axisTick: { show: false }
+      axisTick: { show: false },
+      axisLabel: { color: textColor }
     },
     yAxis: {
       type: 'category',
       data: ['Активність'],
-      show: false // Приховуємо вісь Y для чистоти сітки
+      show: false
     },
     visualMap: {
-    min: Math.min(...data.map(d => d.MonthlySum)),
-    max: Math.max(...data.map(d => d.MonthlySum)),
-    calculable: true,
-    orient: 'horizontal',
-    left: 'center',
-    
-    // Використовуйте bottom для відступу від нижнього краю контейнера
-    // Або top: '90%', щоб зафіксувати позицію зверху
-    bottom: 0, 
-    
-    // Відступ самої шкали всередині її блоку (редко використовується)
-    padding: [28, 0, 0, 0], // [top, right, bottom, left] - ось це аналог marginTop
-
-    inRange: {
-      color: ['#E8E8E8', '#FF8042', '#FFBB28', '#82ca9d', '#00C49F']
+      min: Math.min(...data.map(d => d.MonthlySum)),
+      max: Math.max(...data.map(d => d.MonthlySum)),
+      calculable: true,
+      orient: 'horizontal',
+      left: 'center',
+      bottom: 0, 
+      padding: [28, 0, 0, 0],
+      inRange: {
+        // Темніші кольори для темної теми, щоб текст зчитувався краще
+        color: isDark 
+          ? ['#2a2a2a', '#e67e22', '#f1c40f', '#27ae60', '#16a085'] 
+          : ['#E8E8E8', '#FF8042', '#FFBB28', '#82ca9d', '#00C49F']
+      },
+      text: ['Висока', 'Низька'],
+      itemWidth: 15,
+      itemHeight: 200,
+      textStyle: { fontSize: 11, color: textColor }
     },
-    text: ['Висока', 'Низька'],
-    itemWidth: 15,
-    itemHeight: 200, // довжина горизонтальної шкали
-    textStyle: { fontSize: 11, color: '#666' }
-  },
     series: [{
       name: 'Активність',
       type: 'heatmap',
@@ -75,21 +91,29 @@ export default function MonthlyHeatmapChart({ data }) {
           return `{val|${val}к}\n{order|${sortedData[params.dataIndex].OrdersCount} зам}`;
         },
         rich: {
-          val: { fontSize: 16, fontWeight: 'bold', color: '#1a1d23', padding: [0, 0, 5, 0] },
-          order: { fontSize: 10, color: '#666' }
+          val: { 
+            fontSize: 16, 
+            fontWeight: 'bold', 
+            color: labelColor, 
+            padding: [0, 0, 5, 0] 
+          },
+          order: { 
+            fontSize: 10, 
+            color: textColor 
+          }
         }
       },
       itemStyle: {
         emphasis: {
           shadowBlur: 10,
-          shadowColor: 'rgba(0, 0, 0, 0.3)'
+          shadowColor: 'rgba(0, 0, 0, 0.5)'
         },
         borderRadius: 8,
-        borderColor: '#fff',
+        borderColor: borderColor, // Змінюємо колір рамок між плитками
         borderWidth: 4
       }
     }]
-  };
+  }), [isDark, sortedData, data, textColor, labelColor, tooltipBg, borderColor]);
 
   return (
     <div className="heatmap-chart-wrapper">
@@ -97,12 +121,14 @@ export default function MonthlyHeatmapChart({ data }) {
         option={option} 
         style={{ height: '250px', width: '100%' }}
         opts={{ renderer: 'svg' }}
+        notMerge={true}
       />
       <style jsx>{`
         .heatmap-chart-wrapper {
           padding: 7px;
-          background: #fff;
+          background: ${isDark ? '#1a1d23' : '#fff'};
           border-radius: 3px;
+          transition: background 0.3s ease;
         }
       `}</style>
     </div>

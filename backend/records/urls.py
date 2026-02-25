@@ -32,7 +32,7 @@ urlpatterns = [
     path("kpi-statistics/", DealerDetailedStatisticsView.as_view()),
     path("full-statistics/", DealerFullAnalyticsView.as_view()),
     path("order-statistics/", OrdersDealerStatisticsView.as_view()),
-    path('dashboard-config/', DashboardConfigView.as_view(), name='dashboard-config'),
+    path('user-dashboard-settings/', DashboardConfigView.as_view(), name='user-dashboard-settings'),
 
 ]
 
