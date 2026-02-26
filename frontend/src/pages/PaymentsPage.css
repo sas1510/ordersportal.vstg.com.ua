@@ -104,26 +104,7 @@
     
 }
 
-.year-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 16px;
-    color: var(--text-color);
-}
 
-.year-selector select {
-    padding: 6px 12px;
-    border: 1px dashed var(--grey-border-color);
-    border-radius: 4px;
-    background: #fff;
-    color: var(--text-color);
-    transition: 0.25s;
-}
-
-.year-selector select:hover {
-    border-color: var(--info-color);
-}
 
 .dark-theme .year-selector select {
     background: #383838;

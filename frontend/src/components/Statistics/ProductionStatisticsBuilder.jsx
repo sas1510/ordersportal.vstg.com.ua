@@ -48,7 +48,7 @@ const WIDGET_DEFAULTS = {
   ColorSystemHeatmap:    { colSpan: 12, rowSpan: 17 },
   FurnitureChart:        { colSpan: 12, rowSpan: 17 },
   ComplexityDonut:       { colSpan: 12, rowSpan: 17 },
-  ComplexityTreemap:     { colSpan: 12, rowSpan: 13 },
+  ComplexityTreemap:     { colSpan: 12, rowSpan: 20 },
 };
 
 const DEFAULT_LAYOUT = Object.entries(WIDGET_DEFAULTS).map(([type, sizes], index) => ({
@@ -134,6 +134,7 @@ export default function ProductionStatisticsBuilder({ rawData, dealerData }) {
         await axiosInstance.post("/user-dashboard-settings/", { dashboards: debouncedDashboards });
         lastSavedData.current = currentStr;
         setSaveStatus("saved");
+        addNotification("Зміни в дашбордах збережено автоматично", "success");
         setTimeout(() => setSaveStatus("idle"), 3000);
       } catch (err) {
         setSaveStatus("error");
@@ -320,9 +321,9 @@ export default function ProductionStatisticsBuilder({ rawData, dealerData }) {
   return (
     <div className="builder-page">
       {/* Тулбар */}
-      <div className="dashboards-toolbar">
-        <div className="year-selector">
-          <select value={activeDashId} onChange={(e) => setActiveDashId(Number(e.target.value))}>
+      <div style={{marginBottom: '14px'}}>
+        <div className="dashboard-controls">
+          <select className="year-select-custom" value={activeDashId} onChange={(e) => setActiveDashId(Number(e.target.value))}>
             {dashboards.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
           <button onClick={() => openModal("create")} title="Створити новий"><i className="fa fa-plus"></i></button>

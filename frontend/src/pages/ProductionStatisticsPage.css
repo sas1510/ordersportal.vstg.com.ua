@@ -65,10 +65,10 @@
 .year-select-custom {
   padding: 0 12px;
   border-radius: 3px;
-  border: 1px solid #ced4da;
+  border: 1px solid var(--border-color);
   font-size: 14px;
   color: #495057;
-  background-color: #fff;
+  background-color: var(--bg-card);
   outline: none;
   transition: border-color 0.2s;
 }

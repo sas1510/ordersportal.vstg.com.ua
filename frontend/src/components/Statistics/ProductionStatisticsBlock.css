@@ -12,8 +12,7 @@
 .production-stats-container {
     display: flex;
     flex-direction: column;
-    gap: 21px; 
-    padding: 14px 0;
+
     padding-bottom: 100px;
 }
 
@@ -222,9 +221,6 @@
 
 
 
-.production-stats-container {
-    padding: 10px 0;
-}
 
 /* Гнучка сітка на 12 колонок */
 .stats-viewer-grid {
@@ -305,3 +301,16 @@
     cursor: pointer;
     font-weight: bold;
 }
+
+.label-choose-dash {
+
+}
+
+
+.dashboard-controls {
+    display: flex;         
+    align-items: center;  
+    gap: 7px;        
+    white-space: nowrap; 
+}
+

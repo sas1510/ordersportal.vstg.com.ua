@@ -685,3 +685,12 @@ body.dark-theme .builder-modal-footer {
 .dashboards-toolbar {
     margin-bottom: 14px;
 }
+
+
+.dashboard-controls {
+    display: flex;         
+    align-items: center;  
+    gap: 7px;        
+    white-space: nowrap; 
+}
+

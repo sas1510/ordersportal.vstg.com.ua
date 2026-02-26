@@ -8,8 +8,7 @@ const CATEGORY_PALETTES_EXTENDED = {
   "Інше": ["#aaaaaa", "#bbbbbb", "#cccccc", "#dddddd", "#eeeeee", "#888888", "#666666", "#444444", "#222222"]
 };
 
-// Додано пропс height з дефолтним значенням
-export default function ComplexityTreemap({ data, onSectorClick, isDetail, activeGroup, width, height = '500px' }) {
+export default function ComplexityTreemap({ data, onSectorClick, activeGroup, width, height = '500px' }) { // Збільшив дефолтну висоту
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
   const [isDark, setIsDark] = useState(document.body.classList.contains("dark-theme"));
@@ -25,7 +24,7 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail, activ
   const total = useMemo(() => (data || []).reduce((sum, item) => sum + item.value, 0), [data]);
 
   const theme = useMemo(() => ({
-    borderColor: isDark ? "#333333" : "#ffffff",
+    borderColor: isDark ? "#2a2a2a" : "#ffffff", // Темніша рамка для темної теми
     tooltipBg: isDark ? "rgba(33, 33, 33, 0.95)" : "rgba(255, 255, 255, 0.95)",
     tooltipText: isDark ? "#eee" : "#1a1d23",
     tooltipBorder: isDark ? "#555" : "#ccc"
@@ -74,10 +73,14 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail, activ
           itemStyle: {
             color: currentPalette[index % currentPalette.length],
             borderColor: theme.borderColor,
-            borderWidth: 2,
-            gapWidth: 2
+            borderWidth: 1, // Тонша рамка виглядає акуратніше
+            gapWidth: 1
           }
         })),
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
         breadcrumb: { show: false },
         roam: false,
         nodeClick: false,
@@ -85,12 +88,12 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail, activ
           show: true, 
           position: 'inside',
           formatter: '{b}\n{c} шт',
-          fontSize: 11,
-          fontWeight: '600',
-          color: "#fff", 
-          textBorderWidth: 2
+          fontSize: 12, // Трохи збільшив шрифт
+          fontWeight: '500',
+          color: "#fff",
+          overflow: 'breakAll', // Дозволяє переносити текст
+          ellipsis: true // Додає три крапки, якщо зовсім не лізе
         },
-        upperLabel: { show: false },
         levels: [
           {
             itemStyle: {
@@ -104,7 +107,6 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail, activ
     };
 
     myChart.setOption(option, true);
-
     myChart.off('click');
     myChart.on('click', (params) => {
        if (onSectorClick) onSectorClick(params.name);
@@ -112,34 +114,29 @@ export default function ComplexityTreemap({ data, onSectorClick, isDetail, activ
 
   }, [data, theme, activeGroup, total, isDark]);
 
-  // ПРИМУСОВИЙ РЕСАЙЗ при зміні розмірів або теми
+  // Слідкуємо за зміною розмірів вікна
   useEffect(() => {
-    if (chartInstanceRef.current) {
-      // Використовуємо requestAnimationFrame для плавного ресайзу після оновлення DOM
-      requestAnimationFrame(() => {
-        chartInstanceRef.current.resize();
-      });
-    }
-  }, [width, height, isDark]); 
+    const handleResize = () => {
+      chartInstanceRef.current?.resize();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
-    return () => {
-      if (chartInstanceRef.current) {
-        chartInstanceRef.current.dispose();
-        chartInstanceRef.current = null;
-      }
-    };
-  }, []);
+    if (chartInstanceRef.current) {
+        chartInstanceRef.current.resize();
+    }
+  }, [width, height, isDark]); 
 
   return (
     <div 
       className="treemap-container" 
       style={{ 
         width: '100%', 
-        height: height, // Тепер використовує передану висоту
+        height: height, 
         display: 'flex',
-        flexDirection: 'column',
-        transition: 'height 0.3s ease'
+        flexDirection: 'column'
       }}
     >
       <div ref={chartRef} style={{ flex: 1, width: '100%' }} />

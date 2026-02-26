@@ -15,7 +15,7 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from zoneinfo import ZoneInfo
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
-
+from django.db import DatabaseError
 from .models import Message
 # from .serializers import MessageSerializer
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
@@ -2464,75 +2464,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import connections
+from django.db import connections, DatabaseError
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+
 
 class DealerFullAnalyticsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        try:
-            contractor_bin, contractor_guid = resolve_contractor(
-                request,
-                allow_admin=True,
-                admin_param="contractor_guid",
-            )
-        except (ValueError, PermissionError) as e:
-            return Response({"detail": str(e)}, status=400)
-
-        # Отримуємо дати з запиту. Якщо їх немає — ставимо дефолт за поточний рік
-        date_from = request.GET.get("date_from", "2026-01-01")
-        date_to = request.GET.get("date_to", "2026-12-31")
-        
-        db_alias = 'db_2'
-
-        with connections[db_alias].cursor() as cursor:
-            # 1. Технічні деталі
-            # Передаємо дати замість року. Переконайтеся, що процедура в SQL оновлена під ці параметри!
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000", 
-                           [date_from, date_to, contractor_bin])
-            tech_items = self.dictfetchall(cursor)
-
-            # 2. Сезонність
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s", 
-                           [date_from, date_to, contractor_bin])
-            monthly_stats = self.dictfetchall(cursor)
-
-        total_constructions = sum(item.get("TotalQuantity", 0) for item in tech_items)
-        
-        return Response({
-            "contractor_guid": contractor_guid,
-            "period": {"from": date_from, "to": date_to},
-            "charts": {
-                "monthly": monthly_stats
-            },
-            "tables": {
-                "tech_details": tech_items,
-            }
-        })
-
-    def dictfetchall(self, cursor):
-        if cursor.description is None: return []
-        columns = [col[0] for col in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
-    
-
-
-    
-
-
-    
-
-from django.db import connections
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-
-from django.db import connections
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-class OrdersDealerStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -2546,40 +2485,139 @@ class OrdersDealerStatisticsView(APIView):
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
 
-        # 2. Отримуємо параметри дати
+        # 2. Отримуємо дати
         date_from = request.GET.get("date_from", "2026-01-01")
         date_to = request.GET.get("date_to", "2026-12-31")
+        db_alias = 'db_2'
 
+        # --- ОБРОБКА ПОМИЛКИ БАЗИ ДАНИХ ---
+        try:
+            with connections[db_alias].cursor() as cursor:
+                # 1. Технічні деталі
+                cursor.execute(
+                    "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000", 
+                    [date_from, date_to, contractor_bin]
+                )
+                tech_items = self.dictfetchall(cursor)
+
+                # 2. Сезонність
+                cursor.execute(
+                    "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s", 
+                    [date_from, date_to, contractor_bin]
+                )
+                monthly_stats = self.dictfetchall(cursor)
+                
+        except DatabaseError as e:
+            error_msg = str(e)
+            # Перевіряємо на код 927 (процес відновлення)
+            if "927" in error_msg or "процессе восстановления" in error_msg.lower():
+                return Response({
+                    "error": "database_recovery",
+                    "detail": "База даних оновлюється (процес відновлення). Спробуйте через 3 хвилини. Точну відповідь скажу пізніше."
+                }, status=503)
+            
+            # Загальна помилка бази
+            return Response({
+                "detail": "Помилка при зверненні до бази даних. Спробуйте пізніше."
+            }, status=500)
+
+        # Розрахунок підсумків (якщо дані успішно отримані)
+        total_constructions = sum(item.get("TotalQuantity", 0) for item in tech_items)
+        
+        return Response({
+            "contractor_guid": contractor_guid,
+            "period": {"from": date_from, "to": date_to},
+            "charts": {
+                "monthly": monthly_stats
+            },
+            "tables": {
+                "tech_details": tech_items,
+            },
+            "summary": {
+                "total_constructions": total_constructions
+            }
+        })
+
+    def dictfetchall(self, cursor):
+        if cursor.description is None: return []
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+    
+
+from django.db import connections
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+
+from django.db import connections
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+
+
+class OrdersDealerStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # 1. Визначаємо контрагента (код залишається без змін)
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        date_from = request.GET.get("date_from", "2026-01-01")
+        date_to = request.GET.get("date_to", "2026-12-31")
         db_alias = 'db_2'
         
-        with connections[db_alias].cursor() as cursor:
-            # Викликаємо одну "майстер-процедуру", яка повертає 4 набори даних
-            cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetFullDealerAnalytics] %s, %s, %s", 
-                           [date_from, date_to, contractor_bin])
+        # --- ОБРОБКА ПОМИЛКИ БАЗИ ДАНИХ ---
+        try:
+            with connections[db_alias].cursor() as cursor:
+                cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetFullDealerAnalytics] %s, %s, %s", 
+                               [date_from, date_to, contractor_bin])
+                
+                # Result Set #1 (Hardware)
+                hardware_items = self.dictfetchall(cursor)
+                
+                hardware_kpi = {
+                    "total_orders": hardware_items[0].get("КількістьЗамовлень") if hardware_items else 0,
+                    "delivery_days": hardware_items[0].get("СрокПоставки") if hardware_items else 0,
+                    "abc_class": hardware_items[0].get("ABC") if hardware_items else None,
+                }
+
+                # Result Sets #2, #3, #4
+                cursor.nextset()
+                profile_color_items = self.dictfetchall(cursor)
+                cursor.nextset()
+                profile_system_items = self.dictfetchall(cursor)
+                cursor.nextset()
+                prefix_items = self.dictfetchall(cursor)
+
+        except DatabaseError as e:
+            # Логуємо помилку для розробника
+            print(f"MSSQL Error: {str(e)}")
             
-            # --- 1. Фурнітура (Result Set #1) ---
-            hardware_items = self.dictfetchall(cursor)
+            # Перевіряємо, чи це помилка відновлення (код 927)
+            error_msg = str(e)
+            if "927" in error_msg or "процессе восстановления" in error_msg.lower():
+                return Response({
+                    "error": "database_recovery",
+                    "detail": "База даних оновлюється. Спробуйте через 3 хвилини."
+                }, status=503) # 503 Service Unavailable найкраще підходить для цього
             
-            # Формуємо KPI на основі першого рядка фурнітури
-            hardware_kpi = {
-                "total_orders": hardware_items[0].get("КількістьЗамовлень") if hardware_items else 0,
-                "delivery_days": hardware_items[0].get("СрокПоставки") if hardware_items else 0,
-                "abc_class": hardware_items[0].get("ABC") if hardware_items else None,
-            }
+            # Якщо інша помилка бази
+            return Response({
+                "detail": "Тимчасова помилка бази даних. Спробуйте пізніше."
+            }, status=500)
 
-            # --- 2. Колір профілю (Result Set #2) ---
-            cursor.nextset()
-            profile_color_items = self.dictfetchall(cursor)
-
-            # --- 3. Профільні системи (Result Set #3) ---
-            cursor.nextset()
-            profile_system_items = self.dictfetchall(cursor)
-
-            # --- 4. Префікси (Result Set #4) ---
-            cursor.nextset()
-            prefix_items = self.dictfetchall(cursor)
-
-        # 3. Фінальна відповідь
+        # 3. Фінальна відповідь (якщо все успішно)
         return Response({
             "contractor_guid": contractor_guid,
             "period": {"from": date_from, "to": date_to},
@@ -2591,6 +2629,7 @@ class OrdersDealerStatisticsView(APIView):
             "profile_system": profile_system_items,
             "prefixes": prefix_items,
         })
+    
 
     def dictfetchall(self, cursor):
         """Допоміжний метод для перетворення результатів курсора в список словників"""
@@ -2631,7 +2670,7 @@ class DashboardConfigView(APIView):
                         {"id": "comp-6", "type": "ColorSystemHeatmap", "colSpan": 12, "rowSpan": 17},
                         {"id": "comp-7", "type": "FurnitureChart", "colSpan": 12, "rowSpan": 17},
                         {"id": "comp-8", "type": "ComplexityDonut", "colSpan": 12, "rowSpan": 17},
-                        {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 13},
+                        {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 16},
                     ]
                 }
             ]
