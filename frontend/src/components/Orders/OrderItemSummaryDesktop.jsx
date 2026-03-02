@@ -198,9 +198,6 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
   }, []);
 
 
-  // =================================================================
-  // ============================== RENDER =============================
-  // =================================================================
 
   return (
     <div className="order-item flex flex-col w-full gap-0">
@@ -285,7 +282,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
         {/* BUTTONS */}
         <div className="summary-item row" onClick={(e) => e.stopPropagation()}>
  
-           {user.role !== "admin" && (
+           {user?.role !== "admin" && (
                 <>
                   {/* CONFIRM */}
                   <button

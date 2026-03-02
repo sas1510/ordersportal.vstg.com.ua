@@ -1,0 +1,255 @@
+
+
+
+
+.is-total {
+    border: 1px solid #ff4757;
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.2);
+}
+
+/* Header */
+.card-top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffa502; /* Оранжевий заголовок як на скріні */
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.card-prefix-label i { margin-right: 6px; }
+
+
+.stat-box {
+    padding: 7px;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    border: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+}
+
+.stat-box i {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    opacity: 0.3;
+    font-size: 14px;
+}
+
+.stat-box .val {
+    font-size: 18px;
+    font-weight: 800;
+
+}
+
+.stat-box .lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #fff;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+/* Кольорові зони */
+.blue-zone { background: rgba(41, 128, 185, 0.3); color: #3498db; border-color: #2980b9; }
+.indigo-zone { background: rgba(72, 52, 212, 0.3); color: #686de0; border-color: #4834d2; }
+.green-zone { background: rgba(39, 174, 96, 0.3); color: #2ecc71; border-color: #27ae60; }
+.red-zone { background: rgba(192, 57, 43, 0.3); color: #9b5f39; border-color: #633012; }
+.orange-zone { background: rgba(211, 84, 0, 0.3); color: #e67e22; border-color: #d35400; }
+
+/* Зона рекламацій */
+.comment-zone {
+    background: rgba(255, 165, 2, 0.1);
+    border: 1px solid #ffa502;
+    border-radius: 3px;
+    padding: 7px 7px;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #ffa502;
+    font-weight: bold;
+}
+
+.text-warn {
+    color: #ff4757;
+}
+
+
+
+
+.full-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-box-full .lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #ffa502;
+    letter-spacing: 0.5px;
+}
+
+
+.stat-box-full i {
+    color: #ffa502;
+    opacity: 0.5;
+    font-size: 18px;
+}
+
+.yellow-zone {
+    background: rgba(255, 165, 2, 0.05);
+    border-color: #ffa502;
+}
+
+/* Визначаємо кольори для СВІТЛОЇ теми (за замовчуванням) */
+:root {
+    --stats-bg: #f5f7f9;
+    --card-bg: #ffffff;
+    --card-border: #e1e8ed;
+    --text-main: #555555;
+    --text-muted: #7f8c8d;
+    --accent-orange: #f39c12;
+    --box-border-opacity: 0.2;
+    --box-bg-opacity: 0.1;
+}
+
+/* Перевизначаємо змінні для ТЕМНОЇ теми */
+.dark-theme {
+    --stats-bg: #1e1e1e;
+    --card-bg: #2d2d2d;
+    --card-border: #444444;
+    --text-main: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --accent-orange: #ffa502;
+    --box-border-opacity: 0.3;
+    --box-bg-opacity: 0.2;
+}
+
+.modern-mobile-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--stats-bg);
+    transition: background 0.3s ease;
+}
+
+.modern-stat-card {
+    background: var(--card-bg);
+    border-radius: 3px;
+    padding: 14px;
+    border: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.is-total {
+    border: 2px solid #ff4757 !important;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.15);
+}
+
+/* Header */
+.card-top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--accent-orange);
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.card-id {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Grid Rows */
+.stat-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+}
+
+.stat-box {
+    padding: 7px;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0, var(--box-border-opacity));
+    position: relative;
+}
+
+/* В темній темі змінюємо колір бордера боксів на білий */
+.dark-theme .stat-box {
+    border-color: rgba(255, 255, 255, var(--box-border-opacity));
+}
+
+.stat-box .val {
+    font-size: 18px;
+    font-weight: 800;
+    /* color: var(--text-main); */
+}
+
+.stat-box .lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-main);
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.stat-box i {
+    position: absolute;
+    right: 7px;
+    top: 7px;
+    opacity: 0.2;
+    color: var(--text-main);
+}
+
+/* Кольорові зони (адаптовані під обидві теми) */
+.blue-zone   { background: rgba(52, 152, 219, var(--box-bg-opacity)); color: #3498db; }
+.indigo-zone { background: rgba(104, 109, 224, var(--box-bg-opacity)); color: #686de0; }
+.green-zone  { background: rgba(46, 204, 113, var(--box-bg-opacity)); color: #27ae60; }
+.red-zone    { background: rgba(231, 76, 60, var(--box-bg-opacity)); color: #9b5f39; }
+.orange-zone { background: rgba(230, 126, 34, var(--box-bg-opacity)); color: #e67e22; }
+
+/* Блок на всю ширину (Середня ціна) */
+.stat-box-full {
+    background: rgba(243, 156, 18, var(--box-bg-opacity));
+    border: 1px solid var(--accent-orange);
+    border-radius: 3px;
+    padding: 7px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-box-full .lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--accent-orange);
+    font-weight: bold;
+}
+
+.stat-box-full .val-large {
+    font-size: 20px;
+    font-weight: 800;
+    color: #e67e22;
+
+}
+
+
+
+
+.text-warn {
+    color: #ff4757;
+    font-weight: bold;
+}

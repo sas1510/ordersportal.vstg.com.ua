@@ -16,7 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { addNotification } = useNotification();
-
+  const { loginSuccess } = useContext(RoleContext);
 
   const navigate = useNavigate();
   const { setRole } = useContext(RoleContext);
@@ -45,12 +45,17 @@ export default function LoginPage() {
     try {
       const response = await axiosInstance.post("/login/", { username, password });
 
+      
+      const { access, user, role } = response.data;
+
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      const role = response.data.role;
       localStorage.setItem("role", role);
+      loginSuccess(user, role);
+
       setRole(role);
+
 
       // При вході зберігаємо логін, якщо checkbox активний
       if (rememberMe) {

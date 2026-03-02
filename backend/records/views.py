@@ -2711,3 +2711,75 @@ class DashboardConfigView(APIView):
         )
 
         return Response({"status": "success", "message": "Saved"}, status=status.HTTP_200_OK)
+    
+
+
+
+
+
+from django.db import connections, DatabaseError
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
+class PartnerDebtsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def dictfetchall(self, cursor):
+        """Повертає всі рядки з курсору як словники"""
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def get(self, request):
+        # 1. Визначаємо контрагента через вашу функцію resolve_contractor
+        try:
+            # contractor_bin отримуємо як bytes для SQL BINARY(16)
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response({"detail": str(e)}, status=400)
+
+        db_alias = 'db_2' # або ваш аліас 'default' / 'oknastyle_bi'
+        
+        # 2. Виклик процедури
+        try:
+            with connections[db_alias].cursor() as cursor:
+                # Виклик процедури GetPartnerDebtsDirect
+                cursor.execute("EXEC [dbo].[GetPartnerDebtsDirect] @TargetPartnerID=%s", 
+                               [contractor_bin])
+                
+                # Отримуємо всі дані (включаючи рядки замовлень та рядок "РАЗОМ")
+                raw_data = self.dictfetchall(cursor)
+
+                # Розділяємо дані на основну таблицю та підсумок
+                # Оскільки ми додали SortOrder: 0 - замовлення, 1 - підсумок
+                orders = [item for item in raw_data if item.get('SortOrder') == 0]
+                summary = next((item for item in raw_data if item.get('SortOrder') == 1), None)
+
+        except DatabaseError as e:
+            error_msg = str(e)
+            # Обробка вашої специфічної помилки оновлення бази (927)
+            if "927" in error_msg or "recovery" in error_msg.lower():
+                return Response({
+                    "error": "database_recovery",
+                    "detail": "База даних оновлюється. Спробуйте через декілька хвилин."
+                }, status=503)
+            
+            return Response({
+                "detail": f"Помилка бази даних: {error_msg}"
+            }, status=500)
+
+        # 3. Формуємо відповідь
+        return Response({
+            "contractor_guid": contractor_guid,
+            "debts": {
+                "items": orders,
+                "total": summary
+            }
+        })
+
+
+        

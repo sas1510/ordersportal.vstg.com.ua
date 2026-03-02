@@ -7,3 +7,13 @@ export const formatMoney = (amount) => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
+
+
+export const formatPercent = (val) => {
+  return new Intl.NumberFormat('uk-UA', {
+    style: 'decimal',
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2, 
+  }).format(val);
+};
+

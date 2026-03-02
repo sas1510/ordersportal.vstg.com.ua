@@ -1,0 +1,136 @@
+.mobile-view-wrapper {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding-top: 70px;
+  font-family: 'Inter', sans-serif;
+  padding-bottom: 20px;
+}
+
+/* Header */
+.mobile-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: white;
+  z-index: 1000;
+  padding: 12px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.mobile-nav-content { display: flex; justify-content: space-between; align-items: center; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 14px; color: #1e293b; }
+.pulse-indicator { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; animation: pulse 2s infinite; }
+
+/* KPI */
+.kpi-container { display: flex; gap: 10px; padding: 12px 16px; }
+.kpi-card-mini { flex: 1; background: white; padding: 14px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.kpi-card-mini.dark { background: #1e293b; color: white; }
+.kpi-title { font-size: 10px; text-transform: uppercase; opacity: 0.6; font-weight: 700; letter-spacing: 0.5px; }
+.kpi-value { font-size: 20px; font-weight: 800; display: block; margin-top: 4px; }
+.kpi-value small { font-size: 14px; font-weight: 400; opacity: 0.8; }
+
+/* Feed */
+.mobile-main-feed { padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
+.feed-item { background: white; border-radius: 20px; padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.feed-title { font-size: 14px; font-weight: 700; color: #475569; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.feed-title i { color: #6366f1; width: 16px; text-align: center; }
+
+/* Progress Rows (The "New" format) */
+.mobile-progress-list { display: flex; flex-direction: column; gap: 14px; }
+.progress-row { display: flex; flex-direction: column; gap: 6px; }
+.progress-labels { display: flex; justify-content: space-between; align-items: flex-end; }
+.p-name { font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 75%; }
+.p-count { font-size: 13px; font-weight: 700; color: #6366f1; }
+.p-count small { font-weight: 400; color: #94a3b8; }
+
+.p-bar-bg { height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+.p-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease-out; }
+
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+
+
+.modern-dark-view {
+    background-color: #1a1a1a;
+    min-height: 100vh;
+    padding-bottom: 30px;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Modern Header */
+.modern-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #252525;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    border-bottom: 1px solid #333;
+}
+
+.brand-zone { display: flex; align-items: center; gap: 10px; }
+.pulse-dot { width: 8px; height: 8px; background: #ffa502; border-radius: 50%; box-shadow: 0 0 8px #ffa502; }
+.brand-label { color: #fff; font-weight: 800; font-size: 14px; letter-spacing: 1px; }
+
+.export-circle {
+    background: #333;
+    border: none; color: #fff;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+}
+
+/* KPI Grid */
+.modern-kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
+}
+
+.m-kpi-card {
+    background: #2d2d2d;
+    padding: 16px;
+    border-radius: 12px;
+    border-bottom: 3px solid transparent;
+}
+
+.accent-orange { border-color: #ffa502; }
+.accent-blue { border-color: #3498db; }
+
+.m-kpi-label { color: #999; font-size: 10px; text-transform: uppercase; font-weight: 700; }
+.m-kpi-value { color: #fff; font-size: 20px; font-weight: 800; display: block; margin-top: 5px; }
+
+/* Feed */
+.modern-content-feed { padding: 0 16px; display: flex; flex-direction: column; gap: 20px; }
+
+.section-main-title { color: #ffa502; font-size: 16px; margin-bottom: 10px; padding-left: 5px; }
+
+.modern-feed-card {
+    background: #2d2d2d;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #383838;
+}
+
+.card-title-iconic {
+    color: #ffa502;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center; gap: 10px;
+}
+
+/* Progress Rows */
+.m-list-wrapper { display: flex; flex-direction: column; gap: 15px; }
+.modern-progress-row { display: flex; flex-direction: column; gap: 6px; }
+.m-progress-info { display: flex; justify-content: space-between; font-size: 12px; }
+.m-name { color: #eee; font-weight: 500; }
+.m-val { color: #fff; font-weight: 700; }
+.m-val small { color: #666; font-weight: 400; }
+
+.m-bar-container { height: 6px; background: #1a1a1a; border-radius: 10px; overflow: hidden; }
+.m-bar-fill { height: 100%; border-radius: 10px; transition: width 1s ease; }
+
+.chart-container { width: 100%; }

@@ -8,7 +8,7 @@ import { formatDateHuman } from "../utils/formatters";
 import { useDealerContext } from "../hooks/useDealerContext";
 import DealerSelect from './DealerSelect'
 import { useNotification } from "../components/notification/Notifications";
-
+import { formatPercent }  from '../utils/formatMoney'
 // ====================================================================
 //                           FORMAT CURRENCY
 // ====================================================================
@@ -145,10 +145,10 @@ const DocumentRow = React.memo(
 
           {/* NUMBERS */}
           <td>{formatCurrency(docGroup.CumSaldoStart)}</td>
-          <td className="text-green">
+          <td className={income > 0 ? "text-green" : ""}>
             {income > 0 ? formatCurrency(income, "") : "—"}
           </td>
-          <td className="text-red">
+          <td className={expense > 0 ? "text-red" : ""}>
             {expense > 0 ? formatCurrency(expense, "") : "—"}
           </td>
           <td className="text-bold">{formatCurrency(cumSaldo)}</td>
@@ -243,10 +243,12 @@ const DocumentRow = React.memo(
                       </div>
 
                       <div>
-                        <span className="mini-label">Статус</span>
-                        <span>{item.PaymentStatus || "—"}</span>
+                        <span className="mini-label">Відсоток</span>
+      
+                        <span className={item.PaymentStatus < 50 ? 'mini-red' : 'mini-green'}>
+                          {item.PaymentStatus !== null ? `${formatPercent(item.PaymentStatus)} %` : "—"}
+                        </span>
                       </div>
-
                       <div>
                         <span className="mini-label">Договір</span>
                         <span className="mini-value">

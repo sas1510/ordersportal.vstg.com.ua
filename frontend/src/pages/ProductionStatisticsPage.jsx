@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../api/axios";
 import ProductionStatisticsBuilder from "../components/Statistics/ProductionStatisticsBuilder";
 import ProductionStatisticsBlock from "../components/Statistics/ProductionStatisticsBlock";
-import { FaSearch, FaChartBar, FaThLarge, FaExclamationTriangle } from "react-icons/fa";
+import ProductionStatisticsView from "../components/Statistics/ProductionStatisticsView"; // Новий імпорт
+import { FaSearch, FaChartBar, FaThLarge, FaExclamationTriangle, FaMobileAlt } from "react-icons/fa";
 import './ProductionStatisticsPage.css';
 import { useNotification } from "../components/notification/Notifications";
 
@@ -13,7 +14,8 @@ export default function ProductionStatisticsPage() {
   const [activeView, setActiveView] = useState('block');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); 
-  
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   // Механізм примусового оновлення
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -30,6 +32,29 @@ export default function ProductionStatisticsPage() {
 
   const [searchParams, setSearchParams] = useState({ ...dateInputs });
 
+  // Слідкуємо за розміром екрана
+// Слідкуємо за розміром екрана
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      if (mobile) {
+        // Якщо мобільний — перемикаємо на мобільний вид
+        setActiveView('view'); 
+      } else {
+        // Якщо повернулися на десктоп — ставимо стандартний 'block'
+        setActiveView('block');
+      }
+    };
+
+    // Викликаємо один раз при монтуванні, щоб встановити правильний стан відразу
+    handleResize(); 
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const loadAllData = async () => {
       setLoading(true);
@@ -40,7 +65,6 @@ export default function ProductionStatisticsPage() {
           date_to: searchParams.to 
         };
         
-        // Одночасний запит до обох ендпоінтів
         const [resFull, resOrder] = await Promise.all([
           axiosInstance.get("/full-statistics/", { params }),
           axiosInstance.get("/order-statistics/", { params })
@@ -50,27 +74,14 @@ export default function ProductionStatisticsPage() {
         setDealerData(resOrder.data);
       } catch (err) {
         console.error("Помилка завантаження:", err);
-        
-        // Отримуємо деталі помилки від Django
         const djangoDetail = err.response?.data?.detail || "";
         const serverError = err.response?.data?.error || ""; 
-        const generalMessage = err.message || "";
-        const fullErrorText = `${djangoDetail} ${serverError} ${generalMessage}`.toLowerCase();
+        const fullErrorText = `${djangoDetail} ${serverError} ${err.message}`.toLowerCase();
 
-        // Перевірка на статус 503 (Service Unavailable) або текст відновлення MSSQL
-        if (
-          err.response?.status === 503 || 
-          fullErrorText.includes("восстановления") || 
-          fullErrorText.includes("recovery") || 
-          fullErrorText.includes("42000")
-        ) {
+        if (err.response?.status === 503 || fullErrorText.includes("recovery") || fullErrorText.includes("42000")) {
           const mssqlMsg = djangoDetail || "База даних оновлюється. Спробуйте через 3 хвилини.";
           setError(mssqlMsg);
-          addNotification({
-            type: "warning",
-            message: mssqlMsg,
-            duration: 10000 
-          });
+          addNotification({ type: "warning", message: mssqlMsg, duration: 10000 });
         } else {
           setError("Виникла проблема під час з'єднання із сервером.");
         }
@@ -84,7 +95,7 @@ export default function ProductionStatisticsPage() {
 
   const handleSearch = () => {
     setSearchParams({ ...dateInputs });
-    setRefreshTrigger(prev => prev + 1); // Збільшуємо лічильник, щоб викликати useEffect
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
@@ -106,67 +117,61 @@ export default function ProductionStatisticsPage() {
               onChange={(e) => setDateInputs({...dateInputs, to: e.target.value})} 
               className="year-select-custom" 
             />
-            <button 
-              className="btn-search-stats" 
-              onClick={handleSearch}
-              disabled={loading}
-            >
-              <FaSearch /> {loading ? "Завантаження..." : "Сформувати"}
+            <button className="btn-search-stats" onClick={handleSearch} disabled={loading}>
+              <FaSearch /> {loading ? "..." : "Сформувати"}
             </button>
           </div>
 
-          <div className="view-toggle-container">
-            <button 
-              className={`toggle-btn ${activeView === 'block' ? 'active' : ''}`} 
-              onClick={() => setActiveView('block')}
-            >
-              <FaChartBar /> Звіт
-            </button>
-            <button 
-              className={`toggle-btn ${activeView === 'builder' ? 'active' : ''}`} 
-              onClick={() => setActiveView('builder')}
-            >
-              <FaThLarge /> Конструктор
-            </button>
-          </div>
+          {/* Перемикач режимів (ховаємо або змінюємо на мобільних) */}
+          {!isMobile && (
+            <div className="view-toggle-container">
+              <button 
+                className={`toggle-btn ${activeView === 'block' ? 'active' : ''}`} 
+                onClick={() => setActiveView('block')}
+              >
+                <FaChartBar /> Звіт
+              </button>
+              <button 
+                className={`toggle-btn ${activeView === 'builder' ? 'active' : ''}`} 
+                onClick={() => setActiveView('builder')}
+              >
+                <FaThLarge /> Конструктор
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="stats-content-area">
         {loading && !rawData ? (
-          <div className="loading-spinner-wrapper">
-            <div className="loading-spinner"></div>
-          </div>
+          <div className="loading-spinner-wrapper"><div className="loading-spinner"></div></div>
         ) : error ? (
-          /* Блок помилки: красиво центрований з кнопкою повтору */
           <div className="error-empty-state column align-center jc-center" style={{ minHeight: '400px' }}>
             <FaExclamationTriangle className="text-red mb-16" style={{ fontSize: '64px' }} />
             <h3 className="font-size-24 weight-600 mb-8">Упс! Дані тимчасово недоступні</h3>
-            <p className="text-grey mb-24 text-center" style={{ maxWidth: '450px', lineHeight: '1.5' }}>
-              {error} <br/>
-              Зазвичай це займає близько 3-х хвилин. Спробуйте оновити запит трохи пізніше.
-            </p>
-            <button 
-              className="btn-search-stats" 
-              onClick={handleSearch} 
-              disabled={loading}
-              style={{ padding: '12px 30px', fontSize: '16px' }}
-            >
-              {loading ? "Запит триває..." : "Повторити запит"}
-            </button>
+            <p className="text-grey mb-24 text-center">{error}</p>
+            <button className="btn-search-stats" onClick={handleSearch}>Повторити запит</button>
           </div>
         ) : (
-          activeView === 'block' ? (
-            <ProductionStatisticsBlock 
+          /* ВИБІР РЕНДЕРУ: Мобільний Clean View VS Десктопні версії */
+          isMobile ? (
+            <ProductionStatisticsView 
               rawData={rawData} 
               dealerData={dealerData} 
-              dateRange={searchParams} 
             />
           ) : (
-            <ProductionStatisticsBuilder 
-              rawData={rawData} 
-              dealerData={dealerData} 
-            />
+            activeView === 'block' ? (
+              <ProductionStatisticsBlock 
+                rawData={rawData} 
+                dealerData={dealerData} 
+                dateRange={searchParams} 
+              />
+            ) : (
+              <ProductionStatisticsBuilder 
+                rawData={rawData} 
+                dealerData={dealerData} 
+              />
+            )
           )
         )}
       </div>

@@ -967,3 +967,343 @@ body.dark-theme .order-sum {
 @media (max-width: 768px) {
     .payments-page { padding-bottom: 25px !important; padding-top: 50px !important; }
 }
+
+
+.debt-summary-section {
+    background: var(--bg-card-secondary, #f8f9fa);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #e9ecef);
+    margin-bottom: 25px;
+}
+
+/* Контейнер таблиці */
+.analytics-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 25px;
+    background: #fff;
+    border: 1px dashed #d1d7dd;
+    border-radius: 4px;
+}
+
+/* Стиль таблиці зі скріншоту */
+.analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+    font-size: 13.5px;
+}
+
+.analytics-table th {
+    background-color:  var(--info-bg-color); /* Світло-блакитний як на фото */
+    color: #444;
+    font-weight: 500;
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px dashed #d1d7dd;
+    /* white-space: nowrap; */
+}
+
+.analytics-table td {
+    padding: 7px 14px;
+    border: 1px dashed #d1d7dd;
+    color: #333;
+}
+
+/* Кольори статусів та цифр */
+.red-text {
+    color: #d93025;
+    font-weight: 600;
+}
+
+.orange-text {
+    color: #e67c00; /* Колір для "Без передоплати" */
+}
+
+.dark-orange-text {
+    color: #bf360c; /* Для суми реалізації */
+    font-weight: 700;
+}
+
+.bold-text {
+    font-weight: 700;
+    color: #000;
+
+}
+
+/* Бейджі авансів у стилі "срібло" */
+.pp-badge.silver-style {
+    background: #f1f3f4;
+    border: 1px solid #dadce0;
+    color: #3c4043;
+    padding: 6px 15px;
+    border-radius: 20px;
+}
+
+/* Dark Theme Support */
+.dark-theme .analytics-table-container {
+    background: #2d2d2d;
+    border-color: #444;
+}
+
+.dark-theme .analytics-table th {
+    background-color: #38444d;
+    color: #ddd;
+    border-color: #444;
+}
+
+.dark-theme .analytics-table td {
+    color: #eee;
+    border-color: #444;
+}
+
+
+.pointer-link {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  transition: color 0.2s;
+}
+
+.pointer-link:hover {
+  color: #007bff;
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.debt-details-modal {
+  max-width: 800px !important;
+  width: 90% !important;
+}
+
+.details-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+}
+
+.details-list-table th, .details-list-table td {
+  padding: 7px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  white-space: nowrap;
+
+}
+
+.modal-body.scrollable {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-content {
+    background: #fff;
+}
+
+/* Контейнер модалки деталей */
+.detail-orders-modal {
+    width: 600px;
+    max-width: 95%;
+}
+
+.detail-scroll-area {
+    padding: 0 !important;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* Мінімалістична таблиця */
+.minimal-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.minimal-detail-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #888;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+}
+
+.minimal-detail-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f2f2f2;
+}
+
+/* Акценти */
+.accent-blue {
+    color: #1da8df;
+    font-weight: 700;
+}
+
+.mini-action-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+}
+
+/* АДАПТИВНІСТЬ (MOBILE) */
+@media (max-width: 600px) {
+    .desktop-only-payment {
+        display: none;
+    }
+
+    .detail-orders-modal {
+        width: 100%;
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    .minimal-detail-table tbody {
+        display: block;
+        padding: 10px;
+    }
+
+    .detail-row-card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: 
+            "num sum"
+            "date action";
+        background: var(--bg-portal);
+        border: 1px solid #eee;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 12px;
+        align-items: center;
+    }
+
+    .detail-num { grid-area: num; border: none !important; padding: 0 !important; font-size: 16px; }
+    .detail-sum { grid-area: sum; border: none !important; padding: 0 !important; text-align: right; font-size: 16px; }
+    .detail-date { grid-area: date; border: none !important; padding: 5px 0 0 !important; color: #888; font-size: 13px; }
+    .detail-action { grid-area: action; border: none !important; padding: 5px 0 0 !important; text-align: right; }
+
+    .btn-text {
+        display: none; /* Ховаємо текст на мобільці, залишаємо іконку лупи */
+    }
+    
+    .mini-action-btn {
+        width: 40px;
+        height: 35px;
+        justify-content: center;
+    }
+}
+
+/* Темна тема */
+.dark-theme .minimal-detail-table th {
+    background: #333;
+    border-bottom-color: #444;
+}
+
+.dark-theme .minimal-detail-table td {
+    border-bottom-color: #383838;
+}
+
+.dark-theme .detail-row-card {
+    border-color: #444;
+    background: #2b2b2b;
+}
+
+@media (max-width: 768px)  {
+    .mobile-none {
+        display: none;
+    }
+}
+
+
+/* Контейнер для центрування всередині клітинки */
+.center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+/* Стиль для кнопки */
+.mini-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 40px; /* Для мобілки, щоб була квадратною */
+    height: 34px;
+    padding: 6px 12px;
+}
+
+/* Ховаємо текст на мобільних пристроях */
+@media (max-width: 600px) {
+    .mobile-none {
+        display: none;
+    }
+    
+    .mini-action-btn {
+        padding: 0;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+    }
+}
+
+/* Базові налаштування видимості */
+.mobile-only-payment { display: none; }
+.desktop-only-payment { display: block; }
+
+/* Стилізація мобільної сітки */
+@media (max-width: 1024px) {
+    .desktop-only-payment { display: none; }
+    .mobile-only-payment { display: grid; }
+
+    .analytics-mobile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+        gap: 10px;
+        padding: 10px 0;
+    }
+
+    .analytics-card {
+        background: var(--bg-card, #fff);
+        border: 1px solid var(--border-color, #e0e0e0);
+        border-radius: 10px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .analytics-card.clickable {
+        cursor: pointer;
+        border-left: 3px solid #1da8df; /* Виділяємо клікабельні */
+    }
+
+
+    .analytics-card.clickable:hover {
+        transform: none;
+    }
+    .analytics-card .label {
+        font-size: 11px;
+        color: #888;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+
+    .analytics-card .value {
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        text-align: center;
+    }
+}
+
+/* Темна тема */
+.dark-theme .analytics-card {
+    background: #2b2b2b;
+    border-color: #444;
+}
+
+.dark-theme .analytics-card .label {
+    color: #aaa;
+}

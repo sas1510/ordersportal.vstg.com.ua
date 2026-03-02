@@ -812,6 +812,9 @@ body.dark-theme .theme-toggle-btn:hover .icon {
     height: 50px !important;
   }
 
+  .mobile-menu-content {
+    top: 50px;
+  }
 
   
 }

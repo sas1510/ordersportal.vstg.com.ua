@@ -51,6 +51,14 @@ export function RoleProvider({ children }) {
     }
   }, []);
 
+  const loginSuccess = (userData, userRole) => {
+    setUser(userData);
+    setRole(userRole);
+    setIsLoading(false);
+    localStorage.setItem("role", userRole);
+    localStorage.setItem("user", JSON.stringify(userData));
+};
+
   useEffect(() => {
     loadUser();
   }, [loadUser]);
@@ -68,6 +76,7 @@ export function RoleProvider({ children }) {
         user,           
         isLoading,      
         reloadUser: loadUser,
+        loginSuccess,
         logout,
         setRole: updateRole 
       }}
