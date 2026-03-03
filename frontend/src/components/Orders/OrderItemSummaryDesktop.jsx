@@ -13,7 +13,7 @@ import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
 import { useAuth } from '../../hooks/useAuth';
 
-export default React.memo(function OrderItemSummaryDesktop({ order }) {
+export default React.memo(function OrderItemSummaryDesktop({ order, calculationDate }) {
 
   const { addNotification } = useNotification();
 
@@ -92,6 +92,8 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
 
     return state;
   }, []);
+
+
 
     // ========================= DEBT =========================
   const debtAmount = useMemo(() => {
@@ -197,6 +199,19 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
     }
   }, []);
 
+  const dateDiffStatus = useMemo(() => {
+    // Перевіряємо наявність обох дат
+    if (!order.date || !calculationDate) return null;
+
+    const d1 = new Date(calculationDate);
+    const d2 = new Date(order.date);
+    
+    // Різниця в мілісекундах перетворена в дні
+    const diffInDays = (d2 - d1) / (1000 * 60 * 60 * 24);
+
+    // Якщо замовлення зроблено протягом 24 годин (<= 1 дня) — true (радісний)
+    return diffInDays <= 1; 
+  }, [order.date, calculationDate]);
 
 
   return (
@@ -331,6 +346,20 @@ export default React.memo(function OrderItemSummaryDesktop({ order }) {
             <div className="font-size-12">Рекламація</div>
           </button>
         </div>
+
+       {/* SMILEY COLUMN */}
+<div 
+  className="summary-item flex items-center justify-center w-6" 
+  title={dateDiffStatus ? "Швидке оформлення" : "Замовлення оформлено пізніше ніж через добу"}
+>
+  <div className="font-size-24 flex items-center justify-center">
+    {dateDiffStatus === null ? null : dateDiffStatus ? (
+      <i className="far fa-laugh-beam text-success pulse-animation"></i> 
+    ) : (
+      <i className="far fa-frown text-danger"></i>
+    )}
+  </div>
+</div>
       </div>
 
       {/* DETAILS */}

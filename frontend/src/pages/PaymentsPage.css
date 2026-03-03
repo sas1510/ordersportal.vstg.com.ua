@@ -899,7 +899,7 @@
 ================================ */
 
 .content-filter-payment {
-  height: calc(100vh - 60px); /* висота вікна мінус хедер порталу */
+  height: calc(100vh - 110px); /* висота вікна мінус хедер порталу */
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1306,4 +1306,9 @@ body.dark-theme .order-sum {
 
 .dark-theme .analytics-card .label {
     color: #aaa;
+}
+
+
+.dark-theme .details-list-table th {
+    background: #333;
 }

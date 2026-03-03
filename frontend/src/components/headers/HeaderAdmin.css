@@ -562,7 +562,7 @@ align-items: center;
 .mobile-menu-content .theme-toggle-btn {
     width: 100%;
     justify-content: flex-start;
-    gap: 10px;
+    /* gap: 10px; */
     padding: 10px 15px; /* Як у інших посиланнях меню */
     color: var(--text-color); /* Темний текст у світлому мобільному меню */
 }
@@ -680,7 +680,7 @@ body.dark-theme .theme-toggle-btn:hover .icon {
     direction: ltr;
 
     /* Використовуємо наш бажаний розмір */
-    font-size: 20px !important; 
+    font-size: 20px ; 
     
     /* Додаємо правило для hover */
     transition: color 0.3s ease;
@@ -818,3 +818,12 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 
   
 }
+
+
+
+.notification-badge {
+  color: #f46c3b;
+  font-size: 10px;
+}
+
+

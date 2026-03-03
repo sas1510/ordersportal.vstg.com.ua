@@ -105,7 +105,7 @@ const handleDownloadPDF = async (billGuid, billNumber) => {
           <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
           <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           {isAdmin && <DealerSelect value={dealerGuid} onChange={setDealerGuid} />}
-          <button className="btn btn-filter" onClick={fetchBills} disabled={isAdmin && !dealerGuid}>
+          <button className="btn btn-filter-bill" onClick={fetchBills} disabled={isAdmin && !dealerGuid}>
             <FaSearch /> Пошук
           </button>
           {USER_ROLE === "customer" && (

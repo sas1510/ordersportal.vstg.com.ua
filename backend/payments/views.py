@@ -829,7 +829,7 @@ def create_invoice(request):
 
     result = send_to_1c(
         payload=payload_1c,
-        query="CreateInvoice",
+        query="CreateBill",
     )
 
     return Response({"status": "ok", "data": result}, status=201)

@@ -49,6 +49,7 @@ import WDSCodesTable from './pages/WDSCodesTable'
 import InvalidLinkPage from './pages/InvalidLinkPage'
 import ProductionStatisticsPage from './pages/ProductionStatisticsPage'
 import DashboardPage from "./pages/DashboardPage";
+import NotificationPage from './pages/NotificationPage'
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -98,6 +99,7 @@ export const adminRoutes = [
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
    { path: "dashboardpage", element: <DashboardPage/> },
+   { path: "notifications", element: <NotificationPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
   
@@ -140,6 +142,7 @@ export const dealerRoutes = [
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
   { path: "dashboardpage", element: <DashboardPage/> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
+  { path: "/notifications", element: <NotificationPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

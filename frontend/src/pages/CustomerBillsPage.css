@@ -113,7 +113,7 @@
   color: var(--text-color);
 }
 
-.btn-filter {
+.btn-filter-bill {
   height: 36px;
   padding: 0 16px;
   background-color: var(--info-color);
@@ -377,3 +377,29 @@ body.dark-theme  .btn-bill-download:hover {
 
 
 
+
+
+
+/* Клас для обертання */
+.spinning {
+  animation: spin 1s linear infinite;
+  display: inline-block; /* Важливо для коректного обертання */
+
+}
+
+/* Опис анімації */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Опціонально: колір та розмір для іконки PDF завантаження */
+.pdf-icon.spinning {
+  color: var(--danger-color);
+margin-left: 8px;
+  /* margin-right: 5px; */
+}

@@ -36,6 +36,7 @@ export default function HeaderDealer() {
   const { role } = useContext(RoleContext);
   // 👈 Отримуємо тему та toggleTheme
   const { theme, toggleTheme } = useTheme(); 
+  const [unreadCount, setUnreadCount] = useState(3); // Приклад: 3 нових сповіщення
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
@@ -190,6 +191,24 @@ export default function HeaderDealer() {
   )}
 </li>
 
+    {/* 🔔 СПОВІЩЕННЯ (DESKTOP) */}
+    <li className="theme-toggle-item">
+      <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
+        <div className="theme-toggle-btn"  style={{fontSize: '18px'}}>
+          <i className="fa fa-bell material-icons"   style={{ 
+                              color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                              fontSize: '18px',
+                              fontStyle: 'normal'
+                          }}></i>
+          {unreadCount > 0 && (
+            <span className="notification-badge">{unreadCount}</span>
+          )}
+        </div>
+      </Link>
+    </li>
+
+
+
             {/* 👈 КНОПКА ТЕМИ (DESKTOP) */}
             <li className="theme-toggle-item">
               <button 
@@ -306,8 +325,27 @@ export default function HeaderDealer() {
 </li>
 
 
-            {/* 👈 КНОПКА ТЕМИ (MOBILE) */}
+
        
+          
+
+
+          
+          <li className="theme-toggle-item">
+      <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
+        <div className="theme-toggle-btn"  style={{fontSize: '18px'}}>
+          <i className="fa fa-bell material-icons"   style={{ 
+                              color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                              fontSize: '18px',
+                              fontStyle: 'normal'
+                          }}></i>
+          {unreadCount > 0 && (
+            <span className="notification-badge">{unreadCount}</span>
+          )}
+        </div>
+      </Link>
+    </li>
+
          
 
           <li className="theme-toggle-item">

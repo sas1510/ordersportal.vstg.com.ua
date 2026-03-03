@@ -2731,9 +2731,9 @@ class PartnerDebtsView(APIView):
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     def get(self, request):
-        # 1. Визначаємо контрагента через вашу функцію resolve_contractor
+
         try:
-            # contractor_bin отримуємо як bytes для SQL BINARY(16)
+         
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
                 allow_admin=True,

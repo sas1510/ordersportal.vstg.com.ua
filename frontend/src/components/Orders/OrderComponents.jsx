@@ -327,7 +327,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRea
             </div>
           ) : (
             orderList.map((order) => (
-              <OrderItemSummaryDesktop key={order.number} order={order} />
+              <OrderItemSummaryDesktop key={order.number} order={order} calculationDate={calc.date}/>
             ))
           )}
         </div>

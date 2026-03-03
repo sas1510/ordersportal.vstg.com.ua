@@ -317,41 +317,52 @@ export default function PaymentsPage() {
         </thead>
         <tbody>
           <tr>
-            <td className={debtTotal.CustomerLimit === 0 ? "text-success bold-text "  : "bold-text"}  style={{ whiteSpace: "nowrap" }}>
+            <td className={debtTotal.CustomerLimit == null ? " bold-text "  : "text-success bold-text"}  style={{ whiteSpace: "nowrap" }}>
               {debtTotal.CustomerLimit === null || debtTotal.CustomerLimit === 0 ? "—" : `${formatCurrency(debtTotal.CustomerLimit)} грн`}
             </td>
-            <td className= {debtTotal.CustomerLimit > 0 ? "text-danger bold-text "  : "bold-text"} style={{ whiteSpace: "nowrap" }}>
+            <td 
+              className={(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0)) > debtTotal.CustomerLimit && debtTotal.CustomerLimit > 0 
+                ? "text-danger bold-text" 
+                : "bold-text"} 
+              style={{ whiteSpace: "nowrap" }}
+            >
               {debtTotal.CustomerLimit > 0 && (Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0)) > debtTotal.CustomerLimit
-                ? formatCurrency((Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0)) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)
-                : "0,00"} грн
+                ? `${formatCurrency((Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0)) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} грн`
+                : "—"}
             </td>
-            <td className="text-info" style={{ whiteSpace: "nowrap" }}>
+            <td className={debtTotal.CustomerLimit == null ? " bold-text "  : "text-info bold-text"} style={{ whiteSpace: "nowrap" }}>
               {debtTotal.CustomerLimit > 0 
                 ? formatCurrency(Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0)))
                 : "—"} {debtTotal.CustomerLimit > 0 && "грн"}
             </td>
-            <td className={Number(debtTotal.BezPeredOplaty || 0) > 0 ? "orange-text pointer-link" : "orange-text"} style={{ whiteSpace: "nowrap" }}
+            <td className={Number(debtTotal.BezPeredOplaty || 0) > 0 ? "orange-text pointer-link text-bold" : "orange-text text-bold"} style={{ whiteSpace: "nowrap" }}
                 onClick={() => Number(debtTotal.BezPeredOplaty || 0) > 0 && showDebtDetails('no_prepayment')}>
-              {formatCurrency(debtTotal.BezPeredOplaty)} грн
+                {Number(debtTotal.BezPeredOplaty || 0) > 0 
+                ? `${formatCurrency(debtTotal.BezPeredOplaty)} грн` 
+                : "—"}
             </td>
             <td className={Number(debtTotal.NedoAvans || 0) > 0 ? "dark-orange-text pointer-link" : "dark-orange-text"} style={{ whiteSpace: "nowrap" }}
                 onClick={() => Number(debtTotal.NedoAvans || 0) > 0 && showDebtDetails('nedoavans')}>
-              {formatCurrency(debtTotal.NedoAvans)} грн
+                {Number(debtTotal.NedoAvans || 0) > 0 
+                  ? `${formatCurrency(debtTotal.NedoAvans)} грн` 
+                  : "—"}
             </td>
             <td className="dark-orange-text" style={{ whiteSpace: "nowrap" }}>
-              {formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} грн
+              {(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0)) > 0 
+                ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} грн`
+                : "—"}
             </td>
             <td className={Number(debtTotal.Debt || 0) > 0 ? "dark-orange-text pointer-link" : "dark-orange-text"} style={{ whiteSpace: "nowrap" }}
                 onClick={() => Number(debtTotal.Debt || 0) > 0 && showDebtDetails('in_route')}>
-              {formatCurrency(debtTotal.Debt)} грн
+              {Number(debtTotal.Debt || 0) > 0 ? `${formatCurrency(debtTotal.Debt)} грн` : "—"}
             </td>
-            <td className={Number(debtTotal.Summa || 0) > 0 ? "text-warning pointer-link text-bold" : "text-warning text-bold"} style={{ whiteSpace: "nowrap" }}
+            <td className={Number(debtTotal.Summa || 0) > 0 ? "text-warning pointer-link text-bold" : " text-bold"} style={{ whiteSpace: "nowrap" }}
                 onClick={() => Number(debtTotal.Summa || 0) > 0 && showDebtDetails('money_way')}>
-              {formatCurrency(debtTotal.Summa)} грн
+              {Number(debtTotal.Summa || 0) > 0 ? `${formatCurrency(debtTotal.Summa)} грн` : "—"}
             </td>
-            <td className={Number(debtTotal.DebtMoreTen || 0) > 0 ? "text-danger pointer-link text-bold" : "text-danger text-bold" }  style={{ whiteSpace: "nowrap" }}
+            <td className={Number(debtTotal.DebtMoreTen || 0) > 0 ? "text-danger pointer-link text-bold" : " text-bold" }  style={{ whiteSpace: "nowrap" }}
                 onClick={() => Number(debtTotal.DebtMoreTen || 0) > 0 && showDebtDetails('critical')}>
-              {formatCurrency(debtTotal.DebtMoreTen)} грн
+              {Number(debtTotal.DebtMoreTen || 0) > 0 ? `${formatCurrency(debtTotal.DebtMoreTen)} грн` : "—"}
             </td>
           </tr>
         </tbody>
