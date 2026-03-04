@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, DashboardConfigView, PartnerDebtsView, ExternalMessageCreateView
 
 create_calculation = CreateCalculationViewSet.as_view({
@@ -35,6 +35,8 @@ urlpatterns = [
     path('user-dashboard-settings/', DashboardConfigView.as_view(), name='user-dashboard-settings'),
     path('partner-debts/', PartnerDebtsView.as_view(), name='partner-debts'),
     path('create_message/', ExternalMessageCreateView.as_view(), name='create_message'),
-
+    path('notifications/', get_user_notifications, name='user-notifications'),
+    path('notifications/count/', get_notifications_count, name='notifications-count'),
+    path('notifications/mark-read/', mark_notifications_as_read, name='notifications-mark-read'),
 ]
 

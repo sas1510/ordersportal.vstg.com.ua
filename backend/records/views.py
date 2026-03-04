@@ -2786,7 +2786,10 @@ from rest_framework import status
 from django.db import transaction
 from backend.authentication import OneCApiKeyAuthentication
 from backend.permissions import IsAuthenticatedOr1CApiKey
+# from .models import Notification
 from .services.messages import save_message
+
+
 
 class ExternalMessageCreateView(APIView):
     """
@@ -2799,24 +2802,22 @@ class ExternalMessageCreateView(APIView):
 
     @transaction.atomic
     def post(self, request):
-
         data = request.data
         
         transaction_type = data.get("transactionTypeId")
         base_guid = data.get("baseTransactionGuid")
-        message_text = data.get("Message")
-        # 1С передає GUID автора прямо в JSON
-        writer_guid = data.get("WriterGuid1c")
+        message_text = data.get("message")
+        writer_guid = data.get("writerGuid1c")
+        transaction_number = data.get("transactionNumber") or ""
 
-        # Базова валідація наявності полів
         if not all([transaction_type, base_guid, message_text]):
             return Response(
-                {"error": "Поля transaction_type_id, base_transaction_guid та message є обов'язковими"},
+                {"error": "Поля transactionTypeId, baseTransactionGuid та Message є обов'язковими"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
-        
+            # 1. Зберігаємо саме повідомлення
             message = save_message(
                 transaction_type_id=transaction_type,
                 base_transaction_guid=base_guid,
@@ -2824,11 +2825,39 @@ class ExternalMessageCreateView(APIView):
                 writer_guid=writer_guid 
             )
 
+            # 2. Формуємо текст сповіщення залежно від типу
+            notification_titles = {
+                1: "прорахунку",
+                2: "рекламації",
+                3: "доп. замовленні"
+            }
+            
+            title = notification_titles.get(int(transaction_type), "Документ")
+            full_notification_message = f"З'явилося нове повідомлення у {title} № {transaction_number}"
+
+
+            writer_bin = guid_to_1c_bin(writer_guid)
+            target_user = CustomUser.objects.filter(user_id_1C=writer_bin).first()
+            # 3. Створюємо запис у таблиці Notifications
+            # Використовуємо прямий імпорт моделі або SQL за вашим стандартом
+            from .models import Notification 
+            
+            base_transaction_bin = guid_to_1c_bin(base_guid)
+            
+            Notification.objects.create(
+                event_type="NEW_MESSAGE",            
+                base_transaction_id=base_transaction_bin, 
+                message=full_notification_message,   
+                is_read=False,                      
+                transaction_type_id=transaction_type,
+                new_value=transaction_number,
+                user=target_user                
+            )
+
             return Response({
                 "status": "success",
                 "id": message.id,
-                "created_at": message.created_at,
-                "message": message.message
+                "notification": "created"
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
@@ -2836,3 +2865,75 @@ class ExternalMessageCreateView(APIView):
                 {"error": f"Внутрішня помилка сервера: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .models import Notification
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_notifications(request):
+    """
+    Повертає список сповіщень для поточного користувача.
+    """
+    # Отримуємо останні 20 сповіщень користувача
+    notifications_qs = Notification.objects.filter(
+        user=request.user
+    ).select_related('transaction_type')[:20]
+
+    result = []
+    for n in notifications_qs:
+        result.append({
+            "id": n.id,
+            "eventType": n.event_type,
+            "message": n.message,
+            "newValue": n.new_value,
+            "oldValue": n.old_value,
+            "isRead": n.is_read,
+            "createdAt": n.created_at,
+            "transactionType": n.transaction_type.type_name if n.transaction_type else None,
+            "baseTransactionGuid": bin_to_guid_1c(n.base_transaction_id) if n.base_transaction_id else None,
+        })
+
+    return Response({
+        "status": "success",
+        "data": result
+    })
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_notifications_count(request):
+    """
+    Повертає кількість непрочитаних сповіщень.
+    """
+    unread_count = Notification.objects.filter(
+        user=request.user, 
+        is_read=False
+    ).count()
+
+    return Response({
+        "status": "success",
+        "unreadCount": unread_count
+    })
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def mark_notifications_as_read(request):
+    """
+    Позначає всі сповіщення користувача як прочитані.
+    """
+    Notification.objects.filter(
+        user=request.user, 
+        is_read=False
+    ).update(is_read=True)
+
+    return Response({"status": "success", "message": "All notifications marked as read"})
