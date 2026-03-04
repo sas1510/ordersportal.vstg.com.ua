@@ -2777,4 +2777,62 @@ class PartnerDebtsView(APIView):
         })
 
 
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from backend.authentication import OneCApiKeyAuthentication
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from .services.messages import save_message
+
+class ExternalMessageCreateView(APIView):
+    """
+    Створення коментаря на основі повного JSON-пакету від 1С.
+    Захищено через X-API-KEY.
+    """
+ 
+    authentication_classes = [OneCApiKeyAuthentication]
+    permission_classes = [IsAuthenticatedOr1CApiKey]
+
+    @transaction.atomic
+    def post(self, request):
+
+        data = request.data
         
+        transaction_type = data.get("transactionTypeId")
+        base_guid = data.get("baseTransactionGuid")
+        message_text = data.get("Message")
+        # 1С передає GUID автора прямо в JSON
+        writer_guid = data.get("WriterGuid1c")
+
+        # Базова валідація наявності полів
+        if not all([transaction_type, base_guid, message_text]):
+            return Response(
+                {"error": "Поля transaction_type_id, base_transaction_guid та message є обов'язковими"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+        
+            message = save_message(
+                transaction_type_id=transaction_type,
+                base_transaction_guid=base_guid,
+                message_text=message_text,
+                writer_guid=writer_guid 
+            )
+
+            return Response({
+                "status": "success",
+                "id": message.id,
+                "created_at": message.created_at,
+                "message": message.message
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Внутрішня помилка сервера: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

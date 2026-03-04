@@ -336,7 +336,7 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from rest_framework import serializers
-from backend.permissions import  IsAdminJWT, IsAuthenticatedOr1CApiKey
+from backend.permissions import  IsAdminJWT, IsAuthenticatedOr1CApiKey, ApiKey1С
 
 from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer
 from rest_framework import serializers
@@ -1649,18 +1649,18 @@ from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .authentication import ApiKeyAuthentication
 from .models import CustomUser, Invitation
 from .serializers import CreateInvitationSerializer
 from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.authentication import OneCApiKeyAuthentication
 import uuid
 from rest_framework import status, permissions
 
 
 class CreateInvitationView(APIView):
-    # Додаємо перевірку ключа та вимогу бути авторизованим сервісом
-    authentication_classes = [ApiKeyAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+
+    authentication_classes = [OneCApiKeyAuthentication]
+    permission_classes = [ApiKey1С]
 
     @transaction.atomic
     def post(self, request):
@@ -1735,3 +1735,6 @@ class CreateInvitationView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+

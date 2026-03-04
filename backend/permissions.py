@@ -148,6 +148,26 @@ class IsAuthenticatedOr1CApiKey(BasePermission):
         return False
 
 
+class ApiKey1С(BasePermission):
+    """
+    Доступ:
+    - будь-який JWT-користувач
+    - або API KEY (1C)
+    """
+
+    def has_permission(self, request, view):
+
+        # 🔐 JWT (будь-який користувач)
+        if request.user and request.user.is_authenticated:
+            return True
+
+        # 🔑 API KEY (1C)
+        if request.auth == "1C_API_KEY":
+            return True
+
+        return False
+
+
 
 from rest_framework.permissions import BasePermission
 
