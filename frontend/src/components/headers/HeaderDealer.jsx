@@ -6,6 +6,7 @@ import { RoleContext } from "../../context/RoleContext";
 import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КОНТЕКСТУ ТЕМИ
 import "./HeaderAdmin.css"; 
 import HeaderDealerProfile from "./HeaderDealerProfile";
+import axiosInstance from "../../api/axios";
 
 
 const NAV_LINKS = [
@@ -36,7 +37,39 @@ export default function HeaderDealer() {
   const { role } = useContext(RoleContext);
   // 👈 Отримуємо тему та toggleTheme
   const { theme, toggleTheme } = useTheme(); 
-  const [unreadCount, setUnreadCount] = useState(3); // Приклад: 3 нових сповіщення
+  const [unreadCount, setUnreadCount] = useState(0); 
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await axiosInstance.get('/notifications/count/');
+      if (res.data.status === 'success') {
+        setUnreadCount(res.data.unreadCount);
+      }
+    } catch (err) {
+      console.error("Помилка отримання кількості сповіщень:", err);
+    }
+  };
+
+  useEffect(() => {
+    // Викликаємо відразу
+    fetchUnreadCount();
+
+    // Встановлюємо інтервал оновлення (наприклад, кожні 60 секунд)
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 600000); 
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 4. Додаємо ефект для скидання лічильника, якщо користувач перейшов на сторінку сповіщень
+  useEffect(() => {
+    if (location.pathname === '/notifications') {
+      // Можна або почекати поки сторінка сама позначить як прочитані, 
+      // або просто візуально обнулити тут
+      // setUnreadCount(0); 
+    }
+  }, [location.pathname]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
@@ -194,18 +227,21 @@ export default function HeaderDealer() {
     {/* 🔔 СПОВІЩЕННЯ (DESKTOP) */}
     <li className="theme-toggle-item">
       <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
-        <div className="theme-toggle-btn"  style={{fontSize: '18px'}}>
+        <div className="icon-badge-container"  style={{fontSize: '18px'}}>
           <i className="fa fa-bell material-icons"   style={{ 
                               color: theme === "light" ? "#f4ffaf" : "#ffc107",
                               fontSize: '18px',
                               fontStyle: 'normal'
                           }}></i>
           {unreadCount > 0 && (
-            <span className="notification-badge">{unreadCount}</span>
-          )}
+        <span className="notification-badge">
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      )}
         </div>
       </Link>
     </li>
+
 
 
 

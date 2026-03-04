@@ -8,7 +8,7 @@ import AddReorderModal from '../components/AdditionalOrder/AddReorderModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
-
+import { useLocation } from 'react-router-dom';
 
 
 const initialLimit = 100;
@@ -38,10 +38,7 @@ const AdditionalOrders = () => {
   const [error, setError] = useState(null); 
   const [reloading, setReloading] = useState(false);
 
-  // ⚠️ ВИДАЛЕНО: ІНІЦІАЛІЗАЦІЯ ДИЛЕРА ТА ПОВ'ЯЗАНІ useEffect
-  // ⚠️ ВИДАЛЕНО: handleDealerSelect
 
-  // Додаємо в компонент AdditionalOrders
   const handleDeleteAdditionalOrder = useCallback((additionalOrderId) => { // Замість handleDeleteCalculation
     // Видаляємо додаткове замовлення з state
     setAdditionalOrdersData(prev => prev.filter(ord => ord.id !== additionalOrderId));
@@ -336,6 +333,37 @@ const reloadAdditionalOrders = useCallback(async () => {
   // Дані для кнопки "Завантажити ще"
   const nextLoadCount = Math.min(initialLimit, sortedItems.length - displayLimit);
   // const buttonText = `Завантажити ще (${nextLoadCount} з ${sortedItems.length - displayLimit})`;
+  const location = useLocation(); 
+
+    useEffect(() => {
+        
+        const params = new URLSearchParams(location.search);
+        const searchQuery = params.get('search');
+
+        if (searchQuery) {
+
+            setFilter(prev => ({ 
+                ...prev, 
+                name: searchQuery,
+                status: 'Всі', 
+                month: 0 
+            }));
+            
+
+            setDisplayLimit(initialLimit);
+
+
+            setFilteredItems(getFilteredItems('Всі', 0, searchQuery));
+
+            const found = additionalOrdersData.find(ord => 
+                ord.number === searchQuery || ord.mainOrderNumber === searchQuery
+            );
+            if (found) {
+                setExpandedAdditionalOrder(found.id);
+            }
+        }
+    }, [location.search, additionalOrdersData, getFilteredItems]);
+
 
 
   if (loading)

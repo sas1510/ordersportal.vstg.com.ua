@@ -1,0 +1,73 @@
+.notification-item {
+    background-color: #fff;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Гібридна сітка */
+.notification-grid {
+    display: grid;
+    /* Збільшимо колонку іконки для стабільності */
+    grid-template-columns: 48px 1fr; 
+    align-items: start;
+}
+
+.notification-icon-col {
+    font-size: 22px; /* Трохи збільшимо іконку для балансу */
+    display: flex;
+    justify-content: flex-start;
+    /* Центруємо іконку відносно висоти першого рядка тексту (20px) */
+    height: 20px; 
+    align-items: center;
+}
+
+.notification-content-col {
+    min-width: 0;
+}
+
+/* Вирівнювання першого рядка (Тип + Дата) */
+.notification-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 20px; /* Фіксована висота рядка для вирівнювання з іконкою */
+}
+
+/* Стан непрочитаного */
+.notification-item.unread {
+    background-color: var(--info-bg-color);
+    border-left: 4px solid var(--info-color);
+}
+
+.notification-item.read {
+    opacity: 0.8;
+}
+
+.notification-item:hover {
+    background-color: #fff;
+    box-shadow: 1px 1px 7px var(--shadow-color);
+    transform: translateX(4px);
+}
+
+/* Відступи тексту повідомлення та посилання */
+.notification-text {
+    line-height: 1.4;
+    word-wrap: break-word;
+    margin-top: 8px !important; /* Чіткий відступ від заголовка */
+}
+
+.notification-link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px !important;
+}
+
+.notification-item:hover .link-hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .notification-grid {
+        grid-template-columns: 36px 1fr;
+    }
+}

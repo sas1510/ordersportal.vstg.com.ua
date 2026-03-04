@@ -13,6 +13,9 @@ import AddClaimModal from '../components/Complaint/AddClaimModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import '../components/Reclamations/ReclamationItem.css';
+import { useLocation } from 'react-router-dom';
+
+
 
 const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
 const ITEMS_PER_LOAD = 100;
@@ -105,6 +108,33 @@ const ReclamationPortal = () => {
 
     const [error, setError] = useState(null);
 
+    const location = useLocation();
+
+    useEffect(() => {
+
+        const params = new URLSearchParams(location.search);
+        const searchQuery = params.get('search');
+
+        if (searchQuery) {
+
+            setFilter(prev => ({ 
+                ...prev, 
+                name: searchQuery,
+                status: 'Всі', 
+                month: 0 
+            }));
+            
+           
+            setVisibleItemsCount(ITEMS_PER_LOAD);
+
+            const found = reclamationsData.find(r => 
+                r.number === searchQuery || r.actNumber === searchQuery
+            );
+            if (found) {
+                setExpandedReclamation(found.id);
+            }
+        }
+    }, [location.search, reclamationsData]); 
 
     const reloadReclamations = useCallback(async () => {
         cancelAll();

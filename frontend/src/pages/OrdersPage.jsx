@@ -9,6 +9,7 @@ import NewCalculationModal from '../components/Orders/NewCalculationModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
+import { useLocation } from 'react-router-dom';
 // import { useDealerContext } from "../hooks/useDealerContext";
 
 const ITEMS_PER_LOAD = 100;
@@ -42,6 +43,27 @@ const PortalOriginal = () => {
     const [reloading, setReloading] = useState(false);
 
 
+    const location = useLocation();
+
+    useEffect(() => {
+        // Спробуємо дістати параметр 'search' з URL
+        const params = new URLSearchParams(location.search);
+        const searchQuery = params.get('search');
+
+        if (searchQuery) {
+            // Встановлюємо значення у фільтр пошуку
+            setFilter(prev => ({ ...prev, name: searchQuery }));
+            
+            // Також переконуємося, що фільтр по статусу та місяцю не заважає пошуку
+            setFilter(prev => ({ ...prev, status: 'Всі', month: 0 }));
+            
+            // Скидаємо ліміт пагінації, щоб знайдений елемент точно підпав під зріз
+            setLimit(ITEMS_PER_LOAD);
+
+            // Якщо потрібно автоматично розгорнути знайдений прорахунок, 
+            // це можна буде зробити пізніше, коли дані завантажаться
+        }
+    }, [location.search]);
     // --- Cancel all requests on unmount ---
     useEffect(() => {
         return () => cancelAll();
