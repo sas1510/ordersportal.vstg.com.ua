@@ -3,7 +3,7 @@ from .views import (
     CustomTokenObtainPairView,
     CustomTokenRefreshView,
     LogoutView,
-    CurrentUserView,
+    CurrentUserView, CreateInvitationView
 )
 from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path("login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("logout/", LogoutView.as_view(), name="logout"),
+    path("create_invitations/", CreateInvitationView.as_view(), name="create_invitations"),
     # path("me/", CurrentUserView.as_view(), name="current_user"),
     path('register/<str:code>/', register_with_invite, name='register-with-invite'),
     # path('customers/', get_customers, name='get_customers'),

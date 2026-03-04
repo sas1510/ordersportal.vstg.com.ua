@@ -1,18 +1,24 @@
-# accounts/authentication.py
-from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
-from .models import ExternalAPIKey
+from rest_framework import authentication, exceptions
+from django.utils import timezone
 
-class APIKeyAuthentication(BaseAuthentication):
+class ApiKeyAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
-        api_key = request.headers.get('X-API-Key')
+        api_key = request.headers.get('X-API-KEY')
+        
         if not api_key:
-            return None  # нехай інші Authentication Class спробують
+            return None
+
+
+        from .models import UserApiKey 
 
         try:
-            key_obj = ExternalAPIKey.objects.get(key=api_key, is_active=True)
-        except ExternalAPIKey.DoesNotExist:
-            raise AuthenticationFailed("Invalid or inactive API key")
+ 
+            key_obj = UserApiKey.objects.select_related('user').get(
+                api_key=api_key,
+                is_active=True,
+                expire_date__gt=timezone.now()
+            )
+        except UserApiKey.DoesNotExist:
+            raise exceptions.AuthenticationFailed('Invalid API-key')
 
-        # Авторизація проходить, але користувача немає (для сервісів це норм)
-        return (None, None)
+        return (key_obj.user, None)

@@ -313,13 +313,13 @@ class Invitation(models.Model):
         self.save()
 
     def __str__(self):
-        # В Python-коді ми все ще використовуємо snake_case
+ 
         return f"Invite for user_id_1C={self.user_id_1C} ({'used' if self.used else 'active'})"
 
     class Meta:
-        # Назва таблиці в PascalCase
+
         db_table = 'Invitation'
-        # Поле для сортування має відповідати назві поля в Django (snake_case)
+ 
         ordering = ['-created_at']
 
 

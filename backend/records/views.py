@@ -2383,16 +2383,14 @@ class ProductionStatisticsView(APIView):
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
             
-        # Формуємо основний список даних
+
         items = [dict(zip(columns, row)) for row in rows]
 
-        # 📊 Агрегація для головної кругової діаграми (Pie Chart)
         summary = collections.defaultdict(float)
         for item in items:
             cat = item.get('CategoryName_UA', 'Інше')
             summary[cat] += float(item.get('TotalQuantity', 0))
 
-        # Перетворюємо в формат, зручний для графіків (наприклад, Chart.js)
         chart_data = {
             "labels": list(summary.keys()),
             "values": list(summary.values())
@@ -2401,8 +2399,8 @@ class ProductionStatisticsView(APIView):
         return Response({
             "contractor_guid": contractor_guid,
             "year": year,
-            "summary_chart": chart_data, # Дані для Pie Chart
-            "items": items,              # Дані для детальної таблиці/Bar Charts
+            "summary_chart": chart_data, 
+            "items": items,              
         })
     
 
@@ -2410,13 +2408,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import connection
-from backend.utils.contractor import resolve_contractor # Використовуємо вашу існуючу логіку
+from backend.utils.contractor import resolve_contractor 
 
 class DealerDetailedStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 1. Використовуємо вашу перевірену логіку для визначення контрагента
+
         try:
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
@@ -2426,10 +2424,10 @@ class DealerDetailedStatisticsView(APIView):
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
 
-        # 2. Отримуємо параметри року
+
         year = int(request.GET.get("year", 2025))
 
-        # 3. Викликаємо нову процедуру
+
         with connection.cursor() as cursor:
             cursor.execute("""
                 EXEC [dbo].[GetDetailedDealerStatistics]
@@ -2440,10 +2438,10 @@ class DealerDetailedStatisticsView(APIView):
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
 
-        # 4. Формуємо дані
+
         items = [dict(zip(columns, row)) for row in rows]
 
-        # 5. Витягуємо загальні KPI (вони однакові в кожному рядку через OVER())
+
         summary = {
             "avg_check" : items[0]["AvgOrderValue"] if items else 0,
             "avg_production": items[0]["AvgProductionDays"] if items else 0,
@@ -2475,7 +2473,7 @@ class DealerFullAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 1. Визначаємо контрагента
+
         try:
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
@@ -2490,17 +2488,17 @@ class DealerFullAnalyticsView(APIView):
         date_to = request.GET.get("date_to", "2026-12-31")
         db_alias = 'db_2'
 
-        # --- ОБРОБКА ПОМИЛКИ БАЗИ ДАНИХ ---
+
         try:
             with connections[db_alias].cursor() as cursor:
-                # 1. Технічні деталі
+
                 cursor.execute(
                     "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000", 
                     [date_from, date_to, contractor_bin]
                 )
                 tech_items = self.dictfetchall(cursor)
 
-                # 2. Сезонність
+
                 cursor.execute(
                     "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s", 
                     [date_from, date_to, contractor_bin]
@@ -2509,19 +2507,19 @@ class DealerFullAnalyticsView(APIView):
                 
         except DatabaseError as e:
             error_msg = str(e)
-            # Перевіряємо на код 927 (процес відновлення)
+    
             if "927" in error_msg or "процессе восстановления" in error_msg.lower():
                 return Response({
                     "error": "database_recovery",
                     "detail": "База даних оновлюється (процес відновлення). Спробуйте через 3 хвилини. Точну відповідь скажу пізніше."
                 }, status=503)
             
-            # Загальна помилка бази
+
             return Response({
                 "detail": "Помилка при зверненні до бази даних. Спробуйте пізніше."
             }, status=500)
 
-        # Розрахунок підсумків (якщо дані успішно отримані)
+ 
         total_constructions = sum(item.get("TotalQuantity", 0) for item in tech_items)
         
         return Response({
@@ -2563,7 +2561,7 @@ class OrdersDealerStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # 1. Визначаємо контрагента (код залишається без змін)
+
         try:
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
@@ -2577,13 +2575,13 @@ class OrdersDealerStatisticsView(APIView):
         date_to = request.GET.get("date_to", "2026-12-31")
         db_alias = 'db_2'
         
-        # --- ОБРОБКА ПОМИЛКИ БАЗИ ДАНИХ ---
+ 
         try:
             with connections[db_alias].cursor() as cursor:
                 cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetFullDealerAnalytics] %s, %s, %s", 
                                [date_from, date_to, contractor_bin])
                 
-                # Result Set #1 (Hardware)
+              
                 hardware_items = self.dictfetchall(cursor)
                 
                 hardware_kpi = {
@@ -2592,7 +2590,7 @@ class OrdersDealerStatisticsView(APIView):
                     "abc_class": hardware_items[0].get("ABC") if hardware_items else None,
                 }
 
-                # Result Sets #2, #3, #4
+             
                 cursor.nextset()
                 profile_color_items = self.dictfetchall(cursor)
                 cursor.nextset()
@@ -2601,23 +2599,23 @@ class OrdersDealerStatisticsView(APIView):
                 prefix_items = self.dictfetchall(cursor)
 
         except DatabaseError as e:
-            # Логуємо помилку для розробника
+   
             print(f"MSSQL Error: {str(e)}")
             
-            # Перевіряємо, чи це помилка відновлення (код 927)
+  
             error_msg = str(e)
             if "927" in error_msg or "процессе восстановления" in error_msg.lower():
                 return Response({
                     "error": "database_recovery",
                     "detail": "База даних оновлюється. Спробуйте через 3 хвилини."
-                }, status=503) # 503 Service Unavailable найкраще підходить для цього
+                }, status=503) 
             
-            # Якщо інша помилка бази
+         
             return Response({
                 "detail": "Тимчасова помилка бази даних. Спробуйте пізніше."
             }, status=500)
 
-        # 3. Фінальна відповідь (якщо все успішно)
+
         return Response({
             "contractor_guid": contractor_guid,
             "period": {"from": date_from, "to": date_to},
@@ -2655,7 +2653,7 @@ class DashboardConfigView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_default_layout(self):
-        # Повертаємо структуру з одним стандартним дашбордом
+
         return {
             "dashboards": [
                 {
@@ -2684,8 +2682,7 @@ class DashboardConfigView(APIView):
 
         if config_obj:
             data = config_obj.config
-            # Перевірка на "старий" формат: якщо в базі лежить {"components": [...]}, 
-            # конвертуємо на льоту в новий формат для фронтенда
+
             if "components" in data and "dashboards" not in data:
                 return Response({
                     "dashboards": [
@@ -2742,26 +2739,24 @@ class PartnerDebtsView(APIView):
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
 
-        db_alias = 'db_2' # або ваш аліас 'default' / 'oknastyle_bi'
+        # db_alias = 'db_2' # або ваш аліас 'default' / 'oknastyle_bi'
         
         # 2. Виклик процедури
         try:
-            with connections[db_alias].cursor() as cursor:
-                # Виклик процедури GetPartnerDebtsDirect
+            with connection.cursor() as cursor:
+
                 cursor.execute("EXEC [dbo].[GetPartnerDebtsDirect] @TargetPartnerID=%s", 
                                [contractor_bin])
                 
-                # Отримуємо всі дані (включаючи рядки замовлень та рядок "РАЗОМ")
+     
                 raw_data = self.dictfetchall(cursor)
 
-                # Розділяємо дані на основну таблицю та підсумок
-                # Оскільки ми додали SortOrder: 0 - замовлення, 1 - підсумок
                 orders = [item for item in raw_data if item.get('SortOrder') == 0]
                 summary = next((item for item in raw_data if item.get('SortOrder') == 1), None)
 
         except DatabaseError as e:
             error_msg = str(e)
-            # Обробка вашої специфічної помилки оновлення бази (927)
+
             if "927" in error_msg or "recovery" in error_msg.lower():
                 return Response({
                     "error": "database_recovery",

@@ -456,7 +456,7 @@ export default function PaymentsPage() {
               <h3>{detailTitle}</h3>
               <span className="pay-close-btn icon-cross" onClick={() => setDetailModalOpen(false)} />
             </div>
-            <div className="pay-modal-body" style={{padding: '0px 10px', overflowY: 'auto', maxHeight: '65vh'}}>
+            <div className="pay-modal-body" style={{padding: '0px 10px', overflowY: 'auto', maxHeight: '60vh'}}>
               <table className="details-list-table">
                 <thead style={{position: 'sticky', top: 0, background: isDark ? '#2b2b2b' : '#fff', zIndex: 10}}>
                   <tr>

@@ -176,14 +176,14 @@ export default function UsersListPage() {
                       Деактивувати
                     </button>
 
-                    {u.role === "customer" && (
+                    {/* {u.role === "customer" && ( */}
                       <button
                         className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn"
                         onClick={() => setApiKeyUser(u)}
                       >
                         API-ключі
                       </button>
-                    )}
+                    {/* )} */}
                   </td>
                 </tr>
               ))}

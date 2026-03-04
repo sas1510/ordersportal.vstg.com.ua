@@ -1476,7 +1476,7 @@ def create_api_key(request):
     """
     dealer_id = request.data.get("user_id")
     name = request.data.get("name", "API access")
-    expire_date_raw = request.data.get("expire_date")  # 👈 ISO date
+    expire_date_raw = request.data.get("expire_date")  
 
     if not dealer_id or not expire_date_raw:
         return Response(
@@ -1485,7 +1485,7 @@ def create_api_key(request):
         )
 
     try:
-        dealer = CustomUser.objects.get(id=dealer_id, role="customer")
+        dealer = CustomUser.objects.get(id=dealer_id)
     except CustomUser.DoesNotExist:
         return Response(
             {"detail": "Dealer not found"},
@@ -1515,14 +1515,14 @@ def create_api_key(request):
         name=name,
         is_active=True,
         expire_date=expire_date,
-        created_by=request.user,  # admin
-        user=dealer,              # dealer
+        created_by=request.user, 
+        user=dealer,         
     )
 
     return Response(
         {
             "id": key.id,
-            "api_key": api_key_value,   # ⚠️ показати один раз
+            "api_key": api_key_value,   
             "expire_date": key.expire_date.date(),
         },
         status=status.HTTP_201_CREATED,
@@ -1639,3 +1639,99 @@ def save_dealer_address_coords(request):
     # send_to_1c(address_for_1c)
 
     return Response({"success": True, "address": address_for_1c})
+
+
+
+# views.py
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .authentication import ApiKeyAuthentication
+from .models import CustomUser, Invitation
+from .serializers import CreateInvitationSerializer
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+import uuid
+from rest_framework import status, permissions
+
+
+class CreateInvitationView(APIView):
+    # Додаємо перевірку ключа та вимогу бути авторизованим сервісом
+    authentication_classes = [ApiKeyAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = CreateInvitationSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+
+        try:
+            # Перетворення GUID з 1С у бінарний формат
+            try:
+                user_guid_binary = guid_to_1c_bin(data["userGuid"])
+            except Exception as e:
+                return Response({"error": f"Помилка конвертації GUID: {str(e)}"}, status=400)
+
+            # Перевірки унікальності та дат
+            if CustomUser.objects.filter(user_id_1C=user_guid_binary).exists():
+                return Response(
+                    {"error": "Користувач з таким GUID вже існує"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if data["expireDate"] < timezone.now():
+                return Response(
+                    {"error": "ExpireDate не може бути в минулому"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Створення користувача (is_active=False до активації інвайту)
+            user = CustomUser.objects.create(
+                username=data["username"],
+                password=make_password("1"),
+                email=data["email"],
+                full_name=data.get("fullName"),
+                phone_number=data.get("phoneNumber"),
+                expire_date=data["expireDate"],
+                role=data["role"],
+                user_id_1C=user_guid_binary,
+                is_active=False,
+                is_staff=False,
+                is_superuser=False,
+                email_confirmed=False,
+                permit_finance_info=True,
+                date_joined=timezone.now(),
+            )
+
+            # Генерація унікального коду запрошення
+            invite_code = str(uuid.uuid4())
+
+            # Збереження запису про запрошення
+            Invitation.objects.create(
+                code=invite_code,
+                user_id_1C=user_guid_binary,
+                used=False,
+                created_at=timezone.now(),
+                used_at=None
+            )
+
+            invite_link = f"https://ordersportal.vstg.com.ua/invite/{invite_code}"
+
+            return Response({
+                "message": "success",
+                "inviteLink": invite_link,
+                "code": invite_code
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            # Логування помилки може бути корисним для відладки сервісу 1С
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
