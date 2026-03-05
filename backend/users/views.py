@@ -1656,68 +1656,116 @@ from backend.authentication import OneCApiKeyAuthentication
 import uuid
 from rest_framework import status, permissions
 
+import uuid
+from datetime import timedelta
+from django.utils import timezone
+from django.db import transaction
+from django.contrib.auth.hashers import make_password
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+# Імпортуйте ваші моделі та утиліти
+# from .models import CustomUser, Invitation
+# from .serializers import CreateInvitationSerializer
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 class CreateInvitationView(APIView):
-
+    """
+    View для створення запрошення користувача з 1С.
+    Логіка:
+    1. Якщо юзер активний — помилка.
+    2. Якщо є недавній інвайт (< 24г) — повертаємо його.
+    3. Якщо інвайт старий (> 24г) або його нема — створюємо новий.
+    """
     authentication_classes = [OneCApiKeyAuthentication]
     permission_classes = [ApiKey1С]
 
     @transaction.atomic
     def post(self, request):
         serializer = CreateInvitationSerializer(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
+        now = timezone.now()
 
         try:
-            # Перетворення GUID з 1С у бінарний формат
+            # --- 1. Конвертація GUID ---
             try:
                 user_guid_binary = guid_to_1c_bin(data["userGuid"])
             except Exception as e:
                 return Response({"error": f"Помилка конвертації GUID: {str(e)}"}, status=400)
 
-            # Перевірки унікальності та дат
-            if CustomUser.objects.filter(user_id_1C=user_guid_binary).exists():
-                return Response(
-                    {"error": "Користувач з таким GUID вже існує"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
-            if data["expireDate"] < timezone.now():
-                return Response(
-                    {"error": "ExpireDate не може бути в минулому"},
-                    status=status.HTTP_400_BAD_REQUEST
+            # --- 2. Перевірка дати експірації з 1С ---
+            if data["expireDate"] < now:
+                return Response({"error": "ExpireDate не може бути в минулому"}, status=400)
+
+            # --- 3. Пошук існуючого користувача та останнього інвайту ---
+            user = CustomUser.objects.filter(user_id_1C=user_guid_binary).first()
+            last_invite = Invitation.objects.filter(user_id_1C=user_guid_binary).order_by('-created_at').first()
+
+            if user:
+                # Якщо клієнт вже зареєструвався (активний)
+                if user.is_active:
+                    return Response(
+                        {"error": "Користувач з таким GUID вже активований та існує в системі"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                # Перевірка вікна 24 години для неактивного юзера
+                if last_invite and not last_invite.used:
+                    expiration_threshold = last_invite.created_at + timedelta(hours=24)
+                    
+                    if now < expiration_threshold:
+                        # ПОВЕРТАЄМО ПОПЕРЕДНЄ ЗАПРОШЕННЯ
+                        return Response({
+                            "message": "active_invite_exists",
+                            "info": "Діюче запрошення знайдено. Нове можна створити через 24 години після попереднього.",
+                            "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
+                            "code": last_invite.code,
+                            "created_at": last_invite.created_at,
+                            "can_refresh_at": expiration_threshold
+                        }, status=status.HTTP_200_OK)
+
+                # Якщо ми тут, значить 24 години минули — оновлюємо дані перед створенням нового інвайту
+                user.username = data["username"]
+                user.email = data.get("email")
+                user.full_name = data.get("fullName")
+                user.phone_number = data.get("phoneNumber")
+                user.expire_date = data["expireDate"]
+                user.role = data["role"]
+                user.save()
+            else:
+                # --- 4. Створення нового користувача ---
+                user = CustomUser.objects.create(
+                    username=data["username"],
+                    password=make_password(str(uuid.uuid4())), # Рандомний пароль до реєстрації
+                    email=data.get("email"),
+                    full_name=data.get("fullName"),
+                    phone_number=data.get("phoneNumber"),
+                    expire_date=data["expireDate"],
+                    role=data["role"],
+                    user_id_1C=user_guid_binary,
+                    is_active=False,
+                    is_staff=False,
+                    is_superuser=False,
+                    email_confirmed=False,
+                    permit_finance_info=True,
+                    date_joined=now,
                 )
 
-            # Створення користувача (is_active=False до активації інвайту)
-            user = CustomUser.objects.create(
-                username=data["username"],
-                password=make_password("1"),
-                email=data["email"],
-                full_name=data.get("fullName"),
-                phone_number=data.get("phoneNumber"),
-                expire_date=data["expireDate"],
-                role=data["role"],
-                user_id_1C=user_guid_binary,
-                is_active=False,
-                is_staff=False,
-                is_superuser=False,
-                email_confirmed=False,
-                permit_finance_info=True,
-                date_joined=timezone.now(),
-            )
-
-            # Генерація унікального коду запрошення
+            # --- 5. Генерація нового інвайту ---
             invite_code = str(uuid.uuid4())
+            
+            # Позначаємо всі попередні невикористані інвайту як "замінені" (used=True)
+            Invitation.objects.filter(user_id_1C=user_guid_binary, used=False).update(used=True)
 
-            # Збереження запису про запрошення
             Invitation.objects.create(
                 code=invite_code,
                 user_id_1C=user_guid_binary,
                 used=False,
-                created_at=timezone.now(),
+                created_at=now,
                 used_at=None
             )
 
@@ -1730,11 +1778,7 @@ class CreateInvitationView(APIView):
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            # Логування помилки може бути корисним для відладки сервісу 1С
             return Response(
-                {"error": str(e)},
+                {"error": f"Внутрішня помилка сервера: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
-
-
