@@ -139,10 +139,12 @@ from rest_framework import serializers
 
 
 class CreateInvitationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    # Тепер email можна не передавати взагалі або передати як порожній рядок
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    
     username = serializers.CharField(max_length=150)
     fullName = serializers.CharField(max_length=255, required=False, allow_blank=True)
     phoneNumber = serializers.CharField(max_length=20, required=False, allow_blank=True)
     expireDate = serializers.DateTimeField()
     role = serializers.ChoiceField(choices=["admin", "customer"])
-    userGuid = serializers.CharField()  # GUID строка
+    userGuid = serializers.CharField()

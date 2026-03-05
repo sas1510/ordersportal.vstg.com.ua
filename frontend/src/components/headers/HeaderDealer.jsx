@@ -201,7 +201,7 @@ export default function HeaderDealer() {
         </Link>
       </li>
 
-      <li>
+      {/* <li>
         <Link
           to="/edit-addresses"
           className="menu-link"
@@ -209,7 +209,7 @@ export default function HeaderDealer() {
         >
            Адреси доставки
         </Link>
-      </li>
+      </li> */}
       <li>
       <Link
         to="/emergency-contacts"
@@ -224,23 +224,23 @@ export default function HeaderDealer() {
   )}
 </li>
 
-    {/* 🔔 СПОВІЩЕННЯ (DESKTOP) */}
-    <li className="theme-toggle-item">
-      <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
-        <div className="icon-badge-container"  style={{fontSize: '18px'}}>
-          <i className="fa fa-bell material-icons"   style={{ 
-                              color: theme === "light" ? "#f4ffaf" : "#ffc107",
-                              fontSize: '18px',
-                              fontStyle: 'normal'
-                          }}></i>
-          {unreadCount > 0 && (
-        <span className="notification-badge">
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </span>
-      )}
-        </div>
-      </Link>
-    </li>
+
+      <li className="theme-toggle-item">
+        <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
+          <div className="icon-badge-container"  style={{fontSize: '18px'}}>
+            <i className="fa fa-bell material-icons"   style={{ 
+                                color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                                fontSize: '18px',
+                                fontStyle: 'normal'
+                            }}></i>
+            {unreadCount > 0 && (
+          <span className="notification-badge">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+          </div>
+        </Link>
+      </li>
 
 
 
@@ -335,7 +335,7 @@ export default function HeaderDealer() {
           </Link>
         </li>
 
-        <li>
+        {/* <li>
           <Link
             to="/edit-addresses"
             className="menu-link"
@@ -343,7 +343,7 @@ export default function HeaderDealer() {
           >
             Адреси доставки
           </Link>
-        </li>
+        </li> */}
         <li>
         <Link
           to="/emergency-contacts"

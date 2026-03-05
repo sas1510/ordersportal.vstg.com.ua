@@ -1312,3 +1312,8 @@ body.dark-theme .order-sum {
 .dark-theme .details-list-table th {
     background: #333;
 }
+
+
+.detail-action {
+    max-width: 50px;
+}

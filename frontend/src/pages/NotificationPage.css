@@ -71,3 +71,40 @@
         grid-template-columns: 36px 1fr;
     }
 }
+
+
+.notification-label {
+    justify-content: center;
+    text-align: center;
+
+}
+
+/* Додайте або оновіть ці стилі */
+
+.window-title {
+    margin: 0; /* Прибираємо дефолтні відступи браузера */
+    line-height: 1; /* Вирівнюємо базову лінію тексту */
+    display: flex;
+    align-items: center;
+}
+
+.notification-label {
+    display: inline-flex; /* Дозволяє краще контролювати внутрішнє вирівнювання */
+    align-items: center;
+    justify-content: center;
+    height: fit-content; /* Щоб бейдж не розтягувався на всю висоту заголовка */
+    padding: 2px 8px; /* Налаштуйте під ваш дизайн */
+    line-height: 1;
+    margin: 0;
+}
+
+/* Переконайтеся, що допоміжний клас .ai-center працює правильно */
+.ai-center {
+    display: flex;
+    align-items: center;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}

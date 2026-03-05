@@ -247,26 +247,26 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
             addNotification("Оберіть адресу доставки", "error");
             return;
         }
-        // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
-        if (!dealerCoords) {
-            addNotification(
-              <div style={{ lineHeight: "1.4" }}>
-                <strong>Помилка!</strong> Обрана адреса не має гео-координат. <br />
-                Будь ласка, оберіть іншу адресу або додайте точку на карті. <br />
-                <a
-                  href="https://ordersportal.vstg.com.ua/edit-addresses"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
-                >
-                  Додати точку на карті
-                </a>
-              </div>,
-              "warning",
-              12000
-            );
-            return;
-        }
+        // // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
+        // if (!dealerCoords) {
+        //     addNotification(
+        //       <div style={{ lineHeight: "1.4" }}>
+        //         <strong>Помилка!</strong> Обрана адреса не має гео-координат. <br />
+        //         Будь ласка, оберіть іншу адресу або додайте точку на карті. <br />
+        //         <a
+        //           href="https://ordersportal.vstg.com.ua/edit-addresses"
+        //           target="_blank"
+        //           rel="noopener noreferrer"
+        //           style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
+        //         >
+        //           Додати точку на карті
+        //         </a>
+        //       </div>,
+        //       "warning",
+        //       12000
+        //     );
+        //     return;
+        // }
     }
 
     if (

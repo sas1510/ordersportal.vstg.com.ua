@@ -102,21 +102,27 @@ const NotificationPage = () => {
   return (
     <div className="portal-body column p-14 gap-14">
       {/* HEADER */}
-      <div className="row w-100 ai-center jc-space-between border-bottom p-7">
-        <div className="row ai-center gap-14">
-          <h2 className="window-title row ai-center gap-7">
-            <FaBell className="text-info" /> Сповіщення
-          </h2>
-          {unreadCount > 0 && (
-            <span className="label label-danger no-uppercase">+{unreadCount} нових</span>
-          )}
-        </div>
-        {unreadCount > 0 && (
-          <div onClick={handleMarkAllRead} className="clickTrigger text-info font-size-14 row ai-center gap-7">
-            <FaCheckDouble /> Позначити всі як прочитані
-          </div>
-        )}
-      </div>
+     <div className="row w-100 ai-center jc-space-between border-bottom p-7">
+  <div className="row ai-center gap-14">
+    {/* Додано m-0, щоб скинути дефолтні відступи h2 */}
+    <h2 className="window-title row ai-center gap-7 m-0" style={{ display: 'flex', alignItems: 'center' }}>
+      <FaBell className="text-info" /> 
+      <span>Сповіщення</span>
+    </h2>
+    
+    {unreadCount > 0 && (
+      <span className="notification-label label label-danger no-uppercase">
+        +{unreadCount} нових
+      </span>
+    )}
+  </div>
+
+  {unreadCount > 0 && (
+    <div onClick={handleMarkAllRead} className="clickTrigger text-info font-size-14 row ai-center gap-7">
+      <FaCheckDouble /> Позначити всі як прочитані
+    </div>
+  )}
+</div>
 
       {loading ? (
         <div className="center py-10 text-grey">Завантаження...</div>
