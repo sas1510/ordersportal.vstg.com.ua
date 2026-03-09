@@ -217,6 +217,9 @@ from django.utils.translation import gettext_lazy as _
 
 class Notification(models.Model):
 
+
+    id = models.BigAutoField(primary_key=True, db_column='ID')
+
     EVENT_CHOICES = [
         ('STATUS_CHANGED', 'Зміна статусу'),
         ('NEW_MESSAGE', 'Нове повідомлення'),

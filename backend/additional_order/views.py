@@ -4,7 +4,35 @@ import base64
 import json
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
+from drf_spectacular.utils import extend_schema
 
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+from django.db import connection
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def get_additional_order_nomenclature(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetAdditionalOrderNomenclature")
+            columns = [col[0] for col in cursor.description]
+            results = []
+            for row in cursor.fetchall():
+                row_dict = dict(zip(columns, row))
+                for key in row_dict:
+                    if isinstance(row_dict[key], (bytes, bytearray)):
+                        row_dict[key] = bin_to_guid_1c(row_dict[key])
+                results.append(row_dict)
+
+        return Response({"nomenclature": results})
+
+    except Exception as e:
+        # Важливо: тут не має бути ніяких "from .views import..."
+        return Response({"error": str(e)}, status=500)
+    
 
 class AdditionalViewSet(viewsets.ViewSet):
     
@@ -76,7 +104,10 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.http import JsonResponse
-from django.db import connection
+
+
+
+
 
 def check_order_exists(request):
     """
@@ -115,3 +146,4 @@ def check_order_exists(request):
         exists = row[0] if row else 0
 
     return JsonResponse({"order_exists": bool(exists)})
+

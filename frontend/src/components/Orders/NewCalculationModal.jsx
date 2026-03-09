@@ -90,16 +90,18 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     if (!coords) {
       addNotification(
         <div style={{ lineHeight: "1.4" }}>
-          <strong>Увага!</strong> Відсутні гео-координати для цієї адреси. <br />
-          Замовлення не зможе бути оброблене коректно. <br />
-          <a
+          <strong>Увага! Гео-координати не встановлені.</strong> <br />
+          Для коректного прорахунку логістики необхідно вказати точку на карті. <br />
+          Будь ласка, <strong>зверніться до вашого менеджера</strong> для оновлення даних адреси <br />
+
+          {/* <a
             href="https://ordersportal.vstg.com.ua/edit-addresses"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
+            style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold", display: "inline-block", marginTop: "5px" }}
           >
-            Додайте точку на карті
-          </a>
+            Редагувати адресу на карті
+          </a> */}
         </div>,
         "warning",
         10000

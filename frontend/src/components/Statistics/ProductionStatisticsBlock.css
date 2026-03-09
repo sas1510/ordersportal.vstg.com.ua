@@ -67,6 +67,7 @@
     grid-template-columns: repeat(auto-fit, minmax(448px, 1fr)); /* 448 кратне 7 */
     gap: 21px;
     width: 100%;
+    margin-bottom: 21px;
 }
 
 .chart-wrapper-card {
@@ -75,6 +76,7 @@
     border-radius: 3px;
     box-shadow: 0 0 10px var(--shadow-color);
     border: 1px dashed var(--grey-border-color);
+    margin-bottom: 21px;
 }
 
 .chart-title-unified {
@@ -242,7 +244,7 @@
 
 .chart-wrapper-card {
     background: #fff;
-    border-radius: 12px;
+    border-radius: 3px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     border: 1px solid #edf2f7;
     transition: transform 0.2s ease;
@@ -274,7 +276,7 @@
 
 /* Drill-down стилі */
 .drilldown-view {
-    margin-top: 30px;
+
     padding: 25px;
     background: #f8fafc;
     border: 2px solid #1da8df;
@@ -314,3 +316,16 @@
     white-space: nowrap; 
 }
 
+
+
+.dark-theme .chart-wrapper-card{
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+
+}
+
+
+.dark-theme .chart-title-unified {
+        color: #edf2f7;
+}

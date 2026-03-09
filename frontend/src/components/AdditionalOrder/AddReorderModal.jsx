@@ -1,29 +1,66 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { FaTimes, FaPlus } from "react-icons/fa";
+import { FaTimes, FaPlus, FaSpinner } from "react-icons/fa";
+import axiosInstance from "../../api/axios"; 
 import "./AddReorderModal.css";
 
 export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderNumber }) {
   const [orderNumber, setOrderNumber] = useState("");
   const [noOrder, setNoOrder] = useState(false);
-  const [itemName, setItemName] = useState("1"); // за замовчуванням перший option
-  const [reason, setReason] = useState("1"); // за замовчуванням перший option
-  const [impost, setImpost] = useState("");
+  const [nomenclature, setNomenclature] = useState([]);
+  const [reasons, setReasons] = useState([]);
+  const [selectedItem, setSelectedItem] = useState("");
+  const [selectedReason, setSelectedReason] = useState("");
   const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  if (isOpen) {
-    setOrderNumber(initialOrderNumber || "");  // ✅ ЗАПОВНЮЄМО ПОЛЕ
-  }
-}, [isOpen, initialOrderNumber]);
+    if (isOpen) {
+      setOrderNumber(initialOrderNumber || "");
+      fetchDropdownData();
+    }
+  }, [isOpen, initialOrderNumber]);
 
+  const fetchDropdownData = async () => {
+    setLoading(true);
+    try {
+      const [nomRes, reasonRes] = await Promise.all([
+        axiosInstance.get("/additional_orders/additional_order_nomenclature/"),
+        axiosInstance.get("/complaints/issues/") 
+      ]);
 
+      // 1. Перевіряємо сиру відповідь від сервера
+      console.log("Full response from API (nomRes):", nomRes);
+
+      // 2. Перевіряємо вміст nomenclature
+      const nomData = nomRes.data?.nomenclature || []; 
+      console.log("Extracted nomenclature data:", nomData);
+
+      const reasonData = reasonRes.data?.issues || [];
+      console.log("Extracted reasons data:", reasonData);
+
+      setNomenclature(nomData);
+      setReasons(reasonData);
+
+      if (nomData.length > 0) setSelectedItem(nomData[0].URL); 
+      if (reasonData.length > 0) setSelectedReason(reasonData[0].Link);
+      
+    } catch (err) {
+      console.error("Помилка завантаження довідників:", err);
+      // Перевіряємо деталі помилки, якщо запит не пройшов
+      if (err.response) {
+         console.log("Server error data:", err.response.data);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   const resetForm = () => {
     setOrderNumber("");
     setNoOrder(false);
-    setItemName("1");
-    setReason("1");
-    setImpost("");
+    // Захист від помилок при порожніх списках
+    setSelectedItem(nomenclature.length > 0 ? nomenclature[0].Link : "");
+    setSelectedReason(reasons.length > 0 ? reasons[0].Link : "");
     setComment("");
   };
 
@@ -34,17 +71,13 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const formData = {
       orderNumber: noOrder ? null : orderNumber,
       noOrder,
-      itemName,
-      impost,
-      reason,
+      itemLink: selectedItem, 
+      reasonLink: selectedReason, 
       comment,
     };
-
-    console.log("Дані дозамовлення:", formData);
     onSave?.(formData);
     handleCloseWithReset();
   };
@@ -63,82 +96,69 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
         </div>
 
         <form className="reorder-form" onSubmit={handleSubmit}>
-      <div className="reorder-label">
-  <div className="reorder-row">
-    <span>Номер замовлення:</span>
-    
-  
+          <div className="reorder-label">
+            <div className="reorder-row">
+              <span>Номер замовлення:</span>
+              <input
+                type="text"
+                value={orderNumber}
+                onChange={(e) => setOrderNumber(e.target.value)}
+                disabled={noOrder}
+                className="reorder-input"
+              />
+            </div>
+          </div>
 
-  <input
-    type="text"
-    value={orderNumber}
-    onChange={(e) => setOrderNumber(e.target.value)}
-    disabled={noOrder}
-    className="reorder-input"
-  />
-  </div>
-</div>
-
-            <label className="reorder-label reorder-row">
+          <label className="reorder-label reorder-row">
             <input
-                type="checkbox"
-                checked={noOrder}
-                onChange={(e) => setNoOrder(e.target.checked)}
+              type="checkbox"
+              checked={noOrder}
+              onChange={(e) => setNoOrder(e.target.checked)}
             />
             <span>Без замовлення</span>
-       
-            </label>
+          </label>
 
-
-
-          <label className="reorder-label">
+        <label className="reorder-label">
             <span>Елемент на дозамовлення:</span>
             <select
-              className="reorder-select"
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
+              className="reorder-select "
+              value={selectedItem}
+              onChange={(e) => setSelectedItem(e.target.value)}
+              disabled={loading}
             >
-              <option value="1">Імпост</option>
-              <option value="2">Молдінг</option>
-              <option value="3">Поріг</option>
-              <option value="4">HPL</option>
-              <option value="5">LAMPRE</option>
-              <option value="6">Армування</option>
-              <option value="7">Допи</option>
-              <option value="8">ЛИСТ сендвіч панель</option>
-              <option value="9">М/П конструкція</option>
-              <option value="10">Маркер Б/У</option>
-              <option value="11">Москітна сітка</option>
-              <option value="12">Набір фурнітури</option>
-              <option value="13">Відлив</option>
-              <option value="14">Пакет косметики</option>
-              <option value="15">Рама</option>
-              <option value="16">Сендвіч панель</option>
-              <option value="17">Створка</option>
-              <option value="18">Склопакет</option>
-              <option value="19">Ущільнювач</option>
-              <option value="20">Хлист профілю</option>
-              <option value="21">Штапік</option>
-              <option value="22">Штульп</option>
+              {loading ? (
+                <option>Завантаження...</option>
+              ) : (
+                nomenclature.map((item) => (
+                  // ВИПРАВЛЕНО: Використовуємо item.Name згідно з вашим JSON
+                  <option key={item.URL} value={item.URL}>
+                    {item.Name}
+                  </option>
+                ))
+              )}
             </select>
           </label>
 
           <label className="reorder-label">
             <span>Причина дозамовлення:</span>
             <select
-              className="reorder-select"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              className="reorder-select "
+              value={selectedReason}
+              onChange={(e) => setSelectedReason(e.target.value)}
+              disabled={loading}
             >
-              <option value="1">замінити фурнітуру за рахунок замовника</option>
-              <option value="2">переробка за рахунок замовника</option>
-              <option value="3">дозамовлення за рахунок замовника</option>
-              <option value="4">замінити пошкоджені матеріали за рахунок замовника</option>
-              <option value="5">замінити склопакет за рахунок замовника</option>
+              {loading ? (
+                <option>Завантаження...</option>
+              ) : (
+                reasons.map((reason) => (
+                  // Перевірка на назву поля (Наименование або Name)
+                  <option style={{maxWidth : '600px'}} key={reason.Link} value={reason.Link}>
+                    {reason.Наименование || reason.Name}
+                  </option>
+                ))
+              )}
             </select>
           </label>
-
-         
 
           <label className="reorder-label">
             <span>Коментар контрагента:</span>
@@ -151,15 +171,11 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
           </label>
 
           <div className="reorder-modal-footer">
-            <button
-              type="button"
-              className="reorder-btn-cancel"
-              onClick={handleCloseWithReset}
-            >
+            <button type="button" className="reorder-btn-cancel" onClick={handleCloseWithReset}>
               <FaTimes /> Відмінити
             </button>
-            <button type="submit" className="reorder-btn-save">
-              <FaPlus /> Додати дозамовлення
+            <button type="submit" className="reorder-btn-save" disabled={loading}>
+              {loading ? <FaSpinner className="spinner" /> : <FaPlus />} Додати дозамовлення
             </button>
           </div>
         </form>

@@ -1506,17 +1506,23 @@ def build_1c_payload(
     # =====================================================
     # 🏠 СЦЕНАРІЙ 1: доставка дилеру
     # =====================================================
+    # =====================================================
+    # 🏠 СЦЕНАРІЙ 1: доставка дилеру
+    # =====================================================
     if delivery_address_guid:
+        # Створюємо безпечну змінну для координат
+        coords = delivery_address_coordinates or {} 
+        
         calc["address"] = {
             "addressGUID": str(delivery_address_guid),
             "addressName": None,
             "addressCoordinates": {
-                "lat": delivery_address_coordinates.get("lat"),
-                "lng": delivery_address_coordinates.get("lng"),
+                # Тепер .get() не впаде, навіть якщо координат немає
+                "lat": coords.get("lat"),
+                "lng": coords.get("lng"),
             },
             "addressAdditionalInfo": None,
-            }
-        
+        }
         return payload
 
     # =====================================================

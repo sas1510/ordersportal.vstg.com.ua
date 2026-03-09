@@ -216,11 +216,11 @@ export default function PaymentsPage() {
         order_id: selectedOrder.OrderID_GUID,
         amount: Number(amount),
       });
-      alert("Оплату виконано!");
+      addNotification("Оплату виконано!", "success");
       closeModal();
       loadData();
     } catch {
-      alert("Помилка при оплаті");
+      addNotification("Помилка при оплаті", "warning");
     }
   };
 

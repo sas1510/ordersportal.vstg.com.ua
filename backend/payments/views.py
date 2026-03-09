@@ -100,7 +100,7 @@ def get_payment_status_view(request):
     # 📦 SQL
     # -------------------------------------------------
     sql = """
-        EXEC dbo.GetDealerFullLedger
+        EXEC dbo.GetDealerFullLedger_2
             @Контрагент = %s,
             @ДатаЗ = %s,
             @ДатаПо = %s
@@ -500,7 +500,7 @@ def export_payment_status_excel(request):
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            EXEC dbo.GetDealerFullLedger
+            EXEC dbo.GetDealerFullLedger_2
               @Контрагент = %s,
               @ДатаЗ = %s,
               @ДатаПо = %s
@@ -875,11 +875,26 @@ def make_payment_from_advance(request):
 
     response_1c = send_to_1c(
         payload=payload_1c,
-        query="MakePaymentFromAdvance",
+        query="PaymentForOrders",
         # url НЕ передаємо — візьметься settings.ONE_C_URL
         # method="POST" — за замовчуванням
     )
 
+    results = response_1c.get("results", []) if isinstance(response_1c, dict) else []
+    
+    # 2. Шукаємо хоча б один неуспішний результат
+    # Якщо список порожній або хоча б один елемент має success: false
+    if not results or any(not item.get("success", False) for item in results):
+        return Response(
+            {
+                "success": False,
+                "error": "1С відхилила запит або повернула помилку",
+                "details_from_1c": response_1c
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 3. Якщо все добре
     return Response(
         {
             "success": True,
@@ -888,6 +903,8 @@ def make_payment_from_advance(request):
         },
         status=status.HTTP_200_OK,
     )
+
+
 
 import base64
 from django.http import HttpResponse

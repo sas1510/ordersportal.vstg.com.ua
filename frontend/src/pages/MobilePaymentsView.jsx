@@ -5,6 +5,8 @@ import { formatDateHuman } from "../utils/formatters";
 
 import DealerSelect from "./DealerSelect";
 
+import { formatPercent } from '../utils/formatMoney'
+
 
 const MobilePaymentsView = ({
   groups,
@@ -335,7 +337,7 @@ const scrollToTop = () => {
           {/* GRID */}
           <div className="order-mini-grid">
   {/* СУМА */}
-  <div className="order-mini-col">
+  <div className="order-mini-col" >
     <span className="order-mini-label">Сума</span>
     <span className="order-mini-value">
       {formatCurrency(item.OrderAmount)}
@@ -351,7 +353,7 @@ const scrollToTop = () => {
   </div>
 
     {/* Оплата */}
-    <div className="order-mini-col">
+    <div className="order-mini-col" style={{fontSize:'14px'}}>
       <span className="order-mini-label">Оплата</span>
       <span
         className={
@@ -365,7 +367,7 @@ const scrollToTop = () => {
     </div>
 
     {/* Борг */}
-    <div className="order-mini-col">
+    <div className="order-mini-col" style={{fontSize:'14px'}}>
       <span className="order-mini-label">Борг</span>
       <span className="order-mini-red">
         {formatCurrency(Math.abs(Number(item.DeltaRow || 0)))}
@@ -375,9 +377,11 @@ const scrollToTop = () => {
 
   {/* СТАТУС — НИЖЧЕ, НА ВСЮ ШИРИНУ */}
   <div className="order-mini-col">
-    <span className="order-mini-label">Статус</span>
+    <span className="order-mini-label">Відсоток оплати</span>
     <span className="order-mini-value">
-      {item.PaymentStatus || "—"}
+      <span className={item.PaymentStatus < 50 ? 'mini-red' : 'mini-green'}>
+        {item.PaymentStatus !== null ? `${formatPercent(item.PaymentStatus)} %` : "—"}
+      </span>
     </span>
   </div>
 

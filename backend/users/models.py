@@ -20,9 +20,9 @@ class CustomUser(AbstractUser):
     id = models.BigAutoField(primary_key=True, db_column='ID')
     # Базові поля AbstractUser з перевизначенням імен колонок
     password = models.CharField(_('password'), max_length=128, db_column='Password')
-    last_login = models.DateTimeField(_('last login'), blank=True, null=True, db_column='LastLogin')
+    last_login = models.DateTimeField(_('last login'), blank=True, unique=False, null=True, db_column='LastLogin')
     is_superuser = models.BooleanField(_('superuser status'), default=False, db_column='IsSuperuser')
-    email = models.EmailField(_('email address'), blank=True, db_column='Email')
+    email = models.EmailField(_('email address'), blank=True, null=True, db_column='Email')
     is_staff = models.BooleanField(_('staff status'), default=False, db_column='IsStaff')
     is_active = models.BooleanField(_('active'), default=True, db_column='IsActive')
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now, db_column='DateJoined')
