@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
+import os
 from .utils import get_author_from_1c
 from rest_framework.response import Response
 from rest_framework import status
@@ -884,17 +884,28 @@ def download_order_file(request, order_guid, file_guid):
         # =========================
         # RESPONSE
         # =========================
+       # =========================
+        # RESPONSE (Вдосконалено)
+        # =========================
         content_type, _ = mimetypes.guess_type(filename)
         content_type = content_type or "application/octet-stream"
+
+        # Список розширень, які ми хочемо дозволити переглядати в браузері
+        inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
+        file_ext = os.path.splitext(filename.lower())[1]
+
+        # Якщо це зображення або PDF — ставимо 'inline', інакше 'attachment'
+        disposition = "inline" if file_ext in inline_extensions else "attachment"
 
         response = StreamingHttpResponse(
             stdout,
             content_type=content_type
         )
 
-        response["Content-Disposition"] = (
-            f'attachment; filename="{filename}"'
-        )
+        # Важливо: використовуємо заголовок, який дозволяє перегляд або завантаження
+        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
+        # Додаємо заголовок, щоб фронтенд міг прочитати правильний контент-тип
+        response["Access-Control-Expose-Headers"] = "Content-Disposition"
 
         return response
 

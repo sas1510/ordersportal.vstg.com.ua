@@ -1782,3 +1782,66 @@ class CreateInvitationView(APIView):
                 {"error": f"Внутрішня помилка сервера: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+    
+import uuid
+from datetime import timedelta
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, permissions
+
+class CreateAdminDirectView(APIView):
+    """
+    Точка для ПРЯМОГО створення адміністратора.
+    Користувач створюється відразу АКТИВНИМ.
+    Повертає логін та тимчасовий пароль.
+    """
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    @transaction.atomic
+    def post(self, request):
+        username = request.data.get("username")
+        full_name = request.data.get("fullName")
+        email = request.data.get("email")
+        expire_date = request.data.get("expireDate") or (timezone.now() + timedelta(days=3650))
+
+        if not username:
+            return Response({"error": "Логін обов'язковий"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if CustomUser.objects.filter(username=username).exists():
+            return Response({"error": "Користувач з таким логіном вже існує"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Генеруємо читабельний тимчасовий пароль (8 символів)
+            temp_password = str(uuid.uuid4())[:8]
+            now = timezone.now()
+            
+            # Створюємо активного користувача
+            user = CustomUser.objects.create(
+                username=username,
+                password=make_password(temp_password),
+                email=email,
+                full_name=full_name,
+                role="admin",
+                is_active=True,   # 🔥 Відразу активний
+                is_staff=True,    # Доступ до адмінки Django
+                is_superuser=False,
+                expire_date=expire_date,
+                date_joined=now,
+                user_id_1C=None,   # Для адміна не потрібно
+                email_confirmed=True # Позначаємо як підтверджений
+            )
+
+            return Response({
+                "message": "success",
+                "username": username,
+                "temporaryPassword": temp_password,
+                "info": "Користувач створений та активований."
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": f"Помилка сервера: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

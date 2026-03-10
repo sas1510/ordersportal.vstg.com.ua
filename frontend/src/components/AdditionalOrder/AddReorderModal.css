@@ -99,6 +99,9 @@
 
 .reorder-label span {
   font-weight: 500;
+  padding: 7px 0px;
+  justify-content: start;
+  color: #333;
 }
 
 .reorder-input,
@@ -147,7 +150,7 @@
   display: flex;
   justify-content: center;
   gap: 12px;
-  padding: 12px 18px;
+  padding: 18px 18px;
   padding-bottom: 0;
   border-top: 1px solid #eee;
   background: #fff;
@@ -375,7 +378,6 @@ body.dark-theme .reorder-btn-save:disabled {
 
 .reorder-form {
     padding: 18px 22px;
-    padding-bottom: 120px; /* 🔥 Резервуємо місце для випадання списку вниз */
     overflow-y: auto;
     scrollbar-width: thin;
     display: flex;
@@ -396,4 +398,88 @@ body.dark-theme .reorder-btn-save:disabled {
 /* Якщо ви використовуєте темну тему, оновіть іконку для неї */
 body.dark-theme .reorder-select {
     background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f0f0f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.reorder-select option {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Обгортка для позиціонування кастомної стрілки */
+.reorder-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Стилізація самого select */
+select.reorder-select.custom-appearance {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 10px 35px 10px 12px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  /* Кастомна синя стрілочка */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%234a90e2' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  transition: all 0.2s ease;
+}
+
+/* Ефект фокусу */
+select.reorder-select.custom-appearance:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+  outline: none;
+}
+
+/* Стиль для опцій (обмеження ширини та перенос) */
+select.reorder-select.custom-appearance option {
+  white-space: normal;
+  word-break: break-all;
+  padding: 10px;
+}
+
+
+.reorder-select-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%; /* Обмежуємо контейнер */
+  overflow: hidden; /* Щоб нічого не вилазило */
+}
+
+select.reorder-select.custom-appearance {
+  width: 100%;
+  max-width: 100%;
+  text-overflow: ellipsis; /* Додає три крапки в закритому стані */
+  white-space: nowrap;
+}
+
+/* Спроба обмежити ширину саме випадаючого вікна */
+select.reorder-select.custom-appearance option {
+  max-width: 550px; /* Або інша фіксована ширина вашої модалки */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Додайте це до вашого файлу стилів */
+.reorder-select option {
+  white-space: normal; /* Дозволяє тексту переноситися на нові рядки */
+  word-wrap: break-word;
+  max-width: 100%; /* Намагається обмежити ширину вікном селекта */
+}
+
+/* Для Chrome/Safari, де white-space на option іноді ігнорується, 
+   єдиний спосіб обмежити ширину самого select: */
+.reorder-select {
+  width: 100%;
+  max-width: 550px; /* Встановіть ширину, що дорівнює ширині вашої модалки */
+  text-overflow: ellipsis;
 }

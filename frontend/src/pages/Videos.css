@@ -6,6 +6,16 @@
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+
+@media (max-width: 1470px) {
+    .videos-body {
+        /* Зменшуємо горизонтальний відступ до 10% */
+        padding: 80px 15%; 
+    }
+}
+
+
 /* ➡️ Стилі для середніх екранів (наприклад, планшетів, менше 1024px) */
 @media (max-width: 1024px) {
     .videos-body {

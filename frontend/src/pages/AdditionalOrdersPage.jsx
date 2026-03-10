@@ -37,6 +37,7 @@ const AdditionalOrders = () => {
 
   const [error, setError] = useState(null); 
   const [reloading, setReloading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
 
   const handleDeleteAdditionalOrder = useCallback((additionalOrderId) => { // Замість handleDeleteCalculation
@@ -79,27 +80,32 @@ const AdditionalOrders = () => {
 
 
 
-  const handleSaveAdditionalOrder = useCallback((newOrder) => { // Замість handleSaveCalculation
-    const formattedOrder = {
-      id: newOrder.id || Math.random().toString(36).substr(2, 9),
-      number: newOrder.name || `${additionalOrdersData.length + 1}`,
-      dateRaw: newOrder.dateRaw || new Date().toISOString(),
-      date: newOrder.dateRaw || new Date().toISOString(),
-      orders: [],
-      orderCountInCalc: 0,
-      constructionsCount: newOrder.ConstructionsCount || 0,
-      constructionsQTY: newOrder.ConstructionsCount || 0,
-      statuses: {},
-      amount: 0,
-      file: newOrder.file || null,
-      message: newOrder.Comment || ''
-    };
+    const handleSaveAdditionalOrder = useCallback(async (formData) => {
+        setLoading(true);
+        try {
+            const response = await axiosInstance.post(
+                '/additional_orders/save_additional_order/', 
+                formData
+            );
 
-    setAdditionalOrdersData(prev => [formattedOrder, ...prev]);
-    setFilteredItems(prev => [formattedOrder, ...prev]);
-    setIsNewOrderModalOpen(false); // Закриваємо модалку Додаткового Замовлення
-    setDisplayLimit(initialLimit); // Скидаємо ліміт при додаванні нового
-  }, [additionalOrdersData.length]);
+            if (response.data?.status === "success") {
+                setIsNewOrderModalOpen(false);
+                
+                // 🔥 Замість ручного оновлення стейту просто тригеримо useEffect
+                setRefreshTrigger(prev => prev + 1); 
+                
+                // Можна додати коротке сповіщення
+                // alert("Дозамовлення успішно створено!");
+            } else {
+                alert("Помилка: " + (response.data?.message || "Невідома помилка"));
+            }
+        } catch (err) {
+            console.error("Помилка відправки:", err);
+            alert("Не вдалося відправити дані.");
+        } finally {
+            setLoading(false);
+        }
+    }, []); // Залежності тепер не потрібні, бо ми не використовуємо довжину масиву
 
   const formatDateHuman = (dateStr) => {
     if (!dateStr) return null;
@@ -192,7 +198,7 @@ const AdditionalOrders = () => {
 
     fetchData();
     return () => controller.abort();
-}, [selectedYear]); // Залиште тільки selectedYear, щоб уникнути циклів
+}, [selectedYear, refreshTrigger]); // Залиште тільки selectedYear, щоб уникнути циклів
 
 const reloadAdditionalOrders = useCallback(async () => {
     cancelAll();

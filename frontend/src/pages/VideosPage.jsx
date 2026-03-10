@@ -317,7 +317,7 @@ const VideosPage = () => {
                   onChange={(e) => setVideoForm({ ...videoForm, resource_type: e.target.value })}
                 >
                   <option value="youtube">YouTube</option>
-                  <option value="tiktok">TikTok</option>
+                  {/* <option value="tiktok">TikTok</option> */}
                 </select>
               </label>
 

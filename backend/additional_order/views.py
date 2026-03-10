@@ -147,3 +147,114 @@ def check_order_exists(request):
 
     return JsonResponse({"order_exists": bool(exists)})
 
+
+
+
+
+@extend_schema(
+    summary="Отримати довідник причин дозамовлення",
+    description=(
+       
+    ),
+
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def get_issue_add_order(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.[GetAdditionalIssue]")
+            columns = [col[0] for col in cursor.description]
+
+            results = []
+            for row in cursor.fetchall():
+                row_dict = dict(zip(columns, row))
+
+                # BINARY(16) → GUID
+                if isinstance(row_dict.get("Link"), (bytes, bytearray)):
+                    row_dict["Link"] = bin_to_guid_1c(row_dict["Link"])
+
+                results.append(row_dict)
+
+        return Response({"issues": results})
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
+
+import json
+import requests
+from django.conf import settings
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+from backend.utils.onec_api import send_to_1c
+
+class AdditionalOrderViewSet(viewsets.ViewSet):
+    """
+    ViewSet для роботи з Дозамовленнями.
+    Приймає дані з фронту, збагачує їх GUID-ами та відправляє в 1С.
+    """
+    permission_classes = [IsAuthenticated] 
+
+    def create(self, request):
+        try:
+            user = request.user
+            
+
+            role = getattr(user, "role", "").lower()
+            is_admin = role in ("admin", "manager", "region_manager")
+
+   
+            if is_admin:
+    
+                contractor_guid = request.data.get("contractor_guid")
+                if not contractor_guid:
+                    raise ValueError("contractor_guid is required for admin role")
+            else:
+
+                contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
+                if not contractor_guid:
+                    raise ValueError("contractor_guid not found for this user")
+
+
+            author_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
+            if not author_guid:
+                raise ValueError("author_guid not found for this user")
+
+            payload = {
+                "kontragentGUID": contractor_guid,
+                # "authorGUID": author_guid,
+                "orderNumber": request.data.get("orderNumber"),      # Номер замовлення
+                # "noOrder": bool(request.data.get("noOrder", False)), # Чекбокс "Без замовлення"
+                "nomenclatureLink": request.data.get("nomenclatureLink"), # Посилання на елемент
+                "nomenclatureQuantity": request.data.get("quantity") ,
+                "comment": request.data.get("comment", ""),               # Коментар
+            }
+
+            # 5. Відправляємо в 1С через існуючу утиліту send_to_1c
+            # Query "CreateAdditionalOrder" має бути підтриманий на стороні 1С
+            result = send_to_1c("CreateAdditionalOrder", payload)
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Дозамовлення успішно створено",
+                    "data": result, # Відповідь від 1С (наприклад, номер створеного дозамовлення)
+                    "payload_sent": payload # Корисно для дебагу
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except requests.RequestException as e:
+            return Response(
+                {"success": False, "error": f"Помилка зв'язку з 1С: {str(e)}", "payload_sent": payload},
+                status=status.HTTP_502_BAD_GATEWAY,
+                
+            )
+        except Exception as e:
+            return Response(
+                {"success": False, "error": str(e), "payload_sent": payload},
+                status=status.HTTP_400_BAD_REQUEST,
+            )

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../api/axios";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react"; // Додав іконку Plus
 
 import ChangeUserPasswordModal from "../pages/ChangeUserPasswordModal";
 import EditUserModal from "../pages/EditUserModal";
 import DeactivateUserModal from "../pages/DeactivateUserModal";
 import UserApiKeysModal from "../pages/UserApiKeysModal";
+import CreateUserInvitationModal from "./CreateUserInvitationModal"; // Шлях до вашої нової модалки
 
 import "../pages/UsersListPage.css";
 
@@ -15,10 +16,12 @@ export default function UsersListPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Стейт для модалок
   const [selectedUser, setSelectedUser] = useState(null);
   const [editUser, setEditUser] = useState(null);
   const [deactivateUser, setDeactivateUser] = useState(null);
   const [apiKeyUser, setApiKeyUser] = useState(null);
+  const [showInviteModal, setShowInviteModal] = useState(false); // Нова модалка
 
   /* ================= LOAD USERS ================= */
   const loadUsers = async () => {
@@ -54,9 +57,20 @@ export default function UsersListPage() {
   /* ================= RENDER ================= */
   return (
     <div className="ulp-wrapper users-page-wrapper p-6 min-h-screen bg-gray-50 dark:bg-[#1a1d21] portal-body">
-      <h1 className="ulp-title text-3xl font-extrabold mb-6 border-b pb-2">
-        Усі користувачі
-      </h1>
+      
+      {/* HEADER WITH CREATE BUTTON */}
+      <div className="flex justify-between items-center mb-6 mt-2 border-b pb-4">
+        <h1 className="ulp-title text-3xl font-extrabold m-0">
+          Усі користувачі
+        </h1>
+        <button 
+          onClick={() => setShowInviteModal(true)}
+          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
+        >
+          <Plus size={18} />
+          <span>Створити користувача</span>
+        </button>
+      </div>
 
       {/* FILTERS */}
       <div className="ulp-filter mb-6 flex gap-3 items-center">
@@ -143,56 +157,68 @@ export default function UsersListPage() {
                     </span>
                   </td>
 
-                  <td className="p-4" data-label="Активний">
+                  <td className="p-4 text-center" data-label="Активний">
                     {u.is_active ? (
-                      <span className="text-green-400 text-xl">✓</span>
+                      <span className="text-green-400 text-xl font-bold">✓</span>
                     ) : (
-                      <span className="text-red-400 text-xl">✗</span>
+                      <span className="text-red-400 text-xl font-bold">✗</span>
                     )}
                   </td>
 
                   <td
-                    className="p-4 flex gap-2 justify-center"
+                    className="p-4 flex gap-2 justify-center flex-wrap"
                     data-label="Дії"
                   >
                     <button
-                      className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full"
+                      className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full transition-colors"
                       onClick={() => setEditUser(u)}
                     >
                       Редагувати
                     </button>
 
                     <button
-                      className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full"
+                      className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full transition-colors"
                       onClick={() => setSelectedUser(u)}
                     >
                       Пароль
                     </button>
 
                     <button
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-full"
+                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-full transition-colors"
                       onClick={() => setDeactivateUser(u)}
                     >
                       Деактивувати
                     </button>
 
-                    {/* {u.role === "customer" && ( */}
-                      <button
-                        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn"
-                        onClick={() => setApiKeyUser(u)}
-                      >
-                        API-ключі
-                      </button>
-                    {/* )} */}
+                    <button
+                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn transition-colors"
+                      onClick={() => setApiKeyUser(u)}
+                    >
+                      API-ключі
+                    </button>
                   </td>
                 </tr>
               ))}
+              {filteredUsers.length === 0 && !loading && (
+                <tr>
+                  <td colSpan="7" className="p-8 text-center text-gray-500">
+                    Користувачів не знайдено
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       )}
 
       {/* MODALS */}
+      {showInviteModal && (
+        <CreateUserInvitationModal
+          onClose={() => setShowInviteModal(false)}
+          onCreated={loadUsers}
+        />
+      )}
+
       {selectedUser && (
         <ChangeUserPasswordModal
           user={selectedUser}

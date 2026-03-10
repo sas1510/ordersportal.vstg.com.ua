@@ -81,48 +81,57 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
      DOWNLOAD FILE (NEW LOGIC)
   ========================= */
   const handleDownload = async (fileGuid, fileName) => {
-    setDownloadingFileGuid(fileGuid);
+  setDownloadingFileGuid(fileGuid);
 
-    try {
-      // 🔑 filename ТІЛЬКИ через query
-      const params = new URLSearchParams({ filename: fileName });
+  try {
+    const params = new URLSearchParams({ filename: fileName });
+    const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
 
-      const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
+    const response = await axiosInstance.get(url, {
+      responseType: "blob", // Обов'язково для отримання бінарних даних
+    });
 
-      const response = await axiosInstance.get(url, {
-        responseType: "blob",
-        validateStatus: (status) => status >= 200 && status < 500,
-      });
+    // 1. Отримуємо правильний MIME-тип з заголовків відповіді
+    const contentType = response.headers["content-type"] || "application/pdf";
+    const blob = new Blob([response.data], { type: contentType });
+    const objectUrl = window.URL.createObjectURL(blob);
 
-      if (response.status !== 200) {
-        throw new Error("Download failed");
+    const isPdf = fileName.toLowerCase().endsWith(".pdf");
+    const isImage = /\.(jpg|jpeg|png|webp)$/i.test(fileName);
+
+    // 2. Логіка для PDF та зображень (Перегляд)
+    if (isPdf || isImage) {
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.target = "_blank";
+      // Для PDF НЕ додаємо атрибут download, щоб він відкрився, а не скачався
+      if (isImage) {
+          link.download = fileName; // Зображення краще віддавати на скачування або теж у новій вкладці
       }
-
-      const blob = new Blob([response.data]);
-      const objectUrl = window.URL.createObjectURL(blob);
-
-      // PDF → preview
-      if (fileName.toLowerCase().endsWith(".pdf")) {
-        window.open(objectUrl, "_blank");
-      }
-      // інші → download
-      else {
-        const a = document.createElement("a");
-        a.href = objectUrl;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-
-      window.URL.revokeObjectURL(objectUrl);
-    } catch (err) {
-     
-      addNotification("Не вдалося завантажити файл.", "error");
-    } finally {
-      setDownloadingFileGuid(null);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } 
+    // 3. Логіка для інших файлів (ZKZ, ZIP і т.д.)
+    else {
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-  };
+
+    // 4. Важливо: не видаляємо URL миттєво, даємо браузеру час завантажити файл у нову вкладку
+    setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
+
+  } catch (err) {
+    console.error("Download error:", err);
+    addNotification("Не вдалося відкрити або завантажити файл.", "error");
+  } finally {
+    setDownloadingFileGuid(null);
+  }
+};
 
   if (!orderGuid) return null;
 
@@ -188,7 +197,7 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                           </div>
                         ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
                           <div className="btn-content">
-                            <FaEye /> <span className="btn-text">PDF</span>
+                            <FaEye /> <span className="btn-text">Скачати</span>
                           </div>
                         ) : (
                           <div className="btn-content">
