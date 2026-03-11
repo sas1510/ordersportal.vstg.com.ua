@@ -184,11 +184,16 @@ export default function UsersListPage() {
                     </button>
 
                     <button
-                      className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded-full transition-colors"
-                      onClick={() => setDeactivateUser(u)}
-                    >
-                      Деактивувати
-                    </button>
+                        className={`px-3 py-1 text-white text-sm rounded-full transition-colors ${
+                          u.is_active 
+                            ? "bg-red-500 hover:bg-red-600" 
+                            : "bg-gray-400 cursor-not-allowed opacity-70"
+                        }`}
+                        onClick={() => setDeactivateUser(u)}
+                        disabled={!u.is_active} // Вимикаємо кнопку, якщо u.is_active === false
+                      >
+                        {u.is_active ? "Деактивувати" : "Деактивовано"}
+                      </button>
 
                     <button
                       className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn transition-colors"

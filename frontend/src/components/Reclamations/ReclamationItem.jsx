@@ -7,6 +7,9 @@ import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; // Дода�
 import { ComplaintItemDetailView } from './ComplaintItemSummaryDesktop'; // Використовуємо новий DetailView
 import { useAuth } from '../../hooks/useAuth';
 import { formatDateHumanShorter } from "../../utils/formatters";
+import { User, ClipboardCheck, LayoutGrid, Calendar } from 'lucide-react'; // Імпорт іконок
+
+
 
 export const ReclamationItem = ({ 
     reclamation, 
@@ -233,7 +236,9 @@ export const ReclamationItem = ({
               >
                 {reclamation.dealer && (
                   <div className="flex items-center gap-1 text-grey font-size-14 break-words">
-                    <span className="icon icon-user text-dark shrink-0"></span>
+                    {/* <span className="icon icon-user text-dark shrink-0"></span> */}
+
+                    <User className="w-4 h-4 text-dark shrink-0" />
                     <span className="text-dark leading-snug">
                       {reclamation.dealer}
                     </span>

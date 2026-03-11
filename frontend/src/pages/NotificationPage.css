@@ -1,110 +1,244 @@
-.notification-item {
-    background-color: #fff;
-    transition: all 0.2s ease-in-out;
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.3s ease;
+    z-index: 10001; /* Має бути вище за Header */
+
 }
 
-/* Гібридна сітка */
-.notification-grid {
-    display: grid;
-    /* Збільшимо колонку іконки для стабільності */
-    grid-template-columns: 48px 1fr; 
-    align-items: start;
+.drawer-overlay.active {
+    visibility: visible;
+    opacity: 1;
 }
 
-.notification-icon-col {
-    font-size: 22px; /* Трохи збільшимо іконку для балансу */
+.notification-drawer {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100vh;
+    background: white;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 10002;
     display: flex;
-    justify-content: flex-start;
-    /* Центруємо іконку відносно висоти першого рядка тексту (20px) */
-    height: 20px; 
-    align-items: center;
+    flex-direction: column;
 }
 
-.notification-content-col {
-    min-width: 0;
+.notification-drawer.open {
+    right: 0;
 }
 
-/* Вирівнювання першого рядка (Тип + Дата) */
-.notification-header-row {
+.drawer-header {
+    padding: 20px 0px;
     display: flex;
     justify-content: space-between;
+    text-align: start;
     align-items: center;
-    height: 20px; /* Фіксована висота рядка для вирівнювання з іконкою */
+    width: 100%;
+    margin-bottom: 4px;
+    border-bottom: 1px dashed #ccc;
 }
 
-/* Стан непрочитаного */
-.notification-item.unread {
-    background-color: var(--info-bg-color);
-    border-left: 4px solid var(--info-color);
-}
-
-.notification-item.read {
-    opacity: 0.8;
-}
-
-.notification-item:hover {
-    background-color: #fff;
-    box-shadow: 1px 1px 7px var(--shadow-color);
-    transform: translateX(4px);
-}
-
-/* Відступи тексту повідомлення та посилання */
-.notification-text {
-    line-height: 1.4;
-    word-wrap: break-word;
-    margin-top: 8px !important; /* Чіткий відступ від заголовка */
-}
-
-.notification-link-row {
+.drawer-header-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 12px !important;
-}
+    gap: 10px;
 
-.notification-item:hover .link-hover {
-    text-decoration: underline;
-}
-
-@media (max-width: 768px) {
-    .notification-grid {
-        grid-template-columns: 36px 1fr;
-    }
 }
 
 
-.notification-label {
-    justify-content: center;
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #8c8c8c;
+}
+
+.drawer-actions {
+    padding: 10px 20px;
+    background: #fafafa;
+}
+
+.btn-mark-read {
+    background: none;
+    border: none;
+    color: var(--info-color);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    
+}
+
+.drawer-content {
+    flex: 1;
+    overflow-y: auto;
+    max-width: 100%;
+}
+
+.drawer-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.drawer-item.unread:hover { background: #f0f7ff; }
+.drawer-item.unread { background: #fafafa; border-left: 4px solid var(--danger-color); }
+
+.item-meta { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.item-type { font-size: 11px; font-weight: bold; color: var(--info-color); text-transform: uppercase; }
+.item-date { font-size: 11px; color: #bfbfbf; }
+.item-message { margin: 0; font-size: 14px; color: #262626; line-height: 1.4; max-width: 100%; }
+
+.loading-state, .empty-state {
     text-align: center;
-
+    padding: 40px;
+    color: #8c8c8c;
 }
 
-/* Додайте або оновіть ці стилі */
+@media (max-width: 450px) {
+    .notification-drawer { width: 100%; right: -100%; }
+}
 
-.window-title {
-    margin: 0; /* Прибираємо дефолтні відступи браузера */
-    line-height: 1; /* Вирівнюємо базову лінію тексту */
-    display: flex;
+.icon-together {
+    display: flex;      
     align-items: center;
+    gap: 12px;          
 }
 
-.notification-label {
-    display: inline-flex; /* Дозволяє краще контролювати внутрішнє вирівнювання */
-    align-items: center;
-    justify-content: center;
-    height: fit-content; /* Щоб бейдж не розтягувався на всю висоту заголовка */
-    padding: 2px 8px; /* Налаштуйте під ваш дизайн */
-    line-height: 1;
-    margin: 0;
+/* 
+.badge-count {
+    background: var(--danger-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+ */
+
+
+
+.badge-count {
+
+
+  font-weight: 700;
+  line-height: 1;
+  
+
+  min-width: 18px;
+  height: 18px;
+
+
+  background: var(--danger-color);
+  color: white;
+  padding: 0 5px;
+  border-radius: 10px;
+  font-size: 11px;
+  /* Центрування тексту всередині */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+
+  
+  /* Ефект пульсації для нових повідомлень (опціонально) */
+  box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  animation: pulse-red 2s infinite;
+  pointer-events: none; /* Щоб не заважав кліку по іконці */
 }
 
-/* Переконайтеся, що допоміжний клас .ai-center працює правильно */
-.ai-center {
-    display: flex;
-    align-items: center;
+/* Анімація пульсації, щоб привернути увагу до нових сповіщень */
+@keyframes pulse-red {
+  0% {  box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+  70% { box-shadow: 0 0 0 7px rgba(255, 58, 48, 0.041); }
+  100% {  box-shadow: 0 0 0 0 rgba(255, 58, 48, 0.041); }
 }
 
-.row {
-    display: flex;
-    flex-direction: row;
+/* .item-icon {
+    a
+} */
+
+
+.item-body {
+    max-width: 100%;
+}
+
+
+/* Базові кольори (Світла тема за замовчуванням) */
+:root {
+    --drawer-bg: #ffffff;
+    --drawer-overlay: rgba(0, 0, 0, 0.4);
+    --drawer-text-main: #262626;
+    --drawer-text-muted: #8c8c8c;
+    --drawer-text-date: #bfbfbf;
+    --drawer-border: #f0f0f0;
+    --drawer-item-unread: #fafafa;
+    --drawer-item-hover: #f0f7ff;
+    --drawer-header-border: #ccc;
+}
+
+/* Кольори для Темної теми */
+.dark-theme {
+    --drawer-bg: #1f1f1f;
+    --drawer-overlay: rgba(0, 0, 0, 0.7);
+    --drawer-text-main: #e6e6e6;
+    --drawer-text-muted: #a6a6a6;
+    --drawer-text-date: #595959;
+    --drawer-border: #303030;
+    --drawer-item-unread: #262626;
+    --drawer-item-hover: #333333; /* Темно-синій відтінок для ховеру */
+    --drawer-header-border: #434343;
+}
+
+/* Тепер застосовуємо змінні до ваших селекторів */
+
+.drawer-overlay {
+    background: var(--drawer-overlay);
+}
+
+.notification-drawer {
+    background: var(--drawer-bg);
+    color: var(--drawer-text-main);
+}
+
+.drawer-header {
+    border-bottom: 1px dashed var(--drawer-header-border);
+}
+
+.drawer-item {
+    background: var(--drawer-bg);
+    border-bottom: 1px solid var(--drawer-border);
+}
+
+.drawer-item.unread {
+    background: var(--drawer-item-unread);
+}
+
+.drawer-item.unread:hover {
+    background: var(--drawer-item-hover);
+}
+
+.item-message {
+    color: var(--drawer-text-main);
+}
+
+.item-date {
+    color: var(--drawer-text-date);
+}
+
+.close-btn, .loading-state, .empty-state {
+    color: var(--drawer-text-muted);
 }

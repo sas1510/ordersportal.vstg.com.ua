@@ -558,7 +558,7 @@ const AdminReclamationPortal = () => {
 
                 {/* LIST */}
                 <div className="content">
-                    <div className="items-wrapper column gap-14">
+                    <div className="items-wrapper column gap-1">
 
                         {itemsToShow.length === 0 ? (
                             <div className="no-data column align-center">

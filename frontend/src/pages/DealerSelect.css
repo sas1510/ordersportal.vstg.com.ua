@@ -14,10 +14,10 @@
 
 
 .dealer-select__control {
-  height: 36px;
+  height: 40px;
   padding: 0 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  border: 1px dashed #ccc;
+  border-radius: 5px;
   background: #fff;
   display: flex;
   align-items: center;

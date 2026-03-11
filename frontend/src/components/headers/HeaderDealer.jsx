@@ -7,6 +7,7 @@ import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТ КО
 import "./HeaderAdmin.css"; 
 import HeaderDealerProfile from "./HeaderDealerProfile";
 import axiosInstance from "../../api/axios";
+import NotificationDrawer from "../../pages/NotificationPage";
 
 
 const NAV_LINKS = [
@@ -38,6 +39,8 @@ export default function HeaderDealer() {
   // 👈 Отримуємо тему та toggleTheme
   const { theme, toggleTheme } = useTheme(); 
   const [unreadCount, setUnreadCount] = useState(0); 
+
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const fetchUnreadCount = async () => {
     try {
@@ -226,8 +229,13 @@ export default function HeaderDealer() {
 
 
       <li className="theme-toggle-item">
-        <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
-          <div className="icon-badge-container"  style={{fontSize: '18px'}}>
+          <div 
+                            className="theme-toggle-btn"  >
+          <div 
+                            className="menu-link notification-link" 
+                            onClick={() => setIsNotificationOpen(true)}
+                            style={{ cursor: 'pointer', position: 'relative' }}
+                        >
             <i className="fa fa-bell material-icons"   style={{ 
                                 color: theme === "light" ? "#f4ffaf" : "#ffc107",
                                 fontSize: '18px',
@@ -239,8 +247,12 @@ export default function HeaderDealer() {
           </span>
         )}
           </div>
-        </Link>
+          </div>
+
       </li>
+
+
+
 
 
 
@@ -366,21 +378,29 @@ export default function HeaderDealer() {
           
 
 
-          
-          <li className="theme-toggle-item">
-      <Link to="/notifications" className="menu-link notification-link" title="Сповіщення">
-        <div className="theme-toggle-btn"  style={{fontSize: '18px'}}>
-          <i className="fa fa-bell material-icons"   style={{ 
-                              color: theme === "light" ? "#f4ffaf" : "#ffc107",
-                              fontSize: '18px',
-                              fontStyle: 'normal'
-                          }}></i>
-          {unreadCount > 0 && (
-            <span className="notification-badge">{unreadCount}</span>
-          )}
-        </div>
-      </Link>
-    </li>
+     <li className="theme-toggle-item">
+          <div 
+              className="theme-toggle-btn"  >
+          <div 
+              className="menu-link notification-link" 
+              onClick={() => setIsNotificationOpen(true)}
+              style={{ cursor: 'pointer', position: 'relative' , gap: '0px'}}
+            >
+            <i className="fa fa-bell material-icons"   style={{ 
+                                color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                                fontSize: '18px',
+                                fontStyle: 'normal',
+                                marginLeft: unreadCount > 0 ? '14px' : '0px'
+                            }}></i>
+            {unreadCount > 0 && (
+          <span className="notification-badge">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+          </div>
+          </div>
+
+      </li>
 
          
 
@@ -421,6 +441,13 @@ export default function HeaderDealer() {
     )}
   </div>
       )}
+<NotificationDrawer 
+                isOpen={isNotificationOpen} 
+                onClose={() => {
+                    setIsNotificationOpen(false);
+                    fetchUnreadCount(); // Оновлюємо цифру в шапці після закриття
+                }} 
+            />
     </header>
   );
 }

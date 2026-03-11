@@ -179,28 +179,30 @@
 //   );
 // }
 
-
 import { useState, useEffect } from "react";
 import axiosInstance from "../api/axios";
 import ProductionStatisticsBlock from "../components/Statistics/ProductionStatisticsBlock";
 import { FaSearch, FaExclamationTriangle } from "react-icons/fa";
 import './ProductionStatisticsPage.css';
 import { useNotification } from "../components/notification/Notifications";
+// 1. Імпортуємо необхідні компоненти та хуки
+import DealerSelect from "./DealerSelect"; 
+import { useDealerContext } from "../hooks/useDealerContext";
 
 export default function ProductionStatisticsPage() {
   const currentYear = new Date().getFullYear();
   
-  // Стани
+  // 2. Отримуємо дані про дилера та роль з контексту
+  const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Сповіщення та дані
   const { addNotification } = useNotification();
   const [rawData, setRawData] = useState(null);
   const [dealerData, setDealerData] = useState(null);
 
-  // Дати
   const [dateInputs, setDateInputs] = useState({
     from: `${currentYear}-01-01`,
     to: `${currentYear}-12-31`
@@ -210,6 +212,15 @@ export default function ProductionStatisticsPage() {
 
   useEffect(() => {
     const loadAllData = async () => {
+      // 3. Якщо адмін, але дилер не обраний — не робимо запит (опціонально)
+      // Або можна робити загальний запит, якщо це передбачено бекендом
+      if (isAdmin && !dealerGuid) {
+        setRawData(null);
+        setDealerData(null);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
@@ -217,6 +228,11 @@ export default function ProductionStatisticsPage() {
           date_from: searchParams.from, 
           date_to: searchParams.to 
         };
+
+        // 4. Додаємо GUID дилера в параметри, якщо він обраний або ми адмін
+        if (dealerGuid) {
+          params.contractor_guid = dealerGuid; // або 'dealer_guid', залежно від вашого API
+        }
         
         const [resFull, resOrder] = await Promise.all([
           axiosInstance.get("/full-statistics/", { params }),
@@ -244,7 +260,8 @@ export default function ProductionStatisticsPage() {
     };
 
     loadAllData();
-  }, [searchParams, refreshTrigger, addNotification]);
+    // 5. Додаємо dealerGuid у масив залежностей, щоб дані оновлювались при зміні дилера
+  }, [searchParams, refreshTrigger, addNotification, dealerGuid, isAdmin]);
 
   const handleSearch = () => {
     setSearchParams({ ...dateInputs });
@@ -270,7 +287,17 @@ export default function ProductionStatisticsPage() {
               onChange={(e) => setDateInputs({...dateInputs, to: e.target.value})} 
               className="year-select-custom" 
             />
-            <button className="btn-search-stats" onClick={handleSearch} disabled={loading}>
+            
+            {/* 6. Відображаємо вибір дилера тільки для адмінів */}
+            {isAdmin && (
+              <DealerSelect value={dealerGuid} onChange={setDealerGuid} />
+            )}
+
+            <button 
+              className="btn-search-stats" 
+              onClick={handleSearch} 
+              disabled={loading || (isAdmin && !dealerGuid)}
+            >
               <FaSearch /> {loading ? "..." : "Сформувати"}
             </button>
           </div>
@@ -278,7 +305,12 @@ export default function ProductionStatisticsPage() {
       </div>
 
       <div className="stats-content-area">
-        {loading && !rawData ? (
+        {/* 7. Показуємо підказку, якщо адмін ще не обрав дилера */}
+        {isAdmin && !dealerGuid ? (
+          <div className="empty-state-info column align-center jc-center" style={{ minHeight: '400px' }}>
+             <p className="text-grey">Будь ласка, оберіть дилера для перегляду статистики</p>
+          </div>
+        ) : loading && !rawData ? (
           <div className="loading-spinner-wrapper">
             <div className="loading-spinner"></div>
           </div>

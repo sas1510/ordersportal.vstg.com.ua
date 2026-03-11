@@ -58,7 +58,7 @@ export default function PaymentsPage() {
     "Очікуємо підтвердження": "status-wait-confirm",
     "Підтверджено": "status-confirmed",
     "Резервування": "status-reserved",
-    "В роботі": "status-in-work",
+    // "В роботі": "status-in-work",
     "У виробництві": "status-production",
     "Готовий": "status-ready",
     "Відвантажений": "status-shipped",
@@ -68,10 +68,10 @@ export default function PaymentsPage() {
 
   const STATUS_FILTERS = [
     { key: "all", label: "Усі замовлення", icon: "icon-layers2" },
-    { key: "Очікуємо оплату", label: "Очікуємо оплату", icon: "icon-coin-dollar" },
     { key: "Очікуємо підтвердження", label: "Очікуємо підтвердження", icon: "icon-clipboard" },
+    { key: "Очікуємо оплату", label: "Очікуємо оплату", icon: "icon-coin-dollar" },
     { key: "Підтверджено", label: "Підтверджено", icon: "icon-check" },
-    { key: "В роботі", label: "В роботі", icon: "icon-cogs" },
+    // { key: "В роботі", label: "В роботі", icon: "icon-cogs" },
     { key: "У виробництві", label: "У виробництві", icon: "icon-cog" },
     { key: "Готовий", label: "Готовий", icon: "icon-box" },
     { key: "Відвантажений", label: "Відвантажений", icon: "icon-truck" },

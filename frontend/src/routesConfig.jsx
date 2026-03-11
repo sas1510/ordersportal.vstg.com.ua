@@ -97,9 +97,10 @@ export const adminRoutes = [
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
   // { path: "file-preview/invalid", element: <InvalidLinkPage/> },
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
-  { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
+ { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
    { path: "dashboardpage", element: <DashboardPage/> },
    { path: "notifications", element: <NotificationPage/> },
+
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
   

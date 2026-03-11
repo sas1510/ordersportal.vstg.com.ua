@@ -42,7 +42,7 @@ const styles = {
     position: "fixed",
     bottom: 0,
     left: 0,
-    zIndex: 10000,
+    zIndex: 9999,
   },
   
 
@@ -58,6 +58,6 @@ const styles = {
     position: "fixed",
     bottom: 0,
     left: 0,
-    zIndex: 10000,
+    zIndex: 9999,
   },
 };

@@ -482,7 +482,7 @@ const AdminAdditionalOrders = () => {
 
         {/* Main content */}
         <div className="content" id="content">
-          <div className="items-wrapper column gap-14">
+          <div className="items-wrapper column gap-1">
             {sortedItems.length === 0 ? (
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">Немає додаткових замовлень для відображення</div>

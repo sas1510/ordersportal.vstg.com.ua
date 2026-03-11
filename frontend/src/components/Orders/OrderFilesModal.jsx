@@ -193,15 +193,15 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                         {isDownloading ? (
                           <div className="btn-content">
                             <FaSpinner className="fa-spin" />
-                            <span className="btn-text">Завантаження...</span>
+                            <span className="">Завантаження...</span>
                           </div>
                         ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
                           <div className="btn-content">
-                            <FaEye /> <span className="btn-text">Скачати</span>
+                            <FaEye /> <span className="">Скачати</span>
                           </div>
                         ) : (
                           <div className="btn-content">
-                            <FaDownload /> <span className="btn-text">Скачати</span>
+                            <FaDownload /> <span className="">Скачати</span>
                           </div>
                         )}
                       </button>

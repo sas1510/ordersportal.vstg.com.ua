@@ -111,7 +111,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
   return (
     <div className="order-item flex flex-col w-full gap-0">
       <div
-        className="order-item-summary flex w-full cursor-pointer items-center gap-4"
+        className="order-item-summary flex w-full cursor-pointer items-center "
         onClick={toggleExpand}
       >
         <div className="summary-item row no-wrap">

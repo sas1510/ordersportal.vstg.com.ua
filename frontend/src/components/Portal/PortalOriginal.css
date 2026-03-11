@@ -2809,12 +2809,7 @@ body.dark-theme .order-item-summary .summary-item .column > div:first-child.bord
   min-width: 0;
 }
 
-/* сам control */
-.dealer-select__control {
-  width: 100%;
-  height: 40px;
-  border-radius: 8px;
-}
+
 
 /* dropdown не вилазить */
 .dealer-select__dropdown {

@@ -878,8 +878,8 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 /* Стиль для мобільного меню (якщо потрібно) */
 .mobile-menu-content .notification-badge {
   position: relative;
-  top: 0;
+  top: -10px;
   right: 0;
-  margin-left: 10px;
+  /* margin-left: 10px; */
   display: inline-flex;
 }
