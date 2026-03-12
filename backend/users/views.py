@@ -1744,7 +1744,7 @@ class CreateInvitationView(APIView):
                         can_refresh_at_kyiv = expiration_threshold.astimezone(kyiv_tz).strftime("%H:%M %d.%m.%Y")
 
                         return Response({
-                            "message": "active_invite_exists",
+                            # "message": "active_invite_exists",
                             "info": "Діюче запрошення знайдено. Нове можна створити через 24 години після попереднього.",
                             "username": user.username,
                             "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
