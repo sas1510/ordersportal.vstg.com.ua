@@ -13,7 +13,7 @@ import InviteRegisterForm from "./pages/InviteRegisterForm";
 import FilePreviewErrorPage from './pages/FilePreviewErrorPage'
 
 import PortalLoader from "./components/ui/PortalLoader";
-import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
+import { adminRoutes, dealerRoutes } from "./routesConfig";
 import { useCacheBuster } from './hooks/useCacheBuster';
 
 const routeTitles = {
@@ -182,10 +182,11 @@ function AppRoutes() {
   } else if (role === "dealer" || role === "customer") {
     LayoutComponent = DealerLayout;
     routes = dealerRoutes;
-  } else if (["manager", "director", "regionalManager"].includes(role)) {
-    LayoutComponent = AdminLayout;
-    routes = managerRoutes;
   }
+  // } else if (["manager", "director", "regionalManager"].includes(role)) {
+  //   LayoutComponent = AdminLayout;
+  //   routes = managerRoutes;
+  // }
 
   return (
     <Routes>

@@ -147,38 +147,38 @@ export const dealerRoutes = [
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 
-export const managerRoutes = [
-  { path: "home", element: <HomePage /> },
-  { path: "dashboard", element: <Dashboard /> },
-  { path: "files", element: <FilesPage /> },
-  { path: "users", element: <AdminUsersPage /> },
-  { path: "files/add", element: <AddOrEditFilePage /> },
-  { path: "files/edit/:id", element: <AddOrEditFilePage /> },
-  { path: "videos", element: <VideosPage /> },
-  { path: "videos/add", element: <VideoFormPage /> },
-  { path: "videos/edit/:id", element: <VideoFormPage /> },
-  // { path: "addUser", element: <RegistrationPage /> },
-  { path: "organizations", element: <OrganizationPage /> },
-  { path: "regions", element: <RegionPage /> },
+// export const managerRoutes = [
+//   { path: "home", element: <HomePage /> },
+//   { path: "dashboard", element: <Dashboard /> },
+//   { path: "files", element: <FilesPage /> },
+//   { path: "users", element: <AdminUsersPage /> },
+//   { path: "files/add", element: <AddOrEditFilePage /> },
+//   { path: "files/edit/:id", element: <AddOrEditFilePage /> },
+//   { path: "videos", element: <VideosPage /> },
+//   { path: "videos/add", element: <VideoFormPage /> },
+//   { path: "videos/edit/:id", element: <VideoFormPage /> },
+//   // { path: "addUser", element: <RegistrationPage /> },
+//   { path: "organizations", element: <OrganizationPage /> },
+//   { path: "regions", element: <RegionPage /> },
 
-  { path: "orders", element: <PortalOriginal /> },
-  // { path: "complaints", element: <ComplaintsPage /> },
-  { path: "additional-orders", element: <AdditionalOrdersPage /> },
+//   { path: "orders", element: <PortalOriginal /> },
+//   // { path: "complaints", element: <ComplaintsPage /> },
+//   { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
-  { path: "change-password", element: <ChangePassword /> },
-  { path: "users/:id/edit", element: <EditUserPage /> },
-  // { path: "finance/settlements", element: <SettlementsPage /> },
+//   { path: "change-password", element: <ChangePassword /> },
+//   { path: "users/:id/edit", element: <EditUserPage /> },
+//   // { path: "finance/settlements", element: <SettlementsPage /> },
 
-  { path: "contacts/new", element: <ContactFormPage /> },
-  { path: "urgentLogs", element: <UrgentCallLogsPage /> },
-  { path: "contacts/:id/edit", element: <ContactFormPage /> },
-  { path: "emergency-contacts", element: <EmergencyContactsPage /> },
-  // { path: "finance/settlements", element: <PaymentStatus /> },
+//   { path: "contacts/new", element: <ContactFormPage /> },
+//   { path: "urgentLogs", element: <UrgentCallLogsPage /> },
+//   { path: "contacts/:id/edit", element: <ContactFormPage /> },
+//   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
+//   // { path: "finance/settlements", element: <PaymentStatus /> },
 
 
-  { path: "promo-wds-codes", element: <WDSCodesTable/> },
-  { path: "addClaim", element: <AddClaimForm /> },
+//   { path: "promo-wds-codes", element: <WDSCodesTable/> },
+//   { path: "addClaim", element: <AddClaimForm /> },
 
-  // { path: "/invite/:code", element: <InviteRegisterForm  /> },
-  // { path: "create-bill", element: <CreateCustomerBillPage /> },
-];
+//   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
+//   // { path: "create-bill", element: <CreateCustomerBillPage /> },
+// ];

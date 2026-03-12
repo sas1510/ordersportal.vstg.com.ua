@@ -1669,14 +1669,9 @@ from rest_framework.response import Response
 # from .models import CustomUser, Invitation
 # from .serializers import CreateInvitationSerializer
 # from backend.utils.GuidToBin1C import guid_to_1c_bin
-
 class CreateInvitationView(APIView):
     """
     View для створення запрошення користувача з 1С.
-    Логіка:
-    1. Якщо юзер активний — помилка.
-    2. Якщо є недавній інвайт (< 24г) — повертаємо його.
-    3. Якщо інвайт старий (> 24г) або його нема — створюємо новий.
     """
     authentication_classes = [OneCApiKeyAuthentication]
     permission_classes = [ApiKey1С]
@@ -1689,6 +1684,11 @@ class CreateInvitationView(APIView):
 
         data = serializer.validated_data
         now = timezone.now()
+        
+        # --- НОРМАЛІЗАЦІЯ РОЛІ ---
+        # Приводимо до нижнього регістру, щоб у БД завжди було 'customer'
+        raw_role = data.get("role", "")
+        normalized_role = raw_role.lower()
 
         try:
             # --- 1. Конвертація GUID ---
@@ -1697,7 +1697,7 @@ class CreateInvitationView(APIView):
             except Exception as e:
                 return Response({"error": f"Помилка конвертації GUID: {str(e)}"}, status=400)
 
-            # --- 2. Перевірка дати експірації з 1С ---
+            # --- 2. Перевірка дати експірації ---
             if data["expireDate"] < now:
                 return Response({"error": "ExpireDate не може бути в минулому"}, status=400)
 
@@ -1706,50 +1706,46 @@ class CreateInvitationView(APIView):
             last_invite = Invitation.objects.filter(user_id_1C=user_guid_binary).order_by('-created_at').first()
 
             if user:
-                # Якщо клієнт вже зареєструвався (активний)
                 if user.is_active:
                     return Response(
                         {"error": "Користувач з таким GUID вже активований та існує в системі"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-                # Перевірка вікна 24 години для неактивного юзера
+                # Перевірка вікна 24 години
                 if last_invite and not last_invite.used:
                     expiration_threshold = last_invite.created_at + timedelta(hours=24)
                     
                     if now < expiration_threshold:
-                        # ПОВЕРТАЄМО ПОПЕРЕДНЄ ЗАПРОШЕННЯ
                         return Response({
                             "message": "active_invite_exists",
-                            "info": "Діюче запрошення знайдено. Нове можна створити через 24 години після попереднього.",
+                            "info": "Діюче запрошення знайдено. Нове можна створити через 24 години.",
                             "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
                             "code": last_invite.code,
                             "created_at": last_invite.created_at,
                             "can_refresh_at": expiration_threshold
                         }, status=status.HTTP_200_OK)
 
-                # Якщо ми тут, значить 24 години минули — оновлюємо дані перед створенням нового інвайту
+                # Оновлюємо дані юзера (використовуємо нормалізовану роль)
                 user.username = data["username"]
                 user.email = data.get("email")
                 user.full_name = data.get("fullName")
                 user.phone_number = data.get("phoneNumber")
                 user.expire_date = data["expireDate"]
-                user.role = data["role"]
+                user.role = normalized_role  # <--- ТУТ
                 user.save()
             else:
                 # --- 4. Створення нового користувача ---
                 user = CustomUser.objects.create(
                     username=data["username"],
-                    password=make_password(str(uuid.uuid4())), # Рандомний пароль до реєстрації
+                    password=make_password(str(uuid.uuid4())),
                     email=data.get("email"),
                     full_name=data.get("fullName"),
                     phone_number=data.get("phoneNumber"),
                     expire_date=data["expireDate"],
-                    role=data["role"],
+                    role=normalized_role,  # <--- ТУТ
                     user_id_1C=user_guid_binary,
                     is_active=False,
-                    is_staff=False,
-                    is_superuser=False,
                     email_confirmed=False,
                     permit_finance_info=True,
                     date_joined=now,
@@ -1758,22 +1754,19 @@ class CreateInvitationView(APIView):
             # --- 5. Генерація нового інвайту ---
             invite_code = str(uuid.uuid4())
             
-            # Позначаємо всі попередні невикористані інвайту як "замінені" (used=True)
+            # Деактивуємо старі інвайту
             Invitation.objects.filter(user_id_1C=user_guid_binary, used=False).update(used=True)
 
             Invitation.objects.create(
                 code=invite_code,
                 user_id_1C=user_guid_binary,
                 used=False,
-                created_at=now,
-                used_at=None
+                created_at=now
             )
-
-            invite_link = f"https://ordersportal.vstg.com.ua/invite/{invite_code}"
 
             return Response({
                 "message": "success",
-                "inviteLink": invite_link,
+                "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{invite_code}",
                 "code": invite_code
             }, status=status.HTTP_201_CREATED)
 
@@ -1782,8 +1775,10 @@ class CreateInvitationView(APIView):
                 {"error": f"Внутрішня помилка сервера: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
 
 
+        
     
 import uuid
 from datetime import timedelta

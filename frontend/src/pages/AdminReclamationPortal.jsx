@@ -11,7 +11,7 @@ import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import { ReclamationItem } from '../components/Reclamations/ReclamationItem';
 import { ReclamationItemMobile } from '../components/Reclamations/ReclamationItemMobile';
 
-import AddClaimModal from '../components/Complaint/AddClaimModal';
+import AddClaimModal from '../components/Reclamations/AddClaimModal';
 
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";

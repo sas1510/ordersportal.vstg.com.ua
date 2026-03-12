@@ -9,7 +9,7 @@ import axiosInstance from '../api/axios';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import { ReclamationItem } from '../components/Reclamations/ReclamationItem';
 import { ReclamationItemMobile } from '../components/Reclamations/ReclamationItemMobile';
-import AddClaimModal from '../components/Complaint/AddClaimModal';
+import AddClaimModal from '../components/Reclamations/AddClaimModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import '../components/Reclamations/ReclamationItem.css';

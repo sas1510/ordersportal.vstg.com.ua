@@ -8,7 +8,7 @@ import OrderDetailsDesktop from './OrderDetailsDesktop';
 import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import {CalculationMenu} from "./CalculationMenu";
-import AddClaimModal from "../Complaint/AddClaimModal";
+import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from './OrderDetailsMobile';

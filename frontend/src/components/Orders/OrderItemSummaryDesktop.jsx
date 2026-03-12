@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
 import { formatMoney } from "../../utils/formatMoney";
-import AddClaimModal from "../Complaint/AddClaimModal";
+import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
 import { formatDateHumanShorter } from "../../utils/formatters";
@@ -285,7 +285,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
         </div>
 
         {/* STATUS */}
-        <div className="summary-item w-[140px] row justify-start">
+        <div className="summary-item w-[140px] row justify-start no-wrap">
           <div className="row gap-14 align-center">
             <span className="icon-info-with-circle font-size-20 text-info"></span>
             <div className={`font-size-14 ${getStatusClass(order.status)}`}>

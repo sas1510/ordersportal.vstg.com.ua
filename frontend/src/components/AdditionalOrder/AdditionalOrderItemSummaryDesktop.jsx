@@ -5,7 +5,7 @@ import { formatDateHumanShorter } from "../../utils/formatters";
 import axiosInstance from "../../api/axios";
 
 // Модальні вікна
-import AddClaimModal from "../Complaint/AddClaimModal";
+import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "./AddReorderModal";
 import ConfirmModal from "../Orders/ConfirmModal";
 import PaymentModal from "../Orders/PaymentModal";
@@ -20,8 +20,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false); // Додано для файлів
-
+  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false); 
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const { addNotification } = useNotification();
 
@@ -166,7 +165,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         </div>
 
         {/* Статус */}
-        <div className="summary-item w-[140px] row justify-start">
+        <div className="summary-item w-[180px] row justify-start no-wrap">
           <div className="row gap-14 align-center">
             <span className="icon-info-with-circle font-size-20 text-info"></span>
             <div className={`font-size-14 ${getStatusClass(order.status)}`}>{order.status}</div>

@@ -172,7 +172,7 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
               <FaTimes /> Відмінити
             </button>
             <button type="submit" className="reorder-btn-save" disabled={loading || (!noOrder && !orderNumber)}>
-              {loading ? <FaSpinner className="spinner" /> : <FaPlus />} Додати дозамовлення
+              {loading ? <FaSpinner className="spinner" /> : <FaPlus />} Додати
             </button>
           </div>
         </form>

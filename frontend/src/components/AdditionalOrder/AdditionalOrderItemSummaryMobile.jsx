@@ -4,7 +4,7 @@ import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from './OrderDetailsMobile';
 
 // Модальні вікна
-import AddClaimModal from "../Complaint/AddClaimModal";
+import AddClaimModal from '../Reclamations/AddClaimModal';
 import AddReorderModal from "./AddReorderModal";
 import ConfirmModal from "../Orders/ConfirmModal";
 import PaymentModal from "../Orders/PaymentModal";
@@ -13,7 +13,7 @@ import { useNotification } from "../notification/Notifications";
 import { useAuth } from '../../hooks/useAuth';
 
 export default function AdditionalOrderItemSummaryMobile({ order }) {
-  // =========================== UI STATE ===========================
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
@@ -23,7 +23,6 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
 
   const { addNotification } = useNotification();
 
-  // =========================== DATA & AUTH ===========================
   const { user, role } = useAuth();
   const isAdmin = role === "admin";
 

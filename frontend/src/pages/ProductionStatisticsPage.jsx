@@ -298,37 +298,43 @@ export default function ProductionStatisticsPage() {
               onClick={handleSearch} 
               disabled={loading || (isAdmin && !dealerGuid)}
             >
-              <FaSearch /> {loading ? "..." : "Сформувати"}
+              <FaSearch /> {loading ? "Завантаження..." : "Сформувати"}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="stats-content-area">
-        {/* 7. Показуємо підказку, якщо адмін ще не обрав дилера */}
-        {isAdmin && !dealerGuid ? (
-          <div className="empty-state-info column align-center jc-center" style={{ minHeight: '400px' }}>
-             <p className="text-grey">Будь ласка, оберіть дилера для перегляду статистики</p>
-          </div>
-        ) : loading && !rawData ? (
-          <div className="loading-spinner-wrapper">
-            <div className="loading-spinner"></div>
-          </div>
-        ) : error ? (
-          <div className="error-empty-state column align-center jc-center" style={{ minHeight: '400px' }}>
-            <FaExclamationTriangle className="text-red mb-16" style={{ fontSize: '64px' }} />
-            <h3 className="font-size-24 weight-600 mb-8">Упс! Дані тимчасово недоступні</h3>
-            <p className="text-grey mb-24 text-center">{error}</p>
-            <button className="btn-search-stats" onClick={handleSearch}>Повторити запит</button>
-          </div>
-        ) : (
-          <ProductionStatisticsBlock 
-            rawData={rawData} 
-            dealerData={dealerData} 
-            dateRange={searchParams} 
-          />
-        )}
-      </div>
+<div className="stats-content-area">
+  {/* 1. ПРІОРИТЕТ 1: Якщо є помилка — показуємо тільки її */}
+  {error ? (
+    <div className="error-empty-state column align-center jc-center" style={{ minHeight: '400px' }}>
+      <FaExclamationTriangle className="text-red mb-16" style={{ fontSize: '64px' }} />
+      <h3 className="font-size-24 weight-600 mb-8">Упс! Дані тимчасово недоступні</h3>
+      <p className="text-grey mb-24 text-center">{error}</p>
+      <button className="btn-search-stats" onClick={handleSearch}>Повторити запит</button>
+    </div>
+  ) : 
+  /* 2. ПРІОРИТЕТ 2: Перевірка на вибір дилера для адміна */
+  isAdmin && !dealerGuid ? (
+    <div className="empty-state-info column align-center jc-center" style={{ minHeight: '400px' }}>
+       <p className="text-grey">Будь ласка, оберіть дилера для перегляду статистики</p>
+    </div>
+  ) : 
+  /* 3. ПРІОРИТЕТ 3: Завантаження (тільки якщо немає даних) */
+  loading && !rawData ? (
+    <div className="loading-spinner-wrapper">
+      <div className="loading-spinner"></div>
+    </div>
+  ) : 
+  /* 4. ПРІОРИТЕТ 4: Рендеринг контенту (якщо є дані або завантаження фонове) */
+  (rawData || dealerData) ? (
+    <ProductionStatisticsBlock 
+      rawData={rawData} 
+      dealerData={dealerData} 
+      dateRange={searchParams} 
+    />
+  ) : null}
+</div>
     </div>
   );
 }
