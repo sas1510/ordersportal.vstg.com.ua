@@ -616,6 +616,13 @@ const AdminPortalOriginal = () => {
     [calculationsData]
   );
 
+  // Додай цей useEffect на початку списку ефектів
+  useEffect(() => {
+    if (isAdmin && !dealerGuid) {
+      setDealerGuid(ALL_DEALERS_VALUE);
+    }
+  }, [isAdmin, dealerGuid, setDealerGuid]);
+
   // =====================================================
   // AUTO MONTH FOR ALL DEALERS
   // =====================================================
@@ -815,6 +822,17 @@ const AdminPortalOriginal = () => {
     setFilteredItems(getFilteredItems(status, filter.month, filter.name, calculationsData));
     setDisplayLimit(ITEMS_PER_LOAD);
   };
+
+  // Усередині AdminPortalOriginal перед return:
+
+const handleDeleteSuccess = useCallback(async (id) => {
+  // Варіант А: Швидке видалення зі списку (UI)
+  setCalculationsData(prev => prev.filter(item => item.id !== id));
+  setFilteredItems(prev => prev.filter(item => item.id !== id));
+  
+  // Варіант Б: Повне оновлення з сервера (щоб оновити лічильники в сайдбарі)
+  // await reloadCalculations(); 
+}, [setCalculationsData, setFilteredItems]);
 
   const handleMonthClick = (month) => {
     if (dealerGuid === ALL_DEALERS_VALUE && month === 0) return;
@@ -1055,6 +1073,7 @@ const AdminPortalOriginal = () => {
                     onToggle={() => setExpandedCalc(prev => prev === calc.id ? null : calc.id)}
                     expandedOrderId={expandedOrder}
                     onOrderToggle={setExpandedOrder}
+                    onDelete={handleDeleteSuccess}
                   />
                 ) : (
                   <CalculationItem
@@ -1064,6 +1083,7 @@ const AdminPortalOriginal = () => {
                     onToggle={() => setExpandedCalc(prev => prev === calc.id ? null : calc.id)}
                     expandedOrderId={expandedOrder}
                     onOrderToggle={setExpandedOrder}
+                    onDelete={handleDeleteSuccess}
                   />
                 )
               )

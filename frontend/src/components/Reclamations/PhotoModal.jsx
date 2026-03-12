@@ -1,10 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import {
-  FaTimes,
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
+import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "./PhotoModal.css";
 
 export default function PhotoModal({
@@ -14,24 +10,35 @@ export default function PhotoModal({
   currentIndex = 0,
   setCurrentIndex,
 }) {
-  const prev = () =>
-    setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
+  const thumbsRef = useRef(null); // Створюємо референс для контейнера мініатюр
 
-  const next = () =>
-    setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
+  const prev = () => setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
+  const next = () => setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
+
+  // АВТОПРОКРУТКА: Спрацьовує при зміні currentIndex
+  useEffect(() => {
+    if (isOpen && thumbsRef.current) {
+      const activeThumb = thumbsRef.current.querySelector(".photo-thumb.active");
+      if (activeThumb) {
+        activeThumb.scrollIntoView({
+          behavior: "smooth", // Плавна анімація
+          block: "nearest",   // Мінімальний рух по вертикалі
+          inline: "center",  // Центруємо активну мініатюру в списку
+        });
+      }
+    }
+  }, [currentIndex, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
-
     const handleKeyDown = (e) => {
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") prev();
       if (e.key === "ArrowRight") next();
     };
-
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, photos.length]);
 
   if (!isOpen || !photos.length) return null;
 
@@ -39,57 +46,37 @@ export default function PhotoModal({
 
   return createPortal(
     <div className="photo-modal-overlay" onClick={onClose}>
-      <div
-        className="photo-modal-window"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* CLOSE */}
+      <div className="photo-modal-window" onClick={(e) => e.stopPropagation()}>
         <button className="photo-modal-close" onClick={onClose}>
-          <FaTimes />
+          <FaTimes size={16} />
         </button>
 
-        {/* IMAGE */}
         <div className="photo-modal-content-my">
           <img src={src} alt={`Фото ${currentIndex + 1}`} />
         </div>
 
-        {/* ⬅️ PREV */}
         {photos.length > 1 && (
-          <button
-            className="photo-nav photo-nav-prev"
-            onClick={prev}
-            aria-label="Попереднє фото"
-          >
-            <FaChevronLeft />
-          </button>
-        )}
+          <>
+            <button className="photo-nav photo-nav-prev" onClick={prev}>
+              <FaChevronLeft />
+            </button>
+            <button className="photo-nav photo-nav-next" onClick={next}>
+              <FaChevronRight />
+            </button>
 
-        {/* ➡️ NEXT */}
-        {photos.length > 1 && (
-          <button
-            className="photo-nav photo-nav-next"
-            onClick={next}
-            aria-label="Наступне фото"
-          >
-            <FaChevronRight />
-          </button>
-        )}
-
-        {/* THUMBNAILS */}
-        {photos.length > 1 && (
-          <div className="photo-modal-thumbs">
-            {photos.map((photo, i) => (
-              <img
-                key={i}
-                src={photo}
-                alt={`thumb-${i}`}
-                className={`photo-thumb ${
-                  i === currentIndex ? "active" : ""
-                }`}
-                onClick={() => setCurrentIndex(i)}
-              />
-            ))}
-          </div>
+            {/* Додаємо ref={thumbsRef} */}
+            <div className="photo-modal-thumbs" ref={thumbsRef}>
+              {photos.map((photo, i) => (
+                <img
+                  key={i}
+                  src={photo}
+                  alt={`thumb-${i}`}
+                  className={`photo-thumb ${i === currentIndex ? "active" : ""}`}
+                  onClick={() => setCurrentIndex(i)}
+                />
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>,

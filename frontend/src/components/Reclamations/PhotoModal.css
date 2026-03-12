@@ -16,6 +16,7 @@
   align-items: center;
   justify-content: center;
   margin: 20px;
+  background-color: #414141;
 }
 
 .photo-modal-content-my  {
@@ -28,7 +29,7 @@
 .photo-modal-content-my img {
   max-width: 100vw;
   max-height: 72vh;
-  border-radius: 8px;
+
   user-select: none;
 }
 
@@ -165,4 +166,213 @@
     height: 44px;
     font-size: 18px;
   }
+}
+/* ЗАГАЛЬНЕ НАКЛАДАННЯ */
+.photo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9); /* Трохи темніше для кращого фокусу */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ВІКНО МОДАЛКИ */
+.photo-modal-window {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh; /* Трохи більше місця для вмісту */
+  display: flex;
+  flex-direction: column; /* Вертикальне розташування для вмісту + мініатюр */
+  align-items: center;
+  justify-content: center;
+  margin: 20px;
+}
+
+/* КОНТЕНТ (ЗОБРАЖЕННЯ) */
+.photo-modal-content-my {
+  position: relative;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.photo-modal-content-my img {
+  max-width: 100%;
+  max-height: 70vh; /* Зменшено, щоб звільнити місце для мініатюр */
+
+  user-select: none;
+  object-fit: contain; /* Забезпечує правильне масштабування */
+}
+
+/* КНОПКА ЗАКРИТТЯ (ХРЕСТИК) */
+.photo-modal-close {
+  position: absolute;
+  top: 12px; /* Винесено вище вікна */
+  right: 12px;
+  background: #ff660065;
+  border: none;
+  color: #fff;
+  font-size: 30px; /* Збільшено розмір */
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+  z-index: 1;
+  padding: 3px;
+}
+
+.photo-modal-close:hover {
+  color: #ccc;
+}
+
+/* НАВІГАЦІЙНІ КНОПКИ (СТРІЛКИ) */
+.photo-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1); /* Світліший фон */
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+.photo-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.photo-nav-prev {
+  left: 10px;
+}
+
+.photo-nav-next {
+  right: 10px;
+}
+
+/* МІНІАТЮРИ (THUMBNAILS) */
+.photo-modal-thumbs {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  /* Логіка відображення 3 мініатюр з прокруткою */
+  max-width: calc(3 * 60px + 2 * 10px + 20px); /* 3 * ширина + gap + padding */
+  overflow-x: auto; /* Вмикає горизонтальну прокрутку */
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Ховає скролбар у Firefox */
+}
+
+/* Ховає скролбар у Webkit (Chrome, Safari) */
+.photo-modal-thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  opacity: 0.6;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  flex-shrink: 0; /* Запобігає стисканню мініатюр */
+}
+
+.photo-thumb:hover {
+  opacity: 0.9;
+}
+
+.photo-thumb.active {
+  opacity: 1;
+  border-color: #fff;
+  /* Центрування активної мініатюри */
+  scroll-snap-align: center;
+}
+
+/* МОБІЛЬНІ ПРИСТРОЇ */
+@media (max-width: 768px) {
+  .photo-modal-window {
+    max-width: 95vw;
+  }
+
+  .photo-modal-close {
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    padding: 5px;
+    font-size: 20px;
+  }
+
+  .photo-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .photo-thumb {
+    width: 50px;
+    height: 50px;
+  }
+
+  .photo-modal-thumbs {
+    max-width: calc(3 * 50px + 2 * 10px + 20px);
+  }
+}
+.photo-modal-thumbs {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.658);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+
+  /* Обмеження на 3 видимих фото (приблизно 180-200px) */
+  max-width: 200px; 
+  overflow-x: auto; /* Дозволяємо горизонтальну прокрутку */
+  scroll-behavior: smooth; /* Плавність для браузерів */
+  
+  /* Ховаємо скролбар */
+  scrollbar-width: none; 
+}
+
+.photo-modal-thumbs::-webkit-scrollbar {
+  display: none;
+}
+
+.photo-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: 0.5;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  
+  flex-shrink: 0; /* ЗАБОРОНЯЄМО картинкам ставати вужчими */
+}
+
+.photo-thumb.active {
+  opacity: 1;
+  border-color: #fff;
+  transform: scale(1.1); /* Трохи виділяємо активну */
 }

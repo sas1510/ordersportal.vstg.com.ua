@@ -197,11 +197,11 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
                           </div>
                         ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
                           <div className="btn-content">
-                            <FaEye /> <span className="">Скачати</span>
+                            <FaEye /> <span className="hide-on-mobile">Переглянути</span>
                           </div>
                         ) : (
                           <div className="btn-content">
-                            <FaDownload /> <span className="">Скачати</span>
+                            <FaDownload /> <span className="hide-on-mobile">Завантажити</span>
                           </div>
                         )}
                       </button>

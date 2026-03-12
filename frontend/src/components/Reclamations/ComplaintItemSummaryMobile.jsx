@@ -200,10 +200,11 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
       });
 
       const token = res.data.token;
+      const safeToken = encodeURIComponent(token);
 
       return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(
         file.File_FileName
-      )}&token=${token}`;
+      )}&token=${safeToken}`;
     } catch (e) {
       console.error("❌ Token error:", file?.File_FileName, e);
       return null;
@@ -211,26 +212,36 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
   };
 
   /* ================= 3. КЛІК ПО ФОТО / ВІДЕО ================= */
+const handlePhotoClick = async (index) => {
+  if (!imageFiles.length || isMediaLoading) return;
 
-  const handlePhotoClick = async (index) => {
-    if (!imageFiles.length) return;
+  setIsMediaLoading(true);
+  const urls = [];
 
-    setIsMediaLoading(true);
-    try {
-      const urls = await Promise.all(imageFiles.map((file) => getSecureUrl(file)));
-      const validUrls = urls.filter(Boolean);
-
-      if (validUrls.length > 0) {
-        setPhotoUrls(validUrls);
-        setPhotoIndex(index);
-        setIsPhotoModalOpen(true);
+  try {
+    // Цикл for...of гарантує ПОРЯДОК і ЧЕРГОВІСТЬ
+    for (const file of imageFiles) {
+      // Чекаємо, поки сервер видасть токен для одного файлу, перш ніж просити наступний
+      const url = await getSecureUrl(file);
+      
+      if (url) {
+        urls.push(url);
       } else {
-        alert("❌ Не вдалося отримати доступ до фото");
+        // Якщо токен не прийшов, ставимо заглушку, щоб не збивати індекси
+        urls.push("https://placehold.co/600x400?text=Помилка+токену");
       }
-    } finally {
-      setIsMediaLoading(false);
     }
-  };
+
+    setPhotoUrls(urls);
+    setPhotoIndex(index);
+    setIsPhotoModalOpen(true);
+  } catch (err) {
+    console.error("Критична помилка завантаження медіа:", err);
+    addNotification("Не вдалося завантажити фото", "error");
+  } finally {
+    setIsMediaLoading(false);
+  }
+};
 
   const handleVideoClick = async (file) => {
     const url = await getSecureUrl(file);

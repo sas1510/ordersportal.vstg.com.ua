@@ -392,9 +392,9 @@ class ReclamationViewSet(viewsets.ViewSet):
             # ==================================================
             result = send_to_1c("CreateReclamation", payload)
 
-            reclamation_guid = result.get("reclamationGuid")
-            if not reclamation_guid:
-                raise ValueError("1C не повернула reclamationGuid")
+            # reclamation_guid = result.get("reclamationGuid")
+            # if not reclamation_guid:
+            #     raise ValueError("1C не повернула reclamationGuid")
 
             return Response(
                 {

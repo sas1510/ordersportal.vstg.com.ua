@@ -348,18 +348,18 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
         </div>
 
        {/* SMILEY COLUMN */}
-<div 
-  className="summary-item flex items-center justify-center w-6" 
-  title={dateDiffStatus ? "Швидке оформлення" : "Замовлення оформлено пізніше ніж через добу"}
->
-  <div className="font-size-24 flex items-center justify-center">
-    {dateDiffStatus === null ? null : dateDiffStatus ? (
-      <i className="far fa-laugh-beam text-success pulse-animation"></i> 
-    ) : (
-      <i className="far fa-frown text-danger"></i>
-    )}
-  </div>
-</div>
+        <div 
+          className="summary-item flex items-center justify-center w-6" 
+          title={dateDiffStatus ? "Швидке оформлення" : "Замовлення оформлено пізніше ніж через добу"}
+        >
+          <div className="font-size-24 flex items-center justify-center">
+            {dateDiffStatus === null ? null : dateDiffStatus ? (
+              <i className="far fa-laugh-beam text-success pulse-animation"></i> 
+            ) : (
+              <i className="far fa-frown text-danger"></i>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* DETAILS */}

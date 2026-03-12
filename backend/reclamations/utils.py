@@ -8,20 +8,21 @@ SECRET = settings.SECRET_KEY.encode()
 
 def generate_media_token(file_guid: str, ttl_seconds: int = 180) -> str:
     exp = int(time.time()) + ttl_seconds
-    payload = f"{file_guid}|{exp}".encode()
+    payload_raw = f"{file_guid}|{exp}".encode()
+    
+    # 1. Кодуємо payload окремо
+    payload_b64 = base64.urlsafe_b64encode(payload_raw).decode().rstrip("=")
 
+    # 2. Робимо підпис на основі закодованого payload
     signature = hmac.new(
         SECRET,
-        payload,
+        payload_b64.encode(),
         hashlib.sha256
     ).digest()
+    sig_b64 = base64.urlsafe_b64encode(signature).decode().rstrip("=")
 
-    # 🔐 без "=" → ідеально для URL
-    token = base64.urlsafe_b64encode(
-        payload + b"." + signature
-    ).decode().rstrip("=")
-
-    return token
+    # 3. Склеюємо через крапку: b64_payload.b64_signature
+    return f"{payload_b64}.{sig_b64}"
 
 
 from urllib.parse import unquote
@@ -32,42 +33,39 @@ import base64
 
 def verify_media_token(token: str) -> str | None:
     try:
-        # 🔓 якщо прийшов quoted
-        token = unquote(token)
-
-        # 🔁 повертаємо padding
-        padding = "=" * (-len(token) % 4)
-        raw = base64.urlsafe_b64decode(token + padding)
-
-        # 🔍 чітка валідація формату
-        if b"." not in raw:
+        if "." not in token:
             return None
+            
+        payload_b64, sig_b64 = token.split(".", 1)
 
-        payload, signature = raw.rsplit(b".", 1)
+        # Функція для відновлення Base64
+        def decode_b64(data):
+            missing_padding = len(data) % 4
+            if missing_padding:
+                data += '=' * (4 - missing_padding)
+            return base64.urlsafe_b64decode(data)
 
+        # 1. Перевіряємо підпис
         expected_sig = hmac.new(
             SECRET,
-            payload,
+            payload_b64.encode(),
             hashlib.sha256
         ).digest()
+        actual_sig = decode_b64(sig_b64)
 
-        if not hmac.compare_digest(signature, expected_sig):
+        if not hmac.compare_digest(actual_sig, expected_sig):
             return None
 
-        decoded = payload.decode(errors="strict")
-        if "|" not in decoded:
-            return None
-
-        file_guid, exp = decoded.split("|", 1)
+        # 2. Декодуємо дані
+        decoded_payload = decode_b64(payload_b64).decode()
+        file_guid, exp = decoded_payload.split("|", 1)
 
         if int(exp) < int(time.time()):
             return None
 
         return file_guid
-
     except Exception:
         return None
-
 
 
 from django.db import connection

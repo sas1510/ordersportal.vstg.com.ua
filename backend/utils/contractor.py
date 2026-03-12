@@ -39,9 +39,13 @@ def resolve_contractor(
     role = (getattr(user, "role", "") or "").lower()
 
     if role == "admin" and allow_admin:
-        contractor_guid = request.GET.get(admin_param)
+        contractor_guid = request.data.get(admin_param) if hasattr(request, 'data') else None
         if not contractor_guid:
-            raise ValueError("contractor is required for admin")
+            contractor_guid = request.GET.get(admin_param)
+
+        if not contractor_guid:
+            raise ValueError(f"{admin_param} is required for admin")
+
 
         try:
             contractor_bin = guid_to_1c_bin(contractor_guid)

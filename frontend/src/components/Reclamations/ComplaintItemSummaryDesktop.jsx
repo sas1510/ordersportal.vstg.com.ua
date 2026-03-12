@@ -175,9 +175,10 @@ const ComplaintItemDetailView = ({ complaint }) => {
       file_guid: file.File_GUID,
     });
     const token = res.data.token;
+    const safeToken = encodeURIComponent(token);
     
     // Переконайтеся, що URL формується правильно
-    return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(file.File_FileName)}&token=${token}`;
+    return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(file.File_FileName)}&token=${safeToken}`;
   } catch (e) {
     console.error("❌ Token error:", file?.File_FileName, e);
     return null; // Якщо помилка, повертаємо null
