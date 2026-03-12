@@ -323,7 +323,7 @@ from django.utils import timezone
 
 from backend.permissions import IsAdminJWT
 from backend.users.models import UserApiKey
-
+import pytz
 
 
 from drf_spectacular.utils import OpenApiResponse, OpenApiParameter
@@ -1731,19 +1731,26 @@ class CreateInvitationView(APIView):
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-                # Перевірка вікна 24 години для повторного інвайту
+
                 if last_invite and not last_invite.used:
                     expiration_threshold = last_invite.created_at + timedelta(hours=24)
                     
                     if now < expiration_threshold:
+                        # Встановлюємо київську часову зону
+                        kyiv_tz = pytz.timezone('Europe/Kyiv')
+                        
+                        # Конвертуємо час у київський та форматуємо в рядок "HH:MM DD.MM.YYYY"
+                        created_at_kyiv = last_invite.created_at.astimezone(kyiv_tz).strftime("%H:%M %d.%m.%Y")
+                        can_refresh_at_kyiv = expiration_threshold.astimezone(kyiv_tz).strftime("%H:%M %d.%m.%Y")
+
                         return Response({
                             "message": "active_invite_exists",
-                            "info": "Діюче запрошення знайдено. Нове можна створити через 24 години.",
-                            "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
+                            "info": "Діюче запрошення знайдено. Нове можна створити через 24 години після попереднього.",
                             "username": user.username,
+                            "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
                             "code": last_invite.code,
-                            "created_at": last_invite.created_at,
-                            "can_refresh_at": expiration_threshold
+                            "created_at": created_at_kyiv,      # Поверне напр. "09:42 02.02.2026"
+                            "can_refresh_at": can_refresh_at_kyiv # Поверне напр. "09:42 03.02.2026"
                         }, status=status.HTTP_400_BAD_REQUEST)
 
                 # Оновлюємо дані існуючого, але неактивного юзера
