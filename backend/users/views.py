@@ -1669,50 +1669,69 @@ from rest_framework.response import Response
 # from .models import CustomUser, Invitation
 # from .serializers import CreateInvitationSerializer
 # from backend.utils.GuidToBin1C import guid_to_1c_bin
+from django.db import transaction
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import uuid
+from datetime import timedelta
+
+# Імпортуйте ваші моделі та серіалізатори
+# from .models import CustomUser, Invitation
+# from .serializers import CreateInvitationSerializer
+# from .utils import guid_to_1c_bin
+
 class CreateInvitationView(APIView):
     """
     View для створення запрошення користувача з 1С.
+    Логіка підтримує вхідні дані ролі у будь-якому регістрі (Customer -> customer).
     """
     authentication_classes = [OneCApiKeyAuthentication]
     permission_classes = [ApiKey1С]
 
     @transaction.atomic
     def post(self, request):
+        # 1. Валідація вхідних даних
         serializer = CreateInvitationSerializer(data=request.data)
         if not serializer.is_valid():
+            # Якщо тут все ще помилка "not a valid choice", 
+            # змініть у серіалізаторі ChoiceField на CharField
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
         now = timezone.now()
         
-        # --- НОРМАЛІЗАЦІЯ РОЛІ ---
-        # Приводимо до нижнього регістру, щоб у БД завжди було 'customer'
-        raw_role = data.get("role", "")
+        # 2. НОРМАЛІЗАЦІЯ РОЛІ (гарантуємо нижній регістр для БД)
+        # Навіть якщо Serializer пропустив "Customer", ми запишемо "customer"
+        raw_role = data.get("role", "customer")
         normalized_role = raw_role.lower()
 
         try:
-            # --- 1. Конвертація GUID ---
+            # --- Конвертація GUID ---
             try:
                 user_guid_binary = guid_to_1c_bin(data["userGuid"])
             except Exception as e:
                 return Response({"error": f"Помилка конвертації GUID: {str(e)}"}, status=400)
 
-            # --- 2. Перевірка дати експірації ---
+            # --- Перевірка дати експірації ---
             if data["expireDate"] < now:
                 return Response({"error": "ExpireDate не може бути в минулому"}, status=400)
 
-            # --- 3. Пошук існуючого користувача та останнього інвайту ---
+            # --- Пошук існуючого користувача та останнього інвайту ---
             user = CustomUser.objects.filter(user_id_1C=user_guid_binary).first()
             last_invite = Invitation.objects.filter(user_id_1C=user_guid_binary).order_by('-created_at').first()
 
             if user:
+                # Якщо юзер вже активний — нічого не робимо
                 if user.is_active:
                     return Response(
                         {"error": "Користувач з таким GUID вже активований та існує в системі"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-                # Перевірка вікна 24 години
+                # Перевірка вікна 24 години для повторного інвайту
                 if last_invite and not last_invite.used:
                     expiration_threshold = last_invite.created_at + timedelta(hours=24)
                     
@@ -1726,16 +1745,16 @@ class CreateInvitationView(APIView):
                             "can_refresh_at": expiration_threshold
                         }, status=status.HTTP_200_OK)
 
-                # Оновлюємо дані юзера (використовуємо нормалізовану роль)
+                # Оновлюємо дані існуючого, але неактивного юзера
                 user.username = data["username"]
                 user.email = data.get("email")
                 user.full_name = data.get("fullName")
                 user.phone_number = data.get("phoneNumber")
                 user.expire_date = data["expireDate"]
-                user.role = normalized_role  # <--- ТУТ
+                user.role = normalized_role  # Зберігаємо завжди малими
                 user.save()
             else:
-                # --- 4. Створення нового користувача ---
+                # --- Створення нового користувача ---
                 user = CustomUser.objects.create(
                     username=data["username"],
                     password=make_password(str(uuid.uuid4())),
@@ -1743,7 +1762,7 @@ class CreateInvitationView(APIView):
                     full_name=data.get("fullName"),
                     phone_number=data.get("phoneNumber"),
                     expire_date=data["expireDate"],
-                    role=normalized_role,  # <--- ТУТ
+                    role=normalized_role, # Зберігаємо завжди малими
                     user_id_1C=user_guid_binary,
                     is_active=False,
                     email_confirmed=False,
@@ -1751,10 +1770,10 @@ class CreateInvitationView(APIView):
                     date_joined=now,
                 )
 
-            # --- 5. Генерація нового інвайту ---
+            # --- Генерація інвайту ---
             invite_code = str(uuid.uuid4())
             
-            # Деактивуємо старі інвайту
+            # Позначаємо всі старі невикористані інвайту як замінені
             Invitation.objects.filter(user_id_1C=user_guid_binary, used=False).update(used=True)
 
             Invitation.objects.create(
@@ -1775,10 +1794,9 @@ class CreateInvitationView(APIView):
                 {"error": f"Внутрішня помилка сервера: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
 
 
-        
+
     
 import uuid
 from datetime import timedelta
