@@ -146,5 +146,5 @@ class CreateInvitationSerializer(serializers.Serializer):
     fullName = serializers.CharField(max_length=255, required=False, allow_blank=True)
     phoneNumber = serializers.CharField(max_length=20, required=False, allow_blank=True)
     expireDate = serializers.DateTimeField()
-    role = serializers.ChoiceField(choices=["admin", "customer"])
+    role = serializers.ChoiceField(choices=["admin", "customer", "Customer"])
     userGuid = serializers.CharField()
