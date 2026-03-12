@@ -1740,10 +1740,11 @@ class CreateInvitationView(APIView):
                             "message": "active_invite_exists",
                             "info": "Діюче запрошення знайдено. Нове можна створити через 24 години.",
                             "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
+                            "username": user.username,
                             "code": last_invite.code,
                             "created_at": last_invite.created_at,
                             "can_refresh_at": expiration_threshold
-                        }, status=status.HTTP_200_OK)
+                        }, status=status.HTTP_400_BAD_REQUEST)
 
                 # Оновлюємо дані існуючого, але неактивного юзера
                 user.username = data["username"]
@@ -1762,7 +1763,7 @@ class CreateInvitationView(APIView):
                     full_name=data.get("fullName"),
                     phone_number=data.get("phoneNumber"),
                     expire_date=data["expireDate"],
-                    role=normalized_role, # Зберігаємо завжди малими
+                    role=normalized_role, 
                     user_id_1C=user_guid_binary,
                     is_active=False,
                     email_confirmed=False,
