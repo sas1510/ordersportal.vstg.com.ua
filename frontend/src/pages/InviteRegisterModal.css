@@ -1,0 +1,526 @@
+/* Основний контейнер та Backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 28rem;
+  overflow: hidden;
+}
+
+/* Темна тема для контенту */
+.dark-theme .modal-content {
+  background-color: #1e2227;
+  color: #e6e6e6;
+}
+
+
+
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.close-btn {
+  color: #9ca3af;
+  transition: color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #4b5563;
+}
+
+/* Форма та відступи */
+.modal-body {
+  padding: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Секція 1С */
+.source-1c-container {
+  background-color: rgba(59, 130, 246, 0.1);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.source-1c-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--info-color);
+}
+
+/* Поле пошуку 1С */
+.search-1c-input {
+  width: 100%;
+  padding: 0.625rem;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.dark-theme .search-1c-input {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+  color: #ffffff;
+}
+
+.search-1c-input:focus {
+  border-color: var(--text-info);
+}
+
+/* Випадаючий список результатів */
+.search-results-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  margin-top: 0.25rem;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.dark-theme .search-results-dropdown {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+}
+
+.search-result-item {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dark-theme .search-result-item {
+  border-bottom-color: #3d3d3d;
+}
+
+.search-result-item:hover {
+  background-color: #eff6ff;
+}
+
+.dark-theme .search-result-item:hover {
+  background-color: #323232;
+}
+
+.user-code { font-weight: 700; font-size: 0.875rem; }
+.user-name { font-size: 0.75rem; opacity: 0.6; font-style: italic; }
+
+/* Розділювач */
+.divider-container {
+  position: relative;
+  padding: 0.5rem 0;
+  text-align: center;
+}
+
+.divider-line {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+
+.divider-line span {
+  width: 100%;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dark-theme .divider-line span { border-color: #3d3d3d; }
+
+.divider-text {
+  position: relative;
+  background-color: #ffffff;
+  padding: 0 0.5rem;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.dark-theme .divider-text { background-color: #1e2227; }
+
+/* Поля вводу */
+.grid-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.input-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  margin-left: 0.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  outline: none;
+  color: inherit;
+}
+
+.dark-theme .form-input {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+}
+
+.input-with-icon {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.pl-icon { padding-left: 2.5rem; }
+
+/* Кнопки */
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dark-theme .form-footer { border-color: #3d3d3d; }
+
+.btn-cancel {
+  padding: 0.5rem 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-submit-add-user {
+  padding: 0.625rem 1.25rem;
+  background-color: var(--info-color);
+  color: #ffffff;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.btn-submit-add-user:hover { background-color: #437bd4; }
+.btn-submit-add-user:active { transform: scale(0.95); }
+.btn-submit-add-user:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Секція Успіху */
+.success-screen {
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.success-icon-wrapper {
+  width: 5rem;
+  height: 5rem;
+  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--text-info);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.success-card {
+  background-color: #f9fafb;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  border: 2px dashed #e5e7eb;
+  text-align: left;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.dark-theme .success-card {
+  background-color: rgba(17, 24, 39, 0.5);
+  border-color: #3d3d3d;
+}
+
+.invite-link-box {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.dark-theme .invite-link-box { border-color: #3d3d3d; }
+
+.qr-code-wrapper {
+  background-color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  display: inline-block;
+}
+
+.copy-btn-floating {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  padding: 0.75rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.dark-theme .copy-btn-floating { background-color: #374151; border-color: #4b5563; }
+
+.btn-close-final {
+  width: 100%;
+  padding: 0.875rem;
+  background-color: #111827;
+  color: #ffffff;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-header-add-user {
+  display: flex;
+  justify-content: space-between; /* Розносить заголовок та кнопку по краях */
+  align-items: center;           /* Вирівнює по центру по вертикалі */
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dark-theme .modal-header-add-user {
+  border-color: #3d3d3d;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Відступ між іконкою ShieldCheck та текстом */
+}
+
+.modal-title h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #ef4444; /* Колір при наведенні (червоний або будь-який інший) */
+}
+
+
+.btn-cancel-add-user{
+    padding: 0.625rem 1.25rem;
+    background-color: var(--danger-color);
+    color: #ffffff;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    
+} 
+
+
+.btn-cancel-add-user:hover { background-color: #d44a05; }
+.btn-cancel-add-user:active { transform: scale(0.95); }
+.btn-cancel-add-user:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
+
+
+/* Контейнер навколо інпуту пошуку */
+.search-wrapper {
+  position: relative; /* ЦЕ ОБОВ'ЯЗКОВО для того, щоб список "прилип" до інпуту */
+  width: 100%;
+}
+
+.search-results-dropdown {
+  position: absolute;
+  top: 100%; /* Список з'явиться точно під інпутом */
+  left: 0;
+  right: 0;
+  z-index: 9999; /* Список буде вище всіх інших полів */
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.dark-theme .search-results-dropdown {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+}
+
+/* Контейнер навколо інпуту пошуку */
+.search-wrapper {
+  position: relative; /* ЦЕ ОБОВ'ЯЗКОВО для того, щоб список "прилип" до інпуту */
+  width: 100%;
+}
+
+.search-results-dropdown {
+  position: absolute;
+  top: 100%; /* Список з'явиться точно під інпутом */
+  left: 0;
+  right: 0;
+  z-index: 9999; /* Список буде вище всіх інших полів */
+  margin-top: 4px;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.dark-theme .search-results-dropdown {
+  background-color: #2a2a2a;
+  border-color: #3d3d3d;
+}
+
+
+.error-container {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.error-main-text {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.error-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 1px solid rgba(239, 68, 68, 0.1);
+  padding-top: 8px;
+  margin-bottom: 8px;
+}
+
+.timeline-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.timeline-item.highlight {
+  color: #fb923c; /* оранжевий для часу оновлення */
+  font-weight: 700;
+}
+
+.btn-copy-existing {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-copy-existing:hover {
+  opacity: 0.9;
+}
+
+.notif-copy-btn {
+  display: flex;            /* Вмикаємо Flexbox */
+  align-items: center;      /* Вирівнюємо іконку та текст по центру вертикалі */
+  justify-content: center;  /* Центруємо вміст горизонтально */
+  gap: 8px;                 /* Відступ між іконкою та текстом */
+  
+  /* Решта ваших стилів */
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;              /* Або заберіть це, якщо хочете кнопку по ширині тексту */
+  margin-top: 8px;
+}

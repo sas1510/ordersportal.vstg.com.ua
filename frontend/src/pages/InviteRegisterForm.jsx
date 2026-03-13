@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axios";
 import { useNotification } from "../components/notification/Notifications";
 import "./InviteRegisterForm.css";
+import { QRCodeCanvas } from "qrcode.react";
 
 const ROLE_LABELS = {
   admin: "Адміністратор",
@@ -48,6 +49,8 @@ export default function InviteRegisterForm() {
     role: "",
     expire_date: "",
   });
+
+  const [tgLink, setTgLink] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -109,6 +112,7 @@ export default function InviteRegisterForm() {
           role: d.role || "",
           expire_date: d.expire_date || "",
         });
+        setTgLink(d.tg_link || "");
         setLoading(false);
       })
       .catch((err) => {
@@ -172,16 +176,76 @@ export default function InviteRegisterForm() {
     );
 
   if (success)
-    return (
-      <div className="portal-body align-center">
-  <div className="panel invite-panel text-success invite-padding">
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-      <i className="fa-solid fa-circle-check font-size-32"></i>
-      <span>Реєстрацію успішно завершено! Тепер ви можете увійти в систему.</span>
+  return (
+    <div className="portal-body align-center">
+      <div className="panel invite-panel invite-padding shadow-sm" >
+        
+
+        <div className="text-success" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '20px'  }}>
+          <i className="fa-solid fa-circle-check font-size-32"></i>
+          <span className="text-bold">Реєстрацію успішно завершено! Тепер ви можете увійти в систему.</span>
+        </div>
+
+
+        {tgLink && <hr className="invite-border-bottom" style={{ margin: '20px 0', opacity: 0.3 }} />}
+
+
+        {tgLink && (
+          <div className="qr-section column align-center gap-5 mt-5">
+            <h3 className="font-size-18 uppercase text-info text-bold m-0">
+              <i className="fa-brands fa-telegram mr-10"></i>
+              Підключіть Telegram-бот
+            </h3>
+            <p className="text-muted font-size-14 text-center">
+              Відскануйте QR-код для отримання сповіщень про замовлення
+            </p>
+            
+            <div className="qr-image-wrapper" style={{ 
+              background: 'white', 
+              padding: '15px', 
+              borderRadius: '3px', 
+              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+              marginTop: '10px'
+            }}>
+              <QRCodeCanvas 
+                value={tgLink} 
+                size={180} 
+                level="H"
+                includeMargin={true}
+              />
+            </div>
+
+            <a 
+              href={tgLink} 
+              target="_blank" 
+              rel="noreferrer" 
+              className="btn-link mt-15"
+              style={{ 
+                textDecoration: 'none', 
+                color: '#ffffff', 
+                backgroundColor: '#0088cc',
+                padding: '10px 10px',
+                borderRadius: '3px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <i className="fa-brands fa-telegram mr-10" style={{ fontSize: '20px' }}></i>
+              Перейти в Telegram
+            </a>
+          </div>
+        )}
+
+        {/* Кнопка повернення до входу */}
+        <div className="mt-5 text-center">
+          <a href="/login" className="text-info font-size-14" style={{ textDecoration: 'none' }}>
+             Повернутися до входу
+          </a>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-    );
+  );
 
   /* ================= RENDER ================= */
 
@@ -212,6 +276,9 @@ export default function InviteRegisterForm() {
                     {info.username || "—"}
                   </div>
                 </div>
+
+
+
 
                 <div className="invite-info-block">
                   <label>Тип аккаунта</label>
@@ -248,6 +315,8 @@ export default function InviteRegisterForm() {
                   </p>
                 </div>
               </div>
+
+           
 
               <div className="invite-form-grid">
 
@@ -300,6 +369,8 @@ export default function InviteRegisterForm() {
                   />
                 </div>
 
+                
+
                 {/* PASSWORD */}
                 <div className="invite-input-group">
                   <label className="invite-required">Новий пароль</label>
@@ -332,6 +403,8 @@ export default function InviteRegisterForm() {
                       </div>
                     </div>
                   )}
+
+                  
 
                   {passwordErrors.length > 0 && (
                     <ul className="password-rules">

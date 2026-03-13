@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView, CreateInvitationView, CreateAdminDirectView
 )
-from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords
+from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords, get_active_users_1c
 
 
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("create_invitations/", CreateInvitationView.as_view(), name="create_invitations"),
     path("users/create-admin-direct/", CreateAdminDirectView.as_view(), name="create_invitations_admin"),
+    path("users/get_active_users_1c", get_active_users_1c,  name="get_active_users_1c"),
     # path("me/", CurrentUserView.as_view(), name="current_user"),
     path('register/<str:code>/', register_with_invite, name='register-with-invite'),
     # path('customers/', get_customers, name='get_customers'),

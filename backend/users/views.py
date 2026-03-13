@@ -646,10 +646,19 @@ def register_with_invite(request, code):
             status=status.HTTP_404_NOT_FOUND
         )
 
+    # ---------- ФОРМУВАННЯ TG LINK ----------
+    # Конвертуємо бінарний GUID назад у рядок для посилання
+    user_guid_str = bin_to_guid_1c(user.user_id_1C)
+    bot_username = "test_test343bot"
+    tg_link = f"https://t.me/{bot_username}?start={user_guid_str}"
+
     # ---------- GET ----------
     if request.method == "GET":
         serializer = CompleteRegistrationSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        # Додаємо tg_link до даних серіалізатора
+        data = serializer.data
+        data["tg_link"] = tg_link
+        return Response(data, status=status.HTTP_200_OK)
 
     # ---------- POST ----------
     serializer = CompleteRegistrationSerializer(
@@ -667,7 +676,11 @@ def register_with_invite(request, code):
     serializer.save()
     invite.markAsUsed()
 
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    # Додаємо tg_link у відповідь після успішного збереження
+    data = serializer.data
+    data["tg_link"] = tg_link
+
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
@@ -1551,7 +1564,6 @@ def list_user_api_keys(request, user_id):
 
 
 
-# admin_api_keys/views.py
 
 @extend_schema(exclude=True)
 @api_view(["POST"])
@@ -1688,43 +1700,45 @@ class CreateInvitationView(APIView):
     View для створення запрошення користувача з 1С.
     Логіка підтримує вхідні дані ролі у будь-якому регістрі (Customer -> customer).
     """
-    authentication_classes = [OneCApiKeyAuthentication]
-    permission_classes = [ApiKey1С]
+    # authentication_classes = [OneCApiKeyAuthentication]
+    permission_classes = [IsAuthenticatedOr1CApiKey]
+
 
     @transaction.atomic
     def post(self, request):
-        # 1. Валідація вхідних даних
+
         serializer = CreateInvitationSerializer(data=request.data)
         if not serializer.is_valid():
-            # Якщо тут все ще помилка "not a valid choice", 
-            # змініть у серіалізаторі ChoiceField на CharField
+
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
         now = timezone.now()
-        
-        # 2. НОРМАЛІЗАЦІЯ РОЛІ (гарантуємо нижній регістр для БД)
-        # Навіть якщо Serializer пропустив "Customer", ми запишемо "customer"
+
         raw_role = data.get("role", "customer")
         normalized_role = raw_role.lower()
 
+        # BOT_USERNAME = "test_test343bot"
+
         try:
-            # --- Конвертація GUID ---
+
             try:
                 user_guid_binary = guid_to_1c_bin(data["userGuid"])
             except Exception as e:
                 return Response({"error": f"Помилка конвертації GUID: {str(e)}"}, status=400)
 
-            # --- Перевірка дати експірації ---
+
             if data["expireDate"] < now:
                 return Response({"error": "ExpireDate не може бути в минулому"}, status=400)
 
-            # --- Пошук існуючого користувача та останнього інвайту ---
+   
             user = CustomUser.objects.filter(user_id_1C=user_guid_binary).first()
             last_invite = Invitation.objects.filter(user_id_1C=user_guid_binary).order_by('-created_at').first()
+            # tg_link = f"https://t.me/{BOT_USERNAME}?start={user.user_id_1C}"
+
 
             if user:
-                # Якщо юзер вже активний — нічого не робимо
+
                 if user.is_active:
                     return Response(
                         {"error": "Користувач з таким GUID вже активований та існує в системі"},
@@ -1866,3 +1880,74 @@ class CreateAdminDirectView(APIView):
 
         except Exception as e:
             return Response({"error": f"Помилка сервера: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+
+# class TGLinkView(APIView):
+#     def get(self, request):
+#         # Формуємо посилання з вашим GUID
+#         user = CustomUser.objects.get(username=request.data["username"])
+#         role = user.role
+#         update_last_login(None, user)
+
+#         # Отримання GUID
+#         user_guid_1c = bin_to_guid_1c(user.user_id_1C)
+
+#         # Формуємо посилання для Telegram
+#         bot_username = "test_test343bot"
+#         tg_qr_link = f"https://t.me/{bot_username}?start={user_guid_1c}"
+
+#         return Response({
+#             "token": "ваш_auth_token",
+#             "username": user.username,
+#             "role": role,
+#             "tg_link": tg_qr_link,      
+#             "guid": user_guid_1c        
+#         }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+import base64
+from django.db import connection
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+
+@csrf_exempt
+def get_active_users_1c(request):
+    if request.method == "GET":
+        try:
+            with connection.cursor() as cursor:
+
+                cursor.execute("EXEC [dbo].[GetActiveUsers1С]")
+                
+       
+                columns = [col[0] for col in cursor.description]
+                results = []
+                
+                for row in cursor.fetchall():
+                    row_dict = dict(zip(columns, row))
+                    
+     
+                    binary_link = row_dict.get("Link")
+                    if isinstance(binary_link, bytes):
+
+
+                        row_dict["Link"] = bin_to_guid_1c(binary_link)
+                    
+                    results.append(row_dict)
+
+            return JsonResponse({"users": results}, safe=False)
+
+        except Exception as e:
+            return JsonResponse({"error": f"SQL Error: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "GET method required"}, status=405)

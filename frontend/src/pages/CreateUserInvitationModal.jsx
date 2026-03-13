@@ -1,165 +1,291 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../api/axios";
-import { Loader2, Copy, Check, X, ShieldCheck } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
+import { 
+  Loader2, Copy, Check, X, ShieldCheck, 
+  UserSearch, Smartphone, Mail, Calendar 
+} from "lucide-react";
+import "./InviteRegisterModal.css";
+import { useNotification } from "../components/notification/Notifications";
 
 export default function CreateUserInvitationModal({ onClose, onCreated }) {
+  const { addNotification } = useNotification();
+  const searchRef = useRef(null);
+
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
     email: "",
-    phoneNumber: "", // 🔥 Додано телефон
+    phoneNumber: "",
     role: "admin",
+    userGuid: "",
     expireDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
       .toISOString()
       .split("T")[0],
   });
 
+  const [users1c, setUsers1c] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [createdData, setCreatedData] = useState(null); 
+  const [createdData, setCreatedData] = useState(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isListOpen, setIsListOpen] = useState(false);
+
+  const filteredUsers = users1c.filter(user => 
+    !searchTerm || user.Code?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Завантаження користувачів з 1С
+  useEffect(() => {
+    const fetchUsers1c = async () => {
+      setLoadingUsers(true);
+      try {
+        const res = await axiosInstance.get("/users/get_active_users_1c");
+        setUsers1c(res.data.users || []);
+      } catch (err) {
+        console.error(err);
+        addNotification("Помилка завантаження бази 1С", "error");
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    fetchUsers1c();
+  }, [addNotification]);
+
+  // Закриття списку при кліку поза полем
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsListOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectUser1c = (selectedGuid) => {
+    const user = users1c.find((u) => u.Link === selectedGuid);
+    if (user) {
+      setFormData(prev => ({ ...prev, userGuid: selectedGuid }));
+      setSearchTerm(user.Code);
+    }
+    setIsListOpen(false);
+  };
+
+  // Універсальна функція копіювання (Працює всюди)
+  const performCopyAction = (text, successMsg) => {
+    if (!text) return;
+
+    const fallbackCopy = (txt) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = txt;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        addNotification(successMsg, "success");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        addNotification("Помилка копіювання", "error");
+      }
+      document.body.removeChild(textArea);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          addNotification(successMsg, "success");
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  };
+
+  // Рендер складного сповіщення про наявний інвайт
+  const renderComplexErrorNotification = (errObj) => (
+    <div className="notification-complex-error">
+      <div className="notif-header">{errObj.info || "Діюче запрошення знайдено"}</div>
+      {errObj.created_at && (
+        <div className="notif-timeline">
+          <div className="notif-time-row">
+            <span>Створено:</span> <strong>{errObj.created_at}</strong>
+          </div>
+          <div className="notif-time-row highlight">
+            <span>Оновити:</span> <strong>{errObj.can_refresh_at}</strong>
+          </div>
+        </div>
+      )}
+      {errObj.inviteLink && (
+        <button 
+          type="button"
+          className="notif-copy-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            performCopyAction(errObj.inviteLink, "Посилання скопійовано");
+          }}
+        >
+          <Copy size={12} /> Скопіювати діюче посилання
+        </button>
+      )}
+    </div>
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const res = await axiosInstance.post("/users/create-admin-direct/", formData);
+      const res = await axiosInstance.post("/create_invitations/", formData);
       setCreatedData(res.data);
+      addNotification("Запрошення створено успішно", "success");
       if (onCreated) onCreated();
     } catch (err) {
-      setError(err.response?.data?.error || "Помилка при створенні адміністратора");
+      const serverError = err.response?.data;
+      if (typeof serverError === 'object' && serverError.info) {
+        addNotification(renderComplexErrorNotification(serverError), "info");
+      } else {
+        const msg = serverError?.error || "Помилка при створенні запрошення";
+        setError(msg);
+        addNotification(msg, "error");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = () => {
-    const textToCopy = `Логін: ${createdData.username}\nПароль: ${createdData.temporaryPassword}\nТелефон: ${createdData.phoneNumber || "не вказано"}`;
-    
-    const textArea = document.createElement("textarea");
-    textArea.value = textToCopy;
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand('copy');
-    textArea.remove();
-
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm">
-      <div className="bg-white dark:bg-[#1e2227] rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center p-6 border-b dark:border-gray-700">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <ShieldCheck className="text-blue-500" /> Створити адміністратора
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="modal-backdrop">
+      <div className="modal-content">
+        <div className="modal-header-add-user">
+          <div className="modal-title">
+            <ShieldCheck size={24} color="#5e83bf" /> 
+            <h2>Створити адміністратора</h2>
+          </div>
+          <button onClick={onClose} className="close-btn">
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="modal-body">
           {!createdData ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Логін (Username) *</label>
-                <input
-                  required
-                  className="w-full p-2.5 bg-gray-100 border rounded-lg  dark:border-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  placeholder="admin"
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="form-group">
+              <div className="source-1c-container" ref={searchRef}>
+                <label className="source-1c-label">
+                  <UserSearch size={16} /> Пошук в базі 1С (код або ПІБ)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="search-1c-input"
+                    placeholder="Виберіть обліковий запис 1С..."
+                    value={searchTerm}
+                    onFocus={() => setIsListOpen(true)}
+                    onChange={(e) => { setSearchTerm(e.target.value); setIsListOpen(true); }}
+                    disabled={loadingUsers}
+                  />
+                  {loadingUsers && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 size={16} className="animate-spin" color="#3b82f6" />
+                    </div>
+                  )}
 
-              <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Повне ім'я</label>
-                <input
-                  className="w-full p-2.5  bg-gray-100 border rounded-lg  dark:border-gray-700 dark:text-white"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder="Прізвище Ім'я"
-                />
-              </div>
-
-              {/* 🔥 Нове поле для телефону */}
-              <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Номер телефону</label>
-                <input
-                  type="tel"
-                  className="w-full p-2.5  bg-gray-100 border rounded-lg  dark:border-gray-700 dark:text-white"
-                  value={formData.phoneNumber}
-                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  placeholder="+380..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1 dark:text-gray-300">Email</label>
-                <input
-                  type="email"
-                  className="w-full p-2.5  bg-gray-100 border rounded-lg  dark:border-gray-700 dark:text-white"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="admin@vstg.com.ua"
-                />
-              </div>
-
-              {error && (
-                <div className="p-3 bg-red-100 border border-red-200 text-red-700 rounded-lg text-sm">
-                  {error}
+                  {isListOpen && !loadingUsers && (
+                    <div className="search-results-dropdown custom-scrollbar">
+                      {filteredUsers.length > 0 ? (
+                        filteredUsers.map((user) => (
+                          <div key={user.Link} className="search-result-item" onClick={() => handleSelectUser1c(user.Link)}>
+                            <div className="user-code">{user.Code}</div>
+                            <div className="user-name">{user.Наименование}</div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-3 text-sm text-center italic opacity-50">Нічого не знайдено</div>
+                      )}
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              <div className="divider-container">
+                <div className="divider-line"><span></span></div>
+                <span className="divider-text">Персональні дані</span>
+              </div>
+
+              <div className="grid-fields">
+                <div>
+                  <label className="input-label">Логін *</label>
+                  <input required className="form-input" placeholder="Введіть логін" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+                </div>
+                <div>
+                  <label className="input-label">Повне ім'я</label>
+                  <input className="form-input" placeholder="Прізвище Ім'я" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="input-with-icon">
+                <Smartphone size={16} className="input-icon" />
+                <input type="tel" className="form-input pl-icon" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="+380..." />
+              </div>
+
+              <div className="input-with-icon">
+                <Mail size={16} className="input-icon" />
+                <input type="email" className="form-input pl-icon" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@mail.com" />
+              </div>
+
+              <div>
+                <label className="input-label"><Calendar size={12} /> Термін дії до:</label>
+                <input type="date" className="form-input" value={formData.expireDate} onChange={(e) => setFormData({ ...formData, expireDate: e.target.value })} />
+              </div>
+
+              {error && typeof error === 'string' && (
+                <div className="error-message animate-shake">{error}</div>
               )}
 
-              <div className="flex justify-end gap-3 mt-8">
-                <button type="button" onClick={onClose} className="px-4 py-2 text-gray-500">
-                  Скасувати
-                </button>
-                <button
-                  disabled={loading}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 shadow-md"
-                >
-                  {loading && <Loader2 size={16} className="animate-spin" />}
-                  Створити акаунт
+              <div className="form-footer">
+                <button type="button" onClick={onClose} className="btn-cancel-add-user">Скасувати</button>
+                <button disabled={loading} className="btn-submit-add-user">
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : "Створити акаунт"}
                 </button>
               </div>
             </form>
           ) : (
-            <div className="py-4 text-center">
-              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check size={32} />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Акаунт активовано!</h3>
-              <p className="text-sm text-gray-500 mb-6">Дані нового адміністратора:</p>
+            <div className="success-screen">
+              <div className="success-icon-wrapper"><Mail size={40} /></div>
+              <h3 className="modal-title" style={{justifyContent:'center', marginBottom:'0.5rem'}}>Запрошення створено!</h3>
+              <p style={{fontSize:'0.875rem', opacity:0.6, marginBottom:'2rem'}}>Надішліть це посилання адміністратору:</p>
               
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 text-left mb-6 space-y-2 relative group">
-                <p className="text-sm dark:text-gray-400">Логін: <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{createdData.username}</span></p>
-                <p className="text-sm dark:text-gray-400">Пароль: <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{createdData.temporaryPassword}</span></p>
-                {/* Показуємо телефон, якщо він був введений */}
-                {formData.phoneNumber && (
-                  <p className="text-sm dark:text-gray-400">Телефон: <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{formData.phoneNumber}</span></p>
+              <div className="success-card">
+                <div className="invite-link-box">
+                  <span className="input-label" style={{marginLeft:0}}>Посилання для реєстрації</span>
+                  <span style={{fontSize:'0.75rem', wordBreak:'break-all', color:'#3b82f6', fontWeight:700}}>{createdData.inviteLink}</span>
+                </div>
+                {createdData.tgLink && (
+                  <div style={{textAlign:'center'}}>
+                    <span className="input-label" style={{display:'block', marginBottom:'0.5rem'}}>Telegram QR</span>
+                    <div className="qr-code-wrapper">
+                      <QRCodeCanvas value={createdData.tgLink} size={120} />
+                    </div>
+                  </div>
                 )}
-                
                 <button 
-                  onClick={copyToClipboard}
-                  className="absolute top-2 right-2 p-2 bg-white dark:bg-gray-700 shadow-sm border rounded-md hover:text-blue-500 transition-colors"
+                    type="button" 
+                    onClick={() => performCopyAction(createdData.inviteLink, "Запрошення скопійовано")} 
+                    className="copy-btn-floating"
                 >
-                  {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                  {copied ? <Check size={18} color="#10b981" /> : <Copy size={18} color="#3b82f6" />}
                 </button>
               </div>
-              
-              <p className="text-xs text-orange-600 dark:text-orange-400 mb-6 italic">
-                * Рекомендуйте користувачу змінити пароль після першого входу.
-              </p>
-
-              <button
-                onClick={onClose}
-                className="w-full py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-black transition-colors"
-              >
-                Закрити
-              </button>
+              <button onClick={onClose} className="btn-close-final">Закрити вікно</button>
             </div>
           )}
         </div>
