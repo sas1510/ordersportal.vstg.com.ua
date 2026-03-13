@@ -1,4 +1,4 @@
-.modal-backdrop {
+.modal-backdrop-add-user {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.6);
@@ -10,17 +10,21 @@
   backdrop-filter: blur(4px);
 }
 
-.modal-content {
+.modal-content-add-user {
   background-color: #ffffff;
   border-radius: 0.75rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   width: 100%;
-  max-width: 28rem;
-  overflow: hidden;
+  max-width: 450px; /* Краще фіксована ширина для форм */
+  max-height: 82vh; /* Збільшимо трохи висоту */
+  display: flex;    /* Додаємо flex, щоб розділити Header, Body, Footer */
+  flex-direction: column;
+  overflow: visible; /* Важливо для випадаючого списку 1С */
 }
 
+
 /* Темна тема для контенту */
-.dark-theme .modal-content {
+.dark-theme .modal-content-add-user {
   background-color: #1e2227;
   color: #e6e6e6;
 }
@@ -28,7 +32,7 @@
 
 
 
-.modal-title {
+.modal-title-add-user {
   font-size: 1.25rem;
   font-weight: 700;
   display: flex;
@@ -36,7 +40,7 @@
   gap: 0.5rem;
 }
 
-.close-btn {
+.close-btn-add-user {
   color: #9ca3af;
   transition: color 0.2s;
   background: transparent;
@@ -44,16 +48,37 @@
   cursor: pointer;
 }
 
-.close-btn:hover {
+.close-btn-add-user:hover {
   color: #4b5563;
 }
 
 /* Форма та відступи */
-.modal-body {
+.modal-body-add-user {
   padding: 1.5rem;
+  overflow-y: auto; /* Дозволяємо вертикальну прокрутку */
+  flex: 1;          /* Займає весь доступний простір між хедером і футером */
 }
 
-.form-group {
+
+.modal-body-add-user::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-body-add-user::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-body-add-user::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+}
+
+.dark-theme .modal-body-add-user::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+.form-group-add-user {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -99,7 +124,7 @@
 }
 
 /* Випадаючий список результатів */
-.search-results-dropdown {
+.search-results-dropdown-add-user {
   position: absolute;
   top: 100%;
   left: 0;
@@ -112,28 +137,29 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
   max-height: 12rem;
   overflow-y: auto;
+  z-index: 10000;
 }
 
-.dark-theme .search-results-dropdown {
+.dark-theme .search-results-dropdown-add-user {
   background-color: #2a2a2a;
   border-color: #3d3d3d;
 }
 
-.search-result-item {
+.search-result-item-add-user {
   padding: 0.75rem;
   cursor: pointer;
   border-bottom: 1px solid #f3f4f6;
 }
 
-.dark-theme .search-result-item {
+.dark-theme .search-result-item-add-user {
   border-bottom-color: #3d3d3d;
 }
 
-.search-result-item:hover {
+.search-result-item-add-user:hover {
   background-color: #eff6ff;
 }
 
-.dark-theme .search-result-item:hover {
+.dark-theme .search-result-item-add-user:hover {
   background-color: #323232;
 }
 
@@ -141,27 +167,27 @@
 .user-name { font-size: 0.75rem; opacity: 0.6; font-style: italic; }
 
 /* Розділювач */
-.divider-container {
+.divider-container-add-user {
   position: relative;
   padding: 0.5rem 0;
   text-align: center;
 }
 
-.divider-line {
+.divider-line-add-user {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
 }
 
-.divider-line span {
+.divider-line-add-user span {
   width: 100%;
   border-top: 1px solid #e5e7eb;
 }
 
-.dark-theme .divider-line span { border-color: #3d3d3d; }
+.dark-theme .divider-line-add-user span { border-color: #3d3d3d; }
 
-.divider-text {
+.divider-text-add-user {
   position: relative;
   background-color: #ffffff;
   padding: 0 0.5rem;
@@ -171,10 +197,10 @@
   color: #9ca3af;
 }
 
-.dark-theme .divider-text { background-color: #1e2227; }
+.dark-theme .divider-text-add-user { background-color: #1e2227; }
 
 /* Поля вводу */
-.grid-fields {
+.grid-fields-add-user {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
@@ -216,10 +242,10 @@
   color: #9ca3af;
 }
 
-.pl-icon { padding-left: 2.5rem; }
+.pl-icon-add-user { padding-left: 2.5rem; }
 
 /* Кнопки */
-.form-footer {
+.form-footer-add-user {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
@@ -227,7 +253,7 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.dark-theme .form-footer { border-color: #3d3d3d; }
+.dark-theme .form-footer-add-user { border-color: #3d3d3d; }
 
 
 
@@ -250,12 +276,12 @@
 .btn-submit-add-user:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Секція Успіху */
-.success-screen {
+.success-screen-add-user {
   padding: 1rem 0;
   text-align: center;
 }
 
-.success-icon-wrapper {
+.success-icon-wrapper-add-user {
   width: 5rem;
   height: 5rem;
   background-color: rgba(59, 130, 246, 0.1);
@@ -267,7 +293,7 @@
   margin: 0 auto 1.5rem;
 }
 
-.success-card {
+.success-card-add-user {
   background-color: #f9fafb;
   padding: 1.25rem;
   border-radius: 0.75rem;
@@ -277,12 +303,12 @@
   position: relative;
 }
 
-.dark-theme .success-card {
+.dark-theme .success-card-add-user {
   background-color: rgba(17, 24, 39, 0.5);
   border-color: #3d3d3d;
 }
 
-.invite-link-box {
+.invite-link-box-add-user {
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid #e5e7eb;
@@ -290,16 +316,16 @@
   margin-bottom: 0.75rem;
 }
 
-.dark-theme .invite-link-box { border-color: #3d3d3d; }
+.dark-theme .invite-link-box-add-user { border-color: #3d3d3d; }
 
-.qr-code-wrapper {
+.qr-code-wrapper-add-user {
   background-color: #ffffff;
   padding: 0.5rem;
   border-radius: 0.5rem;
   display: inline-block;
 }
 
-.copy-btn-floating {
+.copy-btn-floating-add-user {
   position: absolute;
   top: -0.75rem;
   right: -0.75rem;
@@ -311,9 +337,9 @@
   cursor: pointer;
 }
 
-.dark-theme .copy-btn-floating { background-color: #374151; border-color: #4b5563; }
+.dark-theme .copy-btn-floating-add-user { background-color: #374151; border-color: #4b5563; }
 
-.btn-close-final {
+.btn-close-final-add-user {
   width: 100%;
   padding: 0.875rem;
   background-color: #111827;
@@ -336,20 +362,20 @@
   border-color: #3d3d3d;
 }
 
-.modal-title {
+.modal-title-add-user {
   display: flex;
   align-items: center;
   gap: 0.5rem; /* Відступ між іконкою ShieldCheck та текстом */
 }
 
-.modal-title h2 {
+.modal-title-add-user h2 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1;
 }
 
-.close-btn {
+.close-btn-add-user {
   background: transparent;
   border: none;
   cursor: pointer;
@@ -361,7 +387,7 @@
   transition: color 0.2s;
 }
 
-.close-btn:hover {
+.close-btn-add-user:hover {
   color: #ef4444; /* Колір при наведенні (червоний або будь-який інший) */
 }
 
@@ -390,12 +416,12 @@
 
 
 /* Контейнер навколо інпуту пошуку */
-.search-wrapper {
+.search-wrapper-add-user {
   position: relative; /* ЦЕ ОБОВ'ЯЗКОВО для того, щоб список "прилип" до інпуту */
   width: 100%;
 }
 
-.search-results-dropdown {
+.search-results-dropdown-add-user {
   position: absolute;
   top: 100%; /* Список з'явиться точно під інпутом */
   left: 0;
@@ -410,18 +436,18 @@
   overflow-y: auto;
 }
 
-.dark-theme .search-results-dropdown {
+.dark-theme .search-results-dropdown-add-user {
   background-color: #2a2a2a;
   border-color: #3d3d3d;
 }
 
 /* Контейнер навколо інпуту пошуку */
-.search-wrapper {
+.search-wrapper-add-user {
   position: relative; /* ЦЕ ОБОВ'ЯЗКОВО для того, щоб список "прилип" до інпуту */
   width: 100%;
 }
 
-.search-results-dropdown {
+.search-results-dropdown-add-user {
   position: absolute;
   top: 100%; /* Список з'явиться точно під інпутом */
   left: 0;
@@ -436,13 +462,13 @@
   overflow-y: auto;
 }
 
-.dark-theme .search-results-dropdown {
+.dark-theme .search-results-dropdown-add-user {
   background-color: #2a2a2a;
   border-color: #3d3d3d;
 }
 
 
-.error-container {
+.error-container-add-user {
   background-color: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 8px;
@@ -450,14 +476,14 @@
   margin-bottom: 10px;
 }
 
-.error-main-text {
+.error-main-text-add-user {
   color: #ef4444;
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
-.error-timeline {
+.error-timeline-add-user {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -466,19 +492,19 @@
   margin-bottom: 8px;
 }
 
-.timeline-item {
+.timeline-item-add-user {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
   color: #9ca3af;
 }
 
-.timeline-item.highlight {
+.timeline-item-add-user.highlight {
   color: #fb923c; /* оранжевий для часу оновлення */
   font-weight: 700;
 }
 
-.btn-copy-existing {
+.btn-copy-existing-add-user {
   width: 100%;
   display: flex;
   align-items: center;
@@ -494,7 +520,7 @@
   transition: opacity 0.2s;
 }
 
-.btn-copy-existing:hover {
+.btn-copy-existing-add-user:hover {
   opacity: 0.9;
 }
 

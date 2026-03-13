@@ -68,7 +68,7 @@ export default function UsersListPage() {
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
         >
           <Plus size={18} />
-          <span>Створити користувача</span>
+          <span>Адміна</span>
         </button>
       </div>
 
@@ -113,7 +113,7 @@ export default function UsersListPage() {
                 <th className="p-4">Імʼя</th>
                 <th className="p-4 hidden sm:table-cell">Email</th>
                 <th className="p-4">Роль</th>
-                <th className="p-4 text-center">Активний</th>
+                <th className="p-4">Активний</th>
                 <th className="p-4 text-center">Дії</th>
               </tr>
             </thead>
@@ -157,7 +157,7 @@ export default function UsersListPage() {
                     </span>
                   </td>
 
-                  <td className="p-4 text-center" data-label="Активний">
+                  <td className="p-4 " data-label="Активний">
                     {u.is_active ? (
                       <span className="text-green-400 text-xl font-bold">✓</span>
                     ) : (
@@ -169,6 +169,7 @@ export default function UsersListPage() {
                     className="p-4 flex gap-2 justify-center flex-wrap"
                     data-label="Дії"
                   >
+                    <div className="actions-container">
                     <button
                       className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full transition-colors"
                       onClick={() => setEditUser(u)}
@@ -201,6 +202,7 @@ export default function UsersListPage() {
                     >
                       API-ключі
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}

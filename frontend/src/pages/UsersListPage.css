@@ -160,13 +160,31 @@
     gap: 8px;
     margin-top: 10px;
   }
+/* Контейнер для кнопок у комірці */
+.actions-container {
+  display: flex;
+  flex-wrap: wrap;    /* Дозволяє перенос на новий рядок */
+  gap: 8px;           /* Відступ між кнопками */
+  width: 100%;
+  justify-content: center;
+}
 
-  .users-table-row button {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 10px;
-  }
+.users-table-row button {
+  /* calc(50% - половина gap), щоб рівно дві в ряд */
+  width: calc(50% - 4px); 
+  padding: 5px;
+  /* font-size: 14px; */
+  /* font-weight: 700; */
+  text-transform: uppercase;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.users-table-row button:hover {
+  opacity: 0.9;
+}
 
   /* Role badge */
   .ulp-role-badge {

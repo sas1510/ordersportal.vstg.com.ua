@@ -164,21 +164,21 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-content">
+    <div className="modal-backdrop-add-user">
+      <div className="modal-content-add-user">
         <div className="modal-header-add-user">
-          <div className="modal-title">
+          <div className="modal-title-add-user">
             <ShieldCheck size={24} color="#5e83bf" /> 
             <h2>Створити адміністратора</h2>
           </div>
-          <button onClick={onClose} className="close-btn">
+          <button onClick={onClose} className="close-btn-add-user">
             <X size={20} />
           </button>
         </div>
 
-        <div className="modal-body">
+        <div className="modal-body-add-user">
           {!createdData ? (
-            <form onSubmit={handleSubmit} className="form-group">
+            <form onSubmit={handleSubmit} className="form-group-add-user">
               <div className="source-1c-container" ref={searchRef}>
                 <label className="source-1c-label">
                   <UserSearch size={16} /> Пошук в базі 1С (код або ПІБ)
@@ -200,10 +200,10 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                   )}
 
                   {isListOpen && !loadingUsers && (
-                    <div className="search-results-dropdown custom-scrollbar">
+                    <div className="search-results-dropdown-add-user custom-scrollbar">
                       {filteredUsers.length > 0 ? (
                         filteredUsers.map((user) => (
-                          <div key={user.Link} className="search-result-item" onClick={() => handleSelectUser1c(user.Link)}>
+                          <div key={user.Link} className="search-result-item-add-user" onClick={() => handleSelectUser1c(user.Link)}>
                             <div className="user-code">{user.Code}</div>
                             <div className="user-name">{user.Наименование}</div>
                           </div>
@@ -216,12 +216,12 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                 </div>
               </div>
 
-              <div className="divider-container">
-                <div className="divider-line"><span></span></div>
-                <span className="divider-text">Персональні дані</span>
+              <div className="divider-container-add-user">
+                <div className="divider-line-add-user"><span></span></div>
+                <span className="divider-text-add-user">Персональні дані</span>
               </div>
 
-              <div className="grid-fields">
+              <div className="grid-fields-add-user">
                 <div>
                   <label className="input-label-add-user">Логін *</label>
                   <input required className="form-input-add-user" placeholder="Введіть логін" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
@@ -234,12 +234,12 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
 
               <div className="input-with-icon-add-user">
                 <Smartphone size={16} className="input-icon-add-user" />
-                <input type="tel" className="form-input-add-user pl-icon" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="+380..." />
+                <input type="tel" className="form-input-add-user pl-icon-add-user" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="+380..." />
               </div>
 
               <div className="input-with-icon-add-user">
                 <Mail size={16} className="input-icon-add-user" />
-                <input type="email" className="form-input-add-user pl-icon" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@mail.com" />
+                <input type="email" className="form-input-add-user pl-icon-add-user" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@mail.com" />
               </div>
 
               <div>
@@ -251,7 +251,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                 <div className="error-message animate-shake">{error}</div>
               )}
 
-              <div className="form-footer">
+              <div className="form-footer-add-user">
                 <button type="button" onClick={onClose} className="btn-cancel-add-user">Скасувати</button>
                 <button disabled={loading} className="btn-submit-add-user">
                   {loading ? <Loader2 size={18} className="animate-spin" /> : "Створити акаунт"}
@@ -259,20 +259,20 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
               </div>
             </form>
           ) : (
-            <div className="success-screen">
-              <div className="success-icon-wrapper"><Mail size={40} /></div>
-              <h3 className="modal-title" style={{justifyContent:'center', marginBottom:'0.5rem'}}>Запрошення створено!</h3>
+            <div className="success-screen-add-user">
+              <div className="success-icon-wrapper-add-user"><Mail size={40} /></div>
+              <h3 className="modal-title-add-user" style={{justifyContent:'center', marginBottom:'0.5rem'}}>Запрошення створено!</h3>
               <p style={{fontSize:'0.875rem', opacity:0.6, marginBottom:'2rem'}}>Надішліть це посилання адміністратору:</p>
               
-              <div className="success-card">
-                <div className="invite-link-box">
+              <div className="success-card-add-user">
+                <div className="invite-link-box-add-user">
                   <span className="input-label-add-user" style={{marginLeft:0}}>Посилання для реєстрації</span>
                   <span style={{fontSize:'0.75rem', wordBreak:'break-all', color:'#3b82f6', fontWeight:700}}>{createdData.inviteLink}</span>
                 </div>
                 {createdData.tgLink && (
                   <div style={{textAlign:'center'}}>
                     <span className="input-label-add-user" style={{display:'block', marginBottom:'0.5rem'}}>Telegram QR</span>
-                    <div className="qr-code-wrapper">
+                    <div className="qr-code-wrapper-add-user">
                       <QRCodeCanvas value={createdData.tgLink} size={120} />
                     </div>
                   </div>
@@ -280,12 +280,12 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                 <button 
                     type="button" 
                     onClick={() => performCopyAction(createdData.inviteLink, "Запрошення скопійовано")} 
-                    className="copy-btn-floating"
+                    className="copy-btn-floating-add-user"
                 >
                   {copied ? <Check size={18} color="#10b981" /> : <Copy size={18} color="#3b82f6" />}
                 </button>
               </div>
-              <button onClick={onClose} className="btn-close-final">Закрити вікно</button>
+              <button onClick={onClose} className="btn-close-final-add-user">Закрити вікно</button>
             </div>
           )}
         </div>
