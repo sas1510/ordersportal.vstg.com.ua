@@ -229,7 +229,11 @@ SPECTACULAR_SETTINGS = {
 FRONTEND_URL = "http://172.17.19.107/"
 
 
-ONE_C_URL = "http://192.168.50.50/oknastyle_vmm/hs/gp-obmen/"
-ONE_C_USER = "Мендришора_В"
-ONE_C_PASSWORD = "1987"
-ONE_C_VERIFY_SSL = False
+ONE_C_URL = config('ONE_C_URL')
+ONE_C_USER = config('ONE_C_USER')
+ONE_C_PASSWORD = config('ONE_C_PASSWORD')
+ONE_C_VERIFY_SSL = config('ONE_C_VERIFY_SSL', default=False, cast=bool)
+
+
+
+ELEGRAM_BOT_USERNAME = config('TELEGRAM_BOT_USERNAME', default='your_default_bot')

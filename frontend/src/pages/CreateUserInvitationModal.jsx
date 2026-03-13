@@ -223,28 +223,28 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
 
               <div className="grid-fields">
                 <div>
-                  <label className="input-label">Логін *</label>
-                  <input required className="form-input" placeholder="Введіть логін" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+                  <label className="input-label-add-user">Логін *</label>
+                  <input required className="form-input-add-user" placeholder="Введіть логін" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
                 </div>
                 <div>
-                  <label className="input-label">Повне ім'я</label>
-                  <input className="form-input" placeholder="Прізвище Ім'я" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
+                  <label className="input-label-add-user">Повне ім'я</label>
+                  <input className="form-input-add-user" placeholder="Прізвище Ім'я" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
                 </div>
               </div>
 
-              <div className="input-with-icon">
-                <Smartphone size={16} className="input-icon" />
-                <input type="tel" className="form-input pl-icon" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="+380..." />
+              <div className="input-with-icon-add-user">
+                <Smartphone size={16} className="input-icon-add-user" />
+                <input type="tel" className="form-input-add-user pl-icon" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="+380..." />
               </div>
 
-              <div className="input-with-icon">
-                <Mail size={16} className="input-icon" />
-                <input type="email" className="form-input pl-icon" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@mail.com" />
+              <div className="input-with-icon-add-user">
+                <Mail size={16} className="input-icon-add-user" />
+                <input type="email" className="form-input-add-user pl-icon" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@mail.com" />
               </div>
 
               <div>
-                <label className="input-label"><Calendar size={12} /> Термін дії до:</label>
-                <input type="date" className="form-input" value={formData.expireDate} onChange={(e) => setFormData({ ...formData, expireDate: e.target.value })} />
+                <label className="input-label-add-user"><Calendar size={12} /> Термін дії до:</label>
+                <input type="date" className="form-input-add-user" value={formData.expireDate} onChange={(e) => setFormData({ ...formData, expireDate: e.target.value })} />
               </div>
 
               {error && typeof error === 'string' && (
@@ -266,12 +266,12 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
               
               <div className="success-card">
                 <div className="invite-link-box">
-                  <span className="input-label" style={{marginLeft:0}}>Посилання для реєстрації</span>
+                  <span className="input-label-add-user" style={{marginLeft:0}}>Посилання для реєстрації</span>
                   <span style={{fontSize:'0.75rem', wordBreak:'break-all', color:'#3b82f6', fontWeight:700}}>{createdData.inviteLink}</span>
                 </div>
                 {createdData.tgLink && (
                   <div style={{textAlign:'center'}}>
-                    <span className="input-label" style={{display:'block', marginBottom:'0.5rem'}}>Telegram QR</span>
+                    <span className="input-label-add-user" style={{display:'block', marginBottom:'0.5rem'}}>Telegram QR</span>
                     <div className="qr-code-wrapper">
                       <QRCodeCanvas value={createdData.tgLink} size={120} />
                     </div>

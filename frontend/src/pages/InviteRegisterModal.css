@@ -1,4 +1,3 @@
-/* Основний контейнер та Backdrop */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -181,7 +180,7 @@
   gap: 0.75rem;
 }
 
-.input-label {
+.input-label-add-user {
   font-size: 0.68rem;
   font-weight: 700;
   color: #6b7280;
@@ -190,7 +189,7 @@
   margin-left: 0.25rem;
 }
 
-.form-input {
+.form-input-add-user {
   width: 100%;
   padding: 0.625rem;
   background-color: #f9fafb;
@@ -200,16 +199,16 @@
   color: inherit;
 }
 
-.dark-theme .form-input {
+.dark-theme .form-input-add-user {
   background-color: #2a2a2a;
   border-color: #3d3d3d;
 }
 
-.input-with-icon {
+.input-with-icon-add-user {
   position: relative;
 }
 
-.input-icon {
+.input-icon-add-user {
   position: absolute;
   left: 0.75rem;
   top: 50%;
@@ -230,15 +229,7 @@
 
 .dark-theme .form-footer { border-color: #3d3d3d; }
 
-.btn-cancel {
-  padding: 0.5rem 1rem;
-  color: #6b7280;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
+
 
 .btn-submit-add-user {
   padding: 0.625rem 1.25rem;

@@ -649,7 +649,7 @@ def register_with_invite(request, code):
     # ---------- ФОРМУВАННЯ TG LINK ----------
     # Конвертуємо бінарний GUID назад у рядок для посилання
     user_guid_str = bin_to_guid_1c(user.user_id_1C)
-    bot_username = "test_test343bot"
+    bot_username = settings.TELEGRAM_BOT_USERNAME
     tg_link = f"https://t.me/{bot_username}?start={user_guid_str}"
 
     # ---------- GET ----------
