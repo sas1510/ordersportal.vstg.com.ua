@@ -5,7 +5,7 @@ import { formatMoney } from "../../utils/formatMoney";
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
-import { formatDateHumanShorter } from "../../utils/formatters";
+import { formatDateHumanShorter, formatDateTimeCustom, formatDateTimeShort, formatDateTimeCustomShort } from "../../utils/formatters";
 import { useNotification } from "../notification/Notifications";
 // --- МОДАЛКИ ---
 import ConfirmModal from "./ConfirmModal";
@@ -228,13 +228,14 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
         </div>
 
         {/* NUMBER + DATE */}
-        <div className="summary-item row w-9 no-wrap">
+        <div className="summary-item row no-wrap">
           <div className="column items-center w-full">
             <div className="text-info font-size-18 border-b border-gray-300 w-full text-center">
               {order.number}
             </div>
             <div className="text-danger text-center mb-1">
-              {formatDateHumanShorter(order.date)}
+              {/* {formatDateHumanShorter(order.date)} */}
+              {formatDateTimeShort(order.createDate)}
             </div>
           </div>
         </div>
@@ -285,7 +286,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
         </div>
 
         {/* STATUS */}
-        <div className="summary-item w-[140px] row justify-start no-wrap">
+        <div className="summary-item  row justify-start no-wrap">
           <div className="row gap-14 align-center">
             <span className="icon-info-with-circle font-size-20 text-info"></span>
             <div className={`font-size-14 ${getStatusClass(order.status)}`}>
@@ -349,7 +350,7 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
 
        {/* SMILEY COLUMN */}
         <div 
-          className="summary-item flex items-center justify-center w-6" 
+          className="summary-item flex items-center justify-center w-4" 
           title={dateDiffStatus ? "Швидке оформлення" : "Замовлення оформлено пізніше ніж через добу"}
         >
           <div className="font-size-24 flex items-center justify-center">

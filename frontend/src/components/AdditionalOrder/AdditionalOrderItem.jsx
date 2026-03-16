@@ -179,18 +179,18 @@ const ordersWithNumbers = orderList.filter(order => order.number);
 
         {/* 6. Дилер */}
         <div
-  className="summary-item flex items-center w-[200px] shrink-0"
-  title={additionalOrder.dealer}
->
-  {additionalOrder.dealer && (
-    <div className="flex items-center gap-1 text-grey font-size-14 whitespace-normal break-words">
-      <User className="w-4 h-4 text-dark shrink-0" />
-      <span className="text-dark leading-snug">
-        {additionalOrder.dealer}
-      </span>
-    </div>
-  )}
-</div>
+          className="summary-item flex items-center w-[200px] shrink-0"
+          title={additionalOrder.dealer}
+        >
+          {additionalOrder.dealer && (
+            <div className="flex items-center gap-1 text-grey font-size-14 whitespace-normal break-words">
+              <User className="w-10 h-10  text-dark shrink-0" />
+              <span className="text-dark leading-snug">
+                {additionalOrder.dealer}
+              </span>
+            </div>
+          )}
+        </div>
 
 
         {/* 7. Статуси */}

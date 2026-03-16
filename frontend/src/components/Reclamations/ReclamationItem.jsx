@@ -238,7 +238,7 @@ export const ReclamationItem = ({
                   <div className="flex items-center gap-1 text-grey font-size-14 break-words">
                     {/* <span className="icon icon-user text-dark shrink-0"></span> */}
 
-                    <User className="w-4 h-4 text-dark shrink-0" />
+                    <User className="w-10 h-10 text-dark shrink-0" />
                     <span className="text-dark leading-snug">
                       {reclamation.dealer}
                     </span>

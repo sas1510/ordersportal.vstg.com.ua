@@ -306,6 +306,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "organizationName": row.get("OrganizationName"),
             "managerName": row.get("ManagerName"),
             "dateDelay": row.get("DateDelays"),
+            "createDate": row.get("CreateDate"),
             
             
         }
