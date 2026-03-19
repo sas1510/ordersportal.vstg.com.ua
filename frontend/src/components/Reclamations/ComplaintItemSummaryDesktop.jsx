@@ -113,13 +113,10 @@ const colorsSet = {
     },
 };
 
-/* ================= HELPERS ДЛЯ ФАЙЛІВ ================= */
+
 const isImage = (name) => /\.(jpg|jpeg|png|webp)$/i.test(name);
 const isVideo = (name) => /\.(mp4|webm|ogg)$/i.test(name);
 
-// =================================================================================
-// === ОСНОВНИЙ КОМПОНЕНТ (ComplaintItemDetailView) ===
-// =================================================================================
 
 const ComplaintItemDetailView = ({ complaint }) => {
     const { theme } = useTheme();
@@ -131,8 +128,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
     const [photoOpen, setPhotoOpen] = useState(false);
     const [photoUrls, setPhotoUrls] = useState([]); // Масив URL з токенами для модалки
     const [isMediaLoading, setIsMediaLoading] = useState(false);
-
-    /* ================= 1. ЗАВАНТАЖЕННЯ СПИСКУ ФАЙЛІВ ================= */
 
 
     const imageFiles = files.filter(f => isImage(f.File_FileName));
@@ -147,7 +142,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
         } catch (err) {
             console.error("Error loading files list:", err);
             
-            // Сповіщення з кнопкою по центру
+
             addNotification(
                 <div className="flex flex-col gap-2 items-center text-center"> 
                     <span>Не вдалося завантажити медіа-файли рекламації.</span>
@@ -159,7 +154,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                     </button>
                 </div>,
                 "warning", 
-                0 // 0 означає, що сповіщення не зникне саме (якщо ваша система це підтримує)
+                0 
             );
         }
     }, [complaint?.guid, addNotification]);
@@ -276,10 +271,10 @@ const ComplaintItemDetailView = ({ complaint }) => {
                         </div>
                     </div>
 
-                    {/* 3. Менеджер */}
+               
                     <div className="rounded p-3 flex items-center justify-start gap-6" style={{ backgroundColor: c.sectionBgManager, border: `1px dashed ${c.iconManager}40` }}>
                         <div className="flex items-center gap-3 flex-shrink-0" style={{ color: c.text }}>
-                            <User className="w-4 h-4" style={{ color: c.iconManager }} />
+                            <User className="w-6 h-6" style={{ color: c.iconManager }} />
                             <h3 className="text-base font-bold">Відповідальний менеджер:</h3>
                         </div>
                         <div className="flex items-center gap-6">
@@ -290,7 +285,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
                         </div>
                     </div>
 
-                    {/* 4. Опис, Проблема, Вирішення */}
                     <div className="space-y-3">
                         {complaint.description && (
                             <div className="rounded p-3" style={{ backgroundColor: c.sectionBgDescription, border: `1px dashed ${c.border}` }}>
@@ -325,9 +319,9 @@ const ComplaintItemDetailView = ({ complaint }) => {
                         </div>
                     </div>
 
-                    {/* 5. Медіа файли */}
+
                     <div className="space-y-3">
-                        {/* Фотографії */}
+
                         {imageFiles.length > 0 && (
                             <div className="rounded p-3" style={{ backgroundColor: c.sectionBgDescription, border: `1px dashed ${c.border}` }}>
                                 <div className="flex items-center gap-1.5 mb-3">
@@ -353,7 +347,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                             </div>
                         )}
 
-                        {/* Відео */}
+
                         {videoFiles.length > 0 && (
                             <div className="rounded p-3" style={{ backgroundColor: c.sectionBgDescription, border: `1px dashed ${c.border}` }}>
                                 <div className="flex items-center gap-1.5 mb-2">
@@ -379,7 +373,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
                 </div>
             </div>
 
-            {/* === МОДАЛЬНЕ ВІКНО ДЛЯ ФОТО === */}
             {photoOpen && (
                 <PhotoModal
                     isOpen={photoOpen}

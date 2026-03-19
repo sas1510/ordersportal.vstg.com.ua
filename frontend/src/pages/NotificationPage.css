@@ -242,3 +242,37 @@
 .close-btn, .loading-state, .empty-state {
     color: var(--drawer-text-muted);
 }
+
+
+/* Кнопка підписки на пуші */
+.btn-subscribe-push {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    color: #1976d2;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.btn-subscribe-push:hover {
+    background: #1976d2;
+    color: white;
+}
+
+.btn-subscribe-push.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* На мобільних можна приховати текст, залишити іконку */
+@media (max-width: 480px) {
+    .btn-subscribe-push .btn-text {
+        display: none;
+    }
+}

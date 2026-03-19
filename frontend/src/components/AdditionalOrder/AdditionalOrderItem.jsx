@@ -10,10 +10,10 @@ import axiosInstance from "../../api/axios";
 import { User, ClipboardCheck, LayoutGrid, Calendar } from 'lucide-react'; // Імпорт іконок
 import { formatDateHumanShorter } from "../../utils/formatters"; // Припускаємо, що це ваша утиліта
 import "./AdditionalOrderItem.css"
-// ================= AdditionalOrderItem.jsx (Замість CalculationItem.jsx) =================
+import { useAuth } from '../../hooks/useAuth';
 
 export const AdditionalOrderItem = ({ calc, onDelete, onEdit, onMarkAsRead }) => {
-  // calc тепер представляє Additional Order (Додаткове Замовлення)
+
   const additionalOrder = calc; 
   
   const [expanded, setExpanded] = useState(false);
@@ -22,10 +22,13 @@ export const AdditionalOrderItem = ({ calc, onDelete, onEdit, onMarkAsRead }) =>
   const [selectedComments, setSelectedComments] = useState([]);
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
-  const userRaw = localStorage.getItem("user");
-  const user = userRaw ? JSON.parse(userRaw) : null;
 
 
+
+
+
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin";
 
  
   const hasMainOrder = !!additionalOrder.mainOrderNumber;
@@ -281,7 +284,10 @@ const ordersWithNumbers = orderList.filter(order => order.number);
 
         baseTransactionGuid={additionalOrder.guid}      // 🔑 GUID з 1С
         transactionTypeId={3}
-        activePersonId={additionalOrder.dealerId}
+        // activePersonId={additionalOrder.dealerId}
+
+        manager={isAdmin ? additionalOrder.dealerId : additionalOrder.managerLink}
+        
                              // 🔑 ID типу "Рекламація"
         // writerGuid={writerGuid} // або з context
         />

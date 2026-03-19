@@ -20,8 +20,8 @@ from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-from backend.users.models import CustomUser
-from backend.users.models import UserApiKey
+from users.models import CustomUser
+from users.models import UserApiKey
 
 
 class OneCApiKeyAuthentication(BaseAuthentication):

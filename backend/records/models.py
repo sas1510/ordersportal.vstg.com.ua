@@ -1,8 +1,10 @@
 from django.db import models
-from backend.users.models import CustomUser
+from users.models import CustomUser
 # from users.models import CustomUser
 from django.conf import settings
 # Create your models here.
+
+
 class TransactionType(models.Model):
     class Meta:
         db_table = "TransactionTypes"
@@ -307,3 +309,92 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.event_type} for {self.user}"
 
+
+
+
+
+
+from django.db import models
+from django.conf import settings
+
+class ChatMessage(models.Model):
+
+    chat_id = models.CharField(max_length=255, db_index=True, db_column='ChatId', verbose_name="ID Чату")
+
+    timestamp = models.DateTimeField(auto_now_add=True,  db_column='Timestamp', verbose_name="Період")
+    
+    related_object_id = models.BinaryField(
+        max_length=255, 
+        null=True, 
+        blank=True, 
+        db_column='RelatedObjectId', 
+        verbose_name="Об'єктОснова"
+        )
+    
+    
+    # models.CharField(max_length=100, blank=True,  null=True, db_column='RelatedObjectId', verbose_name="Об'єктОснова")
+    
+
+    # author = models.ForeignKey(
+    #     settings.AUTH_USER_MODEL, 
+    #     on_delete=models.CASCADE, 
+    #     db_column='AuthorId',  # Змінено для зрозумілості в БД
+    #     related_name='sent_messages', # Додано
+    #     verbose_name="Автор"
+    # )
+
+    # recipient = models.ForeignKey(
+    #     settings.AUTH_USER_MODEL, 
+    #     on_delete=models.CASCADE, 
+    #     db_column='RecipientId', # Змінено для зрозумілості в БД
+    #     related_name='received_messages', # Додано
+    #     null=True, blank=True,
+    #     verbose_name="Отримувач"
+    # )
+
+    author = models.BinaryField(
+        max_length=24, 
+        null=True, 
+        blank=True, 
+        db_column='AuthorId'
+    )
+    
+    recipient = models.BinaryField(
+        max_length=24, 
+        null=True, 
+        blank=True, 
+        db_column='RecipientId'
+    )
+ 
+    text = models.TextField(verbose_name="Текст повідомлення", db_column='Text')
+    
+
+    is_read = models.BooleanField(default=False, verbose_name="Прочитано", db_column='IsRead')
+    
+
+    is_sent_vtg = models.BooleanField(default=False, verbose_name="Відправлено ВТГ", db_column='IsSentVtg')
+    
+
+    transaction_type = models.ForeignKey(
+        TransactionType,
+        on_delete=models.CASCADE,
+        # related_name='type',
+        db_column='TransactionTypeID',
+        verbose_name='Тип транзакції'
+    )
+
+
+    
+
+    is_notification = models.BooleanField(default=False, verbose_name="Це повідомлення", db_column='IsNotification')
+    
+    event_type = models.CharField(max_length=100, blank=True, verbose_name="Тип події", db_column='EventType' )
+    
+    class Meta:
+        db_table = 'ChatMessage'
+        verbose_name = "Повідомлення"
+        verbose_name_plural = "Повідомлення"
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.author} -> {self.chat_id}: {self.text[:20]}..."

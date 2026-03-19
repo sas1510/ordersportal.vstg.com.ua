@@ -19,6 +19,9 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 
 INSTALLED_APPS = [
+
+    'daphne',  # Обов'язково першим
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,14 +33,16 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     "drf_spectacular",
-    'backend.users',
-    'backend.contact',
-    'backend.records',
+    "webpush",
+    'users',
+    'chat',
+    'contact',
+    'records',
     # 'complaints',
-    'backend.portal_media',
-    'backend.payments',
-    'backend.reclamations',
-    'backend.additional_order',
+    'portal_media',
+    'payments',
+    'reclamations',
+    'additional_order',
     # 'documents',
     # 'order',
     # 'organizations_and_regions',
@@ -236,4 +241,32 @@ ONE_C_VERIFY_SSL = config('ONE_C_VERIFY_SSL', default=False, cast=bool)
 
 
 
-ELEGRAM_BOT_USERNAME = config('TELEGRAM_BOT_USERNAME', default='your_default_bot')
+TELEGRAM_BOT_USERNAME = config('TELEGRAM_BOT_USERNAME', default='your_default_bot')
+
+
+ASGI_APPLICATION = 'backend.asgi.application' # Переконайтеся, що шлях правильний
+
+
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(config('REDIS_HOST', default='127.0.0.1'), 6379)],
+        },
+    },
+}
+
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": 'BL9wQus0T21rgqRFcjZhUmiZ6w0nv5siH9AFJBLayIqPbNCNMbsWPfjpNIQ3PH1RtnUuzbA7uGEJfwdgnmpImLY',
+    "VAPID_PRIVATE_KEY": "4eVLdiohXE3VyA0F6CqwUugCBkxPmiiT902NL3aR-4w",
+    "VAPID_ADMIN_EMAIL": "workvs.market@gmail.com"
+}
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379/1'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/1'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'

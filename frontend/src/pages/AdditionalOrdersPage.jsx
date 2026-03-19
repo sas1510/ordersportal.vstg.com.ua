@@ -8,7 +8,7 @@ import AddReorderModal from '../components/AdditionalOrder/AddReorderModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 const initialLimit = 100;
@@ -38,6 +38,11 @@ const AdditionalOrders = () => {
   const [error, setError] = useState(null); 
   const [reloading, setReloading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+
+  const navigate = useNavigate();
+
+  
 
 
   const handleDeleteAdditionalOrder = useCallback((additionalOrderId) => { // Замість handleDeleteCalculation
@@ -325,8 +330,9 @@ const reloadAdditionalOrders = useCallback(async () => {
 
 
   const sortedItems = useMemo(() => {
-    return filteredItems.sort((a, b) => new Date(b.dateRaw).getTime() - new Date(a.dateRaw).getTime());
-  }, [filteredItems]);
+        let items = getFilteredItems(filter.status, filter.month, filter.name, additionalOrdersData);
+        return items.sort((a, b) => new Date(b.dateRaw).getTime() - new Date(a.dateRaw).getTime());
+    }, [filter, additionalOrdersData, getFilteredItems]);
 
   const toggleAdditionalOrder = (id) => setExpandedAdditionalOrder(expandedAdditionalOrder === id ? null : id); // Замість toggleCalc
   const toggleOrder = (id) => setExpandedOrder(expandedOrder === id ? null : id);
@@ -336,39 +342,60 @@ const reloadAdditionalOrders = useCallback(async () => {
   // Перевірка, чи потрібно показувати кнопку "Завантажити ще"
   const showLoadMoreButton = sortedItems.length > displayLimit;
   
-  // Дані для кнопки "Завантажити ще"
+
   const nextLoadCount = Math.min(initialLimit, sortedItems.length - displayLimit);
-  // const buttonText = `Завантажити ще (${nextLoadCount} з ${sortedItems.length - displayLimit})`;
+
   const location = useLocation(); 
 
-    useEffect(() => {
+   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchQuery = params.get('search');
+    const yearQuery = params.get('year');
+
+    // 1. Рік
+    if (yearQuery && yearQuery !== selectedYear) {
+        setSelectedYear(yearQuery);
+        setLoading(true);
+        navigate(location.pathname, { replace: true });
+        return; 
+    }
+
+
+    if (searchQuery) {
+        setFilter(prev => ({ 
+            ...prev, 
+            name: searchQuery,
+            status: 'Всі', 
+            month: 0 
+        }));
         
-        const params = new URLSearchParams(location.search);
-        const searchQuery = params.get('search');
-
-        if (searchQuery) {
-
-            setFilter(prev => ({ 
-                ...prev, 
-                name: searchQuery,
-                status: 'Всі', 
-                month: 0 
-            }));
-            
-
-            setDisplayLimit(initialLimit);
+        setDisplayLimit(initialLimit);
 
 
-            setFilteredItems(getFilteredItems('Всі', 0, searchQuery));
-
+        if (additionalOrdersData.length > 0) {
+            const query = searchQuery.toLowerCase();
             const found = additionalOrdersData.find(ord => 
-                ord.number === searchQuery || ord.mainOrderNumber === searchQuery
+                String(ord.number).toLowerCase().includes(query) ||
+                String(ord.mainOrderNumber).toLowerCase().includes(query) ||
+                ord.orders?.some(o => String(o.number).toLowerCase().includes(query))
             );
+
             if (found) {
                 setExpandedAdditionalOrder(found.id);
+                
+        
+                navigate(location.pathname, { replace: true });
+
+                setTimeout(() => {
+                    const element = document.getElementById(`add-order-${found.id}`);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 500);
             }
         }
-    }, [location.search, additionalOrdersData, getFilteredItems]);
+    }
+}, [location.search, additionalOrdersData, selectedYear, navigate]); 
 
 
 

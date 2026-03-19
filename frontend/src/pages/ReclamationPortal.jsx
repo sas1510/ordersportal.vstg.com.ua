@@ -13,7 +13,7 @@ import AddClaimModal from '../components/Reclamations/AddClaimModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import '../components/Reclamations/ReclamationItem.css';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 
@@ -57,6 +57,7 @@ function formatApiData(data) {
 
             series: item.SeriesList || null,
             manager: item.LastManagerName || 'N/A',
+            managerLink: item.ManagerLink || 'N/A',
 
             amount: parseFloat(item.DocumentAmount || item.DocumentSum || item.CompensationAmount || 0),
             dealer: item.Customer || 'N/A',
@@ -110,13 +111,27 @@ const ReclamationPortal = () => {
 
     const location = useLocation();
 
-    useEffect(() => {
+    // Переконайтеся, що useNavigate імпортовано:
+// import { useNavigate, useLocation } from 'react-router-dom';
 
+    const navigate = useNavigate();
+
+    useEffect(() => {
         const params = new URLSearchParams(location.search);
         const searchQuery = params.get('search');
+        const yearQuery = params.get('year');
 
+        // 1. Обробка року
+        if (yearQuery && yearQuery !== selectedYear) {
+            setSelectedYear(yearQuery);
+            setLoading(true);
+            // Очищаємо URL, щоб користувач міг далі вільно змінювати рік у селекті
+            navigate(location.pathname, { replace: true });
+            return; 
+        }
+
+        // 2. Обробка пошуку
         if (searchQuery) {
-
             setFilter(prev => ({ 
                 ...prev, 
                 name: searchQuery,
@@ -124,17 +139,31 @@ const ReclamationPortal = () => {
                 month: 0 
             }));
             
-           
             setVisibleItemsCount(ITEMS_PER_LOAD);
 
-            const found = reclamationsData.find(r => 
-                r.number === searchQuery || r.actNumber === searchQuery
-            );
-            if (found) {
-                setExpandedReclamation(found.id);
+            // 3. Розгортання, якщо дані вже підвантажилися
+            if (reclamationsData.length > 0) {
+                const found = reclamationsData.find(r => 
+                    String(r.number) === searchQuery || String(r.actNumber) === searchQuery
+                );
+                
+                if (found) {
+                    setExpandedReclamation(found.id);
+                    
+                    // Видаляємо search з URL після успішного знаходження
+                    navigate(location.pathname, { replace: true });
+
+                    setTimeout(() => {
+                        const element = document.getElementById(`reclamation-${found.id}`);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 500); 
+                }
             }
         }
-    }, [location.search, reclamationsData]); 
+    }, [location.search, reclamationsData, selectedYear, navigate]); 
+
 
     const reloadReclamations = useCallback(async () => {
         cancelAll();
@@ -180,32 +209,6 @@ const ReclamationPortal = () => {
         ));
     };
 
-    /* --------------------------------------------------------
-     *  Add New Reclamation
-     * -------------------------------------------------------- */
-    // const handleSaveReclamation = useCallback((newReclamation) => {
-    //     // const formatted = {
-    //     //     id: 'RCL' + Math.random().toString(36).substr(2, 5).toUpperCase(),
-    //     //     number: newReclamation.name || `РКЛ-${Date.now()}`,
-    //     //     dateRaw: newReclamation.dateRaw || new Date().toISOString(),
-    //     //     date: new Date().toLocaleDateString('uk-UA'),
-
-    //     //     issues: [],
-    //     //     issueCount: 0,
-    //     //     amount: 0,
-    //     //     status: 'Новий',
-    //     //     file: newReclamation.file || null,
-    //     //     message: newReclamation.Comment || ''
-    //     // };
-
-    //     // setReclamationsData(prev => [formatted, ...prev]);
-    //     // setVisibleItemsCount(ITEMS_PER_LOAD);
-
-    //     setIsNewReclamationModalOpen(false);
-
-    //     await reloadReclamations();
-    // }, []);
-
     const handleSaveReclamation = useCallback(async () => {
         // addNotification("Рекламацію успішно створено", "success");
         setIsNewReclamationModalOpen(false);
@@ -216,13 +219,10 @@ const ReclamationPortal = () => {
 
     
 
-    /* --------------------------------------------------------
-     *  FETCH DATA WITH CANCELLATION (LIKE PortalOriginal)
-     * -------------------------------------------------------- */
    useEffect(() => {
         cancelAll();
         const controller = register();
-        setError(null); // Скидаємо помилку
+        setError(null);
 
         const loadData = async () => {
             setLoading(true);

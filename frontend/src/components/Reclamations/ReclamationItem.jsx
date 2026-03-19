@@ -30,6 +30,9 @@ export const ReclamationItem = ({
     const windowWidth = useWindowWidth();
     const isMobile = windowWidth < 1024;
 
+
+    
+
     // === ЛОГІКА RECLAMATION MENU (ВБУДОВАНА) ===
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -304,9 +307,14 @@ export const ReclamationItem = ({
 
                 baseTransactionGuid={reclamation.guid}      // 🔑 GUID з 1С
                 transactionTypeId={2}                       // 🔑 ID типу "Рекламація"
-                activePersonId={reclamation.dealerId}
+                // manager={reclamation.managerLink}
+                manager={isCustomer ?  reclamation.managerLink : reclamation.dealerId }
+                
                
                 />
         </div>
     );
 };
+
+
+

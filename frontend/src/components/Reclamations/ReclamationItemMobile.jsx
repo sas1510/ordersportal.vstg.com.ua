@@ -233,7 +233,7 @@ export const ReclamationItemMobile = ({
                 baseTransactionGuid={reclamation.guid}      // 🔑 GUID з 1С
                 transactionTypeId={2}                       // 🔑 ID типу "Рекламація"
                 // writerGuid={localStorage.getItem("user_id_1C")} // або з context
-                activePersonId={reclamation.dealerId}
+                manager={isCustomer ?  reclamation.managerLink : reclamation.dealerId }
                 />
 
              {/* Модальне вікно підтвердження видалення (залишаємо тут для контексту) */}

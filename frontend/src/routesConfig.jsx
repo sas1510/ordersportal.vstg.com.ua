@@ -50,6 +50,8 @@ import InvalidLinkPage from './pages/InvalidLinkPage'
 import ProductionStatisticsPage from './pages/ProductionStatisticsPage'
 import DashboardPage from "./pages/DashboardPage";
 import NotificationPage from './pages/NotificationPage'
+import ChatPage from './pages/ChatPage'
+import StartChatPage from './pages/StartChatPage'
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -100,6 +102,8 @@ export const adminRoutes = [
  { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
    { path: "dashboardpage", element: <DashboardPage/> },
    { path: "notifications", element: <NotificationPage/> },
+   { path: "/chat/:chatId", element: <ChatPage/> },
+   { path: "/start-chat", element: <StartChatPage/> },
 
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
@@ -144,6 +148,8 @@ export const dealerRoutes = [
   { path: "dashboardpage", element: <DashboardPage/> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
   { path: "/notifications", element: <NotificationPage/> },
+      { path: "/chat/:chatId", element: <ChatPage/> },
+   { path: "/start-chat", element: <StartChatPage/> },
   // { path: "/invite/:code", element: <InviteRegisterForm  /> },
 ];
 

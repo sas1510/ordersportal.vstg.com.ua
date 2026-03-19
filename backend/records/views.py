@@ -32,7 +32,7 @@ from backend.utils.onec_api import send_to_1c
 from backend.permissions import IsAdminJWT
 from .serializers import MessageCreateSerializer, CalculationCreateSerializer
 from .services.messages import save_message
-from backend.users.models import CustomUser
+from users.models import CustomUser
 
 import requests
 from django.conf import settings
@@ -202,6 +202,7 @@ def complaints_view(request):
         if c_guid_bin:
             row["ComplaintGuid"] = bin_to_guid_1c(c_guid_bin)
             row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
+            row["ManagerLink"] = bin_to_guid_1c(row["ManagerLink"])
 
         full_text = row.get("AdditionalInformation")
         parsed_info = parse_reclamation_details(full_text)
@@ -270,6 +271,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "file": bin_to_guid_1c(row.get("FileLink")) or '',
                 "fileName": row.get("CalcFileName") or '',
                 "message": row.get("CalcComment"),
+                "manager": bin_to_guid_1c(row.get("Manager")),
                 "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
             }
         else:
@@ -304,7 +306,6 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "arrivalTime": row.get("ArrivalTime"),
             "routeStatus": row.get("RouteStatus"),
             "organizationName": row.get("OrganizationName"),
-            "managerName": row.get("ManagerName"),
             "dateDelay": row.get("DateDelays"),
             "createDate": row.get("CreateDate"),
             
@@ -548,7 +549,8 @@ def additional_orders_view(request):
             "date": clean_date(r.get("AdditionalOrderDate")),
             "dealer": r.get("Customer") or r.get("OrganizationName") or "",
             "dealerId": bin_to_guid_1c(r.get("CustomerID")),
-            "managerName": r.get("LastManagerName"),
+            "managerName": r.get("ResponsibleName"),
+            "managerLink": bin_to_guid_1c(r.get("ManagerLink")),
             "organizationName": r.get("OrganizationName"),
             "debt": order_sum - total_paid,
             "file": None,
@@ -2047,17 +2049,11 @@ def create_message(request):
 # records/views.py
 
 
-
 @extend_schema(
     summary="Отримати історію коментарів транзакції",
     description="""
-Повертає список коментарів для заданої транзакції.
-
-Коментарі:
-- фільтруються за `base_transaction_guid`
-- фільтруються за `transaction_type_id`
-- відсортовані за датою створення (від старих до нових)
-
+Повертає список коментарів для заданої транзакції з моделі ChatMessage.
+Коментарі відсортовані від найстаріших до найновіших.
 """,
     parameters=[
         OpenApiParameter(
@@ -2065,64 +2061,17 @@ def create_message(request):
             type=str,
             location=OpenApiParameter.QUERY,
             required=True,
-            description="GUID транзакції з 1C",
+            description="GUID транзакції з 1C (RelatedObjectId)",
         ),
         OpenApiParameter(
             name="transaction_type_id",
             type=int,
             location=OpenApiParameter.QUERY,
             required=True,
-            description="Тип транзакції",
+            description="ID типу транзакції",
         ),
     ],
-    responses={
-        200: OpenApiResponse(
-            description="Список коментарів",
-            examples=[
-                OpenApiExample(
-                    name="Success",
-                    value=[
-                        {
-                            "id": 3,
-                            "created_at": "2026-01-14T10:03:02Z",
-                            "message": "3",
-                            "author": {
-                                "id_1c": "84551b88-b55b-11f0-9b71-4cd98f08e56d",
-                                "username": "shop_ruta",
-                                "full_name": "Магазин Рута"
-                            }
-                        },
-                        {
-                            "id": 4,
-                            "created_at": "2026-01-14T10:05:46Z",
-                            "message": "4",
-                            "author": None
-                        }
-                    ],
-                )
-            ],
-        ),
-        400: OpenApiResponse(
-            description="Некоректні параметри",
-            examples=[
-                OpenApiExample(
-                    name="Bad request",
-                    value={
-                        "error": "base_transaction_guid and transaction_type_id are required"
-                    },
-                )
-            ],
-        ),
-        401: OpenApiResponse(
-            description="Неавторизовано",
-            examples=[
-                OpenApiExample(
-                    name="Unauthorized",
-                    value={"detail": "Authentication credentials were not provided."},
-                )
-            ],
-        ),
-    },
+    responses={200: OpenApiResponse(description="Список повідомлень")},
     tags=["Messages"],
 )
 @api_view(["GET"])
@@ -2138,69 +2087,73 @@ def get_messages(request):
         )
 
     try:
+        # Конвертуємо GUID у бінарний формат для пошуку в БД
         base_transaction_bin = guid_to_1c_bin(base_transaction_guid)
     except Exception:
         return Response({"error": "Invalid base_transaction_guid"}, status=400)
 
-    # 1. Отримуємо QuerySet повідомлень
-    messages_qs = Message.objects.filter(
-        base_transaction_id=base_transaction_bin,
-        transaction_type_id=transaction_type_id
-    ).order_by("created_at")
+    # 1. Отримуємо QuerySet повідомлень (використовуємо нові назви полів)
+    # Зверніть увагу: в Meta стоїть ordering = ['-timestamp'], тому тут явно .order_by('timestamp')
+    messages_qs = ChatMessage.objects.filter(
+        related_object_id=base_transaction_bin,
+        transaction_type_id=transaction_type_id,
+        is_notification=False
+    ).order_by("timestamp")
 
-    # 2. ЛОГІКА ПРОЧИТАННЯ:
-    # Позначаємо прочитаними всі повідомлення, які написав НЕ цей користувач
-    # (тобто менеджер 1С). Це прибере "червоний кружечок" при наступному оновленні списку.
+    # 2. ЛОГІКА ПРОЧИТАННЯ
+    # Позначаємо прочитаними всі вхідні повідомлення (де автор НЕ поточний користувач)
     user_guid_bin = request.user.user_id_1C
     
     messages_qs.filter(
         is_read=False
     ).exclude(
-        writer_id=user_guid_bin
+        author=user_guid_bin
     ).update(is_read=True)
 
-    # 3. Виконуємо запит для отримання даних (вже оновлених)
+    # 3. Виконуємо запит
     messages = list(messages_qs)
 
-    # --------- Writer IDs з повідомлень ----------
-    writer_ids = {
-        m.writer_id
+    # --------- Збираємо унікальні ID авторів ----------
+    author_ids = {
+        m.author
         for m in messages
-        if isinstance(m.writer_id, (bytes, bytearray))
+        if isinstance(m.author, (bytes, bytearray))
     }
 
-    # --------- Користувачі порталу ----------
+    # --------- Мапа користувачів порталу ----------
     users_map = {
         u.user_id_1C: u
-        for u in CustomUser.objects.filter(user_id_1C__in=writer_ids)
+        for u in CustomUser.objects.filter(user_id_1C__in=author_ids)
     }
 
     result = []
     for m in messages:
-        author = None
-        if isinstance(m.writer_id, (bytes, bytearray)):
-            user = users_map.get(m.writer_id)
+        author_data = None
+        if isinstance(m.author, (bytes, bytearray)):
+            user = users_map.get(m.author)
             if user:
-                author = {
-                    "id_1c": bin_to_guid_1c(m.writer_id),
+                author_data = {
+                    "id_1c": bin_to_guid_1c(m.author),
                     "username": user.username,
                     "full_name": (user.full_name or f"{user.first_name} {user.last_name}".strip()),
                     "type": "PortalUser",
                 }
             else:
-                author_1c = get_author_from_1c(m.writer_id)
+                # Якщо в базі порталу немає, шукаємо інформацію про менеджера 1С
+                author_1c = get_author_from_1c(m.author)
                 if author_1c:
-                    author = author_1c
+                    author_data = author_1c
 
         result.append({
             "id": m.id,
-            "message": m.message,
-            "created_at": m.created_at,
-            "is_read": m.is_read, # Повертаємо актуальний статус
-            "author": author,
+            "message": m.text, # Поле text з нової моделі
+            "created_at": m.timestamp, # Поле timestamp з нової моделі
+            "is_read": m.is_read,
+            "author": author_data,
         })
 
     return Response(result)
+
 
 
 
@@ -2893,29 +2846,89 @@ from rest_framework.response import Response
 from .models import Notification
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
+# @api_view(["GET"])
+# @permission_classes([IsAuthenticated])
+# def get_user_notifications(request):
+#     """
+#     Повертає список сповіщень для поточного користувача.
+#     """
+#     # Отримуємо останні 20 сповіщень користувача
+#     notifications_qs = Notification.objects.filter(
+#         user=request.user
+#     ).select_related('transaction_type')[:20]
+
+#     result = []
+#     for n in notifications_qs:
+#         result.append({
+#             "id": n.id,
+#             "eventType": n.event_type,
+#             "message": n.message,
+#             "newValue": n.new_value,
+#             "oldValue": n.old_value,
+#             "isRead": n.is_read,
+#             "createdAt": n.created_at,
+#             "transactionType": n.transaction_type.type_name if n.transaction_type else None,
+#             "baseTransactionGuid": bin_to_guid_1c(n.base_transaction_id) if n.base_transaction_id else None,
+#         })
+
+#     return Response({
+#         "status": "success",
+#         "data": result
+#     })
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+# Не забудьте імпортувати вашу модель та функцію конвертації
+# from .models import ChatMessage
+# from .utils import bin_to_guid_1c 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_notifications(request):
     """
-    Повертає список сповіщень для поточного користувача.
+    Повертає список сповіщень. 
+    Підтримує фільтрацію за конкретним контрагентом для адмінів через параметри запиту.
     """
-    # Отримуємо останні 20 сповіщень користувача
-    notifications_qs = Notification.objects.filter(
-        user=request.user
-    ).select_related('transaction_type')[:20]
+    try:
+        # Визначаємо бінарний ID контрагента (ігноруємо рядковий GUID, він нам не потрібен для фільтра)
+        contractor_bin, _ = resolve_contractor(request)
+    except (PermissionError, ValueError) as e:
+        return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Отримуємо останні 20 сповіщень для визначеного контрагента
+    notifications_qs = ChatMessage.objects.filter(
+        recipient=contractor_bin,
+        is_notification=True
+    ).select_related('transaction_type').order_by('-timestamp')[:20]
 
     result = []
-    for n in notifications_qs:
+    for msg in notifications_qs:
+
+        t_type_id = msg.transaction_type_id if msg.transaction_type_id else 0
+        
+        doc_num = get_document_number_by_guid(msg.related_object_id, t_type_id)
+
+        doc_year = get_document_year_by_guid(msg.related_object_id, t_type_id)
+
         result.append({
-            "id": n.id,
-            "eventType": n.event_type,
-            "message": n.message,
-            "newValue": n.new_value,
-            "oldValue": n.old_value,
-            "isRead": n.is_read,
-            "createdAt": n.created_at,
-            "transactionType": n.transaction_type.type_name if n.transaction_type else None,
-            "baseTransactionGuid": bin_to_guid_1c(n.base_transaction_id) if n.base_transaction_id else None,
+            "id": msg.id,
+            "eventType": msg.event_type,
+            "message": msg.text,
+            "isRead": msg.is_read,
+            "createdAt": msg.timestamp,
+            "transactionType": msg.transaction_type.type_name if msg.transaction_type else None,
+            "doc_number": doc_num, # Додаємо людський номер
+            "relatedObjectId": bin_to_guid_1c(msg.related_object_id) if msg.related_object_id else None,
+            "authorId": bin_to_guid_1c(msg.author) if msg.author else None,
+            "chatId": msg.chat_id,
+            "docYear": doc_year,
         })
 
     return Response({
@@ -2924,15 +2937,35 @@ def get_user_notifications(request):
     })
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+# from .models import ChatMessage
+# from .utils import resolve_contractor
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_notifications_count(request):
     """
-    Повертає кількість непрочитаних сповіщень.
+    Повертає кількість непрочитаних сповіщень для поточного контрагента.
     """
-    unread_count = Notification.objects.filter(
-        user=request.user, 
+    try:
+        # Використовуємо вашу єдину точку визначення контрагента
+        contractor_bin, _ = resolve_contractor(request)
+    except (PermissionError, ValueError) as e:
+        return Response({
+            "status": "error", 
+            "message": str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Рахуємо тільки ті записи, де:
+    # 1. Отримувач — наш поточний контрагент
+    # 2. Це саме сповіщення (is_notification=True)
+    # 3. Воно ще не прочитане
+    unread_count = ChatMessage.objects.filter(
+        recipient=contractor_bin,
+        is_notification=True,
         is_read=False
     ).count()
 
@@ -2943,15 +2976,46 @@ def get_notifications_count(request):
 
 
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def mark_notifications_as_read(request):
     """
-    Позначає всі сповіщення користувача як прочитані.
+    Позначає всі сповіщення (is_notification=True) поточного контрагента як прочитані.
     """
-    Notification.objects.filter(
-        user=request.user, 
+    try:
+        # Визначаємо, для кого саме ми закриваємо сповіщення
+        contractor_bin, _ = resolve_contractor(request)
+    except (PermissionError, ValueError) as e:
+        return Response({
+            "status": "error", 
+            "message": str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    # Оновлюємо тільки записи, що є сповіщеннями для цього отримувача
+    updated_count = ChatMessage.objects.filter(
+        recipient=contractor_bin,
+        is_notification=True,
         is_read=False
     ).update(is_read=True)
 
-    return Response({"status": "success", "message": "All notifications marked as read"})
+    return Response({
+        "status": "success", 
+        "message": f"Позначено як прочитані: {updated_count} сповіщень"
+    })
+
+
+
+
+
+
+from rest_framework import generics
+from .models import ChatMessage
+from .serializers import ChatMessageSerializer
+
+class ChatHistoryView(generics.ListAPIView):
+    serializer_class = ChatMessageSerializer
+
+    def get_queryset(self):
+        chat_id = self.kwargs['chat_id']
+        return ChatMessage.objects.filter(chat_id=chat_id).order_by('timestamp')

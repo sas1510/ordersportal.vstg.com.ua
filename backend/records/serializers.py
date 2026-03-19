@@ -40,3 +40,16 @@ class UserDashboardConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserDashboardConfig
         fields = ['config', 'layout_name', 'updated_at']
+
+
+
+
+from rest_framework import serializers
+from .models import ChatMessage
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source='author.username', read_only=True)
+
+    class Meta:
+        model = ChatMessage
+        fields = ['id', 'chat_id', 'author_name', 'text', 'timestamp', 'is_read']

@@ -359,7 +359,7 @@ const handlePhotoClick = async (index) => {
               style={{ backgroundColor: c.sectionBgManager, border: `1px dashed ${c.iconManager}40` }}
             >
               <div className="flex items-center gap-2 flex-shrink-0" style={{ color: c.text }}>
-                <User className="w-4 h-4" style={{ color: c.iconManager }} />
+                <User className="w-6 h-6" style={{ color: c.iconManager }} />
                 <h3 className="text-base font-bold">Відповідальний менеджер:</h3>
               </div>
 

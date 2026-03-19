@@ -340,7 +340,7 @@ export const CalculationItem = React.memo(({ calc, onDelete, onEdit, onMarkAsRea
 
         baseTransactionGuid={calc.id}      
         transactionTypeId={1}                       
-        activePersonId={calc.dealerId}
+        manager={isAdmin ? calc.dealerId : calc.manager}
         
         />
 

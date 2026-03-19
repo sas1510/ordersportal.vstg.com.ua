@@ -7,6 +7,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
     SpectacularRedocView,
 )
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     # path('api/admin/', admin.site.urls),
@@ -20,6 +21,8 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema")),
+    # path('api/webpush/', csrf_exempt(include('webpush.urls'))),
+    path('api/webpush/', include('webpush.urls')),
 ]
 
 # # Додати media лише після того, як urlpatterns створений

@@ -322,7 +322,7 @@ from rest_framework import status
 from django.utils import timezone
 
 from backend.permissions import IsAdminJWT
-from backend.users.models import UserApiKey
+from users.models import UserApiKey
 import pytz
 
 
@@ -1478,7 +1478,7 @@ from datetime import datetime
 import secrets
 
 from backend.permissions import IsAdminJWT
-from backend.users.models import UserApiKey, CustomUser
+from users.models import UserApiKey, CustomUser
 
 @extend_schema(exclude=True)
 @api_view(["POST"])

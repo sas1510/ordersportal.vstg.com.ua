@@ -354,7 +354,8 @@ export const CalculationItemMobile = React.memo(({ calc, onDelete, onEdit, onMar
 
         baseTransactionGuid={calc.id}      
         transactionTypeId={1}                       
-        activePersonId={calc.dealerId}
+        manager={isAdmin ? calc.dealerId : calc.manager}
+        
         
         />
 

@@ -9,7 +9,7 @@ import NewCalculationModal from '../components/Orders/NewCalculationModal';
 import useWindowWidth from '../hooks/useWindowWidth';
 import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 // import { useDealerContext } from "../hooks/useDealerContext";
 
 const ITEMS_PER_LOAD = 100;
@@ -41,30 +41,66 @@ const PortalOriginal = () => {
     const isMobile = windowWidth < 1024;
     const { theme } = useTheme();
     const [reloading, setReloading] = useState(false);
+    const navigate = useNavigate();
 
 
     const location = useLocation();
 
     useEffect(() => {
-        // Спробуємо дістати параметр 'search' з URL
         const params = new URLSearchParams(location.search);
         const searchQuery = params.get('search');
+        const yearQuery = params.get('year');
+
+        // 1. Обробили рік з URL
+        if (yearQuery && yearQuery !== selectedYear) {
+            setLoading(true);
+            setSelectedYear(yearQuery);
+            
+            // Очищаємо параметри з URL, щоб вони не заважали користувачу міняти рік вручну
+            // replace: true не створює нову історію переходів (кнопка "Назад" працюватиме адекватно)
+            navigate(location.pathname, { replace: true }); 
+            return; 
+        }
 
         if (searchQuery) {
-            // Встановлюємо значення у фільтр пошуку
-            setFilter(prev => ({ ...prev, name: searchQuery }));
+            // 2. Встановлюємо фільтри
+            setFilter(prev => ({ 
+                ...prev, 
+                name: searchQuery,
+                status: 'Всі', 
+                month: 0 
+            }));
             
-            // Також переконуємося, що фільтр по статусу та місяцю не заважає пошуку
-            setFilter(prev => ({ ...prev, status: 'Всі', month: 0 }));
-            
-            // Скидаємо ліміт пагінації, щоб знайдений елемент точно підпав під зріз
             setLimit(ITEMS_PER_LOAD);
 
-            // Якщо потрібно автоматично розгорнути знайдений прорахунок, 
-            // це можна буде зробити пізніше, коли дані завантажаться
+            // 3. Розгортаємо, якщо дані завантажені
+            if (calculationsData.length > 0) {
+                const found = calculationsData.find(calc => 
+                    String(calc.number).toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    calc.orders?.some(o => String(o.number).toLowerCase().includes(searchQuery.toLowerCase()))
+                );
+
+                if (found) {
+                    setExpandedCalc(found.id);
+                    
+                    // Очищаємо пошук з URL після успішного знаходження, 
+                    // щоб при рефреші сторінка не стрибала знову до цього замовлення
+                    navigate(location.pathname, { replace: true });
+
+                    setTimeout(() => {
+                        const element = document.getElementById(`calc-${found.id}`);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 500);
+                }
+            }
         }
-    }, [location.search]);
-    // --- Cancel all requests on unmount ---
+    }, [location.search, calculationsData, selectedYear, navigate]);
+
+
+
+
     useEffect(() => {
         return () => cancelAll();
     }, []);
