@@ -12,7 +12,6 @@ django.setup()
 
 from utils.GuidToBin1C import guid_to_1c_bin
 
-API_TOKEN = '8655167358:AAEXcjFj1bxB75V2OxVE-S77IXL_bSh0kFI'
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
