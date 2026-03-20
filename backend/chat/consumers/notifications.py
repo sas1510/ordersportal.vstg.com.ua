@@ -12,20 +12,27 @@ from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_nu
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope.get("user")
-        if not self.user or self.user.is_anonymous:
-            await self.close()
-            return
-
+        
+        # 1. Спробуємо взяти GUID з бази
         user_guid_bin = getattr(self.user, 'user_id_1C', None)
+        user_guid_str = None
+
         if user_guid_bin:
-            user_guid_str = bin_to_guid_1c(user_guid_bin).lower() 
-            self.group_name = f"notify_{user_guid_str}"
-            
+            user_guid_str = bin_to_guid_1c(user_guid_bin).lower()
+        else:
+            # 2. Якщо в базі порожньо, спробуємо взяти з URL ?user_guid=...
+            from urllib.parse import parse_qs
+            query_string = self.scope.get('query_string', b'').decode()
+            query_params = parse_qs(query_string)
+            user_guid_str = query_params.get('user_guid', [None])[0]
+
+        if user_guid_str:
+            self.group_name = f"notify_{user_guid_str.lower()}"
             await self.channel_layer.group_add(self.group_name, self.channel_name)
             await self.accept()
             print(f"DEBUG: Notification socket accepted for group {self.group_name}")
         else:
-            print("DEBUG: User has no user_id_1C, closing.")
+            print("DEBUG: No user_id_1C found in DB or URL params. Closing.")
             await self.close()
 
     async def notification_message(self, event):

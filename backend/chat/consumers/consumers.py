@@ -197,6 +197,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from records.models import ChatMessage
 from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
 from backend.utils.contractor_ws import resolve_contractor_ws
 from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
 from backend.utils.tasks import send_webpush_notification
@@ -208,15 +210,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.user = self.scope.get("user")
+        
+       
         if not self.user or self.user.is_anonymous:
             await self.close(code=4001)
             return
 
+      
         try:
+
+            from backend.utils.contractor_ws import resolve_contractor_ws 
             self.contractor_bin, self.contractor_guid = resolve_contractor_ws(self.scope)
-        except Exception:
-            await self.close(code=4003)
-            return
+        except Exception as e:
+
+            self.contractor_bin = None
+            self.contractor_guid = getattr(self.user, 'user_id_1C', None)
+            print(f"WS Connect: Користувач {self.user} не має повної прив'язки 1С: {e}")
 
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
         self.room_group_name = f'chat_{self.chat_id}'
@@ -252,6 +261,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         base_transaction_guid = data.get('base_transaction_guid')
         recipient_id_1c = data.get('recipient_id_1c')
 
+
+
+        # author_bin = (self.contractor_bin) or guid_to_1c_bin(data.get('author_guid'))
+
+        if self.contractor_bin:
+    
+            author_bin = self.contractor_bin
+        elif data.get('author_guid'):
+            
+            author_bin = guid_to_1c_bin(data.get('author_guid'))
+        else:
+            
+            author_bin = None
+
+
         raw_type = data.get('transaction_type_id') or self.chat_id.split("_")[0]
         t_type = int(raw_type)
 
@@ -262,6 +286,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             base_guid = guid_to_1c_bin(base_transaction_guid)
             recipient_bin = guid_to_1c_bin(recipient_id_1c) if recipient_id_1c else None
+            # author_bin = guid_to_1c_bin(author_guid_str) if author_guid_str else self.contractor_bin
         except Exception:
             await self.send_error("Некоректний GUID")
             return
@@ -272,14 +297,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         doc_number = await self.sync_get_doc_number(base_guid, t_type)
         doc_year = await self.sync_get_doc_year(base_guid, t_type)
-        author_name = await self.sync_get_author_name(self.contractor_bin)
+        author_name = await self.sync_get_author_name(author_bin)
 
         saved_msg, notify_text = await self.save_message(
             message_text,
             base_guid,
             recipient_bin,
             doc_number,
-            author_name
+            author_name,
+            author_bin
         )
 
         if not saved_msg:
@@ -287,7 +313,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
         
         types_map = {"1": "Прорахунок", "2": "Рекламація", "3": "Доп. замовлення"}
+        types_map_2 = {"1": "прорахунку", "2": "рекламації", "3": "дозамовленні"}
+
         type_name = types_map.get(str(t_type), "Об'єкт")
+        type_name_2 = types_map_2.get(str(t_type), "Об'єкт")
 
    
         if recipient_id_1c:
@@ -309,11 +338,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            current_app.send_task('send_webpush_notification', kwargs={
-                'recipient_id_1c': guid_to_1c_bin(recipient_id_1c),
-                'title': f"Нове повідомлення: {type_name} №{doc_number}",
-                'message': message_text[:100]
-            })
+            # current_app.send_task('send_webpush_notification', kwargs={
+            #     'recipient_id_1c': str(recipient_id_1c),
+            #     'title': f"Нове повідомлення: {type_name} №{doc_number}",
+            #     'message': message_text[:100]
+            # })
+
+
+
+
+        if recipient_id_1c:
+
+            from backend.utils.tasks import send_webpush_notification
+            
+            send_webpush_notification.delay(
+                recipient_id_1c=guid_to_1c_bin(recipient_id_1c), 
+                title=f"Нове повідомлення від {author_name} у {type_name_2} №{doc_number}",
+                message=message_text[:100]
+            )
+                        
 
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -321,7 +364,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'message': message_text,
                 'author': author_name,
-                'author_id_1c': str(self.contractor_guid),  
+                'author_id_1c': str(bin_to_guid_1c(author_bin)),  
                 'timestamp': saved_msg.timestamp.isoformat()
             }
         )
@@ -333,7 +376,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
 
     @database_sync_to_async
-    def save_message(self, text, base_guid, recipient_bin, doc_number, author_name):
+    def save_message(self, text, base_guid, recipient_bin, doc_number, author_name, author_bin):
         try:
             transaction_type_id = self.chat_id.split("_")[0]
             types_map = {"1": "прорахунку", "2": "рекламації", "3": "дозамовленні"}
@@ -345,7 +388,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Оригінальне повідомлення
             chat_msg = ChatMessage.objects.create(
                 chat_id=self.chat_id,
-                author=self.contractor_bin,
+                author=author_bin,
                 recipient=recipient_bin,
                 text=text,
                 related_object_id=base_guid,
@@ -357,7 +400,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if recipient_bin:
                 ChatMessage.objects.create(
                     chat_id=self.chat_id,
-                    author=self.contractor_bin,
+                    author=author_bin,
                     recipient=recipient_bin,
                     text=notification_text,
                     related_object_id=base_guid,

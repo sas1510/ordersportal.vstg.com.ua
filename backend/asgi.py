@@ -12,12 +12,13 @@ django_asgi_app = get_asgi_application()
 # 3. ТІЛЬКИ ТЕПЕР імпортуємо твоє
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
-from chat.middleware import JWTAuthMiddleware  # Тепер він не видасть помилку
+# from chat.middleware import JWTAuthMiddleware  # Тепер він не видасть помилку
+from chat.middleware import HybridAuthMiddleware  # Тепер він не видасть помилку
 import chat.routing
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": JWTAuthMiddleware(
+    "websocket": HybridAuthMiddleware(
         URLRouter(
             chat.routing.websocket_urlpatterns
         )

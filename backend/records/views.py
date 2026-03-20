@@ -2048,37 +2048,32 @@ def create_message(request):
 
 # records/views.py
 
-
 @extend_schema(
     summary="Отримати історію коментарів транзакції",
     description="""
-Повертає список коментарів для заданої транзакції з моделі ChatMessage.
-Коментарі відсортовані від найстаріших до найновіших.
+Повертає список коментарів. Якщо запит йде через API Key, обов'язково передавайте 'author_guid' у QUERY параметрах, 
+щоб система знала, чиї повідомлення НЕ треба помічати як прочитані.
 """,
     parameters=[
+        OpenApiParameter(name="base_transaction_guid", type=str, location=OpenApiParameter.QUERY, required=True),
+        OpenApiParameter(name="transaction_type_id", type=int, location=OpenApiParameter.QUERY, required=True),
         OpenApiParameter(
-            name="base_transaction_guid",
-            type=str,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description="GUID транзакції з 1C (RelatedObjectId)",
-        ),
-        OpenApiParameter(
-            name="transaction_type_id",
-            type=int,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description="ID типу транзакції",
+            name="author_guid", 
+            type=str, 
+            location=OpenApiParameter.QUERY, 
+            required=False, 
+            description="GUID автора запиту (обов'язково для API Key)"
         ),
     ],
     responses={200: OpenApiResponse(description="Список повідомлень")},
     tags=["Messages"],
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticatedOr1CApiKey])
 def get_messages(request):
     base_transaction_guid = request.GET.get("base_transaction_guid")
     transaction_type_id = request.GET.get("transaction_type_id")
+    author_guid_param = request.GET.get("author_guid")
 
     if not base_transaction_guid or not transaction_type_id:
         return Response(
@@ -2086,14 +2081,28 @@ def get_messages(request):
             status=400
         )
 
+    # --- ВИЗНАЧЕННЯ ПОТОЧНОГО АВТОРА (ХТО ВІДКРИВ) ---
+    current_author_bin = None
+    
+    if request.auth == "1C_API_KEY":
+        # Якщо авторизація за ключем, вимагаємо параметр author_guid
+        if not author_guid_param:
+            return Response({"error": "author_guid parameter is required for API Key auth"}, status=400)
+        try:
+            current_author_bin = guid_to_1c_bin(author_guid_param)
+        except Exception:
+            return Response({"error": "Invalid author_guid format"}, status=400)
+    else:
+        # Якщо JWT - беремо з об'єкта користувача
+        # (Перевірте, чи поле називається саме user_id_1C у вашій моделі CustomUser)
+        current_author_bin = getattr(request.user, 'user_id_1C', None)
+
     try:
-        # Конвертуємо GUID у бінарний формат для пошуку в БД
         base_transaction_bin = guid_to_1c_bin(base_transaction_guid)
     except Exception:
         return Response({"error": "Invalid base_transaction_guid"}, status=400)
 
-    # 1. Отримуємо QuerySet повідомлень (використовуємо нові назви полів)
-    # Зверніть увагу: в Meta стоїть ordering = ['-timestamp'], тому тут явно .order_by('timestamp')
+    # 1. Отримуємо QuerySet
     messages_qs = ChatMessage.objects.filter(
         related_object_id=base_transaction_bin,
         transaction_type_id=transaction_type_id,
@@ -2101,26 +2110,24 @@ def get_messages(request):
     ).order_by("timestamp")
 
     # 2. ЛОГІКА ПРОЧИТАННЯ
-    # Позначаємо прочитаними всі вхідні повідомлення (де автор НЕ поточний користувач)
-    user_guid_bin = request.user.user_id_1C
-    
-    messages_qs.filter(
-        is_read=False
-    ).exclude(
-        author=user_guid_bin
-    ).update(is_read=True)
+    # Позначаємо прочитаними всі повідомлення, де автор НЕ той, хто зараз відкрив чат
+    if current_author_bin:
+        messages_qs.filter(
+            is_read=False
+        ).exclude(
+            author=current_author_bin
+        ).update(is_read=True)
 
-    # 3. Виконуємо запит
+    # 3. Виконуємо запит після оновлення статусів
     messages = list(messages_qs)
 
-    # --------- Збираємо унікальні ID авторів ----------
+    # Далі ваш існуючий код формування відповіді (мапінг авторів)
     author_ids = {
         m.author
         for m in messages
         if isinstance(m.author, (bytes, bytearray))
     }
 
-    # --------- Мапа користувачів порталу ----------
     users_map = {
         u.user_id_1C: u
         for u in CustomUser.objects.filter(user_id_1C__in=author_ids)
@@ -2135,19 +2142,16 @@ def get_messages(request):
                 author_data = {
                     "id_1c": bin_to_guid_1c(m.author),
                     "username": user.username,
-                    "full_name": (user.full_name or f"{user.first_name} {user.last_name}".strip()),
+                    "full_name": (user.full_name or user.username),
                     "type": "PortalUser",
                 }
             else:
-                # Якщо в базі порталу немає, шукаємо інформацію про менеджера 1С
-                author_1c = get_author_from_1c(m.author)
-                if author_1c:
-                    author_data = author_1c
+                author_data = get_author_from_1c(m.author)
 
         result.append({
             "id": m.id,
-            "message": m.text, # Поле text з нової моделі
-            "created_at": m.timestamp, # Поле timestamp з нової моделі
+            "message": m.text,
+            "created_at": m.timestamp,
             "is_read": m.is_read,
             "author": author_data,
         })

@@ -9,18 +9,21 @@ logger = logging.getLogger(__name__)
 @shared_task(name='send_webpush_notification')
 def send_webpush_notification(recipient_id_1c, title, message):
     try:
-        # Змінюємо contractor_guid на user_id_1C
+
         user = User.objects.filter(user_id_1C=recipient_id_1c).first()
         
         if not user:
             logger.warning(f"Користувача з GUID {recipient_id_1c} не знайдено")
             return
 
+        base_url = "http://172.17.19.107"
+
         payload = {
             "head": title,
             "body": message,
-            "icon": "/static/images/logo.png",
-            "url": "/dashboard" 
+            "icon": f"{base_url}/header_logo_small.svg", 
+            "badge": f"{base_url}/header_logo_small.svg",
+            "url": f"{base_url}/dashboard" 
         }
 
         send_user_notification(user=user, payload=payload, ttl=1000)
