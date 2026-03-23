@@ -2141,9 +2141,9 @@ def get_messages(request):
             if user:
                 author_data = {
                     "id_1c": bin_to_guid_1c(m.author),
-                    "username": user.username,
+                    # "username": user.username,
                     "full_name": (user.full_name or user.username),
-                    "type": "PortalUser",
+                    # "type": "PortalUser",
                 }
             else:
                 author_data = get_author_from_1c(m.author)
