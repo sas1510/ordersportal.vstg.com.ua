@@ -16,7 +16,7 @@ def send_webpush_notification(recipient_id_1c, title, message):
             logger.warning(f"Користувача з GUID {recipient_id_1c} не знайдено")
             return
 
-        base_url = "http://172.17.19.107"
+        base_url = "https://ordersportal.vstg.com.ua"
 
         payload = {
             "head": title,

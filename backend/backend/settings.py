@@ -463,6 +463,11 @@ CHANNEL_LAYERS = {
 }
 
 
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": 'BL9wQus0T21rgqRFcjZhUmiZ6w0nv5siH9AFJBLayIqPbNCNMbsWPfjpNIQ3PH1RtnUuzbA7uGEJfwdgnmpImLY',
+    "VAPID_PRIVATE_KEY": "4eVLdiohXE3VyA0F6CqwUugCBkxPmiiT902NL3aR-4w",
+    "VAPID_ADMIN_EMAIL": "workvs.market@gmail.com"
+}
 
 
 
