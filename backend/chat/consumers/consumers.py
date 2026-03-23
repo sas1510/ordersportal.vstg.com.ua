@@ -258,9 +258,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
 
         message_text = data.get('message')
-        base_transaction_guid = data.get('base_transaction_guid')
-        recipient_id_1c = data.get('recipient_id_1c')
-
+        # base_transaction_guid = data.get('base_transaction_guid')
+        recipient_id_1c = data.get('recipient_guid')
+        try:
+            chat_parts = self.chat_id.split("_")
+            raw_type = chat_parts[0]
+            base_transaction_guid = chat_parts[1]
+            
+            t_type = int(raw_type)
+            base_guid = guid_to_1c_bin(base_transaction_guid)
+        except (IndexError, ValueError, Exception):
+            await self.send_error("Некоректний формат chat_id в URL")
+            return
 
 
         # author_bin = (self.contractor_bin) or guid_to_1c_bin(data.get('author_guid'))
@@ -276,7 +285,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             author_bin = None
 
 
-        raw_type = data.get('transaction_type_id') or self.chat_id.split("_")[0]
+        # raw_type = data.get('transaction_type_id') or self.chat_id.split("_")[0]
         t_type = int(raw_type)
 
         if not base_transaction_guid:

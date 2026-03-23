@@ -580,8 +580,8 @@ useEffect(() => {
     if (socket.current?.readyState === WebSocket.OPEN) {
       socket.current.send(JSON.stringify({ 
         'message': newComment.trim(),
-        'base_transaction_guid': baseTransactionGuid,
-        'transaction_type_id': transactionTypeId,
+        // 'base_transaction_guid': baseTransactionGuid,
+        // 'transaction_type_id': transactionTypeId,
         'recipient_id_1c': manager
       }));
       setNewComment("");
