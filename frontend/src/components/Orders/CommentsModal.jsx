@@ -582,7 +582,7 @@ useEffect(() => {
         'message': newComment.trim(),
         // 'base_transaction_guid': baseTransactionGuid,
         // 'transaction_type_id': transactionTypeId,
-        'recipient_id_1c': manager
+        'recipient_guid': manager
       }));
       setNewComment("");
     } else {
