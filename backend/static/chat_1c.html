@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат Коментарів - Вікна Стиль</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #76b448;
+            --bg-overlay: rgba(0, 0, 0, 0.6);
+            --white: #ffffff;
+            --gray-light: #f9f9f9;
+            --gray-border: #e0e0e0;
+            --my-msg-bg: #e3f2fd;
+            --other-msg-bg: #ffffff;
+            --chat-bg: #f0f2f5;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; padding: 0; background-color: var(--chat-bg);
+        }
+
+        .chat-window-fixed {
+            background: var(--white);
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .chat-header {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-border);
+            border-top: 5px solid var(--primary-color);
+            background: var(--white);
+        }
+        .chat-header h3 { margin: 0; flex-grow: 1; font-size: 18px; color: #333; }
+
+
+        .chat-body {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto; 
+            background: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+        }
+        .msg-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+
+
+        .comments-item {
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            border-radius: 12px; 
+            max-width: 85%;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--author-color);
+            background: var(--white);
+        }
+        .comment-right { 
+            align-self: flex-end;
+            background: var(--my-msg-bg); 
+            border-left: none;
+            border-right: 4px solid var(--author-color);
+            border-bottom-right-radius: 2px;
+        }
+        .comment-left { 
+            align-self: flex-start;
+            background: var(--white); 
+            border-bottom-left-radius: 2px;
+        }
+
+        .meta { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; gap: 10px; }
+        .author { font-weight: 700; color: #444; }
+        .date { color: #999; }
+        .text { font-size: 14px; line-height: 1.4; color: #222; word-wrap: break-word; }
+
+        /* Form Container (Bottom) */
+        .form-container {
+            padding: 15px;
+            background: var(--white);
+            border-top: 1px solid var(--gray-border);
+        }
+        .textarea-wrapper { 
+            display: flex;
+            align-items: flex-end;
+            gap: 10px; 
+            background: #f5f5f5;
+            border-radius: 24px; 
+            padding: 8px 12px 8px 18px;
+            border: 1px solid var(--gray-border); 
+        }
+        .textarea-wrapper textarea {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            outline: none; 
+            padding: 5px 0;
+            font-size: 14px;
+            max-height: 100px; 
+            height: 24px;
+            resize: none;
+            font-family: inherit;
+        }
+
+
+        .btn-send {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-send:hover:not(:disabled) { background: #659a3d; }
+        .btn-send:disabled { background: #ccc; cursor: not-allowed; }
+
+        .loader { text-align: center; color: #999; margin-top: 50px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-window-fixed">
+        <div class="chat-header">
+            <i class="fa-regular fa-comment-dots" style="margin-right: 10px; color: var(--primary-color);"></i>
+            <h3>Чат замовлення</h3>
+        </div>
+
+        <div id="chatBody" class="chat-body">
+            <div id="statusLabel" class="loader">Ініціалізація...</div>
+            <ul id="msgList" class="msg-list"></ul>
+        </div>
+
+        <div class="form-container">
+            <div class="textarea-wrapper">
+                <textarea id="msgInput" placeholder="Ваше повідомлення..." rows="1"></textarea>
+                <button id="sendBtn" class="btn-send" disabled onclick="handleSend()">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const APP_CONFIG = {
+            baseUrl: "https://ordersportal.vstg.com.ua/api",
+            wsUrl: "wss://ordersportal.vstg.com.ua/ws/chat",
+            apiKey: urlParams.get('api_key'),       
+            headerName: "X-API-KEY",
+            orderGuid: urlParams.get('order_guid'), 
+            typeId: urlParams.get('type_id') || 1,  
+            recipient: urlParams.get('recipient_guid'),  
+            myId1C: urlParams.get('my_guid')          
+        };
+
+        const COLORS = ["#4fd1ac", "#ffee00", "#612ae0", "#141e29", "#76b448", "#53a9ff"];
+        let socket = null;
+
+        const list = document.getElementById('msgList');
+        const input = document.getElementById('msgInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusLabel = document.getElementById('statusLabel');
+        const chatBody = document.getElementById('chatBody');
+
+        function getHashColor(author) {
+            const name = author?.full_name || "Unknown";
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return COLORS[Math.abs(hash) % COLORS.length];
+        }
+
+        function createMessageHTML(msg) {
+            const isMe = msg.author?.id_1c?.toLowerCase() === APP_CONFIG.myId1C?.toLowerCase();
+            const color = getHashColor(msg.author);
+            
+            const li = document.createElement('li');
+            li.className = `comments-item ${isMe ? 'comment-right' : 'comment-left'}`;
+            li.style.setProperty('--author-color', color);
+            li.innerHTML = `
+                <div class="meta">
+                    <strong class="author">${msg.author?.full_name || 'Користувач'}</strong>
+                    <span class="date">${new Date(msg.created_at || Date.now()).toLocaleTimeString('uk-UA', {hour: '2-digit', minute:'2-digit'})}</span>
+                </div>
+                <div class="text">${msg.message}</div>
+            `;
+            return li;
+        }
+
+        async function initChat() {
+            if (!APP_CONFIG.apiKey || !APP_CONFIG.orderGuid) {
+                statusLabel.innerText = "Помилка: Відсутні параметри (api_key або order_guid)";
+                return;
+            }
+
+            try {
+                statusLabel.innerText = "Завантаження історії...";
+                
+      
+                const histRes = await fetch(`${APP_CONFIG.baseUrl}/messages/?base_transaction_guid=${APP_CONFIG.orderGuid}&transaction_type_id=${APP_CONFIG.typeId}&author_guid=${APP_CONFIG.myId1C}`, {
+                    headers: { [APP_CONFIG.headerName]: APP_CONFIG.apiKey }
+                });
+                
+                if (!histRes.ok) throw new Error("API Auth Error");
+                
+                const history = await histRes.json();
+                
+                list.innerHTML = '';
+                if (history.length === 0) {
+                    statusLabel.innerText = "Повідомлень ще немає";
+                } else {
+                    statusLabel.style.display = 'none';
+                    history.forEach(m => list.appendChild(createMessageHTML(m)));
+                    chatBody.scrollTop = chatBody.scrollHeight;
+                }
+
+                connectWebSocket();
+
+            } catch (err) {
+                statusLabel.innerText = "Помилка авторизації або з'єднання";
+                console.error(err);
+            }
+        }
+
+        function connectWebSocket() {
+    
+            const wsUri = `${APP_CONFIG.wsUrl}/${APP_CONFIG.typeId}_${APP_CONFIG.orderGuid}/?api_key=${APP_CONFIG.apiKey}`;
+            
+            socket = new WebSocket(wsUri);
+
+            socket.onopen = () => console.log("Сокет підключено");
+
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'chat_message') {
+                    statusLabel.style.display = 'none';
+                    const m = {
+                        message: data.message,
+                        author: { full_name: data.author, id_1c: data.author_id_1c },
+                        created_at: data.timestamp
+                    };
+                    list.appendChild(createMessageHTML(m));
+                    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
+                }
+            };
+
+            socket.onclose = () => {
+                console.log("Сокет закрито. Перепідключення через 3 сек...");
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function handleSend() {
+            const text = input.value.trim();
+            if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+            socket.send(JSON.stringify({ 
+                'message': text, 
+                'recipient_guid' : APP_CONFIG.recipient, 
+                'author_guid' : APP_CONFIG.myId1C 
+            }));
+            
+            input.value = '';
+            input.style.height = '24px';
+            sendBtn.disabled = true;
+        }
+
+        input.oninput = () => { 
+            sendBtn.disabled = !input.value.trim();
+            input.style.height = 'auto';
+            input.style.height = (input.scrollHeight) + 'px';
+        };
+
+        input.onkeydown = (e) => { 
+            if(e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                handleSend(); 
+            } 
+        };
+
+   
+        window.onload = initChat;
+    </script>
+</body>
+</html>

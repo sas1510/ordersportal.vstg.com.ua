@@ -279,3 +279,25 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour='10, 16', minute=52), 
     },
 }
+
+
+
+
+
+# Дозволяємо Origin: null (специфічно для локальних файлів)
+CORS_ALLOW_ALL_ORIGINS = True  # Тимчасово для тесту, щоб переконатися що справа в цьому
+
+# АБО більш безпечний варіант:
+CORS_ALLOWED_ORIGINS_REGEXES = [
+    r"^null$",
+]
+
+# ОБОВ'ЯЗКОВО додайте ваш кастомний заголовок у список дозволених
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-api-key",  # Ваш API KEY заголовок
+    "x-csrftoken",
+]

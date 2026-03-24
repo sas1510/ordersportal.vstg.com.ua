@@ -1,343 +1,143 @@
+/* Базові налаштування модалки */
 .comments-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-  animation: comments-fadeIn 0.25s ease forwards;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
 }
 
 .comments-modal-window {
-  width: 500px;
-  max-width: 90%;
-  max-height: 80vh;            
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;            
-  padding: 0;                    
-  text-align: center;
-  position: relative;
-
-  display: flex;                
-  flex-direction: column;        
-
-  transform: scale(0.8);
-  opacity: 0;
-  animation: comments-zoomIn 0.3s forwards;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    background: #fff;
+    width: 95%;
+    max-width: 500px;
+    height: 80vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-
-.comments-modal-border-top,
-.comments-modal-border-bottom {
-  height: 6px;
-  background-color: #76b448;
-  width: 100%;
-  position: absolute;
-  left: 0;
-}
-
-
-.comments-modal-border-top {
-  height: 50px;
-  background-color: #76b448;
-  width: 100%;
-  flex-shrink: 0;
-  position: relative; /* або взагалі прибрати */
-}
-
-
-.comments-modal-border-bottom {
-  height: 6px;
-  background-color: #76b448;
-  width: 100%;
-  flex-shrink: 0;                /* ⭐ */
-}
-
+/* Header */
 .comments-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #fff;
-  font-weight: 600;
-  padding: 10px 16px;
-  font-size: 18px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    border-top: 5px solid #76b448;
 }
 
-
-.comments-close-btn {
-  cursor: pointer;
-  font-size: 18px;
-  display: inline-block;       /* важливо для transform */
-  transition: transform 0.2s ease, opacity 0.2s ease;
+.comments-modal-header h3 {
+    margin: 0; flex-grow: 1; font-size: 18px; color: #333;
 }
 
-
-.comments-close-btn:hover {
-  opacity: 0.8;
-  transform: rotate(90deg);
+.comments-close-x {
+    font-size: 28px; color: #999; cursor: pointer; line-height: 1;
 }
 
+/* Body (Messages) */
 .comments-modal-body {
-  flex: 1;                       /* ⭐ займає весь вільний простір */
-  overflow-y: auto;              /* ⭐ вертикальна прокрутка */
-  padding: 16px;
-  margin-top: 0;                 /* прибираємо старий margin */
-}
-
-
-.comments-form label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.comments-form textarea {
-  width: 100%;
-  min-height: 80px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  resize: vertical;
-  padding: 6px 8px;
-  font-size: 14px;
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
 }
 
 .comments-list {
-  max-height: 45vh;
-  overflow-y: auto;
-  margin-bottom: 12px;
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column;
 }
 
 .comments-item {
-  border-bottom: 1px solid #eaeaea;
-  padding: 12px;           /* ⭐ більше повітря */
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 85%;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    border-left: 4px solid var(--author-color);
 }
 
-
-.comments-item {
-  position: relative;
-  padding: 12px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-
-  background: #f9f9f9;
-
-  /* ✅ Один раз задаємо border-left повністю */
-  border-left: 4px solid var(--author-color, #76b448);
-
-  /* опціонально */
-  border-bottom: 1px solid #eaeaea;
-}
-
-
-.comments-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #888;
-  padding: 10px;
-}
-
-.comments-text {
-  font-size: 14px;
-  margin-top: 10px;          /* ⭐ відступ від автора */
-  padding-left: 6px;         /* ⭐ легкий відступ зліва */
-  padding-right: 6px;        /* ⭐ легкий відступ справа */
-
-  line-height: 1.5;          /* ⭐ читабельність */
-  word-wrap: break-word;
-  white-space: pre-wrap;     /* ⭐ зберігає переноси рядків */
-  text-align: left;          /* краще для коментарів */
-}
-
-
-
-.comments-modal-footer {
-  display: flex;
-  justify-content: center;
-  padding: 10px 16px;
-  gap: 10px;
-  flex-shrink: 0;                /* ⭐ */
-  background: inherit;
-}
-
-
-.comments-btn-cancel,
-.comments-btn-save {
-  border: none;
-  padding: 8px 16px;
-  border-radius: 3px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: transform 0.2s, box-shadow 0.2s; /* додано ефект scale + shadow */
-}
-
-.comments-btn-cancel {
-  background: #f46c3b;
-  color: #fff;
-}
-
-.comments-btn-cancel:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-}
-
-.comments-btn-save {
-  background: #76b448;
-  color: #fff;
-}
-
-.comments-btn-save:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-}
-
-
-.comments-no-comments {
-  color: #777;
-  font-size: 14px;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-@keyframes comments-fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes comments-zoomIn {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* --- DARK MODE: СТИЛІ МОДАЛЬНОГО ВІКНА COMMENTS --- */
-
-/* ===== Overlay ===== */
-body.dark-theme .comments-modal-overlay {
-    /* Робимо затемнення більш насиченим */
-    background: rgba(0, 0, 0, 0.7);
-}
-
-/* ===== Вікно (Основний контейнер) ===== */
-body.dark-theme .comments-modal-window {
-    /* Темний фон вікна */
-    background: #1e1e1e;
-    color: #f0f0f0; /* Світлий текст за замовчуванням */
-    /* Темна тінь */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* ===== Межі (Верхня та Нижня) ===== */
-body.dark-theme .comments-modal-border-top,
-body.dark-theme .comments-modal-border-bottom {
-    /* Зберігаємо акцентний зелений колір */
-    background-color: #5c8c38;
-}
-
-/* ===== Header ===== */
-body.dark-theme .comments-modal-header {
-    /* Текст уже білий, фон успадковує колір від border-top */
-    color: #f0f0f0;
-}
-body.dark-theme .comments-close-btn {
-    color: #f0f0f0;
-}
-
-/* ===== Тіло модалки та текст ===== */
-body.dark-theme .comments-modal-body {
-    padding: 16px;
-}
-
-body.dark-theme .comments-form label {
-    color: #f0f0f0;
-}
-
-/* Поля введення (TextArea) */
-body.dark-theme .comments-form textarea {
-    background: #333333; /* Темний фон поля */
-    color: #f0f0f0; /* Світлий текст */
-    border: 1px solid #555555; /* Темніша рамка */
-}
-body.dark-theme .comments-form textarea:focus {
-    border-color: #76b448; /* Фокус на зеленому */
-}
-
-/* ===== Список коментарів ===== */
-body.dark-theme .comments-item {
-    border-bottom: 1px solid #333333; /* Дуже тонка темна межа */
-}
-
-body.dark-theme .comments-meta {
-    color: #aaaaaa; /* Світло-сірий колір мета-інформації */
-}
-
-body.dark-theme .comments-text {
-    color: #cccccc; /* Світло-сірий колір основного тексту */
-}
-
-body.dark-theme .comments-no-comments {
-    color: #aaaaaa;
-}
-
-/* ===== Footer та Кнопки ===== */
-body.dark-theme .comments-modal-footer {
-    background: #1e1e1e; /* Темніший фон футера */
-}
-
-/* Кнопка Скасувати (Cancel Button) */
-body.dark-theme .comments-btn-cancel {
-    background: #c75628 !important; /* Глибокий, насичений помаранчевий */
-    color: #fff;
-}
-body.dark-theme .comments-btn-cancel:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(199, 86, 40, 0.6) !important;
-}
-
-/* Кнопка Зберегти (Save Button) */
-body.dark-theme .comments-btn-save {
-    background: #5c8c38 !important; /* Глибокий, насичений зелений */
-    color: #fff;
-}
-body.dark-theme .comments-btn-save:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(92, 140, 56, 0.6) !important;
-}
-body.dark-theme .comments-item {
-  background: #2a2f35;
-  border-bottom: 1px solid #333333;
-  /* ✅ НЕ треба тут border-left / border-left-color взагалі */
-}
-
-
-/* ===== Messenger alignment ===== */
-
-.comments-item {
-  max-width: 80%;
-}
-
-/* Повідомлення інших — ЗЛІВА */
-.comment-left {
-  margin-right: auto;
-  text-align: left;
-}
-
-/* Моє повідомлення — СПРАВА */
 .comment-right {
-  margin-left: auto;
-  text-align: left;
+    align-self: flex-end;
+    background: #e3f2fd;
+    border-bottom-right-radius: 2px;
+    
+}
+
+.comment-left {
+    align-self: flex-start;
+    background: #fff;
+    border-bottom-left-radius: 2px;
 }
 
 .comments-meta {
-  display: flex;
-  justify-content: space-between; /* імʼя зліва, дата справа */
-  font-size: 12px;
-  color: #888;
+    display: flex; justify-content: space-between;
+    font-size: 11px; margin-bottom: 4px; gap: 10px;
 }
 
+.comments-author { color: #444; }
+.comments-date { color: #999; }
+.comments-text { font-size: 14px; line-height: 1.4; color: #222; }
+
+/* Form Container (Bottom) */
+.comments-form-container {
+    padding: 15px;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.textarea-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    background: #f5f5f5;
+    border-radius: 24px;
+    padding: 8px 12px 8px 18px;
+    border: 1px solid #e0e0e0;
+}
+
+.textarea-wrapper textarea {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 5px 0;
+    font-size: 14px;
+    max-height: 100px;
+
+    resize: none;
+    font-family: inherit;
+}
+
+.btn-send-message {
+    background: #76b448;
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-send-message:hover:not(:disabled) {
+    background: #659a3d;
+}
+
+.btn-send-message:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.btn-send-message svg {
+    margin-left: 2px; /* Візуальне центрування літачка */
+}
 

@@ -390,7 +390,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             try:
                 data = json.loads(text_data)
             except json.JSONDecodeError:
-                # Тут await працює, бо ми все ще всередині асинхронного receive
+            
                 await self.send_error("Некоректний формат JSON")
                 return
 
