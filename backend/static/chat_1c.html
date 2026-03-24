@@ -240,32 +240,44 @@
         }
 
         function connectWebSocket() {
+    // 1. Очищаємо GUID від дефісів (це важливо для стабільної роботи маршрутизації Django)
+    const cleanGuid = APP_CONFIG.orderGuid.replace(/-/g, '');
     
-            const wsUri = `${APP_CONFIG.wsUrl}/${APP_CONFIG.typeId}_${APP_CONFIG.orderGuid}/?api_key=${APP_CONFIG.apiKey}`;
-            
-            socket = new WebSocket(wsUri);
+    // 2. Формуємо URL (використовуємо cleanGuid замість APP_CONFIG.orderGuid)
+    const wsUri = `${APP_CONFIG.wsUrl}/${APP_CONFIG.typeId}_${cleanGuid}/?api_key=${APP_CONFIG.apiKey}`;
+    
+    console.log("Спроба підключення до сокета:", wsUri);
+    
+    socket = new WebSocket(wsUri);
 
-            socket.onopen = () => console.log("Сокет підключено");
+    socket.onopen = () => {
+        console.log("Сокет успішно підключено!");
+        statusLabel.style.display = 'none';
+    };
 
-            socket.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.type === 'chat_message') {
-                    statusLabel.style.display = 'none';
-                    const m = {
-                        message: data.message,
-                        author: { full_name: data.author, id_1c: data.author_id_1c },
-                        created_at: data.timestamp
-                    };
-                    list.appendChild(createMessageHTML(m));
-                    chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
-                }
+    socket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === 'chat_message') {
+            statusLabel.style.display = 'none';
+            const m = {
+                message: data.message,
+                author: { full_name: data.author, id_1c: data.author_id_1c },
+                created_at: data.timestamp
             };
-
-            socket.onclose = () => {
-                console.log("Сокет закрито. Перепідключення через 3 сек...");
-                setTimeout(connectWebSocket, 3000);
-            };
+            list.appendChild(createMessageHTML(m));
+            chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: 'smooth' });
         }
+    };
+
+    socket.onerror = (err) => {
+        console.error("Помилка WebSocket:", err);
+    };
+
+    socket.onclose = (e) => {
+        console.log(`Сокет закрито (Код: ${e.code}). Перепідключення через 3 сек...`);
+        setTimeout(connectWebSocket, 3000);
+    };
+}
 
         function handleSend() {
             const text = input.value.trim();
