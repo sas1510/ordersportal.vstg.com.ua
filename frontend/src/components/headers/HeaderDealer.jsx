@@ -1045,7 +1045,7 @@ useEffect(() => {
                                         {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
                                     </div>
                                 </li>
-                                <li className="logout-item"><button className="menu-link logout-icon" onClick={() => { logout(); navigate("/home"); }}><span>Вихід</span></button></li>
+                                <li className="logout-item"><button className="menu-link logout-icon" onClick={() => { logout(); navigate("/home"); }}> <i className="fa fa-sign-out-alt"></i></button></li>
                             </ul>
                         </div>
                     )}

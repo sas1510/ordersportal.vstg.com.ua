@@ -2910,7 +2910,7 @@ def get_user_notifications(request):
     notifications_qs = ChatMessage.objects.filter(
         recipient=contractor_bin,
         is_notification=True
-    ).select_related('transaction_type').order_by('-timestamp')[:20]
+    ).select_related('transaction_type').order_by('-timestamp')[:30]
 
     result = []
     for msg in notifications_qs:
@@ -3023,3 +3023,21 @@ class ChatHistoryView(generics.ListAPIView):
     def get_queryset(self):
         chat_id = self.kwargs['chat_id']
         return ChatMessage.objects.filter(chat_id=chat_id).order_by('timestamp')
+    
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def mark_single_notification_as_read(request, pk):
+    try:
+        # Шукаємо сповіщення, яке належить саме цьому користувачу (через recipient)
+        from records.models import ChatMessage
+        contractor_bin, _ = resolve_contractor(request)
+        
+        notification = ChatMessage.objects.get(pk=pk, recipient=contractor_bin)
+        notification.is_read = True
+        notification.save()
+        
+        return Response({"status": "success"})
+    except ChatMessage.DoesNotExist:
+        return Response({"status": "error", "message": "Notification not found"}, status=404)

@@ -32,7 +32,7 @@ def get_document_number_by_guid(guid_bin, transaction_type_id):
 
     try:
         with connection.cursor() as cursor:
-            # Викликаємо процедуру
+
             cursor.execute("EXEC [dbo].[GetDocumentDisplayNumber] @Guid=%s, @TransactionType=%s", 
                            [guid_bin, int(transaction_type_id)])
             row = cursor.fetchone()

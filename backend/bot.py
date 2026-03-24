@@ -4,13 +4,33 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandObject, Command
 from django.db import connection
-from asgiref.sync import sync_to_async  # Додай цей імпорт
+from asgiref.sync import sync_to_async
+from dotenv import load_dotenv
+from utils.BinToGuid1C import bin_to_guid_1c
+from utils.GuidToBin1C import guid_to_1c_bin
 
-# 1. Налаштування Django
+# 1. Завантажуємо .env з тієї ж папки, де лежить скрипт
+current_dir = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(current_dir, '.env')
+
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+    print(f"✅ Файл .env знайдено в папці backend: {dotenv_path}")
+else:
+    print(f"❌ ПОМИЛКА: Файл .env НЕ знайдено у {current_dir}")
+    # Виведемо список файлів у папці для діагностики
+    print(f"Вміст папки: {os.listdir(current_dir)}")
+
+# 2. Налаштування Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django.setup()
 
-from utils.GuidToBin1C import guid_to_1c_bin
+# 3. Отримуємо токен
+API_TOKEN = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN') 
+
+if not API_TOKEN:
+    print("❌ Токен все ще None. Перевір, чи в .env точно є рядок: NOTIFICATION_TELEGRAM_BOT_TOKEN=...")
+    exit()
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()

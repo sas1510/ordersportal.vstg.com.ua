@@ -250,139 +250,282 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def sync_get_author_name(self, bin_id):
         return get_author_name_from_db(bin_id)
 
-    async def receive(self, text_data):
-        try:
-            data = json.loads(text_data)
-        except json.JSONDecodeError:
-            await self.send_error("Некоректний формат JSON")
-            return
+    # async def receive(self, text_data):
+    #     try:
+    #         data = json.loads(text_data)
+    #     except json.JSONDecodeError:
+    #         await self.send_error("Некоректний формат JSON")
+    #         return
 
-        message_text = data.get('message')
-        # base_transaction_guid = data.get('base_transaction_guid')
-        recipient_id_1c = data.get('recipient_guid')
-        try:
-            chat_parts = self.chat_id.split("_")
-            raw_type = chat_parts[0]
-            base_transaction_guid = chat_parts[1]
+    #     message_text = data.get('message')
+    #     # base_transaction_guid = data.get('base_transaction_guid')
+    #     recipient_id_1c = data.get('recipient_guid')
+    #     try:
+    #         chat_parts = self.chat_id.split("_")
+    #         raw_type = chat_parts[0]
+    #         base_transaction_guid = chat_parts[1]
             
-            t_type = int(raw_type)
-            base_guid = guid_to_1c_bin(base_transaction_guid)
-        except (IndexError, ValueError, Exception):
-            await self.send_error("Некоректний формат chat_id в URL")
-            return
+    #         t_type = int(raw_type)
+    #         base_guid = guid_to_1c_bin(base_transaction_guid)
+    #     except (IndexError, ValueError, Exception):
+    #         await self.send_error("Некоректний формат chat_id в URL")
+    #         return
 
 
-        # author_bin = (self.contractor_bin) or guid_to_1c_bin(data.get('author_guid'))
+    #     # author_bin = (self.contractor_bin) or guid_to_1c_bin(data.get('author_guid'))
 
-        if self.contractor_bin:
+    #     if self.contractor_bin:
     
-            author_bin = self.contractor_bin
-        elif data.get('author_guid'):
+    #         author_bin = self.contractor_bin
+    #     elif data.get('author_guid'):
             
-            author_bin = guid_to_1c_bin(data.get('author_guid'))
-        else:
+    #         author_bin = guid_to_1c_bin(data.get('author_guid'))
+    #     else:
             
-            author_bin = None
+    #         author_bin = None
 
 
-        # raw_type = data.get('transaction_type_id') or self.chat_id.split("_")[0]
-        t_type = int(raw_type)
+    #     # raw_type = data.get('transaction_type_id') or self.chat_id.split("_")[0]
+    #     t_type = int(raw_type)
 
-        if not base_transaction_guid:
-            await self.send_error("Відсутній GUID")
-            return
+    #     if not base_transaction_guid:
+    #         await self.send_error("Відсутній GUID")
+    #         return
 
-        try:
-            base_guid = guid_to_1c_bin(base_transaction_guid)
-            recipient_bin = guid_to_1c_bin(recipient_id_1c) if recipient_id_1c else None
-            # author_bin = guid_to_1c_bin(author_guid_str) if author_guid_str else self.contractor_bin
-        except Exception:
-            await self.send_error("Некоректний GUID")
-            return
+    #     try:
+    #         base_guid = guid_to_1c_bin(base_transaction_guid)
+    #         recipient_bin = guid_to_1c_bin(recipient_id_1c) if recipient_id_1c else None
+    #         # author_bin = guid_to_1c_bin(author_guid_str) if author_guid_str else self.contractor_bin
+    #     except Exception:
+    #         await self.send_error("Некоректний GUID")
+    #         return
 
-        if not message_text or not message_text.strip():
-            await self.send_error("Порожнє повідомлення")
-            return
+    #     if not message_text or not message_text.strip():
+    #         await self.send_error("Порожнє повідомлення")
+    #         return
 
-        doc_number = await self.sync_get_doc_number(base_guid, t_type)
-        doc_year = await self.sync_get_doc_year(base_guid, t_type)
-        author_name = await self.sync_get_author_name(author_bin)
+    #     doc_number = await self.sync_get_doc_number(base_guid, t_type)
+    #     doc_year = await self.sync_get_doc_year(base_guid, t_type)
+    #     author_name = await self.sync_get_author_name(author_bin)
 
-        saved_msg, notify_text = await self.save_message(
-            message_text,
-            base_guid,
-            recipient_bin,
-            doc_number,
-            author_name,
-            author_bin
-        )
+    #     saved_msg, notify_text = await self.save_message(
+    #         message_text,
+    #         base_guid,
+    #         recipient_bin,
+    #         doc_number,
+    #         author_name,
+    #         author_bin
+    #     )
 
-        if not saved_msg:
-            await self.send_error("Помилка збереження")
-            return
+    #     # Усередині ChatConsumer.receive після saved_msg, notify_text = await self.save_message(...)
+
+    #     if saved_msg and recipient_id_1c:
+    #         from backend.utils.tasks import check_and_send_telegram_notification
+            
+    #         # ПЛАНУЄМО ЗАПУСК ЧЕРЕЗ 600 СЕКУНД (10 ХВИЛИН)
+    #         check_and_send_telegram_notification.apply_async(
+    #             args=[saved_msg.id, recipient_id_1c],
+    #             countdown=60  # затримка в секундах
+    #         )
+
+    #     if not saved_msg:
+    #         await self.send_error("Помилка збереження")
+    #         return
         
-        types_map = {"1": "Прорахунок", "2": "Рекламація", "3": "Доп. замовлення"}
-        types_map_2 = {"1": "прорахунку", "2": "рекламації", "3": "дозамовленні"}
+    #     types_map = {"1": "Прорахунок", "2": "Рекламація", "3": "Доп. замовлення"}
+    #     types_map_2 = {"1": "прорахунку", "2": "рекламації", "3": "дозамовленні"}
 
-        type_name = types_map.get(str(t_type), "Об'єкт")
-        type_name_2 = types_map_2.get(str(t_type), "Об'єкт")
+    #     type_name = types_map.get(str(t_type), "Об'єкт")
+    #     type_name_2 = types_map_2.get(str(t_type), "Об'єкт")
 
    
-        if recipient_id_1c:
-            notification_group = f"notify_{recipient_id_1c.lower()}"
-            await self.channel_layer.group_send(
-                notification_group,
-                {
-                    "type": "notification_message",
-                    "data": {
-                        "type": "NEW_CHAT_MESSAGE",
-                        "chat_id": self.chat_id,
-                        "text": notify_text, 
-                        "author_name": author_name, 
-                        "timestamp": saved_msg.timestamp.isoformat(),
-                        "transactionType": type_name,
-                        "doc_number": doc_number,
-                        "docYear": doc_year
-                    }
-                }
-            )
-
-            # current_app.send_task('send_webpush_notification', kwargs={
-            #     'recipient_id_1c': str(recipient_id_1c),
-            #     'title': f"Нове повідомлення: {type_name} №{doc_number}",
-            #     'message': message_text[:100]
-            # })
-
-
-
-
-        if recipient_id_1c:
-
-            from backend.utils.tasks import send_webpush_notification
+    #     if recipient_id_1c:
+    #         from users.models import CustomUser 
             
-            send_webpush_notification.delay(
-                recipient_id_1c=guid_to_1c_bin(recipient_id_1c), 
-                title=f"Нове повідомлення від {author_name} у {type_name_2} №{doc_number}",
-                message=message_text[:100]
-            )
-                        
+     
+    #         recipient_user = await database_sync_to_async(
+    #             lambda: CustomUser.objects.filter(user_id_1C=recipient_bin).first()
+    #         )()
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message_text,
-                'author': author_name,
-                'author_id_1c': str(bin_to_guid_1c(author_bin)),  
-                'timestamp': saved_msg.timestamp.isoformat()
-            }
-        )
+
+    #         is_dealer = recipient_user and recipient_user.role == 'customer'
+
+    #         if is_dealer:
+    #             # 1. WebPush
+    #             from backend.utils.tasks import send_webpush_notification
+    #             send_webpush_notification.delay(
+    #                 recipient_id_1c=recipient_bin, 
+    #                 title=f"Нове повідомлення від {author_name}",
+    #                 message=message_text[:100]
+    #             )
+
+    #             # 2. Telegram через 10 хвилин
+    #             from backend.utils.tasks import check_and_send_telegram_notification
+    #             check_and_send_telegram_notification.apply_async(
+    #                 args=[saved_msg.id, recipient_id_1c],
+    #                 countdown=600 
+    #             )
+
+
+
+    #     await self.channel_layer.group_send(
+    #         self.room_group_name,
+    #         {
+    #             'type': 'chat_message',
+    #             'message': message_text,
+    #             'author': author_name,
+    #             'author_id_1c': str(bin_to_guid_1c(author_bin)),  
+    #             'timestamp': saved_msg.timestamp.isoformat()
+    #         }
+    #     )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
 
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
+
+    async def receive(self, text_data):
+        try:
+            try:
+                data = json.loads(text_data)
+            except json.JSONDecodeError:
+                # Тут await працює, бо ми все ще всередині асинхронного receive
+                await self.send_error("Некоректний формат JSON")
+                return
+
+            message_text = data.get('message')
+            recipient_id_1c = data.get('recipient_guid')
+            
+            # 1. Парсимо метадані з chat_id
+            try:
+                chat_parts = self.chat_id.split("_")
+                t_type = int(chat_parts[0])
+                base_transaction_guid = chat_parts[1]
+                base_guid = guid_to_1c_bin(base_transaction_guid)
+            except (IndexError, ValueError, Exception):
+                await self.send_error("Некоректний формат chat_id")
+                return
+
+            # 2. Визначаємо автора та отримувача (Binary)
+            author_bin = self.contractor_bin if self.contractor_bin else (
+                guid_to_1c_bin(data.get('author_guid')) if data.get('author_guid') else None
+            )
+            recipient_bin = guid_to_1c_bin(recipient_id_1c) if recipient_id_1c else None
+
+            if not message_text or not message_text.strip():
+                await self.send_error("Порожнє повідомлення")
+                return
+
+            # 3. SQL дані
+            doc_number = await self.sync_get_doc_number(base_guid, t_type)
+            author_name = await self.sync_get_author_name(author_bin)
+
+            # 4. Зберігаємо ОСНОВНЕ повідомлення в історію
+            saved_msg = await self.save_main_message(
+                message_text, base_guid, recipient_bin, t_type, author_bin
+            )
+
+            if not saved_msg:
+                await self.send_error("Помилка збереження")
+                return
+
+            # 🔥 ПЕРЕВІРКА ОТРИМУВАЧА (ДИЛЕРА) 🔥
+            if recipient_id_1c:
+                from users.models import CustomUser 
+                
+                # Шукаємо в БД порталу
+                recipient_user = await database_sync_to_async(
+                    lambda: CustomUser.objects.filter(user_id_1C=recipient_bin).first()
+                )()
+
+                # Перевіряємо роль ( customer = дилер)
+                is_dealer = recipient_user and recipient_user.role == 'customer'
+
+                if is_dealer:
+                    # А) Створюємо запис сповіщення ТІЛЬКИ для дилера
+                    notify_text = f"Нове повідомлення у чаті №{doc_number} від {author_name}"
+                    await self.create_notification_record(
+                        notify_text, base_guid, recipient_bin, t_type, author_bin
+                    )
+
+                    # Б) WebPush
+                    from backend.utils.tasks import send_webpush_notification
+                    send_webpush_notification.delay(
+                        recipient_id_1c=recipient_bin, 
+                        title=f"Нове повідомлення: {author_name}",
+                        message=message_text[:100]
+                    )
+
+                    # В) Telegram (через 10 хв)
+                    from backend.utils.tasks import check_and_send_telegram_notification
+                    check_and_send_telegram_notification.apply_async(
+                        args=[saved_msg.id, recipient_id_1c],
+                        countdown=3600 
+                    )
+
+                    # Г) WebSocket сигнал для дзвіночка
+                    notification_group = f"notify_{recipient_id_1c.lower()}"
+                    await self.channel_layer.group_send(
+                        notification_group,
+                        {
+                            "type": "notification_message",
+                            "data": {
+                                "type": "NEW_CHAT_MESSAGE",
+                                "chat_id": self.chat_id,
+                                "text": notify_text, 
+                                "author_name": author_name, 
+                                "timestamp": saved_msg.timestamp.isoformat(),
+                                "doc_number": doc_number
+                            }
+                        }
+                    )
+
+            # 5. Broadcast у поточному вікні чату
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message_text,
+                    'author': author_name,
+                    'author_id_1c': str(bin_to_guid_1c(author_bin)) if author_bin else None,
+                    'timestamp': saved_msg.timestamp.isoformat()
+                }
+            )
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            # ОСЬ ТУТ БУЛА ПОМИЛКА: переконайся, що цей рядок всередині async def receive
+            await self.send_error(f"Внутрішня помилка сервера: {str(e)}")
+
+
+
+    @database_sync_to_async
+    def save_main_message(self, text, base_guid, recipient_bin, t_type, author_bin):
+        return ChatMessage.objects.create(
+            chat_id=self.chat_id,
+            author=author_bin,
+            recipient=recipient_bin,
+            text=text,
+            related_object_id=base_guid,
+            transaction_type_id=t_type,
+            is_notification=False
+        )
+
+    @database_sync_to_async
+    def create_notification_record(self, text, base_guid, recipient_bin, t_type, author_bin):
+        return ChatMessage.objects.create(
+            chat_id=self.chat_id,
+            author=author_bin,
+            recipient=recipient_bin,
+            text=text,
+            related_object_id=base_guid,
+            transaction_type_id=t_type,
+            is_notification=True,
+            event_type="NEW_CHAT_MESSAGE",
+            is_read=False
+        )
 
     @database_sync_to_async
     def save_message(self, text, base_guid, recipient_bin, doc_number, author_name, author_bin):
@@ -423,3 +566,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return chat_msg, notification_text
         except Exception:
             return None, None
+        
+
+    
