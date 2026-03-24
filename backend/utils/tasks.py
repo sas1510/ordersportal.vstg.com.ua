@@ -225,7 +225,7 @@ from celery import shared_task
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from webpush import send_user_notification
-
+from django.utils import timezone
 # Використовуємо відносні імпорти, щоб уникнути ModuleNotFoundError
 from .BinToGuid1C import bin_to_guid_1c
 from .GuidToBin1C import guid_to_1c_bin
@@ -281,6 +281,130 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str):
         return str(e)
 
 # --- 3. ГОЛОВНИЙ КРОН (24/48 годин) ---
+from dotenv import load_dotenv
+from django.utils import timezone
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Завантажуємо змінні середовища (токен бота)
+load_dotenv()
+
+# @shared_task(name='run_order_reminder_cron')
+# def run_order_reminder_cron():
+#     from records.models import ChatMessage
+    
+#     with connection.cursor() as cursor:
+#         cursor.execute("EXEC [dbo].[GenerateOrderStuckNotifications]")
+#         rows = cursor.fetchall()
+
+#     channel_layer = get_channel_layer()
+#     tg_token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
+
+#     # Перевірка токена перед циклом
+#     if not tg_token:
+#         logger.error("Telegram Notification skipped: NOTIFICATION_TELEGRAM_BOT_TOKEN is missing in .env")
+
+#     for row in rows:
+#         user_bin, order_num, status, hours, order_guid, tg_id, src_type = row
+
+#         # 1. Фільтрація дублікатів за 20 годин
+#         already_notified = ChatMessage.objects.filter(
+#             related_object_id=order_guid,
+#             event_type='ORDER_STUCK_REMINDER',
+#             timestamp__gt=timezone.now() - timedelta(hours=20)
+#         ).exists()
+
+#         if not already_notified:
+#             msg_text = f"Нагадування: {src_type} №{order_num} у статусі '{status}' вже {hours} год."
+
+#             # Визначаємо тип транзакції
+#             t_type_id = 1 
+#             if "Рекламація" in src_type:
+#                 t_type_id = 2
+#             elif "Дозамовлення" in src_type:
+#                 t_type_id = 3
+
+#             # Формуємо правильний chat_id: префікс_тип_guid_без_тире
+#             # bin_to_guid_1c повертає рядок '00000000-0000-0000-0000-000000000000'
+#             guid_str = bin_to_guid_1c(order_guid)
+#             clean_guid_hex = guid_str.replace("-", "").lower()
+#             generated_chat_id = f"{t_type_id}_{clean_guid_hex}"
+
+#             # 2. Створення запису в БД
+#             new_msg = ChatMessage.objects.create(
+#                 chat_id=generated_chat_id,
+#                 text=msg_text,
+#                 recipient=user_bin,
+#                 related_object_id=order_guid,
+#                 is_notification=True,
+#                 event_type='ORDER_STUCK_REMINDER',
+#                 is_read=False,
+#                 is_sent_vtg=False,
+#                 transaction_type_id=t_type_id,
+#                 timestamp=timezone.now()
+#             )
+
+#             # 3. WebSocket (Дзвіночок на сайті)
+#             recipient_guid = bin_to_guid_1c(user_bin).lower()
+#             async_to_sync(channel_layer.group_send)(
+#                 f"notify_{recipient_guid}",
+#                 {
+#                     "type": "notification_message",
+#                     "data": {
+#                         "type": "ORDER_STUCK_REMINDER",
+#                         "text": msg_text,
+#                         "order_num": order_num
+#                     }
+#                 }
+#             )
+
+#             # 4. Web Push (Браузерне сповіщення)
+#             send_webpush_notification.delay(user_bin, "Замовлення зависло", msg_text)
+
+#             # 5. Telegram
+#             # 5. Telegram
+#         if tg_id and tg_token:
+#             try:
+#                 # Формуємо текст з посиланням
+#                 dashboard_url = "https://ordersportal.vstg.com.ua/dashboard"
+                
+#                 # Варіант з кнопкою-посиланням у тексті:
+#                 full_tg_text = (
+#                     f"⚠️ <b>{msg_text}</b>\n\n"
+#                     f"🔗 <a href='{dashboard_url}'>Перейти в особистий кабінет</a>"
+#                 )
+
+#                 logger.info(f"Attempting to send TG reminder for order {order_num} to user {tg_id}")
+#                 res = requests.post(
+#                     f"https://api.telegram.org/bot{tg_token}/sendMessage", 
+#                     json={
+#                         "chat_id": tg_id,
+#                         "text": full_tg_text,
+#                         "parse_mode": "HTML",
+#                         "disable_web_page_preview": False  # Дозволяємо прев'ю сайту (логотип підтягнеться)
+#                     },
+#                     timeout=10
+#                 )
+                
+#                 if res.status_code == 200:
+#                     new_msg.is_sent_vtg = True 
+#                     new_msg.save()
+#                     logger.info(f"TG reminder sent successfully for order {order_num}")
+#                 else:
+#                     logger.error(f"TG API Error: {res.status_code} - {res.text}")
+#             except Exception as e:
+#                 logger.error(f"Failed to send TG message: {str(e)}")
+
+#     return f"Processed {len(rows)} orders"
+
+
+
+from collections import defaultdict
+from collections import defaultdict
+from django.utils import timezone
+from datetime import timedelta
+
 @shared_task(name='run_order_reminder_cron')
 def run_order_reminder_cron():
     from records.models import ChatMessage
@@ -291,79 +415,118 @@ def run_order_reminder_cron():
 
     channel_layer = get_channel_layer()
     tg_token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
-
+    
+    # --- КРОК 1: ГРУПУВАННЯ ---
+    user_notifications = defaultdict(list)
+    
     for row in rows:
         user_bin, order_num, status, hours, order_guid, tg_id, src_type = row
+        
+        # Визначаємо поріг
+        if hours >= 168: time_label, check_h = "більше 7 днів", 160
+        elif hours >= 48: time_label, check_h = "більше 48 год", 40
+        elif hours >= 24: time_label, check_h = "більше 24 год", 20
+        else: continue
 
-        # Розширюємо вікно до 20 годин, щоб ранковий крон не дублював вечірній
-        # Усередині run_order_reminder_cron змінити фільтр і створення:
-
-# 1. Виправляємо фільтрацію (поля маленькими літерами)
-        already_notified = ChatMessage.objects.filter(
-            related_object_id=order_guid,          # було RelatedObjectId
-            event_type='ORDER_STUCK_REMINDER',    # було EventType
-            timestamp__gt=datetime.now() - timedelta(hours=20) # було Timestamp
+        already = ChatMessage.objects.filter(
+            related_object_id=order_guid,
+            event_type='ORDER_STUCK_REMINDER',
+            text__icontains=time_label,
+            timestamp__gt=timezone.now() - timedelta(hours=check_h)
         ).exists()
 
-        if not already_notified:
-            msg_text = f"Нагадування: {src_type} №{order_num} у статусі '{status}' вже {hours} год."
-
-            # Нам потрібно визначити ID для TransactionTypeID. 
-            # Зазвичай: 1 - Прорахунок, 2 - Рекламація, 3 - Доп. замовлення.
-            # Спробуємо розпарсити src_type або задати дефолт.
+        if not already:
+            # Текст БЕЗ точки для БД та WebPush
+            clean_text = f"{src_type} №{order_num.strip()} ({status}) — {time_label}"
             
-            t_type_id = 1 # Дефолт (Прорахунок)
-            if "Рекламація" in src_type:
-                t_type_id = 2
-            elif "Дозамовлення" in src_type:
-                t_type_id = 3
+            user_notifications[user_bin].append({
+                'order_num': order_num.strip(),
+                'status': status,
+                'time_label': time_label,
+                'order_guid': order_guid,
+                'tg_id': tg_id,
+                'src_type': src_type,
+                'text_simple': clean_text,
+                # Текст З точкою тільки для списку в Telegram
+                'text_tg_row': f"• {clean_text}"
+            })
 
+    # --- КРОК 2: ВІДПРАВКА ---
+    # --- КРОК 2: ВІДПРАВКА ---
+    for user_bin, items in user_notifications.items():
+        if not items: continue
 
-            clean_guid_hex = guid_to_1c_bin(order_guid)
-            generated_chat_id = f"1_{clean_guid_hex}"
-
-            # Створення запису в БД
-            new_msg = ChatMessage.objects.create(
-                chat_id=generated_chat_id,
-                text=msg_text,
+        # 1. Записуємо кожне замовлення в БД окремо (для історії в "дзвіночку")
+        for item in items:
+            guid_str = bin_to_guid_1c(item['order_guid'])
+            t_id = 2 if "Рекл" in item['src_type'] else (3 if "Доз" in item['src_type'] else 1)
+            
+            ChatMessage.objects.create(
+                chat_id=f"{t_id}_{guid_str.replace('-','')}",
+                text=item['text_simple'], 
                 recipient=user_bin,
-                related_object_id=order_guid,
+                related_object_id=item['order_guid'],
                 is_notification=True,
                 event_type='ORDER_STUCK_REMINDER',
-                is_read=False,
-                is_sent_vtg=False,
-                # ДОДАЄМО ТИП ТРАНЗАКЦІЇ (ForeignKey очікує ID або об'єкт)
-                transaction_type_id=t_type_id 
+                transaction_type_id=t_id,
+                timestamp=timezone.now()
             )
-    
-    # Решта логіки (WebSocket, Telegram) залишається без змін, 
-    # лише перевір, чи ти не звертаєшся до new_msg.IsSentVtg нижче (має бути new_msg.is_sent_vtg)
-            # 2. WebSocket (Дзвіночок)
-            recipient_guid = bin_to_guid_1c(user_bin).lower()
-            async_to_sync(channel_layer.group_send)(
-                f"notify_{recipient_guid}",
-                {
-                    "type": "notification_message",
-                    "data": {
-                        "type": "ORDER_STUCK_REMINDER",
-                        "text": msg_text,
-                        "order_num": order_num
-                    }
+
+        # 2. Формуємо текст для групових сповіщень
+        count = len(items)
+        if count == 1:
+            group_msg = items[0]['text_simple']
+        else:
+            # Наприклад: "У вас 5 замовлень потребують уваги (№01-331, №45-159...)"
+            order_nums = ", ".join([i['order_num'] for i in items[:3]]) # Беремо перші три для короткості
+            if count > 3: order_nums += " та інші"
+            group_msg = f"У вас {count} замовлень потребують уваги: {order_nums}"
+
+        # 3. ВІДПРАВЛЯЄМО ОДИН WEB PUSH
+        send_webpush_notification.delay(
+            user_bin, 
+            "Нагадування", 
+            group_msg
+        )
+
+        # 4. ВІДПРАВЛЯЄМО ОДИН WEBSOCKET (щоб оновити лічильник і показати один Toast)
+        recipient_guid = bin_to_guid_1c(user_bin).lower()
+        async_to_sync(channel_layer.group_send)(
+            f"notify_{recipient_guid}",
+            {
+                "type": "notification_message",
+                "data": {
+                    "type": "ORDER_STUCK_REMINDER",
+                    "text": group_msg,
+                    "count": count # Фронтенд зможе показати цифру
                 }
+            }
+        )
+
+        # 5. Telegram (як і було — список з точками)
+        tg_id = items[0]['tg_id']
+        if tg_id and tg_token:
+            dashboard_url = "https://ordersportal.vstg.com.ua/dashboard"
+            orders_list_text = "\n".join([i['text_tg_row'] for i in items])
+            
+            full_tg_text = (
+                f"⚠️ <b>У вас є замовлення, що потребують уваги:</b>\n\n"
+                f"{orders_list_text}\n\n"
+                f"🔗 <a href='{dashboard_url}'>Перейти на портал</a>"
             )
 
-            # 3. Web Push (через delay)
-            send_webpush_notification.delay(user_bin, "Замовлення зависло", msg_text)
+            try:
+                requests.post(
+                    f"https://api.telegram.org/bot{tg_token}/sendMessage",
+                    json={
+                        "chat_id": tg_id,
+                        "text": full_tg_text,
+                        "parse_mode": "HTML",
+                        "disable_web_page_preview": True
+                    },
+                    timeout=10
+                )
+            except Exception as e:
+                logger.error(f"TG group send error: {e}")
 
-            # 4. Telegram
-            if tg_id and tg_token:
-                res = requests.post(f"https://api.telegram.org/bot{tg_token}/sendMessage", json={
-                    "chat_id": tg_id,
-                    "text": f"⚠️ <b>{msg_text}</b>",
-                    "parse_mode": "HTML"
-                })
-                if res.status_code == 200:
-                    new_msg.IsSentVtg = True
-                    new_msg.save()
-
-    return f"Processed {len(rows)} orders"
+    return f"Processed {len(user_notifications)} users"
