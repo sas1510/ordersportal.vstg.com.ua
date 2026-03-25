@@ -276,7 +276,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_BEAT_SCHEDULE = {
     'order-stuck-check': {
         'task': 'run_order_reminder_cron',
-        'schedule': crontab(hour='13, 16', minute=0), 
+        'schedule': crontab(hour='12, 16', minute=53), 
     },
 }
 
