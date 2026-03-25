@@ -229,6 +229,7 @@ from django.utils import timezone
 # Використовуємо відносні імпорти, щоб уникнути ModuleNotFoundError
 from .BinToGuid1C import bin_to_guid_1c
 from .GuidToBin1C import guid_to_1c_bin
+from django.conf import settings
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -255,7 +256,7 @@ def send_webpush_notification(recipient_id_1c, title, message):
 
 # --- 2. Telegram Reminder (для звичайних чатів) ---
 @shared_task(name='check_and_send_telegram_notification')
-def check_and_send_telegram_notification(message_id, recipient_guid_str):
+def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type, doc_number):
     from records.models import ChatMessage
     try:
         msg = ChatMessage.objects.get(id=message_id)
@@ -264,6 +265,32 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str):
 
         recipient_bin = guid_to_1c_bin(recipient_guid_str)
         telegram_id = None
+
+
+        pages_map = {
+            1: "orders",
+            2: "complaints",
+            3: "additional-orders" 
+        }
+
+        page = pages_map.get(t_type, "orders")
+        # Формуємо посилання (наприклад: https://portal.com/reclamations)
+        direct_link = f"{settings.FRONTEND_URL}/{page}"
+
+        
+        pages_map_for_message = {
+            1: "прорахунку",
+            2: "рекламації",
+            3: "дозамовленні" 
+        }
+
+        document_type = pages_map_for_message.get(t_type, "orders")
+        
+        # text = (
+        #     f"🔔 *Нове повідомлення!*\\n"
+        #     f"Від: {msg.author_name}\\n"
+        #     f"Текст: {msg.text[:50]}..."
+        # )
         
         with connection.cursor() as cursor:
             cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [recipient_bin])
@@ -272,7 +299,8 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str):
 
         token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
         if telegram_id and token:
-            text = f"🔔 <b>Непрочитане повідомлення!</b>\n\n<i>\"{msg.text[:150]}\"</i>"
+            text = f"🔔 <b>Непрочитане повідомлення!</b>\n    В {document_type} №{doc_number}.\n 🔗 <a href='{direct_link}'>Перейти в кабінет</a>"
+            # text = f"🔔 <b>Непрочитане повідомлення!</b>\nВ {document_type} №{doc_number}:\n<i>\"{msg.text[:150]}\"</i>\n 🔗 <a href='{direct_link}'>Перейти в кабінет</a>"
             requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
                 "chat_id": telegram_id, "text": text, "parse_mode": "HTML"
             })

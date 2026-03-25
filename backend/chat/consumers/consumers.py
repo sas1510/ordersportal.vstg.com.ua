@@ -471,9 +471,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
   
                 is_dealer = recipient_user and recipient_user.role == 'customer'
 
+                pages_map_for_message = {
+                    1: "прорахунку",
+                    2: "рекламації",
+                    3: "дозамовленні" 
+                }
+
+                document_type = pages_map_for_message.get(t_type, "orders")
+
                 if is_dealer:
                     # Створюємо запис сповіщення ТІЛЬКИ для дилера
-                    notify_text = f"Нове повідомлення у чаті №{doc_number} від {author_name}"
+                    notify_text = f"Нове повідомлення у {document_type} №{doc_number} від {author_name}"
                     await self.create_notification_record(
                         notify_text, base_guid, recipient_bin, t_type, author_bin
                     )
@@ -489,8 +497,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     # Telegram (через 10 хв)
                     from backend.utils.tasks import check_and_send_telegram_notification
                     check_and_send_telegram_notification.apply_async(
-                        args=[saved_msg.id, recipient_id_1c],
-                        countdown=3600 
+                        args=[saved_msg.id, recipient_id_1c, t_type, doc_number],
+                        countdown=3600
                     )
 
                     # WebSocket сигнал для дзвіночка
