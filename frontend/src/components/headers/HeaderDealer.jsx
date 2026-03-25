@@ -792,7 +792,7 @@ import { RoleContext } from "../../context/RoleContext";
 import { useTheme } from "../../context/ThemeContext";
 import "./HeaderAdmin.css"; 
 import HeaderDealerProfile from "./HeaderDealerProfile";
-import axiosInstance from "../../api/axios";
+import axiosInstance, { getAccessToken } from "../../api/axios";
 import NotificationDrawer from "../../pages/NotificationPage";
 import { useNotification } from "../notification/Notifications.jsx";
 
@@ -825,6 +825,7 @@ export default function HeaderDealer() {
     const [notifications, setNotifications] = useState([]); 
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const socket = useRef(null);
+    const reconnectTimer = useRef(null);
 
     /* ================= ЗАВАНТАЖЕННЯ ДАНИХ (HTTP) ================= */
     const fetchInitialData = useCallback(async () => {
@@ -848,86 +849,102 @@ useEffect(() => {
 
 /* ================= WEBSOCKET LOGIC ================= */
 useEffect(() => {
-    const token = localStorage.getItem("access");
-    if (!token) return;
+        let pingInterval;
+        let isCleanup = false;
 
-    const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
-    const ws_host = window.location.host;
-    let reconnectTimer;
-    let pingInterval; // Для тримання з'єднання активним
-    let isCleanup = false;
-
-    const connectNotifyWS = () => {
-        if (socket.current?.readyState === WebSocket.OPEN || socket.current?.readyState === WebSocket.CONNECTING) return;
-
-        console.log("Connecting to Notification WS...");
-        socket.current = new WebSocket(`${ws_scheme}://${ws_host}/ws/notifications/?token=${token}`);
-
-        socket.current.onopen = () => {
-            console.log("Notification WS Connected ✅");
-            // 🔥 Запускаємо Heartbeat (ping) кожні 30 секунд
-            pingInterval = setInterval(() => {
-                if (socket.current?.readyState === WebSocket.OPEN) {
-                    socket.current.send(JSON.stringify({ type: "ping" }));
-                }
-            }, 30000);
-        };
-
-        socket.current.onmessage = (e) => {
-            const data = JSON.parse(e.data);
+        const connectNotifyWS = async () => { // 2. Робимо функцію асинхронною
+            if (isCleanup) return;
             
-            if (data.type === "initial_notifications") {
-                setUnreadCount(data.unread_count);
+            // Якщо сокет вже в процесі підключення або відкритий - нічого не робимо
+            if (socket.current?.readyState === WebSocket.OPEN || socket.current?.readyState === WebSocket.CONNECTING) return;
+
+            console.log("Refreshing session before WS connection...");
+            try {
+                // 3. 🔥 "Прогріваємо" токен. 
+                // Якщо токен прострочений, axios-інтерцептор автоматично оновить його через refresh-токен.
+                await axiosInstance.get('/notifications/count/');
+            } catch (err) {
+                console.error("Could not refresh token for WS, retrying in 5s...");
+                reconnectTimer.current = setTimeout(connectNotifyWS, 5000);
+                return;
             }
 
-            if (data.type === "new_notification" || data.type === "NEW_CHAT_MESSAGE" || data.type === "notification_message") {
-                const payload = data.data || data;
-                setUnreadCount(prev => prev + 1);
+            const token = getAccessToken(); // Беремо вже точно свіжий токен
+            if (!token) return;
+
+            const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+            const ws_host = window.location.host;
+
+            console.log("Connecting to Notification WS with fresh token...");
+            socket.current = new WebSocket(`${ws_scheme}://${ws_host}/ws/notifications/?token=${token}`);
+
+            socket.current.onopen = () => {
+                console.log("Notification WS Connected ✅");
+                pingInterval = setInterval(() => {
+                    if (socket.current?.readyState === WebSocket.OPEN) {
+                        socket.current.send(JSON.stringify({ type: "ping" }));
+                    }
+                }, 30000);
+            };
+
+            socket.current.onmessage = (e) => {
+                const data = JSON.parse(e.data);
                 
-                const newEntry = {
-                    id: payload.id || Date.now(),
-                    message: payload.text || payload.message || "Нове повідомлення",
-                    eventType: payload.type || 'NEW_MESSAGE',
-                    createdAt: payload.timestamp || new Date().toISOString(),
-                    isRead: false,
-                    transactionType: payload.transactionType,
-                    authorName: payload.author_name,
-                    doc_number: payload.doc_number,
-                    docYear: payload.docYear,
-                };
-                
-                setNotifications(prev => [newEntry, ...prev]);
-                addNotification(`🔔 ${payload.author_name || ''}: ${newEntry.message}`, "info", 6000);
+                if (data.type === "initial_notifications") {
+                    setUnreadCount(data.unread_count);
+                }
+
+                if (data.type === "new_notification" || data.type === "NEW_CHAT_MESSAGE" || data.type === "notification_message") {
+                    const payload = data.data || data;
+                    setUnreadCount(prev => prev + 1);
+                    
+                    const newEntry = {
+                        id: payload.id || Date.now(),
+                        message: payload.text || payload.message || "Нове повідомлення",
+                        eventType: payload.type || 'NEW_MESSAGE',
+                        createdAt: payload.timestamp || new Date().toISOString(),
+                        isRead: false,
+                        transactionType: payload.transactionType,
+                        authorName: payload.author_name,
+                        doc_number: payload.doc_number,
+                        docYear: payload.docYear,
+                    };
+                    
+                    setNotifications(prev => [newEntry, ...prev]);
+                    addNotification(`🔔 ${payload.author_name || ''}: ${newEntry.message}`, "info", 6000);
+                }
+            };
+
+            socket.current.onclose = (e) => {
+                clearInterval(pingInterval);
+                if (!isCleanup) {
+                    console.log(`Notification WS closed (code ${e.code}). Reconnecting in 5s...`);
+                    // Якщо код 4001 або звичайний обрив — через 5 секунд connectNotifyWS знову зробить refresh токена
+                    reconnectTimer.current = setTimeout(connectNotifyWS, 5000);
+                }
+            };
+
+            socket.current.onerror = (err) => {
+                console.error("Notification WS Error:", err);
+                socket.current?.close();
+            };
+        };
+
+        connectNotifyWS();
+
+        return () => {
+            isCleanup = true;
+            clearInterval(pingInterval);
+            if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+            if (socket.current) {
+                socket.current.onclose = null; // Прибираємо рекурсію
+                socket.current.close();
+                socket.current = null;
             }
         };
+    }, [addNotification]);
 
-        socket.current.onclose = (e) => {
-            clearInterval(pingInterval); // Зупиняємо пінг при закритті
-            if (!isCleanup) {
-                console.log("WS connection lost. Reconnecting in 5s...");
-                reconnectTimer = setTimeout(connectNotifyWS, 5000);
-            }
-        };
-
-        socket.current.onerror = (err) => {
-            console.error("WS Error:", err);
-            socket.current.close();
-        };
-    };
-
-    connectNotifyWS();
-
-    return () => {
-        isCleanup = true;
-        clearInterval(pingInterval);
-        if (reconnectTimer) clearTimeout(reconnectTimer);
-        if (socket.current) {
-            socket.current.close();
-            socket.current = null;
-        }
-    };
-}, [addNotification]); // addNotification зазвичай стабільна, тому це не викликатиме реконектів
-
+    
     /* ================= UI LOGIC ================= */
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showFinanceMenu, setShowFinanceMenu] = useState(false);
