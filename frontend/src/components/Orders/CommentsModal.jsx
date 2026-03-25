@@ -144,7 +144,7 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
       
       const textarea = document.querySelector('.textarea-wrapper textarea');
       if (textarea) {
-        textarea.style.height = '24px'; 
+        textarea.style.height = '31px'; 
       }
     } else {
       addNotification("З'єднання втрачено. Спробуйте оновити сторінку.", "error");
