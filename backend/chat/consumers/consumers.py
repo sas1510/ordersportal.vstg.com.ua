@@ -449,6 +449,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
             doc_number = await self.sync_get_doc_number(base_guid, t_type)
+            doc_year = get_document_year_by_guid(base_guid, t_type)
             author_name = await self.sync_get_author_name(author_bin)
 
             saved_msg = await self.save_main_message(
@@ -479,18 +480,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
                 document_type = pages_map_for_message.get(t_type, "orders")
 
+
+                pages_map_for_notification = {
+                    1: "Прорахунок",
+                    2: "Рекламація",
+                    3: "Доп. замовлення" 
+                }
+
+                t_type_for_notification = pages_map_for_notification.get(t_type, "orders")
+
                 if is_dealer:
                     # Створюємо запис сповіщення ТІЛЬКИ для дилера
                     notify_text = f"Нове повідомлення у {document_type} №{doc_number} від {author_name}"
-                    await self.create_notification_record(
+                    # await self.create_notification_record(
+                    #     notify_text, base_guid, recipient_bin, t_type, author_bin
+                    # )
+
+                    notification_msg = await self.create_notification_record(
                         notify_text, base_guid, recipient_bin, t_type, author_bin
                     )
+                    
+                    # 2. Тепер у тебе є доступ до ID
+                    new_notification_id = notification_msg.id
 
                     # WebPush
                     from backend.utils.tasks import send_webpush_notification
                     send_webpush_notification.delay(
                         recipient_id_1c=recipient_bin, 
-                        title=f"Нове повідомлення: {author_name}",
+                        title=f"Нове повідомлення у {document_type} №{doc_number} від {author_name}",
                         message=message_text[:100]
                     )
 
@@ -513,7 +530,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                                 "text": notify_text, 
                                 "author_name": author_name, 
                                 "timestamp": saved_msg.timestamp.isoformat(),
-                                "doc_number": doc_number
+                                "doc_number": doc_number,
+                                "transactionType": t_type_for_notification,
+                                "docYear" : doc_year,
+                                "id": new_notification_id,
                             }
                         }
                     )
