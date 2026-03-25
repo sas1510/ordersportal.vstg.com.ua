@@ -258,72 +258,92 @@
 // export default NotificationDrawer;
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { 
     FaBell, FaCheckDouble, FaEnvelopeOpen, 
     FaInfoCircle, FaExclamationTriangle, FaTimes, 
-    FaMobileAlt, FaClock // Додаємо іконку годинника для нагадувань
+    FaMobileAlt, FaClock , FaBellSlash
 } from 'react-icons/fa';
 import './NotificationPage.css'; 
+import { useNotification } from '../components/notification/Notifications';
+import { subscribeToPush, unsubscribeFromPush } from '../utils/useWebPush'; 
 
-import { subscribeToPush } from '../utils/useWebPush'; 
 
 const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, unreadCount, setUnreadCount }) => {
     const [loading] = useState(false);
+
+    const [permissionStatus, setPermissionStatus] = useState(
+        window.Notification ? window.Notification.permission : 'default'
+    );
+
+
     const [subscribing, setSubscribing] = useState(false); 
     const navigate = useNavigate();
 
-    React.useEffect(() => {
-        document.body.style.overflow = isOpen ? 'hidden' : 'unset';
-    }, [isOpen]);
+    const { addNotification } = useNotification();
+
+
 
     const handleSubscribe = async () => {
         setSubscribing(true);
         try {
             await subscribeToPush(); 
-            alert("Браузерні сповіщення активовано!");
+            // Оновлюємо статус після успішної підписки
+            setPermissionStatus(window.Notification.permission);
+            addNotification("Браузерні сповіщення активовано!", "success");
         } catch (err) {
             console.error("Помилка підписки на пуші:", err);
-            alert("Не вдалося увімкнути сповіщення. Перевірте дозволи браузера.");
+            addNotification("Не вдалося увімкнути сповіщення.", "danger");
         } finally {
             setSubscribing(false);
         }
     };
 
-    const handleNavigation = async (notification) => {
-    // 1. Позначаємо як прочитане
-    if (!notification.isRead) {
+    const handleUnsubscribe = async () => {
+        setSubscribing(true);
         try {
-            await axiosInstance.patch(`/notifications/${notification.id}/mark-read/`, { is_read: true });
-            
-            // 🔥 ОНОВЛЮЄМО КІЛЬКІСТЬ У ХЕДЕРІ
-            setUnreadCount(prev => Math.max(0, prev - 1));
-            
-            // Оновлюємо список сповіщень у самому Drawer
-            setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n));
-        } catch (err) { 
-            console.error("Помилка при позначенні прочитаним:", err); 
+            await unsubscribeFromPush(); // Ця функція має видаляти токен з БД на бекенді
+            setPermissionStatus('default'); 
+            addNotification("Сповіщення вимкнено", "info");
+        } catch (err) {
+            addNotification("Помилка при вимкненні сповіщень", "danger");
+        } finally {
+            setSubscribing(false);
         }
-    }
+    };
 
-    onClose(); 
 
-    // 2. Логіка переходів (залишається без змін)
-    let basePath = '';
-    if (notification.transactionType === 'Прорахунок') basePath = '/orders';
-    else if (notification.transactionType === 'Рекламація') basePath = '/complaints';
-    else if (notification.transactionType === 'Доп. замовлення') basePath = '/additional-orders';
+    const handleNavigation = async (notification) => {
+        // 1. Позначаємо як прочитане
+        if (!notification.isRead) {
+            try {
+                await axiosInstance.patch(`/notifications/${notification.id}/mark-read/`, { is_read: true });
+                
+                setUnreadCount(prev => Math.max(0, prev - 1));
+                setNotifications(prev => prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n));
+            } catch (err) { 
+                console.error("Помилка при позначенні прочитаним:", err); 
+            }
+        }
 
-    if (basePath) {
-        const searchVal = notification.doc_number;
-        const yearVal = notification.docYear;
-        let url = `${basePath}?search=${searchVal}`;
-        if (yearVal) { url += `&year=${yearVal}`; }
-        navigate(url);
-    }
-};
+        onClose(); 
+
+        // 2. Логіка переходів (залишається без змін)
+        let basePath = '';
+        if (notification.transactionType === 'Прорахунок') basePath = '/orders';
+        else if (notification.transactionType === 'Рекламація') basePath = '/complaints';
+        else if (notification.transactionType === 'Доп. замовлення') basePath = '/additional-orders';
+
+        if (basePath) {
+            const searchVal = notification.doc_number;
+            const yearVal = notification.docYear;
+            let url = `${basePath}?search=${searchVal}`;
+            if (yearVal) { url += `&year=${yearVal}`; }
+            navigate(url);
+        }
+    };
 
     const handleMarkAllRead = async () => {
         try {
@@ -333,6 +353,14 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
         } catch (err) { console.error(err); }
     };
 
+
+    useEffect(() => {
+        if (isOpen && window.Notification) {
+            setPermissionStatus(window.Notification.permission);
+        }
+        document.body.style.overflow = isOpen ? 'hidden' : 'unset';
+    }, [isOpen]);
+
     const getIcon = (type) => {
         switch (type) {
             case 'NEW_CHAT_MESSAGE': 
@@ -340,7 +368,7 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                 return <FaEnvelopeOpen className="text-info" style={{color: '#17a2b8'}} />;
             case 'STATUS_CHANGED': 
                 return <FaInfoCircle className="text-success" style={{color: '#28a745'}} />;
-            // 🔥 ІКОНКА ДЛЯ НАГАДУВАНЬ (Жовтий годинник)
+
             case 'ORDER_STUCK_REMINDER': 
                 return <FaClock className="text-warning" style={{color: '#ffc107'}} />;
             default: 
@@ -359,14 +387,37 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                         {unreadCount > 0 && <span className="badge-count">{unreadCount}</span>}
                     </div>
                     <div className='icon-together'>
-                        <button 
-                            onClick={handleSubscribe} 
-                            className={`btn-subscribe-push ${subscribing ? 'loading' : ''}`} 
-                            title="Увімкнути сповіщення на робочий стіл"
-                        >
-                            <FaMobileAlt size={16} />
-                            <span className="btn-text">Push</span>
-                        </button>
+                        {/* Кнопка ВВІМКНУТИ (якщо статус default) */}
+                        {permissionStatus === 'default' && (
+                            <button 
+                                onClick={handleSubscribe} 
+                                className={`btn-subscribe-push ${subscribing ? 'loading' : ''}`}
+                                disabled={subscribing}
+                            >
+                                <FaBell size={14} />
+                                <span className="btn-text">{subscribing ? '...' : 'Ввімкнути'}</span>
+                            </button>
+                        )}
+
+                        {/* Кнопка ВИМКНУТИ (якщо статус granted) */}
+                        {permissionStatus === 'granted' && (
+                            <button 
+                                onClick={handleUnsubscribe} 
+                                className={`btn-unsubscribe-push ${subscribing ? 'loading' : ''}`}
+                                disabled={subscribing}
+                                title="Вимкнути сповіщення на цьому пристрої"
+                            >
+                                <FaBellSlash size={14} />
+                                <span className="btn-text">{subscribing ? '...' : 'Вимкнути'}</span>
+                            </button>
+                        )}
+
+                        {/* Статус ЗАБЛОКОВАНО (якщо denied) */}
+                        {permissionStatus === 'denied' && (
+                            <div className="status-blocked" title="Доступ заблоковано в браузері">
+                                <FaExclamationTriangle color="#dc3545" />
+                            </div>
+                        )}
 
                         {unreadCount > 0 && (
                             <button onClick={handleMarkAllRead} className="btn-mark-read" title="Позначити всі як прочитані">
@@ -375,6 +426,7 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                         )}
                         <button className="close-btn" onClick={onClose}><FaTimes /></button>
                     </div>
+                
                 </div>
 
                 <div className="drawer-content">

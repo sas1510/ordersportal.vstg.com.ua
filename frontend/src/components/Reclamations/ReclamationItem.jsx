@@ -3,7 +3,7 @@ import axiosInstance from "../../api/axios";
 import { formatMoney } from "../../utils/formatMoney"; 
 import CommentsModal from "../Orders/CommentsModal"; 
 import useWindowWidth from '../../hooks/useWindowWidth';
-import DeleteConfirmationModal from '../Orders/DeleteConfirmModal'; // Додаємо, оскільки це використовується всередині вбудованого меню
+import DeleteConfirmModal from '../Orders/DeleteConfirmModal'; // Додаємо, оскільки це використовується всередині вбудованого меню
 import { ComplaintItemDetailView } from './ComplaintItemSummaryDesktop'; // Використовуємо новий DetailView
 import { useAuth } from '../../hooks/useAuth';
 import { formatDateHumanShorter } from "../../utils/formatters";
@@ -66,28 +66,51 @@ export const ReclamationItem = ({
         if (onEdit) onEdit(reclamation); 
     };
 
-    const handleDeleteClick = (e) => {
-        e.stopPropagation();
-        if (reclamation.status !== 'Нова') return; 
+    // ДЛЯ ТЕСТУ: Встановлюємо в true
+    // const canDelete = true; 
 
-        setIsMenuOpen(false);
-        setIsDeleteModalOpen(true);
-    };
+    const handleDeleteClick = (e) => {
+        e.stopPropagation();
+        
+        // Для тесту прибираємо або коментуємо перевірку статусу тут:
+        // if (reclamation.status !== 'Нова') return; 
 
-    const confirmDelete = async () => {
-        setIsDeleteModalOpen(false);
-        if (onDelete) {
-            await onDelete(reclamation.id); 
-        }
-    };
+        console.log("Клік по кошику! Відкриваємо модалку...");
+        setIsMenuOpen(false);
+        setIsDeleteModalOpen(true);
+    };
 
-    // Обмеження доступу для меню
+    const confirmDelete = async () => {
+        try {
+            console.log("Відправляємо запит на видалення GUID:", reclamation.guid);
+            
+            // Виклик API
+            await axiosInstance.delete(`/complaints/delete_complaint/${reclamation.guid}/`);
+
+            setIsDeleteModalOpen(false);
+            
+            if (onDelete) {
+                await onDelete(reclamation.id); 
+            }
+        } catch (error) {
+            console.error("Помилка при видаленні:", error);
+            const serverError = error.response?.data?.error || "Помилка сервера";
+            alert(serverError);
+            setIsDeleteModalOpen(false);
+        }
+    };
+
+
     const { user, role } = useAuth();
 
     const isCustomer = role === 'customer';
     const canEdit = !isCustomer && reclamation.status !== 'Закрита';
-    const canDelete = reclamation.status === 'Нова';
-    // === КІНЕЦЬ ЛОГІКИ RECLAMATION MENU ===
+
+
+    const managerAssigned = reclamation.manager && reclamation.manager !== 'N/A' && reclamation.manager !== 'Не вказано';
+    const canDelete = reclamation.status === 'Нова' && !managerAssigned;
+    // const canDelete = true;
+
 
 
     const handleDownload = async () => {
@@ -112,21 +135,15 @@ export const ReclamationItem = ({
 
 
     const handleViewComments = (comments) => {
-        // 1. Повідомляємо батьківський компонент, що прочитано
-        // Це прибере червоний кружечок у UI
+
         if (onMarkAsRead) {
             onMarkAsRead(reclamation.id);
         }
 
-        // 2. Відкриваємо модалку (вона зробить API запит і оновить IsRead в БД)
         setSelectedComments(comments);
         setIsCommentsOpen(true);
     };
 
-    // issueList тепер не використовується, оскільки дані не згруповані.
-    // const issueList = Array.isArray(reclamation.issues) ? reclamation.issues : [];
-
-    // Функція для визначення CSS класу на основі статусу рекламації
     const getStatusClass = (status) => {
         if (status && status.includes('Виробництво')) {
             return "text-factory";
@@ -145,14 +162,11 @@ export const ReclamationItem = ({
             default: return "text-grey";
         }
     };
-    
-    // Функції для видобування нових полів із Message (потрібні, якщо дані не приходять окремими полями)
-    // Оскільки нові мок-дані мають ці поля окремо, ми можемо використовувати їх напряму.
+
     const responsibleManager = reclamation.manager || "Не вказано";
     const deliveryDate = reclamation.deliveryDate || "Не вказано";
     const actNumber = reclamation.actNumber || "Не вказано";
-    // Якщо використовуємо message як резервний варіант, залишаємо extractDetail
-    // const extractDetail = (key) => { ... };
+
 
 
     return (
@@ -267,21 +281,30 @@ export const ReclamationItem = ({
                     
 
                     {/* 🗑️ Видалити */}
-                    <div
-                        className={`icon icon-trash font-size-18 ${!canDelete ? 'inactive' : 'clickable text-danger'}`}
-                        title={!canDelete ? 'Недоступно для видалення' : 'Видалити'}
-                        onClick={handleDeleteClick}
-                    />
+
+                    <div
+                        className={`icon icon-trash font-size-18 ${!canDelete ? 'inactive' : 'clickable text-danger'}`}
+                        title={
+                            !canDelete 
+                                ? (managerAssigned ? 'Неможливо видалити: призначено менеджера' : 'Недоступно для видалення') 
+                                : 'Видалити'
+                        }
+                        onClick={canDelete ? handleDeleteClick : undefined} // Додаємо запобіжник на клік
+                    />
 
                     {/* Модальне вікно підтвердження видалення */}
                     {isDeleteModalOpen && (
-                        <DeleteConfirmationModal
-                        isOpen={isDeleteModalOpen}
-                        onClose={() => setIsDeleteModalOpen(false)}
-                        onConfirm={confirmDelete}
-                        title="Підтвердження видалення"
-                        message={`Ви впевнені, що хочете видалити рекламацію №${reclamation.number}? Це незворотна дія.`}
-                        />
+
+          
+                      
+                            <DeleteConfirmModal
+                                isOpen={isDeleteModalOpen}
+                                onClose={() => setIsDeleteModalOpen(false)}
+                                itemData={reclamation} 
+                                itemType="reclamation"   
+                                onDeleted={onDelete}   
+                            />
+           
                     )}
                     </div>
             </div>

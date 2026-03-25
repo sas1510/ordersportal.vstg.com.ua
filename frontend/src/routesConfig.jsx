@@ -1,4 +1,4 @@
-// routesConfig.js
+
 import Dashboard from "./pages/Dashboard";
 import FilesPage from "./pages/FilesPage";
 import AddOrEditFilePage from "./pages/AddOrEditFilePage";
@@ -25,18 +25,17 @@ import EmergencyContactsPage from './pages/EmergencyContactsPage';
 import AddClaimForm from "./pages/AddClaimForm";
 import AddReorderForm from "./pages/AddReorderForm";
 import HomePage from "./pages/HomePage";
-// import ManagersUpdatePage from "./pages/ManagersUpdatePage"
+
 import ManagersUpdatePage from "./pages/ManagersUpdatePage";
 import ManagersSync from "./pages/ManagersSync";
 import SyncManagersPage from "./pages/SyncManagersPage"
-// import PaymentStatus from "./pages/DebtPage"
+
 import AdminAdditionalOrders from './pages/AdminAdditionalOrders'
 
 
 import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
 import ReclamationPortal from "./pages/ReclamationPortal";
-// import InviteRegisterForm from "./pages/InviteRegisterForm";
-// import { Dashboards } from "./pages/Dashboards"
+
 import ChangePasswordPage from "./pages/ChangePasswordPage" 
 import UsersListPage from "./pages/UsersListPage"
 import PaymentStatusV2 from "./pages/PaymentStatusV2"
@@ -50,8 +49,8 @@ import InvalidLinkPage from './pages/InvalidLinkPage'
 import ProductionStatisticsPage from './pages/ProductionStatisticsPage'
 import DashboardPage from "./pages/DashboardPage";
 import NotificationPage from './pages/NotificationPage'
-import ChatPage from './pages/ChatPage'
-import StartChatPage from './pages/StartChatPage'
+
+
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -63,28 +62,20 @@ export const adminRoutes = [
   { path: "videos", element: <VideosPage /> },
   { path: "videos/add", element: <VideoFormPage /> },
   { path: "videos/edit/:id", element: <VideoFormPage /> },
-  // { path: "addUser", element: <RegistrationPage /> },
-  // { path: "organizations", element: <OrganizationPage /> },
-  // { path: "regions", element: <RegionPage /> },
 
   { path: "orders", element: <PortalOriginal /> },
   { path: "complaints", element: <ReclamationPortal /> },
-  // { path: "complaints", element: <ComplaintsPage /> },
+
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
   { path: "change-password", element: <ChangePasswordPage /> },
   { path: "users/:id/edit", element: <EditUserPage /> },
-  // { path: "finance/settlements", element: <SettlementsPage /> },
-
 
   { path: "contacts/new", element: <ContactFormPage /> },
   { path: "urgentLogs", element: <UrgentCallLogsPage /> },
   { path: "contacts/:id/edit", element: <ContactFormPage /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
-  // { path: "managers-update", element: <ManagersUpdatePage /> },
-  // { path: "managers-sync", element: <ManagersSync /> },
-  // { path: "managers-dealer-sync", element: <SyncManagersPage /> },
-  // { path: "finance/settlements", element: <PaymentStatus /> },
+
 
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "users-list", element: <UsersListPage /> },
@@ -97,16 +88,14 @@ export const adminRoutes = [
   { path: "admin-order", element: <AdminPortalOriginal/> },
   { path: "admin-reclamation", element: <AdminReclamationPortal/> },
   { path: "promo-wds-codes", element: <WDSCodesTable/> },
-  // { path: "file-preview/invalid", element: <InvalidLinkPage/> },
+
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
  { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
    { path: "dashboardpage", element: <DashboardPage/> },
    { path: "notifications", element: <NotificationPage/> },
-   { path: "/chat/:chatId", element: <ChatPage/> },
-   { path: "/start-chat", element: <StartChatPage/> },
 
-  // { path: "/invite/:code", element: <InviteRegisterForm  /> },
-  // { path: "create-bill", element: <CreateCustomerBillPage /> },
+
+
   
 
   
@@ -119,20 +108,13 @@ export const dealerRoutes = [
   { path: "videos", element: <VideosPage /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "orders", element: <PortalOriginal /> },
-  // { path: "complaints", element: <ComplaintsPage /> },
+
   { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
-  // { path: "change-password", element: <ChangePassword /> },
 
-  // { path: "addClaim", element: <AddClaimForm /> },
-  // { path: "addReorder", element: <AddReorderForm /> },
-  // { path: "finance/settlements", element: <SettlementsPage /> },
-  // { path: "finance/settlements", element: <PaymentStatus /> },
-
-  // { path: "finance/bills", element: <CustomerBills /> },
   { path: "create-bill", element: <CreateCustomerBillPage /> },
-  // { path: "reclamation", element: <ReclamationPortal /> },
+
 
 
 
@@ -148,9 +130,7 @@ export const dealerRoutes = [
   { path: "dashboardpage", element: <DashboardPage/> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
   { path: "/notifications", element: <NotificationPage/> },
-      { path: "/chat/:chatId", element: <ChatPage/> },
-   { path: "/start-chat", element: <StartChatPage/> },
-  // { path: "/invite/:code", element: <InviteRegisterForm  /> },
+
 ];
 
 // export const managerRoutes = [

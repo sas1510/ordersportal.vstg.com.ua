@@ -6,28 +6,62 @@ import { FaExclamationTriangle, FaTrash, FaTimes } from 'react-icons/fa';
 
 const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType, onDeleted }) => {
   const { addNotification } = useNotification();
-  const itemName =
-    itemData.number || itemData.title || itemData.orderNumber || itemData.id || 'цей запис';
 
+  if (!isOpen || !itemData) return null;
+
+  const type = propItemType || itemData?.type;
+
+  // 1. Визначення відображуваного імені
+  const itemName = (() => {
+    if (type === 'calculation' || type === 'additionalOrder') {
+      return itemData?.number || itemData?.id || 'запис';
+    }
+    if (type === 'reclamation') {
+      return itemData?.id || itemData?.numberWEB || 'рекламацію';
+    }
+    return (
+      itemData?.number || 
+      itemData?.orderNumber || 
+      itemData?.title || 
+      itemData?.id || 
+      'цей запис'
+    );
+  })();
+
+  // 2. Словник для текстових повідомлень
   const mapType = {
     order: 'замовлення',
     calculation: 'прорахунок',
     client: 'клієнта',
-    product: 'товар'
+    product: 'товар',
+    reclamation: 'рекламацію',
+    additionalOrder: 'дозамовлення' // Додано для коректного відображення
   };
 
-  const itemType = mapType[propItemType] || mapType[itemData.type] || 'запис';
+  const itemType = mapType[type] || 'запис';
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   const handleDelete = async () => {
     try {
       let endpoint = '';
-
-      switch (propItemType || itemData.type) {
+      
+      // 3. ВИЗНАЧЕННЯ ЕНДПОІНТІВ
+      switch (type) {
+        case 'reclamation':
+          endpoint = `/complaints/delete_complaint/${itemData.guid}/`;
+          break;
+        case 'additionalOrder':
+          // Точка на бек так само, як у рекламаціях (через GUID або ID)
+          endpoint = `/additional-orders/delete_order/${itemData.guid || itemData.id}/`;
+          break;
         case 'calculation':
           endpoint = `/calculations/${itemData.id}/delete/`;
           break;
@@ -46,23 +80,26 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
           return;
       }
 
-      await axiosInstance.post(endpoint);
+      // 4. ВИКЛИК API 
+      // Якщо дозамовлення працює через той же механізм, що й рекламації — використовуємо .delete()
+      if (type === 'reclamation' || type === 'additionalOrder') {
+        await axiosInstance.delete(endpoint);
+      } else {
+        await axiosInstance.post(endpoint);
+      }
 
       if (onDeleted) onDeleted(itemData.id);
 
-      addNotification(`${itemType} "${itemName}" успішно видалено ✅`, 'success'); // ✅ сповіщення про успіх
+      addNotification(`${itemType} "${itemName}" успішно видалено ✅`, 'success');
       onClose();
     } catch (error) {
       console.error('Помилка при видаленні:', error);
-      const msg = error.response?.data?.error || `Не вдалося видалити ${itemType}`;
-      addNotification(msg, 'error'); // ✅ сповіщення про помилку
+      const msg = error.response?.data?.error || error.response?.data?.detail || `Не вдалося видалити ${itemType}`;
+      addNotification(msg, 'error');
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content-square" onClick={(e) => e.stopPropagation()}>
         <div className="modal-border-top" />
@@ -82,10 +119,10 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
         </div>
         <div className="modal-footer">
           <button 
-            type="button" // Обов'язково додайте тип
+            type="button" 
             className="btn btn-grey-delete" 
             onClick={(e) => {
-              e.stopPropagation(); // Зупиняємо спливання події
+              e.stopPropagation();
               onClose();
             }}
           >

@@ -84,3 +84,39 @@ export const subscribeToPush = async () => {
         throw error;
     }
 };
+
+
+export const unsubscribeFromPush = async () => {
+    console.log("--- Спроба відписки від Push ---");
+    try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) return;
+
+
+        const subscription = await registration.pushManager.getSubscription();
+        
+        if (subscription) {
+
+            const subJson = subscription.toJSON();
+            
+            try {
+
+                await axiosInstance.post('/webpush/save_information/', {
+                    subscription: subJson,
+                    status: "false" 
+                });
+                console.log("Бекенд: підписку видалено");
+            } catch (apiError) {
+                console.warn("Не вдалося видалити підписку з сервера, але продовжуємо відписку в браузері", apiError);
+            }
+
+            const successful = await subscription.unsubscribe();
+            console.log("Браузер: відписка успішна?", successful);
+        }
+
+        return true;
+    } catch (error) {
+        console.error("Помилка при відписці:", error);
+        throw error;
+    }
+};

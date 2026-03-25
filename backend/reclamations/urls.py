@@ -10,7 +10,9 @@ urlpatterns = [
     path("<uuid:claim_guid>/files/", get_claim_files),
     path("media-token/", generate_media_token_view),
     path("<uuid:claim_guid>/files/preview/", preview_complaint_file),
-
+    path('delete_complaint/<uuid:reclamation_guid>/', 
+         ReclamationViewSet.as_view({'delete': 'destroy'}), 
+         name='delete_complaint'),
     # path('complaints-full/', GetComplaintsFullView.as_view(), name='complaints-full'),
     # path("<int:complaint_id>/photos/", get_complaint_photos, name="complaint-photos"),
 

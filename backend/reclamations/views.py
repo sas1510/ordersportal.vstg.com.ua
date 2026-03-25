@@ -423,47 +423,42 @@ class ReclamationViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    # --------------------------------------------------
-    # 🔁 Відправка у 1С
-    # --------------------------------------------------
-    def _send_to_1c(self, payload: dict) -> dict:
-        try:
-            auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
-            auth_b64 = base64.b64encode(
-                auth_raw.encode("utf-8")
-            ).decode("ascii")
 
-            response = requests.post(
-                settings.ONE_C_URL,
-                json=payload,
-                headers={
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Accept": "application/json",
-                    "Authorization": f"Basic {auth_b64}",
-                    "Query": "CreateReclamation",   # ❗ інший Query
+    def destroy(self, request, reclamation_guid=None):
+        """
+        Видалення рекламації (позначка на видалення в 1С)
+        DELETE /api/complaints/delete_complaint/<reclamation_guid>/
+        """
+        try:
+            # 1. Формуємо payload згідно з вашою вимогою
+            payload = {
+                "reclamationGuid": str(reclamation_guid)
+            }
+
+            # 2. Відправляємо запит у 1С з Query "MarkOnDeleteReclamation"
+            # Використовуємо вашу існуючу утиліту send_to_1c
+            result = send_to_1c("MarkOnDeleteReclamation", payload)
+
+            # 3. Повертаємо успішну відповідь фронтенду
+            return Response(
+                {
+                    "success": True,
+                    "message": "Рекламацію успішно позначено на видалення в 1С",
+                    "result": result
                 },
-                timeout=30,
-                verify=settings.ONE_C_VERIFY_SSL,
+                status=status.HTTP_200_OK
             )
 
-            response.raise_for_status()
-
-        except requests.exceptions.RequestException as e:
-            raise ValidationError({
-                "detail": "Помилка зʼєднання з 1С (Reclamation)",
-                "error": str(e),
-                "payload_sent_to_1c": payload,
-            })
-
-        try:
-            return response.json()
-
-        except ValueError:
-            raise ValidationError({
-                "detail": "1С повернула не JSON (Reclamation)",
-                "response_text": response.text,
-                "payload_sent_to_1c": payload,
-            })
+        except requests.RequestException as e:
+            return Response(
+                {"success": False, "error": f"Помилка зв'язку з 1С: {str(e)}"},
+                status=status.HTTP_502_BAD_GATEWAY
+            )
+        except Exception as e:
+            return Response(
+                {"success": False, "error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 
@@ -712,3 +707,7 @@ def preview_complaint_file(request, claim_guid):
 
     except Exception:
         return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+
+
+
+

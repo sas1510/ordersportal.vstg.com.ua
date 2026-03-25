@@ -65,6 +65,8 @@
     align-self: flex-end;
     background: #e3f2fd;
     border-bottom-right-radius: 2px;
+    border-left: none;
+    border-right: 4px solid var(--author-color);
     
 }
 

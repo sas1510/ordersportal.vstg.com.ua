@@ -88,6 +88,18 @@ export function getAccessToken() {
   return localStorage.getItem("access");
 }
 
+export const refreshAccessToken = async () => {
+  try {
+    const res = await axiosInstance.post("/token/refresh/", {}, { _retry: true });
+    const { access } = res.data;
+    setAccessToken(access);
+    return access;
+  } catch (err) {
+    if (logoutHandler) logoutHandler();
+    throw err;
+  }
+};
+
 export function setUser(user) {
   localStorage.setItem("user", JSON.stringify(user));
   localStorage.setItem("role", user.role || "");

@@ -276,3 +276,31 @@
         display: none;
     }
 }
+
+
+/* Кнопка вимкнення */
+.btn-unsubscribe-push {
+    background: transparent;
+    color: #888;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-unsubscribe-push:hover {
+    background: #fff0f0;
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.status-blocked {
+    display: flex;
+    align-items: center;
+    cursor: help;
+}

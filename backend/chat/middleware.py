@@ -14,8 +14,10 @@ logger = logging.getLogger(__name__)
 def get_user_from_jwt(token_key):
     try:
         token = AccessToken(token_key)
-        return User.objects.get(id=token['user_id'])
-    except (TokenError, User.DoesNotExist):
+        user = User.objects.get(id=token['user_id'])
+        return user
+    except Exception as e:
+        print(f"JWT AUTH ERROR: {str(e)}") # Це покаже чому саме (Expired, Invalid signature, etc)
         return None
 
 @database_sync_to_async

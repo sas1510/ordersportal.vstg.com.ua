@@ -208,6 +208,26 @@ from celery import current_app
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
+
+    @database_sync_to_async
+    def check_document_ownership(self, base_guid, t_type, user_contractor_bin):
+        from django.db import connection
+        try:
+            with connection.cursor() as cursor:
+                # Зверніть увагу на назви параметрів: @Guid та @TransactionType
+                cursor.execute("EXEC dbo.GetDocumentOwner @DocumentId=%s, @TransactionType=%s", [base_guid, t_type])
+                row = cursor.fetchone()
+                
+                if row:
+                    doc_owner_bin = row[0]
+      
+                    return doc_owner_bin == user_contractor_bin
+            return False
+        except Exception as e:
+            print(f"Ownership Error: {str(e)}")
+            return False
+        
+
     async def connect(self):
         self.user = self.scope.get("user")
         
@@ -396,8 +416,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             message_text = data.get('message')
             recipient_id_1c = data.get('recipient_guid')
-            
-            # 1. Парсимо метадані з chat_id
+
+            if not recipient_id_1c:
+                await self.send_error("Відсутній обов'язковий параметр: recipient_guid")
+                return
+
             try:
                 chat_parts = self.chat_id.split("_")
                 t_type = int(chat_parts[0])
@@ -406,8 +429,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             except (IndexError, ValueError, Exception):
                 await self.send_error("Некоректний формат chat_id")
                 return
+            
+            if getattr(self.user, 'role', '') == 'customer':
+                is_owner = await self.check_document_ownership(base_guid, t_type, self.contractor_bin)
+                if not is_owner:
+                    print(f"SECURITY: User {self.user.username} tried to post to chat {self.chat_id} belonging to another contractor!")
+                    await self.send_error("Доступ заборонено: Ви не є власником цього документа")
+                    return 
 
-            # 2. Визначаємо автора та отримувача (Binary)
+
             author_bin = self.contractor_bin if self.contractor_bin else (
                 guid_to_1c_bin(data.get('author_guid')) if data.get('author_guid') else None
             )
@@ -417,11 +447,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send_error("Порожнє повідомлення")
                 return
 
-            # 3. SQL дані
+
             doc_number = await self.sync_get_doc_number(base_guid, t_type)
             author_name = await self.sync_get_author_name(author_bin)
 
-            # 4. Зберігаємо ОСНОВНЕ повідомлення в історію
             saved_msg = await self.save_main_message(
                 message_text, base_guid, recipient_bin, t_type, author_bin
             )
@@ -430,26 +459,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send_error("Помилка збереження")
                 return
 
-            # 🔥 ПЕРЕВІРКА ОТРИМУВАЧА (ДИЛЕРА) 🔥
+
             if recipient_id_1c:
                 from users.models import CustomUser 
                 
-                # Шукаємо в БД порталу
+          
                 recipient_user = await database_sync_to_async(
                     lambda: CustomUser.objects.filter(user_id_1C=recipient_bin).first()
                 )()
 
-                # Перевіряємо роль ( customer = дилер)
+  
                 is_dealer = recipient_user and recipient_user.role == 'customer'
 
                 if is_dealer:
-                    # А) Створюємо запис сповіщення ТІЛЬКИ для дилера
+                    # Створюємо запис сповіщення ТІЛЬКИ для дилера
                     notify_text = f"Нове повідомлення у чаті №{doc_number} від {author_name}"
                     await self.create_notification_record(
                         notify_text, base_guid, recipient_bin, t_type, author_bin
                     )
 
-                    # Б) WebPush
+                    # WebPush
                     from backend.utils.tasks import send_webpush_notification
                     send_webpush_notification.delay(
                         recipient_id_1c=recipient_bin, 
@@ -457,14 +486,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         message=message_text[:100]
                     )
 
-                    # В) Telegram (через 10 хв)
+                    # Telegram (через 10 хв)
                     from backend.utils.tasks import check_and_send_telegram_notification
                     check_and_send_telegram_notification.apply_async(
                         args=[saved_msg.id, recipient_id_1c],
                         countdown=3600 
                     )
 
-                    # Г) WebSocket сигнал для дзвіночка
+                    # WebSocket сигнал для дзвіночка
                     notification_group = f"notify_{recipient_id_1c.lower()}"
                     await self.channel_layer.group_send(
                         notification_group,
@@ -496,7 +525,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             import traceback
             traceback.print_exc()
-            # ОСЬ ТУТ БУЛА ПОМИЛКА: переконайся, що цей рядок всередині async def receive
+        
             await self.send_error(f"Внутрішня помилка сервера: {str(e)}")
 
 
@@ -534,10 +563,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             types_map = {"1": "прорахунку", "2": "рекламації", "3": "дозамовленні"}
             type_name = types_map.get(str(transaction_type_id), "чаті")
 
-            # Формуємо текст сповіщення
-            notification_text = f"Нове повідомлення у {type_name} №{doc_number} від {author_name}"
 
-            # Оригінальне повідомлення
+            notification_text = f"Нове повідомлення у {type_name} № {doc_number} від {author_name}"
+
+
             chat_msg = ChatMessage.objects.create(
                 chat_id=self.chat_id,
                 author=author_bin,

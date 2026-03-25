@@ -2906,11 +2906,11 @@ def get_user_notifications(request):
     except (PermissionError, ValueError) as e:
         return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Отримуємо останні 20 сповіщень для визначеного контрагента
+  
     notifications_qs = ChatMessage.objects.filter(
         recipient=contractor_bin,
         is_notification=True
-    ).select_related('transaction_type').order_by('-timestamp')[:30]
+    ).select_related('transaction_type').order_by('-timestamp')[:100]
 
     result = []
     for msg in notifications_qs:
