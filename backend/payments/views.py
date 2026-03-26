@@ -87,6 +87,8 @@ def get_payment_status_view(request):
     date_from = parse_date(request.GET.get("date_from"), "date_from")
     date_to = parse_date(request.GET.get("date_to"), "date_to")
 
+    
+
     # -------------------------------------------------
     # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
     # -------------------------------------------------

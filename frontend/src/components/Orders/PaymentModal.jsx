@@ -1,10 +1,9 @@
 // =================== PaymentModal.jsx ===================
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axiosInstance from "../../api/axios";
 import "./PaymentModal.css";
 import { useNotification } from "../notification/Notifications.jsx";
-import { FaCheck, FaTimes } from 'react-icons/fa';
-
+import { FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
 
 export default function PaymentModal({
   order,
@@ -20,12 +19,17 @@ export default function PaymentModal({
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false); 
   const [loadError, setLoadError] = useState("");
   const { addNotification } = useNotification();
 
   const debt = useMemo(() => Number(order.DebtAmount || 0), [order]);
 
-  // ----------------- LOAD CONTRACTS INSIDE MODAL -----------------
+  // Пошук вибраного договору та доступної суми
+  const getSelected = useCallback(() => contracts.find((c) => c.Dogovor_ID === selectedContract), [contracts, selectedContract]);
+  const getAvailable = useCallback(() => Number(getSelected()?.DogovorSum || 0), [getSelected]);
+
+  // ----------------- LOAD CONTRACTS -----------------
   const loadContracts = async () => {
     setLoading(true);
     setLoadError("");
@@ -35,26 +39,21 @@ export default function PaymentModal({
       setContracts(data);
 
       if (data.length > 0) {
-        setSelectedContract(data[0].Dogovor_ID);
-        setPaymentAmount(data[0].DogovorSum);
+        const firstContract = data[0];
+        setSelectedContract(firstContract.Dogovor_ID);
+        
+        // 🔥 Перевірка першого договору: якщо 0, не підставляємо суму
+        const available = Number(firstContract.DogovorSum || 0);
+        if (available > 0) {
+          setPaymentAmount(available < debt ? available.toFixed(2) : debt.toFixed(2));
+        } else {
+          setPaymentAmount(""); // Залишаємо порожнім, щоб заблокувати кнопку
+        }
       }
     } catch (err) {
       console.error(err);
       setLoadError("Не вдалося завантажити дані про баланс.");
-
-      addNotification(
-        <div className="flex ai-center jc-space-between gap-5">
-          <span>Помилка завантаження договорів</span>
-          <button 
-            onClick={loadContracts} 
-            className="btn-notification-retry"
-          >
-            ПОВТОРИТИ
-          </button>
-        </div>,
-        "error",
-        10000
-      );
+      addNotification("Помилка завантаження договорів", "error");
     } finally {
       setLoading(false);
     }
@@ -64,16 +63,19 @@ export default function PaymentModal({
     loadContracts();
   }, []);
 
-  // --- допомога ---
-  const getSelected = () => contracts.find((c) => c.Dogovor_ID === selectedContract);
-  const getAvailable = () => Number(getSelected()?.DogovorSum || 0);
-
-  // --- авто-підстановка після вибору ---
+  // --- авто-підстановка та скидання помилок при зміні договору ---
   useEffect(() => {
-    if (!selectedContract) return;
+    if (!selectedContract || loading) return;
+    
+    setAmountError(""); // 🔥 Скидаємо попередження при зміні договору
+    
     const available = getAvailable();
-    setPaymentAmount(available < debt ? available : debt);
-  }, [selectedContract]);
+    if (available > 0) {
+        setPaymentAmount(available < debt ? available.toFixed(2) : debt.toFixed(2));
+    } else {
+        setPaymentAmount("");
+    }
+  }, [selectedContract, debt, getAvailable, loading]);
 
   const getMaxAllowed = () => {
     const available = getAvailable();
@@ -87,39 +89,56 @@ export default function PaymentModal({
       setPaymentAmount("");
       return;
     }
+
     const numericValue = Number(value);
     if (numericValue <= 0) {
-      setPaymentAmount("");
+      setPaymentAmount(value);
+      setAmountError("Сума має бути більшою за 0");
       return;
     }
-    const maxAllowed = selectedContract ? getMaxAllowed() : debt;
+
+    const maxAllowed = getMaxAllowed();
     if (numericValue > maxAllowed) {
       setAmountError(`Максимальна сума оплати — ${formatCurrency(maxAllowed)}`);
       setPaymentAmount(maxAllowed.toFixed(2));
       return;
     }
-    setPaymentAmount(numericValue);
+    setPaymentAmount(value);
+  };
+
+  // 🔥 Функція відправки з блокуванням
+  const handleConfirm = async () => {
+    if (isSubmitting || !paymentAmount || Number(paymentAmount) <= 0) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onConfirm(selectedContract, Number(paymentAmount));
+    } catch (err) {
+        console.error("Payment error:", err);
+    } finally {
+      setIsSubmitting(false); 
+    }
   };
 
   const set50percent = () => {
     const half = debt * 0.5;
     const available = getAvailable();
-    setPaymentAmount(available < half ? (available).toFixed(2) : half.toFixed(2));
+    setPaymentAmount(available < half ? available.toFixed(2) : half.toFixed(2));
+    setAmountError("");
   };
 
   const set100percent = () => {
     const available = getAvailable();
-    setPaymentAmount(available < debt ? (available).toFixed(2) : debt.toFixed(2));
+    setPaymentAmount(available < debt ? available.toFixed(2) : debt.toFixed(2));
+    setAmountError("");
   };
-
-  // ---------------- RENDER ----------------
 
   return (
     <div className="pay-modal-overlay">
       <div className="pay-modal-window">
         <div className="pay-modal-header">
           <h3>Оплата замовлення № {order.OrderNumber}</h3>
-          <span className="icon icon-cross pay-close-btn" onClick={onClose}></span>
+          <span className="icon icon-cross pay-close-btn" onClick={!isSubmitting ? onClose : null}></span>
         </div>
 
         <div className="pay-modal-body">
@@ -132,9 +151,7 @@ export default function PaymentModal({
             <div className="pay-modal-status-centered error-state">
               <span className="icon icon-warning font-size-32 text-red"></span>
               <p>{loadError}</p>
-              <button className="pay-btn-retry-large" onClick={loadContracts}>
-                 Спробувати ще раз
-              </button>
+              <button className="pay-btn-retry-large" onClick={loadContracts}>Спробувати ще раз</button>
             </div>
           ) : (
             <>
@@ -146,8 +163,8 @@ export default function PaymentModal({
                 <span>Авансовий договір:</span>
                 <div className="custom-dropdown">
                   <div
-                    className={`dropdown-selected ${selectedContract ? "active" : ""}`}
-                    onClick={() => setDropdownOpen((prev) => !prev)}
+                    className={`dropdown-selected ${selectedContract ? "active" : ""} ${isSubmitting ? "disabled" : ""}`}
+                    onClick={() => !isSubmitting && setDropdownOpen((prev) => !prev)}
                   >
                     <span>
                       {selectedContract ? getSelected()?.Dogovor_Name : "Оберіть договір"}
@@ -155,12 +172,12 @@ export default function PaymentModal({
                     <span className="dropdown-arrow">{dropdownOpen ? "▲" : "▼"}</span>
                   </div>
 
-                  {dropdownOpen && (
+                  {dropdownOpen && !isSubmitting && (
                     <div className="dropdown-menu">
                       {contracts.map((c) => (
                         <div
                           key={c.Dogovor_ID}
-                          className="dropdown-item"
+                          className={`dropdown-item ${Number(c.DogovorSum) <= 0 ? "zero-balance" : ""}`}
                           onClick={() => {
                             setSelectedContract(c.Dogovor_ID);
                             setDropdownOpen(false);
@@ -177,41 +194,76 @@ export default function PaymentModal({
 
               {selectedContract && (
                 <div className="pay-available">
-                  Доступно: <strong>{formatCurrency(getAvailable())}</strong>
+                  Доступно: <strong className={getAvailable() <= 0 ? "text-red" : ""}>{formatCurrency(getAvailable())}</strong>
                 </div>
               )}
 
-              {selectedContract && (
+              {selectedContract && getAvailable() > 0 && (
                 <div className="quick-buttons centered">
-                  <button onClick={set50percent}>50%</button>
-                  <button onClick={set100percent}>100%</button>
+                  <button onClick={set50percent} disabled={isSubmitting}>50%</button>
+                  <button onClick={set100percent} disabled={isSubmitting}>100%</button>
                 </div>
               )}
 
               <label className="pay-label">
                 <span>Сума оплати:</span>
                 <input
-                  type="number"
-                  value={paymentAmount}
-                  onChange={(e) => handleAmountChange(e.target.value)}
-                  className={`pay-input ${amountError ? "input-error" : ""}`}
-                />
+  type="number"
+  min="0.01" //
+  step="1"
+  disabled={isSubmitting || getAvailable() <= 0}
+  value={paymentAmount}
+  
+  // 1. Блокуємо натискання мінуса, "e" та інших символів
+  onKeyDown={(e) => {
+    if (["-", "e", "E", "+"].includes(e.key)) {
+      e.preventDefault();
+    }
+  }}
+
+  // 2. Обробляємо зміну (в тому числі вставку тексту)
+  onChange={(e) => {
+    let val = e.target.value;
+    
+    // Якщо користувач вставив щось некоректне або від'ємне
+    if (Number(val) < 0) {
+      val = ""; // Або можна Math.abs(val), але краще просто не пускати
+    }
+    
+    handleAmountChange(val);
+  }}
+  className={`pay-input ${amountError ? "input-error" : ""}`}
+/>
               </label>
 
               {amountError && <div className="pay-error">{amountError}</div>}
+              {selectedContract && getAvailable() <= 0 && (
+                <div className="pay-error">На вибраному договорі недостатньо коштів</div>
+              )}
             </>
           )}
         </div>
 
         <div className="pay-modal-footer">
-          <button className="pay-btn-cancel" onClick={onClose}> <FaTimes size={16} color="#fff" />  Скасувати</button>
+          <button 
+            className="pay-btn-cancel" 
+            onClick={onClose} 
+            disabled={isSubmitting}
+          > 
+            <FaTimes size={16} color="#fff" /> Скасувати
+          </button>
+          
           <button
             className="pay-btn-confirm"
-            disabled={loading || !!loadError || !paymentAmount || !!amountError}
-            onClick={() => onConfirm(selectedContract, Number(paymentAmount))}
+            disabled={loading || isSubmitting || !paymentAmount || Number(paymentAmount) <= 0 || !!amountError || !selectedContract}
+            onClick={handleConfirm}
           >
-            <FaCheck size={16} color="#fff" />
-            Оплатити
+            {isSubmitting ? (
+              <FaSpinner className="spinner-icon spinning" size={16} /> 
+            ) : (
+              <FaCheck size={16} color="#fff" />
+            )}
+            {isSubmitting ? " Оплата..." : " Оплатити"}
           </button>
         </div>
       </div>

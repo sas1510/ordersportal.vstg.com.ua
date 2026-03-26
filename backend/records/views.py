@@ -182,15 +182,28 @@ def complaints_view(request):
 
     # 3. Шукаємо унікальні ID рекламацій, де є непрочитані повідомлення від менеджера
     # Виключаємо повідомлення, написані самим дилером
+    # unread_complaint_bins = set(
+    #     Message.objects.filter(
+    #         base_transaction_id__in=complaint_bins,
+    #         is_read=False
+    #     )
+    #     .exclude(writer_id=contractor_bin)
+    #     .values_list('base_transaction_id', flat=True)
+    #     .distinct()
+    # )
+
+
     unread_complaint_bins = set(
-        Message.objects.filter(
-            base_transaction_id__in=complaint_bins,
-            is_read=False
+        ChatMessage.objects.filter(
+            related_object_id__in=complaint_bins,
+            is_read=False,
+            is_notification=False
         )
-        .exclude(writer_id=contractor_bin)
-        .values_list('base_transaction_id', flat=True)
+        .exclude(author=contractor_bin)
+        .values_list("related_object_id", flat=True)
         .distinct()
     )
+
 
     # 4. Обробка рядків та "збагачення" статусом повідомлень
     for row in rows:
@@ -416,12 +429,13 @@ def api_get_orders(request):
     ]
 
     unread_calc_bins = set(
-        Message.objects.filter(
-            base_transaction_id__in=calc_bins,
-            is_read=False
+        ChatMessage.objects.filter(
+            related_object_id__in=calc_bins,
+            is_read=False,
+            is_notification=False
         )
-        .exclude(writer_id=contractor_bin)
-        .values_list("base_transaction_id", flat=True)
+        .exclude(author=contractor_bin)
+        .values_list("related_object_id", flat=True)
         .distinct()
     )
 
@@ -505,15 +519,27 @@ def additional_orders_view(request):
             if r.get("AdditionalOrderGuid")
         ]
 
+    # unread_additional_orders = set(
+    #     Message.objects.filter(
+    #         base_transaction_id__in=additional_order_bins,
+    #         is_read=False
+    #     )
+    #     .exclude(writer_id=contractor_bin)
+    #     .values_list("base_transaction_id", flat=True)
+    #     .distinct()
+    # )
+
     unread_additional_orders = set(
-        Message.objects.filter(
-            base_transaction_id__in=additional_order_bins,
-            is_read=False
+        ChatMessage.objects.filter(
+            related_object_id__in=additional_order_bins,
+            is_read=False,
+            is_notification=False
         )
-        .exclude(writer_id=contractor_bin)
-        .values_list("base_transaction_id", flat=True)
+        .exclude(author=contractor_bin)
+        .values_list("related_object_id", flat=True)
         .distinct()
     )
+
 
 
     # -------------------------------------------------
