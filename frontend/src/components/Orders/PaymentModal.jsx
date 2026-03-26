@@ -208,32 +208,32 @@ export default function PaymentModal({
               <label className="pay-label">
                 <span>Сума оплати:</span>
                 <input
-  type="number"
-  min="0.01" //
-  step="1"
-  disabled={isSubmitting || getAvailable() <= 0}
-  value={paymentAmount}
-  
-  // 1. Блокуємо натискання мінуса, "e" та інших символів
-  onKeyDown={(e) => {
-    if (["-", "e", "E", "+"].includes(e.key)) {
-      e.preventDefault();
-    }
-  }}
+                    type="number"
+                    min="0.01" //
+                    step="1"
+                    disabled={isSubmitting || getAvailable() <= 0}
+                    value={paymentAmount}
+                    
+                    // 1. Блокуємо натискання мінуса, "e" та інших символів
+                    onKeyDown={(e) => {
+                      if (["-", "e", "E", "+"].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
 
-  // 2. Обробляємо зміну (в тому числі вставку тексту)
-  onChange={(e) => {
-    let val = e.target.value;
-    
-    // Якщо користувач вставив щось некоректне або від'ємне
-    if (Number(val) < 0) {
-      val = ""; // Або можна Math.abs(val), але краще просто не пускати
-    }
-    
-    handleAmountChange(val);
-  }}
-  className={`pay-input ${amountError ? "input-error" : ""}`}
-/>
+                    // 2. Обробляємо зміну (в тому числі вставку тексту)
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      
+                      // Якщо користувач вставив щось некоректне або від'ємне
+                      if (Number(val) < 0) {
+                        val = ""; // Або можна Math.abs(val), але краще просто не пускати
+                      }
+                      
+                      handleAmountChange(val);
+                    }}
+                    className={`pay-input ${amountError ? "input-error" : ""}`}
+                  />
               </label>
 
               {amountError && <div className="pay-error">{amountError}</div>}

@@ -944,7 +944,7 @@ useEffect(() => {
         };
     }, [addNotification]);
 
-    
+
     /* ================= UI LOGIC ================= */
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showFinanceMenu, setShowFinanceMenu] = useState(false);
@@ -1061,6 +1061,11 @@ useEffect(() => {
                                         <i className="fa fa-bell material-icons" style={{ color: theme === "light" ? "#f4ffaf" : "#ffc107", fontSize: '18px', fontStyle: 'normal' }}></i>
                                         {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
                                     </div>
+                                </li>
+                                <li className="theme-toggle-item">
+                                    <button className="theme-toggle-btn" onClick={toggleTheme} title="Перемкнути тему">
+                                        <i className="material-icons" style={{ color: theme === "light" ? "#f4ffaf" : "#ffc107", fontSize: '20px', fontStyle: 'normal' }}>{theme === "light" ? "brightness_3" : "wb_sunny"}</i>
+                                    </button>
                                 </li>
                                 <li className="logout-item"><button className="menu-link logout-icon" onClick={() => { logout(); navigate("/home"); }}> <i className="fa fa-sign-out-alt"></i></button></li>
                             </ul>

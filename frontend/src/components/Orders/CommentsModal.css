@@ -1,3 +1,32 @@
+:root {
+    --chat-bg: #f0f2f5;
+    --modal-bg: #ffffff;
+    --text-main: #333333;
+    --text-muted: #999999;
+    --border-color: #eeeeee;
+    --input-bg: #f5f5f5;
+    --comment-mine-bg: #e3f2fd;
+    --comment-other-bg: #ffffff;
+    --header-text: #333333;
+    --author: #444;
+    --border-color-2: #e0e0e0;
+}
+
+/* Змінні для темної теми */
+.dark-theme {
+    --chat-bg: #232323;
+    --modal-bg: #2d2d2d;
+    --text-main: #e0e0e0;
+    --text-muted: #888888;
+    --border-color: #404040;
+    --input-bg: #3d3d3d;
+    --comment-mine-bg: #1e3a5f; /* Темно-синій для своїх */
+    --comment-other-bg: #3d3d3d; /* Темно-сірий для чужих */
+    --header-text: #ffffff;
+    --author: #ccc;
+    --border-color-2: #888888;
+}
+
 /* Базові налаштування модалки */
 .comments-modal-overlay {
     position: fixed;
@@ -8,7 +37,7 @@
 }
 
 .comments-modal-window {
-    background: #fff;
+    background: var(--modal-bg);
     width: 95%;
     max-width: 500px;
     height: 80vh;
@@ -24,16 +53,16 @@
     padding: 15px 20px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
     border-top: 5px solid #76b448;
 }
 
 .comments-modal-header h3 {
-    margin: 0; flex-grow: 1; font-size: 18px; color: #333;
+    margin: 0; flex-grow: 1; font-size: 18px; color: var(--text-main);
 }
 
 .comments-close-x {
-    font-size: 28px; color: #999; cursor: pointer; line-height: 1;
+    font-size: 28px; color: var(--text-muted); cursor: pointer; line-height: 1;
 }
 
 /* Body (Messages) */
@@ -41,7 +70,7 @@
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
-    background: #f0f2f5;
+    background: var(--chat-bg);
     display: flex;
     flex-direction: column;
 }
@@ -63,7 +92,7 @@
 
 .comment-right {
     align-self: flex-end;
-    background: #e3f2fd;
+    background: var(--comment-mine-bg);
     border-bottom-right-radius: 2px;
     border-left: none;
     border-right: 4px solid var(--author-color);
@@ -72,7 +101,7 @@
 
 .comment-left {
     align-self: flex-start;
-    background: #fff;
+    background: var(--comment-other-bg);
     border-bottom-left-radius: 2px;
 }
 
@@ -81,25 +110,25 @@
     font-size: 11px; margin-bottom: 4px; gap: 10px;
 }
 
-.comments-author { color: #444; }
-.comments-date { color: #999; }
-.comments-text { font-size: 14px; line-height: 1.4; color: #222; }
+.comments-author { color: var(--author); }
+.comments-date { color: var(--text-muted); }
+.comments-text { font-size: 14px; line-height: 1.4; color: var(--text-main); }
 
 /* Form Container (Bottom) */
 .comments-form-container {
     padding: 15px;
-    background: #fff;
-    border-top: 1px solid #eee;
+    background: var(--modal-bg);
+    border-top: 1px solid var(--border-color);
 }
 
 .textarea-wrapper {
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    background: #f5f5f5;
+    background: var(--input-bg);
     border-radius: 24px;
     padding: 8px 12px 8px 18px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color-2);
 }
 
 .textarea-wrapper textarea {

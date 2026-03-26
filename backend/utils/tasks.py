@@ -374,7 +374,25 @@ def run_order_reminder_cron():
         if not items: continue
 
 
+        base_url = "https://ordersportal.vstg.com.ua"
+        current_year = timezone.now().year
+
+
+
         for item in items:
+
+
+            path = '/orders'
+            if "Рекл" in item['src_type']: path = '/complaints'
+            elif "Доз" in item['src_type']: path = '/additional-orders'
+
+         
+            order_link = f"{base_url}{path}?search={item['order_num']}&year={current_year}"
+            
+
+            item['text_tg_row'] = f"• <a href='{order_link}'>{item['src_type']} №{item['order_num']}</a> ({item['status']}) — {item['time_label']}"
+
+
             guid_str = bin_to_guid_1c(item['order_guid'])
             t_id = 2 if "Рекл" in item['src_type'] else (3 if "Доз" in item['src_type'] else 1)
             
