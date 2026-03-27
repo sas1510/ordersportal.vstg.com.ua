@@ -513,7 +513,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://172.17.19.107',
     'http://localhost',
     'http://127.0.0.1',
-    'http://ordersportal.vstg.com.ua'
+    'https://ordersportal.vstg.com.ua'
 
 ]
 
