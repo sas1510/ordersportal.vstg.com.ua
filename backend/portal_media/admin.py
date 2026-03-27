@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from .models import MediaResource
 
 class MediaResourceForm(forms.ModelForm):
-    # Додаємо тимчасове поле для вибору файлу з комп'ютера
+
     upload_file = forms.FileField(
         required=False, 
         label="Завантажити файл",
@@ -19,10 +19,10 @@ class MediaResourceForm(forms.ModelForm):
         instance = super().save(commit=False)
         uploaded_file = self.cleaned_data.get('upload_file')
         
-        # Якщо файл завантажено, перетворюємо його в бінарні дані
+  
         if uploaded_file:
             instance.file_data = uploaded_file.read()
-            # Автоматично підставляємо розширення, якщо воно не вказане
+      
             if not instance.file_extension:
                 instance.file_extension = uploaded_file.name.split('.')[-1]
         
@@ -36,7 +36,7 @@ class MediaResourceAdmin(admin.ModelAdmin):
     list_display = ('title', 'resource_type', 'author', 'created_at', 'get_file_info')
     list_filter = ('resource_type', 'created_at')
     
-    # Додаємо file_data у readonly_fields, щоб уникнути FieldError
+
     readonly_fields = ('created_at', 'file_data')
 
     fieldsets = (

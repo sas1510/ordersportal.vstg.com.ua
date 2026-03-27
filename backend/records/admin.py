@@ -35,20 +35,20 @@ class TransactionFileAdmin(admin.ModelAdmin):
         return get_hex_from_binary(obj.base_transaction_id)
     get_base_id.short_description = "Base Transaction ID"
 
-@admin.register(Message)
-class MessageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'transaction_type', 'get_author_id', 'message_excerpt', 'is_read', 'created_at')
-    list_filter = ('transaction_type', 'is_read', 'is_send')
-    search_fields = ('message',)
-    readonly_fields = ('created_at',)
+# @admin.register(Message)
+# class MessageAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'transaction_type', 'get_author_id', 'message_excerpt', 'is_read', 'created_at')
+#     list_filter = ('transaction_type', 'is_read', 'is_send')
+#     search_fields = ('message',)
+#     readonly_fields = ('created_at',)
 
-    def message_excerpt(self, obj):
-        return obj.message[:50] + "..." if len(obj.message) > 50 else obj.message
-    message_excerpt.short_description = "Текст повідомлення"
+#     def message_excerpt(self, obj):
+#         return obj.message[:50] + "..." if len(obj.message) > 50 else obj.message
+#     message_excerpt.short_description = "Текст повідомлення"
 
-    def get_author_id(self, obj):
-        return get_hex_from_binary(obj.writer_id)
-    get_author_id.short_description = "Writer ID (HEX)"
+#     def get_author_id(self, obj):
+#         return get_hex_from_binary(obj.writer_id)
+#     get_author_id.short_description = "Writer ID (HEX)"
 
 @admin.register(UserDashboardConfig)
 class UserDashboardConfigAdmin(admin.ModelAdmin):
@@ -56,15 +56,15 @@ class UserDashboardConfigAdmin(admin.ModelAdmin):
     list_filter = ('layout_name',)
     search_fields = ('user__username', 'layout_name')
 
-@admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'event_type', 'get_base_id', 'is_read', 'created_at')
-    list_filter = ('event_type', 'is_read', 'transaction_type')
-    search_fields = ('message', 'user__username')
+# @admin.register(Notification)
+# class NotificationAdmin(admin.ModelAdmin):
+#     list_display = ('id', 'user', 'event_type', 'get_base_id', 'is_read', 'created_at')
+#     list_filter = ('event_type', 'is_read', 'transaction_type')
+#     search_fields = ('message', 'user__username')
     
-    def get_base_id(self, obj):
-        return get_hex_from_binary(obj.base_transaction_id)
-    get_base_id.short_description = "Base ID"
+#     def get_base_id(self, obj):
+#         return get_hex_from_binary(obj.base_transaction_id)
+#     get_base_id.short_description = "Base ID"
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
