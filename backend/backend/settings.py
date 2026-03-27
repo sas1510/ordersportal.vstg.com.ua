@@ -513,9 +513,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://172.17.19.107',
     'http://localhost',
     'http://127.0.0.1',
+    'http://ordersportal.vstg.com.ua'
+
 ]
 
 
 # settings.py
 
-ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
