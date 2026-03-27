@@ -419,11 +419,11 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                             </div>
                         )}
 
-                        {unreadCount > 0 && (
-                            <button onClick={handleMarkAllRead} className="btn-mark-read" title="Позначити всі як прочитані">
+                        {/* {unreadCount > 0 && ( */}
+                            <button onClick={handleMarkAllRead} className="btn-mark-read" title="Позначити всі як прочитані" disabled={unreadCount === 0}>
                                 <FaCheckDouble size={14} /> 
                             </button>
-                        )}
+                        {/* )} */}
                         <button className="close-btn" onClick={onClose}><FaTimes /></button>
                     </div>
                 

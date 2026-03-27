@@ -488,6 +488,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
 
                 t_type_for_notification = pages_map_for_notification.get(t_type, "orders")
+                # recipient_role = recipient_user.role if recipient_user else 'unknown'
+
+                from backend.utils.tasks import check_and_send_telegram_notification
+                check_and_send_telegram_notification.apply_async(
+                    args=[saved_msg.id, recipient_id_1c, t_type, doc_number, is_dealer],
+                    countdown=6
+                )
 
                 if is_dealer:
                     # Створюємо запис сповіщення ТІЛЬКИ для дилера
@@ -512,11 +519,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
 
 
-                    from backend.utils.tasks import check_and_send_telegram_notification
-                    check_and_send_telegram_notification.apply_async(
-                        args=[saved_msg.id, recipient_id_1c, t_type, doc_number],
-                        countdown=600
-                    )
+                    # from backend.utils.tasks import check_and_send_telegram_notification
+                    # check_and_send_telegram_notification.apply_async(
+                    #     args=[saved_msg.id, recipient_id_1c, t_type, doc_number],
+                    #     countdown=6
+                    # )
 
        
                     notification_group = f"notify_{recipient_id_1c.lower()}"

@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 // --- НОВИЙ ІМПОРТ ---
 import ConfirmModal from "./ConfirmModal"; 
-import OrderFilesModal from "./OrderFilesModal"; // 🔥 ІМПОРТ МОДАЛКИ ФАЙЛІВ
+import OrderFilesModal from "./OrderFilesModal"; 
 // --------------------
 import OrderDetailsDesktop from './OrderDetailsDesktop';
 import { formatMoney } from "../../utils/formatMoney";

@@ -255,58 +255,82 @@ def send_webpush_notification(recipient_id_1c, title, message):
         return f"WebPush error: {str(e)}"
 
 
+
 @shared_task(name='check_and_send_telegram_notification')
-def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type, doc_number):
+def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type, doc_number, is_dealer):
     from records.models import ChatMessage
+    from django.conf import settings
+    import os
+    import requests
+    
     try:
         msg = ChatMessage.objects.get(id=message_id)
+        # Якщо повідомлення вже прочитане — нічого не шлемо
         if msg.is_read:
             return "Already read"
 
         recipient_bin = guid_to_1c_bin(recipient_guid_str)
         telegram_id = None
 
-
-        pages_map = {
-            1: "orders",
-            2: "complaints",
-            3: "additional-orders" 
-        }
-
-        page = pages_map.get(t_type, "orders")
-
-        direct_link = f"{settings.FRONTEND_URL}/{page}"
-
-        
-        pages_map_for_message = {
+        # 1. Визначаємо назву типу документа для тексту
+        document_names = {
             1: "прорахунку",
             2: "рекламації",
             3: "дозамовленні" 
         }
+        document_type = document_names.get(t_type, "замовленні")
+        
+        # 2. Логіка формування посилання (ТІЛЬКИ для дилера)
+        link_html = ""
+        if is_dealer:
+            pages_map = {
+                1: "orders",
+                2: "complaints",
+                3: "additional-orders" 
+            }
+            page = pages_map.get(t_type, "orders")
+            doc_year = msg.timestamp.year
+            # Формуємо URL
+            direct_link = f"{settings.FRONTEND_URL}{page}?search={doc_number}&year={doc_year}"
+            link_html = f"\n\n🔗 <a href='{direct_link}'>Перейти до документа</a>"
 
-        document_type = pages_map_for_message.get(t_type, "orders")
-        
-        # text = (
-        #     f"🔔 *Нове повідомлення!*\\n"
-        #     f"Від: {msg.author_name}\\n"
-        #     f"Текст: {msg.text[:50]}..."
-        # )
-        
+        # 3. Отримуємо Telegram ID з бази
         with connection.cursor() as cursor:
             cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [recipient_bin])
             row = cursor.fetchone()
-            if row: telegram_id = row[1]
+            if row: 
+                telegram_id = row[1]
 
         token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
+        
         if telegram_id and token:
-            text = f"🔔 <b>Непрочитане повідомлення!</b>\n    В {document_type} №{doc_number}.\n 🔗 <a href='{direct_link}'>Перейти в кабінет</a>"
-            # text = f"🔔 <b>Непрочитане повідомлення!</b>\nВ {document_type} №{doc_number}:\n<i>\"{msg.text[:150]}\"</i>\n 🔗 <a href='{direct_link}'>Перейти в кабінет</a>"
-            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
-                "chat_id": telegram_id, "text": text, "parse_mode": "HTML"
-            })
-            return f"Sent to TG {telegram_id}"
+
+            text = (
+                f"🔔 <b>Непрочитане повідомлення!</b>\n"
+                f"У {document_type} <b>№{doc_number}</b>.\n\n"
+                f"<i>\"{msg.text}...\"</i>"
+                f"{link_html}"
+            )
+
+            requests.post(
+                f"https://api.telegram.org/bot{token}/sendMessage", 
+                json={
+                    "chat_id": telegram_id, 
+                    "text": text, 
+                    "parse_mode": "HTML",
+                    "disable_web_page_preview": True 
+                },
+                timeout=10
+            )
+            return f"Sent to TG {telegram_id} (Dealer: {is_dealer})"
+            
+        return "No telegram_id or token found"
+
+    except ChatMessage.DoesNotExist:
+        return "Message not found"
     except Exception as e:
         return str(e)
+
 
 
 from dotenv import load_dotenv

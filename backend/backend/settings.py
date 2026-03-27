@@ -486,6 +486,8 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 
+
+
 # Дозволяємо Origin: null (специфічно для локальних файлів)
 CORS_ALLOW_ALL_ORIGINS = True  # Тимчасово для тесту, щоб переконатися що справа в цьому
 
@@ -503,3 +505,17 @@ CORS_ALLOW_HEADERS = [
     "x-api-key",  # Ваш API KEY заголовок
     "x-csrftoken",
 ]
+
+# settings.py
+
+# Додайте IP вашого сервера
+CSRF_TRUSTED_ORIGINS = [
+    'http://172.17.19.107',
+    'http://localhost',
+    'http://127.0.0.1',
+]
+
+
+# settings.py
+
+ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1']

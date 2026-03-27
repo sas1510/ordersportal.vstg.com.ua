@@ -304,3 +304,22 @@
     align-items: center;
     cursor: help;
 }
+
+
+.btn-mark-read:hover:not(:disabled) {
+    background: var(--input-bg);
+    color: #76b448; /* Колір бренду при наведенні */
+}
+
+/* Стиль для вимкненої кнопки */
+.btn-mark-read:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* В темній темі disabled має бути ще менш контрастним */
+.dark-theme .btn-mark-read:disabled {
+    color: #555;
+    border-color: #333;
+}
