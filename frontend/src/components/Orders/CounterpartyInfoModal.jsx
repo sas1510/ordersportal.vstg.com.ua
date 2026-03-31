@@ -1,9 +1,27 @@
-import React from "react";
+import React, {useEffect } from "react";
 import { FaTimes, FaUserAlt, FaPhone, FaMapMarkerAlt, FaUser, FaStickyNote  } from "react-icons/fa";
 import "./CounterpartyInfoModal.css";
 
 const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
   if (!isOpen || !data) return null;
+
+
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('keydown', handleEsc);
+    }
+
+    // Очищуємо слухач при закритті модалки або демонтажі компонента
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen, onClose]);
 
   return (
     <div className="counterparty-modal-overlay" onClick={onClose}>

@@ -27,6 +27,22 @@ export default function CreateCustomerBillModal({
   if (!isOpen) return null;
 
 
+  useEffect(() => {
+      const handleEsc = (event) => {
+        if (event.key === "Escape") onClose();
+      };
+  
+      window.addEventListener("keydown", handleEsc);
+      document.body.style.overflow = "hidden";
+  
+      return () => {
+        window.removeEventListener("keydown", handleEsc);
+        document.body.style.overflow = "";
+      };
+    }, [onClose]);
+    
+
+
   const { addNotification } = useNotification();
   const [step, setStep] = useState(STEPS.BASE);
 

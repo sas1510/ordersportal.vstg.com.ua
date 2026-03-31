@@ -51,6 +51,25 @@ export default function AddClaimModal({
 
   const fileInputRef = useRef(null);
 
+
+
+useEffect(() => {
+  const handleEsc = (event) => {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  };
+
+  if (isOpen) {
+    window.addEventListener('keydown', handleEsc);
+  }
+
+  // Очищуємо слухач при закритті модалки або демонтажі компонента
+  return () => {
+    window.removeEventListener('keydown', handleEsc);
+  };
+}, [isOpen, onClose]);
+
   /* =========================
       🔒 Lock scroll
      ========================= */

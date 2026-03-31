@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect } from 'react';
 import { FaExclamationTriangle, FaCheck, FaTimes } from 'react-icons/fa';
 import './ConfirmModal.css';
 
@@ -14,6 +14,25 @@ const ConfirmModal = ({
 }) => {
   
   if (!isOpen) return null;
+
+
+
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('keydown', handleEsc);
+    }
+
+    // Очищуємо слухач при закритті модалки або демонтажі компонента
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen, onClose]);
 
   const handleConfirm = () => {
     if (onConfirm) onConfirm();

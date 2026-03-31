@@ -59,6 +59,16 @@ export default function PaymentModal({
     }
   };
 
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && !isSubmitting) onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose, isSubmitting]);
+
+
   useEffect(() => {
     loadContracts();
   }, []);

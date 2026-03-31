@@ -230,11 +230,11 @@ body.dark-theme  .btn-bill-download:hover {
 
 
 .btn-create-bill {
-  height: 36px;
+  height: 40px;
   padding: 0 16px;
   background-color: var(--success-color);
   color: #fff;
-  border-radius: 4px;
+  border-radius: 5px;
   border: none;
   cursor: pointer;
   transition: all 0.25s ease;

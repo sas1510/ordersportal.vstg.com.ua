@@ -32,6 +32,22 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
   /* =========================
      LOAD FILES
   ========================= */
+useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+  
+
+
   useEffect(() => {
     if (!orderGuid) return;
 
