@@ -250,7 +250,7 @@
     border: 1px solid #90caf9;
     color: #1976d2;
     padding: 4px 10px;
-    border-radius: 6px;
+    border-radius: 3px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -284,7 +284,7 @@
     color: #888;
     border: 1px solid #ddd;
     padding: 5px 10px;
-    border-radius: 6px;
+    border-radius: 3px;
     display: flex;
     align-items: center;
     gap: 5px;
@@ -322,4 +322,47 @@
 .dark-theme .btn-mark-read:disabled {
     color: #555;
     border-color: #333;
+}
+
+
+
+.drawer-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.drawer-filters {
+    display: flex;
+    gap: 8px; /* Відстань між кнопками */
+    padding-bottom: 4px;
+    justify-content: space-between;
+    border-bottom: 1px dashed var(--drawer-header-border);
+    width: 100%; /* Гарантуємо, що контейнер на всю ширину */
+}
+
+.filter-btn {
+    flex: 1; /* КРИТИЧНО: змушує всі кнопки ділити простір порівну */
+    background: transparent;
+    color: #888;
+    border: 1px solid #ddd;
+    padding: 5px 10px; /* Трохи збільшив вертикальний паддінг для зручності */
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Центруємо текст/іконку всередині кнопки */
+    gap: 5px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap; /* Щоб текст не переносився на новий рядок */
+}
+
+.filter-btn:hover {
+    background: #e4e6eb;
+}
+
+.filter-btn.active {
+    background: var(--info-color);
+    border-color: var(--info-color); /* Щоб рамка теж стала колірна */
+    color: white;
 }

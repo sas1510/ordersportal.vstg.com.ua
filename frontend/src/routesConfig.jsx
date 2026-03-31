@@ -49,6 +49,7 @@ import InvalidLinkPage from './pages/InvalidLinkPage'
 import ProductionStatisticsPage from './pages/ProductionStatisticsPage'
 import DashboardPage from "./pages/DashboardPage";
 import NotificationPage from './pages/NotificationPage'
+import ManagerQrDropdown from './pages/ManagerQrDropdown'
 
 
 
@@ -93,6 +94,7 @@ export const adminRoutes = [
  { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
    { path: "dashboardpage", element: <DashboardPage/> },
    { path: "notifications", element: <NotificationPage/> },
+   { path: "manager-qr", element: <ManagerQrDropdown/> },
 
 
 

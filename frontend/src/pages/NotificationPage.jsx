@@ -258,7 +258,7 @@
 // export default NotificationDrawer;
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { 
@@ -274,6 +274,8 @@ import { subscribeToPush, unsubscribeFromPush } from '../utils/useWebPush';
 const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, unreadCount, setUnreadCount }) => {
     const [loading] = useState(false);
 
+    const [filter, setFilter] = useState('ALL');
+
     const [permissionStatus, setPermissionStatus] = useState(
         window.Notification ? window.Notification.permission : 'default'
     );
@@ -283,6 +285,18 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
     const navigate = useNavigate();
 
     const { addNotification } = useNotification();
+
+    const filteredNotifications = useMemo(() => {
+        if (filter === 'MESSAGES') {
+            return notifications.filter(n => 
+                n.eventType === 'NEW_CHAT_MESSAGE' || n.eventType === 'NEW_MESSAGE'
+            );
+        }
+        if (filter === 'REMINDERS') {
+            return notifications.filter(n => n.eventType === 'ORDER_STUCK_REMINDER');
+        }
+        return notifications;
+    }, [notifications, filter]);
 
 
 
@@ -361,6 +375,9 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
         document.body.style.overflow = isOpen ? 'hidden' : 'unset';
     }, [isOpen]);
 
+
+
+
     const getIcon = (type) => {
         switch (type) {
             case 'NEW_CHAT_MESSAGE': 
@@ -426,16 +443,39 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                         {/* )} */}
                         <button className="close-btn" onClick={onClose}><FaTimes /></button>
                     </div>
+
+                    {/* БЛОК ФІЛЬТРІВ */}
+                    
                 
                 </div>
+                <div className="drawer-filters">
+                        <button 
+                            className={`filter-btn ${filter === 'ALL' ? 'active' : ''}`} 
+                            onClick={() => setFilter('ALL')}
+                        >
+                            Усі
+                        </button>
+                        <button 
+                            className={`filter-btn ${filter === 'MESSAGES' ? 'active' : ''}`} 
+                            onClick={() => setFilter('MESSAGES')}
+                        >
+                            Повідомлення
+                        </button>
+                        <button 
+                            className={`filter-btn ${filter === 'REMINDERS' ? 'active' : ''}`} 
+                            onClick={() => setFilter('REMINDERS')}
+                        >
+                            Нагадування
+                        </button>
+                    </div>
 
                 <div className="drawer-content">
                     {loading ? (
                         <div className="loading-state">Завантаження...</div>
-                    ) : notifications.length === 0 ? (
-                        <div className="empty-state">У вас немає сповіщень</div>
+                   ) : filteredNotifications.length === 0 ? (
+                        <div className="empty-state">{filter === 'ALL' ? 'У вас немає сповіщень' : 'Нічого не знайдено'}</div>
                     ) : (
-                        notifications.map((n) => (
+                        filteredNotifications.map((n) => (
                             <div 
                                 key={n.id} 
                                 className={`drawer-item ${!n.isRead ? 'unread' : ''} ${n.eventType === 'ORDER_STUCK_REMINDER' ? 'system-reminder' : ''}`}
