@@ -493,7 +493,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 from backend.utils.tasks import check_and_send_telegram_notification
                 check_and_send_telegram_notification.apply_async(
                     args=[saved_msg.id, recipient_id_1c, t_type, doc_number, is_dealer],
-                    countdown=6
+                    countdown=600
                 )
 
                 if is_dealer:

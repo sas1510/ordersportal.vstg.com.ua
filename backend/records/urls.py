@@ -5,6 +5,11 @@ from . import views  # Переконайтеся, що імпорт корек�
 from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, DashboardConfigView, PartnerDebtsView, ExternalMessageCreateView
 
+
+from django.urls import path
+from .views import PortalManagerReportView
+
+
 create_calculation = CreateCalculationViewSet.as_view({
     "post": "create"
 })
@@ -39,5 +44,6 @@ urlpatterns = [
     path('notifications/count/', get_notifications_count, name='notifications-count'),
     path('notifications/mark-read/', mark_notifications_as_read, name='notifications-mark-read'),
     path('notifications/<int:pk>/mark-read/', views.mark_single_notification_as_read, name='single-notification-mark-read'),
+    path('portal-managers/', PortalManagerReportView.as_view(), name='portal-managers-report'),
 ]
 

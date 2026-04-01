@@ -2,6 +2,7 @@
 import xml.etree.ElementTree as ET
 import base64
 import json
+import logging
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -10,6 +11,11 @@ from drf_spectacular.utils import extend_schema
 
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from django.db import connection
+from backend.utils.get_main_manager import get_contractor_main_manager_bin
+from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
+from records.models import ChatMessage
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
@@ -236,6 +242,39 @@ class AdditionalOrderViewSet(viewsets.ViewSet):
             # 5. Відправляємо в 1С через існуючу утиліту send_to_1c
             # Query "CreateAdditionalOrder" має бути підтриманий на стороні 1С
             result = send_to_1c("CreateAdditionalOrder", payload)
+
+            reclamation_guid = None
+            if isinstance(result.get("results"), list) and len(result["results"]) > 0:
+                # Беремо перший елемент масиву та ключ 'ReclamationGUID'
+                reclamation_guid = result["results"][0].get("ReclamationGUID")
+
+            contractor_bin = guid_to_1c_bin(contractor_guid)
+            # ---------- СТВОРЕННЯ ПОВІДОМЛЕННЯ В ЧАТ ----------
+            if reclamation_guid:
+                try:
+                    reclamation_bin = guid_to_1c_bin(str(reclamation_guid))
+                    
+                    # Шукаємо основного менеджера контрагента
+                    main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
+                    
+                    # Якщо менеджера немає, отримувач — сам контрагент (або за замовчуванням)
+                    final_recipient = main_manager_bin if main_manager_bin else contractor_bin
+
+                    ChatMessage.objects.create(
+                        chat_id=f"3_{reclamation_guid}",  # Формат 2_Guid для рекламацій
+                        related_object_id=reclamation_bin,
+                        author=contractor_bin,                      
+                        recipient=final_recipient,               
+                        text=request.data.get("comment"), #or "Створено нову рекламацію",
+                        is_read=False,
+                        is_sent_vtg=False,
+                        is_notification=False,
+                        transaction_type_id=3  
+                    )
+                except Exception as chat_err:
+                    logger.error(f"Помилка створення ChatMessage для рекламації {reclamation_guid}: {str(chat_err)}")
+            # --------------------------------------------------
+            
 
             return Response(
                 {

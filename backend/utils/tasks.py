@@ -348,9 +348,153 @@ from collections import defaultdict
 from django.utils import timezone
 from datetime import timedelta
 
+# @shared_task(name='run_order_reminder_cron')
+# def run_order_reminder_cron():
+#     from records.models import ChatMessage
+    
+#     with connection.cursor() as cursor:
+#         cursor.execute("EXEC [dbo].[GenerateOrderStuckNotifications]")
+#         rows = cursor.fetchall()
+
+#     channel_layer = get_channel_layer()
+#     tg_token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
+    
+
+#     user_notifications = defaultdict(list)
+    
+#     for row in rows:
+#         user_bin, order_num, status, hours, order_guid, tg_id, src_type = row
+        
+
+#         if hours >= 168: time_label, check_h = "більше 7 днів", 160
+#         elif hours >= 48: time_label, check_h = "більше 48 год", 40
+#         elif hours >= 24: time_label, check_h = "більше 24 год", 20
+#         else: continue
+
+#         already = ChatMessage.objects.filter(
+#             related_object_id=order_guid,
+#             event_type='ORDER_STUCK_REMINDER',
+#             text__icontains=time_label,
+#             timestamp__gt=timezone.now() - timedelta(hours=check_h)
+#         ).exists()
+
+#         if not already:
+      
+#             clean_text = f"{src_type} №{order_num.strip()} ({status}) — {time_label}"
+            
+#             user_notifications[user_bin].append({
+#                 'order_num': order_num.strip(),
+#                 'status': status,
+#                 'time_label': time_label,
+#                 'order_guid': order_guid,
+#                 'tg_id': tg_id,
+#                 'src_type': src_type,
+#                 'text_simple': clean_text,
+#                 'text_tg_row': f"• {clean_text}"
+#             })
+
+
+#     for user_bin, items in user_notifications.items():
+#         if not items: continue
+
+
+#         base_url = "https://ordersportal.vstg.com.ua"
+#         current_year = timezone.now().year
+
+
+
+#         for item in items:
+
+
+#             path = '/orders'
+#             if "Рекл" in item['src_type']: path = '/complaints'
+#             elif "Доз" in item['src_type']: path = '/additional-orders'
+
+         
+#             order_link = f"{base_url}{path}?search={item['order_num']}&year={current_year}"
+            
+
+#             item['text_tg_row'] = f"• <a href='{order_link}'>{item['src_type']} №{item['order_num']}</a> ({item['status']}) — {item['time_label']}"
+
+
+#             guid_str = bin_to_guid_1c(item['order_guid'])
+#             t_id = 2 if "Рекл" in item['src_type'] else (3 if "Доз" in item['src_type'] else 1)
+            
+#             ChatMessage.objects.create(
+#                 chat_id=f"{t_id}_{guid_str.replace('-','')}",
+#                 text=item['text_simple'], 
+#                 recipient=user_bin,
+#                 related_object_id=item['order_guid'],
+#                 is_notification=True,
+#                 event_type='ORDER_STUCK_REMINDER',
+#                 transaction_type_id=t_id,
+#                 timestamp=timezone.now()
+#             )
+
+
+#         count = len(items)
+#         if count == 1:
+#             group_msg = items[0]['text_simple']
+#         else:
+#             # "У вас 5 замовлень потребують уваги (№01-331, №45-159...)"
+#             order_nums = ", ".join([i['order_num'] for i in items[:3]]) # Беремо перші три 
+#             if count > 3: order_nums += " та інші"
+#             group_msg = f"У вас {count} замовлень потребують уваги: {order_nums}"
+
+#         # 3. WEB PUSH
+#         send_webpush_notification.delay(
+#             user_bin, 
+#             "Нагадування", 
+#             group_msg
+#         )
+
+     
+#         recipient_guid = bin_to_guid_1c(user_bin).lower()
+#         async_to_sync(channel_layer.group_send)(
+#             f"notify_{recipient_guid}",
+#             {
+#                 "type": "notification_message",
+#                 "data": {
+#                     "type": "ORDER_STUCK_REMINDER",
+#                     "text": group_msg,
+#                     "count": count
+#                 }
+#             }
+#         )
+
+#         # 5. Telegram 
+#         tg_id = items[0]['tg_id']
+#         if tg_id and tg_token:
+#             dashboard_url = "https://ordersportal.vstg.com.ua/dashboard"
+#             orders_list_text = "\n".join([i['text_tg_row'] for i in items])
+            
+#             full_tg_text = (
+#                 f"⚠️ <b>У вас є замовлення, що потребують уваги:</b>\n\n"
+#                 f"{orders_list_text}\n\n"
+#                 f"🔗 <a href='{dashboard_url}'>Перейти на портал</a>"
+#             )
+
+#             try:
+#                 requests.post(
+#                     f"https://api.telegram.org/bot{tg_token}/sendMessage",
+#                     json={
+#                         "chat_id": tg_id,
+#                         "text": full_tg_text,
+#                         "parse_mode": "HTML",
+#                         "disable_web_page_preview": True
+#                     },
+#                     timeout=10
+#                 )
+#             except Exception as e:
+#                 logger.error(f"TG group send error: {e}")
+
+#     return f"Processed {len(user_notifications)} users"
+
 @shared_task(name='run_order_reminder_cron')
 def run_order_reminder_cron():
     from records.models import ChatMessage
+    import logging
+    logger = logging.getLogger(__name__)
     
     with connection.cursor() as cursor:
         cursor.execute("EXEC [dbo].[GenerateOrderStuckNotifications]")
@@ -359,133 +503,114 @@ def run_order_reminder_cron():
     channel_layer = get_channel_layer()
     tg_token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
     
-
     user_notifications = defaultdict(list)
+    created_count = 0
     
     for row in rows:
         user_bin, order_num, status, hours, order_guid, tg_id, src_type = row
         
+        # Визначаємо рівень сповіщення
+        if hours >= 168: 
+            time_label, check_h = "більше 7 днів", 160
+        elif hours >= 48: 
+            time_label, check_h = "більше 48 год", 40
+        elif hours >= 24: 
+            time_label, check_h = "більше 24 год", 20
+        else: 
+            continue
 
-        if hours >= 168: time_label, check_h = "більше 7 днів", 160
-        elif hours >= 48: time_label, check_h = "більше 48 год", 40
-        elif hours >= 24: time_label, check_h = "більше 24 год", 20
-        else: continue
-
+        # ПЕРЕВІРКА: чи саме ТАКЕ сповіщення вже було для цього замовлення
         already = ChatMessage.objects.filter(
             related_object_id=order_guid,
             event_type='ORDER_STUCK_REMINDER',
-            text__icontains=time_label,
+            text__icontains=time_label, # Шукаємо конкретно "48 год" або "24 год"
             timestamp__gt=timezone.now() - timedelta(hours=check_h)
         ).exists()
 
         if not already:
-      
             clean_text = f"{src_type} №{order_num.strip()} ({status}) — {time_label}"
             
-            user_notifications[user_bin].append({
+            # Зберігаємо дані для групової відправки
+            item_data = {
                 'order_num': order_num.strip(),
                 'status': status,
                 'time_label': time_label,
                 'order_guid': order_guid,
                 'tg_id': tg_id,
                 'src_type': src_type,
-                'text_simple': clean_text,
-                'text_tg_row': f"• {clean_text}"
-            })
-
-
-    for user_bin, items in user_notifications.items():
-        if not items: continue
-
-
-        base_url = "https://ordersportal.vstg.com.ua"
-        current_year = timezone.now().year
-
-
-
-        for item in items:
-
-
-            path = '/orders'
-            if "Рекл" in item['src_type']: path = '/complaints'
-            elif "Доз" in item['src_type']: path = '/additional-orders'
-
-         
-            order_link = f"{base_url}{path}?search={item['order_num']}&year={current_year}"
+                'text_simple': clean_text
+            }
+            user_notifications[user_bin].append(item_data)
             
-
-            item['text_tg_row'] = f"• <a href='{order_link}'>{item['src_type']} №{item['order_num']}</a> ({item['status']}) — {item['time_label']}"
-
-
-            guid_str = bin_to_guid_1c(item['order_guid'])
-            t_id = 2 if "Рекл" in item['src_type'] else (3 if "Доз" in item['src_type'] else 1)
+            # 1. Створюємо запис у базу (ChatMessage) для історії кожного замовлення
+            guid_str = bin_to_guid_1c(order_guid)
+            t_id = 2 if "Рекл" in src_type else (3 if "Доз" in src_type else 1)
             
             ChatMessage.objects.create(
                 chat_id=f"{t_id}_{guid_str.replace('-','')}",
-                text=item['text_simple'], 
+                text=clean_text, 
                 recipient=user_bin,
-                related_object_id=item['order_guid'],
+                related_object_id=order_guid,
                 is_notification=True,
                 event_type='ORDER_STUCK_REMINDER',
                 transaction_type_id=t_id,
                 timestamp=timezone.now()
             )
+            created_count += 1
 
+    # 2. Групова відправка сповіщень користувачам (WebPush, WebSockets, Telegram)
+    for user_bin, items in user_notifications.items():
+        if not items: continue
+
+        base_url = "https://ordersportal.vstg.com.ua"
+        current_year = timezone.now().year
+        
+        # Формуємо красивий список для Telegram
+        tg_rows = []
+        for item in items:
+            path = '/orders'
+            if "Рекл" in item['src_type']: path = '/complaints'
+            elif "Доз" in item['src_type']: path = '/additional-orders'
+            
+            order_link = f"{base_url}{path}?search={item['order_num']}&year={current_year}"
+            tg_rows.append(f"• <a href='{order_link}'>{item['src_type']} №{item['order_num']}</a> ({item['status']}) — <b>{item['time_label']}</b>")
 
         count = len(items)
         if count == 1:
             group_msg = items[0]['text_simple']
         else:
-            # "У вас 5 замовлень потребують уваги (№01-331, №45-159...)"
-            order_nums = ", ".join([i['order_num'] for i in items[:3]]) # Беремо перші три 
-            if count > 3: order_nums += " та інші"
-            group_msg = f"У вас {count} замовлень потребують уваги: {order_nums}"
+            nums = ", ".join([i['order_num'] for i in items[:3]])
+            group_msg = f"У вас {count} замовлень потребують уваги ({nums}{' та інші' if count > 3 else ''})"
 
-        # 3. WEB PUSH
-        send_webpush_notification.delay(
-            user_bin, 
-            "Нагадування", 
-            group_msg
-        )
+        # WEB PUSH
+        send_webpush_notification.delay(user_bin, "Нагадування", group_msg)
 
-     
+        # WEB SOCKETS (Live update)
         recipient_guid = bin_to_guid_1c(user_bin).lower()
         async_to_sync(channel_layer.group_send)(
             f"notify_{recipient_guid}",
             {
                 "type": "notification_message",
-                "data": {
-                    "type": "ORDER_STUCK_REMINDER",
-                    "text": group_msg,
-                    "count": count
-                }
+                "data": {"type": "ORDER_STUCK_REMINDER", "text": group_msg, "count": count}
             }
         )
 
-        # 5. Telegram 
+        # TELEGRAM
         tg_id = items[0]['tg_id']
         if tg_id and tg_token:
-            dashboard_url = "https://ordersportal.vstg.com.ua/dashboard"
-            orders_list_text = "\n".join([i['text_tg_row'] for i in items])
-            
             full_tg_text = (
-                f"⚠️ <b>У вас є замовлення, що потребують уваги:</b>\n\n"
-                f"{orders_list_text}\n\n"
-                f"🔗 <a href='{dashboard_url}'>Перейти на портал</a>"
+                f"⚠️ <b>Замовлення, що потребують уваги:</b>\n\n"
+                + "\n".join(tg_rows) +
+                f"\n\n🔗 <a href='{base_url}/dashboard'>Перейти на портал</a>"
             )
-
             try:
                 requests.post(
                     f"https://api.telegram.org/bot{tg_token}/sendMessage",
-                    json={
-                        "chat_id": tg_id,
-                        "text": full_tg_text,
-                        "parse_mode": "HTML",
-                        "disable_web_page_preview": True
-                    },
+                    json={"chat_id": tg_id, "text": full_tg_text, "parse_mode": "HTML", "disable_web_page_preview": True},
                     timeout=10
                 )
             except Exception as e:
-                logger.error(f"TG group send error: {e}")
+                logger.error(f"TG send error: {e}")
 
-    return f"Processed {len(user_notifications)} users"
+    logger.info(f"Cron finished. Sent notifications for {created_count} order events across {len(user_notifications)} users.")
+    return f"Processed {created_count} reminders"

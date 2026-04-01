@@ -188,6 +188,12 @@
     --drawer-item-unread: #fafafa;
     --drawer-item-hover: #f0f7ff;
     --drawer-header-border: #ccc;
+    --notification-border-btn: #ddd;
+    --tg-card-border: #e1e8ed;
+    --tg-qr-bg: #f8f9fa;
+    --tg-text: #333333;
+    --tg-text-muted: #657786;
+    --tg-arrow-color: #ffffff;
 }
 
 /* Кольори для Темної теми */
@@ -201,6 +207,12 @@
     --drawer-item-unread: #262626;
     --drawer-item-hover: #333333; /* Темно-синій відтінок для ховеру */
     --drawer-header-border: #434343;
+    --notification-border-btn: #888888;
+    --tg-card-border: #434343;
+    --tg-qr-bg: #ffffff; /* Залишаємо білим для QR */
+    --tg-text: #e6e6e6;
+    --tg-text-muted: #a6a6a6;
+    --tg-arrow-color: #1f1f1f; /* Має збігатися з --drawer-bg */
 }
 
 /* Тепер застосовуємо змінні до ваших селекторів */
@@ -282,7 +294,7 @@
 .btn-unsubscribe-push {
     background: transparent;
     color: #888;
-    border: 1px solid #ddd;
+    border: 1px solid var(--notification-border-btn);
     padding: 5px 10px;
     border-radius: 3px;
     display: flex;
@@ -344,7 +356,7 @@
     flex: 1; /* КРИТИЧНО: змушує всі кнопки ділити простір порівну */
     background: transparent;
     color: #888;
-    border: 1px solid #ddd;
+    border: 1px solid var(--notification-border-btn);
     padding: 5px 10px; /* Трохи збільшив вертикальний паддінг для зручності */
     border-radius: 3px;
     display: flex;
@@ -365,4 +377,121 @@
     background: var(--info-color);
     border-color: var(--info-color); /* Щоб рамка теж стала колірна */
     color: white;
+}
+
+
+
+/* Кнопка в заголовку */
+.btn-tg-trigger {
+    background: none;
+    border: none;
+    color: var(--info-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    transition: transform 0.2s ease;
+}
+
+.btn-tg-trigger:hover {
+    color: var(--success-color);
+}
+
+.react-tiny-popover-container {
+    z-index: 1010000 !important; /* Має бути вище за .notification-drawer (10002) */
+}
+
+
+
+
+.tg-direct-link {
+    background: #0088cc;
+    color: white !important;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 0;
+    width: 100%;
+    text-align: center;
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.tg-direct-link:hover {
+    background: #0077b5;
+}
+
+.tg-loader {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #888;
+}
+
+/* Переконуємося, що SVG-шар бібліотеки archer знаходиться поверх всього */
+.archer-svg-container {
+    z-index: 1009999 !important;
+}
+.tg-popover-card {
+    background: var(--drawer-bg);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4); /* Глибша тінь для темної теми */
+    border: 1px solid var(--tg-card-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 200px;
+    position: relative;
+    transition: background 0.3s ease;
+}
+
+.tg-popover-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--tg-text); /* Адаптивний колір тексту */
+}
+
+.tg-qr-container {
+    background: var(--tg-qr-bg); /* Завжди світлий для зчитування сканером */
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.tg-qr-text {
+    font-size: 11px;
+    color: var(--tg-text-muted); /* Адаптивний колір */
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+/* Стилізація хвостика через змінні */
+.tg-popover-card::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--tg-arrow-color); /* Колір фону картки */
+    z-index: 1;
+}
+
+.tg-popover-card::after {
+    content: '';
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-bottom: 11px solid var(--tg-card-border); /* Колір рамки */
+    z-index: 0;
 }

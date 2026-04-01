@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вітаємо у ViknaStyle</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f7f9; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" width="100%" style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e6ed;">
+        
+        <tr>
+            <td style="padding: 30px; text-align: center; border-bottom: 3px solid #0088cc;">
+                <img src="http://172.17.19.107/logo.png" alt="ViknaStyle Logo" width="180" style="display: block; margin: 0 auto; border: 0;">
+                
+                </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 40px 30px;">
+                <h2 style="margin: 0 0 20px 0; color: #1a2b3c; font-size: 24px; text-align: center;">
+                    Вітаємо, {{ full_name }}!
+                </h2>
+                
+                <p style="margin: 0 0 20px 0; color: #4a5568; line-height: 1.6; font-size: 16px; text-align: center;">
+                    Ви успішно завершили реєстрацію в системі <strong>ViknaStyle</strong>. Ваш акаунт активовано та готовий до роботи.
+                </p>
+
+                <div style="background-color: #f8fafc; border: 1px dashed #cbd5e0; border-radius: 6px; padding: 20px; margin-bottom: 30px; text-align: center;">
+                    <p style="margin: 0; color: #718096; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Ваш логін для входу:</p>
+                    <p style="margin: 10px 0 0 0; color: #2d3748; font-size: 20px; font-weight: bold;">{{ username }}</p>
+                </div>
+
+                <p style="margin: 0 0 15px 0; color: #4a5568; line-height: 1.6; font-size: 16px;">
+                    Щоб миттєво отримувати сповіщення про нові замовлення та статуси, рекомендуємо підключити наш Telegram-бот:
+                </p>
+
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 30px auto;">
+                    <tr>
+                        <td style="border-radius: 30px; background-color: #0088cc; text-align: center;">
+                            <a href="{{ tg_link }}" target="_blank" style="display: inline-block; padding: 15px 35px; font-family: sans-serif; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 30px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" width="20" style="vertical-align: middle; margin-right: 10px; filter: brightness(0) invert(1);">
+                                ПІДКЛЮЧИТИ TELEGRAM
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p style="margin: 20px 0 0 0; color: #a0aec0; font-size: 14px; text-align: center; font-style: italic;">
+                    Дякуємо, що обрали нас!
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 20px; background-color: #edf2f7; text-align: center;">
+                <p style="margin: 0; color: #718096; font-size: 12px; line-height: 1.4;">
+                    &copy; 2026 ViknaStyle. Всі права захищені.<br>
+                    Це системне повідомлення. Будь ласка, не відповідайте на нього.
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

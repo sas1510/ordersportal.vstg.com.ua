@@ -11,6 +11,7 @@ from rest_framework import status
 from django.db.models import Q
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.get_main_manager import get_contractor_main_manager_bin
 
 from zoneinfo import ZoneInfo
 from django.core.exceptions import ValidationError
@@ -1756,6 +1757,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
         result = self._send_to_1c(payload)
 
+
         if not result.get("success", True):
             raise ValidationError(
                 {
@@ -1774,16 +1776,53 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             })
 
         # ---------- ЗБЕРІГАЄМО КОМЕНТАР ----------
-        writer_guid = None
-        if request.user and request.user.is_authenticated:
-            writer_guid = request.user.user_id_1C
+        # writer_guid = None
+        # if request.user and request.user.is_authenticated:
+        #     writer_guid = request.user.user_id_1C
 
-        save_calculation_comment(
-            calculation_bin=guid_to_1c_bin(calculation_guid),
-            comment=data.get("comment", ""),
-            writer_guid=writer_guid,
-        )
+        # save_calculation_comment(
+        #     calculation_bin=guid_to_1c_bin(calculation_guid),
+        #     comment=data.get("comment", ""),
+        #     writer_guid=writer_guid,
+        # )
+        try:
+            # 1. Формуємо бінарні значення
+            # Переконуємося, що на вхід йде рядок
+            calculation_bin = guid_to_1c_bin(str(calculation_guid))
+            main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
+            
+            # Якщо менеджер не знайдений в 1С, можна залишити самого контрагента або None
+            final_recipient = main_manager_bin if main_manager_bin else contractor_bin
+            
+            # writer_bin = None
+            # if request.user and request.user.is_authenticated:
+            #     # Отримуємо значення
+            #     raw_writer_id = getattr(request.user, 'user_id_1C', None)
+                
+                # if raw_writer_id:
+                    # ВИПРАВЛЕННЯ: якщо raw_writer_id це bytes, декодуємо в str, 
+                    # якщо це str, функція guid_to_1c_bin має його обробити.
+                    # Але судячи з помилки, функція хоче bytes для методу replace? 
+                    # Це дивно для GUID. Спробуємо примусово привести до str:
+                    # writer_bin = guid_to_1c_bin(str(raw_writer_id))
 
+            # 2. Створюємо запис
+            ChatMessage.objects.create(
+                chat_id=f"1_{calculation_guid}", 
+                related_object_id=calculation_bin,
+                author=contractor_bin,                      
+                recipient=final_recipient,               
+                text=data.get("comment"), #or "Створено новий розрахунок",
+                is_read=False,
+                is_sent_vtg=True,
+                is_notification=False,
+                # event_type="CalculationCreated", # Додав, бо в моделі воно обов'язкове
+                transaction_type_id=1 
+            )
+        except Exception as e:
+            import traceback
+            logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")
+            logger.error(traceback.format_exc())
         # save_message(
         #     transaction_type_id=serializer.validated_data["transaction_type_id"],
         #     base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
@@ -2643,7 +2682,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .models import UserDashboardConfig
+from .models import UserDashboardConfig, TransactionType
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -3067,3 +3106,54 @@ def mark_single_notification_as_read(request, pk):
         return Response({"status": "success"})
     except ChatMessage.DoesNotExist:
         return Response({"status": "error", "message": "Notification not found"}, status=404)
+    
+from django.db import connection
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+class PortalManagerReportView(APIView):
+    """
+    Повертає звіт про менеджерів та закріплених за ними дилерів порталу.
+    Викликає SQL-процедуру та повертає чистий JSON.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            with connection.cursor() as cursor:
+                # 1. Виконуємо збережену процедуру
+                cursor.execute("EXEC [dbo].[GetPortalManagersWithDealers]")
+                
+                # 2. Отримуємо назви колонок (ManagerID, FullManagerName тощо)
+                columns = [col[0] for col in cursor.description]
+                
+                # 3. Формуємо дані
+                managers_list = []
+                for row in cursor.fetchall():
+                    # Перетворюємо кортеж рядка в словник
+                    row_dict = dict(zip(columns, row))
+                    
+                    # 4. Конвертуємо BINARY(16) у зрозумілий GUID (string)
+                    if row_dict.get("ManagerID"):
+                        row_dict["ManagerID"] = bin_to_guid_1c(row_dict["ManagerID"])
+                    
+                    managers_list.append(row_dict)
+
+            # Повертаємо масив об'єктів напряму
+            return Response({
+                "success": True,
+                "count": len(managers_list),
+                "managers": managers_list
+            })
+
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"PortalManagerReport error: {str(e)}")
+            
+            return Response({
+                "success": False, 
+                "error": "Не вдалося отримати звіт з бази даних."
+            }, status=500)

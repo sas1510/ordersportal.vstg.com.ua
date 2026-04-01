@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView, CreateInvitationView, CreateAdminDirectView
 )
-from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords, get_active_users_1c
+from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords, get_active_users_1c, get_telegram_link
 
 
 
@@ -38,6 +38,8 @@ urlpatterns = [
         "admin/api-keys/<int:key_id>/deactivate/",
         deactivate_api_key
         ),
+
+    path('user/telegram-link/', get_telegram_link, name='get_telegram_link'),
 
 
 

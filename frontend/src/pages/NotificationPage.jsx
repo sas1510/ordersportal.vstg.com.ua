@@ -264,11 +264,15 @@ import axiosInstance from '../api/axios';
 import { 
     FaBell, FaCheckDouble, FaEnvelopeOpen, 
     FaInfoCircle, FaExclamationTriangle, FaTimes, 
-    FaMobileAlt, FaClock , FaBellSlash
+    FaMobileAlt, FaClock , FaBellSlash, FaTelegramPlane
 } from 'react-icons/fa';
 import './NotificationPage.css'; 
 import { useNotification } from '../components/notification/Notifications';
 import { subscribeToPush, unsubscribeFromPush } from '../utils/useWebPush'; 
+import { Popover } from 'react-tiny-popover';
+import { ArcherContainer, ArcherElement } from 'react-archer';
+import QRCode from 'react-qr-code';
+
 
 
 const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, unreadCount, setUnreadCount }) => {
@@ -282,9 +286,27 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
 
 
     const [subscribing, setSubscribing] = useState(false); 
+    const [isTgPopoverOpen, setIsTgPopoverOpen] = useState(false);
+    const [tgLink, setTgLink] = useState('');
+    const [loadingTg, setLoadingTg] = useState(false);
+
     const navigate = useNavigate();
 
     const { addNotification } = useNotification();
+
+    const fetchTgLink = async () => {
+        if (tgLink) return; // Не запитуємо повторно, якщо вже є
+        setLoadingTg(true);
+        try {
+            const response = await axiosInstance.get('/user/telegram-link/');
+            setTgLink(response.data.tg_link);
+        } catch (err) {
+            console.error("Помилка отримання TG лінка:", err);
+            addNotification("Не вдалося отримати посилання на Telegram", "danger");
+        } finally {
+            setLoadingTg(false);
+        }
+    };
 
     const filteredNotifications = useMemo(() => {
         if (filter === 'MESSAGES') {
@@ -404,6 +426,9 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                         {unreadCount > 0 && <span className="badge-count">{unreadCount}</span>}
                     </div>
                     <div className='icon-together'>
+
+                      
+
                         {/* Кнопка ВВІМКНУТИ (якщо статус default) */}
                         {permissionStatus === 'default' && (
                             <button 
@@ -415,6 +440,7 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                                 <span className="btn-text">{subscribing ? '...' : 'Ввімкнути'}</span>
                             </button>
                         )}
+
 
                         {/* Кнопка ВИМКНУТИ (якщо статус granted) */}
                         {permissionStatus === 'granted' && (
@@ -435,6 +461,39 @@ const NotificationDrawer = ({ isOpen, onClose, notifications, setNotifications, 
                                 <FaExclamationTriangle color="#dc3545" />
                             </div>
                         )}
+
+                         <Popover
+                            isOpen={isTgPopoverOpen}
+                            positions={['bottom']}
+                            padding={15}
+                            onClickOutside={() => setIsTgPopoverOpen(false)}
+                            containerClassName="tg-popover-portal"
+                            content={
+                                <div className="tg-popover-card">
+                                    <div className="tg-popover-header">
+                                        <FaTelegramPlane color="#0088cc" />
+                                        <span>Telegram бот</span>
+                                    </div>
+                                    <div className="tg-qr-container">
+                                        {loadingTg ? <div className="tg-loader">...</div> : <QRCode value={tgLink || 'loading'} size={120} />}
+                                    </div>
+                                    <p className="tg-qr-text">Відскануйте для зв'язку</p>
+                                    <a href={tgLink} target="_blank" rel="noreferrer" className="tg-direct-link">Відкрити чат</a>
+                                </div>
+                            }
+                        >
+                            <button 
+                                className={`btn-tg-trigger ${isTgPopoverOpen ? 'active' : ''}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    fetchTgLink();
+                                    setIsTgPopoverOpen(!isTgPopoverOpen);
+                                }}
+                            >
+                                <FaTelegramPlane size={18} />
+                            </button>
+                        </Popover>
+
 
                         {/* {unreadCount > 0 && ( */}
                             <button onClick={handleMarkAllRead} className="btn-mark-read" title="Позначити всі як прочитані" disabled={unreadCount === 0}>

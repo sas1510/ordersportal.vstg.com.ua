@@ -31,6 +31,7 @@ const FINANCE_SUBMENU = [
 const SETTINGS_SUBMENU = [
 
   { title: "Користувачі", to: "/users-list" },
+  { title: "Менеджер TG", to: "/manager-qr" },
 
 ];
 

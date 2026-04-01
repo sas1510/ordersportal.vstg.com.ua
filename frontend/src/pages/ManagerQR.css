@@ -1,0 +1,34 @@
+/* Стилі для таблиці менеджерів */
+.portal-table thead tr {
+    background-color: var(--drawer-item-unread, #f4f7f9) !important;
+    color: var(--drawer-text-main, #333);
+}
+
+.portal-table tbody tr {
+    border-bottom: 1px solid var(--drawer-border, #eee) !important;
+    color: var(--drawer-text-main, #262626);
+}
+
+/* Спеціальний хвостик для поповера в таблиці */
+.tg-popover-arrow {
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--drawer-bg, #fff);
+}
+
+/* Ховер на ім'я менеджера */
+.manager-name-trigger:hover {
+    color: var(--success-color, #76b448) !important;
+    opacity: 0.8;
+}
+
+/* Адаптація фону панелі */
+.panel {
+    background-color: var(--drawer-bg, #fff);
+    color: var(--drawer-text-main, #333);
+}

@@ -324,7 +324,7 @@ from django.utils import timezone
 from backend.permissions import IsAdminJWT
 from users.models import UserApiKey
 import pytz
-
+from utils.email import send_registration_success_email
 
 from drf_spectacular.utils import OpenApiResponse, OpenApiParameter
 
@@ -675,6 +675,9 @@ def register_with_invite(request, code):
 
     serializer.save()
     invite.markAsUsed()
+
+
+    send_registration_success_email(user, tg_link)
 
     # Додаємо tg_link у відповідь після успішного збереження
     data = serializer.data
@@ -1951,3 +1954,34 @@ def get_active_users_1c(request):
             return JsonResponse({"error": f"SQL Error: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "GET method required"}, status=405)
+
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.conf import settings
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated]) # Тільки для зареєстрованих юзерів
+def get_telegram_link(request):
+    user = request.user
+    
+    # Перевіряємо, чи є у користувача ID з 1С (або інше поле, яке ви використовуєте)
+    if not user.user_id_1C:
+        return Response(
+            {"error": "User 1C ID not found"}, 
+            status=400
+        )
+
+    # Генеруємо GUID (використовуємо вашу існуючу функцію)
+    user_guid_str = bin_to_guid_1c(user.user_id_1C)
+    bot_username = settings.TELEGRAM_BOT_USERNAME
+    
+    tg_link = f"https://t.me/{bot_username}?start={user_guid_str}"
+    
+    return Response({
+        "tg_link": tg_link,
+        "bot_username": bot_username
+    })

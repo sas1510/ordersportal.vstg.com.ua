@@ -1,40 +1,224 @@
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.db import connection
-import binascii
-import json
-from rest_framework import viewsets
-# from .serializers import ComplaintSerializer
-# from .serializers import ComplaintPhotoSerializer
-import base64
-from io import BytesIO
-from PIL import Image
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-import uuid
-from django.db.models import Max
+# from django.shortcuts import render
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+# from django.db import connection
+# import binascii
+# import json
+# from rest_framework import viewsets
+# # from .serializers import ComplaintSerializer
+# # from .serializers import ComplaintPhotoSerializer
+# import base64
+# from io import BytesIO
+# from PIL import Image
+# from rest_framework import viewsets, status
+# from rest_framework.response import Response
+# import uuid
+# from django.db.models import Max
+# import os
+# import uuid
+# from django.conf import settings
+# from django.core.files.storage import FileSystemStorage
+# from rest_framework.decorators import api_view, permission_classes
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+# from backend.utils.contractor import resolve_contractor
+# from backend.utils.api_helpers import safe_view
+# from backend.utils.dates import parse_date, clean_date
+# from rest_framework.exceptions import ValidationError
+# from backend.utils.onec_api import send_to_1c
+
+# import subprocess
+# import tempfile
+# import mimetypes
+# from urllib.parse import unquote
+# from django.conf import settings
+# from django.http import FileResponse, Http404
+# from rest_framework.decorators import api_view, permission_classes
+
+# from .utils import verify_media_token
+# import mimetypes
+# import subprocess
+# import logging
+# from urllib.parse import unquote
+
+# from django.conf import settings
+# from django.http import StreamingHttpResponse, Http404
+# from rest_framework.decorators import api_view, permission_classes
+
+# logger = logging.getLogger(__name__)
+# import tempfile
+# from django.http import FileResponse
+# import mimetypes
+# import subprocess
+# import tempfile
+# from urllib.parse import unquote
+
+# from django.conf import settings
+# from django.http import FileResponse, Http404
+# from rest_framework.decorators import api_view, permission_classes
+
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from rest_framework.permissions import AllowAny
+# from rest_framework.decorators import api_view, permission_classes, authentication_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.authentication import SessionAuthentication
+# from django.http import FileResponse, Http404
+# import subprocess, tempfile, mimetypes
+# from urllib.parse import unquote
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.response import Response
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from .utils import generate_media_token, load_file_from_db, extract_1c_binary
+# from django.http import FileResponse, Http404, HttpResponse
+# from rest_framework.decorators import api_view, permission_classes
+# from urllib.parse import unquote
+# import tempfile
+# import subprocess
+# import mimetypes
+# import os
+# from django.shortcuts import redirect
+# from django.conf import settings
+# from urllib.parse import unquote, quote
+# from urllib.parse import unquote, quote
+# import mimetypes
+# import tempfile
+# import subprocess
+# import os
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+# from django.db import connection
+
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+# from django.http import Http404
+# from django.shortcuts import redirect
+# from django.db import connection
+# from rest_framework.decorators import api_view, permission_classes
+
+# from ranged_fileresponse import RangedFileResponse
+
+# from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
+
+# import xml.etree.ElementTree as ET
+# import base64
+# import json
+# from io import BytesIO
+# from PIL import Image
+# import requests # Необхідно встановити: pip install requests
+# from rest_framework import viewsets, status
+# from rest_framework.response import Response
+# from django.conf import settings # Для налаштування URL
+# # ... (Інші необхідні імпорти)
+
+# # Припустимо, що у вашому settings.py є наступний рядок:
+# # SOAP_ENDPOINT_URL = 'http://external-system/soap/reclamations' 
+
+# import xml.etree.ElementTree as ET
+# import base64
+# import json
+# from io import BytesIO
+# from PIL import Image
+# from rest_framework import viewsets, status
+# from rest_framework.response import Response
+# # requests більше не потрібен у режимі імітації
+
+# import json
+# import base64
+# import requests
+
+# from rest_framework import viewsets, status
+# from rest_framework.response import Response
+
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+# import uuid
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.response import Response
+# from django.db import connection
+
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+# from django.db import connection
+# from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer, OpenApiParameter
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+# --- Стандартні бібліотеки Python ---
 import os
 import uuid
+import json
+import base64
+import logging
+import binascii
+import mimetypes
+import tempfile
+import subprocess
+import xml.etree.ElementTree as ET
+from io import BytesIO
+from urllib.parse import unquote, quote
+
+# --- Сторонні бібліотеки (Django & DRF) ---
+import requests
+from PIL import Image
 from django.conf import settings
+from django.db import connection, models
+from django.db.models import Max
+from django.http import (
+    JsonResponse, HttpResponse, FileResponse, 
+    Http404, StreamingHttpResponse
+)
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-from rest_framework.decorators import api_view, permission_classes
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+from rest_framework import viewsets, status, serializers
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from rest_framework.views import APIView
+
+from drf_spectacular.utils import (
+    extend_schema, OpenApiTypes, inline_serializer, OpenApiParameter
+)
+from ranged_fileresponse import RangedFileResponse
+
+# --- Локальні модулі проекту (backend) ---
+from backend.permissions import (
+    IsAuthenticatedOr1CApiKey, 
+    IsAdminJWTOr1CApiKey
+)
+from records.models import ChatMessage
+from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 from backend.utils.contractor import resolve_contractor
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
-from rest_framework.exceptions import ValidationError
 from backend.utils.onec_api import send_to_1c
+from backend.utils.get_main_manager import get_contractor_main_manager_bin
 
 
-from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
+# --- Локальні модулі поточної аплікації (.) ---
+from .utils import (
+    verify_media_token, 
+    generate_media_token, 
+    load_file_from_db, 
+    extract_1c_binary
+)
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.db import connection
-from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer, OpenApiParameter
-from backend.utils.BinToGuid1C import bin_to_guid_1c
+# Налаштування логера
+logger = logging.getLogger(__name__)
+
+
+
+
 
 @extend_schema(
     summary="Отримати довідник причин рекламацій",
@@ -74,12 +258,7 @@ def get_issue_complaints(request):
     
 
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.db import connection
 
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 @extend_schema(
     summary="Отримати способів вирішення рекламації",
@@ -252,40 +431,6 @@ def get_complaint_series_by_order(request, order_number):
     })
 
 
-import xml.etree.ElementTree as ET
-import base64
-import json
-from io import BytesIO
-from PIL import Image
-import requests # Необхідно встановити: pip install requests
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-from django.conf import settings # Для налаштування URL
-# ... (Інші необхідні імпорти)
-
-# Припустимо, що у вашому settings.py є наступний рядок:
-# SOAP_ENDPOINT_URL = 'http://external-system/soap/reclamations' 
-
-import xml.etree.ElementTree as ET
-import base64
-import json
-from io import BytesIO
-from PIL import Image
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-# requests більше не потрібен у режимі імітації
-
-import json
-import base64
-import requests
-
-from rest_framework import viewsets, status
-from rest_framework.response import Response
-
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-import uuid
-
 
 
 class ReclamationViewSet(viewsets.ViewSet):
@@ -392,6 +537,40 @@ class ReclamationViewSet(viewsets.ViewSet):
             # ==================================================
             result = send_to_1c("CreateReclamation", payload)
 
+
+
+            reclamation_guid = None
+            if isinstance(result.get("results"), list) and len(result["results"]) > 0:
+                # Беремо перший елемент масиву та ключ 'ReclamationGUID'
+                reclamation_guid = result["results"][0].get("ReclamationGUID")
+
+            contractor_bin = guid_to_1c_bin(contractor_guid)
+            # ---------- СТВОРЕННЯ ПОВІДОМЛЕННЯ В ЧАТ ----------
+            if reclamation_guid:
+                try:
+                    reclamation_bin = guid_to_1c_bin(str(reclamation_guid))
+                    
+                    # Шукаємо основного менеджера контрагента
+                    main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
+                    
+                    # Якщо менеджера немає, отримувач — сам контрагент (або за замовчуванням)
+                    final_recipient = main_manager_bin if main_manager_bin else contractor_bin
+
+                    ChatMessage.objects.create(
+                        chat_id=f"2_{reclamation_guid}",  # Формат 2_Guid для рекламацій
+                        related_object_id=reclamation_bin,
+                        author=contractor_bin,                      
+                        recipient=final_recipient,               
+                        text=request.data.get("description"), #or "Створено нову рекламацію",
+                        is_read=False,
+                        is_sent_vtg=False,
+                        is_notification=False,
+                        transaction_type_id=2  # Припустимо, 2 — це тип для рекламацій
+                    )
+                except Exception as chat_err:
+                    logger.error(f"Помилка створення ChatMessage для рекламації {reclamation_guid}: {str(chat_err)}")
+            # --------------------------------------------------
+
             # reclamation_guid = result.get("reclamationGuid")
             # if not reclamation_guid:
             #     raise ValueError("1C не повернула reclamationGuid")
@@ -462,14 +641,6 @@ class ReclamationViewSet(viewsets.ViewSet):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from django.db import connection
-
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-
 @extend_schema(
     summary="Отримати файли претензії (БВ)",
     description=(
@@ -524,41 +695,7 @@ def get_claim_files(request, claim_guid):
         return Response({"error": str(e)}, status=500)
 
 
-import mimetypes
-import subprocess
-import logging
-from urllib.parse import unquote
 
-from django.conf import settings
-from django.http import StreamingHttpResponse, Http404
-from rest_framework.decorators import api_view, permission_classes
-
-logger = logging.getLogger(__name__)
-import tempfile
-from django.http import FileResponse
-import mimetypes
-import subprocess
-import tempfile
-from urllib.parse import unquote
-
-from django.conf import settings
-from django.http import FileResponse, Http404
-from rest_framework.decorators import api_view, permission_classes
-
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from rest_framework.permissions import AllowAny
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication
-from django.http import FileResponse, Http404
-import subprocess, tempfile, mimetypes
-from urllib.parse import unquote
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from .utils import generate_media_token, load_file_from_db, extract_1c_binary
 
 
 @api_view(["POST"])
@@ -574,38 +711,6 @@ def generate_media_token_view(request):
     return Response({"token": token})
 
 
-import subprocess
-import tempfile
-import mimetypes
-from urllib.parse import unquote
-from django.conf import settings
-from django.http import FileResponse, Http404
-from rest_framework.decorators import api_view, permission_classes
-
-from .utils import verify_media_token
-
-from django.http import FileResponse, Http404, HttpResponse
-from rest_framework.decorators import api_view, permission_classes
-from urllib.parse import unquote
-import tempfile
-import subprocess
-import mimetypes
-import os
-from django.shortcuts import redirect
-from django.conf import settings
-from urllib.parse import unquote, quote
-from urllib.parse import unquote, quote
-import mimetypes
-import tempfile
-import subprocess
-import os
-
-from django.http import Http404
-from django.shortcuts import redirect
-from django.db import connection
-from rest_framework.decorators import api_view, permission_classes
-
-from ranged_fileresponse import RangedFileResponse
 
 
 @api_view(["GET"])

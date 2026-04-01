@@ -1,47 +1,176 @@
-from django.shortcuts import render
+# from django.shortcuts import render
 
-# Create your views here.
-# payments/views.py
-from django.db import connection
-from django.http import JsonResponse
+# # Create your views here.
+# # payments/views.py
+# from django.db import connection
+# from django.http import JsonResponse
+# from datetime import date
+# from binascii import unhexlify
+
+# from django.shortcuts import render
+# from backend.utils.send_to_1c import send_to_1c
+# from django.http import JsonResponse
+# from django.db import connection
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParameter, OpenApiRequest, OpenApiResponse, OpenApiTypes
+
+# from rest_framework import serializers
+
+# from backend.utils.contractor import resolve_contractor
+
+# from backend.utils.api_helpers import safe_view
+# from backend.utils.dates import parse_date, clean_date
+# from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
+
+# from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+# from django.db import connection
+# import requests
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from rest_framework import status
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from rest_framework import status
+
+
+# from django.db import connection
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+# from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+# from django.db import connection
+
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+
+
+# from openpyxl import Workbook
+# from openpyxl.styles import Font
+# from django.http import HttpResponse
+# from datetime import date
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from django.db import connection
+
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+# from rest_framework.decorators import api_view, permission_classes
+# from django.http import HttpResponse
+# from django.db import connection
+# from openpyxl import Workbook
+
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+
+
+# # /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
+
+# from datetime import date
+# from django.http import JsonResponse
+# from django.db import connection
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+
+# # коректний імпорт
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+# from datetime import date
+# from rest_framework.decorators import api_view, permission_classes
+# from django.http import JsonResponse
+# from django.db import connection
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+
+
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+
+# from django.http import JsonResponse
+# from django.db import connection
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from datetime import date
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from django.http import JsonResponse
+# from django.db import connection
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework import status
+# from django.db import connection
+# import uuid
+
+# import base64
+# from django.http import HttpResponse
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from rest_framework.permissions import IsAuthenticated
+import uuid
+import base64
+import requests
 from datetime import date
 from binascii import unhexlify
 
-from django.shortcuts import render
-from backend.utils.send_to_1c import send_to_1c
-from django.http import JsonResponse
 from django.db import connection
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
+
+from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParameter, OpenApiRequest, OpenApiResponse, OpenApiTypes
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from rest_framework.views import APIView
 
-from rest_framework import serializers
+from drf_spectacular.utils import (
+    extend_schema, inline_serializer, OpenApiParameter, 
+    OpenApiRequest, OpenApiResponse, OpenApiTypes
+)
 
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
+# Внутрішні утиліти проекту
+from backend.permissions import IsAuthenticatedOr1CApiKey
 from backend.utils.contractor import resolve_contractor
-
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
 from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
+from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 
-# /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
-
-from datetime import date
-from django.http import JsonResponse
-from django.db import connection
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-# коректний імпорт
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-
-from datetime import date
-from rest_framework.decorators import api_view, permission_classes
-from django.http import JsonResponse
-from django.db import connection
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 @extend_schema(
     summary="Отримати фінансовий леджер дилера",
@@ -136,18 +265,6 @@ def get_payment_status_view(request):
     )
 
 
-from django.http import JsonResponse
-from django.db import connection
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from datetime import date
-
-
-from rest_framework.decorators import api_view, permission_classes
-from django.http import JsonResponse
-from django.db import connection
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 @extend_schema(
     summary="Дані сторінки «Оплата» дилера",
@@ -233,12 +350,6 @@ def get_dealer_payment_page_data_view(request):
 
 
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.db import connection
-import uuid
-
 
 @extend_schema(
     summary="Авансові залишки дилера",
@@ -313,123 +424,6 @@ def get_dealer_advance_balance(request):
     return Response(result, status=200)
 
 
-
-from openpyxl import Workbook
-from openpyxl.styles import Font
-from django.http import HttpResponse
-from datetime import date
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from django.db import connection
-
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def export_payment_status_excel(request):
-
-#     guid_str = request.GET.get("contractor")
-#     if not guid_str:
-#         return HttpResponse("contractor is required", status=400)
-
-#     try:
-#         contractor_binary = guid_to_1c_bin(guid_str)
-#     except Exception as e:
-#         return HttpResponse(f"Invalid GUID: {e}", status=400)
-
-#     date_from = request.GET.get("date_from", "1900-01-01")
-#     date_to = request.GET.get("date_to", str(date.today()))
-
-#     sql = """
-#         EXEC dbo.GetDealerFullLedger
-#             @Контрагент = %s,
-#             @ДатаЗ = %s,
-#             @ДатаПо = %s
-#     """
-
-#     with connection.cursor() as cursor:
-#         cursor.execute(sql, [contractor_binary, date_from, date_to])
-#         columns = [col[0] for col in cursor.description]
-#         rows = cursor.fetchall()
-
-#     # ================== CREATE EXCEL ==================
-
-#     wb = Workbook()
-#     ws = wb.active
-#     ws.title = "Payment Status"
-
-#     headers = [
-#         "Дата",
-#         "Час",
-#         "Договір",
-#         "Канал",
-#         "Залишок на початок",
-#         "Прихід",
-#         "Розхід",
-#         "Залишок на кінець",
-#         "№ замовлення",
-#         "Сума замовлення",
-#         "Оплата",
-#         "Залишок по замовленню",
-#         "Статус оплати"
-#     ]
-
-#     ws.append(headers)
-#     for cell in ws[1]:
-#         cell.font = Font(bold=True)
-
-#     for row in rows:
-#         r = dict(zip(columns, row))
-
-#         period = r.get("Период")
-
-#         date_part = period.date().isoformat() if period else ""
-#         time_part = period.time().strftime("%H:%M") if period else ""
-
-#         ws.append([
-#             date_part,
-#             time_part,
-
-#             r.get("FinalDogovorName"),
-#             r.get("DealType"),
-#             r.get("CumSaldoStart"),
-
-#             # Прихід / Розхід
-#             abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Прихід" else "",
-#             abs(r.get("DeltaRow", 0)) if r.get("InOut") == "Витрата" else "",
-
-#             r.get("CumSaldo"),
-
-#             # Замовлення
-#             r.get("НомерЗаказа"),
-#             r.get("СуммаЗаказа"),
-#             abs(r.get("DeltaRow", 0)),
-#             r.get("ЗалишокПоЗаказу"),
-#             r.get("СтатусОплатиПоЗаказу"),
-#         ])
-
-
-#     # ================== RESPONSE ==================
-
-#     response = HttpResponse(
-#         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-#     )
-#     response["Content-Disposition"] = (
-#         f'attachment; filename="payment_status_{date_from}_{date_to}.xlsx"'
-#     )
-
-#     wb.save(response)
-#     return response
-
-from rest_framework.decorators import api_view, permission_classes
-from django.http import HttpResponse
-from django.db import connection
-from openpyxl import Workbook
-
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
 @extend_schema(
     summary="Експорт статусу оплат в Excel",
     description=(
@@ -550,11 +544,6 @@ def export_payment_status_excel(request):
     return response
 
 
-from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
-from backend.utils.GuidToBin1C import guid_to_1c_bin_2
-from django.db import connection
-
-
 
 
 @extend_schema(
@@ -623,16 +612,8 @@ def dealer_bills_add_info(contractor_guid: str):
     }
 
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin_2
 @extend_schema(
     summary="Додаткова інформація для рахунків дилера",
     description=(
@@ -678,23 +659,6 @@ def dealer_bills_add_info_view(request):
     })
 
 
-
-from django.db import connection
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-
-from backend.utils.GuidToBin1C import guid_to_1c_bin_2
-from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-from django.db import connection
-
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin_2
 
 
 @extend_schema(
@@ -838,16 +802,6 @@ def create_invoice(request):
 
 
 
-import requests
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
 
 
 
@@ -908,12 +862,6 @@ def make_payment_from_advance(request):
 
 
 
-import base64
-from django.http import HttpResponse
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
 
 class GetBillPDF(APIView):

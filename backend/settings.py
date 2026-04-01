@@ -3,6 +3,7 @@ from datetime import timedelta
 from decouple import config, Csv
 import smbclient
 from celery.schedules import crontab
+import os
 
 
 
@@ -67,7 +68,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -182,8 +183,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'workvs.market@gmail.com'
-EMAIL_HOST_PASSWORD ='pklovimhigierquu'
+EMAIL_HOST_USER = 'info.viknastyle@gmail.com'
+EMAIL_HOST_PASSWORD ='nkhadfbjrejzgxaq'
 
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
