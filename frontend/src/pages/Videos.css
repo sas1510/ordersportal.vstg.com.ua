@@ -339,3 +339,19 @@
 .video-modal-footer {
   transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
 }
+
+
+/* Контейнер для TikTok, щоб він не був занадто широким на десктопі */
+.tiktok-wrapper {
+    max-width: 325px; /* Стандартна ширина віджета TikTok */
+    margin: 0 auto;   /* Центрування */
+    border: 1px solid var(--drawer-border);
+}
+
+.videos-body .claim-item {
+    transition: transform 0.2s;
+}
+
+.videos-body .claim-item:hover {
+    transform: translateY(-2px);
+}

@@ -147,35 +147,37 @@ const VideosPage = () => {
   };
 
   const getEmbedUrl = (video) => {
-    // !!! ЗМІНЕНО: Розумна функція, що обробляє YouTube та TikTok
-    if (!video || !video.url) return '';
-    
-    try {
-      const url = new URL(video.url);
+  if (!video || !video.url) return '';
+  
+  try {
+    const url = new URL(video.url);
 
-      if (video.resource_type === 'youtube') {
-        let videoId;
-        if (url.hostname === 'youtu.be') {
-          videoId = url.pathname.slice(1);
-        } else {
-          videoId = url.searchParams.get('v');
-        }
-        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    if (video.resource_type === 'youtube') {
+      let videoId;
+      if (url.hostname === 'youtu.be') {
+        videoId = url.pathname.slice(1);
+      } else if (url.pathname.includes('/live/')) {
+        videoId = url.pathname.split('/live/')[1]?.split('?')[0];
+      } else {
+        videoId = url.searchParams.get('v');
       }
-
-      if (video.resource_type === 'tiktok') {
-        const match = video.pathname.match(/video\/(\d+)/);
-        const videoId = match ? match[1] : null;
-        return videoId ? `https://www.tiktok.com/embed/v2/${videoId}` : '';
-      }
-
-    } catch (e) {
-      console.error("Недійсний URL:", e);
-      return '';
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
     }
-    
-    return '';
-  };
+
+    if (video.resource_type === 'tiktok') {
+      // Витягуємо ID відео з посилання типу tiktok.com/@user/video/1234567
+      const match = url.pathname.match(/video\/(\d+)/);
+      const videoId = match ? match[1] : null;
+      // TikTok використовує інший формат для embed
+      return videoId ? `https://www.tiktok.com/embed/v2/${videoId}` : '';
+    }
+  } catch (e) {
+    return '';
+  }
+  return '';
+};
+
+
 
   const getVideoIcon = (resourceType) => {
     if (resourceType === 'youtube') {
@@ -246,14 +248,28 @@ const VideosPage = () => {
               </div>
                 {video.description && <p className="text-grey text-sm">{video.description}</p>}
                 
-                <iframe
-                  className="w-full aspect-video rounded-md"
-                  src={getEmbedUrl(video)} // Передаємо весь об'єкт
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-
+                <div className="video-container mt-3">
+                  {video.resource_type === 'youtube' ? (
+                    /* Форма для YouTube (16:9) */
+                    <iframe
+                      className="w-full aspect-video rounded-md shadow-sm"
+                      src={getEmbedUrl(video)}
+                      title={video.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  ) : (
+                    /* Форма для TikTok (Вертикальна або адаптивна) */
+                    <div className="tiktok-wrapper flex justify-center bg-black rounded-md overflow-hidden" style={{ minHeight: '580px' }}>
+                      <iframe
+                        src={getEmbedUrl(video)}
+                        style={{ width: '100%', height: '580px', border: 'none' }}
+                        allow="fullscreen"
+                        title={video.title}
+                      ></iframe>
+                    </div>
+                  )}
+                </div>
               {/* Використовуємо 'created_at' з нової моделі */}
                 <div className="text-sm text-grey mt-1">Дата: {formatDate(video.created_at)}</div>
               </div>
@@ -317,7 +333,7 @@ const VideosPage = () => {
                   onChange={(e) => setVideoForm({ ...videoForm, resource_type: e.target.value })}
                 >
                   <option value="youtube">YouTube</option>
-                  {/* <option value="tiktok">TikTok</option> */}
+                  <option value="tiktok">TikTok</option>
                 </select>
               </label>
 
