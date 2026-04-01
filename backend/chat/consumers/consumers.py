@@ -192,83 +192,18 @@
 
 
 
-import json
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-from records.models import ChatMessage
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-
-from backend.utils.contractor_ws import resolve_contractor_ws
-from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
-from backend.utils.tasks import send_webpush_notification
-
-from celery import current_app
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
 
 
-    @database_sync_to_async
-    def check_document_ownership(self, base_guid, t_type, user_contractor_bin):
-        from django.db import connection
-        try:
-            with connection.cursor() as cursor:
-                # Зверніть увагу на назви параметрів: @Guid та @TransactionType
-                cursor.execute("EXEC dbo.GetDocumentOwner @DocumentId=%s, @TransactionType=%s", [base_guid, t_type])
-                row = cursor.fetchone()
-                
-                if row:
-                    doc_owner_bin = row[0]
-      
-                    return doc_owner_bin == user_contractor_bin
-            return False
-        except Exception as e:
-            print(f"Ownership Error: {str(e)}")
-            return False
-        
 
-    async def connect(self):
-        self.user = self.scope.get("user")
-        
-       
-        if not self.user or self.user.is_anonymous:
-            await self.close(code=4001)
-            return
 
-      
-        try:
 
-            from backend.utils.contractor_ws import resolve_contractor_ws 
-            self.contractor_bin, self.contractor_guid = resolve_contractor_ws(self.scope)
-        except Exception as e:
 
-            self.contractor_bin = None
-            self.contractor_guid = getattr(self.user, 'user_id_1C', None)
-            print(f"WS Connect: Користувач {self.user} не має повної прив'язки 1С: {e}")
 
-        self.chat_id = self.scope['url_route']['kwargs']['chat_id']
-        self.room_group_name = f'chat_{self.chat_id}'
 
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
 
-    async def disconnect(self, close_code):
-        if hasattr(self, 'room_group_name'):
-            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-    # --- Асинхронні обгортки для SQL ---
-    @database_sync_to_async
-    def sync_get_doc_number(self, guid, t_type):
-        return get_document_number_by_guid(guid, t_type)
-
-    @database_sync_to_async
-    def sync_get_doc_year(self, guid, t_type):
-        return get_document_year_by_guid(guid, t_type)
-
-    @database_sync_to_async
-    def sync_get_author_name(self, bin_id):
-        return get_author_name_from_db(bin_id)
 
     # async def receive(self, text_data):
     #     try:
@@ -399,6 +334,106 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #         }
     #     )
 
+
+
+
+
+
+
+
+
+
+
+
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from records.models import ChatMessage
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+from backend.utils.contractor_ws import resolve_contractor_ws
+from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
+from backend.utils.tasks import send_webpush_notification
+
+from celery import current_app
+
+import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
+from django.conf import settings
+class ChatConsumer(AsyncWebsocketConsumer):
+
+
+    @database_sync_to_async
+    def check_document_ownership(self, base_guid, t_type, user_contractor_bin):
+        from django.db import connection
+        try:
+            with connection.cursor() as cursor:
+                # Зверніть увагу на назви параметрів: @Guid та @TransactionType
+                cursor.execute("EXEC dbo.GetDocumentOwner @DocumentId=%s, @TransactionType=%s", [base_guid, t_type])
+                row = cursor.fetchone()
+                
+                if row:
+                    doc_owner_bin = row[0]
+      
+                    return doc_owner_bin == user_contractor_bin
+            return False
+        except Exception as e:
+            print(f"Ownership Error: {str(e)}")
+            return False
+        
+
+    async def connect(self):
+        self.user = self.scope.get("user")
+        if not self.user or self.user.is_anonymous:
+            await self.close(code=4001)
+            return
+
+        # Підключення до Redis для трекінгу активності
+        self.redis_conn = redis.from_url(f"redis://{settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0][0]}:6379/0")
+
+        try:
+            from backend.utils.contractor_ws import resolve_contractor_ws 
+            self.contractor_bin, self.contractor_guid = resolve_contractor_ws(self.scope)
+        except Exception as e:
+            self.contractor_bin = None
+            self.contractor_guid = getattr(self.user, 'user_id_1C', None)
+
+        self.chat_id = self.scope['url_route']['kwargs']['chat_id']
+        self.room_group_name = f'chat_{self.chat_id}'
+
+        # Додаємо GUID користувача в список активних у цій кімнаті
+        user_guid_str = str(bin_to_guid_1c(self.contractor_bin)) if self.contractor_bin else str(self.contractor_guid)
+        if user_guid_str:
+            await self.redis_conn.sadd(f"active_users_{self.room_group_name}", user_guid_str.lower())
+
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        await self.accept()
+
+
+    async def disconnect(self, close_code):
+        if hasattr(self, 'room_group_name'):
+            # Видаляємо користувача зі списку активних
+            user_guid_str = str(bin_to_guid_1c(self.contractor_bin)) if self.contractor_bin else str(self.contractor_guid)
+            if user_guid_str:
+                await self.redis_conn.srem(f"active_users_{self.room_group_name}", user_guid_str.lower())
+            
+            await self.redis_conn.close()
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+
+    # --- Асинхронні обгортки для SQL ---
+    @database_sync_to_async
+    def sync_get_doc_number(self, guid, t_type):
+        return get_document_number_by_guid(guid, t_type)
+
+    @database_sync_to_async
+    def sync_get_doc_year(self, guid, t_type):
+        return get_document_year_by_guid(guid, t_type)
+
+    @database_sync_to_async
+    def sync_get_author_name(self, bin_id):
+        return get_author_name_from_db(bin_id)
+
+
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
 
@@ -462,88 +497,99 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
             if recipient_id_1c:
-                from users.models import CustomUser 
-                
-          
-                recipient_user = await database_sync_to_async(
-                    lambda: CustomUser.objects.filter(user_id_1C=recipient_bin).first()
-                )()
 
-  
-                is_dealer = recipient_user and recipient_user.role == 'customer'
-
-                pages_map_for_message = {
-                    1: "прорахунку",
-                    2: "рекламації",
-                    3: "дозамовленні" 
-                }
-
-                document_type = pages_map_for_message.get(t_type, "orders")
-
-
-                pages_map_for_notification = {
-                    1: "Прорахунок",
-                    2: "Рекламація",
-                    3: "Доп. замовлення" 
-                }
-
-                t_type_for_notification = pages_map_for_notification.get(t_type, "orders")
-                # recipient_role = recipient_user.role if recipient_user else 'unknown'
-
-                from backend.utils.tasks import check_and_send_telegram_notification
-                check_and_send_telegram_notification.apply_async(
-                    args=[saved_msg.id, recipient_id_1c, t_type, doc_number, is_dealer],
-                    countdown=600
+                is_recipient_active = await self.redis_conn.sismember(
+                    f"active_users_{self.room_group_name}", 
+                    recipient_id_1c.lower()
                 )
 
-                if is_dealer:
-                    # Створюємо запис сповіщення ТІЛЬКИ для дилера
-                    notify_text = f"Нове повідомлення у {document_type} №{doc_number} від {author_name}"
-                    # await self.create_notification_record(
-                    #     notify_text, base_guid, recipient_bin, t_type, author_bin
-                    # )
+                if not is_recipient_active:
 
-                    notification_msg = await self.create_notification_record(
-                        notify_text, base_guid, recipient_bin, t_type, author_bin
-                    )
+                    from users.models import CustomUser 
                     
-                    # 2. Тепер у тебе є доступ до ID
-                    new_notification_id = notification_msg.id
 
-                    # WebPush
-                    from backend.utils.tasks import send_webpush_notification
-                    send_webpush_notification.delay(
-                        recipient_id_1c=recipient_bin, 
-                        title=f"Нове повідомлення у {document_type} №{doc_number} від {author_name}",
-                        message=message_text[:100]
+                    recipient_user = await database_sync_to_async(
+                        lambda: CustomUser.objects.filter(user_id_1C=recipient_bin).first()
+                    )()
+
+    
+                    is_dealer = recipient_user and recipient_user.role == 'customer'
+
+                    pages_map_for_message = {
+                        1: "прорахунку",
+                        2: "рекламації",
+                        3: "дозамовленні" 
+                    }
+
+                    document_type = pages_map_for_message.get(t_type, "orders")
+
+
+                    pages_map_for_notification = {
+                        1: "Прорахунок",
+                        2: "Рекламація",
+                        3: "Доп. замовлення" 
+                    }
+
+                    t_type_for_notification = pages_map_for_notification.get(t_type, "orders")
+                    # recipient_role = recipient_user.role if recipient_user else 'unknown'
+
+                    from backend.utils.tasks import check_and_send_telegram_notification
+                    check_and_send_telegram_notification.apply_async(
+                        args=[saved_msg.id, recipient_id_1c, t_type, doc_number, is_dealer],
+                        countdown=600
                     )
 
+                    if is_dealer:
+                        # Створюємо запис сповіщення ТІЛЬКИ для дилера
+                        notify_text = f"Нове повідомлення у {document_type} №{doc_number} від {author_name}"
+                        # await self.create_notification_record(
+                        #     notify_text, base_guid, recipient_bin, t_type, author_bin
+                        # )
 
-                    # from backend.utils.tasks import check_and_send_telegram_notification
-                    # check_and_send_telegram_notification.apply_async(
-                    #     args=[saved_msg.id, recipient_id_1c, t_type, doc_number],
-                    #     countdown=6
-                    # )
+                        notification_msg = await self.create_notification_record(
+                            notify_text, base_guid, recipient_bin, t_type, author_bin
+                        )
+                        
+                        # 2. Тепер у тебе є доступ до ID
+                        new_notification_id = notification_msg.id
 
-       
-                    notification_group = f"notify_{recipient_id_1c.lower()}"
-                    await self.channel_layer.group_send(
-                        notification_group,
-                        {
-                            "type": "notification_message",
-                            "data": {
-                                "type": "NEW_CHAT_MESSAGE",
-                                "chat_id": self.chat_id,
-                                "text": notify_text, 
-                                "author_name": author_name, 
-                                "timestamp": saved_msg.timestamp.isoformat(),
-                                "doc_number": doc_number,
-                                "transactionType": t_type_for_notification,
-                                "docYear" : doc_year,
-                                "id": new_notification_id,
+                        # WebPush
+                        from backend.utils.tasks import send_webpush_notification
+                        send_webpush_notification.delay(
+                            recipient_id_1c=recipient_bin, 
+                            title=f"Нове повідомлення у {document_type} №{doc_number} від {author_name}",
+                            message=message_text[:100]
+                        )
+
+
+                        # from backend.utils.tasks import check_and_send_telegram_notification
+                        # check_and_send_telegram_notification.apply_async(
+                        #     args=[saved_msg.id, recipient_id_1c, t_type, doc_number],
+                        #     countdown=6
+                        # )
+
+        
+                        notification_group = f"notify_{recipient_id_1c.lower()}"
+                        await self.channel_layer.group_send(
+                            notification_group,
+                            {
+                                "type": "notification_message",
+                                "data": {
+                                    "type": "NEW_CHAT_MESSAGE",
+                                    "chat_id": self.chat_id,
+                                    "text": notify_text, 
+                                    "author_name": author_name, 
+                                    "timestamp": saved_msg.timestamp.isoformat(),
+                                    "doc_number": doc_number,
+                                    "transactionType": t_type_for_notification,
+                                    "docYear" : doc_year,
+                                    "id": new_notification_id,
+                                }
                             }
-                        }
-                    )
+                        )
+                    else:
+                    
+                        print(f"User {recipient_id_1c} is in chat. Notification skipped.")
 
             # 5. Broadcast у поточному вікні чату
             await self.channel_layer.group_send(
