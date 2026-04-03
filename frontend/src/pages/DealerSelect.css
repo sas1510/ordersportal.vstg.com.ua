@@ -4,14 +4,12 @@
 
 .dealer-select {
   position: relative;
-
 }
 
 .dealer-select {
   width: 100%;
   min-width: 0;
 }
-
 
 .dealer-select__control {
   height: 40px;
@@ -43,7 +41,7 @@
   border: 1px solid #ccc;
   border-radius: 6px;
   z-index: 1000;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .dealer-select__search {
@@ -74,13 +72,10 @@
   color: #999;
 }
 
-
 .dealer-select__option.active {
   background: #e6eeff;
   font-weight: 500;
 }
-
-
 
 /* ===============================
    DEALER SELECT — DARK THEME

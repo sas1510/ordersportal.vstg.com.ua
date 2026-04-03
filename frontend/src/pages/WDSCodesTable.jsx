@@ -90,7 +90,7 @@ const WDSCodesTable = () => {
     <div className="portal-body">
       {/* ===== HEADER ===== */}
       <div className="customer-bills-header">
-        <h1 className="page-title" style={{marginTop: '10px'}}>
+        <h1 className="page-title" style={{ marginTop: "10px" }}>
           <FaPercent className="icon" />
           Акційні WDS-коди
         </h1>
@@ -99,12 +99,20 @@ const WDSCodesTable = () => {
         <div className="wds-filter">
           <div className="filter-item-bill">
             <label>Дата з</label>
-            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
           </div>
 
           <div className="filter-item-bill">
             <label>Дата по</label>
-            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
           </div>
 
           {isAdmin && (
@@ -114,7 +122,11 @@ const WDSCodesTable = () => {
             </div>
           )}
 
-          <button className="btn-filter" onClick={loadData} disabled={!dealerGuid}>
+          <button
+            className="btn-filter"
+            onClick={loadData}
+            disabled={!dealerGuid}
+          >
             <FaSearch />
             Показати
           </button>
@@ -126,7 +138,9 @@ const WDSCodesTable = () => {
         {error ? (
           <div className="no-data text-danger">{error}</div>
         ) : items.length === 0 ? (
-          <div className="no-data">За вказаний період акційних кодів не знайдено</div>
+          <div className="no-data">
+            За вказаний період акційних кодів не знайдено
+          </div>
         ) : (
           <>
             {/* ===== DESKTOP TABLE ===== */}
@@ -144,7 +158,9 @@ const WDSCodesTable = () => {
                   {items.map((row, index) => (
                     <tr key={index}>
                       <td>{formatDateHumanShorter(row.Date)}</td>
-                      <td><span className="badge-wds">{row.WDSCode}</span></td>
+                      <td>
+                        <span className="badge-wds">{row.WDSCode}</span>
+                      </td>
                       <td className="text-bold">{row.OrderNumber}</td>
                       <td>{row.SerieName || "Стандарт"}</td>
                     </tr>
@@ -157,10 +173,22 @@ const WDSCodesTable = () => {
             <div className="mobile-only wds-mobile-list">
               {items.map((row, index) => (
                 <div className="wds-card" key={index}>
-                  <div className="row"><span>Дата</span><b>{formatDateHumanShorter(row.Date)}</b></div>
-                  <div className="row"><span>WDS</span><span className="badge-wds">{row.WDSCode}</span></div>
-                  <div className="row"><span>Замовлення</span><b>{row.OrderNumber}</b></div>
-                  <div className="row"><span>Серія</span>{row.SerieName || "Стандарт"}</div>
+                  <div className="row">
+                    <span>Дата</span>
+                    <b>{formatDateHumanShorter(row.Date)}</b>
+                  </div>
+                  <div className="row">
+                    <span>WDS</span>
+                    <span className="badge-wds">{row.WDSCode}</span>
+                  </div>
+                  <div className="row">
+                    <span>Замовлення</span>
+                    <b>{row.OrderNumber}</b>
+                  </div>
+                  <div className="row">
+                    <span>Серія</span>
+                    {row.SerieName || "Стандарт"}
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,42 +1,39 @@
-
 :root {
-    /* Світла тема (дефолт) */
-    --main-bg-analitycs: #e6e6e6;
-    --main-header-analitycs: #333;
-    --toggle-container-bg: #edf2f7;
-    --bg-card: #ffffff;
-    --bg-header: #ffffff;
-    --text-main: #333333;
-    --text-mute: #999;
-    --border-color: #edf2f7;
-    --palette-bg: #ffffff;
-    --thumb-bg: #fafafa;
-    --shadow: 0 4px 12px rgba(0,0,0,0.03);
-    --base-height: 38px; 
-    --text-toggle: #d6dee9;
-    --toggle-color: #999;
-    --toggle-bg-active: #ffffff;
+  /* Світла тема (дефолт) */
+  --main-bg-analitycs: #e6e6e6;
+  --main-header-analitycs: #333;
+  --toggle-container-bg: #edf2f7;
+  --bg-card: #ffffff;
+  --bg-header: #ffffff;
+  --text-main: #333333;
+  --text-mute: #999;
+  --border-color: #edf2f7;
+  --palette-bg: #ffffff;
+  --thumb-bg: #fafafa;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  --base-height: 38px;
+  --text-toggle: #d6dee9;
+  --toggle-color: #999;
+  --toggle-bg-active: #ffffff;
 }
 
 .dark-theme {
-    /* Темна тема */
-    --main-border-analitycs: #555555;
-    --main-header-analitycs: #999;
-    --toggle-container-bg: #555555;
-    --bg-card: #333333;        /* Колір карток */
-    --bg-header: #333333;
-    --text-main: #f1f5f9;      /* Майже білий текст */
-    /* --text-mute: #999;     Сірий текст */
-    --border-color: #555555;   /* Темні межі */
-    /* --palette-bg: #1e293b; */
-    /* --thumb-bg: #334155; */
-    --shadow: 0 4px 12px rgba(0,0,0,0.3);
-    --text-toggle: #636363;
-    --toggle-color: #999;
-    --toggle-bg-active: #e1dede;
+  /* Темна тема */
+  --main-border-analitycs: #555555;
+  --main-header-analitycs: #999;
+  --toggle-container-bg: #555555;
+  --bg-card: #333333; /* Колір карток */
+  --bg-header: #333333;
+  --text-main: #f1f5f9; /* Майже білий текст */
+  /* --text-mute: #999;     Сірий текст */
+  --border-color: #555555; /* Темні межі */
+  /* --palette-bg: #1e293b; */
+  /* --thumb-bg: #334155; */
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --text-toggle: #636363;
+  --toggle-color: #999;
+  --toggle-bg-active: #e1dede;
 }
-
-
 
 .page-title-analytics {
   font-size: 32px;
@@ -150,9 +147,11 @@
   }
 }
 
-
-
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

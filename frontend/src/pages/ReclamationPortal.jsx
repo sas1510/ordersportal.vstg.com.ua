@@ -11,7 +11,7 @@ import { ReclamationItem } from '../components/Reclamations/ReclamationItem';
 import { ReclamationItemMobile } from '../components/Reclamations/ReclamationItemMobile';
 import AddClaimModal from '../components/Reclamations/AddClaimModal';
 import useWindowWidth from '../hooks/useWindowWidth';
-import { useTheme } from '../context/ThemeContext';
+// import { useTheme } from '../context/ThemeContext';
 import '../components/Reclamations/ReclamationItem.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -105,7 +105,7 @@ const ReclamationPortal = () => {
     const windowWidth = useWindowWidth();
     const isMobile = windowWidth < 1024;
 
-    const { theme } = useTheme();
+    // const { theme } = useTheme();
 
     const [error, setError] = useState(null);
 

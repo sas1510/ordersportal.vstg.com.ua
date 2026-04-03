@@ -112,9 +112,6 @@
   text-align: center;
 }
 
-
-
-
 .bill-select__control {
   width: 100%;
   height: 44px;
@@ -173,10 +170,8 @@
   font-weight: 500;
 }
 
-
 /* ================= DARK THEME ================= */
 body.dark-theme {
-
   /* ===== FIELD ===== */
   .bill-field {
     color: #e0e6f0;

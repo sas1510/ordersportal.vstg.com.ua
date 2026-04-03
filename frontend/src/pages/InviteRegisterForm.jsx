@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../api/axios";
-import { useNotification } from "../components/notification/Notifications";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../hooks/useNotification";
 import "./InviteRegisterForm.css";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -87,8 +88,7 @@ export default function InviteRegisterForm() {
     if (/[0-9]/.test(p)) score++;
     if (/[!@#$%^&*()_+=\-{}[\]:;"'<>,.?/]/.test(p)) score++;
 
-    if (score <= 1)
-      return { score, label: "Слабкий пароль", color: "#e74c3c" };
+    if (score <= 1) return { score, label: "Слабкий пароль", color: "#e74c3c" };
     if (score <= 3)
       return { score, label: "Середній пароль", color: "#f1c40f" };
     return { score, label: "Надійний пароль", color: "#2ecc71" };
@@ -128,20 +128,14 @@ export default function InviteRegisterForm() {
     setError(null);
 
     if (!isPasswordValid) {
-      addNotification(
-        "Пароль не відповідає вимогам безпеки",
-        "error"
-      );
+      addNotification("Пароль не відповідає вимогам безпеки", "error");
       return;
     }
 
-    if (
-      formData.phone_number &&
-      !isValidPhoneUA(formData.phone_number)
-    ) {
+    if (formData.phone_number && !isValidPhoneUA(formData.phone_number)) {
       addNotification(
         "Некоректний формат телефону. Використовуйте +380XXXXXXXXX",
-        "error"
+        "error",
       );
       return;
     }
@@ -152,7 +146,7 @@ export default function InviteRegisterForm() {
     } catch (err) {
       addNotification(
         err.response?.data?.error || "Помилка реєстрації",
-        "error"
+        "error",
       );
     }
   };
@@ -176,76 +170,98 @@ export default function InviteRegisterForm() {
     );
 
   if (success)
-  return (
-    <div className="portal-body align-center">
-      <div className="panel invite-panel invite-padding shadow-sm" >
-        
+    return (
+      <div className="portal-body align-center">
+        <div className="panel invite-panel invite-padding shadow-sm">
+          <div
+            className="text-success"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              marginTop: "20px",
+            }}
+          >
+            <i className="fa-solid fa-circle-check font-size-32"></i>
+            <span className="text-bold">
+              Реєстрацію успішно завершено! Тепер ви можете увійти в систему.
+            </span>
+          </div>
 
-        <div className="text-success" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '20px'  }}>
-          <i className="fa-solid fa-circle-check font-size-32"></i>
-          <span className="text-bold">Реєстрацію успішно завершено! Тепер ви можете увійти в систему.</span>
-        </div>
+          {tgLink && (
+            <hr
+              className="invite-border-bottom"
+              style={{ margin: "20px 0", opacity: 0.3 }}
+            />
+          )}
 
+          {tgLink && (
+            <div className="qr-section column align-center gap-5 mt-5">
+              <h3 className="font-size-18 uppercase text-info text-bold m-0">
+                <i className="fa-brands fa-telegram mr-10"></i>
+                Підключіть Telegram-бот
+              </h3>
+              <p className="text-muted font-size-14 text-center">
+                Відскануйте QR-код для отримання сповіщень про замовлення
+              </p>
 
-        {tgLink && <hr className="invite-border-bottom" style={{ margin: '20px 0', opacity: 0.3 }} />}
+              <div
+                className="qr-image-wrapper"
+                style={{
+                  background: "white",
+                  padding: "15px",
+                  borderRadius: "3px",
+                  boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+                  marginTop: "10px",
+                }}
+              >
+                <QRCodeCanvas
+                  value={tgLink}
+                  size={180}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
 
-
-        {tgLink && (
-          <div className="qr-section column align-center gap-5 mt-5">
-            <h3 className="font-size-18 uppercase text-info text-bold m-0">
-              <i className="fa-brands fa-telegram mr-10"></i>
-              Підключіть Telegram-бот
-            </h3>
-            <p className="text-muted font-size-14 text-center">
-              Відскануйте QR-код для отримання сповіщень про замовлення
-            </p>
-            
-            <div className="qr-image-wrapper" style={{ 
-              background: 'white', 
-              padding: '15px', 
-              borderRadius: '3px', 
-              boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-              marginTop: '10px'
-            }}>
-              <QRCodeCanvas 
-                value={tgLink} 
-                size={180} 
-                level="H"
-                includeMargin={true}
-              />
+              <a
+                href={tgLink}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-link mt-15"
+                style={{
+                  textDecoration: "none",
+                  color: "#ffffff",
+                  backgroundColor: "#0088cc",
+                  padding: "10px 10px",
+                  borderRadius: "3px",
+                  fontWeight: "bold",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <i
+                  className="fa-brands fa-telegram mr-10"
+                  style={{ fontSize: "20px" }}
+                ></i>
+                Перейти в Telegram
+              </a>
             </div>
+          )}
 
-            <a 
-              href={tgLink} 
-              target="_blank" 
-              rel="noreferrer" 
-              className="btn-link mt-15"
-              style={{ 
-                textDecoration: 'none', 
-                color: '#ffffff', 
-                backgroundColor: '#0088cc',
-                padding: '10px 10px',
-                borderRadius: '3px',
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center'
-              }}
+          {/* Кнопка повернення до входу */}
+          <div className="mt-5 text-center">
+            <a
+              href="/login"
+              className="text-info font-size-14"
+              style={{ textDecoration: "none" }}
             >
-              <i className="fa-brands fa-telegram mr-10" style={{ fontSize: '20px' }}></i>
-              Перейти в Telegram
+              Повернутися до входу
             </a>
           </div>
-        )}
-
-        {/* Кнопка повернення до входу */}
-        <div className="mt-5 text-center">
-          <a href="/login" className="text-info font-size-14" style={{ textDecoration: 'none' }}>
-             Повернутися до входу
-          </a>
         </div>
       </div>
-    </div>
-  );
+    );
 
   /* ================= RENDER ================= */
 
@@ -254,7 +270,6 @@ export default function InviteRegisterForm() {
       <div className="invite-wrapper">
         <div className="invite-padding">
           <div className="panel invite-panel column gap-5 shadow-sm">
-
             {/* Header */}
             <div className="invite-header-container invite-border-bottom invite-pb-10">
               <div className="header uppercase text-info font-size-18 text-bold">
@@ -276,9 +291,6 @@ export default function InviteRegisterForm() {
                     {info.username || "—"}
                   </div>
                 </div>
-
-
-
 
                 <div className="invite-info-block">
                   <label>Тип аккаунта</label>
@@ -302,13 +314,13 @@ export default function InviteRegisterForm() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="column invite-gap-4">
-
               {/* WARNINGS */}
               <div className="invite-section-intro">
                 <h2 className="font-size-24 text-dark m-0">Персональні дані</h2>
                 <div className="text-danger font-size-16">
                   <p className="m-0">
-                    Перевірте та за потреби відредагуйте контактні дані та встановіть пароль.
+                    Перевірте та за потреби відредагуйте контактні дані та
+                    встановіть пароль.
                   </p>
                   <p className="m-0 text-danger text-bold">
                     Важливо: збережіть свій логін та пароль!
@@ -316,10 +328,7 @@ export default function InviteRegisterForm() {
                 </div>
               </div>
 
-           
-
               <div className="invite-form-grid">
-
                 {/* FULL NAME */}
                 <div className="invite-input-group">
                   <label className="invite-required">Повне ім’я (ПІБ)</label>
@@ -369,8 +378,6 @@ export default function InviteRegisterForm() {
                   />
                 </div>
 
-                
-
                 {/* PASSWORD */}
                 <div className="invite-input-group">
                   <label className="invite-required">Новий пароль</label>
@@ -404,8 +411,6 @@ export default function InviteRegisterForm() {
                     </div>
                   )}
 
-                  
-
                   {passwordErrors.length > 0 && (
                     <ul className="password-rules">
                       {passwordErrors.map((e, i) => (
@@ -414,7 +419,6 @@ export default function InviteRegisterForm() {
                     </ul>
                   )}
                 </div>
-
               </div>
 
               <div className="invite-border-top pt-5">
@@ -426,7 +430,6 @@ export default function InviteRegisterForm() {
                   <i className="fa-solid fa-arrow-right ml-10"></i>
                 </button>
               </div>
-
             </form>
           </div>
         </div>

@@ -1,70 +1,82 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer, LabelList } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Cell,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 
 export default function ProductionFunnelChart({ data }) {
   // Перетворюємо дані швидкості на воронку
   // Показуємо середні значення по всіх категоріях
-  
-  const avgQueueDays = data.queue_days.reduce((a, b) => a + b, 0) / data.queue_days.length;
-  const avgProdDays = data.prod_days.reduce((a, b) => a + b, 0) / data.prod_days.length;
+
+  const avgQueueDays =
+    data.queue_days.reduce((a, b) => a + b, 0) / data.queue_days.length;
+  const avgProdDays =
+    data.prod_days.reduce((a, b) => a + b, 0) / data.prod_days.length;
   const totalAvg = avgQueueDays + avgProdDays;
 
   const funnelData = [
-    { 
-      stage: 'Прийнято замовлення', 
+    {
+      stage: "Прийнято замовлення",
       days: 0,
       percentage: 100,
-      fill: '#82ca9d',
-      description: 'Замовлення оформлене'
+      fill: "#82ca9d",
+      description: "Замовлення оформлене",
     },
-    { 
-      stage: 'В черзі на виробництво', 
+    {
+      stage: "В черзі на виробництво",
       days: avgQueueDays.toFixed(1),
       percentage: 85,
-      fill: '#FFBB28',
-      description: `Очікування ${avgQueueDays.toFixed(1)} дн`
+      fill: "#FFBB28",
+      description: `Очікування ${avgQueueDays.toFixed(1)} дн`,
     },
-    { 
-      stage: 'У виробництві', 
+    {
+      stage: "У виробництві",
       days: avgProdDays.toFixed(1),
       percentage: 70,
-      fill: '#00C49F',
-      description: `Виготовлення ${avgProdDays.toFixed(1)} дн`
+      fill: "#00C49F",
+      description: `Виготовлення ${avgProdDays.toFixed(1)} дн`,
     },
-    { 
-      stage: 'Контроль якості', 
-      days: '0.5',
+    {
+      stage: "Контроль якості",
+      days: "0.5",
       percentage: 60,
-      fill: '#0088FE',
-      description: 'Перевірка та пакування'
+      fill: "#0088FE",
+      description: "Перевірка та пакування",
     },
-    { 
-      stage: 'Готово до відвантаження', 
+    {
+      stage: "Готово до відвантаження",
       days: totalAvg.toFixed(1),
       percentage: 55,
-      fill: '#8884d8',
-      description: `Загальний час: ${totalAvg.toFixed(1)} дн`
-    }
+      fill: "#8884d8",
+      description: `Загальний час: ${totalAvg.toFixed(1)} дн`,
+    },
   ];
 
-  const CustomLabel = ({ x, y, width, value, index }) => {
+  const CustomLabel = ({ x, y, width, _value, index }) => {
     const data = funnelData[index];
     return (
       <g>
-        <text 
-          x={x + width / 2} 
-          y={y + 20} 
-          fill="#1a1d23" 
-          textAnchor="middle" 
+        <text
+          x={x + width / 2}
+          y={y + 20}
+          fill="#1a1d23"
+          textAnchor="middle"
           fontSize={14}
           fontWeight={700}
         >
           {data.stage}
         </text>
-        <text 
-          x={x + width / 2} 
-          y={y + 40} 
-          fill="#666" 
-          textAnchor="middle" 
+        <text
+          x={x + width / 2}
+          y={y + 40}
+          fill="#666"
+          textAnchor="middle"
           fontSize={12}
         >
           {data.description}
@@ -76,13 +88,15 @@ export default function ProductionFunnelChart({ data }) {
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
     const data = payload[0].payload;
-    
+
     return (
       <div className="funnel-tooltip">
         <div className="tooltip-title">{data.stage}</div>
         <div className="tooltip-desc">{data.description}</div>
         {data.days > 0 && (
-          <div className="tooltip-value">Час на етапі: <strong>{data.days} дн</strong></div>
+          <div className="tooltip-value">
+            Час на етапі: <strong>{data.days} дн</strong>
+          </div>
         )}
       </div>
     );
@@ -99,11 +113,7 @@ export default function ProductionFunnelChart({ data }) {
           <XAxis dataKey="stage" hide />
           <YAxis hide />
           <Tooltip content={<CustomTooltip />} />
-          <Bar 
-            dataKey="percentage" 
-            radius={[8, 8, 8, 8]}
-            barSize={80}
-          >
+          <Bar dataKey="percentage" radius={[8, 8, 8, 8]} barSize={80}>
             {funnelData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
@@ -116,11 +126,15 @@ export default function ProductionFunnelChart({ data }) {
       <div className="funnel-stats">
         <div className="stat-item">
           <span className="stat-label">Середня черга:</span>
-          <span className="stat-value text-amber">{avgQueueDays.toFixed(1)} дн</span>
+          <span className="stat-value text-amber">
+            {avgQueueDays.toFixed(1)} дн
+          </span>
         </div>
         <div className="stat-item">
           <span className="stat-label">Чисте виробництво:</span>
-          <span className="stat-value text-green">{avgProdDays.toFixed(1)} дн</span>
+          <span className="stat-value text-green">
+            {avgProdDays.toFixed(1)} дн
+          </span>
         </div>
         <div className="stat-item">
           <span className="stat-label">Загальний час:</span>
@@ -162,7 +176,7 @@ export default function ProductionFunnelChart({ data }) {
         }
 
         .tooltip-value strong {
-          color: #0088FE;
+          color: #0088fe;
           font-weight: 700;
         }
 
@@ -195,15 +209,15 @@ export default function ProductionFunnelChart({ data }) {
         }
 
         .text-amber {
-          color: #FFBB28;
+          color: #ffbb28;
         }
 
         .text-green {
-          color: #00C49F;
+          color: #00c49f;
         }
 
         .text-blue {
-          color: #0088FE;
+          color: #0088fe;
         }
 
         @media (max-width: 768px) {

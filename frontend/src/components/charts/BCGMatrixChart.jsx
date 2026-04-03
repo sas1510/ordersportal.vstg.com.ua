@@ -1,57 +1,80 @@
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell, Label } from 'recharts';
+import {
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  ZAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Cell,
+  Label,
+} from "recharts";
 
 const QUADRANT_COLORS = {
-  star: '#00C49F',      // Зірки (high growth, high share)
-  question: '#FFBB28',  // Знаки питання (high growth, low share)
-  cow: '#0088FE',       // Корови (low growth, high share)
-  dog: '#FF8042'        // Собаки (low growth, low share)
+  star: "#00C49F", // Зірки (high growth, high share)
+  question: "#FFBB28", // Знаки питання (high growth, low share)
+  cow: "#0088FE", // Корови (low growth, high share)
+  dog: "#FF8042", // Собаки (low growth, low share)
 };
 
 export default function BCGMatrixChart({ data }) {
   // data: { name, marketShare, growthRate, revenue, orders }
-  
+
   // Визначаємо медіану для поділу квадрантів
   const medianShare = data.reduce((s, d) => s + d.marketShare, 0) / data.length;
   const medianGrowth = 0; // Нульове зростання як базова лінія
 
-  const enrichedData = data.map(item => {
-    let quadrant = 'dog';
+  const enrichedData = data.map((item) => {
+    let quadrant = "dog";
     let color = QUADRANT_COLORS.dog;
-    
+
     if (item.growthRate > medianGrowth && item.marketShare > medianShare) {
-      quadrant = 'star';
+      quadrant = "star";
       color = QUADRANT_COLORS.star;
-    } else if (item.growthRate > medianGrowth && item.marketShare <= medianShare) {
-      quadrant = 'question';
+    } else if (
+      item.growthRate > medianGrowth &&
+      item.marketShare <= medianShare
+    ) {
+      quadrant = "question";
       color = QUADRANT_COLORS.question;
-    } else if (item.growthRate <= medianGrowth && item.marketShare > medianShare) {
-      quadrant = 'cow';
+    } else if (
+      item.growthRate <= medianGrowth &&
+      item.marketShare > medianShare
+    ) {
+      quadrant = "cow";
       color = QUADRANT_COLORS.cow;
     }
-    
+
     return {
       ...item,
       quadrant,
       fill: color,
       // Розмір бульбашки пропорційний виручці
-      size: Math.max(100, Math.min(1000, item.revenue / 1000))
+      size: Math.max(100, Math.min(1000, item.revenue / 1000)),
     };
   });
 
   const getQuadrantLabel = (quadrant) => {
-    switch(quadrant) {
-      case 'star': return '⭐ Зірка';
-      case 'question': return '❓ Знак питання';
-      case 'cow': return '🐄 Корова';
-      case 'dog': return '🐕 Собака';
-      default: return '';
+    switch (quadrant) {
+      case "star":
+        return "⭐ Зірка";
+      case "question":
+        return "❓ Знак питання";
+      case "cow":
+        return "🐄 Корова";
+      case "dog":
+        return "🐕 Собака";
+      default:
+        return "";
     }
   };
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
     const data = payload[0].payload;
-    
+
     return (
       <div className="bcg-tooltip">
         <div className="tooltip-header">
@@ -79,10 +102,11 @@ export default function BCGMatrixChart({ data }) {
           </div>
         </div>
         <div className="tooltip-recommendation">
-          {data.quadrant === 'star' && '💡 Інвестуйте та розвивайте'}
-          {data.quadrant === 'cow' && '💡 Підтримуйте поточний рівень'}
-          {data.quadrant === 'question' && '💡 Потребує аналізу: інвестувати чи закривати?'}
-          {data.quadrant === 'dog' && '💡 Розгляньте можливість виходу'}
+          {data.quadrant === "star" && "💡 Інвестуйте та розвивайте"}
+          {data.quadrant === "cow" && "💡 Підтримуйте поточний рівень"}
+          {data.quadrant === "question" &&
+            "💡 Потребує аналізу: інвестувати чи закривати?"}
+          {data.quadrant === "dog" && "💡 Розгляньте можливість виходу"}
         </div>
       </div>
     );
@@ -91,7 +115,7 @@ export default function BCGMatrixChart({ data }) {
   const CustomDot = (props) => {
     const { cx, cy, payload } = props;
     const radius = Math.sqrt(payload.size / Math.PI);
-    
+
     return (
       <g>
         <circle
@@ -102,7 +126,7 @@ export default function BCGMatrixChart({ data }) {
           opacity={0.6}
           stroke="#fff"
           strokeWidth={2}
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: "pointer" }}
         />
         {radius > 20 && (
           <text
@@ -127,57 +151,71 @@ export default function BCGMatrixChart({ data }) {
         <ScatterChart margin={{ top: 20, right: 40, bottom: 40, left: 40 }}>
           {/* Сітка квадрантів */}
           <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-          
+
           {/* Осі */}
-          <XAxis 
-            type="number" 
-            dataKey="marketShare" 
+          <XAxis
+            type="number"
+            dataKey="marketShare"
             name="Частка ринку"
-            domain={[0, 'auto']}
-            label={{ value: 'Частка ринку (%)', position: 'bottom', offset: 0 }}
+            domain={[0, "auto"]}
+            label={{ value: "Частка ринку (%)", position: "bottom", offset: 0 }}
             tick={{ fontSize: 12 }}
           />
-          
-          <YAxis 
-            type="number" 
-            dataKey="growthRate" 
+
+          <YAxis
+            type="number"
+            dataKey="growthRate"
             name="Темп зростання"
-            label={{ value: 'Темп зростання (%)', angle: -90, position: 'insideLeft' }}
+            label={{
+              value: "Темп зростання (%)",
+              angle: -90,
+              position: "insideLeft",
+            }}
             tick={{ fontSize: 12 }}
           />
-          
-          <ZAxis 
-            type="number" 
-            dataKey="size" 
-            range={[100, 1000]} 
+
+          <ZAxis
+            type="number"
+            dataKey="size"
+            range={[100, 1000]}
             name="Розмір"
           />
-          
+
           {/* Лінії поділу квадрантів */}
-          <ReferenceLine 
-            x={medianShare} 
-            stroke="#999" 
+          <ReferenceLine
+            x={medianShare}
+            stroke="#999"
             strokeWidth={2}
             strokeDasharray="5 5"
           >
-            <Label value="Медіана частки" position="top" fill="#666" fontSize={11} />
+            <Label
+              value="Медіана частки"
+              position="top"
+              fill="#666"
+              fontSize={11}
+            />
           </ReferenceLine>
-          
-          <ReferenceLine 
-            y={medianGrowth} 
-            stroke="#999" 
+
+          <ReferenceLine
+            y={medianGrowth}
+            stroke="#999"
             strokeWidth={2}
             strokeDasharray="5 5"
           >
-            <Label value="Нульове зростання" position="right" fill="#666" fontSize={11} />
+            <Label
+              value="Нульове зростання"
+              position="right"
+              fill="#666"
+              fontSize={11}
+            />
           </ReferenceLine>
-          
-          <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-          
-          <Scatter 
-            data={enrichedData} 
-            shape={<CustomDot />}
-          >
+
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ strokeDasharray: "3 3" }}
+          />
+
+          <Scatter data={enrichedData} shape={<CustomDot />}>
             {enrichedData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
@@ -191,9 +229,12 @@ export default function BCGMatrixChart({ data }) {
           <div className="quadrant-icon">⭐</div>
           <div className="quadrant-info">
             <div className="quadrant-title">Зірки</div>
-            <div className="quadrant-desc">Високе зростання + велика частка</div>
+            <div className="quadrant-desc">
+              Високе зростання + велика частка
+            </div>
             <div className="quadrant-count">
-              {enrichedData.filter(d => d.quadrant === 'star').length} продуктів
+              {enrichedData.filter((d) => d.quadrant === "star").length}{" "}
+              продуктів
             </div>
           </div>
         </div>
@@ -204,7 +245,8 @@ export default function BCGMatrixChart({ data }) {
             <div className="quadrant-title">Знаки питання</div>
             <div className="quadrant-desc">Високе зростання + мала частка</div>
             <div className="quadrant-count">
-              {enrichedData.filter(d => d.quadrant === 'question').length} продуктів
+              {enrichedData.filter((d) => d.quadrant === "question").length}{" "}
+              продуктів
             </div>
           </div>
         </div>
@@ -213,9 +255,12 @@ export default function BCGMatrixChart({ data }) {
           <div className="quadrant-icon">🐄</div>
           <div className="quadrant-info">
             <div className="quadrant-title">Грошові корови</div>
-            <div className="quadrant-desc">Низьке зростання + велика частка</div>
+            <div className="quadrant-desc">
+              Низьке зростання + велика частка
+            </div>
             <div className="quadrant-count">
-              {enrichedData.filter(d => d.quadrant === 'cow').length} продуктів
+              {enrichedData.filter((d) => d.quadrant === "cow").length}{" "}
+              продуктів
             </div>
           </div>
         </div>
@@ -226,7 +271,8 @@ export default function BCGMatrixChart({ data }) {
             <div className="quadrant-title">Собаки</div>
             <div className="quadrant-desc">Низьке зростання + мала частка</div>
             <div className="quadrant-count">
-              {enrichedData.filter(d => d.quadrant === 'dog').length} продуктів
+              {enrichedData.filter((d) => d.quadrant === "dog").length}{" "}
+              продуктів
             </div>
           </div>
         </div>
@@ -321,23 +367,39 @@ export default function BCGMatrixChart({ data }) {
         }
 
         .quadrant-card.star {
-          border-color: #00C49F;
-          background: linear-gradient(135deg, rgba(0, 196, 159, 0.05) 0%, rgba(0, 196, 159, 0.1) 100%);
+          border-color: #00c49f;
+          background: linear-gradient(
+            135deg,
+            rgba(0, 196, 159, 0.05) 0%,
+            rgba(0, 196, 159, 0.1) 100%
+          );
         }
 
         .quadrant-card.question {
-          border-color: #FFBB28;
-          background: linear-gradient(135deg, rgba(255, 187, 40, 0.05) 0%, rgba(255, 187, 40, 0.1) 100%);
+          border-color: #ffbb28;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 187, 40, 0.05) 0%,
+            rgba(255, 187, 40, 0.1) 100%
+          );
         }
 
         .quadrant-card.cow {
-          border-color: #0088FE;
-          background: linear-gradient(135deg, rgba(0, 136, 254, 0.05) 0%, rgba(0, 136, 254, 0.1) 100%);
+          border-color: #0088fe;
+          background: linear-gradient(
+            135deg,
+            rgba(0, 136, 254, 0.05) 0%,
+            rgba(0, 136, 254, 0.1) 100%
+          );
         }
 
         .quadrant-card.dog {
-          border-color: #FF8042;
-          background: linear-gradient(135deg, rgba(255, 128, 66, 0.05) 0%, rgba(255, 128, 66, 0.1) 100%);
+          border-color: #ff8042;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 128, 66, 0.05) 0%,
+            rgba(255, 128, 66, 0.1) 100%
+          );
         }
 
         .quadrant-icon {
@@ -365,7 +427,7 @@ export default function BCGMatrixChart({ data }) {
         .quadrant-count {
           font-size: 12px;
           font-weight: 700;
-          color: #0088FE;
+          color: #0088fe;
         }
 
         @media (max-width: 768px) {

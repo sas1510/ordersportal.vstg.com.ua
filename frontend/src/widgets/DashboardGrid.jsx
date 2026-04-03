@@ -4,7 +4,7 @@ import WidgetCard from "./WidgetCard";
 export default function DashboardGrid({ widgets, dataResolver, removeWidget }) {
   return (
     <div className="dashboard-grid">
-      {widgets.map(widget => {
+      {widgets.map((widget) => {
         const config = widgetRegistry[widget.type];
         if (!config) return null;
 

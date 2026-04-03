@@ -22,10 +22,10 @@ const styles = {
     minHeight: "100vh",
     position: "relative",
   },
-   main: {
+  main: {
     flexGrow: 1,
-    paddingTop: "60px",   // приблизно висота Header
+    paddingTop: "60px", // приблизно висота Header
     paddingBottom: "40px",
-    overflow: "auto" // приблизно висота Footer
+    overflow: "auto", // приблизно висота Footer
   },
 };

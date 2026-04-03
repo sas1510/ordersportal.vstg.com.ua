@@ -9,7 +9,8 @@ import {
 import { FaTimes, FaSave, FaSearch } from "react-icons/fa";
 import "leaflet/dist/leaflet.css";
 import "./ClientAddressModal.css";
-import { useNotification } from "../../components/notification/Notifications";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
 
 /* ================= CONSTANTS ================= */
 const DEFAULT_CENTER = [48.3794, 31.1656];
@@ -67,7 +68,7 @@ const reverseGeocode = async (lat, lon) => {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      { headers: { "Accept-Language": "uk" } }
+      { headers: { "Accept-Language": "uk" } },
     );
     const data = await res.json();
     return data?.display_name || "";
@@ -78,9 +79,7 @@ const reverseGeocode = async (lat, lon) => {
 
 /* ================= BUILD ADDRESS ================= */
 const buildAddressFromForm = (f) =>
-  [f.region, f.district, f.city, f.street, f.house]
-    .filter(Boolean)
-    .join(", ");
+  [f.region, f.district, f.city, f.street, f.house].filter(Boolean).join(", ");
 
 /* ================= COMPONENT ================= */
 const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
@@ -109,23 +108,25 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const [selectedCoords, setSelectedCoords] = useState(
     initialValue?.lat && initialValue?.lng
       ? [initialValue.lat, initialValue.lng]
-      : null
+      : null,
   );
 
   const [mapDisplayName, setMapDisplayName] = useState(
-    initialValue?.text || ""
+    initialValue?.text || "",
   );
 
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showDragHint, setShowDragHint] = useState(false);
-  const [isPreciseLocation, setIsPreciseLocation] = useState(!!initialValue?.lat);
+  const [isPreciseLocation, setIsPreciseLocation] = useState(
+    !!initialValue?.lat,
+  );
 
   const debounceRef = useRef(null);
 
   const requiredFields = useMemo(
     () => ["region", "district", "city", "street", "house"],
-    []
+    [],
   );
 
   /* ================= SEARCH ================= */
@@ -147,7 +148,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
 
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?${params}`,
-        { headers: { "Accept-Language": "uk" } }
+        { headers: { "Accept-Language": "uk" } },
       );
 
       setSuggestions(await res.json());
@@ -194,7 +195,10 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     }
 
     // Валідація ПІБ (мінімум 2 слова)
-    if (!clientContact.fullName.trim() || clientContact.fullName.trim().split(" ").length < 2) {
+    if (
+      !clientContact.fullName.trim() ||
+      clientContact.fullName.trim().split(" ").length < 2
+    ) {
       addNotification("Вкажіть ПІБ клієнта (Прізвище та Ім'я)", "error");
       return;
     }
@@ -211,7 +215,10 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     }
 
     if (!isPreciseLocation) {
-      addNotification("Уточніть точку: перетягніть маркер або клацніть точніше", "error");
+      addNotification(
+        "Уточніть точку: перетягніть маркер або клацніть точніше",
+        "error",
+      );
       return;
     }
 
@@ -233,7 +240,6 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
       // contractor_guid: contractorGuid || initialValue?.contractor_guid || null,
     });
 
-
     addNotification("Дані про адресу клієнта успішно збережено ✅", "success");
     onClose();
   };
@@ -241,11 +247,17 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   /* ================= UI ================= */
   return (
     <div className="new-calc-modal-overlay" onClick={onClose}>
-      <div className="new-calc-modal-window" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="new-calc-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="new-calc-modal-border-top">
           <div className="new-calc-modal-header">
             <h3>🏠 Клієнтська адреса</h3>
-            <span className="icon icon-cross new-calc-close-btn" onClick={onClose} />
+            <span
+              className="icon icon-cross new-calc-close-btn"
+              onClick={onClose}
+            />
           </div>
         </div>
 
@@ -272,7 +284,10 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
                   if (e.nativeEvent.inputType === "deleteContentBackward") {
                     setClientContact((p) => ({ ...p, phone: val }));
                   } else {
-                    setClientContact((p) => ({ ...p, phone: formatPhoneInput(val) }));
+                    setClientContact((p) => ({
+                      ...p,
+                      phone: formatPhoneInput(val),
+                    }));
                   }
                 }}
               />
@@ -358,12 +373,18 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
           </div>
 
           {showDragHint && (
-            <div className="warning">Перетягніть маркер для уточнення точки</div>
+            <div className="warning">
+              Перетягніть маркер для уточнення точки
+            </div>
           )}
 
           {/* ===== MAP ===== */}
           <div className="map-holder-modal">
-            <MapContainer center={DEFAULT_CENTER} zoom={6} style={{ height: "300px", borderRadius: "8px" }}>
+            <MapContainer
+              center={DEFAULT_CENTER}
+              zoom={6}
+              style={{ height: "300px", borderRadius: "8px" }}
+            >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <MapViewUpdater center={selectedCoords} />
               <ClickHandler

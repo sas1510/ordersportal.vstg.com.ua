@@ -5,26 +5,32 @@ import { FaFilePdf, FaSearch, FaSpinner } from "react-icons/fa";
 import DealerSelect from "./DealerSelect";
 import { useDealerContext } from "../hooks/useDealerContext";
 import CreateCustomerBillModal from "./CreateCustomerBillModal";
-import { useNotification } from "../components/notification/Notifications";
+import { useNotification } from "../hooks/useNotification";
 
 /* =========================
    HELPERS
    ========================= */
 const getCurrentMonthRange = () => {
   const now = new Date();
-  const dateFrom = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-  const dateTo = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split("T")[0];
+  const dateFrom = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+  const dateTo = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    .toISOString()
+    .split("T")[0];
   return { dateFrom, dateTo };
 };
 
 const formatDate = (d) => (d ? new Date(d).toLocaleDateString("uk-UA") : "—");
-const formatMoney = (v) => Number(v || 0).toLocaleString("uk-UA", { minimumFractionDigits: 2 });
+const formatMoney = (v) =>
+  Number(v || 0).toLocaleString("uk-UA", { minimumFractionDigits: 2 });
 
 /* =========================
    COMPONENT
    ========================= */
 const CustomerBillsPage = () => {
-  const { dealerGuid, setDealerGuid, isAdmin, currentUser } = useDealerContext();
+  const { dealerGuid, setDealerGuid, isAdmin, currentUser } =
+    useDealerContext();
   const { addNotification } = useNotification();
   const USER_ROLE = currentUser?.role;
 
@@ -33,7 +39,7 @@ const CustomerBillsPage = () => {
   const [dateFrom, setDateFrom] = useState(defaultFrom);
   const [dateTo, setDateTo] = useState(defaultTo);
   const [loading, setLoading] = useState(!isAdmin);
-  const [error, setError] = useState("");
+  const [_error, setError] = useState("");
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
 
   // Стан для конкретної кнопки PDF
@@ -45,51 +51,62 @@ const CustomerBillsPage = () => {
     try {
       const params = { date_from: dateFrom, date_to: dateTo };
       if (isAdmin && dealerGuid) params.contractor = dealerGuid;
-      if (isAdmin && !dealerGuid) { setBills([]); setLoading(false); return; }
+      if (isAdmin && !dealerGuid) {
+        setBills([]);
+        setLoading(false);
+        return;
+      }
 
-      const res = await axiosInstance.get("/payments/dealers/bills/", { params });
+      const res = await axiosInstance.get("/payments/dealers/bills/", {
+        params,
+      });
       setBills(res.data?.items || []);
     } catch (err) {
       setError("Не вдалося завантажити список");
+      console.error("Error fetching bills:", err);
     } finally {
       setLoading(false);
     }
   };
-const handleDownloadPDF = async (billGuid, billNumber) => {
-  if (!billGuid || billGuid === "undefined") {
-    addNotification("Помилка: Невірний ID рахунку", "error");
-    return;
-  }
+  const handleDownloadPDF = async (billGuid, billNumber) => {
+    if (!billGuid || billGuid === "undefined") {
+      addNotification("Помилка: Невірний ID рахунку", "error");
+      return;
+    }
 
-  setPdfDownloadingId(billGuid);
+    setPdfDownloadingId(billGuid);
 
-  try {
-    const response = await axiosInstance.post(
-      `/payments/get_bill_pdf/${billGuid}/`,
-      { 
-        BillGuid: billGuid, // Відповідає структурі 1С
-        contractor_guid: dealerGuid // Потрібно для resolve_contractor, якщо ви Адмін
-      },
-      { responseType: "blob" }
-    );
+    try {
+      const response = await axiosInstance.post(
+        `/payments/get_bill_pdf/${billGuid}/`,
+        {
+          BillGuid: billGuid, // Відповідає структурі 1С
+          contractor_guid: dealerGuid, // Потрібно для resolve_contractor, якщо ви Адмін
+        },
+        { responseType: "blob" },
+      );
 
-    const blob = new Blob([response.data], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `Bill_${billNumber || billGuid.slice(0, 8)}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `Bill_${billNumber || billGuid.slice(0, 8)}.pdf`,
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
-    addNotification("Файл завантажено", "success");
-  } catch (err) {
-    addNotification("Помилка при завантаженні PDF", "error");
-  } finally {
-    setPdfDownloadingId(null);
-  }
-};
+      addNotification("Файл завантажено", "success");
+    } catch (err) {
+      console.error("PDF Download Error:", err);
+      addNotification("Помилка при завантаженні PDF", "error");
+    } finally {
+      setPdfDownloadingId(null);
+    }
+  };
 
   useEffect(() => {
     if (!isAdmin || (isAdmin && dealerGuid)) fetchBills();
@@ -102,15 +119,32 @@ const handleDownloadPDF = async (billGuid, billNumber) => {
       <div className="customer-bills-header">
         <h1 className="page-title">Рахунки</h1>
         <div className="bills-filter">
-          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          {isAdmin && <DealerSelect value={dealerGuid} onChange={setDealerGuid} />}
-          <button className="btn btn-filter-bill" onClick={fetchBills} disabled={isAdmin && !dealerGuid}>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
+          {isAdmin && (
+            <DealerSelect value={dealerGuid} onChange={setDealerGuid} />
+          )}
+          <button
+            className="btn btn-filter-bill"
+            onClick={fetchBills}
+            disabled={isAdmin && !dealerGuid}
+          >
             <FaSearch /> Пошук
           </button>
           {USER_ROLE === "customer" && (
-            <button className="btn btn-create-bill" onClick={() => setIsCreateBillOpen(true)}>
-               + Додати рахунок
+            <button
+              className="btn btn-create-bill"
+              onClick={() => setIsCreateBillOpen(true)}
+            >
+              + Додати рахунок
             </button>
           )}
         </div>
@@ -127,9 +161,10 @@ const handleDownloadPDF = async (billGuid, billNumber) => {
             </tr>
           </thead>
           <tbody>
-
             {bills.map((b) => (
-              <tr key={b.BillGuid}> {/* Виправлено регістр */}
+              <tr key={b.BillGuid}>
+                {" "}
+                {/* Виправлено регістр */}
                 <td>{formatDate(b.BillDate)}</td>
                 <td className="text-bold">{b.BillNumber}</td>
                 <td className="center">{formatMoney(b.TotalAmount)}</td>

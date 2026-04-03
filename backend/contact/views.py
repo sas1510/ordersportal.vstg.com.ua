@@ -106,7 +106,7 @@ def urgent_call_request(request):
     if contact.telegram_id:
         try:
             telegram_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-            resp = requests.post(telegram_url, data={'chat_id': contact.telegram_id, 'text': message})
+            resp = requests.post(telegram_url, data={'chat_id': contact.telegram_id, 'text': message}, timeout=10)
             resp.raise_for_status()
         except Exception as e:
             errors.append(f"Telegram error: {e}")

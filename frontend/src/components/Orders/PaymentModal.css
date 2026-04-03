@@ -2,13 +2,12 @@
 .pay-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   animation: fadeIn 0.25s ease;
-
 }
 
 /* ===== Window ===== */
@@ -18,7 +17,7 @@
   max-width: 90%;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: scaleIn 0.25s ease;
   max-height: 75vh;
 }
@@ -39,17 +38,16 @@
   margin: 0;
 }
 
-
-
-.pay-close-btn{
+.pay-close-btn {
   cursor: pointer;
   font-size: 18px;
-  display: inline-block;       /* важливо для transform */
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  display: inline-block; /* важливо для transform */
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
-
-.pay-close-btn:hover{
+.pay-close-btn:hover {
   opacity: 0.8;
   transform: rotate(90deg);
 }
@@ -78,7 +76,7 @@
 
 .pay-input:focus {
   border-color: #1da8df;
-  box-shadow: 0 0 0 3px rgba(29,168,223,0.25);
+  box-shadow: 0 0 0 3px rgba(29, 168, 223, 0.25);
   outline: none;
 }
 
@@ -109,7 +107,7 @@
 
 .input-error {
   border-color: #d9534f !important;
-  box-shadow: 0 0 0 2px rgba(217,83,79,0.25) !important;
+  box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.25) !important;
 }
 
 /* ===== Footer ===== */
@@ -122,11 +120,8 @@
   border-top: 1px solid #eee;
 }
 
-
-
-
 .pay-btn-confirm,
-.pay-btn-cancel{
+.pay-btn-cancel {
   border: none;
   padding: 10px 20px;
   border-radius: 4px;
@@ -135,35 +130,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   font-size: 14px;
 }
 
-
-
 .pay-btn-cancel:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
-
 
 .pay-btn-cancel {
   background: #999;
   color: #fff;
-
-
 }
 .pay-btn-confirm {
   background: #1da8df;
   color: #fff;
-
 }
 
 .pay-btn-confirm:hover {
-
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .pay-btn-confirm:disabled {
@@ -173,15 +162,24 @@
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.93); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.93);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-
 
 /* ===== Блок кнопок ===== */
 .quick-buttons.centered {
@@ -221,133 +219,132 @@
 /* ===== Dark mode ===== */
 body.dark-theme .quick-buttons.centered button {
   background: linear-gradient(90deg, #c75628, #d9683d);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
 }
 
 body.dark-theme .quick-buttons.centered button:hover {
   background: linear-gradient(90deg, #d9683d, #c75628);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
-
 
 /* === КАСТОМНИЙ ВИПАДАЮЧИЙ СПИСОК === */
 .custom-dropdown {
-    position: relative;
-    width: 100%;
-    margin-top: 6px;
+  position: relative;
+  width: 100%;
+  margin-top: 6px;
 }
 
 /* Відображення вибраного значення */
 .dropdown-selected {
-    padding: 10px;
-    background: #fff;
-    border: 1px solid var(--grey-border-color);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: 0.2s;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--grey-border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 .dropdown-selected:hover {
-    border-color: var(--info-color);
+  border-color: var(--info-color);
 }
 
 .dropdown-selected.active {
-    border-color: var(--info-color);
-    background: #f7fbff;
+  border-color: var(--info-color);
+  background: #f7fbff;
 }
 
 /* Список опцій */
 .dropdown-menu {
-    position: absolute;
-    top: 110%;
-    left: 0;
-    width: 100%;
-    max-height: 180px; /* ОБМЕЖЕННЯ, ЩОБ НЕ ВИХОДИВ ЗА МЕЖІ */
-    overflow-y: auto;
-    background: #fff;
-    border: 1px solid var(--grey-border-color);
-    border-radius: 4px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    z-index: 999;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  max-height: 180px; /* ОБМЕЖЕННЯ, ЩОБ НЕ ВИХОДИВ ЗА МЕЖІ */
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--grey-border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 999;
 }
 
 /* Окремий пункт */
 .dropdown-item {
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: 0.15s;
-    font-size: 14px;
-    border-bottom: 1px dashed #eee;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: 0.15s;
+  font-size: 14px;
+  border-bottom: 1px dashed #eee;
 }
 .dropdown-item:hover {
-    background: var(--info-bg-color);
+  background: var(--info-bg-color);
 }
 
 /* Назва договору */
 .item-name {
-    font-weight: 600;
+  font-weight: 600;
 }
 
 /* Залишок */
 .item-amount {
-    color: var(--info-color);
-    font-weight: 700;
+  color: var(--info-color);
+  font-weight: 700;
 }
 
 /* === СКРОЛЛБАР === */
 .dropdown-menu::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 .dropdown-menu::-webkit-scrollbar-thumb {
-    background: var(--info-color);
-    border-radius: 3px;
+  background: var(--info-color);
+  border-radius: 3px;
 }
 
 /* === ТЕМНА ТЕМА === */
 .dark-theme .dropdown-selected {
-    background: #2e2e2e;
-    border: 1px solid #555;
-    color: #e6e6e6;
+  background: #2e2e2e;
+  border: 1px solid #555;
+  color: #e6e6e6;
 }
 .dark-theme .dropdown-selected.active {
-    background: #3a3a3a;
-    border-color: var(--info-color);
+  background: #3a3a3a;
+  border-color: var(--info-color);
 }
 
 .dark-theme .dropdown-menu {
-    background: #2e2e2e;
-    border: 1px solid #555;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  background: #2e2e2e;
+  border: 1px solid #555;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 .dark-theme .dropdown-item {
-    border-bottom: 1px dashed #444;
-    color: #eee;
+  border-bottom: 1px dashed #444;
+  color: #eee;
 }
 .dark-theme .dropdown-item:hover {
-    background: rgba(56, 132, 255, 0.12);
+  background: rgba(56, 132, 255, 0.12);
 }
 
 .dark-theme .item-amount {
-    color: #4dabff;
+  color: #4dabff;
 }
-
 
 /* Стрілка справа */
 .dropdown-arrow {
-    font-size: 12px;
-    margin-left: auto;
-    opacity: 0.7;
-    transition: transform 0.25s ease, opacity 0.2s;
+  font-size: 12px;
+  margin-left: auto;
+  opacity: 0.7;
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s;
 }
 
 /* Коли меню відкрите */
 .dropdown-arrow.open {
-    transform: rotate(180deg);
-    opacity: 1;
+  transform: rotate(180deg);
+  opacity: 1;
 }
-
 
 /* =========================
    DARK THEME — PAY MODAL
@@ -360,7 +357,7 @@ body.dark-theme .pay-modal-overlay {
 /* ===== Window ===== */
 body.dark-theme .pay-modal-window {
   background: #2b2b2b;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* ===== Header ===== */
@@ -391,7 +388,7 @@ body.dark-theme .pay-input::placeholder {
 
 body.dark-theme .pay-input:focus {
   border-color: #4dabff;
-  box-shadow: 0 0 0 3px rgba(77,171,255,0.35);
+  box-shadow: 0 0 0 3px rgba(77, 171, 255, 0.35);
 }
 
 /* ===== Debt info ===== */
@@ -439,9 +436,6 @@ body.dark-theme .pay-close-btn:hover {
   opacity: 0.85;
 }
 
-
-
-
 .btn-notification-retry {
   background: white;
   color: #d32f2f; /* Червоний для помилок */
@@ -453,7 +447,7 @@ body.dark-theme .pay-close-btn:hover {
   margin-right: 7px;
   font-weight: bold;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.1s;
 }
 

@@ -1,122 +1,143 @@
 .drawer-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    visibility: hidden;
-    opacity: 0;
-    transition: 0.3s ease;
-    z-index: 10001; /* Має бути вище за Header */
-
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.3s ease;
+  z-index: 10001; /* Має бути вище за Header */
 }
 
 .drawer-overlay.active {
-    visibility: visible;
-    opacity: 1;
+  visibility: visible;
+  opacity: 1;
 }
 
 .notification-drawer {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 400px;
-    height: 100vh;
-    background: white;
-    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-    transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    z-index: 10002;
-    display: flex;
-    flex-direction: column;
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 10002;
+  display: flex;
+  flex-direction: column;
 }
 
 .notification-drawer.open {
-    right: 0;
+  right: 0;
 }
 
 .drawer-header {
-    padding: 20px 0px;
-    display: flex;
-    justify-content: space-between;
-    text-align: start;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 4px;
-    border-bottom: 1px dashed #ccc;
+  padding: 20px 0px;
+  display: flex;
+  justify-content: space-between;
+  text-align: start;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 4px;
+  border-bottom: 1px dashed #ccc;
 }
 
 .drawer-header-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-
-
 .close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    color: #8c8c8c;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: #8c8c8c;
 }
 
 .drawer-actions {
-    padding: 10px 20px;
-    background: #fafafa;
+  padding: 10px 20px;
+  background: #fafafa;
 }
 
 .btn-mark-read {
-    background: none;
-    border: none;
-    color: var(--info-color);
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-
-    
+  background: none;
+  border: none;
+  color: var(--info-color);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .drawer-content {
-    flex: 1;
-    overflow-y: auto;
-    max-width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  max-width: 100%;
 }
 
 .drawer-item {
-    padding: 15px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    gap: 15px;
-    cursor: pointer;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  gap: 15px;
+  cursor: pointer;
 }
 
-.drawer-item.unread:hover { background: #f0f7ff; }
-.drawer-item.unread { background: #fafafa; border-left: 4px solid var(--danger-color); }
+.drawer-item.unread:hover {
+  background: #f0f7ff;
+}
+.drawer-item.unread {
+  background: #fafafa;
+  border-left: 4px solid var(--danger-color);
+}
 
-.item-meta { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.item-type { font-size: 11px; font-weight: bold; color: var(--info-color); text-transform: uppercase; }
-.item-date { font-size: 11px; color: #bfbfbf; }
-.item-message { margin: 0; font-size: 14px; color: #262626; line-height: 1.4; max-width: 100%; }
+.item-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+.item-type {
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--info-color);
+  text-transform: uppercase;
+}
+.item-date {
+  font-size: 11px;
+  color: #bfbfbf;
+}
+.item-message {
+  margin: 0;
+  font-size: 14px;
+  color: #262626;
+  line-height: 1.4;
+  max-width: 100%;
+}
 
-.loading-state, .empty-state {
-    text-align: center;
-    padding: 40px;
-    color: #8c8c8c;
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #8c8c8c;
 }
 
 @media (max-width: 450px) {
-    .notification-drawer { width: 100%; right: -100%; }
+  .notification-drawer {
+    width: 100%;
+    right: -100%;
+  }
 }
 
 .icon-together {
-    display: flex;      
-    align-items: center;
-    gap: 12px;          
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* 
@@ -129,18 +150,12 @@
 }
  */
 
-
-
 .badge-count {
-
-
   font-weight: 700;
   line-height: 1;
-  
 
   min-width: 18px;
   height: 18px;
-
 
   background: var(--danger-color);
   color: white;
@@ -151,9 +166,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
 
-  
   /* Ефект пульсації для нових повідомлень (опціонально) */
   box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
   animation: pulse-red 2s infinite;
@@ -162,336 +175,332 @@
 
 /* Анімація пульсації, щоб привернути увагу до нових сповіщень */
 @keyframes pulse-red {
-  0% {  box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
-  70% { box-shadow: 0 0 0 7px rgba(255, 58, 48, 0.041); }
-  100% {  box-shadow: 0 0 0 0 rgba(255, 58, 48, 0.041); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(255, 58, 48, 0.041);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 58, 48, 0.041);
+  }
 }
 
 /* .item-icon {
     a
 } */
 
-
 .item-body {
-    max-width: 100%;
+  max-width: 100%;
 }
-
 
 /* Базові кольори (Світла тема за замовчуванням) */
 :root {
-    --drawer-bg: #ffffff;
-    --drawer-overlay: rgba(0, 0, 0, 0.4);
-    --drawer-text-main: #262626;
-    --drawer-text-muted: #8c8c8c;
-    --drawer-text-date: #bfbfbf;
-    --drawer-border: #f0f0f0;
-    --drawer-item-unread: #fafafa;
-    --drawer-item-hover: #f0f7ff;
-    --drawer-header-border: #ccc;
-    --notification-border-btn: #ddd;
-    --tg-card-border: #e1e8ed;
-    --tg-qr-bg: #f8f9fa;
-    --tg-text: #333333;
-    --tg-text-muted: #657786;
-    --tg-arrow-color: #ffffff;
+  --drawer-bg: #ffffff;
+  --drawer-overlay: rgba(0, 0, 0, 0.4);
+  --drawer-text-main: #262626;
+  --drawer-text-muted: #8c8c8c;
+  --drawer-text-date: #bfbfbf;
+  --drawer-border: #f0f0f0;
+  --drawer-item-unread: #fafafa;
+  --drawer-item-hover: #f0f7ff;
+  --drawer-header-border: #ccc;
+  --notification-border-btn: #ddd;
+  --tg-card-border: #e1e8ed;
+  --tg-qr-bg: #f8f9fa;
+  --tg-text: #333333;
+  --tg-text-muted: #657786;
+  --tg-arrow-color: #ffffff;
 }
 
 /* Кольори для Темної теми */
 .dark-theme {
-    --drawer-bg: #1f1f1f;
-    --drawer-overlay: rgba(0, 0, 0, 0.7);
-    --drawer-text-main: #e6e6e6;
-    --drawer-text-muted: #a6a6a6;
-    --drawer-text-date: #595959;
-    --drawer-border: #303030;
-    --drawer-item-unread: #262626;
-    --drawer-item-hover: #333333; /* Темно-синій відтінок для ховеру */
-    --drawer-header-border: #434343;
-    --notification-border-btn: #888888;
-    --tg-card-border: #434343;
-    --tg-qr-bg: #ffffff; /* Залишаємо білим для QR */
-    --tg-text: #e6e6e6;
-    --tg-text-muted: #a6a6a6;
-    --tg-arrow-color: #1f1f1f; /* Має збігатися з --drawer-bg */
+  --drawer-bg: #1f1f1f;
+  --drawer-overlay: rgba(0, 0, 0, 0.7);
+  --drawer-text-main: #e6e6e6;
+  --drawer-text-muted: #a6a6a6;
+  --drawer-text-date: #595959;
+  --drawer-border: #303030;
+  --drawer-item-unread: #262626;
+  --drawer-item-hover: #333333; /* Темно-синій відтінок для ховеру */
+  --drawer-header-border: #434343;
+  --notification-border-btn: #888888;
+  --tg-card-border: #434343;
+  --tg-qr-bg: #ffffff; /* Залишаємо білим для QR */
+  --tg-text: #e6e6e6;
+  --tg-text-muted: #a6a6a6;
+  --tg-arrow-color: #1f1f1f; /* Має збігатися з --drawer-bg */
 }
 
 /* Тепер застосовуємо змінні до ваших селекторів */
 
 .drawer-overlay {
-    background: var(--drawer-overlay);
+  background: var(--drawer-overlay);
 }
 
 .notification-drawer {
-    background: var(--drawer-bg);
-    color: var(--drawer-text-main);
+  background: var(--drawer-bg);
+  color: var(--drawer-text-main);
 }
 
 .drawer-header {
-    border-bottom: 1px dashed var(--drawer-header-border);
+  border-bottom: 1px dashed var(--drawer-header-border);
 }
 
 .drawer-item {
-    background: var(--drawer-bg);
-    border-bottom: 1px solid var(--drawer-border);
+  background: var(--drawer-bg);
+  border-bottom: 1px solid var(--drawer-border);
 }
 
 .drawer-item.unread {
-    background: var(--drawer-item-unread);
+  background: var(--drawer-item-unread);
 }
 
 .drawer-item.unread:hover {
-    background: var(--drawer-item-hover);
+  background: var(--drawer-item-hover);
 }
 
 .item-message {
-    color: var(--drawer-text-main);
+  color: var(--drawer-text-main);
 }
 
 .item-date {
-    color: var(--drawer-text-date);
+  color: var(--drawer-text-date);
 }
 
-.close-btn, .loading-state, .empty-state {
-    color: var(--drawer-text-muted);
+.close-btn,
+.loading-state,
+.empty-state {
+  color: var(--drawer-text-muted);
 }
-
 
 /* Кнопка підписки на пуші */
 .btn-subscribe-push {
-    background: #e3f2fd;
-    border: 1px solid #90caf9;
-    color: #1976d2;
-    padding: 4px 10px;
-    border-radius: 3px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-    font-size: 12px;
-    font-weight: 600;
+  background: #e3f2fd;
+  border: 1px solid #90caf9;
+  color: #1976d2;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .btn-subscribe-push:hover {
-    background: #1976d2;
-    color: white;
+  background: #1976d2;
+  color: white;
 }
 
 .btn-subscribe-push.loading {
-    opacity: 0.6;
-    pointer-events: none;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* На мобільних можна приховати текст, залишити іконку */
 @media (max-width: 480px) {
-    .btn-subscribe-push .btn-text {
-        display: none;
-    }
+  .btn-subscribe-push .btn-text {
+    display: none;
+  }
 }
-
 
 /* Кнопка вимкнення */
 .btn-unsubscribe-push {
-    background: transparent;
-    color: #888;
-    border: 1px solid var(--notification-border-btn);
-    padding: 5px 10px;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
+  background: transparent;
+  color: #888;
+  border: 1px solid var(--notification-border-btn);
+  padding: 5px 10px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-unsubscribe-push:hover {
-    background: #fff0f0;
-    color: #dc3545;
-    border-color: #dc3545;
+  background: #fff0f0;
+  color: #dc3545;
+  border-color: #dc3545;
 }
 
 .status-blocked {
-    display: flex;
-    align-items: center;
-    cursor: help;
+  display: flex;
+  align-items: center;
+  cursor: help;
 }
 
-
 .btn-mark-read:hover:not(:disabled) {
-    background: var(--input-bg);
-    color: #76b448; /* Колір бренду при наведенні */
+  background: var(--input-bg);
+  color: #76b448; /* Колір бренду при наведенні */
 }
 
 /* Стиль для вимкненої кнопки */
 .btn-mark-read:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    filter: grayscale(1);
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
 }
 
 /* В темній темі disabled має бути ще менш контрастним */
 .dark-theme .btn-mark-read:disabled {
-    color: #555;
-    border-color: #333;
+  color: #555;
+  border-color: #333;
 }
-
-
 
 .drawer-header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .drawer-filters {
-    display: flex;
-    gap: 8px; /* Відстань між кнопками */
-    padding-bottom: 4px;
-    justify-content: space-between;
-    border-bottom: 1px dashed var(--drawer-header-border);
-    width: 100%; /* Гарантуємо, що контейнер на всю ширину */
+  display: flex;
+  gap: 8px; /* Відстань між кнопками */
+  padding-bottom: 4px;
+  justify-content: space-between;
+  border-bottom: 1px dashed var(--drawer-header-border);
+  width: 100%; /* Гарантуємо, що контейнер на всю ширину */
 }
 
 .filter-btn {
-    flex: 1; /* КРИТИЧНО: змушує всі кнопки ділити простір порівну */
-    background: transparent;
-    color: #888;
-    border: 1px solid var(--notification-border-btn);
-    padding: 5px 10px; /* Трохи збільшив вертикальний паддінг для зручності */
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center; /* Центруємо текст/іконку всередині кнопки */
-    gap: 5px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap; /* Щоб текст не переносився на новий рядок */
+  flex: 1; /* КРИТИЧНО: змушує всі кнопки ділити простір порівну */
+  background: transparent;
+  color: #888;
+  border: 1px solid var(--notification-border-btn);
+  padding: 5px 10px; /* Трохи збільшив вертикальний паддінг для зручності */
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Центруємо текст/іконку всередині кнопки */
+  gap: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap; /* Щоб текст не переносився на новий рядок */
 }
 
 .filter-btn:hover {
-    background: #e4e6eb;
+  background: #e4e6eb;
 }
 
 .filter-btn.active {
-    background: var(--info-color);
-    border-color: var(--info-color); /* Щоб рамка теж стала колірна */
-    color: white;
+  background: var(--info-color);
+  border-color: var(--info-color); /* Щоб рамка теж стала колірна */
+  color: white;
 }
-
-
 
 /* Кнопка в заголовку */
 .btn-tg-trigger {
-    background: none;
-    border: none;
-    color: var(--info-color);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    transition: transform 0.2s ease;
+  background: none;
+  border: none;
+  color: var(--info-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  transition: transform 0.2s ease;
 }
 
 .btn-tg-trigger:hover {
-    color: var(--success-color);
+  color: var(--success-color);
 }
 
 .react-tiny-popover-container {
-    z-index: 1010000 !important; /* Має бути вище за .notification-drawer (10002) */
+  z-index: 1010000 !important; /* Має бути вище за .notification-drawer (10002) */
 }
 
-
-
-
 .tg-direct-link {
-    background: #0088cc;
-    color: white !important;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 8px 0;
-    width: 100%;
-    text-align: center;
-    border-radius: 3px;
-    transition: background 0.2s;
+  background: #0088cc;
+  color: white !important;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 0;
+  width: 100%;
+  text-align: center;
+  border-radius: 3px;
+  transition: background 0.2s;
 }
 
 .tg-direct-link:hover {
-    background: #0077b5;
+  background: #0077b5;
 }
 
 .tg-loader {
-    height: 140px;
-    display: flex;
-    align-items: center;
-    font-size: 12px;
-    color: #888;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #888;
 }
 
 /* Переконуємося, що SVG-шар бібліотеки archer знаходиться поверх всього */
 .archer-svg-container {
-    z-index: 1009999 !important;
+  z-index: 1009999 !important;
 }
 .tg-popover-card {
-    background: var(--drawer-bg);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4); /* Глибша тінь для темної теми */
-    border: 1px solid var(--tg-card-border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 200px;
-    position: relative;
-    transition: background 0.3s ease;
+  background: var(--drawer-bg);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Глибша тінь для темної теми */
+  border: 1px solid var(--tg-card-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200px;
+  position: relative;
+  transition: background 0.3s ease;
 }
 
 .tg-popover-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    color: var(--tg-text); /* Адаптивний колір тексту */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--tg-text); /* Адаптивний колір тексту */
 }
 
 .tg-qr-container {
-    background: var(--tg-qr-bg); /* Завжди світлий для зчитування сканером */
-    padding: 8px;
-    border-radius: 8px;
-    margin-bottom: 8px;
+  background: var(--tg-qr-bg); /* Завжди світлий для зчитування сканером */
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
 }
 
 .tg-qr-text {
-    font-size: 11px;
-    color: var(--tg-text-muted); /* Адаптивний колір */
-    margin-bottom: 12px;
-    text-align: center;
+  font-size: 11px;
+  color: var(--tg-text-muted); /* Адаптивний колір */
+  margin-bottom: 12px;
+  text-align: center;
 }
 
 /* Стилізація хвостика через змінні */
 .tg-popover-card::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid var(--tg-arrow-color); /* Колір фону картки */
-    z-index: 1;
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--tg-arrow-color); /* Колір фону картки */
+  z-index: 1;
 }
 
 .tg-popover-card::after {
-    content: '';
-    position: absolute;
-    top: -11px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 11px solid transparent;
-    border-right: 11px solid transparent;
-    border-bottom: 11px solid var(--tg-card-border); /* Колір рамки */
-    z-index: 0;
+  content: "";
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 11px solid var(--tg-card-border); /* Колір рамки */
+  z-index: 0;
 }

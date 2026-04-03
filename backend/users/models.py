@@ -13,6 +13,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, Group
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CustomUser(AbstractUser):
@@ -82,6 +85,7 @@ class CustomUser(AbstractUser):
                 if expire < now:
                     self.is_active = False
         except Exception:
+            logger.error(f"Помилка при перевірці активності користувача {self.username}: {e}")
             # Якщо щось не так — не блокуємо користувача
             pass
 
@@ -94,7 +98,7 @@ class CustomUser(AbstractUser):
                 group, _ = Group.objects.get_or_create(name=self.role)
                 self.groups.set([group])
         except Exception:
-            pass
+            logger.error(f"Помилка при синхронізації ролей для користувача {self.username}: {e}")
 
 
     def __str__(self):

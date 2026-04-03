@@ -1,185 +1,188 @@
 /* ===== 1. OVERLAY and MODAL WINDOW ===== */
 
 .orders-file-modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    animation: fadeIn 0.25s ease;
-
-
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
 }
 
 .orders-file-modal-window {
-    background: #fff;
-    border-radius: 12px;
-    width: 500px; /* Фіксована ширина для файлів */
-    max-width: 90%;
-    max-height: 85vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    animation: scaleIn 0.25s ease;
+  background: #fff;
+  border-radius: 12px;
+  width: 500px; /* Фіксована ширина для файлів */
+  max-width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: scaleIn 0.25s ease;
 }
 
 /* ===== 2. HEADER (Зелений градієнт) ===== */
 
 .orders-file-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 22px;
-    /* ЗЕЛЕНИЙ ГРАДІЄНТ ДЛЯ ФАЙЛІВ */
-    background: linear-gradient(90deg, #76b448, #92cc5c); 
-    color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  /* ЗЕЛЕНИЙ ГРАДІЄНТ ДЛЯ ФАЙЛІВ */
+  background: linear-gradient(90deg, #76b448, #92cc5c);
+  color: #fff;
 }
 
 .orders-file-modal-header .header-content {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .orders-file-modal-header .file-icon {
-    font-size: 24px;
-    display: flex;
-    align-items: center;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .orders-file-modal-header h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
 }
 
 .orders-file-modal-header .close-btn {
-    background: none;
-    border: none;
-    font-size: 22px;
-    color: #fff;
-    cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 
 /* ===== 3. BODY (Список) ===== */
 
 .orders-file-body {
-    padding: 20px 25px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #76b448 transparent;
+  padding: 20px 25px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #76b448 transparent;
 }
 
 .orders-file-body::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 .orders-file-body::-webkit-scrollbar-thumb {
-    background: #76b448;
-    border-radius: 4px;
+  background: #76b448;
+  border-radius: 4px;
 }
 
 .file-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .file-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    background: #f9f9f9;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .file-info-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-grow: 1;
 }
 
 .file-icon-wrapper {
-    font-size: 20px;
-    flex-shrink: 0; 
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .file-details {
-    flex-grow: 1;
-    min-width: 0;
+  flex-grow: 1;
+  min-width: 0;
 }
 
 .file-name-b {
-    display: block;
-    font-weight: 600;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  display: block;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .file-meta {
-    font-size: 12px;
-    color: #666;
+  font-size: 12px;
+  color: #666;
 }
 
 /* ===== 4. FOOTER (Кнопки) ===== */
 
 .orders-file-modal-footer {
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    padding: 18px 22px;
-    border-top: 1px solid #eee;
-    background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 18px 22px;
+  border-top: 1px solid #eee;
+  background: #fff;
 }
 
-
 .file-download-btn {
-    padding: 8px 16px;
-    background: #76b448; /* Зелений */
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-left: 15px;
-    white-space: nowrap;
-    transition: background 0.2s, transform 0.2s;
+  padding: 8px 16px;
+  background: #76b448; /* Зелений */
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 15px;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .file-download-btn:hover {
-    background: #5c8c38;
-    transform: scale(1.05);
+  background: #5c8c38;
+  transform: scale(1.05);
 }
 
 .order-file-close-btn {
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 120px;
-    background: #f46c3b; /* Помаранчевий */
-    color: #fff;
-    transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  background: #f46c3b; /* Помаранчевий */
+  color: #fff;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .order-file-close-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .fa-spin {
@@ -192,74 +195,72 @@
   }
 }
 
-
-body.dark-theme  .orders-file-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 22px;
-    /* ЗЕЛЕНИЙ ГРАДІЄНТ ДЛЯ ФАЙЛІВ */
-    background: linear-gradient(90deg, #588635, #76a54a); 
-    color: #fff;
+body.dark-theme .orders-file-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  /* ЗЕЛЕНИЙ ГРАДІЄНТ ДЛЯ ФАЙЛІВ */
+  background: linear-gradient(90deg, #588635, #76a54a);
+  color: #fff;
 }
 
 /* ===== 5. DARK MODE ===== */
 
 body.dark-theme .orders-file-modal-window {
-    background: #333333;
+  background: #333333;
 }
 body.dark-theme .orders-file-body {
-    background: #333333;
-    scrollbar-color: #5c8c38 transparent;
+  background: #333333;
+  scrollbar-color: #5c8c38 transparent;
 }
 body.dark-theme .orders-file-body::-webkit-scrollbar-thumb {
-    background: #5c8c38;
+  background: #5c8c38;
 }
 
 body.dark-theme .file-item {
-    background: #282828;
-    border: 1px solid #444;
+  background: #282828;
+  border: 1px solid #444;
 }
 
 body.dark-theme .file-name-b {
-    color: #f0f0f0;
+  color: #f0f0f0;
 }
 body.dark-theme .file-meta {
-    color: #ccc;
+  color: #ccc;
 }
 body.dark-theme .orders-file-modal-footer {
-    background: #333333;
-    border-top: 1px solid #292828;
+  background: #333333;
+  border-top: 1px solid #292828;
 }
 
 /* Адаптація кнопок у Dark Mode */
 body.dark-theme .file-download-btn {
-    background: linear-gradient(90deg, #507e30, #5c8c38);
-    color: #fff;
+  background: linear-gradient(90deg, #507e30, #5c8c38);
+  color: #fff;
 }
 body.dark-theme .file-download-btn:hover {
-    background: linear-gradient(90deg, #5c8c38, #507e30);
+  background: linear-gradient(90deg, #5c8c38, #507e30);
 }
 
 body.dark-theme .file-close-btn {
-    background: linear-gradient(90deg, #b84c20, #c75628);
-    color: #fff;
+  background: linear-gradient(90deg, #b84c20, #c75628);
+  color: #fff;
 }
 body.dark-theme .file-close-btn:hover {
-    background: linear-gradient(90deg, #c75628, #b84c20);
+  background: linear-gradient(90deg, #c75628, #b84c20);
 }
-
 
 /* В основний файл CSS */
 
 .file-download-btn {
-  display: inline-flex;    /* Робимо кнопку флекс-контейнером */
-  align-items: center;     /* Вирівнюємо іконку та текст по вертикалі */
+  display: inline-flex; /* Робимо кнопку флекс-контейнером */
+  align-items: center; /* Вирівнюємо іконку та текст по вертикалі */
   justify-content: center; /* Центруємо вміст */
-  gap: 8px;                /* Відстань між іконкою та текстом */
-  white-space: nowrap;     /* Забороняємо будь-яке перенесення */
-  min-width: max-content;  /* Кнопка розширюється під текст */
-  padding: 8px 16px;       /* Достатній відступ */
+  gap: 8px; /* Відстань між іконкою та текстом */
+  white-space: nowrap; /* Забороняємо будь-яке перенесення */
+  min-width: max-content; /* Кнопка розширюється під текст */
+  padding: 8px 16px; /* Достатній відступ */
 }
 
 .btn-content {
@@ -270,39 +271,34 @@ body.dark-theme .file-close-btn:hover {
 }
 
 .btn-text {
-  white-space: nowrap;     /* Гарантуємо відсутність переносу для тексту */
+  white-space: nowrap; /* Гарантуємо відсутність переносу для тексту */
 }
 
 .no-wrap {
   white-space: nowrap !important;
 }
 
-
 .file-cross-close-btn {
-    cursor: pointer;
-    font-size: 18px;
-    display: inline-block;       /* важливо для transform */
-    transition: transform 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+  font-size: 18px;
+  display: inline-block; /* важливо для transform */
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
-
-.file-cross-close-btn:hover{
+.file-cross-close-btn:hover {
   opacity: 0.8;
   transform: rotate(90deg);
 }
-
-
-
 
 .hide-on-mobile {
   display: none;
 }
 
-
-
 @media (min-width: 501px) {
   .hide-on-mobile {
-    display: inline-flex; 
+    display: inline-flex;
     align-items: center;
     gap: 5px;
   }

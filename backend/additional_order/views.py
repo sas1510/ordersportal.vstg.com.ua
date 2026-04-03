@@ -1,6 +1,4 @@
-# Create your views here.
-import xml.etree.ElementTree as ET
-import base64
+
 import json
 import logging
 from rest_framework import viewsets, status
@@ -39,71 +37,6 @@ def get_additional_order_nomenclature(request):
         # Важливо: тут не має бути ніяких "from .views import..."
         return Response({"error": str(e)}, status=500)
     
-
-class AdditionalViewSet(viewsets.ViewSet):
-    
-    # --- ПРИВАТНИЙ МЕТОД ГЕНЕРАЦІЇ XML ---
-    def _generate_reorder_xml(self, request, main_data):
-        """Формує XML-документ для дозамовлення."""
-        
-        root = ET.Element("ReclamationMessage")
-        main_node = ET.SubElement(root, "ReorderItem")
-        
-        # Додаємо основні дані
-        for key, value in main_data.items():
-            # Запобігаємо додаванню порожніх вузлів, якщо значення None
-            if value is not None:
-                ET.SubElement(main_node, key).text = str(value)
-            
-        # Якщо потрібно додати порожні теги для схеми (наприклад, Series/Photos):
-        # ET.SubElement(main_node, "Series")
-        # ET.SubElement(main_node, "Photos")
-            
-        return ET.tostring(root, encoding='utf8', method='xml').decode()
-
-    # --- МЕТОД CREATE: СТВОРЕННЯ ТА ІМІТАЦІЯ ПРИЙНЯТТЯ ---
-    def create(self, request):
-        try:
-            user = request.user
-            kontragent = getattr(user, "user_id_1C", None)
-
-            # 1. ПАРСИНГ ДАНИХ
-            
-            main_data = {
-                "KontragentID": str(kontragent) if kontragent else 'UNKNOWN',
-                "OrderNumber": request.data.get("orderNumber"),
-                "IsNoOrder": request.data.get("noOrder", False),
-                
-                # НОВІ ТЕКСТОВІ ПОЛЯ
-                "ItemNameText": request.data.get("itemNameText"),
-                "ReasonText": request.data.get("reasonText"),
-                
-                # ВИДАЛЕНО: "ImpostValue": request.data.get("impost"),
-                "ReorderDescription": request.data.get("comment"),
-                
-                # Поля, які надсилаються порожніми, але можуть бути потрібні у схемі 1С
-                "IssueB64": request.data.get("issue", ""),
-                "SolutionB64": request.data.get("solution", ""),
-            }
-
-            # 2. ГЕНЕРАЦІЯ XML
-            soap_payload = self._generate_reorder_xml(request, main_data)
-            
-            # 3. ПОВЕРНЕННЯ ВІДПОВІДІ ПРО ПРИЙНЯТТЯ
-            
-            return Response({
-                "success": True,
-                "message": "Дані дозамовлення успішно прийняті для подальшої асинхронної обробки (XML-імітація).",
-                "status_code": status.HTTP_202_ACCEPTED,
-                "mock_xml_length": len(soap_payload) 
-            }, status=status.HTTP_202_ACCEPTED) 
-            
-        except Exception as e:
-            return Response({
-                "error": f"Помилка вхідних даних або обробки: {str(e)}",
-                "success": False
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
 
 
 from django.shortcuts import render

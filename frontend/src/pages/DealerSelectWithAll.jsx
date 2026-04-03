@@ -12,7 +12,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
   const [error, setError] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  const wrapperRef = useRef(null);   // 👈 wrapper
+  const wrapperRef = useRef(null); // 👈 wrapper
   const searchRef = useRef(null);
 
   /* =========================
@@ -70,13 +70,13 @@ const DealerSelectWithAll = ({ value, onChange }) => {
   const selectedLabel =
     value === ALL_DEALERS_VALUE
       ? "Всі дилери"
-      : dealers.find(d => d.ContractorID === value)?.ContractorName;
+      : dealers.find((d) => d.ContractorID === value)?.ContractorName;
 
   /* =========================
      FILTERED LIST
      ========================= */
-  const filteredDealers = dealers.filter(d =>
-    d.ContractorName?.toLowerCase().includes(search.toLowerCase())
+  const filteredDealers = dealers.filter((d) =>
+    d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   /* =========================
@@ -89,16 +89,12 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlightedIndex(prev =>
-        prev < totalItems - 1 ? prev + 1 : 0
-      );
+      setHighlightedIndex((prev) => (prev < totalItems - 1 ? prev + 1 : 0));
     }
 
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlightedIndex(prev =>
-        prev > 0 ? prev - 1 : totalItems - 1
-      );
+      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : totalItems - 1));
     }
 
     if (e.key === "Enter" && highlightedIndex >= 0) {
@@ -131,7 +127,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
       {/* CONTROL */}
       <div
         className="dealer-select__control"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
       >
         <span className={selectedLabel ? "" : "placeholder"}>
           {selectedLabel || "— Оберіть дилера —"}
@@ -141,10 +137,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
       {/* DROPDOWN */}
       {open && (
-        <div
-          className="dealer-select__dropdown"
-          onKeyDown={handleKeyDown}
-        >
+        <div className="dealer-select__dropdown" onKeyDown={handleKeyDown}>
           <input
             ref={searchRef}
             type="text"
@@ -159,15 +152,11 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
           <div className="dealer-select__list">
             {loading && (
-              <div className="dealer-select__empty">
-                Завантаження…
-              </div>
+              <div className="dealer-select__empty">Завантаження…</div>
             )}
 
             {!loading && error && (
-              <div className="dealer-select__empty error">
-                {error}
-              </div>
+              <div className="dealer-select__empty error">{error}</div>
             )}
 
             {!loading && !error && (
@@ -190,9 +179,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
                 {/* DEALERS */}
                 {filteredDealers.length === 0 ? (
-                  <div className="dealer-select__empty">
-                    Нічого не знайдено
-                  </div>
+                  <div className="dealer-select__empty">Нічого не знайдено</div>
                 ) : (
                   filteredDealers.map((d, idx) => (
                     <div

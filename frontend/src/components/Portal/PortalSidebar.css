@@ -66,10 +66,7 @@
   box-shadow: 0 0 5px rgba(94, 131, 191, 0.5);
 }
 
-
-
 /* ---------- Divider ---------- */
-
 
 /* ---------- Filters list ---------- */
 
@@ -132,7 +129,7 @@
     z-index: 999;
     overflow-y: auto;
     transition: left 0.3s ease;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
   }
 
   .content-filter-payment.open {
@@ -150,7 +147,7 @@
 .sidebar-overlay-payment {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0, 0, 0, 0.45);
   z-index: 998;
 }
 
@@ -178,7 +175,6 @@ body.dark-theme .content-filter-payment .search-orders::placeholder {
   color: #aaaaaa;
 }
 
-
 body.dark-theme .content-filter-payment .filter li {
   color: #f0f0f0;
 }
@@ -188,4 +184,3 @@ body.dark-theme .content-filter-payment .filter li.active {
   background-color: #383838;
   border: 1px dashed #555;
 }
- 

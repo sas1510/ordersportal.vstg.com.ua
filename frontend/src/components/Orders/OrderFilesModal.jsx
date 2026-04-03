@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
-import { useNotification } from "../notification/Notifications";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
 
 import {
   FaSpinner,
   FaEye,
   FaDownload,
   FaTimes,
-  FaFileAlt
+  FaFileAlt,
 } from "react-icons/fa";
 
-import {
-  FaRegFileImage,
-  FaRegFilePdf,
-  FaFileZipper
-} from "react-icons/fa6";
+import { FaRegFileImage, FaRegFilePdf, FaFileZipper } from "react-icons/fa6";
 
 import "./OrderFilesModal.css";
 
 const OrderFilesModal = ({ orderGuid, onClose }) => {
-
   const { addNotification } = useNotification();
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +28,7 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
   /* =========================
      LOAD FILES
   ========================= */
-useEffect(() => {
+  useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape") onClose();
     };
@@ -45,8 +41,6 @@ useEffect(() => {
       document.body.style.overflow = "";
     };
   }, [onClose]);
-  
-
 
   useEffect(() => {
     if (!orderGuid) return;
@@ -97,57 +91,56 @@ useEffect(() => {
      DOWNLOAD FILE (NEW LOGIC)
   ========================= */
   const handleDownload = async (fileGuid, fileName) => {
-  setDownloadingFileGuid(fileGuid);
+    setDownloadingFileGuid(fileGuid);
 
-  try {
-    const params = new URLSearchParams({ filename: fileName });
-    const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
+    try {
+      const params = new URLSearchParams({ filename: fileName });
+      const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
 
-    const response = await axiosInstance.get(url, {
-      responseType: "blob", // Обов'язково для отримання бінарних даних
-    });
+      const response = await axiosInstance.get(url, {
+        responseType: "blob", // Обов'язково для отримання бінарних даних
+      });
 
-    // 1. Отримуємо правильний MIME-тип з заголовків відповіді
-    const contentType = response.headers["content-type"] || "application/pdf";
-    const blob = new Blob([response.data], { type: contentType });
-    const objectUrl = window.URL.createObjectURL(blob);
+      // 1. Отримуємо правильний MIME-тип з заголовків відповіді
+      const contentType = response.headers["content-type"] || "application/pdf";
+      const blob = new Blob([response.data], { type: contentType });
+      const objectUrl = window.URL.createObjectURL(blob);
 
-    const isPdf = fileName.toLowerCase().endsWith(".pdf");
-    const isImage = /\.(jpg|jpeg|png|webp)$/i.test(fileName);
+      const isPdf = fileName.toLowerCase().endsWith(".pdf");
+      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(fileName);
 
-    // 2. Логіка для PDF та зображень (Перегляд)
-    if (isPdf || isImage) {
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.target = "_blank";
-      // Для PDF НЕ додаємо атрибут download, щоб він відкрився, а не скачався
-      if (isImage) {
+      // 2. Логіка для PDF та зображень (Перегляд)
+      if (isPdf || isImage) {
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.target = "_blank";
+        // Для PDF НЕ додаємо атрибут download, щоб він відкрився, а не скачався
+        if (isImage) {
           link.download = fileName; // Зображення краще віддавати на скачування або теж у новій вкладці
+        }
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } 
-    // 3. Логіка для інших файлів (ZKZ, ZIP і т.д.)
-    else {
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // 3. Логіка для інших файлів (ZKZ, ZIP і т.д.)
+      else {
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      // 4. Важливо: не видаляємо URL миттєво, даємо браузеру час завантажити файл у нову вкладку
+      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
+    } catch (err) {
+      console.error("Download error:", err);
+      addNotification("Не вдалося відкрити або завантажити файл.", "error");
+    } finally {
+      setDownloadingFileGuid(null);
     }
-
-    // 4. Важливо: не видаляємо URL миттєво, даємо браузеру час завантажити файл у нову вкладку
-    setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
-
-  } catch (err) {
-    console.error("Download error:", err);
-    addNotification("Не вдалося відкрити або завантажити файл.", "error");
-  } finally {
-    setDownloadingFileGuid(null);
-  }
-};
+  };
 
   if (!orderGuid) return null;
 
@@ -166,8 +159,10 @@ useEffect(() => {
             <FaFileAlt />
             <h3>Файли замовлення</h3>
           </div>
-          <span className="icon icon-cross file-cross-close-btn" onClick={onClose}></span>
-    
+          <span
+            className="icon icon-cross file-cross-close-btn"
+            onClick={onClose}
+          ></span>
         </div>
 
         {/* BODY */}
@@ -182,8 +177,7 @@ useEffect(() => {
           {!loading && files.length > 0 && (
             <ul className="file-list">
               {files.map((file) => {
-                const isDownloading =
-                  downloadingFileGuid === file.fileGuid;
+                const isDownloading = downloadingFileGuid === file.fileGuid;
 
                 return (
                   <li key={file.fileGuid} className="file-item">
@@ -202,25 +196,29 @@ useEffect(() => {
                     </div>
 
                     <button
-                        className="file-download-btn no-wrap"
-                        disabled={isDownloading}
-                        onClick={() => handleDownload(file.fileGuid, file.fileName)}
-                      >
-                        {isDownloading ? (
-                          <div className="btn-content">
-                            <FaSpinner className="fa-spin" />
-                            <span className="">Завантаження...</span>
-                          </div>
-                        ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
-                          <div className="btn-content">
-                            <FaEye /> <span className="hide-on-mobile">Переглянути</span>
-                          </div>
-                        ) : (
-                          <div className="btn-content">
-                            <FaDownload /> <span className="hide-on-mobile">Завантажити</span>
-                          </div>
-                        )}
-                      </button>
+                      className="file-download-btn no-wrap"
+                      disabled={isDownloading}
+                      onClick={() =>
+                        handleDownload(file.fileGuid, file.fileName)
+                      }
+                    >
+                      {isDownloading ? (
+                        <div className="btn-content">
+                          <FaSpinner className="fa-spin" />
+                          <span className="">Завантаження...</span>
+                        </div>
+                      ) : file.fileName.toLowerCase().endsWith(".pdf") ? (
+                        <div className="btn-content">
+                          <FaEye />{" "}
+                          <span className="hide-on-mobile">Переглянути</span>
+                        </div>
+                      ) : (
+                        <div className="btn-content">
+                          <FaDownload />{" "}
+                          <span className="hide-on-mobile">Завантажити</span>
+                        </div>
+                      )}
+                    </button>
                   </li>
                 );
               })}
@@ -240,7 +238,7 @@ useEffect(() => {
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };
 

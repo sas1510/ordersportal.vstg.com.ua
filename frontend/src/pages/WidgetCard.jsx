@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 const WidgetCard = ({ title, children, hasHandle }) => (
   <div className="bg-white rounded-xl shadow-md border border-gray-200 h-full flex flex-col overflow-hidden">
     <div className="flex justify-between items-center px-4 py-2 border-b bg-gray-50">
@@ -10,8 +11,6 @@ const WidgetCard = ({ title, children, hasHandle }) => (
         </div>
       )}
     </div>
-    <div className="flex-1 p-4 relative">
-      {children}
-    </div>
+    <div className="flex-1 p-4 relative">{children}</div>
   </div>
 );

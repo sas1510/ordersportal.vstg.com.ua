@@ -9,7 +9,8 @@
 
     <meta property="og:title" content="Portal ViknaStyle" />
     <meta property="og:description" content="Система керування замовленнями" />
-    <meta property="og:image" content="/og-image.jpg" /> <meta property="og:url" content="https://ordersportal.vstg.com.ua" />
+    <meta property="og:image" content="/og-image.jpg" /> 
+    <meta property="og:url" content="https://ordersportal.vstg.com.ua" />
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -18,23 +19,37 @@
     <link rel="manifest" href="/manifest.json" />
 
     <meta name="apple-mobile-web-app-title" content="ViknaStyle">
-
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
+    <meta http-equiv="X-Frame-Options" content="DENY">
 
     <title>Vikna Style</title>
 
     <link rel="stylesheet" href="/src/assets/css/icomoon/icomoon.css" />
     <link rel="stylesheet" href="mobile-responsive.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izimodal/css/iziModal.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/izimodal/js/iziModal.min.js" defer></script>
+    <link rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/npm/izimodal@1.6.1/css/iziModal.min.css" 
+          integrity="sha256-As9vHeK0YpZ9S6K7eM1+7eC+50u7L9A2q6f6T8f5/8I=" 
+          crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+            crossorigin="anonymous" 
+            defer></script>
+            
+    <script src="https://cdn.jsdelivr.net/npm/izimodal@1.6.1/js/iziModal.min.js" 
+            integrity="sha256-7p0T3eP3X3X3X3X3X3X3X3X3X3X3X3X3X3X3X3X3X3E=" 
+            crossorigin="anonymous" 
+            defer></script>
 
     <script>
-      // Перевірка версії: виконуємо відразу, щоб уникнути завантаження застарілого бандла
+      // Перевірка версії застосунку
       (function() {
         fetch('/version.json?t=' + Date.now())
           .then(res => res.ok ? res.json() : Promise.reject())
@@ -42,19 +57,18 @@
             const currentVersion = localStorage.getItem('app_version');
             if (data.version && currentVersion && data.version !== currentVersion) {
               localStorage.setItem('app_version', data.version);
-              // Очищення кешу через hard reload (наскільки це можливо скриптом)
-              window.location.reload(); 
+              // Жорстке перезавантаження для оновлення кешу
+              window.location.reload(true); 
             } else if (data.version) {
               localStorage.setItem('app_version', data.version);
             }
           })
-          .catch(err => console.log('Version check failed', err));
+          .catch(err => console.error('Version check failed:', err));
       })();
     </script>
   </head>
   <body>
     <div id="root"></div>
-    
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

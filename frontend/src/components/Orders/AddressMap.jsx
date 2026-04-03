@@ -7,7 +7,7 @@ function ClickHandler({ onSelect }) {
   useMapEvents({
     click(e) {
       onSelect(e.latlng);
-    }
+    },
   });
   return null;
 }
@@ -22,23 +22,19 @@ export default function AddressMap({ value, onChange }) {
       zoom={value.lat ? 14 : 6}
       style={{ height: 300, borderRadius: 8 }}
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
       <ClickHandler
         onSelect={(latlng) =>
-          onChange(prev => ({
+          onChange((prev) => ({
             ...prev,
             lat: latlng.lat,
-            lng: latlng.lng
+            lng: latlng.lng,
           }))
         }
       />
 
-      {value.lat && value.lng && (
-        <Marker position={[value.lat, value.lng]} />
-      )}
+      {value.lat && value.lng && <Marker position={[value.lat, value.lng]} />}
     </MapContainer>
   );
 }

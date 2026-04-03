@@ -74,7 +74,6 @@
   color: var(--grey-text-color);
 }
 
-
 .invite-panel input,
 .invite-panel select {
   height: 42px;
@@ -191,12 +190,12 @@ body.dark-theme .invite-border-bottom {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .invite-info-grid, 
+  .invite-info-grid,
   .invite-form-grid {
     grid-template-columns: 1fr;
     gap: 10px;
   }
-  
+
   .invite-wrapper {
     padding: 10px;
   }

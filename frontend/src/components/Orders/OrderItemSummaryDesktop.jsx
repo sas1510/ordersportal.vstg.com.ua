@@ -5,16 +5,23 @@ import { formatMoney } from "../../utils/formatMoney";
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
-import { formatDateHumanShorter, formatDateTimeCustom, formatDateTimeShort, formatDateTimeCustomShort } from "../../utils/formatters";
-import { useNotification } from "../notification/Notifications";
+import {
+
+  formatDateTimeShort
+
+} from "../../utils/formatters";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
 // --- МОДАЛКИ ---
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
-export default React.memo(function OrderItemSummaryDesktop({ order, calculationDate }) {
-
+export default React.memo(function OrderItemSummaryDesktop({
+  order,
+  calculationDate,
+}) {
   const { addNotification } = useNotification();
 
   // =========================== UI STATE ===========================
@@ -23,9 +30,9 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
-  
-  const { user, role } = useAuth();
-  const isAdmin = role === "admin";
+
+  const { user } = useAuthGetRole();
+  // const isAdmin = role === "admin";
   // ---- ONLY PAYMENT MODAL FLAG ----
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
@@ -76,13 +83,13 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
 
     // Логіка на основі статусу
     const statusConfig = {
-      "Новий": { confirm: true, pay: true },
+      Новий: { confirm: true, pay: true },
       "Очікуємо підтвердження": { confirm: true, pay: true },
-      "Підтверджений": { pay: true,confirm: true,reorder: true},
+      Підтверджений: { pay: true, confirm: true, reorder: true },
       "Очікуємо оплату": { pay: true, reorder: true },
-      "Оплачено": { pay: true, reorder: true },
-      "Готовий": { pay: true, reorder: true },
-      "Відвантажений": { pay: true, reorder: true, claim: true },
+      Оплачено: { pay: true, reorder: true },
+      Готовий: { pay: true, reorder: true },
+      Відвантажений: { pay: true, reorder: true, claim: true },
     };
 
     // Якщо статус є в конфігу — застосовуємо значення
@@ -93,26 +100,22 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
     return state;
   }, []);
 
-
-
-    // ========================= DEBT =========================
+  // ========================= DEBT =========================
   const debtAmount = useMemo(() => {
     const paid = order.paid ?? 0;
     const debt = parseFloat(order.amount) - parseFloat(paid);
     return Math.max(0, Math.round(debt * 100) / 100);
   }, [order.amount, order.paid]);
 
-
-
   const buttonState = useMemo(() => {
-      const state = getButtonState(order.status);
+    const state = getButtonState(order.status);
 
-      // Блокувати оплату, якщо борг 0
-      if (debtAmount <= 0) {
-          state.pay = false;
-      }
+    // Блокувати оплату, якщо борг 0
+    if (debtAmount <= 0) {
+      state.pay = false;
+    }
 
-      return state;
+    return state;
   }, [order.status, debtAmount, getButtonState]);
 
   const getStatusClass = useCallback((status) => {
@@ -144,7 +147,6 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
     setClaimOrderGuid(order.idGuid); // ✅ ОСЬ ТУТ
     setIsClaimModalOpen(true);
   }, [order.number, order.idGuid]);
-
 
   const openReorderModal = useCallback(() => {
     setIsReorderModalOpen(true);
@@ -189,10 +191,15 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
   // ========================= CONFIRM ORDER =========================
   const handleConfirmOrder = useCallback(async () => {
     try {
-      const response = await axiosInstance.post(`/orders/${order.idGuid}/confirm/`);
+      const response = await axiosInstance.post(
+        `/orders/${order.idGuid}/confirm/`,
+      );
 
       if (response.status === 200 || response.status === 204) {
-        addNotification(`Замовлення ${order.number} успішно підтверджено!`, "success");
+        addNotification(
+          `Замовлення ${order.number} успішно підтверджено!`,
+          "success",
+        );
       }
     } catch (error) {
       addNotification(`Помилка підтвердження: ${error.message}`, "error");
@@ -205,18 +212,16 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
 
     const d1 = new Date(calculationDate);
     const d2 = new Date(order.date);
-    
+
     // Різниця в мілісекундах перетворена в дні
     const diffInDays = (d2 - d1) / (1000 * 60 * 60 * 24);
 
     // Якщо замовлення зроблено протягом 24 годин (<= 1 дня) — true (радісний)
-    return diffInDays <= 1; 
+    return diffInDays <= 1;
   }, [order.date, calculationDate]);
-
 
   return (
     <div className="order-item flex flex-col w-full gap-0">
-
       {/* --- SUMMARY ROW --- */}
       <div
         className="order-item-summary flex w-full cursor-pointer items-center"
@@ -297,33 +302,31 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
 
         {/* BUTTONS */}
         <div className="summary-item row" onClick={(e) => e.stopPropagation()}>
- 
-           {user?.role !== "admin" && (
-                <>
-                  {/* CONFIRM */}
-                  <button
-                    className={`column align-center button button-first background-success ${
-                      !buttonState.confirm ? "disabled opacity-50" : ""
-                    }`}
-                    disabled={!buttonState.confirm}
-                    onClick={openConfirmModal}
-                  >
-                    <div className="font-size-12">Підтвердити</div>
-                  </button>
+          {user?.role !== "admin" && (
+            <>
+              {/* CONFIRM */}
+              <button
+                className={`column align-center button button-first background-success ${
+                  !buttonState.confirm ? "disabled opacity-50" : ""
+                }`}
+                disabled={!buttonState.confirm}
+                onClick={openConfirmModal}
+              >
+                <div className="font-size-12">Підтвердити</div>
+              </button>
 
-                  {/* PAY */}
-                  <button
-                    className={`column align-center button background-warning ${
-                      !buttonState.pay ? "disabled opacity-50" : ""
-                    }`}
-                    disabled={!buttonState.pay}
-                    onClick={openPaymentModal}
-                  >
-                    <div className="font-size-12">Сплатити</div>
-                  </button>
-                </>
-              )}
-
+              {/* PAY */}
+              <button
+                className={`column align-center button background-warning ${
+                  !buttonState.pay ? "disabled opacity-50" : ""
+                }`}
+                disabled={!buttonState.pay}
+                onClick={openPaymentModal}
+              >
+                <div className="font-size-12">Сплатити</div>
+              </button>
+            </>
+          )}
 
           {/* REORDER */}
           <button
@@ -348,14 +351,18 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
           </button>
         </div>
 
-       {/* SMILEY COLUMN */}
-        <div 
-          className="summary-item flex items-center justify-center w-4" 
-          title={dateDiffStatus ? "Швидке оформлення" : "Замовлення оформлено пізніше ніж через добу"}
+        {/* SMILEY COLUMN */}
+        <div
+          className="summary-item flex items-center justify-center w-4"
+          title={
+            dateDiffStatus
+              ? "Швидке оформлення"
+              : "Замовлення оформлено пізніше ніж через добу"
+          }
         >
           <div className="font-size-24 flex items-center justify-center">
             {dateDiffStatus === null ? null : dateDiffStatus ? (
-              <i className="far fa-laugh-beam text-success pulse-animation"></i> 
+              <i className="far fa-laugh-beam text-success pulse-animation"></i>
             ) : (
               <i className="far fa-frown text-danger"></i>
             )}
@@ -396,7 +403,6 @@ export default React.memo(function OrderItemSummaryDesktop({ order, calculationD
         initialOrderNumber={claimOrderNumber}
         initialOrderGUID={claimOrderGuid}
       />
-
 
       {/* REORDER */}
       <AddReorderModal

@@ -23,13 +23,12 @@ export function useApi() {
       ...config,
     };
 
-    return axiosInstance(finalConfig)
-      .finally(() => {
-        requestManager.cancel(controller);
-        if (activeController.current === controller) {
-          activeController.current = null;
-        }
-      });
+    return axiosInstance(finalConfig).finally(() => {
+      requestManager.cancel(controller);
+      if (activeController.current === controller) {
+        activeController.current = null;
+      }
+    });
   };
 
   // Авто-скасування при unmount

@@ -109,63 +109,63 @@ from .models import TransactionType # Припускаємо, що TransactionTy
 
 # --- МОДЕЛЬ MESSAGE (КОМЕНТАР) ---
 
-class Message(models.Model):
-    class Meta:
-        db_table = "Message"
-        ordering = ['created_at']
-        verbose_name = 'Коментар'
-        verbose_name_plural = 'Коментарі'
+# class Message(models.Model):
+#     class Meta:
+#         db_table = "Message"
+#         ordering = ['created_at']
+#         verbose_name = 'Коментар'
+#         verbose_name_plural = 'Коментарі'
 
-    id = models.BigAutoField(primary_key=True, db_column='ID')
+#     id = models.BigAutoField(primary_key=True, db_column='ID')
 
-    # Поле для зберігання номера транзакції/запису з іншої системи
-    base_transaction_id = models.BinaryField(
-        max_length=255, 
-        null=True, 
-        blank=True, 
-        db_column='BaseTransactionID', # Назва колонки, як у Record
-        verbose_name='Базовий ID транзакції'
-    )
+#     # Поле для зберігання номера транзакції/запису з іншої системи
+#     base_transaction_id = models.BinaryField(
+#         max_length=255, 
+#         null=True, 
+#         blank=True, 
+#         db_column='BaseTransactionID', # Назва колонки, як у Record
+#         verbose_name='Базовий ID транзакції'
+#     )
     
-    # ForeignKey до моделі TransactionType
-    transaction_type = models.ForeignKey(
-        TransactionType, 
-        on_delete=models.CASCADE, 
-        db_column='TransactionTypeID', # Використовуємо ID, щоб уникнути конфлікту з TransactionType
-        related_name='messages_by_type', # Новий related_name, якщо Messages не використовується в TransactionType
-        verbose_name='Тип транзакції'
-    )
+#     # ForeignKey до моделі TransactionType
+#     transaction_type = models.ForeignKey(
+#         TransactionType, 
+#         on_delete=models.CASCADE, 
+#         db_column='TransactionTypeID', # Використовуємо ID, щоб уникнути конфлікту з TransactionType
+#         related_name='messages_by_type', # Новий related_name, якщо Messages не використовується в TransactionType
+#         verbose_name='Тип транзакції'
+#     )
 
-    writer_id = models.BinaryField(
-        max_length=16,
-        null=True,
-        blank=True,
-        db_column='WriterID',
-        verbose_name='Автор (GUID)'
-    )
+#     writer_id = models.BinaryField(
+#         max_length=16,
+#         null=True,
+#         blank=True,
+#         db_column='WriterID',
+#         verbose_name='Автор (GUID)'
+#     )
     
-    message = models.TextField(db_column='Message')
+#     message = models.TextField(db_column='Message')
     
 
-    is_read = models.BooleanField(
-        default=False, 
-        db_column='IsRead', 
-        verbose_name='Прочитано'
-    )
+#     is_read = models.BooleanField(
+#         default=False, 
+#         db_column='IsRead', 
+#         verbose_name='Прочитано'
+#     )
 
-    is_send = models.BooleanField(
-        default=False, 
-        db_column='IsSend', 
-        verbose_name='Сповіщення надіслано'
-    )
+#     is_send = models.BooleanField(
+#         default=False, 
+#         db_column='IsSend', 
+#         verbose_name='Сповіщення надіслано'
+#     )
     
-    created_at = models.DateTimeField(
-            auto_now_add=True,
-            db_column='CreatedAt'
-        )
+#     created_at = models.DateTimeField(
+#             auto_now_add=True,
+#             db_column='CreatedAt'
+#         )
 
-    def __str__(self):
-        return f"[{self.transaction_type.type_name}] {self.message[:30]}"
+#     def __str__(self):
+#         return f"[{self.transaction_type.type_name}] {self.message[:30]}"
 
 
 
@@ -173,43 +173,43 @@ class Message(models.Model):
 from django.db import models
 from django.conf import settings
 
-class UserDashboardConfig(models.Model):
-    class Meta:
-        # Зберігаємо ваш стиль іменування таблиць
-        db_table = "UserDashboard"
-        verbose_name = 'Налаштування дашборду'
-        verbose_name_plural = 'Налаштування дашбордів'
+# class UserDashboardConfig(models.Model):
+#     class Meta:
+#         # Зберігаємо ваш стиль іменування таблиць
+#         db_table = "UserDashboard"
+#         verbose_name = 'Налаштування дашборду'
+#         verbose_name_plural = 'Налаштування дашбордів'
 
-    # MS SQL використовує BIGINT для BigAutoField
-    id = models.BigAutoField(primary_key=True, db_column='ID')
+#     # MS SQL використовує BIGINT для BigAutoField
+#     id = models.BigAutoField(primary_key=True, db_column='ID')
     
-    # ForeignKey до вашого кастомного користувача
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        db_column='UserID',
-        related_name='dashboard_configs'
-    )
+#     # ForeignKey до вашого кастомного користувача
+#     user = models.ForeignKey(
+#         settings.AUTH_USER_MODEL, 
+#         on_delete=models.CASCADE, 
+#         db_column='UserID',
+#         related_name='dashboard_configs'
+#     )
     
-    layout_name = models.CharField(
-        max_length=255, 
-        default='default', 
-        db_column='LayoutName'
-    )
+#     layout_name = models.CharField(
+#         max_length=255, 
+#         default='default', 
+#         db_column='LayoutName'
+#     )
     
-    # Для MS SQL Django розгорне це в NVARCHAR(MAX)
-    config = models.JSONField(
-        db_column='Config',
-        help_text="Масив конфігурації віджетів у форматі JSON"
-    )
+#     # Для MS SQL Django розгорне це в NVARCHAR(MAX)
+#     config = models.JSONField(
+#         db_column='Config',
+#         help_text="Масив конфігурації віджетів у форматі JSON"
+#     )
     
-    updated_at = models.DateTimeField(
-        auto_now=True, 
-        db_column='UpdatedAt'
-    )
+#     updated_at = models.DateTimeField(
+#         auto_now=True, 
+#         db_column='UpdatedAt'
+#     )
 
-    def __str__(self):
-        return f"{self.user} - {self.layout_name}"
+#     def __str__(self):
+#         return f"{self.user} - {self.layout_name}"
     
 
 
@@ -217,97 +217,97 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
-class Notification(models.Model):
+# class Notification(models.Model):
 
 
-    id = models.BigAutoField(primary_key=True, db_column='ID')
+#     id = models.BigAutoField(primary_key=True, db_column='ID')
 
-    EVENT_CHOICES = [
-        ('STATUS_CHANGED', 'Зміна статусу'),
-        ('NEW_MESSAGE', 'Нове повідомлення'),
-        ('ORDER_CREATED', 'Створено замовлення'),
-        ('ORDER_CANCELLED', 'Скасовано замовлення'),
-        ('PAYMENT_RECEIVED', 'Отримано оплату'),
-    ]
+#     EVENT_CHOICES = [
+#         ('STATUS_CHANGED', 'Зміна статусу'),
+#         ('NEW_MESSAGE', 'Нове повідомлення'),
+#         ('ORDER_CREATED', 'Створено замовлення'),
+#         ('ORDER_CANCELLED', 'Скасовано замовлення'),
+#         ('PAYMENT_RECEIVED', 'Отримано оплату'),
+#     ]
 
 
 
-    event_type = models.CharField(
-        max_length=50,
-        choices=EVENT_CHOICES,
-        db_column='EventType'
-    )
+#     event_type = models.CharField(
+#         max_length=50,
+#         choices=EVENT_CHOICES,
+#         db_column='EventType'
+#     )
 
-    base_transaction_id = models.BinaryField(
-        max_length=255,
-        null=True,
-        blank=True,
-        db_column='BaseTransactionID',
-        verbose_name='Базовий ID транзакції'
-    )
+#     base_transaction_id = models.BinaryField(
+#         max_length=255,
+#         null=True,
+#         blank=True,
+#         db_column='BaseTransactionID',
+#         verbose_name='Базовий ID транзакції'
+#     )
 
-    old_value = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        db_column='OldValue'
-    )
+#     old_value = models.CharField(
+#         max_length=255,
+#         null=True,
+#         blank=True,
+#         db_column='OldValue'
+#     )
 
-    new_value = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        db_column='NewValue'
-    )
+#     new_value = models.CharField(
+#         max_length=255,
+#         null=True,
+#         blank=True,
+#         db_column='NewValue'
+#     )
 
-    message = models.TextField(
-        null=True,
-        blank=True,
-        db_column='Message'
-    )
+#     message = models.TextField(
+#         null=True,
+#         blank=True,
+#         db_column='Message'
+#     )
 
-    is_read = models.BooleanField(
-        default=False,
-        db_column='IsRead'
-    )
+#     is_read = models.BooleanField(
+#         default=False,
+#         db_column='IsRead'
+#     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        db_column='CreatedAt'
-    )
+#     created_at = models.DateTimeField(
+#         auto_now_add=True,
+#         db_column='CreatedAt'
+#     )
 
-    # Зв'язок з TransactionType
-    transaction_type = models.ForeignKey(
-        TransactionType,
-        on_delete=models.CASCADE,
-        related_name='notifications',
-        db_column='TransactionTypeID',
-        verbose_name='Тип транзакції'
-    )
+#     # Зв'язок з TransactionType
+#     transaction_type = models.ForeignKey(
+#         TransactionType,
+#         on_delete=models.CASCADE,
+#         related_name='notifications',
+#         db_column='TransactionTypeID',
+#         verbose_name='Тип транзакції'
+#     )
 
-    # Зв'язок з користувачем
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='notifications',
-        db_column='UserID'
-    )
+#     # Зв'язок з користувачем
+#     user = models.ForeignKey(
+#         settings.AUTH_USER_MODEL,
+#         on_delete=models.CASCADE,
+#         related_name='notifications',
+#         db_column='UserID'
+#     )
 
-    class Meta:
-        db_table = 'Notifications'
-        ordering = ['-created_at']
-        verbose_name = 'Сповіщення'
-        verbose_name_plural = 'Сповіщення'
+#     class Meta:
+#         db_table = 'Notifications'
+#         ordering = ['-created_at']
+#         verbose_name = 'Сповіщення'
+#         verbose_name_plural = 'Сповіщення'
         
-        # Індекси ідентичні тим, що в міграції
-        indexes = [
-            models.Index(fields=['user', 'is_read'], name='Notificatio_UserID_a7ec13_idx'),
-            models.Index(fields=['transaction_type', 'base_transaction_id'], name='Notificatio_Transac_f1800b_idx'),
-            models.Index(fields=['event_type'], name='Notificatio_EventTy_98c27e_idx'),
-        ]
+#         # Індекси ідентичні тим, що в міграції
+#         indexes = [
+#             models.Index(fields=['user', 'is_read'], name='Notificatio_UserID_a7ec13_idx'),
+#             models.Index(fields=['transaction_type', 'base_transaction_id'], name='Notificatio_Transac_f1800b_idx'),
+#             models.Index(fields=['event_type'], name='Notificatio_EventTy_98c27e_idx'),
+#         ]
 
-    def __str__(self):
-        return f"{self.event_type} for {self.user}"
+#     def __str__(self):
+#         return f"{self.event_type} for {self.user}"
 
 
 

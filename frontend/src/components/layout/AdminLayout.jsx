@@ -14,8 +14,7 @@ const AdminLayout = () => (
 );
 
 const styles = {
-
-   main: {
+  main: {
     flexGrow: 1,
     height: "calc(100% - 60px)", // висота вікна мінус висота header і footer
     position: "relative",

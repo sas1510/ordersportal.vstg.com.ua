@@ -16,14 +16,12 @@ const BillSelect = ({
   const controlRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  const selected = options.find(
-    (o) => getValue(o) === value
-  );
+  const selected = options.find((o) => getValue(o) === value);
 
   const filtered = useMemo(() => {
     if (!searchable) return options;
     return options.filter((o) =>
-      getLabel(o).toLowerCase().includes(search.toLowerCase())
+      getLabel(o).toLowerCase().includes(search.toLowerCase()),
     );
   }, [options, search, searchable, getLabel]);
 
@@ -106,7 +104,7 @@ const BillSelect = ({
               })}
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

@@ -29,9 +29,7 @@ export default function ConfirmModal({
         </div>
 
         {/* BODY */}
-        <div className="confirm-body">
-          {message}
-        </div>
+        <div className="confirm-body">{message}</div>
 
         {/* FOOTER */}
         <div className="confirm-footer">

@@ -3,13 +3,9 @@ export default function WidgetCard({ title, children, onRemove }) {
     <div className="widget-card">
       <div className="widget-header">
         <h4>{title}</h4>
-        {onRemove && (
-          <button onClick={onRemove}>✕</button>
-        )}
+        {onRemove && <button onClick={onRemove}>✕</button>}
       </div>
-      <div className="widget-body">
-        {children}
-      </div>
+      <div className="widget-body">{children}</div>
     </div>
   );
 }

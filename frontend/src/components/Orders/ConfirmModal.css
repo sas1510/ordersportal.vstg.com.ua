@@ -21,7 +21,7 @@
   transform: scale(0.8);
   opacity: 0;
   animation: confirmZoomIn 0.3s forwards;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .confirm-modal-border-top,
@@ -58,7 +58,9 @@
   cursor: pointer;
   font-size: 18px;
   display: inline-block;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .confirm-modal-body {
@@ -105,7 +107,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   font-size: 14px;
 }
 
@@ -116,7 +120,7 @@
 
 .confirm-btn-cancel-confirm:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .confirm-btn-confirm {
@@ -125,118 +129,121 @@
 
 .confirm-btn-confirm:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* Анімації */
 @keyframes confirmFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes confirmZoomIn {
-  from { 
-    opacity: 0; 
-    transform: scale(0.8); 
+  from {
+    opacity: 0;
+    transform: scale(0.8);
   }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 @keyframes confirmIconPulse {
-  0% { 
+  0% {
     transform: scale(0.5);
     opacity: 0;
   }
   50% {
     transform: scale(1.1);
   }
-  100% { 
+  100% {
     transform: scale(1);
     opacity: 1;
   }
 }
 
-
 /* --- DARK MODE: СТИЛІ МОДАЛЬНОГО ВІКНА CONFIRM --- */
 
 /* ===== Overlay ===== */
 body.dark-theme .confirm-modal-overlay {
-    /* Робимо затемнення більш насиченим */
-    background: rgba(0, 0, 0, 0.7);
+  /* Робимо затемнення більш насиченим */
+  background: rgba(0, 0, 0, 0.7);
 }
 
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .confirm-modal-window {
-    /* Темний фон вікна */
-    background: #1e1e1e;
-    /* Темна тінь */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  /* Темний фон вікна */
+  background: #1e1e1e;
+  /* Темна тінь */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* ===== Межі (Верхня та Нижня) ===== */
 body.dark-theme .confirm-modal-border-top,
 body.dark-theme .confirm-modal-border-bottom {
-    /* Використовуємо зелений акцентний колір Dark Mode */
-    background-color: var(--success-color); /* #76b448 */
+  /* Використовуємо зелений акцентний колір Dark Mode */
+  background-color: var(--success-color); /* #76b448 */
 }
 
 /* ===== Header ===== */
 body.dark-theme .confirm-modal-header {
-    color: #f0f0f0;
-    /* Фон успадковує колір від border-top (var(--success-color)) */
+  color: #f0f0f0;
+  /* Фон успадковує колір від border-top (var(--success-color)) */
 }
 body.dark-theme .confirm-close-btn {
-    color: #f0f0f0;
+  color: #f0f0f0;
 }
 
 /* ===== Тіло модалки та текст ===== */
 body.dark-theme .confirm-message {
-    color: #f0f0f0; /* Світлий текст повідомлення */
+  color: #f0f0f0; /* Світлий текст повідомлення */
 }
 
 /* ===== Footer та Кнопки ===== */
 body.dark-theme .confirm-modal-footer {
-    /* Темний фон футера */
-    background: #1e1e1e;
+  /* Темний фон футера */
+  background: #1e1e1e;
 }
 
 /* 1. Кнопка СКАСУВАТИ (Cancel Button) */
 body.dark-theme .confirm-btn-cancel-confirm {
-    background: #333333 !important; /* Нейтральний темний фон */
-    color: #aaaaaa !important; /* Світло-сірий текст */
+  background: #333333 !important; /* Нейтральний темний фон */
+  color: #aaaaaa !important; /* Світло-сірий текст */
 }
 
 body.dark-theme .confirm-btn-cancel-confirm:hover {
-    background: #444444 !important;
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6); /* Темна тінь */
+  background: #444444 !important;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6); /* Темна тінь */
 }
 
 /* 2. Кнопка ПІДТВЕРДИТИ (Confirm Button) */
 body.dark-theme .confirm-btn-confirm {
-    /* Колір вже заданий (var(--success-color)), але гарантуємо його насиченість */
-    background: var(--success-color) !important; /* #76b448 */
-    color: #fff !important;
+  /* Колір вже заданий (var(--success-color)), але гарантуємо його насиченість */
+  background: var(--success-color) !important; /* #76b448 */
+  color: #fff !important;
 }
 
 body.dark-theme .confirm-btn-confirm:hover {
-    transform: scale(1.05);
-    /* Темна тінь з зеленим відтінком */
-    box-shadow: 0 6px 16px rgba(118, 180, 72, 0.5) !important;
+  transform: scale(1.05);
+  /* Темна тінь з зеленим відтінком */
+  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.5) !important;
 }
 
 /* 3. Оболонка іконки (для кольорових акцентів у центрі) */
 /* Якщо icon-wrapper використовується для фону іконки */
 body.dark-theme .confirm-icon-wrapper {
-    /* Тут може знадобитися окремий стиль, якщо він містить фон */
-    background-color: transparent !important; 
-    /* color: var(--success-color); */
+  /* Тут може знадобитися окремий стиль, якщо він містить фон */
+  background-color: transparent !important;
+  /* color: var(--success-color); */
 }
 
-.confirm-close-btn:hover{
+.confirm-close-btn:hover {
   opacity: 0.8;
   transform: rotate(90deg);
 }

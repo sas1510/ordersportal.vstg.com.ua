@@ -1,331 +1,331 @@
 /* ==========================================================================
    PRODUCTION ANALYTICS BLOCK (Fully Adapted to Main Template)
    ========================================================================== */
-:root{
-    --chart-wrapper-card-bg: #ffffff;
+:root {
+  --chart-wrapper-card-bg: #ffffff;
 }
 
-.dark-theme{
-    --chart-wrapper-card-bg: #2c2c2c;
-
+.dark-theme {
+  --chart-wrapper-card-bg: #2c2c2c;
 }
 .production-stats-container {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    padding-bottom: 100px;
+  padding-bottom: 100px;
 }
 
 /* --- Сітка та Картки KPI --- */
 .kpi-grid-6 {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 14px; /* Кратне 7: var(--gap-14) */
-    width: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px; /* Кратне 7: var(--gap-14) */
+  width: 100%;
 }
 
 .kpi-card {
-    background: #ffffff;
-    padding: 14px;
-    border-radius: 3px; /* Згідно з вашим .label та .task */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    min-height: 91px; /* Кратне 7 */
-    border-left: 4px solid var(--info-color);
-    box-shadow: 0 0 10px var(--shadow-color); /* Згідно з вашим .toast */
-    
-    /* Рамки згідно з вашим стилем .task */
-    border-top: 1px dashed var(--grey-border-color);
-    border-right: 1px dashed var(--grey-border-color);
-    border-bottom: 1px dashed var(--grey-border-color);
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 3px; /* Згідно з вашим .label та .task */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 91px; /* Кратне 7 */
+  border-left: 4px solid var(--info-color);
+  box-shadow: 0 0 10px var(--shadow-color); /* Згідно з вашим .toast */
+
+  /* Рамки згідно з вашим стилем .task */
+  border-top: 1px dashed var(--grey-border-color);
+  border-right: 1px dashed var(--grey-border-color);
+  border-bottom: 1px dashed var(--grey-border-color);
 }
 
 .kpi-card .label {
-    /* Скидання глобального .label для внутрішнього тексту */
-    background-color: transparent !important;
-    border: none !important;
-    color: var(--grey-text-color);
-    font-size: 11px;
-    text-transform: uppercase;
-    font-weight: 600;
-    margin-bottom: 7px;
-    padding: 0 !important;
+  /* Скидання глобального .label для внутрішнього тексту */
+  background-color: transparent !important;
+  border: none !important;
+  color: var(--grey-text-color);
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 7px;
+  padding: 0 !important;
 }
 
 .kpi-card .value {
-    font-size: 21px; /* Наближено до вашого font-size-22, кратне 7 */
-    font-weight: bold;
-    color: var(--text-color);
+  font-size: 21px; /* Наближено до вашого font-size-22, кратне 7 */
+  font-weight: bold;
+  color: var(--text-color);
 }
 
 /* --- Графіки та Контейнери --- */
 .stats-grid-2 {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(448px, 1fr)); /* 448 кратне 7 */
-    gap: 21px;
-    width: 100%;
-    margin-bottom: 21px;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(448px, 1fr)
+  ); /* 448 кратне 7 */
+  gap: 21px;
+  width: 100%;
+  margin-bottom: 21px;
 }
 
 .chart-wrapper-card {
-    background: var(--chart-wrapper-card-bg);
-    padding: 21px; /* Кратне 7 */
-    border-radius: 3px;
-    box-shadow: 0 0 10px var(--shadow-color);
-    border: 1px dashed var(--grey-border-color);
-    margin-bottom: 21px;
+  background: var(--chart-wrapper-card-bg);
+  padding: 21px; /* Кратне 7 */
+  border-radius: 3px;
+  box-shadow: 0 0 10px var(--shadow-color);
+  border: 1px dashed var(--grey-border-color);
+  margin-bottom: 21px;
 }
 
 .chart-title-unified {
-    font-size: 18px; /* font-size-18 */
-    color: var(--info-color);
-    /* Стиль заголовка як у ваших таблиць .table-responsive > thead */
-    border-bottom: 2px solid var(--info-color); 
-    padding-bottom: 7px;
-    margin-bottom: 14px;
-    margin-top: 0;
-    text-transform: none;
+  font-size: 18px; /* font-size-18 */
+  color: var(--info-color);
+  /* Стиль заголовка як у ваших таблиць .table-responsive > thead */
+  border-bottom: 2px solid var(--info-color);
+  padding-bottom: 7px;
+  margin-bottom: 14px;
+  margin-top: 0;
+  text-transform: none;
 }
 
 .drilldown-header-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between; 
-    align-items: center;            
-    width: 100%;
-    margin-bottom: 7px;
-    /* Додаємо невеликий відступ, щоб текст не торкався кнопки */
-    gap: 14px; 
-} 
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 7px;
+  /* Додаємо невеликий відступ, щоб текст не торкався кнопки */
+  gap: 14px;
+}
 
 .section-title {
-    margin: 0 !important;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    /* Запобігає розриву заголовка на два рядки */
-    white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis;
+  margin: 0 !important;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  /* Запобігає розриву заголовка на два рядки */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-close-details-analytics {
-    background: var(--info-bg-color);
-    border: none;
-    width: 28px; 
-    height: 28px;
-    border-radius: 3px;
-    cursor: pointer;
-    display: flex;
-    /* Запобігає стисканню кнопки */
-    flex-shrink: 0; 
-    align-items: center;
-    justify-content: center;
-    color: var(--info-color);
-    transition: all 0.2s ease;
+  background: var(--info-bg-color);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  /* Запобігає стисканню кнопки */
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--info-color);
+  transition: all 0.2s ease;
 }
 
 .btn-close-details-analytics:hover {
-    background-color: var(--danger-color);
-    color: #fff;
+  background-color: var(--danger-color);
+  color: #fff;
 }
 /* --- Навігація в Drilldown --- */
 .sub-nav-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 14px;
 }
 
 .tab-link {
-    padding: 7px 14px;
-    background: var( --chart-wrapper-card-bg);
-    border: 1px solid var(--grey-color);
-    border-radius: 3px;
-    font-size: 13px; /* font-size-13 */
-    color: var(--text-color);
-    cursor: pointer;
-    transition: all 0.1s ease-in-out;
+  padding: 7px 14px;
+  background: var(--chart-wrapper-card-bg);
+  border: 1px solid var(--grey-color);
+  border-radius: 3px;
+  font-size: 13px; /* font-size-13 */
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.1s ease-in-out;
 }
 
 .tab-link:hover {
-    background-color: var(--info-bg-color);
-    color: var(--info-color);
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
 }
 
 .tab-link.active {
-    background: var(--info-color);
-    color: #fff;
-    border-color: var(--info-color);
+  background: var(--info-color);
+  color: #fff;
+  border-color: var(--info-color);
 }
 
-
 /* --- Допоміжні класи --- */
-.badge-reclamation { border-left-color: var(--danger-color); }
-.badge-order { border-left-color: var(--success-color); }
+.badge-reclamation {
+  border-left-color: var(--danger-color);
+}
+.badge-order {
+  border-left-color: var(--success-color);
+}
 
 .card-padding {
-    padding: 14px !important;
+  padding: 14px !important;
 }
 
 /* Адаптивність */
 @media (max-width: 1400px) {
-    .kpi-grid-6 { grid-template-columns: repeat(3, 1fr); }
+  .kpi-grid-6 {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-    .kpi-grid-6 { grid-template-columns: repeat(2, 1fr); }
-    .stats-grid-2 { grid-template-columns: 1fr; }
+  .kpi-grid-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
-
-
-
-
 .no-data-placeholder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 400px;
-    background: #f8f9fa;
-    border-radius: 3px;
-    border: 2px dashed #dee2e6;
-    text-align: center;
-    margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background: #f8f9fa;
+  border-radius: 3px;
+  border: 2px dashed #dee2e6;
+  text-align: center;
+  margin: 20px 0;
 }
 
 .no-data-content h3 {
-    color: #495057;
-    margin-bottom: 8px;
+  color: #495057;
+  margin-bottom: 8px;
 }
 
 .no-data-content p {
-    color: #6c757d;
-    margin-bottom: 20px;
+  color: #6c757d;
+  margin-bottom: 20px;
 }
 
 .no-data-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: 10px;
+  font-size: 48px;
+  display: block;
+  margin-bottom: 10px;
 }
-
 
 .dark-theme .no-data-placeholder {
-
-    background: #333333;
-    border: 2px dashed #555555;
-
+  background: #333333;
+  border: 2px dashed #555555;
 }
-
-
-
 
 /* Гнучка сітка на 12 колонок */
 .stats-viewer-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 24px;
-    align-items: start;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+  align-items: start;
 }
 
 /* Адаптивність: на планшетах та телефонах усе в одну колонку */
 @media (max-width: 1024px) {
-    .stats-viewer-grid {
-        grid-template-columns: 1fr;
-    }
-    .chart-wrapper-card {
-        grid-column: span 12 !important;
-    }
+  .stats-viewer-grid {
+    grid-template-columns: 1fr;
+  }
+  .chart-wrapper-card {
+    grid-column: span 12 !important;
+  }
 }
 
 .chart-wrapper-card {
-    background: #fff;
-    border-radius: 3px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-    border: 1px solid #edf2f7;
-    transition: transform 0.2s ease;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #edf2f7;
+  transition: transform 0.2s ease;
 }
 
 .chart-title-unified {
-    font-size: 16px;
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .chart-title-unified i {
-    color: #1da8df;
-    font-size: 14px;
+  color: #1da8df;
+  font-size: 14px;
 }
 
 /* Анімація появи */
 .animate-fade-in {
-    animation: fadeIn 0.4s ease-out;
+  animation: fadeIn 0.4s ease-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Drill-down стилі */
 .drilldown-view {
-
-    padding: 25px;
-    background: #f8fafc;
-    border: 2px solid #1da8df;
+  padding: 25px;
+  background: #f8fafc;
+  border: 2px solid #1da8df;
 }
 
 .drilldown-header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .text-highlight {
-    color: #1da8df;
+  color: #1da8df;
 }
 
 .btn-close-details {
-    background: #ebf8ff;
-    border: none;
-    color: #2b6cb0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-weight: bold;
+  background: #ebf8ff;
+  border: none;
+  color: #2b6cb0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
 }
 
 .label-choose-dash {
-
 }
-
 
 .dashboard-controls {
-    display: flex;         
-    align-items: center;  
-    gap: 7px;        
-    white-space: nowrap; 
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
 }
 
-
-
-.dark-theme .chart-wrapper-card{
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
-
+.dark-theme .chart-wrapper-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
 }
-
 
 .dark-theme .chart-title-unified {
-        color: #edf2f7;
+  color: #edf2f7;
 }

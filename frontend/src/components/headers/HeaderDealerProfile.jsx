@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
-import { useTheme } from "../../context/ThemeContext"; // 👈 ІМПОРТУЄМО useTheme
-import "./HeaderAdmin.css"; 
-
+import { useTheme } from "../../hooks/useTheme"; // 👈 ІМПОРТУЄМО useTheme
+import "./HeaderAdmin.css";
 
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
 
-
 export default function HeaderDealerProfile() {
-
   const { theme } = useTheme();
 
   const cached = (() => {
@@ -22,9 +19,7 @@ export default function HeaderDealerProfile() {
   })();
 
   const [balance, setBalance] = useState(cached?.sum ?? 0);
-  const [fullName, setFullName] = useState(
-    cached?.full_name ?? "Дилер Ім'я"
-  );
+  const [fullName, setFullName] = useState(cached?.full_name ?? "Дилер Ім'я");
 
   // 👉 2. фонове оновлення
   useEffect(() => {
@@ -47,7 +42,7 @@ export default function HeaderDealerProfile() {
             sum: data.sum,
             full_name: data.full_name,
             updatedAt: Date.now(),
-          })
+          }),
         );
       } catch (error) {
         console.error("Помилка отримання балансу:", error);
@@ -68,14 +63,20 @@ export default function HeaderDealerProfile() {
 
   // 2. Додаємо динамічні класи або стилі, якщо необхідно
   // Наприклад, змінюємо клас, який впливає на колір, якщо він не повністю керується CSS-змінними.
-  const profileClasses = `profile-item-column ${theme === 'dark' ? 'dark-profile' : ''}`;
-
+  const profileClasses = `profile-item-column ${theme === "dark" ? "dark-profile" : ""}`;
 
   return (
     // 3. Застосовуємо динамічний клас
-    <li className={profileClasses}> 
+    <li className={profileClasses}>
       {/* Ім’я */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "4px",
+        }}
+      >
         {/* Колір іконки 'dealer-icon' повинен бути стилізований у CSS через .dark-theme .dealer-icon */}
         <div className="icon icon-user font-size-20 text-info dealer-icon"></div>
         <div className="name no-wrap">{fullName}</div>
@@ -88,7 +89,9 @@ export default function HeaderDealerProfile() {
         {/* Колір іконки 'money-icon' повинен бути стилізований у CSS через .dark-theme .money-icon */}
         <div className="icon icon-coin-dollar font-size-20 text-success money-icon"></div>
         {/* Колір балансу 'text-warning' повинен бути стилізований у CSS через .dark-theme .text-warning */}
-        <div className="balance text-warning font-size-20 no-wrap">{formattedBalance}</div>
+        <div className="balance text-warning font-size-20 no-wrap">
+          {formattedBalance}
+        </div>
       </div>
     </li>
   );

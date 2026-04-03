@@ -65,7 +65,6 @@
   margin-bottom: 12px; /* або 16px */
 }
 
-
 /* ================= RESPONSIVE ================= */
 @media (max-width: 720px) {
   .client-address-grid {
@@ -74,27 +73,27 @@
 }
 
 .client-address-block {
-    display: flex;
-    justify-content: center;
-    margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
 }
 
 .client-address-search {
-    border: 1px solid #b9bbc0;
+  border: 1px solid #b9bbc0;
 }
 .dark-theme .client-address-grid input {
   color: #ffffff;
 }
 
 .section-title-address {
-    font-size: 1.6rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    margin-bottom: 1.75rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 1.75rem;
 }
 
 .map-holder-modal {
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 .search-container {

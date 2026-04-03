@@ -1,19 +1,23 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import './index.css'
+import "./index.css";
 import App from "./App.jsx";
-import { RoleProvider } from "./context/RoleContext";
-import AuthProvider from "./context/AuthContext";
-import { NotificationProvider } from './components/notification/Notifications.jsx';
+// У main.jsx змініть старий імпорт на новий:
+import { RoleProvider } from "./context/RoleProvider";
+
+// Змінюємо шлях на новий файл AuthProvider
+import AuthProvider from "./context/AuthProvider";
+import { NotificationProvider } from "./components/notification/Notifications.jsx";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import 'leaflet/dist/leaflet.css';
+import "leaflet/dist/leaflet.css";
+
 
 // import './styles/datatables.css';
 
 // import "datatables.net-dt/css/jquery.dataTables.css";
 
-import { ThemeProvider } from "./context/ThemeContext";
+import { ThemeProvider } from "./context/ThemeProvider";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -21,12 +25,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <RoleProvider>
         <AuthProvider>
           <NotificationProvider>
-              <ThemeProvider>
+            <ThemeProvider>
               <App />
-              </ThemeProvider>
+            </ThemeProvider>
           </NotificationProvider>
         </AuthProvider>
       </RoleProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

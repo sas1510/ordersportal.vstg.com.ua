@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import axiosInstance from '../api/axios';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axiosInstance from "../api/axios";
 
-const API_URL = (import.meta.env.VITE_API_URL || 'https://localhost:7019') + '/api';
+const API_URL =
+  (import.meta.env.VITE_API_URL || "https://localhost:7019") + "/api";
 
 export default function AddOrEditFilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [file, setFile] = useState(null);
   const [existingFileUrl, setExistingFileUrl] = useState(null);
 
@@ -20,44 +21,46 @@ export default function AddOrEditFilePage() {
     try {
       const res = await axiosInstance.get(`documents/${id}/`);
       setTitle(res.data.title);
-      setExistingFileUrl(`${API_URL.replace('/api', '')}/documents/${res.data.filePath}`);
+      setExistingFileUrl(
+        `${API_URL.replace("/api", "")}/documents/${res.data.filePath}`,
+      );
     } catch (err) {
-      console.error('Помилка завантаження документа:', err);
+      console.error("Помилка завантаження документа:", err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!title.trim()) return alert('Введіть назву документа');
+    if (!title.trim()) return alert("Введіть назву документа");
 
     const formData = new FormData();
-    formData.append('title', title);
-    if (file) formData.append('file', file);
+    formData.append("title", title);
+    if (file) formData.append("file", file);
 
     try {
       if (id) {
         await axiosInstance.put(`documents/${id}/`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: { "Content-Type": "multipart/form-data" },
         });
       } else {
-        if (!file) return alert('Оберіть файл для завантаження');
-        await axiosInstance.post('documents/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        if (!file) return alert("Оберіть файл для завантаження");
+        await axiosInstance.post("documents/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
 
-      navigate('/files');
+      navigate("/files");
     } catch (err) {
-      console.error('Помилка збереження:', err);
-      alert('Помилка збереження. Перевірте консоль.');
+      console.error("Помилка збереження:", err);
+      alert("Помилка збереження. Перевірте консоль.");
     }
   };
 
   return (
     <div className="p-6 max-w-2xl mx-auto bg-gray-50 mt-8 rounded-lg shadow-md ">
       <h2 className="text-3xl font-bold mb-6 text-[#003d66] border-b border-[#003d66] pb-2">
-        {id ? 'Редагувати файл' : 'Додати новий файл'}
+        {id ? "Редагувати файл" : "Додати новий файл"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -72,7 +75,7 @@ export default function AddOrEditFilePage() {
 
         {id && existingFileUrl && (
           <div className="text-sm text-gray-700">
-            Поточний файл:{' '}
+            Поточний файл:{" "}
             <a
               href={existingFileUrl}
               target="_blank"
@@ -101,12 +104,12 @@ export default function AddOrEditFilePage() {
             type="submit"
             className="bg-[#003d66] flex-grow text-white px-6 py-3 rounded-md font-semibold hover:bg-[#00509e] transition-colors duration-300"
           >
-            {id ? 'Оновити' : 'Зберегти'}
+            {id ? "Оновити" : "Зберегти"}
           </button>
 
           <button
             type="button"
-            onClick={() => navigate('/files')}
+            onClick={() => navigate("/files")}
             className="bg-gray-400 text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-600 transition-colors duration-300"
           >
             Назад

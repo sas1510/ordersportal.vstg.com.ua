@@ -21,521 +21,520 @@
 
 /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
 .payments-body {
-    /* padding: 28px !important;
+  /* padding: 28px !important;
     min-height: 100vh;
     background-color: var(--portal-bg-color-start);
     color: var(--text-color); */
-    background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
-    height: 100vh;
-    width: 100%;
-    padding-top: 70px;
-    padding-bottom: 60px;
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
+  height: 100vh;
+  width: 100%;
+  padding-top: 70px;
+  padding-bottom: 60px;
 
-    /* Адаптивні відступи зліва і справа */
-    padding-left: clamp(5px, 5vw, 100px);
-    padding-right: clamp(5px, 5vw, 100px);
+  /* Адаптивні відступи зліва і справа */
+  padding-left: clamp(5px, 5vw, 100px);
+  padding-right: clamp(5px, 5vw, 100px);
 
-    overflow-y: auto;
-    overflow-x: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* --- ФІЛЬТРИ --- */
 .filters-container {
-    background: var(--cream-bg-color);
-    padding: 14px;
-    border-radius: 5px;
-    margin-bottom: 14px;
-    box-shadow: 0 0 5px var(--shadow-color);
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    flex-wrap: wrap;
-    border: 1px dashed var(--grey-border-color);
+  background: var(--cream-bg-color);
+  padding: 14px;
+  border-radius: 5px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 5px var(--shadow-color);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  border: 1px dashed var(--grey-border-color);
 }
 
 .input-date {
-    padding: 7px 14px;
-    border: 1px dashed var(--grey-border-color);
-    border-radius: 3px;
-    font-size: 14px;
-    background: #fff;
-    color: var(--text-color);
-    transition: all 0.2s;
+  padding: 7px 14px;
+  border: 1px dashed var(--grey-border-color);
+  border-radius: 3px;
+  font-size: 14px;
+  background: #fff;
+  color: var(--text-color);
+  transition: all 0.2s;
 }
 
 .input-date:focus {
-    outline: none;
-    border-color: var(--info-color);
-    box-shadow: 0 0 3px var(--info-color);
+  outline: none;
+  border-color: var(--info-color);
+  box-shadow: 0 0 3px var(--info-color);
 }
 
 label {
-    color: var(--text-color);
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  color: var(--text-color);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .btn-primary {
-    padding: 8px 16px;
-    background-color: var(--info-color);
-    color: white;
-    border: none;
-    border-radius: 3px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  padding: 8px 16px;
+  background-color: var(--info-color);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 /* --- ТАБЛИЦЯ --- */
 .table-wrapper {
-    overflow-x: auto;
-    border-radius: 5px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border: 1px dashed var(--grey-border-color);
+  overflow-x: auto;
+  border-radius: 5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px dashed var(--grey-border-color);
 }
 
 .payments-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fff;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
 }
 
 .payments-table thead th {
-    background: var(--info-color);
-    color: white;
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
+  background: var(--info-color);
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .payments-table thead th:first-child {
-    border-top-left-radius: 5px;
+  border-top-left-radius: 5px;
 }
 
 .payments-table thead th:last-child {
-    border-top-right-radius: 5px;
+  border-top-right-radius: 5px;
 }
 
 .date-row {
-    background: var(--info-bg-color); /* Світло-синій фон */
-    font-weight: 700;
-    font-size: 15px;
+  background: var(--info-bg-color); /* Світло-синій фон */
+  font-weight: 700;
+  font-size: 15px;
 }
 
 .date-row td {
-    padding: 10px 12px;
-    color: var(--text-color);
-    border-top: 2px dashed var(--grey-border-color);
+  padding: 10px 12px;
+  color: var(--text-color);
+  border-top: 2px dashed var(--grey-border-color);
 }
 
 .data-row {
-    transition: all 0.2s;
-    background: #fff;
-    border-bottom: 1px dashed var(--grey-border-color);
+  transition: all 0.2s;
+  background: #fff;
+  border-bottom: 1px dashed var(--grey-border-color);
 }
 
 .data-row:hover {
-    background: var(--info-bg-color);
+  background: var(--info-bg-color);
 }
 
 .data-row td {
-    padding: 8px 12px;
-    font-size: 14px;
-    color: var(--text-color);
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-color);
 }
 
 .total-row {
-    background: var(--portal-bg-color-end);
-    font-weight: 700;
-    border-top: 2px solid var(--info-color);
-    border-bottom: 3px solid var(--info-color);
+  background: var(--portal-bg-color-end);
+  font-weight: 700;
+  border-top: 2px solid var(--info-color);
+  border-bottom: 3px solid var(--info-color);
 }
 
 .total-row td {
-    padding: 10px 12px;
-    color: var(--text-color);
+  padding: 10px 12px;
+  color: var(--text-color);
 }
 
 /* --- КОЛЬОРИ ТА ТЕКСТ --- */
 .text-green {
-    color: var(--success-color) !important;
-    font-weight: 600;
+  color: var(--success-color) !important;
+  font-weight: 600;
 }
 
 .text-red {
-    color: var(--danger-color) !important;
-    font-weight: 600;
+  color: var(--danger-color) !important;
+  font-weight: 600;
 }
 
 .text-bold {
-    font-weight: 700;
-    color: var(--text-color);
+  font-weight: 700;
+  color: var(--text-color);
 }
 
 .text-small {
-    font-size: 12px;
-    color: var(--grey-text-color);
-    margin-top: 4px;
+  font-size: 12px;
+  color: var(--grey-text-color);
+  margin-top: 4px;
 }
 
 /* --- БЕЙДЖІ (Через що) --- */
 .channel-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .channel-badge.bank {
-    background-color: var(--info-bg-color);
-    color: var(--info-color);
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
 }
 
 .channel-badge.cash {
-    background-color: var(--success-bg-color);
-    color: var(--success-color);
+  background-color: var(--success-bg-color);
+  color: var(--success-color);
 }
 
 /* ЗАМОВЛЕННЯ (Order) використовує синій (Info) */
 .channel-badge.order {
-    border: 1px solid var(--info-color);
-    background-color: var(--info-bg-color);
-    color: var(--info-color);
+  border: 1px solid var(--info-color);
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
 }
 
 .channel-badge.none {
-    background-color: var(--info-bg-color);
-    color: var(--grey-text-color);
+  background-color: var(--info-bg-color);
+  color: var(--grey-text-color);
 }
 
 /* --- КОМІРКА ЗАМОВЛЕННЯ --- */
 .order-cell .order-num {
-    color: var(--info-color);
-    font-weight: 700;
-    font-size: 14px;
+  color: var(--info-color);
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .expand-btn {
-    background: none;
-    border: none;
-    color: var(--info-color);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    text-decoration: underline;
-    padding: 2px 4px;
-    transition: all 0.2s;
+  background: none;
+  border: none;
+  color: var(--info-color);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 2px 4px;
+  transition: all 0.2s;
 }
 
 .expand-btn:hover {
-    color: var(--info-color);
-    opacity: 0.8;
+  color: var(--info-color);
+  opacity: 0.8;
 }
 
 /* --- ПОЧАТКОВІ ЗАЛИШКИ (Пурпурний акцент) --- */
 .initial-contracts-row td {
-    padding: 8px 12px;
-    font-size: 14px;
-    background-color: var(--purple-bg-color); 
-    border-top: 1px dashed var(--grey-border-color);
-    color: var(--text-color);
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: var(--purple-bg-color);
+  border-top: 1px dashed var(--grey-border-color);
+  color: var(--text-color);
 }
 
 .initial-contracts-row .contract-name-bold {
-    color: var(--text-color);
-    font-weight: 700;
+  color: var(--text-color);
+  font-weight: 700;
 }
 
 /* --- ПІДСУМОК ПО ДОГОВОРАМ (Пурпурний акцент) --- */
 .contract-summary {
-    background: var(--purple-bg-color); 
-    padding: 12px 16px;
-    margin: 4px 0;
-    border-radius: 4px;
-    border-left: 4px solid var(--purple-color);
+  background: var(--purple-bg-color);
+  padding: 12px 16px;
+  margin: 4px 0;
+  border-radius: 4px;
+  border-left: 4px solid var(--purple-color);
 }
 
 .contract-summary-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--purple-color);
-    margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--purple-color);
+  margin-bottom: 8px;
 }
 
 .contract-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px dashed var(--grey-border-color);
-    align-items: center;
-    font-size: 13px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--grey-border-color);
+  align-items: center;
+  font-size: 13px;
 }
 
 .contract-item-name {
-    font-weight: 600;
-    color: var(--text-color);
+  font-weight: 600;
+  color: var(--text-color);
 }
 
 .contract-item-value {
-    text-align: right;
-    font-weight: 600;
-    font-size: 14px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 /* --- РОЗГОРНУТИЙ ПІДПУНКТ (Деталі замовлення) --- */
 .payments-table td.sub-row {
-    /* background: #f6f6f8; */
-    padding-left: 100px; 
+  /* background: #f6f6f8; */
+  padding-left: 100px;
 }
 
 .sub-info {
-    padding: 14px 16px;
-    margin: 4px 0;
-    border-left: 4px solid var(--info-color);
-    background: #fff;
+  padding: 14px 16px;
+  margin: 4px 0;
+  border-left: 4px solid var(--info-color);
+  background: #fff;
 }
 
 .sub-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--info-color);
-    margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--info-color);
+  margin-bottom: 12px;
 }
 
 .sub-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 8px 16px;
-    background: var(--portal-bg-color-light);
-    padding: 12px;
-    border-radius: 4px;
-    border: 1px dashed var(--grey-border-color);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 16px;
+  background: var(--portal-bg-color-light);
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px dashed var(--grey-border-color);
 }
 
 .sub-grid .title {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--grey-text-color);
-    font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--grey-text-color);
+  font-weight: 600;
 }
 
 .sub-grid > div > :last-child {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-color);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-color);
 }
-
 
 /* --- АДАПТАЦІЯ ДЛЯ ТЕМНОЇ ТЕМИ (.dark-theme) --- */
 
 .dark-theme .filters-container {
-    background: #2c2c2c;
+  background: #2c2c2c;
 }
 .dark-theme .input-date {
-    background: #383838;
-    color: var(--text-color);
-    border: 1px dashed #555555;
+  background: #383838;
+  color: var(--text-color);
+  border: 1px dashed #555555;
 }
 .dark-theme label {
-    color: var(--grey-text-color);
+  color: var(--grey-text-color);
 }
 
 .dark-theme .table-wrapper {
-    border: 1px dashed #555555;
-    box-shadow: none;
+  border: 1px dashed #555555;
+  box-shadow: none;
 }
 .dark-theme .payments-table {
-    background: #2c2c2c;
+  background: #2c2c2c;
 }
 .dark-theme .date-row {
-    background: #383838;
+  background: #383838;
 }
 .dark-theme .date-row td {
-    border-top: 2px dashed #555555;
+  border-top: 2px dashed #555555;
 }
 .dark-theme .data-row {
-    background: #2c2c2c;
-    border-bottom: 1px dashed #555555;
+  background: #2c2c2c;
+  border-bottom: 1px dashed #555555;
 }
 .dark-theme .data-row:hover {
-    background: #383838;
+  background: #383838;
 }
-.dark-theme .text-bold, 
+.dark-theme .text-bold,
 .dark-theme .contract-name {
-    color: #dddddd;
+  color: #dddddd;
 }
 
 .dark-theme .total-row {
-    background: #3d3d3d;
-    border-top: 2px solid var(--info-color);
-    border-bottom: 3px solid var(--info-color);
+  background: #3d3d3d;
+  border-top: 2px solid var(--info-color);
+  border-bottom: 3px solid var(--info-color);
 }
 .dark-theme .total-row td {
-    color: #fff;
+  color: #fff;
 }
 
 .dark-theme .initial-contracts-row td {
-    background-color: #383838;
-    border-top: 1px dashed #555555;
+  background-color: #383838;
+  border-top: 1px dashed #555555;
 }
-
 
 /* Фіолетовий блок підсумку для темної теми */
 .dark-theme .contract-summary {
-    background: #383838;
-    border-left: 4px solid var(--purple-color);
+  background: #383838;
+  border-left: 4px solid var(--purple-color);
 }
 
 .dark-theme .contract-item {
-    border-bottom: 1px dashed #555555;
+  border-bottom: 1px dashed #555555;
 }
 .dark-theme .contract-item-name {
-    color: #f0f0f0;
+  color: #f0f0f0;
 }
 .dark-theme .expand-btn {
-    color: #90cdf4;
+  color: #90cdf4;
 }
 .dark-theme .channel-badge.none {
-    background-color: #383838;
+  background-color: #383838;
 }
 
 /* Деталі замовлення */
 .dark-theme .sub-row {
-    background: #3d3d3d;
-    
+  background: #3d3d3d;
 }
 .dark-theme .sub-info {
-    background: #383838;
+  background: #383838;
 }
 .dark-theme .sub-grid {
-    background: #2c2c2c;
-    border: 1px dashed #555555;
+  background: #2c2c2c;
+  border: 1px dashed #555555;
 }
 .dark-theme .sub-grid > div > :last-child {
-    color: #fff;
+  color: #fff;
 }
 
 /* ... (існуючі стилі) ... */
 
 /* --- ТАБЛИЦЯ --- */
 .table-wrapper {
-    overflow-x: auto;
-    /* --- ВАЖЛИВО: ОПТИМІЗАЦІЯ ДЛЯ ПЛАВНОСТІ --- */
-    max-height: calc(100vh - 220px); /* Встановлюємо максимальну висоту для прокрутки */
-    overflow-y: auto;                  /* Активуємо вертикальну прокрутку */
-    will-change: scroll-position;      /* Підказуємо браузеру, що ця область буде прокручуватися */
-    /* ------------------------------------------- */
+  overflow-x: auto;
+  /* --- ВАЖЛИВО: ОПТИМІЗАЦІЯ ДЛЯ ПЛАВНОСТІ --- */
+  max-height: calc(
+    100vh - 220px
+  ); /* Встановлюємо максимальну висоту для прокрутки */
+  overflow-y: auto; /* Активуємо вертикальну прокрутку */
+  will-change: scroll-position; /* Підказуємо браузеру, що ця область буде прокручуватися */
+  /* ------------------------------------------- */
 
-    border-radius: 5px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border: 1px dashed var(--grey-border-color);
+  border-radius: 5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px dashed var(--grey-border-color);
 }
 
 .payments-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fff;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
 }
 
 .payments-table thead th {
-    /* Робимо заголовок липким при прокручуванні */
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    /* ... (інші стилі заголовка) ... */
+  /* Робимо заголовок липким при прокручуванні */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* ... (інші стилі заголовка) ... */
 }
 
 /* --- ОПТИМІЗАЦІЯ ВЕРТИКАЛЬНОЇ ПРОКРУТКИ WEBKIT (для Chrome/Safari) --- */
 .table-wrapper::-webkit-scrollbar {
-    width: 6px; /* Ширина прокрутки */
+  width: 6px; /* Ширина прокрутки */
 }
 .table-wrapper::-webkit-scrollbar-thumb {
-    background-color: var(--info-color); /* Колір бігунка */
-    border-radius: 3px;
+  background-color: var(--info-color); /* Колір бігунка */
+  border-radius: 3px;
 }
 .table-wrapper::-webkit-scrollbar-track {
-    background: var(--cream-bg-color); /* Фон доріжки */
+  background: var(--cream-bg-color); /* Фон доріжки */
 }
 
 /* ... (існуючі стилі dark-theme) ... */
 
 .dark-theme .table-wrapper::-webkit-scrollbar-track {
-    background: #1a1a1a;
+  background: #1a1a1a;
 }
 
 /* --- Мінімалістичні картки підрядків замовлення --- */
 
 .mini-card {
-    background: var(--cream-bg-color);
-    border-left: 3px solid var(--info-color);
-    padding: 10px 8px;
-    margin: 10px 10px 10px 100px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  background: var(--cream-bg-color);
+  border-left: 3px solid var(--info-color);
+  padding: 10px 8px;
+  margin: 10px 10px 10px 100px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .order-mini-header {
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: var(--info-color);
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--info-color);
 }
 
 .mini-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 4px 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 4px 12px;
 }
 
 .mini-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    color: var(--grey-text-color);
-    display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--grey-text-color);
+  display: block;
 }
 
 .mini-value {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text-color);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-color);
 }
-
 
 .mini-green {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--success-color);
-
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--success-color);
 }
 
-
 .mini-red {
-    font-weight: 700;
-    font-size: 14px;
-    color: #e46321; 
-    /* color: var(--text-danger); */
-  
+  font-weight: 700;
+  font-size: 14px;
+  color: #e46321;
+  /* color: var(--text-danger); */
 }
 
 /* ====== ПОВЕРТАЄМО ВІДСТУПИ ДЛЯ ВСІЄЇ ТАБЛИЦІ ====== */
@@ -545,9 +544,8 @@ label {
   box-sizing: border-box;
 }
 
-.payments-table td.sp{
+.payments-table td.sp {
   padding-left: 50px;
-
 }
 
 /* === 1. РІЗНІ ВІДСТУПИ ДЛЯ КОЛОНОК === */
@@ -568,7 +566,6 @@ label {
   padding-left: 60px !important;
 }
 
-
 /* === 2. ПІДСВІЧУВАТИ ВІДКРИТИЙ РЯДОК ДОКУМЕНТА === */
 .data-row.expanded {
   background-color: #eef6ff !important; /* світло-синій фон */
@@ -578,8 +575,6 @@ label {
 .data-row.expanded:hover {
   background-color: #e5f1ff !important;
 }
-
-
 
 /* Незалежні відступи */
 .indent-date {
@@ -614,12 +609,9 @@ label {
   background: #fff8e0;
 }
 
-
 .dark-theme .clickable-subcard:hover {
   background: #242424;
 }
-
-
 
 /* ДАТА — зовсім зліва (10px) */
 span.td-date {
@@ -636,7 +628,6 @@ span.td-date {
 
 /* ЧАС — трохи правіше (30px) */
 
-
 .payments-table td.td-time {
   padding-left: 80px !important;
 }
@@ -648,7 +639,6 @@ span.td-date {
   padding-left: 90px !important;
 }
 
-
 .doc-main-row.has-sub {
   cursor: pointer;
 }
@@ -656,7 +646,6 @@ span.td-date {
 .doc-main-row.has-sub:hover {
   background: rgba(255, 255, 255, 0.05);
 }
-
 
 .total-row-separator {
   border-bottom: 2px solid var(--border-color, #ddd);
@@ -673,25 +662,22 @@ span.td-date {
   margin-top: 6px;
   font-size: 13px;
   line-height: 1.4;
-  text-align: right;  /* на всяк випадок */
+  text-align: right; /* на всяк випадок */
 }
-
 
 .contract-total-line {
   margin-left: 10px;
 }
 
-
 .contract-amount {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    background-color: var(--purple-bg-color); 
-    border: 1px solid var(--purple-color);
-
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: var(--purple-bg-color);
+  border: 1px solid var(--purple-color);
 }
 
 .total-row.total-row-separator td {
@@ -703,78 +689,58 @@ span.td-date {
   background: #fff;
 }
 
-
-
 /* Додайте цей стиль до Вашого CSS-файлу */
 .doc-main-row.expanded-with-orders {
-    /* Наприклад, синій фон для підсвітки */
-    background-color: #e3f2fd; 
-    border-left: 5px solid #2196f3;
-    cursor: pointer;
-    
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
 }
-
-
 
 /* Додайте цей стиль до Вашого CSS-файлу */
 .doc-main-row.expanded-with-orders:hover {
-    /* Наприклад, синій фон для підсвітки */
-    background-color: #e3f2fd; 
-    border-left: 5px solid #2196f3;
-    cursor: pointer;
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
 }
-
-
-
-
 
 .dark-theme .contract-amount {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #2c2c2c;
-    background-color: var(--purple-bg-color); 
-    border: 1px solid var(--purple-color);
-
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #2c2c2c;
+  background-color: var(--purple-bg-color);
+  border: 1px solid var(--purple-color);
 }
-
 
 /* Додайте цей стиль до Вашого CSS-файлу */
 .dark-theme .doc-main-row.expanded-with-orders {
-    /* Наприклад, синій фон для підсвітки */
-    background-color: #353535; 
-    border-left: 5px solid #2196f3;
-    cursor: pointer;
-    
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #353535;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
 }
-
 
 /* Додайте цей стиль до Вашого CSS-файлу */
 .dark-theme .doc-main-row.expanded-with-orders:hover {
-    /* Наприклад, синій фон для підсвітки */
-    background-color: #383838; 
-    border-left: 5px solid #2196f3;
-    cursor: pointer;
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #383838;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
 }
 
-
-
-
-
 .dark-theme .contract-total-line {
-    color: #e4e4e4;            /* світлий текст */
+  color: #e4e4e4; /* світлий текст */
 }
 
 .dark-theme .contract-name-bold {
-    color: #cccccc; /* яскравий акцент */
-    font-weight: 700;
+  color: #cccccc; /* яскравий акцент */
+  font-weight: 700;
 }
-
-
-
 
 .contract-badge {
   display: inline-flex;
@@ -802,9 +768,8 @@ span.td-date {
   color: #fff;
   font-size: 13.5px;
   letter-spacing: 0.2px;
-  text-shadow: 0 0 2px rgba(0,0,0,0.4);
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
 }
-
 
 .btn-refresh {
   padding: 8px 16px;
@@ -828,8 +793,6 @@ span.td-date {
   cursor: not-allowed;
 }
 
-
-
 .btn-excel {
   padding: 8px 16px;
   background-color: #1aaa56;
@@ -847,13 +810,10 @@ span.td-date {
   transform: translateY(-1px);
 }
 
-
-
 .btn-excel:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 
 .arrow {
   font-size: 14px;
@@ -873,12 +833,10 @@ span.td-date {
   color: #999; /* нейтральна */
 }
 
-
 /* ========================================
    📱 MOBILE ADAPTATION (<= 768px)
    ======================================== */
 @media (max-width: 1050px) {
-
   /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
   .payments-body {
     padding-top: 60px;
@@ -1021,8 +979,9 @@ span.td-date {
   }
 }
 
-
-
 @media (max-width: 768px) {
-    .payments-body { padding-bottom: 25px !important; padding-top: 50px !important; }
+  .payments-body {
+    padding-bottom: 25px !important;
+    padding-top: 50px !important;
+  }
 }

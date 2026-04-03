@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useTheme } from "../../context/ThemeContext";
+import { useTheme } from "../../hooks/useTheme";
 import {
   Calendar,
   User,
@@ -13,7 +13,7 @@ import PhotoModal from "./PhotoModal";
 import { formatDate } from "../../utils/formatters";
 import axiosInstance from "../../api/axios";
 
-import { useNotification } from "../notification/Notifications.jsx";
+import { useNotification } from "../../hooks/useNotification";
 
 /* ================= HELPERS ДЛЯ ФАЙЛІВ ================= */
 const isImage = (name) => /\.(jpg|jpeg|png|webp)$/i.test(name);
@@ -51,8 +51,8 @@ const InfoRow = ({
         color: highlight
           ? colors.highlight
           : value
-          ? colors.value
-          : colors.empty,
+            ? colors.value
+            : colors.empty,
         textAlign: "right",
       }}
     >
@@ -68,17 +68,20 @@ const HorizontalInfoGroup = ({ children, columns = 3, colors }) => {
   return (
     <div className="flex flex-wrap w-full">
       {childrenArray.map((child, index) => {
-        const isLastInRow = (index + 1) % columns === 0 || index === totalItems - 1;
+        const isLastInRow =
+          (index + 1) % columns === 0 || index === totalItems - 1;
         const isLastInGroup =
           index >=
-          totalItems - (totalItems % columns === 0 ? columns : totalItems % columns);
+          totalItems -
+            (totalItems % columns === 0 ? columns : totalItems % columns);
 
         return React.cloneElement(child, {
           key: index,
           isLastInRow,
           isLastInGroup:
             isLastInGroup &&
-            (index === totalItems - 1 || (totalItems <= columns && index + 1 === totalItems)),
+            (index === totalItems - 1 ||
+              (totalItems <= columns && index + 1 === totalItems)),
           colors,
         });
       })}
@@ -95,7 +98,7 @@ const FullWidthInfoGroup = ({ children, isLastInGroup = false, colors }) => (
         isLastInGroup,
         style: { minWidth: "auto", borderRight: "none" },
         colors,
-      })
+      }),
     )}
   </div>
 );
@@ -158,29 +161,28 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
     if (!complaint?.guid) return;
 
     try {
-      const res = await axiosInstance.get(`/complaints/${complaint.guid}/files/`);
+      const res = await axiosInstance.get(
+        `/complaints/${complaint.guid}/files/`,
+      );
       setFiles(res.data.files || []);
     } catch (err) {
       console.error("Error loading files list:", err);
-      
+
       addNotification(
-        <div className="flex flex-col gap-2 items-center text-center"> 
+        <div className="flex flex-col gap-2 items-center text-center">
           {/* Додано items-center для вирівнювання кнопки та text-center для тексту */}
           <span>Не вдалося завантажити медіа-файли.</span>
-          <button 
-            onClick={() => loadFiles()} 
+          <button
+            onClick={() => loadFiles()}
             className="bg-white text-red-600 px-3 py-1.5 rounded text-xs font-bold w-fit shadow-md active:scale-95 transition-transform"
           >
             Спробувати ще раз
           </button>
         </div>,
-        "warning", 
+        "warning",
       );
     }
   }, [complaint?.guid, addNotification]);
-
-
-  
 
   useEffect(() => {
     loadFiles();
@@ -188,9 +190,6 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
 
   const imageFiles = files.filter((f) => isImage(f.File_FileName));
   const videoFiles = files.filter((f) => isVideo(f.File_FileName));
-
-
-
 
   /* ================= 2. URL З ТОКЕНОМ ================= */
   const getSecureUrl = async (file) => {
@@ -203,7 +202,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
       const safeToken = encodeURIComponent(token);
 
       return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(
-        file.File_FileName
+        file.File_FileName,
       )}&token=${safeToken}`;
     } catch (e) {
       console.error("❌ Token error:", file?.File_FileName, e);
@@ -212,36 +211,36 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
   };
 
   /* ================= 3. КЛІК ПО ФОТО / ВІДЕО ================= */
-const handlePhotoClick = async (index) => {
-  if (!imageFiles.length || isMediaLoading) return;
+  const handlePhotoClick = async (index) => {
+    if (!imageFiles.length || isMediaLoading) return;
 
-  setIsMediaLoading(true);
-  const urls = [];
+    setIsMediaLoading(true);
+    const urls = [];
 
-  try {
-    // Цикл for...of гарантує ПОРЯДОК і ЧЕРГОВІСТЬ
-    for (const file of imageFiles) {
-      // Чекаємо, поки сервер видасть токен для одного файлу, перш ніж просити наступний
-      const url = await getSecureUrl(file);
-      
-      if (url) {
-        urls.push(url);
-      } else {
-        // Якщо токен не прийшов, ставимо заглушку, щоб не збивати індекси
-        urls.push("https://placehold.co/600x400?text=Помилка+токену");
+    try {
+      // Цикл for...of гарантує ПОРЯДОК і ЧЕРГОВІСТЬ
+      for (const file of imageFiles) {
+        // Чекаємо, поки сервер видасть токен для одного файлу, перш ніж просити наступний
+        const url = await getSecureUrl(file);
+
+        if (url) {
+          urls.push(url);
+        } else {
+          // Якщо токен не прийшов, ставимо заглушку, щоб не збивати індекси
+          urls.push("https://placehold.co/600x400?text=Помилка+токену");
+        }
       }
-    }
 
-    setPhotoUrls(urls);
-    setPhotoIndex(index);
-    setIsPhotoModalOpen(true);
-  } catch (err) {
-    console.error("Критична помилка завантаження медіа:", err);
-    addNotification("Не вдалося завантажити фото", "error");
-  } finally {
-    setIsMediaLoading(false);
-  }
-};
+      setPhotoUrls(urls);
+      setPhotoIndex(index);
+      setIsPhotoModalOpen(true);
+    } catch (err) {
+      console.error("Критична помилка завантаження медіа:", err);
+      addNotification("Не вдалося завантажити фото", "error");
+    } finally {
+      setIsMediaLoading(false);
+    }
+  };
 
   const handleVideoClick = async (file) => {
     const url = await getSecureUrl(file);
@@ -261,7 +260,6 @@ const handlePhotoClick = async (index) => {
     }
   };
 
-
   return (
     <div className="w-full" style={{ backgroundColor: c.background }}>
       <div
@@ -277,28 +275,57 @@ const handlePhotoClick = async (index) => {
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
-              style={{ backgroundColor: c.sectionBg, border: `1px dashed ${c.highlight}40` }}
+              style={{
+                backgroundColor: c.sectionBg,
+                border: `1px dashed ${c.highlight}40`,
+              }}
             >
               <h3
                 className="text-base font-bold mb-0 p-3 flex items-center border-b"
-                style={{ color: c.text, borderBottom: `1px dashed ${c.border}` }}
+                style={{
+                  color: c.text,
+                  borderBottom: `1px dashed ${c.border}`,
+                }}
               >
-                <FileText className="w-4 h-4 mr-1.5" style={{ color: c.highlight }} />
+                <FileText
+                  className="w-4 h-4 mr-1.5"
+                  style={{ color: c.highlight }}
+                />
                 Основна інформація
               </h3>
 
               <HorizontalInfoGroup columns={3} colors={c}>
-                <InfoRow label="Номер рекламації" value={complaint.number} colors={c} />
-                <InfoRow label="Номер акту" value={complaint.actNumber} colors={c} />
-                <InfoRow label="Номер замовлення" value={complaint.orderNumber} colors={c} />
+                <InfoRow
+                  label="Номер рекламації"
+                  value={complaint.number}
+                  colors={c}
+                />
+                <InfoRow
+                  label="Номер акту"
+                  value={complaint.actNumber}
+                  colors={c}
+                />
+                <InfoRow
+                  label="Номер замовлення"
+                  value={complaint.orderNumber}
+                  colors={c}
+                />
               </HorizontalInfoGroup>
 
               <FullWidthInfoGroup colors={c}>
-                <InfoRow label="Організація" value={complaint.organization} colors={c} />
+                <InfoRow
+                  label="Організація"
+                  value={complaint.organization}
+                  colors={c}
+                />
               </FullWidthInfoGroup>
 
               <FullWidthInfoGroup isLastInGroup={true} colors={c}>
-                <InfoRow label="Серії конструкцій" value={complaint.series} colors={c} />
+                <InfoRow
+                  label="Серії конструкцій"
+                  value={complaint.series}
+                  colors={c}
+                />
               </FullWidthInfoGroup>
             </div>
           </div>
@@ -307,29 +334,55 @@ const handlePhotoClick = async (index) => {
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
-              style={{ backgroundColor: c.sectionBgDates, border: `1px dashed ${c.border}` }}
+              style={{
+                backgroundColor: c.sectionBgDates,
+                border: `1px dashed ${c.border}`,
+              }}
             >
               <h3
                 className="text-base font-bold mb-0 p-3 flex items-center border-b"
-                style={{ color: c.text, borderBottom: `1px dashed ${c.border}` }}
+                style={{
+                  color: c.text,
+                  borderBottom: `1px dashed ${c.border}`,
+                }}
               >
-                <Calendar className="w-4 h-4 mr-1.5" style={{ color: c.highlight }} />
+                <Calendar
+                  className="w-4 h-4 mr-1.5"
+                  style={{ color: c.highlight }}
+                />
                 Дати
               </h3>
 
               <HorizontalInfoGroup columns={5} colors={c}>
-                <InfoRow label="Дата рекламації" value={formatDate(complaint.date)} colors={c} />
-                <InfoRow label="Дата доставки" value={formatDate(complaint.deliveryDate)} colors={c} />
+                <InfoRow
+                  label="Дата рекламації"
+                  value={formatDate(complaint.date)}
+                  colors={c}
+                />
+                <InfoRow
+                  label="Дата доставки"
+                  value={formatDate(complaint.deliveryDate)}
+                  colors={c}
+                />
                 <InfoRow
                   label="Дата визначення рекламації"
                   value={formatDate(complaint.determinationDate)}
                   colors={c}
                 />
-                {complaint.producedDate && complaint.producedDate !== "Не вказано" && (
-                  <InfoRow label="Дата виготовлення" value={formatDate(complaint.producedDate)} colors={c} />
-                )}
+                {complaint.producedDate &&
+                  complaint.producedDate !== "Не вказано" && (
+                    <InfoRow
+                      label="Дата виготовлення"
+                      value={formatDate(complaint.producedDate)}
+                      colors={c}
+                    />
+                  )}
                 {complaint.soldDate && complaint.soldDate !== "Не вказано" && (
-                  <InfoRow label="Дата відвантаження" value={formatDate(complaint.soldDate)} colors={c} />
+                  <InfoRow
+                    label="Дата відвантаження"
+                    value={formatDate(complaint.soldDate)}
+                    colors={c}
+                  />
                 )}
               </HorizontalInfoGroup>
 
@@ -338,7 +391,11 @@ const handlePhotoClick = async (index) => {
                 formatDate(complaint.readyDate) !== "01.01.2001" && (
                   <FullWidthInfoGroup isLastInGroup={true} colors={c}>
                     <InfoRow
-                      label={<span style={{ color: "red" }}>Гранична дата повернення на склад</span>}
+                      label={
+                        <span style={{ color: "red" }}>
+                          Гранична дата повернення на склад
+                        </span>
+                      }
                       value={
                         <span style={{ color: "#ff4d4d", fontWeight: "bold" }}>
                           {formatDate(complaint.readyDate)}
@@ -356,11 +413,19 @@ const handlePhotoClick = async (index) => {
           <div className="space-y-2">
             <div
               className="rounded p-3 flex flex-col md:flex-row items-start md:items-center justify-start gap-3"
-              style={{ backgroundColor: c.sectionBgManager, border: `1px dashed ${c.iconManager}40` }}
+              style={{
+                backgroundColor: c.sectionBgManager,
+                border: `1px dashed ${c.iconManager}40`,
+              }}
             >
-              <div className="flex items-center gap-2 flex-shrink-0" style={{ color: c.text }}>
+              <div
+                className="flex items-center gap-2 flex-shrink-0"
+                style={{ color: c.text }}
+              >
                 <User className="w-6 h-6" style={{ color: c.iconManager }} />
-                <h3 className="text-base font-bold">Відповідальний менеджер:</h3>
+                <h3 className="text-base font-bold">
+                  Відповідальний менеджер:
+                </h3>
               </div>
 
               <div className="flex items-center gap-3">
@@ -371,7 +436,10 @@ const handlePhotoClick = async (index) => {
                   {complaint.manager ? complaint.manager.split(" ").map((n) => n[0]).join("") : "?"}
                 </div> */}
 
-                <div className="text-sm font-medium whitespace-nowrap" style={{ color: c.text }}>
+                <div
+                  className="text-sm font-medium whitespace-nowrap"
+                  style={{ color: c.text }}
+                >
                   {complaint.manager || "Не вказано"}
                 </div>
               </div>
@@ -383,12 +451,21 @@ const handlePhotoClick = async (index) => {
             {complaint.description && (
               <div
                 className="rounded p-3"
-                style={{ backgroundColor: c.sectionBgDescription, border: `1px dashed ${c.border}` }}
+                style={{
+                  backgroundColor: c.sectionBgDescription,
+                  border: `1px dashed ${c.border}`,
+                }}
               >
-                <h3 className="text-base font-bold mb-1.5" style={{ color: c.text }}>
+                <h3
+                  className="text-base font-bold mb-1.5"
+                  style={{ color: c.text }}
+                >
                   Опис рекламації
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: c.text }}>
+                <p
+                  className="text-sm leading-relaxed"
+                  style={{ color: c.text }}
+                >
                   {complaint.description}
                 </p>
               </div>
@@ -398,15 +475,27 @@ const handlePhotoClick = async (index) => {
               {complaint.problem && complaint.problem !== "Не вказано" && (
                 <div
                   className="rounded p-3"
-                  style={{ backgroundColor: c.sectionBgProblem, border: `1px dashed #e4632140` }}
+                  style={{
+                    backgroundColor: c.sectionBgProblem,
+                    border: `1px dashed #e4632140`,
+                  }}
                 >
                   <div className="flex items-start gap-1.5">
-                    <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#e46321" }} />
+                    <AlertCircle
+                      className="w-4 h-4 mt-0.5 flex-shrink-0"
+                      style={{ color: "#e46321" }}
+                    />
                     <div className="flex-1">
-                      <h3 className="text-base font-bold mb-1.5" style={{ color: "#e46321" }}>
+                      <h3
+                        className="text-base font-bold mb-1.5"
+                        style={{ color: "#e46321" }}
+                      >
                         Проблема
                       </h3>
-                      <p className="text-sm leading-relaxed" style={{ color: c.text }}>
+                      <p
+                        className="text-sm leading-relaxed"
+                        style={{ color: c.text }}
+                      >
                         {complaint.problem}
                       </p>
                     </div>
@@ -414,31 +503,47 @@ const handlePhotoClick = async (index) => {
                 </div>
               )}
 
-              {complaint.resolution && complaint.resolution !== "Не вказано" && (
-                <div
-                  className="rounded p-3"
-                  style={{ backgroundColor: c.sectionBgResolution, border: `1px dashed #76b44840` }}
-                >
-                  <div className="flex items-start gap-1.5">
-                    <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#76b448" }} />
-                    <div className="flex-1">
-                      <h3 className="text-base font-bold mb-1.5" style={{ color: "#76b448" }}>
-                        Вирішення
-                      </h3>
-                      <p className="text-sm leading-relaxed" style={{ color: c.text }}>
-                        {complaint.resolution}
-                      </p>
+              {complaint.resolution &&
+                complaint.resolution !== "Не вказано" && (
+                  <div
+                    className="rounded p-3"
+                    style={{
+                      backgroundColor: c.sectionBgResolution,
+                      border: `1px dashed #76b44840`,
+                    }}
+                  >
+                    <div className="flex items-start gap-1.5">
+                      <CheckCircle
+                        className="w-4 h-4 mt-0.5 flex-shrink-0"
+                        style={{ color: "#76b448" }}
+                      />
+                      <div className="flex-1">
+                        <h3
+                          className="text-base font-bold mb-1.5"
+                          style={{ color: "#76b448" }}
+                        >
+                          Вирішення
+                        </h3>
+                        <p
+                          className="text-sm leading-relaxed"
+                          style={{ color: c.text }}
+                        >
+                          {complaint.resolution}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
 
             {/* 5. МЕДІА: ФОТО */}
             {imageFiles.length > 0 && (
               <div
                 className="rounded p-2"
-                style={{ backgroundColor: c.sectionBgDescription, border: `1px dashed ${c.border}` }}
+                style={{
+                  backgroundColor: c.sectionBgDescription,
+                  border: `1px dashed ${c.border}`,
+                }}
               >
                 <div className="flex items-center gap-1 mb-2">
                   <ImageIcon className="w-4 h-4" style={{ color: "#606060" }} />
@@ -452,7 +557,9 @@ const handlePhotoClick = async (index) => {
                     <div
                       key={file.File_GUID}
                       className={`relative w-32 h-32 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 snap-start flex items-center justify-center border ${
-                        isMediaLoading ? "opacity-60 cursor-wait" : "cursor-pointer hover:opacity-80"
+                        isMediaLoading
+                          ? "opacity-60 cursor-wait"
+                          : "cursor-pointer hover:opacity-80"
                       }`}
                       style={{ borderColor: c.border }}
                       onClick={() => !isMediaLoading && handlePhotoClick(idx)}
@@ -472,7 +579,10 @@ const handlePhotoClick = async (index) => {
             {videoFiles.length > 0 && (
               <div
                 className="rounded p-2"
-                style={{ backgroundColor: c.sectionBgDescription, border: `1px dashed ${c.border}` }}
+                style={{
+                  backgroundColor: c.sectionBgDescription,
+                  border: `1px dashed ${c.border}`,
+                }}
               >
                 <div className="flex items-center gap-1 mb-2">
                   <Video className="w-4 h-4" style={{ color: "#606060" }} />
@@ -487,7 +597,10 @@ const handlePhotoClick = async (index) => {
                       key={file.File_GUID}
                       onClick={() => handleVideoClick(file)}
                       className="flex items-center gap-2 p-2 rounded hover:bg-black/5 text-sm transition-colors text-left"
-                      style={{ color: c.highlight, border: `1px solid ${c.border}` }}
+                      style={{
+                        color: c.highlight,
+                        border: `1px solid ${c.border}`,
+                      }}
                       title={file.File_FileName}
                     >
                       <span role="img" aria-label="play">

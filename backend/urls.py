@@ -52,6 +52,7 @@ urlpatterns = [
 
     path('api/webpush/save_information/', csrf_exempt(webpush_wrapper), name='save_webpush_info'),
     path('api/webpush/', include('webpush.urls')),
+    path('api/silk/', include('silk.urls', namespace='silk')),
     # path('complaints/', include('backend.complaints.urls')),  # додай, якщо в тебе app orders
 
     

@@ -8,12 +8,10 @@ export const formatMoney = (amount) => {
   }).format(amount);
 };
 
-
 export const formatPercent = (val) => {
-  return new Intl.NumberFormat('uk-UA', {
-    style: 'decimal',
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2, 
+  return new Intl.NumberFormat("uk-UA", {
+    style: "decimal",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(val);
 };
-

@@ -8,7 +8,7 @@
   background: white;
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .widget-card.half {
@@ -31,4 +31,4 @@
   background: transparent;
   cursor: pointer;
   font-size: 18px;
-} 
+}

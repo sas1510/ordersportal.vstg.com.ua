@@ -66,10 +66,7 @@ export default function GenerateApiKeyModal({ user, onClose }) {
               <div className="portal-api-key-box">
                 <code>{apiKey}</code>
 
-                <button
-                  className="portal-api-key-copy-btn"
-                  onClick={copyKey}
-                >
+                <button className="portal-api-key-copy-btn" onClick={copyKey}>
                   {copied ? <Check size={18} /> : <Copy size={18} />}
                 </button>
               </div>
@@ -100,10 +97,7 @@ export default function GenerateApiKeyModal({ user, onClose }) {
 
         {/* FOOTER */}
         <div className="portal-api-key-modal-footer">
-          <button
-            className="portal-api-key-btn-cancel"
-            onClick={onClose}
-          >
+          <button className="portal-api-key-btn-cancel" onClick={onClose}>
             Закрити
           </button>
 

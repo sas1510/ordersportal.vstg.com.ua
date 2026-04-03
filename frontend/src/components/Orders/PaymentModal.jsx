@@ -2,14 +2,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axiosInstance from "../../api/axios";
 import "./PaymentModal.css";
-import { useNotification } from "../notification/Notifications.jsx";
-import { FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
+import { FaCheck, FaTimes, FaSpinner } from "react-icons/fa";
 
 export default function PaymentModal({
   order,
   onClose,
   onConfirm,
-  formatCurrency
+  formatCurrency,
 }) {
   // ---- STATE ----
   const [contracts, setContracts] = useState([]);
@@ -19,33 +20,43 @@ export default function PaymentModal({
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState("");
   const { addNotification } = useNotification();
 
   const debt = useMemo(() => Number(order.DebtAmount || 0), [order]);
 
   // Пошук вибраного договору та доступної суми
-  const getSelected = useCallback(() => contracts.find((c) => c.Dogovor_ID === selectedContract), [contracts, selectedContract]);
-  const getAvailable = useCallback(() => Number(getSelected()?.DogovorSum || 0), [getSelected]);
+  const getSelected = useCallback(
+    () => contracts.find((c) => c.Dogovor_ID === selectedContract),
+    [contracts, selectedContract],
+  );
+  const getAvailable = useCallback(
+    () => Number(getSelected()?.DogovorSum || 0),
+    [getSelected],
+  );
 
   // ----------------- LOAD CONTRACTS -----------------
   const loadContracts = async () => {
     setLoading(true);
     setLoadError("");
     try {
-      const res = await axiosInstance.get(`/payments/get_dealer_advance_balance/`);
+      const res = await axiosInstance.get(
+        `/payments/get_dealer_advance_balance/`,
+      );
       const data = res.data || [];
       setContracts(data);
 
       if (data.length > 0) {
         const firstContract = data[0];
         setSelectedContract(firstContract.Dogovor_ID);
-        
+
         // 🔥 Перевірка першого договору: якщо 0, не підставляємо суму
         const available = Number(firstContract.DogovorSum || 0);
         if (available > 0) {
-          setPaymentAmount(available < debt ? available.toFixed(2) : debt.toFixed(2));
+          setPaymentAmount(
+            available < debt ? available.toFixed(2) : debt.toFixed(2),
+          );
         } else {
           setPaymentAmount(""); // Залишаємо порожнім, щоб заблокувати кнопку
         }
@@ -59,7 +70,6 @@ export default function PaymentModal({
     }
   };
 
-
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape" && !isSubmitting) onClose();
@@ -68,7 +78,6 @@ export default function PaymentModal({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose, isSubmitting]);
 
-
   useEffect(() => {
     loadContracts();
   }, []);
@@ -76,14 +85,16 @@ export default function PaymentModal({
   // --- авто-підстановка та скидання помилок при зміні договору ---
   useEffect(() => {
     if (!selectedContract || loading) return;
-    
+
     setAmountError(""); // 🔥 Скидаємо попередження при зміні договору
-    
+
     const available = getAvailable();
     if (available > 0) {
-        setPaymentAmount(available < debt ? available.toFixed(2) : debt.toFixed(2));
+      setPaymentAmount(
+        available < debt ? available.toFixed(2) : debt.toFixed(2),
+      );
     } else {
-        setPaymentAmount("");
+      setPaymentAmount("");
     }
   }, [selectedContract, debt, getAvailable, loading]);
 
@@ -119,14 +130,14 @@ export default function PaymentModal({
   // 🔥 Функція відправки з блокуванням
   const handleConfirm = async () => {
     if (isSubmitting || !paymentAmount || Number(paymentAmount) <= 0) return;
-    
+
     setIsSubmitting(true);
     try {
       await onConfirm(selectedContract, Number(paymentAmount));
     } catch (err) {
-        console.error("Payment error:", err);
+      console.error("Payment error:", err);
     } finally {
-      setIsSubmitting(false); 
+      setIsSubmitting(false);
     }
   };
 
@@ -148,7 +159,10 @@ export default function PaymentModal({
       <div className="pay-modal-window">
         <div className="pay-modal-header">
           <h3>Оплата замовлення № {order.OrderNumber}</h3>
-          <span className="icon icon-cross pay-close-btn" onClick={!isSubmitting ? onClose : null}></span>
+          <span
+            className="icon icon-cross pay-close-btn"
+            onClick={!isSubmitting ? onClose : null}
+          ></span>
         </div>
 
         <div className="pay-modal-body">
@@ -161,7 +175,9 @@ export default function PaymentModal({
             <div className="pay-modal-status-centered error-state">
               <span className="icon icon-warning font-size-32 text-red"></span>
               <p>{loadError}</p>
-              <button className="pay-btn-retry-large" onClick={loadContracts}>Спробувати ще раз</button>
+              <button className="pay-btn-retry-large" onClick={loadContracts}>
+                Спробувати ще раз
+              </button>
             </div>
           ) : (
             <>
@@ -174,12 +190,18 @@ export default function PaymentModal({
                 <div className="custom-dropdown">
                   <div
                     className={`dropdown-selected ${selectedContract ? "active" : ""} ${isSubmitting ? "disabled" : ""}`}
-                    onClick={() => !isSubmitting && setDropdownOpen((prev) => !prev)}
+                    onClick={() =>
+                      !isSubmitting && setDropdownOpen((prev) => !prev)
+                    }
                   >
                     <span>
-                      {selectedContract ? getSelected()?.Dogovor_Name : "Оберіть договір"}
+                      {selectedContract
+                        ? getSelected()?.Dogovor_Name
+                        : "Оберіть договір"}
                     </span>
-                    <span className="dropdown-arrow">{dropdownOpen ? "▲" : "▼"}</span>
+                    <span className="dropdown-arrow">
+                      {dropdownOpen ? "▲" : "▼"}
+                    </span>
                   </div>
 
                   {dropdownOpen && !isSubmitting && (
@@ -194,7 +216,9 @@ export default function PaymentModal({
                           }}
                         >
                           <div className="item-name">{c.Dogovor_Name}</div>
-                          <div className="item-amount">{formatCurrency(c.DogovorSum)}</div>
+                          <div className="item-amount">
+                            {formatCurrency(c.DogovorSum)}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -204,72 +228,86 @@ export default function PaymentModal({
 
               {selectedContract && (
                 <div className="pay-available">
-                  Доступно: <strong className={getAvailable() <= 0 ? "text-red" : ""}>{formatCurrency(getAvailable())}</strong>
+                  Доступно:{" "}
+                  <strong className={getAvailable() <= 0 ? "text-red" : ""}>
+                    {formatCurrency(getAvailable())}
+                  </strong>
                 </div>
               )}
 
               {selectedContract && getAvailable() > 0 && (
                 <div className="quick-buttons centered">
-                  <button onClick={set50percent} disabled={isSubmitting}>50%</button>
-                  <button onClick={set100percent} disabled={isSubmitting}>100%</button>
+                  <button onClick={set50percent} disabled={isSubmitting}>
+                    50%
+                  </button>
+                  <button onClick={set100percent} disabled={isSubmitting}>
+                    100%
+                  </button>
                 </div>
               )}
 
               <label className="pay-label">
                 <span>Сума оплати:</span>
                 <input
-                    type="number"
-                    min="0.01" //
-                    step="1"
-                    disabled={isSubmitting || getAvailable() <= 0}
-                    value={paymentAmount}
-                    
-                    // 1. Блокуємо натискання мінуса, "e" та інших символів
-                    onKeyDown={(e) => {
-                      if (["-", "e", "E", "+"].includes(e.key)) {
-                        e.preventDefault();
-                      }
-                    }}
+                  type="number"
+                  min="0.01" //
+                  step="1"
+                  disabled={isSubmitting || getAvailable() <= 0}
+                  value={paymentAmount}
+                  // 1. Блокуємо натискання мінуса, "e" та інших символів
+                  onKeyDown={(e) => {
+                    if (["-", "e", "E", "+"].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  // 2. Обробляємо зміну (в тому числі вставку тексту)
+                  onChange={(e) => {
+                    let val = e.target.value;
 
-                    // 2. Обробляємо зміну (в тому числі вставку тексту)
-                    onChange={(e) => {
-                      let val = e.target.value;
-                      
-                      // Якщо користувач вставив щось некоректне або від'ємне
-                      if (Number(val) < 0) {
-                        val = ""; // Або можна Math.abs(val), але краще просто не пускати
-                      }
-                      
-                      handleAmountChange(val);
-                    }}
-                    className={`pay-input ${amountError ? "input-error" : ""}`}
-                  />
+                    // Якщо користувач вставив щось некоректне або від'ємне
+                    if (Number(val) < 0) {
+                      val = ""; // Або можна Math.abs(val), але краще просто не пускати
+                    }
+
+                    handleAmountChange(val);
+                  }}
+                  className={`pay-input ${amountError ? "input-error" : ""}`}
+                />
               </label>
 
               {amountError && <div className="pay-error">{amountError}</div>}
               {selectedContract && getAvailable() <= 0 && (
-                <div className="pay-error">На вибраному договорі недостатньо коштів</div>
+                <div className="pay-error">
+                  На вибраному договорі недостатньо коштів
+                </div>
               )}
             </>
           )}
         </div>
 
         <div className="pay-modal-footer">
-          <button 
-            className="pay-btn-cancel" 
-            onClick={onClose} 
+          <button
+            className="pay-btn-cancel"
+            onClick={onClose}
             disabled={isSubmitting}
-          > 
+          >
             <FaTimes size={16} color="#fff" /> Скасувати
           </button>
-          
+
           <button
             className="pay-btn-confirm"
-            disabled={loading || isSubmitting || !paymentAmount || Number(paymentAmount) <= 0 || !!amountError || !selectedContract}
+            disabled={
+              loading ||
+              isSubmitting ||
+              !paymentAmount ||
+              Number(paymentAmount) <= 0 ||
+              !!amountError ||
+              !selectedContract
+            }
             onClick={handleConfirm}
           >
             {isSubmitting ? (
-              <FaSpinner className="spinner-icon spinning" size={16} /> 
+              <FaSpinner className="spinner-icon spinning" size={16} />
             ) : (
               <FaCheck size={16} color="#fff" />
             )}

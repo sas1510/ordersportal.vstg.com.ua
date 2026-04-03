@@ -1,11 +1,10 @@
 import React from "react";
-import {formatDateHuman} from '../../utils/formatters'
-import {formatDateHumanShorter} from '../../utils/formatters'
-import {formatDate} from '../../utils/formatters'
-import './OrderDetailsDesktop.css';
+import { formatDateHumanShorter } from "../../utils/formatters";
+import "./OrderDetailsDesktop.css";
 
 export default function OrderDetailsDesktop({ order }) {
-  const isEmpty = (val) => val === undefined || val === null || String(val).trim() === "";
+  const isEmpty = (val) =>
+    val === undefined || val === null || String(val).trim() === "";
 
   // --- Оплата ---
   const paymentDue = () => {
@@ -32,7 +31,6 @@ export default function OrderDetailsDesktop({ order }) {
         return "text-danger";
     }
   };
-  
 
   // --- Дата ---
   const parseDate = (dateStr) => {
@@ -47,13 +45,15 @@ export default function OrderDetailsDesktop({ order }) {
     const today = new Date();
 
     // Червоний, якщо немає ні фактичної, ні планової
-    if (!planned && !actual) return { icon: "text-danger", bg: "background-warning-light" };
+    if (!planned && !actual)
+      return { icon: "text-danger", bg: "background-warning-light" };
 
     // Якщо є фактична дата → зелений
     if (actual) return { icon: "text-success", bg: "background-success-light" };
 
     // Якщо нема фактичної, але є планова дата
-    if (planned && planned < today) return { icon: "text-danger", bg: "background-warning-light" }; // прострочено
+    if (planned && planned < today)
+      return { icon: "text-danger", bg: "background-warning-light" }; // прострочено
     return { icon: "text-warning", bg: "background-warning-light" }; // ще в процесі
   };
 
@@ -61,10 +61,11 @@ export default function OrderDetailsDesktop({ order }) {
     <div className="order-item-details flex flex-col gap-3 w-full">
       <div className="timeline w-full">
         <ul className="timeline-list">
-
           {/* Замовлення */}
           <li>
-            <div className={`icon ${isEmpty(order.date) ? "text-danger" : "text-success"}`}>
+            <div
+              className={`icon ${isEmpty(order.date) ? "text-danger" : "text-success"}`}
+            >
               <span className="icon-news font-size-20"></span>
             </div>
             <div className="badge">
@@ -77,28 +78,35 @@ export default function OrderDetailsDesktop({ order }) {
 
           {/* Оплата */}
           <li>
-            <div className={`icon ${paymentDue() > 0 ? "text-danger" : "text-success"}`}>
+            <div
+              className={`icon ${paymentDue() > 0 ? "text-danger" : "text-success"}`}
+            >
               <span className="icon-coin-dollar font-size-22"></span>
             </div>
             <div className="badge">
               <div className="badge-title">Оплата</div>
-              <div className={`badge-content ${paymentDue() > 0 ? "background-danger-light" : "background-success-light"}`}>
-                {paymentDue() > 0 
-              ? `Борг: ${paymentDue().toLocaleString("uk-UA", { minimumFractionDigits: 2 })} ` 
-              : "Сплачено"}
-
+              <div
+                className={`badge-content ${paymentDue() > 0 ? "background-danger-light" : "background-success-light"}`}
+              >
+                {paymentDue() > 0
+                  ? `Борг: ${paymentDue().toLocaleString("uk-UA", { minimumFractionDigits: 2 })} `
+                  : "Сплачено"}
               </div>
             </div>
           </li>
 
           {/* Підтвердження */}
           <li>
-            <div className={`icon ${isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status)}`}>
+            <div
+              className={`icon ${isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status)}`}
+            >
               <span className="icon-clipboard font-size-20"></span>
             </div>
             <div className="badge">
               <div className="badge-title">Підтвердження</div>
-              <div className={`badge-content ${isEmpty(order.status) ? "background-danger-light" : "background-success-light"}`}>
+              <div
+                className={`badge-content ${isEmpty(order.status) ? "background-danger-light" : "background-success-light"}`}
+              >
                 {order.status || "Не підтверджено"}
               </div>
             </div>
@@ -106,31 +114,44 @@ export default function OrderDetailsDesktop({ order }) {
 
           {/* Виробництво */}
           <li>
-            {(() => {
-              // Виробництво: факт = factStartProduction, план = planProduction
-              const factDate = order.factStartProduction;
-              const planDate = order.planProduction;
+            {(() => {
+              // Виробництво: факт = factStartProduction, план = planProduction
+              const factDate = order.factStartProduction;
+              const planDate = order.planProduction;
               const factReady = order.factReady; // 🆕 Додаємо факт готовності
-              
-              const status = getDateStatus(planDate, factDate || factReady); // Використовуємо факт готовності для статусу, якщо немає факту старту
 
-              const displayDate = factDate 
-                ? formatDateHumanShorter(factDate) // ✅ Є факт початку
-                : factReady // 🆕 Якщо немає факту початку, але є факт готовності
-                  ? (
-                      <div className="plan-block executed-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-{/*                         <div className="plan-name executed-name">Виконано:</div> */}
-                        <div> {formatDateHumanShorter(factReady)}</div>
-                      </div>
-                    )
-                  : planDate 
-                    ? (
-                        <div className="plan-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div className="plan-name">Планово:</div>
-                          <div> {formatDateHumanShorter(planDate)}</div> {/* ВИПРАВЛЕНО: planDate замість order.planProduction */}
-                        </div>
-                      )
-                    : "Немає даних";
+              const status = getDateStatus(planDate, factDate || factReady); // Використовуємо факт готовності для статусу, якщо немає факту старту
+
+              const displayDate = factDate ? (
+                formatDateHumanShorter(factDate) // ✅ Є факт початку
+              ) : factReady ? ( // 🆕 Якщо немає факту початку, але є факт готовності
+                <div
+                  className="plan-block executed-block"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {/*                         <div className="plan-name executed-name">Виконано:</div> */}
+                  <div> {formatDateHumanShorter(factReady)}</div>
+                </div>
+              ) : planDate ? (
+                <div
+                  className="plan-block"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div className="plan-name">Планово:</div>
+                  <div> {formatDateHumanShorter(planDate)}</div>{" "}
+                  {/* ВИПРАВЛЕНО: planDate замість order.planProduction */}
+                </div>
+              ) : (
+                "Немає даних"
+              );
 
               return (
                 <>
@@ -147,8 +168,6 @@ export default function OrderDetailsDesktop({ order }) {
               );
             })()}
           </li>
-
-
 
           {/* Готовність */}
           <li>
@@ -173,7 +192,10 @@ export default function OrderDetailsDesktop({ order }) {
           {/* Доставка */}
           <li>
             {(() => {
-              const status = getDateStatus(order.planDelivery, order.realizationDate);
+              const status = getDateStatus(
+                order.planDelivery,
+                order.realizationDate,
+              );
               return (
                 <>
                   <div className={`icon ${status.icon}`}>
@@ -182,14 +204,14 @@ export default function OrderDetailsDesktop({ order }) {
                   <div className="badge">
                     <div className="badge-title">Доставка</div>
                     <div className={`badge-content ${status.bg}`}>
-                      {formatDateHumanShorter(order.realizationDate) || "Не доставлено"}
+                      {formatDateHumanShorter(order.realizationDate) ||
+                        "Не доставлено"}
                     </div>
                   </div>
                 </>
               );
             })()}
           </li>
-
         </ul>
       </div>
     </div>

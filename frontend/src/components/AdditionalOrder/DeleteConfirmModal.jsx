@@ -1,48 +1,59 @@
-import React, { useEffect } from 'react';
-import axiosInstance from '../../api/axios';
-import './DeleteConfirmModal.css';
-import { useNotification } from '../notification/Notifications.jsx';
-import { FaExclamationTriangle, FaTrash, FaTimes } from 'react-icons/fa';
+import React, { useEffect } from "react";
+import axiosInstance from "../../api/axios";
+import "./DeleteConfirmModal.css";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
+import { FaExclamationTriangle, FaTrash, FaTimes } from "react-icons/fa";
 
-const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType, onDeleted }) => {
+const DeleteConfirmModal = ({
+  isOpen,
+  onClose,
+  itemData,
+  itemType: propItemType,
+  onDeleted,
+}) => {
   const { addNotification } = useNotification();
   const itemName =
-    itemData.number || itemData.title || itemData.orderNumber || itemData.id || 'цей запис';
+    itemData.number ||
+    itemData.title ||
+    itemData.orderNumber ||
+    itemData.id ||
+    "цей запис";
 
   const mapType = {
-    order: 'замовлення',
-    calculation: 'прорахунок',
-    client: 'клієнта',
-    product: 'товар'
+    order: "замовлення",
+    calculation: "прорахунок",
+    client: "клієнта",
+    product: "товар",
   };
 
-  const itemType = mapType[propItemType] || mapType[itemData.type] || 'запис';
+  const itemType = mapType[propItemType] || mapType[itemData.type] || "запис";
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
   }, [isOpen]);
 
   const handleDelete = async () => {
     try {
-      let endpoint = '';
+      let endpoint = "";
 
       switch (propItemType || itemData.type) {
-        case 'calculation':
+        case "calculation":
           endpoint = `/calculations/${itemData.id}/delete/`;
           break;
-        case 'order':
+        case "order":
           endpoint = `/orders/${itemData.id}/delete/`;
           break;
-        case 'client':
+        case "client":
           endpoint = `/clients/${itemData.id}/delete/`;
           break;
-        case 'product':
+        case "product":
           endpoint = `/products/${itemData.id}/delete/`;
           break;
         default:
-          console.warn('Невідомий тип елемента для видалення:', itemData);
-          addNotification('Невідомий тип елемента ❌', 'error');
+          console.warn("Невідомий тип елемента для видалення:", itemData);
+          addNotification("Невідомий тип елемента ❌", "error");
           return;
       }
 
@@ -50,12 +61,16 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
 
       if (onDeleted) onDeleted(itemData.id);
 
-      addNotification(`${itemType} "${itemName}" успішно видалено ✅`, 'success'); // ✅ сповіщення про успіх
+      addNotification(
+        `${itemType} "${itemName}" успішно видалено ✅`,
+        "success",
+      ); // ✅ сповіщення про успіх
       onClose();
     } catch (error) {
-      console.error('Помилка при видаленні:', error);
-      const msg = error.response?.data?.error || `Не вдалося видалити ${itemType}`;
-      addNotification(msg, 'error'); // ✅ сповіщення про помилку
+      // console.error("Помилка при видаленні:", error);
+      const msg =
+        error.response?.data?.error || `Не вдалося видалити ${itemType}`;
+      addNotification(msg, "error"); // ✅ сповіщення про помилку
     }
   };
 
@@ -63,7 +78,10 @@ const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType,
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content-square" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-content-square"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-border-top" />
         <div className="modal-header">
           <div className="header-icon">

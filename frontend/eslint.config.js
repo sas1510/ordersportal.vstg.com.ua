@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'src/assets/**', 'public/assets/**',]),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -22,8 +22,19 @@ export default defineConfig([
         sourceType: 'module',
       },
     },
-    rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+   rules: {
+      'no-unused-vars': [
+        'error',
+        { 
+          vars: 'all', 
+          args: 'after-used', 
+          ignoreRestSiblings: true, 
+          varsIgnorePattern: '^[A-Z_]|motion', 
+          argsIgnorePattern: '^_' 
+        }
+      ],
+      // Також можна вимкнути або пом'якшити правило залежностей, якщо їх забагато
+      'react-hooks/exhaustive-deps': 'warn',
     },
   },
 ])

@@ -158,8 +158,8 @@ import logging
 import binascii
 import mimetypes
 import tempfile
-import subprocess
-import xml.etree.ElementTree as ET
+import subprocess # nosec B404
+from django.utils.crypto import get_random_string
 from io import BytesIO
 from urllib.parse import unquote, quote
 
@@ -747,19 +747,24 @@ def preview_complaint_file(request, claim_guid):
     tmp = tempfile.NamedTemporaryFile(delete=False)
     tmp.close()
 
+
+    safe_filename = os.path.basename(unquote(filename))
+
+    remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{safe_filename}'
+
     try:
-        subprocess.run(
-            [
-                "smbclient",
-                f"//{settings.SMB_SERVER}/{settings.SMB_SHARE}",
-                "-U", full_username,
-                "-c", f'get "{remote_path}" "{tmp.name}"'
-            ],
-            env={"PASSWD": settings.SMB_PASSWORD},
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        subprocess.run(  # nosec B603
+                [
+                    "/usr/bin/smbclient",
+                    f"//{settings.SMB_SERVER}/{settings.SMB_SHARE}",
+                    "-U", full_username,
+                    "-c", f'get "{remote_path}" "{tmp.name}"'
+                ],
+                env={"PASSWD": settings.SMB_PASSWORD},
+                check=True,
+                capture_output=True,
+            )
+        
 
         response = RangedFileResponse(
             request,

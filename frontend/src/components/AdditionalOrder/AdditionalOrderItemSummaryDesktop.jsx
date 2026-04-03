@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
 import { formatMoney } from "../../utils/formatMoney";
-import { formatDateHumanShorter } from "../../utils/formatters";
 import axiosInstance from "../../api/axios";
 
 // Модальні вікна
@@ -10,8 +9,9 @@ import AddReorderModal from "./AddReorderModal";
 import ConfirmModal from "../Orders/ConfirmModal";
 import PaymentModal from "../Orders/PaymentModal";
 import OrderFilesModal from "../Orders/OrderFilesModal"; // Переконайся, що шлях правильний
-import { useNotification } from "../notification/Notifications";
-import { useAuth } from '../../hooks/useAuth';
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 export default function AdditionalOrderItemSummaryDesktop({ order }) {
   // =========================== UI STATE ===========================
@@ -20,12 +20,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false); 
+  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const { addNotification } = useNotification();
 
-  const { user, role } = useAuth();
-  const isAdmin = role === "admin";
+  const { user } = useAuthGetRole();
+  // const isAdmin = role === "admin";
 
   const debtAmount = useMemo(() => {
     const paid = order.paid ?? 0;
@@ -38,13 +38,13 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
     const state = { confirm: false, pay: false, reorder: false, claim: false };
 
     const statusConfig = {
-      "Новий": { confirm: true, pay: true },
+      Новий: { confirm: true, pay: true },
       "Очікуємо підтвердження": { confirm: true, pay: true },
-      "Підтверджений": { pay: true, confirm: true, reorder: true },
+      Підтверджений: { pay: true, confirm: true, reorder: true },
       "Очікуємо оплату": { pay: true, reorder: true },
-      "Оплачено": { pay: true, reorder: true },
-      "Готовий": { pay: true, reorder: true },
-      "Доставлено": { pay: true, reorder: true, claim: true },
+      Оплачено: { pay: true, reorder: true },
+      Готовий: { pay: true, reorder: true },
+      Доставлено: { pay: true, reorder: true, claim: true },
     };
 
     if (statusConfig[status]) {
@@ -64,11 +64,15 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
       case "Новий":
       case "Очікуємо оплату":
       case "Очікуємо підтвердження":
-      case "Відмова": return "text-danger";
-      case "Підтверджений": return "text-info";
+      case "Відмова":
+        return "text-danger";
+      case "Підтверджений":
+        return "text-info";
       case "Готовий":
-      case "Відвантажений": return "text-success";
-      default: return "text-grey";
+      case "Відвантажений":
+        return "text-success";
+      default:
+        return "text-grey";
     }
   };
 
@@ -82,7 +86,9 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
 
   const handleConfirmOrder = async () => {
     try {
-      const response = await axiosInstance.post(`/additional-orders/${order.guid}/confirm/`);
+      const response = await axiosInstance.post(
+        `/additional-orders/${order.guid}/confirm/`,
+      );
       if (response.status === 200 || response.status === 204) {
         addNotification(`Замовлення ${order.number} підтверджено!`, "success");
         setIsConfirmModalOpen(false);
@@ -103,7 +109,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
       setIsPaymentOpen(false);
     } catch (error) {
       console.error(error);
-      addNotification("Помилка виконання оплати", 'error');
+      addNotification("Помилка виконання оплати", "error");
     }
   };
 
@@ -136,9 +142,9 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         </div>
 
         {/* ФАЙЛИ - ТЕПЕР ПРАЦЮЄ */}
-        <div 
-            className="summary-item flex w-10 items-center justify-center no-wrap cursor-pointer" 
-            onClick={openFilesModal}
+        <div
+          className="summary-item flex w-10 items-center justify-center no-wrap cursor-pointer"
+          onClick={openFilesModal}
         >
           <div className="row w-full h-full align-center bg-gray-100 p-1 rounded hover:bg-gray-200 transition-colors">
             <div className="icon-download font-size-18 text-red"></div>
@@ -150,8 +156,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         <div className="summary-item row w-12 no-wrap gap-0 pl-0">
           <span className="icon icon-coin-dollar text-success font-size-16 flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
-            <div className="text-info font-size-18">{formatMoney(order.amount)}</div>
-            <div className="text-grey font-size-12 border-t border-dashed">Сума замовлення</div>
+            <div className="text-info font-size-18">
+              {formatMoney(order.amount)}
+            </div>
+            <div className="text-grey font-size-12 border-t border-dashed">
+              Сума замовлення
+            </div>
           </div>
         </div>
 
@@ -159,8 +169,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         <div className="summary-item row w-12 no-wrap gap-0 pl-0">
           <span className="icon icon-coin-dollar text-danger font-size-16 flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
-            <div className="text-danger font-size-18">{formatMoney(debtAmount)}</div>
-            <div className="text-grey font-size-12 border-t border-dashed">Сума боргу</div>
+            <div className="text-danger font-size-18">
+              {formatMoney(debtAmount)}
+            </div>
+            <div className="text-grey font-size-12 border-t border-dashed">
+              Сума боргу
+            </div>
           </div>
         </div>
 
@@ -168,7 +182,9 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         <div className="summary-item w-[180px] row justify-start no-wrap">
           <div className="row gap-14 align-center">
             <span className="icon-info-with-circle font-size-20 text-info"></span>
-            <div className={`font-size-14 ${getStatusClass(order.status)}`}>{order.status}</div>
+            <div className={`font-size-14 ${getStatusClass(order.status)}`}>
+              {order.status}
+            </div>
           </div>
         </div>
 
@@ -194,7 +210,6 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
             </>
           )}
 
-
           <button
             className={`column align-center button button-last background-danger ${!buttonState.claim ? "disabled opacity-50 cursor-not-allowed" : ""}`}
             disabled={!buttonState.claim}
@@ -215,7 +230,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
       )}
 
       {/* ================= МОДАЛКИ ================= */}
-      
+
       {isFilesModalOpen && (
         <OrderFilesModal
           orderGuid={order.guid}

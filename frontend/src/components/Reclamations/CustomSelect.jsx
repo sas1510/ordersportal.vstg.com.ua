@@ -36,7 +36,9 @@ export default function CustomSelect({
         className="select-control"
         onClick={() => !disabled && setOpen((p) => !p)}
       >
-        <span className={`select-value ${!selectedOption ? "placeholder" : ""}`}>
+        <span
+          className={`select-value ${!selectedOption ? "placeholder" : ""}`}
+        >
           {selectedOption ? selectedOption.Name : placeholder}
         </span>
         <FaChevronDown
@@ -67,4 +69,3 @@ export default function CustomSelect({
     </div>
   );
 }
- 

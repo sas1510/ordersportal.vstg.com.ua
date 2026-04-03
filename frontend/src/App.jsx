@@ -6,19 +6,19 @@ import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import DealerLayout from "./components/layout/DealerLayout";
 // В App.js
-import './styles/mobile-responsive.css';
+import "./styles/mobile-responsive.css";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import InviteRegisterForm from "./pages/InviteRegisterForm";
-import FilePreviewErrorPage from './pages/FilePreviewErrorPage'
+import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes } from "./routesConfig";
-import { useCacheBuster } from './hooks/useCacheBuster';
+import { useCacheBuster } from "./hooks/useCacheBuster";
 
 const routeTitles = {
   "/login": "Вхід — Портал замовлень",
-  "home": "Портал замовлень",
+  home: "Портал замовлень",
   "/dashboard": "Головна",
   "/users": "Користувачі",
   "/files": "Файли",
@@ -52,10 +52,6 @@ const routeTitles = {
   "/finance/statistics": "Аналітика",
   "/finance/cash-flow": "Рух коштів",
   "/edit-addresses": "Редагування адрес",
-
-
-
-
 };
 
 // function AppRoutes() {
@@ -99,8 +95,6 @@ const routeTitles = {
 //     routes = managerRoutes;
 //   }
 
-
-
 //   return (
 //     <Routes>
 //       {/* Публічні маршрути */}
@@ -122,7 +116,7 @@ const routeTitles = {
 //         </Route>
 //       ) : (
 //         /* ЯКЩО РОЛІ НЕМАЄ:
-//           Якщо ми НЕ на публічному роуті - кидаємо на логін, 
+//           Якщо ми НЕ на публічному роуті - кидаємо на логін,
 //           але ЗАПАМ'ЯТОВУЄМО, де був юзер (state: { from: location })
 //         */
 //         !isPublicRoute && <Route path="*" element={<Navigate to="/login" state={{ from: location }} replace />} />
@@ -134,8 +128,6 @@ const routeTitles = {
 // export default AppRoutes;
 
 function AppRoutes() {
-
-
   useCacheBuster();
   const { role, isLoading } = useContext(RoleContext);
   const location = useLocation();
@@ -199,11 +191,13 @@ function AppRoutes() {
         </Route>
       ) : (
         // Якщо ролі немає і це не публічний шлях (перевірка вище)
-        <Route path="*" element={<Navigate to="/login" state={{ from: location }} replace />} />
+        <Route
+          path="*"
+          element={<Navigate to="/login" state={{ from: location }} replace />}
+        />
       )}
     </Routes>
   );
 }
-
 
 export default AppRoutes;

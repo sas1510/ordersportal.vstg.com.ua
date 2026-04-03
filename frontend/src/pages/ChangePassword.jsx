@@ -17,7 +17,9 @@ const ChangePassword = () => {
     if (user) {
       try {
         const userObj = JSON.parse(user);
-        setUsername(userObj.username || userObj.userName || userObj.first_last_name || "");
+        setUsername(
+          userObj.username || userObj.userName || userObj.first_last_name || "",
+        );
       } catch {
         setUsername("");
       }
@@ -65,8 +67,10 @@ const ChangePassword = () => {
       </h2>
       {username && (
         <p className="text-center text-gray-600 mb-6 select-none">
-          Управління обліковим записом.<br />
-          Ви зайшли як користувач: <span className="font-semibold">{username}</span>
+          Управління обліковим записом.
+          <br />
+          Ви зайшли як користувач:{" "}
+          <span className="font-semibold">{username}</span>
         </p>
       )}
       <form onSubmit={handleSubmit} className="space-y-6">

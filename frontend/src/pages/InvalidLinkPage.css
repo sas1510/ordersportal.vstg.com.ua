@@ -26,13 +26,13 @@
 
 /* Якщо ваш портал додає клас .dark-mode до body вручну */
 body.dark-theme .preview-error-page {
-    --bg-color: #1a1a1a;
-    --card-bg: #2d2d2d;
-    --text-main: #e0e0e0;
-    --text-muted: #a0a0a0;
-    --accent-color: #5dade2;
-    --accent-hover: #3498db;
-    --border-color: #404040;
+  --bg-color: #1a1a1a;
+  --card-bg: #2d2d2d;
+  --text-main: #e0e0e0;
+  --text-muted: #a0a0a0;
+  --accent-color: #5dade2;
+  --accent-hover: #3498db;
+  --border-color: #404040;
 }
 
 .preview-error-page {
@@ -41,7 +41,7 @@ body.dark-theme .preview-error-page {
   justify-content: center;
   min-height: 100vh;
   background-color: var(--bg-color);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   transition: background-color 0.3s ease;
   padding: 20px;
 }
@@ -78,13 +78,13 @@ body.dark-theme .preview-error-page {
 }
 
 .filename-highlight {
-  display: block;                 /* ⬅ перенос на новий рядок */
+  display: block; /* ⬅ перенос на новий рядок */
   margin: 8px 0;
   padding: 8px 10px;
 
   max-width: 100%;
-  word-break: break-all;          /* ⬅ розбиває довгі хеші */
-  overflow-wrap: anywhere;        /* ⬅ сучасний стандарт */
+  word-break: break-all; /* ⬅ розбиває довгі хеші */
+  overflow-wrap: anywhere; /* ⬅ сучасний стандарт */
   white-space: normal;
 
   background: rgba(52, 152, 219, 0.08);
@@ -94,7 +94,6 @@ body.dark-theme .preview-error-page {
   font-weight: 600;
   font-size: 14px;
 }
-
 
 .preview-error-actions {
   display: flex;
@@ -108,7 +107,9 @@ body.dark-theme .preview-error-page {
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 600;
-  transition: background-color 0.2s, transform 0.1s;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
 }
 
 .btn-portal:hover {

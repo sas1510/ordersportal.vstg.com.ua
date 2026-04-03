@@ -1,9 +1,9 @@
 import { useState } from "react";
 import axiosInstance from "../api/axios";
-import { useNotification } from "../components/notification/Notifications";
+import { useNotification } from "../hooks/useNotification";
 import { KeyRound, X, Save, Eraser, Loader2 } from "lucide-react";
 
-import "../pages/ChangeUserPasswordModal.css"; 
+import "../pages/ChangeUserPasswordModal.css";
 
 export default function ChangeUserPasswordModal({ user, onClose }) {
   const [password, setPassword] = useState("");
@@ -20,10 +20,14 @@ export default function ChangeUserPasswordModal({ user, onClose }) {
         password,
       });
 
-      addNotification(`Пароль для ${user.username} успішно оновлено!`, "success");
+      addNotification(
+        `Пароль для ${user.username} успішно оновлено!`,
+        "success",
+      );
 
       setTimeout(onClose, 700);
     } catch (e) {
+      console.error("Error changing password:", e);
       addNotification("Помилка зміни паролю", "error");
     }
 

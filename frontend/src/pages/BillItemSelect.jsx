@@ -8,13 +8,11 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
   const controlRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  const selectedItem = items.find(
-    (i) => i.CodeInDB === value
-  );
+  const selectedItem = items.find((i) => i.CodeInDB === value);
 
   const filteredItems = useMemo(() => {
     return items.filter((i) =>
-      i.NameBills.toLowerCase().includes(search.toLowerCase())
+      i.NameBills.toLowerCase().includes(search.toLowerCase()),
     );
   }, [items, search]);
 
@@ -80,9 +78,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
 
             <div className="bill-select__list">
               {filteredItems.length === 0 && (
-                <div className="bill-select__empty">
-                  Нічого не знайдено
-                </div>
+                <div className="bill-select__empty">Нічого не знайдено</div>
               )}
 
               {filteredItems.map((i) => {
@@ -107,7 +103,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
               })}
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </>
   );

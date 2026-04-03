@@ -2,11 +2,10 @@ from django.contrib import admin
 import binascii  # Для конвертації BinaryField у читабельний вигляд
 
 from .models import (
-    TransactionType, FileType, TransactionFile, 
-    Message, UserDashboardConfig, Notification, ChatMessage
+    TransactionType, FileType, TransactionFile, ChatMessage
 )
 
-# Функція-помічник для відображення BinaryField (GUID 1C)
+
 def get_hex_from_binary(binary_data):
     if binary_data:
         try:
@@ -50,11 +49,7 @@ class TransactionFileAdmin(admin.ModelAdmin):
 #         return get_hex_from_binary(obj.writer_id)
 #     get_author_id.short_description = "Writer ID (HEX)"
 
-@admin.register(UserDashboardConfig)
-class UserDashboardConfigAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'layout_name', 'updated_at')
-    list_filter = ('layout_name',)
-    search_fields = ('user__username', 'layout_name')
+
 
 # @admin.register(Notification)
 # class NotificationAdmin(admin.ModelAdmin):

@@ -52,17 +52,23 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Додає 'role', 'username', 'full_name' до JWT токену.
-    """
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Додаємо кастомні поля з нової моделі
         token['role'] = user.role
         token['username'] = user.username
         token['full_name'] = user.full_name
         return token
+
+    def validate(self, attrs):
+        # super().validate виконує автентифікацію та додає self.user
+        data = super().validate(attrs)
+        
+        # Тепер об'єкт user доступний через self.user
+        # Ви також можете додати додаткові дані у відповідь (data) тут, 
+        # щоб не роздувати View
+        return data
+
 
 
 class Guid1CBinaryField(serializers.Field):

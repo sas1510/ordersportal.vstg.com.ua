@@ -1,11 +1,16 @@
 // ================= OrderDetailsMobile.jsx (Optimized with useCallback/useMemo) =================
 import React, { useCallback, useMemo } from "react";
-import { formatDateHuman, formatDateHumanShorter } from '../../utils/formatters';
+import {
+  formatDateHuman,
+  formatDateHumanShorter,
+} from "../../utils/formatters";
 
 export default function OrderDetailsMobile({ order }) {
-
   // 1. Мемоїзація статичної функції
-  const isEmpty = useCallback((val) => val === undefined || val === null || String(val).trim() === "", []);
+  const isEmpty = useCallback(
+    (val) => val === undefined || val === null || String(val).trim() === "",
+    [],
+  );
 
   // 2. Мемоїзація обчислення оплати
   const paymentDue = useMemo(() => {
@@ -43,41 +48,50 @@ export default function OrderDetailsMobile({ order }) {
   }, []);
 
   // 5. Мемоїзація функції статусу дати
-  const getDateStatus = useCallback((plannedStr, actualStr) => {
-    const planned = parseDate(plannedStr);
-    const actual = parseDate(actualStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const getDateStatus = useCallback(
+    (plannedStr, actualStr) => {
+      const planned = parseDate(plannedStr);
+      const actual = parseDate(actualStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    if (!planned && !actual) return { icon: "text-danger", bg: "background-warning-light" };
-    if (actual) return { icon: "text-success", bg: "background-success-light" };
-    // Порівнюємо лише дати
-    if (planned && planned < today) return { icon: "text-danger", bg: "background-warning-light" };
-    return { icon: "text-warning", bg: "background-warning-light" };
-  }, [parseDate]);
-
+      if (!planned && !actual)
+        return { icon: "text-danger", bg: "background-warning-light" };
+      if (actual)
+        return { icon: "text-success", bg: "background-success-light" };
+      // Порівнюємо лише дати
+      if (planned && planned < today)
+        return { icon: "text-danger", bg: "background-warning-light" };
+      return { icon: "text-warning", bg: "background-warning-light" };
+    },
+    [parseDate],
+  );
 
   // 6. Мемоїзація масиву етапів
   const stages = useMemo(() => {
     const isPaymentDue = paymentDue > 0;
     const isOrderDateEmpty = isEmpty(order.date);
     const isOrderStatusEmpty = isEmpty(order.status);
-    
+
     // Функція, яка повертає вміст для етапу виробництва (тепер вона мемоїзована через useMemo)
     const getProductionContent = () => {
-        if (order.factProductionMax) {
-          return formatDateHuman(order.factProductionMax);
-        }
-        if (order.planProductionMax) {
-          return (
-            <div className="flex flex-col gap-1">
-              <div className="text-grey font-size-11">Планово:</div>
-              <div className="font-size-12">з {formatDateHumanShorter(order.planProductionMin)}</div>
-              <div className="font-size-12">по {formatDateHumanShorter(order.planProductionMax)}</div>
+      if (order.factProductionMax) {
+        return formatDateHuman(order.factProductionMax);
+      }
+      if (order.planProductionMax) {
+        return (
+          <div className="flex flex-col gap-1">
+            <div className="text-grey font-size-11">Планово:</div>
+            <div className="font-size-12">
+              з {formatDateHumanShorter(order.planProductionMin)}
             </div>
-          );
-        }
-        return "Немає даних";
+            <div className="font-size-12">
+              по {formatDateHumanShorter(order.planProductionMax)}
+            </div>
+          </div>
+        );
+      }
+      return "Немає даних";
     };
 
     return [
@@ -86,34 +100,47 @@ export default function OrderDetailsMobile({ order }) {
         title: "Замовлення",
         icon: "icon-news",
         status: isOrderDateEmpty ? "text-danger" : "text-success",
-        bg: isOrderDateEmpty ? "background-danger-light" : "background-success-light",
+        bg: isOrderDateEmpty
+          ? "background-danger-light"
+          : "background-success-light",
         content: order.date || "Немає дати",
-        getContent: () => formatDateHuman(order.date) || "Немає дати"
+        getContent: () => formatDateHuman(order.date) || "Немає дати",
       },
       {
         id: "payment",
         title: "Оплата",
         icon: "icon-coin-dollar",
         status: isPaymentDue ? "text-danger" : "text-success",
-        bg: isPaymentDue ? "background-danger-light" : "background-success-light",
-        content: isPaymentDue ? `Борг: ${paymentDue.toLocaleString("uk-UA", { minimumFractionDigits: 2 })}` : "Сплачено",
-        getContent: () => isPaymentDue ? `Борг: ${paymentDue.toLocaleString("uk-UA", { minimumFractionDigits: 2 })}` : "Сплачено"
+        bg: isPaymentDue
+          ? "background-danger-light"
+          : "background-success-light",
+        content: isPaymentDue
+          ? `Борг: ${paymentDue.toLocaleString("uk-UA", { minimumFractionDigits: 2 })}`
+          : "Сплачено",
+        getContent: () =>
+          isPaymentDue
+            ? `Борг: ${paymentDue.toLocaleString("uk-UA", { minimumFractionDigits: 2 })}`
+            : "Сплачено",
       },
       {
         id: "confirmation",
         title: "Підтвердження",
         icon: "icon-clipboard",
-        status: isOrderStatusEmpty ? "text-danger" : getStatusStyle(order.status),
-        bg: isOrderStatusEmpty ? "background-danger-light" : "background-success-light",
+        status: isOrderStatusEmpty
+          ? "text-danger"
+          : getStatusStyle(order.status),
+        bg: isOrderStatusEmpty
+          ? "background-danger-light"
+          : "background-success-light",
         content: order.status || "Не підтверджено",
-        getContent: () => order.status || "Не підтверджено"
+        getContent: () => order.status || "Не підтверджено",
       },
       {
         id: "production",
         title: "Виробництво",
         icon: "icon-cogs",
         status: getDateStatus(order.planProductionMax, order.factProductionMax),
-        getContent: getProductionContent // Викликаємо обчислену функцію
+        getContent: getProductionContent, // Викликаємо обчислену функцію
       },
       {
         id: "ready",
@@ -121,7 +148,7 @@ export default function OrderDetailsMobile({ order }) {
         icon: "icon-layers2",
         status: getDateStatus(order.planReadyMax, order.factReadyMax),
         content: formatDateHuman(order.factReadyMax) || "Не готовий",
-        getContent: () => formatDateHuman(order.factReadyMax) || "Не готовий"
+        getContent: () => formatDateHuman(order.factReadyMax) || "Не готовий",
       },
       {
         id: "delivery",
@@ -129,21 +156,20 @@ export default function OrderDetailsMobile({ order }) {
         icon: "icon-shipping",
         status: getDateStatus(order.planDelivery, order.realizationDate),
         content: formatDateHuman(order.realizationDate) || "Не доставлено",
-        getContent: () => formatDateHuman(order.realizationDate) || "Не доставлено"
-      }
+        getContent: () =>
+          formatDateHuman(order.realizationDate) || "Не доставлено",
+      },
     ];
   }, [order, paymentDue, isEmpty, getStatusStyle, getDateStatus]);
 
-
   return (
     <div className="order-item-details flex flex-col gap-3 w-full">
-
       {/* ============ MOBILE VERSION - Cards ============ */}
       <div className="md:hidden flex flex-col gap-3 w-full">
         {stages.map((stage, index) => {
           // Статус тепер є об'єктом {icon, bg} для етапів дати або просто рядком для інших
           const statusIcon = stage.status?.icon || stage.status;
-          
+
           const isCompleted = statusIcon === "text-success";
           const isWarning = statusIcon === "text-warning";
           const isDanger = statusIcon === "text-danger";
@@ -158,21 +184,33 @@ export default function OrderDetailsMobile({ order }) {
               )}
 
               {/* Stage card */}
-              <div className={`relative z-10 flex items-start gap-3 p-3 rounded-lg border ${
-                isCompleted ? 'bg-green-50 border-green-200' :
-                isDanger ? 'bg-red-50 border-red-200' :
-                isWarning ? 'bg-yellow-50 border-yellow-200' :
-                'bg-gray-50 border-gray-200'
-              }`}>
+              <div
+                className={`relative z-10 flex items-start gap-3 p-3 rounded-lg border ${
+                  isCompleted
+                    ? "bg-green-50 border-green-200"
+                    : isDanger
+                      ? "bg-red-50 border-red-200"
+                      : isWarning
+                        ? "bg-yellow-50 border-yellow-200"
+                        : "bg-gray-50 border-gray-200"
+                }`}
+              >
                 {/* Icon */}
-                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                  isCompleted ? 'bg-green-100' :
-                  isDanger ? 'bg-red-100' :
-                  isWarning ? 'bg-yellow-100' :
-                  'bg-gray-100'
-                }`}>
+                <div
+                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                    isCompleted
+                      ? "bg-green-100"
+                      : isDanger
+                        ? "bg-red-100"
+                        : isWarning
+                          ? "bg-yellow-100"
+                          : "bg-gray-100"
+                  }`}
+                >
                   {/* Використовуємо statusIcon для кольору */}
-                  <span className={`${stage.icon} font-size-18 ${statusIcon}`}></span>
+                  <span
+                    className={`${stage.icon} font-size-18 ${statusIcon}`}
+                  ></span>
                 </div>
 
                 {/* Content */}
@@ -182,7 +220,7 @@ export default function OrderDetailsMobile({ order }) {
                   </div>
                   <div className="font-size-12 text-grey">
                     {/* Викликаємо мемоїзований вміст */}
-                    {stage.getContent()} 
+                    {stage.getContent()}
                   </div>
                 </div>
 

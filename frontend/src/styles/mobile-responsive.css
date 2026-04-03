@@ -16,8 +16,8 @@
   }
 
   /* Touch targets мінімум 44x44px (Apple HIG) */
-  button, 
-  a, 
+  button,
+  a,
   .clickable,
   .btn-comments {
     min-height: 32px;
@@ -88,7 +88,7 @@
   }
 
   .mobile-buttons-scroll::after {
-    content: '';
+    content: "";
     position: absolute;
     right: 0;
     top: 0;
@@ -97,7 +97,6 @@
     /* background: linear-gradient(to right, transparent, white); */
     pointer-events: none;
   }
-  
 }
 
 /* ============================================
@@ -199,82 +198,200 @@
    ============================================ */
 
 /* Flexbox utilities */
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.flex-shrink-0 { flex-shrink: 0; }
-.flex-1 { flex: 1; }
-.min-w-0 { min-width: 0; }
-.items-center { align-items: center; }
-.items-start { align-items: flex-start; }
-.justify-center { justify-content: center; }
-.justify-between { justify-content: space-between; }
+.flex {
+  display: flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+.flex-1 {
+  flex: 1;
+}
+.min-w-0 {
+  min-width: 0;
+}
+.items-center {
+  align-items: center;
+}
+.items-start {
+  align-items: flex-start;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-between {
+  justify-content: space-between;
+}
 
 /* Gap utilities */
-.gap-1 { gap: 4px; }
-.gap-2 { gap: 8px; }
-.gap-3 { gap: 12px; }
-.gap-4 { gap: 16px; }
+.gap-1 {
+  gap: 4px;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 12px;
+}
+.gap-4 {
+  gap: 16px;
+}
 
 /* Padding utilities */
-.p-2 { padding: 8px; }
-.p-3 { padding: 12px; }
-.p-4 { padding: 16px; }
-.p-8 { padding: 32px; }
-.px-2 { padding-left: 8px; padding-right: 8px; }
-.px-4 { padding-left: 16px; padding-right: 16px; }
-.py-1 { padding-top: 4px; padding-bottom: 4px; }
-.py-2 { padding-top: 8px; padding-bottom: 8px; }
-.py-3 { padding-top: 12px; padding-bottom: 12px; }
-.pb-2 { padding-bottom: 8px; }
-.pt-2 { padding-top: 8px; }
+.p-2 {
+  padding: 8px;
+}
+.p-3 {
+  padding: 12px;
+}
+.p-4 {
+  padding: 16px;
+}
+.p-8 {
+  padding: 32px;
+}
+.px-2 {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.px-4 {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.py-1 {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.py-2 {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.py-3 {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.pb-2 {
+  padding-bottom: 8px;
+}
+.pt-2 {
+  padding-top: 8px;
+}
 
 /* Margin utilities */
-.mb-1 { margin-bottom: 4px; }
-.mb-2 { margin-bottom: 8px; }
-.mb-3 { margin-bottom: 12px; }
-.mt-2 { margin-top: 8px; }
-.mt-3 { margin-top: 12px; }
-.-mx-4 { margin-left: -16px; margin-right: -16px; }
+.mb-1 {
+  margin-bottom: 4px;
+}
+.mb-2 {
+  margin-bottom: 8px;
+}
+.mb-3 {
+  margin-bottom: 12px;
+}
+.mt-2 {
+  margin-top: 8px;
+}
+.mt-3 {
+  margin-top: 12px;
+}
+.-mx-4 {
+  margin-left: -16px;
+  margin-right: -16px;
+}
 
 /* Border utilities */
-.border { border: 1px solid; }
+.border {
+  border: 1px solid;
+}
 /* .border-t { border-top: 1px solid; }
 .border-b { border-bottom: 1px solid; } */
-.border-gray-200 { border-color: #e5e7eb; }
-.border-green-200 { border-color: #bbf7d0; }
-.border-red-200 { border-color: #fecaca; }
-.border-yellow-200 { border-color: #fef08a; }
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+.border-green-200 {
+  border-color: #bbf7d0;
+}
+.border-red-200 {
+  border-color: #fecaca;
+}
+.border-yellow-200 {
+  border-color: #fef08a;
+}
 
 /* Border radius */
-.rounded { border-radius: 4px; }
-.rounded-lg { border-radius: 8px; }
-.rounded-full { border-radius: 9999px; }
+.rounded {
+  border-radius: 4px;
+}
+.rounded-lg {
+  border-radius: 8px;
+}
+.rounded-full {
+  border-radius: 9999px;
+}
 
 /* Background colors */
-.bg-white { background-color: #ffffff; }
-.bg-gray-50 { background-color: #f9fafb; }
-.bg-gray-100 { background-color: #f3f4f6; }
-.bg-blue-50 { background-color: #eff6ff; }
-.bg-green-50 { background-color: #f0fdf4; }
-.bg-red-50 { background-color: #fef2f2; }
-.bg-yellow-50 { background-color: #fefce8; }
+.bg-white {
+  background-color: #ffffff;
+}
+.bg-gray-50 {
+  background-color: #f9fafb;
+}
+.bg-gray-100 {
+  background-color: #f3f4f6;
+}
+.bg-blue-50 {
+  background-color: #eff6ff;
+}
+.bg-green-50 {
+  background-color: #f0fdf4;
+}
+.bg-red-50 {
+  background-color: #fef2f2;
+}
+.bg-yellow-50 {
+  background-color: #fefce8;
+}
 
 /* Text utilities */
-.text-center { text-align: center; }
-.text-dark { color: #1f2937; }
-.font-weight-medium { font-weight: 500; }
-.font-weight-bold { font-weight: 700; }
-.underline { text-decoration: underline; }
-.uppercase { text-transform: uppercase; }
-.whitespace-nowrap { white-space: nowrap; }
+.text-center {
+  text-align: center;
+}
+.text-dark {
+  color: #1f2937;
+}
+.font-weight-medium {
+  font-weight: 500;
+}
+.font-weight-bold {
+  font-weight: 700;
+}
+.underline {
+  text-decoration: underline;
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.whitespace-nowrap {
+  white-space: nowrap;
+}
 
 /* Size utilities */
-.w-full { width: 100%; }
+.w-full {
+  width: 100%;
+}
 
 /* Shadow */
-.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
 
 /* ============================================
    ANIMATIONS
@@ -291,13 +408,22 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @media (max-width: 768px) {
@@ -423,7 +549,7 @@
   }
 
   .touch-target::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -8px;
   }
@@ -464,115 +590,119 @@
   }
 }
 
-
 /*
 |--------------------------------------------------------------------------
 | 1. СТИЛІ ДЛЯ РУЧНОГО ПЕРЕМИКАННЯ (body.dark-theme)
 |--------------------------------------------------------------------------
 */
 body.dark-theme {
-    /* Основний фон та колір тексту */
-    background-color: #27282a; /* Slate 900 - глибокий темний */
-    color: #e2e8f0; /* Slate 200 - м'який світлий текст */
+  /* Основний фон та колір тексту */
+  background-color: #27282a; /* Slate 900 - глибокий темний */
+  color: #e2e8f0; /* Slate 200 - м'який світлий текст */
 }
 
 body.dark-theme .text-dark {
-    color: #f1f5f9 !important; /* Slate 100 */
+  color: #f1f5f9 !important; /* Slate 100 */
 }
 
 body.dark-theme .text-grey {
-    color: #d3d5d6 !important; /* Slate 100 */
+  color: #d3d5d6 !important; /* Slate 100 */
 }
 
 /* Ваші спеціальні стилі */
 body.dark-theme .profile-item-column .divider {
-    border-bottom: 1px dashed #475569 !important; /* Slate 600 */
+  border-bottom: 1px dashed #475569 !important; /* Slate 600 */
 }
 
-body.dark-theme .order-item-summary .summary-item .column > div:first-child.border-b {
-    border-color: #475569 !important; /* Slate 600 */
+body.dark-theme
+  .order-item-summary
+  .summary-item
+  .column
+  > div:first-child.border-b {
+  border-color: #475569 !important; /* Slate 600 */
 }
 
 /* Фони карт та контейнерів */
 body.dark-theme .calc-item,
 body.dark-theme .order-item,
 body.dark-theme .bg-white {
-    background-color: #35373a; /* Slate 800 - карти */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    border: 1px dashed #686767; /* Slate 700 - тонка межа */
+  background-color: #35373a; /* Slate 800 - карти */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px dashed #686767; /* Slate 700 - тонка межа */
 }
 
 /* Зміна світлих фонових класів */
-body.dark-theme .bg-gray-50 { background-color: #494848; } /* Slate 800 */
-body.dark-theme .bg-gray-100 { background-color: #334155; } /* Slate 700 */
+body.dark-theme .bg-gray-50 {
+  background-color: #494848;
+} /* Slate 800 */
+body.dark-theme .bg-gray-100 {
+  background-color: #334155;
+} /* Slate 700 */
 
 /* Кольори для статусів/пігулок */
-body.dark-theme .bg-blue-50 { 
-    color: #1e3a8a; /* Blue 900 */
-    background-color: rgba(14, 83, 168, 0.467); /* Blue 300 */
-    border: 1px dashed #2563eb; /* Blue 600 */
+body.dark-theme .bg-blue-50 {
+  color: #1e3a8a; /* Blue 900 */
+  background-color: rgba(14, 83, 168, 0.467); /* Blue 300 */
+  border: 1px dashed #2563eb; /* Blue 600 */
 }
 
-body.dark-theme .bg-purple-50 { 
-    color: #441e8a; /* Blue 900 */
-    background-color: rgba(86, 14, 168, 0.467); /* Blue 300 */
-    border: 1px dashed #6a25eb; /* Blue 600 */
+body.dark-theme .bg-purple-50 {
+  color: #441e8a; /* Blue 900 */
+  background-color: rgba(86, 14, 168, 0.467); /* Blue 300 */
+  border: 1px dashed #6a25eb; /* Blue 600 */
 }
 
-
-
-body.dark-theme .bg-green-50 { 
-    background-color: #2f4d3b; /* Green 900 */
-    color: #e2f6e9 !important; /* Green 300 */
-    border: 1px dashed #16a34a; /* Green 600 */
+body.dark-theme .bg-green-50 {
+  background-color: #2f4d3b; /* Green 900 */
+  color: #e2f6e9 !important; /* Green 300 */
+  border: 1px dashed #16a34a; /* Green 600 */
 }
-body.dark-theme .bg-red-50 { 
-    background-color: #582e2e; /* Red 900 */
-    color: #fca5a5; /* Red 300 */
-    border: 1px dashed #dc2626; /* Red 600 */
+body.dark-theme .bg-red-50 {
+  background-color: #582e2e; /* Red 900 */
+  color: #fca5a5; /* Red 300 */
+  border: 1px dashed #dc2626; /* Red 600 */
 }
-body.dark-theme .bg-yellow-50 { 
-    background-color: #713f12; /* Amber 900 */
-    color: #fcd34d; /* Amber 300 */
-    border: 1px dashed #d97706; /* Amber 600 */
+body.dark-theme .bg-yellow-50 {
+  background-color: #713f12; /* Amber 900 */
+  color: #fcd34d; /* Amber 300 */
+  border: 1px dashed #d97706; /* Amber 600 */
 }
 
 /* Межі та роздільники */
 body.dark-theme .border-gray-200,
 body.dark-theme .border {
-    border-color: #55585c  !important; /* Slate 700 */
+  border-color: #55585c !important; /* Slate 700 */
 }
 
 /* Таймлайн */
 body.dark-theme .timeline-connector {
-    background: #475569 !important; /* Slate 600 */
+  background: #475569 !important; /* Slate 600 */
 }
-
-
 
 /* Модальні вікна (Modals) */
 body.dark-theme .modal-content,
 body.dark-theme .bottom-sheet,
 body.dark-theme .modal-header {
-    background: #484848; /* Slate 800 */
-    border: 1px dashed #3c3c3c; /* Slate 700 */
+  background: #484848; /* Slate 800 */
+  border: 1px dashed #3c3c3c; /* Slate 700 */
 }
 
 body.dark-theme .modal-header {
-    border-bottom-color: #303030; /* Slate 700 */
+  border-bottom-color: #303030; /* Slate 700 */
 }
 
 body.dark-theme .bottom-sheet-handle {
-    background: #475569; /* Slate 600 */
+  background: #475569; /* Slate 600 */
 }
 
 /* Тіні */
 body.dark-theme .calc-item,
 body.dark-theme .order-item {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-:root { /* Light Theme (Default) */
+:root {
+  /* Light Theme (Default) */
   --color-bg-primary: #ffffff;
   --color-bg-subtle: #f9f9f9;
   --color-text-primary: #404040;
@@ -581,7 +711,8 @@ body.dark-theme .order-item {
   --color-border-subtle: #ccc;
 }
 
-body.dark-theme { /* Dark Theme */
+body.dark-theme {
+  /* Dark Theme */
   --color-bg-primary: #282c34;
   --color-bg-subtle: #333740;
   --color-text-primary: #e0e0e0;

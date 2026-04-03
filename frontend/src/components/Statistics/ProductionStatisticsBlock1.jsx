@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axios";
 import { widgetRegistry } from "../../widgets/widgetRegistry";
 import "./ProductionStatisticsBlock.css";
@@ -7,7 +7,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
   const isAdmin = localStorage.getItem("role") === "admin";
 
   const [data, setData] = useState(null);
-  const [dealerGuid, setDealerGuid] = useState("");
+  const [dealerGuid, _setDealerGuid] = useState("");
   const [loading, setLoading] = useState(true);
 
   // 💎 масив активних віджетів
@@ -18,7 +18,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
     "systems",
     "heatmap",
     "furniture",
-    "categories"
+    "categories",
   ]);
 
   useEffect(() => {
@@ -32,14 +32,13 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
 
         const [resFull, resDealer] = await Promise.all([
           axiosInstance.get("/full-statistics/", { params }),
-          axiosInstance.get("/order-statistics/", { params })
+          axiosInstance.get("/order-statistics/", { params }),
         ]);
 
         setData({
           full: resFull.data,
-          dealer: resDealer.data
+          dealer: resDealer.data,
         });
-
       } catch (err) {
         console.error("Помилка при завантаженні:", err);
       } finally {
@@ -100,18 +99,15 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
         const widgetData = resolveWidgetData(widgetKey);
 
         return (
-          <div
-            key={widgetKey}
-            className={`widget-card ${widgetConfig.size}`}
-          >
+          <div key={widgetKey} className={`widget-card ${widgetConfig.size}`}>
             <div className="widget-header">
               <h4>{widgetConfig.title}</h4>
 
               <button
                 className="widget-remove-btn"
                 onClick={() =>
-                  setActiveWidgets(prev =>
-                    prev.filter(w => w !== widgetKey)
+                  setActiveWidgets((prev) =>
+                    prev.filter((w) => w !== widgetKey),
                   )
                 }
               >
@@ -126,7 +122,3 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
     </div>
   );
 }
-
-
-
-

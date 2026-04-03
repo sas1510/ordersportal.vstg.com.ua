@@ -1,14 +1,16 @@
-import './CalcMenu.css';
-import { useState } from 'react';
-import DeleteConfirmModal from './DeleteConfirmModal';
-import EditCalculationModal from './EditCalculationModal';
+import "./CalcMenu.css";
+import { useState } from "react";
+import DeleteConfirmModal from "./DeleteConfirmModal";
+// import EditCalculationModal from "./EditCalculationModal";
 
-export const CalculationMenu = ({ calc, onEdit, onDelete }) => {
+export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const hasOrders = Array.isArray(calc.orders) && 
-    calc.orders.some(order => order.number && String(order.number).trim() !== "");
+  
+  const hasOrders =
+    Array.isArray(calc.orders) &&
+    calc.orders.some(
+      (order) => order.number && String(order.number).trim() !== "",
+    );
 
   const handleDeleteClick = (e) => {
     e.stopPropagation(); // Щоб не спрацював клік по самому рядку (accordion)
@@ -22,7 +24,7 @@ export const CalculationMenu = ({ calc, onEdit, onDelete }) => {
   return (
     <div className="summary-item small row no-wrap gap-10 align-center">
       <div
-        className={`icon icon-trash font-size-18 ${hasOrders ? 'inactive' : 'clickable text-danger'}`}
+        className={`icon icon-trash font-size-18 ${hasOrders ? "inactive" : "clickable text-danger"}`}
         onClick={handleDeleteClick}
       />
 
@@ -35,7 +37,7 @@ export const CalculationMenu = ({ calc, onEdit, onDelete }) => {
         itemType="calculation"
       />
 
-      {/* Модалка редагування */}
+      {/* Модалка редагування
       <EditCalculationModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -44,7 +46,7 @@ export const CalculationMenu = ({ calc, onEdit, onDelete }) => {
           setIsEditModalOpen(false);
           onEdit?.(updated);
         }}
-      />
+      /> */}
     </div>
   );
 };

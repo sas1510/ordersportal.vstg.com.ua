@@ -3,7 +3,7 @@ import axiosInstance from "../api/axios";
 import BillItemSelect from "./BillItemSelect";
 import BillSelect from "./BillSelect";
 import "./CreateCustomerBillModal.css";
-import { useNotification } from "../components/notification/Notifications";
+import { useNotification } from "../hooks/useNotification";
 
 /* ===================== STEPS ===================== */
 const STEPS = {
@@ -22,26 +22,20 @@ export default function CreateCustomerBillModal({
   isOpen,
   onClose,
   onSuccess,
-
 }) {
-  if (!isOpen) return null;
-
-
   useEffect(() => {
-      const handleEsc = (event) => {
-        if (event.key === "Escape") onClose();
-      };
-  
-      window.addEventListener("keydown", handleEsc);
-      document.body.style.overflow = "hidden";
-  
-      return () => {
-        window.removeEventListener("keydown", handleEsc);
-        document.body.style.overflow = "";
-      };
-    }, [onClose]);
-    
+    const handleEsc = (event) => {
+      if (event.key === "Escape") onClose();
+    };
 
+    window.addEventListener("keydown", handleEsc);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
 
   const { addNotification } = useNotification();
   const [step, setStep] = useState(STEPS.BASE);
@@ -71,7 +65,7 @@ export default function CreateCustomerBillModal({
   const [loading, setLoading] = useState(false);
 
   /* ===================== LOAD PROFILE ===================== */
-useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return;
     const fetchProfile = async () => {
       try {
@@ -81,7 +75,11 @@ useEffect(() => {
         setIbans(data.data.accounts || []);
         setItemsList(data.data.nomenclature || []);
       } catch (err) {
-        addNotification("Помилка завантаження профілю, спробуйте відкрити форму заново", "error");
+        console.error("Error fetching profile:", err);
+        addNotification(
+          "Помилка завантаження профілю, спробуйте відкрити форму заново",
+          "error",
+        );
       }
     };
     fetchProfile();
@@ -96,7 +94,7 @@ useEffect(() => {
 
   const handleRemoveItem = (index) => {
     setOrderItems((prev) =>
-      prev.length === 1 ? prev : prev.filter((_, i) => i !== index)
+      prev.length === 1 ? prev : prev.filter((_, i) => i !== index),
     );
   };
 
@@ -110,7 +108,7 @@ useEffect(() => {
 
   const totalSum = orderItems.reduce(
     (sum, i) => sum + (Number(i.price) || 0) * (Number(i.quantity) || 0),
-    0
+    0,
   );
 
   /* ===================== SUBMIT ===================== */
@@ -142,29 +140,36 @@ useEffect(() => {
       onSuccess?.();
       onClose();
     } catch (error) {
-      addNotification("Не вдалося створити рахунок. Спробуйте ще раз.", "error");
+      console.error("Error creating bill:", error);
+      addNotification(
+        "Не вдалося створити рахунок. Спробуйте ще раз.",
+        "error",
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  if (!isOpen) return null;
+
   /* ===================== RENDER ===================== */
   return (
     <div className="bill-modal-overlay">
       <div className="bill-modal-window">
-
         <div className="bill-modal-header">
           <h3>
             🧾 Створення рахунку
             <span className="step-info"> • {STEP_LABELS[step]}</span>
           </h3>
-          <button className="bill-close-btn" onClick={onClose}>✕</button>
+          <button className="bill-close-btn" onClick={onClose}>
+            ✕
+          </button>
         </div>
 
         {/* ===== PROGRESS BAR ===== */}
         <div className="bill-progress-container">
-          <div 
-            className="bill-progress-bar" 
+          <div
+            className="bill-progress-bar"
             style={{ width: `${(step / 3) * 100}%` }}
           ></div>
         </div>
@@ -182,9 +187,7 @@ useEffect(() => {
                     options={ibans}
                     placeholder="— оберіть IBAN —"
                     getValue={(i) => i.AccountGUID}
-                    getLabel={(i) =>
-                      `${i.NumberBills} — ${i.AccountName}`
-                    }
+                    getLabel={(i) => `${i.NumberBills} — ${i.AccountName}`}
                     onChange={setSelectedIban}
                   />
                 </div>
@@ -196,9 +199,7 @@ useEffect(() => {
                     options={addresses}
                     placeholder="— оберіть адресу —"
                     getValue={(a) => a.AddressKindGUID}
-                    getLabel={(a) =>
-                      `${a.AddressKind} — ${a.AddressValue}`
-                    }
+                    getLabel={(a) => `${a.AddressKind} — ${a.AddressValue}`}
                     onChange={setSelectedAddress}
                   />
                 </div>
@@ -241,11 +242,7 @@ useEffect(() => {
                         className="bill-input"
                         value={item.quantity}
                         onChange={(e) =>
-                          handleItemChange(
-                            idx,
-                            "quantity",
-                            e.target.value
-                          )
+                          handleItemChange(idx, "quantity", e.target.value)
                         }
                       />
                     </div>
@@ -260,7 +257,7 @@ useEffect(() => {
                           handleItemChange(
                             idx,
                             "price",
-                            e.target.value.replace(/[^0-9.]/g, "")
+                            e.target.value.replace(/[^0-9.]/g, ""),
                           )
                         }
                       />
@@ -268,47 +265,32 @@ useEffect(() => {
 
                     {/* Ширина + Висота */}
                     <div className="bill-field">
-                      <span className="bill-field__label">
-                        Ширина (мм)
-                      </span>
+                      <span className="bill-field__label">Ширина (мм)</span>
                       <input
                         type="number"
                         className="bill-input"
                         value={item.width}
                         onChange={(e) =>
-                          handleItemChange(
-                            idx,
-                            "width",
-                            e.target.value
-                          )
+                          handleItemChange(idx, "width", e.target.value)
                         }
                       />
                     </div>
 
                     <div className="bill-field">
-                      <span className="bill-field__label">
-                        Висота (мм)
-                      </span>
+                      <span className="bill-field__label">Висота (мм)</span>
                       <input
                         type="number"
                         className="bill-input"
                         value={item.height}
                         onChange={(e) =>
-                          handleItemChange(
-                            idx,
-                            "height",
-                            e.target.value
-                          )
+                          handleItemChange(idx, "height", e.target.value)
                         }
                       />
                     </div>
                   </div>
                 ))}
 
-                <button
-                  className="add-product-btn"
-                  onClick={handleAddItem}
-                >
+                <button className="add-product-btn" onClick={handleAddItem}>
                   ➕ Додати позицію
                 </button>
               </>
@@ -318,9 +300,7 @@ useEffect(() => {
             {step === STEPS.CONFIRM && (
               <>
                 <div className="bill-field">
-                  <span className="bill-field__label">
-                    Сума рахунку
-                  </span>
+                  <span className="bill-field__label">Сума рахунку</span>
                   <input
                     className="bill-input"
                     disabled
@@ -329,43 +309,31 @@ useEffect(() => {
                 </div>
 
                 <div className="bill-field">
-                  <span className="bill-field__label">
-                    Дата оплати
-                  </span>
+                  <span className="bill-field__label">Дата оплати</span>
                   <input
                     type="date"
                     className="bill-input"
                     value={paymentDate}
-                    onChange={(e) =>
-                      setPaymentDate(e.target.value)
-                    }
+                    onChange={(e) => setPaymentDate(e.target.value)}
                   />
                 </div>
 
                 <div className="bill-field">
-                  <span className="bill-field__label">
-                    Дата відвантаження
-                  </span>
+                  <span className="bill-field__label">Дата відвантаження</span>
                   <input
                     type="date"
                     className="bill-input"
                     value={deliveryDate}
-                    onChange={(e) =>
-                      setDeliveryDate(e.target.value)
-                    }
+                    onChange={(e) => setDeliveryDate(e.target.value)}
                   />
                 </div>
 
                 <div className="bill-field">
-                  <span className="bill-field__label">
-                    Коментар
-                  </span>
+                  <span className="bill-field__label">Коментар</span>
                   <textarea
                     className="bill-textarea"
                     value={internalComment}
-                    onChange={(e) =>
-                      setInternalComment(e.target.value)
-                    }
+                    onChange={(e) => setInternalComment(e.target.value)}
                   />
                 </div>
               </>
@@ -385,39 +353,55 @@ useEffect(() => {
           )}
 
           {step < 3 && (
-  <button
-    className="bill-btn-save"
-    onClick={() => {
-      // 1. Перевірка для першого кроку
-      if (step === STEPS.BASE) {
-        if (!selectedIban || !selectedAddress) {
-          addNotification("Будь ласка, оберіть IBAN та адресу доставки", "info");
-          return;
-        }
-      }
+            <button
+              className="bill-btn-save"
+              onClick={() => {
+                // 1. Перевірка для першого кроку
+                if (step === STEPS.BASE) {
+                  if (!selectedIban || !selectedAddress) {
+                    addNotification(
+                      "Будь ласка, оберіть IBAN та адресу доставки",
+                      "info",
+                    );
+                    return;
+                  }
+                }
 
-      // 2. Перевірка для другого кроку
-      if (step === STEPS.ITEMS) {
-        const hasInvalidItems = orderItems.some(
-          i => !i.itemGUID || Number(i.quantity) <= 0 || Number(i.price) <= 0
-        );
+                // 2. Перевірка для другого кроку
+                if (step === STEPS.ITEMS) {
+                  const hasInvalidItems = orderItems.some(
+                    (i) =>
+                      !i.itemGUID ||
+                      Number(i.quantity) <= 0 ||
+                      Number(i.price) <= 0,
+                  );
 
-        if (orderItems.length === 0 || hasInvalidItems) {
-          addNotification("Перевірте товари: назва, кількість та ціна мають бути заповнені", "info");
-          return;
-        }
-      }
+                  if (orderItems.length === 0 || hasInvalidItems) {
+                    addNotification(
+                      "Перевірте товари: назва, кількість та ціна мають бути заповнені",
+                      "info",
+                    );
+                    return;
+                  }
+                }
 
-      // Якщо перевірки пройдені — йдемо далі
-      setStep(step + 1);
-    }}
-    // Тепер ми НЕ використовуємо атрибут disabled, щоб спрацьовував onClick
-    // Але можемо додати клас для візуального напів-прозорого стану, якщо хочете
-    style={{ opacity: (step === STEPS.BASE && (!selectedIban || !selectedAddress)) || (step === STEPS.ITEMS && orderItems.some(i => !i.itemGUID)) ? 0.7 : 1 }}
-  >
-    Далі →
-  </button>
-)}
+                // Якщо перевірки пройдені — йдемо далі
+                setStep(step + 1);
+              }}
+              // Тепер ми НЕ використовуємо атрибут disabled, щоб спрацьовував onClick
+              // Але можемо додати клас для візуального напів-прозорого стану, якщо хочете
+              style={{
+                opacity:
+                  (step === STEPS.BASE &&
+                    (!selectedIban || !selectedAddress)) ||
+                  (step === STEPS.ITEMS && orderItems.some((i) => !i.itemGUID))
+                    ? 0.7
+                    : 1,
+              }}
+            >
+              Далі →
+            </button>
+          )}
 
           {step === 3 && (
             <button

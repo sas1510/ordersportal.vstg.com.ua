@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios.js";
-import { useNotification } from "../notification/Notifications.jsx";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
 import "./NewCalculationModal.css";
 import DealerSelect from "../../pages/DealerSelect";
 import {
@@ -9,11 +10,11 @@ import {
   FaUpload,
   FaTrash,
   FaUserAlt,
-  FaChevronDown
+  FaChevronDown,
 } from "react-icons/fa";
 
 import ClientAddressModal from "./ClientAddressModal";
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
@@ -23,7 +24,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const [fileName, setFileName] = useState("Файл не обрано");
   const [itemsCount, setItemsCount] = useState(1);
   const [comment, setComment] = useState("");
-  const [submitError, setSubmitError] = useState(null);
+  const [_submitError, setSubmitError] = useState(null);
   const [dealerId, setDealerId] = useState("");
   const [addresses, setAddresses] = useState([]);
   const [addressGuid, setAddressGuid] = useState("");
@@ -45,10 +46,11 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     lng: null,
   });
 
-  const [isClientAddressModalOpen, setIsClientAddressModalOpen] = useState(false);
+  const [isClientAddressModalOpen, setIsClientAddressModalOpen] =
+    useState(false);
 
-  const { user, role } = useAuth();
-  const isAdmin = role === "admin";
+  const {  role } = useAuthGetRole();
+  // const isAdmin = role === "admin";
 
   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
@@ -91,9 +93,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       addNotification(
         <div style={{ lineHeight: "1.4" }}>
           <strong>Увага! Гео-координати не встановлені.</strong> <br />
-          Для коректного прорахунку логістики необхідно вказати точку на карті. <br />
-          Будь ласка, <strong>зверніться до вашого менеджера</strong> для оновлення даних адреси <br />
-
+          Для коректного прорахунку логістики необхідно вказати точку на карті.{" "}
+          <br />
+          Будь ласка, <strong>зверніться до вашого менеджера</strong> для
+          оновлення даних адреси <br />
           {/* <a
             href="https://ordersportal.vstg.com.ua/edit-addresses"
             target="_blank"
@@ -104,7 +107,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           </a> */}
         </div>,
         "warning",
-        10000
+        10000,
       );
     }
 
@@ -122,7 +125,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
     try {
       const res = await axiosInstance.get("/dealer-addresses/", {
-        params: contractorGuid ? { contractor: contractorGuid } : {}
+        params: contractorGuid ? { contractor: contractorGuid } : {},
       });
 
       const list = res.data?.addresses || [];
@@ -130,16 +133,14 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       const deliveryAddresses = list.filter(
         (a) =>
           typeof a.AddressKind === "string" &&
-          a.AddressKind.toLowerCase().includes("достав")
+          a.AddressKind.toLowerCase().includes("достав"),
       );
 
       setAddresses(deliveryAddresses);
 
       const def = deliveryAddresses.find(
         (a) =>
-          a.IsDefault === "\u0001" ||
-          a.IsDefault === 1 ||
-          a.IsDefault === true
+          a.IsDefault === "\u0001" || a.IsDefault === 1 || a.IsDefault === true,
       );
 
       if (def) {
@@ -150,28 +151,31 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     } catch (err) {
       console.error(err);
       addNotification(
-        <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: '250px' }}>
+        <div
+          className="flex ai-center jc-space-between gap-5"
+          style={{ minWidth: "250px" }}
+        >
           <span>Не вдалося завантажити адреси:</span>
-          <button 
-            onClick={() => loadAddresses(contractorGuid)} 
+          <button
+            onClick={() => loadAddresses(contractorGuid)}
             style={{
-              background: 'white',
-              color: '#d32f2f', // колір для помилки
-              border: 'none',
-              borderRadius: '4px',
-              padding: '4px 4px',
-              marginRight: '8px',
-              cursor: 'pointer',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              whiteSpace: 'nowrap'
+              background: "white",
+              color: "#d32f2f", // колір для помилки
+              border: "none",
+              borderRadius: "4px",
+              padding: "4px 4px",
+              marginRight: "8px",
+              cursor: "pointer",
+              fontSize: "12px",
+              fontWeight: "bold",
+              whiteSpace: "nowrap",
             }}
           >
             ПОВТОРИТИ
           </button>
         </div>,
         "error",
-        0
+        0,
         // 10000 // Збільшуємо час відображення до 10 сек, щоб користувач встиг натиснути
       );
     } finally {
@@ -183,26 +187,23 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       🧠 Effects
      ========================= */
 
-
-  
   useEffect(() => {
     const handleEsc = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
+      window.addEventListener("keydown", handleEsc);
     }
 
     // Очищуємо слухач при закритті модалки або демонтажі компонента
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
 
-  
   useEffect(() => {
     if (!isOpen) return;
 
@@ -259,37 +260,37 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
-    
+
     if (!orderNumber || !file || !itemsCount) {
       addNotification("Заповніть усі поля", "error");
       return;
     }
 
     if (addressMode === "dealer") {
-        if (!addressGuid) {
-            addNotification("Оберіть адресу доставки", "error");
-            return;
-        }
-        // // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
-        // if (!dealerCoords) {
-        //     addNotification(
-        //       <div style={{ lineHeight: "1.4" }}>
-        //         <strong>Помилка!</strong> Обрана адреса не має гео-координат. <br />
-        //         Будь ласка, оберіть іншу адресу або додайте точку на карті. <br />
-        //         <a
-        //           href="https://ordersportal.vstg.com.ua/edit-addresses"
-        //           target="_blank"
-        //           rel="noopener noreferrer"
-        //           style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
-        //         >
-        //           Додати точку на карті
-        //         </a>
-        //       </div>,
-        //       "warning",
-        //       12000
-        //     );
-        //     return;
-        // }
+      if (!addressGuid) {
+        addNotification("Оберіть адресу доставки", "error");
+        return;
+      }
+      // // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
+      // if (!dealerCoords) {
+      //     addNotification(
+      //       <div style={{ lineHeight: "1.4" }}>
+      //         <strong>Помилка!</strong> Обрана адреса не має гео-координат. <br />
+      //         Будь ласка, оберіть іншу адресу або додайте точку на карті. <br />
+      //         <a
+      //           href="https://ordersportal.vstg.com.ua/edit-addresses"
+      //           target="_blank"
+      //           rel="noopener noreferrer"
+      //           style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
+      //         >
+      //           Додати точку на карті
+      //         </a>
+      //       </div>,
+      //       "warning",
+      //       12000
+      //     );
+      //     return;
+      // }
     }
 
     if (
@@ -354,7 +355,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
       const response = await axiosInstance.post(
         "/calculations/create/",
-        payload
+        payload,
       );
 
       addNotification(`Прорахунок №${orderNumber} створено ✅`, "success");
@@ -364,32 +365,35 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     } catch (error) {
       console.error(error);
       addNotification(
-            <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: '250px' }}>
-                <div className="column">
-                    <strong>Помилка створення: </strong>
-                    {/* <span style={{ fontSize: '13px', opacity: 0.9 }}>{serverMessage}</span> */}
-                </div>
-                <button 
-                    onClick={handleSubmit} 
-                    style={{
-                        background: 'white',
-                        color: '#d32f2f',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '5px 10px',
-                        marginRight: '7px',
-                        cursor: 'pointer',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                >
-                    ПОВТОРИТИ
-                </button>
-            </div>,
-            "error",
-            10000 // 0 означає, що нотифікація не зникне сама, поки користувач не натисне або не закриє
-        );
+        <div
+          className="flex ai-center jc-space-between gap-5"
+          style={{ minWidth: "250px" }}
+        >
+          <div className="column">
+            <strong>Помилка створення: </strong>
+            {/* <span style={{ fontSize: '13px', opacity: 0.9 }}>{serverMessage}</span> */}
+          </div>
+          <button
+            onClick={handleSubmit}
+            style={{
+              background: "white",
+              color: "#d32f2f",
+              border: "none",
+              borderRadius: "4px",
+              padding: "5px 10px",
+              marginRight: "7px",
+              cursor: "pointer",
+              fontSize: "11px",
+              fontWeight: "bold",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            }}
+          >
+            ПОВТОРИТИ
+          </button>
+        </div>,
+        "error",
+        10000, // 0 означає, що нотифікація не зникне сама, поки користувач не натисне або не закриє
+      );
     } finally {
       setLoading(false);
     }
@@ -397,7 +401,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   if (!isOpen) return null;
 
-  
   return (
     <>
       <div className="new-calc-modal-overlay" onClick={onClose}>
@@ -437,7 +440,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <DealerSelect value={dealerId} onChange={setDealerId} />
                 </div>
               )}
-<div className="address-mode-switch">
+              <div className="address-mode-switch">
                 <label>
                   <input
                     type="radio"
@@ -461,15 +464,21 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <span>Адреса доставки:</span>
                   <div
                     className={`address-dropdown ${isAddressOpen ? "open" : ""}`}
-                    onClick={() => !addressesLoading && setIsAddressOpen((p) => !p)}
+                    onClick={() =>
+                      !addressesLoading && setIsAddressOpen((p) => !p)
+                    }
                   >
                     <div className="address-dropdown-selected">
                       <span>
                         {addressesLoading
                           ? "Завантаження адрес..."
-                          : addresses.find((a) => a.AddressKindGUID === addressGuid)?.AddressValue || "Оберіть адресу доставки"}
+                          : addresses.find(
+                              (a) => a.AddressKindGUID === addressGuid,
+                            )?.AddressValue || "Оберіть адресу доставки"}
                       </span>
-                      <FaChevronDown className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`} />
+                      <FaChevronDown
+                        className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`}
+                      />
                     </div>
 
                     {isAddressOpen && (
@@ -518,7 +527,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               )}
 
               <div className="new-calc-file-upload">
-                <label htmlFor="new-calc-file" className="new-calc-upload-label">
+                <label
+                  htmlFor="new-calc-file"
+                  className="new-calc-upload-label"
+                >
                   <FaUpload size={20} />
                   <span>Завантажити файл (.zkz)</span>
                   <input
@@ -532,7 +544,11 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 <div className="new-calc-file-name">
                   <span>{fileName}</span>
                   {file && (
-                    <button type="button" className="new-calc-clear-file" onClick={handleClearFile}>
+                    <button
+                      type="button"
+                      className="new-calc-clear-file"
+                      onClick={handleClearFile}
+                    >
                       <FaTrash size={14} />
                     </button>
                   )}
@@ -563,10 +579,17 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           </div>
 
           <div className="new-calc-modal-footer">
-            <button className="new-calc-btn-cancel" onClick={handleCloseWithReset}>
+            <button
+              className="new-calc-btn-cancel"
+              onClick={handleCloseWithReset}
+            >
               <FaTimes /> Відмінити
             </button>
-            <button className="new-calc-btn-save" onClick={handleSubmit} disabled={loading}>
+            <button
+              className="new-calc-btn-save"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
               <FaSave /> {loading ? "Створюємо..." : "Зберегти"}
             </button>
           </div>
@@ -575,18 +598,17 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
       {isClientAddressModalOpen && (
         <ClientAddressModal
-  initialValue={{
-    ...customAddress,
-    contractor_guid: dealerId,
-  }}
-  contractorGuid={dealerId}
-  onClose={() => setIsClientAddressModalOpen(false)}
-  onSave={(addr) => {
-    setCustomAddress(addr);
-    setIsClientAddressModalOpen(false);
-  }}
-/>
-
+          initialValue={{
+            ...customAddress,
+            contractor_guid: dealerId,
+          }}
+          contractorGuid={dealerId}
+          onClose={() => setIsClientAddressModalOpen(false)}
+          onSave={(addr) => {
+            setCustomAddress(addr);
+            setIsClientAddressModalOpen(false);
+          }}
+        />
       )}
     </>
   );

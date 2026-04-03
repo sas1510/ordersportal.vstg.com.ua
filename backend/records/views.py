@@ -12,12 +12,12 @@ from django.db.models import Q
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.get_main_manager import get_contractor_main_manager_bin
-
+import smbclient
 from zoneinfo import ZoneInfo
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db import DatabaseError
-from .models import Message
+
 # from .serializers import MessageSerializer
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 from backend.utils.BinToGuid1C import convert_row
@@ -31,8 +31,8 @@ import re
 from backend.utils.onec_api import send_to_1c
 
 from backend.permissions import IsAdminJWT
-from .serializers import MessageCreateSerializer, CalculationCreateSerializer
-from .services.messages import save_message
+from .serializers import  CalculationCreateSerializer
+
 from users.models import CustomUser
 
 import requests
@@ -163,7 +163,13 @@ def parse_reclamation_details(text):
 @safe_view
 def complaints_view(request):
     contractor_bin, _ = resolve_contractor(request)
-    year = int(request.GET.get("year")) if request.GET.get("year") else None
+    # year = int(request.GET.get("year")) if request.GET.get("year") else None
+
+    year_raw = request.GET.get("year")
+    try:
+        year = int(year_raw) if year_raw else None
+    except (ValueError, TypeError):
+        return Response({"error": "Рік має бути числом"}, status=400)
 
     # 1. Отримуємо дані з 1С через збережену процедуру
     with connection.cursor() as cursor:
@@ -245,7 +251,11 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     # query = """
     #     EXEC [GetOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
     # """
-
+    try:
+        year = int(year)
+    except (ValueError, TypeError):
+        # Якщо прийшла лапка або сміття — повертаємо 400, а не 500
+        return []
 
     query = """
         EXEC [GetCalculationsWithOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
@@ -741,8 +751,7 @@ def order_files_view(request, order_guid):
         )
 
 
-import subprocess
-from django.http import StreamingHttpResponse, Http404
+
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -753,23 +762,17 @@ from rest_framework.permissions import IsAuthenticated
 
 
 # ======================== ТИМЧАСОВИЙ КОД ДЛЯ ДІАГНОСТИКИ ========================
-import subprocess
-from django.http import StreamingHttpResponse, Http404
+
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-import subprocess
 import logging
 from django.http import StreamingHttpResponse, Http404
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-
-logger = logging.getLogger(__name__)
-import subprocess
-import logging
 from urllib.parse import unquote
 from django.http import StreamingHttpResponse, Http404
 from rest_framework.decorators import api_view, permission_classes
@@ -778,8 +781,6 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 # views.py
 
-import subprocess
-import logging
 import mimetypes
 from urllib.parse import unquote
 
@@ -793,7 +794,7 @@ from rest_framework.permissions import IsAuthenticated
 
 
 
-logger = logging.getLogger(__name__)
+
 
 
 
@@ -852,100 +853,49 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def download_order_file(request, order_guid, file_guid):
     """
-    Завантажує файл замовлення з SMB (1С).
-
-    Обовʼязковий query-параметр:
-        ?filename=СР42749.ZKZ
+    Завантажує файл замовлення з SMB (1С) без створення важких системних процесів.
     """
-
-    # =========================
-    # PARAMS
-    # =========================
     filename = request.GET.get("filename")
     if not filename:
         raise Http404("Filename is required")
 
-    # decode кирилиці
     filename = unquote(filename)
 
-    # =========================
-    # SMB CONFIG
-    # =========================
-    server = settings.SMB_SERVER      # наприклад: "1c"
-    share = settings.SMB_SHARE        # наприклад: "1c_data"
-    username = settings.SMB_USERNAME  # наприклад: "tetiana.flora"
-    password = settings.SMB_PASSWORD
+    # Формуємо шлях для бібліотеки: /Server/Share/Folder/...
+    remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
 
-    full_username = f"VSTG\\{username}"
-
-    # =========================
-    # SMB PATH (ПЕРЕВІРЕНИЙ)
-    # =========================
-    remote_path = (
-        f'Заказ покупателя/{order_guid}/{file_guid}/{filename}'
-    )
-
-    # =========================
-    # SMB DOWNLOAD
-    # =========================
     try:
-        process = subprocess.Popen(
-            [
-                "smbclient",
-                f"//{server}/{share}",
-                "-U", full_username,
-                "-c", f'get "{remote_path}" -'
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env={"PASSWD": password},
-        )
+        # 1. Отримуємо інформацію про файл (замість process.returncode)
+        stat = smbclient.stat(remote_path)
+        
+        # 2. Відкриваємо файл як потік (Stream)
+        # Це НЕ завантажує файл у RAM, а читає його частинами
+        file_handle = smbclient.open_file(remote_path, mode="rb")
 
-        stdout, stderr = process.communicate()
-
-        if process.returncode != 0:
-            logger.error(
-                "SMB error (%s): %s",
-                process.returncode,
-                stderr.decode("utf-8", errors="ignore")
-            )
-            raise Http404("Файл не знайдено або доступ заборонено")
-
-        # =========================
-        # RESPONSE
-        # =========================
-       # =========================
-        # RESPONSE (Вдосконалено)
-        # =========================
+        # 3. Визначаємо тип контенту та спосіб відображення
         content_type, _ = mimetypes.guess_type(filename)
         content_type = content_type or "application/octet-stream"
 
-        # Список розширень, які ми хочемо дозволити переглядати в браузері
         inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
         file_ext = os.path.splitext(filename.lower())[1]
-
-        # Якщо це зображення або PDF — ставимо 'inline', інакше 'attachment'
         disposition = "inline" if file_ext in inline_extensions else "attachment"
 
+        # 4. Формуємо відповідь
         response = StreamingHttpResponse(
-            stdout,
+            file_handle, 
             content_type=content_type
         )
-
-        # Важливо: використовуємо заголовок, який дозволяє перегляд або завантаження
+        
+        # Передаємо розмір файлу, щоб браузер показував прогрес-бар завантаження
+        response["Content-Length"] = stat.st_size
         response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
-        # Додаємо заголовок, щоб фронтенд міг прочитати правильний контент-тип
         response["Access-Control-Expose-Headers"] = "Content-Disposition"
 
         return response
 
-    except FileNotFoundError:
-        logger.exception("smbclient not installed")
-        raise Http404("Сервіс завантаження файлів недоступний")
-
-    except Exception:
-        logger.exception("Download error")
-        raise Http404("Помилка доступу до файлу")
+    except Exception as e:
+        logger.error(f"SMB Download Error: {str(e)} for path {remote_path}")
+        raise Http404("Файл не знайдено або доступ заборонено")
 
 
 # @api_view(["POST"])
@@ -1610,27 +1560,27 @@ def extract_calculation_guid(result) -> str | None:
     return first.get("calculationGUID")
 
 
-def save_calculation_comment(
-    *,
-    calculation_bin: bytes,
-    comment: str,
-    writer_guid: bytes | None,
-):
-    if not comment:
-        return
+# def save_calculation_comment(
+#     *,
+#     calculation_bin: bytes,
+#     comment: str,
+#     writer_guid: bytes | None,
+# ):
+#     if not comment:
+#         return
 
 
 
   
 
-    Message.objects.create(
-        base_transaction_id=calculation_bin,
-        transaction_type_id=1,   # 👈 явний FK
-        writer_id=writer_guid,
-        message=comment,
-        is_read=False,
-        is_send=False,
-    )
+#     Message.objects.create(
+#         base_transaction_id=calculation_bin,
+#         transaction_type_id=1,   # 👈 явний FK
+#         writer_id=writer_guid,
+#         message=comment,
+#         is_read=False,
+#         is_send=False,
+#     )
 
 
 
@@ -2000,117 +1950,6 @@ def wds_codes_by_contractor(request):
 
 
 
-@extend_schema(
-    summary="Створити коментар до транзакції",
-   description="""
-Створює новий коментар для транзакції (замовлення, додаткового замовлення тощо).
-
-Коментар привʼязується до:
-
-• Типу транзакції (`transaction_type_id`):
-  - **1** — Прорахунок (прорахунок клієнта)
-  - **2** — Рекламація (рекламація клієнта)
-  - **3** — Доп. замовлення (додаткове замовлення клієнта)
-
-• Конкретного документа 1C (`base_transaction_guid`)
-
-
-""",
-    request=MessageCreateSerializer,
-    responses={
-        201: OpenApiResponse(
-            description="Коментар успішно створений",
-            examples=[
-                OpenApiExample(
-                    name="Success",
-                    value={
-                        "id": 54,
-                        "created_at": "2026-01-14T10:06:51Z",
-                        "message": "Текст коментаря",
-                        "author": {
-                            "username": "shop_ruta",
-                            "full_name": "Магазин Рута"
-                        }
-                    },
-                )
-            ],
-        ),
-        400: OpenApiResponse(
-            description="Помилка валідації",
-            examples=[
-                OpenApiExample(
-                    name="Validation error",
-                    value={"error": "Invalid input data"},
-                )
-            ],
-        ),
-        401: OpenApiResponse(
-            description="Неавторизовано",
-            examples=[
-                OpenApiExample(
-                    name="Unauthorized",
-                    value={"detail": "Authentication credentials were not provided."},
-                )
-            ],
-        ),
-    },
-    tags=["Messages"],
-)
-@api_view(["POST"])
-@permission_classes([IsAuthenticatedOr1CApiKey])
-@safe_view
-def create_message(request):
-    serializer = MessageCreateSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    user = request.user
-    is_1c = request.auth == "1C_API_KEY"
-
-
-    writer_id_1c = None
-
-    if is_1c:
-    
-        writer_id_1c = getattr(user, "user_id_1C", None)
-        if not writer_id_1c:
-            raise PermissionError("API key user has no UserId1C")
-    else:
-        
-        writer_id_1c = getattr(user, "user_id_1C", None)
-
-  
-    message = save_message(
-        transaction_type_id=serializer.validated_data["transaction_type_id"],
-        base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
-        message_text=serializer.validated_data["message"],
-        writer_guid=bin_to_guid_1c(writer_id_1c) if writer_id_1c else None,
-    )
-
-    author = None
-    if writer_id_1c:
-        user_obj = CustomUser.objects.filter(user_id_1C=writer_id_1c).first()
-        if user_obj:
-            author = {
-                "id_1c": bin_to_guid_1c(user_obj.user_id_1C),
-                "username": user_obj.username,
-                "full_name": (
-                    user_obj.full_name
-                    or f"{user_obj.first_name} {user_obj.last_name}".strip()
-                )
-            }
-
-    return Response(
-        {
-            "id": message.id,
-            "created_at": message.created_at,
-            "message": message.message,
-            "author": author
-        },
-        status=201
-    )
-
-
-
 # records/views.py
 
 @extend_schema(
@@ -2245,7 +2084,7 @@ def get_messages(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def download_calculation_file(request, calc_guid, file_guid):
     """
-    Завантажує файл заявки на прорахунок (ВМ) з SMB.
+    Завантажує файл заявки на прорахунок (ВМ) з SMB без використання subprocess.
     """
     filename = request.GET.get("filename")
     if not filename:
@@ -2253,49 +2092,38 @@ def download_calculation_file(request, calc_guid, file_guid):
 
     filename = unquote(filename)
 
-    # SMB CONFIG
-    server = settings.SMB_SERVER
-    share = settings.SMB_SHARE
-    full_username = f"VSTG\\{settings.SMB_USERNAME}"
-    password = settings.SMB_PASSWORD
-
-    # =========================
-    # НОВИЙ ШЛЯХ (Заявка на просчет)
-    # =========================
-    remote_path = f'Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}'
+    # Формуємо шлях. Бібліотека smbclient очікує формат: /Server/Share/Path
+    # Зверніть увагу: ми використовуємо прямі слеші, smbclient сам їх конвертує
+    remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}"
 
     try:
-        process = subprocess.Popen(
-            [
-                "smbclient",
-                f"//{server}/{share}",
-                "-U", full_username,
-                "-c", f'get "{remote_path}" -'
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env={"PASSWD": password},
-        )
-
-        stdout, stderr = process.communicate()
-
-        if process.returncode != 0:
-            logger.error("SMB error: %s", stderr.decode("utf-8", errors="ignore"))
-            raise Http404("Файл не знайдено")
+        # Перевіряємо існування файлу перед відкриттям
+        stat = smbclient.stat(remote_path)
+        
+        # Відкриваємо файл у бінарному режимі для читання
+        # smbclient.open_file повертає об'єкт, який підтримує ітерацію
+        file_handle = smbclient.open_file(remote_path, mode="rb")
 
         content_type, _ = mimetypes.guess_type(filename)
+        
+        # StreamingHttpResponse ефективно передає файл частинами
         response = StreamingHttpResponse(
-            stdout,
+            file_handle, 
             content_type=content_type or "application/octet-stream"
         )
+        
+        # Додаємо розмір файлу, щоб браузер показував прогрес завантаження
+        response["Content-Length"] = stat.st_size
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
 
-    except Exception:
-        logger.exception("Calculation download error")
-        raise Http404("Помилка завантаження")
+    except Exception as e:
+        # Якщо файл не знайдено або немає доступу
+        logger.error(f"SMB Download Error for path {remote_path}: {str(e)}")
+        raise Http404("Файл не знайдено або помилка доступу")
     
+
 
 
 from rest_framework.decorators import api_view, permission_classes
@@ -2682,72 +2510,72 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .models import UserDashboardConfig, TransactionType
+from .models import TransactionType
 
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-class DashboardConfigView(APIView):
-    permission_classes = [IsAuthenticated]
+# class DashboardConfigView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get_default_layout(self):
+#     def get_default_layout(self):
 
-        return {
-            "dashboards": [
-                {
-                    "id": 1, 
-                    "name": "Основний", 
-                    "components": [
-                        {"id": "comp-1", "type": "PrefixCategoryDisplay", "colSpan": 12, "rowSpan": 25},
-                        {"id": "comp-2", "type": "EfficiencyChart", "colSpan": 6, "rowSpan": 13},
-                        {"id": "comp-3", "type": "VolumeChart", "colSpan": 6, "rowSpan": 13},
-                        {"id": "comp-4", "type": "ProfileColorChart", "colSpan": 6, "rowSpan": 17},
-                        {"id": "comp-5", "type": "ProfileSystemChart", "colSpan": 6, "rowSpan": 17},
-                        {"id": "comp-6", "type": "ColorSystemHeatmap", "colSpan": 12, "rowSpan": 17},
-                        {"id": "comp-7", "type": "FurnitureChart", "colSpan": 12, "rowSpan": 17},
-                        {"id": "comp-8", "type": "ComplexityDonut", "colSpan": 12, "rowSpan": 17},
-                        {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 16},
-                    ]
-                }
-            ]
-        }
+#         return {
+#             "dashboards": [
+#                 {
+#                     "id": 1, 
+#                     "name": "Основний", 
+#                     "components": [
+#                         {"id": "comp-1", "type": "PrefixCategoryDisplay", "colSpan": 12, "rowSpan": 25},
+#                         {"id": "comp-2", "type": "EfficiencyChart", "colSpan": 6, "rowSpan": 13},
+#                         {"id": "comp-3", "type": "VolumeChart", "colSpan": 6, "rowSpan": 13},
+#                         {"id": "comp-4", "type": "ProfileColorChart", "colSpan": 6, "rowSpan": 17},
+#                         {"id": "comp-5", "type": "ProfileSystemChart", "colSpan": 6, "rowSpan": 17},
+#                         {"id": "comp-6", "type": "ColorSystemHeatmap", "colSpan": 12, "rowSpan": 17},
+#                         {"id": "comp-7", "type": "FurnitureChart", "colSpan": 12, "rowSpan": 17},
+#                         {"id": "comp-8", "type": "ComplexityDonut", "colSpan": 12, "rowSpan": 17},
+#                         {"id": "comp-9", "type": "ComplexityTreemap", "colSpan": 12, "rowSpan": 16},
+#                     ]
+#                 }
+#             ]
+#         }
 
-    def get(self, request):
-        config_obj = UserDashboardConfig.objects.filter(
-            user=request.user, 
-            layout_name='default'
-        ).first()
+#     def get(self, request):
+#         config_obj = UserDashboardConfig.objects.filter(
+#             user=request.user, 
+#             layout_name='default'
+#         ).first()
 
-        if config_obj:
-            data = config_obj.config
+#         if config_obj:
+#             data = config_obj.config
 
-            if "components" in data and "dashboards" not in data:
-                return Response({
-                    "dashboards": [
-                        {"id": 1, "name": "Мій Дашборд", "components": data["components"]}
-                    ]
-                })
-            return Response(data)
+#             if "components" in data and "dashboards" not in data:
+#                 return Response({
+#                     "dashboards": [
+#                         {"id": 1, "name": "Мій Дашборд", "components": data["components"]}
+#                     ]
+#                 })
+#             return Response(data)
         
-        return Response(self.get_default_layout())
+#         return Response(self.get_default_layout())
 
-    def post(self, request):
-        new_config_data = request.data
+#     def post(self, request):
+#         new_config_data = request.data
         
-        # Оновлена перевірка: шукаємо або 'dashboards', або старий 'components'
-        if not new_config_data.get('dashboards') and not new_config_data.get('components'):
-            return Response({"error": "Config data is required (dashboards or components)"}, status=400)
+#         # Оновлена перевірка: шукаємо або 'dashboards', або старий 'components'
+#         if not new_config_data.get('dashboards') and not new_config_data.get('components'):
+#             return Response({"error": "Config data is required (dashboards or components)"}, status=400)
 
-        # Оновлюємо або створюємо запис
-        config_obj, created = UserDashboardConfig.objects.update_or_create(
-            user=request.user,
-            layout_name='default',
-            defaults={'config': new_config_data}
-        )
+#         # Оновлюємо або створюємо запис
+#         config_obj, created = UserDashboardConfig.objects.update_or_create(
+#             user=request.user,
+#             layout_name='default',
+#             defaults={'config': new_config_data}
+#         )
 
-        return Response({"status": "success", "message": "Saved"}, status=status.HTTP_200_OK)
+#         return Response({"status": "success", "message": "Saved"}, status=status.HTTP_200_OK)
     
 
 
@@ -2827,84 +2655,84 @@ from django.db import transaction
 from backend.authentication import OneCApiKeyAuthentication
 from backend.permissions import IsAuthenticatedOr1CApiKey
 # from .models import Notification
-from .services.messages import save_message
 
 
 
-class ExternalMessageCreateView(APIView):
-    """
-    Створення коментаря на основі повного JSON-пакету від 1С.
-    Захищено через X-API-KEY.
-    """
+
+# class ExternalMessageCreateView(APIView):
+#     """
+#     Створення коментаря на основі повного JSON-пакету від 1С.
+#     Захищено через X-API-KEY.
+#     """
  
-    authentication_classes = [OneCApiKeyAuthentication]
-    permission_classes = [IsAuthenticatedOr1CApiKey]
+#     authentication_classes = [OneCApiKeyAuthentication]
+#     permission_classes = [IsAuthenticatedOr1CApiKey]
 
-    @transaction.atomic
-    def post(self, request):
-        data = request.data
+#     @transaction.atomic
+#     def post(self, request):
+#         data = request.data
         
-        transaction_type = data.get("transactionTypeId")
-        base_guid = data.get("baseTransactionGuid")
-        message_text = data.get("message")
-        writer_guid = data.get("writerGuid1c")
-        transaction_number = data.get("transactionNumber") or ""
+#         transaction_type = data.get("transactionTypeId")
+#         base_guid = data.get("baseTransactionGuid")
+#         message_text = data.get("message")
+#         writer_guid = data.get("writerGuid1c")
+#         transaction_number = data.get("transactionNumber") or ""
 
-        if not all([transaction_type, base_guid, message_text]):
-            return Response(
-                {"error": "Поля transactionTypeId, baseTransactionGuid та Message є обов'язковими"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+#         if not all([transaction_type, base_guid, message_text]):
+#             return Response(
+#                 {"error": "Поля transactionTypeId, baseTransactionGuid та Message є обов'язковими"},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
 
-        try:
-            # 1. Зберігаємо саме повідомлення
-            message = save_message(
-                transaction_type_id=transaction_type,
-                base_transaction_guid=base_guid,
-                message_text=message_text,
-                writer_guid=writer_guid 
-            )
+#         try:
+#             # 1. Зберігаємо саме повідомлення
+#             message = save_message(
+#                 transaction_type_id=transaction_type,
+#                 base_transaction_guid=base_guid,
+#                 message_text=message_text,
+#                 writer_guid=writer_guid 
+#             )
 
-            # 2. Формуємо текст сповіщення залежно від типу
-            notification_titles = {
-                1: "прорахунку",
-                2: "рекламації",
-                3: "доп. замовленні"
-            }
+#             # 2. Формуємо текст сповіщення залежно від типу
+#             notification_titles = {
+#                 1: "прорахунку",
+#                 2: "рекламації",
+#                 3: "доп. замовленні"
+#             }
             
-            title = notification_titles.get(int(transaction_type), "Документ")
-            full_notification_message = f"З'явилося нове повідомлення у {title} № {transaction_number}"
+#             title = notification_titles.get(int(transaction_type), "Документ")
+#             full_notification_message = f"З'явилося нове повідомлення у {title} № {transaction_number}"
 
 
-            writer_bin = guid_to_1c_bin(writer_guid)
-            target_user = CustomUser.objects.filter(user_id_1C=writer_bin).first()
-            # 3. Створюємо запис у таблиці Notifications
-            # Використовуємо прямий імпорт моделі або SQL за вашим стандартом
-            from .models import Notification 
+#             writer_bin = guid_to_1c_bin(writer_guid)
+#             target_user = CustomUser.objects.filter(user_id_1C=writer_bin).first()
+#             # 3. Створюємо запис у таблиці Notifications
+#             # Використовуємо прямий імпорт моделі або SQL за вашим стандартом
+#             from .models import Notification 
             
-            base_transaction_bin = guid_to_1c_bin(base_guid)
+#             base_transaction_bin = guid_to_1c_bin(base_guid)
             
-            Notification.objects.create(
-                event_type="NEW_MESSAGE",            
-                base_transaction_id=base_transaction_bin, 
-                message=full_notification_message,   
-                is_read=False,                      
-                transaction_type_id=transaction_type,
-                new_value=transaction_number,
-                user=target_user                
-            )
+#             Notification.objects.create(
+#                 event_type="NEW_MESSAGE",            
+#                 base_transaction_id=base_transaction_bin, 
+#                 message=full_notification_message,   
+#                 is_read=False,                      
+#                 transaction_type_id=transaction_type,
+#                 new_value=transaction_number,
+#                 user=target_user                
+#             )
 
-            return Response({
-                "status": "success",
-                "id": message.id,
-                "notification": "created"
-            }, status=status.HTTP_201_CREATED)
+#             return Response({
+#                 "status": "success",
+#                 "id": message.id,
+#                 "notification": "created"
+#             }, status=status.HTTP_201_CREATED)
 
-        except Exception as e:
-            return Response(
-                {"error": f"Внутрішня помилка сервера: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+#         except Exception as e:
+#             return Response(
+#                 {"error": f"Внутрішня помилка сервера: {str(e)}"},
+#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#             )
         
 
 
@@ -2912,7 +2740,7 @@ class ExternalMessageCreateView(APIView):
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .models import Notification
+
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 # @api_view(["GET"])

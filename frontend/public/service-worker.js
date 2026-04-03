@@ -1,3 +1,5 @@
+/* eslint-env serviceworker */
+/* eslint-disable no-restricted-globals */
 self.addEventListener('push', function(event) {
     console.log('[Service Worker] Сигнал отримано!');
     
@@ -8,7 +10,7 @@ self.addEventListener('push', function(event) {
             // Отримуємо JSON
             payload = event.data.json();
             console.log('[Service Worker] Дані отримано:', payload);
-        } catch (e) {
+        } catch  {
             // Якщо прийшов звичайний текст
             payload = {
                 head: 'Нове повідомлення',
@@ -45,7 +47,7 @@ self.addEventListener('notificationclick', function(event) {
     const targetUrl = event.notification.data.url;
 
     event.waitUntil(
-        clients.matchAll({ type: 'window' }).then(windowClients => {
+        self.clients.matchAll({ type: 'window' }).then(windowClients => {
             // Якщо вкладка вже відкрита — фокусуємося на ній
             for (let client of windowClients) {
                 if (client.url === targetUrl && 'focus' in client) {
@@ -53,8 +55,8 @@ self.addEventListener('notificationclick', function(event) {
                 }
             }
             // Якщо ні — відкриваємо нову
-            if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(targetUrl);
             }
         })
     );

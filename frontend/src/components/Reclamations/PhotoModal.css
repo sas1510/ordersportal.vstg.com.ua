@@ -19,12 +19,11 @@
   background-color: #414141;
 }
 
-.photo-modal-content-my  {
+.photo-modal-content-my {
   max-width: 100vw;
   margin: 10px;
   position: relative;
-
-} 
+}
 
 .photo-modal-content-my img {
   max-width: 100vw;
@@ -125,7 +124,6 @@
   border-color: #fff;
 }
 
-
 /* NAV BUTTONS */
 .photo-nav {
   position: absolute;
@@ -143,7 +141,9 @@
   align-items: center;
   justify-content: center;
   z-index: 5;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .photo-nav:hover {
@@ -197,7 +197,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-
 }
 
 .photo-modal-content-my img {
@@ -346,12 +345,12 @@
   backdrop-filter: blur(6px);
 
   /* Обмеження на 3 видимих фото (приблизно 180-200px) */
-  max-width: 200px; 
+  max-width: 200px;
   overflow-x: auto; /* Дозволяємо горизонтальну прокрутку */
   scroll-behavior: smooth; /* Плавність для браузерів */
-  
+
   /* Ховаємо скролбар */
-  scrollbar-width: none; 
+  scrollbar-width: none;
 }
 
 .photo-modal-thumbs::-webkit-scrollbar {
@@ -367,7 +366,7 @@
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
-  
+
   flex-shrink: 0; /* ЗАБОРОНЯЄМО картинкам ставати вужчими */
 }
 

@@ -36,7 +36,8 @@ export function useCancelableApi() {
 
   return {
     get: (url, cfg = {}) => request({ url, method: "GET", ...cfg }),
-    post: (url, data, cfg = {}) => request({ url, method: "POST", data, ...cfg }),
+    post: (url, data, cfg = {}) =>
+      request({ url, method: "POST", data, ...cfg }),
     put: (url, data, cfg = {}) => request({ url, method: "PUT", data, ...cfg }),
     delete: (url, cfg = {}) => request({ url, method: "DELETE", ...cfg }),
   };

@@ -5,13 +5,18 @@ import smbclient
 from celery.schedules import crontab
 import os
 
+from pathlib import Path
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG=False
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -45,6 +50,7 @@ INSTALLED_APPS = [
     'payments',
     'reclamations',
     'additional_order',
+    'silk',
     # 'documents',
     # 'order',
     # 'organizations_and_regions',
@@ -53,11 +59,13 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',     # 1. Завжди перший
+    'csp.middleware.CSPMiddleware',                    # 2. Одразу після security
     'corsheaders.middleware.CorsMiddleware',
+    'silk.middleware.SilkyMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',         # МАЄ БУТИ РОЗКОМЕНТОВАНО
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -183,8 +191,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'info.viknastyle@gmail.com'
-EMAIL_HOST_PASSWORD ='nkhadfbjrejzgxaq'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -319,3 +327,33 @@ CSRF_TRUSTED_ORIGINS = [
 # settings.py
 
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
+
+
+SILKY_PYTHON_PROFILER = True  # Щоб бачити не тільки SQL, а й час виконання функцій
+SILKY_INTERCEPT_PERCENT = 100 # Записувати 100% запитів (для розробки)
+
+
+
+# Базова політика: дозволяємо тільки зі свого домену
+CSP_DEFAULT_SRC = ("'self'",)
+
+# Дозволяємо скрипти та стилі (ZAP підсвічував unsafe-inline, з цим треба обережно)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'") 
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+
+# Виправляємо помилку зі скрина:
+CSP_FRAME_ANCESTORS = ("'self'",) # Тільки ваш сайт може вставляти себе у фрейми (захист від клікджекінгу)
+CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати дані тільки на ваш сервер
+
+# Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
+CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
+
+# Додайте це під ALLOWED_HOSTS
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY' # Захист від клікджекінгу
+
+# # Якщо ваш сайт працює на HTTPS (ordersportal.vstg.com.ua):
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True

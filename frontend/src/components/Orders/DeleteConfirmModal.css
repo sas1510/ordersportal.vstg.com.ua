@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.25);
+  background: rgba(0, 0, 0, 0.25);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,10 +23,11 @@
   opacity: 0;
   position: relative;
   animation: zoomIn 0.3s forwards;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
-.modal-border-top, .modal-border-bottom {
+.modal-border-top,
+.modal-border-bottom {
   height: 6px;
   background-color: #e74c3c;
   width: 100%;
@@ -54,7 +55,6 @@
   align-items: center;
   margin: 40px 0 20px 0;
   transform: translateY(-20px);
- 
 }
 
 .header-icon {
@@ -94,12 +94,14 @@
   border: none;
   font-size: 15px;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .btn-grey-delete {
@@ -116,94 +118,109 @@
 
 /* Анімації */
 @keyframes fadeIn {
-  from {opacity: 0;}
-  to {opacity: 1;}
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes zoomIn {
-  from {opacity: 0; transform: scale(0.8);}
-  to {opacity: 1; transform: scale(1);}
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideDown {
-  from {opacity: 0; transform: translateY(-20px);}
-  to {opacity: 1; transform: translateY(0);}
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* --- DARK MODE: СТИЛІ МОДАЛЬНОГО ВІКНА SQUARE --- */
 
 /* ===== Overlay ===== */
 body.dark-theme .modal-overlay {
-    /* Робимо затемнення більш насиченим */
-    background: rgba(0, 0, 0, 0.7);
+  /* Робимо затемнення більш насиченим */
+  background: rgba(0, 0, 0, 0.7);
 }
 
 body.dark-theme .modal-header {
-    background: #1e1e1e;
-    border: none;
- 
+  background: #1e1e1e;
+  border: none;
 }
 
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .modal-content-square {
-    /* Темний фон вікна */
-    background: #1e1e1e;
-    color: #f0f0f0; /* Світлий текст за замовчуванням */
-    /* Темна тінь */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  /* Темний фон вікна */
+  background: #1e1e1e;
+  color: #f0f0f0; /* Світлий текст за замовчуванням */
+  /* Темна тінь */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* ===== Межі (Верхня та Нижня) ===== */
 body.dark-theme .modal-border-top,
 body.dark-theme .modal-border-bottom {
-    /* Зберігаємо акцентний червоний колір */
-    background-color: #e74c3c;
+  /* Зберігаємо акцентний червоний колір */
+  background-color: #e74c3c;
 }
 
 /* ===== Header та Іконка ===== */
 
 /* Фон для обгортки іконки */
 body.dark-theme .header-icon {
-    /* Робимо темніший, але все ще контрастний фон для іконки */
-    background: #3a1e1e; /* Темно-червоний / насичений фон */
+  /* Робимо темніший, але все ще контрастний фон для іконки */
+  background: #3a1e1e; /* Темно-червоний / насичений фон */
 }
 /* Іконка всередині (якщо вона має клас, тут її колір має бути білим, 
    якщо вона не задана як :before) */
 body.dark-theme .header-icon .icon {
-    color: #e74c3c; /* Акцентний червоний колір іконки */
+  color: #e74c3c; /* Акцентний червоний колір іконки */
 }
 
 /* ===== Тіло модалки та текст ===== */
 body.dark-theme .modal-body p {
-    color: #f0f0f0;
+  color: #f0f0f0;
 }
 
 body.dark-theme .modal-body .description {
-    color: #aaaaaa; /* Світло-сірий для опису */
+  color: #aaaaaa; /* Світло-сірий для опису */
 }
 
 /* ===== Footer та Кнопки ===== */
 
 /* 1. Кнопка "Сіра" (btn-grey) */
 body.dark-theme .btn-grey-delete {
-    background: #555555; /* Темно-сірий фон */
-    color: #f0f0f0; /* Світлий текст */
+  background: #555555; /* Темно-сірий фон */
+  color: #f0f0f0; /* Світлий текст */
 }
 
 body.dark-theme .btn-grey-delete:hover {
-    transform: scale(1.05);
-    background: #666666; /* Трохи світліший hover */
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+  background: #666666; /* Трохи світліший hover */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* 2. Кнопка "Небезпека" (btn-danger) */
 body.dark-theme .btn-danger-delete {
-    background: #b53729; /* Глибший, насичений червоний */
-    color: #fff;
+  background: #b53729; /* Глибший, насичений червоний */
+  color: #fff;
 }
 
 body.dark-theme .btn-danger-delete:hover {
-    transform: scale(1.05);
-    background: #c23c2d; /* Трохи світліший hover */
-    box-shadow: 0 6px 16px rgba(181, 55, 41, 0.6); /* Темна тінь з червоним відтінком */
+  transform: scale(1.05);
+  background: #c23c2d; /* Трохи світліший hover */
+  box-shadow: 0 6px 16px rgba(181, 55, 41, 0.6); /* Темна тінь з червоним відтінком */
 }

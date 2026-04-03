@@ -1,45 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import axiosInstance from '../api/axios';
-import { useAuth } from '../hooks/useAuth';
-import { useNotification } from '../components/notification/Notifications';
-import './EmergencyContactsPage.css';
-
+import React, { useEffect, useState, useCallback } from "react";
+import axiosInstance from "../api/axios";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../hooks/useNotification";
+import "./EmergencyContactsPage.css";
 
 const EmergencyContactsPage = () => {
   const [contacts, setContacts] = useState([]);
-  const { user, role } = useAuth();
+  const { user, role } = useAuthGetRole();
   const { addNotification } = useNotification();
 
   // const role = localStorage.getItem('role');
   // const isAdmin = role === 'admin';
-  const isAdmin = role === 'admin';
-  
+  const isAdmin = role === "admin";
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
   const [newContact, setNewContact] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    telegramId: '',
-    department: '',
+    name: "",
+    phone: "",
+    email: "",
+    telegramId: "",
+    department: "",
   });
 
   const [deleteContactId, setDeleteContactId] = useState(null); // для модалки видалення
   const [isSending, setIsSending] = useState(false);
 
-  useEffect(() => {
-    fetchContacts();
-  }, []);
 
-  const fetchContacts = async () => {
+    const fetchContacts = useCallback(async () => {
     try {
-      const response = await axiosInstance.get('/contacts/');
+      const response = await axiosInstance.get("/contacts/");
       setContacts(response.data);
     } catch (error) {
-      console.error('Помилка при отриманні контактів:', error);
-      addNotification('Не вдалося отримати список контактів', 'error');
+      console.error("Помилка при отриманні контактів:", error);
+      addNotification("Не вдалося отримати список контактів", "error");
     }
-  };
+  }, [addNotification]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [fetchContacts]);
+
+
 
   const openEditModal = (contact) => {
     setEditingContact(contact);
@@ -47,7 +50,7 @@ const EmergencyContactsPage = () => {
       name: contact.contact_name,
       phone: contact.phone,
       email: contact.email,
-      telegramId: contact.telegram_id || '',
+      telegramId: contact.telegram_id || "",
       department: contact.department,
     });
     setIsModalOpen(true);
@@ -58,7 +61,13 @@ const EmergencyContactsPage = () => {
       setEditingContact(null);
       setDeleteContactId(null);
       setIsModalOpen(false);
-      setNewContact({ name: '', phone: '', email: '', telegramId: '', department: '' });
+      setNewContact({
+        name: "",
+        phone: "",
+        email: "",
+        telegramId: "",
+        department: "",
+      });
     }
   };
 
@@ -66,31 +75,40 @@ const EmergencyContactsPage = () => {
     e.preventDefault();
     const { name, phone, email, telegramId, department } = newContact;
     if (!name || !phone || !email || !department) {
-      return addNotification('Заповніть всі обов\'язкові поля', 'warning');
+      return addNotification("Заповніть всі обов'язкові поля", "warning");
     }
 
     setIsSending(true);
-    const payload = { contact_name: name, phone, email, telegram_id: telegramId, department };
+    const payload = {
+      contact_name: name,
+      phone,
+      email,
+      telegram_id: telegramId,
+      department,
+    };
 
     try {
       let updatedContact;
       if (editingContact) {
-        const response = await axiosInstance.put(`/contacts/${editingContact.id}/`, payload);
+        const response = await axiosInstance.put(
+          `/contacts/${editingContact.id}/`,
+          payload,
+        );
         updatedContact = response.data;
         setContacts((prev) =>
-          prev.map((c) => (c.id === editingContact.id ? updatedContact : c))
+          prev.map((c) => (c.id === editingContact.id ? updatedContact : c)),
         );
-        addNotification('✅ Контакт оновлено', 'success');
+        addNotification("✅ Контакт оновлено", "success");
       } else {
-        const response = await axiosInstance.post('/contacts/', payload);
+        const response = await axiosInstance.post("/contacts/", payload);
         updatedContact = response.data;
         setContacts((prev) => [...prev, updatedContact]);
-        addNotification('✅ Контакт додано', 'success');
+        addNotification("✅ Контакт додано", "success");
       }
       closeModal();
     } catch (error) {
-      console.error('Помилка при збереженні контакту:', error);
-      addNotification('❌ Не вдалося зберегти контакт', 'error');
+      console.error("Помилка при збереженні контакту:", error);
+      addNotification("❌ Не вдалося зберегти контакт", "error");
     } finally {
       setIsSending(false);
     }
@@ -106,11 +124,11 @@ const EmergencyContactsPage = () => {
     try {
       await axiosInstance.delete(`/contacts/${deleteContactId}/`);
       setContacts((prev) => prev.filter((c) => c.id !== deleteContactId));
-      addNotification('✅ Контакт видалено', 'success');
+      addNotification("✅ Контакт видалено", "success");
       closeModal();
     } catch (error) {
-      console.error('Помилка при видаленні контакту:', error);
-      addNotification('❌ Не вдалося видалити контакт', 'error');
+      console.error("Помилка при видаленні контакту:", error);
+      addNotification("❌ Не вдалося видалити контакт", "error");
     } finally {
       setIsSending(false);
     }
@@ -119,17 +137,18 @@ const EmergencyContactsPage = () => {
   const handleCallContact = async (contactId) => {
     if (!contactId || isSending) return;
     setIsSending(true);
-    addNotification('Повідомлення надсилається...', 'info');
+    addNotification("Повідомлення надсилається...", "info");
     try {
       const payload = {
         contact_id: contactId,
-        client_name: user?.full_name || user?.username || 'Невідомий користувач',
+        client_name:
+          user?.full_name || user?.username || "Невідомий користувач",
       };
-      await axiosInstance.post('/urgent-call/', payload);
-      addNotification('Повідомлення надіслано', 'success');
+      await axiosInstance.post("/urgent-call/", payload);
+      addNotification("Повідомлення надіслано", "success");
     } catch (error) {
-      console.error('Помилка при надсиланні повідомлення:', error);
-      addNotification('Не вдалося надіслати повідомлення', 'error');
+      console.error("Помилка при надсиланні повідомлення:", error);
+      addNotification("Не вдалося надіслати повідомлення", "error");
     } finally {
       setIsSending(false);
     }
@@ -140,7 +159,7 @@ const EmergencyContactsPage = () => {
       <h1 className="text-color mt-3 text-4xl font-bold pb-0">
         Контакти для термінового дзвінка
       </h1>
-      <div style={{ border: '1px dashed #ccc', marginBottom: '5px' }}></div>
+      <div style={{ border: "1px dashed #ccc", marginBottom: "5px" }}></div>
 
       <div className="space-y-6">
         {contacts.length === 0 && (
@@ -151,13 +170,16 @@ const EmergencyContactsPage = () => {
             <div className="emergency-column">
               <div className="emergency-text-info">{contact.contact_name}</div>
               <div className="emergency-text-grey flex items-center gap-2">
-                <span className="text-red-500 text-lg">📞</span> {contact.phone || '-'}
+                <span className="text-red-500 text-lg">📞</span>{" "}
+                {contact.phone || "-"}
               </div>
               <div className="emergency-text-grey flex items-center gap-2">
-                <span className="text-blue-500 text-lg">✉️</span> {contact.email || '-'}
+                <span className="text-blue-500 text-lg">✉️</span>{" "}
+                {contact.email || "-"}
               </div>
               <div className="emergency-text-grey italic text-sm flex items-center gap-2">
-                <span className="text-green-500 text-lg">🧩</span> {contact.department || '-'}
+                <span className="text-green-500 text-lg">🧩</span>{" "}
+                {contact.department || "-"}
               </div>
             </div>
 
@@ -194,16 +216,27 @@ const EmergencyContactsPage = () => {
       {/* Модал додавання/редагування */}
       {isModalOpen && (
         <div className="video-modal-overlay" onClick={closeModal}>
-          <div className="video-modal-window" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="video-modal-window"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="video-modal-header">
-              <h3>{editingContact ? '✏️ Редагування контакту' : '➕ Додати контакт'}</h3>
-              <button className="video-close-btn" onClick={closeModal}>✕</button>
+              <h3>
+                {editingContact
+                  ? "✏️ Редагування контакту"
+                  : "➕ Додати контакт"}
+              </h3>
+              <button className="video-close-btn" onClick={closeModal}>
+                ✕
+              </button>
             </div>
             <form className="video-form" onSubmit={handleSaveContact}>
               <div className="modal-field">
                 <input
                   value={newContact.name}
-                  onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
+                  onChange={(e) =>
+                    setNewContact({ ...newContact, name: e.target.value })
+                  }
                   placeholder="Ім'я"
                   required
                   className="video-input"
@@ -212,7 +245,9 @@ const EmergencyContactsPage = () => {
               <div className="modal-field">
                 <input
                   value={newContact.phone}
-                  onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                  onChange={(e) =>
+                    setNewContact({ ...newContact, phone: e.target.value })
+                  }
                   placeholder="Телефон"
                   required
                   className="video-input"
@@ -221,7 +256,9 @@ const EmergencyContactsPage = () => {
               <div className="modal-field">
                 <input
                   value={newContact.email}
-                  onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                  onChange={(e) =>
+                    setNewContact({ ...newContact, email: e.target.value })
+                  }
                   placeholder="Email"
                   type="email"
                   required
@@ -231,7 +268,9 @@ const EmergencyContactsPage = () => {
               <div className="modal-field">
                 <input
                   value={newContact.telegramId}
-                  onChange={(e) => setNewContact({ ...newContact, telegramId: e.target.value })}
+                  onChange={(e) =>
+                    setNewContact({ ...newContact, telegramId: e.target.value })
+                  }
                   placeholder="Telegram ID"
                   className="video-input"
                 />
@@ -239,16 +278,28 @@ const EmergencyContactsPage = () => {
               <div className="modal-field">
                 <input
                   value={newContact.department}
-                  onChange={(e) => setNewContact({ ...newContact, department: e.target.value })}
+                  onChange={(e) =>
+                    setNewContact({ ...newContact, department: e.target.value })
+                  }
                   placeholder="Відділ"
                   required
                   className="video-input"
                 />
               </div>
               <div className="video-modal-footer">
-                <button type="button" className="video-btn-cancel" onClick={closeModal}>✕ Скасувати</button>
+                <button
+                  type="button"
+                  className="video-btn-cancel"
+                  onClick={closeModal}
+                >
+                  ✕ Скасувати
+                </button>
                 <button type="submit" className="video-btn-save">
-                  {isSending ? 'Зберігаю...' : editingContact ? '💾 Оновити' : '💾 Додати'}
+                  {isSending
+                    ? "Зберігаю..."
+                    : editingContact
+                      ? "💾 Оновити"
+                      : "💾 Додати"}
                 </button>
               </div>
             </form>
@@ -259,24 +310,38 @@ const EmergencyContactsPage = () => {
       {/* Модал видалення */}
       {deleteContactId && (
         <div className="video-modal-overlay" onClick={closeModal}>
-          <div className="video-modal-window" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="video-modal-window"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="video-modal-header">
               <h3>⚠️ Підтвердження видалення</h3>
-              <button className="video-close-btn" onClick={closeModal}>✕</button>
+              <button className="video-close-btn" onClick={closeModal}>
+                ✕
+              </button>
             </div>
             <p className="p-4 text-center">
               Ви впевнені, що хочете видалити контакт?
             </p>
             <div className="video-modal-footer">
-              <button className="video-btn-cancel" onClick={closeModal} disabled={isSending}>✕ Відмінити</button>
-              <button className="video-btn-save" onClick={handleDeleteContact} disabled={isSending}>
-                {isSending ? 'Видаляю...' : '✅ Видалити'}
+              <button
+                className="video-btn-cancel"
+                onClick={closeModal}
+                disabled={isSending}
+              >
+                ✕ Відмінити
+              </button>
+              <button
+                className="video-btn-save"
+                onClick={handleDeleteContact}
+                disabled={isSending}
+              >
+                {isSending ? "Видаляю..." : "✅ Видалити"}
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

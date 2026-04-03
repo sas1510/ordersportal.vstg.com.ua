@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axiosInstance from "../api/axios";
-import { useNotification } from "../components/notification/Notifications";
+import { useNotification } from "../hooks/useNotification";
 import { UserX, X, ShieldAlert, Loader2 } from "lucide-react";
 
 import "../pages/DeactivateUserModal.css"; // 👈 CSS ПІДКЛЮЧЕНО
@@ -17,7 +17,7 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
 
       addNotification(
         `Користувача ${user.username} успішно деактивовано`,
-        "success"
+        "success",
       );
 
       setTimeout(() => {
@@ -25,6 +25,7 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
         onClose();
       }, 700);
     } catch (e) {
+      console.error("Error deactivating user:", e);
       addNotification("Помилка деактивації користувача", "error");
     }
 
@@ -47,10 +48,7 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
             <h3 className="text-lg font-semibold">Деактивація користувача</h3>
           </div>
 
-          <button
-            className="hover:opacity-80 transition"
-            onClick={onClose}
-          >
+          <button className="hover:opacity-80 transition" onClick={onClose}>
             <X size={24} />
           </button>
         </div>
@@ -71,8 +69,8 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
           </p>
 
           <p>
-            Після деактивації користувач <strong>не зможе увійти</strong> в портал,
-            доки його не активують знову.
+            Після деактивації користувач <strong>не зможе увійти</strong> в
+            портал, доки його не активують знову.
           </p>
         </div>
 

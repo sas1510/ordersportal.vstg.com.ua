@@ -127,7 +127,6 @@
 //     setIsPreciseLocation(false);
 //   };
 
-
 //   /* ================= LOAD ADDRESSES ================= */
 //   useEffect(() => {
 //     if (!contractorGuid) return;
@@ -137,8 +136,6 @@
 //       })
 //       .then((res) => setAddresses(res.data.addresses || []));
 //   }, [contractorGuid]);
-
-  
 
 //   /* ================= FORM → SEARCH ================= */
 //   // useEffect(() => {
@@ -450,7 +447,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import axiosInstance from "../api/axios";
 import { useDealerContext } from "../hooks/useDealerContext";
 import { FaPlus, FaSearch } from "react-icons/fa";
-import { useNotification } from "../components/notification/Notifications";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../hooks/useNotification";
 import ConfirmAddressModal from "./ConfirmAddressModal";
 
 import {
@@ -490,15 +488,12 @@ function MapViewUpdater({ center, zoom }) {
   return null;
 }
 
-
-
-
 /* ================= REVERSE GEOCODE ================= */
 const reverseGeocode = async (lat, lon) => {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      { headers: { "Accept-Language": "uk" } }
+      { headers: { "Accept-Language": "uk" } },
     );
     const data = await res.json();
     return data?.display_name || "";
@@ -508,45 +503,48 @@ const reverseGeocode = async (lat, lon) => {
 };
 
 /* ================= LOCATION LINK PARSER ================= */
-function extractCoordsFromText(text) {
-  if (!text) return null;
+// function extractCoordsFromText(text) {
+//   if (!text) return null;
 
-  const patterns = [
-    /[?&]ll=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,   // Apple Maps, Telegram
-    /[?&]q=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,    // Google Maps
-    /ll=(-?\d+\.\d+),\s*(-?\d+\.\d+)/,       // t.me/maps
-    /(-?\d+\.\d+),\s*(-?\d+\.\d+)/           // fallback (чисті координати)
-  ];
+//   const patterns = [
+//     /[?&]ll=(-?\d+\.\d+),\s*(-?\d+\.\d+)/, // Apple Maps, Telegram
+//     /[?&]q=(-?\d+\.\d+),\s*(-?\d+\.\d+)/, // Google Maps
+//     /ll=(-?\d+\.\d+),\s*(-?\d+\.\d+)/, // t.me/maps
+//     /(-?\d+\.\d+),\s*(-?\d+\.\d+)/, // fallback (чисті координати)
+//   ];
 
-  for (const p of patterns) {
-    const m = text.match(p);
-    if (m) return [+m[1], +m[2]];
-  }
-  return null;
-}
-
-
+//   for (const p of patterns) {
+//     const m = text.match(p);
+//     if (m) return [+m[1], +m[2]];
+//   }
+//   return null;
+// }
 
 /* ================= PAGE ================= */
 export default function DealerAddressesPage() {
-
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const dealerCtx = useDealerContext();
-  const contractorGuid = dealerCtx?.dealerGuid || dealerCtx?.currentUser?.user_id_1c;
-
+  const contractorGuid =
+    dealerCtx?.dealerGuid || dealerCtx?.currentUser?.user_id_1c;
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isNewAddress, setIsNewAddress] = useState(false);
-  const [locationLink, setLocationLink] = useState("");
-
+  // const [locationLink, setLocationLink] = useState("");
 
   const [selectedCoords, setSelectedCoords] = useState(null);
   const [mapDisplayName, setMapDisplayName] = useState("");
   const { addNotification } = useNotification();
   const [formAddr, setFormAddr] = useState({
-    region: "", district: "", city: "", street: "", house: "",
-    apartment: "", entrance: "", floor: "", note: "",
+    region: "",
+    district: "",
+    city: "",
+    street: "",
+    house: "",
+    apartment: "",
+    entrance: "",
+    floor: "",
+    note: "",
   });
 
   const [search, setSearch] = useState("");
@@ -558,23 +556,22 @@ export default function DealerAddressesPage() {
 
   const debounceRef = useRef(null);
 
-  
-const notifiedRef = useRef(false);
+  const notifiedRef = useRef(false);
 
-useEffect(() => {
-  if (noResults && search.length >= 3 && !notifiedRef.current) {
-    addNotification(
-      "Адресу не знайдено. Спробуйте уточнити запит або поставте точку вручну.",
-      "warning"
-    );
-    notifiedRef.current = true; // 🔒 блокуємо повтори
-  }
+  useEffect(() => {
+    if (noResults && search.length >= 3 && !notifiedRef.current) {
+      addNotification(
+        "Адресу не знайдено. Спробуйте уточнити запит або поставте точку вручну.",
+        "warning",
+      );
+      notifiedRef.current = true; // 🔒 блокуємо повтори
+    }
 
-  // якщо користувач змінив запит — дозволяємо нове повідомлення
-  if (!noResults) {
-    notifiedRef.current = false;
-  }
-}, [noResults, search, addNotification]);
+    // якщо користувач змінив запит — дозволяємо нове повідомлення
+    if (!noResults) {
+      notifiedRef.current = false;
+    }
+  }, [noResults, search, addNotification]);
 
   /* ================= HELPERS ================= */
   const parseCoords = useCallback((coords) => {
@@ -586,27 +583,30 @@ useEffect(() => {
 
   const buildAddressFromForm = (form) => {
     return [
-      form.region, form.district, form.city, form.street, form.house && `${form.house}`,
-    ].filter(Boolean).join(", ");
+      form.region,
+      form.district,
+      form.city,
+      form.street,
+      form.house && `${form.house}`,
+    ]
+      .filter(Boolean)
+      .join(", ");
   };
 
   /* ================= LOAD ADDRESSES ================= */
   const loadAddresses = useCallback(async () => {
-  if (!contractorGuid) return;
+    if (!contractorGuid) return;
 
-  const res = await axiosInstance.get(
-    "/get_dealer_addresses_change/"
-  );
+    const res = await axiosInstance.get("/get_dealer_addresses_change/");
 
-  const list = res.data.addresses || [];
-  setAddresses(list);
+    const list = res.data.addresses || [];
+    setAddresses(list);
 
-  // ✅ АВТОВИБІР АДРЕСИ
-  if (!selectedAddress && list.length > 0) {
-    onSelectAddress(list[0]); // перша адреса
-  }
-}, [selectedAddress]);
-
+    // ✅ АВТОВИБІР АДРЕСИ
+    if (!selectedAddress && list.length > 0) {
+      onSelectAddress(list[0]); // перша адреса
+    }
+  }, [selectedAddress]);
 
   useEffect(() => {
     loadAddresses();
@@ -615,29 +615,33 @@ useEffect(() => {
   /* ================= SEARCH LOGIC ================= */
   const triggerSearch = (query) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    
+
     // Якщо поле очистили — прибираємо підказки
     if (!query.trim() || query.length < 3) {
-        setSuggestions([]);
-        setNoResults(false);
-        return;
+      setSuggestions([]);
+      setNoResults(false);
+      return;
     }
 
     debounceRef.current = setTimeout(async () => {
       const params = new URLSearchParams({
-        q: query, format: "json", limit: 5, countrycodes: "ua",
+        q: query,
+        format: "json",
+        limit: 5,
+        countrycodes: "ua",
       });
 
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?${params}`,
-          { headers: { "Accept-Language": "uk" } }
+          { headers: { "Accept-Language": "uk" } },
         );
         const data = await res.json();
-        
+
         setSuggestions(data);
         setNoResults(data.length === 0); // 🆕 Якщо масив порожній — активуємо повідомлення
       } catch (err) {
+        console.error("Error fetching suggestions:", err);
         setNoResults(true);
       }
     }, 400);
@@ -656,28 +660,27 @@ useEffect(() => {
     setIsPreciseLocation(false);
   };
 
-  const handlePasteLocation = async () => {
-  const coords = extractCoordsFromText(locationLink);
+  //   const handlePasteLocation = async () => {
+  //   const coords = extractCoordsFromText(locationLink);
 
-  if (!coords) {
-    addNotification(
-      "Не вдалося знайти координати в посиланні. Вставте локацію з Telegram / Viber / Apple / Google Maps.",
-      "warning"
-    );
-    return;
-  }
+  //   if (!coords) {
+  //     addNotification(
+  //       "Не вдалося знайти координати в посиланні. Вставте локацію з Telegram / Viber / Apple / Google Maps.",
+  //       "warning"
+  //     );
+  //     return;
+  //   }
 
-  setSelectedCoords(coords);
-  setIsPreciseLocation(true);
-  setShowDragHint(false);
+  //   setSelectedCoords(coords);
+  //   setIsPreciseLocation(true);
+  //   setShowDragHint(false);
 
-  const address = await reverseGeocode(coords[0], coords[1]);
-  setMapDisplayName(address || "Локація з повідомлення");
-  setSearch(address || "");
+  //   const address = await reverseGeocode(coords[0], coords[1]);
+  //   setMapDisplayName(address || "Локація з повідомлення");
+  //   setSearch(address || "");
 
-  addNotification("📍 Локацію успішно визначено", "success");
-};
-
+  //   addNotification("📍 Локацію успішно визначено", "success");
+  // };
 
   /* ================= SAVE LOGIC ================= */
   const handleRequestSave = () => {
@@ -693,54 +696,56 @@ useEffect(() => {
   };
 
   const saveCoords = async () => {
-  setIsConfirmModalOpen(false);
-  setSaving(true);
-  try {
-    if (!selectedCoords || !isPreciseLocation) {
-      addNotification("Будь ласка, вкажіть точну точку на карті", "warning");
-      return;
-    }
+    setIsConfirmModalOpen(false);
+    setSaving(true);
+    try {
+      if (!selectedCoords || !isPreciseLocation) {
+        addNotification("Будь ласка, вкажіть точну точку на карті", "warning");
+        return;
+      }
 
-    // POST для збереження координат
-    await axiosInstance.post("/save_dealer_address_coords/", {
-      contractorGuid,
-      addressKindGUID: selectedAddress?.AddressKindGUID || null,
-      latitude: selectedCoords[0],
-      longitude: selectedCoords[1],
-      house: formAddr.house,
-      street: formAddr.street,
-      city: formAddr.city,
-      region: formAddr.region,
-      district: formAddr.district,
-      apartment: formAddr.apartment,
-      entrance: formAddr.entrance,
-      floor: formAddr.floor,
-      note: formAddr.note,
-    });
-
-    addNotification("✅ Дані успішно оновлено", "success");
-
-    // 🔄 Тепер оновлюємо список адрес із 1С
-    await loadAddresses();
-
-    // Опційно: виділяємо останню збережену адресу
-    if (selectedCoords) {
-      const lastSaved = addresses.find(a => {
-        const coords = parseCoords(a.Coordinates);
-        return coords && coords[0] === selectedCoords[0] && coords[1] === selectedCoords[1];
+      // POST для збереження координат
+      await axiosInstance.post("/save_dealer_address_coords/", {
+        contractorGuid,
+        addressKindGUID: selectedAddress?.AddressKindGUID || null,
+        latitude: selectedCoords[0],
+        longitude: selectedCoords[1],
+        house: formAddr.house,
+        street: formAddr.street,
+        city: formAddr.city,
+        region: formAddr.region,
+        district: formAddr.district,
+        apartment: formAddr.apartment,
+        entrance: formAddr.entrance,
+        floor: formAddr.floor,
+        note: formAddr.note,
       });
-      if (lastSaved) setSelectedAddress(lastSaved);
-      setIsNewAddress(false);
+
+      addNotification("✅ Дані успішно оновлено", "success");
+
+      // 🔄 Тепер оновлюємо список адрес із 1С
+      await loadAddresses();
+
+      // Опційно: виділяємо останню збережену адресу
+      if (selectedCoords) {
+        const lastSaved = addresses.find((a) => {
+          const coords = parseCoords(a.Coordinates);
+          return (
+            coords &&
+            coords[0] === selectedCoords[0] &&
+            coords[1] === selectedCoords[1]
+          );
+        });
+        if (lastSaved) setSelectedAddress(lastSaved);
+        setIsNewAddress(false);
+      }
+    } catch (err) {
+      console.error(err);
+      addNotification("❌ Помилка збереження", "error");
+    } finally {
+      setSaving(false);
     }
-
-  } catch (err) {
-    console.error(err);
-    addNotification("❌ Помилка збереження", "error");
-  } finally {
-    setSaving(false);
-  }
-};
-
+  };
 
   const onAddNewAddress = () => {
     setIsNewAddress(true);
@@ -753,8 +758,15 @@ useEffect(() => {
     setShowDragHint(false);
     setIsPreciseLocation(false);
     setFormAddr({
-      region: "", district: "", city: "", street: "", house: "",
-      apartment: "", entrance: "", floor: "", note: "",
+      region: "",
+      district: "",
+      city: "",
+      street: "",
+      house: "",
+      apartment: "",
+      entrance: "",
+      floor: "",
+      note: "",
     });
   };
 
@@ -764,9 +776,15 @@ useEffect(() => {
     setSelectedAddress(addr);
     setShowDragHint(false);
     setFormAddr({
-      region: addr.Region || "", district: addr.District || "", city: addr.City || "",
-      street: addr.Street || "", house: addr.HouseNumber || "", apartment: addr.FlatNumber || "",
-      entrance: "", floor: "", note: addr.Comment || "",
+      region: addr.Region || "",
+      district: addr.District || "",
+      city: addr.City || "",
+      street: addr.Street || "",
+      house: addr.HouseNumber || "",
+      apartment: addr.FlatNumber || "",
+      entrance: "",
+      floor: "",
+      note: addr.Comment || "",
     });
 
     const coords = parseCoords(addr.Coordinates);
@@ -797,18 +815,28 @@ useEffect(() => {
   };
 
   return (
-    <div className="portal-body" style={{marginTop: '10px'}}>
+    <div className="portal-body" style={{ marginTop: "10px" }}>
       <div className="layout">
         <div className="address-list">
           <h3>Адреси: </h3>
-          <button className="btn-save-address" onClick={onAddNewAddress} style={{ width: "100%", marginBottom: "10px" }}>
+          <button
+            className="btn-save-address"
+            onClick={onAddNewAddress}
+            style={{ width: "100%", marginBottom: "10px" }}
+          >
             <FaPlus /> Додати нову адресу
           </button>
 
           {addresses.map((a) => (
-            <div key={a.AddressKindGUID} className={`address-item ${selectedAddress?.AddressKindGUID === a.AddressKindGUID ? "active" : ""}`} onClick={() => onSelectAddress(a)}>
+            <div
+              key={a.AddressKindGUID}
+              className={`address-item ${selectedAddress?.AddressKindGUID === a.AddressKindGUID ? "active" : ""}`}
+              onClick={() => onSelectAddress(a)}
+            >
               <div className="title">{a.AddressValue}</div>
-              {!parseCoords(a.Coordinates) && <div className="warning">📍 Потрібна точка</div>}
+              {!parseCoords(a.Coordinates) && (
+                <div className="warning">📍 Потрібна точка</div>
+              )}
             </div>
           ))}
         </div>
@@ -818,24 +846,89 @@ useEffect(() => {
             <>
               <div className="address-optimizer-form">
                 <div className="form-grid">
-                  <input placeholder="Область" value={formAddr.region} onChange={(e) => setFormAddr({ ...formAddr, region: e.target.value })} />
-                  <input placeholder="Район" value={formAddr.district} onChange={(e) => setFormAddr({ ...formAddr, district: e.target.value })} />
-                  <input placeholder="Місто" value={formAddr.city} onChange={(e) => setFormAddr({ ...formAddr, city: e.target.value })} />
-                  <input placeholder="Вулиця" value={formAddr.street} onChange={(e) => setFormAddr({ ...formAddr, street: e.target.value })} />
-                  <input placeholder="Будинок *" style={{ borderColor: !formAddr.house ? "#ffa500" : "" }} value={formAddr.house} onChange={(e) => setFormAddr({ ...formAddr, house: e.target.value })} />
-                  <input placeholder="Квартира" value={formAddr.apartment} onChange={(e) => setFormAddr({ ...formAddr, apartment: e.target.value })} />
-                  <input placeholder="Підʼїзд" value={formAddr.entrance} onChange={(e) => setFormAddr({ ...formAddr, entrance: e.target.value })} />
-                  <input placeholder="Поверх" value={formAddr.floor} onChange={(e) => setFormAddr({ ...formAddr, floor: e.target.value })} />
-                  <input placeholder="Примітка" value={formAddr.note} onChange={(e) => setFormAddr({ ...formAddr, note: e.target.value })} />
+                  <input
+                    placeholder="Область"
+                    value={formAddr.region}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, region: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Район"
+                    value={formAddr.district}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, district: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Місто"
+                    value={formAddr.city}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, city: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Вулиця"
+                    value={formAddr.street}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, street: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Будинок *"
+                    style={{ borderColor: !formAddr.house ? "#ffa500" : "" }}
+                    value={formAddr.house}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, house: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Квартира"
+                    value={formAddr.apartment}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, apartment: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Підʼїзд"
+                    value={formAddr.entrance}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, entrance: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Поверх"
+                    value={formAddr.floor}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, floor: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Примітка"
+                    value={formAddr.note}
+                    onChange={(e) =>
+                      setFormAddr({ ...formAddr, note: e.target.value })
+                    }
+                  />
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
-                  <button className="btn-save-address" type="button" onClick={handleFindOnMap}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <button
+                    className="btn-save-address"
+                    type="button"
+                    onClick={handleFindOnMap}
+                  >
                     <FaSearch /> Знайти на карті
                   </button>
                 </div>
               </div>
               <div className="location-paste-box">
-              {/* <input
+                {/* <input
                 className="search-input"
                 placeholder="Вставте локацію (Telegram / Viber / Apple / Google Maps)"
                 value={locationLink}
@@ -849,21 +942,18 @@ useEffect(() => {
               >
                 📍 Використати локацію
               </button> */}
-            </div>
-
+              </div>
 
               <div className="search-box-address">
                 <input
                   className="search-input"
                   value={search}
-                  onChange={(e) => { 
-                      setSearch(e.target.value); 
-                      triggerSearch(e.target.value); 
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    triggerSearch(e.target.value);
                   }}
                   placeholder="Пошук адреси на карті..."
                 />
-
-
 
                 {suggestions.length > 0 && (
                   <div className="suggestions-dropdown">
@@ -898,20 +988,47 @@ useEffect(() => {
                 <MapContainer center={DEFAULT_CENTER} zoom={6}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <MapViewUpdater center={selectedCoords} />
-                  <ClickHandler enabled onSelect={setSelectedCoords} onAddressFound={onAddressUpdateFromMap} />
-                  {selectedCoords && <Marker position={selectedCoords} draggable={true} eventHandlers={{ dragend: handleMarkerDrag }} />}
+                  <ClickHandler
+                    enabled
+                    onSelect={setSelectedCoords}
+                    onAddressFound={onAddressUpdateFromMap}
+                  />
+                  {selectedCoords && (
+                    <Marker
+                      position={selectedCoords}
+                      draggable={true}
+                      eventHandlers={{ dragend: handleMarkerDrag }}
+                    />
+                  )}
                 </MapContainer>
               </div>
 
               <div className="map-footer">
                 <div className="compare-box">
-                  <div><strong>1С:</strong> {selectedAddress ? selectedAddress.AddressValue : buildAddressFromForm(formAddr) || "Нова адреса"}</div>
-                  <div><strong>Карта:</strong> <span className="blue-highlight">{mapDisplayName || "Виберіть точку"}</span></div>
+                  <div>
+                    <strong>1С:</strong>{" "}
+                    {selectedAddress
+                      ? selectedAddress.AddressValue
+                      : buildAddressFromForm(formAddr) || "Нова адреса"}
+                  </div>
+                  <div>
+                    <strong>Карта:</strong>{" "}
+                    <span className="blue-highlight">
+                      {mapDisplayName || "Виберіть точку"}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="footer-btns">
-                  <div className="coord-info">{selectedCoords && `${selectedCoords[0].toFixed(6)}, ${selectedCoords[1].toFixed(6)}`}</div>
-                  <button className="btn-save" onClick={handleRequestSave} disabled={saving || (!isPreciseLocation && !selectedCoords)}>
+                  <div className="coord-info">
+                    {selectedCoords &&
+                      `${selectedCoords[0].toFixed(6)}, ${selectedCoords[1].toFixed(6)}`}
+                  </div>
+                  <button
+                    className="btn-save"
+                    onClick={handleRequestSave}
+                    disabled={saving || (!isPreciseLocation && !selectedCoords)}
+                  >
                     {saving ? "Збереження..." : "Зберегти"}
                   </button>
                 </div>
@@ -920,12 +1037,12 @@ useEffect(() => {
           )}
         </div>
       </div>
-      <ConfirmAddressModal 
-        isOpen={isConfirmModalOpen} 
-        onClose={() => setIsConfirmModalOpen(false)} 
-        onConfirm={saveCoords} 
-        addressName={mapDisplayName} 
-        coordinates={selectedCoords} 
+      <ConfirmAddressModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={saveCoords}
+        addressName={mapDisplayName}
+        coordinates={selectedCoords}
       />
     </div>
   );

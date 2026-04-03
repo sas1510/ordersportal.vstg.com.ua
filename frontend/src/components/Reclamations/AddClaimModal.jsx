@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
 import { FaTimes, FaPlus, FaClipboardList, FaUserAlt } from "react-icons/fa";
 import "./AddClaimModal.css";
 import CustomSelect from "./CustomSelect";
 import DealerSelect from "../../pages/DealerSelect";
-import { useNotification } from "../notification/Notifications";
-import { useAuth } from '../../hooks/useAuth';
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 export default function AddClaimModal({
   isOpen,
@@ -15,13 +16,11 @@ export default function AddClaimModal({
   initialOrderNumber = "",
   initialOrderGUID = "",
 }) {
-
   const { addNotification } = useNotification();
 
-  const { user, role } = useAuth();
-  const isAdmin = role === "admin";
+  const {  role } = useAuthGetRole();
+  const _isAdmin = role === "admin";
   const isManager = ["manager", "region_manager", "admin"].includes(role);
-
 
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -51,24 +50,22 @@ export default function AddClaimModal({
 
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
 
-
-useEffect(() => {
-  const handleEsc = (event) => {
-    if (event.key === 'Escape') {
-      onClose();
+    if (isOpen) {
+      window.addEventListener("keydown", handleEsc);
     }
-  };
 
-  if (isOpen) {
-    window.addEventListener('keydown', handleEsc);
-  }
-
-  // Очищуємо слухач при закритті модалки або демонтажі компонента
-  return () => {
-    window.removeEventListener('keydown', handleEsc);
-  };
-}, [isOpen, onClose]);
+    // Очищуємо слухач при закритті модалки або демонтажі компонента
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [isOpen, onClose]);
 
   /* =========================
       🔒 Lock scroll
@@ -93,9 +90,12 @@ useEffect(() => {
     try {
       const res = await axiosInstance.get("/complaints/issues/");
       setReasonOptions(res.data?.issues || []);
-    } catch (err) {
+    } catch {
       setReasonOptions([]);
-      setFetchErrors((p) => ({ ...p, reasons: "Помилка завантаження причин рекламації" }));
+      setFetchErrors((p) => ({
+        ...p,
+        reasons: "Помилка завантаження причин рекламації",
+      }));
     }
   };
 
@@ -103,8 +103,7 @@ useEffect(() => {
     fetchReasons();
   }, [isOpen]);
 
-
-  const fetchSolutions = async () => {
+  const fetchSolutions = useCallback(async () => {
     if (!reasonLink) {
       setSolutionOptions([]);
       setSolutionLink("");
@@ -112,22 +111,24 @@ useEffect(() => {
     }
     setFetchErrors((p) => ({ ...p, solutions: null }));
     try {
-      const res = await axiosInstance.get(
-        `/complaints/solutions/${reasonLink}/`
-      );
+      const res = await axiosInstance.get(`/complaints/solutions/${reasonLink}/`);
       setSolutionOptions(res.data?.solutions || []);
-    } catch (err) {
+    } catch {
       setSolutionOptions([]);
-      setFetchErrors((p) => ({ ...p, solutions: "Помилка завантаження варіантів вирішення" }));
+      setFetchErrors((p) => ({
+        ...p,
+        solutions: "Помилка завантаження варіантів вирішення",
+      }));
     }
-  };
+  }, [reasonLink]); // Функція залежить від reasonLink
 
+  // 2. Тепер додаємо функцію в залежності useEffect
   useEffect(() => {
     fetchSolutions();
-  }, [reasonLink]);
+  }, [fetchSolutions]); // Тепер лінтер задоволений
 
 
-  const fetchSeries = async () => {
+  const fetchSeries = useCallback(async () => {
     if (!orderNumber) {
       setSeriesOptions([]);
       setSelectedSeries([]);
@@ -139,7 +140,7 @@ useEffect(() => {
     setFetchErrors((p) => ({ ...p, series: null }));
     try {
       const res = await axiosInstance.get(
-        `/complaints/get_series/${orderNumber}/`
+        `/complaints/get_series/${orderNumber}/`,
       );
 
       if (!res.data?.series?.length) {
@@ -151,16 +152,19 @@ useEffect(() => {
         setSelectedSeries([]);
         setOrderNotFound(false);
       }
-    } catch (err) {
+    } catch {
       setSeriesOptions([]);
       setOrderNotFound(false);
-      setFetchErrors((p) => ({ ...p, series: "Не вдалося отримати дані про серії конструкцій" }));
+      setFetchErrors((p) => ({
+        ...p,
+        series: "Не вдалося отримати дані про серії конструкцій",
+      }));
     }
-  };
+  }, [orderNumber]); // 👈 Функція залежить від orderNumber
 
   useEffect(() => {
     fetchSeries();
-  }, [orderNumber]);
+  }, [fetchSeries]);
 
   /* =========================
       🖼️ Photos
@@ -226,8 +230,8 @@ useEffect(() => {
                 });
               reader.onerror = reject;
               reader.readAsDataURL(file);
-            })
-        )
+            }),
+        ),
       );
 
       const payload = {
@@ -255,11 +259,9 @@ useEffect(() => {
         photos: photosBase64,
       };
 
-      await axiosInstance.post(
-        "/complaints/create_complaints/",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      await axiosInstance.post("/complaints/create_complaints/", payload, {
+        headers: { "Content-Type": "application/json" },
+      });
 
       addNotification("Рекламацію успішно додано", "success");
       onSave?.();
@@ -268,7 +270,7 @@ useEffect(() => {
       console.error(err);
       addNotification(
         err.response?.data?.error || "Помилка при створенні рекламації",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
@@ -282,10 +284,7 @@ useEffect(() => {
      ========================= */
   return createPortal(
     <div className="claim-modal-overlay" onClick={handleCloseWithReset}>
-      <div
-        className="claim-modal-window"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="claim-modal-window" onClick={(e) => e.stopPropagation()}>
         <div className="claim-modal-header">
           <div className="header-content">
             <span className="claim-icon">
@@ -293,10 +292,7 @@ useEffect(() => {
             </span>
             <h3>Додати рекламацію</h3>
           </div>
-          <FaTimes
-            className="claim-close-btn"
-            onClick={handleCloseWithReset}
-          />
+          <FaTimes className="claim-close-btn" onClick={handleCloseWithReset} />
         </div>
 
         <form className="claim-form" onSubmit={handleSubmit}>
@@ -316,7 +312,9 @@ useEffect(() => {
             {fetchErrors.series && (
               <div className="error-inline-retry">
                 <span>{fetchErrors.series}</span>
-                <button type="button" onClick={fetchSeries}>Повторити</button>
+                <button type="button" onClick={fetchSeries}>
+                  Повторити
+                </button>
               </div>
             )}
           </div>
@@ -343,7 +341,7 @@ useEffect(() => {
                         setSelectedSeries((p) =>
                           p.includes(s.SeriesLink)
                             ? p.filter((x) => x !== s.SeriesLink)
-                            : [...p, s.SeriesLink]
+                            : [...p, s.SeriesLink],
                         )
                       }
                     />
@@ -388,7 +386,9 @@ useEffect(() => {
             {fetchErrors.reasons && (
               <div className="error-inline-retry">
                 <span>{fetchErrors.reasons}</span>
-                <button type="button" onClick={fetchReasons}>Повторити</button>
+                <button type="button" onClick={fetchReasons}>
+                  Повторити
+                </button>
               </div>
             )}
           </div>
@@ -404,7 +404,9 @@ useEffect(() => {
             {fetchErrors.solutions && (
               <div className="error-inline-retry">
                 <span>{fetchErrors.solutions}</span>
-                <button type="button" onClick={fetchSolutions}>Повторити</button>
+                <button type="button" onClick={fetchSolutions}>
+                  Повторити
+                </button>
               </div>
             )}
           </div>
@@ -475,7 +477,9 @@ useEffect(() => {
               className="claim-btn-save"
               disabled={loading || orderNotFound}
             >
-              {loading ? "Завантаження..." : (
+              {loading ? (
+                "Завантаження..."
+              ) : (
                 <>
                   <FaPlus /> Додати рекламацію
                 </>
@@ -485,6 +489,6 @@ useEffect(() => {
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

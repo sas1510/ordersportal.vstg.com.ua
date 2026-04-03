@@ -74,7 +74,6 @@ body.dark-theme .portal-loader-spinner {
   border-top-color: var(--info-color);
 }
 
-
 /* ===== BACKGROUND SHAPES WRAPPER ===== */
 .portal-loader-shapes {
   position: absolute;
@@ -138,7 +137,8 @@ body.dark-theme .portal-shape.shape-3 {
 
 /* ===== FLOAT ANIMATION ===== */
 @keyframes portal-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
   }
   25% {

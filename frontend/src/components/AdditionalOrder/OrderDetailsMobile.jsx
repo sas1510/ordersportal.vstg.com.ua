@@ -1,9 +1,13 @@
 // ================= OrderDetails.jsx =================
 import React from "react";
-import { formatDateHuman, formatDateHumanShorter, formatDate } from '../../utils/formatters';
+import {
+  formatDateHuman,
+  formatDateHumanShorter,
+} from "../../utils/formatters";
 
 export default function OrderDetailsMobile({ order }) {
-  const isEmpty = (val) => val === undefined || val === null || String(val).trim() === "";
+  const isEmpty = (val) =>
+    val === undefined || val === null || String(val).trim() === "";
 
   const paymentDue = () => {
     if (isEmpty(order.amount) || isEmpty(order.paid)) return 0;
@@ -24,7 +28,6 @@ export default function OrderDetailsMobile({ order }) {
       case "Готовий":
       case "Відвантажений":
       case "Доставлено":
-      
         return "text-success";
       default:
         return "text-danger";
@@ -42,9 +45,11 @@ export default function OrderDetailsMobile({ order }) {
     const actual = parseDate(actualStr);
     const today = new Date();
 
-    if (!planned && !actual) return { icon: "text-danger", bg: "background-warning-light" };
+    if (!planned && !actual)
+      return { icon: "text-danger", bg: "background-warning-light" };
     if (actual) return { icon: "text-success", bg: "background-success-light" };
-    if (planned && planned < today) return { icon: "text-danger", bg: "background-warning-light" };
+    if (planned && planned < today)
+      return { icon: "text-danger", bg: "background-warning-light" };
     return { icon: "text-warning", bg: "background-warning-light" };
   };
 
@@ -56,24 +61,33 @@ export default function OrderDetailsMobile({ order }) {
       icon: "icon-news",
       date: order.date,
       status: isEmpty(order.date) ? "text-danger" : "text-success",
-      bg: isEmpty(order.date) ? "background-danger-light" : "background-success-light",
-      content: order.date || "Немає дати"
+      bg: isEmpty(order.date)
+        ? "background-danger-light"
+        : "background-success-light",
+      content: order.date || "Немає дати",
     },
     {
       id: "payment",
       title: "Оплата",
       icon: "icon-coin-dollar",
       status: paymentDue() > 0 ? "text-danger" : "text-success",
-      bg: paymentDue() > 0 ? "background-danger-light" : "background-success-light",
-      content: paymentDue() > 0 ? `Борг: ${paymentDue()}` : "Сплачено"
+      bg:
+        paymentDue() > 0
+          ? "background-danger-light"
+          : "background-success-light",
+      content: paymentDue() > 0 ? `Борг: ${paymentDue()}` : "Сплачено",
     },
     {
       id: "confirmation",
       title: "Підтвердження",
       icon: "icon-clipboard",
-      status: isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status),
-      bg: isEmpty(order.status) ? "background-danger-light" : "background-success-light",
-      content: order.status || "Не підтверджено"
+      status: isEmpty(order.status)
+        ? "text-danger"
+        : getStatusStyle(order.status),
+      bg: isEmpty(order.status)
+        ? "background-danger-light"
+        : "background-success-light",
+      content: order.status || "Не підтверджено",
     },
     {
       id: "production",
@@ -91,38 +105,45 @@ export default function OrderDetailsMobile({ order }) {
           return (
             <div className="flex flex-col gap-1">
               <div className="text-grey font-size-11">Планово:</div>
-              <div className="font-size-12">{formatDateHumanShorter(order.planDate)}</div>
+              <div className="font-size-12">
+                {formatDateHumanShorter(order.planDate)}
+              </div>
             </div>
           );
         }
         return "Немає даних";
-      }
+      },
     },
     {
       id: "ready",
       title: "Готовність",
       icon: "icon-layers2",
       status: getDateStatus(order.planReadyMax, order.factReady),
-      content: formatDateHuman(order.factReady) || "Немає даних"
+      content: formatDateHuman(order.factReady) || "Немає даних",
     },
     {
       id: "delivery",
       title: "Доставка",
       icon: "icon-shipping",
       status: getDateStatus(order.planDelivery, order.realizationDate),
-      content: formatDateHuman(order.realizationDate) || "Не доставлено"
-    }
+      content: formatDateHuman(order.realizationDate) || "Не доставлено",
+    },
   ];
 
   return (
     <div className="order-item-details flex flex-col gap-3 w-full">
-
       {/* ============ MOBILE VERSION - Cards ============ */}
       <div className="md:hidden flex flex-col gap-3 w-full">
         {stages.map((stage, index) => {
-          const isCompleted = stage.status?.icon === "text-success" || stage.status === "text-success";
-          const isWarning = stage.status?.icon === "text-warning" || stage.status === "text-warning";
-          const isDanger = stage.status?.icon === "text-danger" || stage.status === "text-danger";
+          const isCompleted =
+            stage.status?.icon === "text-success" ||
+            stage.status === "text-success";
+          const isWarning =
+            stage.status?.icon === "text-warning" ||
+            stage.status === "text-warning";
+          const isDanger =
+            stage.status?.icon === "text-danger" ||
+            stage.status === "text-danger";
 
           return (
             <div key={stage.id} className="relative">
@@ -132,20 +153,32 @@ export default function OrderDetailsMobile({ order }) {
               )}
 
               {/* Stage card */}
-              <div className={`relative z-10 flex items-start gap-3 p-3 rounded-lg border ${
-                isCompleted ? 'bg-green-50 border-green-200' :
-                isDanger ? 'bg-red-50 border-red-200' :
-                isWarning ? 'bg-yellow-50 border-yellow-200' :
-                'bg-gray-50 border-gray-200'
-              }`}>
+              <div
+                className={`relative z-10 flex items-start gap-3 p-3 rounded-lg border ${
+                  isCompleted
+                    ? "bg-green-50 border-green-200"
+                    : isDanger
+                      ? "bg-red-50 border-red-200"
+                      : isWarning
+                        ? "bg-yellow-50 border-yellow-200"
+                        : "bg-gray-50 border-gray-200"
+                }`}
+              >
                 {/* Icon */}
-                <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                  isCompleted ? 'bg-green-100' :
-                  isDanger ? 'bg-red-100' :
-                  isWarning ? 'bg-yellow-100' :
-                  'bg-gray-100'
-                }`}>
-                  <span className={`${stage.icon} font-size-18 ${stage.status?.icon || stage.status}`}></span>
+                <div
+                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                    isCompleted
+                      ? "bg-green-100"
+                      : isDanger
+                        ? "bg-red-100"
+                        : isWarning
+                          ? "bg-yellow-100"
+                          : "bg-gray-100"
+                  }`}
+                >
+                  <span
+                    className={`${stage.icon} font-size-18 ${stage.status?.icon || stage.status}`}
+                  ></span>
                 </div>
 
                 {/* Content */}

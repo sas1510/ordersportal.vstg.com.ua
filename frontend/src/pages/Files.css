@@ -1,49 +1,49 @@
 .file-body {
-    background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
-    height: 100vh;
-    width: 100%;
-    /* ✅ Відступи за замовчуванням для найбільших екранів */
-    padding: 80px 20%; 
-    overflow-y: auto;
-    overflow-x: hidden;
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
+  height: 100vh;
+  width: 100%;
+  /* ✅ Відступи за замовчуванням для найбільших екранів */
+  padding: 80px 20%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 @media (max-width: 1470px) {
-    .file-body {
-        /* Зменшуємо горизонтальний відступ до 10% */
-        padding: 80px 12%; 
-    }
+  .file-body {
+    /* Зменшуємо горизонтальний відступ до 10% */
+    padding: 80px 12%;
+  }
 }
 
 /* ➡️ Стилі для середніх екранів (наприклад, планшетів, менше 1024px) */
 @media (max-width: 1024px) {
-    .file-body {
-       
-        padding: 80px 10%; 
-    }
+  .file-body {
+    padding: 80px 10%;
+  }
 }
-
-
-
 
 /* ➡️ Стилі для малих екранів (наприклад, мобільних телефонів, менше 768px) */
 @media (max-width: 768px) {
-    .file-body {
-        /* Зменшуємо горизонтальний відступ ще більше до 4% */
-        padding: 80px 4%; 
-    }
+  .file-body {
+    /* Зменшуємо горизонтальний відступ ще більше до 4% */
+    padding: 80px 4%;
+  }
 }
 
 @media (max-width: 640px) {
-    /* ========================================================= */
-/* ===== Utility Class: Примусовий перенос елемента в ряду ===== */
-/* ========================================================= */
-    .new-line {
-        /* Ця властивість гарантує, що елемент займе всю ширину та почнеться з нового рядка. */
-        width: 100%;
-        /* Додаємо невеликий відступ зверху, якщо потрібно візуально відокремити його від попереднього вмісту */
-        margin-top: 5px; 
-    }
+  /* ========================================================= */
+  /* ===== Utility Class: Примусовий перенос елемента в ряду ===== */
+  /* ========================================================= */
+  .new-line {
+    /* Ця властивість гарантує, що елемент займе всю ширину та почнеться з нового рядка. */
+    width: 100%;
+    /* Додаємо невеликий відступ зверху, якщо потрібно візуально відокремити його від попереднього вмісту */
+    margin-top: 5px;
+  }
 }
 
 /* ===== Overlay ===== */
@@ -84,7 +84,7 @@
 .header-content {
   display: flex;
   align-items: center;
-  
+
   gap: 10px; /* відстань між іконкою та текстом */
 }
 
@@ -110,7 +110,9 @@
   font-size: 22px;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 .file-close-btn:hover {
   opacity: 0.8;
@@ -119,7 +121,6 @@
 
 /* ===== Форма ===== */
 .file-form {
-
   padding: 22px 26px;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -259,8 +260,8 @@
 /* ===== Footer ===== */
 /* ===== Footer ===== */
 .file-modal-footer {
-flex-shrink: 0; /* 👈 футер завжди фіксований знизу */
-display: flex;
+  flex-shrink: 0; /* 👈 футер завжди фіксований знизу */
+  display: flex;
   justify-content: center; /* 👈 кнопки по центру */
   gap: 16px;
   padding: 18px 22px;
@@ -273,8 +274,6 @@ display: flex;
 
 /* ===== Кнопки ===== */
 
-
-
 .file-btn-cancel,
 .file-btn-save {
   border: none;
@@ -286,7 +285,9 @@ display: flex;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 /* Сіра кнопка — скасування */
@@ -301,23 +302,20 @@ display: flex;
 
 /* Помаранчева кнопка — зберегти */
 .file-btn-save {
-   background: #76b448;
+  background: #76b448;
   color: #fff;
 }
-
 
 .file-btn-save:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
 }
 
-
 .file-btn-save:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
-
 
 /* ===== Фікс ширини select / option ===== */
 /* === Красивий select у межах модалки === */
@@ -351,7 +349,6 @@ select.file-input option {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 
 .file-label.row {
   display: flex;
@@ -387,20 +384,28 @@ select.file-input option {
   color: #333;
 }
 
-
-
 /* ===== Анімації ===== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes scaleIn {
-  from { transform: scale(0.94); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-
-.loader, .loader-small {
+.loader,
+.loader-small {
   border: 4px solid #f3f3f3;
   border-top: 4px solid #76b448;
   border-radius: 50%;
@@ -417,38 +422,40 @@ select.file-input option {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
-
 
 /* Edit Modal Styling */
 .edit-modal .file-modal-header {
-  background-color: #1E40AF; /* темно-синій */
+  background-color: #1e40af; /* темно-синій */
   color: white;
 }
 
 .edit-btn {
-  background-color: #1E40AF;
+  background-color: #1e40af;
   color: white;
 }
 
 .edit-btn:hover {
-  background-color: #2563EB;
+  background-color: #2563eb;
 }
-
 
 /* --- Адаптація поля пошуку для темної теми --- */
 body.dark-theme .search-box input[type="text"] {
-    /* Колір тексту в полі вводу */
-    color: #f0f0f0 !important; 
-    /* Placeholder також робимо світлим, якщо він не встановлений іншим правилом */
+  /* Колір тексту в полі вводу */
+  color: #f0f0f0 !important;
+  /* Placeholder також робимо світлим, якщо він не встановлений іншим правилом */
 }
 
 /* Якщо ви використовуєте більш специфічний клас для поля пошуку,
    можливо, вам знадобиться: */
-body.dark-theme .content-filter .search-orders { 
-    color: #f0f0f0 !important;
+body.dark-theme .content-filter .search-orders {
+  color: #f0f0f0 !important;
 }
 
 /* ========================================================= */
@@ -457,68 +464,66 @@ body.dark-theme .content-filter .search-orders {
 
 /* 1. Адаптація тексту в полі пошуку (search input text color) */
 body.dark-theme .search-box input[type="text"] {
-    color: #f0f0f0 !important; /* Світлий текст на темному фоні */
-    caret-color: #f46c3b;      /* Колір курсору */
+  color: #f0f0f0 !important; /* Світлий текст на темному фоні */
+  caret-color: #f46c3b; /* Колір курсору */
 }
 /* Адаптація placeholder */
 body.dark-theme .search-box input[type="text"]::placeholder {
-    color: #888888;
+  color: #888888;
 }
 
 .claim-item {
-    background: #ffffff !important; /* Трохи світліший сірий */
-    border-color: #ff7441 !important; /* Акцентна межа */
-    cursor: pointer;
+  background: #ffffff !important; /* Трохи світліший сірий */
+  border-color: #ff7441 !important; /* Акцентна межа */
+  cursor: pointer;
 }
 /* Забезпечуємо, щоб текст залишався світлим при hover */
 .claim-item .text-info {
-    color: #7597d2 !important;
+  color: #7597d2 !important;
 }
 .claim-item .text-grey {
-    color: #454545 !important;
+  color: #454545 !important;
 }
 
 /* 2. Адаптація hover/active стану для елементів списку файлів (claim-item) */
 /* Ці елементи контролюються інлайн-стилями, але hover краще залишити в CSS */
 body.dark-theme .claim-item {
-    background: #383838 !important; /* Трохи світліший сірий */
-    /* border-color: #f46c3b !important; Акцентна межа */
-    cursor: pointer;
+  background: #383838 !important; /* Трохи світліший сірий */
+  /* border-color: #f46c3b !important; Акцентна межа */
+  cursor: pointer;
 }
 /* Забезпечуємо, щоб текст залишався світлим при hover */
 body.dark-theme .claim-item .text-info {
-    color: #ffffff !important;
+  color: #ffffff !important;
 }
 body.dark-theme .claim-item .text-grey {
-    color: #dddddd !important;
+  color: #dddddd !important;
 }
 
 /* 3. Перевірка кольорів хедера редагування (якщо не працює з inline) */
 body.dark-theme .edit-modal .file-modal-header {
-    /* Тут можна переписати, якщо #1E40AF не видно, але зазвичай це яскравий акцент */
-    background-color: #1a3c8e !important; 
+  /* Тут можна переписати, якщо #1E40AF не видно, але зазвичай це яскравий акцент */
+  background-color: #1a3c8e !important;
 }
-body .search-box  {
-    background: #ffffff !important; 
-    border: 1px dashed #666666ff !important;  
-} 
+body .search-box {
+  background: #ffffff !important;
+  border: 1px dashed #666666ff !important;
+}
 
-
-body.dark-theme .search-box  {
-    background: #383838 !important;   
-} 
+body.dark-theme .search-box {
+  background: #383838 !important;
+}
 
 /* ВАЖЛИВО! Це змінює колір тексту в полі пошуку */
 body.dark-theme .search-box input[type="text"] {
-    color: #f0f0f0 !important; 
-    caret-color: #f46c3b;      
+  color: #f0f0f0 !important;
+  caret-color: #f46c3b;
 }
 
 /* Це змінює колір placeholder */
 body.dark-theme .search-box input[type="text"]::placeholder {
-    color: #888888;
+  color: #888888;
 }
-
 
 /* =========================================================
    DARK THEME — FILE MODALS
@@ -526,102 +531,102 @@ body.dark-theme .search-box input[type="text"]::placeholder {
    ========================================================= */
 
 body.dark-theme .file-modal-overlay {
-    background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.75);
 }
 
 /* ===== WINDOW ===== */
 body.dark-theme .file-modal-window {
-    background: #2b2b2b;
-    color: #f0f0f0;
-    border: 1px solid #444;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  background: #2b2b2b;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
 /* ===== HEADER ===== */
 body.dark-theme .file-modal-header {
-    background: linear-gradient(90deg, #b84c20, #c75628);
-    border-bottom: 1px solid #444;
+  background: linear-gradient(90deg, #b84c20, #c75628);
+  border-bottom: 1px solid #444;
 }
 
 body.dark-theme .file-modal-header h3 {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 body.dark-theme .file-icon {
-    filter: brightness(1.2);
+  filter: brightness(1.2);
 }
 
 /* ===== CLOSE BUTTON ===== */
 body.dark-theme .file-close-btn {
-    color: #bbbbbb ;
-    background: #c75628 !important;
+  color: #bbbbbb;
+  background: #c75628 !important;
 }
 
 body.dark-theme .file-close-btn:hover {
-    color: #ffffff;
-    background: #c75628 !important;
+  color: #ffffff;
+  background: #c75628 !important;
 }
 
 /* ===== FORM ===== */
 body.dark-theme .file-form {
-    background: transparent;
+  background: transparent;
 }
 
 body.dark-theme .file-label span {
-    color: #cccccc;
+  color: #cccccc;
 }
 
 /* ===== INPUTS ===== */
 body.dark-theme .file-input {
-    background: #1f1f1f;
-    border: 1px solid #555;
-    color: #ffffff;
+  background: #1f1f1f;
+  border: 1px solid #555;
+  color: #ffffff;
 }
 
 body.dark-theme .file-input::placeholder {
-    color: #888;
+  color: #888;
 }
 
 body.dark-theme .file-input:focus {
-    border-color: #6bbcff;
-    box-shadow: 0 0 0 1px rgba(107, 188, 255, 0.4);
+  border-color: #6bbcff;
+  box-shadow: 0 0 0 1px rgba(107, 188, 255, 0.4);
 }
 
 /* ===== FOOTER ===== */
 body.dark-theme .file-modal-footer {
-    background: #262626;
-    border-top: 1px solid #444;
+  background: #262626;
+  border-top: 1px solid #444;
 }
 
 /* ===== BUTTONS ===== */
 body.dark-theme .file-btn-cancel {
-    background: #3a3a3a;
-    color: #ddd;
-    border: 1px solid #555;
+  background: #3a3a3a;
+  color: #ddd;
+  border: 1px solid #555;
 }
 
 body.dark-theme .file-btn-cancel:hover {
-    background: #444;
+  background: #444;
 }
 
 body.dark-theme .file-btn-save {
-    background: #4caf50;
-    color: #ffffff;
+  background: #4caf50;
+  color: #ffffff;
 }
 
 body.dark-theme .file-btn-save:hover {
-    background: #43a047;
+  background: #43a047;
 }
 
 /* ===== EDIT MODAL SPECIAL ===== */
 body.dark-theme .edit-modal .file-modal-header {
-    background: linear-gradient(135deg, #3f2f2f, #2b2b2b);
+  background: linear-gradient(135deg, #3f2f2f, #2b2b2b);
 }
 
 body.dark-theme .edit-modal .file-btn-save.edit-btn {
-    background: #ff9800;
+  background: #ff9800;
 }
 
 body.dark-theme .edit-modal .file-btn-save.edit-btn:hover {
-    background: #fb8c00;
+  background: #fb8c00;
 }

@@ -12,8 +12,8 @@
 .notification {
   min-width: 220px;
   padding: 16px 18px;
-  border: 1px solid rgba(0,0,0,0.2);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
   font-weight: 500;
   text-align: center;
   opacity: 0;
@@ -25,17 +25,33 @@
   animation: fadeOut 0.3s forwards;
 }
 
-.notification.info    { background: var(--info-color); color: #fff; }
-.notification.success { background: var(--success-color); color: #fff; }
-.notification.warning { background: var(--warning-color); color: #333 !important; }
-.notification.error   { background: var(--danger-color); color: #fff; }
+.notification.info {
+  background: var(--info-color);
+  color: #fff;
+}
+.notification.success {
+  background: var(--success-color);
+  color: #fff;
+}
+.notification.warning {
+  background: var(--warning-color);
+  color: #333 !important;
+}
+.notification.error {
+  background: var(--danger-color);
+  color: #fff;
+}
 
 @keyframes fadeIn {
-  to { opacity: 0.95; }
+  to {
+    opacity: 0.95;
+  }
 }
 
 @keyframes fadeOut {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 
 .notification-close {
@@ -49,5 +65,3 @@
 .notification-close:hover {
   opacity: 1;
 }
-
-

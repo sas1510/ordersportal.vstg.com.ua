@@ -1,145 +1,144 @@
 /* Сітка для карток префіксів */
 .prefix-stats-grid-wrapper {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-    gap: 21px;
-    margin-top: 21px;
-    margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 21px;
+  margin-top: 21px;
+  margin-bottom: 28px;
 }
 
 /* Основна картка */
 .prefix-card-unit {
-    border: 1px solid var(--grey-border-color);
-    border-radius: 3px;
-    overflow: hidden;
-    transition: transform 0.2s ease;
+  border: 1px solid var(--grey-border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
 }
-
-
 
 /* Заголовок картки */
 .prefix-card-header {
-    padding: 10px 15px;
-    font-size: 16px;
-    letter-spacing: 0.8px;
+  padding: 10px 15px;
+  font-size: 16px;
+  letter-spacing: 0.8px;
 }
 
 /* Контейнер для цифр */
 .prefix-card-body {
-    display: flex;
-    flex-direction: row;
-    padding: 0;
-    min-height: 85px;
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+  min-height: 85px;
 }
 
 /* Кожна колонка з даними */
 .p-stat-item {
-    flex: 1;
-    padding: 12px 5px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  flex: 1;
+  padding: 12px 5px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Пунктирний розділювач у вашому стилі */
 .p-stat-item.border-right {
-    border-right: 1px dashed var(--grey-text-color) !important;
+  border-right: 1px dashed var(--grey-text-color) !important;
 }
 
 /* Стилі значень */
 .p-value {
-    line-height: 1.1;
-    margin-bottom: 2px;
+  line-height: 1.1;
+  margin-bottom: 2px;
 }
 
 /* Стилі підписів */
 .p-label {
-    letter-spacing: 0.3px;
-    font-weight: 500;
+  letter-spacing: 0.3px;
+  font-weight: 500;
 }
 
 /* Тінь */
 .shadow-sm {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Підсвітка для фінальної картки "Разом" */
 .border-highlight {
-    border: 2px solid var(--danger-color) !important;
+  border: 2px solid var(--danger-color) !important;
 }
 
 .bg-highlight-light {
-    background-color: #f8faff; /* Легкий відтінок для виділення підсумку */
+  background-color: #f8faff; /* Легкий відтінок для виділення підсумку */
 }
 
 .prefix-card-unit.border-highlight .p-label {
-    color: var(--text-color);
-    font-weight: bold;
+  color: var(--text-color);
+  font-weight: bold;
 }
 
 .prefix-card-footer {
-    padding: 4px;
-
+  padding: 4px;
 }
 
 .prefix-stats-grid-wrapper {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); /* Збільшено ширину для 5 колонок */
-    gap: 21px;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(500px, 1fr)
+  ); /* Збільшено ширину для 5 колонок */
+  gap: 21px;
 }
-
-
 
 /* Основний контейнер тіла */
 .prefix-card-body {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Верхній ряд: 50/50 */
 .p-stats-row-main {
-    display: flex;
-    width: 100%;
+  display: flex;
+  width: 100%;
 }
 
 .p-stat-item-large {
-    flex: 1;
-    padding: 10px 10px;
-    text-align: center;
+  flex: 1;
+  padding: 10px 10px;
+  text-align: center;
 }
 
 /* Нижній ряд: 33/33/33 */
 .p-stats-row-secondary {
-    display: flex;
-    width: 100%;
-    padding: 0 10px;
-    /* margin: 10px; */
-   
+  display: flex;
+  width: 100%;
+  padding: 0 10px;
+  /* margin: 10px; */
 }
 
 .p-stat-item {
-    flex: 1;
-    text-align: center;
+  flex: 1;
+  text-align: center;
 }
 
 /* Розділювачі */
 .border-right-dashed {
-    border-right: 1px dashed var(--grey-color);
+  border-right: 1px dashed var(--grey-color);
 }
 
 .border-bottom-dashed {
-    border-bottom: 1px dashed var(--grey-color);
+  border-bottom: 1px dashed var(--grey-color);
 }
 
 .border-top-dashed {
-    border-top: 1px dashed var(--grey-color);
+  border-top: 1px dashed var(--grey-color);
 }
 
 /* Корекція розмірів для компактності */
-.font-size-32 { font-size: 32px; line-height: 1.2; }
-.font-size-12 { font-size: 12px; }
-
-
-
+.font-size-32 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+.font-size-12 {
+  font-size: 12px;
+}

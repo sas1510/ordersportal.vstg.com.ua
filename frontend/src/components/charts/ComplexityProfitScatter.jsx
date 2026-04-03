@@ -1,13 +1,24 @@
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ZAxis, Cell, Legend } from 'recharts';
+import {
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ZAxis,
+  Cell,
+  Legend,
+} from "recharts";
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
 export default function ComplexityProfitScatter({ data }) {
   // data приходить з tables.categories
   // Потрібно додати приблизний прибуток = TotalOrders * середній чек
-  
+
   const scatterData = data
-    .filter(item => item.CategoryName !== '--- УСЬОГО ---')
+    .filter((item) => item.CategoryName !== "--- УСЬОГО ---")
     .map((item, index) => ({
       name: item.CategoryName,
       complexity: item.AvgFullCycleDays, // Вісь X - складність (час виготовлення)
@@ -15,14 +26,14 @@ export default function ComplexityProfitScatter({ data }) {
       orders: item.TotalOrders, // Розмір бульбашки
       avgQueue: item.AvgWaitInQueueDays,
       avgProd: item.AvgPureProductionDays,
-      fill: COLORS[index % COLORS.length]
+      fill: COLORS[index % COLORS.length],
     }))
-    .filter(item => item.orders > 5); // Видаляємо дуже малі категорії
+    .filter((item) => item.orders > 5); // Видаляємо дуже малі категорії
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
     const data = payload[0].payload;
-    
+
     return (
       <div className="scatter-tooltip">
         <div className="tooltip-title">{data.name}</div>
@@ -33,11 +44,15 @@ export default function ComplexityProfitScatter({ data }) {
           </div>
           <div className="tooltip-row">
             <span className="tooltip-label">Складність:</span>
-            <span className="tooltip-value">{data.complexity.toFixed(1)} дн</span>
+            <span className="tooltip-value">
+              {data.complexity.toFixed(1)} дн
+            </span>
           </div>
           <div className="tooltip-row">
             <span className="tooltip-label">Прибуток:</span>
-            <span className="tooltip-value">{(data.profit / 1000000).toFixed(1)}M грн</span>
+            <span className="tooltip-value">
+              {(data.profit / 1000000).toFixed(1)}M грн
+            </span>
           </div>
           <div className="tooltip-divider"></div>
           <div className="tooltip-row">
@@ -57,7 +72,7 @@ export default function ComplexityProfitScatter({ data }) {
     const { cx, cy, payload } = props;
     // Розмір бульбашки залежить від кількості замовлень
     const radius = Math.max(8, Math.min(30, payload.orders / 5));
-    
+
     return (
       <circle
         cx={cx}
@@ -67,7 +82,7 @@ export default function ComplexityProfitScatter({ data }) {
         opacity={0.7}
         stroke="#fff"
         strokeWidth={2}
-        style={{ cursor: 'pointer' }}
+        style={{ cursor: "pointer" }}
       />
     );
   };
@@ -77,37 +92,45 @@ export default function ComplexityProfitScatter({ data }) {
       <ResponsiveContainer width="100%" height={400}>
         <ScatterChart margin={{ top: 20, right: 40, bottom: 40, left: 40 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          
-          <XAxis 
-            type="number" 
-            dataKey="complexity" 
+
+          <XAxis
+            type="number"
+            dataKey="complexity"
             name="Складність"
-            label={{ value: 'Час виготовлення (дн)', position: 'bottom', offset: 0 }}
+            label={{
+              value: "Час виготовлення (дн)",
+              position: "bottom",
+              offset: 0,
+            }}
             tick={{ fontSize: 12 }}
           />
-          
-          <YAxis 
-            type="number" 
-            dataKey="profit" 
+
+          <YAxis
+            type="number"
+            dataKey="profit"
             name="Прибуток"
-            label={{ value: 'Прибуток (млн грн)', angle: -90, position: 'insideLeft' }}
+            label={{
+              value: "Прибуток (млн грн)",
+              angle: -90,
+              position: "insideLeft",
+            }}
             tick={{ fontSize: 12 }}
             tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
           />
-          
-          <ZAxis 
-            type="number" 
-            dataKey="orders" 
-            range={[100, 1000]} 
+
+          <ZAxis
+            type="number"
+            dataKey="orders"
+            range={[100, 1000]}
             name="Замовлення"
           />
-          
-          <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-          
-          <Scatter 
-            data={scatterData} 
-            shape={<CustomDot />}
-          >
+
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ strokeDasharray: "3 3" }}
+          />
+
+          <Scatter data={scatterData} shape={<CustomDot />}>
             {scatterData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
             ))}
@@ -213,10 +236,18 @@ export default function ComplexityProfitScatter({ data }) {
           color: white;
         }
 
-        .bg-green { background: #00C49F; }
-        .bg-amber { background: #FFBB28; }
-        .bg-blue { background: #0088FE; }
-        .bg-red { background: #FF8042; }
+        .bg-green {
+          background: #00c49f;
+        }
+        .bg-amber {
+          background: #ffbb28;
+        }
+        .bg-blue {
+          background: #0088fe;
+        }
+        .bg-red {
+          background: #ff8042;
+        }
 
         .quadrant-item span {
           font-size: 11px;

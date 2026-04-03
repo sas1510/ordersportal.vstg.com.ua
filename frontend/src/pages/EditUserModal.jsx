@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import axiosInstance from "../api/axios";
-import { useNotification } from "../components/notification/Notifications.jsx";
-
+import { useNotification } from "../hooks/useNotification";
 import { Settings, X, Save, Eraser } from "lucide-react";
 import "./EditUserModal.css";
 
@@ -24,7 +23,7 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
   const [isSaving, setIsSaving] = useState(false);
 
   const hasChanges = Object.keys(form).some(
-    (key) => String(form[key]) !== String(originalFormData[key])
+    (key) => String(form[key]) !== String(originalFormData[key]),
   );
 
   const handleChange = (e) => {
@@ -36,8 +35,8 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
         type === "checkbox"
           ? checked
           : type === "number"
-          ? Number(value)
-          : value,
+            ? Number(value)
+            : value,
     });
   };
 
@@ -53,11 +52,12 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
       onUpdated();
       onClose();
     } catch (e) {
+      console.error("Error updating user:", e);
       addNotification("Помилка при оновленні даних", "error");
     } finally {
       setIsSaving(false);
     }
-  }, [form, user.id, onUpdated, onClose, hasChanges, isSaving]);
+  }, [form, user.id, onUpdated, onClose, hasChanges, isSaving , addNotification]);
 
   return (
     <div className="portal-user-edit-modal-overlay" onClick={onClose}>
@@ -138,7 +138,7 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
                 <option value="customer">Дилер</option>
               </select>
             </label>
-{/* 
+            {/* 
             <label className="portal-user-label">
               <span>ID 1С</span>
               <input

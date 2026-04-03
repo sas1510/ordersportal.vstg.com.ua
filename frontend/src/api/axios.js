@@ -66,7 +66,6 @@
 //   }
 // );
 
-
 // export default axiosInstance;
 
 import axios from "axios";
@@ -90,7 +89,11 @@ export function getAccessToken() {
 
 export const refreshAccessToken = async () => {
   try {
-    const res = await axiosInstance.post("/token/refresh/", {}, { _retry: true });
+    const res = await axiosInstance.post(
+      "/token/refresh/",
+      {},
+      { _retry: true },
+    );
     const { access } = res.data;
     setAccessToken(access);
     return access;
@@ -117,7 +120,7 @@ axiosInstance.interceptors.request.use(
     if (token) config.headers["Authorization"] = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 const skipRefresh = ["/login", "/register", "/token/refresh", "/logout"];
@@ -139,7 +142,11 @@ axiosInstance.interceptors.response.use(
 
       try {
         // 1) Refresh token
-        const res = await axiosInstance.post("/token/refresh/", {}, { withCredentials: true });
+        const res = await axiosInstance.post(
+          "/token/refresh/",
+          {},
+          { withCredentials: true },
+        );
 
         const { access } = res.data;
         setAccessToken(access);
@@ -151,7 +158,6 @@ axiosInstance.interceptors.response.use(
         // 3) Повторюємо оригінальний запит
         originalRequest.headers["Authorization"] = `Bearer ${access}`;
         return axiosInstance(originalRequest);
-
       } catch (err) {
         if (logoutHandler) logoutHandler();
         return Promise.reject(err);
@@ -159,7 +165,7 @@ axiosInstance.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

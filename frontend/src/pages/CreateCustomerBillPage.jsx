@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import axiosInstance from "../api/axios";
 
 export default function CreateCustomerBillPage() {
@@ -53,7 +54,7 @@ export default function CreateCustomerBillPage() {
 
   const totalSum = orderItems.reduce(
     (sum, i) => sum + (parseFloat(i.price) || 0) * (parseInt(i.quantity) || 0),
-    0
+    0,
   );
 
   const handleSubmit = async () => {

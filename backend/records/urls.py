@@ -2,8 +2,8 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file,  create_message, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read
-from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, DashboardConfigView, PartnerDebtsView, ExternalMessageCreateView
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read
+from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView
 
 
 from django.urls import path
@@ -23,7 +23,6 @@ urlpatterns = [
     path('additional_orders/get_additional_orders_info_all/', views.get_additional_orders_info_all, name='get_additional_orders_info_all'),
     path('complaints/get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
     path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
-    path('messages/create/', views.create_message, name='create_message'),
     path("order/<str:order_guid>/files/", order_files_view), # без логіки дилер
     path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"),
     path("calculations/create/", create_calculation), #  без логіки дилер
@@ -37,9 +36,7 @@ urlpatterns = [
     path("kpi-statistics/", DealerDetailedStatisticsView.as_view()),
     path("full-statistics/", DealerFullAnalyticsView.as_view()),
     path("order-statistics/", OrdersDealerStatisticsView.as_view()),
-    path('user-dashboard-settings/', DashboardConfigView.as_view(), name='user-dashboard-settings'),
     path('partner-debts/', PartnerDebtsView.as_view(), name='partner-debts'),
-    path('create_message/', ExternalMessageCreateView.as_view(), name='create_message'),
     path('notifications/', get_user_notifications, name='user-notifications'),
     path('notifications/count/', get_notifications_count, name='notifications-count'),
     path('notifications/mark-read/', mark_notifications_as_read, name='notifications-mark-read'),

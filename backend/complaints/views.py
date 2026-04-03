@@ -143,7 +143,7 @@ class ComplaintViewSet(viewsets.ViewSet):
                 series_list = json.loads(series_list)
 
             for serie in series_list:
-                try:
+                # try:
                     serie_bytes = base64.b64decode(serie["serie_link"])
                     serie_name = serie.get("serie_name")
                     ComplaintOrderSeries.objects.create(
@@ -151,8 +151,8 @@ class ComplaintViewSet(viewsets.ViewSet):
                         serie_link=serie_bytes,
                         serie_name=serie_name
                     )
-                except Exception:
-                    continue
+                # except Exception:
+                #     continue
 
 
             # --- Фото ---

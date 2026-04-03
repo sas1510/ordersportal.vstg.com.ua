@@ -17,20 +17,16 @@
   width: 100%;
   max-width: 450px; /* Краще фіксована ширина для форм */
   max-height: 82vh; /* Збільшимо трохи висоту */
-  display: flex;    /* Додаємо flex, щоб розділити Header, Body, Footer */
+  display: flex; /* Додаємо flex, щоб розділити Header, Body, Footer */
   flex-direction: column;
   overflow: visible; /* Важливо для випадаючого списку 1С */
 }
-
 
 /* Темна тема для контенту */
 .dark-theme .modal-content-add-user {
   background-color: #1e2227;
   color: #e6e6e6;
 }
-
-
-
 
 .modal-title-add-user {
   font-size: 1.25rem;
@@ -56,9 +52,8 @@
 .modal-body-add-user {
   padding: 1.5rem;
   overflow-y: auto; /* Дозволяємо вертикальну прокрутку */
-  flex: 1;          /* Займає весь доступний простір між хедером і футером */
+  flex: 1; /* Займає весь доступний простір між хедером і футером */
 }
-
 
 .modal-body-add-user::-webkit-scrollbar {
   width: 6px;
@@ -76,7 +71,6 @@
 .dark-theme .modal-body-add-user::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.1);
 }
-
 
 .form-group-add-user {
   display: flex;
@@ -163,8 +157,15 @@
   background-color: #323232;
 }
 
-.user-code { font-weight: 700; font-size: 0.875rem; }
-.user-name { font-size: 0.75rem; opacity: 0.6; font-style: italic; }
+.user-code {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+.user-name {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-style: italic;
+}
 
 /* Розділювач */
 .divider-container-add-user {
@@ -185,7 +186,9 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.dark-theme .divider-line-add-user span { border-color: #3d3d3d; }
+.dark-theme .divider-line-add-user span {
+  border-color: #3d3d3d;
+}
 
 .divider-text-add-user {
   position: relative;
@@ -197,7 +200,9 @@
   color: #9ca3af;
 }
 
-.dark-theme .divider-text-add-user { background-color: #1e2227; }
+.dark-theme .divider-text-add-user {
+  background-color: #1e2227;
+}
 
 /* Поля вводу */
 .grid-fields-add-user {
@@ -242,7 +247,9 @@
   color: #9ca3af;
 }
 
-.pl-icon-add-user { padding-left: 2.5rem; }
+.pl-icon-add-user {
+  padding-left: 2.5rem;
+}
 
 /* Кнопки */
 .form-footer-add-user {
@@ -253,9 +260,9 @@
   border-top: 1px solid #e5e7eb;
 }
 
-.dark-theme .form-footer-add-user { border-color: #3d3d3d; }
-
-
+.dark-theme .form-footer-add-user {
+  border-color: #3d3d3d;
+}
 
 .btn-submit-add-user {
   padding: 0.625rem 1.25rem;
@@ -271,9 +278,16 @@
   transition: all 0.2s;
 }
 
-.btn-submit-add-user:hover { background-color: #437bd4; }
-.btn-submit-add-user:active { transform: scale(0.95); }
-.btn-submit-add-user:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit-add-user:hover {
+  background-color: #437bd4;
+}
+.btn-submit-add-user:active {
+  transform: scale(0.95);
+}
+.btn-submit-add-user:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Секція Успіху */
 .success-screen-add-user {
@@ -316,7 +330,9 @@
   margin-bottom: 0.75rem;
 }
 
-.dark-theme .invite-link-box-add-user { border-color: #3d3d3d; }
+.dark-theme .invite-link-box-add-user {
+  border-color: #3d3d3d;
+}
 
 .qr-code-wrapper-add-user {
   background-color: #ffffff;
@@ -337,7 +353,10 @@
   cursor: pointer;
 }
 
-.dark-theme .copy-btn-floating-add-user { background-color: #374151; border-color: #4b5563; }
+.dark-theme .copy-btn-floating-add-user {
+  background-color: #374151;
+  border-color: #4b5563;
+}
 
 .btn-close-final-add-user {
   width: 100%;
@@ -353,7 +372,7 @@
 .modal-header-add-user {
   display: flex;
   justify-content: space-between; /* Розносить заголовок та кнопку по краях */
-  align-items: center;           /* Вирівнює по центру по вертикалі */
+  align-items: center; /* Вирівнює по центру по вертикалі */
   padding: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
 }
@@ -391,29 +410,30 @@
   color: #ef4444; /* Колір при наведенні (червоний або будь-який інший) */
 }
 
+.btn-cancel-add-user {
+  padding: 0.625rem 1.25rem;
+  background-color: var(--danger-color);
+  color: #ffffff;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
 
-.btn-cancel-add-user{
-    padding: 0.625rem 1.25rem;
-    background-color: var(--danger-color);
-    color: #ffffff;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
-    
-} 
-
-
-.btn-cancel-add-user:hover { background-color: #d44a05; }
-.btn-cancel-add-user:active { transform: scale(0.95); }
-.btn-cancel-add-user:disabled { opacity: 0.5; cursor: not-allowed; }
-
-
-
+.btn-cancel-add-user:hover {
+  background-color: #d44a05;
+}
+.btn-cancel-add-user:active {
+  transform: scale(0.95);
+}
+.btn-cancel-add-user:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* Контейнер навколо інпуту пошуку */
 .search-wrapper-add-user {
@@ -466,7 +486,6 @@
   background-color: #2a2a2a;
   border-color: #3d3d3d;
 }
-
 
 .error-container-add-user {
   background-color: rgba(239, 68, 68, 0.1);
@@ -525,11 +544,11 @@
 }
 
 .notif-copy-btn {
-  display: flex;            /* Вмикаємо Flexbox */
-  align-items: center;      /* Вирівнюємо іконку та текст по центру вертикалі */
-  justify-content: center;  /* Центруємо вміст горизонтально */
-  gap: 8px;                 /* Відступ між іконкою та текстом */
-  
+  display: flex; /* Вмикаємо Flexbox */
+  align-items: center; /* Вирівнюємо іконку та текст по центру вертикалі */
+  justify-content: center; /* Центруємо вміст горизонтально */
+  gap: 8px; /* Відступ між іконкою та текстом */
+
   /* Решта ваших стилів */
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -538,6 +557,6 @@
   border-radius: 6px;
   font-size: 11px;
   cursor: pointer;
-  width: 100%;              /* Або заберіть це, якщо хочете кнопку по ширині тексту */
+  width: 100%; /* Або заберіть це, якщо хочете кнопку по ширині тексту */
   margin-top: 8px;
 }

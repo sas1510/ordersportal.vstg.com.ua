@@ -107,7 +107,7 @@
   padding: 14px;
   margin-bottom: 5px;
   border-left: 4px solid var(--danger-color);
-  box-shadow: 0 4px 8px rgba(0,0,0,.06);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .wds-card .row {
@@ -123,8 +123,12 @@
 
 /* ===== VISIBILITY ===== */
 
-.desktop-only { display: block; }
-.mobile-only { display: none; }
+.desktop-only {
+  display: block;
+}
+.mobile-only {
+  display: none;
+}
 
 /* ===== DARK THEME ===== */
 
@@ -141,9 +145,12 @@ body.dark-theme .wds-filter {
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
-  .desktop-only { display: none; }
-  .mobile-only { display: block; }
-
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: block;
+  }
 
   .wds-filter {
     flex-direction: column;
@@ -156,15 +163,13 @@ body.dark-theme .wds-filter {
 
   .wds-filter .btn-filter {
     width: 100%;
-    margin-top: 8px;      /* відступ зверху */
+    margin-top: 8px; /* відступ зверху */
     justify-content: center;
   }
   .wds-codes-page {
     margin: 10px;
   }
 }
-
-
 
 /* =========================================================
    🌙 DARK THEME — WDS CODES
@@ -196,11 +201,7 @@ body.dark-theme .page-title {
 /* ===== FILTER ===== */
 
 body.dark-theme .wds-filter {
-  background: linear-gradient(
-    180deg,
-    #2b2424 0%,
-    #241e1e 100%
-  );
+  background: linear-gradient(180deg, #2b2424 0%, #241e1e 100%);
   border: 1px dashed #5a3b3b;
 }
 
@@ -225,7 +226,7 @@ body.dark-theme .filter-item-bill select:focus {
 /* ===== BUTTON ===== */
 
 body.dark-theme .btn-filter {
-  background:  var(--danger-color);
+  background: var(--danger-color);
   color: #fff;
 }
 
@@ -265,11 +266,7 @@ body.dark-theme .wds-table tbody tr:hover {
 /* ===== BADGE (WDS CODE) ===== */
 
 body.dark-theme .badge-wds {
-  background: linear-gradient(
-    180deg,
-    #3a2418 0%,
-    #2f1d13 100%
-  );
+  background: linear-gradient(180deg, #3a2418 0%, #2f1d13 100%);
   color: #ffb36b;
   border: 1px solid #5a3b1e;
 }

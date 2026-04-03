@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axiosInstance from "../api/axios";
 import { X, Plus, Key, Ban } from "lucide-react";
 
 import GenerateApiKeyModal from "./GenerateApiKeyModal";
 import ConfirmModal from "./ConfirmModal";
-import {formatDateHumanShorter} from '../utils/formatters'
+import { formatDateHumanShorter } from "../utils/formatters";
 import "./UserApiKeysModal.css";
 
 export default function UserApiKeysModal({ user, onClose }) {
@@ -16,11 +16,11 @@ export default function UserApiKeysModal({ user, onClose }) {
   const [confirmKeyId, setConfirmKeyId] = useState(null);
 
   /* ================= LOAD KEYS ================= */
-  const loadKeys = async () => {
+  const loadKeys = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axiosInstance.get(
-        `/admin/api-keys/by-user/${user.id}/`
+        `/admin/api-keys/by-user/${user.id}/`,
       );
       setKeys(res.data.keys || []);
     } catch (e) {
@@ -28,12 +28,13 @@ export default function UserApiKeysModal({ user, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id]); // 3. Залежить від ID користувача
 
+  // 4. Тепер додаємо loadKeys у залежності ефекту
   useEffect(() => {
     loadKeys();
-  }, []);
-
+  }, [loadKeys]);
+  
   /* ================= REQUEST CONFIRM ================= */
   const requestDeactivate = (keyId) => {
     setConfirmKeyId(keyId);
@@ -46,16 +47,15 @@ export default function UserApiKeysModal({ user, onClose }) {
     setProcessingId(confirmKeyId);
 
     try {
-      await axiosInstance.post(
-        `/admin/api-keys/${confirmKeyId}/deactivate/`
-      );
+      await axiosInstance.post(`/admin/api-keys/${confirmKeyId}/deactivate/`);
 
       setKeys((prev) =>
         prev.map((k) =>
-          k.id === confirmKeyId ? { ...k, is_active: false } : k
-        )
+          k.id === confirmKeyId ? { ...k, is_active: false } : k,
+        ),
       );
-    } catch (e) {
+    } catch (_e) {
+      console.error(_e);
       alert("Не вдалося деактивувати API-ключ");
     } finally {
       setProcessingId(null);
@@ -67,10 +67,7 @@ export default function UserApiKeysModal({ user, onClose }) {
   return (
     <>
       <div className="api-keys-overlay" onClick={onClose}>
-        <div
-          className="api-keys-window"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="api-keys-window" onClick={(e) => e.stopPropagation()}>
           {/* HEADER */}
           <div className="api-keys-header">
             <div className="api-keys-title">
@@ -88,9 +85,7 @@ export default function UserApiKeysModal({ user, onClose }) {
             {loading ? (
               <div className="api-keys-loading">Завантаження…</div>
             ) : keys.length === 0 ? (
-              <div className="api-keys-empty">
-                API-ключів ще немає
-              </div>
+              <div className="api-keys-empty">API-ключів ще немає</div>
             ) : (
               <table className="api-keys-table">
                 <thead>
@@ -138,10 +133,7 @@ export default function UserApiKeysModal({ user, onClose }) {
 
           {/* FOOTER */}
           <div className="api-keys-footer">
-            <button
-              className="btn-create"
-              onClick={() => setCreateOpen(true)}
-            >
+            <button className="btn-create" onClick={() => setCreateOpen(true)}>
               <Plus size={18} />
               Створити ключ
             </button>

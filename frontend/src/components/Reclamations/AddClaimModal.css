@@ -15,8 +15,8 @@
   background: #fff;
   border-radius: 12px;
   width: 650px;
-  max-width: 90%;        /* 💡 не притискається до країв */
-  max-height: 80vh;  
+  max-width: 90%; /* 💡 не притискається до країв */
+  max-height: 80vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -38,7 +38,7 @@
 .header-content {
   display: flex;
   align-items: center;
-  
+
   gap: 10px; /* відстань між іконкою та текстом */
 }
 
@@ -64,7 +64,9 @@
   font-size: 22px;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 .claim-close-btn:hover {
   opacity: 0.8;
@@ -73,12 +75,11 @@
 
 /* ===== Форма ===== */
 .claim-form {
-
   padding: 22px 26px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #f46c3b transparent;
-    min-height: 0;
+  min-height: 0;
 }
 
 .claim-form::-webkit-scrollbar {
@@ -115,9 +116,7 @@
   transition: all 0.2s;
 }
 
-
-.claim-textarea
- {
+.claim-textarea {
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 14px;
@@ -125,7 +124,6 @@
   width: 100%;
   box-sizing: border-box; /* щоб padding не ламав ширину */
 }
-
 
 .claim-input:focus,
 .claim-textarea:focus,
@@ -225,8 +223,8 @@
 /* ===== Footer ===== */
 /* ===== Footer ===== */
 .claim-modal-footer {
-flex-shrink: 0; /* 👈 футер завжди фіксований знизу */
-display: flex;
+  flex-shrink: 0; /* 👈 футер завжди фіксований знизу */
+  display: flex;
   justify-content: center; /* 👈 кнопки по центру */
   gap: 16px;
   padding: 18px 22px;
@@ -239,8 +237,6 @@ display: flex;
 
 /* ===== Кнопки ===== */
 
-
-
 .claim-btn-cancel,
 .claim-btn-save {
   border: none;
@@ -252,7 +248,9 @@ display: flex;
   align-items: center;
   gap: 8px;
   min-width: 120px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 /* Сіра кнопка — скасування */
@@ -267,23 +265,20 @@ display: flex;
 
 /* Помаранчева кнопка — зберегти */
 .claim-btn-save {
-   background: #76b448;
+  background: #76b448;
   color: #fff;
 }
-
 
 .claim-btn-save:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
 }
 
-
 .claim-btn-save:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
-
 
 /* ===== Фікс ширини select / option ===== */
 /* === Красивий select у межах модалки === */
@@ -317,7 +312,6 @@ select.claim-input option {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
 
 .claim-label.row {
   display: flex;
@@ -353,118 +347,123 @@ select.claim-input option {
   color: #333;
 }
 
-
-
 /* ===== Анімації ===== */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes scaleIn {
-  from { transform: scale(0.94); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-
-
 
 /* --- DARK MODE: СТИЛІ МОДАЛЬНОГО ВІКНА CLAIM --- */
 
 /* ===== Overlay (Затемнення) ===== */
 body.dark-theme .claim-modal-overlay {
-    /* Робимо затемнення більш насиченим */
-    background: rgba(0, 0, 0, 0.7); 
+  /* Робимо затемнення більш насиченим */
+  background: rgba(0, 0, 0, 0.7);
 }
 
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .claim-modal-window {
-    /* Темний фон вікна */
-    background: #1e1e1e;
-    /* Світла, але не яскрава тінь */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  /* Темний фон вікна */
+  background: #1e1e1e;
+  /* Світла, але не яскрава тінь */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* ===== Header (Хедер залишається кольоровим для акценту) ===== */
 body.dark-theme .claim-modal-header {
-    /* Градієнт залишається, але кольори тексту зберігаються білими */
-    color: #fff;
+  /* Градієнт залишається, але кольори тексту зберігаються білими */
+  color: #fff;
 }
 
 /* ===== Форма (Секція прокрутки) ===== */
 body.dark-theme .claim-form {
-    /* Колір прокрутки можна зробити темнішим */
-    scrollbar-color: #f46c3b transparent;
+  /* Колір прокрутки можна зробити темнішим */
+  scrollbar-color: #f46c3b transparent;
 }
 body.dark-theme .claim-form::-webkit-scrollbar-thumb {
-    background: #f46c3b;
+  background: #f46c3b;
 }
 
 /* ===== Поля та Текст ===== */
 body.dark-theme .claim-label span,
 body.dark-theme .photo-label-text {
-    /* Світлий текст на темному фоні */
-    color: #f0f0f0; 
+  /* Світлий текст на темному фоні */
+  color: #f0f0f0;
 }
 
 /* Поля введення */
 body.dark-theme .claim-input,
 body.dark-theme .claim-textarea,
 body.dark-theme .claim-select {
-    background: #333333; /* Темний фон поля */
-    color: #f0f0f0; /* Світлий текст */
-    border: 1px solid #555555; /* Темніша рамка */
+  background: #333333; /* Темний фон поля */
+  color: #f0f0f0; /* Світлий текст */
+  border: 1px solid #555555; /* Темніша рамка */
 }
 
 body.dark-theme .claim-input:focus,
 body.dark-theme .claim-textarea:focus,
 body.dark-theme .claim-select:focus {
-    /* Зберігаємо акцентний колір фокусу */
-    border-color: #f46c3b; 
-    box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.3); /* Яскравіша тінь */
+  /* Зберігаємо акцентний колір фокусу */
+  border-color: #f46c3b;
+  box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.3); /* Яскравіша тінь */
 }
 
 /* ===== Серії (Series List) ===== */
 body.dark-theme .series-list {
-    background: #282828; /* Темний фон списку */
-    border: 1px dashed #555555;
+  background: #282828; /* Темний фон списку */
+  border: 1px dashed #555555;
 }
 
 body.dark-theme .series-item {
-    color: #cccccc; /* Світлий текст елементів списку */
+  color: #cccccc; /* Світлий текст елементів списку */
 }
 
 /* ===== Фото (Photo Preview) ===== */
 body.dark-theme .photo-thumb {
-    border: 1px solid #555;
+  border: 1px solid #555;
 }
 
 /* ===== Footer ===== */
 body.dark-theme .claim-modal-footer {
-    /* Темний фон футера */
-    background: #1e1e1e; 
-    border-top: 1px solid #555;
+  /* Темний фон футера */
+  background: #1e1e1e;
+  border-top: 1px solid #555;
 }
-
 
 /* --- DARK MODE: ХЕДЕР МОДАЛЬНОГО ВІКНА РЕКЛАМАЦІЙ --- */
 
 body.dark-theme .claim-modal-header {
-    /* Використовуємо більш насичені, темні помаранчеві відтінки */
-    background: linear-gradient(90deg, #c75628, #d35a26) !important;
-    color: #fff !important; 
+  /* Використовуємо більш насичені, темні помаранчеві відтінки */
+  background: linear-gradient(90deg, #c75628, #d35a26) !important;
+  color: #fff !important;
 }
 
 /* === Фікс select у Dark Mode === */
 body.dark-theme select.claim-input {
-    background-color: #333333; /* Темний фон select */
-    color: #f0f0f0;
-    border: 1px solid #555555;
-    
-    /* Змінюємо колір стрілки на світлий */
-    background-image: url("data:image/svg+xml;utf8,<svg fill='%23cccccc' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-color: #333333; /* Темний фон select */
+  color: #f0f0f0;
+  border: 1px solid #555555;
+
+  /* Змінюємо колір стрілки на світлий */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23cccccc' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
 }
 body.dark-theme select.claim-input option {
-    background-color: #333333; /* Фон опцій */
-    color: #f0f0f0;
+  background-color: #333333; /* Фон опцій */
+  color: #f0f0f0;
 }
 
 /* --- DARK MODE: СТИЛІ КНОПОК МОДАЛКИ (CLAIM BUTTONS) --- */
@@ -476,37 +475,37 @@ body.dark-theme select.claim-input option {
 /* --- 1. Кнопка СКАСУВАТИ (claim-btn-cancel) --- */
 
 body.dark-theme .claim-btn-cancel {
-    /* Глибокий помаранчевий градієнт (Темніший початок, трохи світліший кінець) */
-    background: linear-gradient(90deg, #b84c20, #c75628) !important; 
-    color: #fff !important; 
+  /* Глибокий помаранчевий градієнт (Темніший початок, трохи світліший кінець) */
+  background: linear-gradient(90deg, #b84c20, #c75628) !important;
+  color: #fff !important;
 }
 
 body.dark-theme .claim-btn-cancel:hover {
-    /* Змінюємо градієнт при hover */
-    background: linear-gradient(90deg, #c75628, #b84c20) !important;
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(199, 86, 40, 0.6) !important; 
+  /* Змінюємо градієнт при hover */
+  background: linear-gradient(90deg, #c75628, #b84c20) !important;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(199, 86, 40, 0.6) !important;
 }
 
 /* --- 2. Кнопка ЗБЕРЕГТИ (claim-btn-save) --- */
 
 body.dark-theme .claim-btn-save {
-    /* Глибокий зелений градієнт */
-    background: linear-gradient(90deg, #507e30, #5c8c38) !important; 
-    color: #fff !important; 
+  /* Глибокий зелений градієнт */
+  background: linear-gradient(90deg, #507e30, #5c8c38) !important;
+  color: #fff !important;
 }
 
 body.dark-theme .claim-btn-save:hover {
-    background: linear-gradient(90deg, #5c8c38, #507e30) !important;
-    box-shadow: 0 6px 16px rgba(118, 180, 72, 0.5) !important;
+  background: linear-gradient(90deg, #5c8c38, #507e30) !important;
+  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.5) !important;
 }
 /* 3. Неактивна кнопка (Disabled) */
 body.dark-theme .claim-btn-save:disabled {
-    /* Забезпечуємо, що неактивна кнопка не має тіні при наведенні */
-    opacity: 0.5;
-    box-shadow: none;
-    background: #333333 !important; /* Надаємо нейтральний темний фон */
-    color: #aaaaaa !important;
+  /* Забезпечуємо, що неактивна кнопка не має тіні при наведенні */
+  opacity: 0.5;
+  box-shadow: none;
+  background: #333333 !important; /* Надаємо нейтральний темний фон */
+  color: #aaaaaa !important;
 }
 
 /* 4. Кнопка Додати фото (add-photo-btn) */
@@ -515,22 +514,21 @@ body.dark-theme .claim-btn-save:disabled {
 /* --- 4. Кнопка Додати фото (add-photo-btn) --- */
 
 body.dark-theme .add-photo-btn {
-    /* Глибокий помаранчевий градієнт (Ви вже його скоригували) */
-    background: linear-gradient(90deg, #c75628, #d35a26) !important; 
-    color: #fff !important; 
+  /* Глибокий помаранчевий градієнт (Ви вже його скоригували) */
+  background: linear-gradient(90deg, #c75628, #d35a26) !important;
+  color: #fff !important;
 }
 
 body.dark-theme .add-photo-btn:hover {
-    background: linear-gradient(90deg, #d35a26, #c75628) !important;
-    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.6) !important; 
+  background: linear-gradient(90deg, #d35a26, #c75628) !important;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.6) !important;
 }
 
 /* 5. Кнопка очищення файлу */
 body.dark-theme .claim-clear-file {
-    background: #f46c3b;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  background: #f46c3b;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
-
 
 .claim-row {
   display: flex;
@@ -538,7 +536,6 @@ body.dark-theme .claim-clear-file {
   gap: 6px; /* Було 12px */
   margin-bottom: 8px; /* Було 12px */
 }
-
 
 /* Мітка */
 .claim-row .label-text {
@@ -558,11 +555,8 @@ body.dark-theme .claim-clear-file {
   font-size: 14px;
 }
 
-
-
 /* ===== МОБІЛЬНА АДАПТАЦІЯ ===== */
 @media (max-width: 480px) {
-
   /* Вікно модалки — менше відступів */
   .claim-modal-window {
     max-width: 94%;
@@ -588,18 +582,18 @@ body.dark-theme .claim-clear-file {
 
   /* Кнопки займають всю ширину і стоять вертикально */
   .claim-modal-footer {
-    flex-direction: column;     /* ✅ одна під одною */
+    flex-direction: column; /* ✅ одна під одною */
     gap: 10px;
     padding: 14px 16px;
   }
 
   .claim-btn-cancel,
   .claim-btn-save {
-    width: 100%;               /* ✅ на всю ширину */
+    width: 100%; /* ✅ на всю ширину */
     min-width: unset;
     font-size: 16px;
     padding: 12px;
-    justify-content: center;   /* текст по центру */
+    justify-content: center; /* текст по центру */
   }
 
   /* Плашка фото та кнопки вирівняти вертикально */
@@ -615,34 +609,33 @@ body.dark-theme .claim-clear-file {
   }
 }
 
-
 .error-inline-retry {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-    font-size: 12px;
-    color: #f5222d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #f5222d;
 }
 
 .error-inline-retry button {
-    background: none;
-    border: none;
-    color: #5e83bf;
-    text-decoration: underline;
-    cursor: pointer;
-    font-weight: 600;
-    padding: 0;
+  background: none;
+  border: none;
+  color: #5e83bf;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
 }
 
 .error-inline-retry button:hover {
-    color: #4a6fa5;
+  color: #4a6fa5;
 }
 
 .select-wrapper-with-error {
-    margin-bottom: 15px; /* компенсуємо місце під помилку */
+  margin-bottom: 15px; /* компенсуємо місце під помилку */
 }
 
 .input-error {
-    border-color: #ffa39e !important;
+  border-color: #ffa39e !important;
 }

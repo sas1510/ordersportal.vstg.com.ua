@@ -7,7 +7,7 @@ from email.mime.image import MIMEImage
 
 logger = logging.getLogger(__name__)
 def send_registration_success_email(user, tg_link=None):
-    subject = "Реєстрацію завершено — Orders Portal"
+    subject = "Реєстрацію завершено — Portal ViknaStyle"  # Тема листа
     from_email = settings.EMAIL_HOST_USER
     user_email = user.email
 

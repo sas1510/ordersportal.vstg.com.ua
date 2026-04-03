@@ -318,7 +318,8 @@ from backend.utils.api_helpers import safe_view
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+
+
 from django.utils import timezone
 
 from backend.permissions import IsAdminJWT
@@ -340,6 +341,10 @@ from backend.permissions import  IsAdminJWT, IsAuthenticatedOr1CApiKey, ApiKey1�
 
 from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer
 from rest_framework import serializers
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -365,51 +370,57 @@ from django.contrib.auth import login
 )
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-
+   
     def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+        # 1. Створюємо серіалізатор
+        serializer = self.get_serializer(data=request.data)
 
-        if response.status_code == 200:
-            refresh = response.data.get("refresh")
-            access = response.data.get("access")
+        # 2. ВАЖЛИВО: Викликаємо валідацію ТУТ. 
+        # Це перевірить пароль і покладе юзера в serializer.user
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            return Response({"detail": "Невірний логін або пароль"}, status=401)
 
-            user = CustomUser.objects.get(username=request.data["username"])
-            role = user.role
-            
-            # login(request, user)
+        # 3. Отримуємо дані (токени), які згенерував серіалізатор
+        data = serializer.validated_data
+        access = data.get("access")
+        refresh = data.get("refresh")
 
-            update_last_login(None, user)
-
-
-            user_guid_1c = bin_to_guid_1c(user.user_id_1C)
-
-            resp = Response(
-                {
-                    "access": access,
-                    "user": {
-                        "id": user.id,
-                        "username": user.username,
-                        "full_name": user.full_name,
-                        "role": role,
-                        "user_id_1c": user_guid_1c,   # ← ДОДАНО
-                    },
-                    "role": role,
-                },
-                status=status.HTTP_200_OK
-            )
-
-            resp.set_cookie(
-                key="refresh_token",
-                value=refresh,
-                httponly=True,
-                secure=False,
-                samesite="Lax",
-                max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
-            )
-
-            return resp
+        # 4. Тепер serializer.user ТОЧНО існує
+        user = serializer.user
+        role = user.role
         
-        return response
+        update_last_login(None, user)
+        user_guid_1c = bin_to_guid_1c(user.user_id_1C)
+
+        # 5. Формуємо відповідь (як ви і хотіли)
+        resp = Response(
+            {
+                "access": access,
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "full_name": user.full_name,
+                    "role": role,
+                    "user_id_1c": user_guid_1c,
+                },
+                "role": role,
+            },
+            status=status.HTTP_200_OK
+        )
+
+        # 6. Ставимо Cookie
+        resp.set_cookie(
+            key="refresh_token",
+            value=refresh,
+            httponly=True,
+            secure=settings.SIMPLE_JWT.get("AUTH_COOKIE_SECURE", False),
+            samesite="Lax",
+            max_age=settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()
+        )
+
+        return resp
 
 
 # ----------------------
@@ -502,8 +513,10 @@ class LogoutView(APIView):
                 token = RefreshToken(refresh_token)
                 token.blacklist()
             except Exception:
+
+                logger.error(f"Критична помилка при додаванні токена в блекліст: {e}")
                 # Токен вже недійсний або в чорному списку
-                pass
+                
         # Очищаємо cookie
         resp = Response(status=status.HTTP_205_RESET_CONTENT)
         resp.delete_cookie("refresh_token")
@@ -539,7 +552,7 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
+
 
 from .models import Invitation, CustomUser
 from .serializers import CompleteRegistrationSerializer
@@ -777,7 +790,7 @@ def get_user_name_view(request):
 
 
 
-from rest_framework import status
+
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -1195,7 +1208,7 @@ from datetime import datetime
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+
 from .models import CustomUser
 
 @extend_schema(
@@ -1280,7 +1293,9 @@ def admin_deactivate_user_view(request, user_id):
         try:
             user.expire_date = user.expire_date.date()
         except Exception:
-            pass
+            logger.error(f"Критична помилка при додаванні токена в блекліст: {e}")
+            
+        
 
     user.save()
 
@@ -1352,7 +1367,7 @@ def get_current_user(request):
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+
 from django.db import connection
 
 from backend.utils.BinToGuid1C import bin_to_guid_1c
@@ -1475,7 +1490,7 @@ def get_dealer_addresses_change(request):
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import status
+
 from django.utils import timezone
 from datetime import datetime
 import secrets
@@ -1609,7 +1624,7 @@ def get_contractor_guid_from_db(user):
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -1663,20 +1678,20 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+
 from .models import CustomUser, Invitation
 from .serializers import CreateInvitationSerializer
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.authentication import OneCApiKeyAuthentication
 import uuid
-from rest_framework import status, permissions
+from rest_framework import  permissions
 
 import uuid
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from django.contrib.auth.hashers import make_password
-from rest_framework import status
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -1689,7 +1704,7 @@ from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+
 import uuid
 from datetime import timedelta
 
@@ -1830,7 +1845,7 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+
 
 class CreateAdminDirectView(APIView):
     """

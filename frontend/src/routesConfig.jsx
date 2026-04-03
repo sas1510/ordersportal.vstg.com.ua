@@ -1,13 +1,9 @@
-
 import Dashboard from "./pages/Dashboard";
 import FilesPage from "./pages/FilesPage";
 import AddOrEditFilePage from "./pages/AddOrEditFilePage";
-import AdminUsersPage from './pages/Users';
-import VideosPage from "./pages/VideosPage";
-import VideoFormPage from './pages/VideoFormPage';
 
-import OrganizationPage from "./pages/OrganizationsPage";
-import RegionPage from "./pages/RegionsPage";
+import VideosPage from "./pages/VideosPage";
+import VideoFormPage from "./pages/VideoFormPage";
 
 import PortalOriginal from "./pages/OrdersPage";
 
@@ -17,47 +13,40 @@ import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 import ChangePassword from "./pages/ChangePassword";
 import EditUserPage from "./pages/EditUserPage";
 
-import DealerAddressesPage from "./pages/DealerAddressesPage"
+import DealerAddressesPage from "./pages/DealerAddressesPage";
 import ContactFormPage from "./pages/ContactFormPage";
 import UrgentCallLogsPage from "./pages/UrgentCallLogsPage";
-import EmergencyContactsPage from './pages/EmergencyContactsPage';
+import EmergencyContactsPage from "./pages/EmergencyContactsPage";
 
-import AddClaimForm from "./pages/AddClaimForm";
-import AddReorderForm from "./pages/AddReorderForm";
+// import AddClaimForm from "./pages/AddClaimForm";
+// import AddReorderForm from "./pages/AddReorderForm";
 import HomePage from "./pages/HomePage";
 
-import ManagersUpdatePage from "./pages/ManagersUpdatePage";
-import ManagersSync from "./pages/ManagersSync";
-import SyncManagersPage from "./pages/SyncManagersPage"
+import AdminAdditionalOrders from "./pages/AdminAdditionalOrders";
 
-import AdminAdditionalOrders from './pages/AdminAdditionalOrders'
-
-
-import CreateCustomerBillPage from "./pages/CreateCustomerBillPage"
+import CreateCustomerBillPage from "./pages/CreateCustomerBillPage";
 import ReclamationPortal from "./pages/ReclamationPortal";
 
-import ChangePasswordPage from "./pages/ChangePasswordPage" 
-import UsersListPage from "./pages/UsersListPage"
-import PaymentStatusV2 from "./pages/PaymentStatusV2"
-import PaymentsPage from './pages/PaymentsPage'
+import ChangePasswordPage from "./pages/ChangePasswordPage";
+import UsersListPage from "./pages/UsersListPage";
+import PaymentStatusV2 from "./pages/PaymentStatusV2";
+import PaymentsPage from "./pages/PaymentsPage";
 
-import CustomerBillsPage from './pages/CustomerBillsPage'
-import AdminPortalOriginal from './pages/AdminOrderPage'
-import AdminReclamationPortal from './pages/AdminReclamationPortal'
-import WDSCodesTable from './pages/WDSCodesTable'
-import InvalidLinkPage from './pages/InvalidLinkPage'
-import ProductionStatisticsPage from './pages/ProductionStatisticsPage'
+import CustomerBillsPage from "./pages/CustomerBillsPage";
+import AdminPortalOriginal from "./pages/AdminOrderPage";
+import AdminReclamationPortal from "./pages/AdminReclamationPortal";
+import WDSCodesTable from "./pages/WDSCodesTable";
+import InvalidLinkPage from "./pages/InvalidLinkPage";
+import ProductionStatisticsPage from "./pages/ProductionStatisticsPage";
 import DashboardPage from "./pages/DashboardPage";
-import NotificationPage from './pages/NotificationPage'
-import ManagerQrDropdown from './pages/ManagerQrDropdown'
-
-
+import NotificationPage from "./pages/NotificationPage";
+import ManagerQrDropdown from "./pages/ManagerQrDropdown";
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
   { path: "files", element: <FilesPage /> },
-  { path: "users", element: <AdminUsersPage /> },
+  // { path: "users", element: <AdminUsersPage /> },
   { path: "files/add", element: <AddOrEditFilePage /> },
   { path: "files/edit/:id", element: <AddOrEditFilePage /> },
   { path: "videos", element: <VideosPage /> },
@@ -77,30 +66,23 @@ export const adminRoutes = [
   { path: "contacts/:id/edit", element: <ContactFormPage /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
 
-
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "users-list", element: <UsersListPage /> },
 
-  { path: "finance/cash-flow", element: <PaymentStatusV2/> },
-  { path: "finance/payment", element: <PaymentsPage/> },
+  { path: "finance/cash-flow", element: <PaymentStatusV2 /> },
+  { path: "finance/payment", element: <PaymentsPage /> },
 
-  { path: "finance/customer-bills", element: <CustomerBillsPage/> },
-  { path: "admin-additional-order", element: <AdminAdditionalOrders/> },
-  { path: "admin-order", element: <AdminPortalOriginal/> },
-  { path: "admin-reclamation", element: <AdminReclamationPortal/> },
-  { path: "promo-wds-codes", element: <WDSCodesTable/> },
+  { path: "finance/customer-bills", element: <CustomerBillsPage /> },
+  { path: "admin-additional-order", element: <AdminAdditionalOrders /> },
+  { path: "admin-order", element: <AdminPortalOriginal /> },
+  { path: "admin-reclamation", element: <AdminReclamationPortal /> },
+  { path: "promo-wds-codes", element: <WDSCodesTable /> },
 
-  { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
- { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
-   { path: "dashboardpage", element: <DashboardPage/> },
-   { path: "notifications", element: <NotificationPage/> },
-   { path: "manager-qr", element: <ManagerQrDropdown/> },
-
-
-
-  
-
-  
+  { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
+  { path: "/finance/statistics", element: <ProductionStatisticsPage /> },
+  { path: "dashboardpage", element: <DashboardPage /> },
+  { path: "notifications", element: <NotificationPage /> },
+  { path: "manager-qr", element: <ManagerQrDropdown /> },
 ];
 
 export const dealerRoutes = [
@@ -114,25 +96,20 @@ export const dealerRoutes = [
   { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
-
   { path: "create-bill", element: <CreateCustomerBillPage /> },
 
+  { path: "change-password", element: <ChangePasswordPage /> },
+  { path: "finance/cash-flow", element: <PaymentStatusV2 /> },
+  { path: "finance/payment", element: <PaymentsPage /> },
 
-
-
-  { path: "change-password", element: <ChangePasswordPage/> },
-  { path: "finance/cash-flow", element: <PaymentStatusV2/> },
-  { path: "finance/payment", element: <PaymentsPage/> },
-
-  { path: "finance/customer-bills", element: <CustomerBillsPage/> },
-  { path: "promo-wds-codes", element: <WDSCodesTable/> },
-  { path: "edit-addresses", element: <DealerAddressesPage/> },
-  { path: "file-preview/invalid", element: <InvalidLinkPage/> },
-  { path: "file-preview/:errorType", element: <FilePreviewErrorPage/> },
-  { path: "dashboardpage", element: <DashboardPage/> },
-  { path: "/finance/statistics", element: <ProductionStatisticsPage/> },
-  { path: "/notifications", element: <NotificationPage/> },
-
+  { path: "finance/customer-bills", element: <CustomerBillsPage /> },
+  { path: "promo-wds-codes", element: <WDSCodesTable /> },
+  { path: "edit-addresses", element: <DealerAddressesPage /> },
+  { path: "file-preview/invalid", element: <InvalidLinkPage /> },
+  { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
+  { path: "dashboardpage", element: <DashboardPage /> },
+  { path: "/finance/statistics", element: <ProductionStatisticsPage /> },
+  { path: "/notifications", element: <NotificationPage /> },
 ];
 
 // export const managerRoutes = [
@@ -162,7 +139,6 @@ export const dealerRoutes = [
 //   { path: "contacts/:id/edit", element: <ContactFormPage /> },
 //   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
 //   // { path: "finance/settlements", element: <PaymentStatus /> },
-
 
 //   { path: "promo-wds-codes", element: <WDSCodesTable/> },
 //   { path: "addClaim", element: <AddClaimForm /> },

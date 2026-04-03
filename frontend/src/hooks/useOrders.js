@@ -23,10 +23,12 @@ export function useOrders(url) {
   }, [url]);
 
   const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(prev =>
-      prev.map(order =>
-        order.Order_ID === orderId ? { ...order, OrderStatus: newStatus } : order
-      )
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.Order_ID === orderId
+          ? { ...order, OrderStatus: newStatus }
+          : order,
+      ),
     );
   };
 

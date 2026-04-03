@@ -1,38 +1,53 @@
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { useMemo } from 'react';
+import {
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { useMemo } from "react";
 
 export default function ABCAnalysisChart({ data }) {
   // ABC Аналіз: A - 80% виручки (20% товарів), B - 15%, C - 5%
-  
+
   const abcData = useMemo(() => {
     // Обчислюємо приблизну виручку для кожного товару
     const withRevenue = data
-      .filter(item => item.ConstructionTypeName_UA !== '--- УСЬОГО ---')
-      .map(item => ({
+      .filter((item) => item.ConstructionTypeName_UA !== "--- УСЬОГО ---")
+      .map((item) => ({
         name: item.ConstructionTypeName_UA,
         revenue: item.TotalQuantity * 20000, // Приблизна виручка
         orders: item.UniqueOrdersCount,
-        quantity: item.TotalQuantity
+        quantity: item.TotalQuantity,
       }))
       .sort((a, b) => b.revenue - a.revenue);
 
     // Обчислюємо кумулятивний відсоток
-    const totalRevenue = withRevenue.reduce((sum, item) => sum + item.revenue, 0);
+    const totalRevenue = withRevenue.reduce(
+      (sum, item) => sum + item.revenue,
+      0,
+    );
     let cumulative = 0;
-    
-    const result = withRevenue.map((item, index) => {
+
+    const result = withRevenue.map((item, _index) => {
       cumulative += item.revenue;
       const cumulativePercent = (cumulative / totalRevenue) * 100;
-      
-      let category = 'C';
-      if (cumulativePercent <= 80) category = 'A';
-      else if (cumulativePercent <= 95) category = 'B';
-      
+
+      let category = "C";
+      if (cumulativePercent <= 80) category = "A";
+      else if (cumulativePercent <= 95) category = "B";
+
       return {
         ...item,
         cumulativePercent: parseFloat(cumulativePercent.toFixed(2)),
         category,
-        displayName: item.name.length > 25 ? item.name.slice(0, 22) + '...' : item.name
+        displayName:
+          item.name.length > 25 ? item.name.slice(0, 22) + "..." : item.name,
       };
     });
 
@@ -42,39 +57,63 @@ export default function ABCAnalysisChart({ data }) {
   // Підрахунок статистики ABC
   const stats = useMemo(() => {
     const total = abcData.reduce((sum, item) => sum + item.revenue, 0);
-    const countA = abcData.filter(i => i.category === 'A').length;
-    const countB = abcData.filter(i => i.category === 'B').length;
-    const countC = abcData.filter(i => i.category === 'C').length;
-    
-    const revenueA = abcData.filter(i => i.category === 'A').reduce((s, i) => s + i.revenue, 0);
-    const revenueB = abcData.filter(i => i.category === 'B').reduce((s, i) => s + i.revenue, 0);
-    const revenueC = abcData.filter(i => i.category === 'C').reduce((s, i) => s + i.revenue, 0);
+    const countA = abcData.filter((i) => i.category === "A").length;
+    const countB = abcData.filter((i) => i.category === "B").length;
+    const countC = abcData.filter((i) => i.category === "C").length;
+
+    const revenueA = abcData
+      .filter((i) => i.category === "A")
+      .reduce((s, i) => s + i.revenue, 0);
+    const revenueB = abcData
+      .filter((i) => i.category === "B")
+      .reduce((s, i) => s + i.revenue, 0);
+    const revenueC = abcData
+      .filter((i) => i.category === "C")
+      .reduce((s, i) => s + i.revenue, 0);
 
     return {
-      A: { count: countA, revenue: revenueA, percent: ((revenueA / total) * 100).toFixed(1) },
-      B: { count: countB, revenue: revenueB, percent: ((revenueB / total) * 100).toFixed(1) },
-      C: { count: countC, revenue: revenueC, percent: ((revenueC / total) * 100).toFixed(1) }
+      A: {
+        count: countA,
+        revenue: revenueA,
+        percent: ((revenueA / total) * 100).toFixed(1),
+      },
+      B: {
+        count: countB,
+        revenue: revenueB,
+        percent: ((revenueB / total) * 100).toFixed(1),
+      },
+      C: {
+        count: countC,
+        revenue: revenueC,
+        percent: ((revenueC / total) * 100).toFixed(1),
+      },
     };
   }, [abcData]);
 
   const getCategoryColor = (category) => {
-    switch(category) {
-      case 'A': return '#00C49F'; // Зелений
-      case 'B': return '#FFBB28'; // Жовтий
-      case 'C': return '#FF8042'; // Червоний
-      default: return '#8884d8';
+    switch (category) {
+      case "A":
+        return "#00C49F"; // Зелений
+      case "B":
+        return "#FFBB28"; // Жовтий
+      case "C":
+        return "#FF8042"; // Червоний
+      default:
+        return "#8884d8";
     }
   };
 
   const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload || !payload.length) return null;
     const data = payload[0].payload;
-    
+
     return (
       <div className="abc-tooltip">
         <div className="tooltip-header">
           <span className="tooltip-title">{data.name}</span>
-          <span className={`category-badge cat-${data.category}`}>{data.category}</span>
+          <span className={`category-badge cat-${data.category}`}>
+            {data.category}
+          </span>
         </div>
         <div className="tooltip-body">
           <div className="tooltip-row">
@@ -102,51 +141,62 @@ export default function ABCAnalysisChart({ data }) {
           margin={{ top: 20, right: 30, bottom: 60, left: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          
-          <XAxis 
-            dataKey="displayName" 
+
+          <XAxis
+            dataKey="displayName"
             angle={-45}
             textAnchor="end"
             height={100}
             tick={{ fontSize: 10 }}
           />
-          
-          <YAxis 
+
+          <YAxis
             yAxisId="left"
             orientation="left"
-            label={{ value: 'Виручка (млн грн)', angle: -90, position: 'insideLeft' }}
+            label={{
+              value: "Виручка (млн грн)",
+              angle: -90,
+              position: "insideLeft",
+            }}
             tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
           />
-          
-          <YAxis 
+
+          <YAxis
             yAxisId="right"
             orientation="right"
             domain={[0, 100]}
-            label={{ value: 'Кумулятивний %', angle: 90, position: 'insideRight' }}
+            label={{
+              value: "Кумулятивний %",
+              angle: 90,
+              position: "insideRight",
+            }}
           />
-          
+
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          
-          <Bar 
+
+          <Bar
             yAxisId="left"
-            dataKey="revenue" 
+            dataKey="revenue"
             name="Виручка"
             radius={[8, 8, 0, 0]}
           >
             {abcData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
+              <Cell
+                key={`cell-${index}`}
+                fill={getCategoryColor(entry.category)}
+              />
             ))}
           </Bar>
-          
-          <Line 
+
+          <Line
             yAxisId="right"
-            type="monotone" 
-            dataKey="cumulativePercent" 
+            type="monotone"
+            dataKey="cumulativePercent"
             stroke="#FF6B6B"
             strokeWidth={3}
             name="Кумулятивний %"
-            dot={{ r: 5, fill: '#FF6B6B' }}
+            dot={{ r: 5, fill: "#FF6B6B" }}
           />
         </ComposedChart>
       </ResponsiveContainer>
@@ -219,9 +269,15 @@ export default function ABCAnalysisChart({ data }) {
           color: white;
         }
 
-        .cat-A { background: #00C49F; }
-        .cat-B { background: #FFBB28; }
-        .cat-C { background: #FF8042; }
+        .cat-A {
+          background: #00c49f;
+        }
+        .cat-B {
+          background: #ffbb28;
+        }
+        .cat-C {
+          background: #ff8042;
+        }
 
         .tooltip-body {
           display: flex;
@@ -254,17 +310,29 @@ export default function ABCAnalysisChart({ data }) {
           border: 2px solid;
         }
 
-        .stat-card.cat-A { 
-          border-color: #00C49F; 
-          background: linear-gradient(135deg, rgba(0, 196, 159, 0.05) 0%, rgba(0, 196, 159, 0.1) 100%);
+        .stat-card.cat-A {
+          border-color: #00c49f;
+          background: linear-gradient(
+            135deg,
+            rgba(0, 196, 159, 0.05) 0%,
+            rgba(0, 196, 159, 0.1) 100%
+          );
         }
-        .stat-card.cat-B { 
-          border-color: #FFBB28; 
-          background: linear-gradient(135deg, rgba(255, 187, 40, 0.05) 0%, rgba(255, 187, 40, 0.1) 100%);
+        .stat-card.cat-B {
+          border-color: #ffbb28;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 187, 40, 0.05) 0%,
+            rgba(255, 187, 40, 0.1) 100%
+          );
         }
-        .stat-card.cat-C { 
-          border-color: #FF8042; 
-          background: linear-gradient(135deg, rgba(255, 128, 66, 0.05) 0%, rgba(255, 128, 66, 0.1) 100%);
+        .stat-card.cat-C {
+          border-color: #ff8042;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 128, 66, 0.05) 0%,
+            rgba(255, 128, 66, 0.1) 100%
+          );
         }
 
         .stat-header {
@@ -281,9 +349,15 @@ export default function ABCAnalysisChart({ data }) {
           letter-spacing: 0.5px;
         }
 
-        .stat-card.cat-A .stat-badge { color: #00C49F; }
-        .stat-card.cat-B .stat-badge { color: #FFBB28; }
-        .stat-card.cat-C .stat-badge { color: #FF8042; }
+        .stat-card.cat-A .stat-badge {
+          color: #00c49f;
+        }
+        .stat-card.cat-B .stat-badge {
+          color: #ffbb28;
+        }
+        .stat-card.cat-C .stat-badge {
+          color: #ff8042;
+        }
 
         .stat-count {
           font-size: 11px;

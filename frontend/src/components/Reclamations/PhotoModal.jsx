@@ -12,18 +12,22 @@ export default function PhotoModal({
 }) {
   const thumbsRef = useRef(null); // Створюємо референс для контейнера мініатюр
 
-  const prev = () => setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
-  const next = () => setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
+  const prev = () =>
+    setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
+  const next = () =>
+    setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
 
   // АВТОПРОКРУТКА: Спрацьовує при зміні currentIndex
   useEffect(() => {
     if (isOpen && thumbsRef.current) {
-      const activeThumb = thumbsRef.current.querySelector(".photo-thumb.active");
+      const activeThumb = thumbsRef.current.querySelector(
+        ".photo-thumb.active",
+      );
       if (activeThumb) {
         activeThumb.scrollIntoView({
           behavior: "smooth", // Плавна анімація
-          block: "nearest",   // Мінімальний рух по вертикалі
-          inline: "center",  // Центруємо активну мініатюру в списку
+          block: "nearest", // Мінімальний рух по вертикалі
+          inline: "center", // Центруємо активну мініатюру в списку
         });
       }
     }
@@ -80,6 +84,6 @@ export default function PhotoModal({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

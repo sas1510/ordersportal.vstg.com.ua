@@ -33,15 +33,6 @@ class CalculationCreateSerializer(serializers.Serializer):
 
 
 
-from rest_framework import serializers
-from .models import UserDashboardConfig
-
-class UserDashboardConfigSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserDashboardConfig
-        fields = ['config', 'layout_name', 'updated_at']
-
-
 
 
 from rest_framework import serializers

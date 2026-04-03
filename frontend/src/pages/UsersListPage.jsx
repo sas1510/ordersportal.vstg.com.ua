@@ -57,13 +57,12 @@ export default function UsersListPage() {
   /* ================= RENDER ================= */
   return (
     <div className="ulp-wrapper users-page-wrapper p-6 min-h-screen bg-gray-50 dark:bg-[#1a1d21] portal-body">
-      
       {/* HEADER WITH CREATE BUTTON */}
       <div className="flex justify-between items-center mb-6 mt-2 border-b pb-4">
         <h1 className="ulp-title text-3xl font-extrabold m-0">
           Усі користувачі
         </h1>
-        <button 
+        <button
           onClick={() => setShowInviteModal(true)}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
         >
@@ -74,9 +73,7 @@ export default function UsersListPage() {
 
       {/* FILTERS */}
       <div className="ulp-filter mb-6 flex gap-3 items-center">
-        <label className="ulp-filter-label font-medium">
-          Фільтр за роллю:
-        </label>
+        <label className="ulp-filter-label font-medium">Фільтр за роллю:</label>
 
         <select
           className="ulp-filter-select users-filter-select rounded-lg px-4 py-2 shadow-sm"
@@ -159,7 +156,9 @@ export default function UsersListPage() {
 
                   <td className="p-4 " data-label="Активний">
                     {u.is_active ? (
-                      <span className="text-green-400 text-xl font-bold">✓</span>
+                      <span className="text-green-400 text-xl font-bold">
+                        ✓
+                      </span>
                     ) : (
                       <span className="text-red-400 text-xl font-bold">✗</span>
                     )}
@@ -170,24 +169,24 @@ export default function UsersListPage() {
                     data-label="Дії"
                   >
                     <div className="actions-container">
-                    <button
-                      className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full transition-colors"
-                      onClick={() => setEditUser(u)}
-                    >
-                      Редагувати
-                    </button>
+                      <button
+                        className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full transition-colors"
+                        onClick={() => setEditUser(u)}
+                      >
+                        Редагувати
+                      </button>
 
-                    <button
-                      className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full transition-colors"
-                      onClick={() => setSelectedUser(u)}
-                    >
-                      Пароль
-                    </button>
+                      <button
+                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full transition-colors"
+                        onClick={() => setSelectedUser(u)}
+                      >
+                        Пароль
+                      </button>
 
-                    <button
+                      <button
                         className={`px-3 py-1 text-white text-sm rounded-full transition-colors ${
-                          u.is_active 
-                            ? "bg-red-500 hover:bg-red-600" 
+                          u.is_active
+                            ? "bg-red-500 hover:bg-red-600"
                             : "bg-gray-400 cursor-not-allowed opacity-70"
                         }`}
                         onClick={() => setDeactivateUser(u)}
@@ -196,12 +195,12 @@ export default function UsersListPage() {
                         {u.is_active ? "Деактивувати" : "Деактивовано"}
                       </button>
 
-                    <button
-                      className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn transition-colors"
-                      onClick={() => setApiKeyUser(u)}
-                    >
-                      API-ключі
-                    </button>
+                      <button
+                        className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn transition-colors"
+                        onClick={() => setApiKeyUser(u)}
+                      >
+                        API-ключі
+                      </button>
                     </div>
                   </td>
                 </tr>

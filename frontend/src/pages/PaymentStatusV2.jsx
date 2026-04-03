@@ -42,9 +42,6 @@
 //   return isMobile;
 // };
 
-
- 
-
 // // ====================================================================
 // //                          DETECT PAYMENT CHANNEL
 // // ====================================================================
@@ -58,7 +55,6 @@
 //   return "none";
 // };
 
-
 // const getArrowIcon = (item) => {
 //   if (item.FlowDirection === "Прихід")
 //     return <span className="arrow arrow-in">▲</span>;
@@ -68,10 +64,6 @@
 
 //   return <span className="arrow arrow-none">•</span>;
 // };
-
-
-
-
 
 // const getCurrentMonthDates = () => {
 //   const now = new Date();
@@ -84,8 +76,6 @@
 //   return { dateFrom, dateTo };
 // };
 
-
-
 // const DocumentRow = React.memo(
 //   ({ docGroup, formatCurrency, detectPaymentChannel, expandedRows, toggleRow }) => {
 //     const docKey = docGroup.docKey;
@@ -96,15 +86,14 @@
 //     const expense = docGroup.totalExpense;
 //     const cumSaldo = docGroup.lastCumSaldo;
 
-//     const shouldShowSubRow = 
+//     const shouldShowSubRow =
 //     isExpanded &&
-//     detectPaymentChannel(firstItem) === "order" && 
+//     detectPaymentChannel(firstItem) === "order" &&
 //     (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
 //     docGroup.items.length > 0;
 
-
-//     const cursorShow = 
-//     detectPaymentChannel(firstItem) === "order" && 
+//     const cursorShow =
+//     detectPaymentChannel(firstItem) === "order" &&
 //     (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
 //     docGroup.items.length > 0;
 
@@ -112,8 +101,8 @@
 //       <>
 //         {/* ===================== DOCUMENT MAIN ROW ===================== */}
 //        <tr
-//           className={`data-row doc-main-row 
-//               ${shouldShowSubRow ? "expanded-with-orders" : ""} 
+//           className={`data-row doc-main-row
+//               ${shouldShowSubRow ? "expanded-with-orders" : ""}
 //               ${cursorShow ? "has-sub" : ""}`
 //           }
 //           onClick={() => toggleRow(docKey)}
@@ -124,7 +113,6 @@
 //           {getArrowIcon(firstItem)}
 //           {(firstItem.Date || "").split("T")[1]?.slice(0, 5)}
 //         </td>
-
 
 //           {/* OPERATION */}
 //           <td  className="td-operation">
@@ -190,7 +178,7 @@
 
 //         {/* ===================== SUBROWS (ORDERS) ===================== */}
 //         {isExpanded &&
-//           detectPaymentChannel(docGroup.items[0]) === "order" && 
+//           detectPaymentChannel(docGroup.items[0]) === "order" &&
 //           (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
 //           docGroup.items.length > 0 && (
 
@@ -244,7 +232,7 @@
 
 //                       <div>
 //                         <span className="mini-label">Відсоток</span>
-      
+
 //                         <span className={item.PaymentStatus < 50 ? 'mini-red' : 'mini-green'}>
 //                           {item.PaymentStatus !== null ? `${formatPercent(item.PaymentStatus)} %` : "—"}
 //                         </span>
@@ -290,10 +278,9 @@
 //         <tr className="date-row">
 //           <td colSpan={11}>
 
-
 //             <div className="date-header">
 //               <span className="td-date">📅 {formatDateHuman(group.date)}</span>
-         
+
 //               {/* <span className="contracts-text">
 //                 {Object.values(group.initialContracts).map((c, idx, arr) => (
 //                   <span key={idx}>
@@ -337,7 +324,7 @@
 //   <td colSpan={4}>
 //     📊 Разом за {formatDateHuman(group.date)}:
 //   </td>
-// {/* 
+// {/*
 //   <td className="text-green text-bold">
 //     {formatCurrency(group.totalIncome, "")}
 //   </td>
@@ -378,19 +365,15 @@
 //   }
 // );
 
-
 // const PaymentStatusV2 = () => {
 //   const { theme } = useTheme();
 //   const isMobile = useIsMobile();
 
-  
 //   const {
 //     isAdmin,
 //     dealerGuid,
 //     setDealerGuid,
 //   } = useDealerContext();
-
-
 
 //   const { dateFrom: defaultDateFrom, dateTo: defaultDateTo } =
 //     getCurrentMonthDates();
@@ -401,15 +384,13 @@
 //   const [expandedRows, setExpandedRows] = useState(new Set());
 //   const [excelLoading, setExcelLoading] = useState(false);
 
-
 //   const [filters, setFilters] = useState({
 //     contractor: dealerGuid,
 //     dateFrom: defaultDateFrom,
 //     dateTo: defaultDateTo,
 //   });
-   
-//   const { addNotification } = useNotification();
 
+//   const { addNotification } = useNotification();
 
 //   const downloadExcel = async () => {
 //       if (excelLoading) return;
@@ -451,11 +432,11 @@
 //         addNotification(
 //           <div className="flex flex-col gap-2 items-center text-center">
 //             <span>Не вдалося завантажити Excel-файл.</span>
-//             <button 
+//             <button
 //               onClick={() => {
 //                 // Тут ми викликаємо саму себе
-//                 downloadExcel(); 
-//               }} 
+//                 downloadExcel();
+//               }}
 //               className="bg-white text-red-600 px-3 py-1.5 rounded text-xs font-bold w-fit shadow-md active:scale-95 transition-transform"
 //             >
 //               Спробувати ще раз
@@ -500,7 +481,7 @@
 //       }
 //     } catch (err) {
 //       console.error("Fetch Error Detail:", err);
-      
+
 //       // Обробка різних типів збоїв
 //       if (!navigator.onLine) {
 //           setError("Відсутній інтернет. Перевірте з'єднання.");
@@ -521,12 +502,6 @@
 //       fetchData(); // дилер = поточний користувач
 //     }
 //   }, []); // ⬅️ лише при старті
-
-
-
-  
-
-
 
 //   useEffect(() => {
 //     if (dealerGuid) {
@@ -698,23 +673,21 @@
 //                 Виникла проблема під час з'єднання із сервером. <br/>
 //                 Перевірте інтернет та спробуйте ще раз.
 //             </p>
-//                <button 
-//             className="btn btn-primary" 
+//                <button
+//             className="btn btn-primary"
 //             onClick={fetchData}
 //           >
 //             <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }} />
 //             Спробувати ще раз
 //           </button>
-      
+
 //         </div>
 //       </div>
 //     );
 //   }
-  
 
 //   return (
 
-    
 //     <div className={`payments-body ${theme}`}>
 //       {/* FILTERS */}
 
@@ -725,7 +698,6 @@
 //           detectPaymentChannel={detectPaymentChannel}
 //           expandedRows={expandedRows}
 //           toggleRow={toggleRow}
-
 
 //           filters={filters}
 //           onFilterChange={handleFilterChange}
@@ -759,8 +731,6 @@
 //           />
 //         </label>
 
-
-        
 //         {isAdmin && (
 //           <label>
 //             Дилер:
@@ -772,16 +742,11 @@
 //           </label>
 //         )}
 
-
-        
-
 //         <button
 //           className="btn btn-primary"
 //           onClick={fetchData}
 //           disabled={loading}
 //         >
-
-        
 
 //         <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} />
 //           Пошук
@@ -803,12 +768,6 @@
 //         >
 //           {excelLoading ? "Генерація..." : "Excel"}
 //         </button>
-
-
-
-
-
-
 
 //       </div>
 
@@ -858,13 +817,13 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
 import "./PaymentStatus.css";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../hooks/useTheme";
 import MobilePaymentsView from "./MobilePaymentsView";
 import { formatDateHuman } from "../utils/formatters";
 import { useDealerContext } from "../hooks/useDealerContext";
-import DealerSelect from './DealerSelect'
-import { useNotification } from "../components/notification/Notifications";
-import { formatPercent } from '../utils/formatMoney'
+import DealerSelect from "./DealerSelect";
+import { useNotification } from "../hooks/useNotification";
+import { formatPercent } from "../utils/formatMoney";
 
 const formatCurrency = (value, unit = "грн") => {
   if (value == null || isNaN(Number(value))) return "—";
@@ -879,7 +838,9 @@ const formatCurrency = (value, unit = "грн") => {
 };
 
 const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(window.matchMedia("(max-width: 1050px)").matches);
+  const [isMobile, setIsMobile] = useState(
+    window.matchMedia("(max-width: 1050px)").matches,
+  );
   useEffect(() => {
     const media = window.matchMedia("(max-width: 1050px)");
     const listener = (e) => setIsMobile(e.matches);
@@ -899,127 +860,248 @@ const detectPaymentChannel = (item) => {
 };
 
 const getArrowIcon = (item) => {
-  if (item.FlowDirection === "Прихід") return <span className="arrow arrow-in">▲</span>;
-  if (item.FlowDirection === "Витрата" || item.FlowDirection === "Розхід") return <span className="arrow arrow-out">▼</span>;
+  if (item.FlowDirection === "Прихід")
+    return <span className="arrow arrow-in">▲</span>;
+  if (item.FlowDirection === "Витрата" || item.FlowDirection === "Розхід")
+    return <span className="arrow arrow-out">▼</span>;
   return <span className="arrow arrow-none">•</span>;
 };
 
 const getCurrentMonthDates = () => {
   const now = new Date();
-  const dateFrom = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+  const dateFrom = new Date(now.getFullYear(), now.getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
   const dateTo = now.toISOString().split("T")[0];
   return { dateFrom, dateTo };
 };
 
-const DocumentRow = React.memo(({ docGroup, formatCurrency, detectPaymentChannel, expandedRows, toggleRow }) => {
-  const docKey = docGroup.docKey;
-  const isExpanded = expandedRows.has(docKey);
-  const firstItem = docGroup.items[0];
-  const income = docGroup.totalIncome;
-  const expense = docGroup.totalExpense;
-  const cumSaldo = docGroup.lastCumSaldo;
+const DocumentRow = React.memo(
+  ({
+    docGroup,
+    formatCurrency,
+    detectPaymentChannel,
+    expandedRows,
+    toggleRow,
+  }) => {
+    const docKey = docGroup.docKey;
+    const isExpanded = expandedRows.has(docKey);
+    const firstItem = docGroup.items[0];
+    const income = docGroup.totalIncome;
+    const expense = docGroup.totalExpense;
+    const cumSaldo = docGroup.lastCumSaldo;
 
-  const cursorShow = detectPaymentChannel(firstItem) === "order" && 
-                     (firstItem.DocumentType === "ППВход" || firstItem.DocumentType === "ПКО") &&
-                     docGroup.items.length > 0;
+    const cursorShow =
+      detectPaymentChannel(firstItem) === "order" &&
+      (firstItem.DocumentType === "ППВход" ||
+        firstItem.DocumentType === "ПКО") &&
+      docGroup.items.length > 0;
 
-  return (
-    <>
-      <tr className={`data-row doc-main-row ${isExpanded && cursorShow ? "expanded-with-orders" : ""} ${cursorShow ? "has-sub" : ""}`}
-          onClick={() => cursorShow && toggleRow(docKey)}>
-        <td className="td-time">
-          {getArrowIcon(firstItem)}
-          {(firstItem.Date || "").split("T")[1]?.slice(0, 5)}
-        </td>
-        <td className="td-operation">
-          {firstItem.DocumentType === "КорректировкаДолга" ? (
-            <>Коригування. {firstItem.CorrectionDescription} {firstItem.OrderNumber ? ` (№${firstItem.OrderNumber})` : ""}</>
-          ) : firstItem.DocumentType === "ВозвратОтПокупателя" ? (
-            <>{firstItem.DealType || firstItem.DocumentType} {firstItem.DealNumber ? ", №" + firstItem.DealNumber : ""}</>
-          ) : (firstItem.DealType || firstItem.DocumentType || "—")}
-        </td>
-        <td>{formatCurrency(docGroup.CumSaldoStart)}</td>
-        <td className={income > 0 ? "text-green" : ""}>{income > 0 ? formatCurrency(income, "") : "—"}</td>
-        <td className={expense > 0 ? "text-red" : ""}>{expense > 0 ? formatCurrency(expense, "") : "—"}</td>
-        <td className="text-bold">{formatCurrency(cumSaldo)}</td>
-        <td>
-          <span className={`channel-badge ${detectPaymentChannel(firstItem)}`}>
-            {detectPaymentChannel(firstItem) === "bank" && "БАНК"}
-            {detectPaymentChannel(firstItem) === "cash" && "КАСА"}
-            {detectPaymentChannel(firstItem) === "order" && "ЗАМОВЛ."}
-            {detectPaymentChannel(firstItem) === "none" && "—"}
-          </span>
-        </td>
-        <td colSpan={3} className="td-details">
-          {cursorShow ? (
-            <span className="expand-btn">
-              {isExpanded ? <><i className="fa-solid fa-chevron-up" style={{ marginRight: 6 }} /> Сховати {docGroup.items.length} замовлень</> 
-                          : <><i className="fa-solid fa-chevron-down" style={{ marginRight: 6 }} /> Рознесено на {docGroup.items.length} замовлень</>}
+    return (
+      <>
+        <tr
+          className={`data-row doc-main-row ${isExpanded && cursorShow ? "expanded-with-orders" : ""} ${cursorShow ? "has-sub" : ""}`}
+          onClick={() => cursorShow && toggleRow(docKey)}
+        >
+          <td className="td-time">
+            {getArrowIcon(firstItem)}
+            {(firstItem.Date || "").split("T")[1]?.slice(0, 5)}
+          </td>
+          <td className="td-operation">
+            {firstItem.DocumentType === "КорректировкаДолга" ? (
+              <>
+                Коригування. {firstItem.CorrectionDescription}{" "}
+                {firstItem.OrderNumber ? ` (№${firstItem.OrderNumber})` : ""}
+              </>
+            ) : firstItem.DocumentType === "ВозвратОтПокупателя" ? (
+              <>
+                {firstItem.DealType || firstItem.DocumentType}{" "}
+                {firstItem.DealNumber ? ", №" + firstItem.DealNumber : ""}
+              </>
+            ) : (
+              firstItem.DealType || firstItem.DocumentType || "—"
+            )}
+          </td>
+          <td>{formatCurrency(docGroup.CumSaldoStart)}</td>
+          <td className={income > 0 ? "text-green" : ""}>
+            {income > 0 ? formatCurrency(income, "") : "—"}
+          </td>
+          <td className={expense > 0 ? "text-red" : ""}>
+            {expense > 0 ? formatCurrency(expense, "") : "—"}
+          </td>
+          <td className="text-bold">{formatCurrency(cumSaldo)}</td>
+          <td>
+            <span
+              className={`channel-badge ${detectPaymentChannel(firstItem)}`}
+            >
+              {detectPaymentChannel(firstItem) === "bank" && "БАНК"}
+              {detectPaymentChannel(firstItem) === "cash" && "КАСА"}
+              {detectPaymentChannel(firstItem) === "order" && "ЗАМОВЛ."}
+              {detectPaymentChannel(firstItem) === "none" && "—"}
             </span>
-          ) : (<div className="contract-cell">{firstItem.FinalDogovorName || "—"}</div>)}
-        </td>
-      </tr>
-      {isExpanded && cursorShow && (
-        <tr className="sub-row">
-          <td colSpan={11} className="sub-wrapper indent-subcard">
-            <div className="sub-orders-container minimal">
-              {docGroup.items.map((item, idx) => (
-                <div key={`${docKey}-${idx}`} className="mini-card clickable-subcard">
-                  <div className="order-mini-header">Замовлення № {item.OrderNumber}</div>
-                  <div className="mini-grid">
-                    <div><span className="mini-label">Сума</span><span className="mini-value">{formatCurrency(item.OrderAmount)}</span></div>
-                    <div><span className="mini-label">Оплачено до</span><span className="mini-value text-grey">{formatCurrency(item.PaidBefore)}</span></div>
-                    <div><span className="mini-label">Оплата</span><span className={item.FlowDirection === "Прихід" ? "text-green mini-green" : "text-red mini-red"}>{formatCurrency(Math.abs(Number(item.PaymentApplied || 0)))}</span></div>
-                    <div><span className="mini-label">Залишок</span><span className="mini-red">{formatCurrency(item.OrderBalance)}</span></div>
-                    <div><span className="mini-label">Відсоток</span><span className={item.PaymentStatus < 50 ? 'mini-red' : 'mini-green'}>{item.PaymentStatus !== null ? `${formatPercent(item.PaymentStatus)} %` : "—"}</span></div>
+          </td>
+          <td colSpan={3} className="td-details">
+            {cursorShow ? (
+              <span className="expand-btn">
+                {isExpanded ? (
+                  <>
+                    <i
+                      className="fa-solid fa-chevron-up"
+                      style={{ marginRight: 6 }}
+                    />{" "}
+                    Сховати {docGroup.items.length} замовлень
+                  </>
+                ) : (
+                  <>
+                    <i
+                      className="fa-solid fa-chevron-down"
+                      style={{ marginRight: 6 }}
+                    />{" "}
+                    Рознесено на {docGroup.items.length} замовлень
+                  </>
+                )}
+              </span>
+            ) : (
+              <div className="contract-cell">
+                {firstItem.FinalDogovorName || "—"}
+              </div>
+            )}
+          </td>
+        </tr>
+        {isExpanded && cursorShow && (
+          <tr className="sub-row">
+            <td colSpan={11} className="sub-wrapper indent-subcard">
+              <div className="sub-orders-container minimal">
+                {docGroup.items.map((item, idx) => (
+                  <div
+                    key={`${docKey}-${idx}`}
+                    className="mini-card clickable-subcard"
+                  >
+                    <div className="order-mini-header">
+                      Замовлення № {item.OrderNumber}
+                    </div>
+                    <div className="mini-grid">
+                      <div>
+                        <span className="mini-label">Сума</span>
+                        <span className="mini-value">
+                          {formatCurrency(item.OrderAmount)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="mini-label">Оплачено до</span>
+                        <span className="mini-value text-grey">
+                          {formatCurrency(item.PaidBefore)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="mini-label">Оплата</span>
+                        <span
+                          className={
+                            item.FlowDirection === "Прихід"
+                              ? "text-green mini-green"
+                              : "text-red mini-red"
+                          }
+                        >
+                          {formatCurrency(
+                            Math.abs(Number(item.PaymentApplied || 0)),
+                          )}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="mini-label">Залишок</span>
+                        <span className="mini-red">
+                          {formatCurrency(item.OrderBalance)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="mini-label">Відсоток</span>
+                        <span
+                          className={
+                            item.PaymentStatus < 50 ? "mini-red" : "mini-green"
+                          }
+                        >
+                          {item.PaymentStatus !== null
+                            ? `${formatPercent(item.PaymentStatus)} %`
+                            : "—"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </td>
+          </tr>
+        )}
+      </>
+    );
+  },
+);
+
+const PaymentGroup = React.memo(
+  ({
+    group,
+    formatCurrency,
+    detectPaymentChannel,
+    expandedRows,
+    toggleRow,
+  }) => {
+    if (!group || Object.keys(group.documentGroups).length === 0) return null;
+    return (
+      <>
+        <tr className="date-row">
+          <td colSpan={11}>
+            <div className="date-header">
+              <span className="td-date">📅 {formatDateHuman(group.date)}</span>
+              <span className="contracts-text">
+                {Object.values(group.initialContracts).map((c, idx) => (
+                  <span key={idx} className="contract-badge">
+                    <span className="name">{c.contractName}: </span>
+                    <span className="value">
+                      {formatCurrency(c.initialSaldo)}
+                    </span>
+                  </span>
+                ))}
+              </span>
+            </div>
+          </td>
+        </tr>
+        {Object.values(group.documentGroups).map((dg) => (
+          <DocumentRow
+            key={dg.docKey}
+            docGroup={dg}
+            formatCurrency={formatCurrency}
+            detectPaymentChannel={detectPaymentChannel}
+            expandedRows={expandedRows}
+            toggleRow={toggleRow}
+          />
+        ))}
+        <tr className="total-row total-row-separator">
+          <td colSpan={4}>📊 Разом за {formatDateHuman(group.date)}:</td>
+          <td colSpan={6}>
+            <div className="contract-totals">
+              {Object.entries(group.contractSummary).map(([name, c], idx) => (
+                <div key={idx} className="contract-total-line">
+                  <span className="contract-name-bold">{name}</span>:{" "}
+                  <span className="text-green">
+                    +{formatCurrency(c.income || 0, "")}
+                  </span>{" "}
+                  /{" "}
+                  <span className="text-red">
+                    -{formatCurrency(c.expense || 0, "")}
+                  </span>{" "}
+                  /{" "}
+                  <span className="text-bold">
+                    {formatCurrency(c.lastCumSaldo || 0, "")}
+                  </span>
                 </div>
               ))}
             </div>
           </td>
         </tr>
-      )}
-    </>
-  );
-});
-
-const PaymentGroup = React.memo(({ group, formatCurrency, detectPaymentChannel, expandedRows, toggleRow }) => {
-  if (!group || Object.keys(group.documentGroups).length === 0) return null;
-  return (
-    <>
-      <tr className="date-row">
-        <td colSpan={11}>
-          <div className="date-header">
-            <span className="td-date">📅 {formatDateHuman(group.date)}</span>
-            <span className="contracts-text">
-              {Object.values(group.initialContracts).map((c, idx) => (
-                <span key={idx} className="contract-badge">
-                  <span className="name">{c.contractName}: </span>
-                  <span className="value">{formatCurrency(c.initialSaldo)}</span>
-                </span>
-              ))}
-            </span>
-          </div>
-        </td>
-      </tr>
-      {Object.values(group.documentGroups).map((dg) => (
-        <DocumentRow key={dg.docKey} docGroup={dg} formatCurrency={formatCurrency} detectPaymentChannel={detectPaymentChannel} expandedRows={expandedRows} toggleRow={toggleRow} />
-      ))}
-      <tr className="total-row total-row-separator">
-        <td colSpan={4}>📊 Разом за {formatDateHuman(group.date)}:</td>
-        <td colSpan={6}>
-          <div className="contract-totals">
-            {Object.entries(group.contractSummary).map(([name, c], idx) => (
-              <div key={idx} className="contract-total-line">
-                <span className="contract-name-bold">{name}</span>: <span className="text-green">+{formatCurrency(c.income || 0, "")}</span> / <span className="text-red">-{formatCurrency(c.expense || 0, "")}</span> / <span className="text-bold">{formatCurrency(c.lastCumSaldo || 0, "")}</span>
-              </div>
-            ))}
-          </div>
-        </td>
-      </tr>
-    </>
-  );
-});
+      </>
+    );
+  },
+);
 
 const PaymentStatusV2 = () => {
   const { theme } = useTheme();
@@ -1054,46 +1136,58 @@ const PaymentStatusV2 = () => {
     setError(null);
     try {
       // Використовуємо ТІЛЬКИ актуальні значення з полів введення
-      const response = await axiosInstance.get("/payments/get_payment_status_view/", {
-        params: {
-          contractor: filters.contractor,
-          date_from: filters.dateFrom,
-          date_to: filters.dateTo,
+      const response = await axiosInstance.get(
+        "/payments/get_payment_status_view/",
+        {
+          params: {
+            contractor: filters.contractor,
+            date_from: filters.dateFrom,
+            date_to: filters.dateTo,
+          },
         },
-      });
+      );
       setPaymentsData(Array.isArray(response.data) ? response.data : []);
       // Фіксуємо параметри, за якими отримали дані (для Excel)
-      setSearchParams({...filters});
+      setSearchParams({ ...filters });
     } catch (err) {
+      console.error("Fetch Error Detail:", err);
       setError("Помилка завантаження даних.");
     } finally {
       setLoading(false);
     }
   }, [filters]);
 
-  useEffect(() => { if (!isAdmin) fetchData(); }, []);
-  useEffect(() => { if (dealerGuid) setFilters(p => ({ ...p, contractor: dealerGuid })); }, [dealerGuid]);
+  useEffect(() => {
+    if (!isAdmin) fetchData();
+  }, []);
+  useEffect(() => {
+    if (dealerGuid) setFilters((p) => ({ ...p, contractor: dealerGuid }));
+  }, [dealerGuid]);
 
   const downloadExcel = async () => {
     if (excelLoading) return;
     setExcelLoading(true);
     try {
       // Excel завжди качаємо за тими ж параметрами, за якими робили останній Пошук
-      const response = await axiosInstance.get("/payments/export_payment_status_excel/", {
-        params: { 
-          contractor: searchParams.contractor, 
-          date_from: searchParams.dateFrom, 
-          date_to: searchParams.dateTo 
+      const response = await axiosInstance.get(
+        "/payments/export_payment_status_excel/",
+        {
+          params: {
+            contractor: searchParams.contractor,
+            date_from: searchParams.dateFrom,
+            date_to: searchParams.dateTo,
+          },
+          responseType: "blob",
         },
-        responseType: "blob",
-      });
+      );
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
       link.download = `payment_status_${searchParams.dateFrom}.xlsx`;
       link.click();
       addNotification("Excel успішно завантажено", "success");
-    } catch (error) {
+    } catch (_error) {
+      console.error("Error downloading Excel:", _error);
       addNotification("Не вдалося завантажити Excel", "warning");
     } finally {
       setExcelLoading(false);
@@ -1110,52 +1204,79 @@ const PaymentStatusV2 = () => {
 
   const sortedGroups = useMemo(() => {
     const groupedByDate = {};
-    const toNum = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+    const toNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
 
     paymentsData.forEach((item) => {
       const date = item.Date?.split("T")[0] || "Невідома дата";
-      const docKey = item.RegistrarId 
+      const docKey = item.RegistrarId
         ? `${item.RegistrarId}_${item.FinalDogovor}_${item.FlowDirection}`
         : `${item.DocumentType}|${item.DocumentNumber}|${date}_${item.FinalDogovor}_${item.FlowDirection}`;
 
       if (!groupedByDate[date]) {
-        groupedByDate[date] = { date, documentGroups: {}, totalIncome: 0, totalExpense: 0, contractSummary: {} };
+        groupedByDate[date] = {
+          date,
+          documentGroups: {},
+          totalIncome: 0,
+          totalExpense: 0,
+          contractSummary: {},
+        };
       }
       const group = groupedByDate[date];
       if (!group.documentGroups[docKey]) {
         group.documentGroups[docKey] = {
-          docKey, items: [], totalIncome: 0, totalExpense: 0,
-          CumSaldoStart: toNum(item.CumSaldoStart), lastCumSaldo: toNum(item.CumSaldo),
+          docKey,
+          items: [],
+          totalIncome: 0,
+          totalExpense: 0,
+          CumSaldoStart: toNum(item.CumSaldoStart),
+          lastCumSaldo: toNum(item.CumSaldo),
         };
       }
       const dg = group.documentGroups[docKey];
       dg.items.push(item);
       const absDelta = Math.abs(toNum(item.DeltaRow));
       if (item.FlowDirection === "Прихід") {
-        group.totalIncome += absDelta; dg.totalIncome += absDelta;
+        group.totalIncome += absDelta;
+        dg.totalIncome += absDelta;
       } else {
-        group.totalExpense += absDelta; dg.totalExpense += absDelta;
+        group.totalExpense += absDelta;
+        dg.totalExpense += absDelta;
       }
       dg.lastCumSaldo = toNum(item.CumSaldo);
       const cName = item.FinalDogovorName || "Без договору";
       if (!group.contractSummary[cName]) {
-        group.contractSummary[cName] = { income: 0, expense: 0, lastCumSaldo: 0, __t: "" };
+        group.contractSummary[cName] = {
+          income: 0,
+          expense: 0,
+          lastCumSaldo: 0,
+          __t: "",
+        };
       }
       const cs = group.contractSummary[cName];
-      if (item.FlowDirection === "Прихід") cs.income += absDelta; else cs.expense += absDelta;
+      if (item.FlowDirection === "Прихід") cs.income += absDelta;
+      else cs.expense += absDelta;
       if (Date.parse(item.Date) >= Date.parse(cs.__t || "1970-01-01")) {
-        cs.lastCumSaldo = toNum(item.CumSaldo); cs.__t = item.Date;
+        cs.lastCumSaldo = toNum(item.CumSaldo);
+        cs.__t = item.Date;
       }
     });
 
-    const groups = Object.values(groupedByDate).sort((a, b) => new Date(a.date) - new Date(b.date));
+    const groups = Object.values(groupedByDate).sort(
+      (a, b) => new Date(a.date) - new Date(b.date),
+    );
     const prevDayTotals = {};
-    groups.forEach(g => {
+    groups.forEach((g) => {
       g.initialContracts = {};
       Object.entries(g.contractSummary).forEach(([name, s]) => {
         g.initialContracts[name] = {
           contractName: name,
-          initialSaldo: prevDayTotals[name] !== undefined ? prevDayTotals[name] : (s.lastCumSaldo - (s.income - s.expense))
+          initialSaldo:
+            prevDayTotals[name] !== undefined
+              ? prevDayTotals[name]
+              : s.lastCumSaldo - (s.income - s.expense),
         };
         prevDayTotals[name] = s.lastCumSaldo;
       });
@@ -1163,42 +1284,99 @@ const PaymentStatusV2 = () => {
     return groups.reverse();
   }, [paymentsData]);
 
-  if (loading) return (
-    <div className={`page-container ${theme}`}>
-      <div className="loading-spinner-wrapper">
-        <div className="loading-spinner"></div>
-        <div className="loading-text">Завантаження...</div>
+  if (loading)
+    return (
+      <div className={`page-container ${theme}`}>
+        <div className="loading-spinner-wrapper">
+          <div className="loading-spinner"></div>
+          <div className="loading-text">Завантаження...</div>
+        </div>
       </div>
-    </div>
-  );
+    );
 
-  if (error) return (
-    <div className="error-state" style={{marginTop: "80px", textAlign: "center"}}>
-      <h3>{error}</h3>
-      <button className="btn btn-primary" onClick={fetchData}>
-        <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }} /> Спробувати ще раз
-      </button>
-    </div>
-  );
+  if (error)
+    return (
+      <div
+        className="error-state"
+        style={{ marginTop: "80px", textAlign: "center" }}
+      >
+        <h3>{error}</h3>
+        <button className="btn btn-primary" onClick={fetchData}>
+          <i
+            className="fa-solid fa-rotate-right"
+            style={{ marginRight: "8px" }}
+          />{" "}
+          Спробувати ще раз
+        </button>
+      </div>
+    );
 
   return (
     <div className={`payments-body ${theme}`}>
       {!isMobile ? (
         <>
           <div className="filters-container">
-            <label>З: <input type="date" className="input-date" value={filters.dateFrom} onChange={(e) => setFilters(p => ({...p, dateFrom: e.target.value}))} /></label>
-            <label>По: <input type="date" className="input-date" value={filters.dateTo} onChange={(e) => setFilters(p => ({...p, dateTo: e.target.value}))} /></label>
-            {isAdmin && <label>Дилер: <DealerSelect value={filters.contractor} onChange={(id) => setDealerGuid(id)} /></label>}
-            
-            <button className="btn btn-primary" onClick={fetchData} disabled={loading}>
-              <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} /> Пошук
-            </button>
-            
-            <button className="btn btn-refresh" onClick={fetchData} disabled={loading}>
-              <i className="fa-solid fa-rotate-right" style={{ marginRight: 8 }} /> Оновити
+            <label>
+              З:{" "}
+              <input
+                type="date"
+                className="input-date"
+                value={filters.dateFrom}
+                onChange={(e) =>
+                  setFilters((p) => ({ ...p, dateFrom: e.target.value }))
+                }
+              />
+            </label>
+            <label>
+              По:{" "}
+              <input
+                type="date"
+                className="input-date"
+                value={filters.dateTo}
+                onChange={(e) =>
+                  setFilters((p) => ({ ...p, dateTo: e.target.value }))
+                }
+              />
+            </label>
+            {isAdmin && (
+              <label>
+                Дилер:{" "}
+                <DealerSelect
+                  value={filters.contractor}
+                  onChange={(id) => setDealerGuid(id)}
+                />
+              </label>
+            )}
+
+            <button
+              className="btn btn-primary"
+              onClick={fetchData}
+              disabled={loading}
+            >
+              <i
+                className="fa-solid fa-magnifying-glass"
+                style={{ marginRight: 8 }}
+              />{" "}
+              Пошук
             </button>
 
-            <button className="btn btn-excel" onClick={downloadExcel} disabled={excelLoading}>
+            <button
+              className="btn btn-refresh"
+              onClick={fetchData}
+              disabled={loading}
+            >
+              <i
+                className="fa-solid fa-rotate-right"
+                style={{ marginRight: 8 }}
+              />{" "}
+              Оновити
+            </button>
+
+            <button
+              className="btn btn-excel"
+              onClick={downloadExcel}
+              disabled={excelLoading}
+            >
               {excelLoading ? "Генерація..." : "Excel"}
             </button>
           </div>
@@ -1207,22 +1385,47 @@ const PaymentStatusV2 = () => {
             <table className="payments-table">
               <thead>
                 <tr>
-                  <th>Коли</th><th>Операція</th><th>Зал. на початок</th><th>Прихід</th><th>Розхід</th><th>Залишок</th><th>Через що</th><th colSpan={3}>Деталізація / Договір</th>
+                  <th>Коли</th>
+                  <th>Операція</th>
+                  <th>Зал. на початок</th>
+                  <th>Прихід</th>
+                  <th>Розхід</th>
+                  <th>Залишок</th>
+                  <th>Через що</th>
+                  <th colSpan={3}>Деталізація / Договір</th>
                 </tr>
               </thead>
               <tbody>
-                {sortedGroups.map(g => <PaymentGroup key={g.date} group={g} formatCurrency={formatCurrency} detectPaymentChannel={detectPaymentChannel} expandedRows={expandedRows} toggleRow={toggleRow} />)}
+                {sortedGroups.map((g) => (
+                  <PaymentGroup
+                    key={g.date}
+                    group={g}
+                    formatCurrency={formatCurrency}
+                    detectPaymentChannel={detectPaymentChannel}
+                    expandedRows={expandedRows}
+                    toggleRow={toggleRow}
+                  />
+                ))}
               </tbody>
             </table>
           </div>
-          {!paymentsData.length && <div className="text-center p-20">Даних не знайдено</div>}
+          {!paymentsData.length && (
+            <div className="text-center p-20">Даних не знайдено</div>
+          )}
         </>
       ) : (
         <MobilePaymentsView
-          groups={sortedGroups} formatCurrency={formatCurrency} detectPaymentChannel={detectPaymentChannel} 
-          expandedRows={expandedRows} toggleRow={toggleRow} filters={filters} 
-          onFilterChange={(k, v) => setFilters(p => ({...p, [k]: v}))} 
-          onSearch={fetchData} onExcel={downloadExcel} isAdmin={isAdmin} setDealerGuid={setDealerGuid}
+          groups={sortedGroups}
+          formatCurrency={formatCurrency}
+          detectPaymentChannel={detectPaymentChannel}
+          expandedRows={expandedRows}
+          toggleRow={toggleRow}
+          filters={filters}
+          onFilterChange={(k, v) => setFilters((p) => ({ ...p, [k]: v }))}
+          onSearch={fetchData}
+          onExcel={downloadExcel}
+          isAdmin={isAdmin}
+          setDealerGuid={setDealerGuid}
         />
       )}
     </div>

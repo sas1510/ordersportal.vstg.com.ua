@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import axiosInstance from "../api/axios";
 import "./DealerSelect.css";
 
-
 const DealerSelect = ({ value, onChange }) => {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,14 +39,10 @@ const DealerSelect = ({ value, onChange }) => {
     }
   }, [open]);
 
-  const selected = dealers.find(
-    (d) => d.ContractorID === value
-  );
+  const selected = dealers.find((d) => d.ContractorID === value);
 
   const filtered = dealers.filter((d) =>
-    d.ContractorName
-      ?.toLowerCase()
-      .includes(search.toLowerCase())
+    d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   // =========================
@@ -59,14 +54,14 @@ const DealerSelect = ({ value, onChange }) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev < filtered.length - 1 ? prev + 1 : 0
+        prev < filtered.length - 1 ? prev + 1 : 0,
       );
     }
 
     if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev > 0 ? prev - 1 : filtered.length - 1
+        prev > 0 ? prev - 1 : filtered.length - 1,
       );
     }
 
@@ -93,19 +88,14 @@ const DealerSelect = ({ value, onChange }) => {
         onClick={() => setOpen((o) => !o)}
       >
         <span className={selected ? "" : "placeholder"}>
-          {selected
-            ? selected.ContractorName
-            : "— Оберіть дилера —"}
+          {selected ? selected.ContractorName : "— Оберіть дилера —"}
         </span>
         <span className="arrow">▾</span>
       </div>
 
       {/* DROPDOWN */}
       {open && (
-        <div
-          className="dealer-select__dropdown"
-          onKeyDown={handleKeyDown}
-        >
+        <div className="dealer-select__dropdown" onKeyDown={handleKeyDown}>
           <input
             ref={searchRef}
             type="text"
@@ -120,24 +110,19 @@ const DealerSelect = ({ value, onChange }) => {
 
           <div className="dealer-select__list">
             {loading && (
-              <div className="dealer-select__empty">
-                Завантаження…
-              </div>
+              <div className="dealer-select__empty">Завантаження…</div>
             )}
 
             {!loading && error && (
-              <div className="dealer-select__empty error">
-                {error}
-              </div>
+              <div className="dealer-select__empty error">{error}</div>
             )}
 
             {!loading && !error && filtered.length === 0 && (
-              <div className="dealer-select__empty">
-                Нічого не знайдено
-              </div>
+              <div className="dealer-select__empty">Нічого не знайдено</div>
             )}
 
-            {!loading && !error &&
+            {!loading &&
+              !error &&
               filtered.map((d, idx) => (
                 <div
                   key={d.ContractorID}

@@ -77,7 +77,7 @@
 //           <h1 className="font-size-42 text-white text-bold text-center">
 //             Вікна Стиль — 18 років на ринку України та Європи
 //           </h1>
-// {/* 
+// {/*
 //           <div className="glass-badge">
 //             <span className="badge-icon">🏭</span>
 //             <span className="badge-text">
@@ -239,15 +239,25 @@
 // }
 import React, { useRef } from "react";
 import "./HomePage.css";
+import { motion } from "framer-motion";
 
-
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useScroll, useTransform } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faAward, faUsers, faIndustry, faWindowRestore,
-  faGlobe, faMicrochip, faPalette, faShieldHalved,
-  faHandshake, faCheckDouble, faTags, faChevronDown,
-  faChevronLeft, faChevronRight
+  faAward,
+  faUsers,
+  faIndustry,
+  faWindowRestore,
+  faGlobe,
+  faMicrochip,
+  faPalette,
+  faShieldHalved,
+  faHandshake,
+  faCheckDouble,
+  faTags,
+  faChevronDown,
+  faChevronLeft,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 
 const videos = [
@@ -268,17 +278,57 @@ export default function HomePage() {
   };
 
   const stats = [
-    { value: "18+", label: "Років досвіду", icon: faAward, className: "text-info" },
-    { value: "500+", label: "Працівників", icon: faUsers, className: "text-success" },
-    { value: "16,000м²", label: "Площа заводу", icon: faIndustry, className: "text-main" },
-    { value: "35,000", label: "Вікон на місяць", icon: faWindowRestore, className: "text-info" },
+    {
+      value: "18+",
+      label: "Років досвіду",
+      icon: faAward,
+      className: "text-info",
+    },
+    {
+      value: "500+",
+      label: "Працівників",
+      icon: faUsers,
+      className: "text-success",
+    },
+    {
+      value: "16,000м²",
+      label: "Площа заводу",
+      icon: faIndustry,
+      className: "text-main",
+    },
+    {
+      value: "35,000",
+      label: "Вікон на місяць",
+      icon: faWindowRestore,
+      className: "text-info",
+    },
   ];
 
   const values = [
-    { icon: faPalette, title: "Естетика", desc: "Сучасний дизайн", colorClass: "text-info" },
-    { icon: faCheckDouble, title: "Якість", desc: "Європейські стандарти", colorClass: "text-success" },
-    { icon: faTags, title: "Найкраща ціна", desc: "Власне виробництво", colorClass: "text-danger" },
-    { icon: faShieldHalved, title: "Безпека", desc: "Надійний захист", colorClass: "text-info" },
+    {
+      icon: faPalette,
+      title: "Естетика",
+      desc: "Сучасний дизайн",
+      colorClass: "text-info",
+    },
+    {
+      icon: faCheckDouble,
+      title: "Якість",
+      desc: "Європейські стандарти",
+      colorClass: "text-success",
+    },
+    {
+      icon: faTags,
+      title: "Найкраща ціна",
+      desc: "Власне виробництво",
+      colorClass: "text-danger",
+    },
+    {
+      icon: faShieldHalved,
+      title: "Безпека",
+      desc: "Надійний захист",
+      colorClass: "text-info",
+    },
   ];
 
   return (
@@ -286,28 +336,34 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="hero-section">
         {/* Background shapes like Login */}
-      <div className="hero-background-shapes">
-        <div className="hero-shape hero-shape-1" />
-        <div className="hero-shape hero-shape-2" />
-        <div className="hero-shape hero-shape-3" />
+        <div className="hero-background-shapes">
+          <div className="hero-shape hero-shape-1" />
+          <div className="hero-shape hero-shape-2" />
+          <div className="hero-shape hero-shape-3" />
 
-        {/* subtle stars */}
-        <div className="hero-star s1" />
-        <div className="hero-star s2" />
-        <div className="hero-star s3" />
-        <div className="hero-star s4" />
-        <div className="hero-star s5" />
-      </div>
+          {/* subtle stars */}
+          <div className="hero-star s1" />
+          <div className="hero-star s2" />
+          <div className="hero-star s3" />
+          <div className="hero-star s4" />
+          <div className="hero-star s5" />
+        </div>
 
         <motion.div style={{ opacity }} className="hero-overlay">
           <div className="hero-gradient"></div>
         </motion.div>
 
         <div className="hero-content">
-          <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8 }}>
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
             <h1 className="hero-title">Вікна Стиль</h1>
             <div className="hero-divider"></div>
-            <p className="hero-subtitle">ПРОФЕСІЙНІ ВІКОННІ СИСТЕМИ ДЛЯ ЄВРОПЕЙСЬКОГО РИНКУ</p>
+            <p className="hero-subtitle">
+              ПРОФЕСІЙНІ ВІКОННІ СИСТЕМИ ДЛЯ ЄВРОПЕЙСЬКОГО РИНКУ
+            </p>
           </motion.div>
 
           <div className="stats-grid">
@@ -320,7 +376,11 @@ export default function HomePage() {
             ))}
           </div>
 
-          <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="scroll-indicator">
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="scroll-indicator"
+          >
             <FontAwesomeIcon icon={faChevronDown} />
           </motion.div>
         </div>
@@ -334,13 +394,19 @@ export default function HomePage() {
             <div className="info-box border-info">
               <div className="flex items-start gap-4">
                 <FontAwesomeIcon icon={faIndustry} className="text-info mt-1" />
-                <p className="text-sm">Завод площею 16 000 м² розташований у с. Великий Кучурів (5 км від Чернівців).</p>
+                <p className="text-sm">
+                  Завод площею 16 000 м² розташований у с. Великий Кучурів (5 км
+                  від Чернівців).
+                </p>
               </div>
             </div>
             <div className="info-box border-success">
               <div className="flex items-start gap-4">
                 <FontAwesomeIcon icon={faGlobe} className="text-success mt-1" />
-                <p className="text-sm">Експортна географія: Німеччина, Італія, Румунія, Канада та США.</p>
+                <p className="text-sm">
+                  Експортна географія: Німеччина, Італія, Румунія, Канада та
+                  США.
+                </p>
               </div>
             </div>
           </div>
@@ -349,13 +415,25 @@ export default function HomePage() {
             <h3 className="tech-title">Технологічний цикл</h3>
             <div className="space-y-6">
               {[
-                { label: "ПВХ Вікна", val: "35 000 ПВХ / міс", icon: faWindowRestore },
-                { label: "ПВХ Двері", val: "9 000 ПВХ / міс", icon: faIndustry },
-                { label: "Інновації", val: "Full Cycle", icon: faMicrochip }
+                {
+                  label: "ПВХ Вікна",
+                  val: "35 000 ПВХ / міс",
+                  icon: faWindowRestore,
+                },
+                {
+                  label: "ПВХ Двері",
+                  val: "9 000 ПВХ / міс",
+                  icon: faIndustry,
+                },
+                { label: "Інновації", val: "Full Cycle", icon: faMicrochip },
               ].map((it, i) => (
                 <div key={i} className="tech-item">
                   <span className="tech-label">
-                    <FontAwesomeIcon icon={it.icon} className="mr-3 opacity-50" /> {it.label}
+                    <FontAwesomeIcon
+                      icon={it.icon}
+                      className="mr-3 opacity-50"
+                    />{" "}
+                    {it.label}
                   </span>
                   <span className="tech-value">{it.val}</span>
                 </div>
@@ -371,7 +449,10 @@ export default function HomePage() {
           {values.map((v, i) => (
             <div key={i} className="value-card group">
               <div className="value-icon-container">
-                <FontAwesomeIcon icon={v.icon} className={`text-2xl ${v.colorClass}`} />
+                <FontAwesomeIcon
+                  icon={v.icon}
+                  className={`text-2xl ${v.colorClass}`}
+                />
               </div>
               <h3 className="value-title">{v.title}</h3>
               <p className="value-desc">{v.desc}</p>
@@ -416,9 +497,12 @@ export default function HomePage() {
       <section className="cta-section">
         <div className="max-w-3xl mx-auto px-4">
           <FontAwesomeIcon icon={faHandshake} className="cta-icon" />
-          <h2 className="cta-title">Двері, які відкривають світ успішного партнерства</h2>
+          <h2 className="cta-title">
+            Двері, які відкривають світ успішного партнерства
+          </h2>
           <p className="cta-desc">
-            Станьте частиною надійної дилерської мережі "Вікна Стиль". 18 років досвіду та європейські стандарти якості для вашого бізнесу.
+            Станьте частиною надійної дилерської мережі "Вікна Стиль". 18 років
+            досвіду та європейські стандарти якості для вашого бізнесу.
           </p>
           {/* <button className="cta-button">Стати партнером</button> */}
         </div>

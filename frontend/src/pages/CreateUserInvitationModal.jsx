@@ -1,12 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../api/axios";
 import { QRCodeCanvas } from "qrcode.react";
-import { 
-  Loader2, Copy, Check, X, ShieldCheck, 
-  UserSearch, Smartphone, Mail, Calendar 
+import {
+  Loader2,
+  Copy,
+  Check,
+  X,
+  ShieldCheck,
+  UserSearch,
+  Smartphone,
+  Mail,
+  Calendar,
 } from "lucide-react";
 import "./InviteRegisterModal.css";
-import { useNotification } from "../components/notification/Notifications";
+import { useNotification } from "../hooks/useNotification";
 
 export default function CreateUserInvitationModal({ onClose, onCreated }) {
   const { addNotification } = useNotification();
@@ -33,8 +40,10 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isListOpen, setIsListOpen] = useState(false);
 
-  const filteredUsers = users1c.filter(user => 
-    !searchTerm || user.Code?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users1c.filter(
+    (user) =>
+      !searchTerm ||
+      user.Code?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Завантаження користувачів з 1С
@@ -68,7 +77,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
   const handleSelectUser1c = (selectedGuid) => {
     const user = users1c.find((u) => u.Link === selectedGuid);
     if (user) {
-      setFormData(prev => ({ ...prev, userGuid: selectedGuid }));
+      setFormData((prev) => ({ ...prev, userGuid: selectedGuid }));
       setSearchTerm(user.Code);
     }
     setIsListOpen(false);
@@ -88,18 +97,20 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
       textArea.focus();
       textArea.select();
       try {
-        document.execCommand('copy');
+        document.execCommand("copy");
         addNotification(successMsg, "success");
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
+        console.error("Error copying text:", err);
         addNotification("Помилка копіювання", "error");
       }
       document.body.removeChild(textArea);
     };
 
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text)
+      navigator.clipboard
+        .writeText(text)
         .then(() => {
           addNotification(successMsg, "success");
           setCopied(true);
@@ -114,7 +125,9 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
   // Рендер складного сповіщення про наявний інвайт
   const renderComplexErrorNotification = (errObj) => (
     <div className="notification-complex-error">
-      <div className="notif-header">{errObj.info || "Діюче запрошення знайдено"}</div>
+      <div className="notif-header">
+        {errObj.info || "Діюче запрошення знайдено"}
+      </div>
       {errObj.created_at && (
         <div className="notif-timeline">
           <div className="notif-time-row">
@@ -126,7 +139,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
         </div>
       )}
       {errObj.inviteLink && (
-        <button 
+        <button
           type="button"
           className="notif-copy-btn"
           onClick={(e) => {
@@ -151,7 +164,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
       if (onCreated) onCreated();
     } catch (err) {
       const serverError = err.response?.data;
-      if (typeof serverError === 'object' && serverError.info) {
+      if (typeof serverError === "object" && serverError.info) {
         addNotification(renderComplexErrorNotification(serverError), "info");
       } else {
         const msg = serverError?.error || "Помилка при створенні запрошення";
@@ -168,7 +181,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
       <div className="modal-content-add-user">
         <div className="modal-header-add-user">
           <div className="modal-title-add-user">
-            <ShieldCheck size={24} color="#5e83bf" /> 
+            <ShieldCheck size={24} color="#5e83bf" />
             <h2>Створити адміністратора</h2>
           </div>
           <button onClick={onClose} className="close-btn-add-user">
@@ -190,12 +203,19 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                     placeholder="Виберіть обліковий запис 1С..."
                     value={searchTerm}
                     onFocus={() => setIsListOpen(true)}
-                    onChange={(e) => { setSearchTerm(e.target.value); setIsListOpen(true); }}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsListOpen(true);
+                    }}
                     disabled={loadingUsers}
                   />
                   {loadingUsers && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 size={16} className="animate-spin" color="#3b82f6" />
+                      <Loader2
+                        size={16}
+                        className="animate-spin"
+                        color="#3b82f6"
+                      />
                     </div>
                   )}
 
@@ -203,13 +223,19 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                     <div className="search-results-dropdown-add-user custom-scrollbar">
                       {filteredUsers.length > 0 ? (
                         filteredUsers.map((user) => (
-                          <div key={user.Link} className="search-result-item-add-user" onClick={() => handleSelectUser1c(user.Link)}>
+                          <div
+                            key={user.Link}
+                            className="search-result-item-add-user"
+                            onClick={() => handleSelectUser1c(user.Link)}
+                          >
                             <div className="user-code">{user.Code}</div>
                             <div className="user-name">{user.Наименование}</div>
                           </div>
                         ))
                       ) : (
-                        <div className="p-3 text-sm text-center italic opacity-50">Нічого не знайдено</div>
+                        <div className="p-3 text-sm text-center italic opacity-50">
+                          Нічого не знайдено
+                        </div>
                       )}
                     </div>
                   )}
@@ -217,75 +243,172 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
               </div>
 
               <div className="divider-container-add-user">
-                <div className="divider-line-add-user"><span></span></div>
+                <div className="divider-line-add-user">
+                  <span></span>
+                </div>
                 <span className="divider-text-add-user">Персональні дані</span>
               </div>
 
               <div className="grid-fields-add-user">
                 <div>
                   <label className="input-label-add-user">Логін *</label>
-                  <input required className="form-input-add-user" placeholder="Введіть логін" value={formData.username} onChange={(e) => setFormData({ ...formData, username: e.target.value })} />
+                  <input
+                    required
+                    className="form-input-add-user"
+                    placeholder="Введіть логін"
+                    value={formData.username}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
+                  />
                 </div>
                 <div>
                   <label className="input-label-add-user">Повне ім'я</label>
-                  <input className="form-input-add-user" placeholder="Прізвище Ім'я" value={formData.fullName} onChange={(e) => setFormData({ ...formData, fullName: e.target.value })} />
+                  <input
+                    className="form-input-add-user"
+                    placeholder="Прізвище Ім'я"
+                    value={formData.fullName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fullName: e.target.value })
+                    }
+                  />
                 </div>
               </div>
 
               <div className="input-with-icon-add-user">
                 <Smartphone size={16} className="input-icon-add-user" />
-                <input type="tel" className="form-input-add-user pl-icon-add-user" value={formData.phoneNumber} onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })} placeholder="+380..." />
+                <input
+                  type="tel"
+                  className="form-input-add-user pl-icon-add-user"
+                  value={formData.phoneNumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phoneNumber: e.target.value })
+                  }
+                  placeholder="+380..."
+                />
               </div>
 
               <div className="input-with-icon-add-user">
                 <Mail size={16} className="input-icon-add-user" />
-                <input type="email" className="form-input-add-user pl-icon-add-user" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="example@mail.com" />
+                <input
+                  type="email"
+                  className="form-input-add-user pl-icon-add-user"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  placeholder="example@mail.com"
+                />
               </div>
 
               <div>
-                <label className="input-label-add-user"><Calendar size={12} /> Термін дії до:</label>
-                <input type="date" className="form-input-add-user" value={formData.expireDate} onChange={(e) => setFormData({ ...formData, expireDate: e.target.value })} />
+                <label className="input-label-add-user">
+                  <Calendar size={12} /> Термін дії до:
+                </label>
+                <input
+                  type="date"
+                  className="form-input-add-user"
+                  value={formData.expireDate}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expireDate: e.target.value })
+                  }
+                />
               </div>
 
-              {error && typeof error === 'string' && (
+              {error && typeof error === "string" && (
                 <div className="error-message animate-shake">{error}</div>
               )}
 
               <div className="form-footer-add-user">
-                <button type="button" onClick={onClose} className="btn-cancel-add-user">Скасувати</button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="btn-cancel-add-user"
+                >
+                  Скасувати
+                </button>
                 <button disabled={loading} className="btn-submit-add-user">
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : "Створити акаунт"}
+                  {loading ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    "Створити акаунт"
+                  )}
                 </button>
               </div>
             </form>
           ) : (
             <div className="success-screen-add-user">
-              <div className="success-icon-wrapper-add-user"><Mail size={40} /></div>
-              <h3 className="modal-title-add-user" style={{justifyContent:'center', marginBottom:'0.5rem'}}>Запрошення створено!</h3>
-              <p style={{fontSize:'0.875rem', opacity:0.6, marginBottom:'2rem'}}>Надішліть це посилання адміністратору:</p>
-              
+              <div className="success-icon-wrapper-add-user">
+                <Mail size={40} />
+              </div>
+              <h3
+                className="modal-title-add-user"
+                style={{ justifyContent: "center", marginBottom: "0.5rem" }}
+              >
+                Запрошення створено!
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  opacity: 0.6,
+                  marginBottom: "2rem",
+                }}
+              >
+                Надішліть це посилання адміністратору:
+              </p>
+
               <div className="success-card-add-user">
                 <div className="invite-link-box-add-user">
-                  <span className="input-label-add-user" style={{marginLeft:0}}>Посилання для реєстрації</span>
-                  <span style={{fontSize:'0.75rem', wordBreak:'break-all', color:'#3b82f6', fontWeight:700}}>{createdData.inviteLink}</span>
+                  <span
+                    className="input-label-add-user"
+                    style={{ marginLeft: 0 }}
+                  >
+                    Посилання для реєстрації
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      wordBreak: "break-all",
+                      color: "#3b82f6",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {createdData.inviteLink}
+                  </span>
                 </div>
                 {createdData.tgLink && (
-                  <div style={{textAlign:'center'}}>
-                    <span className="input-label-add-user" style={{display:'block', marginBottom:'0.5rem'}}>Telegram QR</span>
+                  <div style={{ textAlign: "center" }}>
+                    <span
+                      className="input-label-add-user"
+                      style={{ display: "block", marginBottom: "0.5rem" }}
+                    >
+                      Telegram QR
+                    </span>
                     <div className="qr-code-wrapper-add-user">
                       <QRCodeCanvas value={createdData.tgLink} size={120} />
                     </div>
                   </div>
                 )}
-                <button 
-                    type="button" 
-                    onClick={() => performCopyAction(createdData.inviteLink, "Запрошення скопійовано")} 
-                    className="copy-btn-floating-add-user"
+                <button
+                  type="button"
+                  onClick={() =>
+                    performCopyAction(
+                      createdData.inviteLink,
+                      "Запрошення скопійовано",
+                    )
+                  }
+                  className="copy-btn-floating-add-user"
                 >
-                  {copied ? <Check size={18} color="#10b981" /> : <Copy size={18} color="#3b82f6" />}
+                  {copied ? (
+                    <Check size={18} color="#10b981" />
+                  ) : (
+                    <Copy size={18} color="#3b82f6" />
+                  )}
                 </button>
               </div>
-              <button onClick={onClose} className="btn-close-final-add-user">Закрити вікно</button>
+              <button onClick={onClose} className="btn-close-final-add-user">
+                Закрити вікно
+              </button>
             </div>
           )}
         </div>

@@ -1,5 +1,9 @@
 .emergency-log-body {
-  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
   padding: 60px 10%;
   min-height: 100vh;
   overflow-x: hidden;
@@ -11,7 +15,6 @@
 }
 
 .emergency-log-title {
-  
   /* можна замінити на var(--text-color) або свій колір */
   margin-bottom: 0;
 
@@ -91,19 +94,18 @@
 }
 
 .modal-field {
-  margin-bottom: 12px;       /* відступ між полями */
-  width: 100%;               /* ширина поля по всій ширині модалки */
+  margin-bottom: 12px; /* відступ між полями */
+  width: 100%; /* ширина поля по всій ширині модалки */
 }
 
 .modal-field .video-input {
-  width: 100%;               /* поле вводу займає всю ширину контейнера */
-  padding: 8px 12px;         /* внутрішні відступи */
-  border: 1px solid #ccc;    /* рамка */
-  border-radius: 6px;        /* округлення кутів */
-  font-size: 14px;           /* трохи більший шрифт */
-  box-sizing: border-box;    /* щоб padding не розширював поле */
+  width: 100%; /* поле вводу займає всю ширину контейнера */
+  padding: 8px 12px; /* внутрішні відступи */
+  border: 1px solid #ccc; /* рамка */
+  border-radius: 6px; /* округлення кутів */
+  font-size: 14px; /* трохи більший шрифт */
+  box-sizing: border-box; /* щоб padding не розширював поле */
 }
-
 
 .btn-emergency {
   background: linear-gradient(90deg, #e53935, #d81b60);

@@ -56,7 +56,9 @@
   border: none;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 
 .api-keys-close:hover {
@@ -148,7 +150,10 @@
   color: #e74c3c;
   padding: 6px;
   border-radius: 6px;
-  transition: background 0.2s, transform 0.15s, opacity 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s,
+    opacity 0.15s;
 }
 
 .btn-deactivate:hover:not(:disabled) {
@@ -185,7 +190,9 @@
   font-weight: 600;
   cursor: pointer;
   font-size: 15px;
-  transition: background 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s;
 }
 
 .btn-create:hover {

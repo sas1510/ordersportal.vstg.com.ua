@@ -15,7 +15,8 @@ const ContactFormPage = () => {
 
   useEffect(() => {
     if (id) {
-      axiosInstance.get(`/contact/${id}`)
+      axiosInstance
+        .get(`/contact/${id}`)
         .then((res) => {
           setForm({
             name: res.data.name,

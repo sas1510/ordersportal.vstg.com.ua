@@ -53,11 +53,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 3px; 
-  padding-right: 10px; 
-  padding-left: 10px; 
+  padding-top: 3px;
+  padding-right: 10px;
+  padding-left: 10px;
   overflow-y: auto;
-
 }
 
 /* ================= FORM ================= */
@@ -182,9 +181,9 @@
   }
 
   .map-column {
-    padding-top: 3px; 
-    padding-right: 10px; 
-    padding-left: 10px; 
+    padding-top: 3px;
+    padding-right: 10px;
+    padding-left: 10px;
   }
 }
 
@@ -222,8 +221,6 @@
     height: 260px;
   }
 }
-
-
 
 /* ================= DARK THEME ================= */
 
@@ -325,10 +322,9 @@ body.dark-theme .blue-highlight {
   color: #4da3ff;
 }
 
-
 .footer-btns {
   display: flex;
-  justify-content: flex-end; 
+  justify-content: flex-end;
   align-items: center;
-  gap: 12px;              
+  gap: 12px;
 }

@@ -1,21 +1,36 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 // Додаємо getAccessToken в імпорт
-import axiosInstance, { getAccessToken } from "../../api/axios"; 
+import axiosInstance, { getAccessToken } from "../../api/axios";
 import { FaRegCommentDots, FaPaperPlane } from "react-icons/fa";
 import "./CommentsModal.css";
-import { useNotification } from "../notification/Notifications.jsx";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../../hooks/useNotification";
 
-const AUTHOR_COLORS = ["#4fd1ac", "#ffee00", "#612ae0", "#141e29", "#76b448", "#53a9ff"];
+const AUTHOR_COLORS = [
+  "#4fd1ac",
+  "#ffee00",
+  "#612ae0",
+  "#141e29",
+  "#76b448",
+  "#53a9ff",
+];
 
 const getAuthorColor = (author) => {
   const str = author?.full_name || author?.username || "unknown";
   let hash = 0;
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  for (let i = 0; i < str.length; i++)
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
   const index = Math.abs(hash) % AUTHOR_COLORS.length;
   return AUTHOR_COLORS[index];
 };
 
-const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId, manager }) => {
+const CommentsModal = ({
+  isOpen,
+  onClose,
+  baseTransactionGuid,
+  transactionTypeId,
+  manager,
+}) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
@@ -41,25 +56,23 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
     if (!baseTransactionGuid || !transactionTypeId) return;
     try {
       const res = await axiosInstance.get("/messages/", {
-        params: { 
-          base_transaction_guid: baseTransactionGuid, 
-          transaction_type_id: transactionTypeId 
+        params: {
+          base_transaction_guid: baseTransactionGuid,
+          transaction_type_id: transactionTypeId,
         },
       });
       setComments(res.data || []);
-    } catch (err) {
+    } catch  {
       addNotification("Не вдалося завантажити історію", "error");
     }
   }, [baseTransactionGuid, transactionTypeId, addNotification]);
 
   const connectWS = useCallback(async () => {
-
     if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
-
 
     try {
       await axiosInstance.get("/user/me/");
-    } catch (err) {
+    } catch  {
       console.error("Авторизація не вдалася, реконект через 5 сек...");
       reconnectTimeout.current = setTimeout(connectWS, 5000);
       return;
@@ -70,38 +83,41 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
 
     const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
     const ws_host = window.location.host;
-    
+
     if (socket.current) {
-        socket.current.onclose = null; 
-        socket.current.close();
+      socket.current.onclose = null;
+      socket.current.close();
     }
 
-    const ws = new WebSocket(`${ws_scheme}://${ws_host}/ws/chat/${chatId}/?token=${token}`);
+    const ws = new WebSocket(
+      `${ws_scheme}://${ws_host}/ws/chat/${chatId}/?token=${token}`,
+    );
     socket.current = ws;
 
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      if (data.type === 'chat_message') {
-        setComments((prev) => [...prev, {
-          id: Date.now(),
-          message: data.message,
-          author: { full_name: data.author, id_1c: data.author_id_1c },
-          created_at: data.timestamp
-        }]);
+      if (data.type === "chat_message") {
+        setComments((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            message: data.message,
+            author: { full_name: data.author, id_1c: data.author_id_1c },
+            created_at: data.timestamp,
+          },
+        ]);
       }
-   
-      if (data.type === 'error' && data.message.includes('expired')) {
-          ws.close();
+
+      if (data.type === "error" && data.message.includes("expired")) {
+        ws.close();
       }
     };
 
     ws.onclose = (e) => {
       console.log(`WS закритo (код: ${e.code}). Перепідключення...`);
-      
-    
+
       if (isOpen) {
-          
-          reconnectTimeout.current = setTimeout(connectWS, 3000);
+        reconnectTimeout.current = setTimeout(connectWS, 3000);
       }
     };
 
@@ -111,21 +127,20 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
     };
   }, [chatId, isOpen]);
 
-
   useEffect(() => {
     const handleEsc = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
+      window.addEventListener("keydown", handleEsc);
     }
 
     // Очищуємо слухач при закритті модалки або демонтажі компонента
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
 
@@ -135,15 +150,22 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
       fetchHistory();
       connectWS();
     }
-    
+
     return () => {
       if (socket.current) {
-          socket.current.onclose = null; // Прибираємо реконект при демонтажі
-          socket.current.close();
+        socket.current.onclose = null; // Прибираємо реконект при демонтажі
+        socket.current.close();
       }
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
     };
-  }, [isOpen, baseTransactionGuid, transactionTypeId, fetchCurrentUser, fetchHistory, connectWS]);
+  }, [
+    isOpen,
+    baseTransactionGuid,
+    transactionTypeId,
+    fetchCurrentUser,
+    fetchHistory,
+    connectWS,
+  ]);
 
   useEffect(() => {
     commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -151,21 +173,26 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
 
   const handleAddComment = () => {
     if (!newComment.trim()) return;
-    
+
     if (socket.current?.readyState === WebSocket.OPEN) {
-      socket.current.send(JSON.stringify({ 
-        'message': newComment.trim(),
-        'recipient_guid': manager
-      }));
-      
+      socket.current.send(
+        JSON.stringify({
+          message: newComment.trim(),
+          recipient_guid: manager,
+        }),
+      );
+
       setNewComment("");
-      
-      const textarea = document.querySelector('.textarea-wrapper textarea');
+
+      const textarea = document.querySelector(".textarea-wrapper textarea");
       if (textarea) {
-        textarea.style.height = '31px'; 
+        textarea.style.height = "31px";
       }
     } else {
-      addNotification("З'єднання втрачено. Спробуйте оновити сторінку.", "error");
+      addNotification(
+        "З'єднання втрачено. Спробуйте оновити сторінку.",
+        "error",
+      );
     }
   };
 
@@ -173,12 +200,19 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
 
   return (
     <div className="comments-modal-overlay" onClick={onClose}>
-      <div className="comments-modal-window" onClick={(e) => e.stopPropagation()}>
-        
+      <div
+        className="comments-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="comments-modal-header">
-          <FaRegCommentDots size={20} style={{ marginRight: 8, color: '#76b448' }} />
+          <FaRegCommentDots
+            size={20}
+            style={{ marginRight: 8, color: "#76b448" }}
+          />
           <h3>Чат</h3>
-          <span className="comments-close-x" onClick={onClose}>&times;</span>
+          <span className="comments-close-x" onClick={onClose}>
+            &times;
+          </span>
         </div>
 
         <div className="comments-modal-body">
@@ -189,13 +223,19 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
               {comments.map((c, idx) => {
                 const isMine = c.author?.id_1c === currentUser?.user_id_1c;
                 return (
-                  <li key={idx} 
-                      className={`comments-item ${isMine ? "comment-right" : "comment-left"}`}
-                      style={{ "--author-color": getAuthorColor(c.author) }}>
+                  <li
+                    key={idx}
+                    className={`comments-item ${isMine ? "comment-right" : "comment-left"}`}
+                    style={{ "--author-color": getAuthorColor(c.author) }}
+                  >
                     <div className="comments-meta">
-                      <strong className="comments-author">{c.author?.full_name}</strong>
+                      <strong className="comments-author">
+                        {c.author?.full_name}
+                      </strong>
                       <span className="comments-date">
-                        {new Date(c.created_at || Date.now()).toLocaleString('uk-UA')}
+                        {new Date(c.created_at || Date.now()).toLocaleString(
+                          "uk-UA",
+                        )}
                       </span>
                     </div>
                     <div className="comments-text">{c.message}</div>
@@ -208,31 +248,31 @@ const CommentsModal = ({ isOpen, onClose, baseTransactionGuid, transactionTypeId
         </div>
 
         <div className="comments-form-container">
-            <div className="textarea-wrapper">
-                <textarea 
-                  placeholder="Ваше повідомлення..." 
-                  value={newComment}
-                  onChange={(e) => {
-                      setNewComment(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = e.target.scrollHeight + 'px';
-                  }}
-                  onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleAddComment();
-                      }
-                  }}
-                  rows="1"
-                />
-                <button 
-                  className="btn-send-message" 
-                  disabled={!newComment.trim()} 
-                  onClick={handleAddComment}
-                >
-                    <FaPaperPlane />
-                </button>
-            </div>
+          <div className="textarea-wrapper">
+            <textarea
+              placeholder="Ваше повідомлення..."
+              value={newComment}
+              onChange={(e) => {
+                setNewComment(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = e.target.scrollHeight + "px";
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleAddComment();
+                }
+              }}
+              rows="1"
+            />
+            <button
+              className="btn-send-message"
+              disabled={!newComment.trim()}
+              onClick={handleAddComment}
+            >
+              <FaPaperPlane />
+            </button>
+          </div>
         </div>
       </div>
     </div>

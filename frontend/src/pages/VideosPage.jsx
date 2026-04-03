@@ -1,255 +1,313 @@
-import React, { useEffect, useState } from 'react';
-import axiosInstance from '../api/axios';
+import React, { useEffect, useState, useCallback } from "react";
+import axiosInstance from "../api/axios";
 // Додаємо іконки для типів відео
-import { FaPlus, FaSearch, FaEdit, FaTrash, FaYoutube, FaTiktok } from 'react-icons/fa';
-import { useNotification } from '../components/notification/Notifications';
-import ConfirmModal from '../components/Orders/ConfirmModal';
-import './Videos.css';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../hooks/useAuth';
+import {
+  FaPlus,
+  FaSearch,
+  FaEdit,
+  FaTrash,
+  FaYoutube,
+  FaTiktok,
+} from "react-icons/fa";
+// Якщо ви створили файл useNotification.js у папці hooks:
+import { useNotification } from "../hooks/useNotification";
+import ConfirmModal from "../components/Orders/ConfirmModal";
+import "./Videos.css";
+import { useTheme } from "../hooks/useTheme";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
 const VideosPage = () => {
-  const [videos, setVideos] = useState([]);
-  const [filteredVideos, setFilteredVideos] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingSave, setLoadingSave] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [videos, setVideos] = useState([]);
+  const [filteredVideos, setFilteredVideos] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingSave, setLoadingSave] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
 
-  const { user, role } = useAuth();
+  const { role } = useAuthGetRole();
   const isAdmin = role === "admin";
 
   // Форма тепер містить resource_type
-  const [videoForm, setVideoForm] = useState({ 
-    title: '', 
-    url: '', 
-    description: '', 
-    resource_type: 'youtube' // 'youtube' як тип за замовчуванням
+  const [videoForm, setVideoForm] = useState({
+    title: "",
+    url: "",
+    description: "",
+    resource_type: "youtube", // 'youtube' як тип за замовчуванням
   });
 
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-   const darkStyles = {
-        searchBoxBg: '#333333',
-        searchBoxBorder: '1px dashed #555555',
-        searchBoxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-        iconColor: '#aaaaaa',
-        delimiterBorder: '1px dashed #555',
-        fileItemBg: '#2c2c2c',
-        fileItemBorder: '1px solid #444',
-        fileItemShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        lightTextColor: '#f0f0f0', 
-        lightGreyColor: '#aaa',     
-    };
+  const darkStyles = {
+    searchBoxBg: "#333333",
+    searchBoxBorder: "1px dashed #555555",
+    searchBoxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+    iconColor: "#aaaaaa",
+    delimiterBorder: "1px dashed #555",
+    fileItemBg: "#2c2c2c",
+    fileItemBorder: "1px solid #444",
+    fileItemShadow: "0 4px 12px rgba(0,0,0,0.3)",
+    lightTextColor: "#f0f0f0",
+    lightGreyColor: "#aaa",
+  };
+
+  const { addNotification } = useNotification();
 
 
-  const { addNotification } = useNotification();
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = videos.filter(
+        (v) =>
+          v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          v.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      setFilteredVideos(filtered);
+    } else setFilteredVideos(videos);
+  }, [searchQuery, videos]);
 
-  useEffect(() => { fetchVideos(); }, []);
+  const fetchVideos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get(
+        "/media-resources/?types=youtube,tiktok",
+      );
+      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setVideos(data);
+      setFilteredVideos(data);
+    } catch {
+      addNotification("Помилка завантаження відео", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [addNotification]); // Додаємо залежність від хука сповіщень
 
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const filtered = videos.filter(v =>
-        v.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        v.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredVideos(filtered);
-    } else setFilteredVideos(videos);
-  }, [searchQuery, videos]);
+  // 3. Тепер додаємо fetchVideos у масив залежностей ефекту
+  useEffect(() => {
+    fetchVideos();
+  }, [fetchVideos]);
 
-  const fetchVideos = async () => {
-    setLoading(true);
-    try {
-      // !!! ЗМІНЕНО: Новий URL з фільтром для типів 'youtube' та 'tiktok'
-      const res = await axiosInstance.get('/media-resources/?types=youtube,tiktok');
-      
-      // (Видалено явну передачу 'token', оскільки axiosInstance має це робити)
-      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-      setVideos(data);
-      setFilteredVideos(data);
-    } catch {
-      addNotification('Помилка завантаження відео', 'error');
-    } finally { setLoading(false); }
-  };
+  // ====================== Додавання / Редагування ======================
+  const handleSaveVideo = async (e) => {
+    e.preventDefault();
+    if (!videoForm.title || !videoForm.url)
+      return addNotification('Заповніть поля "Назва" та "Посилання"', "error");
 
-  // ====================== Додавання / Редагування ======================
-  const handleSaveVideo = async (e) => {
-    e.preventDefault();
-    if (!videoForm.title || !videoForm.url)
-      return addNotification('Заповніть поля "Назва" та "Посилання"', 'error');
+    setLoadingSave(true);
 
-    setLoadingSave(true);
-    
     // 'videoForm' вже містить всі дані, включно з resource_type
-    const payload = videoForm; 
+    const payload = videoForm;
 
-    try {
-      if (editModalOpen) {
-        // 🔹 Редагування (!!! ЗМІНЕНО: URL та метод PUT -> PATCH)
-        await axiosInstance.patch(`/media-resources/${selectedVideo.id}/`, payload);
-        addNotification('Відео оновлено успішно!', 'success');
-      } else {
-        // 🔹 Додавання (!!! ЗМІНЕНО: URL)
+    try {
+      if (editModalOpen) {
+        // 🔹 Редагування (!!! ЗМІНЕНО: URL та метод PUT -> PATCH)
+        await axiosInstance.patch(
+          `/media-resources/${selectedVideo.id}/`,
+          payload,
+        );
+        addNotification("Відео оновлено успішно!", "success");
+      } else {
+        // 🔹 Додавання (!!! ЗМІНЕНО: URL)
         // 'payload' вже містить 'resource_type' з форми
-        await axiosInstance.post('/media-resources/', payload);
-        addNotification('Відео додано успішно!', 'success');
-      }
-      setAddModalOpen(false);
-      setEditModalOpen(false);
-      fetchVideos();
-      // Скидаємо форму до значень за замовчуванням
-      setVideoForm({ title: '', url: '', description: '', resource_type: 'youtube' });
-    } catch {
-      addNotification('Помилка при збереженні відео', 'error');
-    } finally { setLoadingSave(false); }
-  };
+        await axiosInstance.post("/media-resources/", payload);
+        addNotification("Відео додано успішно!", "success");
+      }
+      setAddModalOpen(false);
+      setEditModalOpen(false);
+      fetchVideos();
+      // Скидаємо форму до значень за замовчуванням
+      setVideoForm({
+        title: "",
+        url: "",
+        description: "",
+        resource_type: "youtube",
+      });
+    } catch {
+      addNotification("Помилка при збереженні відео", "error");
+    } finally {
+      setLoadingSave(false);
+    }
+  };
 
-  // ====================== Видалення ======================
-  const handleDeleteClick = (video) => { setSelectedVideo(video); setDeleteModalOpen(true); };
-  const handleDeleteConfirm = async () => {
-    try {
+  // ====================== Видалення ======================
+  const handleDeleteClick = (video) => {
+    setSelectedVideo(video);
+    setDeleteModalOpen(true);
+  };
+  const handleDeleteConfirm = async () => {
+    try {
       // !!! ЗМІНЕНО: URL
-      await axiosInstance.delete(`/media-resources/${selectedVideo.id}/`);
-      fetchVideos();
-      addNotification(`Відео "${selectedVideo.title}" видалено`, 'success');
-    } catch {
-      addNotification('Не вдалося видалити відео', 'error');
-    } finally { setDeleteModalOpen(false); }
-  };
+      await axiosInstance.delete(`/media-resources/${selectedVideo.id}/`);
+      fetchVideos();
+      addNotification(`Відео "${selectedVideo.title}" видалено`, "success");
+    } catch {
+      addNotification("Не вдалося видалити відео", "error");
+    } finally {
+      setDeleteModalOpen(false);
+    }
+  };
 
-  const openEditModal = (video) => {
-    setSelectedVideo(video);
+  const openEditModal = (video) => {
+    setSelectedVideo(video);
     // Заповнюємо форму даними з обраного відео
-    setVideoForm({
-      title: video.title || '',
-      url: video.url || '',
-      description: video.description || '',
-      resource_type: video.resource_type // Зберігаємо тип
-    });
-    setEditModalOpen(true);
-  };
+    setVideoForm({
+      title: video.title || "",
+      url: video.url || "",
+      description: video.description || "",
+      resource_type: video.resource_type, // Зберігаємо тип
+    });
+    setEditModalOpen(true);
+  };
 
   const openAddModal = () => {
     // Скидаємо форму до чистих значень
     setSelectedVideo(null);
-    setVideoForm({ title: '', url: '', description: '', resource_type: 'youtube' });
+    setVideoForm({
+      title: "",
+      url: "",
+      description: "",
+      resource_type: "youtube",
+    });
     setAddModalOpen(true);
-  }
+  };
 
-  const formatDate = (isoString) => {
+  const formatDate = (isoString) => {
     // Поле 'created_at' з нової моделі
-    if (!isoString) return 'Невідомо';
-    return new Date(isoString).toLocaleDateString('uk-UA', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
+    if (!isoString) return "Невідомо";
+    return new Date(isoString).toLocaleDateString("uk-UA", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
-  const getEmbedUrl = (video) => {
-  if (!video || !video.url) return '';
-  
-  try {
-    const url = new URL(video.url);
+  const getEmbedUrl = (video) => {
+    if (!video || !video.url) return "";
 
-    if (video.resource_type === 'youtube') {
-      let videoId;
-      if (url.hostname === 'youtu.be') {
-        videoId = url.pathname.slice(1);
-      } else if (url.pathname.includes('/live/')) {
-        videoId = url.pathname.split('/live/')[1]?.split('?')[0];
-      } else {
-        videoId = url.searchParams.get('v');
+    try {
+      const url = new URL(video.url);
+
+      if (video.resource_type === "youtube") {
+        let videoId;
+        if (url.hostname === "youtu.be") {
+          videoId = url.pathname.slice(1);
+        } else if (url.pathname.includes("/live/")) {
+          videoId = url.pathname.split("/live/")[1]?.split("?")[0];
+        } else {
+          videoId = url.searchParams.get("v");
+        }
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
       }
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+
+      if (video.resource_type === "tiktok") {
+        // Витягуємо ID відео з посилання типу tiktok.com/@user/video/1234567
+        const match = url.pathname.match(/video\/(\d+)/);
+        const videoId = match ? match[1] : null;
+        // TikTok використовує інший формат для embed
+        return videoId ? `https://www.tiktok.com/embed/v2/${videoId}` : "";
+      }
+    } catch (_e) {
+      console.error(_e);
+      return "";
     }
-
-    if (video.resource_type === 'tiktok') {
-      // Витягуємо ID відео з посилання типу tiktok.com/@user/video/1234567
-      const match = url.pathname.match(/video\/(\d+)/);
-      const videoId = match ? match[1] : null;
-      // TikTok використовує інший формат для embed
-      return videoId ? `https://www.tiktok.com/embed/v2/${videoId}` : '';
-    }
-  } catch (e) {
-    return '';
-  }
-  return '';
-};
-
-
+    return "";
+  };
 
   const getVideoIcon = (resourceType) => {
-    if (resourceType === 'youtube') {
+    if (resourceType === "youtube") {
       return <FaYoutube className="text-red-500" />;
     }
-    if (resourceType === 'tiktok') {
+    if (resourceType === "tiktok") {
       return <FaTiktok className="text-black" />;
     }
-    return '🎥';
-  }
+    return "🎥";
+  };
 
-  return (
-    <div className="videos-body column gap-14">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+  return (
+    <div className="videos-body column gap-14">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-color mt-3 text-4xl font-bold flex items-center gap-3">
+          <span className="mt-1 text-custom-green icon-youtube mr-2" />
+          <span>Відео</span>
+        </h1>
 
-         <h1 className="text-color mt-3 text-4xl font-bold flex items-center gap-3"> 
-                <span className="mt-1 text-custom-green icon-youtube mr-2" /> 
-                <span>Відео</span>
-            </h1>
-       
-        {isAdmin && (
-          <button
-            className="bg-custom-green hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3 mt-5"
-            onClick={openAddModal} // Використовуємо нову функцію
-          >
-            <FaPlus size={20} /> Додати відео
-          </button>
-        )}
-      </div>
+        {isAdmin && (
+          <button
+            className="bg-custom-green hover:bg-custom-green-dark text-white font-semibold text-lg px-3 py-2 rounded-lg flex items-center gap-3 mt-5"
+            onClick={openAddModal} // Використовуємо нову функцію
+          >
+            <FaPlus size={20} /> Додати відео
+          </button>
+        )}
+      </div>
 
-      {/* ... (Search bar залишається без змін) ... */}
+      {/* ... (Search bar залишається без змін) ... */}
       <div className="row gap-14 align-center mb-2 ">
-        <div className="row align-center gap-7 search-box " 
-          style={{ flex: 1, padding: '8px 12px', borderRadius: '10px',
-                   border: '1px dashed #666666ff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <FaSearch className="text-grey" style={{ fontSize: '20px' }} />
-          <input
-            type="text"
-            placeholder="Пошук за назвою або описом..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ flex: 1, border: 'none',  outline: 'none', fontSize: '16px', fontWeight: '400', padding: '8px 0', background: 'transparent' }}
-          />
-        </div>
-      </div>
-           <div style={{ 
-                borderTop: isDark ? darkStyles.delimiterBorder : '1px dashed #ccc', 
-                marginBottom: '5px' 
-          }}></div> 
+        <div
+          className="row align-center gap-7 search-box "
+          style={{
+            flex: 1,
+            padding: "8px 12px",
+            borderRadius: "10px",
+            border: "1px dashed #666666ff",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          <FaSearch className="text-grey" style={{ fontSize: "20px" }} />
+          <input
+            type="text"
+            placeholder="Пошук за назвою або описом..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1,
+              border: "none",
+              outline: "none",
+              fontSize: "16px",
+              fontWeight: "400",
+              padding: "8px 0",
+              background: "transparent",
+            }}
+          />
+        </div>
+      </div>
+      <div
+        style={{
+          borderTop: isDark ? darkStyles.delimiterBorder : "1px dashed #ccc",
+          marginBottom: "5px",
+        }}
+      ></div>
 
-      {/* Videos List */}
-      {loading ? (
-        <div className="align-center" style={{ padding: '50px' }}><div className="loader"></div></div>
-      ) : filteredVideos.length === 0 ? (
-        <div className="align-center column" style={{ padding: '50px' }}>
-          <div className="text-grey">{searchQuery ? 'Відео не знайдено' : 'Відео ще немає'}</div>
-        </div>
-      ) : (
-        <div className="column gap-10">
-          {filteredVideos.map(video => (
-            <div key={video.id} className="claim-item column gap-3">
-              <div className="column gap-2 flex-1">
-              <div className="text-info font-semibold text-lg row align-center gap-5">
-                {/* Додаємо іконку типу */}
-                {getVideoIcon(video.resource_type)}
-                <span>{video.title}</span>
-              </div>
-                {video.description && <p className="text-grey text-sm">{video.description}</p>}
-                
-                <div className="video-container mt-3">
-                  {video.resource_type === 'youtube' ? (
+      {/* Videos List */}
+      {loading ? (
+        <div className="align-center" style={{ padding: "50px" }}>
+          <div className="loader"></div>
+        </div>
+      ) : filteredVideos.length === 0 ? (
+        <div className="align-center column" style={{ padding: "50px" }}>
+          <div className="text-grey">
+            {searchQuery ? "Відео не знайдено" : "Відео ще немає"}
+          </div>
+        </div>
+      ) : (
+        <div className="column gap-10">
+          {filteredVideos.map((video) => (
+            <div key={video.id} className="claim-item column gap-3">
+              <div className="column gap-2 flex-1">
+                <div className="text-info font-semibold text-lg row align-center gap-5">
+                  {/* Додаємо іконку типу */}
+                  {getVideoIcon(video.resource_type)}
+                  <span>{video.title}</span>
+                </div>
+                {video.description && (
+                  <p className="text-grey text-sm">{video.description}</p>
+                )}
+
+                <div className="video-container mt-3">
+                  {video.resource_type === "youtube" ? (
                     /* Форма для YouTube (16:9) */
                     <iframe
                       className="w-full aspect-video rounded-md shadow-sm"
@@ -260,126 +318,179 @@ const VideosPage = () => {
                     ></iframe>
                   ) : (
                     /* Форма для TikTok (Вертикальна або адаптивна) */
-                    <div className="tiktok-wrapper flex justify-center bg-black rounded-md overflow-hidden" style={{ minHeight: '580px' }}>
+                    <div
+                      className="tiktok-wrapper flex justify-center bg-black rounded-md overflow-hidden"
+                      style={{ minHeight: "580px" }}
+                    >
                       <iframe
                         src={getEmbedUrl(video)}
-                        style={{ width: '100%', height: '580px', border: 'none' }}
+                        style={{
+                          width: "100%",
+                          height: "580px",
+                          border: "none",
+                        }}
                         allow="fullscreen"
                         title={video.title}
                       ></iframe>
                     </div>
                   )}
                 </div>
-              {/* Використовуємо 'created_at' з нової моделі */}
-                <div className="text-sm text-grey mt-1">Дата: {formatDate(video.created_at)}</div>
-              </div>
+                {/* Використовуємо 'created_at' з нової моделі */}
+                <div className="text-sm text-grey mt-1">
+                  Дата: {formatDate(video.created_at)}
+                </div>
+              </div>
 
-              {/* ... (Кнопки Edit/Delete залишаються без змін) ... */}
+              {/* ... (Кнопки Edit/Delete залишаються без змін) ... */}
               {isAdmin && (
-                <div className="row gap-7 align-center mt-2 justify-end">
-                  <button
-                    className="button background-warning row gap-5 align-center"
-                    onClick={() => openEditModal(video)}
-                  >
-                    <FaEdit /> Редагувати
-                  </button>
-                  <button
-                    className="button background-danger row gap-5 align-center"
-                    onClick={() => handleDeleteClick(video)}
-                  >
-                    <FaTrash /> Видалити
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                <div className="row gap-7 align-center mt-2 justify-end">
+                  <button
+                    className="button background-warning row gap-5 align-center"
+                    onClick={() => openEditModal(video)}
+                  >
+                    <FaEdit /> Редагувати
+                  </button>
+                  <button
+                    className="button background-danger row gap-5 align-center"
+                    onClick={() => handleDeleteClick(video)}
+                  >
+                    <FaTrash /> Видалити
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* ... (Confirm Delete Modal залишається без змін) ... */}
+      {/* ... (Confirm Delete Modal залишається без змін) ... */}
       <ConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        type="danger"
-        title="Видалення відео"
-        message={`Ви дійсно хочете видалити відео "${selectedVideo?.title}"?`}
-        confirmText="Видалити"
-        cancelText="Скасувати"
-      />
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        type="danger"
+        title="Видалення відео"
+        message={`Ви дійсно хочете видалити відео "${selectedVideo?.title}"?`}
+        confirmText="Видалити"
+        cancelText="Скасувати"
+      />
 
-      {/* Add/Edit Video Modal */}
-      {(addModalOpen || editModalOpen) && (
-        <div className="file-modal-overlay" onClick={() => { setAddModalOpen(false); setEditModalOpen(false); }}>
-          <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
-            <div className="file-modal-header">
-              <div className="header-content">
-                <div className="file-icon">🎬</div>
-                <h3>{editModalOpen ? 'Редагувати відео' : 'Додати відео'}</h3>
-              </div>
-              <button className="file-close-btn" onClick={() => { setAddModalOpen(false); setEditModalOpen(false); }}>✕</button>
-            </div>
+      {/* Add/Edit Video Modal */}
+      {(addModalOpen || editModalOpen) && (
+        <div
+          className="file-modal-overlay"
+          onClick={() => {
+            setAddModalOpen(false);
+            setEditModalOpen(false);
+          }}
+        >
+          <div
+            className="file-modal-window"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="file-modal-header">
+              <div className="header-content">
+                <div className="file-icon">🎬</div>
+                <h3>{editModalOpen ? "Редагувати відео" : "Додати відео"}</h3>
+              </div>
+              <button
+                className="file-close-btn"
+                onClick={() => {
+                  setAddModalOpen(false);
+                  setEditModalOpen(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
 
-            <form onSubmit={handleSaveVideo} className="claim-form">
-              
+            <form onSubmit={handleSaveVideo} className="claim-form">
               {/* !!! ЗМІНЕНО: Поле вибору типу */}
               <label className="file-label">
-                <span>Тип відео</span>
-                <select 
+                <span>Тип відео</span>
+                <select
                   className="file-input"
                   value={videoForm.resource_type}
                   // Дозволяємо змінювати тип тільки при додаванні
-                  disabled={editModalOpen} 
-                  onChange={(e) => setVideoForm({ ...videoForm, resource_type: e.target.value })}
+                  disabled={editModalOpen}
+                  onChange={(e) =>
+                    setVideoForm({
+                      ...videoForm,
+                      resource_type: e.target.value,
+                    })
+                  }
                 >
                   <option value="youtube">YouTube</option>
                   <option value="tiktok">TikTok</option>
                 </select>
-              </label>
+              </label>
 
-              <label className="file-label">
-                <span>Назва відео</span>
-                <input
-                  type="text"
-                  className="file-input"
-                  value={videoForm.title}
-                  onChange={(e) => setVideoForm({ ...videoForm, title: e.target.value })}
-                />
-              </label>
+              <label className="file-label">
+                <span>Назва відео</span>
+                <input
+                  type="text"
+                  className="file-input"
+                  value={videoForm.title}
+                  onChange={(e) =>
+                    setVideoForm({ ...videoForm, title: e.target.value })
+                  }
+                />
+              </label>
 
-              <label className="file-label">
+              <label className="file-label">
                 {/* !!! ЗМІНЕНО: Узагальнена назва */}
-                <span>Посилання (URL)</span>
-                <input
-                  type="url"
-                  className="file-input"
+                <span>Посилання (URL)</span>
+                <input
+                  type="url"
+                  className="file-input"
                   placeholder="https://www.youtube.com/watch?v=..."
-                  value={videoForm.url}
-                  onChange={(e) => setVideoForm({ ...videoForm, url: e.target.value })}
-                />
-              </label>
+                  value={videoForm.url}
+                  onChange={(e) =>
+                    setVideoForm({ ...videoForm, url: e.target.value })
+                  }
+                />
+              </label>
 
-              <label className="file-label">
-                <span>Опис</span>
-                <textarea
-                  className="file-input"
-                  value={videoForm.description}
-                  onChange={(e) => setVideoForm({ ...videoForm, description: e.target.value })}
-                />
-              </label>
+              <label className="file-label">
+                <span>Опис</span>
+                <textarea
+                  className="file-input"
+                  value={videoForm.description}
+                  onChange={(e) =>
+                    setVideoForm({ ...videoForm, description: e.target.value })
+                  }
+                />
+              </label>
 
-              <div className="file-modal-footer">
-                <button type="button" className="file-btn-cancel" onClick={() => { setAddModalOpen(false); setEditModalOpen(false); }}>✕ Скасувати</button>
-                <button type="submit" className="file-btn-save" disabled={loadingSave}>
-                  {loadingSave ? <div className="loader-small"></div> : '💾 Зберегти'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+              <div className="file-modal-footer">
+                <button
+                  type="button"
+                  className="file-btn-cancel"
+                  onClick={() => {
+                    setAddModalOpen(false);
+                    setEditModalOpen(false);
+                  }}
+                >
+                  ✕ Скасувати
+                </button>
+                <button
+                  type="submit"
+                  className="file-btn-save"
+                  disabled={loadingSave}
+                >
+                  {loadingSave ? (
+                    <div className="loader-small"></div>
+                  ) : (
+                    "💾 Зберегти"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default VideosPage;

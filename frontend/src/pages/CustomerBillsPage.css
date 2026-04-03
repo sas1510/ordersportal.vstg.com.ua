@@ -1,8 +1,11 @@
 .customer-bills-body {
-  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
 
   border-radius: 8px;
-
 }
 
 .page-title {
@@ -65,7 +68,6 @@
   text-align: center;
   color: #777;
 }
-
 
 .customer-bills-page {
   display: flex;
@@ -130,7 +132,6 @@
   opacity: 0.85;
 }
 
-
 .customer-bills-table {
   width: 100%;
   border-collapse: collapse;
@@ -192,7 +193,6 @@ body.dark-theme .filter-item-bill input {
   color: var(--text-color);
 }
 
-
 body.dark-theme .customer-bills-table {
   background-color: #2c2c2c;
 }
@@ -207,14 +207,12 @@ body.dark-theme .customer-bills-table tbody tr:hover {
 }
 
 body.dark-theme .btn-bill-download {
-  background-color:  #5a534e;
+  background-color: #5a534e;
   border-color: #acacac;
   color: #cccccc;
 }
 
-
-
-body.dark-theme  .btn-bill-download:hover {
+body.dark-theme .btn-bill-download:hover {
   background-color: #2c2c2c;
   color: var(--danger-color);
   border-color: var(--danger-color);
@@ -227,7 +225,6 @@ body.dark-theme  .btn-bill-download:hover {
   color: var(--red-pdf-color); /* #ff0000 */
   transition: all 0.25s ease;
 }
-
 
 .btn-create-bill {
   height: 40px;
@@ -248,13 +245,12 @@ body.dark-theme  .btn-bill-download:hover {
    RESPONSIVE (≤ 768px)
    ========================= */
 @media (max-width: 768px) {
-
   /* Фільтр */
   .bills-filter {
     padding: 8px;
     gap: 10px;
-    border-width: 1px;              /* тонше */
-    border-style: solid;            /* замість dashed */
+    border-width: 1px; /* тонше */
+    border-style: solid; /* замість dashed */
   }
 
   .filter-item-bill input {
@@ -268,14 +264,14 @@ body.dark-theme  .btn-bill-download:hover {
   .customer-bills-table thead th {
     padding: 8px 10px;
     font-size: 12px;
-    border-bottom-width: 1px;       /* було 2px */
+    border-bottom-width: 1px; /* було 2px */
   }
 
   .customer-bills-table tbody td {
     padding: 8px 10px;
     font-size: 13px;
     border-bottom-width: 1px;
-    border-bottom-style: solid;     /* замість dashed */
+    border-bottom-style: solid; /* замість dashed */
   }
 
   /* Кнопка PDF */
@@ -310,7 +306,6 @@ body.dark-theme  .btn-bill-download:hover {
   }
 }
 
-
 @media (max-width: 768px) {
   body.dark-theme .bills-filter,
   body.dark-theme .filter-item-bill input,
@@ -330,7 +325,6 @@ body.dark-theme  .btn-bill-download:hover {
    RESPONSIVE ≤ 600px
    ========================= */
 @media (max-width: 600px) {
-
   .bills-filter {
     flex-wrap: wrap;
     align-items: flex-start;
@@ -345,21 +339,19 @@ body.dark-theme  .btn-bill-download:hover {
   .bills-filter .btn-filter {
     margin-top: 8px;
     margin-left: 0;
-    flex-basis: 100%;      /* ⬅ переносить ОБИДВІ кнопки вниз */
+    flex-basis: 100%; /* ⬅ переносить ОБИДВІ кнопки вниз */
     display: flex;
     justify-content: center;
   }
-
 
   .bills-filter .btn-create-bill {
     margin-top: 8px;
     margin-left: 0;
-    flex-basis: 100%;      
+    flex-basis: 100%;
     display: flex;
     justify-content: center;
   }
 }
-
 
 @keyframes fadeSlideInSoft {
   from {
@@ -374,19 +366,13 @@ body.dark-theme  .btn-bill-download:hover {
   }
 }
 .customer-bills-panel {
-  animation: fadeSlideInSoft 0.55s cubic-bezier(.22,.61,.36,1);
+  animation: fadeSlideInSoft 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-
-
-
-
-
 
 /* Клас для обертання */
 .spinning {
   animation: spin 1s linear infinite;
   display: inline-block; /* Важливо для коректного обертання */
-
 }
 
 /* Опис анімації */
@@ -402,6 +388,6 @@ body.dark-theme  .btn-bill-download:hover {
 /* Опціонально: колір та розмір для іконки PDF завантаження */
 .pdf-icon.spinning {
   color: var(--danger-color);
-margin-left: 8px;
+  margin-left: 8px;
   /* margin-right: 5px; */
 }

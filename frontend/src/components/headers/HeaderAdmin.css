@@ -1,34 +1,28 @@
-
-
-
-
 :root {
-    --text-color: #606060;
-    --info-color: #5e83bf;
-    --success-color: #76b448;
-    --warning-color: #d3c527;
-    --danger-color: #6a6a6a;
-    --brown-color: #7C5747;
-    --purple-color: #645388;
-    --grey-color: #aaaaaa;
-    --grey-text-color: #b9b9b9;
-    --info-bg-color: #cfdcef99;
-    --success-bg-color: #e9f3e1;
-    --warning-bg-color: #f3f1d5;
-    --danger-bg-color: #fae4d9;
-    --cream-bg-color: #FFF9EC;
-    --purple-bg-color: #EDE7F6;
-    --shadow-color: #00000050;
-    --vs-green-color: #d4d947;
-    --vs-blue-color: #6b98bf;
-    --grey-border-color: #95959563;
-    --exit: #d32f2f;
+  --text-color: #606060;
+  --info-color: #5e83bf;
+  --success-color: #76b448;
+  --warning-color: #d3c527;
+  --danger-color: #6a6a6a;
+  --brown-color: #7c5747;
+  --purple-color: #645388;
+  --grey-color: #aaaaaa;
+  --grey-text-color: #b9b9b9;
+  --info-bg-color: #cfdcef99;
+  --success-bg-color: #e9f3e1;
+  --warning-bg-color: #f3f1d5;
+  --danger-bg-color: #fae4d9;
+  --cream-bg-color: #fff9ec;
+  --purple-bg-color: #ede7f6;
+  --shadow-color: #00000050;
+  --vs-green-color: #d4d947;
+  --vs-blue-color: #6b98bf;
+  --grey-border-color: #95959563;
+  --exit: #d32f2f;
 
-    --header-height: 50px;
-    --burger-menu-width: 500px;
-    
+  --header-height: 50px;
+  --burger-menu-width: 500px;
 }
-
 
 .portal-header {
   display: flex;
@@ -114,40 +108,40 @@
   position: absolute;
   top: 100%;
   left: 0;
-  background: #424242;       /* фон підменю */
+  background: #424242; /* фон підменю */
   color: #ccc;
   width: 100%;
   list-style: none;
   padding: 0;
   margin: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   z-index: 100;
 }
 
 .portal-header .menu ul li.dealer-size {
-    font-size: 20px;
-    height: 100%;
-    
-    width: 200%;
+  font-size: 20px;
+  height: 100%;
+
+  width: 200%;
 }
 
 .portal-header .menu ul li .dealer-icon {
-    color: #17a2b8; /* колір іконки */
-    font-size: 16px;
+  color: #17a2b8; /* колір іконки */
+  font-size: 16px;
 }
 
 /* При наведенні на весь li профілю змінюємо колір іконки користувача */
 .profile-item-column:hover .dealer-icon {
-    color: #17a2b8  !important; /* зелений при hover */
+  color: #17a2b8 !important; /* зелений при hover */
 }
 
 .portal-header .menu ul li .money-icon {
-    color: var(--success-color); /* колір іконки */
-    font-size: 16px;
+  color: var(--success-color); /* колір іконки */
+  font-size: 16px;
 }
- 
+
 /* Всі елементи підменю з тлом */
 .portal-header .submenu li {
   width: 100%;
@@ -161,15 +155,16 @@
   padding: 10px 14px;
   color: #ccc;
   text-decoration: none;
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
 }
 
 /* ефект наведення */
 .portal-header .submenu li .menu-link:hover {
   background: #6e6e6e; /* темніше сіре */
-  color: #fff;          /* білий текст */
+  color: #fff; /* білий текст */
 }
-
 
 /* Виділений пункт */
 .menu li.highlight {
@@ -189,25 +184,23 @@
 
 /* Розширення профілю */
 .profile-item {
-align-items: center;
-    padding: 14px;
-    /*margin-right: 14px;*/
-    /*border-left: 1px dashed var(--grey-border-color);*/
-    cursor: pointer;
-    /*background-color: #424242;*/
-    background-color: var(--text-color);
-    color: #fff;
+  align-items: center;
+  padding: 14px;
+  /*margin-right: 14px;*/
+  /*border-left: 1px dashed var(--grey-border-color);*/
+  cursor: pointer;
+  /*background-color: #424242;*/
+  background-color: var(--text-color);
+  color: #fff;
   flex-grow: 1; /* займає доступне місце */
   display: flex;
 }
 
 /* Квадратна кнопка */
 
-
 .square-button:hover {
   background-color: #d32f2f;
 }
-
 
 /* Головний стиль для профілю дилера */
 .profile-item {
@@ -252,35 +245,29 @@ align-items: center;
   border-right: none;
 }
 
-
 /* Переважні стилі для профілю дилера */
 .profile-item {
-    align-items: center !important;
-    padding: 14px !important;
-    /*margin-right: 14px;*/
-    /*border-left: 1px dashed var(--grey-border-color);*/
-    cursor: pointer !important;
-    /*background-color: #424242;*/
-    background-color: var(--text-color)     !important;
-    color: #fff !important;
+  align-items: center !important;
+  padding: 14px !important;
+  /*margin-right: 14px;*/
+  /*border-left: 1px dashed var(--grey-border-color);*/
+  cursor: pointer !important;
+  /*background-color: #424242;*/
+  background-color: var(--text-color) !important;
+  color: #fff !important;
 }
-
 
 .profile-item-column {
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
   align-items: flex-start !important;
-  padding:  14px !important;
-  background-color: var(--text-color)     !important;
+  padding: 14px !important;
+  background-color: var(--text-color) !important;
   cursor: pointer !important;
   color: #fff !important;
   height: 100% !important;
 }
-
-
-
-
 
 .profile-item-column .icon {
   font-size: 16px !important;
@@ -299,23 +286,21 @@ align-items: center;
   color: var(--vs-green-color) !important;
 }
 
-
-
 /* li для кнопки виходу */
 .logout-item {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background-color: var(--text-color)     !important;
-  flex: 0 0 auto !important;  /* li не розтягується */
+  background-color: var(--text-color) !important;
+  flex: 0 0 auto !important; /* li не розтягується */
   padding: 0 8px !important;
   height: 100% !important;
 }
 
 /* кнопка виходу */
 .logout-item .logout-icon {
-  width: 36px !important;          /* ширина кнопки */
-  height: 36px !important;         /* висота кнопки */
+  width: 36px !important; /* ширина кнопки */
+  height: 36px !important; /* висота кнопки */
   padding: 0 !important;
   display: flex !important;
   justify-content: center !important;
@@ -325,15 +310,14 @@ align-items: center;
   border: none !important;
 
   cursor: pointer !important;
-  font-size: 0 !important;         /* прибираємо текст */
+  font-size: 0 !important; /* прибираємо текст */
 }
 
 /* іконка всередині кнопки */
 .logout-item .logout-icon i {
-  font-size: 16px !important;      /* розмір іконки */
+  font-size: 16px !important; /* розмір іконки */
   line-height: 1 !important;
 }
-
 
 /* Пунктирна лінія між іменем і балансом */
 .profile-item-column .divider {
@@ -343,7 +327,7 @@ align-items: center;
 }
 
 .logout-icon:hover {
-  background-color: var(--exit) !important; 
+  background-color: var(--exit) !important;
 }
 
 .portal-header .mobile-menu {
@@ -377,7 +361,7 @@ align-items: center;
   background-color: #2c2c2c;
   color: #f5f5f5;
   border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   padding: 10px;
 
   display: flex;
@@ -386,11 +370,10 @@ align-items: center;
   font-size: 14px;
 
   /* Дозволяємо динамічну висоту */
-  height: auto !important;       /* ключова зміна */
-  max-height: none !important;   /* скидаємо будь-які обмеження */
-  overflow: visible !important;  /* щоб підменю не обрізалося */
+  height: auto !important; /* ключова зміна */
+  max-height: none !important; /* скидаємо будь-які обмеження */
+  overflow: visible !important; /* щоб підменю не обрізалося */
 }
-
 
 /* Пункти меню */
 .mobile-menu-content ul {
@@ -409,7 +392,6 @@ align-items: center;
   height: auto !important;
   min-height: 0;
 }
-
 
 /* Посилання меню */
 .mobile-menu-content .menu-link {
@@ -461,13 +443,11 @@ align-items: center;
   color: #f46c3b;
 }
 
-
 /* Кнопка Вихід */
 .mobile-menu-content .logout-item {
   margin-top: 6px;
   justify-content: flex-start;
 }
-
 
 /* Фінансове підменю мобільного меню вертикально, як на скріні */
 .mobile-menu-content li .submenu {
@@ -478,7 +458,7 @@ align-items: center;
   margin-top: 4px; /* відступ від основного пункту */
   background: #2c2c2c; /* темний фон, як на меню */
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 /* Пункти підменю */
@@ -501,14 +481,11 @@ align-items: center;
   color: #f46c3b;
 }
 
-
 .submenu-wrapper {
   position: absolute;
   top: 100%;
   left: 0;
 }
-
-
 
 @media (min-width: 769px) {
   .submenu-wrapper {
@@ -518,177 +495,173 @@ align-items: center;
   }
 }
 
-
 /* Стилі для елемента, що містить кнопку теми */
 .theme-toggle-item {
-    /* Скидаємо стилі <li>, якщо це необхідно */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background-color: var(--text-color)     !important;
-    flex: 0 0 auto !important;  /* li не розтягується */
-    padding: 0 8px !important;
-    height: 100% !important;
+  /* Скидаємо стилі <li>, якщо це необхідно */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: var(--text-color) !important;
+  flex: 0 0 auto !important; /* li не розтягується */
+  padding: 0 8px !important;
+  height: 100% !important;
 }
 
 /* Стилі для самої кнопки теми (перевизначаємо, щоб вона не виглядала як меню-лінк) */
 .theme-toggle-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #fff; /* Колір іконки на темному хедері */
-    padding: 0 14px; /* Забезпечуємо відступ */
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff; /* Колір іконки на темному хедері */
+  padding: 0 14px; /* Забезпечуємо відступ */
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
 }
 
 .theme-toggle-btn .icon {
-    font-size: 24px; /* Розмір іконки */
+  font-size: 24px; /* Розмір іконки */
 }
 
 .theme-toggle-btn:hover {
-    background-color: var(--grey-border-color); /* Той самий hover-ефект, як у меню */
-    color: var(--success-color);
+  background-color: var(
+    --grey-border-color
+  ); /* Той самий hover-ефект, як у меню */
+  color: var(--success-color);
 }
 
 .theme-toggle-btn:hover .icon {
-     color: var(--success-color);
+  color: var(--success-color);
 }
 
 /* Специфічний стиль для мобільної версії (як елемент списку) */
 .mobile-menu-content .theme-toggle-btn {
-    width: 100%;
-    justify-content: flex-start;
-    /* gap: 10px; */
-    padding: 10px 15px; /* Як у інших посиланнях меню */
-    color: var(--text-color); /* Темний текст у світлому мобільному меню */
+  width: 100%;
+  justify-content: flex-start;
+  /* gap: 10px; */
+  padding: 10px 15px; /* Як у інших посиланнях меню */
+  color: var(--text-color); /* Темний текст у світлому мобільному меню */
 }
 
 /* Оновлення кольору в Dark Theme */
 .dark-theme .portal-header .theme-toggle-btn {
-    color: #fff;
+  color: #fff;
 }
 .dark-theme .portal-header .theme-toggle-btn:hover {
-    background-color: #444;
+  background-color: #444;
 }
-
-
 
 .theme-toggle-item .theme-toggle-btn {
-    /* Робимо кнопку Flex-контейнером */
-    width: 36px !important;          /* ширина кнопки */
-      height: 36px !important;         /* висота кнопки */
-      padding: 0 !important;
-      display: flex !important;
-      justify-content: center !important;
-      align-items: center !important;
-      border-radius: 6px !important;
-      color: #f4ffaf !important;
-      border: none !important;
+  /* Робимо кнопку Flex-контейнером */
+  width: 36px !important; /* ширина кнопки */
+  height: 36px !important; /* висота кнопки */
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  border-radius: 6px !important;
+  color: #f4ffaf !important;
+  border: none !important;
 
-      cursor: pointer !important;
-      font-size: 0 !important;       
+  cursor: pointer !important;
+  font-size: 0 !important;
 }
-
 
 /* --- СТИЛІ HEADER PROFIL ДЛЯ DARK MODE --- */
 
 /* Загальний профіль (якщо dark-theme застосована до body) */
 body.dark-theme .profile-item-column {
-    /* Змінюємо фон профілю на темний */
-    background-color: var(--text-color) !important; /* Наприклад, темніший від хедера */
-    color: #fff !important; /* Білий текст */
+  /* Змінюємо фон профілю на темний */
+  background-color: var(
+    --text-color
+  ) !important; /* Наприклад, темніший від хедера */
+  color: #fff !important; /* Білий текст */
 }
 
 /* Колір імені */
 body.dark-theme .profile-item-column .name {
-    color: #fff !important;
+  color: #fff !important;
 }
 
 /* Колір індикатора (іконки дилера) */
 body.dark-theme .profile-item-column .dealer-icon {
-    /* Якщо text-info занадто яскравий, можна використати м'якший */
-    color: var(--info-color) !important;
+  /* Якщо text-info занадто яскравий, можна використати м'якший */
+  color: var(--info-color) !important;
 }
 
 /* Колір іконки балансу */
 body.dark-theme .profile-item-column .money-icon {
-    color: var(--success-color) !important;
+  color: var(--success-color) !important;
 }
 
 /* Колір тексту балансу */
 /* text-warning (який зараз жовтий) повинен зберігати свій колір, 
    щоб підкреслити важливість, але давайте його зробимо яскравішим на темному фоні */
 body.dark-theme .profile-item-column .balance {
-    color: #ffda6a !important; /* Яскравіший жовтий для контрасту */
+  color: #ffda6a !important; /* Яскравіший жовтий для контрасту */
 }
 
 /* Лінія розділювач (divider) */
 body.dark-theme .profile-item-column .divider1 {
-    border-bottom: 1px dashed #666 !important; /* Темна лінія */
+  border-bottom: 1px dashed #666 !important; /* Темна лінія */
 }
-
 
 /* --- СТИЛІ HEADER PROFIL ДЛЯ DARK MODE --- */
 
 body.dark-theme .profile-item-column {
-    /* Змінюємо фон профілю на чорний */
-    background-color: #000000 !important; /* <--- ЗМІНА ТУТ */
-    color: #fff !important; 
+  /* Змінюємо фон профілю на чорний */
+  background-color: #000000 !important; /* <--- ЗМІНА ТУТ */
+  color: #fff !important;
 }
 
 body.dark-theme .theme-toggle-item,
 body.dark-theme .logout-item {
-    background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
+  background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
 }
 
-body.dark-theme .theme-toggle-item 
-{
-    background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
+body.dark-theme .theme-toggle-item {
+  background-color: #000000 !important; /* Встановлюємо ЧОРНИЙ ФОН */
 }
 
 body.dark-theme .theme-toggle-btn:hover {
-    /* Можна зробити hover сірим або червоним, як у світлому режимі */
-    background-color: #333333 !important; /* Темно-сірий hover */
+  /* Можна зробити hover сірим або червоним, як у світлому режимі */
+  background-color: #333333 !important; /* Темно-сірий hover */
 }
-
 
 /* 3. Колір іконки теми при наведенні */
 body.dark-theme .theme-toggle-btn:hover .fa,
 body.dark-theme .theme-toggle-btn:hover .icon {
-    color: var(--success-color) !important; /* Зелений при наведенні */
+  color: var(--success-color) !important; /* Зелений при наведенні */
 }
-
 
 /* HeaderAdmin.css */
 
 /* Переконайтеся, що Material Icons мають правильний розмір і відображаються коректно */
 .material-icons {
-    /* Цей блок необхідний для правильного рендерингу Material Icons */
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    display: inline-block;
-    line-height: 1;
-    text-transform: none;
-    letter-spacing: normal;
-    word-wrap: normal;
-    white-space: nowrap;
-    direction: ltr;
+  /* Цей блок необхідний для правильного рендерингу Material Icons */
+  font-family: "Material Icons";
+  font-weight: normal;
+  font-style: normal;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
 
-    /* Використовуємо наш бажаний розмір */
-    font-size: 20px ; 
-    
-    /* Додаємо правило для hover */
-    transition: color 0.3s ease;
+  /* Використовуємо наш бажаний розмір */
+  font-size: 20px;
+
+  /* Додаємо правило для hover */
+  transition: color 0.3s ease;
 }
 
 /* Колір при наведенні (Hover) */
 .theme-toggle-btn:hover .material-icons {
-    color: var(--success-color) !important; 
+  color: var(--success-color) !important;
 }
 
 .dealer-profile-link {
@@ -699,7 +672,6 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   height: 100%;
   width: 200%;
 }
-
 
 /* Контейнер */
 .auth-header {
@@ -715,7 +687,7 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   align-items: center;
   padding: 0px 0px 0px 16px;
   z-index: 1100;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .dark-theme .auth-header {
@@ -748,7 +720,9 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0px 0px 4px rgba(255, 255, 255, 0.2);
-  transition: background 0.2s, transform 0.1s;
+  transition:
+    background 0.2s,
+    transform 0.1s;
 }
 
 .auth-login-btn:hover {
@@ -760,7 +734,6 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   font-size: 22px;
   vertical-align: middle;
 }
-
 
 .auth-login-green {
   display: flex;
@@ -776,20 +749,19 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   font-size: 16px;
   margin-right: 9px;
 
-  transition: background 0.2s ease, transform 0.2s ease;
-  transform-origin: center;  /* 🟢 ВАЖЛИВО */
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+  transform-origin: center; /* 🟢 ВАЖЛИВО */
 }
 
 .auth-login-green:hover {
   background-color: #2c8a00;
-
 }
 
 .auth-login-green i {
   font-size: 18px;
 }
-
-
 
 .auth-header-right {
   display: flex;
@@ -799,13 +771,11 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 
 /* роздільник */
 .auth-divider {
-    width: 1px;
-    height: 60px;
-    border-right: 1px dashed #555;
-    margin: 0 4px; /* невеликі відступи між кнопками */
+  width: 1px;
+  height: 60px;
+  border-right: 1px dashed #555;
+  margin: 0 4px; /* невеликі відступи між кнопками */
 }
-
-
 
 @media (max-width: 768px) {
   .portal-header {
@@ -815,17 +785,12 @@ body.dark-theme .theme-toggle-btn:hover .icon {
   .mobile-menu-content {
     top: 50px;
   }
-
-  
 }
-
-
 
 .notification-badge {
   color: #f46c3b;
   font-size: 10px;
 }
-
 
 /* Контейнер для іконки та бейджа */
 .icon-badge-container {
@@ -839,27 +804,25 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 /* Красивий кружечок для цифри */
 .notification-badge {
   position: absolute;
-  top: -2px;      /* Зміщуємо трохи вгору */
-  right: -4px;    /* Зміщуємо вбік */
+  top: -2px; /* Зміщуємо трохи вгору */
+  right: -4px; /* Зміщуємо вбік */
   background-color: #f46c3b; /* Яскраво-червоний (iOS style) */
   color: white;
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
-  
+
   /* Робимо круглим */
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
   border-radius: 10px;
-  
+
   /* Центрування тексту всередині */
   display: flex;
   align-items: center;
   justify-content: center;
-  
 
-  
   /* Ефект пульсації для нових повідомлень (опціонально) */
   box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
   animation: pulse-red 2s infinite;
@@ -868,12 +831,16 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 
 /* Анімація пульсації, щоб привернути увагу до нових сповіщень */
 @keyframes pulse-red {
-  0% {  box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
-  70% { box-shadow: 0 0 0 7px rgba(255, 58, 48, 0.041); }
-  100% {  box-shadow: 0 0 0 0 rgba(255, 58, 48, 0.041); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(255, 58, 48, 0.041);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 58, 48, 0.041);
+  }
 }
-
-
 
 /* Стиль для мобільного меню (якщо потрібно) */
 .mobile-menu-content .notification-badge {

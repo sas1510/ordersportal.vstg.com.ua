@@ -2,16 +2,18 @@
    MOBILE PAYMENTS VIEW STYLES - З ВИКОРИСТАННЯМ ІСНУЮЧИХ ЗМІННИХ
    ==================================================================== */
 :root {
-  --info-bg-color: #cfdcef99;   /* напівпрозорий (залишаємо) */
-  --info-bg-solid: #cfdcef;     /* 🔑 НЕпрозорий для sticky */
+  --info-bg-color: #cfdcef99; /* напівпрозорий (залишаємо) */
+  --info-bg-solid: #cfdcef; /* 🔑 НЕпрозорий для sticky */
 }
-
-
 
 .mobile-payments-container {
   padding: 0;
   min-height: 100vh;
-  background: radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
 }
 
 /* ==================== HEADER ==================== */
@@ -34,7 +36,6 @@
 
   box-shadow: 0 2px 6px var(--shadow-color);
 }
-
 
 .mobile-title {
   font-size: 16px;
@@ -88,7 +89,6 @@
   margin-left: 8px;
   margin-right: 8px;
 }
-
 
 @keyframes slideDown {
   from {
@@ -181,7 +181,6 @@
   margin-bottom: 16px;
 }
 
-
 .mobile-contracts-list {
   background: var(--info-bg-solid);
   padding: 5px 0 16px 12px;
@@ -205,7 +204,6 @@
   font-size: 16px;
   font-weight: 700;
   color: var(--text-color);
- 
 }
 
 .mobile-contracts-list {
@@ -220,12 +218,7 @@
   top: 50px; /* ⬅️ нижче header */
 
   z-index: 20;
-
-
-
-
 }
-
 
 .mobile-contract-badge {
   display: inline-flex;
@@ -260,10 +253,6 @@
   border-left: 4px solid transparent;
 }
 
-
-
-
-
 /* ▲ ПРИХІД */
 .mobile-doc-card.income {
   border-left-color: var(--success-color); /* зелений */
@@ -279,7 +268,6 @@
   border-left-color: var(--grey-text-color);
 }
 
-
 .mobile-doc-card:last-child {
   border-radius: 0 0 5px 5px;
   margin-bottom: 0;
@@ -291,15 +279,12 @@
   transition: all 0.2s;
   border-left: 4px solid transparent;
   border-bottom: none !important;
-  
 }
 
 .mobile-doc-main:active {
   background: #eef6ff;
   /* border-left-color: var(--info-color); */
 }
-
-
 
 .mobile-doc-main.expanded {
   background: #eef6ff;
@@ -478,7 +463,7 @@
 .mobile-suborders {
   padding: 12px 16px 16px;
   background: var(--portal-bg-color-end);
-  border-top: 1px dashed var(--grey-border-color) ;
+  border-top: 1px dashed var(--grey-border-color);
 }
 
 .mobile-order-card {
@@ -554,8 +539,6 @@
   flex-direction: column;
   gap: 8px;
 }
-
-
 
 .mobile-contract-total-name {
   font-size: 13px;
@@ -640,8 +623,6 @@
   border-color: #555555;
 }
 
-
-
 .dark-theme .mobile-date-total {
   background: #383838;
   border-color: #555555;
@@ -685,7 +666,7 @@
   .mobile-contract-total-values {
     font-size: 13px;
   }
-  
+
   .mobile-order-grid {
     grid-template-columns: 1fr;
   }
@@ -693,17 +674,12 @@
 
 /* ==================== DAY SURFACE ==================== */
 .mobile-day-surface {
-
-
   border-radius: 10px;
   border: 1px dashed var(--grey-border-color);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
   padding: 4px;
   overflow: visible;
-
 }
-
-
 
 /* ❌ Забороняємо будь-яку UX-реакцію */
 .mobile-doc-main.no-expand {
@@ -721,8 +697,6 @@
   background: inherit;
 }
 
-
-
 .dark-theme .mobile-doc-main.no-expand {
   cursor: default;
 }
@@ -738,8 +712,6 @@
   background: inherit;
 }
 
-
-
 /* ==================== FILTER OVERLAY BACKDROP ==================== */
 .mobile-filters-backdrop {
   position: fixed;
@@ -747,7 +719,7 @@
   background: rgba(0, 0, 0, 0.35);
   z-index: 998;
 }
- 
+
 /* ==================== DROPDOWN FILTERS ==================== */
 .mobile-filters-dropdown-wrapper {
   position: sticky;
@@ -775,11 +747,7 @@
   left: 0;
   right: 0;
   height: 24px;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.12),
-    transparent
-  );
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.12), transparent);
   pointer-events: none;
 }
 
@@ -793,7 +761,6 @@
     transform: translateY(0);
   }
 }
-
 
 .order-mini-card-mobile {
   background: var(--cream-bg-color);
@@ -820,7 +787,6 @@
 .clickable-subcard {
   cursor: default;
 }
-
 
 /* ==================== ORDER MINI (SUBORDERS) ==================== */
 
@@ -876,16 +842,13 @@
   color: var(--danger-color);
   font-weight: 600;
 }
-.dark-theme .mobile-contracts-list{
-    background-color: #555555;
+.dark-theme .mobile-contracts-list {
+  background-color: #555555;
 }
-
 
 /* ===============================
    SCROLL TO TOP BUTTON (MOBILE)
 ================================ */
-
-
 
 .dark-theme .mobile-doc-card.income {
   border-left-color: var(--success-color); /* зелений */
@@ -902,17 +865,13 @@
 }
 
 .dark-theme .mobile-date-header {
-
   background: #555555;
-
 
   border-radius: 5px 5px 0 0;
   border: 1px dashed var(--grey-border-color);
 
   backdrop-filter: none;
 }
-
-
 
 .dark-theme .mobile-doc-main:active:not(.expanded) {
   background: #434344;
@@ -923,17 +882,13 @@
   border-bottom: 1px dashed #555555;
 }
 
-
-
 .dark-theme .mobile-suborders {
   background: #434344;
-  border-top: 1px dashed #777777 ;
+  border-top: 1px dashed #777777;
 }
 
-
-
 .mobile-btn-excel {
-  background-color: #1f7f43; 
+  background-color: #1f7f43;
   color: #fff;
   max-width: 40px;
 }

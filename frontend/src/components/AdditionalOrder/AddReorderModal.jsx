@@ -1,37 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { FaTimes, FaPlus, FaSpinner } from "react-icons/fa";
-import axiosInstance from "../../api/axios"; 
-import CustomSelect from "./CustomSelect"; 
+import axiosInstance from "../../api/axios";
+import CustomSelect from "./CustomSelect";
 import "./AddReorderModal.css";
 
-export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderNumber }) {
+export default function AddReorderModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialOrderNumber,
+}) {
   const [orderNumber, setOrderNumber] = useState("");
   const [noOrder, setNoOrder] = useState(false);
   const [nomenclature, setNomenclature] = useState([]);
   const [reasons, setReasons] = useState([]);
   const [selectedItem, setSelectedItem] = useState("");
-  const [selectedReason, setSelectedReason] = useState("");
+  const [_selectedReason, setSelectedReason] = useState("");
   const [quantity, setQuantity] = useState(1); // 🔥 Новий стан для кількості
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
 
-
-
   useEffect(() => {
     const handleEsc = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
-  
+
     if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
+      window.addEventListener("keydown", handleEsc);
     }
-  
+
     // Очищуємо слухач при закритті модалки або демонтажі компонента
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
 
@@ -47,31 +50,31 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
     try {
       const [nomRes, reasonRes] = await Promise.all([
         axiosInstance.get("/additional_orders/additional_order_nomenclature/"),
-        axiosInstance.get("/additional_orders/get_issue_additional_order/") 
+        axiosInstance.get("/additional_orders/get_issue_additional_order/"),
       ]);
 
-      const nomData = nomRes.data?.nomenclature || []; 
-      const formattedNom = nomData.map(item => ({
+      const nomData = nomRes.data?.nomenclature || [];
+      const formattedNom = nomData.map((item) => ({
         ...item,
         Link: item.Link || item.URL,
-        Name: item.Name
+        Name: item.Name,
       }));
 
       const reasonData = reasonRes.data?.issues || [];
-      const formattedReasons = reasonData.map(r => ({
+      const formattedReasons = reasonData.map((r) => ({
         ...r,
         Link: r.Link,
-        Name: r.Наименование || r.Name
+        Name: r.Наименование || r.Name,
       }));
 
       setNomenclature(formattedNom);
       setReasons(formattedReasons);
 
-      if (formattedNom.length > 0) setSelectedItem(formattedNom[0].Link); 
-      if (formattedReasons.length > 0) setSelectedReason(formattedReasons[0].Link);
-      
-    } catch (err) {
-      console.error("Помилка завантаження довідників:", err);
+      if (formattedNom.length > 0) setSelectedItem(formattedNom[0].Link);
+      if (formattedReasons.length > 0)
+        setSelectedReason(formattedReasons[0].Link);
+    } catch {
+      // console.error("Помилка завантаження довідників:", err);
     } finally {
       setLoading(false);
     }
@@ -93,13 +96,13 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const formData = {
       orderNumber: noOrder ? null : orderNumber,
       noOrder: noOrder,
       nomenclatureLink: selectedItem,
       // issueLink: selectedReason,
-      quantity: Number(quantity), 
+      quantity: Number(quantity),
       comment: comment,
     };
 
@@ -111,13 +114,21 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
 
   return createPortal(
     <div className="reorder-modal-overlay" onClick={handleCloseWithReset}>
-      <div className="reorder-modal-window" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="reorder-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="reorder-modal-header">
           <div className="reorder-header-content">
-            <span className="reorder-icon"><FaPlus /></span>
+            <span className="reorder-icon">
+              <FaPlus />
+            </span>
             <h3>Дозамовлення</h3>
           </div>
-          <FaTimes className="reorder-close-btn" onClick={handleCloseWithReset} />
+          <FaTimes
+            className="reorder-close-btn"
+            onClick={handleCloseWithReset}
+          />
         </div>
 
         <form className="reorder-form" onSubmit={handleSubmit}>
@@ -187,16 +198,24 @@ export default function AddReorderModal({ isOpen, onClose, onSave, initialOrderN
           </label>
 
           <div className="reorder-modal-footer">
-            <button type="button" className="reorder-btn-cancel" onClick={handleCloseWithReset}>
+            <button
+              type="button"
+              className="reorder-btn-cancel"
+              onClick={handleCloseWithReset}
+            >
               <FaTimes /> Відмінити
             </button>
-            <button type="submit" className="reorder-btn-save" disabled={loading || (!noOrder && !orderNumber)}>
+            <button
+              type="submit"
+              className="reorder-btn-save"
+              disabled={loading || (!noOrder && !orderNumber)}
+            >
               {loading ? <FaSpinner className="spinner" /> : <FaPlus />} Додати
             </button>
           </div>
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

@@ -5,12 +5,10 @@ import "./PortalLoader.css";
 export default function PortalLoader() {
   return (
     <div className="portal-loader">
-
       {/* === BACKGROUND SHAPES (як на Login) === */}
       <div className="portal-loader-shapes">
         <div className="portal-shape shape-1" />
         <div className="portal-shape shape-2" />
-
       </div>
 
       {/* === CONTENT === */}

@@ -1,5 +1,5 @@
 // src/hooks/useWindowWidth.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 function getWindowWidth() {
   const { innerWidth: width } = window;
@@ -14,8 +14,8 @@ export default function useWindowWidth() {
       setWindowWidth(getWindowWidth());
     }
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return windowWidth;

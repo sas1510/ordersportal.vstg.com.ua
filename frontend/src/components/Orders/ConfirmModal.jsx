@@ -1,36 +1,33 @@
-import React, {useEffect } from 'react';
-import { FaExclamationTriangle, FaCheck, FaTimes } from 'react-icons/fa';
-import './ConfirmModal.css';
+import React, { useEffect } from "react";
+import { FaExclamationTriangle, FaCheck, FaTimes } from "react-icons/fa";
+import "./ConfirmModal.css";
 
-const ConfirmModal = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
+const ConfirmModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
   title = "Підтвердження дії",
   message = "Ви впевнені, що хочете виконати цю дію?",
   confirmText = "Підтвердити",
   cancelText = "Скасувати",
-  type = "warning" // warning, danger, success, info
+  type = "warning", // warning, danger, success, info
 }) => {
-  
-  if (!isOpen) return null;
-
 
 
   useEffect(() => {
     const handleEsc = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      window.addEventListener('keydown', handleEsc);
+      window.addEventListener("keydown", handleEsc);
     }
 
     // Очищуємо слухач при закритті модалки або демонтажі компонента
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
 
@@ -40,46 +37,63 @@ const ConfirmModal = ({
   };
 
   const getTypeColor = () => {
-    switch(type) {
-      case 'danger': return '#e74c3c';
-      case 'success': return '#76b448';
-      case 'info': return '#4a90e2';
-      case 'warning':
-      default: return '#f39c12';
+    switch (type) {
+      case "danger":
+        return "#e74c3c";
+      case "success":
+        return "#76b448";
+      case "info":
+        return "#4a90e2";
+      case "warning":
+      default:
+        return "#f39c12";
     }
   };
 
   const getTypeIcon = () => {
-    switch(type) {
-      case 'danger': return <FaExclamationTriangle size={40} />;
-      case 'success': return <FaCheck size={40} />;
-      case 'info': return <FaExclamationTriangle size={40} />;
-      case 'warning':
-      default: return <FaExclamationTriangle size={40} />;
+    switch (type) {
+      case "danger":
+        return <FaExclamationTriangle size={40} />;
+      case "success":
+        return <FaCheck size={40} />;
+      case "info":
+        return <FaExclamationTriangle size={40} />;
+      case "warning":
+      default:
+        return <FaExclamationTriangle size={40} />;
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="confirm-modal-overlay" onClick={onClose}>
-      <div className="confirm-modal-window" onClick={(e) => e.stopPropagation()}>
-        <div 
-          className="confirm-modal-border-top" 
+      <div
+        className="confirm-modal-window"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="confirm-modal-border-top"
           style={{ backgroundColor: getTypeColor() }}
         >
           <div className="confirm-modal-header">
-            <span style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ display: "flex", alignItems: "center" }}>
               {getTypeIcon()}
             </span>
-            <h3  style={{ fontSize: '18px'}}>{title}</h3>
-            <span className="icon icon-cross confirm-close-btn" onClick={onClose}></span>
+            <h3 style={{ fontSize: "18px" }}>{title}</h3>
+            <span
+              className="icon icon-cross confirm-close-btn"
+              onClick={onClose}
+            ></span>
           </div>
         </div>
 
         <div className="confirm-modal-body">
-          <div className="confirm-icon-wrapper" style={{ backgroundColor: `${getTypeColor()}15` }}>
-            <div style={{ color: getTypeColor() }}>
-              {getTypeIcon()}
-            </div>
+          <div
+            className="confirm-icon-wrapper"
+            style={{ backgroundColor: `${getTypeColor()}15` }}
+          >
+            <div style={{ color: getTypeColor() }}>{getTypeIcon()}</div>
           </div>
           <p className="confirm-message">{message}</p>
         </div>
@@ -98,7 +112,7 @@ const ConfirmModal = ({
           </button>
         </div>
 
-        <div 
+        <div
           className="confirm-modal-border-bottom"
           style={{ backgroundColor: getTypeColor() }}
         />
