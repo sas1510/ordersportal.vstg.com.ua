@@ -59,19 +59,18 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',     # 1. Завжди перший
-    'csp.middleware.CSPMiddleware',                    # 2. Одразу після security
-    'corsheaders.middleware.CorsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'silk.middleware.SilkyMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',         # МАЄ БУТИ РОЗКОМЕНТОВАНО
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
-
-
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -298,18 +297,12 @@ CELERY_BEAT_SCHEDULE = {
 
 
 # Дозволяємо Origin: null (специфічно для локальних файлів)
-CORS_ALLOW_ALL_ORIGINS = False  # Тимчасово для тесту, щоб переконатися що справа в цьому
+CORS_ALLOW_ALL_ORIGINS = True  # Тимчасово для тесту, щоб переконатися що справа в цьому
 
-
-CORS_ALLOWED_ORIGINS = [
-    "https://ordersportal.vstg.com.ua", # Ваш основний сайт
-    "http://172.17.19.107",            # IP вашого сервера (якщо фронт на ньому)
-    "http://localhost:3000",           # Для локальної розробки React
+# АБО більш безпечний варіант:
+CORS_ALLOWED_ORIGINS_REGEXES = [
+    r"^null$",
 ]
-
-# 3. Важливо для JWT та кук
-CORS_ALLOW_CREDENTIALS = True
-
 
 # ОБОВ'ЯЗКОВО додайте ваш кастомний заголовок у список дозволених
 CORS_ALLOW_HEADERS = [
@@ -355,15 +348,3 @@ CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати д
 
 # Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
 CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
-
-
-
-# Додайте це під ALLOWED_HOSTS
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = 'DENY' # Захист від клікджекінгу
-
-# Якщо ваш сайт працює на HTTPS (ordersportal.vstg.com.ua):
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True

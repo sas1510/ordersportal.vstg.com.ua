@@ -59,16 +59,17 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',     # 1. Завжди перший
-    'csp.middleware.CSPMiddleware',                    # 2. Одразу після security
-    'corsheaders.middleware.CorsMiddleware',
+    'csp.middleware.CSPMiddleware',
     'silk.middleware.SilkyMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',         # МАЄ БУТИ РОЗКОМЕНТОВАНО
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -347,13 +348,3 @@ CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати д
 
 # Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
 CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
-
-# Додайте це під ALLOWED_HOSTS
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_BROWSER_XSS_FILTER = True
-X_FRAME_OPTIONS = 'DENY' # Захист від клікджекінгу
-
-# # Якщо ваш сайт працює на HTTPS (ordersportal.vstg.com.ua):
-# SECURE_SSL_REDIRECT = True
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
