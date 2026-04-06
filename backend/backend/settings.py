@@ -296,21 +296,22 @@ CELERY_BEAT_SCHEDULE = {
 
 
 
-# Дозволяємо Origin: null (специфічно для локальних файлів)
-CORS_ALLOW_ALL_ORIGINS = True  # Тимчасово для тесту, щоб переконатися що справа в цьому
 
-# АБО більш безпечний варіант:
-CORS_ALLOWED_ORIGINS_REGEXES = [
-    r"^null$",
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "https://ordersportal.vstg.com.ua",
+    "http://localhost:5173",  
+    
 ]
 
-# ОБОВ'ЯЗКОВО додайте ваш кастомний заголовок у список дозволених
+
+
 CORS_ALLOW_HEADERS = [
     "accept",
     "authorization",
     "content-type",
     "user-agent",
-    "x-api-key",  # Ваш API KEY заголовок
+    "x-api-key",  
     "x-csrftoken",
 ]
 
