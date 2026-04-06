@@ -59,13 +59,14 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'csp.middleware.CSPMiddleware',
     'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -162,15 +163,34 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    'BLACKLIST_AFTER_ROTATION': False,
-    'ROTATE_REFRESH_TOKENS': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    "AUTH_COOKIE": "refresh",
-    "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": False,   # True на https
-    "AUTH_COOKIE_SAMESITE": "Lax",
-
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,  # Обов'язково для безпечного виходу (logout)
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    
+    # --- НАЛАШТУВАННЯ ДЛЯ COOKIES (Захист від XSS та крадіжки токенів) ---
+    "AUTH_COOKIE": "access",           # Назва куки для Access токена
+    "AUTH_COOKIE_REFRESH": "refresh",  # Назва куки для Refresh токена
+    "AUTH_COOKIE_HTTP_ONLY": True,     # ЗАБОРОНЯЄ JavaScript читати токен (Захист від вкрадення через XSS)
+    "AUTH_COOKIE_SECURE": True,        # ПЕРЕДАЧА ТІЛЬКИ ЧЕРЕЗ HTTPS (Обов'язково для вашого сервера!)
+    "AUTH_COOKIE_SAMESITE": "Lax",     # Захист від CSRF атак
+    "AUTH_COOKIE_PATH": "/",           # Кука доступна для всього сайту
 }
+
+
+
+
+CORS_ALLOW_CREDENTIALS = True  
+CORS_ALLOWED_ORIGINS = [
+    "https://ordersportal.vstg.com.ua",
+    "http://localhost:5173",  
+    "http://127.0.0.1:5173",
+]
+
+# Якщо ви використовуєте мобільні додатки або специфічні клієнти:
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^null$",  # Тільки якщо це дійсно потрібно для локальних файлів
+]
+
 
 # CORS
 # CORS_ALLOW_CREDENTIALS = True
@@ -348,3 +368,22 @@ CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати д
 
 # Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
 CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
+
+
+
+
+# Безпека сесій
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Безпека CSRF
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True  # ZAP це любить
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Примусове використання HTTPS (HSTS)
+SECURE_HSTS_SECONDS = 31536000  # 1 рік
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True  # Перенаправляти з http на https
