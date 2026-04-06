@@ -295,17 +295,17 @@ CELERY_BEAT_SCHEDULE = {
 
 
 
-# Вимикаємо зірочку "*"
+
 CORS_ALLOW_ALL_ORIGINS = False
 
-# Дозволяємо лише конкретні адреси
+
 CORS_ALLOWED_ORIGINS = [
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
-# Важливо для JWT в куках (якщо будете використовувати)
+
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
@@ -333,31 +333,64 @@ CSRF_TRUSTED_ORIGINS = [
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
 
 
-SILKY_PYTHON_PROFILER = True  # Щоб бачити не тільки SQL, а й час виконання функцій
-SILKY_INTERCEPT_PERCENT = 100 # Записувати 100% запитів (для розробки)
+SILKY_PYTHON_PROFILER = True  
+SILKY_INTERCEPT_PERCENT = 100 
 
 
 
+# --- Налаштування Content Security Policy (CSP) ---
+
+# Забороняємо вкладення вашого сайту у фрейми на інших доменах (Clickjacking)
 X_FRAME_OPTIONS = 'DENY'
+CSP_FRAME_ANCESTORS = ("'self'",)
 
-# Базова політика: за замовчуванням дозволяємо тільки своє
+# Основне правило: дозволяємо ресурси тільки зі свого домену за замовчуванням
 CSP_DEFAULT_SRC = ("'self'",)
 
-# Дозволяємо скрипти (напр. ваш React-код + інлайнові скрипти)
-# 'unsafe-inline' потрібен для ваших скриптів версійності, 'unsafe-eval' для деяких функцій React
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
+# Скрипти: дозволяємо інлайн (для React/Swagger) та Cloudflare
+CSP_SCRIPT_SRC = (
+    "'self'", 
+    "'unsafe-inline'", 
+    "'unsafe-eval'", 
+    "https://cdnjs.cloudflare.com"
+)
 
-# Дозволяємо стилі (свої + Font Awesome з cdnjs)
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com")
+# Стилі: додаємо Google Fonts та Cloudflare
+CSP_STYLE_SRC = (
+    "'self'", 
+    "'unsafe-inline'", 
+    "https://cdnjs.cloudflare.com", 
+    "https://fonts.googleapis.com"
+)
 
-# Дозволяємо шрифти (Font Awesome)
-CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com")
+# Шрифти
+CSP_FONT_SRC = (
+    "'self'", 
+    "https://cdnjs.cloudflare.com", 
+    "https://fonts.gstatic.com"
+)
 
-# Дозволяємо підключення (WebSocket + API)
-CSP_CONNECT_SRC = ("'self'", "wss://ordersportal.vstg.com.ua", "https://ordersportal.vstg.com.ua")
+# З'єднання: ОБОВ'ЯЗКОВО додаємо wss:// для чату/сповіщень
+CSP_CONNECT_SRC = (
+    "'self'", 
+    "wss://ordersportal.vstg.com.ua", 
+    "https://ordersportal.vstg.com.ua"
+)
 
-# Дозволяємо фрейми (TikTok)
-CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
+# Фрейми: для ваших віджетів TikTok
+CSP_FRAME_SRC = (
+    "'self'", 
+    "https://www.tiktok.com", 
+    "https://*.tiktok.com"
+)
 
-# Захист від Clickjacking (ми вже це обговорювали)
-CSP_FRAME_ANCESTORS = ("'self'",)
+# Зображення: додаємо validator.swagger.io, щоб Swagger-docs не видавав помилок
+CSP_IMG_SRC = (
+    "'self'", 
+    "data:", 
+    "https://validator.swagger.io"
+)
+
+# Закриваємо зауваження ZAP "No Fallback"
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)
