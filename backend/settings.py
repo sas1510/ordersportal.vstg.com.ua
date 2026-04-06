@@ -59,11 +59,10 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'csp.middleware.CSPMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -353,7 +352,8 @@ CSP_SCRIPT_SRC = (
     "'unsafe-inline'", 
     "'unsafe-eval'", 
     "https://cdnjs.cloudflare.com",
-    "https://cdn.jsdelivr.net"
+    "https://cdn.jsdelivr.net",
+    "https://code.jquery.com"
 )
 
 # Стилі: додаємо Google Fonts та Cloudflare
