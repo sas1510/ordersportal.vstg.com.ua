@@ -1102,15 +1102,18 @@ export default function HeaderDealer() {
                 title="Перемкнути тему"
               >
                 <i
-                  className="material-icons"
+              
+                  className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}
                   style={{
                     color: theme === "light" ? "#f4ffaf" : "#ffc107",
                     fontSize: "20px",
                     fontStyle: "normal",
+                    /* Додаємо невеликий фікс, щоб іконка була по центру, якщо треба */
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   }}
-                >
-                  {theme === "light" ? "brightness_3" : "wb_sunny"}
-                </i>
+                ></i>
               </button>
             </li>
             <li className="logout-item">
@@ -1210,23 +1213,21 @@ export default function HeaderDealer() {
                   </div>
                 </li>
                 <li className="theme-toggle-item">
-                  <button
-                    className="theme-toggle-btn"
-                    onClick={toggleTheme}
-                    title="Перемкнути тему"
-                  >
-                    <i
-                      className="material-icons"
-                      style={{
-                        color: theme === "light" ? "#f4ffaf" : "#ffc107",
-                        fontSize: "20px",
-                        fontStyle: "normal",
-                      }}
-                    >
-                      {theme === "light" ? "brightness_3" : "wb_sunny"}
-                    </i>
-                  </button>
-                </li>
+                      <button
+                        className="theme-toggle-btn"
+                        onClick={toggleTheme}
+                        title="Перемкнути тему"
+                      >
+                        <i
+                          className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}
+                          style={{
+                            color: theme === "light" ? "#f4ffaf" : "#ffc107",
+                            fontSize: "20px",
+                            fontStyle: "normal",
+                          }}
+                        ></i>
+                      </button>
+                    </li>
                 <li className="logout-item">
                   <button
                     className="menu-link logout-icon"

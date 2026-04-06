@@ -21,12 +21,13 @@ export default function HeaderWithoutAuth() {
         {/* 🔆 КНОПКА ТЕМИ */}
         <button className="auth-theme-btn" onClick={toggleTheme}>
           <i
-            className="material-icons auth-theme-icon"
+            className={theme === "light" ? "material-icons auth-theme-icon fas fa-moon" : "material-icons auth-theme-icon fas fa-sun"}
             style={{
               color: theme === "light" ? "#ffe066" : "#ffd54f",
+              fontSize: "20px",
+              fontStyle: "normal",
             }}
           >
-            {theme === "light" ? "brightness_3" : "wb_sunny"}
           </i>
         </button>
 

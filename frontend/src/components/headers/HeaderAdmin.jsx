@@ -175,15 +175,13 @@ export default function HeaderAdmin() {
               >
                 <i
                   // 👈 ВИКОРИСТОВУЄМО КЛАС MATERIAL ICONS
-                  className="material-icons"
+                  className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}
                   style={{
                     color: theme === "light" ? "#f4ffaf" : "#ffc107",
                     fontSize: "20px", // Material Icons часто вимагають 24px або 18px
                     fontStyle: "normal", // Щоб уникнути курсиву від тегу <i>
                   }}
                 >
-                  {/* Динамічний текст іконки Material Icons */}
-                  {theme === "light" ? "brightness_3" : "wb_sunny"}
                 </i>
               </button>
             </li>
@@ -276,15 +274,14 @@ export default function HeaderAdmin() {
                   >
                     <i
                       // 👈 ВИКОРИСТОВУЄМО КЛАС MATERIAL ICONS
-                      className="material-icons"
+                      className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}
                       style={{
                         color: theme === "light" ? "#f4ffaf" : "#ffc107",
                         fontSize: "20px", // Material Icons часто вимагають 24px або 18px
                         fontStyle: "normal", // Щоб уникнути курсиву від тегу <i>
                       }}
                     >
-                      {/* Динамічний текст іконки Material Icons */}
-                      {theme === "light" ? "brightness_3" : "wb_sunny"}
+                  
                     </i>
                   </button>
                 </li>
