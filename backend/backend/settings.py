@@ -296,22 +296,25 @@ CELERY_BEAT_SCHEDULE = {
 
 
 
-
+# Вимикаємо зірочку "*"
 CORS_ALLOW_ALL_ORIGINS = False
+
+# Дозволяємо лише конкретні адреси
 CORS_ALLOWED_ORIGINS = [
     "https://ordersportal.vstg.com.ua",
-    "http://localhost:5173",  
-    
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
-
+# Важливо для JWT в куках (якщо будете використовувати)
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
     "accept",
     "authorization",
     "content-type",
     "user-agent",
-    "x-api-key",  
+    "x-api-key",
     "x-csrftoken",
 ]
 
