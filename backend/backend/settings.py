@@ -352,7 +352,8 @@ CSP_SCRIPT_SRC = (
     "'self'", 
     "'unsafe-inline'", 
     "'unsafe-eval'", 
-    "https://cdnjs.cloudflare.com"
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.jsdelivr.net"
 )
 
 # Стилі: додаємо Google Fonts та Cloudflare
@@ -360,7 +361,8 @@ CSP_STYLE_SRC = (
     "'self'", 
     "'unsafe-inline'", 
     "https://cdnjs.cloudflare.com", 
-    "https://fonts.googleapis.com"
+    "https://fonts.googleapis.com",
+    "https://cdn.jsdelivr.net"
 )
 
 # Шрифти
@@ -388,7 +390,8 @@ CSP_FRAME_SRC = (
 CSP_IMG_SRC = (
     "'self'", 
     "data:", 
-    "https://validator.swagger.io"
+    "https://validator.swagger.io",
+    "https://cdn.jsdelivr.net"
 )
 
 # Закриваємо зауваження ZAP "No Fallback"
