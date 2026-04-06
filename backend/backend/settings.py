@@ -339,21 +339,27 @@ SILKY_INTERCEPT_PERCENT = 100 # Записувати 100% запитів (для
 
 
 
-# Базова політика: дозволяємо тільки зі свого домену
+# Базова політика: за замовчуванням дозволяємо тільки своє
 CSP_DEFAULT_SRC = ("'self'",)
 
-# Дозволяємо скрипти та стилі (ZAP підсвічував unsafe-inline, з цим треба обережно)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'") 
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+# Дозволяємо скрипти (напр. ваш React-код + інлайнові скрипти)
+# 'unsafe-inline' потрібен для ваших скриптів версійності, 'unsafe-eval' для деяких функцій React
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
 
-# Виправляємо помилку зі скрина:
-CSP_FRAME_ANCESTORS = ("'self'",) # Тільки ваш сайт може вставляти себе у фрейми (захист від клікджекінгу)
-CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати дані тільки на ваш сервер
+# Дозволяємо стилі (свої + Font Awesome з cdnjs)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com")
 
-# Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
+# Дозволяємо шрифти (Font Awesome)
+CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com")
+
+# Дозволяємо підключення (WebSocket + API)
+CSP_CONNECT_SRC = ("'self'", "wss://ordersportal.vstg.com.ua", "https://ordersportal.vstg.com.ua")
+
+# Дозволяємо фрейми (TikTok)
 CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
 
+# Захист від Clickjacking (ми вже це обговорювали)
+CSP_FRAME_ANCESTORS = ("'self'",)
 
 X_FRAME_OPTIONS = 'DENY'
 
-CSP_FRAME_ANCESTORS = ("'none'",)
