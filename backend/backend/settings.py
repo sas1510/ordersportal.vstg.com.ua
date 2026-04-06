@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'payments',
     'reclamations',
     'additional_order',
-    'silk',
+    # 'silk',
     # 'documents',
     # 'order',
     # 'organizations_and_regions',
@@ -62,7 +62,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
 
     'csp.middleware.CSPMiddleware',
-    'silk.middleware.SilkyMiddleware',
+    # 'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -336,8 +336,8 @@ CSRF_TRUSTED_ORIGINS = [
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
 
 
-SILKY_PYTHON_PROFILER = True  
-SILKY_INTERCEPT_PERCENT = 100 
+# SILKY_PYTHON_PROFILER = True  
+# SILKY_INTERCEPT_PERCENT = 100 
 
 
 # --- Налаштування Content Security Policy (CSP) ---
