@@ -50,15 +50,12 @@ INSTALLED_APPS = [
     'payments',
     'reclamations',
     'additional_order',
-    # 'silk',
+    'silk',
     # 'documents',
     # 'order',
     # 'organizations_and_regions',
     # 'video',
 ]
-
-if DEBUG:
-    INSTALLED_APPS += ['silk']
 
 
 MIDDLEWARE = [
