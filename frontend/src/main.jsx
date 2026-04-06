@@ -5,7 +5,7 @@ import "./index.css";
 import App from "./App.jsx";
 // У main.jsx змініть старий імпорт на новий:
 import { RoleProvider } from "./context/RoleProvider";
-
+import '../public/assets/css/mobile-responsive.css';
 // Змінюємо шлях на новий файл AuthProvider
 import AuthProvider from "./context/AuthProvider";
 import { NotificationProvider } from "./components/notification/Notifications.jsx";

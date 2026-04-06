@@ -302,6 +302,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://172.17.19.107"
+    
 ]
 
 
@@ -362,7 +364,8 @@ CSP_STYLE_SRC = (
     "'unsafe-inline'", 
     "https://cdnjs.cloudflare.com", 
     "https://fonts.googleapis.com",
-    "https://cdn.jsdelivr.net"
+    "https://cdn.jsdelivr.net",
+    "https://code.jquery.com"
 )
 
 # Шрифти
@@ -376,7 +379,8 @@ CSP_FONT_SRC = (
 CSP_CONNECT_SRC = (
     "'self'", 
     "wss://ordersportal.vstg.com.ua", 
-    "https://ordersportal.vstg.com.ua"
+    "https://ordersportal.vstg.com.ua",
+    "http://172.17.19.107",
 )
 
 # Фрейми: для ваших віджетів TikTok
@@ -391,7 +395,8 @@ CSP_IMG_SRC = (
     "'self'", 
     "data:", 
     "https://validator.swagger.io",
-    "https://cdn.jsdelivr.net"
+    "https://cdn.jsdelivr.net",
+    "http://172.17.19.107",
 )
 
 # Закриваємо зауваження ZAP "No Fallback"
