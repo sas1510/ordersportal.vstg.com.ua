@@ -65,7 +65,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -348,3 +348,8 @@ CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати д
 
 # Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
 CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
+
+
+X_FRAME_OPTIONS = 'DENY'
+
+CSP_FRAME_ANCESTORS = ("'none'",)
