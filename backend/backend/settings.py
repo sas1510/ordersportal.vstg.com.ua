@@ -1,22 +1,224 @@
+# from pathlib import Path
+# from datetime import timedelta
+# from decouple import config, Csv
+# import os
+
+# BASE_DIR = Path(__file__).resolve().parent.parent
+
+# # SECURITY
+# SECRET_KEY = config('SECRET_KEY')
+# DEBUG = config('DEBUG', default=True, cast=bool)
+# ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+
+# AUTH_USER_MODEL = 'users.CustomUser'
+
+# # Application definition
+# INSTALLED_APPS = [
+#     'django.contrib.admin',
+#     'django.contrib.auth',
+#     'django.contrib.contenttypes',
+#     'django.contrib.sessions',
+#     'django.contrib.messages',
+#     'django.contrib.staticfiles',
+
+#     'rest_framework',
+#     'rest_framework_simplejwt.token_blacklist',
+#     'corsheaders',
+#     "drf_spectacular",
+#     'users',
+#     'chat',
+#     'contact',
+#     'records',
+#     # 'complaints',
+#     'portal_media',
+#     'payments',
+#     'reclamations',
+#     'additional_order',
+#     # 'documents',
+#     # 'order',
+#     # 'organizations_and_regions',
+#     # 'video',
+# ]
+
+# MIDDLEWARE = [
+#     'corsheaders.middleware.CorsMiddleware',
+#     'django.middleware.common.CommonMiddleware',
+#     'django.middleware.security.SecurityMiddleware',
+#     'django.contrib.sessions.middleware.SessionMiddleware',
+#     'django.middleware.csrf.CsrfViewMiddleware',
+#     'django.contrib.auth.middleware.AuthenticationMiddleware',
+#     'django.contrib.messages.middleware.MessageMiddleware',
+#     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+# ]
+
+# ROOT_URLCONF = 'backend.urls'
+
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [],
+#         'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 'django.template.context_processors.request',
+#                 'django.contrib.auth.context_processors.auth',
+#                 'django.contrib.messages.context_processors.messages',
+#             ],
+#         },
+#     },
+# ]
+
+# WSGI_APPLICATION = 'backend.wsgi.application'
+
+# # Database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': config('DB_ENGINE'),
+#         'NAME': config('DB_NAME'),
+#         'USER': config('DB_USER'),
+#         'PASSWORD': config('DB_PASSWORD'),
+#         'HOST': config('DB_HOST'),
+#         'PORT': '',
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#             'trusted_connection': 'yes',
+#         },
+#     }
+# }
+
+# # Password validation
+# AUTH_PASSWORD_VALIDATORS = [
+#     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+#     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+#     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+#     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+# ]
+
+# # Internationalization
+# LANGUAGE_CODE = 'en-us'
+# TIME_ZONE = 'Europe/Kyiv'
+# USE_I18N = True
+# USE_TZ = True
+
+# # Static & media
+# STATIC_URL = '/static/'
+# STATIC_ROOT = BASE_DIR / 'static'
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
+
+# # REST framework
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         "backend.authentication.OneCApiKeyAuthentication", 
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        
+#     ),
+#     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+# }
+# # JWT
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+#     'BLACKLIST_AFTER_ROTATION': False,
+#     'ROTATE_REFRESH_TOKENS': True,
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+# }
+
+# # CORS
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOWED_ORIGINS = [
+#     "http://172.20.197.76",
+#     "http://ordersportal.vstg.com.ua"
+# ]
+
+# # Email
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+# # Default primary key
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# import smbclient
+
+# SMB_SERVER = config("SMB_SERVER")
+# SMB_USERNAME = config("SMB_USERNAME")
+# SMB_PASSWORD = config("SMB_PASSWORD")
+# SMB_SHARE = config("SMB_SHARE", default="1c_data")
+
+
+# smbclient.register_session(
+#     SMB_SERVER,
+#     username=SMB_USERNAME,
+#     password=SMB_PASSWORD
+# )
+
+# SPECTACULAR_SETTINGS = {
+#     "TITLE": "Orders Portal API",
+#     "DESCRIPTION": "API документація (JWT + 1C API Key)",
+#     "VERSION": "1.0.0",
+
+#     "SECURITY_SCHEMES": {
+#         "bearerAuth": {
+#             "type": "http",
+#             "scheme": "bearer",
+#             "bearerFormat": "JWT",
+#         },
+#         "ApiKeyAuth": {
+#             "type": "apiKey",
+#             "in": "header",
+#             "name": "X-API-KEY",
+#         },
+#     },
+
+#     # 🔴 ОСЬ ЦЕ КРИТИЧНО
+#     "SECURITY": [
+#         {"bearerAuth": []},
+#         {"ApiKeyAuth": []},
+#     ],
+# }
+
+
+# # FRONTEND_URL = "http://172.17.19.107"
+
+
+
+# ASGI_APPLICATION = '.backend.asgi.application' # Переконайтеся, що шлях правильний
+
+
+
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [(config('REDIS_HOST', default='127.0.0.1'), 6379)],
+#         },
+#     },
+# }
+
+
+import os
 from pathlib import Path
 from datetime import timedelta
 from decouple import config, Csv
 import smbclient
 from celery.schedules import crontab
-import os
 
 from pathlib import Path
 from dotenv import load_dotenv
 
-
-load_dotenv()
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG=False
+DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -59,18 +261,15 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'csp.middleware.CSPMiddleware',
     'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -163,34 +362,15 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,  # Обов'язково для безпечного виходу (logout)
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    
-    # --- НАЛАШТУВАННЯ ДЛЯ COOKIES (Захист від XSS та крадіжки токенів) ---
-    "AUTH_COOKIE": "access",           # Назва куки для Access токена
-    "AUTH_COOKIE_REFRESH": "refresh",  # Назва куки для Refresh токена
-    "AUTH_COOKIE_HTTP_ONLY": True,     # ЗАБОРОНЯЄ JavaScript читати токен (Захист від вкрадення через XSS)
-    "AUTH_COOKIE_SECURE": True,        # ПЕРЕДАЧА ТІЛЬКИ ЧЕРЕЗ HTTPS (Обов'язково для вашого сервера!)
-    "AUTH_COOKIE_SAMESITE": "Lax",     # Захист від CSRF атак
-    "AUTH_COOKIE_PATH": "/",           # Кука доступна для всього сайту
+    'BLACKLIST_AFTER_ROTATION': False,
+    'ROTATE_REFRESH_TOKENS': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    "AUTH_COOKIE": "refresh",
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_SECURE": False,   # True на https
+    "AUTH_COOKIE_SAMESITE": "Lax",
+
 }
-
-
-
-
-CORS_ALLOW_CREDENTIALS = True  
-CORS_ALLOWED_ORIGINS = [
-    "https://ordersportal.vstg.com.ua",
-    "http://localhost:5173",  
-    "http://127.0.0.1:5173",
-]
-
-# Якщо ви використовуєте мобільні додатки або специфічні клієнти:
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^null$",  # Тільки якщо це дійсно потрібно для локальних файлів
-]
-
 
 # CORS
 # CORS_ALLOW_CREDENTIALS = True
@@ -297,6 +477,8 @@ WEBPUSH_SETTINGS = {
 }
 
 
+
+
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -309,9 +491,6 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour='10, 16', minute=0), 
     },
 }
-
-
-
 
 
 
@@ -342,6 +521,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
     'https://ordersportal.vstg.com.ua'
+
 ]
 
 
@@ -350,40 +530,8 @@ CSRF_TRUSTED_ORIGINS = [
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
 
 
+
 SILKY_PYTHON_PROFILER = True  # Щоб бачити не тільки SQL, а й час виконання функцій
 SILKY_INTERCEPT_PERCENT = 100 # Записувати 100% запитів (для розробки)
 
 
-
-# Базова політика: дозволяємо тільки зі свого домену
-CSP_DEFAULT_SRC = ("'self'",)
-
-# Дозволяємо скрипти та стилі (ZAP підсвічував unsafe-inline, з цим треба обережно)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'") 
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-
-# Виправляємо помилку зі скрина:
-CSP_FRAME_ANCESTORS = ("'self'",) # Тільки ваш сайт може вставляти себе у фрейми (захист від клікджекінгу)
-CSP_FORM_ACTION = ("'self'",)    # Форми можуть надсилати дані тільки на ваш сервер
-
-# Якщо ви використовуєте TikTok або YouTube, додайте їх у дозволені:
-CSP_FRAME_SRC = ("'self'", "https://www.tiktok.com", "https://*.tiktok.com")
-
-
-
-
-# Безпека сесій
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = 'Lax'
-
-# Безпека CSRF
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True  # ZAP це любить
-CSRF_COOKIE_SAMESITE = 'Lax'
-
-# Примусове використання HTTPS (HSTS)
-SECURE_HSTS_SECONDS = 31536000  # 1 рік
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = True  # Перенаправляти з http на https
