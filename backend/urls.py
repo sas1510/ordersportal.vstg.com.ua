@@ -18,6 +18,15 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
+
+
+from django.conf.urls import handler500
+
+
+handler500 = 'backend.views.custom_error_500'
+
+
+
 # Створюємо обгортку, щоб DRF зрозумів JWT
 @api_view(['POST'])
 @authentication_classes([JWTAuthentication])

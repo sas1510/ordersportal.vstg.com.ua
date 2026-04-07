@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Ой! Щось пішло не так</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; padding: 50px; color: #333; }
+        .container { max-width: 600px; margin: auto; border: 1px solid #eee; padding: 30px; border-radius: 10px; }
+        h1 { color: #d9534f; }
+        .error-id { background: #f8f9fa; padding: 10px; border: 1px dashed #ccc; display: inline-block; margin-top: 20px; font-weight: bold; }
+        img { max-width: 200px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Вибачте, сталася помилка</h1>
+        <p>Ми вже знаємо про неї і працюємо над виправленням.</p>
+        <p>Якщо вам потрібно звернутися в підтримку, назвіть цей код:</p>
+        <div class="error-id">ID помилки: {{ error_id }}</div>
+        <br><br>
+        <a href="/">Повернутися на головну</a>
+    </div>
+</body>
+</html>

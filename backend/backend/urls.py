@@ -9,6 +9,11 @@ from drf_spectacular.views import (
 )
 from django.views.decorators.csrf import csrf_exempt
 
+from django.conf.urls import handler500
+
+
+handler500 = 'backend.views.custom_error_500'
+
 urlpatterns = [
     # path('api/admin/', admin.site.urls),
     # path('api/', include('users.urls')),  # маршрути користувачів

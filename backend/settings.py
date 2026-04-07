@@ -329,6 +329,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
+
+
 # settings.py
 
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
@@ -402,3 +404,19 @@ CSP_IMG_SRC = (
 # Закриваємо зауваження ZAP "No Fallback"
 CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
+
+
+
+if not DEBUG:
+
+    SECURE_HSTS_SECONDS = 31536000  
+
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    
+
+    SECURE_HSTS_PRELOAD = True
+    
+    SECURE_SSL_REDIRECT = True
+    
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
