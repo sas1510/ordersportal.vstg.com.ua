@@ -344,7 +344,7 @@ ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.c
 # --- Налаштування Content Security Policy (CSP) ---
 
 # Забороняємо вкладення вашого сайту у фрейми на інших доменах (Clickjacking)
-X_FRAME_OPTIONS = 'DENY'
+
 CSP_FRAME_ANCESTORS = ("'self'",)
 
 # Основне правило: дозволяємо ресурси тільки зі свого домену за замовчуванням
@@ -408,17 +408,18 @@ CSP_BASE_URI = ("'self'",)
 
 # settings.py
 
+
 if not DEBUG:
+    # 1. ТЕ, ЩО ОБОВ'ЯЗКОВО МАЄ БУТИ (щоб не було помилки 500):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-    # Це КРИТИЧНО для роботи через Apache проксі:
+    SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True 
 
-    # А ось ці заголовки ми ВИМИКАЄМО в Django, 
-    # бо їх уже на 100% додає Apache (ми бачили це в Network):
-    SECURE_HSTS_SECONDS = 0 
+    # 2. ТЕ, ЩО МИ ВИМИКАЄМО (щоб прибрати дублікати в ZAP):
+    # Встановлюємо в 0 або False, бо Apache сам додає ці заголовки
+    SECURE_HSTS_SECONDS = 0  
     SECURE_CONTENT_TYPE_NOSNIFF = False
     SECURE_BROWSER_XSS_FILTER = False
     X_FRAME_OPTIONS = None
+    SECURE_REFERRER_POLICY = None
