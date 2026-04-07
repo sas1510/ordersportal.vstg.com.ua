@@ -60,8 +60,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
-    'csp.middleware.CSPMiddleware',
     # 'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -168,7 +166,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": False,   # True на https
+    "AUTH_COOKIE_SECURE": True,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -297,18 +295,18 @@ CELERY_BEAT_SCHEDULE = {
 
 
 
-# Вимикаємо зірочку "*"
 CORS_ALLOW_ALL_ORIGINS = False
 
-# Дозволяємо лише конкретні адреси
+
 CORS_ALLOWED_ORIGINS = [
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://172.17.19.107"
+    
 ]
 
-# Важливо для JWT в куках (якщо будете використовувати)
+
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
@@ -331,6 +329,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
+
+
 # settings.py
 
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
@@ -338,6 +338,7 @@ ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.c
 
 # SILKY_PYTHON_PROFILER = True  
 # SILKY_INTERCEPT_PERCENT = 100 
+
 
 
 # --- Налаштування Content Security Policy (CSP) ---
@@ -359,7 +360,7 @@ CSP_SCRIPT_SRC = (
     "https://code.jquery.com"
 )
 
-# Стилі: додаємо Google Fonts та Cloudflare
+
 CSP_STYLE_SRC = (
     "'self'", 
     "'unsafe-inline'", 
@@ -411,5 +412,12 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-    SECURE_SSL_REDIRECT = False 
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True

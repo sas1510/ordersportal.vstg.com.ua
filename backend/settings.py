@@ -166,7 +166,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": False,   # True на https
+    "AUTH_COOKIE_SECURE": True,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -360,7 +360,7 @@ CSP_SCRIPT_SRC = (
     "https://code.jquery.com"
 )
 
-# Стилі: додаємо Google Fonts та Cloudflare
+
 CSP_STYLE_SRC = (
     "'self'", 
     "'unsafe-inline'", 
@@ -412,5 +412,12 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-    SECURE_SSL_REDIRECT = False 
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
