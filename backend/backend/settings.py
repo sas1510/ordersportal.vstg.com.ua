@@ -406,20 +406,3 @@ CSP_BASE_URI = ("'self'",)
 
 
 
-
-if not DEBUG:
-    # Вмикає заголовок Strict-Transport-Security
-    SECURE_HSTS_SECONDS = 31536000  # 1 рік у секундах
-    
-    # Додає заголовок до всіх піддоменів (наприклад, api.vstg.com.ua)
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    
-    # Дозволяє внести ваш сайт у "Preload list" браузерів (Chrome, Firefox)
-    SECURE_HSTS_PRELOAD = True
-    
-    # Перенаправляє всі HTTP запити на HTTPS на рівні Django
-    SECURE_SSL_REDIRECT = True
-    
-    # Гарантує, що кукі передаються тільки через HTTPS
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
