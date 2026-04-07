@@ -264,8 +264,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     with connection.cursor() as cursor:
         cursor.execute(query, [year, contractor_id])
         columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()[:50] # Беремо лише перші 50 рядків
-        rows = [dict(zip(columns, row)) for row in rows]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     calcs_dict = {}
     for row in rows:
