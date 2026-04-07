@@ -406,18 +406,19 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
 
 
+# settings.py
 
 if not DEBUG:
+    # Вимикаємо дублювання заголовків, які вже є в Apache
+    SECURE_HSTS_SECONDS = 0  # Apache вже додає HSTS
+    SECURE_CONTENT_TYPE_NOSNIFF = False  # Apache вже додає nosniff
+    SECURE_BROWSER_XSS_FILTER = False  # Apache вже додає XSS-Protection
+    X_FRAME_OPTIONS = None  # Apache вже додає DENY
+    
+    # Реферер теж вимикаємо в Django, бо в тебе в Apache їх аж два
+    # (один приберемо в Apache, один в Django)
+    SECURE_REFERRER_POLICY = None 
 
+    # ЗАЛИШАЄМО ТІЛЬКИ ЦЕ (це Apache за тебе не зробить):
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
