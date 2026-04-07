@@ -385,30 +385,16 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     return formatted_calcs
 
 
-@extend_schema(
-    summary="Отримання інформації про замовлення",
-    description="Повертає список замовлень за вказаний рік для конкретного контрагента.",
-    parameters=[
-        OpenApiParameter(
-            name="year",
-            type=int,
-            location=OpenApiParameter.QUERY,
-            required=True,
-            description="Рік (наприклад, 2025)",
-        ),
-        OpenApiParameter(
-            name="contractor_guid",
-            type=str,
-            location=OpenApiParameter.QUERY,
-            required=False,
-            description="GUID контрагента (тільки для admin)",
-        ),
-    ],
-)
+from asgiref.sync import sync_to_async
+from django.db.models import Q
+
+# Робимо обгортку для SQL-функції
+async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensitive=False)
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
-def api_get_orders(request):
-    # ---------- PARAMS ----------
+async def api_get_orders(request):
+    # 1. PARAMS
     year_str = request.GET.get("year")
     if not year_str:
         return Response({"error": "year is required"}, status=400)
@@ -418,28 +404,36 @@ def api_get_orders(request):
     except ValueError:
         return Response({"error": "Invalid year"}, status=400)
 
-    # ---------- 🔐 CONTRACTOR (DRY) ----------
+    # 2. CONTRACTOR (resolve_contractor зазвичай синхронна)
     try:
-        contractor_bin, _ = resolve_contractor(
-            request,
-            allow_admin=True,
-            admin_param="contractor_guid",
+        # Якщо resolve_contractor синхронна, обгортаємо її
+        contractor_bin, _ = await sync_to_async(resolve_contractor)(
+            request, allow_admin=True, admin_param="contractor_guid"
         )
-    except ValueError as e:
-        return Response({"error": str(e)}, status=400)
-    except PermissionError as e:
-        return Response({"detail": str(e)}, status=403)
+    except (ValueError, PermissionError) as e:
+        return Response({"error": str(e)}, status=403 if isinstance(e, PermissionError) else 400)
 
-    # ---------- 📦 DATA ----------
-    data = get_orders_by_year_and_contractor(year, contractor_bin)
+    # 3. DATA (Виклик SQL-процедури асинхронно)
+    data = await async_get_data(year, contractor_bin)
 
-    calc_bins = [
-        guid_to_1c_bin(calc["id"])
-        for calc in data
-        if calc.get("id")
-    ]
+    if not data:
+        return Response({"status": "success", "data": {"calculation": []}})
 
-    unread_calc_bins = set(
+    # 4. ОПТИМІЗАЦІЯ ПОВІДОМЛЕНЬ
+    # Збираємо ID за один прохід
+    to_bin = guid_to_1c_bin
+    id_map = {}
+    calc_bins = []
+    
+    for calc in data:
+        c_id = calc.get("id")
+        if c_id:
+            bin_id = to_bin(c_id)
+            id_map[c_id] = bin_id
+            calc_bins.append(bin_id)
+
+    # Отримуємо нечитані повідомлення асинхронно
+    unread_calc_bins = await sync_to_async(lambda: set(
         ChatMessage.objects.filter(
             related_object_id__in=calc_bins,
             is_read=False,
@@ -448,19 +442,22 @@ def api_get_orders(request):
         .exclude(author=contractor_bin)
         .values_list("related_object_id", flat=True)
         .distinct()
-    )
+    ))()
 
-    
+    # 5. ПРОСТАВЛЯЄМО ПРАПОРЦІ (без повторних викликів функцій)
     for calc in data:
-        calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
+        calc["hasUnreadMessages"] = id_map.get(calc.get("id")) in unread_calc_bins
 
-
+    # Структура відповіді залишилася точнісінько такою ж!
     return Response({
         "status": "success",
         "data": {
             "calculation": data
         }
     })
+
+
+
 
 
 @extend_schema(
