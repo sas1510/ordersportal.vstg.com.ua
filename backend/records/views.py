@@ -386,7 +386,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
 
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 from django.db.models import Q
 
 
@@ -417,7 +417,7 @@ async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensiti
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
-async def api_get_orders(request):
+def api_get_orders(request):
     # ---------- PARAMS ----------
     year_str = request.GET.get("year")
     if not year_str:
@@ -441,7 +441,7 @@ async def api_get_orders(request):
         return Response({"detail": str(e)}, status=403)
 
     # ---------- 📦 DATA ----------
-    data = await async_get_data(year, contractor_bin)
+    data = async_to_sync(async_get_data)(year, contractor_bin)
 
     calc_bins = [
         guid_to_1c_bin(calc["id"])
