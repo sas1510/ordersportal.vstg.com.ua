@@ -406,3 +406,10 @@ CSP_BASE_URI = ("'self'",)
 
 
 
+if not DEBUG:
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+
+    SECURE_SSL_REDIRECT = False 
