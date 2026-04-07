@@ -433,27 +433,33 @@ def api_get_orders(request):
     # ---------- 📦 DATA ----------
     data = get_orders_by_year_and_contractor(year, contractor_bin)
 
-    calc_bins = [
-        guid_to_1c_bin(calc["id"])
-        for calc in data
-        if calc.get("id")
-    ]
-
-    unread_calc_bins = set(
-        ChatMessage.objects.filter(
-            related_object_id__in=calc_bins,
-            is_read=False,
-            is_notification=False
-        )
-        .exclude(author=contractor_bin)
-        .values_list("related_object_id", flat=True)
-        .distinct()
-    )
-
-    
+    calc_id_map = {}
+    calc_bins = []
     for calc in data:
-        calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
+        c_id = calc.get("id")
+        if c_id:
+            bin_id = guid_to_1c_bin(c_id)
+            calc_id_map[c_id] = bin_id
+            calc_bins.append(bin_id)
 
+    # 3. Швидка перевірка нечитаних повідомлень
+    unread_calc_bins = set()
+    if calc_bins:
+        unread_calc_bins = set(
+            ChatMessage.objects.filter(
+                related_object_id__in=calc_bins,
+                is_read=False,
+                is_notification=False
+            )
+            .exclude(author=contractor_bin)
+            .values_list("related_object_id", flat=True)
+            .distinct()
+        )
+
+    # 4. Проставляємо прапорець (вже за допомогою готового мапування)
+    for calc in data:
+        # get(..., None) захищає від помилок, якщо ID раптом немає
+        calc["hasUnreadMessages"] = calc_id_map.get(calc.get("id")) in unread_calc_bins
 
     return Response({
         "status": "success",
