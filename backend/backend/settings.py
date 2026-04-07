@@ -406,19 +406,18 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
 
 
-# settings.py
 
 if not DEBUG:
-    # 1. ТЕ, ЩО ОБОВ'ЯЗКОВО МАЄ БУТИ (щоб не було помилки 500):
+
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-    # 2. ТЕ, ЩО МИ ВИМИКАЄМО (щоб прибрати дублікати в ZAP):
-    # Встановлюємо в 0 або False, бо Apache сам додає ці заголовки
-    SECURE_HSTS_SECONDS = 0  
-    SECURE_CONTENT_TYPE_NOSNIFF = False
-    SECURE_BROWSER_XSS_FILTER = False
-    X_FRAME_OPTIONS = None
-    SECURE_REFERRER_POLICY = None
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
