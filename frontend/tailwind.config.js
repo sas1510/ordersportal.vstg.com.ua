@@ -10,7 +10,13 @@ export default {
         'custom-green': '#76b448',
         'custom-green-dark': '#5f9037', // колір для hover
       },
+      fontFamily: {
+        // Тепер ви зможете використовувати клас font-inter або просто Inter буде основним
+        sans: ['Inter', 'sans-serif'],
+      },
     },
   },
   plugins: [],
 }
+
+

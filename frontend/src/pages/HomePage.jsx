@@ -1,3 +1,90 @@
+// import React from "react";
+
+// export default function Dashboard() {
+//   return (
+//     <div className="min-h-screen bg-white text-gray-800 font-sans">
+//       {/* Hero Section */}
+//       <section className="relative min-h-[900px] bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/3.jpg')" }}>
+//         <div className="absolute inset-0 bg-[#003d66]/60 flex items-center justify-center">
+//           <h1 className="text-white text-4xl md:text-6xl font-bold text-center px-4">
+//             Вікна Стиль — 18 років на ринку України та Європи
+//           </h1>
+//         </div>
+//       </section>
+
+//       {/* Про компанію */}
+//       <section className="max-w-6xl mx-auto px-4 py-16">
+//         <h2 className="text-3xl font-bold text-[#003d66] mb-6">Про компанію</h2>
+//         <p className="mb-4">
+//           Наша компанія знаходиться в 5 км від міста Чернівці, в селі Великий Кучурів.
+//           Площа заводу — понад <strong>16 000 м²</strong>. На виробництві працює понад <strong>500 працівників</strong>.
+//         </p>
+//         <p className="mb-4">
+//           Компанія «Вікна Стиль» успішно працює з 2003 року. Це історія успіху, заснована на бажанні бути кращими,
+//           без компромісів щодо якості.
+//         </p>
+//         <p className="mb-4">
+//           Ми використовуємо унікальне програмне забезпечення, що дозволяє контролювати всі етапи виробництва
+//           та відвантаження. Географія продажів охоплює весь захід України, а також Румунію, Німеччину, Італію, Португалію, Канаду, США.
+//         </p>
+//       </section>
+
+//       {/* Потужності */}
+//       <section className="bg-gray-100 py-12">
+//         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8 text-center">
+//           <div>
+//             <h3 className="text-2xl font-semibold text-[#003d66]">Виробнича площа</h3>
+//             <p className="text-xl mt-2">5500 м²</p>
+//           </div>
+//           <div>
+//             <h3 className="text-2xl font-semibold text-[#003d66]">ПВХ Вікон</h3>
+//             <p className="text-xl mt-2">35 000 на місяць</p>
+//           </div>
+//           <div>
+//             <h3 className="text-2xl font-semibold text-[#003d66]">ПВХ Дверей</h3>
+//             <p className="text-xl mt-2">9 000 на місяць</p>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* Цінності */}
+//       <section className="max-w-6xl mx-auto px-4 py-16">
+//         <h2 className="text-3xl font-bold text-[#003d66] mb-6">Наші цінності</h2>
+//         <div className="grid md:grid-cols-4 gap-6 text-center">
+//           <div>
+//             <div className="text-5xl mb-2">🎨</div>
+//             <p className="font-semibold">Естетика</p>
+//           </div>
+//           <div>
+//             <div className="text-5xl mb-2">✅</div>
+//             <p className="font-semibold">Якість</p>
+//           </div>
+//           <div>
+//             <div className="text-5xl mb-2">💰</div>
+//             <p className="font-semibold">Найкраща ціна</p>
+//           </div>
+//           <div>
+//             <div className="text-5xl mb-2">🏠</div>
+//             <p className="font-semibold">Безпека вашого дому</p>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* Завершення */}
+//       <section className="bg-[#f0f4f8] py-12 text-center">
+//         <div className="max-w-4xl mx-auto px-4">
+//           <h2 className="text-2xl md:text-3xl font-bold text-[#003d66] mb-4">
+//             ДВЕРІ, ЯКІ ВІДКРИВАЮТЬ СВІТ УСПІШНОГО ПАРТНЕРСТВА
+//           </h2>
+//           <p className="text-gray-700 text-lg">
+//             “Вікна Стиль” — це не просто бізнес. Це команда, сервіс, стабільність і партнерство.
+//             Надійність нашої продукції — запорука Вашого комфорту і довіри клієнтів.
+//           </p>
+//         </div>
+//       </section>
+//     </div>
+//   );
+// }
 // import React, { useRef, useEffect, useState } from "react";
 // import { motion } from "framer-motion";
 
@@ -239,9 +326,8 @@
 // }
 import React, { useRef } from "react";
 import "./HomePage.css";
-import { motion } from "framer-motion";
 
-import { useScroll, useTransform } from "framer-motion";
+import { motion , useScroll, useTransform } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAward,
@@ -260,16 +346,128 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 
-const videos = [
-  "https://www.tiktok.com/@viknastyle/video/7537601329863200005",
-  "https://www.tiktok.com/@viknastyle/video/7537322053884497208",
-  "https://www.tiktok.com/@viknastyle/video/7536228535598386488",
+
+const statsData = [
+  { 
+    id: 1, 
+    image: "/assets/icons/award-icon.png",
+    value: "18+", 
+    label: "років досвіду", 
+    isJSX: false 
+  },
+  { 
+    id: 2, 
+    image: "/assets/icons/people-icon.png", 
+    value: "500+", 
+    label: "працівників", 
+    isJSX: false 
+  },
+  { 
+    id: 3, 
+    image: "/assets/icons/factory-icon.png", 
+    value: "16 000 м²", 
+    label: "площа заводу", 
+    isJSX: true 
+  },
+  { 
+    id: 4, 
+    image: "/assets/icons/window-icon.png", 
+    value: "35 000", 
+    label: "вікон на місяць", 
+    isJSX: false 
+  },
 ];
 
-export default function HomePage() {
+
+
+
+
+
+
+
+const videos = [
+  "https://www.tiktok.com/@viknastyle/video/7624534122479947028?embed_source=121374463%2C121468991%2C121439635%2C121749182%2C121433650%2C121404359%2C121497414%2C122221973%2C122122240%2C121351166%2C121811500%2C121960941%2C122122244%2C122122243%2C122122242%2C121487028%2C122258714%2C121331973%2C120811592%2C120810756%2C121885509%3Bnull%3Bembed_head&refer=embed&referer_url=172.17.19.107%2F&referer_video_id=7536228535598386488",
+  "https://www.tiktok.com/@viknastyle/video/7623016569790024981",
+  "https://www.tiktok.com/@viknastyle/video/7536228535598386488",
+  "https://www.tiktok.com/@viknastyle/video/7621226321510681877",
+  "https://www.tiktok.com/@viknastyle/video/7618147133090286869",
+];
+
+export default function Dashboard() {
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const bellIcon = "/assets/icons/bell-icon.png"; 
+  const Polygon = "/assets/icons/Polygon.png";
+
+  
+  const cicleIcon = "/assets/icons/CicleIcon.png";
+  const doorIcon = "/assets/icons/DoorIcon.png";
+  const exportIcon = "/assets/icons/ExportIcon.png";
+  const plantIcon = "/assets/icons/PlantIcon.png";
+  const windowIcon = "/assets/icons/WindowIcon.png";
+  const handshake = "/assets/icons/Handshake.png";
+
+    const statCards = [
+    {
+      id: "window",
+      bgLeft: "left-[427px]",
+      icon: windowIcon,
+      iconClass: "absolute top-[274px] left-[542px] w-[50px] h-[50px] aspect-[1] object-cover z-10",
+      iconAlt: "Window icon",
+      value: "35 000",
+      valueClass: "left-[427px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
+      label: "ПВХ вікон на місяць",
+      labelClass: "top-[390px] left-[427px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
+      bgClass: "absolute top-[247px] left-[427px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
+    },
+    {
+      id: "door",
+      bgLeft: "left-[734px]",
+      icon: doorIcon,
+      iconClass: "absolute top-[274px] left-[862px] w-[24px] h-[50px] aspect-[0.47] object-cover z-10",
+      iconAlt: "Door icon",
+      value: "9 000",
+      valueClass: "left-[734px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
+      label: "ПВХ дверей на місяць",
+      labelClass: "top-[390px] left-[734px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
+      bgClass: "absolute top-[247px] left-[734px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
+    },
+    {
+      id: "cycle",
+      bgLeft: "left-[1041px]",
+      icon: cicleIcon,
+      iconClass: "absolute top-[274px] left-[1156px] w-[49px] h-[50px] aspect-[0.97] object-cover z-10",
+      iconAlt: "Cicle icon",
+      value: "Full Cycle",
+      valueClass: "absolute top-[337px] left-[1041px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
+      label: "Інновації",
+      labelClass: "top-[390px] left-[1041px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
+      bgClass: "absolute top-[247px] left-[1041px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
+    },
+  ];
+
+  const infoItems = [
+  {
+    icon: plantIcon,
+    iconAlt: "Plant icon",
+    iconClass: "absolute top-[150px] left-[202px] w-[49px] h-[50px] aspect-[0.99] object-cover",
+    textClass: "top-[152px] left-[269px] w-[478px] font-['Inter'] font-normal text-xl absolute text-[#44403E] tracking-[0] leading-tight",
+    text: (
+      <>
+        Завод площею 16 000 м² розташований <br />у с. Великий Кучурів (5 км від Чернівців).
+      </>
+    ),
+  },
+  {
+    icon: exportIcon,
+    iconAlt: "Export icon",
+    iconClass: "absolute top-[151px] left-[765px] w-[50px] h-[50px] aspect-[1] object-cover",
+    textClass: "top-[152px] left-[844px] w-[367px] font-['Inter'] font-normal text-xl absolute text-[#44403E] tracking-[0] leading-tight",
+    text: "Експортна географія: Німеччина, Італія, Румунія, Канада та США.",
+  },
+];
+
 
   const scrollByManual = (offset) => {
     const el = containerRef.current;
@@ -331,170 +529,358 @@ export default function HomePage() {
     },
   ];
 
+
+  const aesteticIcon = "/assets/icons/AesteticIcon.png";
+  const costIcon = "/assets/icons/CostIcon.png";
+  const qualityIcon = "/assets/icons/QualityIcon.png";
+  const safetyIcon = "/assets/icons/SafetyIcon.png";
+
+  const features = [
+    {
+      id: 1,
+      icon: aesteticIcon,
+      iconAlt: "Aestetic icon",
+      iconClass: "absolute top-4 left-[93px] w-[93px] h-[80px]  object-contain",
+      title: "ЕСТЕТИКА",
+      titleLeft: "left-0",
+      description: "Сучасний дизайн",
+      descLeft: "left-0",
+    },
+    {
+      id: 2,
+      icon: qualityIcon,
+      iconAlt: "Quality icon",
+      iconClass: "absolute top-0 left-[404px] w-[85px] h-[100px] object-contain",
+      title: "ЯКІСТЬ",
+      titleLeft: "left-[307px]",
+      description: "Європейські стандарти",
+      descLeft: "left-[307px]",
+    },
+    {
+      id: 3,
+      icon: costIcon,
+      iconAlt: "Cost icon",
+      iconClass: "absolute top-2.5 left-[709px] w-[90px] h-[80px] object-contain",
+      title: "НАЙКРАЩА ЦІНА",
+      titleLeft: "left-[614px]",
+      description: "Власне виробництво",
+      descLeft: "left-[614px]",
+    },
+    {
+      id: 4,
+      icon: safetyIcon,
+      iconAlt: "Safety icon",
+      iconClass: "absolute top-0 left-[1019px] w-[86px] h-[100px] object-contain",
+      title: "БЕЗПЕКА",
+      titleLeft: "left-[922px]",
+      description: "Надійний захист",
+      descLeft: "left-[922px]",
+    },
+  ];
+
+  const fadeUp = {
+      hidden: { 
+        opacity: 0, 
+        y: 50 
+      },
+      visible: (idx) => ({
+        opacity: 1,
+        y: 0,
+        transition: {
+          duration: 1.2, // Тривалість анімації (було 0.6-0.8)
+          delay: idx * 0.3, // Затримка між кожною карткою (0.3 сек)
+          ease: [0.25, 0.1, 0.25, 1], // Плавний "cubic-bezier" вихід
+        },
+      }),
+    };
+
   return (
     <div className="homepage-container">
       {/* Hero Section */}
       <section className="hero-section">
-        {/* Background shapes like Login */}
-        <div className="hero-background-shapes">
-          <div className="hero-shape hero-shape-1" />
-          <div className="hero-shape hero-shape-2" />
-          <div className="hero-shape hero-shape-3" />
+      {/* 1. ФОНОВЕ ВІДЕО */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="hero-video-bg"
+        poster="/assets/video/hero-poster.jpg"
+      >
+        <source src="/assets/video/hero-background-1.mp4" type="video/mp4" />
+      </video>
 
-          {/* subtle stars */}
-          <div className="hero-star s1" />
-          <div className="hero-star s2" />
-          <div className="hero-star s3" />
-          <div className="hero-star s4" />
-          <div className="hero-star s5" />
-        </div>
+      {/* 2. ОВЕРЛЕЙ */}
+      <motion.div style={{ opacity }} className="hero-overlay">
+        <div className="hero-gradient"></div>
+      </motion.div>
 
-        <motion.div style={{ opacity }} className="hero-overlay">
-          <div className="hero-gradient"></div>
+      {/* 3. КОНТЕНТ */}
+      <div className="hero-content">
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+          className="hero-text-block"
+        >
+          <div className="hero-welcome">Вітаємо на порталі замовлень</div>
+          <h1 className="font-['Inter'] font-[1000] text-[40px] leading-[100%] tracking-normal text-center w-full max-w-[627px] mx-auto text-white">
+            Професійні Віконні Системи <br />
+            для Європейського Ринку
+          </h1>
+          <div className="hero-divider"></div>
         </motion.div>
 
-        <div className="hero-content">
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="hero-title">Вікна Стиль</h1>
-            <div className="hero-divider"></div>
-            <p className="hero-subtitle">
-              ПРОФЕСІЙНІ ВІКОННІ СИСТЕМИ ДЛЯ ЄВРОПЕЙСЬКОГО РИНКУ
-            </p>
-          </motion.div>
-
-          <div className="stats-grid">
-            {stats.map((stat, idx) => (
-              <motion.div key={idx} className="stat-card">
-                <FontAwesomeIcon icon={stat.icon} className="stat-icon" />
-                <div className="stat-value">{stat.value}</div>
-                <div className="stat-label">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="scroll-indicator"
-          >
-            <FontAwesomeIcon icon={faChevronDown} />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section className="about-section">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-          <div className="space-y-4">
-            <h2 className="section-title">Виробничі потужності</h2>
-            <div className="info-box border-info">
-              <div className="flex items-start gap-4">
-                <FontAwesomeIcon icon={faIndustry} className="text-info mt-1" />
-                <p className="text-sm">
-                  Завод площею 16 000 м² розташований у с. Великий Кучурів (5 км
-                  від Чернівців).
-                </p>
+        {/* СІТКА СТАТИСТИКИ */}
+        <div className="stats-grid">
+          {statsData.map((stat, idx) => (
+             <motion.div 
+              key={stat.id}
+              className="stat-card"
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={idx}
+            >
+              {/* Ваша картинка замість іконки */}
+              <div className="stat-image-wrapper">
+                <img src={stat.image} alt={stat.label} className="stat-custom-img" />
               </div>
-            </div>
-            <div className="info-box border-success">
-              <div className="flex items-start gap-4">
-                <FontAwesomeIcon icon={faGlobe} className="text-success mt-1" />
-                <p className="text-sm">
-                  Експортна географія: Німеччина, Італія, Румунія, Канада та
-                  США.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="tech-cycle-card">
-            <h3 className="tech-title">Технологічний цикл</h3>
-            <div className="space-y-6">
-              {[
-                {
-                  label: "ПВХ Вікна",
-                  val: "35 000 ПВХ / міс",
-                  icon: faWindowRestore,
-                },
-                {
-                  label: "ПВХ Двері",
-                  val: "9 000 ПВХ / міс",
-                  icon: faIndustry,
-                },
-                { label: "Інновації", val: "Full Cycle", icon: faMicrochip },
-              ].map((it, i) => (
-                <div key={i} className="tech-item">
-                  <span className="tech-label">
-                    <FontAwesomeIcon
-                      icon={it.icon}
-                      className="mr-3 opacity-50"
-                    />{" "}
-                    {it.label}
+              
+              <div className="stat-value">
+                {stat.isJSX ? (
+                  <span>
+                    16 000 <small className="text-[20px]">м²</small>
                   </span>
-                  <span className="tech-value">{it.val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Values Section */}
-      <section className="values-section">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-8">
-          {values.map((v, i) => (
-            <div key={i} className="value-card group">
-              <div className="value-icon-container">
-                <FontAwesomeIcon
-                  icon={v.icon}
-                  className={`text-2xl ${v.colorClass}`}
-                />
+                ) : (
+                  stat.value
+                )}
               </div>
-              <h3 className="value-title">{v.title}</h3>
-              <p className="value-desc">{v.desc}</p>
-            </div>
+              <div className="stat-label">{stat.label}</div>
+            </motion.div>
           ))}
         </div>
-      </section>
 
+        {/* СТРІЛКА ВНИЗ */}
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
+          /* Додаємо класи для центрування: 
+            flex (робимо флекс-контейнером)
+            justify-center (горизонтально по центру)
+            w-full (на всю ширину, щоб було від чого центрувати)
+          */
+          className="scroll-indicator flex justify-center w-full mb-15 "
+        >
+          <img 
+            src={Polygon} 
+            alt="Стрілка" 
+            className="w-[55px] h-[27px] object-contain" 
+            /* inline-style тут вже не потрібні, якщо є класи зверху */
+          />
+        </motion.div>
+      </div>
+    </section>
+
+    <section className="relative w-full flex justify-center bg-[#F0F4DB] overflow-hidden">
+    
+      <div className="relative w-[1440px] h-[514px] flex-shrink-0">
+
+        <div className="top-[68px] left-[427px] w-[586px] font-['Inter'] font-[900]  text-[32px] text-center text-variable-collection-WS-darkgrey whitespace-nowrap absolute text-[#44403E] tracking-[0] leading-normal" 
+           style={{ WebkitTextStroke: '1px #44403E' }}>
+          Виробничі Потужності
+        </div>
+
+
+
+        <div className="top-[299px] left-[120px] w-[279px] font-['Inter'] font-black text-[32px] text-center absolute text-[#44403E] tracking-[0] leading-tight" 
+           style={{ WebkitTextStroke: '1px #44403E' }}>
+          Технологічний <br /> Цикл
+        </div>
+
+        {/* Картки статистики */}
+        {statCards.map((card, index) => (
+  <motion.div
+    key={card.id}
+    variants={fadeUp}
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    custom={index}
+  >
+    <div className={card.bgClass} />
+    <img
+      className={card.iconClass}
+      alt={card.iconAlt}
+      src={card.icon}
+    />
+    <div className={card.valueClass}>{card.value}</div>
+    <div className={card.labelClass}>{card.label}</div>
+  </motion.div>
+))}
+
+        {/* Інформаційні блоки (Завод та Географія) */}
+       {infoItems.map((item, index) => (
+        <motion.div
+          key={item.iconAlt}
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          custom={index}
+        >
+          <img
+            className={item.iconClass}
+            alt={item.iconAlt}
+            src={item.icon}
+          />
+          <p className={item.textClass}>{item.text}</p>
+        </motion.div>
+      ))}
+      </div>
+    </section>
+
+      {/* Values Section */}
+      <section className="w-full py-20 flex justify-center bg-white">
+  {/* Центруючий контейнер згідно з макетом */}
+  <div className="relative max-w-[1201px] w-full h-[198px] flex-shrink-0">
+
+    {features.map((feature, index) => (
+      <motion.div
+        key={feature.id}
+        variants={fadeUp}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        custom={index}
+      >
+        {/* Іконка */}
+        <img
+          className={`${feature.iconClass} 
+          max-md:scale-75 
+          max-sm:scale-65`}
+          alt={feature.iconAlt}
+          src={feature.icon}
+        />
+
+        {/* Заголовок */}
+        <div
+          className={`
+            absolute 
+            top-[131px] 
+            ${feature.titleLeft} 
+            w-[279px] 
+            font-['Inter'] 
+            font-[900] 
+            text-3xl 
+            max-md:text-xl 
+            max-sm:text-lg
+            text-[#44403E] 
+            text-center 
+            uppercase 
+            tracking-tight
+          `}
+        >
+          {feature.title}
+        </div>
+
+        {/* Опис */}
+        <div
+          className={`
+            absolute 
+            top-[171px] 
+            ${feature.descLeft} 
+            w-[279px] 
+            font-['Inter'] 
+            font-normal 
+            text-[22px] 
+            max-md:text-[16px]
+            max-sm:text-[14px]
+            text-[#44403E] 
+            text-center
+          `}
+        >
+          {feature.description}
+        </div>
+
+      </motion.div>
+    ))}
+
+  </div>
+</section>
       {/* Media Section */}
-      <section className="media-section">
-        <div className="max-w-6xl mx-auto px-4 relative">
-          <div className="media-header">
-            <h2 className="section-title mb-0">Медіа-огляд</h2>
-            <div className="flex gap-2">
-              <button onClick={() => scrollByManual(-320)} className="nav-btn">
-                <FontAwesomeIcon icon={faChevronLeft} />
-              </button>
-              <button onClick={() => scrollByManual(320)} className="nav-btn">
-                <FontAwesomeIcon icon={faChevronRight} />
-              </button>
-            </div>
+      <section className="media-section py-20 bg-[#3D3834]">
+        <div className="max-w-8xl mx-auto px-12 relative"> 
+          
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-['Inter'] font-bold text-white">Медіа-Огляд</h2>
           </div>
+      
+          {/* Кнопки навігації (залишаємо вашу логіку) */}
+          {/* Кнопка вліво */}
+          <button 
+            onClick={() => scrollByManual(-340)} 
+            className="absolute left-0 top-[60%] -translate-y-1/2 z-20 p-2 transition-all hover:scale-110 active:opacity-70"
+          >
+            <img 
+              src="/assets/icons/chevron-left.png" 
+              alt="Назад" 
+              className="w-[25px] h-[54px] object-contain opacity-50 hover:opacity-100 transition-opacity" 
+            />
+          </button>
 
-          <div ref={containerRef} className="media-slider scrollbar-hide">
+          {/* Кнопка вправо */}
+          <button 
+            onClick={() => scrollByManual(340)} 
+            className="absolute right-0 top-[60%] -translate-y-1/2 z-20 p-2 transition-all hover:scale-110 active:opacity-70"
+          >
+            <img 
+              src="/assets/icons/chevron-right.png" 
+              alt="Вперед" 
+              className="w-[25px] h-[54px] object-contain opacity-50 hover:opacity-100 transition-opacity" 
+            />
+          </button>
+      
+          {/* Слайдер з прихованим скролбаром */}
+          <div 
+            ref={containerRef} 
+            className="media-slider flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {videos.map((url, index) => {
               const videoId = url.split("/video/")[1]?.split("?")[0];
               return (
-                <div key={index} className="video-card">
-                  <iframe
-                    src={`https://www.tiktok.com/embed/${videoId}`}
-                    className="tiktok-iframe"
-                    title={`tiktok-video-${index}`}
-                  ></iframe>
+                <div 
+                  key={index} 
+                  className="flex-shrink-0 w-[320px] sm:w-[335px] snap-start"
+                >
+                  {/* Контейнер з фіксованим співвідношенням 9:16 */}
+                  <div className="aspect-[9/16] w-full  overflow-hidden ">
+                    <iframe
+                      src={`https://www.tiktok.com/embed/${videoId}`}
+                      className="w-full h-full border-0"
+                      title={`tiktok-video-${index}`}
+                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
+      
+        {/* Додайте цей стиль у ваш глобальний CSS або через Tailwind плагін */}
+        <style jsx>{`
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section">
+      {/* <section className="cta-section">
         <div className="max-w-3xl mx-auto px-4">
           <FontAwesomeIcon icon={faHandshake} className="cta-icon" />
           <h2 className="cta-title">
@@ -504,9 +890,78 @@ export default function HomePage() {
             Станьте частиною надійної дилерської мережі "Вікна Стиль". 18 років
             досвіду та європейські стандарти якості для вашого бізнесу.
           </p>
-          {/* <button className="cta-button">Стати партнером</button> */}
+          
         </div>
-      </section>
+      </section> */}
+     <motion.section 
+  className="w-full pt-[60px] pb-[140px] flex justify-center bg-white"
+  style={{borderTop: '4px solid #B4D947'}}
+  initial={{ opacity: 0 }}
+  whileInView={{ opacity: 1 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.6 }}
+>
+  {/* Центруючий контейнер макета */}
+  <div className="relative max-w-[1203px] w-full h-[250px] flex flex-col items-center flex-shrink-0 px-4">
+    
+    {/* Іконка рукостискання */}
+    <motion.img
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.1, duration: 0.6 }}
+      className="w-[120px] h-[88px] object-cover aspect-[1.37] 
+      max-md:w-[90px] 
+      max-sm:w-[70px]"
+      alt="Партнерство"
+      src={handshake}
+    />
+
+    {/* Головний слоган */}
+    <motion.h2
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.2, duration: 0.6 }}
+      className="mt-[23px] 
+      font-['Inter'] 
+      font-[900] 
+      text-[32px] 
+      max-md:text-[24px]
+      max-sm:text-[20px]
+      text-[#44403E] 
+      text-center 
+      uppercase 
+      tracking-tight 
+      leading-tight"
+    >
+      Двері, які відкривають світ <br />
+      успішного партнерства
+    </motion.h2>
+
+    {/* Опис */}
+    <motion.p
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.3, duration: 0.6 }}
+      className="mt-4 
+      w-full 
+      font-['Inter'] 
+      font-normal 
+      text-[22px] 
+      max-md:text-[18px]
+      max-sm:text-[16px]
+      text-[#44403E] 
+      text-center 
+      leading-tight"
+    >
+      Станьте частиною надійної дилерської мережі "Вікна Стиль". <br />
+      18 років досвіду та європейські стандарти якості для вашого бізнесу.
+    </motion.p>
+
+  </div>
+</motion.section>
     </div>
   );
 }

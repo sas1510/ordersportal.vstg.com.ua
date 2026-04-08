@@ -1,0 +1,103 @@
+/* Основний контейнер, який вставляється в Header */
+.profile-box {
+    height: 70px;
+    width: 182px;
+    position: relative;
+}
+
+.profile-menu-inner {
+    height: 70px;
+    width: 182px;
+    position: relative;
+}
+
+/* Сірий фон блоку */
+.profile-rectangle {
+    background-color: #EEEEEE; 
+    height: 70px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 182px;
+    border-left: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    z-index: 1;
+}
+
+/* Текст: Назва магазину / Ім'я */
+.profile-name-text {
+    color: #234360;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    left: 41px;
+    position: absolute;
+    top: 9px;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* Іконка профілю */
+.profile-img-icon {
+    height: 20px;
+    left: 15px;
+    position: absolute;
+    top: 9px;
+    width: 18px;
+    object-fit: cover;
+    z-index: 2;
+}
+
+/* Лінія розділювач */
+.profile-separator-line {
+    height: 1px;
+    background-color: #D1D5DB; /* Альтернатива картинці line1 */
+    left: 16px;
+    position: absolute;
+    top: 35px;
+    width: 151px;
+    z-index: 2;
+    
+}
+
+/* Текст: Сума балансу */
+.profile-balance-text {
+    color: #506B00;
+    font-family: "Inter", sans-serif;
+    font-size: 16px;
+    font-weight: 400; /* Як у твоєму класі .div */
+    left: 41px;
+    position: absolute;
+    top: 43px;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* Іконка грошей */
+.profile-money-img-icon {
+    height: 20px;
+    left: 11px;
+    position: absolute;
+    top: 42px;
+    width: 22px;
+    object-fit: cover;
+    z-index: 2;
+}
+
+/* Підтримка темної теми */
+.profile-box.dark .profile-rectangle {
+    background-color: #2D2D2D;
+    border-color: #444;
+}
+
+.profile-box.dark .profile-name-text {
+    color: #B4D947;
+}
+
+.profile-box.dark .profile-balance-text {
+    color: #FFFFFF;
+}
+
+.profile-box.dark .profile-separator-line {
+    background-color: #4B5563;
+}

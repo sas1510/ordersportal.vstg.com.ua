@@ -61,14 +61,16 @@
   padding: 0 1rem;
   max-width: 72rem;
   margin: 0 auto;
+  margin-top: 200px;
 }
 
 .hero-title {
+  
   font-size: 3rem;
   font-weight: 300;
   color: white;
   margin-bottom: 1rem;
-  text-transform: uppercase;
+
   letter-spacing: 0.1em;
 }
 
@@ -117,11 +119,11 @@
 }
 
 .stat-card {
-  background-color: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* background-color: rgba(255, 255, 255, 0.05); */
+  /* backdrop-filter: blur(4px); */
+  /* border: 1px solid rgba(255, 255, 255, 0.1); */
   padding: 1.5rem;
-  border-radius: 0.25rem;
+  /* border-radius: 0.25rem; */
 }
 
 .stat-icon {
@@ -245,10 +247,7 @@
 }
 
 /* Media/Video Section */
-.media-section {
-  padding: 6rem 0;
-  background-color: var(--color-bg);
-}
+
 
 .media-header {
   display: flex;
@@ -384,8 +383,8 @@ body.dark-theme .hero-subtitle {
    =============================== */
 
 body.dark-theme .stat-card {
-  background-color: rgba(255, 255, 255, 0.03);
-  border-color: rgba(255, 255, 255, 0.12);
+  /* background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12); */
 }
 
 body.dark-theme .stat-label {
@@ -668,4 +667,164 @@ body.dark-theme .scroll-indicator {
     transform: translate(0, 0) scale(0.8);
     opacity: 0.15;
   }
+}
+
+
+
+.media-section {
+  background-color: #3D3834; /* Темно-коричневий фон як на фото */
+}
+
+/* Приховуємо скроллбар для Chrome, Safari та Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Приховуємо скроллбар для IE, Edge та Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.media-slider {
+  display: flex;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ефект наведення на картки відео */
+.video-card {
+  transition: transform 0.3s ease;
+}
+
+.video-card:hover {
+  transform: scale(1.02);
+}
+
+
+/* Приховуємо стандартний скролбар, щоб було як на фото */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Додаємо плавний рух */
+.media-slider {
+  scroll-behavior: smooth;
+  cursor: grab;
+}
+
+/* Стиль для карток, щоб вони були схожі на мобільний формат */
+.video-card iframe {
+  border: none;
+  border-radius: 12px;
+}
+
+
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 100vh; /* Секція на весь екран */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #000; /* Колір фону, поки відео не завантажилось */
+}
+
+/* Відео на задньому плані */
+.hero-video-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Відео заповнює все без деформації */
+  transform: translate(-50%, -50%);
+  z-index: 1; /* Найнижчий шар */
+}
+
+/* Шар затемнення над відео */
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4); /* Налаштуйте рівень затемнення */
+  z-index: 2;
+}
+
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.8) 100%);
+  z-index: 2;
+}
+
+/* Контент поверх усього */
+.hero-content {
+  position: relative;
+  z-index: 3; /* Найвищий шар */
+  text-align: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+
+.hero-welcome {
+  color: #B4D947; /* Ваш зелений колір */
+  font-size: 26px;
+  margin-bottom: 10px;
+  margin-top: 50px;
+}
+
+.hero-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 40px;
+  color: white;
+  line-height: 1.2;
+}
+
+.stats-grid {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 60px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 280px;
+}
+
+.stat-image-wrapper {
+  height: 100px; /* Висота як у вашому масиві */
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.stat-custom-img {
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
+.stat-value {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: 40px;
+  color: white;
+}
+
+.stat-label {
+  font-size: 22px;
+  color: white;
+  opacity: 0.9;
 }
