@@ -23,7 +23,7 @@ const styles = {
       2. Додаємо від'ємний margin-top, який дорівнює висоті хедера + його відступу зверху.
       Висота вашого хедера: 32px (відступ) + 30px (смуга) + 70px (панель) = 132px.
     */
-    marginTop: "-132px", 
+    marginTop: window.innerWidth < 768 ? "-56px" : "-132px",
     position: "relative",
     zIndex: 1, // контент сторінки
   },

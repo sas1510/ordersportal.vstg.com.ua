@@ -9,40 +9,36 @@ export default function HeaderWithoutAuth() {
 
   return (
     <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
-      {/* 1. Декоративна смуга (як у всьому додатку) */}
-      <div className="w-full max-w-[1334px] h-[30px] bg-[#B4D947] rounded-t-sm" />
+      
+      {/* 1. Декоративна смуга — зменшуємо висоту на мобільних (h-2 проти h-[30px]) */}
+      <div className="w-full max-w-[1334px] h-2 md:h-[30px] bg-[#B4D947] rounded-t-sm" />
 
-      {/* 2. Основна панель */}
-      <div className="w-full max-w-[1334px] h-[70px] bg-white flex items-center justify-between shadow-md rounded-bl-[25px] rounded-br-[25px] px-8">
+      {/* 2. Основна панель — адаптивна висота (h-12 на мобілках, h-[70px] на десктопі) */}
+      <div className="w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center justify-between shadow-md rounded-bl-[15px] rounded-br-[15px] md:rounded-bl-[25px] md:rounded-br-[25px] px-4 md:px-8">
         
-        {/* Логотип */}
-        <Link to="/home" className="flex-shrink-0">
-          <img src={logo} alt="Вікна Стиль" className="h-[35px] w-auto" />
+        {/* Логотип — зменшуємо висоту на мобільних */}
+        <Link to="/home" className="flex-shrink-0 items-center flex ">
+          <img 
+            src={logo} 
+            alt="Вікна Стиль" 
+            className="h-[25px] md:h-[35px] w-auto transition-all" 
+          />
         </Link>
 
         {/* Права частина */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 md:gap-6">
           
-          {/* Перемикач теми */}
-          {/* <button 
-            onClick={toggleTheme} 
-            className="text-[#44403E] text-lg hover:scale-110 transition-transform flex items-center justify-center"
-            title="Змінити тему"
-          >
-            <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
-          </button> */}
-
-          {/* Роздільник (опціонально, для стилю) */}
-          {/* <div className="h-8 w-[1px] bg-gray-200"></div> */}
-
           {/* Кнопка входу */}
           <button
             onClick={() => navigate("/login")}
-            className="flex items-center  font-bold ] transition-colors"
+            className="flex items-center justify-end font-bold transition-all hover:opacity-80"
             title="Увійти"
           >
-            {/* <span className="text-sm">Увійти</span> */}
-            <img src={exitIcon} alt="Вихід" className="w-[20px] h-[20px] object-contain" />
+            <img 
+              src={exitIcon} 
+              alt="Увійти" 
+              className="w-[20px] md:h-[20px] md:w-[20px] md:h-[20px] object-contain" 
+            />
           </button>
           
         </div>

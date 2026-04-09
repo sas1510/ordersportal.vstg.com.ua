@@ -324,7 +324,7 @@
 //     </div>
 //   );
 // }
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import "./HomePage.css";
 
 import { motion , useScroll, useTransform } from "framer-motion";
@@ -407,6 +407,22 @@ export default function Dashboard() {
   const plantIcon = "/assets/icons/PlantIcon.png";
   const windowIcon = "/assets/icons/WindowIcon.png";
   const handshake = "/assets/icons/Handshake.png";
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Функція для перевірки ширини екрана
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 850); // 768px - це стандартний поріг 'md' у Tailwind
+    };
+
+    // Викликаємо при монтуванні
+    handleResize();
+
+    // Додаємо слухача подій
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
     const statCards = [
     {
@@ -536,48 +552,47 @@ export default function Dashboard() {
   const safetyIcon = "/assets/icons/SafetyIcon.png";
 
   const features = [
-    {
-      id: 1,
-      icon: aesteticIcon,
-      iconAlt: "Aestetic icon",
-      iconClass: "absolute top-4 left-[93px] w-[93px] h-[80px]  object-contain",
-      title: "ЕСТЕТИКА",
-      titleLeft: "left-0",
-      description: "Сучасний дизайн",
-      descLeft: "left-0",
-    },
-    {
-      id: 2,
-      icon: qualityIcon,
-      iconAlt: "Quality icon",
-      iconClass: "absolute top-0 left-[404px] w-[85px] h-[100px] object-contain",
-      title: "ЯКІСТЬ",
-      titleLeft: "left-[307px]",
-      description: "Європейські стандарти",
-      descLeft: "left-[307px]",
-    },
-    {
-      id: 3,
-      icon: costIcon,
-      iconAlt: "Cost icon",
-      iconClass: "absolute top-2.5 left-[709px] w-[90px] h-[80px] object-contain",
-      title: "НАЙКРАЩА ЦІНА",
-      titleLeft: "left-[614px]",
-      description: "Власне виробництво",
-      descLeft: "left-[614px]",
-    },
-    {
-      id: 4,
-      icon: safetyIcon,
-      iconAlt: "Safety icon",
-      iconClass: "absolute top-0 left-[1019px] w-[86px] h-[100px] object-contain",
-      title: "БЕЗПЕКА",
-      titleLeft: "left-[922px]",
-      description: "Надійний захист",
-      descLeft: "left-[922px]",
-    },
-  ];
-
+  {
+    id: 1,
+    icon: aesteticIcon,
+    iconAlt: "Aestetic icon",
+    iconClass: "w-[93px] h-[80px]", 
+    title: "ЕСТЕТИКА",
+    mdLeft: "md:left-0",
+    description: "Сучасний дизайн",
+    mobileOrder: "max-md:order-1",
+  },
+  {
+    id: 2,
+    icon: qualityIcon,
+    iconAlt: "Quality icon",
+    iconClass: "w-[85px] h-[100px]",
+    title: "ЯКІСТЬ",
+    mdLeft: "md:left-[25.5%]", 
+    description: "Європейські стандарти",
+    mobileOrder: "max-md:order-3",
+  },
+  {
+    id: 3,
+    icon: costIcon,
+    iconAlt: "Cost icon",
+    iconClass: "w-[90px] h-[80px]",
+    title: "НАЙКРАЩА ЦІНА",
+    mdLeft: "md:left-[51.1%]", 
+    description: "Власне виробництво",
+    mobileOrder: "max-md:order-2",
+  },
+  {
+    id: 4,
+    icon: safetyIcon,
+    iconAlt: "Safety icon",
+    iconClass: "w-[86px] h-[100px]",
+    title: "БЕЗПЕКА",
+    mdLeft: "md:left-[76.7%]", 
+    description: "Надійний захист",
+    mobileOrder: "max-md:order-4",
+  },
+];
   const fadeUp = {
       hidden: { 
         opacity: 0, 
@@ -624,43 +639,53 @@ export default function Dashboard() {
           className="hero-text-block"
         >
           <div className="hero-welcome">Вітаємо на порталі замовлень</div>
-          <h1 className="font-['Inter'] font-[1000] text-[40px] leading-[100%] tracking-normal text-center w-full max-w-[627px] mx-auto text-white">
+          <h1 className="font-['Inter'] font-[1000] text-[24px] md:text-[40px] leading-[100%] tracking-normal text-center w-full max-w-[627px] mx-auto text-white">
             Професійні Віконні Системи <br />
             для Європейського Ринку
           </h1>
-          <div className="hero-divider"></div>
+   
         </motion.div>
 
         {/* СІТКА СТАТИСТИКИ */}
-        <div className="stats-grid">
-          {statsData.map((stat, idx) => (
-             <motion.div 
-              key={stat.id}
-              className="stat-card"
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              custom={idx}
-            >
-              {/* Ваша картинка замість іконки */}
-              <div className="stat-image-wrapper">
-                <img src={stat.image} alt={stat.label} className="stat-custom-img" />
-              </div>
-              
-              <div className="stat-value">
-                {stat.isJSX ? (
-                  <span>
-                    16 000 <small className="text-[20px]">м²</small>
-                  </span>
-                ) : (
-                  stat.value
-                )}
-              </div>
-              <div className="stat-label">{stat.label}</div>
-            </motion.div>
-          ))}
-        </div>
+       {/* СІТКА СТАТИСТИКИ */}
+<div className="stats-grid grid grid-cols-2 md:flex md:flex-row md:justify-center gap-4 md:gap-10 px-4">
+  {statsData.map((stat, idx) => (
+    <motion.div 
+      key={stat.id}
+      className="stat-card flex flex-col items-center justify-center text-center"
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
+      custom={idx}
+    >
+      {/* Обгортка іконки */}
+      <div className="stat-image-wrapper mb-2 md:mb-4">
+        <img 
+          src={stat.image} 
+          alt={stat.label} 
+          className="stat-custom-img w-[50px] h-[50px] md:w-[80px] md:h-[80px] object-contain" 
+        />
+      </div>
+      
+      {/* Значення */}
+      <div className="stat-value font-black text-[24px] md:text-[40px] text-white leading-none">
+        {stat.isJSX ? (
+          <span className="flex items-baseline justify-center gap-1">
+            16 000 <small className="text-[14px] md:text-[20px]">м²</small>
+          </span>
+        ) : (
+          stat.value
+        )}
+      </div>
+
+      {/* Підпис */}
+      <div className="stat-label font-['Inter'] font-normal text-[12px] md:text-[18px] text-white opacity-90 mt-1 md:mt-2">
+        {stat.label}
+      </div>
+    </motion.div>
+  ))}
+</div>
 
         {/* СТРІЛКА ВНИЗ */}
         <motion.div
@@ -683,69 +708,127 @@ export default function Dashboard() {
       </div>
     </section>
 
-    <section className="relative w-full flex justify-center bg-[#F0F4DB] overflow-hidden">
-    
-      <div className="relative w-[1440px] h-[514px] flex-shrink-0">
-
-        <div className="top-[68px] left-[427px] w-[586px] font-['Inter'] font-[900]  text-[32px] text-center text-variable-collection-WS-darkgrey whitespace-nowrap absolute text-[#44403E] tracking-[0] leading-normal" 
-           style={{ WebkitTextStroke: '1px #44403E' }}>
-          Виробничі Потужності
-        </div>
-
-
-
-        <div className="top-[299px] left-[120px] w-[279px] font-['Inter'] font-black text-[32px] text-center absolute text-[#44403E] tracking-[0] leading-tight" 
-           style={{ WebkitTextStroke: '1px #44403E' }}>
-          Технологічний <br /> Цикл
-        </div>
-
-        {/* Картки статистики */}
-        {statCards.map((card, index) => (
-  <motion.div
-    key={card.id}
-    variants={fadeUp}
+{isMobile ? (
+      /* 1. МОБІЛЬНА ВЕРСІЯ */
+      <section className="w-full bg-[#F0F4DB] py-12 px-4 overflow-hidden">
+  <motion.div 
     initial="hidden"
     whileInView="visible"
-    viewport={{ once: true }}
-    custom={index}
+    viewport={{ once: true, amount: 0.2 }}
+    className="w-full flex flex-col items-center"
   >
-    <div className={card.bgClass} />
-    <img
-      className={card.iconClass}
-      alt={card.iconAlt}
-      src={card.icon}
-    />
-    <div className={card.valueClass}>{card.value}</div>
-    <div className={card.labelClass}>{card.label}</div>
-  </motion.div>
-))}
-
-        {/* Інформаційні блоки (Завод та Географія) */}
-       {infoItems.map((item, index) => (
-        <motion.div
-          key={item.iconAlt}
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          custom={index}
+    {/* Заголовок з появою зверху */}
+    <motion.h2 
+      variants={{
+        hidden: { opacity: 0, y: -20 },
+        visible: { opacity: 1, y: 0 }
+      }}
+      transition={{ duration: 0.6 }}
+      className="font-['Inter'] font-[900] text-[24px] text-[#44403E] text-center mb-8 uppercase"
+      style={{ WebkitTextStroke: '1px #44403E' }}
+    >
+      Виробничі Потужності
+    </motion.h2>
+    
+    {/* Список інфо-елементів з каскадною появою зліва */}
+    <div className="w-full flex flex-col gap-6 mb-10">
+      {infoItems.map((item, index) => (
+        <motion.div 
+          key={`mob-info-${index}`} 
+          variants={{
+            hidden: { opacity: 0, x: -30 },
+            visible: { opacity: 1, x: 0 }
+          }}
+          transition={{ delay: index * 0.2, duration: 0.5 }}
+          className="flex items-start gap-4"
         >
-          <img
-            className={item.iconClass}
-            alt={item.iconAlt}
-            src={item.icon}
-          />
-          <p className={item.textClass}>{item.text}</p>
+          <img src={item.icon} alt="" className="w-10 h-10 mr-2 shrink-0 object-contain" />
+          <p className="font-['Inter'] text-[16px] text-[#44403E] leading-tight">{item.text}</p>
         </motion.div>
       ))}
-      </div>
-    </section>
+    </div>
 
-      {/* Values Section */}
-      <section className="w-full py-20 flex justify-center bg-white">
-  {/* Центруючий контейнер згідно з макетом */}
-  <div className="relative max-w-[1201px] w-full h-[198px] flex-shrink-0">
+    {/* Другий заголовок */}
+    <motion.h3 
+      variants={{
+        hidden: { opacity: 0, scale: 0.95 },
+        visible: { opacity: 1, scale: 1 }
+      }}
+      className="font-['Inter'] font-[900] text-[24px] text-[#44403E] mb-6 uppercase" 
+      style={{ WebkitTextStroke: '1px #44403E' }}
+    >
+      Технологічний Цикл
+    </motion.h3>
 
+    {/* Картки статистики з ефектом "спливання" знизу */}
+    <div className="flex flex-col gap-6 w-full">
+      {statCards.map((card, index) => (
+        <motion.div 
+          key={`mob-card-${card.id}`} 
+          variants={{
+            hidden: { opacity: 0, y: 30 },
+            visible: { opacity: 1, y: 0 }
+          }}
+          transition={{ delay: index * 0.15, duration: 0.5 }}
+          whileTap={{ scale: 0.98 }} // Ефект натискання для мобілки
+          className="bg-white p-4 rounded-sm shadow-sm flex items-center gap-4"
+        >
+          <img src={card.icon} alt="" className="w-10 mr-3 h-10 object-contain" />
+          <div>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: index * 0.2 + 0.3 }}
+              className="font-black text-[22px] text-[#44403E]"
+            >
+              {card.value}
+            </motion.div>
+            <div className="text-[12px] opacity-70 uppercase">{card.label}</div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </motion.div>
+</section>
+    ) : (
+      /* 2. ДЕСКТОП ВЕРСІЯ */
+      <section className="relative w-full flex justify-center bg-[#F0F4DB] overflow-hidden py-20 min-h-[600px]">
+        <div className="w-full flex justify-center">
+          <div className="relative w-[1440px] flex-shrink-0 origin-top scale-[0.7] lg:scale-[0.8] xl:scale-100">
+            
+            <div className="absolute top-[68px] left-[427px] w-[586px] font-['Inter'] font-[900] text-[32px] text-center text-[#44403E] uppercase"
+                 style={{ WebkitTextStroke: '1px #44403E' }}>
+              Виробничі Потужності
+            </div>
+
+            <div className="absolute top-[299px] left-[120px] w-[279px] font-['Inter'] font-black text-[32px] text-center text-[#44403E] leading-tight uppercase"
+                 style={{ WebkitTextStroke: '1px #44403E' }}>
+              Технологічний <br /> Цикл
+            </div>
+
+            {statCards.map((card, index) => (
+              <motion.div key={`desk-card-${card.id}`} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={index}>
+                <div className={card.bgClass} />
+                <img className={card.iconClass} alt={card.iconAlt} src={card.icon} />
+                <div className={card.valueClass}>{card.value}</div>
+                <div className={card.labelClass}>{card.label}</div>
+              </motion.div>
+            ))}
+
+            {infoItems.map((item, index) => (
+              <motion.div key={`desk-info-${index}`} variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} custom={index}>
+                <img className={item.iconClass} alt={item.iconAlt} src={item.icon} />
+                <div className={item.textClass}>{item.text}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+<section className="w-full py-10 md:py-24 flex justify-center bg-white px-4 overflow-hidden">
+  <div className="relative max-w-[1201px] w-full grid grid-cols-2 gap-y-16 gap-x-4 md:block md:h-[200px]">
+    
     {features.map((feature, index) => (
       <motion.div
         key={feature.id}
@@ -754,59 +837,47 @@ export default function Dashboard() {
         whileInView="visible"
         viewport={{ once: true }}
         custom={index}
+        className={`
+          relative flex flex-col items-center 
+          ${feature.mobileOrder} 
+          md:absolute md:top-0 ${feature.mdLeft} 
+          md:w-[23.2%]
+        `}
       >
-        {/* Іконка */}
-        <img
-          className={`${feature.iconClass} 
-          max-md:scale-75 
-          max-sm:scale-65`}
-          alt={feature.iconAlt}
-          src={feature.icon}
-        />
+        {/* Контейнер для іконки - тепер він жорстко центруючий */}
+        <div className="flex items-end justify-center w-full h-[100px] mb-4 md:mb-0">
+          <img
+            className={`
+              ${feature.iconClass} 
+              scale-75 sm:scale-90 md:scale-100 
+              object-contain
+            `}
+            alt={feature.iconAlt}
+            src={feature.icon}
+          />
+        </div>
 
         {/* Заголовок */}
-        <div
-          className={`
-            absolute 
-            top-[131px] 
-            ${feature.titleLeft} 
-            w-[279px] 
-            font-['Inter'] 
-            font-[900] 
-            text-3xl 
-            max-md:text-xl 
-            max-sm:text-lg
-            text-[#44403E] 
-            text-center 
-            uppercase 
-            tracking-tight
-          `}
-        >
+        <div className="
+          md:absolute md:top-[135px] w-full 
+          font-['Inter'] font-black /* Використовуємо стандартний Tailwind клас для 900+ */
+          text-base sm:text-lg md:text-[clamp(1.1rem,1.7vw,1.875rem)] 
+          text-[#44403E] text-center uppercase tracking-tighter leading-none
+        " style={{ WebkitTextStroke: '0.5px #44403E' }}>
           {feature.title}
         </div>
 
         {/* Опис */}
-        <div
-          className={`
-            absolute 
-            top-[171px] 
-            ${feature.descLeft} 
-            w-[279px] 
-            font-['Inter'] 
-            font-normal 
-            text-[22px] 
-            max-md:text-[16px]
-            max-sm:text-[14px]
-            text-[#44403E] 
-            text-center
-          `}
-        >
+        <div className="
+          md:absolute md:top-[175px] w-full 
+          font-['Inter'] font-normal 
+          text-sm sm:text-base md:text-[clamp(0.9rem,1.2vw,1.375rem)] 
+          text-[#44403E] text-center mt-1 md:mt-0 opacity-90
+        ">
           {feature.description}
         </div>
-
       </motion.div>
     ))}
-
   </div>
 </section>
       {/* Media Section */}
@@ -814,7 +885,7 @@ export default function Dashboard() {
         <div className="max-w-8xl mx-auto px-12 relative"> 
           
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-['Inter'] font-bold text-white">Медіа-Огляд</h2>
+            <h2 className="text-xl md:text-3xl font-['Inter'] font-bold text-white">Медіа-Огляд</h2>
           </div>
       
           {/* Кнопки навігації (залишаємо вашу логіку) */}
@@ -857,13 +928,17 @@ export default function Dashboard() {
                 >
                   {/* Контейнер з фіксованим співвідношенням 9:16 */}
                   <div className="aspect-[9/16] w-full  overflow-hidden ">
-                    <iframe
-                      src={`https://www.tiktok.com/embed/${videoId}`}
-                      className="w-full h-full border-0"
-                      title={`tiktok-video-${index}`}
-                      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
+                     <iframe
+            // 2. Використовуємо v2 та посилання без зайвих параметрів
+            src={`https://www.tiktok.com/embed/v2/${videoId}`}
+            className="w-full h-full border-0"
+            title={`tiktok-video-${index}`}
+            // 3. Повний набір дозволів
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; visibility"
+            allowFullScreen
+            // 4. ПРАВИЛЬНИЙ sandbox (без allow-all-origin)
+            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          ></iframe>
                   </div>
                 </div>
               );
@@ -894,7 +969,7 @@ export default function Dashboard() {
         </div>
       </section> */}
      <motion.section 
-  className="w-full pt-[60px] pb-[140px] flex justify-center bg-white"
+className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px] pb-[50px] flex justify-center bg-white"
   style={{borderTop: '4px solid #B4D947'}}
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
@@ -910,55 +985,36 @@ export default function Dashboard() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: 0.1, duration: 0.6 }}
-      className="w-[120px] h-[88px] object-cover aspect-[1.37] 
-      max-md:w-[90px] 
-      max-sm:w-[70px]"
+      className="w-[120px] h-[88px] object-cover aspect-[1.37] "
       alt="Партнерство"
       src={handshake}
     />
 
     {/* Головний слоган */}
-    <motion.h2
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: 0.2, duration: 0.6 }}
-      className="mt-[23px] 
-      font-['Inter'] 
-      font-[900] 
-      text-[32px] 
-      max-md:text-[24px]
-      max-sm:text-[20px]
-      text-[#44403E] 
-      text-center 
-      uppercase 
-      tracking-tight 
-      leading-tight"
-    >
-      Двері, які відкривають світ <br />
-      успішного партнерства
-    </motion.h2>
+    {/* Головний слоган */}
+<motion.h2
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: 0.2, duration: 0.6 }}
+  className="mt-[23px] font-['Inter'] font-[900] text-[20px] sm:text-[24px] md:text-[32px] text-[#44403E] text-center uppercase tracking-tight leading-[1.1]"
+  style={{ WebkitTextStroke: '0.5px #44403E' }}
+>
+  Двері, які відкривають світ <br className="max-sm:hidden" />
+  успішного партнерства
+</motion.h2>
 
-    {/* Опис */}
-    <motion.p
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: 0.3, duration: 0.6 }}
-      className="mt-4 
-      w-full 
-      font-['Inter'] 
-      font-normal 
-      text-[22px] 
-      max-md:text-[18px]
-      max-sm:text-[16px]
-      text-[#44403E] 
-      text-center 
-      leading-tight"
-    >
-      Станьте частиною надійної дилерської мережі "Вікна Стиль". <br />
-      18 років досвіду та європейські стандарти якості для вашого бізнесу.
-    </motion.p>
+{/* Опис */}
+<motion.p
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ delay: 0.3, duration: 0.6 }}
+  className="mt-4 w-full font-['Inter'] font-normal text-[15px] md:text-[18px] lg:text-[22px] text-[#44403E] text-center leading-tight"
+>
+  Станьте частиною надійної дилерської мережі "Вікна Стиль". <br className="max-sm:hidden" />
+  18 років досвіду та європейські стандарти якості для вашого бізнесу.
+</motion.p>
 
   </div>
 </motion.section>

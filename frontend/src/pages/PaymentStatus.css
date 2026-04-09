@@ -32,7 +32,7 @@
   );
   height: 100vh;
   width: 100%;
-  padding-top: 70px;
+  padding-top: 140px;
   padding-bottom: 60px;
 
   /* Адаптивні відступи зліва і справа */
@@ -839,7 +839,7 @@ span.td-date {
 @media (max-width: 1050px) {
   /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
   .payments-body {
-    padding-top: 60px;
+    padding-top: 140px;
     padding-bottom: 40px;
     padding-left: 8px !important;
     padding-right: 8px !important;
@@ -982,6 +982,6 @@ span.td-date {
 @media (max-width: 768px) {
   .payments-body {
     padding-bottom: 25px !important;
-    padding-top: 50px !important;
+    padding-top: 140px !important;
   }
 }

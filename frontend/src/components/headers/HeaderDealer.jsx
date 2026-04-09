@@ -1928,11 +1928,11 @@ useEffect(() => {
   return (
     <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
   {/* 1. Декоративна смуга  -- ДОДАНО: Декоративна смуга вгорі --видалено mt-32 */}
-  {!isMobile && <div className="w-full max-w-[1334px] h-[30px] bg-[#B4D947] rounded-t-sm" />} 
+<div className="w-full max-w-[1334px] h-2 md:h-[30px] bg-[#B4D947] rounded-t-sm" />
 
   {/* 2. Основна панель */}
-  <div className={`w-full max-w-[1334px] h-[70px] bg-white flex items-center shadow-md relative 
-    ${!isMobile ? "rounded-bl-[25px] rounded-br-[25px]" : "mt-0"}`}>
+  <div className={`w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center shadow-md relative 
+ rounded-bl-[25px] rounded-br-[25px]`}>
     
     {/* Логотип - фіксована ширина, щоб не заважав розтягуванню */}
     <Link to="/dashboard" className="ml-[33px] flex-shrink-0 mr-4">
@@ -2060,25 +2060,49 @@ useEffect(() => {
 
         ) : (
           /* МОБІЛЬНЕ МЕНЮ */
-          <div className="ml-auto flex items-center px-4 gap-4" ref={mobileMenuRef}>
-             <div className="relative" onClick={() => setIsNotificationOpen(true)}>
-                <i className="far fa-bell text-xl"></i>
-                {unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-[#B4D947] text-[10px] px-1 rounded-full">{unreadCount}</span>}
-             </div>
-             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-2xl">☰</button>
-             
-             {mobileMenuOpen && (
-               <div className="absolute top-[70px] left-0 w-full bg-white shadow-2xl p-4 flex flex-col gap-2 z-[2000]">
-                  {NAV_LINKS.map(link => (
-                    <Link key={link.to} to={link.to} className="p-3 border-b font-bold">{link.title}</Link>
-                  ))}
-                  <div className="font-bold p-3 text-[#6B98BF]">Фінанси:</div>
-                  {FINANCE_SUBMENU.map(item => (
-                    <Link key={item.to} to={item.to} className="p-2 pl-6 text-sm">{item.title}</Link>
-                  ))}
-                  <button onClick={() => {logout(); navigate("/home")}} className="p-3 text-red-500 font-bold text-left">Вийти</button>
-               </div>
-             )}
+        <div className="ml-auto flex items-center gap-5 mr-4" ref={mobileMenuRef}>
+            {/* Дзвоник сповіщень */}
+             <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
+              <img src={bellIcon} alt="Сповіщення" className="w-[20px] h-[20px] object-contain" />
+              {unreadCount > 0 && (
+                <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B4D947] rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-[#44403E] text-[9px] font-black">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Бургер-кнопка (замість кнопки виходу) */}
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
+              className="text-[#44403E] text-2xl focus:outline-none"
+            >
+              {mobileMenuOpen ? "✕" : "☰"}
+            </button>
+            
+            {/* Випадаюче меню мобілки */}
+            {mobileMenuOpen && (
+              <div className="absolute top-[48px] left-0 w-full bg-white shadow-2xl p-4 flex flex-col gap-1 z-[2000] rounded-b-[15px]">
+                 {NAV_LINKS.map(link => (
+                   <Link key={link.to} to={link.to} className={`p-3 border-b text-[15px] ${link.highlight ? "text-[#6B98BF] font-bold" : "text-[#44403E]"}`} onClick={() => setMobileMenuOpen(false)}>
+                     {link.title}
+                   </Link>
+                 ))}
+                 <div className="font-bold p-3 text-[13px] text-gray-400 uppercase tracking-wider">Фінанси</div>
+                 {FINANCE_SUBMENU.map(item => (
+                   <Link key={item.to} to={item.to} className="p-3 pl-6 text-[14px] text-[#44403E] border-b last:border-0" onClick={() => setMobileMenuOpen(false)}>
+                     {item.title}
+                   </Link>
+                 ))}
+                 <div className="flex justify-between items-center p-3 mt-2">
+                    <button onClick={() => {logout(); navigate("/home")}} className="text-red-500 font-bold">Вийти</button>
+                    <button onClick={toggleTheme} className="text-xl">
+                      <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
+                    </button>
+                 </div>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 /* ===== ОСНОВНИЙ КОНТЕЙНЕР ===== */
 .login-page {
-  height: calc(100vh);
+  height: calc(100vh); /* + відступ зверху */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,7 +10,7 @@
   width: 100%;
 
   /* Адаптивні відступи зліва і справа */
-  padding-top: 100px; /* Достатньо відступу зверху для мобільних пристроїв */
+  /* padding-top: 100px; Достатньо відступу зверху для мобільних пристроїв */
   padding-left: clamp(5px, 5vw, 100px);
   padding-right: clamp(5px, 5vw, 100px);
 
@@ -229,7 +229,7 @@
 
 /* Статистика */
 /* Статистика */
-.stats-grid {
+.stats-grid-login {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 5px;
@@ -598,7 +598,7 @@
     font-size: 1rem;
   }
 
-  .stats-grid {
+  .stats-grid-login {
     margin-top: 2rem;
   }
 
@@ -1069,7 +1069,7 @@
 @media (max-width: 767px) {
   /* Контейнер всієї сторінки */
   .login-page {
-    height: 102vh;
+    /* height: calc(100vh + 58px);  */
     padding: 20px;
     padding-top: 150px;
     overflow-y: auto;
@@ -1119,7 +1119,7 @@
     display: none;
   }
 
-  .stats-grid {
+  .stats-grid-login {
     display: none !important;
   }
 
@@ -1157,6 +1157,10 @@
   .password-toggle {
     font-size: 1rem;
     right: 0.8rem;
+  }
+
+  .form-subtitle {
+    display: none;
   }
 
   .energy-line {

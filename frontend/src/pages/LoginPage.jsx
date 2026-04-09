@@ -144,7 +144,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="stats-grid">
+                <div className="stats-grid-login">
                   <div className="stat-item">
                     <i className="fa fa-magic stat-icon"></i>
                     <div className="stat-label">Естетика</div>

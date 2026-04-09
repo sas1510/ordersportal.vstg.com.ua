@@ -308,8 +308,8 @@ body {
   );
   height: 100vh;
   width: 100%;
-  padding-top: 60px;
-  padding-bottom: 50px;
+  padding-top: 130px;
+  /* padding-bottom: 50px; */
 
   /* Адаптивні відступи зліва і справа */
   padding-left: clamp(5px, 5vw, 100px);
@@ -1971,7 +1971,7 @@ html {
   }
 
   .portal-body {
-    padding-top: 60px !important;
+    padding-top: 130px !important;
     padding-bottom: 50px !important;
     padding-left: 15px !important;
     padding-right: 15px !important;
@@ -2160,7 +2160,7 @@ html {
   }
   /* Контейнери */
   .portal-body {
-    padding-top: 60px !important;
+    padding-top: 130px !important;
     padding-bottom: 50px !important;
     padding-left: 5px !important;
     padding-right: 5px !important;
@@ -2398,8 +2398,8 @@ ul.month-list {
 
 @media (max-width: 768px) {
   .portal-body {
-    padding-bottom: 25px !important;
-    padding-top: 50px !important;
+    /* padding-bottom: 25px !important; */
+    padding-top: 130px !important;
   }
   .portal-body .content-filter.open {
     margin-top: 50px !important ;

@@ -35,7 +35,7 @@
 /* Hero Section */
 .hero-section {
   position: relative;
-  height: 100vh;
+  height: calc(100vh + 132px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,13 +118,6 @@
   }
 }
 
-.stat-card {
-  /* background-color: rgba(255, 255, 255, 0.05); */
-  /* backdrop-filter: blur(4px); */
-  /* border: 1px solid rgba(255, 255, 255, 0.1); */
-  padding: 1.5rem;
-  /* border-radius: 0.25rem; */
-}
 
 .stat-icon {
   font-size: 1.5rem;
@@ -827,4 +820,89 @@ body.dark-theme .scroll-indicator {
   font-size: 22px;
   color: white;
   opacity: 0.9;
+}
+
+
+/* Hero Section адаптивність */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.stats-grid {
+  margin-top: 3rem;
+  z-index: 10;
+}
+
+/* Стилі для мобільних карток (як на макеті) */
+@media (max-width: 768px) {
+  .stat-card {
+
+    min-height: 100%;
+    width: 100%;
+  }
+
+  .stat-value {
+    font-size: 1.5rem !important;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 0.7rem !important;
+    line-height: 1.2;
+    opacity: 0.9;
+  }
+
+  .stat-custom-img {
+    width: 40px !important;
+    height: 40px !important;
+    margin-bottom: 8px;
+  }
+
+
+
+  .hero-welcome {
+    font-size: 16px;
+    margin-bottom: 6px;
+
+  }
+  
+
+  .stats-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 0 !important; 
+    padding-top: 10px; 
+  }
+
+
+  .stat-image-wrapper {
+    height: 80px; 
+    margin-bottom: 8px;
+  }
+
+ 
+
+}
+
+/* Десктопні стилі (повертаємо як було) */
+@media (min-width: 769px) {
+  .stats-grid {
+    display: flex;
+    justify-content: space-around;
+    gap: 2rem;
+  }
+  
+  .stat-card {
+    flex: 1;
+    max-width: 250px;
+  }
+
+  
 }
