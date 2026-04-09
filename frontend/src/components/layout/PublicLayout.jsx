@@ -24,8 +24,9 @@ const styles = {
   },
   main: {
     flexGrow: 1,
-    paddingTop: "60px", // приблизно висота Header
-    paddingBottom: "40px",
+    // paddingTop: "60px", // приблизно висота Header
+    // paddingBottom: "40px",
+    marginTop: "-132px", 
     overflow: "auto", // приблизно висота Footer
   },
 };

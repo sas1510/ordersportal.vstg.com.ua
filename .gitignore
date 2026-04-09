@@ -39,3 +39,9 @@ staticfiles/
 
 # Socket / temporary
 =backend.sock
+
+
+*.mp4
+*.mov
+*.avi
+/src/assets/videos/

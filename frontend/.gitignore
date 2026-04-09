@@ -29,3 +29,9 @@ dist-ssr
 # Celery Beat schedule files
 celerybeat-schedule
 celerybeat-schedule.*
+
+
+*.mp4
+*.mov
+*.avi
+/src/assets/videos/

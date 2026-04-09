@@ -2,7 +2,7 @@
 
 /* ===== ОСНОВНИЙ КОНТЕЙНЕР ===== */
 .login-page {
-  height: calc(100vh - 100px);
+  height: calc(100vh);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,6 +10,7 @@
   width: 100%;
 
   /* Адаптивні відступи зліва і справа */
+  padding-top: 100px; /* Достатньо відступу зверху для мобільних пристроїв */
   padding-left: clamp(5px, 5vw, 100px);
   padding-right: clamp(5px, 5vw, 100px);
 
@@ -1068,9 +1069,9 @@
 @media (max-width: 767px) {
   /* Контейнер всієї сторінки */
   .login-page {
-    height: auto;
+    height: 102vh;
     padding: 20px;
-    padding-top: 40px;
+    padding-top: 150px;
     overflow-y: auto;
   }
 
