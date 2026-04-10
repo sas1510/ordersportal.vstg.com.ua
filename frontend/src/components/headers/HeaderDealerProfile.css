@@ -50,14 +50,14 @@
 
 /* Лінія розділювач */
 .profile-separator-line {
-    height: 1px;
-    background-color: #D1D5DB; /* Альтернатива картинці line1 */
+    height: 2px;
+    border-top: 1px dashed #D1D5DB;
     left: 16px;
     position: absolute;
     top: 35px;
     width: 151px;
     z-index: 2;
-    
+
 }
 
 /* Текст: Сума балансу */

@@ -580,7 +580,7 @@ export default function Dashboard() {
     title: "НАЙКРАЩА ЦІНА",
     mdLeft: "md:left-[51.1%]", 
     description: "Власне виробництво",
-    mobileOrder: "max-md:order-2",
+    mobileOrder: "max-md:order-4",
   },
   {
     id: 4,
@@ -590,7 +590,7 @@ export default function Dashboard() {
     title: "БЕЗПЕКА",
     mdLeft: "md:left-[76.7%]", 
     description: "Надійний захист",
-    mobileOrder: "max-md:order-4",
+    mobileOrder: "max-md:order-2",
   },
 ];
   const fadeUp = {
@@ -620,8 +620,10 @@ export default function Dashboard() {
         muted
         playsInline
         className="hero-video-bg"
-        poster="/assets/video/hero-poster.jpg"
+        poster="/assets/video/hero-poster.jpg" // Обов'язково додайте "заглушку"
+        preload="auto"
       >
+        <source src="/assets/video/hero-background-1.webm" type="video/webm" />
         <source src="/assets/video/hero-background-1.mp4" type="video/mp4" />
       </video>
 

@@ -1764,6 +1764,9 @@ import { useNotification } from "../../hooks/useNotification";
 import NotificationDrawer from "../../pages/NotificationPage";
 import HeaderDealerProfile from "./HeaderDealerProfile";
 import logo from "../../assets/icons/logo-vst.svg";
+import "./HeaderDealerProfile.css";
+
+
 
 const NAV_LINKS = [
   { title: "Акції WDS", to: "/promo-wds-codes", highlight: true },
@@ -1780,6 +1783,9 @@ const FINANCE_SUBMENU = [
   { title: "Аналітика", to: "/finance/statistics" },
   { title: "Рахунки", to: "/finance/customer-bills" },
 ];
+
+
+const BALANCE_CACHE_KEY = "dealer_balance_cache";
 
 export default function HeaderDealer() {
   const isMobile = useMediaQuery({ maxWidth: 1180 });
@@ -1800,6 +1806,8 @@ export default function HeaderDealer() {
 
   const profileRef = useRef();
 
+  
+
   const bellIcon = "/assets/icons/bell-icon.png"; 
   const exitIcon = "/assets/icons/exit-icon.png";
 
@@ -1808,6 +1816,10 @@ export default function HeaderDealer() {
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
   const financeRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const moneyIcon = "/assets/icons/MoneyIconSubMenu.png"; // Перевірте, чи папка називається icon чи icons
+  const profileIcon = "/assets/icons/ProfileIconSubMenu.png";
+  const closeIcon = "/assets/icons/CloseButton.png";
+  const polygonIcon = "/assets/icons/PolygonOpenProfileSubmenu.png";
 
   /* ================= ЗАВАНТАЖЕННЯ ДАНИХ (HTTP) ================= */
   const fetchInitialData = useCallback(async () => {
@@ -1822,6 +1834,57 @@ export default function HeaderDealer() {
       console.error("Помилка завантаження сповіщень:", err);
     }
   }, []);
+
+
+
+
+  // 1. Отримання даних з кешу
+  const cached = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(BALANCE_CACHE_KEY));
+    } catch {
+      return null;
+    }
+  })();
+
+  const [balance, setBalance] = useState(cached?.sum ?? 0);
+  const [fullName, setFullName] = useState(cached?.full_name ?? "Завантаження...");
+
+  // 2. Фонове оновлення через API
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchBalance() {
+      try {
+        const response = await axiosInstance.get("/balance/");
+        const data = response.data;
+
+        if (!isMounted) return;
+
+        setBalance(data.sum);
+        setFullName(data.full_name || "Дилер Ім'я");
+
+        localStorage.setItem(
+          BALANCE_CACHE_KEY,
+          JSON.stringify({
+            sum: data.sum,
+            full_name: data.full_name,
+            updatedAt: Date.now(),
+          })
+        );
+      } catch (error) {
+        console.error("Помилка отримання балансу:", error);
+      }
+    }
+
+    fetchBalance();
+    return () => { isMounted = false; };
+  }, []);
+
+  // 3. Форматування балансу
+  const formattedBalance = new Intl.NumberFormat("uk-UA", {
+    minimumFractionDigits: 0,
+  }).format(balance) + " грн";
 
   /* ================= WEBSOCKET LOGIC ================= */
   useEffect(() => {
@@ -1924,6 +1987,20 @@ useEffect(() => {
     setMobileMenuOpen(false);
     setProfileOpen(false);
   }, [location]);
+
+  // Додайте це до інших useEffect у вашому HeaderDealer
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    
+    // Очищення при розмонтуванні компонента
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [mobileMenuOpen]);
 
   return (
     <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
@@ -2082,28 +2159,151 @@ useEffect(() => {
             </button>
             
             {/* Випадаюче меню мобілки */}
-            {mobileMenuOpen && (
-              <div className="absolute top-[48px] left-0 w-full bg-white shadow-2xl p-4 flex flex-col gap-1 z-[2000] rounded-b-[15px]">
-                 {NAV_LINKS.map(link => (
-                   <Link key={link.to} to={link.to} className={`p-3 border-b text-[15px] ${link.highlight ? "text-[#6B98BF] font-bold" : "text-[#44403E]"}`} onClick={() => setMobileMenuOpen(false)}>
-                     {link.title}
-                   </Link>
-                 ))}
-                 <div className="font-bold p-3 text-[13px] text-gray-400 uppercase tracking-wider">Фінанси</div>
-                 {FINANCE_SUBMENU.map(item => (
-                   <Link key={item.to} to={item.to} className="p-3 pl-6 text-[14px] text-[#44403E] border-b last:border-0" onClick={() => setMobileMenuOpen(false)}>
-                     {item.title}
-                   </Link>
-                 ))}
-                 <div className="flex justify-between items-center p-3 mt-2">
-                    <button onClick={() => {logout(); navigate("/home")}} className="text-red-500 font-bold">Вийти</button>
-                    <button onClick={toggleTheme} className="text-xl">
-                      <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
-                    </button>
-                 </div>
-              </div>
-            )}
-          </div>
+           {/* Замінити блок мобільного меню всередині HeaderDealer.jsx */}
+
+{mobileMenuOpen && (
+  <div className="fixed inset-0 bg-black/40 z-[2000] ">
+    <div 
+      ref={mobileMenuRef}
+      className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full bg-white rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+    >
+      {/* Кнопка закриття — гнучка висота через padding */}
+      <div className=" flex items-center justify-end">
+        <button onClick={() => setMobileMenuOpen(false)} className="p-2">
+          <img src={closeIcon} alt="Закрити" className="w-[30px] h-[30px] object-contain" />
+        </button>
+      </div>
+
+
+      <div className="flex-grow overflow-y-auto w-full">
+       {/* Оновлений блок навігації всередині мобільного меню */}
+<nav className="flex flex-col w-full">
+  {NAV_LINKS.map((link) => {
+    const isActive = location.pathname === link.to;
+    return (
+      <div key={link.to} className="relative w-full group">
+        <Link
+          to={link.to}
+          className={`flex items-center w-full py-3 px-[15%] text-xl font-bold transition-colors ${
+            isActive 
+              ? "bg-[#6B98BF] text-[#FFFFFF]" // Стиль для активної вкладки
+              : "text-[#44403E] hover:bg-gray-50"
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          {link.title}
+        </Link>
+        <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dashed border-[#B4D947]" />
+      </div>
+    );
+  })}
+
+  {/* Секція Фінанси */}
+  <div className="relative flex flex-col w-full">
+    <button 
+      onClick={() => setShowFinanceMenu(!showFinanceMenu)}
+      className={`w-full py-3 px-[15%] flex items-center group ${
+        location.pathname.includes("/finance") ? "text-[#6B98BF]" : "text-[#44403E]"
+      }`}
+    >
+      <span className="text-xl font-bold">Фінанси</span>
+      <span className={`text-[12px] transition-transform ml-2 ${showFinanceMenu ? 'rotate-180' : ''}`}>▼</span>
+    </button>
+    
+    {showFinanceMenu && (
+      <div className="bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
+        {FINANCE_SUBMENU.map((sub) => {
+          const isSubActive = location.pathname === sub.to;
+          return (
+            <Link
+              key={sub.to}
+              to={sub.to}
+              className={`flex py-2 px-[10%] text-[16px] font-semibold border-b border-[#44403E]/20 border-dashed last:border-0 ${
+                isSubActive ? "bg-[#B4D947]/20 text-[#234461]" : "text-[#44403E]"
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {sub.title}
+            </Link>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</nav>
+          {/* Блок профілю та балансу — тепер клікабельний */}
+<div className="bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
+  {/* Верхня пунктирна лінія */}
+  <div className="absolute top-0 left-[5%] right-[5%]" />
+
+  {/* Секція Ім'я — Кнопка для відкриття підменю */}
+  <button 
+    onClick={() => setProfileOpen(!profileOpen)}
+    className="flex items-center px-[15%] gap-4 py-2 w-full hover:bg-gray-200/50 transition-colors"
+  >
+    <img className="object-contain mr-6" src={profileIcon} alt="profile" />
+    <div className="flex items-center justify-between flex-grow min-w-0">
+      <span className="text-[#234461] text-xl font-bold truncate">{fullName}</span>
+      <img 
+        className={`w-5 h-5 object-contain ml-2  transition-transform ${profileOpen ? 'rotate-180' : ''}`} 
+        src={polygonIcon} 
+        alt="polygon" 
+      />
+    </div>
+  </button>
+
+  {/* ВИПАДАЮЧЕ МЕНЮ (Згідно з вашим стилем h-44 макету) */}
+  {profileOpen && (
+    <div className="flex flex-col items-center w-full py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+      <div className="w-[75%] bg-white rounded-sm flex flex-col overflow-hidden">
+        <Link
+          to="/change-password"
+          className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50 border-b border-dashed border-[#B4D947]"
+          onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
+        >
+          Змінити пароль
+        </Link>
+        <Link
+          to="/emergency-contacts"
+          className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50"
+          onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
+        >
+          Гаряча лінія
+        </Link>
+      </div>
+    </div>
+  )}
+
+  {/* Середня пунктирна лінія */}
+  <div className="mx-[5%] border-t border-dashed border-[#44403E]/50" />
+
+  {/* Секція Балансу */}
+  <div className="flex items-center px-[15%] gap-4 py-3 pb-2">
+    <img className="object-contain mr-4" src={moneyIcon} alt="money" />
+    <span className="text-[#44403E] text-xl font-normal whitespace-nowrap">{formattedBalance}</span>
+  </div>
+</div>
+      </div>
+
+
+
+      {/* Кнопка Виходу */}
+      <div className="relative bg-white shrink-0 py-6 w-full">
+        <div className="absolute top-0 left-[5%] right-[5%] border-t border-dashed border-[#44403E]/50" />
+        <button 
+          onClick={() => { logout(); navigate("/home"); }}
+          className="flex items-center justify-center gap-3 w-full"
+        >
+          <img className="w-7 h-6 mr-2" src={exitIcon} alt="exit" />
+          <span className="text-[#44403E] text-xl font-bold">Вихід</span>
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+         </div>
         )}
       </div>
 

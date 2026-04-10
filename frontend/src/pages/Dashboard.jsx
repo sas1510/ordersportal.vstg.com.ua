@@ -1221,7 +1221,7 @@ export default function Dashboard() {
     title: "НАЙКРАЩА ЦІНА",
     mdLeft: "md:left-[51.1%]", 
     description: "Власне виробництво",
-    mobileOrder: "max-md:order-2",
+    mobileOrder: "max-md:order-4",
   },
   {
     id: 4,
@@ -1231,7 +1231,7 @@ export default function Dashboard() {
     title: "БЕЗПЕКА",
     mdLeft: "md:left-[76.7%]", 
     description: "Надійний захист",
-    mobileOrder: "max-md:order-4",
+    mobileOrder: "max-md:order-2",
   },
 ];
   const fadeUp = {

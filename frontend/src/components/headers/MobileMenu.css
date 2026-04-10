@@ -1,0 +1,118 @@
+/* MobileMenu.css */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 3000;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 350px;
+  background-color: white;
+  z-index: 3001;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif;
+}
+
+.drawer-promo-banner {
+  background-color: #6B98BF; /* WS-dark-blue */
+  height: 50px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  padding-left: 50px;
+  margin-top: 53px;
+  color: white;
+  font-weight: bold;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+.drawer-menu-item {
+  position: relative;
+  padding: 15px 50px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #44403E;
+  text-decoration: none;
+}
+
+.drawer-divider {
+  height: 1px;
+  background-color: #E0E0E0;
+  margin: 0 16px;
+}
+
+.drawer-finances-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 50px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #44403E;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.drawer-finances-sub {
+  background-color: #F0F4DB; /* WS-lightgreen */
+  margin-left: 50px;
+  margin-right: 49px;
+  padding: 5px 0;
+}
+
+.drawer-sub-item {
+  padding: 10px 21px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #44403E;
+  text-decoration: none;
+  display: block;
+}
+
+.drawer-profile-footer {
+  margin-top: auto;
+  background-color: #EEEEEE; /* WS-lightgrey */
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-top-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-left: 30px;
+}
+
+.profile-money-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-left: 30px;
+  color: #6B98BF;
+  font-size: 20px;
+}
+
+.drawer-exit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 25px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #44403E;
+  border: none;
+  background: white;
+}

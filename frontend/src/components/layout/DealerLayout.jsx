@@ -11,7 +11,7 @@ const DealerLayout = () => (
       <Outlet />
     </main>
     
-    <Footer />
+    {/* <Footer /> */}
   </div>
 );
 
