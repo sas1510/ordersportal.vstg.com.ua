@@ -2008,7 +2008,7 @@ useEffect(() => {
 <div className="w-full max-w-[1334px] h-2 md:h-[30px] bg-[#B4D947] rounded-t-sm" />
 
   {/* 2. Основна панель */}
-  <div className={`w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center shadow-md relative 
+  <div className={`w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center shadow-sm relative 
  rounded-bl-[25px] rounded-br-[25px]`}>
     
     {/* Логотип - фіксована ширина, щоб не заважав розтягуванню */}

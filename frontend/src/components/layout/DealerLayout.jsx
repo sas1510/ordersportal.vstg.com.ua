@@ -2,30 +2,53 @@ import { Outlet } from "react-router-dom";
 import HeaderDealer from "../headers/HeaderDealer";
 import Footer from "./Footer";
 
+
+
+
 const DealerLayout = () => (
-  <div className="min-h-screen flex flex-col">
-    {/* Хедер залишається на місці, але ми міняємо логіку main */}
+  <div style={styles.layout}>
+    {/* Змінюємо absolute на fixed */}
+    <div 
+  ref={(el) => {
+    if (el) el.style.setProperty('z-index', '10000', 'important');
+  }}
+  style={styles.headerWrapper}
+>
+  <div style={{ pointerEvents: "auto" }}>
     <HeaderDealer />
-    
+  </div>
+</div>
+
     <main style={styles.main}>
       <Outlet />
     </main>
-    
-    {/* <Footer /> */}
   </div>
 );
 
 const styles = {
+  layout: {
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
+    position: "relative",
+  },
+  headerWrapper: {
+    position: "fixed", // Тепер хедер завжди прибитий до верху екрана
+    top: 0,
+    left: 0,
+    width: "100%",
+    zIndex: 1000, // Піднімаємо z-index, щоб перекрити все
+    pointerEvents: "none", 
+  },
   main: {
     flexGrow: 1,
-    /* Щоб контент заходив ПІД хедер:
-      1. Прибираємо всі paddingTop.
-      2. Додаємо від'ємний margin-top, який дорівнює висоті хедера + його відступу зверху.
-      Висота вашого хедера: 32px (відступ) + 30px (смуга) + 70px (панель) = 132px.
-    */
-    marginTop: window.innerWidth < 768 ? "-56px" : "-132px",
-    position: "relative",
-    zIndex: 1, // контент сторінки
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
+    width: "100%",
+    // Якщо ви хочете, щоб контент сторінки НЕ заходив ПІД хедер 
+    // (наприклад, на сторінці Оплат), додайте внутрішній відступ:
+    // paddingTop: "132px", 
   },
 };
 
