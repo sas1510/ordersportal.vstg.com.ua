@@ -504,3 +504,9 @@
   border-bottom: 11px solid var(--tg-card-border); /* Колір рамки */
   z-index: 0;
 }
+
+
+.notification-drawer.open {
+  padding-left: 10px;
+  padding-right: 10px;
+}

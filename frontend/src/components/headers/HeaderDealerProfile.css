@@ -101,3 +101,15 @@
 .profile-box.dark .profile-separator-line {
     background-color: #4B5563;
 }
+
+/* Додайте це в кінець HeaderDealerProfile.css */
+.admin-profile-box .profile-menu-container {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.admin-profile-box .profile-name-text,
+.admin-profile-box .profile-img-icon {
+    position: static !important; /* Відміняємо абсолютне позиціювання з макету */
+}
