@@ -2044,7 +2044,7 @@ useEffect(() => {
                 onClick={() => setShowFinanceMenu(!showFinanceMenu)}
                 className={`w-full h-full px-2 text-[14px] font-bold flex items-center justify-center gap-1 transition-colors ${
                   showFinanceMenu || location.pathname.includes("/finance")
-                    ? "text-[#6B98BF] bg-gray-50"
+                    ? "bg-[#6B98BF] text-white"
                     : "text-[#44403E] hover:bg-gray-50"
                 }`}
               >

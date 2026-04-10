@@ -274,6 +274,7 @@ import CommentsModal from "../Orders/CommentsModal";
 import DeleteConfirmationModal from "../Orders/DeleteConfirmModal";
 import { ComplaintItemDetailViewMobile } from "./ComplaintItemSummaryMobile";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import DeleteConfirmModal from "../Orders/DeleteConfirmModal";
 
 export const ReclamationItemMobile = ({
   reclamation,
@@ -301,7 +302,16 @@ export const ReclamationItemMobile = ({
   const toggleExpanded = onToggle;
   const isCustomer = role === "customer";
   const canEdit = !isCustomer && reclamation.status !== "Закрита";
-  const canDelete = reclamation.status === "Нова";
+
+
+  
+  const managerAssigned =
+    reclamation.manager &&
+    reclamation.manager !== "N/A" &&
+    reclamation.manager !== "Не вказано";
+
+
+  const canDelete =  !managerAssigned;
 
   // Функції дій
   const handleEditClick = (e) => { // Тепер ви можете підключити це до кнопки редагування
@@ -410,7 +420,6 @@ export const ReclamationItemMobile = ({
             onClick={(e) => handleViewComments(e, reclamation.comments || [])}
           >
             <i className="fas fa-comments" style={{ color: reclamation.hasUnreadMessages ? "red" : "inherit", marginRight: "3px" }}></i>
-            Переглянути
           </button>
         </div>
 
@@ -437,13 +446,13 @@ export const ReclamationItemMobile = ({
       />
 
       {isDeleteModalOpen && (
-        <DeleteConfirmationModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={confirmDelete}
-          title="Видалення"
-          message={`Видалити рекламацію №${reclamation.id}?`}
-        />
+        <DeleteConfirmModal
+              isOpen={isDeleteModalOpen}
+              onClose={() => setIsDeleteModalOpen(false)}
+              itemData={reclamation}
+              itemType="reclamation"
+              onDeleted={onDelete}
+            />
       )}
     </div>
   );

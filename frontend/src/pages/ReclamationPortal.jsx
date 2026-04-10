@@ -248,6 +248,14 @@ const ReclamationPortal = () => {
         loadData();
     }, [selectedYear]);
 
+    const handleDeleteReclamation = useCallback((id) => {
+        // Оновлюємо стейт, видаляючи рекламацію за її ID
+        setReclamationsData(prev => prev.filter(item => item.id !== id));
+        
+        // Якщо видалений елемент був розгорнутий - згортаємо його
+        setExpandedReclamation(prev => prev === id ? null : prev);
+    }, []);
+
 
 
 
@@ -576,6 +584,7 @@ const ReclamationPortal = () => {
                                             setExpandedIssue(expandedIssue === id ? null : id)
                                         }
                                         onMarkAsRead={handleMarkAsRead}
+                                        onDelete={handleDeleteReclamation}
                                     />
                                 ) : (
                                     <ReclamationItem
@@ -590,6 +599,7 @@ const ReclamationPortal = () => {
                                             setExpandedIssue(expandedIssue === id ? null : id)
                                         }
                                         onMarkAsRead={handleMarkAsRead}
+                                        onDelete={handleDeleteReclamation}
                                     />
                                 )
                             )

@@ -25,6 +25,8 @@ const DeleteConfirmModal = ({
     calculation: "прорахунок",
     client: "клієнта",
     product: "товар",
+    additionalOrder: "дозамовлення",
+
   };
 
   const itemType = mapType[propItemType] || mapType[itemData.type] || "запис";
@@ -45,6 +47,10 @@ const DeleteConfirmModal = ({
         case "order":
           endpoint = `/orders/${itemData.id}/delete/`;
           break;
+        case "additionalOrder":
+            // Використовуємо itemData.guid, бо бекенд очікує UUID
+            endpoint = `/complaints/delete_complaint/${itemData.guid}/`;
+            break;
         case "client":
           endpoint = `/clients/${itemData.id}/delete/`;
           break;

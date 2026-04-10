@@ -222,12 +222,12 @@ const DeleteConfirmModal = ({
 
   // Словник типів
   const mapType = {
-    order: "замовлення",
-    calculation: "прорахунок",
-    client: "клієнта",
-    product: "товар",
-    reclamation: "рекламацію",
-    additionalOrder: "дозамовлення",
+    order: "Замовлення",
+    calculation: "Прорахунок",
+    client: "Клієнта",
+    product: "Товар",
+    reclamation: "Рекламацію",
+    additionalOrder: "Дозамовлення",
   };
 
   const itemType = mapType[type] || "запис";

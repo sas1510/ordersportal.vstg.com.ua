@@ -100,7 +100,7 @@ export const ReclamationItem = ({
     reclamation.manager &&
     reclamation.manager !== "N/A" &&
     reclamation.manager !== "Не вказано";
-  const canDelete = reclamation.status === "Нова" && !managerAssigned;
+    const canDelete =  !managerAssigned;
   // const canDelete = true;
 
 //   const handleDownload = async () => {

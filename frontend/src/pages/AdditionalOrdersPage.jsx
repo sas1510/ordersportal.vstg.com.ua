@@ -79,31 +79,33 @@ const AdditionalOrders = () => {
   }, []);
 
   const handleSaveAdditionalOrder = useCallback(async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.post(
-        "/additional_orders/save_additional_order/",
-        formData,
-      );
+  setLoading(true);
+  try {
+    const response = await axiosInstance.post(
+      "/additional_orders/save_additional_order/",
+      formData,
+    );
 
-      if (response.data?.status === "success") {
-        setIsNewOrderModalOpen(false);
-
-        // 🔥 Замість ручного оновлення стейту просто тригеримо useEffect
-        setRefreshTrigger((prev) => prev + 1);
-
-        // Можна додати коротке сповіщення
-        // alert("Дозамовлення успішно створено!");
-      } else {
-        alert("Помилка: " + (response.data?.message || "Невідома помилка"));
-      }
-    } catch (err) {
-      console.error("Помилка відправки:", err);
-      alert("Не вдалося відправити дані.");
-    } finally {
-      setLoading(false);
+    // ВАЖЛИВО: Перевіряємо поле 'success' (як у вашому JSON), 
+    // або статус відповіді 201 (як у вкладці Headers)
+    if (response.data?.success === true || response.status === 201) {
+      setIsNewOrderModalOpen(false);
+      setRefreshTrigger((prev) => prev + 1);
+      
+      // Якщо хочете виводити повідомлення про успіх БЕЗ слова "Помилка":
+      // alert(response.data?.message || "Дозамовлення створено");
+    } else {
+      // Сюди код потрапить, тільки якщо success === false
+      alert("Помилка: " + (response.data?.message || "Невідома помилка"));
     }
-  }, []); // Залежності тепер не потрібні, бо ми не використовуємо довжину масиву
+  } catch (err) {
+    console.error("Помилка відправки:", err);
+    alert("Не вдалося відправити дані.");
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
 
   const formatDateHuman = (dateStr) => {
     if (!dateStr) return null;
