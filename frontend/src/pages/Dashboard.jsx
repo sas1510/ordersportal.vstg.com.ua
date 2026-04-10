@@ -1261,8 +1261,10 @@ export default function Dashboard() {
         muted
         playsInline
         className="hero-video-bg"
-        poster="/assets/video/hero-poster.jpg"
+        poster="/assets/video/hero-poster.jpg" // Обов'язково додайте "заглушку"
+        preload="auto"
       >
+        <source src="/assets/video/hero-background-1.webm" type="video/webm" />
         <source src="/assets/video/hero-background-1.mp4" type="video/mp4" />
       </video>
 
