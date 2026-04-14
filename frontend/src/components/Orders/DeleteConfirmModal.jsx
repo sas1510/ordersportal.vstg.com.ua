@@ -244,7 +244,7 @@ const DeleteConfirmModal = ({
           endpoint = `/complaints/delete_complaint/${itemData.guid}/`;
           break;
         case "additionalOrder":
-          endpoint = `/additional-orders/delete_order/${itemData.guid || itemData.id}/`;
+          endpoint = `/complaints/delete_complaint/${itemData.guid || itemData.id}/`;
           break;
         case "calculation":
           endpoint = `/calculations/${itemData.id}/delete/`;

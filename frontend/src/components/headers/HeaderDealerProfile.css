@@ -113,3 +113,34 @@
 .admin-profile-box .profile-img-icon {
     position: static !important; /* Відміняємо абсолютне позиціювання з макету */
 }
+
+
+/* HeaderDealerProfile.css */
+
+:root {
+  /* Світла тема (дефолт) */
+  --header-bg: #ffffff;
+  --header-text: #44403E;
+  --header-accent: #6B98BF; /* Блакитний */
+  --header-accent-hover: #5a87ad;
+  --header-decorative: #B4D947; /* Салатовий */
+  --header-active-text: #ffffff;
+  --header-submenu-bg: #ffffff;
+  --header-profile-bg: #EEEEEE;
+  --header-border-dashed: rgba(68, 64, 62, 0.2);
+  --header-mobile-overlay: rgba(0, 0, 0, 0.4);
+}
+
+body.dark-theme {
+  /* Темна тема */
+  --header-bg: #1A1C1E;
+  --header-text: #E2E2E2;
+  --header-accent: #4A76A8;
+  --header-accent-hover: #3b5d85;
+  --header-decorative: #8CAF2F;
+  --header-active-text: #ffffff;
+  --header-submenu-bg: #25282B;
+  --header-profile-bg: #2D3135;
+  --header-border-dashed: rgba(180, 217, 71, 0.3);
+  --header-mobile-overlay: rgba(0, 0, 0, 0.7);
+}

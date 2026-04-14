@@ -2005,11 +2005,11 @@ useEffect(() => {
   return (
     <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
   {/* 1. Декоративна смуга  -- ДОДАНО: Декоративна смуга вгорі --видалено mt-32 */}
-<div className="w-full max-w-[1334px] h-2 md:h-[30px] bg-[#B4D947] rounded-t-sm" />
+<div className="w-full max-w-[1334px] h-2 md:h-[30px]  rounded-t-sm"  style={{ backgroundColor: 'var(--header-decorative)' }} />
 
   {/* 2. Основна панель */}
-  <div className={`w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center shadow-sm relative 
- rounded-bl-[25px] rounded-br-[25px]`}>
+  <div className={`w-full max-w-[1334px] h-12 md:h-[70px]  flex items-center shadow-sm relative 
+ rounded-bl-[25px] rounded-br-[25px]` } style={{ backgroundColor: 'var(--header-bg)' }}>
     
     {/* Логотип - фіксована ширина, щоб не заважав розтягуванню */}
     <Link to="/dashboard" className="ml-[33px] flex-shrink-0 mr-4">
@@ -2025,16 +2025,15 @@ useEffect(() => {
               /* li отримує flex-1, щоб всі пункти були однакової ширини */
               <li key={link.to} className="h-full flex-1">
                 <Link
-                  to={link.to}
-                  /* justify-center для центрування тексту всередині розтягнутого пункту */
-                  className={`h-full flex items-center justify-center px-2 text-[14px] font-bold transition-all text-center ${
-                    location.pathname.startsWith(link.to) 
-                      ? "bg-[#6B98BF] text-white" 
-                      : "text-[#44403E] hover:bg-gray-50 hover:text-[#6B98BF]"
-                  }`}
-                >
-                  {link.title}
-                </Link>
+  to={link.to}
+  className={`h-full flex items-center justify-center px-1 text-[13px] font-bold transition-all text-center 
+    ${location.pathname.startsWith(link.to) 
+      ? "bg-[var(--header-accent)] text-[var(--header-active-text)]" 
+      : "text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
+    }`}
+>
+  {link.title}
+</Link>
               </li>
             ))}
             
@@ -2042,11 +2041,11 @@ useEffect(() => {
             <li className="h-full relative flex-1" ref={financeRef}>
               <button 
                 onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-                className={`w-full h-full px-2 text-[14px] font-bold flex items-center justify-center gap-1 transition-colors ${
-                  showFinanceMenu || location.pathname.includes("/finance")
-                    ? "bg-[#6B98BF] text-white"
-                    : "text-[#44403E] hover:bg-gray-50"
-                }`}
+                className={`w-full h-full px-2 text-[14px] font-bold flex items-center justify-center gap-1 transition-colors`}
+                style={{
+                  backgroundColor: showFinanceMenu || location.pathname.includes("/finance") ? 'var(--header-accent)' : 'transparent',
+                  color: showFinanceMenu || location.pathname.includes("/finance") ? 'var(--header-active-text)' : 'var(--header-text)'
+                }}
               >
                 Фінанси <span className={`transition-transform ${showFinanceMenu ? "rotate-180" : ""}`}>▾</span>
               </button>
@@ -2073,7 +2072,8 @@ useEffect(() => {
         {/* Правий блок - flex-shrink-0, щоб він не стискався */}
         <div className="ml-auto flex items-center h-full flex-shrink-0">
           <div 
-    className="bg-[#EEEEEE] h-full flex flex-col justify-center border-l border-r border-gray-200 relative"
+    className=" h-full flex flex-col justify-center border-l border-r border-gray-200 relative" 
+    style={{ backgroundColor: 'var(--header-profile-bg)' }}
     ref={profileRef}
   >
     <button
@@ -2162,10 +2162,11 @@ useEffect(() => {
            {/* Замінити блок мобільного меню всередині HeaderDealer.jsx */}
 
 {mobileMenuOpen && (
-  <div className="fixed inset-0 bg-black/40 z-[2000] ">
+  <div className="fixed inset-0 z-[2000] " style={{ backgroundColor: 'var(--header-profile-bg)' }}>
     <div 
       ref={mobileMenuRef}
-      className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full bg-white rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+      className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+      style={{ backgroundColor: 'var(--header-bg)', color: 'var(--header-text)' }}
     >
       {/* Кнопка закриття — гнучка висота через padding */}
       <div className=" flex items-center justify-end">
