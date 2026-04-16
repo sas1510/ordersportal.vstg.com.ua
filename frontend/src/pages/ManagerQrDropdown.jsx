@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axiosInstance from "../api/axios"; // або ваш шлях до axios
 import { QRCodeCanvas } from "qrcode.react";
 import "./ManagerQR.css";
+import { FaTelegramPlane } from "react-icons/fa";
 
 const ManagerQrDropdown = ({ managerName, managerId }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -65,7 +66,7 @@ const ManagerQrDropdown = ({ managerName, managerId }) => {
               color: "var(--drawer-text-main, #333)",
             }}
           >
-            <FaTelegramPlane style={{ color: "#0088cc", marginRight: "5px" }} />
+      
             Підключити бота
           </h4>
 

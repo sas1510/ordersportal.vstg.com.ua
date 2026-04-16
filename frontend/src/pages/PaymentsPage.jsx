@@ -439,7 +439,7 @@ export default function PaymentsPage() {
                         {debtTotal.CustomerLimit === null ||
                         debtTotal.CustomerLimit === 0
                           ? "—"
-                          : `${formatCurrency(debtTotal.CustomerLimit)} грн`}
+                          : `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`}
                       </td>
                       <td
                         className={
@@ -456,7 +456,7 @@ export default function PaymentsPage() {
                         Number(debtTotal.Debt || 0) +
                           Number(debtTotal.Summa || 0) >
                           debtTotal.CustomerLimit
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} грн`
+                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                       <td
@@ -477,7 +477,7 @@ export default function PaymentsPage() {
                               ),
                             )
                           : "—"}{" "}
-                        {debtTotal.CustomerLimit > 0 && "грн"}
+                        {debtTotal.CustomerLimit > 0 && `${debtTotal.CurrencyName}`}
                       </td>
                       <td
                         className={
@@ -492,7 +492,7 @@ export default function PaymentsPage() {
                         }
                       >
                         {Number(debtTotal.BezPeredOplaty || 0) > 0
-                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} грн`
+                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                       <td
@@ -508,7 +508,7 @@ export default function PaymentsPage() {
                         }
                       >
                         {Number(debtTotal.NedoAvans || 0) > 0
-                          ? `${formatCurrency(debtTotal.NedoAvans)} грн`
+                          ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                       <td
@@ -518,7 +518,7 @@ export default function PaymentsPage() {
                         {Number(debtTotal.Debt || 0) +
                           Number(debtTotal.Summa || 0) >
                         0
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} грн`
+                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                       <td
@@ -534,7 +534,7 @@ export default function PaymentsPage() {
                         }
                       >
                         {Number(debtTotal.Debt || 0) > 0
-                          ? `${formatCurrency(debtTotal.Debt)} грн`
+                          ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                       <td
@@ -550,7 +550,7 @@ export default function PaymentsPage() {
                         }
                       >
                         {Number(debtTotal.Summa || 0) > 0
-                          ? `${formatCurrency(debtTotal.Summa)} грн`
+                          ? `${formatCurrency(debtTotal.Summa)} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                       <td
@@ -566,7 +566,7 @@ export default function PaymentsPage() {
                         }
                       >
                         {Number(debtTotal.DebtMoreTen || 0) > 0
-                          ? `${formatCurrency(debtTotal.DebtMoreTen)} грн`
+                          ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || "грн"}`
                           : "—"}
                       </td>
                     </tr>
@@ -580,7 +580,7 @@ export default function PaymentsPage() {
                   <span className="label">Ліміт боргів</span>
                   <span className="value bold-text">
                     {debtTotal.CustomerLimit
-                      ? `${formatCurrency(debtTotal.CustomerLimit)} ₴`
+                      ? `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`
                       : "—"}
                   </span>
                 </div>
@@ -598,7 +598,7 @@ export default function PaymentsPage() {
                             debtTotal.CustomerLimit,
                         )
                       : "0,00"}{" "}
-                    ₴
+                    {debtTotal.CurrencyName || "грн"}
                   </span>
                 </div>
 
@@ -611,7 +611,7 @@ export default function PaymentsPage() {
                 >
                   <span className="label">Без передоплати</span>
                   <span className="value orange-text">
-                    {formatCurrency(debtTotal.BezPeredOplaty)} ₴
+                    {formatCurrency(debtTotal.BezPeredOplaty)} {debtTotal.CurrencyName || "грн"}
                   </span>
                 </div>
 
@@ -624,7 +624,7 @@ export default function PaymentsPage() {
                 >
                   <span className="label">Борг {">"} 10дн</span>
                   <span className="value red-text">
-                    {formatCurrency(debtTotal.DebtMoreTen)} ₴
+                    {formatCurrency(debtTotal.DebtMoreTen)} {debtTotal.CurrencyName || "грн"}
                   </span>
                 </div>
 
@@ -637,7 +637,7 @@ export default function PaymentsPage() {
                 >
                   <span className="label">У маршрутах</span>
                   <span className="value dark-orange-text">
-                    {formatCurrency(debtTotal.Debt)} ₴
+                    {formatCurrency(debtTotal.Debt)} {debtTotal.CurrencyName || "грн"}
                   </span>
                 </div>
 
@@ -648,7 +648,7 @@ export default function PaymentsPage() {
                       Number(debtTotal.Debt || 0) +
                         Number(debtTotal.Summa || 0),
                     )}{" "}
-                    ₴
+                    {debtTotal.CurrencyName || "грн"}
                   </span>
                 </div>
               </div>
@@ -666,7 +666,7 @@ export default function PaymentsPage() {
               contracts.map((c, i) => (
                 <div key={i} className="pp-badge">
                   {c.DogovorName} —{" "}
-                  <strong>{formatCurrency(c.DogovorBalance)} грн</strong>
+                  <strong>{formatCurrency(c.DogovorBalance)} {c.CurrencyName}</strong>
                 </div>
               ))
             )}
@@ -703,19 +703,28 @@ export default function PaymentsPage() {
                     <div className="pp-info">
                       <span>Сума:</span>{" "}
                       <strong className="order-sum">
-                        {formatCurrency(o.OrderSum)}
+                        {formatCurrency(o.OrderSum)} 
+                      <span style={{ fontSize: '0.7em', marginLeft: '2px', color: 'inherit' }}>
+                        {o.CurrencyName || "грн"}
+                      </span>
                       </strong>
                     </div>
                     <div className="pp-info">
                       <span>Оплачено:</span>{" "}
                       <strong className="pp-green">
-                        {formatCurrency(o.PaidAmount)}
+                        {formatCurrency(o.PaidAmount)}          
+                      <span style={{ fontSize: '0.7em', marginLeft: '2px', color: 'inherit'}}>
+                        {o.CurrencyName || "грн"}
+                      </span>
                       </strong>
                     </div>
                     <div className="pp-info">
                       <span>Залишок:</span>{" "}
                       <strong className="pp-red">
-                        {formatCurrency(o.DebtAmount)}
+                        {formatCurrency(o.DebtAmount)} 
+                              <span style={{ fontSize: '0.7em', marginLeft: '2px',  color: 'inherit'}}>
+                        {o.CurrencyName || "грн"}
+                      </span>
                       </strong>
                     </div>
                     <div className="pp-pay-btn-wrapper">
@@ -801,7 +810,7 @@ export default function PaymentsPage() {
                               o.NedoAvans ||
                               o.Summa,
                           )}{" "}
-                          грн
+                          {o.CurrencyName || "грн"}
                         </td>
                         {/* <td className="mobile-none">{o.RouteStatus || "—"}</td> */}
                         <td className="detail-action">

@@ -758,7 +758,8 @@ def get_balance_view(request):
 
     return JsonResponse({
         "sum": row[0],
-        "full_name": row[1]
+        "full_name": row[1],
+        "currency": row[2] ,
     })
 
 

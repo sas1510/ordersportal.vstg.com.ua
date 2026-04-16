@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import axiosInstance from "../../api/axios";
 
 // Модальні вікна
@@ -157,7 +157,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
           <span className="icon icon-coin-dollar text-success font-size-16 flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
             <div className="text-info font-size-18">
-              {formatMoney(order.amount)}
+              {formatMoney2(order.amount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
               Сума замовлення
@@ -170,7 +170,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
           <span className="icon icon-coin-dollar text-danger font-size-16 flex-shrink-0"></span>
           <div className="flex flex-col flex-1 ml-2">
             <div className="text-danger font-size-18">
-              {formatMoney(debtAmount)}
+              {formatMoney2(debtAmount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
               Сума боргу

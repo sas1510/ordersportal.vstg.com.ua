@@ -28,7 +28,7 @@
 .profile-name-text {
     color: #234360;
     font-family: "Inter", sans-serif;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     left: 41px;
     position: absolute;
@@ -143,4 +143,17 @@ body.dark-theme {
   --header-profile-bg: #2D3135;
   --header-border-dashed: rgba(180, 217, 71, 0.3);
   --header-mobile-overlay: rgba(0, 0, 0, 0.7);
+}
+
+.profile-balance-text {
+  display: flex;
+  align-items: baseline; /* Щоб текст валюти вирівнювався по нижній лінії цифр */
+  gap: 4px; /* Відступ між сумою та валютою */
+}
+
+.profile-currency-label {
+  font-size: 0.75em; /* Робить валюту меншою (приблизно 75% від основного розміру) */
+  font-weight: 600;  /* Можна зробити тоншою за цифри */
+  color: inherit;    /* Використовує колір основного тексту балансу */
+  opacity: 0.8;      /* Трохи приглушуємо колір для візуального акценту на цифрах */
 }

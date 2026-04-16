@@ -454,3 +454,10 @@ body.dark-theme .pay-close-btn:hover {
 .btn-notification-retry:active {
   transform: scale(0.95);
 }
+
+
+.pay-currency-info-box {
+  font-size: 16px;
+  margin-bottom: 15px;
+  text-align: center;
+}

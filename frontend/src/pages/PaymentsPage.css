@@ -186,7 +186,7 @@
 /* СТИЛЬ СІТКИ ДЛЯ ВЕЛИКИХ ЕКРАНІВ - ЗАМІНА INLINE STYLES */
 .pp-order-row {
   display: grid !important;
-  grid-template-columns: 150px 200px 170px 170px 180px auto;
+  grid-template-columns: 150px 200px 170px 190px 180px auto;
   align-items: center;
   column-gap: 7px;
 }

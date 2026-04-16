@@ -231,7 +231,7 @@ def get_payment_status_view(request):
     # 📦 SQL
     # -------------------------------------------------
     sql = """
-        EXEC dbo.GetDealerFullLedger_2
+        EXEC dbo.GetDealerFullLedger_3
             @Контрагент = %s,
             @ДатаЗ = %s,
             @ДатаПо = %s
@@ -496,7 +496,7 @@ def export_payment_status_excel(request):
     with connection.cursor() as cursor:
         cursor.execute(
             """
-            EXEC dbo.GetDealerFullLedger_2
+            EXEC dbo.GetDealerFullLedger_3
               @Контрагент = %s,
               @ДатаЗ = %s,
               @ДатаПо = %s

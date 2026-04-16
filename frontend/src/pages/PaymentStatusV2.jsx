@@ -825,7 +825,7 @@ import DealerSelect from "./DealerSelect";
 import { useNotification } from "../hooks/useNotification";
 import { formatPercent } from "../utils/formatMoney";
 
-const formatCurrency = (value, unit = "грн") => {
+const formatCurrency = (value, unit) => {
   if (value == null || isNaN(Number(value))) return "—";
   const num = Number(value);
   const formatter = new Intl.NumberFormat("uk-UA", {
@@ -833,8 +833,10 @@ const formatCurrency = (value, unit = "грн") => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  if (unit === "") return formatter.format(num);
-  return `${formatter.format(num)} ${unit}`;
+
+  // Якщо unit не передано, використовуємо порожній рядок, інакше додаємо пробіл перед валютою
+  const displayUnit = unit ? ` ${unit}` : "";
+  return `${formatter.format(num)}${displayUnit}`;
 };
 
 const useIsMobile = () => {
@@ -890,6 +892,7 @@ const DocumentRow = React.memo(
     const income = docGroup.totalIncome;
     const expense = docGroup.totalExpense;
     const cumSaldo = docGroup.lastCumSaldo;
+    const currency = firstItem?.Currency_2 || "грн";
 
     const cursorShow =
       detectPaymentChannel(firstItem) === "order" &&
@@ -922,14 +925,14 @@ const DocumentRow = React.memo(
               firstItem.DealType || firstItem.DocumentType || "—"
             )}
           </td>
-          <td>{formatCurrency(docGroup.CumSaldoStart)}</td>
+          <td>{formatCurrency(docGroup.CumSaldoStart, currency)}</td>
           <td className={income > 0 ? "text-green" : ""}>
             {income > 0 ? formatCurrency(income, "") : "—"}
           </td>
           <td className={expense > 0 ? "text-red" : ""}>
             {expense > 0 ? formatCurrency(expense, "") : "—"}
           </td>
-          <td className="text-bold">{formatCurrency(cumSaldo)}</td>
+          <td className="text-bold">{formatCurrency(cumSaldo, currency)}</td>
           <td>
             <span
               className={`channel-badge ${detectPaymentChannel(firstItem)}`}
@@ -968,70 +971,80 @@ const DocumentRow = React.memo(
             )}
           </td>
         </tr>
-        {isExpanded && cursorShow && (
-          <tr className="sub-row">
-            <td colSpan={11} className="sub-wrapper indent-subcard">
-              <div className="sub-orders-container minimal">
-                {docGroup.items.map((item, idx) => (
-                  <div
-                    key={`${docKey}-${idx}`}
-                    className="mini-card clickable-subcard"
-                  >
-                    <div className="order-mini-header">
-                      Замовлення № {item.OrderNumber}
-                    </div>
-                    <div className="mini-grid">
-                      <div>
-                        <span className="mini-label">Сума</span>
-                        <span className="mini-value">
-                          {formatCurrency(item.OrderAmount)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="mini-label">Оплачено до</span>
-                        <span className="mini-value text-grey">
-                          {formatCurrency(item.PaidBefore)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="mini-label">Оплата</span>
-                        <span
-                          className={
-                            item.FlowDirection === "Прихід"
-                              ? "text-green mini-green"
-                              : "text-red mini-red"
-                          }
-                        >
-                          {formatCurrency(
-                            Math.abs(Number(item.PaymentApplied || 0)),
-                          )}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="mini-label">Залишок</span>
-                        <span className="mini-red">
-                          {formatCurrency(item.OrderBalance)}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="mini-label">Відсоток</span>
-                        <span
-                          className={
-                            item.PaymentStatus < 50 ? "mini-red" : "mini-green"
-                          }
-                        >
-                          {item.PaymentStatus !== null
-                            ? `${formatPercent(item.PaymentStatus)} %`
-                            : "—"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+{isExpanded && cursorShow && (
+  <tr className="sub-row">
+    <td colSpan={11} className="sub-wrapper indent-subcard">
+      <div className="sub-orders-container minimal">
+        {docGroup.items.map((item, idx) => {
+          // Визначаємо валюту для поточного замовлення
+          const itemCurrency = item.Currency_2 || "грн";
+          
+          return (
+            <div
+              key={`${docKey}-${idx}`}
+              className="mini-card clickable-subcard"
+            >
+              <div className="order-mini-header">
+                Замовлення № {item.OrderNumber}
               </div>
-            </td>
-          </tr>
-        )}
+              <div className="mini-grid">
+                <div>
+                  <span className="mini-label">Сума</span>
+                  <span className="mini-value">
+                    {/* Передаємо itemCurrency сюди */}
+                    {formatCurrency(item.OrderAmount, itemCurrency)}
+                  </span>
+                </div>
+                <div>
+                  <span className="mini-label">Оплачено до</span>
+                  <span className="mini-value text-grey">
+                    {/* І сюди теж */}
+                    {formatCurrency(item.PaidBefore, itemCurrency)}
+                  </span>
+                </div>
+                <div>
+                  <span className="mini-label">Оплата</span>
+                  <span
+                    className={
+                      item.FlowDirection === "Прихід"
+                        ? "text-green mini-green"
+                        : "text-red mini-red"
+                    }
+                  >
+                    {/* І сюди */}
+                    {formatCurrency(
+                      Math.abs(Number(item.PaymentApplied || 0)),
+                      itemCurrency
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span className="mini-label">Залишок</span>
+                  <span className="mini-red">
+                    {/* І сюди */}
+                    {formatCurrency(item.OrderBalance, itemCurrency)}
+                  </span>
+                </div>
+                <div>
+                  <span className="mini-label">Відсоток</span>
+                  <span
+                    className={
+                      item.PaymentStatus < 50 ? "mini-red" : "mini-green"
+                    }
+                  >
+                    {item.PaymentStatus !== null
+                      ? `${formatPercent(item.PaymentStatus)} %`
+                      : "—"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </td>
+  </tr>
+)}
       </>
     );
   },
@@ -1057,7 +1070,7 @@ const PaymentGroup = React.memo(
                   <span key={idx} className="contract-badge">
                     <span className="name">{c.contractName}: </span>
                     <span className="value">
-                      {formatCurrency(c.initialSaldo)}
+                     {formatCurrency(c.initialSaldo, c.currency)}
                     </span>
                   </span>
                 ))}
@@ -1083,15 +1096,15 @@ const PaymentGroup = React.memo(
                 <div key={idx} className="contract-total-line">
                   <span className="contract-name-bold">{name}</span>:{" "}
                   <span className="text-green">
-                    +{formatCurrency(c.income || 0, "")}
+                    +{formatCurrency(c.income || 0,  c.currency)}
                   </span>{" "}
                   /{" "}
                   <span className="text-red">
-                    -{formatCurrency(c.expense || 0, "")}
+                    -{formatCurrency(c.expense || 0,  c.currency)}
                   </span>{" "}
                   /{" "}
                   <span className="text-bold">
-                    {formatCurrency(c.lastCumSaldo || 0, "")}
+                    {formatCurrency(c.lastCumSaldo || 0,  c.currency)}
                   </span>
                 </div>
               ))}
@@ -1252,6 +1265,7 @@ const PaymentStatusV2 = () => {
           income: 0,
           expense: 0,
           lastCumSaldo: 0,
+          currency: item.Currency_2 || "грн", // ЗБЕРІГАЄМО ВАЛЮТУ
           __t: "",
         };
       }
@@ -1268,19 +1282,20 @@ const PaymentStatusV2 = () => {
       (a, b) => new Date(a.date) - new Date(b.date),
     );
     const prevDayTotals = {};
-    groups.forEach((g) => {
-      g.initialContracts = {};
-      Object.entries(g.contractSummary).forEach(([name, s]) => {
-        g.initialContracts[name] = {
-          contractName: name,
-          initialSaldo:
-            prevDayTotals[name] !== undefined
-              ? prevDayTotals[name]
-              : s.lastCumSaldo - (s.income - s.expense),
-        };
-        prevDayTotals[name] = s.lastCumSaldo;
-      });
-    });
+groups.forEach((g) => {
+  g.initialContracts = {};
+  Object.entries(g.contractSummary).forEach(([name, s]) => {
+    g.initialContracts[name] = {
+      contractName: name,
+      currency: s.currency, // ПЕРЕДАЄМО ВАЛЮТУ СЮДИ
+      initialSaldo:
+        prevDayTotals[name] !== undefined
+          ? prevDayTotals[name]
+          : s.lastCumSaldo - (s.income - s.expense),
+    };
+    prevDayTotals[name] = s.lastCumSaldo;
+  });
+});
     return groups.reverse();
   }, [paymentsData]);
 

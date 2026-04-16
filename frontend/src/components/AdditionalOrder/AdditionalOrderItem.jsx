@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { formatMoney } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
 import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu"; // Використовуємо перейменоване меню
 // Компоненти для замовлень, які можуть бути вкладені
@@ -173,10 +173,10 @@ export const AdditionalOrderItem = ({
             <span className="icon icon-coin-dollar font-size-24 text-success"></span>
             <div className="column">
               <div className="font-size-18 text-success border-bottom">
-                {formatMoney(additionalOrder.amount)}
+                {formatMoney2(additionalOrder.amount, additionalOrder.currency)}
               </div>
               <div className="font-size-16 text-danger">
-                {formatMoney(additionalOrder.debt)}
+                {formatMoney2(additionalOrder.debt, additionalOrder.currency)}
               </div>
             </div>
           </div>

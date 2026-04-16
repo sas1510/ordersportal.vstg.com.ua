@@ -296,6 +296,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "fileName": row.get("CalcFileName") or '',
                 "message": row.get("CalcComment"),
                 "manager": bin_to_guid_1c(row.get("Manager")),
+                "currency": row.get("Currency"),
                 "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
             }
         else:
@@ -332,6 +333,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "organizationName": row.get("OrganizationName"),
             "dateDelay": row.get("DateDelays"),
             "createDate": row.get("CreateDate"),
+            "currency": row.get("Currency"),
             
             
         }
@@ -607,6 +609,7 @@ def additional_orders_view(request):
             "constructionsQTY": qty,
             "amount": order_sum,
             "statuses": {status: 1},
+            "currency": r.get("Currency"),
             "orders": [
                 {
                     "id": r.get("ClaimOrderNumber") or number,
@@ -626,6 +629,7 @@ def additional_orders_view(request):
                     "planProduction": clean_date(r.get("DateLaunched")),
                     "factStartProduction": clean_date(r.get("DateTransferredToWarehouse")),
                     "factReady": clean_date(r.get("ProducedDate")),
+                    "currency": r.get("Currency"),
                 }
             ],
         })
@@ -1059,6 +1063,18 @@ def get_additional_orders_info_all(request):
         raw_guid = row.get("_AdditionalOrderGuid_raw")
         additional_order_guid = bin_to_guid_1c(raw_guid) if raw_guid else None
 
+        
+        raw_guid_manager = row.get("ManagerLink")
+
+        if isinstance(raw_guid_manager, memoryview):
+            raw_guid_manager = raw_guid_manager.tobytes()
+
+        if isinstance(raw_guid_manager, (bytes, bytearray)):
+            row["ManagerLink"] = bin_to_guid_1c(raw_guid_manager)
+        else:
+            row["ManagerLink"] = None
+
+
         calc = {
             "guid": additional_order_guid,
             "id": complaint_number,
@@ -1080,6 +1096,7 @@ def get_additional_orders_info_all(request):
             "constructionsQTY": constructions_qty,
             "amount": order_sum,
             "statuses": {status_name: 1},
+            "managerLink": row.get("ManagerLink"),
             "orders": [
                 {
                     "id": row.get("ClaimOrderNumber") or complaint_number,
@@ -1214,6 +1231,17 @@ def complaints_view_all_by_month(request):
         else:
             row["ComplaintGuid"] = None
 
+
+        raw_guid_manager = row.get("ManagerLink")
+
+        if isinstance(raw_guid_manager, memoryview):
+            raw_guid_manager = raw_guid_manager.tobytes()
+
+        if isinstance(raw_guid_manager, (bytes, bytearray)):
+            row["ManagerLink"] = bin_to_guid_1c(raw_guid_manager)
+        else:
+            row["ManagerLink"] = None
+
         # =========================
         # PARSE AdditionalInformation
         # =========================
@@ -1341,6 +1369,7 @@ def orders_view_all_by_month(request):
                 "file": bin_to_guid_1c(row.get("FileLink")) or '',
                 "fileName": row.get("CalcFileName") or '',
                 "message": row.get("Message"),
+                "manager": bin_to_guid_1c(row.get("Manager")),
                 "raw_order_dates": [order_date] if order_date else [],
             }
         else:

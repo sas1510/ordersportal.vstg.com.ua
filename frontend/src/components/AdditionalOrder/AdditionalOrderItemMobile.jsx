@@ -1,7 +1,7 @@
 // ================= CalculationItem.jsx =================
 import React, { useState } from "react";
 import AdditionalOrderItemSummaryMobile from "./AdditionalOrderItemSummaryMobile";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
 
@@ -163,7 +163,7 @@ export const AdditionalOrderItemMobile = ({
               <span className="text-grey font-size-10">Сума</span>
             </div>
             <div className="font-size-15 text-success font-weight-bold">
-              {formatMoney(calc.amount)}
+              {formatMoney2(calc.amount, calc.currency)}
             </div>
           </div>
 
@@ -174,7 +174,7 @@ export const AdditionalOrderItemMobile = ({
               <span className="text-grey font-size-10">Борг</span>
             </div>
             <div className="font-size-15 text-danger font-weight-bold">
-              {formatMoney(calc.debt)}
+              {formatMoney2(calc.debt, calc.currency)}
             </div>
           </div>
         </div>

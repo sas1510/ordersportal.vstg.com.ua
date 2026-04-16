@@ -1,6 +1,6 @@
 // ================= CalculationItem.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo } from "react";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2} from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
 import { CalculationMenu } from "./CalculationMenu";
@@ -200,10 +200,10 @@ export const CalculationItem = React.memo(
               <span className="icon icon-coin-dollar font-size-24 text-success"></span>
               <div className="column">
                 <div className="font-size-18 text-success border-bottom">
-                  {formatMoney(calc.amount)}
+                  { formatMoney2(calc.amount, calc.currency) }
                 </div>
                 <div className="font-size-16 text-danger">
-                  {formatMoney(calc.debt)}
+                  {formatMoney2(calc.debt, calc.currency)}
                 </div>
               </div>
             </div>

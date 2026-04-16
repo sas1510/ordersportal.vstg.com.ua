@@ -5,7 +5,7 @@ import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 // --------------------
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import { CalculationMenu } from "./CalculationMenu";
 import AddClaimModal from "../Reclamations/AddClaimModal";
@@ -258,7 +258,7 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
               <span className="text-grey font-size-16">Сума</span>
             </div>
             <div className="text-info font-size-18 font-weight-bold">
-              {formatMoney(order.amount)}
+              {formatMoney2(order.amount, order.currency)}
             </div>
           </div>
           <div className="flex flex-col">
@@ -267,7 +267,7 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
               <span className="text-grey font-size-16">Борг</span>
             </div>
             <div className="text-danger font-size-18 font-weight-bold">
-              {formatMoney(debtAmount)}
+              {formatMoney2(debtAmount, order.currency)}
             </div>
           </div>
         </div>
@@ -401,6 +401,7 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
             OrderNumber: order.number,
             DebtAmount: debtAmount,
             OrderID: order.idGuid,
+            CurrencyName: order.currency,
           }}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}

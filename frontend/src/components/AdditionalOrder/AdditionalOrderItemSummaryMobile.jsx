@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from "./OrderDetailsMobile";
 
@@ -148,7 +148,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
               <span className="text-grey font-size-14">Сума</span>
             </div>
             <div className="text-info font-size-16 font-weight-bold">
-              {formatMoney(order.amount)}
+              {formatMoney2(order.amount, order.currency)}
             </div>
           </div>
           <div className="flex flex-col">
@@ -157,7 +157,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
               <span className="text-grey font-size-14">Борг</span>
             </div>
             <div className="text-danger font-size-16 font-weight-bold">
-              {formatMoney(debtAmount)}
+              {formatMoney2(debtAmount, order.currency )}
             </div>
           </div>
         </div>
@@ -260,6 +260,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
             OrderNumber: order.number,
             DebtAmount: debtAmount,
             OrderID: order.guid,
+            CurrencyName: order.currency,
           }}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}

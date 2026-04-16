@@ -1,7 +1,7 @@
 // ================= CalculationItemMobile.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo } from "react";
 import OrderItemSummaryMobile from "./OrderItemSummaryMobile";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
@@ -251,7 +251,7 @@ export const CalculationItemMobile = React.memo(
                 <span className="text-grey font-size-10">Сума</span>
               </div>
               <div className="font-size-15 text-success font-weight-bold">
-                {formatMoney(calc.amount)}
+                {formatMoney2(calc.amount, calc.currency)}
               </div>
             </div>
 
@@ -262,7 +262,7 @@ export const CalculationItemMobile = React.memo(
                 <span className="text-grey font-size-10">Борг</span>
               </div>
               <div className="font-size-15 text-danger font-weight-bold">
-                {formatMoney(calc.debt)}
+                {formatMoney2(calc.debt, calc.currency)}
               </div>
             </div>
           </div>

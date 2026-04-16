@@ -1,7 +1,7 @@
 // ================= OrderItemSummary.jsx (Clean + Optimized) =================
 import React, { useState, useCallback, useMemo } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
-import { formatMoney } from "../../utils/formatMoney";
+import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
@@ -17,6 +17,7 @@ import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+
 
 export default React.memo(function OrderItemSummaryDesktop({
   order,
@@ -269,7 +270,7 @@ export default React.memo(function OrderItemSummaryDesktop({
           <span className="icon icon-coin-dollar text-success font-size-16"></span>
           <div className="flex flex-col flex-1 ml-2">
             <div className="text-info font-size-18">
-              {formatMoney(order.amount)}
+              {formatMoney2(order.amount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
               Сума замовлення
@@ -282,7 +283,7 @@ export default React.memo(function OrderItemSummaryDesktop({
           <span className="icon icon-coin-dollar text-danger font-size-16"></span>
           <div className="flex flex-col flex-1 ml-2">
             <div className="text-danger font-size-18">
-              {formatMoney(debtAmount)}
+              {formatMoney2(debtAmount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
               Сума боргу
@@ -418,6 +419,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             OrderNumber: order.number,
             DebtAmount: debtAmount,
             OrderID: order.id,
+            CurrencyName: order.currency,
           }}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}
