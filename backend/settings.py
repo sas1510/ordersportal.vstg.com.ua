@@ -342,7 +342,7 @@ ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.c
 
 
 
-CSP_FRAME_ANCESTORS = ("'self'",)
+CSP_FRAME_ANCESTORS = ("*",)
 
 # Основне правило: дозволяємо ресурси тільки зі свого домену за замовчуванням
 CSP_DEFAULT_SRC = ("'self'",)
