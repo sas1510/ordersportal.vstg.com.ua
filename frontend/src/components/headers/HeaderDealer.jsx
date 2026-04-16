@@ -2162,7 +2162,7 @@ useEffect(() => {
            {/* Замінити блок мобільного меню всередині HeaderDealer.jsx */}
 
 {mobileMenuOpen && (
-  <div className="fixed inset-0 z-[2000] " style={{ backgroundColor: 'var(--header-profile-bg)' }}>
+  <div className="fixed inset-0 z-[2000] " style={{backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)'}}>
     <div 
       ref={mobileMenuRef}
       className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
