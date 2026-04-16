@@ -22,12 +22,15 @@ const PortalOriginal = () => {
   // } = useDealerContext();
   const [error, setError] = useState(null);
 
+  const yearIcon = "/assets/icons/YearIcon.png";
+
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [calculationsData, setCalculationsData] = useState([]);
   const [filter, setFilter] = useState({ status: "Всі", month: 0, name: "" });
 
   const currentYear = new Date().getFullYear().toString();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  
 
   const [loading, setLoading] = useState(false);
   const [expandedCalc, setExpandedCalc] = useState(null);
@@ -328,16 +331,10 @@ const PortalOriginal = () => {
   }
   return (
     <div className="column portal-body">
-      <div className="content-summary row w-100">
-        <div
-          className="mobile-sidebar-toggle"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ marginTop: "10px" }}
-        >
-          <span className="icon icon-menu font-size-24"></span>
-        </div>
+      <div className="content-summary row w-100 justify-center">
 
-        <div className="year-selector row">
+
+        {/* <div className="year-selector row">
           <span>Звітний рік:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select
@@ -348,91 +345,76 @@ const PortalOriginal = () => {
             <option value="2025">2025</option>
             <option value="2024">2024</option>
           </select>
-        </div>
+        </div> */}
 
-        <div className="by-month-pagination-wrapper">
-          {/* Month List */}
-          <ul className="gap-6 row no-wrap month-list">
-            <li
-              className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
-              onClick={() => handleFilterChange("month", 0)}
-            >
-              Весь рік
-            </li>
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              const labels = [
-                "Січ.",
-                "Лют.",
-                "Бер.",
-                "Квіт.",
-                "Трав.",
-                "Черв.",
-                "Лип.",
-                "Сер.",
-                "Вер.",
-                "Жов.",
-                "Лис.",
-                "Груд.",
-              ];
-              return (
-                <li
-                  key={num}
-                  className={`pagination-item ${filter.month === num ? "active" : ""} ${monthSummary[num] === 0 ? "disabled" : ""}`}
-                  onClick={() =>
-                    monthSummary[num] > 0 && handleFilterChange("month", num)
-                  }
-                >
-                  {labels[i]}{" "}
-                  <span className="text-grey">({monthSummary[num]})</span>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Month Select (Mobile) */}
-          <select
-            className="month-select"
-            value={filter.month}
-            onChange={(e) =>
-              handleFilterChange("month", Number(e.target.value))
-            }
+        <div className="by-month-pagination-wrapper ">
+          <div className="pagination-container w-100 row no-wrap items-center gap-10">
+            
+          <div
+            className="mobile-sidebar-toggle"
+            onClick={() => setIsSidebarOpen(true)}
+            style={{ marginTop: "10px" }}
           >
-            <option value={0}>Весь рік</option>
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              const labels = [
-                "Січень",
-                "Лютий",
-                "Березень",
-                "Квітень",
-                "Травень",
-                "Червень",
-                "Липень",
-                "Серпень",
-                "Вересень",
-                "Жовтень",
-                "Листопад",
-                "Грудень",
-              ];
-              return (
-                <option
-                  key={num}
-                  value={num}
-                  disabled={monthSummary[num] === 0}
-                >
-                  {labels[i]} ({monthSummary[num]})
-                </option>
-              );
-            })}
-          </select>
-        </div>
+            <span className="icon icon-menu font-size-24"></span>
+          </div>
+            {/* Блок вибору року тепер тут */}
+            <div className="year-inline-selector row">
+              <img 
+                  src={yearIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-2 w-[26px] h-[25px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+  Звітний рік
+</div>
+              <select
+                className="year-select-minimal"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                <option value="2026">2026 р.</option>
+                <option value="2025">2025 р.</option>
+                <option value="2024">2024 р.</option>
+              </select>
+            </div>
+
+ 
+
+            {/* Список місяців */}
+            <ul className="gap-6 row no-wrap month-list">
+              <li
+                className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
+                onClick={() => handleFilterChange("month", 0)}
+              >
+                Весь рік
+              </li>
+              {Array.from({ length: 12 }, (_, i) => {
+                const num = i + 1;
+                const labels = ["Січ.", "Лют.", "Бер.", "Квіт.", "Трав.", "Черв.", "Лип.", "Сер.", "Вер.", "Жов.", "Лис.", "Груд."];
+                return (
+                  <li
+                    key={num}
+                    className={`pagination-item ${filter.month === num ? "active" : ""} ${monthSummary[num] === 0 ? "disabled" : ""}`}
+                    onClick={() => monthSummary[num] > 0 && handleFilterChange("month", num)}
+                  >
+                    {labels[i]} <span className="text-yellow">({monthSummary[num]})</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+</div>
       </div>
 
-      <div className="content-wrapper row w-100 h-100">
+      
+
+      <div className="content-wrapper row w-100 h-100  " style={{justifyContent: 'center'}}>
+        <div className="justify-center  row  h-100 max-w-[1334px]  w-100">
         <div
-          className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
+          className={`content-filter justify-center column ${isSidebarOpen ? "open" : "closed"}`}
         >
+          {isSidebarOpen &&
           <div className="sidebar-header row ai-center jc-space-between">
             {isSidebarOpen && <span>Фільтри</span>}
             {isSidebarOpen && (
@@ -442,6 +424,7 @@ const PortalOriginal = () => {
               ></span>
             )}
           </div>
+}
 
           <div className="search-wrapper">
             <input
@@ -563,7 +546,7 @@ const PortalOriginal = () => {
           </ul>
         </div>
 
-        <div className="content" id="content">
+        <div className="content justify-center" id="content" >
           <div className="items-wrapper column gap-14" id="items-wrapper">
             {error ? (
               /* 1. Стан ПОМИЛКИ: показуємо тільки великий блок помилки */
@@ -665,6 +648,7 @@ const PortalOriginal = () => {
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
 

@@ -309,11 +309,13 @@ body {
   height: 100vh;
   width: 100%;
   padding-top: 100px;
+  
   /* padding-bottom: 50px; */
 
   /* Адаптивні відступи зліва і справа */
   padding-left: clamp(5px, 5vw, 100px);
   padding-right: clamp(5px, 5vw, 100px);
+  justify-content: center;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -335,6 +337,9 @@ body {
   width: 100%;
   overflow-y: hidden;
   overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+
 }
 
 .portal-body .content-filter {
@@ -604,14 +609,16 @@ body {
 }
 
 .content-summary .by-month-pagination-wrapper {
-  padding: 7px 8px;
+  padding: 5px 14px;
   align-items: center;
-  justify-content: right;
+  justify-content: center;
   color: var(--text-color);
   font-size: 14px;
-  width: calc(100% - 350px - 14px - 28px);
-  background-color: #ffffff;
-  border-bottom: 1px dashed var(--grey-border-color);
+  max-width: 1334px;
+  width: 100%;
+  border-radius: 5px;
+  background-color: var(--WS---DarkGrey,#44403e);
+  /* border-bottom: 1px dashed var(--grey-border-color); */
   box-shadow: 1px 1px 5px var(--shadow-color);
   z-index: 990;
 }
@@ -624,16 +631,19 @@ body {
   flex-direction: row;
   gap: 4px;
   align-items: center;
-  justify-content: right;
+  justify-content: space-between;
+  width: 100%;
+  color: #fff ;
+
 }
 
 .content-summary .by-month-pagination-wrapper ul li {
   cursor: pointer;
-  padding: 7px 8px;
+  padding: 5px 5px;
   border: 1px solid transparent;
   transition: all 0.3s ease;
-  border-radius: 3px;
-  border-right: 1px dashed var(--grey-border-color);
+  border-radius: 0px;
+  /* border-right: 1px dashed var(--grey-border-color); */
 }
 
 .content-summary .by-month-pagination-wrapper ul li:last-child {
@@ -642,16 +652,27 @@ body {
 
 .content-summary .by-month-pagination-wrapper ul li:hover {
   border: 1px solid var(--info-color);
-  background-color: #fff;
+  background-color: var(--WS---LightGreen,#f8ffe6);
   transition: all 0.3s ease;
+  color: var(--WS---DarkGrey,#44403e) !important;
 }
 
 .content-summary .by-month-pagination-wrapper ul .active {
-  border: 1px solid var(--info-color);
-  background-color: #fff;
+  /* border: 1px solid var(--info-color); */
+  background-color: var(--WS---LightGreen,#f8ffe6);
   transition: all 0.3s ease;
+  color: var(--WS---DarkGrey,#44403e) !important;
 }
 
+.content-summary .by-month-pagination-wrapper ul .pagination-item.active span,
+.content-summary .by-month-pagination-wrapper ul .pagination-item.active .text-yellow {
+  color: var(--WS---DarkGrey, #44403e) !important;
+}
+
+.content-summary .by-month-pagination-wrapper ul .pagination-item:hover span,
+.content-summary .by-month-pagination-wrapper ul .pagination-item:hover .text-yellow {
+  color: var(--WS---DarkGrey, #44403e) !important;
+}
 .content-summary .by-month-pagination-wrapper ul .disabled {
   cursor: not-allowed !important;
   /*opacity: 0.5 !important;*/
@@ -2006,7 +2027,8 @@ html {
   .content-summary .by-month-pagination-wrapper {
     font-size: 12px !important;
     padding: 4px 6px !important;
-    width: calc(100% - 250px - 20px) !important;
+
+    max-width: 1334px;
   }
   .btn-add-calc {
     height: 40px !important;
@@ -2176,7 +2198,7 @@ html {
   .content-summary .by-month-pagination-wrapper {
     font-size: 12px !important;
     padding: 4px 6px !important;
-    width: calc(100% - 250px - 20px) !important;
+    max-width: 1334px;
   }
 
   /* Зменшення шрифту у таблицях */
@@ -2291,6 +2313,10 @@ html {
 
   .content-wrapper {
     flex-direction: column;
+    max-width: 1334px;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
   }
 
   .content-filter {
@@ -3093,4 +3119,53 @@ body.dark-theme
 .dark-theme .error-empty-state {
   background: #2c2c2c;
   border: 2px dashed #888888;
+}
+
+
+/* Контейнер для вирівнювання всього в ряд */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow-x: auto; /* Дозволяє скролити місяці на мобілках */
+  padding: 5px 0;
+  width: 100vw;
+
+}
+
+/* Стилізація самого селектора року */
+.year-select-minimal {
+  background: #ffffff; /* Використовуйте ваші змінні теми */
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-weight: bold;
+  cursor: pointer;
+  color:var(--WS---DarkGrey,#44403e) ;
+  outline: none;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+
+}
+
+.year-select-minimal:hover {
+  border-color: var(--text-info);
+}
+
+/* Вертикальний розділювач */
+.divider-v {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
+  margin: 0 10px;
+}
+
+/* Приховуємо скролбар, щоб було чисто */
+.pagination-container::-webkit-scrollbar {
+  display: none;
+}
+
+
+.text-yellow {
+  color: var(--WS---LightGreen,#f8ffe6);
 }

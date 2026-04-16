@@ -1097,6 +1097,7 @@ def get_additional_orders_info_all(request):
             "amount": order_sum,
             "statuses": {status_name: 1},
             "managerLink": row.get("ManagerLink"),
+            "currency": row.get("Currency"),
             "orders": [
                 {
                     "id": row.get("ClaimOrderNumber") or complaint_number,
@@ -1115,6 +1116,7 @@ def get_additional_orders_info_all(request):
                     "planProduction": date_launched,
                     "factStartProduction": date_transferred,
                     "factReady": produced_date,
+                    "currency": row.get("Currency"),
                 }
             ],
         }
@@ -1371,6 +1373,7 @@ def orders_view_all_by_month(request):
                 "message": row.get("Message"),
                 "manager": bin_to_guid_1c(row.get("Manager")),
                 "raw_order_dates": [order_date] if order_date else [],
+                "currency": row.get("Currency") or '',
             }
         else:
             calcs_dict[calc_id]["constructionsQTY"] += constructions_count
@@ -1404,6 +1407,7 @@ def orders_view_all_by_month(request):
             "organizationName": row.get("OrganizationName"),
             "managerName": row.get("ManagerName"),
             "dateDelay": row.get("DateDelays"),
+            "currency": row.get("Currency") or '',
         }
 
         calcs_dict[calc_id]["orders"].append(order)
