@@ -163,8 +163,8 @@ export const CalculationItem = React.memo(
         style={{
           borderLeft:
             calc.dealerId === calc.authorGuid
-              ? "4px solid #BA523B"
-              : "4px solid #6B98BF",
+              ? "7px solid #BA523B"
+              : "7px solid #6B98BF",
 
           paddingLeft: "12px",
         }}
@@ -252,7 +252,7 @@ export const CalculationItem = React.memo(
               >
                   <img 
                   src={historyOfMessage} 
-                  // alt="Вікно" 
+      
                   className="align-center mr-0.5" 
                 
                 />

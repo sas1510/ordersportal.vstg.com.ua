@@ -382,16 +382,21 @@ const PortalOriginal = () => {
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
                 <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-  Звітний рік
-</div>
-              <select
+            Звітний рік
+          </div>
+             <select
                 className="year-select-minimal"
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
               >
-                <option value="2026">2026</option>
-                <option value="2025">2025</option>
-                <option value="2024">2024</option>
+                {Array.from({ length: 3 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -419,6 +424,41 @@ const PortalOriginal = () => {
                 );
               })}
             </ul>
+
+
+            <select
+            className="month-select"
+            value={filter.month}
+            onChange={(e) => handleMonthClick(Number(e.target.value))}
+          >
+            <option value={0}>Весь рік</option>
+            {Array.from({ length: 12 }, (_, i) => {
+              const num = i + 1;
+              const labels = [
+                "Січень",
+                "Лютий",
+                "Березень",
+                "Квітень",
+                "Травень",
+                "Червень",
+                "Липень",
+                "Серпень",
+                "Вересень",
+                "Жовтень",
+                "Листопад",
+                "Грудень",
+              ];
+              return (
+                <option
+                  key={num}
+                  value={num}
+                  disabled={monthSummary[num] === 0}
+                >
+                  {labels[i]} ({monthSummary[num]})
+                </option>
+              );
+            })}
+          </select>
           </div>
 </div>
       </div>
@@ -564,15 +604,15 @@ const PortalOriginal = () => {
 
                 
                 {/* <span className={`icon ${icon} font-size-24`}></span> */}
-<img 
-  src={icon} 
-  alt="" 
-  className={`w-5 h-5 mr-3 object-contain transition-all duration-300
-    ${filter.status === statusKey 
-      ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
-      : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
-    }`} 
-/>
+              <img 
+                src={icon} 
+                alt="" 
+                className={`mr-3 object-contain transition-all duration-300
+                  ${filter.status === statusKey 
+                    ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
+                    : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                  }`} 
+              />
                 <span className="w-100  text-base font-normal font-['Inter']">{label}</span>
                 <span
                   className={statusSummary[statusKey] === 0 ? "disabled" : ""}

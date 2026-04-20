@@ -116,8 +116,9 @@ export default function ProductionStatisticsPage() {
   };
 
   return (
-    <div className="portal-body column gap-2">
-      <div className="stats-page-header column">
+    <div className="portal-body ">
+      <div className="max-w-[1334px] w-full mx-auto column mt-10 gap-4">
+      <div className="column">
         <h2 className="page-title-analytics">Статистика</h2>
         <div className="controls-row row ai-center jc-sb wrap gap-2">
           <div className="year-selector row ai-center gap-2">
@@ -196,6 +197,7 @@ export default function ProductionStatisticsPage() {
             )}
           </>
         )}
+      </div>
       </div>
     </div>
   );

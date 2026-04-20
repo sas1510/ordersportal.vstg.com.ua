@@ -11,7 +11,7 @@ export default function HeaderWithoutAuth() {
     <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
       
       {/* 1. Декоративна смуга — зменшуємо висоту на мобільних (h-2 проти h-[30px]) */}
-      <div className="w-full max-w-[1334px] h-2 md:h-[30px] bg-[#B4D947] rounded-t-sm" />
+      <div className="w-full max-w-[1334px]  h-2 md:h-[12px]  bg-[#B4D947] rounded-t-sm" />
 
       {/* 2. Основна панель — адаптивна висота (h-12 на мобілках, h-[70px] на десктопі) */}
       <div className="w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center justify-between shadow-sm rounded-bl-[15px] rounded-br-[15px] md:rounded-bl-[25px] md:rounded-br-[25px] px-4 md:px-8">

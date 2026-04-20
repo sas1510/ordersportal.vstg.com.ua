@@ -27,8 +27,6 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
     switch (status) {
       case "Новий":
       case "В обробці":
-
-      case "У виробництві":
         return "text-WS---DarkBlue";
       case "Очикуємо оплату":
       case "Очикуємо підтвердження":
@@ -37,6 +35,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
       case "Готовий":
       case "Відвантажений":
       case "Підтверджений":
+      case "У виробництві":
         return "text-WS---DarkGreen";
       default:
         return "text-WS---DarkRed";

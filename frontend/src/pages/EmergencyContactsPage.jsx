@@ -156,7 +156,7 @@ const EmergencyContactsPage = () => {
 
   return (
     <div className="emergency-portal-body">
-      <h1 className="text-color mt-3 text-4xl font-bold pb-0">
+      <h1 className="text-color mt-6 text-4xl font-bold pb-0">
         Контакти для термінового дзвінка
       </h1>
       <div style={{ border: "1px dashed #ccc", marginBottom: "5px" }}></div>

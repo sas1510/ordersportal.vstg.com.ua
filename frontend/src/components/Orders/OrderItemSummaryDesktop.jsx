@@ -134,14 +134,13 @@ export default React.memo(function OrderItemSummaryDesktop({
       case "Новий":
       case "В обробці":
       case "У виробництві":
-      case "Підтверджений":
-        return "text-WS---DarkBlue";
 
+        return "text-WS---DarkBlue";
       case "Очікуємо оплату":
       case "Очікуємо підтвердження":
       case "Відмова":
         return "text-WS---DarkRed";
-
+      case "Підтверджений":
       case "Готовий":
       case "Відвантажений":
         return "text-WS---DarkGreen";

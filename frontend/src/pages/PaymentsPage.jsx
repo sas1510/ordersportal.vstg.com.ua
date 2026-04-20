@@ -373,6 +373,8 @@ export default function PaymentsPage() {
 
   return (
     <div className={`column portal-body ${isDark ? "dark-theme" : ""}`}>
+
+      
       {loading && (
         <div className="loading-spinner-wrapper">
           <div className="loading-spinner"></div>

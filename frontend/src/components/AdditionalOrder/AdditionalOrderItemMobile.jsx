@@ -73,7 +73,7 @@ export const AdditionalOrderItemMobile = ({
       case "Відмова":
         return "text-danger";
       case "Готовий":
-      case "Відвантажений":
+      case "Відвантажено":
         return "text-success";
       default:
         return "text-grey";

@@ -24,6 +24,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const { addNotification } = useNotification();
 
+  const listCalcIcon = "/assets/icons/ListCalcIcon.png";
+  const moneyGreen = "/assets/icons/MoneyGreen.png";
+  const moneyRed = "/assets/icons/MoneyRed.png";
+  const fileIcon = "/assets/icons/FileIcon.png";
+    const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+
   const { user } = useAuthGetRole();
   // const isAdmin = role === "admin";
 
@@ -62,17 +68,17 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
   const getStatusClass = (status) => {
     switch (status) {
       case "Новий":
+         return "text-WS---DarkBlue";
       case "Очікуємо оплату":
       case "Очікуємо підтвердження":
       case "Відмова":
-        return "text-danger";
+        return "text-WS---DarkRed";
       case "Підтверджений":
-        return "text-info";
       case "Готовий":
       case "Відвантажений":
-        return "text-success";
+        return "text-WS---DarkGreen";
       default:
-        return "text-grey";
+        return "text-WS---DarkGrey";
     }
   };
 
@@ -119,25 +125,35 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         className="order-item-summary flex w-full cursor-pointer items-center "
         onClick={toggleExpand}
       >
-        <div className="summary-item row no-wrap">
-          <span className="icon icon-news font-size-20 text-success"></span>
+        <div className="summary-item row no-wrap !border-r-0 !pr-0">
+          <img 
+              src={listCalcIcon} 
+              // alt="Вікно" 
+              className="align-center mr-0.5" 
+            
+            />
         </div>
 
         {/* Номер та Дата */}
-        <div className="summary-item row w-9 no-wrap">
+        <div className="text-WS---DarkGrey summary-item row no-wrap">
           <div className="column items-center w-full">
-            <div className="text-info font-size-18 border-b border-gray-300 w-full text-center">
+            <div className="text-[15px]  text-bold border-bottom w-full ">
               {order.number}
             </div>
-            <div className="text-danger text-center">{order.date}</div>
+            <div className=" text-start text-[11px]  mb-1">{order.date}</div>
           </div>
         </div>
 
         {/* Кількість */}
         <div className="summary-item flex items-center w-6 justify-center no-wrap">
           <div className="row gap-5 align-center">
-            <span className="icon-layout5 font-size-20 text-info"></span>
-            <div className="font-size-20 text-danger">{order.count}</div>
+             <img 
+                  src={windowsIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-1 w-[25px] h-[25px]" 
+                
+                />
+            <div className="font-size-20 text-WS---DarkBlue">{order.count}</div>
           </div>
         </div>
 
@@ -146,17 +162,27 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
           className="summary-item flex w-10 items-center justify-center no-wrap cursor-pointer"
           onClick={openFilesModal}
         >
-          <div className="row w-full h-full align-center bg-gray-100 p-1 rounded hover:bg-gray-200 transition-colors">
-            <div className="icon-download font-size-18 text-red"></div>
-            <div className="text-info underline font-size-16">Файли</div>
+          <div className="row w-full h-full align-center  p-1  hover:bg-gray-200 transition-colors">
+            <img 
+                src={fileIcon} 
+                // alt="Вікно" 
+                className="align-center mr-0.5 w-[20px] h-[25px]" 
+              
+              />
+            <div className="text-WS---DarkGrey underline font-size-14">Файли</div>
           </div>
         </div>
 
         {/* Сума */}
-        <div className="summary-item row w-12 no-wrap gap-0 pl-0">
-          <span className="icon icon-coin-dollar text-success font-size-16 flex-shrink-0"></span>
+        <div className="summary-item row no-wrap gap-1 pl-0">
+            <img 
+                  src={moneyGreen} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
+                />
           <div className="flex flex-col flex-1 ml-2">
-            <div className="text-info font-size-18">
+            <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
@@ -166,10 +192,15 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         </div>
 
         {/* Борг */}
-        <div className="summary-item row w-12 no-wrap gap-0 pl-0">
-          <span className="icon icon-coin-dollar text-danger font-size-16 flex-shrink-0"></span>
+        <div className="summary-item row w-12 no-wrap gap-1 pl-0">
+          <img 
+            src={moneyRed} 
+            // alt="Вікно" 
+            className="align-center mr-0.5" 
+          
+          />
           <div className="flex flex-col flex-1 ml-2">
-            <div className="text-danger font-size-18">
+            <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
@@ -193,7 +224,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
           {user?.role !== "admin" && (
             <>
               <button
-                className={`column align-center button button-first background-success ${!buttonState.confirm ? "disabled opacity-50 cursor-not-allowed" : ""}`}
+                className={`column align-center ml-1.5 button button-first bg-WS---DarkGrey ${!buttonState.confirm ? "disabled opacity-50 cursor-not-allowed" : ""}`}
                 disabled={!buttonState.confirm}
                 onClick={() => setIsConfirmModalOpen(true)}
               >
@@ -201,7 +232,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
               </button>
 
               <button
-                className={`column align-center button background-warning ${!buttonState.pay ? "disabled opacity-50 cursor-not-allowed" : ""}`}
+                className={`column align-center button bg-WS---DarkGreen ${!buttonState.pay ? "disabled opacity-50 cursor-not-allowed" : ""}`}
                 disabled={!buttonState.pay}
                 onClick={() => setIsPaymentOpen(true)}
               >
@@ -211,7 +242,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
           )}
 
           <button
-            className={`column align-center button button-last background-danger ${!buttonState.claim ? "disabled opacity-50 cursor-not-allowed" : ""}`}
+            className={`column align-center button button-last bg-WS---DarkRed ${!buttonState.claim ? "disabled opacity-50 cursor-not-allowed" : ""}`}
             disabled={!buttonState.claim}
             onClick={() => {
               setClaimOrderNumber(order.number);

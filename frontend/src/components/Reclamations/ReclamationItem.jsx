@@ -32,6 +32,9 @@ export const ReclamationItem = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const menuRef = useRef(null);
+  const deleteIcon = "/assets/icons/DeleteIcon.png";
+  const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+
   // const userRaw = localStorage.getItem("user");
   // const user = userRaw ? JSON.parse(userRaw) : null;
 
@@ -173,23 +176,23 @@ export const ReclamationItem = ({
       style={{
         borderLeft:
           Number(reclamation.numberWEB) > 0
-            ? "4px solid #f38721ff"
-            : "4px solid #5e83bf",
+            ? "7px solid rgb(186, 82, 59)"
+            : "7px solid rgb(107, 152, 191)",
 
         paddingLeft: "12px",
       }}
     >
       <div className="item-summary row w-100" onClick={toggleExpanded}>
-        <div className="summary-item row no-wrap" style={{ flexBasis: "3%" }}>
+        {/* <div className="summary-item row no-wrap" style={{ flexBasis: "3%" }}>
           <span className="icon icon-tools2 font-size-22 text-success"></span>
-        </div>
+        </div> */}
 
         <div className="summary-item row no-wrap" style={{ flexBasis: "15%" }}>
           <div className="column">
-            <div className="font-size-18 text-info border-bottom">
+            <div className="text-base text-bold text-WS---DarkGrey border-bottom">
               № {reclamation.id}
             </div>
-            <div className="text-danger">
+            <div className="text-xs text-WS---DarkGrey">
               {formatDateHumanShorter(reclamation.dateRaw)}
             </div>
           </div>
@@ -213,29 +216,54 @@ export const ReclamationItem = ({
 
         <div className="summary-item expandable row w-30 align-start space-between">
           <div className="column w-full" style={{ flex: 1, minWidth: 0 }}>
-            <div className="comments-text-wrapper-last">
-              {reclamation.message || "Без коментарів"}
+            <div className="comments-text-wrapper-last font-['Inter']">
+            {reclamation.message || "Без коментарів"}
+          </div>
+
+          <button
+            className="btn-comments  row flex items-center"
+            style={{ 
+              position: "relative", 
+              alignSelf: "flex-end", // Залишаємо вирівнювання по правому краю, якщо це потрібно
+              border: "none",
+              background: "none"
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              // Використовуємо дані з reclamation (або змініть на calc, якщо структура змінилася)
+              handleViewComments(reclamation.message || []);
+            }}
+          >
+            <div className="relative flex items-center">
+              <img 
+                src={historyOfMessage} 
+                alt="Історія" 
+                className={`mr-2 w-[20px] h-[20px] object-contain ${
+                  reclamation.hasUnreadMessages ? "brightness-110" : ""
+                }`} 
+              />
+              
+              {/* Червона крапка (індикатор), якщо є нечитані повідомлення */}
+              {reclamation.hasUnreadMessages && (
+                <span 
+                  style={{
+                    position: "absolute",
+                    top: "-2px",
+                    right: "4px",
+                    width: "8px",
+                    height: "8px",
+                    backgroundColor: "var(--danger-color)",
+                    borderRadius: "50%",
+                    border: "1px solid white"
+                  }}
+                />
+              )}
             </div>
-            <button
-              className="btn-comments self-end"
-              style={{ alignSelf: "flex-end", position: "relative" }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewComments(reclamation.message || []);
-              }}
-            >
-              <i
-                className="fas fa-comments"
-                style={{
-                  color: reclamation.hasUnreadMessages
-                    ? "var(--danger-color)"
-                    : "inherit",
-                  transition: "color 0.3s",
-                  marginRight: "3px",
-                }}
-              ></i>
+
+            <span className="text-sm  text-WS---DarkGrey">
               Історія коментарів
-            </button>
+            </span>
+          </button>
           </div>
         </div>
 
@@ -248,7 +276,7 @@ export const ReclamationItem = ({
               {/* <span className="icon icon-user text-dark shrink-0"></span> */}
 
               <User className="w-10 h-10 text-dark shrink-0" />
-              <span className="text-dark leading-snug">
+              <span className="text-dark leading-snug font-['Inter']">
                 {reclamation.dealer}
               </span>
             </div>
@@ -258,9 +286,9 @@ export const ReclamationItem = ({
         <div className="summary-item row no-wrap" style={{ flexBasis: "15%" }}>
           <div className="icon-info-with-circle font-size-24 text-info"></div>
           <div
-            className={`column gap-3 font-size-12 no-wrap calc-status ${getStatusClass(reclamation.status)}`}
+            className={`column gap-2 font-size-12 no-wrap calc-status font-['Inter'] ${getStatusClass(reclamation.status)}`}
           >
-            <div className="font-size-16 font-semibold">
+            <div className="font-size-14 font-semibold">
               {reclamation.status}
             </div>
           </div>
@@ -275,7 +303,18 @@ export const ReclamationItem = ({
           {/* 🗑️ Видалити */}
 
           <div
-            className={`icon icon-trash font-size-18 ${!canDelete ? "inactive" : "clickable text-danger"}`}
+          className="summary-item row no-wrap gap-4 align-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* 🗑️ Видалити (оновлено з використанням зображення) */}
+          <img
+            src={deleteIcon}
+            alt="Видалити"
+            className={`w-[18px] h-[18px] object-contain transition-all ${
+              !canDelete 
+                ? "opacity-30 grayscale cursor-not-allowed" 
+                : "cursor-pointer hover:brightness-75"
+            }`}
             title={
               !canDelete
                 ? managerAssigned
@@ -283,8 +322,9 @@ export const ReclamationItem = ({
                   : "Недоступно для видалення"
                 : "Видалити"
             }
-            onClick={canDelete ? handleDeleteClick : undefined} // Додаємо запобіжник на клік
+            onClick={canDelete ? handleDeleteClick : undefined}
           />
+        </div>
 
           {/* Модальне вікно підтвердження видалення */}
           {isDeleteModalOpen && (

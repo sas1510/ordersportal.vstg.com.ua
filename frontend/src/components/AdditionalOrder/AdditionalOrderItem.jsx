@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney"; // окремий файл utils.js для форматування
 import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu"; // Використовуємо перейменоване меню
@@ -24,6 +24,15 @@ export const AdditionalOrderItem = ({
   const toggleExpanded = () => setExpanded((prev) => !prev);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]);
+
+  const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+  const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
+
+  const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+
+
+
+
   // const windowWidth = useWindowWidth();
   // const isMobile = windowWidth < 1024;
 
@@ -75,32 +84,45 @@ export const AdditionalOrderItem = ({
     ? additionalOrder.orders
     : [];
   const ordersWithNumbers = orderList.filter((order) => order.number);
+
+
   const getStatusClass = (status) => {
     switch (status) {
       case "Новий":
       case "В обробці":
       case "У виробництві":
       case "Підтверджений":
-        return "text-info";
+        return "text-WS---DarkBlue";
       case "Очікуємо оплату":
       case "Очікуємо підтвердження":
       case "Відмова":
-        return "text-danger";
+        return "text-WS---DarkRed";
       case "Готовий":
-      case "Відвантажений":
-        return "text-success";
+      case "Відвантажено":
+        return "text-WS---DarkGreen";
       default:
-        return "text-grey";
+        return "text-WS---DarkGrey";
     }
   };
+
+  const statusEntries = useMemo(() => {
+    return additionalOrder.statuses && Object.keys(additionalOrder.statuses).length > 0
+      ? Object.entries(additionalOrder.statuses)
+      : [];
+  }, [additionalOrder.statuses]);
+
+
+  const mainStatus = statusEntries.length > 0 ? statusEntries[0][0] : null;
+  const iconColorClass = mainStatus ? getStatusClass(mainStatus) : "text-warning";
+
 
   return (
     <div
       className="calc-item column"
       style={{
         borderLeft: additionalOrder.numberWEB
-          ? "4px solid #f38721ff"
-          : "4px solid #5e83bf",
+          ? "7px solid #BA523B"
+          : "7px solid #6B98BF",
 
         paddingLeft: "12px",
       }}
@@ -108,22 +130,22 @@ export const AdditionalOrderItem = ({
       {/* ============ ADDITIONAL ORDER SUMMARY ============ */}
       <div className="item-summary row w-100" onClick={toggleExpanded}>
         {/* 1. Іконка та номер Дод. Замовлення */}
-        <div className="summary-item row  no-wrap">
+        {/* <div className="summary-item row  no-wrap">
           <span
             className="font-size-24 icon-add-to-list text-success"
             title="Додаткове Замовлення"
           />
-        </div>
+        </div> */}
 
         <div
           className="summary-item row w-9 no-wrap"
           style={{ minWidth: "130px" }}
         >
           <div className="column">
-            <div className="font-size-18 text-info border-bottom">
+            <div className="text-base text-bold text-WS---DarkGrey border-bottom">
               № {additionalOrder.number}
             </div>
-            <div className="text-danger">
+            <div className="text-xs text-WS---DarkGrey">
               {formatDateHumanShorter(additionalOrder.dateRaw)}
             </div>
           </div>
@@ -131,28 +153,33 @@ export const AdditionalOrderItem = ({
 
         {/* 2. Кількість конструкцій */}
         <div
-          className="summary-item row w-6 no-wrap"
+          className="summary-item row w-9 no-wrap"
           title="Кількість конструкцій в дозамовленні"
         >
-          <LayoutGrid className="font-size-24 text-info" />
-          <div className="font-size-24 text-danger">
+           <img 
+              src={windowsIcon} 
+              // alt="Вікно" 
+              className="align-center mr-0.5" 
+            
+            />
+          <div className="font-size-24 text-WS---DarkBlue">
             {additionalOrder.constructionsQTY}
           </div>
         </div>
 
         {/* 3. Номер Основного Замовлення (з перевіркою) */}
         <div
-          className="summary-item row w-9 no-wrap"
+          className="text-WS---DarkGrey summary-item row w-9 no-wrap"
           style={{ minWidth: "120px" }}
           title="Номер Основного Замовлення"
         >
           <div className="column">
             {hasMainOrder ? (
               <>
-                <div className="font-size-18 text-info border-bottom">
+                <div className="text-[15px]  text-bold border-bottom w-full ">
                   № {additionalOrder.mainOrderNumber}
                 </div>
-                <div className="text-danger">
+                <div className="text-start text-[11px]  mb-1">
                   {formatDateHumanShorter(additionalOrder.mainOrderDate)}
                 </div>
               </>
@@ -168,14 +195,19 @@ export const AdditionalOrderItem = ({
         </div>
 
         {/* 4. Сума / Борг */}
-        <div className="summary-item row w-14 no-wrap">
-          <div className="row gap-14 align-center">
-            <span className="icon icon-coin-dollar font-size-24 text-success"></span>
+        <div className="summary-item row w-16 no-wrap">
+          <div className="row gap-2 align-center">
+            <img 
+                  src={moneyCalcIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
+                />
             <div className="column">
-              <div className="font-size-18 text-success border-bottom">
+              <div className="font-size-16  text-WS---DarkGreen font-bold border-bottom">
                 {formatMoney2(additionalOrder.amount, additionalOrder.currency)}
               </div>
-              <div className="font-size-16 text-danger">
+             <div className="font-size-16  text-WS---DarkRed font-bold">
                 {formatMoney2(additionalOrder.debt, additionalOrder.currency)}
               </div>
             </div>
@@ -183,7 +215,7 @@ export const AdditionalOrderItem = ({
         </div>
 
         {/* 5. Коментарі / Опис Рекламації */}
-        <div className="summary-item expandable row w-30 align-start space-between">
+        <div className="summary-item expandable row w-24 align-start space-between">
           <div className="column" style={{ flex: 1, minWidth: 0 }}>
             <div
               className="comments-text-wrapper-last"
@@ -193,22 +225,18 @@ export const AdditionalOrderItem = ({
             </div>
             {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
             <button
-              className="btn-comments"
+              className="btn-comments row"
+              style={{ position: "relative" }}
               onClick={(e) => {
                 e.stopPropagation();
                 handleViewComments(additionalOrder.comments || []);
               }}
-            >
-              <i
-                className="fas fa-comments"
-                style={{
-                  color: additionalOrder.hasUnreadMessages
-                    ? "var(--danger-color)"
-                    : "inherit",
-                  transition: "color 0.3s",
-                  marginRight: "3px",
-                }}
-              ></i>{" "}
+            > <img 
+                  src={historyOfMessage} 
+
+                  className="align-center mr-0.5" 
+                
+                />
               Історія коментарів
             </button>
           </div>
@@ -230,9 +258,9 @@ export const AdditionalOrderItem = ({
         </div>
 
         {/* 7. Статуси */}
-        <div className="summary-item row w-15 ">
+        <div className="summary-item row w-20 ">
           <div className="row gap-1 align-center">
-            <div className="icon-info-with-circle font-size-24 text-info"></div>
+            <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
 
             <div className="column gap-3 font-size-12  scroll-y">
               {additionalOrder.statuses &&
@@ -328,3 +356,4 @@ export const AdditionalOrderItem = ({
     </div>
   );
 };
+ 

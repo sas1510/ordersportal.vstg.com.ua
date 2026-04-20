@@ -1328,6 +1328,9 @@ groups.forEach((g) => {
 
   return (
     <div className={`payments-body ${theme}`}>
+
+    <div className="max-w-[1334px] mx-auto ">
+
       {!isMobile ? (
         <>
           <div className="filters-container">
@@ -1443,6 +1446,7 @@ groups.forEach((g) => {
           setDealerGuid={setDealerGuid}
         />
       )}
+      </div>
     </div>
   );
 };

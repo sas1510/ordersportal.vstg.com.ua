@@ -87,7 +87,9 @@ const WDSCodesTable = () => {
 
   return (
     //  <div className="wds-codes-page"></div>
-    <div className="portal-body">
+    <div className="portal-body" style={{justifyContent: 'center'}} >
+
+       <div className="max-w-[1334px] mx-auto ">
       {/* ===== HEADER ===== */}
       <div className="customer-bills-header">
         <h1 className="page-title" style={{ marginTop: "10px" }}>
@@ -194,6 +196,7 @@ const WDSCodesTable = () => {
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   );

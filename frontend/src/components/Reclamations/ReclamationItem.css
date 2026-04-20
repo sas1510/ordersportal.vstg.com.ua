@@ -9,7 +9,7 @@
   color: var(--text-color);
   border: 1px dashed var(--grey-border-color);
   box-shadow: 1px 1px 5px var(--shadow-color);
-  border-radius: 5px; /* Замість 8px */
+  border-radius: 0 5px 5px 0; /* Замість 8px */
   min-height: 60px;
   padding: 7px; /* Збільшуємо padding для кращої видимості */
   width: calc(100%);

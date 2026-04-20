@@ -554,7 +554,7 @@ body {
   background-color: var(--info-color);
   color: #fff;
   padding: 4px 10px;
-  padding-bottom: 7px;
+  /* padding-bottom: 7px; */
   font-size: 12px;
   border: none;
   cursor: pointer;
@@ -1900,7 +1900,7 @@ html {
 
     display: inline-block;
     position: relative;
-    left: 15px;
+    left: 17px;
     top: -17px;
     width: 35px;
     height: 35px;
@@ -3283,7 +3283,7 @@ body.dark-theme
   display: flex;
   text-align: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 
 }
 
@@ -3340,4 +3340,14 @@ body.dark-theme
 .bg-WS---DarkGrey-Light {
   background-color: #EEEEEE;
     font-family: 'Inter', sans-serif;
+}
+
+
+.w-24 {
+    width: 24% !important;
+}
+
+
+.w-20 {
+    width: 20% !important;
 }

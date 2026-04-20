@@ -112,10 +112,22 @@ const CustomerBillsPage = () => {
     if (!isAdmin || (isAdmin && dealerGuid)) fetchBills();
   }, [dealerGuid, isAdmin]);
 
-  if (loading) return <div className="loading-text">Завантаження…</div>;
+
+  if (loading) {
+    return (
+      <div className="loading-spinner-wrapper">
+        <div className="loading-spinner"></div>
+        <div className="loading-text">
+           Завантаження...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="portal-body">
+
+    <div className="max-w-[1334px] mx-auto ">
       <div className="customer-bills-header">
         <h1 className="page-title">Рахунки</h1>
         <div className="bills-filter">
@@ -193,6 +205,7 @@ const CustomerBillsPage = () => {
         onClose={() => setIsCreateBillOpen(false)}
         onSuccess={fetchBills}
       />
+      </div>
     </div>
   );
 };
