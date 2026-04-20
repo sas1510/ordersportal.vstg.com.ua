@@ -33,3 +33,23 @@
   font-size: 16px; /* або 14px для ще компактніше */
   cursor: pointer;
 }
+
+/* Клас для червоної іконки (коли видалення дозволено) */
+.icon-delete-red {
+  /* Точний розрахунок для кольору #BA523B */
+  filter: invert(38%) sepia(58%) saturate(644%) hue-rotate(326deg) brightness(92%) contrast(88%) !important;
+  opacity: 1 !important;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.icon-delete-red:hover {
+  /* Трохи насиченіший колір при наведенні */
+  filter: invert(30%) sepia(80%) saturate(1000%) hue-rotate(330deg) brightness(85%) contrast(95%) !important;
+  transform: scale(1.1);
+}
+
+/* Клас для заблокованої іконки (сіра) */
+.icon-delete-disabled {
+  filter: grayscale(100%);
+  opacity: 0.2;
+}

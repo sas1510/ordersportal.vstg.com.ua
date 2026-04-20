@@ -343,23 +343,25 @@ body {
 }
 
 .portal-body .content-filter {
-  padding: 8px;
+  padding: 8px 0px;
   height: calc(100% - 28px);
   width: 100%; /* базова ширина на маленьких екранах */
-  max-width: 350px; /* максимум на великих екранах */
-  border-right: 1px dashed var(--grey-border-color);
+  max-width: 285px; /* максимум на великих екранах */
+  /* margin-right: 10px; */
+  /* border-right: 1px dashed var(--grey-border-color); */
+  justify-content: start;
 }
 
 @media (max-width: 1460px) {
   .portal-body .content-filter {
-    width: 300px; /* трохи менше на планшетах */
+    width: 285px; /* трохи менше на планшетах */
     max-width: none;
   }
 }
 
 .portal-body .content {
   height: calc(100%);
-  width: calc(100% - 350px - 28px);
+  width: calc(100% - 285px);
   padding: 8px;
   color: var(--grey-text-color);
   overflow-y: auto;
@@ -387,12 +389,36 @@ body {
 
 .portal-body .content-filter .filter li {
   cursor: pointer;
-  padding: 9px 10px;
+  padding: 12px 10px;
   transition: all 0.5s ease;
   width: 100%;
+  display: flex;         /* Додаємо, щоб align-items працював */
   align-items: center;
-  border: 1px solid transparent;
+  position: relative;    /* Необхідно для позиціонування лінії */
 }
+
+/* Створюємо лінію через псевдоелемент */
+.portal-body .content-filter .filter li::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 10px;            /* Відступ зліва */
+  right: 10px;           /* Відступ справа */
+  border-bottom: 1px dashed var(--WS---Green);
+  opacity: 0.5;          /* Можна додати прозорість для легкості, як у макеті */
+}
+
+/* Прибираємо лінію у останнього елемента списку */
+.portal-body .content-filter .filter li:last-child::after {
+  display: none;
+}
+
+/* Стиль при наведенні або активному стані */
+
+/* .filter-item.active:hover img {
+  filter: brightness(0) !important; 
+  opacity: 1 !important;
+} */
 
 .portal-body .content-filter .filter li span:first-child {
   margin-right: 14px;
@@ -401,7 +427,7 @@ body {
 
 .portal-body .content-filter .filter li span:last-child {
   padding: 3px 7px;
-  background-color: var(--info-color);
+  background-color: var(--WS--DarkBlue);
   color: #fff;
   font-size: 12px;
   font-weight: bold;
@@ -409,6 +435,20 @@ body {
   float: right;
 }
 
+/* Коли наводимо на li, змінюємо стилі останнього span всередині нього */
+.portal-body .content-filter .filter li:hover span:last-child {
+  background-color: #fff !important; /* Фон стає білим */
+  color: var(--WS--DarkBlue) !important; /* Текст стає темно-синім */
+  /* Можна додати легку тінь, щоб білий бейдж краще виділявся на світлому ховер-фоні */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+}
+
+
+
+.portal-body .content-filter .filter li.active span:last-child {
+  background-color: #fff !important;
+  color: var(--WS--DarkBlue) !important;
+}
 .portal-body .content-filter .filter li:last-child {
   /*border-right: 1px dashed var(--grey-border-color);*/
 }
@@ -418,27 +458,35 @@ body {
   margin-top: 0;
 }
 
-.portal-body .content-filter .filter li:hover {
-  /* color: #fff;*/
-  transition: all 0.3s ease;
-  background-color: #fff;
-  border: 1px dashed var(--grey-border-color);
-}
 
-.portal-body .content-filter .filter li:hover .icon {
-  /* color: #fff;*/
-  transition: all 0.2s ease;
-  color: var(--info-color);
-}
+
 
 .portal-body .content-filter .filter .active {
+  background-color: var(--WS--DarkBlue);
+  /* border: 1px dashed var(--grey-border-color); */
+  color: #fff;
+}
+.portal-body .content-filter .filter .active img {
+  filter: brightness(0) invert(1);
+}
+.portal-body .content-filter .filter .active .span {
+  color: #fff;
   background-color: #fff;
-  border: 1px dashed var(--grey-border-color);
 }
 
-.portal-body .content-filter .filter .active .icon {
-  color: var(--info-color);
+/* Ховер для звичайного (неактивного) елемента */
+.portal-body .content-filter .filter li:hover {
+  background-color: var(--WS--DarkBlue);
+  /* border: 1px dashed var(--grey-border-color); */
+  color: #fff;
 }
+
+/* Ховер для іконки (будь-якої: і активної, і звичайної) */
+.portal-body .content-filter .filter li:hover img {
+  filter: brightness(0) invert(1);
+}
+
+
 
 .delimiter1 {
   pointer-events: none; /* Відключає взаємодію */
@@ -456,22 +504,28 @@ body {
 }
 
 .btn-add-calc {
-  /* буде як ширина батьківського контейнера */
-  height: 50px; /* висота input з .search-orders */
+
+  height: 42px; /* висота input з .search-orders */
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  background-color: var(--success-color);
+  background-color: var(--WS---Green);
   color: white;
   gap: 8px; /* відстань між іконкою і текстом */
   padding: 0px 16px; /* внутрішні відступи зліва/справа */
-  margin: 0px 0px; /* зовнішні відступи зліва/справа */
-  border-radius: 3px !important;
+  margin: 10px 0px; /* зовнішні відступи зліва/справа */
+  border-radius: 5px !important;
+
+}
+
+.btn-add-calc:hover {
+  background-color: #afd343;
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); */
 }
 
 .btn-select-dealer {
   /* буде як ширина батьківського контейнера */
-  height: 50px; /* висота input з .search-orders */
+  height: 42px; /* висота input з .search-orders */
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -491,6 +545,7 @@ body {
 
 .btn-add-calc:hover .icon {
   color: #fff !important;
+
 }
 
 /* СТИЛИ КНОПОК ДЕЙСТВИЙ */
@@ -523,7 +578,7 @@ body {
 }
 
 .disabled {
-  background-color: var(--grey-border-color) !important;
+  /* background-color: var(--grey-border-color) !important; */
   cursor: not-allowed !important;
   opacity: 0.5 !important;
   color: #fff !important;
@@ -562,7 +617,7 @@ body {
 }
 
 .content-summary .year-selector {
-  padding: 7px 28px;
+  padding: 3px 28px;
   align-items: center;
   justify-content: right;
   color: var(--text-color);
@@ -581,7 +636,7 @@ body {
 
 @media (max-width: 1460px) {
   .portal-body .content-filter {
-    width: 300px; /* трохи менше на планшетах */
+    width: 285px; /* трохи менше на планшетах */
     max-width: none;
   }
 }
@@ -609,7 +664,7 @@ body {
 }
 
 .content-summary .by-month-pagination-wrapper {
-  padding: 5px 14px;
+  padding: 3px 32px;
   align-items: center;
   justify-content: center;
   color: var(--text-color);
@@ -639,7 +694,7 @@ body {
 
 .content-summary .by-month-pagination-wrapper ul li {
   cursor: pointer;
-  padding: 5px 5px;
+  padding: 3px 5px;
   border: 1px solid transparent;
   transition: all 0.3s ease;
   border-radius: 0px;
@@ -684,7 +739,7 @@ header_logo.svg
 header_logo_white.svg
 */
 :root {
-  --text-color: #606060;
+  --text-color: #44403e;
   --info-color: #5e83bf;
   --success-color: #76b448;
   --warning-color: #d3c527;
@@ -707,6 +762,18 @@ header_logo_white.svg
 
   --header-height: 50px;
   --burger-menu-width: 500px;
+   --WS---Green: #b4d947;
+   --WS---DarkGrey:  #44403E;
+   --WS--DarkBlue:  #6B98BF;
+   --WS--DarkRed:  #BA523B;
+   --WS--DarkGreen:  #516C00;
+
+
+}
+
+.text-WS---DarkGrey {
+    font-family: 'Inter', sans-serif;
+  color: var(--WS---DarkGrey);
 }
 
 .hidden {
@@ -1248,7 +1315,7 @@ header_logo_white.svg
 }
 
 .text-grey {
-  color: var(--grey-color) !important;
+  color: var(--WS---DarkGrey) !important;
 }
 
 .background-white {
@@ -1660,11 +1727,11 @@ html {
   justify-content: center; /* горизонтальне вирівнювання по центру */
   align-items: center; /* вертикальне вирівнювання по центру */
   width: 100%;
-  padding: 0px 40px 0px 12px; /* простір для хрестика справа */
-  font-size: 16px;
-  border: 1px dashed var(--grey-border-color);
+  padding: 0px 12px 0px 40x; /* простір для хрестика справа */
+  font-size: 14px;
+  border: 2px solid var(--grey-border-color);
   border-radius: 5px;
-  height: 50px;
+  height: 42px;
   color: var(--text-color);
   box-sizing: border-box;
 }
@@ -1675,9 +1742,9 @@ html {
 .calc-item {
   background-color: #fff;
   color: var(--text-color);
-  border: 1px dashed var(--grey-border-color);
+  /* border: 1px dashed var(--grey-border-color); */
   box-shadow: 1px 1px 5px var(--shadow-color);
-  border-radius: 5px;
+  border-radius: 0 5px 5px 0;
   min-height: 60px;
   padding: 7px;
   width: calc(100%);
@@ -1719,13 +1786,15 @@ html {
   border-right: none;
 }
 
+
+
 /* Якщо треба, щоб якийсь блок розтягувався */
 .calc-item .summary-item.expandable {
   flex: 1 1 auto;
 }
 
 .calc-item .item-details {
-  padding: 7px;
+  padding: 1px 7px 1px 7px;
   padding-left: 28px;
 
   font-size: 12px;
@@ -1744,15 +1813,15 @@ html {
 
 /* СТИЛИ ДЛЯ ЭЛЕМЕНТА ЗАКАЗА */
 .order-item {
-  background-color: var(--portal-bg-color-light);
-  color: var(--text-color);
-  border: 1px dashed var(--grey-border-color);
-  box-shadow: 1px 1px 5px var(--shadow-color);
+  /* background-color: var(--portal-bg-color-light); */
+  color: var(--WS---DarkGrey);
+  /* border: 1px dashed var(--grey-border-color); */
+  /* box-shadow: 1px 1px 5px var(--shadow-color); */
   align-items: center;
   justify-content: center;
-  border-radius: 5px;
+  /* border-radius: 5px; */
   min-height: 40px;
-  padding: 7px;
+  /* padding: 7px; */
   gap: 3px;
   width: calc(100%);
   align-items: flex-start;
@@ -1768,7 +1837,7 @@ html {
   font-size: 14px;
   align-items: center;
   justify-content: center;
-  height: 50px;
+  /* height: 50px; */
   cursor: pointer;
   overflow: hidden;
 }
@@ -1779,7 +1848,7 @@ html {
   font-size: 12px;
   color: var(--grey-color);
   width: calc(100% - 10px);
-  border-top: 1px dashed var(--grey-border-color);
+  /* border-top: 1px dashed var(--grey-border-color); */
   border-radius: 5px;
   align-items: flex-start;
   text-align: left;
@@ -1794,6 +1863,8 @@ html {
   position: relative;
   box-sizing: border-box;
   min-height: 180px;
+  text-align: center;
+  justify-content: center;
 }
 
 .timeline ul {
@@ -1804,17 +1875,17 @@ html {
 }
 
 .timeline ul li {
-  margin: 0 0 20px 0;
-  padding-left: 150px;
-  padding-bottom: 20px;
+  margin: 0 0 10px 0;
+  padding-left: 80px;
+  padding-bottom: 10px;
   position: relative;
   display: inline-block;
-  border-top: 1px solid var(--info-color);
-  border-left: 1px solid var(--info-color);
+  border-top: 1px solid var(--WS---DarkGrey);
+  border-left: 1px solid var(--WS---DarkGrey);
 }
 
 .timeline ul li:last-child {
-  border-right: 1px solid var(--info-color);
+  border-right: 1px solid var(--WS---DarkGrey);
 }
 
 .timeline ul li:first-child {
@@ -1823,38 +1894,41 @@ html {
 }
 
 .timeline ul li .icon {
-  background: #fff;
-  border: 1px solid var(--info-color);
-  color: #fff;
-  display: inline-block;
-  position: relative;
-  left: 25px;
-  top: -20px;
-  width: 40px;
-  height: 40px;
-  line-height: 45px;
-  text-align: center;
-  border-radius: 50%;
-  font-size: 16px;
-  z-index: 1;
+    background: #fff;
+    border: 1px solid var(--WS---DarkGrey);
+
+
+    display: inline-block;
+    position: relative;
+    left: 15px;
+    top: -17px;
+    width: 35px;
+    height: 35px;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    font-size: 14px;
+    z-index: 1;
+
+    padding: 4px 3px 4px 5px;
+   
 }
 
 .timeline ul li .badge {
-  width: 120px;
-  border: 1px solid var(--info-color);
-  background-color: #ffff;
-  color: var(--grey-text-color);
-  display: inline-block;
-  position: absolute;
-  left: 130px;
-  top: 60px;
-  /*    padding: 3px 7px;*/
-  font-size: 12px;
-  z-index: 1;
+    width: 100px;
+    border: 1px solid var(--WS---DarkGrey);
+    background-color: #fff;
+    color: var(--grey-text-color);
+    display: inline-block;
+    position: absolute;
+    left: 60px;
+    top: 40px;
+    font-size: 10px;
+    z-index: 1;
 }
 
 .timeline ul li .badge .badge-title {
-  background-color: var(--info-color);
+  background-color: var(--WS---DarkGrey);
   color: #fff;
   padding: 3px 7px;
   text-align: center;
@@ -1862,7 +1936,7 @@ html {
 
 .timeline ul li .badge .badge-content {
   /*background-color: var(--info-color);*/
-  color: var(--text-color);
+  color: var(--WS---DarkGrey);
   padding: 3px 7px;
   text-align: center;
 }
@@ -1939,18 +2013,20 @@ html {
 
 .comments-text-wrapper-last {
   font-size: 12px;
-  color: #777;
+  color: var(--WS---DarkGrey);
   line-height: 1.2em; /* Висота рядка */
   max-height: 2.4em; /* 2 рядки */
   overflow: hidden;
   word-break: break-word;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-comments {
-  align-self: flex-end; /* кнопка зліва */
+  /* align-self: flex-end; кнопка зліва */
   padding: 4px 8px;
   font-size: 12px;
-  color: #555555;
+  color: var(--WS---DarkGrey);
+  font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 1850px) {
@@ -2014,10 +2090,10 @@ html {
     height: 60px !important;
   }
   .portal-body .content-filter {
-    width: 300px !important;
+    width: 285px !important;
   }
   .portal-body .content {
-    width: calc(100% - 300px) !important;
+    width: calc(100% - 285px) !important;
   }
   .content-summary .year-selector {
     width: 300px !important;
@@ -2026,7 +2102,7 @@ html {
   }
   .content-summary .by-month-pagination-wrapper {
     font-size: 12px !important;
-    padding: 4px 6px !important;
+    padding: 4px 32px !important;
 
     max-width: 1334px;
   }
@@ -2170,7 +2246,7 @@ html {
   .content-filter .search-orders {
     height: 40px !important;
     font-size: 14px !important;
-    padding: 0 32px 0px 10px !important;
+    /* padding: 0 32px 0px 10px !important; */
   }
   .content-filter .clear-search {
     font-size: 18px !important;
@@ -2178,7 +2254,7 @@ html {
     top: 50% !important;
   }
   .portal-body .content {
-    width: calc(100% - 300px) !important;
+    width: calc(100% - 285px) !important;
   }
   /* Контейнери */
   .portal-body {
@@ -2188,7 +2264,7 @@ html {
     padding-right: 5px !important;
   }
   .portal-body .content-filter {
-    width: 300px !important;
+    width: 285px !important;
   }
   .content-summary .year-selector {
     width: 300px !important;
@@ -2197,7 +2273,7 @@ html {
   }
   .content-summary .by-month-pagination-wrapper {
     font-size: 12px !important;
-    padding: 4px 6px !important;
+    padding: 4px 32px !important;
     max-width: 1334px;
   }
 
@@ -2207,14 +2283,46 @@ html {
     padding: 4px 6px !important;
     font-size: 12px !important;
   }
-  .portal-body .content-filter .filter li {
-    cursor: pointer;
-    padding: 7px 8px;
-    transition: all 0.5s ease;
-    width: 100%;
-    align-items: center;
-    border: 1px solid transparent;
-  }
+.portal-body .content-filter .filter li {
+  cursor: pointer;
+  padding: 12px 8px;
+  transition: all 0.5s ease;
+  width: 100%;
+  display: flex;         /* Додаємо, щоб align-items працював */
+  align-items: center;
+  position: relative;    /* Необхідно для позиціонування лінії */
+}
+
+/* Створюємо лінію через псевдоелемент */
+.portal-body .content-filter .filter li::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 10px;            /* Відступ зліва */
+  right: 10px;           /* Відступ справа */
+  border-bottom: 1px dashed var(--WS---Green);
+  opacity: 0.5;          /* Можна додати прозорість для легкості, як у макеті */
+}
+
+/* Прибираємо лінію у останнього елемента списку */
+.portal-body .content-filter .filter li:last-child::after {
+  display: none;
+}
+
+/* Ховер для звичайного (неактивного) елемента */
+.portal-body .content-filter .filter li:hover {
+  background-color: var(--WS--DarkBlue);
+  /* border: 1px dashed var(--grey-border-color); */
+  color: #fff;
+}
+
+/* Ховер для іконки (будь-якої: і активної, і звичайної) */
+.portal-body .content-filter .filter li:hover img {
+  filter: brightness(0) invert(1);
+}
+
+
+
 }
 
 @media (max-width: 1604px) {
@@ -2231,7 +2339,7 @@ html {
     padding: 0;
     list-style: none;
     position: relative;
-    left: 10px;
+
   }
 
   .timeline ul li {
@@ -2240,12 +2348,11 @@ html {
     padding-bottom: 10px;
     position: relative;
     display: inline-block;
-    border-top: 1px solid var(--info-color);
-    border-left: 1px solid var(--info-color);
+
   }
 
   .timeline ul li:last-child {
-    border-right: 1px solid var(--info-color);
+    border-right: 1px solid var(--WS---DarkGrey);
   }
 
   .timeline ul li:first-child {
@@ -2255,24 +2362,26 @@ html {
 
   .timeline ul li .icon {
     background: #fff;
-    border: 1px solid var(--info-color);
-    color: #fff;
+    border: 1px solid var(--WS---DarkGrey);
+
+
     display: inline-block;
     position: relative;
     left: 15px;
     top: -17px;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     line-height: 30px;
     text-align: center;
     border-radius: 50%;
     font-size: 14px;
     z-index: 1;
+    /* padding: ; */
   }
 
   .timeline ul li .badge {
     width: 100px;
-    border: 1px solid var(--info-color);
+    border: 1px solid var(--WS---DarkGrey);
     background-color: #fff;
     color: var(--grey-text-color);
     display: inline-block;
@@ -2284,7 +2393,7 @@ html {
   }
 
   .timeline ul li .badge .badge-title {
-    background-color: var(--info-color);
+    background-color: var(--WS---DarkGrey);
     color: #fff;
     padding: 2px 5px;
     text-align: center;
@@ -2292,7 +2401,7 @@ html {
   }
 
   .timeline ul li .badge .badge-content {
-    color: var(--text-color);
+    color: var(--WS---DarkGrey);
     padding: 2px 5px;
     text-align: center;
     font-size: 10px;
@@ -2303,7 +2412,7 @@ html {
 .mobile-sidebar-toggle {
   display: none;
   cursor: pointer;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
 }
 
 @media (max-width: 1260px) {
@@ -2315,8 +2424,8 @@ html {
     flex-direction: column;
     max-width: 1334px;
     align-items: center;
-    text-align: center;
-    justify-content: center;
+  
+    justify-content: start;
   }
 
   .content-filter {
@@ -3044,7 +3153,7 @@ body.dark-theme
 }
 
 .file-download:hover {
-  color: #76b448;
+  text-decoration: underline;
 }
 
 .dealer-clickable {
@@ -3128,7 +3237,7 @@ body.dark-theme
   align-items: center;
   justify-content: space-between;
   overflow-x: auto; /* Дозволяє скролити місяці на мобілках */
-  padding: 5px 0;
+  padding: 0px 0;
   width: 100vw;
 
 }
@@ -3138,8 +3247,8 @@ body.dark-theme
   background: #ffffff; /* Використовуйте ваші змінні теми */
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 6px 10px;
-  font-weight: bold;
+  padding: 3px 5px;
+  font-weight: normal ;
   cursor: pointer;
   color:var(--WS---DarkGrey,#44403e) ;
   outline: none;
@@ -3168,4 +3277,67 @@ body.dark-theme
 
 .text-yellow {
   color: var(--WS---LightGreen,#f8ffe6);
+}
+
+.year-inline-selector {
+  display: flex;
+  text-align: center;
+  align-items: center;
+  gap: 12px;
+
+}
+
+.text-WS---DarkBlue {
+  color: var(--WS--DarkBlue);
+  font-family: 'Inter', sans-serif;
+}
+
+
+.text-WS---DarkRed {
+  color: var(--WS--DarkRed) ;
+  font-family: 'Inter', sans-serif;
+}
+
+.text-WS---DarkGreen {
+  color: var(--WS--DarkGreen);
+  font-family: 'Inter', sans-serif;
+}
+
+
+.bg-WS---DarkGrey {
+    font-family: 'Inter', sans-serif;
+  background-color: var(--WS---DarkGrey);
+}
+
+.bg-WS---DarkGreen {
+  background-color: var(--WS--DarkGreen);
+  font-family: 'Inter', sans-serif;
+}
+
+
+.bg-WS---DarkBlue {
+   background-color: var(--WS--DarkBlue);
+  font-family: 'Inter', sans-serif;
+}
+
+
+.bg-WS---DarkRed {
+  background-color: var(--WS--DarkRed);
+  font-family: 'Inter', sans-serif;
+}
+
+.bg-WS---DarkGreen-Light {
+  background-color: #F9FFE6;
+    font-family: 'Inter', sans-serif;
+}
+
+.bg-WS---DarkRed-Light {
+  background-color: #FFDFD0;
+    font-family: 'Inter', sans-serif;
+}
+
+
+.bg-WS---DarkGrey-Light {
+  background-color: #EEEEEE;
+    font-family: 'Inter', sans-serif;
 }

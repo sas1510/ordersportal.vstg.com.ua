@@ -1,6 +1,6 @@
 import "./CalcMenu.css";
 import { useState } from "react";
-import DeleteConfirmModal from "./DeleteConfirmModal";
+import DeleteConfirmModal from "../Orders/DeleteConfirmModal";
 
 export const AdditionalOrderMenu = ({ calc, _onEdit, onDelete }) => {
   const additionalOrder = calc;

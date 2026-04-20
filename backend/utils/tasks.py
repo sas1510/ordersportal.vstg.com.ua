@@ -614,3 +614,51 @@ def run_order_reminder_cron():
 
     logger.info(f"Cron finished. Sent notifications for {created_count} order events across {len(user_notifications)} users.")
     return f"Processed {created_count} reminders"
+
+
+
+
+from celery import shared_task
+from utils.onec_api import send_to_1c
+import logging
+
+logger = logging.getLogger(__name__)
+@shared_task(name="tasks.send_chat_notification_to_1c")
+def send_chat_notification_to_1c(t_type, base_guid_str, manager_guid_str, message_text, message_id):
+    """
+    Виконується через 10 хв після відправки повідомлення.
+    Перевіряє, чи було воно прочитане.
+    """
+    from records.models import ChatMessage
+
+    try:
+        # Шукаємо наше повідомлення
+        msg = ChatMessage.objects.filter(id=message_id).first()
+        
+        # Якщо повідомлення вже прочитане (is_read=True), скасовуємо сповіщення
+        if not msg or msg.is_read:
+            logger.info(f"Message {message_id} already read. Skipping 1C notification.")
+            return {"status": "skipped", "reason": "read"}
+
+        # Формуємо payload
+        payload = {
+            "managerGuid": manager_guid_str,
+            "messageText": message_text
+        }
+        
+        if t_type == 1:
+            payload["calculationGuid"] = base_guid_str
+        elif t_type == 2:
+            payload["reclamationGuid"] = base_guid_str
+        elif t_type == 3:
+            payload["reclamationGuid"] = base_guid_str
+        else:
+            payload["documentGuid"] = base_guid_str
+
+        # Відправляємо в 1С
+        result = send_to_1c("NotifyChatMessage", payload)
+        return result
+
+    except Exception as e:
+        logger.error(f"Error in delayed 1C notification: {str(e)}")
+        return {"success": False, "error": str(e)}

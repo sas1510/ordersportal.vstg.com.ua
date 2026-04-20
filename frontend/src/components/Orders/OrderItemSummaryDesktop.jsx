@@ -32,6 +32,15 @@ export default React.memo(function OrderItemSummaryDesktop({
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
 
+  const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+  const listCalcIcon = "/assets/icons/ListCalcIcon.png";
+  const moneyGreen = "/assets/icons/MoneyGreen.png";
+  const moneyRed = "/assets/icons/MoneyRed.png";
+  const fileIcon = "/assets/icons/FileIcon.png";
+  const speedIcon = "/assets/icons/SpeedIcon.png";
+
+
+
   const { user } = useAuthGetRole();
   // const isAdmin = role === "admin";
   // ---- ONLY PAYMENT MODAL FLAG ----
@@ -84,7 +93,8 @@ export default React.memo(function OrderItemSummaryDesktop({
 
     // Логіка на основі статусу
     const statusConfig = {
-      Новий: { confirm: true, pay: true },
+      Новий: { confirm: true, pay: true,  reorder: true },
+      "У виробництві" : {pay: true,  reorder: true},
       "Очікуємо підтвердження": { confirm: true, pay: true },
       Підтверджений: { pay: true, confirm: true, reorder: true },
       "Очікуємо оплату": { pay: true, reorder: true },
@@ -125,19 +135,19 @@ export default React.memo(function OrderItemSummaryDesktop({
       case "В обробці":
       case "У виробництві":
       case "Підтверджений":
-        return "text-info";
+        return "text-WS---DarkBlue";
 
       case "Очікуємо оплату":
       case "Очікуємо підтвердження":
       case "Відмова":
-        return "text-danger";
+        return "text-WS---DarkRed";
 
       case "Готовий":
       case "Відвантажений":
-        return "text-success";
+        return "text-WS---DarkGreen";
 
       default:
-        return "text-grey";
+        return "text-WS---DarkGrey";
     }
   }, []);
 
@@ -229,17 +239,22 @@ export default React.memo(function OrderItemSummaryDesktop({
         onClick={toggleExpand}
       >
         {/* ICON */}
-        <div className="summary-item row no-wrap">
-          <span className="icon icon-news font-size-20 text-success"></span>
+        <div className="summary-item row no-wrap !border-r-0 !pr-0">
+            <img 
+                  src={listCalcIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
+                />
         </div>
 
         {/* NUMBER + DATE */}
-        <div className="summary-item row no-wrap">
-          <div className="column items-center w-full">
-            <div className="text-info font-size-18 border-b border-gray-300 w-full text-center">
+        <div className="text-WS---DarkGrey summary-item row no-wrap">
+          <div className="column items-start w-full">
+            <div className="text-[15px]  text-bold border-bottom w-full ">
               {order.number}
             </div>
-            <div className="text-danger text-center mb-1">
+            <div className=" text-start text-[11px]  mb-1">
               {/* {formatDateHumanShorter(order.date)} */}
               {formatDateTimeShort(order.createDate)}
             </div>
@@ -247,29 +262,44 @@ export default React.memo(function OrderItemSummaryDesktop({
         </div>
 
         {/* COUNT */}
-        <div className="summary-item flex items-center w-6 justify-center">
+        <div className="summary-item flex items-center w-8 justify-center">
           <div className="row gap-5 align-center">
-            <span className="icon-layout5 font-size-20 text-info"></span>
-            <div className="font-size-20 text-danger">{order.count}</div>
+                 <img 
+                  src={windowsIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-1 w-[25px] h-[25px]" 
+                
+                />
+            <div className="font-size-16 text-WS---DarkBlue">{order.count}</div>
           </div>
         </div>
 
         {/* FILES */}
         <div
-          className="summary-item flex w-10 items-start justify-start cursor-pointer w-full bg-gray-100 rounded-md "
+          className="summary-item flex w-10 items-start justify-start cursor-pointer w-full  "
           onClick={openFilesModal}
         >
           <div className="row gap-1 align-center">
-            <div className="icon-download font-size-20 text-red"></div>
-            <div className="text-info underline">Файли</div>
+            <img 
+                src={fileIcon} 
+                // alt="Вікно" 
+                className="align-center mr-0.5 w-[20px] h-[25px]" 
+              
+              />
+            <div className="text-WS---DarkGrey text-[13px] underline">Файли</div>
           </div>
         </div>
 
         {/* AMOUNT */}
-        <div className="summary-item row w-12 no-wrap">
-          <span className="icon icon-coin-dollar text-success font-size-16"></span>
-          <div className="flex flex-col flex-1 ml-2">
-            <div className="text-info font-size-18">
+        <div className="summary-item row no-wrap">
+                 <img 
+                  src={moneyGreen} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
+                />
+          <div className="flex flex-col flex-1 ml-1">
+            <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
@@ -279,10 +309,15 @@ export default React.memo(function OrderItemSummaryDesktop({
         </div>
 
         {/* DEBT */}
-        <div className="summary-item row w-12 no-wrap">
-          <span className="icon icon-coin-dollar text-danger font-size-16"></span>
-          <div className="flex flex-col flex-1 ml-2">
-            <div className="text-danger font-size-18">
+        <div className="summary-item row no-wrap">
+          <img 
+                  src={moneyRed} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
+                />
+          <div className="flex flex-col flex-1 ml-1">
+            <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
             </div>
             <div className="text-grey font-size-12 border-t border-dashed">
@@ -292,83 +327,92 @@ export default React.memo(function OrderItemSummaryDesktop({
         </div>
 
         {/* STATUS */}
-        <div className="summary-item  row justify-start no-wrap">
+        <div className="summary-item row justify-start no-wrap">
           <div className="row gap-14 align-center">
-            <span className="icon-info-with-circle font-size-20 text-info"></span>
-            <div className={`font-size-14 ${getStatusClass(order.status)}`}>
+            {/* Замінюємо 'text-info' на динамічний клас статусу */}
+            <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
+            
+            <div className={`font-size-12 ${getStatusClass(order.status)}`}>
               {order.status}
             </div>
           </div>
         </div>
 
         {/* BUTTONS */}
-        <div className="summary-item row" onClick={(e) => e.stopPropagation()}>
-          {user?.role !== "admin" && (
-            <>
-              {/* CONFIRM */}
-              <button
-                className={`column align-center button button-first background-success ${
-                  !buttonState.confirm ? "disabled opacity-50" : ""
-                }`}
-                disabled={!buttonState.confirm}
-                onClick={openConfirmModal}
-              >
-                <div className="font-size-12">Підтвердити</div>
-              </button>
+        <div className="summary-item row grid-buttons" onClick={(e) => e.stopPropagation()}>
+  {user?.role !== "admin" && (
+    <>
+      {/* CONFIRM */}
+      <button
+        className={`column align-center button bg-WS---DarkGrey ${
+          !buttonState.confirm ? "disabled opacity-50" : ""
+        }`}
+        disabled={!buttonState.confirm}
+        onClick={openConfirmModal}
+      >
+        <div className="font-size-12">Підтвердити</div>
+      </button>
 
-              {/* PAY */}
-              <button
-                className={`column align-center button background-warning ${
-                  !buttonState.pay ? "disabled opacity-50" : ""
-                }`}
-                disabled={!buttonState.pay}
-                onClick={openPaymentModal}
-              >
-                <div className="font-size-12">Сплатити</div>
-              </button>
-            </>
-          )}
+      {/* PAY */}
+      <button
+        className={`column align-center button bg-WS---DarkGreen  ${
+          !buttonState.pay ? "disabled opacity-50" : ""
+        }`}
+        disabled={!buttonState.pay}
+        onClick={openPaymentModal}
+      >
+        <div className="font-size-12">Сплатити</div>
+      </button>
+    </>
+  )}
 
-          {/* REORDER */}
-          <button
-            className={`column align-center button background-info ${
-              !buttonState.reorder ? "disabled opacity-50" : ""
-            }`}
-            disabled={!buttonState.reorder}
-            onClick={openReorderModal}
-          >
-            <div className="font-size-12">Дозамовлення</div>
-          </button>
+  {/* REORDER */}
+  <button
+    className={`column align-center button bg-WS---DarkBlue ${
+      !buttonState.reorder ? "disabled opacity-50" : ""
+    }`}
+    disabled={!buttonState.reorder}
+    onClick={openReorderModal}
+  >
+    <div className="font-size-12">Дозамовлення</div>
+  </button>
 
-          {/* CLAIM */}
-          <button
-            className={`column align-center button button-last background-danger ${
-              !buttonState.claim ? "disabled opacity-50" : ""
-            }`}
-            disabled={!buttonState.claim}
-            onClick={openClaimModal}
-          >
-            <div className="font-size-12">Рекламація</div>
-          </button>
-        </div>
+  {/* CLAIM */}
+  <button
+    className={`column align-center button bg-WS---DarkRed ${
+      !buttonState.claim ? "disabled opacity-50" : ""
+    }`}
+    disabled={!buttonState.claim}
+  >
+    <div className="font-size-12">Рекламація</div>
+  </button>
+</div>
 
         {/* SMILEY COLUMN */}
-        <div
-          className="summary-item flex items-center justify-center w-4"
-          title={
-            dateDiffStatus
-              ? "Швидке оформлення"
-              : "Замовлення оформлено пізніше ніж через добу"
-          }
-        >
-          <div className="font-size-24 flex items-center justify-center">
-            {dateDiffStatus === null ? null : dateDiffStatus ? (
-              <i className="far fa-laugh-beam text-success pulse-animation"></i>
-            ) : (
-              <i className="far fa-frown text-danger"></i>
-            )}
-          </div>
+      <div
+        className="summary-item flex items-center justify-center w-4"
+        title={
+          dateDiffStatus
+            ? "Швидке оформлення"
+            : "Замовлення оформлено пізніше ніж через добу"
+        }
+      >
+        {/* Переконуємося, що батьківський div має flex для центрування */}
+        <div className="font-size-24 flex items-center justify-center">
+          {dateDiffStatus === null ? null : (
+            /* Використовуємо тег <img /> замість <i> */
+            <img 
+              src={speedIcon} 
+              alt="Speed Icon"
+              // Налаштовуємо розмір (десь 24px, щоб відповідало попередньому font-size-24)
+              style={{ width: '24px', height: '24px' }}
+              className={`
+                ${dateDiffStatus ? "color-green-icon pulse-animation-img" : "color-red-icon"}
+              `}
+            />
+          )}
         </div>
+      </div>
       </div>
 
       {/* DETAILS */}

@@ -23,6 +23,20 @@ const PortalOriginal = () => {
   const [error, setError] = useState(null);
 
   const yearIcon = "/assets/icons/YearIcon.png";
+  const plusIcon = "/assets/icons/PlusIcon.png";
+
+
+  const searchIcon = "/assets/icons/SearchIcon.png";
+  const allCalcIcon = "/assets/icons/AllCalcIcon.png";
+  const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
+  const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
+  const waitingForConfirmIcon = "/assets/icons/WaitingForConfirmIcon.png";
+  const confirmedIcon = "/assets/icons/ConfirmedIcon.png";
+  const factoryIcon = "/assets/icons/FactoringIcon.png";
+  const finishedIcon = "/assets/icons/FinishedIcon.png";
+  const deliveredIcon = "/assets/icons/DeliveredIcon.png";
+  const canceledCalcIcon = "/assets/icons/CancelCalc.png";
 
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [calculationsData, setCalculationsData] = useState([]);
@@ -138,6 +152,8 @@ const PortalOriginal = () => {
   );
 };
 
+
+
   const handleCloseCalc = useCallback(() => setIsCalcModalOpen(false), []);
 
   const reloadCalculations = useCallback(async () => {
@@ -194,7 +210,7 @@ const PortalOriginal = () => {
     const summary = {
       Всі: 0,
       Новий: 0,
-      "В обробці": 0,
+      // "В обробці": 0,
       "Очікуємо оплату": 0,
       "Очікуємо підтвердження": 0,
       Підтверджений: 0,
@@ -348,14 +364,14 @@ const PortalOriginal = () => {
         </div> */}
 
         <div className="by-month-pagination-wrapper ">
-          <div className="pagination-container w-100 row no-wrap items-center gap-10">
+          <div className="pagination-container w-100 row no-wrap items-center gap-6">
             
           <div
             className="mobile-sidebar-toggle"
             onClick={() => setIsSidebarOpen(true)}
             style={{ marginTop: "10px" }}
           >
-            <span className="icon icon-menu font-size-24"></span>
+            <span className="icon icon-menu font-size-24 "></span>
           </div>
             {/* Блок вибору року тепер тут */}
             <div className="year-inline-selector row">
@@ -373,9 +389,9 @@ const PortalOriginal = () => {
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
               >
-                <option value="2026">2026 р.</option>
-                <option value="2025">2025 р.</option>
-                <option value="2024">2024 р.</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
               </select>
             </div>
 
@@ -409,10 +425,10 @@ const PortalOriginal = () => {
 
       
 
-      <div className="content-wrapper row w-100 h-100  " style={{justifyContent: 'center'}}>
-        <div className="justify-center  row  h-100 max-w-[1334px]  w-100">
+      <div className="content-wrapper row w-100 h-100  " >
+        <div className="row  h-100 max-w-[1334px]  w-100">
         <div
-          className={`content-filter justify-center column ${isSidebarOpen ? "open" : "closed"}`}
+          className={`content-filter  column ${isSidebarOpen ? "open" : "closed"}`}
         >
           {isSidebarOpen &&
           <div className="sidebar-header row ai-center jc-space-between">
@@ -426,20 +442,20 @@ const PortalOriginal = () => {
           </div>
 }
 
-          <div className="search-wrapper">
-            <input
-              type="text"
-              className="search-orders"
-              placeholder="номер прорахунку, замовлення"
-              value={filter.name}
-              onChange={(e) => handleFilterChange("name", e.target.value)}
-            />
-            <span
-              className="icon icon-cancel2 clear-search"
-              title="Очистити пошук"
-              onClick={() => handleFilterChange("name", "")}
-            ></span>
-          </div>
+          <div className="search-wrapper relative w-full">
+  <input
+    type="text"
+    className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
+    placeholder="номер прорахунку, замовлення"
+    value={filter.name}
+    onChange={(e) => handleFilterChange("name", e.target.value)}
+  />
+  <img 
+    src={searchIcon} 
+    alt="" 
+    className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
+  />
+</div>
 
           {/* {localStorage.getItem('role') !== 'customer' && (
                         <div>
@@ -454,88 +470,110 @@ const PortalOriginal = () => {
                     )} */}
           <div></div>
 
-          <div className="delimiter1"></div>
+          {/* <div className="delimiter1"></div> */}
           <ul className="buttons">
             <li
-              className="btn btn-add-calc"
+              className="btn-add-calc"
               onClick={() => setIsCalcModalOpen(true)}
             >
-              <span className="icon icon-plus3"></span>
-              <span className="uppercase">Новий прорахунок</span>
+               <img 
+                  src={plusIcon} 
+                  alt="+" 
+                  className="align-center mr-2 " 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+              <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">новий прорахунок</div>
             </li>
           </ul>
 
+
+          
+
+
           <ul className="filter column align-center">
-            <li className="delimiter1"></li>
+            <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+            {/* <li className="delimiter1"></li> */}
             {[
               {
                 id: "all",
                 label: "Всі прорахунки",
-                icon: "icon-calculator",
+                icon: allCalcIcon,
                 statusKey: "Всі",
               },
               {
                 id: "new",
                 label: "Нові прорахунки",
-                icon: "icon-bolt",
+                icon: newCalcIcon,
                 statusKey: "Новий",
               },
+              // {
+              //   id: "processing",
+              //   label: "В обробці",
+              //   icon: inProcessingIcon,
+              //   statusKey: "В обробці",
+              // },
               {
-                id: "processing",
-                label: "В обробці",
-                icon: "icon-spin-alt",
-                statusKey: "В обробці",
+                id: "waiting-confirm",
+                label: "Очікують підтвердження",
+                icon: waitingForConfirmIcon,
+                statusKey: "Очікуємо підтвердження",
               },
               {
                 id: "waiting-payment",
                 label: "Очікують оплату",
-                icon: "icon-coin-dollar",
+                icon: waitingForPaymentIcon,
                 statusKey: "Очікуємо оплату",
               },
-              {
-                id: "waiting-confirm",
-                label: "Очікують підтвердження",
-                icon: "icon-clipboard",
-                statusKey: "Очікуємо підтвердження",
-              },
+
               {
                 id: "confirmed",
                 label: "Підтверджені",
-                icon: "icon-check",
+                icon: confirmedIcon,
                 statusKey: "Підтверджений",
               },
               {
                 id: "production",
                 label: "У виробництві",
-                icon: "icon-cogs",
+                icon: factoryIcon,
                 statusKey: "У виробництві",
               },
               {
                 id: "ready",
                 label: "Готові замовлення",
-                icon: "icon-layers2",
+                icon: finishedIcon,
                 statusKey: "Готовий",
               },
               {
                 id: "delivered",
                 label: "Відвантажені",
-                icon: "icon-shipping",
+                icon: deliveredIcon,
                 statusKey: "Відвантажений",
               },
               {
                 id: "rejected",
                 label: "Відмова",
-                icon: "icon-circle-with-cross",
+                icon: canceledCalcIcon,
                 statusKey: "Відмова",
               },
             ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
-                className={`filter-item ${filter.status === statusKey ? "active" : ""}`}
+                className={`filter-item row ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleFilterChange("status", statusKey)}
               >
-                <span className={`icon ${icon} font-size-24`}></span>
-                <span className="w-100">{label}</span>
+
+                
+                {/* <span className={`icon ${icon} font-size-24`}></span> */}
+<img 
+  src={icon} 
+  alt="" 
+  className={`w-5 h-5 mr-3 object-contain transition-all duration-300
+    ${filter.status === statusKey 
+      ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
+      : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+    }`} 
+/>
+                <span className="w-100  text-base font-normal font-['Inter']">{label}</span>
                 <span
                   className={statusSummary[statusKey] === 0 ? "disabled" : ""}
                 >
@@ -543,6 +581,7 @@ const PortalOriginal = () => {
                 </span>
               </li>
             ))}
+            </div>
           </ul>
         </div>
 

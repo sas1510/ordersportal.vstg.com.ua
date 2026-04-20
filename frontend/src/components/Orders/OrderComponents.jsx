@@ -23,6 +23,14 @@ export const CalculationItem = React.memo(
     const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
     const { addNotification } = useNotification();
 
+    const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+    const listCalcIcon = "/assets/icons/ListCalcIcon.png";
+    const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
+    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+    const fileIcon = "/assets/icons/FileIcon.png";
+    const recipientIcon = "/assets/icons/RecipientIcon.png";
+
+
     const {  role } = useAuthGetRole();
     const isAdmin = role === "admin";
 
@@ -129,21 +137,25 @@ export const CalculationItem = React.memo(
     const getStatusClass = useCallback((status) => {
       switch (status) {
         case "Новий":
-        case "В обробці":
+        // case "В обробці":
         case "У виробництві":
         case "Підтверджений":
-          return "text-info";
+          return "text-WS---DarkBlue";
         case "Очікуємо оплату":
         case "Очікуємо підтвердження":
         case "Відмова":
-          return "text-danger";
+          return "text-WS---DarkRed";
         case "Готовий":
         case "Відвантажений":
-          return "text-success";
+          return "text-WS---DarkGreen";
         default:
-          return "text-grey";
+          return "text-WS---DarkGrey";
       }
     }, []);
+
+    // Беремо статус першого запису, якщо він є, інакше — 'warning' для "Новий"
+    const mainStatus = statusEntries.length > 0 ? statusEntries[0][0] : null;
+    const iconColorClass = mainStatus ? getStatusClass(mainStatus) : "text-warning";
 
     return (
       <div
@@ -151,96 +163,108 @@ export const CalculationItem = React.memo(
         style={{
           borderLeft:
             calc.dealerId === calc.authorGuid
-              ? "4px solid #f38721ff"
-              : "4px solid #5e83bf",
+              ? "4px solid #BA523B"
+              : "4px solid #6B98BF",
 
           paddingLeft: "12px",
         }}
       >
         {/* ============ CALC SUMMARY ============ */}
-        <div className="item-summary row w-100" onClick={toggleExpanded}>
-          <div className="summary-item row no-wrap">
+        <div className="item-summary justify-between row w-100" onClick={toggleExpanded}>
+          {/* <div className="summary-item row no-wrap">
             <span className="icon icon-calculator font-size-24 text-success"></span>
-          </div>
+          </div> */}
 
           <div
-            className="summary-item row w-9 no-wrap"
+            className="summary-item justify-between row w-9 no-wrap"
             style={{ minWidth: "150px" }}
           >
             <div className="column">
-              <div className="font-size-18 text-info border-bottom">
+              <div className="text-base text-bold text-WS---DarkGrey border-bottom">
                 № {calc.number}
               </div>
-              <div className="text-danger">
+              <div className="text-xs text-WS---DarkGrey">
                 {formatDateTimeShort(calc.date)}
               </div>
             </div>
           </div>
 
           <div
-            className="summary-item row w-6 no-wrap"
+            className="summary-item row w-8 no-wrap"
             title="Кількість конструкцій"
           >
-            <span className="icon-layout5 font-size-24 text-info"></span>
-            <div className="font-size-24 text-danger">
+              <img 
+                  src={windowsIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-2" 
+                
+                />
+            {/* <span className="icon-layout5 font-size-24 text-info"></span> */}
+            <div className="font-size-24 text-WS---DarkBlue">
               {calc.constructionsQTY}
             </div>
           </div>
 
           <div
-            className="summary-item row w-5 no-wrap"
+            className="summary-item row w-8 no-wrap"
             title="Кількість замовлень"
           >
-            <span className="icon-news font-size-24 text-info"></span>
-            <div className="font-size-24 text-danger">{orderList.length}</div>
+                <img 
+                  src={listCalcIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-2" 
+                
+                />
+            <div className="font-size-24 text-WS---DarkBlue">{orderList.length}</div>
           </div>
 
-          <div className="summary-item row w-14 no-wrap">
+          <div className="summary-item row w-16 no-wrap">
             <div className="row gap-14 align-center">
-              <span className="icon icon-coin-dollar font-size-24 text-success"></span>
+               <img 
+                  src={moneyCalcIcon} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
+                />
               <div className="column">
-                <div className="font-size-18 text-success border-bottom">
+                <div className="font-size-16  text-WS---DarkGreen font-bold border-bottom">
                   { formatMoney2(calc.amount, calc.currency) }
                 </div>
-                <div className="font-size-16 text-danger">
+                <div className="font-size-16  text-WS---DarkRed font-bold">
                   {formatMoney2(calc.debt, calc.currency)}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="summary-item expandable row w-30 align-start space-between">
+          <div className="summary-item expandable row w-23 align-start space-between">
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
-              <div className="comments-text-wrapper-last">
+              <div className="comments-text-wrapper-last ">
                 {calc.message || "Без коментарів"}
               </div>
               <button
-                className="btn-comments"
+                className="btn-comments row"
                 style={{ position: "relative" }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleViewComments(calc.comments || []);
                 }}
               >
-                <i
-                  className="fas fa-comments"
-                  style={{
-                    color: calc.hasUnreadMessages
-                      ? "var(--danger-color)"
-                      : "inherit",
-                    transition: "color 0.3s",
-                    marginRight: "4px",
-                  }}
+                  <img 
+                  src={historyOfMessage} 
+                  // alt="Вікно" 
+                  className="align-center mr-0.5" 
+                
                 />
                 Історія коментарів
               </button>
             </div>
           </div>
 
-          <div className="summary-item row w-10 no-wrap">
+          <div className="summary-item row w-12 no-wrap">
             <div
               className="column gap-1 align-start mr-3"
-              style={{ minWidth: "300px" }}
+            
             >
               {/* 📄 Файл — ЗАВАНТАЖЕННЯ */}
               <div className="row align-start" style={{ gap: 0 }}>
@@ -260,8 +284,14 @@ export const CalculationItem = React.memo(
                     handleDownload(calc);
                   }}
                 >
-                  <div className="icon-document-file-numbers font-size-20 text-success mr-0" />
-                  <div className="font-size-12 ml-0">
+                  {/* <div className="icon-document-file-numbers font-size-20 text-WS---DarkGrey mr-0" /> */}
+                  <img 
+                    src={fileIcon} 
+                    // alt="Вікно" 
+                    className="align-center mr-0.5" 
+                  
+                  />
+                  <div className="font-size-12 text-WS---DarkGrey ml-0">
                     <div className="order-number">
                       {calc.file && calc.file !== ""
                         ? `${calc.number}.zkz`
@@ -272,10 +302,11 @@ export const CalculationItem = React.memo(
               </div>
 
               {calc.dealer && (
-                <div className="text-grey font-size-12 row align-start gap-1">
-                  <i
-                    className={`fa fa-address-card mt-0.5 mr-0.5 ${recipientIconClass}`}
-                    aria-hidden="true"
+                <div className="text-WS---DarkGrey  row align-start gap-1">
+                  <img 
+                    src={recipientIcon} 
+                    alt="" 
+                    className={`mr-0.5 object-contain inline-block align-middle ${recipientIconClass}`} 
                     title={
                       isDealerRecipient
                         ? "Отримувач — дилер"
@@ -284,7 +315,7 @@ export const CalculationItem = React.memo(
                   />
 
                   <span
-                    className="text-dark dealer-wrap dealer-clickable"
+                    className="text-dark font-size-12 dealer-wrap dealer-clickable"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsCounterpartyOpen(true);
@@ -301,30 +332,30 @@ export const CalculationItem = React.memo(
             </div>
           </div>
 
-          <div className="summary-item row w-16 no-wrap">
-            <div className="row gap-14 align-center">
-              <div className="icon-info-with-circle font-size-24 text-info"></div>
+         <div className="summary-item row w-16 no-wrap">
+          <div className="row gap-14 align-center">
+            {/* Іконка тепер отримує клас кольору від статусу */}
+            <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
 
-              <div className="column gap-3 font-size-12 no-wrap scroll-y">
-                {statusEntries.length > 0 ? (
-                  statusEntries.map(([status, count]) => (
-                    <div
-                      key={status}
-                      className={`row gap-3 left no-wrap calc-status ${getStatusClass(status)}`}
-                    >
-                      <div>{status}</div>
-                      <div>({count})</div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="row gap-3 left no-wrap calc-status text-warning">
-                    <div>Новий</div>
+            <div className="column gap-3 font-size-12 no-wrap scroll-y">
+              {statusEntries.length > 0 ? (
+                statusEntries.map(([status, count]) => (
+                  <div
+                    key={status}
+                    className={`row gap-3 left no-wrap calc-status ${getStatusClass(status)}`}
+                  >
+                    <div>{status}</div>
+                    <div>({count})</div>
                   </div>
-                )}
-              </div>
+                ))
+              ) : (
+                <div className="row gap-3 left no-wrap calc-status text-warning">
+                  <div>Новий</div>
+                </div>
+              )}
             </div>
           </div>
-
+        </div>
           <div onClick={(e) => e.stopPropagation()}>
             <CalculationMenu
               calc={calc}

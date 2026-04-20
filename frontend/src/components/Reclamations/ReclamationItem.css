@@ -217,7 +217,7 @@
 
 .comments-text-wrapper-last {
   font-size: 12px;
-  color: #777;
+  color: #44403E;
   overflow: hidden; /* обрізаємо те, що не вміщається */
   display: -webkit-box; /* для багаторядкових ... */
   -webkit-line-clamp: 3; /* кількість рядків */

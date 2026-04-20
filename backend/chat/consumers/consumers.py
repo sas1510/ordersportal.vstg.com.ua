@@ -355,7 +355,8 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.contractor_ws import resolve_contractor_ws
 from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
 from backend.utils.tasks import send_webpush_notification
-
+import logging
+logger = logging.getLogger(__name__)
 from celery import current_app
 
 import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
@@ -502,6 +503,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     f"active_users_{self.room_group_name}", 
                     recipient_id_1c.lower()
                 )
+
+
+                if getattr(self.user, 'role', '') == 'customer' and not is_recipient_active:
+                    from backend.utils.tasks import send_chat_notification_to_1c
+                    
+                    base_guid_str = str(bin_to_guid_1c(base_guid))
+
+                    logger.info(
+                        f"Sending task to 1C: type={t_type}, guid={base_guid_str}, "
+                        f"recipient={recipient_id_1c}, msg_id={saved_msg.id}"
+                    )
+                                    
+          
+                    send_chat_notification_to_1c.apply_async(
+                        args=[t_type, base_guid_str, recipient_id_1c, message_text, saved_msg.id],
+                        countdown=600 
+                    )
+                    
+
 
                 if not is_recipient_active:
 
@@ -678,4 +698,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return None, None
         
 
-    
+
+

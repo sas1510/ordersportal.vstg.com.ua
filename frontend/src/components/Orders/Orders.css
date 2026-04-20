@@ -1,16 +1,17 @@
-/* У вашому файлі стилів (наприклад, CalculationItem.css або загальному стилі) */
+/* У вашому файлі стилів (наприклад, Cal
+culationItem.css або загальному стилі) */
 
 .calc-item {
   /* Базові стилі, якщо вони не визначені в інших місцях */
   border: 1px solid #ddd;
-  margin-bottom: 10px;
+  margin-bottom: 3px;
   position: relative;
   border-left: 5px solid transparent; /* Базовий прозорий бордер для звичайних елементів */
 }
 
 /* Стиль для прорахунків з webNumber - СУЦІЛЬНА та ТОВЩА ЛІНІЯ */
 .calc-item.web-calc {
-  border-left: 3px solid #ff9800; /* Змінено товщину на 8px і тип на solid */
+  border-left: 3px solid #BA523B; /* Змінено товщину на 8px і тип на solid */
   /* Якщо у вас є інші стилі, які перебивають border, можливо, доведеться налаштувати */
 }
 
@@ -37,14 +38,14 @@
 body.dark-theme .calc-item {
   /* Базові стилі, якщо вони не визначені в інших місцях */
   /* border: 1px solid #ddd; */
-  margin-bottom: 10px;
+  margin-bottom: 3px;
   position: relative;
   border-left: 5px solid transparent; /* Базовий прозорий бордер для звичайних елементів */
 }
 
 /* Стиль для прорахунків з webNumber - СУЦІЛЬНА та ТОВЩА ЛІНІЯ */
 body.dark-theme .calc-item.web-calc {
-  border-left: 3px solid #ff9800; /* Змінено товщину на 8px і тип на solid */
+  border-left: 3px solid #BA523B; /* Змінено товщину на 8px і тип на solid */
   /* Якщо у вас є інші стилі, які перебивають border, можливо, доведеться налаштувати */
 }
 
@@ -108,3 +109,40 @@ body.dark-theme .calc-item .item-summary {
 body.dark-theme .separator-border {
   border-top: 1px dashed #555;
 }
+
+
+.grid-buttons {
+  display: grid !important;
+  /* Робимо 2 колонки по авто-ширині або фіксовані, щоб не розтягувати на пів екрана */
+  grid-template-columns: repeat(2, 90px); 
+  gap: 2px 6px !important; /* 4px між рядами, 8px між колонками */
+  width: fit-content; /* Контейнер підлаштується під кнопки */
+  margin: 0; 
+}
+
+.grid-buttons .button {
+  width: 100% !important; /* Кнопка заповнює свою клітинку сітки */
+  margin: 0 !important;
+  padding: 4px 8px;      /* Внутрішні відступи для зменшення розміру */
+  min-height: 20px;      /* Мінімальна висота */
+  border-radius: 5px;    /* Акуратні кути */
+}
+
+.grid-buttons .font-size-12 {
+  font-size: 11px;       /* Трохи зменшуємо шрифт, якщо кнопка стала дуже малою */
+  line-height: 1;
+}
+
+
+/* Робить зображення яскраво-зеленим (відтінок зеленого, яскравість 100%) */
+.color-green-icon {
+  /* filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%) !important; */
+}
+
+/* Робить зображення яскраво-червоним */
+.color-red-icon {
+  filter: invert(15%) sepia(95%) saturate(7400%) hue-rotate(0deg) brightness(100%) contrast(115%) !important;
+}
+
+/* Зберігаємо анімацію пульсації для швидкості */
+

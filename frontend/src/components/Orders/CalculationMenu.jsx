@@ -5,6 +5,8 @@ import DeleteConfirmModal from "./DeleteConfirmModal";
 
 export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const deleteIcon = "/assets/icons/DeleteIcon.png";
+
   
   const hasOrders =
     Array.isArray(calc.orders) &&
@@ -23,10 +25,17 @@ export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
 
   return (
     <div className="summary-item small row no-wrap gap-10 align-center">
-      <div
-        className={`icon icon-trash font-size-18 ${hasOrders ? "inactive" : "clickable text-danger"}`}
-        onClick={handleDeleteClick}
-      />
+<img 
+  src={deleteIcon} 
+  alt="Видалити" 
+  onClick={!hasOrders ? handleDeleteClick : undefined}
+  className={`w-[18px] h-[18px] object-contain transition-all
+    ${hasOrders 
+      ? "icon-delete-disabled cursor-not-allowed" 
+      : "icon-delete-red cursor-pointer active:scale-95"
+    }`} 
+  title={hasOrders ? "Неможливо видалити: є замовлення" : "Видалити прорахунок"}
+/>
 
       {/* Модалка видалення */}
       <DeleteConfirmModal
