@@ -767,6 +767,7 @@ const AdditionalOrders = () => {
                     onDelete={handleDeleteAdditionalOrder}
                     onEdit={handleUpdateAdditionalOrder}
                     onMarkAsRead={handleAdditionalOrderRead}
+                    reloadCalculations={reloadAdditionalOrders}
                   />
                 ) : (
                   <AdditionalOrderItem // Зберігаємо ім'я компонента, але він тепер відображає Дод. Замовлення
@@ -779,6 +780,7 @@ const AdditionalOrders = () => {
                     onDelete={handleDeleteAdditionalOrder}
                     onEdit={handleUpdateAdditionalOrder}
                     onMarkAsRead={handleAdditionalOrderRead}
+                    reloadCalculations={reloadAdditionalOrders}
                   />
                 ),
               )
@@ -838,6 +840,7 @@ const AdditionalOrders = () => {
         isOpen={isNewOrderModalOpen}
         onClose={() => setIsNewOrderModalOpen(false)}
         onSave={handleSaveAdditionalOrder}
+    
       />
     </div>
   );

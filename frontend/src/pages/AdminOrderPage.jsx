@@ -44,6 +44,22 @@ const AdminPortalOriginal = () => {
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
+    const yearIcon = "/assets/icons/YearIcon.png";
+  const plusIcon = "/assets/icons/PlusIcon.png";
+
+
+  const searchIcon = "/assets/icons/SearchIcon.png";
+  const allCalcIcon = "/assets/icons/AllCalcIcon.png";
+  const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
+  const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
+  const waitingForConfirmIcon = "/assets/icons/WaitingForConfirmIcon.png";
+  const confirmedIcon = "/assets/icons/ConfirmedIcon.png";
+  const factoryIcon = "/assets/icons/FactoringIcon.png";
+  const finishedIcon = "/assets/icons/FinishedIcon.png";
+  const deliveredIcon = "/assets/icons/DeliveredIcon.png";
+  const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+
   const availableYears = useMemo(() => {
     const startYear = 2024;
     const years = [];
@@ -380,33 +396,48 @@ const AdminPortalOriginal = () => {
   return (
     <div className="column portal-body">
       {/* ================= HEADER ================= */}
-      <div className="content-summary row w-100">
-        <div
-          className="mobile-sidebar-toggle"
+      <div className="content-summary row w-100" style={{justifyContent: 'center'}}>
+        
+
+        
+
+        {/* ================= MONTHS (desktop + mobile select) ================= */}
+        <div className="by-month-pagination-wrapper row gap-4">
+
+          <div
+          className="mobile-sidebar-toggle flex-0"
           onClick={() => setIsSidebarOpen(true)}
           style={{ marginTop: "10px" }}
         >
           <span className="icon icon-menu font-size-24"></span>
         </div>
+            <div className="year-inline-selector row">
+              <img 
+                  src={yearIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-2 w-[26px] h-[25px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+            Звітний рік
+          </div>
+             <select
+                className="year-select-minimal"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                {Array.from({ length: 3 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
 
-        <div className="year-selector row">
-          <span>Звітний рік:</span>
-          <span className="icon icon-calendar2 font-size-24 text-info"></span>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-          >
-            {availableYears.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* ================= MONTHS (desktop + mobile select) ================= */}
-        <div className="by-month-pagination-wrapper">
-          <ul className="gap-6 row no-wrap month-list">
+          <ul className="gap-6 row no-wrap month-list flex-1">
             {dealerGuid !== ALL_DEALERS_VALUE && (
               <li
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
@@ -447,7 +478,7 @@ const AdminPortalOriginal = () => {
                 >
                   {labels[i]}
                   {dealerGuid !== ALL_DEALERS_VALUE && (
-                    <span className="text-grey"> ({monthSummary[num]})</span>
+                    <span className="text-yellow"> ({monthSummary[num]})</span>
                   )}
                 </li>
               );
@@ -455,7 +486,7 @@ const AdminPortalOriginal = () => {
           </ul>
 
           <select
-            className="month-select"
+            className="month-select flex-1"
             value={filter.month}
             onChange={(e) => handleMonthClick(Number(e.target.value))}
           >
@@ -499,10 +530,11 @@ const AdminPortalOriginal = () => {
       {/* ================= CONTENT ================= */}
       <div className="content-wrapper row w-100 h-100">
         {/* ===== SIDEBAR ===== */}
+        <div className="row  h-100 max-w-[1334px]  w-100">
         <div
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
-          <div className="sidebar-header row ai-center jc-space-between">
+          {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between">
             {isSidebarOpen && <span>Фільтри</span>}
             {isSidebarOpen && (
               <span
@@ -510,29 +542,34 @@ const AdminPortalOriginal = () => {
                 onClick={() => setIsSidebarOpen(false)}
               ></span>
             )}
-          </div>
+          </div>}
 
           <div className="search-wrapper">
             <input
               type="text"
-              className="search-orders"
+              className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
               placeholder="номер прорахунку, замовлення"
               value={filter.name}
               onChange={handleSearchChange}
             />
-            {!!filter.name && (
+            {/* {!!filter.name && (
               <span
                 className="icon icon-cancel2 clear-search"
                 title="Очистити пошук"
                 onClick={handleClearSearch}
               />
-            )}
+            )} */}
+              <img 
+    src={searchIcon} 
+    alt="" 
+    className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
+  />
           </div>
 
           {isAdmin && (
             <>
-              <div className="delimiter1" />
-              <ul className="buttons">
+              {/* <div className="delimiter1" /> */}
+              <ul className="buttons mt-2">
                 <li className="">
                   <DealerSelectWithAll
                     value={dealerGuid}
@@ -543,80 +580,88 @@ const AdminPortalOriginal = () => {
             </>
           )}
 
-          <div className="delimiter1"></div>
+          {/* <div className="delimiter1"></div> */}
 
           <ul className="buttons">
             <li
-              className="btn btn-add-calc"
+              className="btn-add-calc"
               onClick={() => setIsCalcModalOpen(true)}
             >
-              <span className="icon icon-plus3"></span>
-              <span className="uppercase">Новий прорахунок</span>
+              <img 
+                  src={plusIcon} 
+                  alt="+" 
+                  className="align-center mr-2 " 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+              <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">новий прорахунок</div>
             </li>
           </ul>
 
           <ul className="filter column align-center">
-            <li className="delimiter1"></li>
+
+             <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+            {/* <li className="delimiter1"></li> */}
 
             {[
-              {
+             {
                 id: "all",
                 label: "Всі прорахунки",
-                icon: "icon-calculator",
+                icon: allCalcIcon,
                 statusKey: "Всі",
               },
               {
                 id: "new",
                 label: "Нові прорахунки",
-                icon: "icon-bolt",
+                icon: newCalcIcon,
                 statusKey: "Новий",
               },
+              // {
+              //   id: "processing",
+              //   label: "В обробці",
+              //   icon: inProcessingIcon,
+              //   statusKey: "В обробці",
+              // },
               {
-                id: "processing",
-                label: "В обробці",
-                icon: "icon-spin-alt",
-                statusKey: "В обробці",
+                id: "waiting-confirm",
+                label: "Очікують підтвердження",
+                icon: waitingForConfirmIcon,
+                statusKey: "Очікуємо підтвердження",
               },
               {
                 id: "waiting-payment",
                 label: "Очікують оплату",
-                icon: "icon-coin-dollar",
+                icon: waitingForPaymentIcon,
                 statusKey: "Очікуємо оплату",
               },
-              {
-                id: "waiting-confirm",
-                label: "Очікують підтвердження",
-                icon: "icon-clipboard",
-                statusKey: "Очікуємо підтвердження",
-              },
+
               {
                 id: "confirmed",
                 label: "Підтверджені",
-                icon: "icon-check",
+                icon: confirmedIcon,
                 statusKey: "Підтверджений",
               },
               {
                 id: "production",
                 label: "У виробництві",
-                icon: "icon-cogs",
+                icon: factoryIcon,
                 statusKey: "У виробництві",
               },
               {
                 id: "ready",
                 label: "Готові замовлення",
-                icon: "icon-layers2",
+                icon: finishedIcon,
                 statusKey: "Готовий",
               },
               {
                 id: "delivered",
                 label: "Відвантажені",
-                icon: "icon-shipping",
+                icon: deliveredIcon,
                 statusKey: "Відвантажений",
               },
               {
                 id: "rejected",
                 label: "Відмова",
-                icon: "icon-circle-with-cross",
+                icon: canceledCalcIcon,
                 statusKey: "Відмова",
               },
             ].map(({ id, label, icon, statusKey }) => (
@@ -625,7 +670,15 @@ const AdminPortalOriginal = () => {
                 className={`filter-item ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleStatusClick(statusKey)}
               >
-                <span className={`icon ${icon} font-size-24`}></span>
+                <img 
+                src={icon} 
+                alt="" 
+                className={`mr-3 object-contain transition-all duration-300
+                  ${filter.status === statusKey 
+                    ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
+                    : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                  }`} 
+              />
                 <span className="w-100">{label}</span>
                 <span
                   className={statusSummary[statusKey] === 0 ? "disabled" : ""}
@@ -634,6 +687,7 @@ const AdminPortalOriginal = () => {
                 </span>
               </li>
             ))}
+            </div>
           </ul>
         </div>
 
@@ -733,6 +787,7 @@ const AdminPortalOriginal = () => {
           await reloadCalculations();
         }}
       />
+      </div>
     </div>
   );
 };

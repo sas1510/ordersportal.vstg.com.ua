@@ -17,6 +17,7 @@ export const AdditionalOrderItem = ({
   onDelete,
   onEdit,
   onMarkAsRead,
+  reloadCalculations
 }) => {
   const additionalOrder = calc;
 
@@ -315,6 +316,7 @@ export const AdditionalOrderItem = ({
               <AdditionalOrderItemSummaryDesktop
                 key={order.number}
                 order={order}
+                onRefresh={reloadCalculations}
               />
             ))
           )}

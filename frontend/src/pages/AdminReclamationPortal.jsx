@@ -110,6 +110,27 @@ const AdminReclamationPortal = () => {
   const isMobile = windowWidth < 1260;
   const isMobilePagination = windowWidth < 1150;
 
+  
+  // const location = useLocation();
+  const yearIcon = "/assets/icons/YearIcon.png";
+  const plusIcon = "/assets/icons/PlusIcon.png";
+
+
+  const allCalcIcon = "/assets/icons/AllCalcIcon.png";
+  const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
+  const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
+  const waitingForConfirmIcon = "/assets/icons/WaitingForConfirmIcon.png";
+  const confirmedIcon = "/assets/icons/ConfirmedIcon.png";
+  const factoryIcon = "/assets/icons/FactoringIcon.png";
+  const finishedIcon = "/assets/icons/FinishedIcon.png";
+  const deliveredIcon = "/assets/icons/DeliveredIcon.png";
+  const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+  const deleteIcon = "/assets/icons/DeleteIcon.png";
+  const checkMarkIcon = "/assets/icons/CheckMarkIcon.png";
+
+  const searchIcon = "/assets/icons/SearchIcon.png";
+
   const { theme } = useTheme();
 
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
@@ -336,14 +357,9 @@ const AdminReclamationPortal = () => {
   return (
     <div className={`column portal-body ${theme}`}>
       {/* ================= HEADER + MONTHS ================= */}
-      <div className="content-summary row w-100">
-        <div
-          className="mobile-sidebar-toggle"
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          <span className="icon icon-menu font-size-24"></span>
-        </div>
-
+      <div className="content-summary row w-100" style={{justifyContent:'center'}}>
+        
+{/* 
         <div className="year-selector row">
           <span>Рік:</span>
           <select
@@ -356,12 +372,47 @@ const AdminReclamationPortal = () => {
               </option>
             ))}
           </select>
+        </div> */}
+
+        <div className="by-month-pagination-wrapper row  flex items-center gap-4">
+
+          <div
+          className="mobile-sidebar-toggle flex items-center justify-center"
+          onClick={() => setIsSidebarOpen(true)}
+        >
+          <span className="icon icon-menu font-size-24"></span>
         </div>
 
-        <div className="by-month-pagination-wrapper">
+        <div className="flex-0 items-center no-wrap mr-4" style={{ display: 'flex', flexShrink: 0 }}>
+        <img 
+            src={yearIcon} 
+            alt="Календар" 
+            className="align-center mr-2 w-[26px] h-[25px]" 
+        />
+        <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+            Звітний рік
+        </div>
+        <select
+            className="year-select-minimal"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+        >
+            {/* Динамічна генерація: поточний рік + 2 попередні */}
+            {Array.from({ length: 3 }, (_, i) => {
+                const year = new Date().getFullYear() - i;
+                return (
+                    <option key={year} value={year.toString()}>
+                        {year}
+                    </option>
+                );
+            })}
+        </select>
+    </div>
+
+        
           {/* ===== DESKTOP: кнопки ===== */}
           {!isMobilePagination && (
-            <ul className="gap-6 row no-wrap month-list">
+            <ul className=" flex-1  gap-6 row no-wrap month-list">
               {dealerGuid !== ALL_DEALERS_VALUE && (
                 <li
                   className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
@@ -412,7 +463,7 @@ const AdminReclamationPortal = () => {
           {/* ===== MOBILE: select ===== */}
           {isMobilePagination && (
             <select
-              className="month-select"
+              className="month-select flex-1 "
               value={filter.month}
               onChange={(e) => handleMonthClick(Number(e.target.value))}
             >
@@ -458,6 +509,8 @@ const AdminReclamationPortal = () => {
 
       {/* ================= CONTENT ================= */}
       <div className="content-wrapper row w-100 h-100">
+        <div className="row  h-100 max-w-[1334px]  w-100">
+
         {/* OVERLAY (Background for mobile sidebar) */}
         {isMobile && isSidebarOpen && (
           <div
@@ -480,25 +533,30 @@ const AdminReclamationPortal = () => {
             </div>
           )}
 
-          <div className="search-wrapper">
+          <div className="search-wrapper mb-2">
             <input
               type="text"
-              className="search-orders"
+              className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
               placeholder="номер рекламації"
               value={filter.name}
               onChange={handleSearchChange}
             />
-            {!!filter.name && (
+            {/* {!!filter.name && (
               <span
                 className="icon icon-cancel2 clear-search"
                 onClick={handleClearSearch}
               />
-            )}
+            )} */}
+            <img 
+                      src={searchIcon} 
+                      alt="" 
+                      className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
+                  />
           </div>
 
           {isAdmin && (
             <>
-              <div className="delimiter1" />
+              {/* <div className="delimiter1" /> */}
               {/* Якщо DealerSelectWithAll теж має закривати сайдбар, 
                                 можна передати обгортку в onChange */}
               <DealerSelectWithAll
@@ -513,18 +571,24 @@ const AdminReclamationPortal = () => {
 
           {isAdmin && (
             <>
-              <div className="delimiter1" />
+              {/* <div className="delimiter1" /> */}
 
               <ul className="buttons">
                 <li
-                  className="btn btn-add-calc"
+                  className=" btn-add-calc"
                   onClick={() => {
                     setIsNewReclamationModalOpen(true);
                     if (isMobile) setIsSidebarOpen(false);
                   }}
                 >
-                  <span className="icon icon-plus3"></span>
-                  <span className="uppercase">Нова рекламація</span>
+                  <img 
+                      src={plusIcon} 
+                      alt="+" 
+                      className="align-center mr-2 " 
+                      /* inline-style тут вже не потрібні, якщо є класи зверху */
+                      />
+                  <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нова рекламація</div>
+        
                 </li>
               </ul>
             </>
@@ -532,40 +596,40 @@ const AdminReclamationPortal = () => {
 
           {/* ===== FILTERS WITH ICONS ===== */}
           <ul className="filter column align-center">
-            <li className="delimiter1"></li>
+             <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">            {/* <li className="delimiter1"></li> */}
 
             {[
               {
                 label: "Всі рекламації",
                 statusKey: "Всі",
-                icon: "icon-calculator",
+                icon: allCalcIcon,
               },
-              { label: "Нові", statusKey: "Новий", icon: "icon-bolt" },
+              { label: "Нові", statusKey: "Новий", icon: newCalcIcon },
               {
                 label: "В роботі",
                 statusKey: "В роботі",
-                icon: "icon-spin-alt",
+                icon: inProcessingIcon,
               },
               {
                 label: "Виробництво",
                 statusKey: "Виробництво",
-                icon: "icon-cog",
+                icon: factoryIcon,
               },
               {
                 label: "На складі",
                 statusKey: "На складі",
-                icon: "icon-layers2",
+                icon: finishedIcon,
               },
               {
                 label: "Відвантажено",
                 statusKey: "Відвантажено",
-                icon: "icon-truck",
+                icon: deliveredIcon,
               },
-              { label: "Вирішено", statusKey: "Вирішено", icon: "icon-check" },
+              { label: "Вирішено", statusKey: "Вирішено", icon:checkMarkIcon },
               {
                 label: "Відмова",
                 statusKey: "Відмова",
-                icon: "icon-circle-with-cross",
+                icon: canceledCalcIcon,
               },
             ].map(({ label, statusKey, icon }) => (
               <li
@@ -573,7 +637,15 @@ const AdminReclamationPortal = () => {
                 className={`filter-item ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleStatusClick(statusKey)}
               >
-                <span className={`icon ${icon} font-size-24`}></span>
+                 <img 
+                                    src={icon}
+                                    alt="" 
+                                    className={`mr-3 object-contain transition-all duration-300
+                                        ${filter.status === statusKey 
+                                        ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
+                                        : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                                        }`} 
+                                    />
                 <span className="w-100">{label}</span>
                 <span
                   className={statusSummary[statusKey] === 0 ? "disabled" : ""}
@@ -582,6 +654,8 @@ const AdminReclamationPortal = () => {
                 </span>
               </li>
             ))}
+
+            </div>
           </ul>
         </div>
 
@@ -641,6 +715,7 @@ const AdminReclamationPortal = () => {
         onClose={() => setIsNewReclamationModalOpen(false)}
         onSave={() => setIsNewReclamationModalOpen(false)}
       />
+      </div>
     </div>
   );
 };

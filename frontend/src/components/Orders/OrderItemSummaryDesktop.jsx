@@ -22,6 +22,7 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 export default React.memo(function OrderItemSummaryDesktop({
   order,
   calculationDate,
+  onRefresh
 }) {
   const { addNotification } = useNotification();
 
@@ -31,6 +32,11 @@ export default React.memo(function OrderItemSummaryDesktop({
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+  // Додайте це до інших useState на початку компонента
+  const [loading, setLoading] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+
 
   const windowsIcon = "/assets/icons/WindowsIconCalc.png";
   const listCalcIcon = "/assets/icons/ListCalcIcon.png";
@@ -110,6 +116,38 @@ export default React.memo(function OrderItemSummaryDesktop({
 
     return state;
   }, []);
+
+
+    const handleSaveAdditionalOrder = useCallback(async (formData) => {
+  setLoading(true); // Тепер цей стейт існує
+  try {
+    const response = await axiosInstance.post(
+      "/additional_orders/save_additional_order/",
+      formData
+    );
+
+    // Перевірка успіху (враховуючи масив, який ми бачили раніше)
+    const result = Array.isArray(response.data) ? response.data[0] : response.data;
+
+    if (result?.success === true || response.status === 201) {
+      addNotification("Дозамовлення успішно створено!", "success");
+      setIsReorderModalOpen(false); // ВИПРАВЛЕНО: назва функції закриття
+      
+      // Якщо у вас refreshTrigger приходить з батьківського компонента як пропс, 
+      // то використовуйте його. Якщо ні — ця лінія може бути не потрібна тут.
+      if (typeof setRefreshTrigger === 'function') {
+        setRefreshTrigger((prev) => prev + 1);
+      }
+    } else {
+      addNotification("Помилка: " + (result?.message || "Невідома помилка"), "error");
+    }
+  } catch (err) {
+    console.error("Помилка відправки:", err);
+    addNotification("Не вдалося відправити дані: " + (err.response?.data?.message || err.message), "error");
+  } finally {
+    setLoading(false);
+  }
+}, [addNotification, setIsReorderModalOpen]); // Додано залежності
 
   // ========================= DEBT =========================
   const debtAmount = useMemo(() => {
@@ -192,6 +230,8 @@ export default React.memo(function OrderItemSummaryDesktop({
 
       addNotification("Оплату успішно виконано!", "success");
       setIsPaymentOpen(false);
+
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
       addNotification("Помилка при виконанні оплати", "error");
@@ -211,6 +251,11 @@ export default React.memo(function OrderItemSummaryDesktop({
           "success",
         );
       }
+
+
+      if (onRefresh) onRefresh();
+
+      
     } catch (error) {
       addNotification(`Помилка підтвердження: ${error.message}`, "error");
     }
@@ -326,7 +371,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         </div>
 
         {/* STATUS */}
-        <div className="summary-item row justify-start no-wrap">
+        <div className="summary-item row justify-start">
           <div className="row gap-14 align-center">
             {/* Замінюємо 'text-info' на динамічний клас статусу */}
             <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
@@ -382,6 +427,7 @@ export default React.memo(function OrderItemSummaryDesktop({
       !buttonState.claim ? "disabled opacity-50" : ""
     }`}
     disabled={!buttonState.claim}
+onClick={openClaimModal}
   >
     <div className="font-size-12">Рекламація</div>
   </button>
@@ -453,6 +499,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         isOpen={isReorderModalOpen}
         onClose={() => setIsReorderModalOpen(false)}
         initialOrderNumber={order.number}
+        onSave={handleSaveAdditionalOrder}
       />
 
       {/* PAYMENT */}

@@ -16,7 +16,7 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
 export const CalculationItem = React.memo(
-  ({ calc, onDelete, onEdit, onMarkAsRead }) => {
+  ({ calc, onDelete, onEdit, onMarkAsRead , reloadCalculations}) => {
     const [expanded, setExpanded] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
     const [_selectedComments, setSelectedComments] = useState([]);
@@ -380,6 +380,7 @@ export const CalculationItem = React.memo(
                   key={order.number}
                   order={order}
                   calculationDate={calc.date}
+                  onRefresh={reloadCalculations}
                 />
               ))
             )}

@@ -2179,33 +2179,32 @@ from rest_framework.permissions import IsAuthenticated
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def confirm_order(request, order_id):
-    """
-    Приймає JSON з фронтенду і передає його у 1С,
-    використовуючи order_id (GUID) з URL.
-    """
     try:
-        # Витягуємо GUID замовлення
-        order_guid = str(order_id)  # перетворюємо у рядок, якщо це UUID
+        # Підготовка даних для 1С
+        # Використовуємо "set_customer_bill" як назву Query (якщо так налаштовано в 1С)
+        query_name = "ConfirmOrder"
+        
+        payload = {
+            "order_id": str(order_id),
+            # "user": request.user.username,
+            # Додайте інші поля, якщо 1С їх очікує
+        }
 
-        # Додаємо GUID у DTO для 1С
-        dto = request.data
-        dto['order_id'] = order_guid
-
-        # Виклик функції для 1С
-        # set_customer_bill(dto)
+        # Виклик вашої утиліти
+        result = send_to_1c(query_name, payload)
 
         return Response({
-            "message": "Data received and sent to 1С",
-            "order_id": order_guid,
-            "sent_data": dto
+            "success": True,
+            "message": "Замовлення підтверджено в 1С",
+            "data_from_1c": result
         }, status=status.HTTP_200_OK)
 
+    except ValidationError as e:
+        # Це виключення прокинеться з send_to_1c при помилках зв'язку
+        return Response(e.detail, status=status.HTTP_502_BAD_GATEWAY)
     except Exception as e:
-        return Response({
-            "error": str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+        logger.error(f"Unexpected error in confirm_order: {str(e)}")
+        return Response({"detail": "Внутрішня помилка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

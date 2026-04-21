@@ -13,7 +13,7 @@ import OrderFilesModal from "../Orders/OrderFilesModal"; // Переконайс
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
-export default function AdditionalOrderItemSummaryDesktop({ order }) {
+export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) {
   // =========================== UI STATE ===========================
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -46,11 +46,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
     const statusConfig = {
       Новий: { confirm: true, pay: true },
       "Очікуємо підтвердження": { confirm: true, pay: true },
-      Підтверджений: { pay: true, confirm: true, reorder: true },
+      Підтверджений: { pay: true, confirm: false, reorder: true },
       "Очікуємо оплату": { pay: true, reorder: true },
-      Оплачено: { pay: true, reorder: true },
+      "У виробництві" : { pay: true },
+      Оплачено: { pay: false, reorder: true },
       Готовий: { pay: true, reorder: true },
-      Доставлено: { pay: true, reorder: true, claim: true },
+      Відвантажено: { pay: true, reorder: true, claim: true },
     };
 
     if (statusConfig[status]) {
@@ -92,13 +93,16 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
 
   const handleConfirmOrder = async () => {
     try {
-      const response = await axiosInstance.post(
-        `/additional-orders/${order.guid}/confirm/`,
+       const response = await axiosInstance.post(
+        `/orders/${order.guid}/confirm/`,
       );
       if (response.status === 200 || response.status === 204) {
         addNotification(`Замовлення ${order.number} підтверджено!`, "success");
         setIsConfirmModalOpen(false);
       }
+
+
+      if (onRefresh) onRefresh();
     } catch (error) {
       addNotification(`Помилка: ${error.message}`, "error");
     }
@@ -112,7 +116,10 @@ export default function AdditionalOrderItemSummaryDesktop({ order }) {
         amount: Number(amount),
       });
       addNotification("Оплату виконано!", "success");
+      
       setIsPaymentOpen(false);
+
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
       addNotification("Помилка виконання оплати", "error");

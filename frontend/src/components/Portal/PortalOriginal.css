@@ -1825,6 +1825,7 @@ html {
   gap: 3px;
   width: calc(100%);
   align-items: flex-start;
+  border-bottom: 1px dashed var(--grey-border-color);
 }
 
 .order-item .summary-item:last-child {

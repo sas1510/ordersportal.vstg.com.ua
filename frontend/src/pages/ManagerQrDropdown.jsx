@@ -148,6 +148,8 @@ export default function PortalManagersPage() {
 
   return (
     <div className="portal-body">
+
+    <div className="max-w-[1334px] mx-auto ">
       <div className="panel shadow-sm mt-10">
         <div className="header-container invite-border-bottom invite-pb-10 mb-10">
           <h2 className="uppercase text-info font-size-18 text-bold">
@@ -191,6 +193,7 @@ export default function PortalManagersPage() {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

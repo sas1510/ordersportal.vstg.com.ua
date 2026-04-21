@@ -56,9 +56,10 @@ export default function UsersListPage() {
 
   /* ================= RENDER ================= */
   return (
-    <div className="ulp-wrapper users-page-wrapper p-6 min-h-screen bg-gray-50 dark:bg-[#1a1d21] portal-body">
+    <div className="ulp-wrapper users-page-wrapper p-6 min-h-screen bg-gray-50 dark:bg-[#1a1d21] portal-body" style={{justifyContent: 'center'}}>
       {/* HEADER WITH CREATE BUTTON */}
-      <div className="flex justify-between items-center mb-6 mt-2 border-b pb-4">
+          <div className="max-w-[1334px] mx-auto ">
+      <div className="flex max-w-[1334px] justify-between items-center mb-6 mt-2 border-b pb-4">
         <h1 className="ulp-title text-3xl font-extrabold m-0">
           Усі користувачі
         </h1>
@@ -72,7 +73,7 @@ export default function UsersListPage() {
       </div>
 
       {/* FILTERS */}
-      <div className="ulp-filter mb-6 flex gap-3 items-center">
+      <div className="ulp-filter mb-6 max-w-[1334px] flex gap-3 items-center">
         <label className="ulp-filter-label font-medium">Фільтр за роллю:</label>
 
         <select
@@ -101,7 +102,7 @@ export default function UsersListPage() {
           Завантаження…
         </div>
       ) : (
-        <div className="ulp-table-container users-table-container shadow-2xl">
+        <div className="ulp-table-container  max-w-[1334px] users-table-container shadow-2xl">
           <table className="ulp-table w-full text-left text-sm">
             <thead className="ulp-table-header users-table-header">
               <tr>
@@ -254,6 +255,7 @@ export default function UsersListPage() {
           onClose={() => setApiKeyUser(null)}
         />
       )}
+      </div>
     </div>
   );
 }

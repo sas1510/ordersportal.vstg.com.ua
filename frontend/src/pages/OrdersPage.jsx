@@ -678,6 +678,7 @@ const PortalOriginal = () => {
                     onDelete={handleDeleteCalculation}
                     onEdit={handleUpdateCalculation}
                     onMarkAsRead={handleMarkAsRead}
+                    reloadCalculations={reloadCalculations}
                   />
                 ),
               )

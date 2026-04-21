@@ -29,6 +29,24 @@ const AdminAdditionalOrders = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(initialLimit);
 
+
+  const yearIcon = "/assets/icons/YearIcon.png";
+  const searchIcon = "/assets/icons/SearchIcon.png";
+  
+  const plusIcon = "/assets/icons/PlusIcon.png";
+
+
+  const allCalcIcon = "/assets/icons/AllCalcIcon.png";
+  const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
+  const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
+  const waitingForConfirmIcon = "/assets/icons/WaitingForConfirmIcon.png";
+  const confirmedIcon = "/assets/icons/ConfirmedIcon.png";
+  const factoryIcon = "/assets/icons/FactoringIcon.png";
+  const finishedIcon = "/assets/icons/FinishedIcon.png";
+  const deliveredIcon = "/assets/icons/DeliveredIcon.png";
+  const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
   // const { theme } = useTheme();
@@ -361,16 +379,10 @@ const AdminAdditionalOrders = () => {
 
   return (
     <div className="column portal-body">
-      <div className="content-summary row w-100">
-        <div
-          className="mobile-sidebar-toggle"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ marginTop: "10px" }}
-        >
-          <span className="icon icon-menu font-size-24"></span>
-        </div>
+      <div className="content-summary row w-100"  style={{justifyContent: 'center'}}>
 
-        <div className="year-selector row">
+
+        {/* <div className="year-selector row">
           <span>Звітний рік:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select
@@ -383,11 +395,50 @@ const AdminAdditionalOrders = () => {
               </option>
             ))}
           </select>
+        </div> */}
+
+        <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'center'}} >
+
+        <div
+          className="mobile-sidebar-toggle flex-0"
+          onClick={() => setIsSidebarOpen(true)}
+          style={{ marginTop: "10px" }}
+        >
+
+                  
+          <span className="icon icon-menu font-size-24"></span>
         </div>
 
-        <div className="by-month-pagination-wrapper">
+
+           <div className="year-inline-selector row">
+              <img 
+                  src={yearIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-2 w-[26px] h-[25px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+            Звітний рік
+          </div>
+
+             <select
+                className="year-select-minimal"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+              >
+                {Array.from({ length: 3 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
           {/* ===== DESKTOP MONTH LIST ===== */}
-          <ul className="gap-6 row no-wrap month-list">
+          <ul className="gap-6 row no-wrap month-list flex-1">
             {/* Для ALL — ховаємо "Весь рік" */}
             {dealerGuid !== ALL_DEALERS_VALUE && (
               <li
@@ -397,6 +448,7 @@ const AdminAdditionalOrders = () => {
                 Весь рік
               </li>
             )}
+            
 
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
@@ -438,7 +490,7 @@ const AdminAdditionalOrders = () => {
 
           {/* ===== MOBILE MONTH SELECT (ОЦЕ БУЛО ЗАГУБЛЕНО) ===== */}
           <select
-            className="month-select"
+            className="month-select flex-1"
             value={filter.month}
             onChange={(e) => handleMonthClick(Number(e.target.value))}
           >
@@ -481,11 +533,13 @@ const AdminAdditionalOrders = () => {
       </div>
 
       <div className="content-wrapper row w-100 h-100">
+
+        <div className="row  h-100 max-w-[1334px]  w-100">
         {/* Sidebar */}
         <div
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
-          <div className="sidebar-header row ai-center jc-space-between">
+          {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between">
             {isSidebarOpen && <span>Фільтри</span>}
             {isSidebarOpen && (
               <span
@@ -493,27 +547,27 @@ const AdminAdditionalOrders = () => {
                 onClick={() => setIsSidebarOpen(false)}
               ></span>
             )}
-          </div>
+          </div> }
 
           <div className="search-wrapper">
             <input
               type="text"
-              className="search-orders"
+              className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
               placeholder="номер дод. замовлення"
               value={filter.name}
               onChange={handleSearchChange}
             />
-            <span
-              className="icon icon-cancel2 clear-search"
-              title="Очистити пошук"
-              onClick={handleClearSearch}
-            ></span>
+            <img 
+              src={searchIcon} 
+              alt="" 
+              className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
+            />
           </div>
 
           {isAdmin && (
             <>
-              <div className="delimiter1" />
-              <div className="dealer-select-wrapper">
+              {/* <div className="delimiter1" /> */}
+              <div className="dealer-select-wrapper mt-2">
                 <DealerSelectWithAll
                   value={dealerGuid}
                   onChange={setDealerGuid}
@@ -522,79 +576,86 @@ const AdminAdditionalOrders = () => {
             </>
           )}
 
-          <div className="delimiter1"></div>
+          {/* <div className="delimiter1"></div> */}
 
           <ul className="buttons">
             <li
               className="btn btn-add-calc"
               onClick={() => setIsNewOrderModalOpen(true)}
             >
-              <span className="icon icon-plus3"></span>
-              <span className="uppercase">Нове дод. замовлення</span>
+               <img 
+                  src={plusIcon} 
+                  alt="+" 
+                  className="align-center mr-2 " 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+              <div className="text-center text-WS---DarkGrey text-[14px] font-bold font-['Inter'] uppercase">Нове дод. замовлення</div>{" "}
             </li>
           </ul>
 
           <ul className="filter column align-center">
-            <li className="delimiter1"></li>
+
+            <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+            {/* <li className="delimiter1"></li> */}
             {[
-              {
+             {
                 id: "all",
                 label: "Всі дод. замовлення",
-                icon: "icon-calculator",
+                icon: allCalcIcon,
                 statusKey: "Всі",
-              },
+              }, // Змінено текст
               {
                 id: "new",
                 label: "Нові дод. замовлення",
-                icon: "icon-bolt",
+                icon: newCalcIcon,
                 statusKey: "Новий",
-              },
+              }, // Змінено текст
               {
                 id: "processing",
                 label: "В роботі",
-                icon: "icon-spin-alt",
+                icon: inProcessingIcon,
                 statusKey: "В роботі",
               },
               {
                 id: "waiting-payment",
                 label: "Очікують оплату",
-                icon: "icon-coin-dollar",
+                icon: waitingForPaymentIcon,
                 statusKey: "Очікуємо оплату",
               },
               {
                 id: "waiting-confirm",
                 label: "Очікують підтвердження",
-                icon: "icon-clipboard",
+                icon: waitingForConfirmIcon,
                 statusKey: "Очікуємо підтвердження",
               },
               {
                 id: "confirmed",
                 label: "Підтверджені",
-                icon: "icon-check",
+                icon: confirmedIcon,
                 statusKey: "Підтверджений",
               },
               {
                 id: "production",
                 label: "Замовлення у виробництві",
-                icon: "icon-cogs",
+                icon:factoryIcon,
                 statusKey: "У виробництві",
               },
               {
                 id: "ready",
                 label: "Готові замовлення",
-                icon: "icon-layers2",
+                icon: finishedIcon,
                 statusKey: "Готовий",
               },
               {
                 id: "shipped",
-                label: "Доставлено",
-                icon: "icon-truck",
-                statusKey: "Доставлено",
-              },
+                label: "Відвантажено",
+                icon: deliveredIcon,
+                statusKey: "Відвантажено",
+              }, // Додано
               {
                 id: "rejected",
                 label: "Відмова",
-                icon: "icon-circle-with-cross",
+                icon: canceledCalcIcon,
                 statusKey: "Відмова",
               },
             ].map(({ id, label, icon, statusKey }) => (
@@ -612,6 +673,7 @@ const AdminAdditionalOrders = () => {
                 </span>
               </li>
             ))}
+            </div>
           </ul>
         </div>
 
@@ -707,6 +769,7 @@ const AdminAdditionalOrders = () => {
         onClose={() => setIsNewOrderModalOpen(false)}
         onSave={handleSaveAdditionalOrder}
       />
+      </div>
     </div>
   );
 };
