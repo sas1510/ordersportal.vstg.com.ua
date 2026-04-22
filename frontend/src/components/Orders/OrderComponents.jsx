@@ -367,7 +367,7 @@ export const CalculationItem = React.memo(
 
         {/* ============ CALC DETAILS ============ */}
         {expanded && (
-          <div className="item-details column gap-14">
+          <div className="item-details  column gap-14">
             {orderList.length === 0 ? (
               <div className="order-item column gap-14 w-100 align-center">
                 <div className="font-size-22 text-grey uppercase float-center">

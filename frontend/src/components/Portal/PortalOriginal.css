@@ -1612,9 +1612,9 @@ html {
   border-left: transparent;
 }
 
-.border-right {
+/* .border-right {
   border-left: 1px dashed var(--grey-color);
-}
+} */
 
 .border-right:last-child {
   border-left: transparent;
@@ -1824,7 +1824,7 @@ html {
   /* padding: 7px; */
   gap: 3px;
   width: calc(100%);
-  align-items: flex-start;
+  /* align-items: flex-start; */
   border-bottom: 1px dashed var(--grey-border-color);
 }
 
@@ -2532,13 +2532,23 @@ ul.month-list {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1028px) { 
+  .portal-body .content {
+   padding: 8px 0;
+  }
+}
+
+@media (max-width: 767px) {
   .portal-body {
     /* padding-bottom: 25px !important; */
     padding-top: 56px !important;
   }
   .portal-body .content-filter.open {
     margin-top: 50px !important ;
+  }
+
+  .content-summary {
+    margin-top: 20px;
   }
 }
 
@@ -2559,7 +2569,7 @@ ul.month-list {
         padding-right: 8px; */
 
     /* Скидаємо примусові стилі, якщо вони десь були */
-    margin: 0;
+    margin-top: 10px;
   }
 
   .content-summary .mobile-sidebar-toggle {
@@ -3351,4 +3361,9 @@ body.dark-theme
 
 .w-20 {
     width: 20% !important;
+}
+
+
+.border-right {
+  border-right: 1px dashed var(--grey-color);
 }

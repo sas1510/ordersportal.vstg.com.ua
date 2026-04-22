@@ -518,7 +518,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
           
                     send_chat_notification_to_1c.apply_async(
                         args=[t_type, base_guid_str, recipient_id_1c, message_text, saved_msg.id],
-                        countdown=600 
+                        countdown=6 
                     )
                     
 

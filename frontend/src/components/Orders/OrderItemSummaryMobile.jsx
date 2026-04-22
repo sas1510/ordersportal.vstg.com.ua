@@ -194,7 +194,7 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
     <div className="order-item flex flex-col w-full gap-0">
       {/* ============ MOBILE VERSION (COMPACT & UPDATED BUTTONS) ============ */}
       <div
-        className="md:hidden flex flex-col w-full p-3 bg-white rounded-lg shadow-sm border border-gray-200"
+        className="md:hidden flex flex-col w-full p-3 "
         onClick={toggleExpand}
       >
         {/* Header - Номер і статус (без змін) */}

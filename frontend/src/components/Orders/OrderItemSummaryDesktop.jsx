@@ -276,7 +276,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   }, [order.date, calculationDate]);
 
   return (
-    <div className="order-item flex flex-col w-full gap-0">
+    <div className="order-item  flex flex-col w-full gap-0">
       {/* --- SUMMARY ROW --- */}
       <div
         className="order-item-summary flex w-full cursor-pointer items-center"

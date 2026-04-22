@@ -37,6 +37,7 @@ const PortalOriginal = () => {
   const finishedIcon = "/assets/icons/FinishedIcon.png";
   const deliveredIcon = "/assets/icons/DeliveredIcon.png";
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+  const filterIcon = "/assets/icons/FiltersIcon.png";
 
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [calculationsData, setCalculationsData] = useState([]);
@@ -369,9 +370,14 @@ const PortalOriginal = () => {
           <div
             className="mobile-sidebar-toggle"
             onClick={() => setIsSidebarOpen(true)}
-            style={{ marginTop: "10px" }}
+           
           >
-            <span className="icon icon-menu font-size-24 "></span>
+                <img 
+                  src={filterIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-2 w-[20px] h-[20px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
           </div>
             {/* Блок вибору року тепер тут */}
             <div className="year-inline-selector row">
