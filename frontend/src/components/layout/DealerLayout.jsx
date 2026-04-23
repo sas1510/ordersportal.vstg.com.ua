@@ -43,19 +43,17 @@ const styles = {
     zIndex: 1000,
     pointerEvents: "none", 
   },
-  main: {
-    flexGrow: 1,
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    // Обов'язково додаємо overflowY, щоб скрол був всередині мейна
-    overflowY: "auto", 
-    // На телефоні падінг може "ігноруватися", якщо не встановлено box-sizing
-    boxSizing: "border-box",
-    
-    // Включаємо падінг, щоб контент не заходив під хедер.
-    // На телефоні висоту краще заміряти точно (на око ~130px-140px для вашого дизайну)
-    paddingTop: "1px", 
-  },
+ main: {
+  flexGrow: 1,
+  display: "flex",
+  flexDirection: "column",
+  width: "100%",
+  // Прибираємо фіксовані висоти тут, щоб вони не сумувалися з падінгами
+  minHeight: 0, 
+  overflowY: "auto", 
+  boxSizing: "border-box",
+  // Якщо хочете падінг саме в CSS порталу, тут поставте 0
+  paddingTop: "0px", 
+},
 };
 export default DealerLayout;

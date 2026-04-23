@@ -306,7 +306,7 @@ body {
     var(--portal-bg-color-end) 45%,
     var(--portal-bg-color-start)
   );
-  /* height: 100vh; */
+  height: 100vh;
   width: 100%;
   padding-top: 100px;
   
@@ -316,9 +316,9 @@ body {
   padding-left: clamp(5px, 5vw, 100px);
   padding-right: clamp(5px, 5vw, 100px);
   justify-content: center;
-  min-height: 100%;
+  
 
-  /* overflow-y: auto; */
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
