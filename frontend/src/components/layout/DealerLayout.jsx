@@ -29,31 +29,27 @@ const styles = {
   layout: {
     display: "flex",
     flexDirection: "column",
-    // Використовуємо dvh для динамічного підлаштування під мобільні браузери
-    height: "100dvh", 
-    width: "100%",
+    minHeight: "100vh",
     position: "relative",
-    overflow: "hidden", // Це важливо, щоб сам layout не скролився, скролився тільки main
   },
   headerWrapper: {
-    position: "fixed",
+    position: "fixed", // Тепер хедер завжди прибитий до верху екрана
     top: 0,
     left: 0,
     width: "100%",
-    zIndex: 1000,
+    zIndex: 1000, // Піднімаємо z-index, щоб перекрити все
     pointerEvents: "none", 
   },
- main: {
-  flexGrow: 1,
-  display: "flex",
-  flexDirection: "column",
-  width: "100%",
-  // Прибираємо фіксовані висоти тут, щоб вони не сумувалися з падінгами
-  minHeight: 0, 
-  overflowY: "auto", 
-  boxSizing: "border-box",
-  // Якщо хочете падінг саме в CSS порталу, тут поставте 0
-  paddingTop: "0px", 
-},
+  main: {
+    flexGrow: 1,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
+    width: "100%",
+    // Якщо ви хочете, щоб контент сторінки НЕ заходив ПІД хедер 
+    // (наприклад, на сторінці Оплат), додайте внутрішній відступ:
+    // paddingTop: "132px", 
+  },
 };
+
 export default DealerLayout;
