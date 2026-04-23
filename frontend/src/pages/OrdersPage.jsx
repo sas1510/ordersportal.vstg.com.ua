@@ -39,6 +39,8 @@ const PortalOriginal = () => {
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
   const filterIcon = "/assets/icons/FiltersIcon.png";
 
+  const closeIcon = "/assets/icons/CloseButton.png";
+
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [calculationsData, setCalculationsData] = useState([]);
   const [filter, setFilter] = useState({ status: "Всі", month: 0, name: "" });
@@ -365,33 +367,36 @@ const PortalOriginal = () => {
         </div> */}
 
         <div className="by-month-pagination-wrapper ">
-          <div className="pagination-container w-100 row no-wrap items-center gap-6">
+          <div className="pagination-container w-100 row no-wrap items-center gap-2">
             
           <div
-            className="mobile-sidebar-toggle"
+            className="mobile-sidebar-toggle mr-1"
             onClick={() => setIsSidebarOpen(true)}
            
           >
                 <img 
                   src={filterIcon} 
                   alt="Стрілка" 
-                  className="align-center mr-2 w-[20px] h-[20px]" 
+                  className="align-center mr-1 min-w-[20px] h-[20px]" 
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
           </div>
             {/* Блок вибору року тепер тут */}
-            <div className="year-inline-selector row">
+            <div className="year-inline-selector row  mr-6 ">
               <img 
                   src={yearIcon} 
                   alt="Стрілка" 
-                  className="align-center mr-2 w-[26px] h-[25px]" 
+                  className="align-center mr-1 w-[26px] h-[25px]" 
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
-                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            Звітний рік
-          </div>
+<div 
+  className="justify-start text-white text-sm uppercase mr-2 tracking-wide"
+  style={{ fontWeight: 50, fontFamily: "'Inter', sans-serif" }}
+>
+  Звітний рік
+</div>
              <select
-                className="year-select-minimal"
+                className="year-select-minimal mr-2"
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
               >
@@ -433,7 +438,7 @@ const PortalOriginal = () => {
 
 
             <select
-            className="month-select"
+            className="month-select row"
             value={filter.month}
             onChange={(e) => handleMonthClick(Number(e.target.value))}
           >
@@ -473,22 +478,36 @@ const PortalOriginal = () => {
 
       <div className="content-wrapper row w-100 h-100  " >
         <div className="row  h-100 max-w-[1334px]  w-100">
+
+          {isSidebarOpen && (
+        <div 
+        className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+        style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+      )}
         <div
-          className={`content-filter  column ${isSidebarOpen ? "open" : "closed"}`}
+          className={`content-filter   column ${isSidebarOpen ? "open" : "closed"}`}
         >
           {isSidebarOpen &&
-          <div className="sidebar-header row ai-center jc-space-between">
+          <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
             {isSidebarOpen && <span>Фільтри</span>}
             {isSidebarOpen && (
-              <span
-                className="icon icon-cross"
-                onClick={() => setIsSidebarOpen(false)}
-              ></span>
-            )}
+    <button 
+      onClick={() => setIsSidebarOpen(false)} 
+      className=" hover:opacity-70 transition-opacity"
+    >
+      <img 
+        src={closeIcon} 
+        alt="Закрити" 
+        className="" 
+      />
+    </button>
+  )}
           </div>
 }
 
-          <div className="search-wrapper relative w-full">
+          <div className="search-wrapper relative ">
   <input
     type="text"
     className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
@@ -537,7 +556,18 @@ const PortalOriginal = () => {
 
 
           <ul className="filter column align-center">
-            <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+<div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+  min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+  min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+  
+  /* Скидання для малих екранів (менше 1260px) */
+  max-[1260px]:bg-transparent 
+  max-[1260px]:shadow-none 
+  max-[1260px]:py-0 
+  max-[1260px]:w-full 
+  max-[1260px]:overflow-visible">
+  
+
             {/* <li className="delimiter1"></li> */}
             {[
               {
@@ -672,6 +702,7 @@ const PortalOriginal = () => {
                     onDelete={handleDeleteCalculation}
                     onEdit={handleUpdateCalculation}
                     onMarkAsRead={handleMarkAsRead}
+                    reloadCalculations={reloadCalculations}
                   />
                 ) : (
                   <CalculationItem

@@ -135,23 +135,37 @@ export const CalculationItem = React.memo(
 
     // 4. Мемоїзація статичної функції
     const getStatusClass = useCallback((status) => {
-      switch (status) {
-        case "Новий":
-        // case "В обробці":
-        case "У виробництві":
-        case "Підтверджений":
-          return "text-WS---DarkBlue";
-        case "Очікуємо оплату":
-        case "Очікуємо підтвердження":
-        case "Відмова":
-          return "text-WS---DarkRed";
-        case "Готовий":
-        case "Відвантажений":
-          return "text-WS---DarkGreen";
-        default:
-          return "text-WS---DarkGrey";
-      }
-    }, []);
+        switch (status) {
+          case "Новий":
+    
+    
+            return "text-WS---DarkBlue";
+            
+          case "Очікуємо підтвердження":
+            return "text-WS---Orange";
+          case "Очікуємо оплату":
+            return "text-WS---DarkRed";
+    
+          case "Підтверджений":
+            return "text-WS---DarkGrey";
+    
+          case "У виробництві":
+            return "text-WS---DarkBlueProfile"
+          case "В обробці":
+    
+    
+          case "Відмова":
+            return "text-WS---MiddleGrey";
+    
+          case "Готовий":
+            return "text-WS---DarkGreen";
+          case "Відвантажений":
+            return "text-WS---DarkPurple";
+    
+          default:
+            return "text-WS---MiddleGrey ";
+        }
+      }, []);
 
     // Беремо статус першого запису, якщо він є, інакше — 'warning' для "Новий"
     const mainStatus = statusEntries.length > 0 ? statusEntries[0][0] : null;
@@ -253,10 +267,12 @@ export const CalculationItem = React.memo(
                   <img 
                   src={historyOfMessage} 
       
-                  className="align-center mr-0.5" 
+                  className="align-center mr-0.5 max-w-[20px] max-h-[20px]" 
                 
                 />
+                <div className="text-WS---DarkGrey no-wrap ">
                 Історія коментарів
+                </div>
               </button>
             </div>
           </div>
@@ -288,10 +304,10 @@ export const CalculationItem = React.memo(
                   <img 
                     src={fileIcon} 
                     // alt="Вікно" 
-                    className="align-center mr-0.5" 
+                    className="w-[12px] h-[16px] align-center mr-1.5" 
                   
                   />
-                  <div className="font-size-12 text-WS---DarkGrey ml-0">
+                  <div className="text-[12px] text-WS---DarkGrey ml-0">
                     <div className="order-number">
                       {calc.file && calc.file !== ""
                         ? `${calc.number}.zkz`
@@ -315,7 +331,7 @@ export const CalculationItem = React.memo(
                   />
 
                   <span
-                    className="text-dark font-size-12 dealer-wrap dealer-clickable"
+                    className="text-dark text-[12px] dealer-wrap dealer-clickable"
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsCounterpartyOpen(true);
@@ -369,7 +385,7 @@ export const CalculationItem = React.memo(
         {expanded && (
           <div className="item-details  column gap-14">
             {orderList.length === 0 ? (
-              <div className="order-item column gap-14 w-100 align-center">
+              <div className="order-item !border-b-0 column gap-14 w-100 align-center">
                 <div className="font-size-22 text-grey uppercase float-center">
                   Ще немає замовлень по цьому прорахунку
                 </div>

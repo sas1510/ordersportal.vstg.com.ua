@@ -1,0 +1,106 @@
+.timeline-mobile {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Центруємо весь список */
+  padding: 20px 0;
+  box-sizing: border-box;
+}
+
+.timeline-mobile ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  width: fit-content; /* Контейнер підлаштовується під ширину контенту */
+}
+
+
+
+.timeline-mobile ul li {
+  position: relative;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Елементи всередині li йдуть в ряд */
+  min-width: 280px; /* Мінімальна ширина для стабільності центровки */
+}
+
+
+
+
+
+
+
+
+.timeline-mobile ul li .icon {
+  width: 40px;
+  height: 40px;
+  background: #fff;
+  border: 1px solid #444;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+/* Горизонтальна лінія МІЖ іконкою та баджем */
+.border-between-order {
+  position: absolute;
+  left: 40px;   /* Починається від краю іконки */
+  width: 15px;  /* Фіксована довжина лінії */
+  height: 1px;
+  border-bottom: 1px solid #000;
+  z-index: 1;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  /* top: 20px;    Рівно по центру висоти іконки (40px / 2) */
+}
+
+.timeline-mobile ul li .badge {
+  margin-left: 15px; /* Цей відступ перекривається лінією border-between-order */
+  flex-grow: 1;
+  max-width: 200px;
+  border: 1px solid #444;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
+
+.timeline-mobile .badge-title {
+  background-color: #444;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  text-align: center;
+  font-weight: bold;
+}
+
+.timeline-mobile .badge-content {
+  padding: 4px 8px;
+  font-size: 12px;
+  text-align: center;
+  min-height: 20px;
+  font-weight: 500;
+}
+
+/* Малюємо лінію для всіх li */
+.timeline-mobile ul li::before {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  bottom: -35px; /* Тягнеться до наступної іконки */
+  width: 0;
+  border-left: 1px solid #000;
+  z-index: 0;
+}
+
+/* ВИМИКАЄМО лінію ТІЛЬКИ для останнього li */
+.timeline-mobile ul li:last-child::before {
+  display: none !important;
+}

@@ -16,7 +16,7 @@
   }
 
   /* Touch targets мінімум 44x44px (Apple HIG) */
-  button,
+ 
   a,
   .clickable,
   .btn-comments {
@@ -38,7 +38,7 @@
 @media (max-width: 768px) {
   .calc-item,
   .order-item {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
     margin-bottom: 12px;
     transition: all 0.2s ease;
   }

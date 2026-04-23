@@ -2003,7 +2003,7 @@ useEffect(() => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
+    <header className="w-[calc(100%-20px)]l flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
   {/* 1. Декоративна смуга  -- ДОДАНО: Декоративна смуга вгорі --видалено mt-32 */}
 <div className="w-full max-w-[1334px] h-2 md:h-[12px]  rounded-t-sm"  style={{ backgroundColor: 'var(--header-decorative)' }} />
 

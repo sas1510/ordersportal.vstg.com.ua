@@ -19,7 +19,7 @@ import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 // КРОК 1: Обгортаємо функціональний компонент у React.memo
-export default React.memo(function OrderItemSummaryMobile({ order }) {
+export default React.memo(function OrderItemSummaryMobile({ order, calculationDate, onRefresh }) {
   const { addNotification } = useNotification();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -30,12 +30,40 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
+    const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+    const listCalcIcon = "/assets/icons/ListCalcIcon.png";
+    const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
+    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+    const fileIcon = "/assets/icons/FileIcon.png";
+    const recipientIcon = "/assets/icons/RecipientIcon.png";
+
+    const moneyGreen = "/assets/icons/MoneyGreen.png";
+    const moneyRed = "/assets/icons/MoneyRed.png";
+    const speedIcon = "/assets/icons/SpeedIcon.png";
+    const openDetails = "/assets/icons/OpenDetailsOrdersIcon.png";
+
+
   // ------------------------------------
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const { user, role } = useAuthGetRole();
   const _isAdmin = role === "admin";
   // 1. Мемоїзація простого обробника стану
   const toggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
+
+
+  const dateDiffStatus = useMemo(() => {
+    // Перевіряємо наявність обох дат
+    if (!order.date || !calculationDate) return null;
+
+    const d1 = new Date(calculationDate);
+    const d2 = new Date(order.date);
+
+    // Різниця в мілісекундах перетворена в дні
+    const diffInDays = (d2 - d1) / (1000 * 60 * 60 * 24);
+
+    // Якщо замовлення зроблено протягом 24 годин (<= 1 дня) — true (радісний)
+    return diffInDays <= 1;
+  }, [order.date, calculationDate]);
 
   const getButtonState = useCallback((status) => {
     // Всі кнопки за замовчуванням вимкнені
@@ -86,23 +114,37 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
 
   // 4. Мемоїзація функції стилю статусу (без змін)
   const getStatusClass = useCallback((status) => {
-    switch (status) {
-      case "Новий":
-      case "В обробці":
-      case "У виробництві":
-      case "Підтверджений":
-        return "text-info";
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
-      case "Відмова":
-        return "text-danger";
-      case "Готовий":
-      case "Відвантажений":
-        return "text-success";
-      default:
-        return "text-grey";
-    }
-  }, []);
+      switch (status) {
+        case "Новий":
+  
+  
+          return "text-WS---DarkBlue";
+          
+        case "Очікуємо підтвердження":
+          return "text-WS---Orange";
+        case "Очікуємо оплату":
+          return "text-WS---DarkRed";
+  
+        case "Підтверджений":
+          return "text-WS---DarkGrey";
+  
+        case "У виробництві":
+          return "text-WS---DarkBlueProfile"
+        case "В обробці":
+  
+  
+        case "Відмова":
+          return "text-WS---MiddleGrey";
+  
+        case "Готовий":
+          return "text-WS---DarkGreen";
+        case "Відвантажений":
+          return "text-WS---DarkPurple";
+  
+        default:
+          return "text-WS---MiddleGrey ";
+      }
+    }, []);
 
   const openPaymentModal = useCallback((e) => {
     e.stopPropagation();
@@ -125,6 +167,8 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
 
       addNotification("Оплату успішно виконано!", "success");
       setIsPaymentOpen(false);
+
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
       addNotification("Оплату успішно виконано!", "success");
@@ -178,6 +222,8 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
           `Замовлення ${order.number} успішно підтверджено!`,
           "success",
         );
+
+        if (onRefresh) onRefresh();
         // !!! ТУТ МАЄ БУТИ ВИКЛИК ФУНКЦІЇ ОНОВЛЕННЯ БАТЬКІВСЬКОГО СПИСКУ !!!
       } else {
         addNotification(
@@ -191,14 +237,91 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
   }, [order.idGuid, order.number]);
 
   return (
-    <div className="order-item flex flex-col w-full gap-0">
+    <div className="order-item flex flex-col w-full gap-0 !border-0">
       {/* ============ MOBILE VERSION (COMPACT & UPDATED BUTTONS) ============ */}
       <div
-        className="md:hidden flex flex-col w-full p-3 "
+        className="md:hidden flex flex-col w-full p-1 "
         onClick={toggleExpand}
+        
       >
+
+        <div className="flex items-stretch justify-between mb-1 w-full gap-3  pb-1 border-bottom ">
+          
+          {/* 1. ЛІВА ЧАСТИНА: Номер та Дата + Бордюр справа */}
+          <div className="flex flex-[2] items-center pr-1  border-right shrink-0">
+             <img src={listCalcIcon} className="align-center mr-2"  alt="" />
+            <div className="flex  flex-col gap-[6px] no-wrap w-full">
+  
+              <div className="text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight">
+                № {order.number}
+              </div>
+              <div className="text-[11px] text-WS---DarkGrey">
+                 {formatDateHumanShorter(order.date)}
+              </div>
+            </div>
+          </div>
+
+            <div className="flex flex-col items-center pt-2 justify-center pr-2 border-right flex-1">
+              <div className="flex items-center gap-2 no-wrap">
+                <img src={windowsIcon} className="align-center mr-2"  alt="" />
+                <span className="font-size-24 font-bold text-WS---DarkBlue">
+                  {order.count}
+                </span>
+              </div>
+              <span className="text-grey text-[10px] mt-1">Конструкції</span>
+            </div>
+
+            <div 
+              className="flex items-center gap-2 text-center justify-center pt-2 flex-1 pb-[17px] cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={openFilesModal}
+
+            >
+       
+             <img src={fileIcon} className="align-center mr-2"  alt="" />
+            
+              <div className="text-[13px] text-dark">Файли</div>
+            </div>
+
+
+
+          </div>
+
+          <div className="flex items-stretch justify-between  w-full gap-2   py-2">
+  
+  {/* 1. Сума замовлення */}
+  <div className="flex items-center gap-2 pr-1 border-right  flex-1">
+    <img src={moneyGreen} className=" mr-1" alt="" />
+    <div className="flex flex-col">
+      <div className="text-WS---DarkGreen text-[14px] font-bold leading-tight">
+        {formatMoney2(order.amount, order.currency)}
+      </div>
+      <div className="text-grey text-[8px]">Сума замовлення</div>
+    </div>
+  </div>
+
+  {/* 2. Сума боргу */}
+  <div className="flex items-center gap-2 px-1 border-right flex-1">
+    {/* Тут використовуємо червону іконку монет, якщо вона є, або ту саму */}
+    <img src={moneyRed} className="mr-1" alt="" /> 
+    <div className="flex flex-col">
+      <div className="text-WS---DarkRed  text-[14px] font-bold leading-tight">
+        {formatMoney2(debtAmount, order.currency)}
+      </div>
+      <div className="text-grey text-[8px]">Сума боргу</div>
+    </div>
+  </div>
+
+  {/* 3. Статус */}
+<div className="flex items-center gap-2 pl-3 flex-1">
+  <span className={`icon-info-with-circle font-size-24 mr-2 shrink-0 ${getStatusClass(order.status)}`}></span>
+  <div className={`font-size-14 leading-tight ${getStatusClass(order.status)}`}>
+    {order.status}
+  </div>
+</div>
+
+</div>
         {/* Header - Номер і статус (без змін) */}
-        <div className="flex items-center justify-between mb-2">
+        {/* <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <span className="icon icon-news font-size-18 text-success"></span>
             <div className="text-info font-weight-bold font-size-16">
@@ -213,147 +336,123 @@ export default React.memo(function OrderItemSummaryMobile({ order }) {
               {order.status}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Дата і кількість (без змін) */}
-        <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
-          <div className="text-danger font-size-18">
-            {formatDateHumanShorter(order.date)}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="icon-layout5 font-size-18 text-info"></span>
-            <span className="font-size-16 text-danger font-weight-medium">
-              {order.count} конст.
-            </span>
-          </div>
-        </div>
-
-        {/* Організація/Менеджер (без змін) */}
-        {(order.organizationName || order.managerName) && (
-          <div className="grid grid-cols-2 gap-2 mb-2 pb-2 border-b border-gray-200">
-            {order.organizationName && (
-              <div className="flex flex-col p-2 bg-blue-50 rounded">
-                <div className="font-size-18 font-weight-medium text-dark leading-tight">
-                  <span className="fas fa-building font-size-18 text-info mr-1"></span>
-                  {order.organizationName}
-                </div>
-              </div>
-            )}
-            {order.managerName && (
-              <div className="flex flex-col p-2 bg-purple-50 rounded">
-                <div className="font-size-18 font-weight-medium text-dark leading-tight">
-                  <span className="fas fa-user-tie font-size-18 text-success mr-1"></span>
-                  {order.managerName}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
+       
         {/* Фінанси (без змін) */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="icon icon-coin-dollar text-success font-size-14"></span>
-              <span className="text-grey font-size-16">Сума</span>
-            </div>
-            <div className="text-info font-size-18 font-weight-bold">
-              {formatMoney2(order.amount, order.currency)}
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="icon icon-coin-dollar text-danger font-size-14"></span>
-              <span className="text-grey font-size-16">Борг</span>
-            </div>
-            <div className="text-danger font-size-18 font-weight-bold">
-              {formatMoney2(debtAmount, order.currency)}
-            </div>
-          </div>
-        </div>
+      
 
         {/* PDF та Файли */}
-        <div className="flex items-center justify-between gap-3 mb-2">
-          {/* PDF (без змін) */}
-          {/* <div className="flex items-center gap-1.2 p-1.5 bg-gray-50 rounded"
-                        onClick={(e) => e.stopPropagation()}>
-                        <div className="icon-document-file-pdf font-size-16 text-red"></div>
-                        <div className="font-size-14 text-grey">{order.name}.pdf</div>
-                    </div>
-                     */}
-          {/* Файли (Клікабельна кнопка) */}
-          <div
-            className="flex items-center gap-1.2 p-1.5 bg-gray-100 rounded-md cursor-pointer transition-colors"
-            onClick={openFilesModal} // 🔥 ПРИВ'ЯЗКА
-          >
-            <div className="icon-download font-size-18 text-red"></div>
-            <div className="font-size-14 text-info underline">Файли</div>
-          </div>
-        </div>
+
+        {/* КНОПКИ (Сітка 2х2 + Швидке оформлення) */}
+<div 
+  className="flex items-center gap-3 " 
+  onClick={(e) => e.stopPropagation()}
+>
+  {/* Ліва частина: Сітка кнопок 2х2 */}
+  <div className="grid grid-cols-2-btn gap-8 flex-grow">
+    {user?.role !== "admin" ? (
+      <>
+        {/* Підтвердити */}
+        <button
+          className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+          disabled={!buttonState.confirm}
+          onClick={openConfirmModal}
+        >
+          Підтвердити
+        </button>
+
+        {/* Сплатити */}
+        <button
+          className="h-[31px] flex items-center font-['Inter']  justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+          disabled={!buttonState.pay}
+          onClick={openPaymentModal}
+        >
+          Сплатити
+        </button>
+      </>
+    ) : (
+      <div className="col-span-2"></div> // Заглушка для адміна, щоб зберегти сітку
+    )}
+
+    {/* Дозамовлення */}
+    <button
+      className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkBlue text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+      disabled={!buttonState.reorder}
+      onClick={(e) => {
+        e.stopPropagation();
+        openReorderModal();
+      }}
+    >
+      Дозамовлення
+    </button>
+
+    {/* Рекламація */}
+    <button
+      className="h-[31px] flex items-center font-['Inter']  justify-center  px-2 bg-WS---DarkRed text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+      disabled={!buttonState.claim}
+      onClick={(e) => {
+        e.stopPropagation();
+        openClaimModal();
+      }}
+    >
+      Рекламація
+    </button>
+  </div>
+
+  {/* Права частина: Швидке оформлення */}
+<div 
+    className="flex flex-col items-center justify-center min-w-[40px] text-center gap-1 cursor-help"
+    title={
+      dateDiffStatus
+        ? "Швидке оформлення (менше доби)"
+        : "Замовлення оформлено пізніше ніж через добу"
+    }
+  >
+    {dateDiffStatus === null ? null : (
+      <div className="bg-white p-1 rounded-sm overflow-hidden flex items-center justify-center">
+        <img 
+          src={speedIcon} 
+          alt="Іконка швидкості"
+          className=" block"
+          style={{ 
+            /* 🔥 ЗАСТОСУВАННЯ КОЛЬОРУ ЧЕРЕЗ ФІЛЬТР */
+            /* Якщо dateDiffStatus === true (зелений), інакше — червоний */
+            filter: dateDiffStatus
+              ? 'invert(34%) sepia(87%) saturate(372%) hue-rotate(33deg) brightness(95%) contrast(91%)' /* Зелений #5A7302 */
+              : 'invert(38%) sepia(58%) saturate(651%) hue-rotate(325deg) brightness(90%) contrast(85%)'  /* Червоний #BC553D */
+          }}
+        />
+      </div>
+    )}
+    <span className="text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
+      Швидке<br/>оформлення
+    </span>
+  </div>
+</div>
+        
 
         {/* КНОПКИ (Скролл-меню) (без змін) */}
-        <div
-          className="flex gap-2 overflow-x-auto pb-1.5 py-[2px] -mx-3 px-3 mobile-buttons-scroll"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {user?.role !== "admin" && (
-            <>
-              <button
-                className="grow shrink-0 basis-0 h-6 flex items-center justify-center px-1.5 background-success text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                disabled={!buttonState.confirm}
-                onClick={openConfirmModal}
-              >
-                Підтвердити
-              </button>
-
-              {/* Сплатити */}
-              <button
-                className="grow shrink-0 basis-0 h-6 flex items-center justify-center px-1.5 background-warning text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-center"
-                disabled={!buttonState.pay}
-                onClick={openPaymentModal}
-              >
-                Сплатити
-              </button>
-            </>
-          )}
-
-          {/* Дозамовлення */}
-          <button
-            className="grow shrink-0 basis-0 h-6 flex items-center justify-center px-1.5 background-info text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-center"
-            disabled={!buttonState.reorder}
-            onClick={(e) => {
-              e.stopPropagation();
-              openReorderModal();
-            }}
-          >
-            Дозамовлення
-          </button>
-
-          {/* Рекламація */}
-          <button
-            className="grow shrink-0 basis-0 h-6 flex items-center justify-center px-1.5 background-danger text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed text-center mr-3"
-            disabled={!buttonState.claim}
-            onClick={(e) => {
-              e.stopPropagation();
-              openClaimModal();
-            }}
-          >
-            Рекламація
-          </button>
-        </div>
+      
 
         {/* Індикатор розкриття (без змін) */}
-        <div className="flex justify-center mt-1.5">
-          <span
-            className={`icon ${isExpanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}
-          ></span>
-        </div>
+<div className="flex justify-center mt-4 cursor-pointer" >
+  <img 
+    src={openDetails} 
+    alt="Деталі"
+    className={`block transition-transform duration-300 ${isExpanded ? "rotate-180" : "rotate-0"}`}
+
+  />
+</div>
       </div>
 
       {/* Деталі замовлення */}
       {isExpanded && (
-        <div className="mt-2 pt-2 border-t flex w-full border-dashed border-gray-300">
+                <div className="separator-border w-full mt-2">
+        <div className="mt-2 pt-2 flex w-full ">
           <OrderDetailsMobile order={order} />
+        </div>
         </div>
       )}
 

@@ -307,7 +307,7 @@ body.dark-theme .reclamation-item.web-reclamation:hover {
     position: fixed;
     left: -100%; /* Схований за екраном */
     top: 0;
-    margin-top: 60px;
+    /* margin-top: 60px; */
     height: 100vh;
     width: 280px;
     z-index: 999;

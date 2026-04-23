@@ -330,6 +330,7 @@ body {
 .portal-body > .content-summary {
   /*height: 20px;*/
   height: fit-content;
+  
 }
 
 .portal-body > .content-wrapper {
@@ -758,7 +759,7 @@ header_logo_white.svg
   --shadow-color: #00000050;
   --vs-green-color: #d4d947;
   --vs-blue-color: #6b98bf;
-  --grey-border-color: #95959563;
+  --grey-border-color: #aaaaaa;
 
   --header-height: 50px;
   --burger-menu-width: 500px;
@@ -1799,7 +1800,7 @@ html {
 
   font-size: 12px;
   color: var(--grey-color);
-  width: calc(100% - 7px - 28px);
+  width: calc(100% );
   border-top: 1px dashed var(--grey-border-color);
   align-items: flex-start;
   text-align: left;
@@ -1834,7 +1835,7 @@ html {
 
 .order-item .summary-item {
   border-right: 1px dashed var(--grey-border-color);
-  padding: 3px 10px;
+  padding: 3px 5px;
   font-size: 14px;
   align-items: center;
   justify-content: center;
@@ -1860,7 +1861,7 @@ html {
 .timeline {
   width: 100%;
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 10px 0;
   position: relative;
   box-sizing: border-box;
   min-height: 180px;
@@ -2071,8 +2072,8 @@ html {
   .portal-body {
     padding-top: 100px !important;
 
-    padding-left: 15px !important;
-    padding-right: 15px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
   .order-item {
     padding: 1px !important;
@@ -2261,8 +2262,8 @@ html {
   .portal-body {
     padding-top: 100px !important;
 
-    padding-left: 5px !important;
-    padding-right: 5px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
   .portal-body .content-filter {
     width: 285px !important;
@@ -2429,20 +2430,20 @@ html {
     justify-content: start;
   }
 
-  .content-filter {
+.content-filter {
     position: fixed;
-    top: 60px; /* починаємо під хедером */
+    top: 0;           /* Починаємо від самого верху екрана */
     left: -100%;
-    width: 250px;
-    height: calc(100vh - 120px); /* 100vh мінус хедер і футер */
+    width: 100%;      /* На весь екран по ширині */
+    height: 100vh;    /* На весь екран по висоті */
     background: #fff;
-    z-index: 999;
+    z-index: 1000;    /* Піднімаємо вище за хедер, якщо треба */
     padding: 20px;
+    padding-top: 60px; /* Додаємо внутрішній відступ зверху, щоб контент не перекривався кнопкою закриття */
     overflow-y: auto;
     transition: left 0.3s ease;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    box-shadow: none;  /* На весь екран тінь не потрібна */
   }
-
   .content-filter.open {
     left: 0;
   }
@@ -2473,15 +2474,26 @@ html {
   margin: 0;
 }
 
+.year-select-minimal,
 .by-month-pagination-wrapper .month-select {
-  display: none;
-  margin-top: 8px;
-  padding: 6px 10px;
-  border: 1px solid var(--grey-border-color);
-  border-radius: 4px;
-  background-color: #fff;
-  color: var(--text-color);
-  font-size: 14px;
+  display: inline-block; /* Впевнимося, що місяць видимий */
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px 5px;
+  font-weight: normal;
+  cursor: pointer;
+  color: var(--WS---DarkGrey, #44403e);
+  outline: none;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; /* Додайте розмір, якщо він відрізняється */
+}
+
+/* Додамо ефект при наведенні для обох */
+.year-select-minimal:hover,
+.by-month-pagination-wrapper .month-select:hover {
+  border-color: var(--WS---DarkBlue, #0056b3);
 }
 
 /* На малих екранах показуємо select, ховаємо список */
@@ -2503,7 +2515,7 @@ html {
 select.month-select {
   display: block;
   width: 100%;
-  margin-top: 1px !important;
+
 }
 
 /* * По замовчуванню (мобільні, < 1151px) 
@@ -2538,13 +2550,29 @@ ul.month-list {
   }
 }
 
+
+@media (max-width: 1024px) { 
+  .calc-item .item-details {
+   padding: 0;
+  }
+  .calc-item {
+    border-radius: 0;
+  }
+  
+}
+
+@media (max-width: 768px) {
+  .order-item {
+    box-shadow: none;
+  }
+}
 @media (max-width: 767px) {
   .portal-body {
     /* padding-bottom: 25px !important; */
     padding-top: 56px !important;
   }
   .portal-body .content-filter.open {
-    margin-top: 50px !important ;
+    /* margin-top: 50px !important ; */
   }
 
   .content-summary {
@@ -2577,6 +2605,7 @@ ul.month-list {
     padding-right: 1px !important;
     margin-left: 1px !important;
     margin-right: 1px !important;
+    min-width: 20px;
   }
 
   .content-summary .year-selector {
@@ -2605,7 +2634,7 @@ ul.month-list {
   justify-content: space-between;
 
   /* 5. (Опційно) Можна додати нижню рамку для візуального розділення */
-  border-bottom: 1px solid #e9ecef;
+  /* border-bottom: 1px solid #e9ecef; */
 }
 
 /* Робимо іконку закриття "клікабельною" на вигляд */
@@ -3115,22 +3144,41 @@ body.dark-theme
 ========================================================= */
 
 @media (max-width: 1260px) {
+
+  .sidebar-header {
+    padding: 12px 20px;
+  }
+
+  .btn-add-calc {
+    margin-left: 20px;
+    margin-right: 20px;
+    width: calc(100% - 40px);
+    /* padding: 0 4px !important; */
+  }
+
+
+  .content-filter .search-wrapper {
+    width: calc(100% - 40px);
+    margin-left: 20px;
+    margin-right: 20px;
+  }
   /* БАЗОВО — СХОВАНИЙ */
   .portal-body .content-filter {
     position: fixed !important;
-
+    width: 320px !important;
     left: -100% !important;
 
-    height: calc(100vh - 100px) !important; /* header + footer */
+    height: calc(100vh) !important; /* header + footer */
 
     background: #fff !important;
-    z-index: 999 !important;
+    z-index: 10000 !important;
 
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
 
     transition: left 0.3s ease !important;
+    border-radius: 0 20px 20px 0;
   }
 
   /* ВІДКРИТИЙ */
@@ -3294,7 +3342,7 @@ body.dark-theme
   display: flex;
   text-align: center;
   align-items: center;
-  gap: 8px;
+  /* gap: 8px; */
 
 }
 
@@ -3311,6 +3359,29 @@ body.dark-theme
 
 .text-WS---DarkGreen {
   color: var(--WS--DarkGreen);
+  font-family: 'Inter', sans-serif;
+}
+
+.text-WS---DarkBlueProfile {
+  color: #234461;
+  font-family: 'Inter', sans-serif;
+}
+.text-WS---DarkPurple {
+  color: #733462;
+  font-family: 'Inter', sans-serif;
+}
+
+.text-WS---MiddleGrey {
+  color: #AEAEAE;
+  font-family: 'Inter', sans-serif;
+}
+
+
+
+
+
+.text-WS---Orange {
+  color: #ED8B33;
   font-family: 'Inter', sans-serif;
 }
 
@@ -3366,4 +3437,34 @@ body.dark-theme
 
 .border-right {
   border-right: 1px dashed var(--grey-color);
+}
+
+
+.grid-cols-2-btn {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.border-WS---DarkBlue {
+
+  border-color:  var(--WS--DarkBlue);
+
+}
+
+@media (max-width: 500px) {
+  .content-summary .by-month-pagination-wrapper{
+    padding: 4px 13px !important;
+  }
+}
+
+
+
+
+
+
+/* Цей фільтр перетворює темний колір на насичений червоний */
+.icon-calc-delete {
+  /* Фільтр для досягнення кольору #BA523B */
+  filter: invert(41%) sepia(59%) saturate(541%) hue-rotate(327deg) brightness(87%) contrast(88%);
 }

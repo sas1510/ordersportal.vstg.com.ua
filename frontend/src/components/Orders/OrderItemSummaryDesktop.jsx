@@ -170,21 +170,33 @@ export default React.memo(function OrderItemSummaryDesktop({
   const getStatusClass = useCallback((status) => {
     switch (status) {
       case "Новий":
-      case "В обробці":
-      case "У виробництві":
+
 
         return "text-WS---DarkBlue";
-      case "Очікуємо оплату":
+        
       case "Очікуємо підтвердження":
-      case "Відмова":
+        return "text-WS---Orange";
+      case "Очікуємо оплату":
         return "text-WS---DarkRed";
+
       case "Підтверджений":
+        return "text-WS---DarkGrey";
+
+      case "У виробництві":
+        return "text-WS---DarkBlueProfile"
+      case "В обробці":
+
+
+      case "Відмова":
+        return "text-WS---MiddleGrey";
+
       case "Готовий":
-      case "Відвантажений":
         return "text-WS---DarkGreen";
+      case "Відвантажений":
+        return "text-WS---DarkPurple";
 
       default:
-        return "text-WS---DarkGrey";
+        return "text-WS---MiddleGrey ";
     }
   }, []);
 
@@ -276,7 +288,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   }, [order.date, calculationDate]);
 
   return (
-    <div className="order-item  flex flex-col w-full gap-0">
+    <div className="order-item !border-b-0 flex flex-col w-full gap-0">
       {/* --- SUMMARY ROW --- */}
       <div
         className="order-item-summary flex w-full cursor-pointer items-center"
@@ -394,7 +406,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         disabled={!buttonState.confirm}
         onClick={openConfirmModal}
       >
-        <div className="font-size-12">Підтвердити</div>
+        <div className="font-size-12 font-['Inter'] ">Підтвердити</div>
       </button>
 
       {/* PAY */}
@@ -405,7 +417,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         disabled={!buttonState.pay}
         onClick={openPaymentModal}
       >
-        <div className="font-size-12">Сплатити</div>
+        <div className="font-size-12 font-['Inter'] ">Сплатити</div>
       </button>
     </>
   )}
@@ -418,7 +430,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     disabled={!buttonState.reorder}
     onClick={openReorderModal}
   >
-    <div className="font-size-12">Дозамовлення</div>
+    <div className="font-size-12 font-['Inter'] ">Дозамовлення</div>
   </button>
 
   {/* CLAIM */}
@@ -429,7 +441,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     disabled={!buttonState.claim}
 onClick={openClaimModal}
   >
-    <div className="font-size-12">Рекламація</div>
+    <div className="font-size-12 font-['Inter'] ">Рекламація</div>
   </button>
 </div>
 
@@ -452,7 +464,7 @@ onClick={openClaimModal}
               // Налаштовуємо розмір (десь 24px, щоб відповідало попередньому font-size-24)
               style={{ width: '24px', height: '24px' }}
               className={`
-                ${dateDiffStatus ? "color-green-icon pulse-animation-img" : "color-red-icon"}
+                ${dateDiffStatus ? "color-green-icon " : "color-red-icon"}
               `}
             />
           )}
