@@ -316,7 +316,6 @@ body {
   padding-left: clamp(5px, 5vw, 100px);
   padding-right: clamp(5px, 5vw, 100px);
   justify-content: center;
-  
 
   overflow-y: auto;
   overflow-x: hidden;
