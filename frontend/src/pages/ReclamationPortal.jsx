@@ -116,7 +116,7 @@ const ReclamationPortal = () => {
     const plusIcon = "/assets/icons/PlusIcon.png";
 
 
-    const allCalcIcon = "/assets/icons/AllCalcIcon.png";
+    const allCalcIcon = "/assets/icons/AllReclamationIcon.png";
     const newCalcIcon = "/assets/icons/NewCalcIcon.png";
     const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
     const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
@@ -127,7 +127,7 @@ const ReclamationPortal = () => {
     const deliveredIcon = "/assets/icons/DeliveredIcon.png";
     const canceledCalcIcon = "/assets/icons/CancelCalc.png";
     const deleteIcon = "/assets/icons/DeleteIcon.png";
-    const checkMarkIcon = "/assets/icons/CheckMarkIcon.png";
+    const checkMarkIcon = "/assets/icons/CheckMark.png";
 
     // Переконайтеся, що useNavigate імпортовано:
 // import { useNavigate, useLocation } from 'react-router-dom';
@@ -288,7 +288,7 @@ const ReclamationPortal = () => {
             const summary = {
                 'Всі': 0, 'Новий': 0, 'Виробництво': 0, 
                 'В роботі': 0, 'Вирішено': 0,
-                'На складі': 0, 'Відвантажено': 0, 'Відмова': 0
+                'На складі': 0, 'Відвантажено': 0, 'Відмова': 0, 'Підтверджено': 0,
             };
 
             data.forEach(r => {
@@ -569,13 +569,14 @@ const ReclamationPortal = () => {
                             { label: "В обробці", statusKey: "В роботі", icon: inProcessingIcon },
                             { label: "Виробництво", statusKey: "Виробництво", icon: factoryIcon },
                             { label: "На складі", statusKey: "На складі", icon: finishedIcon },
-                            { label: "Відвантажено", statusKey: "Відвантажено", icon: deliveredIcon },
+                            // { label: "Відвантажено", statusKey: "Відвантажено", icon: deliveredIcon },
+                            { label: "Підтверджено", statusKey: "Підтверджено", icon: deliveredIcon },
                             { label: "Вирішено", statusKey: "Вирішено", icon: checkMarkIcon },
                             { label: "Відмова", statusKey: "Відмова", icon: canceledCalcIcon }
                         ].map(item => (
                             <li
                                 key={item.statusKey}
-                                className={`filter-item ${filter.status === item.statusKey ? 'active' : ''}`}
+                                className={`filter-item font-['Inter'] ${filter.status === item.statusKey ? 'active' : ''}`}
                                 onClick={() => setFilter(prev => ({ ...prev, status: item.statusKey }))}
                             >
                                 <img 
