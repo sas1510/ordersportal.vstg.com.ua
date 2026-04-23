@@ -29,7 +29,7 @@ const styles = {
   layout: {
     display: "flex",
     flexDirection: "column",
-    minHeight: "100dvh",
+    minHeight: "100vh",
     position: "relative",
   },
   headerWrapper: {
@@ -44,7 +44,7 @@ const styles = {
     flexGrow: 1,
     display: "flex",
     flexDirection: "column",
-    minHeight: "100%",
+    minHeight: "100vh",
     width: "100%",
     // Якщо ви хочете, щоб контент сторінки НЕ заходив ПІД хедер 
     // (наприклад, на сторінці Оплат), додайте внутрішній відступ:
