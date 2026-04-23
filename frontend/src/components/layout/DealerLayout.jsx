@@ -45,13 +45,14 @@ headerWrapper: {
   zIndex: 100,
 },
 main: {
-  flexGrow: 1,
+  flexGrow: 1,      // Забирає весь вільний простір від хедера до низу
   display: "flex",
   flexDirection: "column",
-  height: "100dvh", // Використовуйте dvh для консистентності
   width: "100%",
-  overflowY: "auto", // Дозволяємо скрол контенту
+  overflow: "hidden", // ЗАБОРОНЯЄМО скрол тут, щоб він працював тільки в порталі
   boxSizing: "border-box",
+  height: "0px",      // Лайфхак для Flexbox: змушує контейнер не розпиратися контентом
+  minHeight: "0px",   // Гарантує, що flex-item може стискатися
 },
 };
 
