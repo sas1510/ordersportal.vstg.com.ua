@@ -36,27 +36,23 @@ const styles = {
     overflow: "hidden", // Забороняємо скрол всього лейауту
     boxSizing: "border-box", // В JS пишеться camelCase: boxSizing
   },
-  headerWrapper: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    zIndex: 1000,
-    pointerEvents: "none", 
-  },
-  main: {
-    flexGrow: 1,
-    display: "flex",
-    flexDirection: "column",
-    // Прибираємо minHeight: "100vh", щоб не роздувати область
-    height: "100%", 
-    width: "100%",
-    overflowY: "auto", // Скрол з'явиться тільки тут, якщо контенту багато
-    boxSizing: "border-box",
-    
-    // Тут падінг НЕ потрібен, якщо ви вже поставили його в .portal-body
-    paddingTop: "0px", 
-  },
+  // PublicLayout.js стилі
+headerWrapper: {
+  position: "fixed", // Краще fixed, щоб хедер не зникав при скролі
+  top: 0,
+  left: 0,
+  width: "100%",
+  zIndex: 100,
+},
+main: {
+  flexGrow: 1,
+  display: "flex",
+  flexDirection: "column",
+  height: "100dvh", // Використовуйте dvh для консистентності
+  width: "100%",
+  overflowY: "auto", // Дозволяємо скрол контенту
+  boxSizing: "border-box",
+},
 };
 
 export default DealerLayout;
