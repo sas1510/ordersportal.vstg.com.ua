@@ -305,8 +305,9 @@ body {
     circle,
     var(--portal-bg-color-end) 45%,
     var(--portal-bg-color-start)
-  );
-  height: 100vh;
+    );
+  box-sizing: border-box;
+  height: 100dvh;
   width: 100%;
   padding-top: 100px;
   
@@ -317,9 +318,21 @@ body {
   padding-right: clamp(5px, 5vw, 100px);
   justify-content: center;
 
+overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.portal-body-2 {
+
+  max-height: calc(100dvh);
+  width: 100%;
+  /* padding-top: 100px; */
+  justify-content: center;
+
   overflow-y: auto;
   overflow-x: hidden;
 }
+
 
 .portal-footer {
   background: radial-gradient(circle, #424242 15%, #2d2826);

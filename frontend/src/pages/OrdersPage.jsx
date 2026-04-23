@@ -350,6 +350,7 @@ const PortalOriginal = () => {
   }
   return (
     <div className="column portal-body">
+
       <div className="content-summary row w-100 justify-center">
 
 
@@ -775,7 +776,8 @@ const PortalOriginal = () => {
         onClose={handleCloseCalc} // ЗМІНЕНО
         onSave={handleSaveCalculation}
       />
-    </div>
+      </div>
+
   );
 };
 
