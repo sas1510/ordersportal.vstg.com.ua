@@ -34,6 +34,7 @@ export const ReclamationItem = ({
   const menuRef = useRef(null);
   const deleteIcon = "/assets/icons/DeleteIcon.png";
   const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+  const profileReclamation = "/assets/icons/ProfileReclamation.png";
 
   // const userRaw = localStorage.getItem("user");
   // const user = userRaw ? JSON.parse(userRaw) : null;
@@ -135,35 +136,81 @@ export const ReclamationItem = ({
 
     setSelectedComments(comments);
     setIsCommentsOpen(true);
+
+
   };
+
+
+  // const getStatusClass = useCallback((status) => {
+  //       switch (status) {
+  //         case "Новий":
+    
+    
+  //           return "text-WS---DarkBlue";
+            
+  //         case "Очікуємо підтвердження":
+  //           return "text-WS---Orange";
+  //         case "Очікуємо оплату":
+  //           return "text-WS---DarkRed";
+    
+  //         case "Підтверджений":
+  //           return "text-WS---DarkGrey";
+    
+  //         case "У виробництві":
+  //           return "text-WS---DarkBlueProfile"
+  //         case "В обробці":
+    
+    
+  //         case "Відмова":
+  //           return "text-WS---MiddleGrey";
+    
+  //         case "Готовий":
+  //           return "text-WS---DarkGreen";
+  //         case "Відвантажений":
+  //           return "text-WS---DarkPurple";
+    
+  //         default:
+  //           return "text-WS---MiddleGrey ";
+  //       }
+  //     }, []);
 
   const getStatusClass = (status) => {
     if (status && status.includes("Виробництво")) {
-      return "text-factory";
+      return "text-WS---DarkBlueProfile";
     }
 
     switch (status) {
-      case "Новий":
-        return "text-danger";
-      case "На складі":
-        return "text-warning";
-      case "В роботі":
-        return "text-info";
-      case "Потребує узгодження":
-        return "text-info";
-      case "Очікує запчастин":
-        return "text-info";
-      case "Вирішено":
-        return "text-success";
-      case "Закрита":
-        return "text-success";
-      case "Виробництво":
-        return "text-factory";
-      case "Відмова":
-        return "text-grey";
-      default:
-        return "text-grey";
-    }
+          case "Новий":
+
+            return "text-WS---DarkRed";
+
+          case "В роботі":
+            return "text-WS---DarkBlue";
+            
+          case "Виробництво":
+            return "text-WS---DarkBlueProfile"
+
+              
+          case "На складі":
+            return "text-WS---DarkGrey";
+
+          case "Відвантажений":
+          case "Підтверджено" :
+            return "text-WS---DarkPurple";
+          case "Вирішено":
+            return "text-WS---DarkGreen";
+
+
+          case "Відмова":
+            return "text-WS---MiddleGrey";
+
+          default:
+            return "text-WS---MiddleGrey ";
+        }
+
+
+
+
   };
 
 //   const responsibleManager = reclamation.manager || "Не вказано";
@@ -187,12 +234,12 @@ export const ReclamationItem = ({
           <span className="icon icon-tools2 font-size-22 text-success"></span>
         </div> */}
 
-        <div className="summary-item row no-wrap" style={{ flexBasis: "15%" }}>
-          <div className="column">
-            <div className="text-base text-bold text-WS---DarkGrey border-bottom">
+        <div className="summary-item row no-wrap !pl-0 " style={{ flexBasis: "15%" }}>
+          <div className="column !pl-0 w-full pr-3">
+            <div className="text-base text-bold w-full text-WS---DarkGrey border-bottom">
               № {reclamation.id}
             </div>
-            <div className="text-xs text-WS---DarkGrey">
+            <div className="text-[13px] text-WS---DarkGrey">
               {formatDateHumanShorter(reclamation.dateRaw)}
             </div>
           </div>
@@ -213,69 +260,73 @@ export const ReclamationItem = ({
 
         {/* 4. Коментар/Опис та Додаткові Деталі */}
         {/* 4. Коментар/Опис та Додаткові Деталі */}
+<div className="summary-item expandable row w-30 align-start space-between !pt-0" >
+  {/* Переконайся, що цей div має висоту 100% відносно батька */}
+  <div className="flex flex-col w-full h-full" style={{ flex: "2 1 0%", minWidth: 0 }}>
 
-        <div className="summary-item expandable row w-30 align-start space-between">
-          <div className="column w-full" style={{ flex: 1, minWidth: 0 }}>
-            <div className="comments-text-wrapper-last font-['Inter']">
-            {reclamation.message || "Без коментарів"}
-          </div>
 
-          <button
-            className="btn-comments  row flex items-center"
-            style={{ 
-              position: "relative", 
-              alignSelf: "flex-end", // Залишаємо вирівнювання по правому краю, якщо це потрібно
-              border: "none",
-              background: "none"
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              // Використовуємо дані з reclamation (або змініть на calc, якщо структура змінилася)
-              handleViewComments(reclamation.message || []);
-            }}
-          >
-            <div className="relative flex items-center">
-              <img 
-                src={historyOfMessage} 
-                alt="Історія" 
-                className={`mr-2 w-[20px] h-[20px] object-contain ${
-                  reclamation.hasUnreadMessages ? "brightness-110" : ""
-                }`} 
-              />
-              
-              {/* Червона крапка (індикатор), якщо є нечитані повідомлення */}
-              {reclamation.hasUnreadMessages && (
-                <span 
-                  style={{
-                    position: "absolute",
-                    top: "-2px",
-                    right: "4px",
-                    width: "8px",
-                    height: "8px",
-                    backgroundColor: "var(--danger-color)",
-                    borderRadius: "50%",
-                    border: "1px solid white"
-                  }}
-                />
-              )}
-            </div>
+    {/* Текст коментаря - рівно 2/3 висоти */}
+    <div 
+      className="comments-text-wrapper-last font-['Inter'] overflow-hidden" 
+      style={{ 
+        flex: "2 1 0%", 
+        minHeight: 0,
+        display: "flex",
+        alignItems: "flex-start" // або center, якщо хочеш по центру
+      }}
+    >
+      <div className="w-full text-[14px] leading-tight line-clamp-2">
+        {reclamation.message || "Без коментарів"}
+      </div>
+    </div>
 
-            <span className="text-sm  text-WS---DarkGrey">
-              Історія коментарів
-            </span>
-          </button>
-          </div>
+    {/* Історія коментарів - рівно 1/3 висоти */}
+    <div 
+      className="flex items-center justify-end" 
+      style={{ flex: "1 1 0%", minHeight: 0 }}
+    >
+      <button
+        className="btn-comments flex items-center bg-transparent border-none p-0 cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleViewComments(reclamation.message || []);
+        }}
+      >
+        <div className="relative flex items-center">
+          <img 
+            src={historyOfMessage} 
+            alt="Історія" 
+            className={`mr-1 w-[18px] h-[18px] object-contain ${
+              reclamation.hasUnreadMessages ? "brightness-110" : ""
+            }`} 
+          />
+          {reclamation.hasUnreadMessages && (
+            <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-[var(--danger-color)] rounded-full border border-white" />
+          )}
         </div>
+        <span className="text-[13px] font-['Inter'] text-WS---DarkGrey pr-2">
+          Історія коментарів
+        </span>
+      </button>
+    </div>
+
+
+  </div>
+</div>
 
         <div
           className="summary-item flex items-center whitespace-normal"
           style={{ flexBasis: "15%" }}
         >
           {reclamation.dealer && (
-            <div className="flex items-center gap-1 text-grey font-size-14 break-words">
+            <div className="flex items-center gap-1 text-grey text-[13px] break-words">
               {/* <span className="icon icon-user text-dark shrink-0"></span> */}
 
-              <User className="w-10 h-10 text-dark shrink-0" />
+                  <img 
+                      src={profileReclamation} 
+                      alt="Історія" 
+                      className={`mr-1`} 
+                    />
               <span className="text-dark leading-snug font-['Inter']">
                 {reclamation.dealer}
               </span>
@@ -284,11 +335,11 @@ export const ReclamationItem = ({
         </div>
 
         <div className="summary-item row no-wrap" style={{ flexBasis: "15%" }}>
-          <div className="icon-info-with-circle font-size-24 text-info"></div>
+          <div className={`icon-info-with-circle font-size-24  ${getStatusClass(reclamation.status)}`}></div>
           <div
-            className={`column gap-2 font-size-12 no-wrap calc-status font-['Inter'] ${getStatusClass(reclamation.status)}`}
+            className={`column gap-2 text-[13px] no-wrap calc-status font-['Inter'] ${getStatusClass(reclamation.status)}`}
           >
-            <div className="font-size-14 font-semibold">
+            <div className="text-[13px]">
               {reclamation.status}
             </div>
           </div>
@@ -297,7 +348,7 @@ export const ReclamationItem = ({
         {/* 6. Меню дій (зразу іконки без випадаючого меню) */}
         <div
           className="summary-item row no-wrap gap-4 align-center"
-          style={{ flexBasis: "5%" }}
+          style={{ flexBasis: "4%" }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* 🗑️ Видалити */}
@@ -310,10 +361,10 @@ export const ReclamationItem = ({
           <img
             src={deleteIcon}
             alt="Видалити"
-            className={`w-[18px] h-[18px] object-contain transition-all ${
+            className={`transition-all ${
               !canDelete 
                 ? "opacity-30 grayscale cursor-not-allowed" 
-                : "cursor-pointer hover:brightness-75"
+                : "icon-delete-red cursor-pointer active:scale-95"
             }`}
             title={
               !canDelete
@@ -342,7 +393,7 @@ export const ReclamationItem = ({
       {/* ============ RECLAMATION DETAILS (ВИКОРИСТОВУЄМО ТІЛЬКИ ОДИН КОМПОНЕНТ) ============ */}
 
       {expanded && (
-        <div className="item-details column gap-14">
+        <div className="item-details column gap-14 !w-full">
           {/* Відображаємо деталі самої рекламації/завдання */}
           <ComplaintItemDetailView
             key={reclamation.id}

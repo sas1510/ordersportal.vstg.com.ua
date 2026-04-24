@@ -45,14 +45,14 @@ headerWrapper: {
   zIndex: 100,
 },
 main: {
-  flexGrow: 1,      // Забирає весь вільний простір від хедера до низу
   display: "flex",
-  flexDirection: "column",
-  width: "100%",
-  overflow: "hidden", // ЗАБОРОНЯЄМО скрол тут, щоб він працював тільки в порталі
-  boxSizing: "border-box",
-  height: "0px",      // Лайфхак для Flexbox: змушує контейнер не розпиратися контентом
-  minHeight: "0px",   // Гарантує, що flex-item може стискатися
+    flexDirection: "column",
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,     // Важливо! Це каже флексу ігнорувати внутрішній розмір контенту
+    width: "100%",
+    overflow: "hidden", // Main сам НЕ скролиться
+    boxSizing: "border-box",   // Гарантує, що flex-item може стискатися
 },
 };
 

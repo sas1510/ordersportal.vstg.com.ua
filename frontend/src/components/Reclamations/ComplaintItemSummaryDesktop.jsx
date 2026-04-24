@@ -23,33 +23,42 @@ const InfoRow = ({
   label,
   value,
   highlight,
-  isLastInGroup = false,
   isLastInRow = false,
+  isFirstInRow = false,
+  className = "",
   style = {},
   colors,
 }) => (
   <div
-    className="flex justify-between items-center py-2 px-3 flex-1"
+    className={`flex flex-col justify-start py-1 font-['Inter'] flex-1 ${
+      !isFirstInRow ? "pl-4" : "pl-0"
+    } ${className}`}
     style={{
-      minWidth: "180px",
-      borderTop: `1px dashed ${colors.border}`,
+      minWidth: "150px",
       borderRight: isLastInRow ? "none" : `1px dashed ${colors.border}`,
-      borderBottom: isLastInGroup ? `1px dashed ${colors.border}` : "none",
       ...style,
     }}
   >
-    <span className="text-sm font-semibold" style={{ color: colors.label }}>
-      {label}:
-    </span>
+    {/* Лейбл виводиться ТІЛЬКИ якщо він переданий у пропсах */}
+    {label && (
+      <span 
+        className="text-xs mb-1" 
+        style={{ color: colors.label }}
+      >
+        {label}:
+      </span>
+    )}
+
+    {/* Значення виводиться завжди: або реальне, або "Не вказано" */}
     <span
-      className={`text-sm ${highlight ? "font-extrabold" : "font-medium"}`}
+      className={`text-sm leading-tight ${highlight ? "font-extrabold" : "font-bold"}`}
       style={{
         color: highlight
           ? colors.highlight
           : value
-            ? colors.value
-            : colors.empty,
-        textAlign: "right",
+          ? colors.value
+          : colors.empty, // Колір для порожнього значення (зазвичай сірий)
+        textAlign: "left",
       }}
     >
       {value || "Не вказано"}
@@ -57,38 +66,49 @@ const InfoRow = ({
   </div>
 );
 
+
+
 const HorizontalInfoGroup = ({ children, columns = 3, colors }) => {
   const childrenArray = React.Children.toArray(children);
   const totalItems = childrenArray.length;
 
   return (
-    <div className="flex flex-wrap w-full">
+    <div className="flex flex-wrap w-full font-['Inter',_sans-serif]">
       {childrenArray.map((child, index) => {
+        // Перевірка, чи це найперший елемент у групі
+        const isFirst = index === 0;
+
         const isLastInRow =
           (index + 1) % columns === 0 || index === totalItems - 1;
+        
         const isLastInGroup =
           index >=
           totalItems -
             (totalItems % columns === 0 ? columns : totalItems % columns);
+
         return React.cloneElement(child, {
           key: index,
+          isFirst, // Передаємо цей пропс дочірньому компоненту
           isLastInRow,
           isLastInGroup:
             isLastInGroup &&
             (index === totalItems - 1 ||
               (totalItems <= columns && index + 1 === totalItems)),
           colors,
+          // Додаємо автоматичне прибирання відступу через className, 
+          // якщо компонент InfoRow підтримує злиття класів
+          className: `${child.props.className || ''} ${isFirst ? '!pl-0' : ''}`.trim(),
         });
       })}
     </div>
   );
 };
-
 const FullWidthInfoGroup = ({ children, isLastInGroup = false, colors }) => (
   <div className="flex w-full">
     {React.Children.toArray(children).map((child, index) =>
       React.cloneElement(child, {
         key: index,
+        isFirstInRow: true,
         isLastInRow: true,
         isLastInGroup,
         style: { minWidth: "auto", borderRight: "none" },
@@ -104,7 +124,7 @@ const colorsSet = {
     sectionBg: "#cfdcef99",
     sectionBgDates: "#FFF9EC",
     sectionBgManager: "#EDE7F6",
-    sectionBgProblem: "#fae4d9",
+    sectionBgProblem: "#FFDFD0",
     sectionBgResolution: "#e9f3e1",
     sectionBgDescription: "#f9f9f9",
     border: "#ccc",
@@ -136,6 +156,8 @@ const colorsSet = {
 const isImage = (name) => /\.(jpg|jpeg|png|webp)$/i.test(name);
 const isVideo = (name) => /\.(mp4|webm|ogg)$/i.test(name);
 
+
+
 const ComplaintItemDetailView = ({ complaint }) => {
   const { theme } = useTheme();
   const c = theme === "dark" ? colorsSet.dark : colorsSet.light;
@@ -149,6 +171,14 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
   const imageFiles = files.filter((f) => isImage(f.File_FileName));
   const videoFiles = files.filter((f) => isVideo(f.File_FileName));
+
+  const problemIcon = "/assets/icons/ProblemIcon.png";
+  const mainReclamationIcon = "/assets/icons/MainReclamationIcon.png";
+  const dateReclamation = "/assets/icons/DateReclamation.png";
+  const mainManager = "/assets/icons/MainManager.png";
+  const deleteIcon = "/assets/icons/DeleteIcon.png";
+  const successIcon = "/assets/icons/SuccessIcon.png";
+  const photoIcon = "/assets/icons/PhotoIcon.png";
 
   const loadFiles = useCallback(async () => {
     if (!complaint?.guid) return;
@@ -241,41 +271,55 @@ const ComplaintItemDetailView = ({ complaint }) => {
   };
 
   return (
-    <div className="w-full" style={{ backgroundColor: c.background }}>
+    <div className="w-full font-['Inter',_sans-serif]" >
       <div
-        className="p-4 rounded shadow"
-        style={{
-          border: `1px dashed ${c.border}`,
-          marginBottom: "8px",
-          backgroundColor: c.background,
-        }}
+        className=""
+
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 mt-1">
           {/* 1. Основна інформація */}
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
-              style={{
-                backgroundColor: c.sectionBg,
-                border: `1px dashed ${c.highlight}40`,
-              }}
+        
             >
-              <h3
-                className="text-base font-bold mb-0 p-3 flex items-center border-b"
-                style={{
-                  color: c.text,
-                  borderBottom: `1px dashed ${c.border}`,
-                }}
-              >
-                <FileText
-                  className="w-4 h-4 mr-1.5"
-                  style={{ color: c.highlight }}
-                />
-                Основна інформація
-              </h3>
-              <HorizontalInfoGroup columns={3} colors={c}>
+<h3
+  className="text-base font-bold mb-0 py-1 flex items-center"
+  style={{
+    color: c.text,
+    // Використовуємо gap, щоб був відступ між текстом і лінією
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+  }}
+>
+  <img 
+    src={mainReclamationIcon} 
+    alt="Іконка" 
+    className="mr-1" 
+  />
+  
+  <span style={{ whiteSpace: "nowrap" }}>
+    Основна інформація
+  </span>
+
+  {/* Лінія після тексту */}
+<div 
+  style={{
+    flex: 1,
+    marginLeft: "10px",
+    height: "1.5px",
+    backgroundColor: "#4A4A4A",
+    opacity: 0.8,
+    // Рухаємо лінію вниз на 3-5 пікселів
+    transform: "translateY(4px)", 
+  }} 
+/>
+</h3>
+              <HorizontalInfoGroup columns={4} colors={c}>
                 <InfoRow
                   label="Номер рекламації"
+                  className="!pl-0"
                   value={complaint.number}
                   colors={c}
                 />
@@ -289,17 +333,63 @@ const ComplaintItemDetailView = ({ complaint }) => {
                   value={complaint.orderNumber}
                   colors={c}
                 />
-              </HorizontalInfoGroup>
-              <FullWidthInfoGroup colors={c}>
+
                 <InfoRow
                   label="Організація"
                   value={complaint.organization}
                   colors={c}
                 />
-              </FullWidthInfoGroup>
+
+              </HorizontalInfoGroup>
+             
+              
+            </div>
+          </div>
+
+
+                    <div className="space-y-3">
+            <div
+              className="rounded p-0 overflow-hidden"
+        
+            >
+<h3
+  className="text-base font-bold mb-0 py-1 flex items-center"
+  style={{
+    color: c.text,
+    // Використовуємо gap, щоб був відступ між текстом і лінією
+    display: "flex",
+    alignItems: "center",
+    width: "100%",
+  }}
+>
+  <img 
+    src={mainReclamationIcon} 
+    alt="Іконка" 
+    className="mr-1" 
+  />
+  
+  <span style={{ whiteSpace: "nowrap" }}>
+    Серії конструкцій
+  </span>
+
+  {/* Лінія після тексту */}
+<div 
+  style={{
+    flex: 1,
+    marginLeft: "10px",
+    height: "2px",
+    backgroundColor: "#4A4A4A",
+    opacity: 0.8,
+    // Рухаємо лінію вниз на 3-5 пікселів
+    transform: "translateY(4px)", 
+  }} 
+/>
+</h3>
+
+             
               <FullWidthInfoGroup isLastInGroup={true} colors={c}>
                 <InfoRow
-                  label="Серії конструкцій"
+                  // label="Серії конструкцій"
                   value={complaint.series}
                   colors={c}
                 />
@@ -307,29 +397,41 @@ const ComplaintItemDetailView = ({ complaint }) => {
             </div>
           </div>
 
+
           {/* 2. Дати */}
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
-              style={{
-                backgroundColor: c.sectionBgDates,
-                border: `1px dashed ${c.border}`,
-              }}
+           
             >
               <h3
-                className="text-base font-bold mb-0 p-3 flex items-center border-b"
+                className="text-base font-bold mb-0 py-1 flex items-center "
                 style={{
-                  color: c.text,
-                  borderBottom: `1px dashed ${c.border}`,
+                  color: c.text
                 }}
               >
-                <Calendar
-                  className="w-4 h-4 mr-1.5"
-                  style={{ color: c.highlight }}
+                 <img 
+                  src={dateReclamation} 
+                  alt="Іконка" 
+                  className="mr-1" 
                 />
                 Дати
+
+                <div 
+  style={{
+    flex: 1,
+    marginLeft: "10px",
+    height: "1.5px",
+    backgroundColor: "#4A4A4A",
+    opacity: 0.8,
+    // Рухаємо лінію вниз на 3-5 пікселів
+    transform: "translateY(4px)", 
+  }} 
+/>
               </h3>
-              <HorizontalInfoGroup columns={3} colors={c}>
+
+
+              <HorizontalInfoGroup columns={5} colors={c}>
                 <InfoRow
                   label="Дата рекламації"
                   value={formatDate(complaint.date)}
@@ -364,18 +466,33 @@ const ComplaintItemDetailView = ({ complaint }) => {
             </div>
           </div>
 
+<div 
+  style={{
+    width: "100%",      // На всю ширину
+    height: "2px",      // Товщина
+    backgroundColor: "#4A4A4A", // Колір
+    margin: "10px 0",   // Відступи зверху і знизу
+    opacity: 0.8        // Напівпрозорість для легкості
+  }} 
+/>
+
+
+
+          
+
           <div
-            className="rounded p-3 flex items-center justify-start gap-6"
-            style={{
-              backgroundColor: c.sectionBgManager,
-              border: `1px dashed ${c.iconManager}40`,
-            }}
+            className="rounded py-1 flex items-center justify-start gap-6"
+    
           >
             <div
               className="flex items-center gap-3 flex-shrink-0"
               style={{ color: c.text }}
             >
-              <User className="w-6 h-6" style={{ color: c.iconManager }} />
+               <img 
+                src={mainManager} 
+                alt="Іконка" 
+                className="mr-1" 
+              />
               <h3 className="text-base font-bold">Відповідальний менеджер:</h3>
             </div>
             <div className="flex items-center gap-6">
@@ -385,17 +502,26 @@ const ComplaintItemDetailView = ({ complaint }) => {
             </div>
           </div>
 
+        <div 
+  style={{
+    width: "100%",      // На всю ширину
+    height: "2px",      // Товщина
+    backgroundColor: "#4A4A4A", // Колір
+    margin: "10px 0",   // Відступи зверху і знизу
+    opacity: 0.8        // Напівпрозорість для легкості
+  }} 
+/>
+
+
+
           <div className="space-y-3">
             {complaint.description && (
               <div
-                className="rounded p-3"
-                style={{
-                  backgroundColor: c.sectionBgDescription,
-                  border: `1px dashed ${c.border}`,
-                }}
+                className=" py-1"
+      
               >
                 <h3
-                  className="text-base font-bold mb-1.5"
+                  className="text-base font-bold mb-0.5"
                   style={{ color: c.text }}
                 >
                   Опис рекламації
@@ -412,56 +538,60 @@ const ComplaintItemDetailView = ({ complaint }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {complaint.problem && (
                 <div
-                  className="rounded p-3"
+                  className=" p-3"
                   style={{
                     backgroundColor: c.sectionBgProblem,
-                    border: `1px dashed #e4632140`,
+            
                   }}
                 >
-                  <div className="flex items-start gap-1.5">
-                    <AlertCircle
-                      className="w-4 h-4 mt-0.5 flex-shrink-0"
-                      style={{ color: "#e46321" }}
-                    />
-                    <div className="flex-1">
-                      <h3
-                        className="text-base font-bold mb-1.5"
-                        style={{ color: "#e46321" }}
-                      >
-                        Проблема
-                      </h3>
-                      <p className="text-sm" style={{ color: c.text }}>
-                        {complaint.problem}
-                      </p>
-                    </div>
-                  </div>
+ <div className="flex flex-col gap-1">
+    
+    {/* Заголовок з іконкою в один ряд */}
+    <div className="flex items-center">
+      <img 
+        src={problemIcon} 
+        className="mr-2 " 
+        alt="problem" 
+      />
+      <h4 className="font-bold text-[#BA523B] text-[14px] leading-none">
+        Проблема
+      </h4>
+    </div>
+
+    {/* Опис нижче зі зміщенням вправо */}
+    <p className="text-[13px] text-WS---DarkGrey leading-relaxed">
+      {complaint.problem}
+    </p>
+    
+  </div>
                 </div>
               )}
               {complaint.resolution && (
                 <div
-                  className="rounded p-3"
+                  className=" p-3"
                   style={{
                     backgroundColor: c.sectionBgResolution,
-                    border: `1px dashed #76b44840`,
+                
                   }}
                 >
-                  <div className="flex items-start gap-1.5">
-                    <CheckCircle
-                      className="w-4 h-4 mt-0.5 flex-shrink-0"
-                      style={{ color: "#76b448" }}
-                    />
-                    <div className="flex-1">
-                      <h3
-                        className="text-base font-bold mb-1.5"
-                        style={{ color: "#76b448" }}
-                      >
-                        Вирішення
-                      </h3>
-                      <p className="text-sm" style={{ color: c.text }}>
-                        {complaint.resolution}
-                      </p>
-                    </div>
-                  </div>
+                 <div className="flex flex-col  gap-1"> 
+                {/* Рядок з іконкою та заголовком */}
+                <div className="flex items-center">
+                  <img 
+                    src={successIcon} 
+                    className="mr-2 " 
+                    alt="success" 
+                  />
+                  <h4 className="font-bold text-[#516C00] text-[16px] leading-none">
+                    Вирішення
+                  </h4>
+                </div>
+
+                {/* Текст рішення на новому рядку з невеликим відступом зліва, щоб бути під текстом заголовка */}
+                <p className="text-[13px] text-WS---DarkGrey  leading-relaxed">
+                  {complaint.resolution}
+                </p>
+              </div>
                 </div>
               )}
             </div>
@@ -470,14 +600,15 @@ const ComplaintItemDetailView = ({ complaint }) => {
           <div className="space-y-3">
             {imageFiles.length > 0 && (
               <div
-                className="rounded p-3"
-                style={{
-                  backgroundColor: c.sectionBgDescription,
-                  border: `1px dashed ${c.border}`,
-                }}
+                className=" py-2"
+        
               >
                 <div className="flex items-center gap-1.5 mb-3">
-                  <ImageIcon className="w-4 h-4" style={{ color: "#606060" }} />
+                   <img 
+                    src={photoIcon} 
+                    alt="Іконка" 
+                    className="mr-1" 
+                  />
                   <h3 className="text-base font-bold" style={{ color: c.text }}>
                     Фото ({imageFiles.length}) {isMediaLoading && "..."}
                   </h3>
@@ -501,14 +632,15 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
             {videoFiles.length > 0 && (
               <div
-                className="rounded p-3"
-                style={{
-                  backgroundColor: c.sectionBgDescription,
-                  border: `1px dashed ${c.border}`,
-                }}
+                className="rounded py-1"
+           
               >
                 <div className="flex items-center gap-1.5 mb-2">
-                  <Video className="w-4 h-4" style={{ color: "#606060" }} />
+                   <img 
+                    src={photoIcon} 
+                    alt="Іконка" 
+                    className="mr-1" 
+                  />
                   <h3 className="text-base font-bold" style={{ color: c.text }}>
                     Відео ({videoFiles.length})
                   </h3>
@@ -525,7 +657,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                       }}
                     >
                       <span role="img" aria-label="play">
-                        ▶️
+                        
                       </span>
                       <span className="truncate">{file.File_FileName}</span>
                     </button>

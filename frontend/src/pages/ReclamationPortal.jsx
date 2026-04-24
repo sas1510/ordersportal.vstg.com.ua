@@ -85,6 +85,7 @@ const ReclamationPortal = () => {
 
     const { register, cancelAll } = useCancelAllRequests();
     const searchIcon = "/assets/icons/SearchIcon.png";
+    const filterIcon = "/assets/icons/FiltersIcon.png";
 
 
     const [isNewReclamationModalOpen, setIsNewReclamationModalOpen] = useState(false);
@@ -105,7 +106,7 @@ const ReclamationPortal = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const windowWidth = useWindowWidth();
-    const isMobile = windowWidth < 1024;
+    const isMobile = windowWidth < 850;
 
     // const { theme } = useTheme();
 
@@ -128,6 +129,8 @@ const ReclamationPortal = () => {
     const canceledCalcIcon = "/assets/icons/CancelCalc.png";
     const deleteIcon = "/assets/icons/DeleteIcon.png";
     const checkMarkIcon = "/assets/icons/CheckMark.png";
+
+    const closeIcon = "/assets/icons/CloseButton.png";
 
     // Переконайтеся, що useNavigate імпортовано:
 // import { useNavigate, useLocation } from 'react-router-dom';
@@ -397,29 +400,26 @@ const ReclamationPortal = () => {
 <div className="by-month-pagination-wrapper row  flex items-center gap-4">
 
                 <div
-       className="mobile-sidebar-toggle flex items-center justify-center"
+       className="mobile-sidebar-toggle mr-1 flex items-center justify-center"
         onClick={() => setIsSidebarOpen(true)}
-        style={{ marginTop: '10px' }}
+        
     >
-        <span className="icon icon-menu font-size-24"></span>
-                </div>
-
-    {/* DESKTOP – горизонтальні кнопки */}
-    {!isMobile && (
-
-            
-    <ul className="flex-1 items-center gap-4 m-0 p-0 list-none no-wrap month-list">
-    {/* Кнопка мобільного меню */}
+        <img 
+            src={filterIcon} 
+            alt="Стрілка" 
+            className="align-center mr-1 min-w-[20px] h-[20px]" 
+            /* inline-style тут вже не потрібні, якщо є класи зверху */
+        />
+        </div>
 
 
-            {/* Оновлений блок вибору року (як у замовленнях) */}
-            <div className="flex items-center no-wrap mr-4" style={{ display: 'flex', flexShrink: 0 }}>
+            <div className="flex items-center no-wrap mr-1" style={{ display: 'flex', flexShrink: 0 }}>
                 <img 
                 src={yearIcon} 
                 alt="Календар" 
-                className="align-center mr-2 w-[26px] h-[25px]" 
+                className="align-center mr-1 w-[26px] h-[25px]" 
                 />
-                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+                <div className=" flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-1">
                 Звітний рік
                 </div>
                 <select
@@ -435,6 +435,17 @@ const ReclamationPortal = () => {
                 ))}
                 </select>
             </div>
+
+    {/* DESKTOP – горизонтальні кнопки */}
+    {!isMobile && (
+
+            
+    <ul className="flex-1 items-center gap-4 m-0 p-0 list-none no-wrap month-list">
+    {/* Кнопка мобільного меню */}
+
+
+            {/* Оновлений блок вибору року (як у замовленнях) */}
+
             <li
                 className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
                 onClick={() => setFilter(prev => ({ ...prev, month: 0 }))}
@@ -508,6 +519,14 @@ const ReclamationPortal = () => {
             <div className="content-wrapper row w-100 h-100">
                 <div className="row  h-100 max-w-[1334px]  w-100">
 
+                  {isSidebarOpen && (
+                        <div 
+                        className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                        style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                    )}
+
 
                 {/* SIDEBAR */}
                 <div className={`content-filter column ${isSidebarOpen ? 'open' : 'closed'}`}>
@@ -516,8 +535,17 @@ const ReclamationPortal = () => {
                     {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
                         {isSidebarOpen && <span>Фільтри Рекламацій</span>}
                         {isSidebarOpen && (
-                            <span className="icon icon-cross" onClick={() => setIsSidebarOpen(false)}></span>
-                        )}
+                                <button 
+                                onClick={() => setIsSidebarOpen(false)} 
+                                className=" hover:opacity-70 transition-opacity"
+                                >
+                                <img 
+                                    src={closeIcon} 
+                                    alt="Закрити" 
+                                    className="" 
+                                />
+                                </button>
+                            )}
                     </div> }
 
                     {/* Search */}
@@ -560,17 +588,26 @@ const ReclamationPortal = () => {
 
                     {/* Status Filters */}
                     <ul className="filter column align-center">
-                        <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+                        <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+                            min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+                            min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+                            
+                            /* Скидання для малих екранів (менше 1260px) */
+                            max-[1260px]:bg-transparent 
+                            max-[1260px]:shadow-none 
+                            max-[1260px]:py-0 
+                            max-[1260px]:w-full 
+                            max-[1260px]:overflow-visible">
                         {/* <li className="delimiter1"></li> */}
 
                         {[
                             { label: "Всі рекламації", statusKey: "Всі", icon: allCalcIcon },
                             { label: "Новий", statusKey: "Новий", icon: newCalcIcon },
-                            { label: "В обробці", statusKey: "В роботі", icon: inProcessingIcon },
+                            { label: "В роботі", statusKey: "В роботі", icon: inProcessingIcon },
                             { label: "Виробництво", statusKey: "Виробництво", icon: factoryIcon },
                             { label: "На складі", statusKey: "На складі", icon: finishedIcon },
                             // { label: "Відвантажено", statusKey: "Відвантажено", icon: deliveredIcon },
-                            { label: "Підтверджено", statusKey: "Підтверджено", icon: deliveredIcon },
+                            // { label: "Підтверджено", statusKey: "Підтверджено", icon: deliveredIcon },
                             { label: "Вирішено", statusKey: "Вирішено", icon: checkMarkIcon },
                             { label: "Відмова", statusKey: "Відмова", icon: canceledCalcIcon }
                         ].map(item => (
@@ -601,7 +638,7 @@ const ReclamationPortal = () => {
 
                 {/* CONTENT */}
                 <div className="content" id="content">
-                    <div className="items-wrapper column gap-1" id="items-wrapper">
+                    <div className="items-wrapper column gap-1 " id="items-wrapper">
                         {error ? (
                             /* --- 1. СТАН ПОМИЛКИ (великий блок) --- */
                             <div className="error-empty-state column align-center jc-center" style={{ minHeight: '300px' }}>

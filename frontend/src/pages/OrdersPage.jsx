@@ -557,16 +557,16 @@ const PortalOriginal = () => {
 
 
           <ul className="filter column align-center">
-<div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
-  min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
-  min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
-  
-  /* Скидання для малих екранів (менше 1260px) */
-  max-[1260px]:bg-transparent 
-  max-[1260px]:shadow-none 
-  max-[1260px]:py-0 
-  max-[1260px]:w-full 
-  max-[1260px]:overflow-visible">
+            <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              
+              /* Скидання для малих екранів (менше 1260px) */
+              max-[1260px]:bg-transparent 
+              max-[1260px]:shadow-none 
+              max-[1260px]:py-0 
+              max-[1260px]:w-full 
+              max-[1260px]:overflow-visible">
   
 
             {/* <li className="delimiter1"></li> */}
