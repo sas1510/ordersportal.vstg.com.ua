@@ -787,7 +787,7 @@ header_logo_white.svg
 }
 
 .text-WS---DarkGrey {
-    font-family: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
   color: var(--WS---DarkGrey);
 }
 
@@ -1788,7 +1788,7 @@ html {
   align-items: center;
   padding: 3px 3px;
   font-size: 14px;
-  height: 60px;
+
   cursor: pointer;
   position: relative;
   overflow: visible;
@@ -2194,7 +2194,7 @@ html {
   .calc-item .summary-item {
     padding: 2px 4px !important;
     font-size: 11px !important;
-    height: 50px !important;
+
   }
 
   /* Зменшуємо шрифти */

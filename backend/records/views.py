@@ -95,7 +95,8 @@ def parse_reclamation_details(text):
         text,
         re.IGNORECASE
     )
-    description_prefix_match = re.search(r"Опис(?: рекламації)?:\s*", text, re.IGNORECASE)
+    # Шукаємо "Опис рекламації:", "Опис:" або "Коментар:"
+    description_prefix_match = re.search(r"(?:Опис(?: рекламації)?|Коментар):\s*", text, re.IGNORECASE)
 
     # 🔹 Якщо маркера "Опис рекламації:" немає — не парсимо опис
     if not description_prefix_match:

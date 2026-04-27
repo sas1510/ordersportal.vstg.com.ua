@@ -495,7 +495,7 @@ export const ReclamationItemMobile = ({
 
   {/* Кнопка історії - 1/3 висоти */}
   <div 
-    className="flex items-center justify-end" 
+    className="flex items-center justify-end pt-2" 
     style={{ flex: "1 1 0%", minHeight: 0 }}
   >
     <button

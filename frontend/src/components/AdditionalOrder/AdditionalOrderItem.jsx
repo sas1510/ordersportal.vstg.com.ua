@@ -30,6 +30,7 @@ export const AdditionalOrderItem = ({
   const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
 
   const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+    const profileReclamation = "/assets/icons/ProfileReclamation.png";
 
 
 
@@ -205,7 +206,7 @@ export const AdditionalOrderItem = ({
                 
                 />
             <div className="column">
-              <div className="font-size-16  text-WS---DarkGreen font-bold border-bottom">
+              <div className="font-size-16 w-full text-WS---DarkGreen font-bold border-bottom">
                 {formatMoney2(additionalOrder.amount, additionalOrder.currency)}
               </div>
              <div className="font-size-16  text-WS---DarkRed font-bold">
@@ -244,47 +245,52 @@ export const AdditionalOrderItem = ({
         </div>
 
         {/* 6. Дилер */}
-        <div
-          className="summary-item flex items-center w-[200px] shrink-0"
-          title={additionalOrder.dealer}
-        >
-          {additionalOrder.dealer && (
-            <div className="flex items-center gap-1 text-grey font-size-14 whitespace-normal break-words">
-              <User className="w-10 h-10  text-dark shrink-0" />
-              <span className="text-dark leading-snug">
-                {additionalOrder.dealer}
-              </span>
-            </div>
-          )}
-        </div>
+        <div className="summary-item flex flex-col w-[200px] shrink-0 font-['Inter']">
+  
+  {/* ПЕРШИЙ БЛОК: Статуси */}
+  <div className="flex items-start gap-1 pb-1 border-bottom w-full">
+    {/* Іконка статусу (тепер зліва від усього списку статусів) */}
+    <div className={`icon-info-with-circle mr-1 font-size-24 shrink-0 mt-0.5 ${iconColorClass}`}></div>
 
-        {/* 7. Статуси */}
-        <div className="summary-item row w-20 ">
-          <div className="row gap-1 align-center">
-            <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
-
-            <div className="column gap-3 font-size-12  scroll-y">
-              {additionalOrder.statuses &&
-              Object.keys(additionalOrder.statuses).length > 0 ? (
-                Object.entries(additionalOrder.statuses).map(
-                  ([status, count]) => (
-                    <div
-                      key={status}
-                      className={`row gap-3 left  calc-status ${getStatusClass(status)}`}
-                    >
-                      <div>{status}</div>
-                      <div>({count})</div>
-                    </div>
-                  ),
-                )
-              ) : (
-                <div className="row gap-3 left no-wrap calc-status text-warning">
-                  <div>Новий</div>
-                </div>
-              )}
-            </div>
+    {/* Список статусів у стовпчик */}
+    <div className="flex flex-col gap-1 text-[12px] mt-1 overflow-y-auto max-h-[60px] w-full">
+      {additionalOrder.statuses && Object.keys(additionalOrder.statuses).length > 0 ? (
+        Object.entries(additionalOrder.statuses).map(([status, count]) => (
+          <div
+            key={status}
+            className={`flex items-center gap-2 leading-tight ${getStatusClass(status)}`}
+          >
+            <div className="truncate">{status}</div>
+            <div className="">({count})</div>
           </div>
+        ))
+      ) : (
+        <div className="flex items-center gap-2 text-warning leading-tight">
+          <div>Новий</div>
         </div>
+      )}
+    </div>
+  </div>
+
+  {/* ДРУГИЙ БЛОК: Дилер */}
+  <div className="flex items-center gap-1 pt-1.5 w-full">
+    {/* Іконка профілю (ширина 24px, щоб співпадати з іконкою зверху для симетрії) */}
+    <div className="w-[24px] flex justify-center shrink-0">
+      <img 
+        src={profileReclamation} 
+        alt="Дилер" 
+        className="mr-1" 
+      />
+    </div>
+    
+    <span className="text-[13px] text-WS---DarkGrey truncate leading-tight font-medium">
+      {additionalOrder.dealer || "Без дилера"}
+    </span>
+  </div>
+
+</div>
+        {/* 7. Статуси */}
+        
 
         {/* 8. Меню */}
         <div onClick={(e) => e.stopPropagation()}>

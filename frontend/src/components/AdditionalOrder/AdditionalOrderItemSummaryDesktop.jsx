@@ -181,7 +181,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         </div>
 
         {/* Сума */}
-        <div className="summary-item row no-wrap gap-1 pl-0">
+        <div className="summary-item row flex no-wrap gap-1 pl-0">
             <img 
                   src={moneyGreen} 
                   // alt="Вікно" 
@@ -192,14 +192,14 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
             </div>
-            <div className="text-grey font-size-12 border-t border-dashed">
+            <div className="text-grey font-size-12 ">
               Сума замовлення
             </div>
           </div>
         </div>
 
         {/* Борг */}
-        <div className="summary-item row w-12 no-wrap gap-1 pl-0">
+        <div className="summary-item row flex no-wrap gap-1 pl-0">
           <img 
             src={moneyRed} 
             // alt="Вікно" 
@@ -210,7 +210,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
             </div>
-            <div className="text-grey font-size-12 border-t border-dashed">
+            <div className="text-grey font-size-12">
               Сума боргу
             </div>
           </div>
@@ -219,46 +219,57 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         {/* Статус */}
         <div className="summary-item w-[180px] row justify-start no-wrap">
           <div className="row gap-14 align-center">
-            <span className="icon-info-with-circle font-size-20 text-info"></span>
-            <div className={`font-size-14 ${getStatusClass(order.status)}`}>
+            <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
+            <div className={`text-[12px] ${getStatusClass(order.status)}`}>
               {order.status}
             </div>
           </div>
         </div>
 
         {/* Кнопки дій */}
-        <div className="summary-item row" onClick={(e) => e.stopPropagation()}>
-          {user?.role !== "admin" && (
-            <>
-              <button
-                className={`column align-center ml-1.5 button button-first bg-WS---DarkGrey ${!buttonState.confirm ? "disabled opacity-50 cursor-not-allowed" : ""}`}
-                disabled={!buttonState.confirm}
-                onClick={() => setIsConfirmModalOpen(true)}
-              >
-                <div className="font-size-12">Підтвердити</div>
-              </button>
+<div className="flex flex-col gap-1.5 w-fit p-1" onClick={(e) => e.stopPropagation()}>
+  
+  {/* Верхній ряд: Підтвердити та Сплатити */}
+  {user?.role !== "admin" && (
+    <div className="flex gap-1.5">
+      <button
+        className={`flex-1 min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkGrey transition-all active:scale-95 ${
+          !buttonState.confirm ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
+        }`}
+        disabled={!buttonState.confirm}
+        onClick={() => setIsConfirmModalOpen(true)}
+      >
+        <div className="text-[12px] font-bold text-center">Підтвердити</div>
+      </button>
 
-              <button
-                className={`column align-center button bg-WS---DarkGreen ${!buttonState.pay ? "disabled opacity-50 cursor-not-allowed" : ""}`}
-                disabled={!buttonState.pay}
-                onClick={() => setIsPaymentOpen(true)}
-              >
-                <div className="font-size-12">Сплатити</div>
-              </button>
-            </>
-          )}
+      <button
+        className={`flex-1 min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkGreen transition-all active:scale-95 ${
+          !buttonState.pay ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
+        }`}
+        disabled={!buttonState.pay}
+        onClick={() => setIsPaymentOpen(true)}
+      >
+        <div className="text-[12px] font-bold text-center">Сплатити</div>
+      </button>
+    </div>
+  )}
 
-          <button
-            className={`column align-center button button-last bg-WS---DarkRed ${!buttonState.claim ? "disabled opacity-50 cursor-not-allowed" : ""}`}
-            disabled={!buttonState.claim}
-            onClick={() => {
-              setClaimOrderNumber(order.number);
-              setIsClaimModalOpen(true);
-            }}
-          >
-            <div className="font-size-12">Рекламація</div>
-          </button>
-        </div>
+  {/* Нижній ряд: Рекламація (не розтягується) */}
+  <div className="flex justify-start">
+    <button
+      className={`min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkRed transition-all active:scale-95 ${
+        !buttonState.claim ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
+      }`}
+      disabled={!buttonState.claim}
+      onClick={() => {
+        setClaimOrderNumber(order.number);
+        setIsClaimModalOpen(true);
+      }}
+    >
+      <div className="text-[12px] font-bold text-center">Рекламація</div>
+    </button>
+  </div>
+</div>
       </div>
 
       {isExpanded && (

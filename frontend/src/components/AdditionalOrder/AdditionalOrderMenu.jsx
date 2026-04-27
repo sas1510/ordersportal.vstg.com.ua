@@ -79,7 +79,7 @@ export const AdditionalOrderMenu = ({ calc, _onEdit, onDelete }) => {
         className={` object-contain transition-all ${
           managerAssigned 
             ? "opacity-20 grayscale cursor-not-allowed" 
-            : "cursor-pointer hover:brightness-75"
+            : "icon-delete-red cursor-pointer active:scale-95"
         }`}
       />
 

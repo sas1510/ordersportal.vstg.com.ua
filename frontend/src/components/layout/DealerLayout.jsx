@@ -26,34 +26,29 @@ const DealerLayout = () => (
 );
 
 const styles = {
-  layout: {
+   layout: {
     display: "flex",
     flexDirection: "column",
-    // height замість minHeight фіксує область
-    height: "100dvh", 
-    width: "100%",
-    position: "relative",
-    overflow: "hidden", // Забороняємо скрол всього лейауту
-    boxSizing: "border-box", // В JS пишеться camelCase: boxSizing
+    minHeight: "100vh",
+    position: "relative", // Важливо для абсолютного позиціонування всередині
   },
-  // PublicLayout.js стилі
-headerWrapper: {
-  position: "fixed", // Краще fixed, щоб хедер не зникав при скролі
-  top: 0,
-  left: 0,
-  width: "100%",
-  zIndex: 100,
-},
-main: {
-  display: "flex",
-    flexDirection: "column",
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,     // Важливо! Це каже флексу ігнорувати внутрішній розмір контенту
+  headerWrapper: {
+    position: "absolute", // Хедер "літає" над контентом
+    top: 0,
+    left: 0,
     width: "100%",
-    overflow: "hidden", // Main сам НЕ скролиться
-    boxSizing: "border-box",   // Гарантує, що flex-item може стискатися
-},
+    zIndex: 100, // Щоб бути поверх усього
+  },
+  main: {
+    flexGrow: 1,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh", // Займає рівно весь екран без дірок
+    width: "100%",
+  },
 };
+
+
+
 
 export default DealerLayout;

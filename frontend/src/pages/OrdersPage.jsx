@@ -481,32 +481,32 @@ const PortalOriginal = () => {
         <div className="row  h-100 max-w-[1334px]  w-100">
 
           {isSidebarOpen && (
-        <div 
-        className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
-        style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
-        onClick={() => setIsSidebarOpen(false)}
-      />
-      )}
-        <div
-          className={`content-filter   column ${isSidebarOpen ? "open" : "closed"}`}
-        >
-          {isSidebarOpen &&
-          <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
-            {isSidebarOpen && <span>Фільтри</span>}
-            {isSidebarOpen && (
-    <button 
-      onClick={() => setIsSidebarOpen(false)} 
-      className=" hover:opacity-70 transition-opacity"
-    >
-      <img 
-        src={closeIcon} 
-        alt="Закрити" 
-        className="" 
-      />
-    </button>
-  )}
-          </div>
-}
+                  <div 
+                  className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+                )}
+                  <div
+                    className={`content-filter   column ${isSidebarOpen ? "open" : "closed"}`}
+                  >
+                    {isSidebarOpen &&
+                    <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
+                      {isSidebarOpen && <span>Фільтри</span>}
+                      {isSidebarOpen && (
+              <button 
+                onClick={() => setIsSidebarOpen(false)} 
+                className=" hover:opacity-70 transition-opacity"
+              >
+                <img 
+                  src={closeIcon} 
+                  alt="Закрити" 
+                  className="" 
+                />
+              </button>
+            )}
+                    </div>
+          }
 
           <div className="search-wrapper relative ">
   <input

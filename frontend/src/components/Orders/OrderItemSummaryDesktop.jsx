@@ -358,7 +358,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
             </div>
-            <div className="text-grey font-size-12 border-t border-dashed">
+            <div className="text-grey font-size-12">
               Сума замовлення
             </div>
           </div>
@@ -376,7 +376,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
             </div>
-            <div className="text-grey font-size-12 border-t border-dashed">
+            <div className="text-grey font-size-12 ">
               Сума боргу
             </div>
           </div>

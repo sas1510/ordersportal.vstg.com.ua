@@ -47,7 +47,7 @@ const AdditionalOrders = () => {
   const plusIcon = "/assets/icons/PlusIcon.png";
 
 
-  const allCalcIcon = "/assets/icons/AllCalcIcon.png";
+  const allCalcIcon = "/assets/icons/AdditionalOrderIcon.png";
   const newCalcIcon = "/assets/icons/NewCalcIcon.png";
   const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
   const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
@@ -57,6 +57,9 @@ const AdditionalOrders = () => {
   const finishedIcon = "/assets/icons/FinishedIcon.png";
   const deliveredIcon = "/assets/icons/DeliveredIcon.png";
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+
+  const filterIcon = "/assets/icons/FiltersIcon.png";
+  const closeIcon = "/assets/icons/CloseButton.png";
 
   const navigate = useNavigate();
 
@@ -468,14 +471,18 @@ const AdditionalOrders = () => {
 
         <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'center'}} >
 
-        <div
-          className="mobile-sidebar-toggle flex-0"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ marginTop: "10px" }}
-        >
-          <span className="icon icon-menu font-size-24"></span>
-          {/* Дилер та інформація про тему можуть бути тут для мобільного */}
-        </div>
+            <div
+            className="mobile-sidebar-toggle mr-1"
+            onClick={() => setIsSidebarOpen(true)}
+           
+          >
+                <img 
+                  src={filterIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-1 min-w-[20px] h-[20px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+          </div>
           {/* Для великих екранів — список місяців */}
            <div className="year-inline-selector row">
               <img 
@@ -581,19 +588,34 @@ const AdditionalOrders = () => {
       <div className="content-wrapper row w-100 h-100">
          <div className="row  h-100 max-w-[1334px]  w-100">
         {/* Sidebar з фільтрами */}
-        <div
-          className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
-        >
-           {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between">
-            {isSidebarOpen && <span>Фільтри</span>}
+       
             {isSidebarOpen && (
-              <span
-                className="icon icon-cross"
-                onClick={() => setIsSidebarOpen(false)}
-              ></span>
+                  <div 
+                  className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+                )}
+                  <div
+                    className={`content-filter   column ${isSidebarOpen ? "open" : "closed"}`}
+                  >
+                    {isSidebarOpen &&
+                    <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
+                      {isSidebarOpen && <span>Фільтри</span>}
+                      {isSidebarOpen && (
+              <button 
+                onClick={() => setIsSidebarOpen(false)} 
+                className=" hover:opacity-70 transition-opacity"
+              >
+                <img 
+                  src={closeIcon} 
+                  alt="Закрити" 
+                  className="" 
+                />
+              </button>
             )}
-          </div>
-        }
+                    </div>
+          }
 
           <div className="search-wrapper">
             <input
@@ -620,7 +642,7 @@ const AdditionalOrders = () => {
 
           <ul className="buttons">
             <li
-              className="btn-add-calc"
+              className="btn-add-calc !min-h-[65px]"
               onClick={() => setIsNewOrderModalOpen(true)}
             >
                 <img 
@@ -629,13 +651,22 @@ const AdditionalOrders = () => {
                   className="align-center mr-2 " 
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
-              <div className="text-center text-WS---DarkGrey text-[14px] font-bold font-['Inter'] uppercase">Нове дод. замовлення</div>{" "}
+              <div className="text-center  text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нове додаткове замовлення</div>{" "}
               {/* Змінено текст */}
             </li>
           </ul>
 
           <ul className="filter column align-center">
-               <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+              <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              
+              /* Скидання для малих екранів (менше 1260px) */
+              max-[1260px]:bg-transparent 
+              max-[1260px]:shadow-none 
+              max-[1260px]:py-0 
+              max-[1260px]:w-full 
+              max-[1260px]:overflow-visible">
             {[
               {
                 id: "all",
