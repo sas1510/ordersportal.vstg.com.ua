@@ -7,7 +7,7 @@
 .reclamation-item {
   background-color: #fff;
   color: var(--text-color);
-  /* border: 1px dashed var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); */
   box-shadow: 1px 1px 5px var(--shadow-color);
   border-radius: 0 5px 5px 0; /* Замість 8px */
   min-height: 60px;
@@ -45,7 +45,7 @@
   overflow: visible;
   gap: 2px;
   flex: 0 1 auto; /* Займає ширину тільки під контент */
-  border-right: 1px dashed var(--text-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 .reclamation-item .summary-item:last-child {
@@ -71,7 +71,7 @@
   /* font-weight: 600; */
   line-height: 1.2;
   /* Змінюємо колір межі на колір тексту для кращої інтеграції в стиль */
-  border-bottom: 1px dashed var(--text-color);
+  border-bottom: 1px dotted var(--grey-border-color);
 }
 
 /* Статуси */
@@ -145,7 +145,7 @@
   font-size: 12px;
   color: var(--grey-color);
   width: calc(100% );
-  border-top: 1px dashed var(--text-color);
+  border-top: 1px dotted var(--grey-border-color);
   align-items: flex-start;
   text-align: left;
 }
@@ -154,7 +154,7 @@
 .issue-item-desktop,
 .issue-item-mobile {
   background-color: var(--portal-bg-color-light); /* Легкий фон */
-  border: 1px dashed var(--grey-border-color);
+  border: 1px dotted var(--grey-border-color);
   padding: 8px 12px;
   border-radius: 4px;
   margin-bottom: 5px;
@@ -173,18 +173,18 @@
 /* Контейнер рекламації у темній темі */
 .dark-theme .reclamation-item {
   background-color: var(--cream-bg-color); /* #2c2c2c */
-  border: 1px dashed var(--grey-border-color); /* #444 */
+  border: 1px dotted var(--grey-border-color); /* #444 */
   box-shadow: none;
   color: var(--text-color); /* #e0e0e0 */
 }
 
 /* Елементи всередині у темній темі */
 .dark-theme .reclamation-item .summary-item .border-bottom {
-  border-bottom: 1px dashed var(--grey-text-color); /* #a0a0a0 */
+  border-bottom: 1px dotted var(--grey-border-color); /* #a0a0a0 */
 }
 
 .dark-theme .reclamation-item .summary-item {
-  border-right: 1px dashed var(--grey-border-color); /* #444 */
+  border-right: 1px dotted var(--grey-border-color); /* #444 */
 }
 
 .dark-theme .reclamation-item .comments-text-wrapper-last {
@@ -330,7 +330,7 @@ body.dark-theme .reclamation-item.web-reclamation:hover {
 .sidebar-close-row {
   margin-bottom: 20px;
   padding-bottom: 10px;
-  border-bottom: 1px dashed #555;
+  border-bottom: 1px dotted #555;
 }
 
 .month-select {

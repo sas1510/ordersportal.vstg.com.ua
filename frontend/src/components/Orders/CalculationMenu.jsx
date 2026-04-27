@@ -29,7 +29,7 @@ export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
   src={deleteIcon} 
   alt="Видалити" 
   onClick={!hasOrders ? handleDeleteClick : undefined}
-  className={`w-[18px] h-[18px] object-contain transition-all
+  className={` transition-all
     ${hasOrders 
       ? "icon-delete-disabled cursor-not-allowed" 
       : "icon-delete-red cursor-pointer active:scale-95"

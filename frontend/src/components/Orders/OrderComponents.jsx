@@ -190,14 +190,14 @@ export const CalculationItem = React.memo(
           </div> */}
 
           <div
-            className="summary-item justify-between row w-9 no-wrap"
+            className="summary-item justify-between row w-9 no-wrap "
             style={{ minWidth: "150px" }}
           >
             <div className="column">
-              <div className="text-base text-bold text-WS---DarkGrey border-bottom">
+              <div className="text-base m text-bold text-WS---DarkGrey border-bottom pb-1">
                 № {calc.number}
               </div>
-              <div className="text-xs text-WS---DarkGrey">
+              <div className="text-xs text-WS---DarkGrey pt-1">
                 {formatDateTimeShort(calc.date)}
               </div>
             </div>
@@ -241,10 +241,10 @@ export const CalculationItem = React.memo(
                 
                 />
               <div className="column">
-                <div className="font-size-16  text-WS---DarkGreen font-bold border-bottom">
+                <div className="text-[16px]  text-WS---DarkGreen font-bold border-bottom">
                   { formatMoney2(calc.amount, calc.currency) }
                 </div>
-                <div className="font-size-16  text-WS---DarkRed font-bold">
+                <div className="text-[16px]  text-WS---DarkRed font-bold">
                   {formatMoney2(calc.debt, calc.currency)}
                 </div>
               </div>
@@ -287,11 +287,11 @@ export const CalculationItem = React.memo(
                 <div
                   className="row file-download"
                   style={{
-                    borderBottom: "1px dashed #ddd",
+                    borderBottom: "1px dotted var(--grey-border-color)",
                     paddingBottom: "2px",
                     gap: "3px",
                     cursor:
-                      calc.file && calc.file !== "" ? "pointer" : "default",
+                    calc.file && calc.file !== "" ? "pointer" : "default",
                     width: "100%",
                   }}
                   onClick={(e) => {
@@ -304,7 +304,7 @@ export const CalculationItem = React.memo(
                   <img 
                     src={fileIcon} 
                     // alt="Вікно" 
-                    className="w-[12px] h-[16px] align-center mr-1.5" 
+                    className="w-[16px] h-[20px] align-center mr-0.5" 
                   
                   />
                   <div className="text-[12px] text-WS---DarkGrey ml-0">
@@ -349,16 +349,16 @@ export const CalculationItem = React.memo(
           </div>
 
          <div className="summary-item row w-16 no-wrap">
-          <div className="row gap-14 align-center">
+          <div className="row gap-2 align-center">
             {/* Іконка тепер отримує клас кольору від статусу */}
             <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
 
-            <div className="column gap-3 font-size-12 no-wrap scroll-y">
+            <div className="column gap-3 text-[13px] flex-wrap scroll-y">
               {statusEntries.length > 0 ? (
                 statusEntries.map(([status, count]) => (
                   <div
                     key={status}
-                    className={`row gap-3 left no-wrap calc-status ${getStatusClass(status)}`}
+                    className={`row gap-3 left  calc-status ${getStatusClass(status)}`}
                   >
                     <div>{status}</div>
                     <div>({count})</div>

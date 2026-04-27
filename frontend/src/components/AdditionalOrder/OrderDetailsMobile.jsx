@@ -1,243 +1,254 @@
-// ================= OrderDetails.jsx =================
-import React from "react";
-import {
-  formatDateHuman,
-  formatDateHumanShorter,
-} from "../../utils/formatters";
+import React, { useCallback, useMemo } from "react";
+import { formatDateHuman, formatDateHumanShorter } from "../../utils/formatters";
+import "./OrderDetailsMobile.css";
 
-export default function OrderDetailsMobile({ order }) {
-  const isEmpty = (val) =>
-    val === undefined || val === null || String(val).trim() === "";
+export default React.memo(function OrderDetailsMobile({ order }) {
+  
+  const isEmpty = useCallback(
+    (val) => val === undefined || val === null || String(val).trim() === "",
+    []
+  );
 
-  const paymentDue = () => {
+  // --- 1. Оплата ---
+  const paymentDue = useMemo(() => {
     if (isEmpty(order.amount) || isEmpty(order.paid)) return 0;
-    return parseFloat(order.amount) - parseFloat(order.paid);
-  };
+    const due = parseFloat(order.amount) - parseFloat(order.paid);
+    return Math.round(due * 100) / 100;
+  }, [order.amount, order.paid, isEmpty]);
 
-  const getStatusStyle = (status) => {
+  const paymentIsDue = paymentDue > 0;
+
+  // --- 2. Статус (Стиль іконок) ---
+  const getStatusStyle = useCallback((status) => {
     switch (status) {
       case "Новий":
-      case "В обробці":
-      case "Підтверджений":
-      case "У виробництві":
-        return "text-info";
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
-      case "Відмова":
-        return "text-danger";
+      case "В обробці": return "text-WS---DarkBlue";
+      case "Очикуємо оплату":
+      case "Очикуємо підтвердження":
+      case "Відмова": return "text-WS---DarkRed";
       case "Готовий":
       case "Відвантажений":
-      case "Доставлено":
-        return "text-success";
-      default:
-        return "text-danger";
+      case "Підтверджений":
+      case "У виробництві": return "text-WS---DarkGreen";
+      default: return "text-WS---DarkRed";
     }
-  };
+  }, []);
 
-  const parseDate = (dateStr) => {
+  // --- 3. Дати ---
+  const parseDate = useCallback((dateStr) => {
     if (!dateStr) return null;
     const d = new Date(dateStr);
-    return isNaN(d) ? null : d;
-  };
+    return isNaN(d.getTime()) ? null : d;
+  }, []);
 
-  const getDateStatus = (plannedStr, actualStr) => {
+  const getDateStatus = useCallback((plannedStr, actualStr) => {
     const planned = parseDate(plannedStr);
     const actual = parseDate(actualStr);
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (!planned && !actual)
-      return { icon: "text-danger", bg: "background-warning-light" };
-    if (actual) return { icon: "text-success", bg: "background-success-light" };
-    if (planned && planned < today)
-      return { icon: "text-danger", bg: "background-warning-light" };
-    return { icon: "text-warning", bg: "background-warning-light" };
-  };
+    if (!planned && !actual) return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" };
+    if (actual) return { icon: "text-WS---DarkGreen", bg: "bg-WS---DarkGreen-Light" };
+    if (planned && planned < today) return { icon: "text-WS---DarkRed", bg: "bg-WS---DarkRed-Light" };
+    return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" };
+  }, [parseDate]);
 
-  // Дані для етапів
-  const stages = [
-    {
-      id: "order",
-      title: "Замовлення",
-      icon: "icon-news",
-      date: order.date,
-      status: isEmpty(order.date) ? "text-danger" : "text-success",
-      bg: isEmpty(order.date)
-        ? "background-danger-light"
-        : "background-success-light",
-      content: order.date || "Немає дати",
-    },
-    {
-      id: "payment",
-      title: "Оплата",
-      icon: "icon-coin-dollar",
-      status: paymentDue() > 0 ? "text-danger" : "text-success",
-      bg:
-        paymentDue() > 0
-          ? "background-danger-light"
-          : "background-success-light",
-      content: paymentDue() > 0 ? `Борг: ${paymentDue()}` : "Сплачено",
-    },
-    {
-      id: "confirmation",
-      title: "Підтвердження",
-      icon: "icon-clipboard",
-      status: isEmpty(order.status)
-        ? "text-danger"
-        : getStatusStyle(order.status),
-      bg: isEmpty(order.status)
-        ? "background-danger-light"
-        : "background-success-light",
-      content: order.status || "Не підтверджено",
-    },
-    {
-      id: "production",
-      title: "Виробництво",
-      icon: "icon-cogs",
-      factDate: order.factStartProduction,
-      planDate: order.planProduction,
-      // planDateMax: order.planProductionMax,
-      status: getDateStatus(order.planProductionMax, order.factStartProduction),
-      getContent: () => {
-        if (order.factStartProduction) {
-          return formatDateHuman(order.factStartProduction);
-        }
-        if (order.planDate) {
-          return (
-            <div className="flex flex-col gap-1">
-              <div className="text-grey font-size-11">Планово:</div>
-              <div className="font-size-12">
-                {formatDateHumanShorter(order.planDate)}
-              </div>
-            </div>
-          );
-        }
-        return "Немає даних";
-      },
-    },
-    {
-      id: "ready",
-      title: "Готовність",
-      icon: "icon-layers2",
-      status: getDateStatus(order.planReadyMax, order.factReady),
-      content: formatDateHuman(order.factReady) || "Немає даних",
-    },
-    {
-      id: "delivery",
-      title: "Доставка",
-      icon: "icon-shipping",
-      status: getDateStatus(order.planDelivery, order.realizationDate),
-      content: formatDateHuman(order.realizationDate) || "Не доставлено",
-    },
-  ];
+  // --- 4. Статуси етапів ---
+  const productionStatus = useMemo(() => {
+    const status = getDateStatus(order.planProductionMax, order.factProductionMax);
+    const displayDate = order.factProductionMax 
+      ? formatDateHumanShorter(order.factProductionMax) 
+      : order.planProductionMax 
+        ? `План: ${formatDateHumanShorter(order.planProductionMax)}` 
+        : "Немає даних";
+    return { status, displayDate };
+  }, [order.factProductionMax, order.planProductionMax, getDateStatus]);
+
+  const readyStatus = useMemo(() => {
+    if (!order.factReadyMax && order.dateDelay) {
+      return { icon: "text-WS---DarkRed", bg: "bg-WS---DarkRed-Light", isDelayed: true };
+    }
+    return getDateStatus(order.planReadyMax, order.factReadyMax);
+  }, [order.planReadyMax, order.factReadyMax, order.dateDelay, getDateStatus]);
+
+  const deliveryStatus = useMemo(() => {
+    return getDateStatus(order.planDelivery, order.realizationDate);
+  }, [order.planDelivery, order.realizationDate, getDateStatus]);
 
   return (
-    <div className="order-item-details flex flex-col gap-3 w-full">
-      {/* ============ MOBILE VERSION - Cards ============ */}
-      <div className="md:hidden flex flex-col gap-3 w-full">
-        {stages.map((stage, index) => {
-          const isCompleted =
-            stage.status?.icon === "text-success" ||
-            stage.status === "text-success";
-          const isWarning =
-            stage.status?.icon === "text-warning" ||
-            stage.status === "text-warning";
-          const isDanger =
-            stage.status?.icon === "text-danger" ||
-            stage.status === "text-danger";
-
-          return (
-            <div key={stage.id} className="relative">
-              {/* Connector line */}
-              {index < stages.length - 1 && (
-                <div className="absolute left-5 top-12 w-0.5 h-8 bg-gray-300 z-0"></div>
-              )}
-
-              {/* Stage card */}
-              <div
-                className={`relative z-10 flex items-start gap-3 p-3 rounded-lg border ${
-                  isCompleted
-                    ? "bg-green-50 border-green-200"
-                    : isDanger
-                      ? "bg-red-50 border-red-200"
-                      : isWarning
-                        ? "bg-yellow-50 border-yellow-200"
-                        : "bg-gray-50 border-gray-200"
-                }`}
-              >
-                {/* Icon */}
-                <div
-                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                    isCompleted
-                      ? "bg-green-100"
-                      : isDanger
-                        ? "bg-red-100"
-                        : isWarning
-                          ? "bg-yellow-100"
-                          : "bg-gray-100"
-                  }`}
-                >
-                  <span
-                    className={`${stage.icon} font-size-18 ${stage.status?.icon || stage.status}`}
-                  ></span>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="font-size-13 font-weight-bold text-dark mb-1">
-                    {stage.title}
-                  </div>
-                  <div className="font-size-12 text-grey">
-                    {stage.getContent ? stage.getContent() : stage.content}
-                  </div>
-                </div>
-
-                {/* Status indicator */}
-                <div className="flex-shrink-0">
-                  {isCompleted && (
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                      <span className="icon-checkmark text-white font-size-12"></span>
-                    </div>
-                  )}
-                  {isDanger && (
-                    <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
-                      <span className="icon-warning text-white font-size-12"></span>
-                    </div>
-                  )}
-                  {isWarning && !isCompleted && !isDanger && (
-                    <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center">
-                      <span className="icon-clock text-white font-size-12"></span>
-                    </div>
-                  )}
-                </div>
+    <div className="order-item-details-mobile w-full ">
+      <div className="timeline-mobile justify-center">
+        <ul>
+          {/* 1. Замовлення */}
+          <li>
+            <div className="border-between-order"/>
+            <div className={`icon ${isEmpty(order.date) ? "text-danger" : "text-success"}`}>
+              <svg width="19" height="25" viewBox="0 0 19 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clipPath="url(#clip0_1_531)">
+                  <path d="M18.1796 3.90458C18.6687 3.90458 18.9921 4.22768 19.0039 4.69872V24.2059C19.0039 24.6691 18.6687 25 18.1993 25H0.80465C0.335271 25 0 24.6691 0 24.2059V4.69872C0.00788873 4.23158 0.339215 3.90847 0.792817 3.90458H2.37451L2.3824 5.47729C2.38634 6.71133 3.38426 7.79744 4.6859 7.79744H14.322C15.5881 7.79744 16.6058 6.75415 16.6176 5.54347L16.6334 3.89679H18.1796V3.90458ZM5.58127 11.7098C6.06249 11.7059 6.34648 11.2855 6.3307 10.9078C6.31493 10.503 5.99543 10.1604 5.54183 10.1604H4.74901C4.2678 10.1604 3.94436 10.538 3.96014 10.974C3.97197 11.3672 4.29147 11.7253 4.74901 11.7215L5.57733 11.7137L5.58127 11.7098ZM14.2825 11.7137C14.7756 11.7137 15.0556 11.2738 15.0359 10.904C15.0201 10.4991 14.7046 10.1526 14.2431 10.1526H8.70916C8.224 10.1526 7.90056 10.5341 7.91634 10.9662C7.92817 11.3594 8.24766 11.7176 8.70916 11.7176H14.2786L14.2825 11.7137ZM5.58127 14.8319C6.06249 14.828 6.34648 14.4075 6.3307 14.0299C6.31493 13.6251 5.99543 13.2825 5.54183 13.2825H4.74901C4.2678 13.2825 3.94436 13.6601 3.96014 14.0961C3.97197 14.4893 4.29147 14.8474 4.74901 14.8435L5.57733 14.8357L5.58127 14.8319ZM14.2825 14.8396C14.7756 14.8396 15.0556 14.3997 15.0359 14.0299C15.0201 13.6251 14.7046 13.2786 14.2431 13.2786H8.70916C8.224 13.2786 7.90056 13.6601 7.91634 14.0922C7.92817 14.4854 8.24766 14.8435 8.70916 14.8435H14.2786L14.2825 14.8396ZM5.58127 17.9578C6.06249 17.9539 6.34648 17.5335 6.3307 17.1559C6.31493 16.751 5.99543 16.4085 5.54183 16.4085H4.74901C4.2678 16.4085 3.94436 16.7861 3.96014 17.2221C3.97197 17.6153 4.29147 17.9734 4.74901 17.9695L5.57733 17.9617L5.58127 17.9578ZM14.2825 17.9656C14.7756 17.9656 15.0556 17.5257 15.0359 17.1559C15.0201 16.751 14.7046 16.4046 14.2431 16.4046H8.70916C8.224 16.4046 7.90056 16.7861 7.91634 17.2182C7.92817 17.6114 8.24766 17.9695 8.70916 17.9695H14.2786L14.2825 17.9656ZM5.58127 21.0838C6.06249 21.0799 6.34648 20.6595 6.3307 20.2819C6.31493 19.877 5.99543 19.5344 5.54183 19.5344H4.74901C4.2678 19.5344 3.94436 19.9121 3.96014 20.3481C3.97197 20.7412 4.29147 21.0994 4.74901 21.0955L5.57733 21.0877L5.58127 21.0838ZM14.2825 21.0916C14.7756 21.0916 15.0556 20.6517 15.0359 20.2819C15.0201 19.877 14.7046 19.5305 14.2431 19.5305H8.70916C8.224 19.5305 7.90056 19.912 7.91634 20.3442C7.92817 20.7373 8.24766 21.0955 8.70916 21.0955H14.2786L14.2825 21.0916Z" fill="#516C00"/>
+                  <path d="M14.2786 6.24415H4.75691C4.29936 6.24415 3.96014 5.90158 3.96014 5.46558V3.11818C3.96014 2.725 4.2678 2.35517 4.68196 2.34739L6.44115 2.32792C6.8277 0.899241 8.10567 -0.00779704 9.53353 -1.13086e-05C10.9614 0.00777443 12.1881 0.953742 12.5667 2.3396H14.251C14.6888 2.3396 15.0399 2.68218 15.0399 3.12207V5.46947C15.0399 5.85486 14.744 6.24415 14.2747 6.24415H14.2786Z" fill="#516C00"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_1_531"><rect width="19" height="25" fill="white"/></clipPath>
+                </defs>
+              </svg>
+            </div>
+            <div className="badge">
+              <div className="badge-title">Замовлення</div>
+              <div className="badge-content bg-WS---DarkGreen-Light">
+                {formatDateHumanShorter(order.date) || "Немає дати"}
               </div>
             </div>
-          );
-        })}
+          </li>
 
-        {/* Mobile summary bar
-        <div className="mt-4 p-3 bg-gray-100 rounded-lg">
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <div>
-              <div className="font-size-11 text-grey mb-1">Виконано</div>
-              <div className="font-size-16 font-weight-bold text-success">
-                {stages.filter(s => s.status?.icon === "text-success" || s.status === "text-success").length}
+          {/* 2. Оплата */}
+          <li>
+            <div className="border-between-order"/>
+            <div className={`icon ${paymentIsDue ? "text-danger" : "text-success"}`}>
+                            <svg width="25" height="22" viewBox="0 0 25 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1_512)">
+<path d="M22.5381 6.41231C19.8729 7.44981 16.2963 7.48943 13.5657 6.64287C12.7088 6.37629 11.9099 5.99803 11.2491 5.44326C10.6645 4.94973 10.4539 4.34812 10.4575 3.62043C10.4611 2.89274 10.6645 2.28754 11.2527 1.79761C11.9935 1.18159 12.8758 0.77812 13.8489 0.515143C16.3362 -0.162112 18.9688 -0.162112 21.4706 0.475517C22.4401 0.720481 23.3152 1.10954 24.0704 1.68953C24.7494 2.21188 25.029 2.86753 24.9964 3.69248C24.9709 4.29048 24.8547 4.80563 24.4081 5.24873C23.8852 5.76748 23.2534 6.13853 22.5417 6.41591L22.5381 6.41231Z" fill="#BA523B"/>
+<path d="M0.777082 10.9406C0.188846 10.4614 0.00729234 9.86344 0.00366126 9.17177C3.01804e-05 8.48011 0.159798 7.86409 0.726247 7.39217C1.42705 6.74734 2.29487 6.37629 3.22806 6.08089C5.19974 5.51891 7.24767 5.38923 9.30286 5.66301V12.6265C7.11332 12.9111 4.92015 12.7562 2.8468 12.0861C2.0879 11.7943 1.37621 11.4845 0.777082 10.9406Z" fill="#BA523B"/>
+<path d="M24.8294 9.9211C25.1453 10.9946 25.0545 11.9997 24.2048 12.7166C23.5258 13.293 22.727 13.682 21.8301 13.945C19.3137 14.6835 16.634 14.7051 14.0886 14.0783C13.1772 13.8549 12.3747 13.5055 11.605 13.0192C10.4249 12.1834 10.2869 11.2864 10.5992 9.87427C11.2673 11.0775 12.8758 11.7475 14.2593 12.0753C16.3072 12.5617 18.3915 12.6049 20.4612 12.2303C22.0516 11.9421 23.9942 11.3008 24.8257 9.9211H24.8294Z" fill="#BA523B"/>
+<path d="M24.8366 13.7324C25.1126 14.7087 25.0799 15.7426 24.3392 16.4342C23.5984 17.1259 22.7342 17.5258 21.7538 17.8068C19.0995 18.5597 16.2673 18.5525 13.6202 17.7815C12.7233 17.5222 11.9245 17.1295 11.2455 16.5531C10.374 15.8146 10.345 14.86 10.6028 13.7288C11.3544 14.9897 13.0065 15.6453 14.4626 15.9623C16.8446 16.4811 19.3028 16.445 21.6449 15.793C22.8686 15.4508 24.2266 14.824 24.8366 13.7324Z" fill="#BA523B"/>
+<path d="M24.8475 17.3853C25.1562 18.7326 25.0182 19.5864 23.9942 20.3681C23.2462 20.9409 22.4002 21.2867 21.467 21.5281C19.1721 22.1225 16.7829 22.1513 14.4626 21.647C13.0719 21.3444 10.9877 20.5446 10.5774 19.2514C10.3885 18.657 10.4503 18.0049 10.5955 17.3745C11.4053 18.7182 13.2135 19.363 14.7567 19.6657C17.4801 20.2024 21.0603 20.0439 23.4859 18.675C24.0559 18.3508 24.4808 17.9257 24.8475 17.3889V17.3853Z" fill="#BA523B"/>
+<path d="M24.8257 6.2862C25.1416 7.3273 25.0799 8.33959 24.1721 9.0997C23.435 9.71931 22.5418 10.1156 21.5723 10.3786C19.0632 11.0522 16.4234 11.0522 13.9143 10.3894C12.687 10.0651 10.9368 9.28342 10.5774 8.13065C10.3922 7.53625 10.443 6.89501 10.5955 6.25739C10.9477 6.79775 11.3471 7.20122 11.9027 7.52184C14.3573 8.94119 18.0429 9.08889 20.8243 8.51971C22.2694 8.22431 24.0233 7.58308 24.8221 6.28981L24.8257 6.2862Z" fill="#BA523B"/>
+<path d="M9.31009 19.0028C9.31372 19.2802 9.4517 19.6008 9.53885 19.8782C6.79012 20.3033 2.57443 19.9683 0.620909 18.0842C-0.0871524 17.4033 -0.108939 16.3694 0.159761 15.4184C0.421199 15.8291 0.682637 16.1497 1.07479 16.4307C3.16993 17.9221 6.72476 18.2031 9.29193 17.8716L9.31009 19.0028Z" fill="#BA523B"/>
+<path d="M9.30284 16.2757C6.82644 16.5603 3.89979 16.3766 1.71387 15.231C0.199713 14.4385 -0.294114 13.4442 0.163402 11.7655C0.842414 12.9975 2.32753 13.5523 3.67103 13.927C5.52288 14.3809 7.40378 14.4565 9.2992 14.2296V16.2757H9.30284Z" fill="#BA523B"/>
+</g>
+<defs>
+<clipPath id="clip0_1_512">
+<rect width="25" height="22" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+            </div>
+            <div className="badge">
+              <div className="badge-title">Оплата</div>
+              <div className={`badge-content ${paymentIsDue ? "bg-WS---DarkRed-Light" : "bg-WS---DarkGreen-Light"}`}>
+                {paymentIsDue ? `Борг: ${paymentDue.toLocaleString("uk-UA", { minimumFractionDigits: 2 })}` : "Сплачено"}
               </div>
             </div>
-            <div>
-              <div className="font-size-11 text-grey mb-1">В процесі</div>
-              <div className="font-size-16 font-weight-bold text-warning">
-                {stages.filter(s => s.status?.icon === "text-warning" || s.status === "text-warning").length}
+          </li>
+
+          {/* 3. Підтвердження */}
+          <li>
+            <div className="border-between-order"/>
+            <div className={`icon ${isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status)}`}>
+               <svg width="25" height="23" viewBox="0 0 25 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_1_659)">
+              <path d="M25 19.8661C25 21.6799 23.5332 23 21.7987 23L3.05136 22.9893C1.42395 22.9893 0.00532425 21.6209 0.00532425 19.9734V3.0266C-2.90656e-05 1.28255 1.50961 0 3.19055 0H21.7987C23.5332 0 25 1.32011 25 3.10173V19.8661ZM21.97 20.9018C22.4786 20.8213 22.9122 20.4456 22.9122 19.9412V5.23215H2.07706V19.8822C2.07706 20.4403 2.51603 20.8481 3.05672 20.9018H21.97Z" fill="currentColor"/>
+              <path d="M12.136 7.33036C15.6156 7.12644 18.5171 9.80959 18.7312 13.1796C18.9454 16.5497 16.3062 19.6299 12.8747 19.8446C9.44323 20.0592 6.48285 17.4298 6.25266 14.0221C6.02246 10.5823 8.61882 7.53965 12.136 7.33573V7.33036ZM9.27728 14.9773L10.9261 16.4746C11.3918 16.8985 12.0128 16.7482 12.4143 16.3297L15.7227 12.8845C16.1938 12.3908 16.3222 11.7468 15.8137 11.2585C15.3372 10.8024 14.6948 10.9204 14.2398 11.398L11.5471 14.21L10.7066 13.4319C10.2355 12.9972 9.57707 12.9328 9.14345 13.3782C8.68306 13.8558 8.76872 14.5158 9.27728 14.972V14.9773Z" fill="currentColor"/>
+              </g>
+              <defs>
+              <clipPath id="clip0_1_659">
+              <rect width="25" height="23" fill="white"/>
+              </clipPath>
+              </defs>
+              </svg>
+            </div>
+            <div className="badge">
+              <div className="badge-title">Підтвердження</div>
+              <div className={`badge-content ${isEmpty(order.status) ? "bg-WS---DarkRed-Light" : "bg-WS---DarkGreen-Light"}`}>
+                {order.status || "Не підтверджено"}
               </div>
             </div>
-            <div>
-              <div className="font-size-11 text-grey mb-1">Проблеми</div>
-              <div className="font-size-16 font-weight-bold text-danger">
-                {stages.filter(s => s.status?.icon === "text-danger" || s.status === "text-danger").length}
+          </li>
+
+          {/* 4. Виробництво */}
+          <li>
+           <div className="border-between-order"/>
+            <div className={`icon ${productionStatus.status.icon}`}>
+              <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1_700)">
+<path d="M8.93091 14.7685H6.62407C6.50827 14.7685 6.29982 14.6204 6.29982 14.5046V13C5.76711 12.8241 5.34095 12.6481 4.84067 12.4028L3.86328 13.3842C3.75674 13.4907 3.52513 13.5648 3.40006 13.4444L1.7093 11.7546C1.63982 11.6852 1.63519 11.4444 1.70467 11.375L2.75618 10.3194C2.50141 9.82406 2.32539 9.3935 2.15863 8.85183H0.680954C0.565149 8.85183 0.407654 8.6898 0.407654 8.57406V6.1898C0.407654 6.0185 0.58831 5.91202 0.759701 5.91202H2.16326C2.33465 5.37035 2.50604 4.94443 2.76544 4.44443L1.74173 3.42128C1.65372 3.33332 1.62592 3.0972 1.71394 3.00924L3.36763 1.35183C3.51586 1.20369 3.72431 1.23609 3.86791 1.37961L4.8453 2.36109C5.33632 2.11572 5.72542 1.94443 6.29055 1.77313L6.30908 0.254612C6.30908 0.134241 6.5129 -0.00927734 6.6287 -0.00927734H8.94017C9.06061 -0.00927734 9.25979 0.134241 9.25979 0.254612L9.27832 1.7685C9.84345 1.9398 10.2279 2.10646 10.7236 2.35646L11.701 1.37035C11.8075 1.25924 12.0391 1.18517 12.1596 1.30554L13.8549 2.99998C13.943 3.08794 13.9105 3.32869 13.8271 3.41202L12.8081 4.42591C13.0443 4.90276 13.2342 5.35183 13.4056 5.89813H14.8833C14.9991 5.89813 15.1566 6.06017 15.1566 6.17591V8.56017C15.1566 8.67591 14.9991 8.83331 14.8833 8.83331H13.401C13.2342 9.37498 13.0582 9.80554 12.7988 10.3009L13.8225 11.3241C13.9059 11.4074 13.9383 11.6481 13.8503 11.7361L12.1549 13.4352C12.0715 13.5185 11.8214 13.4861 11.738 13.4028L10.7004 12.3796C10.1723 12.6666 9.78323 12.8194 9.25979 12.9861V14.4259C9.25979 14.5926 9.09767 14.7546 8.93091 14.7546V14.7685ZM7.49029 3.95832C5.51697 4.12961 4.17363 5.84258 4.35429 7.73146C4.53495 9.62035 6.19328 10.9768 8.06469 10.8148C9.9361 10.6528 11.3582 9.00924 11.2053 7.10183C11.0525 5.19443 9.44508 3.78702 7.49029 3.95832Z" fill="currentColor"/>
+<path d="M22.4754 24.9768L15.365 25V19.6759L22.4384 19.6944C23.8743 19.6944 24.9675 20.912 24.9953 22.2778C25.0231 23.6435 23.967 24.9722 22.4708 24.9768H22.4754Z" fill="currentColor"/>
+<path d="M20.4326 18.2963H18.7836C18.677 18.2963 18.5103 18.1296 18.5103 18.0324V17.1204L17.6394 16.7731L17.0557 17.3611C16.9446 17.4722 16.6898 17.5046 16.574 17.3889L15.4854 16.3009C15.402 16.2176 15.3928 15.9444 15.4762 15.8611L16.1061 15.2361L15.7541 14.3704H14.8462C14.7396 14.3704 14.5775 14.2037 14.5775 14.0926V12.5093C14.5775 12.412 14.7118 12.2268 14.7999 12.2222L15.7587 12.2083L16.1108 11.3426L15.4854 10.7222C15.3974 10.6343 15.4067 10.3611 15.4901 10.2778L16.5786 9.19444C16.7269 9.04629 16.9677 9.12036 17.1021 9.25462L17.644 9.80555L18.5103 9.4537V8.54629C18.5103 8.44444 18.6816 8.27777 18.7836 8.27777H20.3956C20.4928 8.27777 20.6689 8.44907 20.6689 8.54629L20.6596 9.44907L21.5351 9.81018L22.1604 9.18055C22.2438 9.09722 22.5125 9.10648 22.6005 9.18981L23.6937 10.2778C23.7956 10.3796 23.8002 10.6157 23.6983 10.7176L23.073 11.3426L23.4204 12.2083H24.3283C24.4302 12.2083 24.597 12.3796 24.597 12.4815V14.0926C24.597 14.1898 24.4256 14.3657 24.3329 14.3657L23.4297 14.3565L23.0637 15.2315L23.6937 15.8565C23.7771 15.9398 23.7678 16.213 23.6844 16.2963L22.5959 17.3889C22.4939 17.4907 22.2577 17.4954 22.1558 17.3935L21.5305 16.7731L20.6642 17.1204V18.0185C20.6642 18.1018 20.516 18.2963 20.428 18.2963H20.4326ZM19.1588 10.6759C17.6348 10.9259 16.7269 12.3472 16.9863 13.7778C17.2457 15.2083 18.6029 16.1343 20.025 15.9028C21.4471 15.6713 22.4476 14.3102 22.2068 12.8518C21.9659 11.3935 20.6642 10.4259 19.1541 10.6759H19.1588Z" fill="currentColor"/>
+<path d="M9.42187 24.9953L5.3548 24.9815L10.654 19.6759L14.735 19.6805L9.42187 24.9953Z" fill="currentColor"/>
+<path d="M4.50714 24.9907H2.62647C2.03354 25 1.45915 24.7824 1.00983 24.3935L5.72541 19.6805H9.81564L4.51177 24.9907H4.50714Z" fill="currentColor"/>
+<path d="M14.7721 25H10.2696L14.7721 20.5V25Z" fill="currentColor"/>
+<path d="M4.88231 19.7037L0.602157 23.9953C-0.0556159 23.2037 -0.180685 22.1574 0.254742 21.2176C0.625318 20.4166 1.44985 19.75 2.44114 19.699C3.22862 19.6574 3.94198 19.6713 4.88231 19.7037Z" fill="currentColor"/>
+<path d="M7.2031 4.59725C8.81974 4.26854 10.2835 5.3241 10.5846 6.86577C10.8857 8.40743 9.87125 9.87039 8.35652 10.1806C6.84179 10.4908 5.31779 9.51391 4.98891 7.96762C4.66002 6.42132 5.61425 4.92595 7.20773 4.60188L7.2031 4.59725ZM7.49029 5.74076C6.5129 5.91669 5.96167 6.81484 6.14232 7.72688C6.32298 8.63891 7.17994 9.19447 8.06932 9.03243C8.9587 8.8704 9.57942 8.0278 9.42656 7.10188C9.28759 6.23614 8.44916 5.56947 7.49029 5.74076Z" fill="currentColor"/>
+<path d="M19.2329 11.2546C20.3956 11.0416 21.4285 11.8518 21.6231 12.9352C21.8177 14.0185 21.058 15.1203 19.9462 15.3194C18.8345 15.5185 17.7923 14.787 17.5653 13.6944C17.3383 12.6018 18.0424 11.4722 19.2329 11.2546ZM19.1634 12.1898C18.4964 12.4444 18.2509 13.1805 18.5103 13.7639C18.7697 14.3472 19.4274 14.6203 20.0157 14.3935C20.604 14.1666 20.9283 13.4722 20.692 12.8657C20.4558 12.2592 19.8165 11.9444 19.1634 12.1944V12.1898Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_1_700">
+<rect width="25" height="25" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+
+            </div>
+            <div className="badge">
+              <div className="badge-title">Виробництво</div>
+              <div className={`badge-content ${productionStatus.status.bg}`}>
+                {productionStatus.displayDate}
               </div>
             </div>
-          </div>
-        </div> */}
+          </li>
+
+          {/* 5. Готовність */}
+          <li>
+             <div className="border-between-order"/>
+            <div className={`icon ${readyStatus.icon}`}>
+               <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_1_710)">
+                <path d="M20.9618 24H11.6211C11.3543 24 11.1533 23.7924 11.1533 23.5217V14.4549C11.1533 14.2547 11.3909 14.0322 11.5919 14.0322H20.9399C21.2213 14.0322 21.4333 14.2435 21.4333 14.5328V23.581C21.3821 23.8332 21.2176 24 20.9618 24ZM14.7456 23.0915C15.2646 23.0915 15.63 22.6465 15.6263 22.1644L15.6154 21.2188C15.6117 20.7664 15.2171 20.3733 14.7676 20.3733H12.8673C12.4726 20.3807 12.0925 20.7553 12.0742 21.1409C12.056 21.5637 12.0487 21.9605 12.0852 22.3684C12.1254 22.8171 12.5859 23.0952 12.9878 23.0952L14.7456 23.0878V23.0915ZM20.2054 21.2744C20.4173 21.2744 20.5598 20.9259 20.5343 20.7627C20.5087 20.5995 20.304 20.3807 20.0994 20.377L18.8203 20.3659C18.5536 20.3659 18.3562 20.5254 18.3197 20.7627C18.2868 20.9778 18.4256 21.2781 18.6888 21.2781H20.209L20.2054 21.2744ZM20.1396 23.0915C20.3808 23.0915 20.5452 22.8023 20.5343 22.628C20.5196 22.4203 20.3333 22.2015 20.1103 22.2015H18.8167C18.5243 22.1978 18.3233 22.3461 18.3124 22.6317C18.3014 22.8505 18.4695 23.0989 18.7509 23.0989H20.1432L20.1396 23.0915Z" fill="currentColor"/>
+                <path d="M9.83774 24H0.460459C0.193685 24 0 23.7961 0 23.5254V14.5254C0 14.2695 0.171759 14.0322 0.445841 14.0322H9.85236C10.0789 14.0767 10.2653 14.2398 10.2653 14.4809V23.555C10.2653 23.7961 10.1118 23.9629 9.83774 24ZM3.59962 23.0952C4.07835 23.0952 4.46207 22.6799 4.46207 22.2349L4.46938 21.2893C4.46938 20.8294 4.09662 20.3807 3.61789 20.3807H1.77606C1.33752 20.377 0.9063 20.7664 0.898991 21.2151L0.888028 22.1718C0.880719 22.665 1.2754 23.0989 1.7724 23.0989H3.59597L3.59962 23.0952ZM8.88028 21.2819C9.16898 21.2819 9.36267 21.1113 9.37363 20.8183C9.38094 20.6329 9.17629 20.3733 8.9424 20.3733H7.59757C7.33811 20.3659 7.13711 20.5995 7.14077 20.822C7.14077 21.0705 7.33445 21.2781 7.59757 21.2781H8.88028V21.2819ZM8.92048 23.0989C9.21649 23.0989 9.38459 22.843 9.37363 22.6243C9.36267 22.3647 9.15436 22.1941 8.88759 22.1941H7.59392C7.33445 22.1978 7.1627 22.3795 7.14077 22.6317C7.12615 22.7985 7.30887 23.0878 7.53179 23.0915L8.92048 23.1026V23.0989Z" fill="currentColor"/>
+                <path d="M15.6373 13.1384H6.26003C6.00422 13.1384 5.83977 12.9567 5.80688 12.7083V3.57478C5.83977 3.35228 5.99326 3.16687 6.22349 3.16687H15.6446C15.9041 3.16687 16.0612 3.39308 16.0612 3.64153V12.7046C16.0247 12.9419 15.9077 13.0939 15.6373 13.1347V13.1384ZM9.42112 12.2188C9.92178 12.2188 10.2653 11.7775 10.2653 11.3288V10.3832C10.2616 9.90111 9.856 9.51174 9.38092 9.51545L7.44773 9.53028C7.02747 9.53028 6.69126 10.0235 6.69126 10.4091V11.351C6.69857 11.848 7.11517 12.2299 7.59025 12.2299L9.41747 12.2225L9.42112 12.2188ZM14.7091 10.4129C14.9539 10.4129 15.1476 10.2237 15.1769 9.99753C15.2024 9.78986 15.0197 9.51916 14.7858 9.51545H13.4154C13.1304 9.50803 12.9221 9.72311 12.9477 9.99753C12.9659 10.2126 13.1706 10.4129 13.4118 10.4129H14.7091ZM14.7091 12.2225C14.9868 12.2225 15.1878 12.0037 15.1769 11.7441C15.1695 11.5142 14.9612 11.314 14.7091 11.314H13.4154C13.1304 11.314 12.9221 11.5402 12.9477 11.8035C12.9696 12.0334 13.1633 12.2225 13.4118 12.2225H14.7054H14.7091Z" fill="currentColor"/>
+                <path d="M16.9821 11.9296L16.9712 3.71571C16.9712 3.4858 16.92 3.28184 16.8469 3.05564L19.6389 0.582214V9.24847L16.9821 11.9296Z" fill="currentColor"/>
+                <path d="M22.3177 22.8245L22.3104 14.4512L22.2336 13.8949L24.9964 11.4512L25.0001 20.11L22.3177 22.8245Z" fill="currentColor"/>
+                <path d="M21.5904 13.2682C21.4223 13.2163 21.1921 13.1421 21.0313 13.1384L17.0808 13.131L19.321 10.8541H24.3056L21.594 13.2645L21.5904 13.2682Z" fill="currentColor"/>
+                <path d="M16.2366 2.39555L15.8383 2.26947L12.4725 2.25834L15.3193 0L18.908 0.0111248L16.2366 2.39555Z" fill="currentColor"/>
+                <path d="M11.0182 2.26205L7.4624 2.24722L10.576 0L13.8138 0.0333745L11.0182 2.26205Z" fill="currentColor"/>
+                <path d="M4.95904 13.1422L1.61523 13.1348L4.89692 10.8022L4.90788 12.5822L4.95904 13.1422Z" fill="currentColor"/>
+                <path d="M14.7383 22.1941H12.9366L12.9403 21.2781L14.7237 21.2818L14.7383 22.1941Z" fill="currentColor"/>
+                <path d="M3.57034 22.1941H1.78332L1.77966 21.2818L3.55937 21.2781L3.57034 22.1941Z" fill="currentColor"/>
+                <path d="M9.37723 11.3177H7.60483L7.59021 10.4128H9.37357L9.37723 11.3177Z" fill="currentColor"/>
+                </g>
+                <defs>
+                <clipPath id="clip0_1_710">
+                <rect width="25" height="24" fill="white"/>
+                </clipPath>
+                </defs>
+                </svg>
+
+            </div>
+            <div className="badge">
+              <div className="badge-title">{readyStatus.isDelayed ? "Затримка" : "Готовність"}</div>
+              <div className={`badge-content ${readyStatus.bg}`}>
+                {order.factReadyMax ? formatDateHumanShorter(order.factReadyMax) : (order.dateDelay ? formatDateHumanShorter(order.dateDelay) : "Не готовий")}
+              </div>
+            </div>
+          </li>
+
+          {/* 6. Доставка */}
+          <li className="!border-l-0">
+                <div className="border-between-order"/>
+            <div className={`icon ${deliveryStatus.icon}`}>
+             <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_1_723)">
+              <path d="M22.1042 3.92981C22.5963 3.92981 22.8705 4.26197 22.8705 4.70218V16.3478L24.3062 16.3678C24.7135 16.3718 25.0039 16.74 24.9999 17.0881C24.9918 17.4923 24.6974 17.8285 24.2255 17.8285H4.7103C4.30701 17.8125 3.95615 17.5403 3.95615 17.1161V4.97031L0.221675 1.25652C-0.0807933 0.956379 -0.0565959 0.52017 0.193444 0.244037C0.443485 -0.0320951 0.927434 -0.10413 1.22184 0.188011L5.19828 4.1179C5.32734 4.24596 5.3959 4.43405 5.44026 4.62614V16.3558H8.8642V4.63414C8.91259 4.24196 9.1707 3.92981 9.59415 3.92981H22.1083H22.1042ZM16.6114 13.1102V11.4014H17.0228C17.2647 11.4014 17.5269 11.2853 17.668 11.1133C17.785 10.9652 17.8777 10.585 17.7729 10.4009L16.5469 8.27589C16.4219 8.05579 16.1799 7.88771 15.9702 7.8717C15.7322 7.85169 15.4056 7.93573 15.2806 8.14783L14.0183 10.3169C13.8247 10.649 13.9578 11.1653 14.3369 11.3134C14.5627 11.4014 14.849 11.3974 15.1233 11.3974V13.1382C15.1313 13.5904 15.4943 13.8866 15.8976 13.8746C16.2767 13.8626 16.6074 13.5664 16.6074 13.1062L16.6114 13.1102Z" fill="currentColor"/>
+              <path d="M18.1602 20.1417C19.5475 19.8495 20.8461 20.782 21.0881 22.1106C21.3301 23.4392 20.463 24.6838 19.1362 24.948C17.8093 25.2121 16.5188 24.3757 16.2325 23.039C15.9461 21.7024 16.7608 20.4338 18.1562 20.1377L18.1602 20.1417Z" fill="currentColor"/>
+              <path d="M9.78387 20.1457C11.1631 19.8415 12.4416 20.746 12.7198 22.0426C12.9981 23.3392 12.1512 24.6519 10.8244 24.94C9.49753 25.2281 8.2191 24.4037 7.9005 23.1311C7.5819 21.8585 8.37639 20.4578 9.78387 20.1457Z" fill="currentColor"/>
+              </g>
+              <defs>
+              <clipPath id="clip0_1_723">
+              <rect width="25" height="25" fill="white"/>
+              </clipPath>
+              </defs>
+              </svg>
+            </div>
+        
+            <div className="badge">
+              <div className="badge-title">Доставка</div>
+              <div className={`badge-content ${deliveryStatus.bg}`}>
+                {formatDateHuman(order.realizationDate) || "Не доставлено"}
+              </div>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   );
-}
+});

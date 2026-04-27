@@ -338,7 +338,7 @@ const PortalOriginal = () => {
     load();
   }, [selectedYear]);
 
-  if (loading || reloading) {
+  if (loading ) {
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>

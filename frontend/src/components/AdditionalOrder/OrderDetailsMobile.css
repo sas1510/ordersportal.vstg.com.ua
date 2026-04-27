@@ -14,12 +14,6 @@
   width: fit-content; /* Контейнер підлаштовується під ширину контенту */
 }
 
-/* Правильний запис: якщо li має клас is-pending, то його псевдоелементу ::before змінити бордюр */
-.timeline-mobile ul li.is-pending::before {
-    border-left: 1px dotted var(--grey-border-color); 
-}
-
-
 
 
 .timeline-mobile ul li {
@@ -102,7 +96,7 @@
   top: 20px;
   bottom: -35px; /* Тягнеться до наступної іконки */
   width: 0;
-  border-left: 1px solid var(--grey-border-color);
+  border-left: 1px solid #000;
   z-index: 0;
 }
 

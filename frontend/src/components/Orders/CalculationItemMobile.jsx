@@ -344,7 +344,7 @@ export const CalculationItemMobile = React.memo(
         className="flex items-center gap-2 pb-1"
         style={{ 
           cursor: calc.file ? "pointer" : "default", 
-          borderBottom: '1px dashed #ddd' 
+          borderBottom: '1px dotted var(--grey-border-color)' 
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -421,7 +421,7 @@ export const CalculationItemMobile = React.memo(
         {expanded && (
           <div className="item-details column gap-2.5 mt-2">
             {orderList.length === 0 ? (
-              <div className="order-item column gap-14 w-100 align-center p-3 md:p-8">
+              <div className="order-item column gap-14 w-100 align-center !pt-3 md:!pt-8 !border-b-0">
                 <div className="font-size-16 md:font-size-22 text-center text-WS---DarkGrey  uppercase text-center">
                   Ще немає замовлень по цьому прорахунку
                 </div>

@@ -67,20 +67,38 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
   }, [order.status, debtAmount, getButtonState]);
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Новий":
-         return "text-WS---DarkBlue";
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
-      case "Відмова":
-        return "text-WS---DarkRed";
-      case "Підтверджений":
-      case "Готовий":
-      case "Відвантажений":
-        return "text-WS---DarkGreen";
-      default:
-        return "text-WS---DarkGrey";
-    }
+     switch (status) {
+          case "Новий":
+    
+    
+            return "text-WS---DarkBlue";
+            
+          case "Очікуємо підтвердження":
+            return "text-WS---Orange";
+          case "Очікуємо оплату":
+            return "text-WS---DarkRed";
+    
+          case "Підтверджений":
+            return "text-WS---DarkGrey";
+    
+          case "У виробництві":
+            return "text-WS---DarkBlueProfile"
+          case "В обробці":
+          case "В роботі":
+             return "text-WS---MiddleGreen";
+    
+    
+          case "Відмова":
+            return "text-WS---MiddleGrey";
+    
+          case "Готовий":
+            return "text-WS---DarkGreen";
+          case "Відвантажено":
+            return "text-WS---DarkPurple";
+    
+          default:
+            return "text-WS---MiddleGrey ";
+        }
   };
 
   // ========================= HANDLERS =========================
@@ -127,9 +145,9 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
   };
 
   return (
-    <div className="order-item flex flex-col w-full gap-0">
+    <div className="order-item flex flex-col w-full gap-0 !border-0">
       <div
-        className="order-item-summary flex w-full cursor-pointer items-center "
+        className="order-item-summary flex w-full cursor-pointer items-center !border-0 "
         onClick={toggleExpand}
       >
         <div className="summary-item row no-wrap !border-r-0 !pr-0">
@@ -192,7 +210,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
             </div>
-            <div className="text-grey font-size-12 ">
+            <div className="text-grey text-[8px]">
               Сума замовлення
             </div>
           </div>
@@ -210,7 +228,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
             </div>
-            <div className="text-grey font-size-12">
+            <div className="text-grey text-[8px]">
               Сума боргу
             </div>
           </div>
@@ -273,8 +291,10 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
       </div>
 
       {isExpanded && (
-        <div className=" pt-1 border-t flex w-full border-dashed border-gray-300">
+        <div style={{width: 'calc(100% + 28px)', marginLeft: '-28px'}} className="order-item-details-container border-t border-dotted border-grey">
+        <div className=" pt-1 flex w-full ">
           <OrderDetailsDesktop order={order} />
+        </div>
         </div>
       )}
 

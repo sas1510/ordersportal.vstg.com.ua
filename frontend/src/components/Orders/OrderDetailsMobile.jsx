@@ -56,12 +56,14 @@ export default React.memo(function OrderDetailsMobile({ order }) {
   // --- 4. Статуси етапів ---
   const productionStatus = useMemo(() => {
     const status = getDateStatus(order.planProductionMax, order.factProductionMax);
+    const isPending = !order.factProductionMax && !order.planProductionMax;
     const displayDate = order.factProductionMax 
+
       ? formatDateHumanShorter(order.factProductionMax) 
       : order.planProductionMax 
         ? `План: ${formatDateHumanShorter(order.planProductionMax)}` 
         : "Немає даних";
-    return { status, displayDate };
+    return { status, displayDate, isPending };
   }, [order.factProductionMax, order.planProductionMax, getDateStatus]);
 
   const readyStatus = useMemo(() => {
@@ -132,7 +134,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 3. Підтвердження */}
-          <li>
+           <li className={productionStatus.isPending ? 'is-pending' : ''}>
             <div className="border-between-order"/>
             <div className={`icon ${isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status)}`}>
                <svg width="25" height="23" viewBox="0 0 25 23" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -156,7 +158,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 4. Виробництво */}
-          <li>
+          <li className={(!order.factReadyMax && !order.dateDelay) ? "is-pending" : ""}>
            <div className="border-between-order"/>
             <div className={`icon ${productionStatus.status.icon}`}>
               <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -188,7 +190,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 5. Готовність */}
-          <li>
+            <li className={!order.realizationDate ? "is-pending !border-l-0" : "!border-l-0"}>
              <div className="border-between-order"/>
             <div className={`icon ${readyStatus.icon}`}>
                <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -223,7 +225,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 6. Доставка */}
-          <li className="!border-l-0">
+     <li >
                 <div className="border-between-order"/>
             <div className={`icon ${deliveryStatus.icon}`}>
              <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">

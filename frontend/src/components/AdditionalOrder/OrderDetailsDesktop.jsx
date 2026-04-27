@@ -17,18 +17,18 @@ export default function OrderDetailsDesktop({ order }) {
     switch (status) {
       case "Новий":
       case "В обробці":
-      case "Підтверджений":
-      case "У виробництві":
-        return "text-info";
+        return "text-WS---DarkBlue";
       case "Очикуємо оплату":
       case "Очикуємо підтвердження":
       case "Відмова":
-        return "text-danger";
+        return "text-WS---DarkRed";
       case "Готовий":
       case "Відвантажений":
-        return "text-success";
+      case "Підтверджений":
+      case "У виробництві":
+        return "text-WS---DarkGreen";
       default:
-        return "text-danger";
+        return "text-WS---DarkRed";
     }
   };
 
@@ -46,15 +46,14 @@ export default function OrderDetailsDesktop({ order }) {
 
     // Червоний, якщо немає ні фактичної, ні планової
     if (!planned && !actual)
-      return { icon: "text-danger", bg: "background-warning-light" };
-
+      return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" };
     // Якщо є фактична дата → зелений
-    if (actual) return { icon: "text-success", bg: "background-success-light" };
+    if (actual) return { icon: "text-WS---DarkGreen ", bg: "bg-WS---DarkGreen-Light" }
 
     // Якщо нема фактичної, але є планова дата
     if (planned && planned < today)
-      return { icon: "text-danger", bg: "background-warning-light" }; // прострочено
-    return { icon: "text-warning", bg: "background-warning-light" }; // ще в процесі
+      return { icon: "text-WS---DarkRed", bg: "bg-WS---DarkRed-Light" }; // прострочено
+   return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" };
   };
 
   return (
@@ -64,13 +63,13 @@ export default function OrderDetailsDesktop({ order }) {
           {/* Замовлення */}
           <li>
             <div
-              className={`icon ${isEmpty(order.date) ? "text-danger" : "text-success"}`}
+              className={`icon ${isEmpty(order.date) ? "text-WS---DarkRed" : "text-WS---DarkGreen"}`}
             >
               <span className="icon-news font-size-20"></span>
             </div>
             <div className="badge">
               <div className="badge-title">Замовлення</div>
-              <div className="badge-content background-success-light">
+              <div className="badge-content bg-WS---DarkGreen-Light">
                 {order.date || "Немає дати"}
               </div>
             </div>
@@ -79,14 +78,14 @@ export default function OrderDetailsDesktop({ order }) {
           {/* Оплата */}
           <li>
             <div
-              className={`icon ${paymentDue() > 0 ? "text-danger" : "text-success"}`}
+              className={`icon ${paymentDue() > 0 ? "text-WS---DarkRed" : "text-WS---DarkGreen"}`}
             >
               <span className="icon-coin-dollar font-size-22"></span>
             </div>
             <div className="badge">
               <div className="badge-title">Оплата</div>
               <div
-                className={`badge-content ${paymentDue() > 0 ? "background-danger-light" : "background-success-light"}`}
+                className={`badge-content ${paymentDue() > 0 ? "bg-WS---DarkRed-Light" : "bg-WS---DarkGreen-Light"}`}
               >
                 {paymentDue() > 0
                   ? `Борг: ${paymentDue().toLocaleString("uk-UA", { minimumFractionDigits: 2 })} `
@@ -98,14 +97,14 @@ export default function OrderDetailsDesktop({ order }) {
           {/* Підтвердження */}
           <li>
             <div
-              className={`icon ${isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status)}`}
+              className={`icon ${isEmpty(order.status) ? "text-WS---DarkRed" : getStatusStyle(order.status)}`}
             >
               <span className="icon-clipboard font-size-20"></span>
             </div>
             <div className="badge">
               <div className="badge-title">Підтвердження</div>
               <div
-                className={`badge-content ${isEmpty(order.status) ? "background-danger-light" : "background-success-light"}`}
+                className={`badge-content ${isEmpty(order.status) ? "bg-WS---DarkRed-Light" : "bg-WS---DarkGreen-Light"}`}
               >
                 {order.status || "Не підтверджено"}
               </div>

@@ -35,7 +35,7 @@ const InfoRow = ({
     } ${className}`}
     style={{
       minWidth: "150px",
-      borderRight: isLastInRow ? "none" : `1px dashed ${colors.border}`,
+      borderRight: isLastInRow ? "none" : `1px dotted ${colors.border}`,
       ...style,
     }}
   >
@@ -553,7 +553,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
         className="mr-2 " 
         alt="problem" 
       />
-      <h4 className="font-bold text-[#BA523B] text-[14px] leading-none">
+      <h4 className="font-bold text-[#BA523B] text-[16px] leading-none">
         Проблема
       </h4>
     </div>

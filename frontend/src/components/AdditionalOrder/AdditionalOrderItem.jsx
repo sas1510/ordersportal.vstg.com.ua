@@ -89,22 +89,38 @@ export const AdditionalOrderItem = ({
 
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Новий":
-      case "В обробці":
-      case "У виробництві":
-      case "Підтверджений":
-        return "text-WS---DarkBlue";
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
-      case "Відмова":
-        return "text-WS---DarkRed";
-      case "Готовий":
-      case "Відвантажено":
-        return "text-WS---DarkGreen";
-      default:
-        return "text-WS---DarkGrey";
-    }
+     switch (status) {
+          case "Новий":
+    
+    
+            return "text-WS---DarkBlue";
+            
+          case "Очікуємо підтвердження":
+            return "text-WS---Orange";
+          case "Очікуємо оплату":
+            return "text-WS---DarkRed";
+    
+          case "Підтверджений":
+            return "text-WS---DarkGrey";
+    
+          case "У виробництві":
+            return "text-WS---DarkBlueProfile"
+          case "В обробці":
+          case "В роботі":
+             return "text-WS---MiddleGreen";
+    
+    
+          case "Відмова":
+            return "text-WS---MiddleGrey";
+    
+          case "Готовий":
+            return "text-WS---DarkGreen";
+          case "Відвантажено":
+            return "text-WS---DarkPurple";
+    
+          default:
+            return "text-WS---MiddleGrey ";
+        }
   };
 
   const statusEntries = useMemo(() => {
@@ -144,10 +160,10 @@ export const AdditionalOrderItem = ({
           style={{ minWidth: "130px" }}
         >
           <div className="column">
-            <div className="text-base text-bold text-WS---DarkGrey border-bottom">
+            <div className="text-[16px] text-bold text-WS---DarkGrey border-bottom">
               № {additionalOrder.number}
             </div>
-            <div className="text-xs text-WS---DarkGrey">
+            <div className="text-[13px] text-WS---DarkGrey">
               {formatDateHumanShorter(additionalOrder.dateRaw)}
             </div>
           </div>
@@ -155,7 +171,7 @@ export const AdditionalOrderItem = ({
 
         {/* 2. Кількість конструкцій */}
         <div
-          className="summary-item row w-9 no-wrap"
+          className="summary-item row w-8 no-wrap"
           title="Кількість конструкцій в дозамовленні"
         >
            <img 
@@ -171,23 +187,23 @@ export const AdditionalOrderItem = ({
 
         {/* 3. Номер Основного Замовлення (з перевіркою) */}
         <div
-          className="text-WS---DarkGrey summary-item row w-9 no-wrap"
+          className="text-WS---DarkGrey summary-item row w-10 no-wrap"
           style={{ minWidth: "120px" }}
           title="Номер Основного Замовлення"
         >
           <div className="column">
             {hasMainOrder ? (
               <>
-                <div className="text-[15px]  text-bold border-bottom w-full ">
+                <div className="text-[16px]  text-bold border-bottom w-full ">
                   № {additionalOrder.mainOrderNumber}
                 </div>
-                <div className="text-start text-[11px]  mb-1">
+                <div className="text-start text-[13px]  mb-1">
                   {formatDateHumanShorter(additionalOrder.mainOrderDate)}
                 </div>
               </>
             ) : (
               <div
-                className="font-size-14 text-grey"
+                className="text-[15px] text-grey"
                 style={{ whiteSpace: "normal" }}
               >
                 Без основного замовлення
@@ -206,10 +222,10 @@ export const AdditionalOrderItem = ({
                 
                 />
             <div className="column">
-              <div className="font-size-16 w-full text-WS---DarkGreen font-bold border-bottom">
+              <div className="text-[16px] w-full text-WS---DarkGreen font-bold border-bottom">
                 {formatMoney2(additionalOrder.amount, additionalOrder.currency)}
               </div>
-             <div className="font-size-16  text-WS---DarkRed font-bold">
+             <div className="text-[16px]  text-WS---DarkRed font-bold">
                 {formatMoney2(additionalOrder.debt, additionalOrder.currency)}
               </div>
             </div>
@@ -228,7 +244,8 @@ export const AdditionalOrderItem = ({
             {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
             <button
               className="btn-comments row"
-              style={{ position: "relative" }}
+              style={{ position: "relative", alignSelf: "flex-end", 
+                marginTop: "auto"    }}
               onClick={(e) => {
                 e.stopPropagation();
                 handleViewComments(additionalOrder.comments || []);
@@ -248,9 +265,9 @@ export const AdditionalOrderItem = ({
         <div className="summary-item flex flex-col w-[200px] shrink-0 font-['Inter']">
   
   {/* ПЕРШИЙ БЛОК: Статуси */}
-  <div className="flex items-start gap-1 pb-1 border-bottom w-full">
+  <div className="flex items-start gap-1 pb-1 pt-1 border-bottom w-full">
     {/* Іконка статусу (тепер зліва від усього списку статусів) */}
-    <div className={`icon-info-with-circle mr-1 font-size-24 shrink-0 mt-0.5 ${iconColorClass}`}></div>
+    <div className={`icon-info-with-circle mr-1 text-[24px] shrink-0 mt-0.5 ${iconColorClass}`}></div>
 
     {/* Список статусів у стовпчик */}
     <div className="flex flex-col gap-1 text-[12px] mt-1 overflow-y-auto max-h-[60px] w-full">
@@ -312,7 +329,7 @@ export const AdditionalOrderItem = ({
         <div className="item-details column gap-14">
           {/* 🔥 Використовуємо ordersWithNumbers для перевірки */}
           {ordersWithNumbers.length === 0 ? (
-            <div className="order-item column gap-14 w-100 align-center">
+            <div className="order-item column gap-14 w-100 align-center !border-0 !p-0">
               <div className="font-size-22 text-grey uppercase float-center">
                 Це дозамовлення не містить підпорядкованих замовлень
               </div>

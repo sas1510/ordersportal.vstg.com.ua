@@ -91,18 +91,28 @@ body.dark-theme .calc-item .item-summary {
 }
 
 .separator-border {
-  border-top: 1px dashed #ccc;
+  /* Замість padding використовуємо margin для виходу за межі */
+  margin-left: -28px; 
+  
+  /* Додаємо ширину, щоб компенсувати зсув вліво */
+  width: calc(100% + 30px);
+  
+  /* Твій стиль лінії */
+  border-top: 1px dotted var(--grey-border-color);
+  
+
+
 }
 
 body.dark-theme .separator-border {
-  border-top: 1px dashed #555;
+  border-top: 1px dotted #555;
 }
 
 
 .grid-buttons {
   display: grid !important;
   /* Робимо 2 колонки по авто-ширині або фіксовані, щоб не розтягувати на пів екрана */
-  grid-template-columns: repeat(2, 90px); 
+  grid-template-columns: repeat(2, 100px); 
   gap: 2px 6px !important; /* 4px між рядами, 8px між колонками */
   width: fit-content; /* Контейнер підлаштується під кнопки */
   margin: 0; 

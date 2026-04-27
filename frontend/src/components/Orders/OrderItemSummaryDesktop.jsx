@@ -307,10 +307,10 @@ export default React.memo(function OrderItemSummaryDesktop({
         {/* NUMBER + DATE */}
         <div className="text-WS---DarkGrey summary-item row no-wrap">
           <div className="column items-start w-full">
-            <div className="text-[15px]  text-bold border-bottom w-full ">
+            <div className="text-[15px]  text-bold border-bottom w-full pb-1 ">
               {order.number}
             </div>
-            <div className=" text-start text-[11px]  mb-1">
+            <div className=" text-start text-[11px]  pt-1">
               {/* {formatDateHumanShorter(order.date)} */}
               {formatDateTimeShort(order.createDate)}
             </div>
@@ -358,7 +358,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
             </div>
-            <div className="text-grey font-size-12">
+            <div className="text-grey text-[8px]">
               Сума замовлення
             </div>
           </div>
@@ -376,7 +376,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
             </div>
-            <div className="text-grey font-size-12 ">
+            <div className="text-grey text-[8px]">
               Сума боргу
             </div>
           </div>
@@ -388,7 +388,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             {/* Замінюємо 'text-info' на динамічний клас статусу */}
             <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
             
-            <div className={`font-size-12 ${getStatusClass(order.status)}`}>
+            <div className={`text-[12px] ${getStatusClass(order.status)}`}>
               {order.status}
             </div>
           </div>
@@ -406,7 +406,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         disabled={!buttonState.confirm}
         onClick={openConfirmModal}
       >
-        <div className="font-size-12 font-['Inter'] ">Підтвердити</div>
+        <div className="text-[12px] font-bold font-['Inter'] ">Підтвердити</div>
       </button>
 
       {/* PAY */}
@@ -417,20 +417,20 @@ export default React.memo(function OrderItemSummaryDesktop({
         disabled={!buttonState.pay}
         onClick={openPaymentModal}
       >
-        <div className="font-size-12 font-['Inter'] ">Сплатити</div>
+        <div className="text-[12px] font-bold font-['Inter'] mx-1">Сплатити</div>
       </button>
     </>
   )}
 
   {/* REORDER */}
   <button
-    className={`column align-center button bg-WS---DarkBlue ${
+    className={`column align-center button bg-WS---DarkBlue px-1 ${
       !buttonState.reorder ? "disabled opacity-50" : ""
     }`}
     disabled={!buttonState.reorder}
     onClick={openReorderModal}
   >
-    <div className="font-size-12 font-['Inter'] ">Дозамовлення</div>
+    <div className="text-[12px] font-bold font-['Inter']  ">Дозамовлення</div>
   </button>
 
   {/* CLAIM */}
@@ -441,7 +441,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     disabled={!buttonState.claim}
 onClick={openClaimModal}
   >
-    <div className="font-size-12 font-['Inter'] ">Рекламація</div>
+    <div className="text-[12px] font-bold font-['Inter'] ">Рекламація</div>
   </button>
 </div>
 

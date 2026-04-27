@@ -99,29 +99,29 @@ body {
 }
 
 .border-warning {
-  border: 1px dashed var(--warning-color);
+  border: 1px dotted var(--warning-color);
   border-radius: 3px;
 }
 
 .border-danger {
-  border: 1px dashed var(--danger-color);
+  border: 1px dotted var(--danger-color);
   border-radius: 3px;
 }
 
 .border-success {
-  border: 1px dashed var(--success-color);
+  border: 1px dotted var(--success-color);
   border-radius: 3px;
 }
 
 .border-info {
-  border: 1px dashed var(--info-color);
+  border: 1px dotted var(--info-color);
   border-radius: 3px;
 }
 
-.border-grey {
-  border: 1px dashed var(--grey-border-color);
+/* .border-grey {
+  border: 1px dotted var(--grey-border-color);
   border-radius: 3px;
-}
+} */
 
 .h-align-center {
   justify-content: center;
@@ -149,7 +149,7 @@ body {
   /*width: 100%;*/
   text-align: center;
   text-transform: uppercase;
-  border-bottom: 1px dashed white;
+  border-bottom: 1px dotted white;
   padding-top: 7px;
   padding-bottom: 7px;
 }
@@ -177,12 +177,12 @@ body {
 .item > div {
   padding: 3px;
   text-align: center;
-  border-bottom: 1px dashed #fff;
+  border-bottom: 1px dotted #fff;
 }
 
 .task {
   /*padding: 7px;*/
-  /*border: 1px dashed var(--danger-color);*/
+  /*border: 1px dotted var(--danger-color);*/
   border-radius: 3px;
   /*width: calc(100% - 14px);*/
   width: 100%;
@@ -201,7 +201,7 @@ body {
 .task .title {
   font-size: 12px;
   color: var(--grey-color);
-  /*border-top: 1px dashed var(--grey-border-color);*/
+  /*border-top: 1px dotted var(--grey-border-color);*/
   width: 100%;
 }
 
@@ -249,12 +249,12 @@ body {
 .portal-header > .menu > ul > li {
   cursor: pointer;
   height: 100%;
-  border-left: 1px dashed var(--grey-border-color);
+  border-left: 1px dotted var(--grey-border-color);
   transition: all 0.5s ease;
 }
 
 .portal-header > .menu > ul > li:last-child {
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 .portal-header > .menu > ul > li > .icon {
@@ -287,7 +287,7 @@ body {
   align-items: center;
   padding: 14px;
   /*margin-right: 14px;*/
-  /*border-left: 1px dashed var(--grey-border-color);*/
+  /*border-left: 1px dotted var(--grey-border-color);*/
   cursor: pointer;
   /*background-color: #424242;*/
   background-color: var(--text-color);
@@ -363,7 +363,7 @@ overflow-y: scroll;
   width: 100%; /* базова ширина на маленьких екранах */
   max-width: 285px; /* максимум на великих екранах */
   /* margin-right: 10px; */
-  /* border-right: 1px dashed var(--grey-border-color); */
+  /* border-right: 1px dotted var(--grey-border-color); */
   justify-content: start;
 }
 
@@ -419,7 +419,7 @@ overflow-y: scroll;
   bottom: 0;
   left: 10px;            /* Відступ зліва */
   right: 10px;           /* Відступ справа */
-  border-bottom: 1px dashed var(--WS---Green);
+  border-bottom: 1px dotted var(--WS---Green);
   opacity: 0.5;          /* Можна додати прозорість для легкості, як у макеті */
 }
 
@@ -465,11 +465,11 @@ overflow-y: scroll;
   color: var(--WS--DarkBlue) !important;
 }
 .portal-body .content-filter .filter li:last-child {
-  /*border-right: 1px dashed var(--grey-border-color);*/
+  /*border-right: 1px dotted var(--grey-border-color);*/
 }
 
 .portal-body .content-filter .filter .delimiter1 {
-  border-bottom: 1px dashed var(--grey-border-color);
+  border-bottom: 1px dotted var(--grey-border-color);
   margin-top: 0;
 }
 
@@ -478,7 +478,7 @@ overflow-y: scroll;
 
 .portal-body .content-filter .filter .active {
   background-color: var(--WS--DarkBlue);
-  /* border: 1px dashed var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); */
   color: #fff;
 }
 .portal-body .content-filter .filter .active img {
@@ -492,7 +492,7 @@ overflow-y: scroll;
 /* Ховер для звичайного (неактивного) елемента */
 .portal-body .content-filter .filter li:hover {
   background-color: var(--WS--DarkBlue);
-  /* border: 1px dashed var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); */
   color: #fff;
 }
 
@@ -506,7 +506,7 @@ overflow-y: scroll;
 .delimiter1 {
   pointer-events: none; /* Відключає взаємодію */
   margin: 14px 0; /* відступ зверху і знизу */
-  border-bottom: 1px dashed var(--grey-border-color); /* тільки горизонтальна лінія */
+  border-bottom: 1px dotted var(--grey-border-color); /* тільки горизонтальна лінія */
   width: 100%; /* ширина лінії з урахуванням відступів з боків */
 }
 
@@ -639,7 +639,7 @@ overflow-y: scroll;
   font-size: 16px;
   text-transform: uppercase;
   width: calc(350px);
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 @media (max-width: 1460px) {
@@ -688,7 +688,7 @@ overflow-y: scroll;
   width: 100%;
   border-radius: 5px;
   background-color: var(--WS---DarkGrey,#44403e);
-  /* border-bottom: 1px dashed var(--grey-border-color); */
+  /* border-bottom: 1px dotted var(--grey-border-color); */
   box-shadow: 1px 1px 5px var(--shadow-color);
   z-index: 990;
 }
@@ -713,7 +713,7 @@ overflow-y: scroll;
   border: 1px solid transparent;
   transition: all 0.3s ease;
   border-radius: 0px;
-  /* border-right: 1px dashed var(--grey-border-color); */
+  /* border-right: 1px dotted var(--grey-border-color); */
 }
 
 .content-summary .by-month-pagination-wrapper ul li:last-child {
@@ -919,7 +919,7 @@ header_logo_white.svg
 .table th {
   padding: 0.5rem;
   vertical-align: top;
-  border-top: 1px dashed var(--grey-text-color);
+  border-top: 1px dotted var(--grey-text-color);
 }
 
 .iziModal {
@@ -1222,7 +1222,7 @@ header_logo_white.svg
 }
 
 .table-responsive > tbody > tr > td {
-  border-bottom: 1px dashed var(--grey-color);
+  border-bottom: 1px dotted var(--grey-color);
   vertical-align: bottom;
   padding: 8px 12px;
   border-top: 0;
@@ -1282,14 +1282,14 @@ header_logo_white.svg
 .bg-pulse-danger {
   border-radius: 3px;
   padding: 3px;
-  border: 1px dashed var(--danger-color);
+  border: 1px dotted var(--danger-color);
   animation: glowingBurningBGDanger 1500ms ease-in-out infinite;
 }
 
 .bg-pulse-warning {
   border-radius: 3px;
   padding: 3px;
-  border: 1px dashed var(--warning-color) !important;
+  border: 1px dotted var(--warning-color) !important;
   animation: glowingBurningBGWaning 1500ms ease-in-out infinite !important;
 }
 
@@ -1516,7 +1516,7 @@ html {
   border-radius: 0 5px 5px 0;
   padding: 7px;
   box-shadow: 1px 1px 7px var(--shadow-color);
-  border: 1px dashed var(--grey-color);
+  border: 1px dotted var(--grey-color);
   transition: all 0.2s ease-in-out !important;
 }
 
@@ -1571,7 +1571,7 @@ html {
   padding-bottom: 5px;
   margin-bottom: 14px;
   border-radius: 0;
-  border-bottom: 1px dashed var(--grey-color);
+  border-bottom: 1px dotted var(--grey-color);
 }
 
 .list-group .list-group-item:first-child {
@@ -1609,18 +1609,18 @@ html {
 }
 
 .border-bottom {
-  border-bottom: 1px dashed var(--grey-color);
+  border-bottom: 1px dotted var(--grey-color);
 }
 .border-top {
-  border-top: 1px dashed var(--grey-color);
+  border-top: 1px dotted var(--grey-color);
 }
 
 .border-bottom {
-  border-bottom: 1px dashed var(--grey-color);
+  border-bottom: 1px dotted var(--grey-color);
 }
 
 .border-left {
-  border-left: 1px dashed var(--grey-color);
+  border-left: 1px dotted var(--grey-color);
 }
 
 .border-left:first-child {
@@ -1628,7 +1628,7 @@ html {
 }
 
 /* .border-right {
-  border-left: 1px dashed var(--grey-color);
+  border-left: 1px dotted var(--grey-color);
 } */
 
 .border-right:last-child {
@@ -1693,7 +1693,7 @@ html {
     width: calc(100% - 14px);
     text-align: center;
     text-transform: uppercase;
-    border-bottom: 1px dashed white;
+    border-bottom: 1px dotted white;
     padding: 7px;
 }
 
@@ -1708,12 +1708,12 @@ html {
 .item > div {
     padding: 3px;
     text-align: center;
-    border-bottom: 1px dashed #fff;
+    border-bottom: 1px dotted #fff;
 }
 
 .task {
     padding: 7px;
-    border: 1px dashed var(--danger-color);
+    border: 1px dotted var(--danger-color);
     border-radius: 3px;
 }
 
@@ -1729,7 +1729,7 @@ html {
 .task .title {
     font-size: 12px;
     color: var(--grey-color);
-    border-top: 1px dashed var(--grey-border-color);
+    border-top: 1px dotted var(--grey-border-color);
     width: 100%;
 }
 */
@@ -1757,7 +1757,7 @@ html {
 .calc-item {
   background-color: #fff;
   color: var(--text-color);
-  /* border: 1px dashed var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); */
   box-shadow: 1px 1px 5px var(--shadow-color);
   border-radius: 0 5px 5px 0;
   min-height: 60px;
@@ -1788,13 +1788,13 @@ html {
   align-items: center;
   padding: 3px 3px;
   font-size: 14px;
-
+  height: 70px;
   cursor: pointer;
   position: relative;
   overflow: visible;
   gap: 2px;
   flex: 0 1 auto; /* займає ширину тільки під контент */
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 .calc-item .summary-item:last-child {
@@ -1809,13 +1809,13 @@ html {
 }
 
 .calc-item .item-details {
-  padding: 1px 7px 1px 7px;
+  padding: 1px 1px 1px 7px;
   padding-left: 28px;
 
   font-size: 12px;
   color: var(--grey-color);
   width: calc(100% );
-  border-top: 1px dashed var(--grey-border-color);
+  border-top: 1px dotted var(--grey-border-color);
   align-items: flex-start;
   text-align: left;
 }
@@ -1830,7 +1830,7 @@ html {
 .order-item {
   /* background-color: var(--portal-bg-color-light); */
   color: var(--WS---DarkGrey);
-  /* border: 1px dashed var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); */
   /* box-shadow: 1px 1px 5px var(--shadow-color); */
   align-items: center;
   justify-content: center;
@@ -1840,7 +1840,7 @@ html {
   gap: 3px;
   width: calc(100%);
   /* align-items: flex-start; */
-  border-bottom: 1px dashed var(--grey-border-color);
+  border-bottom: 1px dotted var(--grey-border-color);
 }
 
 .order-item .summary-item:last-child {
@@ -1848,7 +1848,7 @@ html {
 }
 
 .order-item .summary-item {
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
   padding: 3px 5px;
   font-size: 14px;
   align-items: center;
@@ -1864,7 +1864,7 @@ html {
   font-size: 12px;
   color: var(--grey-color);
   width: calc(100% - 10px);
-  /* border-top: 1px dashed var(--grey-border-color); */
+  /* border-top: 1px dotted var(--grey-border-color); */
   border-radius: 5px;
   align-items: flex-start;
   text-align: left;
@@ -1929,6 +1929,12 @@ html {
     padding: 4px 3px 4px 5px;
    
 }
+
+.timeline li.is-pending {
+    border-top: 1px dotted #ccc; /* Сірий колір і крапки */
+}
+
+
 
 .timeline ul li .badge {
     width: 100px;
@@ -2006,7 +2012,7 @@ html {
 .loading-spinner {
   width: 34px;
   height: 34px;
-  border: 4px dashed var(--grey-border-color);
+  border: 4px dotted var(--grey-border-color);
   border-top-color: var(--info-color);
   border-radius: 50%;
   margin: 0 auto 10px;
@@ -2103,7 +2109,7 @@ html {
   .calc-item .summary-item {
     padding: 2px 4px !important;
     font-size: 12px !important;
-    height: 60px !important;
+    height: 70px !important;
   }
   .portal-body .content-filter {
     width: 285px !important;
@@ -2316,7 +2322,7 @@ html {
   bottom: 0;
   left: 10px;            /* Відступ зліва */
   right: 10px;           /* Відступ справа */
-  border-bottom: 1px dashed var(--WS---Green);
+  border-bottom: 1px dotted var(--WS---Green);
   opacity: 0.5;          /* Можна додати прозорість для легкості, як у макеті */
 }
 
@@ -2328,7 +2334,7 @@ html {
 /* Ховер для звичайного (неактивного) елемента */
 .portal-body .content-filter .filter li:hover {
   background-color: var(--WS--DarkBlue);
-  /* border: 1px dashed var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); */
   color: #fff;
 }
 
@@ -2721,19 +2727,19 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 
 .dark-theme .content-filter {
   /* background-color: #2c2c2c; */
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 .dark-theme .portal-body .content-filter .filter li {
   /* background-color: #2c2c2c; */
   color: var(--text-color);
-  border: 1px dashed transparent;
+  border: 1px dotted transparent;
 }
 
 .dark-theme .portal-body .content-filter .filter li:hover,
 .dark-theme .portal-body .content-filter .filter .active {
   background-color: #383838;
-  border: 1px dashed var(--grey-border-color);
+  border: 1px dotted var(--grey-border-color);
   color: #fff;
 }
 
@@ -2741,7 +2747,7 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 .dark-theme .content-filter .search-orders {
   background-color: #383838;
   color: var(--text-color);
-  border: 1px dashed var(--grey-border-color);
+  border: 1px dotted var(--grey-border-color);
 }
 
 .dark-theme .content-filter .search-orders::placeholder {
@@ -2756,7 +2762,7 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 .dark-theme .content-summary .year-selector {
   color: var(--text-color);
   /* background-color: #2c2c2c; */
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 .dark-theme .content-summary .year-selector select {
@@ -2768,13 +2774,13 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 .dark-theme .content-summary .by-month-pagination-wrapper {
   background-color: #2c2c2c;
   color: var(--text-color);
-  border-bottom: 1px dashed var(--grey-border-color);
+  border-bottom: 1px dotted var(--grey-border-color);
   box-shadow: none;
 }
 
 .dark-theme .content-summary .by-month-pagination-wrapper ul li {
   color: var(--text-color);
-  border-right: 1px dashed var(--grey-border-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 .dark-theme .content-summary .by-month-pagination-wrapper ul li:hover,
@@ -2793,7 +2799,7 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 /* Елементи Прорахунку та Замовлення */
 .dark-theme .calc-item {
   background-color: #2c2c2c;
-  border: 1px dashed var(--grey-border-color);
+  border: 1px dotted var(--grey-border-color);
   box-shadow: none;
 }
 
@@ -2807,14 +2813,14 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 .dark-theme .order-item {
   /* Використовуємо інший темний фон, щоб відрізняти від calc-item */
   background-color: #383838;
-  border: 1px dashed #555;
+  border: 1px dotted #555;
   box-shadow: none;
 }
 
 .dark-theme .order-item .order-item-details {
   background-color: #2c2c2c;
   color: var(--grey-text-color);
-  border-top: 1px dashed var(--grey-border-color);
+  border-top: 1px dotted var(--grey-border-color);
 }
 
 /* Timeline (якщо використовується) */
@@ -2898,7 +2904,7 @@ body.dark-theme .content-filter {
   color: #f0f0f0 !important;
 
   /* Межа та тінь: темні */
-  border-right: 1px dashed #555555;
+  border-right: 1px dotted #555555;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.8);
 }
 
@@ -2913,22 +2919,22 @@ body.dark-theme .content-filter .sidebar-header .icon-cross:hover {
 
 /* Розділювач */
 body.dark-theme .content-filter .delimiter1 {
-  border-bottom: 1px dashed #555555 !important;
+  border-bottom: 1px dotted #555555 !important;
 }
 
 body.dark-theme .delimiter1 {
-  border-bottom: 1px dashed #555555 !important;
+  border-bottom: 1px dotted #555555 !important;
 }
 
 body.dark-theme .content-filter .filter .delimiter1 {
-  border-bottom: 1px dashed #555555 !important;
+  border-bottom: 1px dotted #555555 !important;
   margin-top: 0;
 }
 /* Поле пошуку */
 body.dark-theme .content-filter .search-orders {
   background-color: #383838 !important; /* Темний фон поля */
   color: #f0f0f0 !important;
-  border: 1px dashed #555555 !important;
+  border: 1px dotted #555555 !important;
 }
 
 body.dark-theme .content-filter .search-orders::placeholder {
@@ -2962,7 +2968,7 @@ body.dark-theme .content-filter .filter li {
 body.dark-theme .content-filter .filter li:hover,
 body.dark-theme .content-filter .filter li.active {
   background-color: #383838 !important; /* Трохи світліший сірий hover */
-  border: 1px dashed #555555 !important;
+  border: 1px dotted #555555 !important;
   color: #ffffff !important;
 }
 
@@ -2990,12 +2996,12 @@ body.dark-theme .content-filter .search-wrapper {
 body.dark-theme .content-filter .search-orders {
   background-color: #383838 !important; /* Темний фон самого поля */
   color: #f0f0f0 !important;
-  border: 1px dashed #555555 !important;
+  border: 1px dotted #555555 !important;
 }
 
 /* Перевірте, чи є у вас правило, подібне до цього, і змініть колір межі */
 body.dark-theme .content-filter .sidebar-header {
-  border-bottom: 0px dashed #555555 !important; /* Встановлюємо темну межу */
+  border-bottom: 0px dotted #555555 !important; /* Встановлюємо темну межу */
 }
 
 /* ==== РОЗДІЛЬНИКИ (світла + темна тема однакові) ==== */
@@ -3030,7 +3036,7 @@ body.dark-theme .pt-1.border-t {
 
 /* 3. Лінія-розділювач у профілі дилера (якщо вона там є) */
 body.dark-theme .profile-item-column .divider {
-  border-bottom: 1px dashed #555555 !important;
+  border-bottom: 1px dotted #555555 !important;
 }
 
 /* Межа під номером замовлення */
@@ -3245,7 +3251,7 @@ body.dark-theme
 .error-empty-state {
   padding: 60px 20px;
   background: #fcfcfc;
-  border: 2px dashed #eee;
+  border: 2px dotted #eee;
   border-radius: 12px;
   margin-top: 20px;
 }
@@ -3301,7 +3307,7 @@ body.dark-theme
 
 .dark-theme .error-empty-state {
   background: #2c2c2c;
-  border: 2px dashed #888888;
+  border: 2px dotted #888888;
 }
 
 
@@ -3391,6 +3397,11 @@ body.dark-theme
   font-family: 'Inter', sans-serif;
 }
 
+.text-WS---MiddleGreen {
+  color: #17996e;
+  font-family: 'Inter', sans-serif;
+}
+
 
 
 
@@ -3451,7 +3462,7 @@ body.dark-theme
 
 
 .border-right {
-  border-right: 1px dashed var(--grey-color);
+  border-right: 1px dotted var(--grey-border-color);
 }
 
 
@@ -3483,3 +3494,10 @@ body.dark-theme
   /* Фільтр для досягнення кольору #BA523B */
   filter: invert(41%) sepia(59%) saturate(541%) hue-rotate(327deg) brightness(87%) contrast(88%);
 }
+
+
+.border-grey {
+  border-color: var(--grey-border-color);
+}
+
+

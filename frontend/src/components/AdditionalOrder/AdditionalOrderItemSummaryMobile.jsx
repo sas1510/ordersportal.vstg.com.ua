@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from "./OrderDetailsMobile";
-
+import {formatDateHumanShorter } from "../../utils/formatters";
 // Модальні вікна
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "./AddReorderModal";
@@ -12,6 +12,7 @@ import OrderFilesModal from "../Orders/OrderFilesModal";
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+
 
 export default function AdditionalOrderItemSummaryMobile({ order }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -58,20 +59,38 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
   }, [order.status, debtAmount, getButtonState]);
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Новий":
-      case "Очікуємо оплату":
-      case "Очікуємо підтвердження":
-      case "Відмова":
-        return "text-danger";
-      case "Підтверджений":
-        return "text-info";
-      case "Готовий":
-      case "Доставлено":
-        return "text-success";
-      default:
-        return "text-grey";
-    }
+     switch (status) {
+          case "Новий":
+    
+    
+            return "text-WS---DarkBlue";
+            
+          case "Очікуємо підтвердження":
+            return "text-WS---Orange";
+          case "Очікуємо оплату":
+            return "text-WS---DarkRed";
+    
+          case "Підтверджений":
+            return "text-WS---DarkGrey";
+    
+          case "У виробництві":
+            return "text-WS---DarkBlueProfile"
+          case "В обробці":
+          case "В роботі":
+             return "text-WS---MiddleGreen";
+    
+    
+          case "Відмова":
+            return "text-WS---MiddleGrey";
+    
+          case "Готовий":
+            return "text-WS---DarkGreen";
+          case "Відвантажено":
+            return "text-WS---DarkPurple";
+    
+          default:
+            return "text-WS---MiddleGrey ";
+        }
   };
 
   // ========================= HANDLERS =========================
@@ -105,76 +124,114 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
     }
   };
 
+  
+    const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+    const listCalcIcon = "/assets/icons/ListCalcIcon.png";
+    const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
+    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
+    const fileIcon = "/assets/icons/FileIcon.png";
+    const recipientIcon = "/assets/icons/RecipientIcon.png";
+
+    const moneyGreen = "/assets/icons/MoneyGreen.png";
+    const moneyRed = "/assets/icons/MoneyRed.png";
+    const speedIcon = "/assets/icons/SpeedIcon.png";
+    const openDetails = "/assets/icons/OpenDetailsOrdersIcon.png";
+
+
   return (
-    <div className="order-item flex flex-col w-full gap-0">
+    <div className="order-item flex flex-col w-full gap-0 !border-b-0">
       <div
-        className="flex flex-col w-full p-3 bg-white rounded-lg shadow-sm border border-gray-200"
+        className="flex flex-col w-full pt-1 "
         onClick={toggleExpand}
       >
-        {/* Номер і статус */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
-            <span className="icon icon-news font-size-18 text-success"></span>
-            <div className="text-info font-weight-bold font-size-16">
-              {order.number}
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="icon-info-with-circle font-size-16 text-info"></span>
-            <div
-              className={`font-size-14 font-weight-medium ${getStatusClass(order.status)}`}
-            >
-              {order.status}
-            </div>
-          </div>
-        </div>
 
-        {/* Дата і кількість */}
-        <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
-          <div className="text-danger font-size-18">{order.date}</div>
-          <div className="flex items-center gap-1.5">
-            <span className="icon-layout5 font-size-18 text-info"></span>
-            <span className="font-size-16 text-danger font-weight-medium">
-              {order.count} конст.
-            </span>
-          </div>
-        </div>
 
-        {/* Фінанси */}
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="icon icon-coin-dollar text-success font-size-14"></span>
-              <span className="text-grey font-size-14">Сума</span>
-            </div>
-            <div className="text-info font-size-16 font-weight-bold">
-              {formatMoney2(order.amount, order.currency)}
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="icon icon-coin-dollar text-danger font-size-14"></span>
-              <span className="text-grey font-size-14">Борг</span>
-            </div>
-            <div className="text-danger font-size-16 font-weight-bold">
-              {formatMoney2(debtAmount, order.currency )}
-            </div>
-          </div>
-        </div>
+                <div className="flex items-stretch justify-between mb-1 w-full gap-3  pb-1 border-bottom ">
+                  
+                  {/* 1. ЛІВА ЧАСТИНА: Номер та Дата + Бордюр справа */}
+                  <div className="flex flex-[2] items-center pr-1  border-right shrink-0">
+                     <img src={listCalcIcon} className="align-center mr-2"  alt="" />
+                    <div className="flex  flex-col gap-[6px] no-wrap w-full">
+          
+                      <div className="text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight">
+                        № {order.number}
+                      </div>
+                      <div className="text-[11px] text-WS---DarkGrey">
+                         {order.date}
+                      </div>
+                    </div>
+                  </div>
+        
+                    <div className="flex flex-col items-center pt-2 justify-center pr-2 border-right flex-1">
+                      <div className="flex items-center gap-2 no-wrap">
+                        <img src={windowsIcon} className="align-center mr-2"  alt="" />
+                        <span className="font-size-24 font-bold text-WS---DarkBlue">
+                          {order.count}
+                        </span>
+                      </div>
+                      <span className="text-grey text-[10px] mt-1">Конструкції</span>
+                    </div>
+        
+                    {/* <div 
+                      className="flex items-center gap-2 text-center justify-center pt-2 flex-1 pb-[17px] cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={openFilesModal}
+        
+                    >
+               
+                     <img src={fileIcon} className="align-center mr-2"  alt="" />
+                    
+                      <div className="text-[13px] text-dark">Файли</div>
+                    </div> */}
 
-        {/* Кнопка файлів */}
-        <div
-          className="flex items-center gap-1.2 p-1.5 bg-gray-50 rounded mb-2 active:bg-gray-100"
+                    <div
+          className="flex items-center gap-1.2 p-1.5  mb-2 hover:bg-gray-100"
           onClick={(e) => {
             e.stopPropagation();
             setIsFilesModalOpen(true);
           }}
         >
-          <div className="icon-download font-size-16 text-red"></div>
-          <div className="font-size-14 text-info underline">
-            Файли замовлення
+           <img src={fileIcon} className="align-center mr-2"  alt="" />
+          <div className="text-[13px] text-WS---DarkGrey underline">
+            Файли
           </div>
         </div>
+
+        
+        
+        
+        
+        </div>
+
+
+             <div className="flex items-stretch justify-between  w-full gap-2   py-2">
+
+          <div className="flex items-center gap-2 pr-1 border-right  flex-1">
+            <img src={moneyGreen} className=" mr-1" alt="" />
+            <div className="flex flex-col">
+              <div className="text-WS---DarkGreen text-[14px] font-bold leading-tight">
+                {formatMoney2(order.amount, order.currency)}
+              </div>
+              <div className="text-grey text-[8px]">Сума замовлення</div>
+            </div>
+          </div>
+        
+          {/* 2. Сума боргу */}
+          <div className="flex items-center gap-2 px-1  flex-1">
+            {/* Тут використовуємо червону іконку монет, якщо вона є, або ту саму */}
+            <img src={moneyRed} className="mr-1" alt="" /> 
+            <div className="flex flex-col">
+              <div className="text-WS---DarkRed  text-[14px] font-bold leading-tight">
+                {formatMoney2(debtAmount, order.currency)}
+              </div>
+              <div className="text-grey text-[8px]">Сума боргу</div>
+            </div>
+          </div>
+        
+        
+        </div>
+
+
+                  
 
         {/* Кнопки дій */}
         <div
@@ -184,7 +241,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
           {user?.role !== "admin" && (
             <>
               <button
-                className="grow shrink-0 h-8 flex items-center justify-center px-3 background-success text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50"
+                className="grow text-[14px] font-bold text-center shrink-0 h-8 flex items-center justify-center px-3 bg-WS---DarkGrey text-white rounded  whitespace-nowrap disabled:opacity-50"
                 disabled={!buttonState.confirm}
                 onClick={() => setIsConfirmModalOpen(true)}
               >
@@ -192,7 +249,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
               </button>
 
               <button
-                className="grow shrink-0 h-8 flex items-center justify-center px-3 background-warning text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50"
+                className="grow shrink-0 text-white font-bold bg-WS---DarkGreen h-8 flex items-center justify-center px-3 rounded text-[14px] whitespace-nowrap disabled:opacity-50"
                 disabled={!buttonState.pay}
                 onClick={() => setIsPaymentOpen(true)}
               >
@@ -202,7 +259,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
           )}
 
           <button
-            className="grow shrink-0 h-8 flex items-center justify-center px-3 background-danger text-white rounded font-size-12 whitespace-nowrap disabled:opacity-50"
+            className="grow shrink-0 h-8 flex items-center  font-bold text-center justify-center px-3 bg-WS---DarkRed text-white rounded text-[14px] whitespace-nowrap disabled:opacity-50"
             disabled={!buttonState.claim}
             onClick={() => setIsClaimModalOpen(true)}
           >
@@ -210,15 +267,18 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
           </button>
         </div>
 
-        <div className="flex justify-center mt-1.5">
-          <span
-            className={`icon ${isExpanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}
-          ></span>
-        </div>
+  <div className="flex justify-center mt-2 cursor-pointer" >
+  <img 
+    src={openDetails} 
+    alt="Деталі"
+    className={`block transition-transform duration-300 ${isExpanded ? "rotate-180" : "rotate-0"}`}
+
+  />
+</div>
       </div>
 
       {isExpanded && (
-        <div className="mt-2 pt-2 border-t border-dashed border-gray-300">
+        <div className="mt-2 pt-2 w-full border-t border-dotted border-gray-500">
           <OrderDetailsMobile order={order} />
         </div>
       )}
