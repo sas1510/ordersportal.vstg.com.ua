@@ -2003,7 +2003,7 @@ useEffect(() => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="w-[calc(100%-20px)]l flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
+    <header className="w-[calc(100%-20px)]  flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
   {/* 1. Декоративна смуга  -- ДОДАНО: Декоративна смуга вгорі --видалено mt-32 */}
 <div className="w-full max-w-[1334px] h-2 md:h-[12px]  rounded-t-sm"  style={{ backgroundColor: 'var(--header-decorative)' }} />
 
@@ -2012,7 +2012,7 @@ useEffect(() => {
  rounded-bl-[25px] rounded-br-[25px]` } style={{ backgroundColor: 'var(--header-bg)' }}>
     
     {/* Логотип - фіксована ширина, щоб не заважав розтягуванню */}
-    <Link to="/dashboard" className="ml-[33px] flex-shrink-0 mr-4">
+    <Link to="/dashboard" className="ml-[16px] flex-shrink-0 mr-4">
       <img src={logo} alt="Вікна Стиль" className="h-[35px] w-auto" />
     </Link>
 
@@ -2124,9 +2124,9 @@ useEffect(() => {
               )}
             </div>
 
-            <button onClick={toggleTheme} className="text-[#44403E] text-lg hover:scale-110 transition-transform">
+            {/* <button onClick={toggleTheme} className="text-[#44403E] text-lg hover:scale-110 transition-transform">
               <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
-            </button>
+            </button> */}
 
             <button onClick={() => { logout(); navigate("/home"); }} className="text-[#44403E] hover:text-red-500 text-lg">
                <img src={exitIcon} alt="Вихід" className="w-[20px] h-[20px] object-contain" />

@@ -8,7 +8,7 @@ export default function HeaderWithoutAuth() {
   const exitIcon = "/assets/icons/exit-icon.png";
 
   return (
-    <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
+        <header className="w-[calc(100%-20px)]  flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
       
       {/* 1. Декоративна смуга — зменшуємо висоту на мобільних (h-2 проти h-[30px]) */}
       <div className="w-full max-w-[1334px]  h-2 md:h-[12px]  bg-[#B4D947] rounded-t-sm" />
@@ -21,7 +21,7 @@ export default function HeaderWithoutAuth() {
           <img 
             src={logo} 
             alt="Вікна Стиль" 
-            className="h-[25px] md:h-[35px] w-auto transition-all" 
+            className="h-[35px] w-auto transition-all" 
           />
         </Link>
 
