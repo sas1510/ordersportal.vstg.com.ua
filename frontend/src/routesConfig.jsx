@@ -53,10 +53,10 @@ export const adminRoutes = [
   { path: "videos/add", element: <VideoFormPage /> },
   { path: "videos/edit/:id", element: <VideoFormPage /> },
 
-  { path: "orders", element: <PortalOriginal /> },
-  { path: "complaints", element: <ReclamationPortal /> },
+  // { path: "orders", element: <PortalOriginal /> },
+  // { path: "complaints", element: <ReclamationPortal /> },
 
-  { path: "additional-orders", element: <AdditionalOrdersPage /> },
+  // { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
   { path: "change-password", element: <ChangePasswordPage /> },
   { path: "users/:id/edit", element: <EditUserPage /> },

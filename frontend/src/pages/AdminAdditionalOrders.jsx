@@ -46,6 +46,7 @@ const AdminAdditionalOrders = () => {
   const finishedIcon = "/assets/icons/FinishedIcon.png";
   const deliveredIcon = "/assets/icons/DeliveredIcon.png";
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+  const filterIcon = "/assets/icons/FiltersIcon.png";
 
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
@@ -316,6 +317,7 @@ const AdminAdditionalOrders = () => {
       "У виробництві": 0,
       Готовий: 0,
       Доставлено: 0,
+      Відвантажено: 0,
       Відмова: 0,
     };
 
@@ -400,14 +402,17 @@ const AdminAdditionalOrders = () => {
         <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'center'}} >
 
         <div
-          className="mobile-sidebar-toggle flex-0"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ marginTop: "10px" }}
-        >
-
-                  
-          <span className="icon icon-menu font-size-24"></span>
-        </div>
+            className="mobile-sidebar-toggle mr-1"
+            onClick={() => setIsSidebarOpen(true)}
+           
+          >
+                <img 
+                  src={filterIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-1 min-w-[20px] h-[20px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+          </div>
 
 
            <div className="year-inline-selector row">
@@ -417,7 +422,7 @@ const AdminAdditionalOrders = () => {
                   className="align-center mr-2 w-[26px] h-[25px]" 
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
-                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+                <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
           </div>
 
@@ -536,6 +541,14 @@ const AdminAdditionalOrders = () => {
 
         <div className="row  h-100 max-w-[1334px]  w-100">
         {/* Sidebar */}
+        
+            {isSidebarOpen && (
+                  <div 
+                  className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+                )}
         <div
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
@@ -567,7 +580,7 @@ const AdminAdditionalOrders = () => {
           {isAdmin && (
             <>
               {/* <div className="delimiter1" /> */}
-              <div className="dealer-select-wrapper mt-2">
+              <div className="dealer-select-wrapper mt-2 ">
                 <DealerSelectWithAll
                   value={dealerGuid}
                   onChange={setDealerGuid}
@@ -595,7 +608,16 @@ const AdminAdditionalOrders = () => {
 
           <ul className="filter column align-center">
 
-            <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+             <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              
+              /* Скидання для малих екранів (менше 1260px) */
+              max-[1260px]:bg-transparent 
+              max-[1260px]:shadow-none 
+              max-[1260px]:py-0 
+              max-[1260px]:w-full 
+              max-[1260px]:overflow-visible">
             {/* <li className="delimiter1"></li> */}
             {[
              {

@@ -59,6 +59,7 @@ const AdminPortalOriginal = () => {
   const finishedIcon = "/assets/icons/FinishedIcon.png";
   const deliveredIcon = "/assets/icons/DeliveredIcon.png";
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+  const filterIcon = "/assets/icons/FiltersIcon.png";
 
   const availableYears = useMemo(() => {
     const startYear = 2024;
@@ -405,12 +406,17 @@ const AdminPortalOriginal = () => {
         <div className="by-month-pagination-wrapper row gap-4">
 
           <div
-          className="mobile-sidebar-toggle flex-0"
-          onClick={() => setIsSidebarOpen(true)}
-          style={{ marginTop: "10px" }}
-        >
-          <span className="icon icon-menu font-size-24"></span>
-        </div>
+            className="mobile-sidebar-toggle mr-1"
+            onClick={() => setIsSidebarOpen(true)}
+           
+          >
+                <img 
+                  src={filterIcon} 
+                  alt="Стрілка" 
+                  className="align-center mr-1 min-w-[20px] h-[20px]" 
+                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                />
+          </div>
             <div className="year-inline-selector row">
               <img 
                   src={yearIcon} 
@@ -418,7 +424,7 @@ const AdminPortalOriginal = () => {
                   className="align-center mr-2 w-[26px] h-[25px]" 
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
-                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+                <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
           </div>
              <select
@@ -571,10 +577,12 @@ const AdminPortalOriginal = () => {
               {/* <div className="delimiter1" /> */}
               <ul className="buttons mt-2">
                 <li className="">
+                    <div className="dealer-select-wrapper">
                   <DealerSelectWithAll
                     value={dealerGuid}
                     onChange={setDealerGuid}
                   />
+                  </div>
                 </li>
               </ul>
             </>
@@ -599,7 +607,16 @@ const AdminPortalOriginal = () => {
 
           <ul className="filter column align-center">
 
-             <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">
+             <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              
+              /* Скидання для малих екранів (менше 1260px) */
+              max-[1260px]:bg-transparent 
+              max-[1260px]:shadow-none 
+              max-[1260px]:py-0 
+              max-[1260px]:w-full 
+              max-[1260px]:overflow-visible">
             {/* <li className="delimiter1"></li> */}
 
             {[

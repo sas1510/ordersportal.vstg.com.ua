@@ -397,7 +397,7 @@ export default function HeaderAdmin() {
   };
 
   return (
-    <header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
+    <header className="w-[calc(100%-20px)]  mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
       {/* 1. Декоративна смуга (як у дилера) */}
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] bg-[#B4D947] rounded-t-sm" />
 

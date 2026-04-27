@@ -140,3 +140,12 @@ body.dark-theme .dealer-select__empty {
 body.dark-theme .dealer-select__empty.error {
   color: #ff6b6b;
 }
+
+@media (max-width: 1260px) {
+  .dealer-select-wrapper {
+    width: calc(100% - 40px); /* Віднімаємо суму маржинів */
+    margin-left: auto;
+    margin-right: auto;
+    /* Або просто margin: 0 20px; якщо батьківський блок дозволяє */
+  }
+}

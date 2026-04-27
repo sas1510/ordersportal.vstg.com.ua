@@ -128,8 +128,10 @@ const AdminReclamationPortal = () => {
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
   const deleteIcon = "/assets/icons/DeleteIcon.png";
   const checkMarkIcon = "/assets/icons/CheckMarkIcon.png";
+      const filterIcon = "/assets/icons/FiltersIcon.png";
 
   const searchIcon = "/assets/icons/SearchIcon.png";
+      const closeIcon = "/assets/icons/CloseButton.png";
 
   const { theme } = useTheme();
 
@@ -264,6 +266,7 @@ const AdminReclamationPortal = () => {
       Відвантажено: 0,
       Вирішено: 0,
       Відмова: 0,
+
     };
 
     reclamationsData.forEach((r) => {
@@ -376,20 +379,26 @@ const AdminReclamationPortal = () => {
 
         <div className="by-month-pagination-wrapper row  flex items-center gap-4">
 
-          <div
-          className="mobile-sidebar-toggle flex items-center justify-center"
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          <span className="icon icon-menu font-size-24"></span>
+            <div
+       className="mobile-sidebar-toggle mr-1 flex items-center justify-center"
+        onClick={() => setIsSidebarOpen(true)}
+        
+    >
+        <img 
+            src={filterIcon} 
+            alt="Стрілка" 
+            className="align-center mr-1 min-w-[20px] h-[20px]" 
+            /* inline-style тут вже не потрібні, якщо є класи зверху */
+        />
         </div>
 
-        <div className="flex-0 items-center no-wrap mr-4" style={{ display: 'flex', flexShrink: 0 }}>
+        <div className="flex-0 items-center no-wrap mr-1" style={{ display: 'flex', flexShrink: 0 }}>
         <img 
             src={yearIcon} 
             alt="Календар" 
             className="align-center mr-2 w-[26px] h-[25px]" 
         />
-        <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+        <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
         </div>
         <select
@@ -524,14 +533,21 @@ const AdminReclamationPortal = () => {
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
           {/* КНОПКА ЗАКРИТТЯ САЙДБАРУ (Тільки для мобілки) */}
-          {isMobile && (
-            <div className="sidebar-close-row row align-end justify-end w-100">
-              <span
-                className="icon icon-cancel2 font-size-24 cursor-pointer"
-                onClick={() => setIsSidebarOpen(false)}
-              />
-            </div>
-          )}
+          {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
+                        {isSidebarOpen && <span>Фільтри Рекламацій</span>}
+                        {isSidebarOpen && (
+                                <button 
+                                onClick={() => setIsSidebarOpen(false)} 
+                                className=" hover:opacity-70 transition-opacity"
+                                >
+                                <img 
+                                    src={closeIcon} 
+                                    alt="Закрити" 
+                                    className="" 
+                                />
+                                </button>
+                            )}
+                    </div> }
 
           <div className="search-wrapper mb-2">
             <input
@@ -556,6 +572,7 @@ const AdminReclamationPortal = () => {
 
           {isAdmin && (
             <>
+            <div className="dealer-select-wrapper">
               {/* <div className="delimiter1" /> */}
               {/* Якщо DealerSelectWithAll теж має закривати сайдбар, 
                                 можна передати обгортку в onChange */}
@@ -566,7 +583,9 @@ const AdminReclamationPortal = () => {
                   if (isMobile) setIsSidebarOpen(false);
                 }}
               />
+              </div>
             </>
+            
           )}
 
           {isAdmin && (
@@ -596,7 +615,16 @@ const AdminReclamationPortal = () => {
 
           {/* ===== FILTERS WITH ICONS ===== */}
           <ul className="filter column align-center">
-             <div className="w-72 bg-white rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] shadow-sm overflow-hidden py-[26px]">            {/* <li className="delimiter1"></li> */}
+             <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              
+              /* Скидання для малих екранів (менше 1260px) */
+              max-[1260px]:bg-transparent 
+              max-[1260px]:shadow-none 
+              max-[1260px]:py-0 
+              max-[1260px]:w-full 
+              max-[1260px]:overflow-visible">
 
             {[
               {
