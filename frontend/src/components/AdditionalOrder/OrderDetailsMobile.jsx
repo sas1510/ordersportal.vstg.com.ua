@@ -28,7 +28,9 @@ export default React.memo(function OrderDetailsMobile({ order }) {
       case "Відмова": return "text-WS---DarkRed";
       case "Готовий":
       case "Відвантажений":
-      case "Підтверджений":
+      case "Підтверджено":
+      case "В роботі":
+
       case "У виробництві": return "text-WS---DarkGreen";
       default: return "text-WS---DarkRed";
     }
@@ -132,7 +134,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 3. Підтвердження */}
-          <li>
+          <li className={productionStatus.isPending ? 'is-pending' : ''}>
             <div className="border-between-order"/>
             <div className={`icon ${isEmpty(order.status) ? "text-danger" : getStatusStyle(order.status)}`}>
                <svg width="25" height="23" viewBox="0 0 25 23" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -156,7 +158,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 4. Виробництво */}
-          <li>
+          <li className={(!order.factStartProduction && !order.planProduction) ? "is-pending" : ""}>
            <div className="border-between-order"/>
             <div className={`icon ${productionStatus.status.icon}`}>
               <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -188,7 +190,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 5. Готовність */}
-          <li>
+          <li className={!order.realizationDate ? "is-pending" : ""}>
              <div className="border-between-order"/>
             <div className={`icon ${readyStatus.icon}`}>
                <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">

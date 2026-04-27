@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useMemo } from "react";
 import { formatDateHumanShorter } from "../../utils/formatters";
 import "./OrderDetailsDesktop.css";
 
@@ -12,6 +12,8 @@ export default function OrderDetailsDesktop({ order }) {
     return parseFloat(order.amount) - parseFloat(order.paid);
   };
 
+
+
   // --- Статус ---
   const getStatusStyle = (status) => {
     switch (status) {
@@ -23,14 +25,17 @@ export default function OrderDetailsDesktop({ order }) {
       case "Відмова":
         return "text-WS---DarkRed";
       case "Готовий":
-      case "Відвантажений":
+      case "Відвантажено":
       case "Підтверджений":
       case "У виробництві":
+       case "В роботі":
         return "text-WS---DarkGreen";
       default:
         return "text-WS---DarkRed";
     }
   };
+
+  
 
   // --- Дата ---
   const parseDate = (dateStr) => {
@@ -112,7 +117,7 @@ export default function OrderDetailsDesktop({ order }) {
           </li>
 
           {/* Виробництво */}
-          <li>
+           <li className={ (!order.factStartProduction && !order.planProduction) ? 'is-pending' : ''}>
             {(() => {
               // Виробництво: факт = factStartProduction, план = planProduction
               const factDate = order.factStartProduction;
@@ -169,7 +174,7 @@ export default function OrderDetailsDesktop({ order }) {
           </li>
 
           {/* Готовність */}
-          <li>
+          <li className={(!order.factReadyMax && !order.dateDelay) ? "is-pending" : ""}>
             {(() => {
               const status = getDateStatus(order.planReadyMax, order.factReady);
               return (
@@ -189,7 +194,7 @@ export default function OrderDetailsDesktop({ order }) {
           </li>
 
           {/* Доставка */}
-          <li>
+          <li className={!order.realizationDate ? "is-pending" : ""}>
             {(() => {
               const status = getDateStatus(
                 order.planDelivery,
