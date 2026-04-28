@@ -33,7 +33,7 @@ const styles = {
     boxSizing: "border-box",
     position: "relative",
     overflow: "hidden",
-    // paddingTop: "env(safe-area-inset-top, 0px)", 
+    paddingTop: "env(safe-area-inset-top, 0px)", 
   },
   headerWrapper: {
     position: "absolute", 
@@ -48,7 +48,7 @@ const styles = {
     flexGrow: 1,
     display: "flex",
     flexDirection: "column",
-    height: "100dvh", // Займає рівно весь екран без дірок
+    height: "100dvh", 
     width: "100%",
     overflowY: "auto",
     // paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
