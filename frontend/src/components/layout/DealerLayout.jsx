@@ -30,7 +30,8 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100dvh",
-    position: "relative", 
+    position: "relative",
+    paddingTop: "env(safe-area-inset-top, 0px)", 
   },
   headerWrapper: {
     position: "absolute", 
@@ -38,7 +39,7 @@ const styles = {
     left: 0,
     width: "100%",
     zIndex: 100, 
-    paddingTop: "env(safe-area-inset-top, 0px)",
+    
     // paddingBottom: "env(safe-area-inset-bottom, 0px)",
   },
   main: {
@@ -47,7 +48,7 @@ const styles = {
     flexDirection: "column",
     minHeight: "100dvh", // Займає рівно весь екран без дірок
     width: "100%",
-    paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
+    // paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
   },
 };
 
