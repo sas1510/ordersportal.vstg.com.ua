@@ -48,7 +48,7 @@ const styles = {
     flexGrow: 1,
     display: "flex",
     flexDirection: "column",
-    height: "100dvh", 
+    height: "100%", 
     width: "100%",
     overflowY: "auto",
     // paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
