@@ -29,7 +29,7 @@ const styles = {
    layout: {
     display: "flex",
     flexDirection: "column",
-    minHeight: "100dvh",
+    height: "100dvh",
     boxSizing: "border-box",
     position: "relative",
     overflow: "hidden",
@@ -37,20 +37,21 @@ const styles = {
   },
   headerWrapper: {
     position: "absolute", 
-    top: 0,
+    top: "env(safe-area-inset-top, 0px)",
     left: 0,
     width: "100%",
     zIndex: 100, 
-    paddingTop: "env(safe-area-inset-top, 0px)",
-    paddingBottom: "env(safe-area-inset-bottom, 0px)",
+    // paddingTop: "env(safe-area-inset-top, 0px)",
+    // paddingBottom: "env(safe-area-inset-bottom, 0px)",
   },
   main: {
     flexGrow: 1,
-    display: "flex",
-    flexDirection: "column",
+    // display: "flex",
+    // flexDirection: "column",
     height: "100%", 
     width: "100%",
     overflowY: "auto",
+    boxSizing: "border-box",
     // paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
   },
 };
