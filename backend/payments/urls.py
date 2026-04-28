@@ -3,7 +3,7 @@
 from django.urls import path
 from . import views  
 from django.urls import path
-from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view, create_invoice, make_payment_from_advance
+from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view, create_invoice, make_payment_from_advance, get_partner_full_data_view
 from .views import GetBillPDF
 
 urlpatterns = [
@@ -16,5 +16,6 @@ urlpatterns = [
     path("dealers/bills/", customer_bills_view, name="customer_bills_view" ),
     path("create_invoice/", create_invoice, name="create_invoice" ),
     path("make_payment_from_advance/", make_payment_from_advance, name="make_payment_from_advance"),
+    path("get_partner_full_data/", get_partner_full_data_view, name="get_partner_full_data_view"),
     path("get_bill_pdf/<str:bill_guid>/", GetBillPDF.as_view(), name="get_bill_pdf"),
 ]

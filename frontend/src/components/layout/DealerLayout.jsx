@@ -29,22 +29,25 @@ const styles = {
    layout: {
     display: "flex",
     flexDirection: "column",
-    minHeight: "100vh",
-    position: "relative", // Важливо для абсолютного позиціонування всередині
+    minHeight: "100dvh",
+    position: "relative", 
   },
   headerWrapper: {
-    position: "absolute", // Хедер "літає" над контентом
+    position: "absolute", 
     top: 0,
     left: 0,
     width: "100%",
-    zIndex: 100, // Щоб бути поверх усього
+    zIndex: 100, 
+    paddingTop: "env(safe-area-inset-top, 0px)",
+    // paddingBottom: "env(safe-area-inset-bottom, 0px)",
   },
   main: {
     flexGrow: 1,
     display: "flex",
     flexDirection: "column",
-    minHeight: "100vh", // Займає рівно весь екран без дірок
+    minHeight: "100dvh", // Займає рівно весь екран без дірок
     width: "100%",
+    paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
   },
 };
 

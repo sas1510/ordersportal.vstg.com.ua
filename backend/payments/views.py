@@ -333,7 +333,9 @@ def get_dealer_payment_page_data_view(request):
     # 🔧 bytes → HEX (НЕ міняємо структуру)
     # -------------------------------------------------
     def fix(v):
-        return v.hex().upper() if isinstance(v, (bytes, bytearray, memoryview)) else v
+        if isinstance(v, (bytes, bytearray, memoryview)):
+            return bin_to_guid_1c(v)
+        return v
 
     orders = [{k: fix(v) for k, v in r.items()} for r in orders]
     contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
@@ -909,3 +911,105 @@ class GetBillPDF(APIView):
                 {"detail": f"Помилка обробки файлу: {str(e)}"},
                 status=500
             )
+
+
+
+from django.db import connection, DatabaseError
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
+from rest_framework import serializers
+
+@extend_schema(
+    summary="Повні дані взаєморозрахунків партнера",
+    description="Повертає замовлення, авансові договори та детальну таблицю дебіторської заборгованості.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=serializers.UUIDField,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+    ],
+    responses={
+        200: inline_serializer(
+            name="PartnerFullDataResponse",
+            fields={
+                "orders": serializers.ListField(child=serializers.DictField()),
+                "contracts": serializers.ListField(child=serializers.DictField()),
+                "debts": serializers.DictField(),
+            }
+        )
+    }
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated]) # Або IsAuthenticatedOr1CApiKey
+@safe_view # Ваш кастомний декоратор для логування помилок
+def get_partner_full_data_view(request):
+    # 1. Отримуємо бінарний ID контрагента
+    try:
+        contractor_binary, contractor_guid = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor",
+        )
+    except (ValueError, PermissionError) as e:
+        return JsonResponse({"detail": str(e)}, status=400)
+
+    # Функція для конвертації бінарних даних 1С (UUID) у HEX-рядок
+    def fix_value(v):
+        if isinstance(v, (bytes, bytearray, memoryview)):
+            return v.hex().upper()
+        return v
+
+    def get_dict_list(cursor):
+        if cursor.description:
+            columns = [col[0] for col in cursor.description]
+            return [{k: fix_value(v) for k, v in dict(zip(columns, row)).items()} 
+                    for row in cursor.fetchall()]
+        return []
+
+    try:
+        with connection.cursor() as cursor:
+            # Викликаємо процедуру
+            cursor.execute("EXEC dbo.GetPartnerFullData @Contractor = %s", [contractor_binary])
+
+            # --- RESULT 1: Orders (Актуальні замовлення)
+            orders = get_dict_list(cursor)
+
+            # --- RESULT 2: Contracts (Авансові договори)
+            contracts = []
+            if cursor.nextset():
+                contracts = get_dict_list(cursor)
+
+            # --- RESULT 3: Debts (Деталізація боргу)
+            debt_items = []
+            debt_summary = []
+            if cursor.nextset():
+                raw_debts = get_dict_list(cursor)
+                # Розділяємо звичайні рядки та рядки підсумків (SortOrder)
+                debt_items = [d for d in raw_debts if d.get('SortOrder') == 0]
+                debt_summary = [d for d in raw_debts if d.get('SortOrder') == 1]
+
+    except DatabaseError as e:
+        error_msg = str(e)
+        if "927" in error_msg or "recovery" in error_msg.lower():
+            return JsonResponse({"error": "database_recovery", "detail": "База оновлюється..."}, status=503)
+        return JsonResponse({"detail": f"SQL Error: {error_msg}"}, status=500)
+
+    # Формуємо єдину відповідь
+    return JsonResponse(
+        {
+            "contractor_guid": contractor_guid,
+            "orders": orders,
+            "contracts": contracts,
+            "debts": {
+                "items": debt_items,
+                "summaries": debt_summary # Список підсумків за валютами
+            }
+        },
+        json_dumps_params={"ensure_ascii": False}
+    )

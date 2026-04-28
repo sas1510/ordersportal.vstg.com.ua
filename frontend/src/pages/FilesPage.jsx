@@ -47,6 +47,13 @@ const FilesPage = () => {
   const isAdmin = role === "admin";
   const { addNotification } = useNotification();
 
+  const backgroundImage = "/assets/icons/FileBackground.jpg";
+  const searchIcon = "/assets/icons/SearchIcon.png";
+  const plusIcon = "/assets/icons/PlusIcon.png";
+  const downloadIcon = "/assets/icons/DownloadIcon.png";
+  const profileIcon = "/assets/icons/ProfileFilesIcon.png";
+  const fileIcon = "/assets/icons/FileIconFilePage.png";
+
   // Визначаємо, чи активна темна тема
   const isDarkTheme = document.body.classList.contains("dark-theme");
 
@@ -261,9 +268,97 @@ const FilesPage = () => {
   };
 
   return (
-    <div className="file-body column gap-14">
+    <div className="file-body column gap-14  items-center" style={{  fontFamily: "'Inter', sans-serif" }}>
+
+  <section className="relative w-full min-h-[300px] flex items-center justify-center overflow-hidden ">
+  {/* Фонове зображення */}
+  <div className="absolute inset-0 z-0">
+    <img src={backgroundImage} className="w-full h-full object-cover" alt="Background" />
+    <div className="absolute inset-0 bg-black/50" />
+  </div>
+
+  {/* Контентна частина */}
+  <div className="relative z-10 pt-[100px] container mx-auto w-[calc(100%-20px)] max-w-[1334px] text-white">
+    
+    {/* Заголовок завжди по центру */}
+    <h1 className="text-[32px] font-bold uppercase tracking-wider text-center">
+      Файли
+    </h1>
+
+    {/* Рядок з текстом та пошуком */}
+{/* Рядок з текстом та правою панеллю управління */}
+<div className="flex flex-col md:flex-row items-center md:items-end justify-center gap-6 relative">
+  
+  {/* Центрований текст */}
+  <p className="text-[20px] font-light text-center leading-tight">
+    Корисні матеріали для завантаження: <br />
+    сертифікати, протоколи випробувань, будівельні норми тощо.
+  </p>
+
+  {/* Права панель: Пошук + Кнопка (якщо адмін) */}
+  <div className="flex flex-col items-end gap-3 w-full max-w-[285px] md:absolute md:right-0 md:bottom-0">
+    
+    {/* Кнопка адміна (з’явиться над пошуком) */}
+    {isAdmin && (
+      <button
+        className="w-full bg-custom-green hover:bg-custom-green-dark text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
+        onClick={() => setAddModalOpen(true)}
+      >
+        <img src={plusIcon} className="mr-2" /> Додати файл
+      </button>
+    )}
+
+    {/* Пошук */}
+    <div className="relative w-full">
+      <input
+        type="text"
+        placeholder="пошук за назвою"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full py-2.5 px-11 rounded-[5px] bg-white text-zinc-800 border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-lime-500"
+      />
+      <img 
+        src={searchIcon} 
+        alt="Search" 
+        className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+      />
+    </div>
+  </div>
+</div>
+  </div>
+</section>
+
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      {/* <div className="flex items-center justify-between mb-4">
+          <div className="w-full h-64 left-0 top-0 absolute bg-zinc-300" />
+          <img className="w-full h-[499.84px] left-0 top-[-193.80px] absolute" src={backgroundImage}/>
+          <div className="w-full h-64 left-0 top-0 absolute bg-black/50" />
+          <div className="w-72 h-10 left-[1102px] top-[178px] absolute bg-WS---White rounded-[5px] border border-WS---MiddleGrey" >
+
+             <FaSearch
+            style={{
+              fontSize: "20px",
+              color: isDarkTheme ? darkStyles.iconColor : "#999",
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Пошук за назвою або автором..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1,
+              border: "none",
+              outline: "none",
+              fontSize: "16px",
+              fontWeight: "400",
+              padding: "8px 0",
+              background: "transparent",
+              // Тут немає інлайн-стилю color!
+            }}
+          />
+          </div>
         <h1 className="text-color mt-3 text-4xl font-bold flex items-center gap-3">
           <span className="text-custom-green icon-document-file-pdf  mr-2" />
           <span>Файли</span>
@@ -276,10 +371,10 @@ const FilesPage = () => {
             <FaPlus size={20} /> Додати файл
           </button>
         )}
-      </div>
+      </div> */}
 
       {/* Search */}
-      <div className="row gap-14 align-center" style={{ marginBottom: "5px" }}>
+      {/* <div className="row gap-14 align-center" style={{ marginBottom: "5px" }}>
         <div
           className="row align-center gap-7 search-box"
           style={{
@@ -315,17 +410,10 @@ const FilesPage = () => {
             }}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Розділювач */}
-      <div
-        style={{
-          borderTop: isDarkTheme
-            ? darkStyles.delimiterBorder
-            : "1px dashed #ccc",
-          marginBottom: "5px",
-        }}
-      ></div>
+
 
       {/* Files List */}
       {loading ? (
@@ -344,29 +432,29 @@ const FilesPage = () => {
           </div>
         </div>
       ) : (
-        <div className="column gap-10">
+        <div className="column gap-10 max-w-[1334px] items-center justify-center  w-[calc(100%-20px)] ">
           {filteredFiles.map((file) => (
             <div
               key={file.id}
-              className={`claim-item row align-center space-between ${isDarkTheme ? "file-item-dark" : ""}`}
+              className={`claim-item w-full row align-center space-between ${isDarkTheme ? "file-item-dark" : ""}`}
               style={{
                 // УМОВНА АДАПТАЦІЯ ФОНУ ЕЛЕМЕНТА
                 background: isDarkTheme ? darkStyles.fileItemBg : "white",
-                border: isDarkTheme
-                  ? darkStyles.fileItemBorder
-                  : "1px solid #eee",
+               
                 boxShadow: isDarkTheme
                   ? darkStyles.fileItemShadow
                   : "0 4px 12px rgba(0,0,0,0.05)",
                 transition: "all 0.2s",
               }}
             >
-              <div className="row align-center gap-10 flex-1">
-                <div style={{ fontSize: "28px" }}>{getFileIcon(file)}</div>
+              <div className="row items-center min-h-[70px]  flex-1">
+                {/* <div style={{ fontSize: "28px" }}>{getFileIcon(file)}</div> */}
+
+                <img src={fileIcon}  className="pl-[17px] pr-[17px]"/>
                 <div className="column gap-2">
                   {/* АДАПТАЦІЯ КОЛЬОРУ ТЕКСТУ */}
                   <div
-                    className="text-info font-semibold"
+                    className="text-WS---DarkGrey font-bold"
                     style={{
                       color: isDarkTheme
                         ? darkStyles.lightTextColor
@@ -383,18 +471,21 @@ const FilesPage = () => {
                         : undefined,
                     }}
                   >
-                    <span>Автор: {file.author?.full_name || "Невідомо"}</span> •
+
+                    <img src={profileIcon} className="pr-[8px]" />
+                    <span>{file.author?.full_name || "Невідомо"}</span> 
+                    <div className="w-[8px] h-[8px] bg-custom-green rounded-[50%]" />
                     <span>{formatDate(file.created_at)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="row gap-7 align-center new-line">
+              <div className="row gap-7 align-center new-line text-[16px] uppercase">
                 <button
-                  className="button background-info row gap-5 align-center"
+                  className="button bg-custom-green h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
                   onClick={() => handleDownload(file)}
                 >
-                  <FaDownload /> Завантажити
+                  <img src={downloadIcon} />  <div className="text-[16px]">Завантажити</div>
                 </button>
 
                 {isAdmin && (
@@ -409,7 +500,7 @@ const FilesPage = () => {
                       className="button background-danger row gap-5 align-center"
                       onClick={() => handleDeleteClick(file)}
                     >
-                      <FaTrash /> Видалити
+                      <FaTrash /> <div className="text-[16px]"> Видалити </div>
                     </button>
                   </>
                 )}

@@ -1849,6 +1849,7 @@ export default function HeaderDealer() {
 
   const [balance, setBalance] = useState(cached?.sum ?? 0);
   const [fullName, setFullName] = useState(cached?.full_name ?? "Завантаження...");
+  const [currency, setCurrency] = useState(cached?.currency ?? "грн");
 
   // 2. Фонове оновлення через API
   useEffect(() => {
@@ -1863,12 +1864,13 @@ export default function HeaderDealer() {
 
         setBalance(data.sum);
         setFullName(data.full_name || "Дилер Ім'я");
-
+        setCurrency(data.currency || "грн");
         localStorage.setItem(
           BALANCE_CACHE_KEY,
           JSON.stringify({
             sum: data.sum,
             full_name: data.full_name,
+            currency: data.currency,
             updatedAt: Date.now(),
           })
         );
@@ -1899,12 +1901,12 @@ export default function HeaderDealer() {
       if (isCleanup) return;
       if (socket.current?.readyState === WebSocket.OPEN || socket.current?.readyState === WebSocket.CONNECTING) return;
 
-      try {
-        await axiosInstance.get("/notifications/count/");
-      } catch {
-        reconnectTimer.current = setTimeout(connectNotifyWS, 5000);
-        return;
-      }
+      // try {
+      //   await axiosInstance.get("/notifications/count/");
+      // } catch {
+      //   reconnectTimer.current = setTimeout(connectNotifyWS, 5000);
+      //   return;
+      // }
 
       const token = getAccessToken();
       if (!token) return;
@@ -1958,7 +1960,7 @@ export default function HeaderDealer() {
         socket.current.close();
       }
     };
-  }, [addNotification, fetchInitialData]);
+  }, [addNotification]);
 
   /* ================= UI HANDLERS ================= */
 /* ================= UI HANDLERS ================= */
@@ -2083,7 +2085,12 @@ useEffect(() => {
         setShowFinanceMenu(false); // Закриваємо фінанси при відкритті профілю
       }}
     >
-      <HeaderDealerProfile />
+     
+      <HeaderDealerProfile 
+        balance={balance} 
+        currency={currency} // переконайтеся, що в HeaderDealer теж є стан для currency
+        fullName={fullName} 
+      />
     </button>
 
     {/* Випадаюче меню профілю */}
@@ -2194,7 +2201,7 @@ useEffect(() => {
         >
           {link.title}
         </Link>
-        <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dashed border-[#B4D947]" />
+        <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />
       </div>
     );
   })}
@@ -2219,7 +2226,7 @@ useEffect(() => {
             <Link
               key={sub.to}
               to={sub.to}
-              className={`flex py-2 px-[10%] text-[16px] font-semibold border-b border-[#44403E]/20 border-dashed last:border-0 ${
+              className={`flex py-2 px-[10%] text-[16px] font-semibold border-b border-[#44403E]/20 border-dotted last:border-0 ${
                 isSubActive ? "bg-[#B4D947]/20 text-[#234461]" : "text-[#44403E]"
               }`}
               onClick={() => setMobileMenuOpen(false)}
@@ -2259,7 +2266,7 @@ useEffect(() => {
       <div className="w-[75%] bg-white rounded-sm flex flex-col overflow-hidden">
         <Link
           to="/change-password"
-          className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50 border-b border-dashed border-[#B4D947]"
+          className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50 border-b border-dotted border-[#B4D947]"
           onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
         >
           Змінити пароль
@@ -2276,7 +2283,7 @@ useEffect(() => {
   )}
 
   {/* Середня пунктирна лінія */}
-  <div className="mx-[5%] border-t border-dashed border-[#44403E]/50" />
+  <div className="mx-[5%] border-t border-dotted border-[#44403E]/50" />
 
   {/* Секція Балансу */}
   <div className="flex items-center px-[15%] gap-4 py-3 pb-2">
@@ -2290,7 +2297,7 @@ useEffect(() => {
 
       {/* Кнопка Виходу */}
       <div className="relative bg-white shrink-0 py-6 w-full">
-        <div className="absolute top-0 left-[5%] right-[5%] border-t border-dashed border-[#44403E]/50" />
+        <div className="absolute top-0 left-[5%] right-[5%] border-t border-dotted border-[#44403E]/50" />
         <button 
           onClick={() => { logout(); navigate("/home"); }}
           className="flex items-center justify-center gap-3 w-full"
