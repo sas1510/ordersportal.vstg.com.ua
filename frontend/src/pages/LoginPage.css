@@ -6,13 +6,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 
   width: 100%;
 
   /* Адаптивні відступи зліва і справа */
   /* padding-top: 100px; Достатньо відступу зверху для мобільних пристроїв */
-  padding-left: clamp(5px, 5vw, 100px);
-  padding-right: clamp(5px, 5vw, 100px);
+  /* padding-left: clamp(5px, 5vw, 100px);
+  padding-right: clamp(5px, 5vw, 100px); */
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -127,7 +128,9 @@
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 80rem;
+  max-width: 1334px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .login-card {
@@ -1070,12 +1073,13 @@
   /* Контейнер всієї сторінки */
   .login-page {
     /* height: calc(100vh + 58px);  */
-    padding: 20px;
-    padding-top: 150px;
+
+   
     overflow-y: auto;
   }
 
   .login-container-wrapper {
+     /* padding-top: 50px; */
     max-width: 100%;
   }
 
@@ -1171,6 +1175,11 @@
   .error-inline {
     font-size: 0.8rem;
   }
+
+  .login-card {
+    margin-top: 50px;
+    min-height: 650px;
+  }
 }
 
 @media (max-height: 599px) {
@@ -1179,8 +1188,8 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-height: 700px) {
   .login-card {
-    max-height: 100vh !important;
+    margin-top: 100px;
   }
 }
