@@ -32,32 +32,6 @@ export const AdditionalOrderItemMobile = ({
   // const writerGuid = user?.user_id_1c;
   const toggleExpanded = () => setExpanded((prev) => !prev);
 
-  // const handleEdit = (updatedCalc) => {
-  //   if (onEdit) onEdit(updatedCalc);
-  // };
-
-  // const handleDownload = async () => {
-  //   try {
-  //     const response = await axiosInstance.get(
-  //       `/calculations/${calc.id}/download/`,
-  //       {
-  //         responseType: "blob",
-  //       },
-  //     );
-
-  //     const url = window.URL.createObjectURL(response.data);
-  //     const link = document.createElement("a");
-  //     link.href = url;
-  //     link.setAttribute("download", `${calc.number}.zkz`);
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //     window.URL.revokeObjectURL(url);
-  //   } catch (error) {
-  //     console.error("Помилка при завантаженні файлу:", error);
-  //   }
-  // };
-
   const handleDelete = async () => {
     if (onDelete) await onDelete(calc.id);
   };
@@ -153,6 +127,7 @@ export const AdditionalOrderItemMobile = ({
   </div>
 </div>
 
+
 <div className="basis-2/5 flex flex-col items-center min-w-0 border-right px-2">
   {/* 2. ЦЕНТРАЛЬНА ЧАСТИНА: Статуси (гнучка ширина) */}
 
@@ -214,6 +189,9 @@ export const AdditionalOrderItemMobile = ({
 <div 
   className="flex-1 shrink-0 ml-auto flex justify-center items-center" 
   onClick={(e) => e.stopPropagation()}
+  onTouchEnd={(e) => e.stopPropagation()}
+  onPointerDown={(e) => e.stopPropagation()}
+
 >
   
             <AdditionalOrderMenu

@@ -161,6 +161,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../api/axios.js";
 import "./DeleteConfirmModal.css";
+import { createPortal } from "react-dom";
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import {
@@ -289,7 +290,7 @@ const DeleteConfirmModal = ({
     }
   };
 
-  return (
+ const modalLayout =  (
     <div className="modal-overlay" onClick={!isDeleting ? onClose : null}>
       <div
         className="modal-content-square"
@@ -345,6 +346,8 @@ const DeleteConfirmModal = ({
       </div>
     </div>
   );
+
+  return createPortal(modalLayout, document.body);
 };
 
 export default DeleteConfirmModal;

@@ -46,7 +46,7 @@
   /* Active state feedback для кращої UX */
   .calc-item > div:first-child:active,
   .order-item > div:first-child:active {
-    transform: scale(0.98);
+    /* transform: scale(0.98); */
     transition: transform 0.1s ease;
   }
 

@@ -491,7 +491,7 @@ const AdditionalOrders = () => {
                   className="align-center mr-2 w-[26px] h-[25px]" 
                   /* inline-style тут вже не потрібні, якщо є класи зверху */
                 />
-                <div className="w-32 flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
+                <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
           </div>
 
