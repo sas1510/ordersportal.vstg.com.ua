@@ -27,10 +27,6 @@
   color: var(--red-pdf-color);
 }
 
-body {
-  overflow: hidden;
-  padding-top: env(safe-area-inset-top);
-}
 
 #main {
   /*    width: calc(100% - 28px);
@@ -167,13 +163,8 @@ body {
   width: calc(100% - 14px);
 }
 
-.body {
-  /*    width: calc(100% - 14px);
-        height: calc(100% - 35px);*/
-  /*    overflow-x: hidden;
-        overflow-y: auto;*/
-  padding: 7px;
-}
+
+
 
 .item > div {
   padding: 3px;
@@ -1395,16 +1386,6 @@ header_logo_white.svg
   padding: 14px;
 }
 
-body {
-  margin: 0;
-  background-color: #d4d6d8 !important;
-  /*background-image: url(https://www.highcharts.com/samples/graphics/sand.png);*/
-  color: var(--text-color);
-  overflow-x: hidden;
-  overflow-y: auto;
-  height: 100vh;
-  min-height: 100vh;
-}
 
 html {
   line-height: 1.5;
@@ -3505,3 +3486,29 @@ body.dark-theme
 .bg-custom-green {
   background-color: #B4D947 ;
 }
+
+
+body {
+  margin: 0;
+  /* background-color: #d4d6d8 !important; */
+  box-sizing: border-box;
+  /*background-image: url(https://www.highcharts.com/samples/graphics/sand.png);*/
+  color: var(--text-color);
+  overflow-x: hidden;
+  overflow-y: hidden;
+  height: 100vh;
+  min-height: 100vh;
+}
+
+
+body {
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top);
+}
+/* .body { */
+  /*    width: calc(100% - 14px);
+        height: calc(100% - 35px);*/
+  /*    overflow-x: hidden;
+        overflow-y: auto;*/
+  /* padding: 7px; */
+/* } */
