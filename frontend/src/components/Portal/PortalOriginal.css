@@ -3496,8 +3496,8 @@ body {
   color: var(--text-color);
   overflow-x: hidden;
   overflow-y: hidden;
-  height: 100vh;
-  min-height: 100vh;
+  /* height: 100vh; */
+  min-height: 100dvh;
 }
 
 
