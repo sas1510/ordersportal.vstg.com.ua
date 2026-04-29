@@ -1820,6 +1820,7 @@ export default function HeaderDealer() {
   const profileIcon = "/assets/icons/ProfileIconSubMenu.png";
   const closeIcon = "/assets/icons/CloseButton.png";
   const polygonIcon = "/assets/icons/PolygonOpenProfileSubmenu.png";
+  const menuIcon = "/assets/icons/Menu_Button.png";
 
   /* ================= ЗАВАНТАЖЕННЯ ДАНИХ (HTTP) ================= */
   const fetchInitialData = useCallback(async () => {
@@ -2147,7 +2148,7 @@ useEffect(() => {
         <div className="ml-auto flex items-center gap-5 mr-4" ref={mobileMenuRef}>
             {/* Дзвоник сповіщень */}
              <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
-              <img src={bellIcon} alt="Сповіщення" className="w-[20px] h-[20px] object-contain" />
+              <img src={bellIcon} alt="Сповіщення" className="w-[20px] h-[20px]" />
               {unreadCount > 0 && (
                 <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B4D947] rounded-full border-2 border-white flex items-center justify-center">
                   <span className="text-[#44403E] text-[9px] font-black">
@@ -2162,7 +2163,7 @@ useEffect(() => {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
               className="text-[#44403E] text-2xl focus:outline-none"
             >
-              {mobileMenuOpen ? "✕" : "☰"}
+              <img src={menuIcon} alt="Меню" className="w-[20px] h-[20px] " />
             </button>
             
             {/* Випадаюче меню мобілки */}
