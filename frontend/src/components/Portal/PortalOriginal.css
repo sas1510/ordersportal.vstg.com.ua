@@ -21,6 +21,7 @@
   --shadow-color: #00000014;
   --portal-bg-color-light: #f3f1d56b;
   --red-pdf-color: #ff0000;
+  
 }
 
 .text-red {
@@ -3498,10 +3499,12 @@ body {
   overflow-y: hidden;
   /* height: 100vh; */
   min-height: 100dvh;
+
 }
 
 
 body {
+  font-family: 'Inter', sans-serif;
   overflow: hidden;
   padding-top: env(safe-area-inset-top);
 }
