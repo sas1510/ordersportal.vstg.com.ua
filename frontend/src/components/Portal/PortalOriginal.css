@@ -29,6 +29,7 @@
 
 body {
   overflow: hidden;
+  padding-top: env(safe-area-inset-top);
 }
 
 #main {
