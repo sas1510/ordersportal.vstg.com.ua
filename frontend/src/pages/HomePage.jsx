@@ -628,7 +628,7 @@ export default function Dashboard() {
       </video>
 
       {/* 2. ОВЕРЛЕЙ */}
-      <motion.div style={{ opacity }} className="hero-overlay">
+      <motion.div className="hero-overlay">
         <div className="hero-gradient"></div>
       </motion.div>
 
