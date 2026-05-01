@@ -21,7 +21,7 @@
   --shadow-color: #00000014;
   --portal-bg-color-light: #f3f1d56b;
   --red-pdf-color: #ff0000;
-  
+
 }
 
 .text-red {
@@ -3515,3 +3515,14 @@ body {
         overflow-y: auto;*/
   /* padding: 7px; */
 /* } */
+
+
+.tiktok-embed {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.tiktok-embed iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+}

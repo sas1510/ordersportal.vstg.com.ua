@@ -1,20 +1,42 @@
-# media/models.py
-
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils import timezone
-from users.models import CustomUser # Переконайтесь, що шлях до CustomUser правильний
+from users.models import CustomUser
+
+class MediaCategory(models.Model):
+    """Модель для категорій медіа-ресурсів"""
+    id = models.BigAutoField(primary_key=True, db_column='ID')
+    name = models.CharField(
+        max_length=100, 
+        verbose_name="Назва категорії", 
+        db_column='Name'
+    )
+    description = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        verbose_name="Опис", 
+        db_column='Description'
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Категорія медіа"
+        verbose_name_plural = "Категорії медіа"
+        db_table = 'MediaCategory'
+
 
 class MediaResource(models.Model):
-    
     # Поле, яке визначає, що це - відео чи файл
     class ResourceType(models.TextChoices):
-        YOUTUBE = 'youtube', 'Відео (YouTube)'
-        TIKTOK  = 'tiktok',  'Відео (TikTok)'
-        FILE    = 'file',    'Файл (завантаження)'
+        YOUTUBE = 'youtube', 'YouTube'
+        TIKTOK  = 'tiktok',  'TikTok'
+        INSTA   = 'instagram','Instagram'
+        FB      = 'facebook', 'Facebook'
+        FILE    = 'file',     'Файл'
 
     # --- Спільні поля ---
-    
     id = models.BigAutoField(primary_key=True, db_column='ID')
 
     title = models.CharField(
@@ -22,6 +44,18 @@ class MediaResource(models.Model):
         verbose_name="Назва/Заголовок", 
         db_column='Title'
     )
+    
+    # ЗВ'ЯЗОК З КАТЕГОРІЄЮ (Випадаючий список)
+    category = models.ForeignKey(
+        MediaCategory,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resources",
+        verbose_name="Категорія",
+        db_column='CategoryID'
+    )
+
     description = models.TextField(
         blank=True, 
         null=True, 
@@ -42,6 +76,15 @@ class MediaResource(models.Model):
         verbose_name="Дата додавання", 
         db_column='CreatedAt'
     )
+
+    external_id = models.CharField(
+        max_length=255, 
+        unique=True, 
+        null=True, 
+        blank=True,
+        verbose_name="ID у соцмережі",
+        db_column='ExternalID'
+    )
     
     resource_type = models.CharField(
         max_length=10,
@@ -58,14 +101,12 @@ class MediaResource(models.Model):
         db_column='Url'
     )
 
-    # --- ЗМІНЕНО: Поля тільки для 'FILE' ---
-    
-    # Використовуємо BinaryField замість TextField
+    # --- Поля тільки для 'FILE' ---
     file_data = models.BinaryField(
         blank=True, 
         null=True, 
         verbose_name="Файл (бінарні дані)", 
-        db_column='FileData'  # Змінено назву колонки
+        db_column='FileData'
     )
     
     file_extension = models.CharField(
@@ -76,28 +117,29 @@ class MediaResource(models.Model):
         db_column='FileExtension'
     )
 
-    def __str__(self):
-        return f"[{self.get_resource_type_display()}] {self.title}"
+    image_url = models.URLField(
+        max_length=1000, 
+        null=True, 
+        blank=True, 
+        verbose_name="URL зображення", 
+        db_column='ImageUrl'
+    )
 
-    # Валідація, щоб не можна було одночасно
-    # заповнити і 'url', і 'file_data'
+    def __str__(self):
+        cat_name = self.category.name if self.category else "Без категорії"
+        return f"[{cat_name}] {self.title}"
+
     def clean(self):
         super().clean()
         
         if self.resource_type in (self.ResourceType.YOUTUBE, self.ResourceType.TIKTOK):
             if not self.url:
                 raise ValidationError(f"Для типу '{self.get_resource_type_display()}' поле 'Посилання (URL)' є обов'язковим.")
-            
-            # ЗМІНЕНО: Очищуємо file_data
             self.file_data = None 
             self.file_extension = None
         
         elif self.resource_type == self.ResourceType.FILE:
-            
-            # ЗМІНЕНО: Перевіряємо file_data
             if not self.file_data or not self.file_extension:
-                # Ця перевірка спрацює тільки при створенні, 
-                # при оновленні 'file_data' може бути порожнім
                 if not self.pk: 
                      raise ValidationError("Для типу 'Файл' поля 'Бінарні дані' та 'Розширення' є обов'язковими.")
             self.url = None

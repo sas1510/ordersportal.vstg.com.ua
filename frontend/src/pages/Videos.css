@@ -1,379 +1,347 @@
-.videos-body {
-  background: radial-gradient(
-    circle,
-    var(--portal-bg-color-end) 45%,
-    var(--portal-bg-color-start)
-  );
-  height: 100vh;
+.videos-container {
+  background: #f3f3f3;
+  min-height: 100vh;
+  /* font-family: Arial, sans-serif; */
+}
+
+/* HERO */
+.videos-hero {
+  position: relative;
+  height: 250px;
+}
+
+.videos-hero-bg {
   width: 100%;
-  padding: 130px 30%; /* ✅ більші відступи */
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 100%;
+  object-fit: cover;
 }
 
-@media (max-width: 1470px) {
-  .videos-body {
-    /* Зменшуємо горизонтальний відступ до 10% */
-    padding: 130px 15%;
-  }
-}
-
-/* ➡️ Стилі для середніх екранів (наприклад, планшетів, менше 1024px) */
-@media (max-width: 1024px) {
-  .videos-body {
-    /* Зменшуємо горизонтальний відступ до 10% */
-    padding: 130px 10%;
-  }
-}
-
-/* ➡️ Стилі для малих екранів (наприклад, мобільних телефонів, менше 768px) */
-@media (max-width: 768px) {
-  .videos-body {
-    /* Зменшуємо горизонтальний відступ ще більше до 4% */
-    padding: 130px 4%;
-  }
-}
-/* ===== Overlay ===== */
-.video-modal-overlay {
-  position: fixed;
+.videos-hero-overlay {
+  position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  animation: fadeIn 0.25s ease;
+  background: rgba(0,0,0,0.5);
 }
 
-/* ===== Вікно ===== */
-.video-modal-window {
-  background: #fff;
-  border-radius: 12px;
-  width: 650px;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  animation: scaleIn 0.25s ease;
+.videos-hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
 }
 
-/* ===== Header ===== */
-.video-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 22px;
-  background: linear-gradient(90deg, #f46c3b, #ff8657);
-  color: #fff;
-}
-
-.video-modal-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.video-close-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  color: #fff;
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    opacity 0.2s;
-}
-.video-close-btn:hover {
-  opacity: 0.8;
-  transform: rotate(90deg);
-}
-
-/* ===== Форма ===== */
-.video-form {
-  padding: 22px 26px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #f46c3b transparent;
-}
-
-.video-form::-webkit-scrollbar {
-  width: 8px;
-}
-.video-form::-webkit-scrollbar-thumb {
-  background: #f46c3b;
-  border-radius: 4px;
-}
-.video-form::-webkit-scrollbar-thumb:hover {
-  background: #d85b2f;
-}
-
-/* ===== Поля ===== */
-.video-label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 18px;
-  font-size: 16px;
-  color: #333;
-}
-
-.video-label span {
-  font-weight: 500;
-}
-
-.video-input,
-.video-textarea,
-.video-select {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.2s;
-}
-
-.video-input:focus,
-.video-textarea:focus,
-.video-select:focus {
-  border-color: #f46c3b;
-  box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.15);
-  outline: none;
-}
-
-.video-textarea {
-  min-height: 90px;
-  resize: vertical;
-  line-height: 1.4;
-}
-
-/* ===== Footer ===== */
-.video-modal-footer {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  padding: 18px 22px;
-  padding-bottom: 0;
-  border-top: 1px solid #eee;
-  background: #fff;
-  z-index: 1;
-}
-
-/* ===== Кнопки ===== */
-.video-btn-cancel,
-.video-btn-save {
+.videos-add-btn {
+  margin-top: 10px;
+  background: #76b448;
   border: none;
   padding: 10px 20px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  font-weight: 600;
+  color: white;
   cursor: pointer;
+}
+
+/* LAYOUT */
+.videos-layout {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  max-width: 1334px;
+  margin: 10px auto;
+  gap: 20px;
 }
 
-/* Скасувати */
-.video-btn-cancel {
-  background: #f46c3b;
-  color: #fff;
-}
-.video-btn-cancel:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(244, 108, 59, 0.3);
+/* SIDEBAR */
+.videos-sidebar {
+  width: 285px;
+  background: white;
+  border-radius: 5px 20px 20px 5px;
+  padding:  15px 0px;
 }
 
-/* Зберегти */
-.video-btn-save {
-  background: #76b448;
-  color: #fff;
-}
-.video-btn-save:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.3);
-}
-.video-btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+.videos-category-item {
+  padding: 10px;
+  cursor: pointer;
+  flex-direction: row;
+  border-bottom: 1px dotted var(--WS---Green);
 }
 
-/* ===== Анімації ===== */
-@keyframes fadeIn {
-  from {
+.videos-category-item.active {
+  background: var( --WS--DarkBlue);
+  color: white;
+}
+
+/* GRID */
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.video-card-display {
+  /* background: white; */
+}
+
+.video-thumbnail {
+  aspect-ratio: 16/9;
+} 
+
+.video-thumbnail iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.video-card-footer {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  background-color: #fff;
+  border-radius: 5px;
+  border-top: 5px solid var(--WS---Green);
+  padding: 10px;
+  
+}
+
+/* MOBILE */
+.videos-sidebar-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .videos-sidebar {
+    position: fixed;
+    /* Центруємо точку відліку */
+    /* left: 50%; */
+    top: 50%;
+    
+    /* Встановлюємо ширину, щоб воно не розповзалося */
+    width: 90%;
+    max-width: 400px;
+    
+    /* 
+       Важливо: початковий стан тепер не збоку, 
+       а в центрі, але невидимий (наприклад, масштабований) 
+    */
+    transform: translate(-50%, -50%) scale(0.9);
     opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    pointer-events: none; /* Щоб не клікалося, коли закрито */
+    
+    /* transition: all 0.3s ease-in-out; */
+    z-index: 10001;
+    
+    /* Додаємо косметику, щоб воно виглядало як вікно */
+    background: white;
+    border-radius: 5px 20px 20px 5px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    /* padding: 10px; */
 }
-@keyframes scaleIn {
-  from {
-    transform: scale(0.94);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
+
+.videos-sidebar.open {
+    /* Повертаємо в нормальний розмір і показуємо */
+    transform: translate(0%, -50%) scale(1);
     opacity: 1;
+    pointer-events: auto;
+}
+  .videos-sidebar-toggle {
+    display: flex;
+    padding: 10px;
+    background: white;
+    margin: 10px;
+    cursor: pointer;
+  }
+
+  .sidebar-overlay-videos {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
   }
 }
 
-.loader,
-.loader-small {
-  border: 4px solid #f3f3f3;
+/* LOADER */
+.loader {
+  border: 4px solid #eee;
   border-top: 4px solid #76b448;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
+  margin: 50px auto;
   animation: spin 1s linear infinite;
-  margin: auto;
 }
-.loader-small {
-  width: 20px;
-  height: 20px;
-  border-width: 3px;
-}
+
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
   100% {
     transform: rotate(360deg);
   }
 }
 
-/* 🌙 ===== DARK THEME ===== */
-.dark-theme .videos-body {
-  background: radial-gradient(circle, #1b1b1b 45%, #111);
-  color: #f1f1f1;
+.videos-sidebar-mobile-header {
+  display: none;
 }
 
-/* ===== Overlay ===== */
-.dark-theme .video-modal-overlay {
-  background: rgba(0, 0, 0, 0.75);
+@media (max-width: 1334px) {
+  .videos-layout { margin-left: 10px; margin-right: 10px;}
+  }
+
+
+@media (max-width: 768px) {
+  .videos-sidebar-mobile-header {
+
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 10px;
+
+  }
+
+  .videos-layout {gap: 0px; margin-left: 10px; margin-right: 10px;}
+
+
+  .videos-hero-content {
+    /* position: absolute;
+    top: 45%;
+    left: 45%;
+    transform: translate(-45%, -45%);
+    color: white;
+    text-align: center; */
+    min-width: 200px;
+  }
 }
 
-/* ===== Вікно ===== */
-.dark-theme .video-modal-window {
-  background: #1f1f1f;
-  color: #eaeaea;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+.social-icons-row {
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
+  margin-top: 10px;
+  justify-content: center;
+  
 }
 
-/* ===== Header ===== */
-.dark-theme .video-modal-header {
-  background: linear-gradient(90deg, #f46c3b, #d85b2f);
-  color: #fff;
+
+
+.videos-categories-nav {
+       
 }
 
-.dark-theme .video-modal-header h3 {
-  color: #fff;
+.search-wrapper {
+    margin-bottom: 20px;  
 }
 
-.dark-theme .video-close-btn {
-  color: #fff;
-}
-.dark-theme .video-close-btn:hover {
-  opacity: 0.8;
-  transform: rotate(90deg);
+
+/* Робимо іконку білою для активного стану */
+.active-icon {
+    filter: brightness(0) invert(1);
+    /* transition: filter 0.2s ease; Плавний перехід кольору */
 }
 
-/* ===== Форма ===== */
-.dark-theme .video-form {
-  scrollbar-color: #f46c3b #222;
+
+.submenu-divider-dashed {
+    border-top: 1px dotted var(--WS---DarkGrey);
+    margin: 10px 10px; 
+    opacity: 0.5;
 }
 
-.dark-theme .video-form::-webkit-scrollbar-thumb {
-  background: #f46c3b;
-}
-.dark-theme .video-form::-webkit-scrollbar-thumb:hover {
-  background: #d85b2f;
+.menu-divider-dashed {
+    border-top: 1px dotted var(--WS---Green);
+    margin: 10px 0; 
 }
 
-/* ===== Поля ===== */
-.dark-theme .video-label {
-  color: #ddd;
+.border-round-active {
+    border: 2px solid var(--WS---Green);
+    padding: 4px;
+    border-radius: 4px;
 }
 
-.dark-theme .video-input,
-.dark-theme .video-textarea,
-.dark-theme .video-select {
-  background: #2b2b2b;
-  color: #f1f1f1;
-  border: 1px solid #444;
+
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
 
-.dark-theme .video-input:focus,
-.dark-theme .video-textarea:focus,
-.dark-theme .video-select:focus {
-  border-color: #f46c3b;
-  box-shadow: 0 0 0 3px rgba(244, 108, 59, 0.25);
+.video-card-display {
+
+  border-radius: 8px;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
 }
 
-/* ===== Footer ===== */
-.dark-theme .video-modal-footer {
-  background: #1f1f1f;
-  border-top: 1px solid #333;
+.video-thumbnail {
+  aspect-ratio: 16 / 9; /* Для YouTube */
+  width: 100%;
 }
 
-/* ===== Кнопки ===== */
-.dark-theme .video-btn-cancel {
-  background: #f46c3b;
-  color: #fff;
-}
-.dark-theme .video-btn-cancel:hover {
-  box-shadow: 0 6px 16px rgba(244, 108, 59, 0.35);
+/* Спеціальний стиль для вертикальних TikTok відео в сітці */
+.video-card-display:has(iframe[src*="tiktok"]) .video-thumbnail {
+  aspect-ratio: 9 / 16; 
+  max-height: 500px;
 }
 
-.dark-theme .video-btn-save {
-  background: #76b448;
-  color: #fff;
-}
-.dark-theme .video-btn-save:hover {
-  box-shadow: 0 6px 16px rgba(118, 180, 72, 0.35);
-}
-
-/* ===== Loader ===== */
-.dark-theme .loader,
-.dark-theme .loader-small {
-  border: 4px solid #333;
-  border-top: 4px solid #76b448;
-}
-.dark-theme .loader-small {
-  border-width: 3px;
+.social-widget-no-grid {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрування віджета */
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* ===== Плавний перехід між темами ===== */
-.videos-body,
-.video-modal-window,
-.video-modal-header,
-.video-input,
-.video-textarea,
-.video-select,
-.video-modal-footer {
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border 0.3s ease;
+
+.custom-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-/* Контейнер для TikTok, щоб він не був занадто широким на десктопі */
-.tiktok-wrapper {
-  max-width: 325px; /* Стандартна ширина віджета TikTok */
-  margin: 0 auto; /* Центрування */
-  border: 1px solid var(--drawer-border);
+/* TikTok колонка */
+.tiktok-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.videos-body .claim-item {
-  transition: transform 0.2s;
+/* YouTube колонка */
+.youtube-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.videos-body .claim-item:hover {
-  transform: translateY(-2px);
+/* TikTok високий */
+.tiktok-column .video-thumbnail {
+  aspect-ratio: 9 / 16;
+  max-height: 600px;
+}
+
+/* YouTube стандарт */
+.youtube-column .video-thumbnail {
+  aspect-ratio: 16 / 9;
+}
+
+.videos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  /* grid-auto-rows: 200px; базова висота */
+}
+
+/* звичайний YouTube */
+.video-card-display {
+  grid-row: span 1;
+}
+
+/* TikTok великий */
+.tiktok-big {
+  grid-row: span 2;
+}
+
+/* YouTube */
+.video-thumbnail iframe {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+/* TikTok робимо вищим */
+.tiktok-big .video-thumbnail iframe {
+  aspect-ratio: 9 / 16;
 }
