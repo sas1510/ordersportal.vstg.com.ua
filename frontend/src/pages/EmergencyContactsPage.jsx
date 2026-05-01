@@ -3,16 +3,21 @@ import axiosInstance from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../hooks/useNotification";
+import { QRCodeCanvas } from "qrcode.react";
+
 import "./EmergencyContactsPage.css";
 
 const EmergencyContactsPage = () => {
   const [contacts, setContacts] = useState([]);
   const { user, role } = useAuthGetRole();
   const { addNotification } = useNotification();
+  const [telegramContact, setTelegramContact] = useState(null);
 
   // const role = localStorage.getItem('role');
   // const isAdmin = role === 'admin';
   const isAdmin = role === "admin";
+
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
@@ -206,6 +211,17 @@ const EmergencyContactsPage = () => {
                   >
                     Видалити
                   </button>
+
+                  {/* Кнопка для підключення Telegram */}
+                <button
+                  onClick={() => {
+                    setTelegramContact(contact);
+                  }}
+                  className="emerg-btn-save"
+                  style={{ backgroundColor: '#0088cc', color: '#fff' }}
+                >
+                  Підключити Telegram
+                </button>
                 </>
               )}
             </div>
@@ -215,18 +231,18 @@ const EmergencyContactsPage = () => {
 
       {/* Модал додавання/редагування */}
       {isModalOpen && (
-        <div className="video-modal-overlay" onClick={closeModal}>
+        <div className="emergy-modal-overlay" onClick={closeModal}>
           <div
-            className="video-modal-window"
+            className="emergy-modal-window"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="video-modal-header">
+            <div className="emergy-modal-header mb-4">
               <h3>
                 {editingContact
                   ? "✏️ Редагування контакту"
                   : "➕ Додати контакт"}
               </h3>
-              <button className="video-close-btn" onClick={closeModal}>
+              <button className="emergy-close-btn" onClick={closeModal}>
                 ✕
               </button>
             </div>
@@ -286,20 +302,20 @@ const EmergencyContactsPage = () => {
                   className="video-input"
                 />
               </div>
-              <div className="video-modal-footer">
+              <div className="emergy-modal-footer">
                 <button
                   type="button"
-                  className="video-btn-cancel"
+                  className="emergency-btn-cancel"
                   onClick={closeModal}
                 >
                   ✕ Скасувати
                 </button>
-                <button type="submit" className="video-btn-save">
+                <button type="submit" className="emergency-btn-confirm ml-4" >
                   {isSending
                     ? "Зберігаю..."
                     : editingContact
-                      ? "💾 Оновити"
-                      : "💾 Додати"}
+                      ? "Оновити"
+                      : "Додати"}
                 </button>
               </div>
             </form>
@@ -307,36 +323,76 @@ const EmergencyContactsPage = () => {
         </div>
       )}
 
+      {telegramContact && (
+  <div className="emergy-modal-overlay" onClick={() => setTelegramContact(null)}>
+    <div
+      className="emergy-modal-window"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="emergy-modal-header ">
+        <h3> Підключення Telegram</h3>
+        <button
+          className="video-close-btn"
+          onClick={() => setTelegramContact(null)}
+        >
+          ✕
+        </button>
+      </div>
+
+      <div className="p-4 flex flex-col items-center gap-4">
+        <QRCodeCanvas
+          value={`https://t.me/ViknaStyleNotificationsBo?start=${telegramContact.id}`}
+          size={200}
+        />
+
+        <p className="text-center text-sm text-gray-600">
+          Відскануйте QR-код або натисніть кнопку нижче
+        </p>
+
+        <a
+          href={`https://t.me/ViknaStyleNotificationsBo?start=${telegramContact.id}`}
+          target="_blank"
+          rel="noreferrer"
+          className="emerg-btn-save"
+          style={{ textAlign: "center", width: "100%" }}
+        >
+          Підключити Telegram
+        </a>
+      </div>
+    </div>
+  </div>
+)}
+
       {/* Модал видалення */}
       {deleteContactId && (
-        <div className="video-modal-overlay" onClick={closeModal}>
+        <div className="emergy-modal-overlay" onClick={closeModal}>
           <div
-            className="video-modal-window"
+            className="emergy-modal-window"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="video-modal-header">
-              <h3>⚠️ Підтвердження видалення</h3>
-              <button className="video-close-btn" onClick={closeModal}>
+            <div className="emergy-modal-header">
+              <h3> Підтвердження видалення</h3>
+              <button className="emergy-close-btn" onClick={closeModal}>
                 ✕
               </button>
             </div>
             <p className="p-4 text-center">
               Ви впевнені, що хочете видалити контакт?
             </p>
-            <div className="video-modal-footer">
+            <div className="emergy-modal-footer">
               <button
-                className="video-btn-cancel"
+                className="emergency-btn-cancel"
                 onClick={closeModal}
                 disabled={isSending}
               >
                 ✕ Відмінити
               </button>
               <button
-                className="video-btn-save"
+                className="emergency-btn-confirm ml-4"
                 onClick={handleDeleteContact}
                 disabled={isSending}
               >
-                {isSending ? "Видаляю..." : "✅ Видалити"}
+                {isSending ? "Видаляю..." : " Видалити"}
               </button>
             </div>
           </div>

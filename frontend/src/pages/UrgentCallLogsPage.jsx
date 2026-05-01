@@ -4,6 +4,7 @@ import axiosInstance from "../api/axios";
 import { useNotification } from "../hooks/useNotification";
 import "./UrgentCallLogsPage.css";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function EmergencyCallLogsPage() {
   const [logs, setLogs] = useState([]);
@@ -251,12 +252,12 @@ export default function EmergencyCallLogsPage() {
 
       {/* ==================== Модал ==================== */}
       {addModalOpen && (
-        <div className="video-modal-overlay" onClick={closeModal}>
+        <div className="emergy-modal-overlay" onClick={closeModal}>
           <div
-            className="video-modal-window"
+            className="emergy-modal-window"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="video-modal-header">
+            <div className="video-modal-header justify-between row mb-4">
               <h3>
                 {editingLog ? "✏️ Редагування контакту" : "➕ Додати контакт"}
               </h3>
@@ -302,7 +303,7 @@ export default function EmergencyCallLogsPage() {
                   className="video-input"
                 />
               </div>
-              <div className="modal-field">
+              {/* <div className="modal-field">
                 <input
                   name="telegramId"
                   value={newContact.telegramId}
@@ -312,7 +313,7 @@ export default function EmergencyCallLogsPage() {
                   placeholder="Telegram ID"
                   className="video-input"
                 />
-              </div>
+              </div> */}
               <div className="modal-field">
                 <input
                   name="department"
@@ -325,20 +326,25 @@ export default function EmergencyCallLogsPage() {
                   className="video-input"
                 />
               </div>
+              <div className="text-sm text-gray-600 mt-2 mb-4">
+                Після збереження даних вам  не забудьте підключитися до тг бота на сторінці <Link className="underline" to="/emergency-contacts">
+                  термінових контактів
+                </Link>
+              </div>
               <div className="video-modal-footer">
                 <button
                   type="button"
-                  className="video-btn-cancel"
+                  className="emergency-btn-cancel"
                   onClick={closeModal}
                 >
                   ✕ Скасувати
                 </button>
-                <button type="submit" className="video-btn-save">
+                <button type="submit" className="emergency-btn-confirm ml-4">
                   {saving
                     ? "Зберігаю..."
                     : editingLog
-                      ? "💾 Оновити"
-                      : "💾 Додати"}
+                      ? " Оновити"
+                      : " Додати"}
                 </button>
               </div>
             </form>

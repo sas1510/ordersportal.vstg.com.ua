@@ -330,6 +330,7 @@ const SETTINGS_SUBMENU = [
   { title: "Користувачі", to: "/users-list" },
   { title: "Менеджер TG", to: "/manager-qr" },
   { title: "Статистика SOS", to: "/urgentLogs" },
+  { title: "Термінові контакти", to: "/emergency-contacts" },
 ];
 
 export default function HeaderAdmin() {
