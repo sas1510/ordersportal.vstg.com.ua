@@ -319,7 +319,7 @@
 
 .videos-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* grid-template-columns: repeat(3, 1fr); */
   gap: 15px;
   /* grid-auto-rows: 200px; базова висота */
 }
