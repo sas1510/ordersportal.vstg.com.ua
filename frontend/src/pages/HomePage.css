@@ -61,7 +61,7 @@
   padding: 0 1rem;
   max-width: 72rem;
   margin: 0 auto;
-  margin-top: 200px;
+  /* margin-top: 200px; */
 }
 
 .hero-title {
@@ -88,6 +88,8 @@
   .hero-title {
     font-size: 4.5rem;
   }
+
+
 }
 
 .hero-divider {
@@ -906,3 +908,10 @@ body.dark-theme .scroll-indicator {
 
   
 }
+
+/* 
+@media (max-width: 768px) {
+    .hero-content {
+    margin-top: 100px;
+  }
+} */

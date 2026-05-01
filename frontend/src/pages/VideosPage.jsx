@@ -242,7 +242,7 @@ const formatDate = (dateString) => {
         <img src={backgroundImage} className="videos-hero-bg" alt="bg" />
         <div className="videos-hero-overlay" />
         <div className="videos-hero-content w-full max-w-[1440px] mx-auto px-4">
-          <h1 className="text-[24px] xl:text-[32px] font-bold uppercase tracking-wider text-center mt-2">Відео</h1>
+          <h1 className="text-[24px] xl:text-[32px] font-bold uppercase tracking-wider text-center pt-[100px]">Відео</h1>
           <div className={`flex !flex-col md:!flex-row items-center gap-6 ${isAdmin ? 'justify-between' : 'justify-center'}`}>
             <div className="hidden lg:block lg:flex-1" />
             <p className="text-[16px] xl:text-[20px] font-light text-center leading-tight lg:flex-1 max-w-[600px]">

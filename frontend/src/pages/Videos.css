@@ -134,6 +134,7 @@
 
 .videos-sidebar.open {
     /* Повертаємо в нормальний розмір і показуємо */
+    margin-left: -10px;
     transform: translate(0%, -50%) scale(1);
     opacity: 1;
     pointer-events: auto;
@@ -272,6 +273,7 @@
 .video-card-display:has(iframe[src*="tiktok"]) .video-thumbnail {
   aspect-ratio: 9 / 16; 
   max-height: 500px;
+  
 }
 
 .social-widget-no-grid {
