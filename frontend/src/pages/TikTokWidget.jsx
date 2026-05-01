@@ -3,41 +3,41 @@ import React, { useEffect, useState } from 'react';
 const TikTokWidget = ({ username = 'viknastyle' }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    let script;
+useEffect(() => {
     const scriptId = 'tiktok-embed-script';
-const initTikTok = () => {
-  // Перевіряємо, чи скрипт вже завантажений глобально
-  if (window.tiktok && typeof window.tiktok.render === 'function') {
-    window.tiktok.render();
-    setIsLoaded(true);
-    return;
-  }
+    
+    const loadTikTok = () => {
+      // 1. Якщо скрипт вже є, видаляємо його, щоб змусити ініціалізуватися заново
+      const existingScript = document.getElementById(scriptId);
+      if (existingScript) {
+        existingScript.remove();
+      }
 
-  // Якщо скрипта ще немає в DOM взагалі
-  if (!document.getElementById(scriptId)) {
-    script = document.createElement('script');
-    script.id = scriptId;
-    script.src = 'https://www.tiktok.com/embed.js';
-    script.async = true;
-    script.onload = () => {
-        // Даємо невелику паузу після завантаження скрипта
-        setTimeout(() => {
-            if (window.tiktok) window.tiktok.render();
-            setIsLoaded(true);
-        }, 100);
+      // 2. Створюємо новий тег скрипта
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://www.tiktok.com/embed.js';
+      script.async = true;
+      
+      script.onload = () => {
+        // 3. Деякі версії скрипта потребують явного виклику, якщо він доступний
+        if (window.tiktok && typeof window.tiktok.render === 'function') {
+          window.tiktok.render();
+        }
+        setIsLoaded(true);
+      };
+
+      document.body.appendChild(script);
     };
-    document.body.appendChild(script);
-  }
-};
 
-    // Затримка ініціалізації на 200мс, щоб дати React завершити рендер сторінки
-    const timeout = setTimeout(initTikTok, 200);
+    // Даємо React час відрендерити <blockquote> перед тим як скрипт почне його шукати
+    const timeout = setTimeout(loadTikTok, 100);
 
     return () => {
       clearTimeout(timeout);
-      // Ми не видаляємо скрипт з body, щоб при повторному переході він не вантажився знову,
-      // але ми зупиняємо таймер, якщо користувач швидко пішов зі сторінки.
+      // При розмонтуванні можна видалити скрипт, щоб наступного разу він точно перевантажився
+      const script = document.getElementById(scriptId);
+      if (script) script.remove();
     };
   }, [username]);
 
