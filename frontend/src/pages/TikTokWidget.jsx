@@ -6,25 +6,30 @@ const TikTokWidget = ({ username = 'viknastyle' }) => {
   useEffect(() => {
     let script;
     const scriptId = 'tiktok-embed-script';
+const initTikTok = () => {
+  // Перевіряємо, чи скрипт вже завантажений глобально
+  if (window.tiktok && typeof window.tiktok.render === 'function') {
+    window.tiktok.render();
+    setIsLoaded(true);
+    return;
+  }
 
-    const initTikTok = () => {
-      // Якщо скрипт вже є в системі
-      if (document.getElementById(scriptId)) {
-        if (window.tiktok && typeof window.tiktok.render === 'function') {
-          window.tiktok.render();
-          setIsLoaded(true);
-        }
-        return;
-      }
-
-      // Створюємо скрипт тільки при монтуванні
-      script = document.createElement('script');
-      script.id = scriptId;
-      script.src = 'https://www.tiktok.com/embed.js';
-      script.async = true;
-      script.onload = () => setIsLoaded(true);
-      document.body.appendChild(script);
+  // Якщо скрипта ще немає в DOM взагалі
+  if (!document.getElementById(scriptId)) {
+    script = document.createElement('script');
+    script.id = scriptId;
+    script.src = 'https://www.tiktok.com/embed.js';
+    script.async = true;
+    script.onload = () => {
+        // Даємо невелику паузу після завантаження скрипта
+        setTimeout(() => {
+            if (window.tiktok) window.tiktok.render();
+            setIsLoaded(true);
+        }, 100);
     };
+    document.body.appendChild(script);
+  }
+};
 
     // Затримка ініціалізації на 200мс, щоб дати React завершити рендер сторінки
     const timeout = setTimeout(initTikTok, 200);
