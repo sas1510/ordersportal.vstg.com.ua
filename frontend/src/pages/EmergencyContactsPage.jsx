@@ -341,7 +341,7 @@ const EmergencyContactsPage = () => {
 
       <div className="p-4 flex flex-col items-center gap-4">
         <QRCodeCanvas
-          value={`https://t.me/ViknaStyleNotificationsBot?add_contact=${telegramContact.id}`}
+          value={`https://t.me/ViknaStyleNotificationsBot?start=reg${telegramContact.id}`}
           size={200}
         />
 
@@ -350,7 +350,7 @@ const EmergencyContactsPage = () => {
         </p>
 
         <a
-          href={`https://t.me/ViknaStyleNotificationsBot?add_contact=${telegramContact.id}`}
+          href={`https://t.me/ViknaStyleNotificationsBot?start=reg${telegramContact.id}`}
           target="_blank"
           rel="noreferrer"
           className="emerg-btn-save"
