@@ -26,29 +26,33 @@ const AdminLayout = () => (
 );
 
 const styles = {
-  layout: {
+   layout: {
     display: "flex",
     flexDirection: "column",
-    minHeight: "100vh",
+    height: "100dvh",
+    boxSizing: "border-box",
     position: "relative",
+    overflow: "hidden",
+    paddingTop: "env(safe-area-inset-top, 0px)", 
   },
   headerWrapper: {
-    position: "fixed", // Тепер хедер завжди прибитий до верху екрана
-    top: 0,
+    position: "absolute", 
+    top: "env(safe-area-inset-top, 0px)",
     left: 0,
     width: "100%",
-    zIndex: 1000, // Піднімаємо z-index, щоб перекрити все
-    pointerEvents: "none", 
+    zIndex: 100, 
+    // paddingTop: "env(safe-area-inset-top, 0px)",
+    // paddingBottom: "env(safe-area-inset-bottom, 0px)",
   },
   main: {
     flexGrow: 1,
-    display: "flex",
-    flexDirection: "column",
-    minHeight: "100vh",
+    // display: "flex",
+    // flexDirection: "column",
+    height: "100%", 
     width: "100%",
-    // Якщо ви хочете, щоб контент сторінки НЕ заходив ПІД хедер 
-    // (наприклад, на сторінці Оплат), додайте внутрішній відступ:
-    // paddingTop: "132px", 
+    overflowY: "auto",
+    boxSizing: "border-box",
+    // paddingTop: "calc(48px + env(safe-area-inset-top, 0px))", // Враховуємо висоту хедера + безпечну зону
   },
 };
 
