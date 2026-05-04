@@ -344,7 +344,7 @@ export default function PaymentModal({
   const { addNotification } = useNotification();
 
   const debt = useMemo(() => Number(order.DebtAmount || 0), [order]);
-  // Отримуємо валюту замовлення для порівняння
+
   const orderCurrency = useMemo(() => order.CurrencyName || order.Currency || "грн", [order]);
 
   const getSelected = useCallback(
@@ -357,7 +357,7 @@ export default function PaymentModal({
     [getSelected],
   );
 
-  // ----------------- LOAD CONTRACTS -----------------
+
   const loadContracts = async () => {
     setLoading(true);
     setLoadError("");
@@ -365,7 +365,7 @@ export default function PaymentModal({
       const res = await axiosInstance.get(`/payments/get_dealer_advance_balance/`);
       const allData = res.data || [];
       
-      // 🔥 КРИТЕРІЙ: Фільтруємо договори за валютою замовлення
+
       const filteredData = allData.filter(c => 
         (c.CurrencyName || "грн") === orderCurrency
       );
@@ -383,7 +383,7 @@ export default function PaymentModal({
           );
         }
       } else {
-        // Якщо договори є, але валюти не збігаються
+
         if (allData.length > 0) {
           setLoadError(`У вас немає авансових договорів у валюті ${orderCurrency}.`);
         } else {
@@ -400,9 +400,9 @@ export default function PaymentModal({
 
   useEffect(() => {
     loadContracts();
-  }, [orderCurrency]); // Перевантажуємо, якщо раптом зміниться замовлення
+  }, [orderCurrency]); 
 
-  // Решта ефектів (Escape, авто-підстановка суми) залишаються без змін
+
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === "Escape" && !isSubmitting) onClose(); };
     window.addEventListener("keydown", handleEsc);
@@ -515,7 +515,7 @@ export default function PaymentModal({
         </div>
       )}
 
-      {/* 🔥 КНОПКИ 50% ТА 100% ПОВЕРНУТО СЮДИ */}
+      
       {selectedContract && getAvailable() > 0 && (
         <div className="quick-buttons centered" style={{ marginTop: '10px', marginBottom: '10px' }}>
           <button 

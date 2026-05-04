@@ -20,9 +20,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
 const ITEMS_PER_LOAD = 100;
 
-/* --------------------------------------------------------
- *   FORMAT API DATA
- * -------------------------------------------------------- */
+
 function formatApiData(data) {
     if (!Array.isArray(data)) return [];
 
@@ -73,14 +71,7 @@ function formatApiData(data) {
     });
 }
 
-/* --------------------------------------------------------
- *   GET INITIAL DEALER
- * -------------------------------------------------------- */
 
-
-/* ========================================================
- *   MAIN COMPONENT
- * ======================================================== */
 const ReclamationPortal = () => {
 
     const { register, cancelAll } = useCancelAllRequests();
@@ -132,8 +123,6 @@ const ReclamationPortal = () => {
 
     const closeIcon = "/assets/icons/CloseButton.png";
 
-    // Переконайтеся, що useNavigate імпортовано:
-// import { useNavigate, useLocation } from 'react-router-dom';
 
     const navigate = useNavigate();
 
@@ -142,16 +131,16 @@ const ReclamationPortal = () => {
         const searchQuery = params.get('search');
         const yearQuery = params.get('year');
 
-        // 1. Обробка року
+
         if (yearQuery && yearQuery !== selectedYear) {
             setSelectedYear(yearQuery);
             setLoading(true);
-            // Очищаємо URL, щоб користувач міг далі вільно змінювати рік у селекті
+
             navigate(location.pathname, { replace: true });
             return; 
         }
 
-        // 2. Обробка пошуку
+  
         if (searchQuery) {
             setFilter(prev => ({ 
                 ...prev, 
@@ -162,7 +151,6 @@ const ReclamationPortal = () => {
             
             setVisibleItemsCount(ITEMS_PER_LOAD);
 
-            // 3. Розгортання, якщо дані вже підвантажилися
             if (reclamationsData.length > 0) {
                 const found = reclamationsData.find(r => 
                     String(r.number) === searchQuery || String(r.actNumber) === searchQuery
@@ -171,7 +159,7 @@ const ReclamationPortal = () => {
                 if (found) {
                     setExpandedReclamation(found.id);
                     
-                    // Видаляємо search з URL після успішного знаходження
+                  
                     navigate(location.pathname, { replace: true });
 
                     setTimeout(() => {
@@ -203,16 +191,18 @@ const ReclamationPortal = () => {
                 signal: controller.signal
             });
 
-            // 2. Перевірка на успішний статус (якщо ваш API це повертає)
+
             if (response.data) {
                 setReclamationsData(formatApiData(response.data.data || []));
                 setVisibleItemsCount(ITEMS_PER_LOAD);
             }
         } catch (err) {
             if (err.name !== "CanceledError") {
-                // 3. Встановлюємо повідомлення про помилку
+   
                 setError("Не вдалося оновити дані. Перевірте з'єднання.");
+                if (process.env.NODE_ENV === "development") {
                 console.error("Reload error:", err);
+                }
             }
         } finally {
             setReloading(false);
@@ -224,7 +214,7 @@ const ReclamationPortal = () => {
 
     
     const handleMarkAsRead = (complaintId) => {
-        // Оновлюємо стан локально, щоб UI відреагував миттєво
+
         setReclamationsData(prev => prev.map(item => 
             item.id === complaintId ? { ...item, hasUnreadMessages: false } : item
         ));
@@ -258,7 +248,9 @@ const ReclamationPortal = () => {
             } catch (err) {
                 if (err.name !== "CanceledError") {
                     setError("Не вдалося завантажити дані. Спробуйте пізніше.");
-                    console.error(err);
+                    if (process.env.NODE_ENV === "development") {
+                        console.error(err);
+                    }
                     setReclamationsData([]);
                 }
             } finally {
@@ -270,10 +262,10 @@ const ReclamationPortal = () => {
     }, [selectedYear]);
 
     const handleDeleteReclamation = useCallback((id) => {
-        // Оновлюємо стейт, видаляючи рекламацію за її ID
+       
         setReclamationsData(prev => prev.filter(item => item.id !== id));
         
-        // Якщо видалений елемент був розгорнутий - згортаємо його
+
         setExpandedReclamation(prev => prev === id ? null : prev);
     }, []);
 
@@ -368,9 +360,7 @@ const ReclamationPortal = () => {
             : `Завантажити ще (100 із ${remaining})`;
 
 
-    /* ========================================================
-     *   UI
-     * ======================================================== */
+
 
     if (loading || reloading)
         return (
@@ -392,7 +382,7 @@ const ReclamationPortal = () => {
 
 
 
-            {/* SUMMARY BLOCK */}
+   
             <div className="content-summary row w-100" style={{justifyContent:'center'}}> 
                
 
@@ -408,7 +398,7 @@ const ReclamationPortal = () => {
             src={filterIcon} 
             alt="Стрілка" 
             className="align-center mr-1 min-w-[20px] h-[20px]" 
-            /* inline-style тут вже не потрібні, якщо є класи зверху */
+
         />
         </div>
 
@@ -427,7 +417,7 @@ const ReclamationPortal = () => {
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
                 >
-                {/* Динамічна генерація років (поточний + 2 попередніх) */}
+      
                 {Array.from({ length: 3 }, (_, i) =>
                     (new Date().getFullYear() - i).toString()
                 ).map(y => (
@@ -436,15 +426,12 @@ const ReclamationPortal = () => {
                 </select>
             </div>
 
-    {/* DESKTOP – горизонтальні кнопки */}
+
     {!isMobile && (
 
             
     <ul className="flex-1 items-center gap-4 m-0 p-0 list-none no-wrap month-list">
-    {/* Кнопка мобільного меню */}
-
-
-            {/* Оновлений блок вибору року (як у замовленнях) */}
+   
 
             <li
                 className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
@@ -580,7 +567,7 @@ const ReclamationPortal = () => {
                                 src={plusIcon} 
                                 alt="+" 
                                 className="align-center mr-2 " 
-                                /* inline-style тут вже не потрібні, якщо є класи зверху */
+                             
                                 />
                             <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нова рекламація</div>
                         </li>
@@ -640,7 +627,7 @@ const ReclamationPortal = () => {
                 <div className="content" id="content">
                     <div className="items-wrapper column gap-1 " id="items-wrapper">
                         {error ? (
-                            /* --- 1. СТАН ПОМИЛКИ (великий блок) --- */
+     
                             <div className="error-empty-state column align-center jc-center" style={{ minHeight: '300px' }}>
                                 <span className="icon icon-warning text-red font-size-48 mb-16"></span>
                                 <h3 className="font-size-20 weight-600 mb-8">Упс! Не вдалося завантажити дані</h3>
@@ -657,13 +644,13 @@ const ReclamationPortal = () => {
                                 </button>
                             </div>
                         ) : sortedItems.length === 0 ? (
-                            /* --- 2. СТАН ПУСТО (якщо завантажено 0 результатів) --- */
+                    
                             <div className="no-data column align-center h-100">
                                 <div className="font-size-24 text-grey">Рекламацій не знайдено</div>
                             </div>
                         ) : (
 
-                            /* ITEMS */
+                   
                             currentItems.map((reclamation) =>
                                 isMobile ? (
                                     <ReclamationItemMobile
@@ -700,7 +687,7 @@ const ReclamationPortal = () => {
                         )}
 
 
-                        {/* LOAD MORE */}
+           
                         {canLoadMore && (
                             <div className="row w-90" style={{
                                 marginTop: '20px',
@@ -719,7 +706,7 @@ const ReclamationPortal = () => {
                             </div>
                         )}
 
-                        {/* All loaded */}
+                      
                         {!canLoadMore && sortedItems.length > ITEMS_PER_LOAD && (
                             <div className="row justify-content-center text-grey" style={{
                                 marginTop: '10px',
@@ -734,7 +721,7 @@ const ReclamationPortal = () => {
                 </div>
             </div>
 
-            {/* ADD NEW */}
+  
             <AddClaimModal
                 isOpen={isNewReclamationModalOpen}
                 onClose={() => setIsNewReclamationModalOpen(false)}

@@ -1,9 +1,8 @@
 // ================= OrderItemSummaryMobile.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo } from "react";
-// --- НОВИЙ ІМПОРТ ---
+
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
-// --------------------
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
@@ -14,18 +13,18 @@ import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from "./OrderDetailsMobile";
 import { formatDateHumanShorter } from "../../utils/formatters";
 import PaymentModal from "./PaymentModal";
-// Якщо ви створили файл useNotification.js у папці hooks:
+
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
-// КРОК 1: Обгортаємо функціональний компонент у React.memo
+
 export default React.memo(function OrderItemSummaryMobile({ order, calculationDate, onRefresh }) {
   const { addNotification } = useNotification();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  // --- ДОДАНО СТАН ДЛЯ МОДАЛКИ ФАЙЛІВ ---
+
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -47,26 +46,25 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const { user, role } = useAuthGetRole();
   const _isAdmin = role === "admin";
-  // 1. Мемоїзація простого обробника стану
+
   const toggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
 
 
   const dateDiffStatus = useMemo(() => {
-    // Перевіряємо наявність обох дат
+
     if (!order.date || !calculationDate) return null;
 
     const d1 = new Date(calculationDate);
     const d2 = new Date(order.date);
 
-    // Різниця в мілісекундах перетворена в дні
+
     const diffInDays = (d2 - d1) / (1000 * 60 * 60 * 24);
 
-    // Якщо замовлення зроблено протягом 24 годин (<= 1 дня) — true (радісний)
     return diffInDays <= 1;
   }, [order.date, calculationDate]);
 
   const getButtonState = useCallback((status) => {
-    // Всі кнопки за замовчуванням вимкнені
+
     const state = {
       confirm: false,
       pay: false,
@@ -74,7 +72,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
       claim: false,
     };
 
-    // Логіка на основі статусу
+  
     const statusConfig = {
       Новий: { confirm: true, pay: true },
       "Очікуємо підтвердження": { confirm: true, pay: true },
@@ -85,7 +83,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
       Відвантажений: { pay: true, reorder: true, claim: true },
     };
 
-    // Якщо статус є в конфігу — застосовуємо значення
+   
     if (statusConfig[status]) {
       Object.assign(state, statusConfig[status]);
     }
@@ -93,18 +91,18 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     return state;
   }, []);
 
-  // 5. Мемоїзація обчислення боргу (без змін)
+
   const debtAmount = useMemo(() => {
     const paid = order.paid ?? 0;
     const debt = parseFloat(order.amount) - parseFloat(paid);
     return Math.max(0, Math.round(debt * 100) / 100);
   }, [order.amount, order.paid]);
 
-  // 3. Мемоїзація результату обчислення стану кнопок (без змін)
+
   const buttonState = useMemo(() => {
     const state = getButtonState(order.status);
 
-    // Блокувати оплату, якщо борг 0
+  
     if (debtAmount <= 0) {
       state.pay = false;
     }
@@ -112,7 +110,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     return state;
   }, [order.status, debtAmount, getButtonState]);
 
-  // 4. Мемоїзація функції стилю статусу (без змін)
+
   const getStatusClass = useCallback((status) => {
       switch (status) {
         case "Новий":
@@ -175,7 +173,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     }
   };
 
-  // 6. Мемоїзація обробників модальних вікон
+
   const openClaimModal = useCallback(() => {
     setClaimOrderNumber(order.number);
     setIsClaimModalOpen(true);
@@ -190,29 +188,27 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     setIsConfirmModalOpen(true);
   }, []);
 
-  // 🔥 НОВИЙ ОБРОБНИК: Відкриття модалки файлів
+  
   const openFilesModal = useCallback((e) => {
-    e.stopPropagation(); // Запобігаємо згортанню/розгортанню рядка
+    e.stopPropagation(); 
     setIsFilesModalOpen(true);
   }, []);
-  // ------------------------------------------------
 
-  // 7. Мемоїзація обробника збереження дозамовлення (без змін)
   const handleReorderSave = useCallback(
     (formData) => {
       console.log("Дозамовлення по замовленню", order.number, formData);
       setIsReorderModalOpen(false);
-      // Тут повинна бути функція оновлення батьківського компонента
+
     },
     [order.number],
   );
 
-  // --- НОВИЙ ОБРОБНИК: Відправка підтвердження API (без змін) ---
+
   const handleConfirmOrder = useCallback(async () => {
-    // Модалка закриється через onConfirm у компоненті ConfirmModal
+  
 
     try {
-      // Припускаємо, що API очікує лише POST-запит для зміни статусу
+     
       const response = await axiosInstance.post(
         `/orders/${order.idGuid}/confirm/`,
       );
@@ -224,7 +220,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         );
 
         if (onRefresh) onRefresh();
-        // !!! ТУТ МАЄ БУТИ ВИКЛИК ФУНКЦІЇ ОНОВЛЕННЯ БАТЬКІВСЬКОГО СПИСКУ !!!
+     
       } else {
         addNotification(
           `⚠️ Не вдалося підтвердити замовлення: ${response.data.error || response.statusText}`,
@@ -236,9 +232,10 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     }
   }, [order.idGuid, order.number]);
 
+
   return (
     <div className="order-item flex flex-col w-full gap-0 !border-0">
-      {/* ============ MOBILE VERSION (COMPACT & UPDATED BUTTONS) ============ */}
+    
       <div
         className="md:hidden flex flex-col w-full p-1 "
         onClick={toggleExpand}
@@ -247,7 +244,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 
         <div className="flex items-stretch justify-between mb-1 w-full gap-3  pb-1 border-bottom ">
           
-          {/* 1. ЛІВА ЧАСТИНА: Номер та Дата + Бордюр справа */}
+
           <div className="flex flex-[2] items-center pr-1  border-right shrink-0">
              <img src={listCalcIcon} className="align-center mr-2"  alt="" />
             <div className="flex  flex-col gap-[6px] no-wrap w-full">
@@ -417,8 +414,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
           alt="Іконка швидкості"
           className=" block"
           style={{ 
-            /* 🔥 ЗАСТОСУВАННЯ КОЛЬОРУ ЧЕРЕЗ ФІЛЬТР */
-            /* Якщо dateDiffStatus === true (зелений), інакше — червоний */
+
             filter: dateDiffStatus
               ? 'invert(34%) sepia(87%) saturate(372%) hue-rotate(33deg) brightness(95%) contrast(91%)' /* Зелений #5A7302 */
               : 'invert(38%) sepia(58%) saturate(651%) hue-rotate(325deg) brightness(90%) contrast(85%)'  /* Червоний #BC553D */
@@ -433,10 +429,6 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 </div>
         
 
-        {/* КНОПКИ (Скролл-меню) (без змін) */}
-      
-
-        {/* Індикатор розкриття (без змін) */}
 <div className="flex justify-center mt-4 cursor-pointer" >
   <img 
     src={openDetails} 
@@ -447,7 +439,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 </div>
       </div>
 
-      {/* Деталі замовлення */}
+
       {isExpanded && (
                 <div className="separator-border w-full mt-2">
         <div className="mt-2 pt-2 flex w-full ">
@@ -456,9 +448,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         </div>
       )}
 
-      {/* Модальні вікна */}
 
-      {/* 🔥 1. Модалка Файлів */}
       {isFilesModalOpen && (
         <OrderFilesModal
           orderGuid={order.idGuid}
@@ -466,7 +456,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         />
       )}
 
-      {/* 2. Універсальна Модалка Підтвердження (без змін) */}
+
       <ConfirmModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
@@ -477,17 +467,16 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         type="success"
       />
 
-      {/* 3. Модалка Рекламації (без змін) */}
       <AddClaimModal
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
         onSave={() => {
-          /* Логіка оновлення */
+
         }}
         initialOrderNumber={claimOrderNumber}
       />
 
-      {/* 4. Модалка Дозамовлення (без змін) */}
+
       <AddReorderModal
         isOpen={isReorderModalOpen}
         onClose={() => setIsReorderModalOpen(false)}

@@ -7,15 +7,15 @@ export default function Footer() {
   const { theme } = useTheme();
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
-  // Базовий стиль за темою
+
   const baseStyle = theme === "dark" ? styles.footerDark : styles.footer;
 
-  // Модифікація для мобілки
+ 
   const mobileOverride = isMobile
     ? {
-        height: "20px", // Менша висота
-        padding: "3px", // Менші відступи
-        fontSize: "0.7rem", // Дрібніший шрифт
+        height: "20px", 
+        padding: "3px", 
+        fontSize: "0.7rem", 
       }
     : {};
 

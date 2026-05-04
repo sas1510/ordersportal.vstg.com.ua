@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import axiosInstance from "../../api/axios";
 
-// Імпорт графіків
+
 import ComplexityDonut from "../charts/ComplexityDonut";
 import ComplexityTreemap from "../charts/ComplexityTreeMap";
 import EfficiencyChart from "../charts/EfficiencyChart";
@@ -15,7 +15,7 @@ import ColorSystemHeatmap from "../charts/ColorSystemHeatmap";
 import "./ProductionStatisticsBlock.css";
 import { formatDate } from "../../utils/formatters";
 
-// Мапінг для групування
+
 const CATEGORY_MAPPING = {
   "Вікна безшовне зварювання": "Вікна",
   Вікно: "Вікна",
@@ -41,7 +41,6 @@ export default function ProductionStatisticsBlock({
 }) {
   const drillDownRef = useRef(null);
 
-  // Використовуємо дані з пропсів, якщо вони є, або внутрішній стан
   const [internalData, setInternalData] = useState(null);
   const [loading, setLoading] = useState(!rawData);
 
@@ -54,7 +53,7 @@ export default function ProductionStatisticsBlock({
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [activeSubCategory, setActiveSubCategory] = useState(null);
 
-  // Завантаження, якщо дані не передані зверху
+
   useEffect(() => {
     if (!rawData) {
       const loadData = async () => {
@@ -73,7 +72,7 @@ export default function ProductionStatisticsBlock({
     }
   }, [dateRange, rawData]);
 
-  // Розрахунок матриці Колір х Система
+
   const heatmapData = useMemo(() => {
     if (!systemsData.length || !colorData.length) return [];
     const result = [];
@@ -100,7 +99,7 @@ export default function ProductionStatisticsBlock({
     return result;
   }, [systemsData, colorData]);
 
-  // Прокрутка до деталей
+
   useEffect(() => {
     if (selectedCategory && drillDownRef.current) {
       drillDownRef.current.scrollIntoView({
@@ -110,7 +109,7 @@ export default function ProductionStatisticsBlock({
     }
   }, [selectedCategory]);
 
-  // Рівень 1: Дані для Donut Chart
+
   const mainDonutData = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!Array.isArray(details)) return [];
@@ -126,7 +125,7 @@ export default function ProductionStatisticsBlock({
       .sort((a, b) => b.value - a.value);
   }, [data]);
 
-  // Рівень 2: Навігація по підкатегоріях
+
   const subCategories = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!selectedCategory || !Array.isArray(details)) return [];
@@ -141,7 +140,7 @@ export default function ProductionStatisticsBlock({
     return [...new Set(subs)].sort();
   }, [selectedCategory, data]);
 
-  // Рівень 3: Дані для Treemap
+
   const filteredTreemapData = useMemo(() => {
     const details = data?.tables?.tech_details;
     if (!selectedCategory || !Array.isArray(details)) return [];
@@ -182,12 +181,12 @@ export default function ProductionStatisticsBlock({
 
   return (
     <div className="production-stats-container">
-      {/* KPI & ПРЕФІКСИ */}
+
       <div className="m-bottom-28">
         <PrefixCategoryDisplay prefixData={prefixData} />
       </div>
 
-      {/* ЕФЕКТИВНІСТЬ ТА ОБСЯГИ */}
+
       <div className="stats-grid-2">
         <div className="chart-wrapper-card card-padding">
           <h4 className="chart-title-unified">Динаміка ефективності</h4>
@@ -211,7 +210,7 @@ export default function ProductionStatisticsBlock({
         </div>
       </div>
 
-      {/* ТЕПЛОВА КАРТА */}
+
       <div className="chart-wrapper-card card-padding m-bottom-28">
         <h4 className="chart-title-unified">Матриця Система × Колір</h4>
         <p className="chart-subtitle-grey">
@@ -220,13 +219,13 @@ export default function ProductionStatisticsBlock({
         <ColorSystemHeatmap data={heatmapData} />
       </div>
 
-      {/* ФУРНІТУРА */}
+
       <div className="chart-wrapper-card card-padding m-bottom-28">
         <h4 className="chart-title-unified">Аналітика фурнітури</h4>
         <FurnitureChart data={furnitureData} />
       </div>
 
-      {/* КАТЕГОРІЇ (ОСНОВНИЙ ПОРТФЕЛЬ) */}
+
       <div className="stats-single-column">
         <div className="chart-wrapper-card card-padding">
           <h4 className="chart-title-unified">Портфель категорій</h4>
@@ -243,7 +242,7 @@ export default function ProductionStatisticsBlock({
         </div>
       </div>
 
-      {/* DRILL-DOWN (ДЕТАЛІЗАЦІЯ) */}
+   
       {selectedCategory && (
         <div
           className="chart-wrapper-card drilldown-view animate-fade-in"

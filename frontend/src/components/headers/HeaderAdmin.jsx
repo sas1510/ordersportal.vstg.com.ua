@@ -334,7 +334,7 @@ const SETTINGS_SUBMENU = [
 ];
 
 export default function HeaderAdmin() {
-  // Для адмінки ліміт трохи більший, бо пунктів меню багато
+
   const isMobile = useMediaQuery({ maxWidth: 1460 }); 
   const location = useLocation();
   const navigate = useNavigate();
@@ -357,7 +357,7 @@ export default function HeaderAdmin() {
   const profileIcon = "/assets/icons/ProfileIconSubMenu.png";
   const polygonIcon = "/assets/icons/PolygonOpenProfileSubmenu.png";
 
-  // Обробка кліку зовні для закриття всіх меню
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (financeRef.current && !financeRef.current.contains(event.target)) {
@@ -384,7 +384,7 @@ export default function HeaderAdmin() {
     return () => { document.body.style.overflow = "unset"; };
   }, [mobileMenuOpen]);
 
-  // Закриття всього при зміні сторінки
+
   useEffect(() => {
     setMobileMenuOpen(false);
     setShowFinanceMenu(false);
@@ -399,20 +399,20 @@ export default function HeaderAdmin() {
 
   return (
     <header className="w-[calc(100%-20px)]  mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
-      {/* 1. Декоративна смуга (як у дилера) */}
+    
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] bg-[#B4D947] rounded-t-sm" />
 
-      {/* 2. Основна панель */}
+     
       <div className="w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center shadow-sm relative rounded-bl-[25px] rounded-br-[25px]">
         
-        {/* Логотип */}
+
         <Link to="/dashboard" className="ml-[33px] flex-shrink-0 mr-4">
           <img src={logo} alt="Вікна Стиль" className="h-[35px] w-auto" />
         </Link>
 
         {!isMobile ? (
           <>
-            {/* Навігація Desktop */}
+
             <nav className="flex h-full flex-grow">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
@@ -430,7 +430,7 @@ export default function HeaderAdmin() {
                   </li>
                 ))}
                 
-                {/* Фінанси */}
+
                 <li className="h-full relative flex-1" ref={financeRef}>
                   <button 
                     onClick={() => { setShowFinanceMenu(!showFinanceMenu); setShowSettings(false); }}
@@ -458,7 +458,7 @@ export default function HeaderAdmin() {
                   )}
                 </li>
 
-                {/* Налаштування */}
+
                 <li className="h-full relative flex-1" ref={settingsRef}>
                   <button 
                     onClick={() => { setShowSettings(!showSettings); setShowFinanceMenu(false); }}
@@ -486,7 +486,7 @@ export default function HeaderAdmin() {
               </ul>
             </nav>
 
-            {/* Правий блок: Профіль, Тема, Вихід */}
+
             <div className="ml-auto flex items-center h-full flex-shrink-0">
               <div 
                 className="bg-[#EEEEEE] h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[180px]"

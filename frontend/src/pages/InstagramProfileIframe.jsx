@@ -69,7 +69,7 @@ const InstagramProfileIframe = ({ username = 'viknastyle' }) => {
         position: 'relative',
         backgroundColor: '#fafafa'
       }}>
-        {/* Простий лоадер, поки фрейм вантажиться */}
+      
         {isLoading && (
           <div style={{
             position: 'absolute',
@@ -91,12 +91,12 @@ const InstagramProfileIframe = ({ username = 'viknastyle' }) => {
           scrolling="yes"
           allowTransparency="true"
           title="Instagram Profile"
-          onLoad={() => setIsLoading(false)} // Приховуємо лоадер, коли завантажилось
+          onLoad={() => setIsLoading(false)} 
           style={{ 
             position: 'absolute', 
             top: 0, 
             left: 0,
-            opacity: isLoading ? 0 : 1, // Плавно показуємо
+            opacity: isLoading ? 0 : 1, 
             transition: 'opacity 0.3s ease-in'
           }}
         ></iframe>

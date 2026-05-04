@@ -10,11 +10,11 @@ import {
   formatDateTimeShort,
 } from "../../utils/formatters";
 import "./Orders.css";
-// Якщо ви створили файл useNotification.js у папці hooks:
+
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
-// КРОК 1: Обгортаємо функціональний компонент у React.memo
+
 export const CalculationItem = React.memo(
   ({ calc, onDelete, onEdit, onMarkAsRead , reloadCalculations}) => {
     const [expanded, setExpanded] = useState(false);
@@ -50,7 +50,7 @@ export const CalculationItem = React.memo(
     //   ? "Отримувач"
     //   : calc.dealer || "Контрагент";
 
-    // 1. Мемоїзація простих обробників
+
     const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
     const handleEdit = useCallback(
       (updatedCalc) => {
@@ -64,14 +64,14 @@ export const CalculationItem = React.memo(
         setSelectedComments(comments);
         setIsCommentsOpen(true);
 
-        // Якщо є непрочитані — викликаємо функцію "прочитано"
+
         if (calc.hasUnreadMessages && onMarkAsRead) {
           onMarkAsRead(calc.id);
         }
       },
       [calc.id, calc.hasUnreadMessages, onMarkAsRead],
     );
-    // 2. Мемоїзація асинхронних обробників
+
     const handleDownload = useCallback(async () => {
       try {
         const fileName = calc.fileName;
@@ -96,7 +96,7 @@ export const CalculationItem = React.memo(
         link.parentNode.removeChild(link);
         window.URL.revokeObjectURL(url);
       } catch (error) {
-        console.error("Помилка при завантаженні файлу прорахунку:", error);
+        // console.error("Помилка при завантаженні файлу прорахунку:", error);
         addNotification(
           "Не вдалося завантажити файл. Можливо, він відсутній на сервері.",
         );
@@ -107,33 +107,22 @@ export const CalculationItem = React.memo(
       if (onDelete) await onDelete(calc.id);
     }, [onDelete, calc.id]);
 
-    // 3. Мемоїзація даних/списків
     const orderList = useMemo(() => {
       if (!Array.isArray(calc.orders)) return [];
 
-      // Фільтруємо замовлення: залишаємо тільки ті, де номер не порожній
-      // і не складається лише з пробілів.
-      // Це відсікає об'єкти з "number": "" з вашого JSON.
+    
       return calc.orders.filter(
         (order) => order.number && String(order.number).trim() !== "",
       );
     }, [calc.orders]);
 
-    // КРОК 2: Мемоїзація масиву статусів
+
     const statusEntries = useMemo(() => {
       return calc.statuses && Object.keys(calc.statuses).length > 0
         ? Object.entries(calc.statuses)
         : [];
     }, [calc.statuses]);
 
-    // === ПІДСВІЧУВАННЯ WEB CALC ===
-    // const isWebCalc = useMemo(
-    //   () => !!(calc.webNumber && String(calc.webNumber).trim() !== ""),
-    //   [calc.webNumber],
-    // );
-    // ===============================
-
-    // 4. Мемоїзація статичної функції
     const getStatusClass = useCallback((status) => {
         switch (status) {
           case "Новий":
@@ -167,7 +156,7 @@ export const CalculationItem = React.memo(
         }
       }, []);
 
-    // Беремо статус першого запису, якщо він є, інакше — 'warning' для "Новий"
+  
     const mainStatus = statusEntries.length > 0 ? statusEntries[0][0] : null;
     const iconColorClass = mainStatus ? getStatusClass(mainStatus) : "text-warning";
 
@@ -282,7 +271,7 @@ export const CalculationItem = React.memo(
               className="column gap-1 align-start mr-3"
             
             >
-              {/* 📄 Файл — ЗАВАНТАЖЕННЯ */}
+            
               <div className="row align-start" style={{ gap: 0 }}>
                 <div
                   className="row file-download"
@@ -350,7 +339,7 @@ export const CalculationItem = React.memo(
 
          <div className="summary-item row w-16 no-wrap">
           <div className="row gap-2 align-center">
-            {/* Іконка тепер отримує клас кольору від статусу */}
+
             <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
 
             <div className="column gap-3 text-[13px] flex-wrap scroll-y">
@@ -381,7 +370,7 @@ export const CalculationItem = React.memo(
           </div>
         </div>
 
-        {/* ============ CALC DETAILS ============ */}
+  
         {expanded && (
           <div className="item-details  column gap-14">
             {orderList.length === 0 ? (

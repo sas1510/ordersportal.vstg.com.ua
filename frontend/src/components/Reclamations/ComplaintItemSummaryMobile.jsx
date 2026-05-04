@@ -6,7 +6,7 @@ import PhotoModal from "./PhotoModal";
 import { formatDate } from "../../utils/formatters";
 import { useNotification } from "../../hooks/useNotification";
 
-// Оновлений InfoRow для мобілки: лейбл зліва, значення справа (або під ним)
+
 const MobileInfoRow = ({ label, value, highlight, colors }) => {
   if (!value && !label) return null;
   return (
@@ -83,7 +83,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
 
   const handleVideoClick = async (file) => {
     const url = await getSecureUrl(file);
-    if (!url) return; // addNotification вже спрацює всередині getSecureUrl
+    if (!url) return; 
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     if (isIOS) {
@@ -93,7 +93,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
     }
   };
 
-  // Іконки (використовуємо ваші шляхи)
+
   const icons = {
     main: "/assets/icons/MainReclamationIcon.png",
     dates: "/assets/icons/DateReclamation.png",
@@ -138,7 +138,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
     <div className="w-full font-['Inter',_sans-serif] text-WS---DarkGrey bg-white ">
       <div className="flex flex-col gap-4">
         
-        {/* 1. Основна інформація */}
+   
         <section>
           <div className="flex items-center gap-2 mb-2">
             <img src={icons.main} className="mr-1" alt="" />
@@ -164,7 +164,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
           </div>
         </section>
 
-        {/* 2. Дати */}
+   
         <section>
           <div className="flex items-center gap-2 mb-2">
             <img src={icons.main} className="mr-1" alt="" />
@@ -176,7 +176,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
               height: "2px",
               backgroundColor: "#44403E",
               opacity: 0.8,
-              // Рухаємо лінію вниз на 3-5 пікселів
+        
               transform: "translateY(4px)", 
             }} 
           />
@@ -199,7 +199,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
               height: "2px",
               backgroundColor: "#44403E",
               opacity: 0.8,
-              // Рухаємо лінію вниз на 3-5 пікселів
+           
               transform: "translateY(4px)", 
             }} 
           />
@@ -213,7 +213,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
           </div>
         </section>
 
-        {/* 3. Менеджер */}
+       
         <section className="border-t-[2px] border-gray-800 pt-3">
           <div className="flex items-center gap-2 mb-1">
             <img src={icons.manager} className="mr-1" alt="" />
@@ -222,7 +222,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
           <p className="text-[14px] text-gray-600 pl-7">{complaint.manager || "Не вказано"}</p>
         </section>
 
-        {/* 4. Опис */}
+       
         <section className="border-t-[2px] border-gray-800 pt-3">
           <h3 className="font-bold text-[16px] mb-1">Опис рекламації</h3>
           <p className="text-[14px] leading-relaxed text-gray-700 pl-2">
@@ -230,13 +230,13 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
           </p>
         </section>
 
-        {/* 5. Проблема та Вирішення (кольорові блоки) */}
+ 
         <div className="flex flex-col gap-2">
           {complaint.problem && (
            <div className="p-3 rounded" style={{ backgroundColor: c.sectionBgProblem }}>
             <div className="flex flex-col gap-1">
               
-              {/* Заголовок з іконкою в один ряд */}
+         
               <div className="flex items-center">
                 <img 
                   src={icons.problem} 
@@ -248,7 +248,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
                 </h4>
               </div>
 
-              {/* Опис нижче зі зміщенням вправо */}
+       
               <p className="text-[13px] text-WS---DarkGrey leading-relaxed">
                 {complaint.problem}
               </p>
@@ -259,7 +259,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
           {complaint.resolution && (
             <div className="p-3 rounded mt-2" style={{ backgroundColor: c.sectionBgResolution }}>
               <div className="flex flex-col  gap-1"> 
-                {/* Рядок з іконкою та заголовком */}
+           
                 <div className="flex items-center">
                   <img 
                     src={icons.success} 
@@ -271,7 +271,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
                   </h4>
                 </div>
 
-                {/* Текст рішення на новому рядку з невеликим відступом зліва, щоб бути під текстом заголовка */}
+                
                 <p className="text-[13px] text-WS---DarkGrey  leading-relaxed">
                   {complaint.resolution}
                 </p>

@@ -3,7 +3,7 @@ import axiosInstance from "../api/axios";
 import { useNotification } from "../hooks/useNotification";
 import ConfirmModal from "../components/Orders/ConfirmModal";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
-import { FaEdit, FaTrash } from "react-icons/fa"; // Для кнопок керування
+import { FaEdit, FaTrash } from "react-icons/fa"; 
 import "./Videos.css";
 
 import InstagramProfileIframe from "./InstagramProfileIframe";
@@ -18,7 +18,7 @@ const VideosPage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingSave, setLoadingSave] = useState(false);
   
-  // Стани для модалок
+ 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -31,7 +31,7 @@ const VideosPage = () => {
   const isAdmin = role === "admin";
   const { addNotification } = useNotification();
 
-  // Форма для створення/редагування
+
   const [videoForm, setVideoForm] = useState({
     title: "",
     url: "",
@@ -40,7 +40,7 @@ const VideosPage = () => {
     resource_type: "youtube"
   });
 
-  // Іконки
+  
   const backgroundImage = "/assets/icons/FileBackground.jpg";
   const searchIcon = "/assets/icons/SearchIcon.png";
   const videoMenuIcon = "/assets/icons/VideoMenuIcon.png";
@@ -90,7 +90,7 @@ const VideosPage = () => {
   }, [fetchVideos]);
 
   useEffect(() => {
-  // Додаємо скрипт TikTok для ініціалізації віджетів
+ 
     const script = document.createElement("script");
     script.src = "https://www.tiktok.com/embed.js";
     script.async = true;
@@ -131,20 +131,20 @@ const getEmbedUrl = (video) => {
     const urlObj = new URL(video.url);
     let videoId = "";
 
-    // 1. Обробка коротких посилань youtu.be
+  
     if (urlObj.hostname === "youtu.be") {
       videoId = urlObj.pathname.slice(1);
     } 
-    // 2. Обробка посилань /shorts/
+  
     else if (urlObj.pathname.includes("/shorts/")) {
       videoId = urlObj.pathname.split("/shorts/")[1];
     }
-    // 3. Обробка стандартних youtube.com?v=ID
+
     else if (urlObj.hostname.includes("youtube.com")) {
       videoId = urlObj.searchParams.get("v");
     }
 
-    // Очищення від зайвих параметрів (наприклад, &t=120s)
+
     if (videoId) {
       videoId = videoId.split(/[?&]/)[0];
       return `https://www.youtube.com/embed/${videoId}`;
@@ -153,20 +153,20 @@ const getEmbedUrl = (video) => {
 
 
      if (video.resource_type === "tiktok" || urlObj.hostname.includes("tiktok.com")) {
-      // Спроба отримати ID відео з посилання типу /video/734...
+
       const match = video.url.match(/\/video\/(\d+)/);
       if (match && match[1]) {
         return `https://www.tiktok.com/embed/v2/${match[1]}`;
       }
     }
-    // Для TikTok або інших ресурсів повертаємо як є (або логіку віджета)
+    
     return video.url;
   } catch {
     return video.url;
   }
 };
 
-  // --- ЛОГІКА ЗБЕРЕЖЕННЯ ---
+
   const handleSaveVideo = async (e) => {
     e.preventDefault();
     setLoadingSave(true);
@@ -189,7 +189,7 @@ const getEmbedUrl = (video) => {
 
   
 
-  // --- ЛОГІКА ВИДАЛЕННЯ ---
+
   const handleDeleteConfirm = async () => {
     try {
       await axiosInstance.delete(`/media-resources/${selectedVideo.id}/`);
@@ -237,7 +237,7 @@ const formatDate = (dateString) => {
 
   return (
     <div className="videos-container">
-      {/* HERO SECTION */}
+  
       <section className="videos-hero">
         <img src={backgroundImage} className="videos-hero-bg" alt="bg" />
         <div className="videos-hero-overlay" />
@@ -262,7 +262,7 @@ const formatDate = (dateString) => {
         </div>
       </section>
 
-      {/* MOBILE TOGGLE */}
+
       <div className="videos-sidebar-toggle" onClick={() => setIsSidebarOpen((prev) => !prev)}>
         <img src={videoMenuIcon} alt="menu" />
         <span className="ml-2 font-semibold text-sm uppercase tracking-wide">{currentCategoryLabel}</span>
@@ -331,7 +331,7 @@ const formatDate = (dateString) => {
     <div className="loader" />
   ) : (
     <>
-      {/* 1. Сітка для звичайних відео з бази даних (відображається завжди, якщо є відео) */}
+
       {filteredVideos.length > 0 && (
         <div className="videos-grid">
   {filteredVideos.map((video) => (
@@ -383,7 +383,6 @@ const formatDate = (dateString) => {
 </div>
       )}
 
-      {/* 2. Контейнер БЕЗ СІТКИ для соціальних віджетів */}
       {selectedCategory === "social" && (
         <div className="social-widgets-flex-container" style={{width: '100%', display: 'flex', flexDirection: 'column', gap: '30px', marginTop: filteredVideos.length > 0 ? '40px' : '0' }}>
           {(!selectedSocial || selectedSocial === "TikTok") && (
@@ -412,7 +411,7 @@ const formatDate = (dateString) => {
 
       </div>
 
-      {/* МОДАЛЬНЕ ВІКНО ДОДАВАННЯ/РЕДАГУВАННЯ */}
+
       {isModalOpen && (
         <div className="file-modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>

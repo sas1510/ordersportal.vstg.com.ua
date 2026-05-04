@@ -1163,7 +1163,9 @@ const PaymentStatusV2 = () => {
       // Фіксуємо параметри, за якими отримали дані (для Excel)
       setSearchParams({ ...filters });
     } catch (err) {
-      console.error("Fetch Error Detail:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Fetch Error Detail:", err);
+      }
       setError("Помилка завантаження даних.");
     } finally {
       setLoading(false);
@@ -1200,7 +1202,9 @@ const PaymentStatusV2 = () => {
       link.click();
       addNotification("Excel успішно завантажено", "success");
     } catch (_error) {
+      if (process.env.NODE_ENV === "development") {   
       console.error("Error downloading Excel:", _error);
+      }
       addNotification("Не вдалося завантажити Excel", "warning");
     } finally {
       setExcelLoading(false);

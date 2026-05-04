@@ -139,7 +139,10 @@ export default function PortalManagersPage() {
       .catch((err) => {
         setError("Помилка завантаження даних");
         setLoading(false);
-        console.error("Error fetching portal managers:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching portal managers:", err);
+        }
+
       });
   }, []);
 

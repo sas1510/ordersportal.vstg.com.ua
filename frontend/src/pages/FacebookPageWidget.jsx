@@ -6,19 +6,19 @@ const FacebookPageWidget = () => {
 
   const pageUrl = "https://www.facebook.com/viknastyletraiding";
 
-  // 📱 визначення розміру екрана
+
   useEffect(() => {
     const updateSize = () => {
       const w = window.innerWidth;
 
       if (w < 480) {
-        setSize({ width: w - 20, height: 500 }); // mobile
+        setSize({ width: w - 20, height: 500 }); 
       } else if (w < 768) {
-        setSize({ width: 400, height: 550 }); // tablet
+        setSize({ width: 400, height: 550 }); 
       } else if (w < 1200) {
-        setSize({ width: 500, height: 600 }); // small desktop
+        setSize({ width: 500, height: 600 }); 
       } else {
-        setSize({ width: 600, height: 700 }); // large desktop
+        setSize({ width: 600, height: 700 }); 
       }
     };
 

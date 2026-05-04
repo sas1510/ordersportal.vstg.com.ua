@@ -75,7 +75,9 @@ export default function CreateCustomerBillModal({
         setIbans(data.data.accounts || []);
         setItemsList(data.data.nomenclature || []);
       } catch (err) {
-        console.error("Error fetching profile:", err);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching profile:", err);
+        }
         addNotification(
           "Помилка завантаження профілю, спробуйте відкрити форму заново",
           "error",
@@ -140,7 +142,11 @@ export default function CreateCustomerBillModal({
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error("Error creating bill:", error);
+
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error creating bill:", error);
+      }
+
       addNotification(
         "Не вдалося створити рахунок. Спробуйте ще раз.",
         "error",

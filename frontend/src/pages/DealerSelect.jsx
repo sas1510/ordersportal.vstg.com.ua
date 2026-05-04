@@ -21,7 +21,9 @@ const DealerSelect = ({ value, onChange }) => {
         const res = await axiosInstance.get("/dealer-portal-users/");
         setDealers(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
-        console.error(e);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching dealers:", e);
+        }
         setError("Помилка завантаження дилерів");
       } finally {
         setLoading(false);

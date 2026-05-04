@@ -174,7 +174,7 @@ const AdminPortalOriginal = () => {
       }
     } catch (err) {
       if (err.name !== "CanceledError") {
-        console.error("Reload ALL after create error:", err);
+        // console.error("Reload ALL after create error:", err);
       }
     } finally {
       setReloading(false);
@@ -228,7 +228,7 @@ const AdminPortalOriginal = () => {
         }
       } catch (err) {
         if (err.name !== "CanceledError") {
-          console.error("Помилка:", err);
+          // console.error("Помилка:", err);
           setCalculationsData([]);
           setFilteredItems([]);
         }

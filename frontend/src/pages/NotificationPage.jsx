@@ -310,7 +310,9 @@ const NotificationDrawer = ({
       const response = await axiosInstance.get("/user/telegram-link/");
       setTgLink(response.data.tg_link);
     } catch (err) {
+      if (process.env.NODE_ENV === "development") {
       console.error("Помилка отримання TG лінка:", err);
+      }
       addNotification("Не вдалося отримати посилання на Telegram", "danger");
     } finally {
       setLoadingTg(false);
@@ -340,7 +342,9 @@ const NotificationDrawer = ({
       setPermissionStatus(window.Notification.permission);
       addNotification("Браузерні сповіщення активовано!", "success");
     } catch (err) {
+      if (process.env.NODE_ENV === "development") {
       console.error("Помилка підписки на пуші:", err);
+      }
       addNotification("Не вдалося увімкнути сповіщення.", "danger");
     } finally {
       setSubscribing(false);
@@ -354,7 +358,9 @@ const NotificationDrawer = ({
       setPermissionStatus("default");
       addNotification("Сповіщення вимкнено", "info");
     } catch (err) {
-      console.error("Помилка відписки від пушів:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка відписки від пушів:", err);
+      }
       addNotification("Помилка при вимкненні сповіщень", "danger");
     } finally {
       setSubscribing(false);
@@ -377,7 +383,9 @@ const NotificationDrawer = ({
           ),
         );
       } catch (err) {
-        console.error("Помилка при позначенні прочитаним:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Помилка при позначенні прочитаним:", err);
+        }
       }
     }
 
@@ -408,7 +416,9 @@ const NotificationDrawer = ({
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV === "development") {
+        console.error(err);
+      }
     }
   };
 

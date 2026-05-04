@@ -25,7 +25,10 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
         onClose();
       }, 700);
     } catch (e) {
-      console.error("Error deactivating user:", e);
+
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error deactivating user:", e);
+      }
       addNotification("Помилка деактивації користувача", "error");
     }
 

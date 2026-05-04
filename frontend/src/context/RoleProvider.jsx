@@ -19,7 +19,7 @@ export function RoleProvider({ children }) {
       setUser(res.data);
       setRole(res.data.role);
     } catch {
-      // Ігноруємо помилку, якщо користувач не авторизований
+   
       setUser(null);
       setRole(null);
     } finally {

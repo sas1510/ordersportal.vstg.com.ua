@@ -26,7 +26,7 @@ const ContactFormPage = () => {
             department: res.data.department || "",
           });
         })
-        .catch((err) => console.error("Помилка завантаження контакту:", err));
+        // .catch((err) => console.error("Помилка завантаження контакту:", err));
     }
   }, [id]);
 
@@ -40,8 +40,20 @@ const ContactFormPage = () => {
     const url = id ? `/contact/${id}` : "/contact";
 
     method(url, form)
-      .then(() => navigate("/contacts"))
-      .catch((err) => console.error("Помилка збереження контакту:", err));
+    .then(() => {
+      addNotification("Контакт успішно збережено!", "success"); // Додаємо позитивний фідбек
+      navigate("/contacts");
+    })
+    .catch((err) => {
+      // 1. Показуємо зрозумілу помилку користувачеві
+      const errorMessage = err.response?.data?.message || "Не вдалося зберегти контакт.";
+      addNotification(errorMessage, "error");
+
+      // 2. Логуємо помилку в консоль тільки для себе (в режимі розробки)
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Помилка збереження контакту:", err);
+      }
+    });
   };
 
   return (

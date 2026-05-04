@@ -23,7 +23,7 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
       window.addEventListener("keydown", handleEsc);
     }
 
-    // Очищуємо слухач при закритті модалки або демонтажі компонента
+    
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };

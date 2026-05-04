@@ -6,7 +6,6 @@ import { useDealerContext } from "../hooks/useDealerContext";
 import "./WDSCodesTable.css";
 import { formatDateHumanShorter } from "../utils/formatters";
 
-/* ===================== HELPERS ===================== */
 
 const getMonthStart = () => {
   const now = new Date();
@@ -19,7 +18,7 @@ const getToday = () => {
   return new Date().toISOString().slice(0, 10);
 };
 
-/* ===================== COMPONENT ===================== */
+
 
 const WDSCodesTable = () => {
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
@@ -33,7 +32,7 @@ const WDSCodesTable = () => {
 
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
-  /* ===================== DATA LOADER ===================== */
+
 
   const loadData = useCallback(async () => {
     if (!dealerGuid) {
@@ -55,14 +54,15 @@ const WDSCodesTable = () => {
 
       setItems(res.data?.items || []);
     } catch (e) {
-      console.error("WDS load error:", e);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка при завантаженні WDS-кодів:", e);
+      }
       setError("Помилка завантаження WDS-кодів");
     } finally {
       setLoading(false);
     }
   }, [dealerGuid, dateFrom, dateTo]);
 
-  /* ===================== FIRST LOAD ===================== */
 
   useEffect(() => {
     if (!isFirstLoad) return;
@@ -72,7 +72,7 @@ const WDSCodesTable = () => {
     setIsFirstLoad(false);
   }, [dealerGuid, isFirstLoad, loadData]);
 
-  /* ===================== LOADING ===================== */
+
 
   if (loading) {
     return (
@@ -83,21 +83,20 @@ const WDSCodesTable = () => {
     );
   }
 
-  /* ===================== RENDER ===================== */
+
 
   return (
-    //  <div className="wds-codes-page"></div>
+
     <div className="portal-body" style={{justifyContent: 'center'}} >
 
        <div className="max-w-[1334px] mx-auto ">
-      {/* ===== HEADER ===== */}
+
       <div className="customer-bills-header">
         <h1 className="page-title" style={{ marginTop: "10px" }}>
           <FaPercent className="icon" />
           Акційні WDS-коди
         </h1>
 
-        {/* ===== FILTERS ===== */}
         <div className="wds-filter">
           <div className="filter-item-bill">
             <label>Дата з</label>
@@ -135,7 +134,7 @@ const WDSCodesTable = () => {
         </div>
       </div>
 
-      {/* ===== CONTENT ===== */}
+    
       <div className="wds-codes-panel">
         {error ? (
           <div className="no-data text-danger">{error}</div>
@@ -145,7 +144,7 @@ const WDSCodesTable = () => {
           </div>
         ) : (
           <>
-            {/* ===== DESKTOP TABLE ===== */}
+ 
             <div className="desktop-only">
               <table className="wds-table">
                 <thead>
@@ -171,7 +170,7 @@ const WDSCodesTable = () => {
               </table>
             </div>
 
-            {/* ===== MOBILE CARDS ===== */}
+      
             <div className="mobile-only wds-mobile-list">
               {items.map((row, index) => (
                 <div className="wds-card" key={index}>

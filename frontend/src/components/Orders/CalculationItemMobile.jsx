@@ -8,14 +8,14 @@ import axiosInstance from "../../api/axios";
 import {
   formatDateTimeShort,
 } from "../../utils/formatters";
-// Якщо ви створили файл useNotification.js у папці hooks:
+
 import { useNotification } from "../../hooks/useNotification";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
 
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
-// КРОК 1: Змінюємо експорт на React.memo
+
 export const CalculationItemMobile = React.memo(
   ({ calc, onDelete, _onEdit, onMarkAsRead, reloadCalculations }) => {
     //
@@ -40,7 +40,7 @@ export const CalculationItemMobile = React.memo(
 
     const {  role } = useAuthGetRole();
     const isAdmin = role === "admin";
-    // Перевірка, чи є дилер отримувачем
+
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
       return (
@@ -48,12 +48,11 @@ export const CalculationItemMobile = React.memo(
       );
     }, [calc.recipient, calc.dealer]);
 
-    // Клас для іконки залежно від типу отримувача
+
     const recipientIconClass = isDealerRecipient
       ? "text-success" // дилер = отримувач
       : "text-warning"; // менеджер / інший отримувач
 
-    // 1. Мемоїзація функцій-обробників за допомогою useCallback
     const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
 
     // const handleEdit = useCallback(
@@ -110,7 +109,7 @@ export const CalculationItemMobile = React.memo(
         setSelectedComments(comments);
         setIsCommentsOpen(true);
 
-        // Якщо є непрочитані — викликаємо функцію "прочитано"
+     
         if (calc.hasUnreadMessages && onMarkAsRead) {
           onMarkAsRead(calc.id);
         }
@@ -118,24 +117,22 @@ export const CalculationItemMobile = React.memo(
       [calc.id, calc.hasUnreadMessages, onMarkAsRead],
     );
 
-    // 2. Мемоїзація списку замовлень за допомогою useMemo
+
     const orderList = useMemo(() => {
       if (!Array.isArray(calc.orders)) return [];
 
-      // Фільтруємо замовлення: залишаємо тільки ті, де номер не порожній
-      // і не складається лише з пробілів.
-      // Це відсікає об'єкти з "number": "" з вашого JSON.
+
       return calc.orders.filter(
         (order) => order.number && String(order.number).trim() !== "",
       );
     }, [calc.orders]);
 
-    // КРОК 3: Мемоїзація Object.entries (не обов'язково, але корисно для великих об'єктів)
+
     const statusEntries = useMemo(() => {
       return calc.statuses ? Object.entries(calc.statuses) : [];
     }, [calc.statuses]);
 
-    // 3. Мемоїзація функції, що повертає клас статусу, за допомогою useCallback
+
     const getStatusClass = useCallback((status) => {
         switch (status) {
           case "Новий":
@@ -167,7 +164,7 @@ export const CalculationItemMobile = React.memo(
           default:
             return "text-WS---MiddleGrey ";
         }
-      }, []); // Немає залежностей, оскільки логіка є статичною
+      }, []); 
 
     return (
       <div
@@ -181,19 +178,19 @@ export const CalculationItemMobile = React.memo(
           paddingLeft: "12px",
         }}
       >
-        {/* ============ MOBILE VERSION (COMPACT) ============ */}
+
         <div
           className="md:hidden flex flex-col w-full"
           onClick={toggleExpanded}
         >
-          {/* Header - Номер, дата і меню */}
+
 <div className="flex items-stretch justify-between mb-1 w-full gap-3 min-h-[70px] pb-1 border-bottom">
   
-  {/* 1. ЛІВА ЧАСТИНА: Номер та Дата + Бордюр справа */}
+
 <div className="basis-2/5  flex flex-col justify-center items-center pr-2 border-right shrink-0">
   <div className="flex flex-col w-full text-start gap-[6px] no-wrap ">
     
-    {/* Додано items-center та text-center */}
+
     <div className="text-base font-bold w-full text-start pb-1 text-WS---DarkGrey border-bottom leading-tight w-fit no-wrap">
       № {calc.number}
     </div>
@@ -205,16 +202,16 @@ export const CalculationItemMobile = React.memo(
   </div>
 </div>
 
-  {/* 2. ЦЕНТРАЛЬНА ЧАСТИНА: Статуси (гнучка ширина) */}
+
 <div className="basis-2/5 flex items-center min-w-0 border-right px-2">
   {statusEntries.length > 0 && (
     <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
       {statusEntries.map(([status, count]) => {
-        const statusClass = getStatusClass(status); // Отримуємо колір один раз для обох елементів
+        const statusClass = getStatusClass(status); 
         
         return (
           <div key={status} className={`flex items-center gap-1 ${statusClass}`}>
-            {/* Тепер іконка отримує той самий клас, що й текст */}
+
             <span className="icon-info-with-circle text-[20px] shrink-0 mr-2"></span>
             
             <span className="text-[13px] font-normal">
@@ -227,7 +224,7 @@ export const CalculationItemMobile = React.memo(
   )}
 </div>
 
-  {/* 3. ПРАВА ЧАСТИНА: Кнопка видалення */}
+
   {/* <div className="flex-1 shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
     <button
       className={`btn-delete-mobile flex items-center justify-center ${hasOrders ? "opacity-20 grayscale" : "text-danger"}`}
@@ -267,7 +264,7 @@ export const CalculationItemMobile = React.memo(
 
 <div className="flex items-stretch justify-between mb-3 w-full min-h-[70px] border-bottom pb-1">
   
-  {/* 1. Конструкції */}
+
   <div className="basis-1/5 flex flex-col items-center justify-center  border-right">
     <div className="flex items-center gap-2">
       <img src={windowsIcon} className="align-center mr-2"  alt="" />
@@ -278,7 +275,7 @@ export const CalculationItemMobile = React.memo(
     <span className="text-grey text-[10px] mt-1">Конструкції</span>
   </div>
 
-  {/* 2. Замовлення */}
+ 
   <div className="basis-1/5 flex flex-col items-center justify-center border-right ">
     <div className="flex items-center gap-2">
       <img src={listCalcIcon} className="align-center mr-2"  alt="" />
@@ -289,18 +286,18 @@ export const CalculationItemMobile = React.memo(
     <span className="text-grey text-[10px] mt-1">Замовлення</span>
   </div>
 
-  {/* 3. Фінанси (Сума та Борг) */}
+
   <div className="flex items-center pl-3 flex-[2.5]">
-    {/* Спільна іконка монет для обох значень */}
+    
     <img src={moneyCalcIcon} className="mr-1" alt="" />
     
     <div className="flex flex-col w-full">
-      {/* Сума */}
+ 
       <div className="font-size-18 text-WS---DarkGreen font-bold border-bottom pb-1 mb-1">
         {formatMoney2(calc.amount, calc.currency)}
       </div>
       
-      {/* Борг */}
+
       <div className="font-size-18 text-WS---DarkRed font-bold">
         {formatMoney2(calc.debt, calc.currency)}
       </div>
@@ -314,9 +311,9 @@ export const CalculationItemMobile = React.memo(
 
 <div className="flex items-stretch justify-between mb-3 w-full min-h-[70px] border-bottom pb-2 gap-4">
   
-  {/* ЛІВА ЧАСТИНА: Коментарі */}
+
   <div className="flex pr-4 border-right flex-[1.9]" onClick={(e) => e.stopPropagation()}> 
-    {/* Зупиняємо тут, щоб клік по тексту коментаря не розгортав картку */}
+
     <div className="flex flex-col h-full justify-between">
       <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
         {calc.message || "Без коментарів"}
@@ -335,11 +332,10 @@ export const CalculationItemMobile = React.memo(
     </div>
   </div>
 
-  {/* ПРАВА ЧАСТИНА: Файл та Отримувач */}
   <div className="flex-1 pl-1">
     <div className="flex flex-col h-full gap-2 justify-center">
       
-      {/* Рядок з Файлом */}
+  
       <div 
         className="flex items-center gap-2 pb-1"
         style={{ 
@@ -357,7 +353,7 @@ export const CalculationItemMobile = React.memo(
         </div>
       </div>
 
-      {/* Рядок з Отримувачем */}
+
       {calc.dealer && (
         <div 
           className="flex items-center gap-2 cursor-pointer"
@@ -400,9 +396,7 @@ export const CalculationItemMobile = React.memo(
             </div>
           )} */}
 
-          {/* Коментар */}
-        
-          {/* Індикатор розкриття */}
+
           <div className="flex justify-center mb-2 ">
             <div className="flex items-center gap-1.5">
               <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">
@@ -417,7 +411,7 @@ export const CalculationItemMobile = React.memo(
           </div>
         </div>
 
-        {/* ============ CALC DETAILS (для обох версій) ============ */}
+
         {expanded && (
           <div className="item-details column gap-2.5 mt-2">
             {orderList.length === 0 ? (

@@ -1,7 +1,7 @@
 import "./CalcMenu.css";
 import { useState } from "react";
 import DeleteConfirmModal from "./DeleteConfirmModal";
-// import EditCalculationModal from "./EditCalculationModal";
+
 
 export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -15,11 +15,11 @@ export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
     );
 
   const handleDeleteClick = (e) => {
-    e.stopPropagation(); // Щоб не спрацював клік по самому рядку (accordion)
+    e.stopPropagation(); 
     if (!hasOrders) {
       setIsDeleteModalOpen(true);
     } else {
-      // Можна додати сповіщення, чому не можна видалити
+
     }
   };
 
@@ -37,11 +37,11 @@ export const CalculationMenu = ({ calc, _onEdit, onDelete }) => {
   title={hasOrders ? "Неможливо видалити: є замовлення" : "Видалити прорахунок"}
 />
 
-      {/* Модалка видалення */}
+   
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)} // Чітке закриття
-        onDeleted={onDelete} // Передаємо функцію видалення з пропсів
+        onClose={() => setIsDeleteModalOpen(false)} 
+        onDeleted={onDelete} 
         itemData={calc}
         itemType="calculation"
       />

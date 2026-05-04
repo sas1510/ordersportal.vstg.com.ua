@@ -25,9 +25,9 @@ export default function PhotoModal({
       );
       if (activeThumb) {
         activeThumb.scrollIntoView({
-          behavior: "smooth", // Плавна анімація
-          block: "nearest", // Мінімальний рух по вертикалі
-          inline: "center", // Центруємо активну мініатюру в списку
+          behavior: "smooth", 
+          block: "nearest", 
+          inline: "center",
         });
       }
     }
@@ -68,7 +68,7 @@ export default function PhotoModal({
               <FaChevronRight />
             </button>
 
-            {/* Додаємо ref={thumbsRef} */}
+        
             <div className="photo-modal-thumbs" ref={thumbsRef}>
               {photos.map((photo, i) => (
                 <img

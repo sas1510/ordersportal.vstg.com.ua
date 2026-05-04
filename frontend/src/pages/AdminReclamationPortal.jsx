@@ -235,7 +235,7 @@ const AdminReclamationPortal = () => {
         );
       } catch (err) {
         if (err.name !== "CanceledError") {
-          console.error(err);
+          // console.error(err);
           setReclamationsData([]);
           setFilteredItems([]);
         }

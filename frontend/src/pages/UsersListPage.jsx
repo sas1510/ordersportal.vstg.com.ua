@@ -30,7 +30,9 @@ export default function UsersListPage() {
       const res = await axiosInstance.get("/users/all/");
       setUsers(res.data.users || []);
     } catch (error) {
-      console.error("Помилка завантаження користувачів:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка завантаження користувачів:", error);
+      }
     } finally {
       setLoading(false);
     }

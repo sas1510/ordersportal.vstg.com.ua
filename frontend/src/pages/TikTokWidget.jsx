@@ -7,20 +7,20 @@ useEffect(() => {
     const scriptId = 'tiktok-embed-script';
     
     const loadTikTok = () => {
-      // 1. Якщо скрипт вже є, видаляємо його, щоб змусити ініціалізуватися заново
+
       const existingScript = document.getElementById(scriptId);
       if (existingScript) {
         existingScript.remove();
       }
 
-      // 2. Створюємо новий тег скрипта
+    
       const script = document.createElement('script');
       script.id = scriptId;
       script.src = 'https://www.tiktok.com/embed.js';
       script.async = true;
       
       script.onload = () => {
-        // 3. Деякі версії скрипта потребують явного виклику, якщо він доступний
+   
         if (window.tiktok && typeof window.tiktok.render === 'function') {
           window.tiktok.render();
         }
@@ -30,12 +30,11 @@ useEffect(() => {
       document.body.appendChild(script);
     };
 
-    // Даємо React час відрендерити <blockquote> перед тим як скрипт почне його шукати
     const timeout = setTimeout(loadTikTok, 100);
 
     return () => {
       clearTimeout(timeout);
-      // При розмонтуванні можна видалити скрипт, щоб наступного разу він точно перевантажився
+
       const script = document.getElementById(scriptId);
       if (script) script.remove();
     };
@@ -46,7 +45,7 @@ useEffect(() => {
   return (
     <div className=" min-h-[400px] relative flex flex-col w-full ">
         <div className="flex flex-col items-center justify-center  bg-white rounded-lg shadow-sm w-full  min-h-[400px] relative">
-      {/* Скелетон/Заглушка: поки скрипт вантажиться, показуємо гарний блок */}
+     
       {!isLoaded && (
         <div className="absolute inset-0 flex  !mt-0 !mb-0 flex-col items-center justify-center bg-slate-50 rounded-xl animate-pulse">
            <div className="w-16 h-16 bg-slate-200 rounded-full mb-4"></div>

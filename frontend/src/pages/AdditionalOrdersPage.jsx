@@ -120,7 +120,7 @@ const AdditionalOrders = () => {
       alert("Помилка: " + (response.data?.message || "Невідома помилка"));
     }
   } catch (err) {
-    console.error("Помилка відправки:", err);
+    // console.error("Помилка відправки:", err);
     alert("Не вдалося відправити дані.");
   } finally {
     setLoading(false);

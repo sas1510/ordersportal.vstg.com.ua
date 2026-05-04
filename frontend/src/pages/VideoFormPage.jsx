@@ -24,7 +24,9 @@ export default function VideoFormPage() {
       setTitle(res.data.title);
       setUrl(res.data.youtubeUrl);
     } catch (error) {
-      console.error("Помилка при завантаженні відео:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка при завантаженні відео:", error);
+      }
     }
   };
 
@@ -40,7 +42,9 @@ export default function VideoFormPage() {
       }
       navigate("/videos");
     } catch (error) {
-      console.error("Помилка при збереженні відео:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка при збереженні відео:", error);
+      }
       alert("Сталася помилка при збереженні відео. Перевірте консоль.");
     }
   };

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios.js";
-// Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import "./NewCalculationModal.css";
 import DealerSelect from "../../pages/DealerSelect";
@@ -33,13 +32,11 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const [loading, setLoading] = useState(false);
 
-  /* 🔀 режим адреси */
   const [addressMode, setAddressMode] = useState("dealer"); // dealer | client
 
-  /* 📍 координати dealer-адреси */
+ 
   const [dealerCoords, setDealerCoords] = useState(null); // { lat, lng }
 
-  /* 📍 клієнтська адреса */
   const [customAddress, setCustomAddress] = useState({
     text: "",
     lat: null,
@@ -54,23 +51,21 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
-  /* ======================================================
-     ❗ Перевірка + витяг координат з адреси
-     ====================================================== */
+
   const extractCoordinates = (addressObj) => {
     if (!addressObj) return null;
 
     let lat = null;
     let lng = null;
 
-    // 1️⃣ формат "48.26,25.93"
+
     if (typeof addressObj.Coordinates === "string") {
       const [latStr, lngStr] = addressObj.Coordinates.split(",");
       lat = parseFloat(latStr);
       lng = parseFloat(lngStr);
     }
 
-    // 2️⃣ fallback
+ 
     lat = lat ?? addressObj.Latitude ?? addressObj.lat;
     lng = lng ?? addressObj.Longitude ?? addressObj.lng;
 
@@ -160,7 +155,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
             onClick={() => loadAddresses(contractorGuid)}
             style={{
               background: "white",
-              color: "#d32f2f", // колір для помилки
+              color: "#d32f2f", 
               border: "none",
               borderRadius: "4px",
               padding: "4px 4px",
@@ -183,9 +178,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     }
   };
 
-  /* =========================
-      🧠 Effects
-     ========================= */
+
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -198,7 +191,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       window.addEventListener("keydown", handleEsc);
     }
 
-    // Очищуємо слухач при закритті модалки або демонтажі компонента
+
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
@@ -254,9 +247,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     onClose();
   };
 
-  /* =========================
-      🚀 Submit
-     ========================= */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);

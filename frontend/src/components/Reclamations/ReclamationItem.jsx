@@ -3,11 +3,11 @@ import React, { useState, useRef, useEffect } from "react";
 // import { formatMoney } from "../../utils/formatMoney";
 import CommentsModal from "../Orders/CommentsModal";
 // import useWindowWidth from "../../hooks/useWindowWidth";
-import DeleteConfirmModal from "../Orders/DeleteConfirmModal"; // Додаємо, оскільки це використовується всередині вбудованого меню
-import { ComplaintItemDetailView } from "./ComplaintItemSummaryDesktop"; // Використовуємо новий DetailView
+import DeleteConfirmModal from "../Orders/DeleteConfirmModal"; 
+import { ComplaintItemDetailView } from "./ComplaintItemSummaryDesktop";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { formatDateHumanShorter } from "../../utils/formatters";
-import { User, ClipboardCheck, LayoutGrid, Calendar } from "lucide-react"; // Імпорт іконок
+
 
 export const ReclamationItem = ({
   reclamation,
@@ -16,10 +16,9 @@ export const ReclamationItem = ({
   isExpanded,
   onToggle,
   onMarkAsRead,
-  // expandedIssueId та onIssueToggle більше не потрібні, якщо немає вкладеності,
-  // але ми залишаємо їх у пропсах для сумісності, якщо потрібно.
+
 }) => {
-  // === ВЛАСТИВОСТІ КОМПОНЕНТА RECLAMATION ITEM ===
+
   const expanded = isExpanded;
   const toggleExpanded = onToggle;
 
@@ -28,7 +27,7 @@ export const ReclamationItem = ({
 //   const windowWidth = useWindowWidth();
 //   const isMobile = windowWidth < 1024;
 
-  // === ЛОГІКА RECLAMATION MENU (ВБУДОВАНА) ===
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const menuRef = useRef(null);
@@ -41,7 +40,7 @@ export const ReclamationItem = ({
 
   // const writerGuid = user?.user_id_1c;
 
-  // Закриття меню при кліку поза ним
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -59,8 +58,7 @@ export const ReclamationItem = ({
   }, [isMenuOpen]);
 
 
-  // ДЛЯ ТЕСТУ: Встановлюємо в true
-  // const canDelete = true;
+
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
@@ -256,23 +254,19 @@ export const ReclamationItem = ({
                     </div>
                 </div>
                  */}
-        {/* 4. Коментар/Опис та Додаткові Деталі */}
 
-        {/* 4. Коментар/Опис та Додаткові Деталі */}
-        {/* 4. Коментар/Опис та Додаткові Деталі */}
 <div className="summary-item expandable row w-30 align-start space-between !pt-0" >
-  {/* Переконайся, що цей div має висоту 100% відносно батька */}
+
   <div className="flex flex-col w-full h-full" style={{ flex: "2 1 0%", minWidth: 0 }}>
 
 
-    {/* Текст коментаря - рівно 2/3 висоти */}
     <div 
       className="comments-text-wrapper-last font-['Inter'] overflow-hidden" 
       style={{ 
         flex: "2 1 0%", 
         minHeight: 0,
         display: "flex",
-        alignItems: "flex-start" // або center, якщо хочеш по центру
+        alignItems: "flex-start" 
       }}
     >
       <div className="w-full text-[14px] leading-tight line-clamp-2">
@@ -280,7 +274,7 @@ export const ReclamationItem = ({
       </div>
     </div>
 
-    {/* Історія коментарів - рівно 1/3 висоти */}
+
     <div 
       className="flex items-center justify-end" 
       style={{ flex: "1 1 0%", minHeight: 0 }}
@@ -345,19 +339,19 @@ export const ReclamationItem = ({
           </div>
         </div>
 
-        {/* 6. Меню дій (зразу іконки без випадаючого меню) */}
+
         <div
           className="summary-item row no-wrap gap-4 align-center"
           style={{ flexBasis: "4%" }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* 🗑️ Видалити */}
+
 
           <div
           className="summary-item row no-wrap gap-4 align-center"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* 🗑️ Видалити (оновлено з використанням зображення) */}
+
           <img
             src={deleteIcon}
             alt="Видалити"
@@ -377,7 +371,7 @@ export const ReclamationItem = ({
           />
         </div>
 
-          {/* Модальне вікно підтвердження видалення */}
+
           {isDeleteModalOpen && (
             <DeleteConfirmModal
               isOpen={isDeleteModalOpen}
@@ -390,11 +384,11 @@ export const ReclamationItem = ({
         </div>
       </div>
 
-      {/* ============ RECLAMATION DETAILS (ВИКОРИСТОВУЄМО ТІЛЬКИ ОДИН КОМПОНЕНТ) ============ */}
+   
 
       {expanded && (
         <div className="item-details column gap-14 !w-full">
-          {/* Відображаємо деталі самої рекламації/завдання */}
+   
           <ComplaintItemDetailView
             key={reclamation.id}
             complaint={reclamation}
@@ -402,12 +396,12 @@ export const ReclamationItem = ({
         </div>
       )}
 
-      {/* Модалка для коментарів */}
+
       <CommentsModal
         isOpen={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
-        baseTransactionGuid={reclamation.guid} // 🔑 GUID з 1С
-        transactionTypeId={2} // 🔑 ID типу "Рекламація"
+        baseTransactionGuid={reclamation.guid} 
+        transactionTypeId={2} 
         // manager={reclamation.managerLink}
         manager={isCustomer ? reclamation.managerLink : reclamation.dealerId}
       />

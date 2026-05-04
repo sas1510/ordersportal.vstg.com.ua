@@ -9,26 +9,23 @@ import {
 import { FaTimes, FaSave, FaSearch } from "react-icons/fa";
 import "leaflet/dist/leaflet.css";
 import "./ClientAddressModal.css";
-// Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 
-/* ================= CONSTANTS ================= */
+
 const DEFAULT_CENTER = [48.3794, 31.1656];
 
-/* ================= HELPERS ================= */
 
-// Валідація: рівно 13 символів, формат +380...
 const isValidPhoneUA = (phone) => {
   return /^\+380\d{9}$/.test(phone);
 };
 
-// Розумне форматування телефону під час введення
+
 const formatPhoneInput = (value) => {
-  let digits = value.replace(/[^\d]/g, ""); // тільки цифри
+  let digits = value.replace(/[^\d]/g, "");
 
   if (!digits) return "";
 
-  // Авто-підстановка коду країни
+ 
   if (digits.startsWith("0")) {
     digits = "38" + digits;
   } else if (digits.startsWith("9")) {
@@ -37,11 +34,11 @@ const formatPhoneInput = (value) => {
     digits = "3" + digits;
   }
 
-  // Завжди додаємо плюс на початок і обмежуємо довжину до 13 символів (+380...)
+ 
   return ("+" + digits).slice(0, 13);
 };
 
-/* ================= MAP HELPERS ================= */
+
 function ClickHandler({ onSelect, onAddressFound }) {
   useMapEvents({
     async click(e) {
@@ -63,7 +60,7 @@ function MapViewUpdater({ center, zoom }) {
   return null;
 }
 
-/* ================= REVERSE GEOCODE ================= */
+
 const reverseGeocode = async (lat, lon) => {
   try {
     const res = await fetch(
@@ -77,15 +74,15 @@ const reverseGeocode = async (lat, lon) => {
   }
 };
 
-/* ================= BUILD ADDRESS ================= */
+
 const buildAddressFromForm = (f) =>
   [f.region, f.district, f.city, f.street, f.house].filter(Boolean).join(", ");
 
-/* ================= COMPONENT ================= */
+
 const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const { addNotification } = useNotification();
 
-  /* ===== ADDRESS FORM ===== */
+
   const [formAddr, setFormAddr] = useState({
     region: initialValue?.region || "",
     district: initialValue?.district || "",
@@ -98,7 +95,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     note: initialValue?.note || "",
   });
 
-  /* ===== CONTACT FORM ===== */
+
   const [clientContact, setClientContact] = useState({
     fullName: initialValue?.fullName || "",
     phone: initialValue?.phone || "",
@@ -129,7 +126,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     [],
   );
 
-  /* ================= SEARCH ================= */
+
   const triggerSearch = (query) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -155,7 +152,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     }, 400);
   };
 
-  /* ================= FORM → MAP ================= */
+
   const handleFindOnMap = () => {
     const addr = buildAddressFromForm(formAddr);
 
@@ -185,7 +182,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     onAddressUpdateFromMap(address);
   };
 
-  /* ================= SAVE ================= */
+
   const handleSave = () => {
     for (const k of requiredFields) {
       if (!String(formAddr[k]).trim()) {
@@ -194,7 +191,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
       }
     }
 
-    // Валідація ПІБ (мінімум 2 слова)
+
     if (
       !clientContact.fullName.trim() ||
       clientContact.fullName.trim().split(" ").length < 2
@@ -203,7 +200,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
       return;
     }
 
-    // Валідація телефону
+  
     if (!isValidPhoneUA(clientContact.phone)) {
       addNotification("Некоректний формат телефону (+380XXXXXXXXX)", "error");
       return;
@@ -223,20 +220,19 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     }
 
     onSave({
-      /* ===== GEO ===== */
+    
       text: mapDisplayName || buildAddressFromForm(formAddr),
       lat: selectedCoords[0],
       lng: selectedCoords[1],
 
-      /* ===== ADDRESS ===== */
+
       ...formAddr,
 
-      /* ===== CLIENT ===== */
+     
       fullName: clientContact.fullName.trim(),
       phone: clientContact.phone.trim(),
       extraInfo: clientContact.extraInfo.trim(),
 
-      /* ===== CONTRACTOR ===== */
       // contractor_guid: contractorGuid || initialValue?.contractor_guid || null,
     });
 
@@ -244,7 +240,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     onClose();
   };
 
-  /* ================= UI ================= */
+
   return (
     <div className="new-calc-modal-overlay" onClick={onClose}>
       <div
@@ -262,7 +258,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
         </div>
 
         <div className="new-calc-modal-body">
-          {/* ===== CONTACT FORM ===== */}
+  
           <div className="client-address-form">
             <h4 className="section-title">Контакти клієнта</h4>
             <div className="client-address-grid">
@@ -280,7 +276,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
                 maxLength={13}
                 onChange={(e) => {
                   const val = e.target.value;
-                  // Дозволяємо видалення символів без авто-дописування
+     
                   if (e.nativeEvent.inputType === "deleteContentBackward") {
                     setClientContact((p) => ({ ...p, phone: val }));
                   } else {
@@ -302,7 +298,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
             </div>
           </div>
 
-          {/* ===== ADDRESS FORM ===== */}
+
           <div className="client-address-form">
             <h4 className="section-title">Адреса доставки</h4>
 
@@ -338,7 +334,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
             </button>
           </div>
 
-          {/* ===== SEARCH ===== */}
+  
           <div className="search-container">
             <input
               className="search-input client-address-search"

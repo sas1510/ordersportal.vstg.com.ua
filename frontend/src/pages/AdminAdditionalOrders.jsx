@@ -74,7 +74,7 @@ const AdminAdditionalOrders = () => {
         year: "numeric",
       });
     } catch (e) {
-      console.error("Date parsing error:", e);
+      // console.error("Date parsing error:", e);
       return dateStr;
     }
   };
@@ -197,7 +197,7 @@ const AdminAdditionalOrders = () => {
         }
       } catch (error) {
         if (error.name !== "CanceledError") {
-          console.error("Помилка запиту:", error);
+          // console.error("Помилка запиту:", error);
           setAdditionalOrdersData([]);
           setFilteredItems([]);
         }

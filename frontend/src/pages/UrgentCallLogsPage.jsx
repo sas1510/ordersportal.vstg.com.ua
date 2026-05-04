@@ -34,7 +34,9 @@ export default function EmergencyCallLogsPage() {
       const response = await axiosInstance.get("/urgent-call-list/");
       setLogs(response.data);
     } catch (error) {
-      console.error("Помилка при завантаженні журналу SOS:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка при завантаженні журналу SOS:", error);
+      }
       addNotification("❌ Не вдалося завантажити журнал SOS-викликів", "error");
     }
   }, [addNotification]); // Залежить від функції сповіщень
@@ -128,7 +130,9 @@ export default function EmergencyCallLogsPage() {
 
       closeModal();
     } catch (error) {
-      console.error("Помилка при збереженні контакту:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка при збереженні контакту:", error);
+      }
       addNotification("❌ Помилка при збереженні контакту", "error");
     } finally {
       setSaving(false);

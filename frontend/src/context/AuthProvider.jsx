@@ -18,7 +18,7 @@ export default function AuthProvider({ children }) {
   const { setRole } = useContext(RoleContext);
   const [loading, setLoading] = useState(true);
 
-  // --- Встановлення токена (Обернуто в useCallback для стабільності) ---
+
   const setAccessToken = useCallback((token, roleValue = null) => {
     setAccessTokenState(token);
     setAxiosAccessToken(token);
@@ -33,9 +33,9 @@ export default function AuthProvider({ children }) {
       setIsAuthenticated(false);
       if (setRole) setRole(null);
     }
-  }, [setRole]); // Залежить від setRole з іншого контексту
+  }, [setRole]); 
 
-  // --- Логін ---
+
   const login = async (username, password) => {
     const res = await axiosInstance.post(
       "/login/",
@@ -47,7 +47,7 @@ export default function AuthProvider({ children }) {
     return res.data;
   };
 
-  // --- Логаут ---
+
   const logout = useCallback(async () => {
     try {
       await axiosInstance.post("/logout/", {}, { withCredentials: true });
@@ -57,7 +57,7 @@ export default function AuthProvider({ children }) {
     setAccessToken(null);
   }, [setAccessToken]);
 
-  // --- Ініціалізація при старті ---
+
   useEffect(() => {
     const initAuth = async () => {
       if (!accessToken) {
@@ -69,15 +69,16 @@ export default function AuthProvider({ children }) {
           );
           setAccessToken(res.data.access, res.data.role);
         } catch {
-          console.log("No valid session");
+          if (process.env.NODE_ENV === "development") {
+            console.log("No valid session");
+          }
         }
       }
       setLoading(false);
     };
     initAuth();
-  }, [accessToken, setAccessToken]); // Додано залежності
+  }, [accessToken, setAccessToken]); 
 
-  // --- Глобальний logout для axios ---
   useEffect(() => {
     setLogoutHandler(logout);
   }, [logout]);

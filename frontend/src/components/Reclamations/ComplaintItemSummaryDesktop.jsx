@@ -15,9 +15,7 @@ import { formatDate } from "../../utils/formatters";
 
 import { useNotification } from "../../hooks/useNotification";
 
-// =================================================================================
-// === ДОПОМІЖНІ КОМПОНЕНТИ (InfoRow, HorizontalInfoGroup, FullWidthInfoGroup) ===
-// =================================================================================
+
 
 const InfoRow = ({
   label,
@@ -39,7 +37,7 @@ const InfoRow = ({
       ...style,
     }}
   >
-    {/* Лейбл виводиться ТІЛЬКИ якщо він переданий у пропсах */}
+
     {label && (
       <span 
         className="text-xs mb-1" 
@@ -49,7 +47,7 @@ const InfoRow = ({
       </span>
     )}
 
-    {/* Значення виводиться завжди: або реальне, або "Не вказано" */}
+   
     <span
       className={`text-sm leading-tight ${highlight ? "font-extrabold" : "font-bold"}`}
       style={{
@@ -57,7 +55,7 @@ const InfoRow = ({
           ? colors.highlight
           : value
           ? colors.value
-          : colors.empty, // Колір для порожнього значення (зазвичай сірий)
+          : colors.empty, 
         textAlign: "left",
       }}
     >
@@ -75,7 +73,7 @@ const HorizontalInfoGroup = ({ children, columns = 3, colors }) => {
   return (
     <div className="flex flex-wrap w-full font-['Inter',_sans-serif]">
       {childrenArray.map((child, index) => {
-        // Перевірка, чи це найперший елемент у групі
+
         const isFirst = index === 0;
 
         const isLastInRow =
@@ -88,15 +86,14 @@ const HorizontalInfoGroup = ({ children, columns = 3, colors }) => {
 
         return React.cloneElement(child, {
           key: index,
-          isFirst, // Передаємо цей пропс дочірньому компоненту
+          isFirst, 
           isLastInRow,
           isLastInGroup:
             isLastInGroup &&
             (index === totalItems - 1 ||
               (totalItems <= columns && index + 1 === totalItems)),
           colors,
-          // Додаємо автоматичне прибирання відступу через className, 
-          // якщо компонент InfoRow підтримує злиття класів
+         
           className: `${child.props.className || ''} ${isFirst ? '!pl-0' : ''}`.trim(),
         });
       })}
@@ -211,7 +208,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
     loadFiles();
   }, [loadFiles]);
 
-  /* ================= 2. ФУНКЦІЯ ОТРИМАННЯ URL З ТОКЕНОМ ================= */
+
   const getSecureUrl = useCallback(
     async (file) => {
       try {
@@ -224,18 +221,18 @@ const ComplaintItemDetailView = ({ complaint }) => {
         // Переконайтеся, що URL формується правильно
         return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(file.File_FileName)}&token=${safeToken}`;
       } catch (e) {
+        if (process.env.NODE_ENV === "development") {
         console.error("❌ Token error:", file?.File_FileName, e);
-        return null; // Якщо помилка, повертаємо null
+        }
+        return null; 
       }
     },
     [complaint?.guid],
   );
-  /* ================= 3. ОБРОБНИКИ КЛІКІВ ================= */
 
-  // Для відео (ідентично вашому прикладу)
   const handleVideoClick = async (file) => {
     const url = await getSecureUrl(file);
-    if (!url) return; // addNotification вже спрацює всередині getSecureUrl
+    if (!url) return;
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     if (isIOS) {
@@ -245,7 +242,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
     }
   };
 
-  // Для фото - генеруємо токени для ВСІХ фото перед відкриттям модалки
+
   const handlePhotoClick = async (index) => {
     if (imageFiles.length === 0) return;
 
@@ -277,7 +274,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
       >
         <div className="flex flex-col gap-3 mt-1">
-          {/* 1. Основна інформація */}
+     
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
@@ -287,7 +284,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
   className="text-base font-bold mb-0 py-1 flex items-center"
   style={{
     color: c.text,
-    // Використовуємо gap, щоб був відступ між текстом і лінією
+   
     display: "flex",
     alignItems: "center",
     width: "100%",
@@ -303,7 +300,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
     Основна інформація
   </span>
 
-  {/* Лінія після тексту */}
+ 
 <div 
   style={{
     flex: 1,
@@ -311,7 +308,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
     height: "1.5px",
     backgroundColor: "#4A4A4A",
     opacity: 0.8,
-    // Рухаємо лінію вниз на 3-5 пікселів
     transform: "translateY(4px)", 
   }} 
 />
@@ -356,7 +352,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
   className="text-base font-bold mb-0 py-1 flex items-center"
   style={{
     color: c.text,
-    // Використовуємо gap, щоб був відступ між текстом і лінією
     display: "flex",
     alignItems: "center",
     width: "100%",
@@ -372,7 +367,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
     Серії конструкцій
   </span>
 
-  {/* Лінія після тексту */}
+
 <div 
   style={{
     flex: 1,
@@ -380,7 +375,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
     height: "2px",
     backgroundColor: "#4A4A4A",
     opacity: 0.8,
-    // Рухаємо лінію вниз на 3-5 пікселів
     transform: "translateY(4px)", 
   }} 
 />
@@ -398,7 +392,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
           </div>
 
 
-          {/* 2. Дати */}
+ 
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
@@ -424,7 +418,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
     height: "1.5px",
     backgroundColor: "#4A4A4A",
     opacity: 0.8,
-    // Рухаємо лінію вниз на 3-5 пікселів
     transform: "translateY(4px)", 
   }} 
 />
@@ -468,11 +461,11 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
 <div 
   style={{
-    width: "100%",      // На всю ширину
-    height: "2px",      // Товщина
-    backgroundColor: "#4A4A4A", // Колір
-    margin: "10px 0",   // Відступи зверху і знизу
-    opacity: 0.8        // Напівпрозорість для легкості
+    width: "100%",    
+    height: "2px",   
+    backgroundColor: "#4A4A4A", 
+    margin: "10px 0",   
+    opacity: 0.8        
   }} 
 />
 
@@ -504,11 +497,11 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
         <div 
   style={{
-    width: "100%",      // На всю ширину
-    height: "2px",      // Товщина
-    backgroundColor: "#4A4A4A", // Колір
-    margin: "10px 0",   // Відступи зверху і знизу
-    opacity: 0.8        // Напівпрозорість для легкості
+    width: "100%",      
+    height: "2px",      
+    backgroundColor: "#4A4A4A", 
+    margin: "10px 0",   
+    opacity: 0.8       
   }} 
 />
 
@@ -546,7 +539,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                 >
  <div className="flex flex-col gap-1">
     
-    {/* Заголовок з іконкою в один ряд */}
+
     <div className="flex items-center">
       <img 
         src={problemIcon} 
@@ -558,7 +551,6 @@ const ComplaintItemDetailView = ({ complaint }) => {
       </h4>
     </div>
 
-    {/* Опис нижче зі зміщенням вправо */}
     <p className="text-[13px] text-WS---DarkGrey leading-relaxed">
       {complaint.problem}
     </p>
@@ -575,7 +567,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                   }}
                 >
                  <div className="flex flex-col  gap-1"> 
-                {/* Рядок з іконкою та заголовком */}
+             
                 <div className="flex items-center">
                   <img 
                     src={successIcon} 
@@ -587,7 +579,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                   </h4>
                 </div>
 
-                {/* Текст рішення на новому рядку з невеликим відступом зліва, щоб бути під текстом заголовка */}
+            
                 <p className="text-[13px] text-WS---DarkGrey  leading-relaxed">
                   {complaint.resolution}
                 </p>

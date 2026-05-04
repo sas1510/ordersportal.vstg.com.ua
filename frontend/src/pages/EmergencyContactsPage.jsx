@@ -38,7 +38,10 @@ const EmergencyContactsPage = () => {
       const response = await axiosInstance.get("/contacts/");
       setContacts(response.data);
     } catch (error) {
-      console.error("Помилка при отриманні контактів:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error fetching contacts:", error);
+      }
+
       addNotification("Не вдалося отримати список контактів", "error");
     }
   }, [addNotification]);
@@ -112,7 +115,10 @@ const EmergencyContactsPage = () => {
       }
       closeModal();
     } catch (error) {
-      console.error("Помилка при збереженні контакту:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error saving contact:", error);
+      }
+
       addNotification("❌ Не вдалося зберегти контакт", "error");
     } finally {
       setIsSending(false);
@@ -132,7 +138,9 @@ const EmergencyContactsPage = () => {
       addNotification("✅ Контакт видалено", "success");
       closeModal();
     } catch (error) {
-      console.error("Помилка при видаленні контакту:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error deleting contact:", error);
+      }
       addNotification("❌ Не вдалося видалити контакт", "error");
     } finally {
       setIsSending(false);
@@ -152,7 +160,9 @@ const EmergencyContactsPage = () => {
       await axiosInstance.post("/urgent-call/", payload);
       addNotification("Повідомлення надіслано", "success");
     } catch (error) {
-      console.error("Помилка при надсиланні повідомлення:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error calling contact:", error);
+      }
       addNotification("Не вдалося надіслати повідомлення", "error");
     } finally {
       setIsSending(false);

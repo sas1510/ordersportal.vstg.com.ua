@@ -11,7 +11,7 @@ import AdditionalOrdersPage from "./pages/AdditionalOrdersPage";
 import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 
 import ChangePassword from "./pages/ChangePassword";
-import EditUserPage from "./pages/EditUserPage";
+
 
 import DealerAddressesPage from "./pages/DealerAddressesPage";
 import ContactFormPage from "./pages/ContactFormPage";
@@ -59,7 +59,7 @@ export const adminRoutes = [
   // { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
   { path: "change-password", element: <ChangePasswordPage /> },
-  { path: "users/:id/edit", element: <EditUserPage /> },
+  // { path: "users/:id/edit", element: <EditUserPage /> },
 
   { path: "contacts/new", element: <ContactFormPage /> },
   { path: "urgentLogs", element: <UrgentCallLogsPage /> },

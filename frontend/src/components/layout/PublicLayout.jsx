@@ -6,17 +6,16 @@ import { Outlet } from "react-router-dom";
 export default function PublicLayout() {
   return (
     <div style={styles.layout}>
-      {/* 1. Хедер кладемо в обгортку з фіксованою позицією */}
+
       <div style={styles.headerWrapper}>
         <HeaderWithoutAuth />
       </div>
 
-      {/* 2. Main просто займає весь екран */}
       <main style={styles.main}>
         <Outlet />
       </main>
 
-      {/* <Footer /> */}
+   
     </div>
   );
 }

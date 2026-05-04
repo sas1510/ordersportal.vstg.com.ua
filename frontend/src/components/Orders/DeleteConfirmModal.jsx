@@ -162,7 +162,6 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../../api/axios.js";
 import "./DeleteConfirmModal.css";
 import { createPortal } from "react-dom";
-// Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import {
   FaExclamationTriangle,
@@ -179,9 +178,9 @@ const DeleteConfirmModal = ({
   onDeleted,
 }) => {
   const { addNotification } = useNotification();
-  const [isDeleting, setIsDeleting] = useState(false); // Стан для лоадера на кнопці
+  const [isDeleting, setIsDeleting] = useState(false); 
 
-  // 1. Ефект для блокування прокрутки та обробки Esc
+
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape" && !isDeleting) {
@@ -204,7 +203,7 @@ const DeleteConfirmModal = ({
 
   const type = propItemType || itemData?.type;
 
-  // Визначення відображуваного імені
+
   const itemName = (() => {
     if (type === "calculation" || type === "additionalOrder") {
       return itemData?.number || itemData?.id || "запис";
@@ -221,7 +220,7 @@ const DeleteConfirmModal = ({
     );
   })();
 
-  // Словник типів
+
   const mapType = {
     order: "Замовлення",
     calculation: "Прорахунок",

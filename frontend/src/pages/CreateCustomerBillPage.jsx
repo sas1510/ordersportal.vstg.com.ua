@@ -32,7 +32,11 @@ export default function CreateCustomerBillPage() {
         setContragents(data.filter((d) => d.type === "Contragent"));
         setIbans(data.filter((d) => d.type === "Iban"));
       } catch (err) {
-        console.error(err);
+
+        if (process.env.NODE_ENV === 'development') {
+                  console.error(err);
+        }
+
         alert("Помилка при завантаженні списків");
       }
     };
@@ -91,7 +95,9 @@ export default function CreateCustomerBillPage() {
         { itemGUID: "", name: "", height: 0, width: 0, quantity: 1, price: 0 },
       ]);
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV === 'development') {
+                console.error(err);
+      }
       alert(err.response?.data?.error || "Помилка при створенні рахунку");
     } finally {
       setLoading(false);

@@ -13,14 +13,11 @@ import {
   FaFolderOpen,
 } from "react-icons/fa";
 import ConfirmModal from "../components/Orders/ConfirmModal";
-// Якщо ви створили файл useNotification.js у папці hooks:
+
 import { useNotification } from "../hooks/useNotification";
 import "./Files.css";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
-// ==========================================================
-// КОНСТАНТИ
-// ==========================================================
 const API_URL = "/media-resources/";
 const FILE_RESOURCE_TYPE = "file";
 
@@ -67,7 +64,9 @@ const FilesPage = () => {
       setFiles(response.data);
       setFilteredFiles(response.data);
     } catch (error) {
+      if (process.env.NODE_ENV === "development") {
       console.error("Помилка завантаження файлів:", error);
+      }
       addNotification("Помилка завантаження файлів", "error");
     } finally {
       setLoading(false);
@@ -79,7 +78,7 @@ const FilesPage = () => {
     fetchFiles();
   }, [fetchFiles]);
 
-  // ====================== Фільтрація ======================
+
   useEffect(() => {
     if (searchQuery.trim()) {
       const filtered = files.filter(
@@ -95,10 +94,7 @@ const FilesPage = () => {
     }
   }, [searchQuery, files]);
 
-  // ====================== Завантаження файлів ======================
 
-
-  // ====================== Додавання файлу ======================
   const handleAddFile = async (e) => {
     e.preventDefault();
     if (!newFile) return addNotification("Оберіть файл", "error");
@@ -127,7 +123,9 @@ const FilesPage = () => {
         fetchFiles();
         addNotification("Файл успішно додано!", "success");
       } catch (error) {
-        console.error("Помилка POST:", error.response?.data || error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Помилка POST:", error.response?.data || error);
+        }
         addNotification("Не вдалося додати файл", "error");
       } finally {
         setLoadingAdd(false);
@@ -136,7 +134,7 @@ const FilesPage = () => {
     reader.readAsDataURL(newFile);
   };
 
-  // ====================== Редагування файлу ======================
+
   const handleEditClick = (file) => {
     setEditingFile(file);
     setEditTitle(file.title);
@@ -179,12 +177,14 @@ const FilesPage = () => {
       setEditTitle("");
       setEditNewFile(null);
     } catch (error) {
-      console.error("Помилка PUT:", error.response?.data || error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка PUT:", error.response?.data || error);
+      }
       addNotification("Не вдалося змінити файл", "error");
     }
   };
 
-  // ====================== Видалення файлу ======================
+
   const handleDeleteClick = (file) => {
     setSelectedFile(file);
     setDeleteModalOpen(true);
@@ -195,14 +195,15 @@ const FilesPage = () => {
       fetchFiles();
       addNotification(`Файл "${selectedFile.title}" видалено`, "success");
     } catch (error) {
-      console.error("Помилка при видаленні:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Помилка при видаленні:", error);
+      }
       addNotification("Не вдалося видалити файл", "error");
     } finally {
       setDeleteModalOpen(false);
     }
   };
 
-  // ====================== Завантаження файлу ======================
   const handleDownload = (file) => {
     if (!file.file_base64) {
       return addNotification(
@@ -226,7 +227,6 @@ const FilesPage = () => {
     link.click();
   };
 
-  // ====================== Форматування/Іконки ======================
   const formatDate = (isoString) => {
     if (!isoString) return "Невідомо";
     const date = new Date(isoString);
@@ -253,7 +253,7 @@ const FilesPage = () => {
     }
   };
 
-  // ====================== Стилі для Темної Теми (для умовного рендерингу) ======================
+
   const darkStyles = {
     searchBoxBg: "#333333",
     searchBoxBorder: "1px dashed #555555",
@@ -271,34 +271,30 @@ const FilesPage = () => {
     <div className="file-body column gap-14  items-center" style={{  fontFamily: "'Inter', sans-serif" }}>
 
   <section className="relative w-full min-h-[300px] flex items-center justify-center overflow-hidden ">
-  {/* Фонове зображення */}
+
   <div className="absolute inset-0 z-0">
     <img src={backgroundImage} className="w-full h-full object-cover" alt="Background" />
     <div className="absolute inset-0 bg-black/50" />
   </div>
 
-  {/* Контентна частина */}
   <div className="relative z-10 pt-[100px] container mx-auto w-[calc(100%-20px)] max-w-[1334px] text-white">
     
-    {/* Заголовок завжди по центру */}
+
     <h1 className="text-[24px] xl:text-[32px] font-bold uppercase tracking-wider text-center">
       Файли
     </h1>
 
-    {/* Рядок з текстом та пошуком */}
-{/* Рядок з текстом та правою панеллю управління */}
 <div className="flex flex-col md:flex-row items-center md:items-end justify-center gap-6 relative">
   
-  {/* Центрований текст */}
+
   <p className="text-[16px] xl:text-[20px] font-light text-center leading-tight">
     Корисні матеріали для завантаження: <br />
     сертифікати, протоколи випробувань, будівельні норми тощо.
   </p>
 
-  {/* Права панель: Пошук + Кнопка (якщо адмін) */}
+
   <div className="flex flex-col items-end gap-3 w-full max-w-[285px] lg:max-w-[250px] lg:absolute md:right-0 md:bottom-0">
-    
-    {/* Кнопка адміна (з’явиться над пошуком) */}
+
     {isAdmin && (
       <button
         className="w-full bg-custom-green hover:bg-custom-green-dark text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
@@ -308,7 +304,6 @@ const FilesPage = () => {
       </button>
     )}
 
-    {/* Пошук */}
     <div className="relative w-full">
       <input
         type="text"
@@ -438,7 +433,7 @@ const FilesPage = () => {
               key={file.id}
               className={`claim-item w-full row align-center  rounded-[5px]   space-between ${isDarkTheme ? "file-item-dark" : ""}`}
               style={{
-                // УМОВНА АДАПТАЦІЯ ФОНУ ЕЛЕМЕНТА
+               
                 background: isDarkTheme ? darkStyles.fileItemBg : "white",
                
                 boxShadow: isDarkTheme
@@ -448,11 +443,11 @@ const FilesPage = () => {
               }}
             >
               <div className="flex !items-start md:!items-center min-h-[70px] flex-1 border-r border-dotted pt-1 pb-1 mr-2">
-                {/* <div style={{ fontSize: "28px" }}>{getFileIcon(file)}</div> */}
+              
 
                 <img src={fileIcon}  className="pl-[8px] pr-[8px] md:pl-[17px] md:pr-[17px] h-[25px] md:h-[40px] mt-[6px] md:mt-0"/>
                 <div className="column gap-2">
-                  {/* АДАПТАЦІЯ КОЛЬОРУ ТЕКСТУ */}
+                
                   <div
                     className="text-WS---DarkGrey font-bold"
                     style={{
@@ -473,7 +468,7 @@ const FilesPage = () => {
                   >
 
                     <img src={profileIcon} className="pr-[8px]" />
-                    {/* <span>{file.author?.full_name || "Невідомо"}</span>  */}
+                   
                     <span>Адміністратор</span> 
                     <div className="w-[8px] h-[8px] bg-custom-green rounded-[50%]" />
                     <span>{formatDate(file.created_at)}</span>
@@ -511,7 +506,7 @@ const FilesPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+  
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
@@ -523,7 +518,6 @@ const FilesPage = () => {
         cancelText="Скасувати"
       />
 
-      {/* Add File Modal */}
       {addModalOpen && (
         <div
           className="file-modal-overlay"
@@ -594,7 +588,6 @@ const FilesPage = () => {
         </div>
       )}
 
-      {/* Edit File Modal */}
       {editModalOpen && (
         <div
           className="file-modal-overlay"
@@ -606,7 +599,7 @@ const FilesPage = () => {
           >
             <div
               className="file-modal-header"
-              // Видаляємо inline-стилі, щоб дозволити CSS-класу .edit-modal .file-modal-header працювати коректно.
+             
             >
               <div className="header-content">
                 <div className="file-icon">✏️</div>

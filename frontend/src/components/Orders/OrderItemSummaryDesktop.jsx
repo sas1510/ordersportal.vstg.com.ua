@@ -10,9 +10,9 @@ import {
   formatDateTimeShort
 
 } from "../../utils/formatters";
-// Якщо ви створили файл useNotification.js у папці hooks:
+
 import { useNotification } from "../../hooks/useNotification";
-// --- МОДАЛКИ ---
+
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
@@ -26,13 +26,13 @@ export default React.memo(function OrderItemSummaryDesktop({
 }) {
   const { addNotification } = useNotification();
 
-  // =========================== UI STATE ===========================
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
-  // Додайте це до інших useState на початку компонента
+
   const [loading, setLoading] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -48,14 +48,13 @@ export default React.memo(function OrderItemSummaryDesktop({
 
 
   const { user } = useAuthGetRole();
-  // const isAdmin = role === "admin";
-  // ---- ONLY PAYMENT MODAL FLAG ----
+
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const [claimOrderGuid, setClaimOrderGuid] = useState("");
 
-  // ========================= BUTTON STATES =========================
+
   const toggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
 
   // const getButtonState = useCallback((status) => {
@@ -89,7 +88,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   //   return state;
   // }, []);
   const getButtonState = useCallback((status) => {
-    // Всі кнопки за замовчуванням вимкнені
+
     const state = {
       confirm: false,
       pay: false,
@@ -97,7 +96,7 @@ export default React.memo(function OrderItemSummaryDesktop({
       claim: false,
     };
 
-    // Логіка на основі статусу
+
     const statusConfig = {
       Новий: { confirm: true, pay: true,  reorder: true },
       "У виробництві" : {pay: true,  reorder: true},
@@ -109,7 +108,7 @@ export default React.memo(function OrderItemSummaryDesktop({
       Відвантажений: { pay: true, reorder: true, claim: true },
     };
 
-    // Якщо статус є в конфігу — застосовуємо значення
+
     if (statusConfig[status]) {
       Object.assign(state, statusConfig[status]);
     }
@@ -119,22 +118,20 @@ export default React.memo(function OrderItemSummaryDesktop({
 
 
     const handleSaveAdditionalOrder = useCallback(async (formData) => {
-  setLoading(true); // Тепер цей стейт існує
+  setLoading(true); 
   try {
     const response = await axiosInstance.post(
       "/additional_orders/save_additional_order/",
       formData
     );
 
-    // Перевірка успіху (враховуючи масив, який ми бачили раніше)
+
     const result = Array.isArray(response.data) ? response.data[0] : response.data;
 
     if (result?.success === true || response.status === 201) {
       addNotification("Дозамовлення успішно створено!", "success");
-      setIsReorderModalOpen(false); // ВИПРАВЛЕНО: назва функції закриття
-      
-      // Якщо у вас refreshTrigger приходить з батьківського компонента як пропс, 
-      // то використовуйте його. Якщо ні — ця лінія може бути не потрібна тут.
+      setIsReorderModalOpen(false); 
+    
       if (typeof setRefreshTrigger === 'function') {
         setRefreshTrigger((prev) => prev + 1);
       }
@@ -147,9 +144,9 @@ export default React.memo(function OrderItemSummaryDesktop({
   } finally {
     setLoading(false);
   }
-}, [addNotification, setIsReorderModalOpen]); // Додано залежності
+}, [addNotification, setIsReorderModalOpen]); 
 
-  // ========================= DEBT =========================
+
   const debtAmount = useMemo(() => {
     const paid = order.paid ?? 0;
     const debt = parseFloat(order.amount) - parseFloat(paid);
@@ -159,7 +156,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   const buttonState = useMemo(() => {
     const state = getButtonState(order.status);
 
-    // Блокувати оплату, якщо борг 0
+
     if (debtAmount <= 0) {
       state.pay = false;
     }
@@ -222,14 +219,14 @@ export default React.memo(function OrderItemSummaryDesktop({
     setIsFilesModalOpen(true);
   }, []);
 
-  // ========================= PAYMENT OPEN =========================
+
 
   const openPaymentModal = useCallback((e) => {
     e.stopPropagation();
-    setIsPaymentOpen(true); // А ВСЕ ЗАВАНТАЖЕННЯ В МОДАЛЦІ!
+    setIsPaymentOpen(true);
   }, []);
 
-  // ========================= CONFIRM PAYMENT =========================
+
   const handlePaymentConfirm = async (contractID, amount) => {
     console.log("ОПЛАТА:", { contractID, amount, orderID: order.id });
 
@@ -250,7 +247,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     }
   };
 
-  // ========================= CONFIRM ORDER =========================
+
   const handleConfirmOrder = useCallback(async () => {
     try {
       const response = await axiosInstance.post(
@@ -274,16 +271,16 @@ export default React.memo(function OrderItemSummaryDesktop({
   }, []);
 
   const dateDiffStatus = useMemo(() => {
-    // Перевіряємо наявність обох дат
+
     if (!order.date || !calculationDate) return null;
 
     const d1 = new Date(calculationDate);
     const d2 = new Date(order.date);
 
-    // Різниця в мілісекундах перетворена в дні
+ 
     const diffInDays = (d2 - d1) / (1000 * 60 * 60 * 24);
 
-    // Якщо замовлення зроблено протягом 24 годин (<= 1 дня) — true (радісний)
+
     return diffInDays <= 1;
   }, [order.date, calculationDate]);
 
@@ -454,14 +451,14 @@ onClick={openClaimModal}
             : "Замовлення оформлено пізніше ніж через добу"
         }
       >
-        {/* Переконуємося, що батьківський div має flex для центрування */}
+ 
         <div className="font-size-24 flex items-center justify-center">
           {dateDiffStatus === null ? null : (
-            /* Використовуємо тег <img /> замість <i> */
+  
             <img 
               src={speedIcon} 
               alt="Speed Icon"
-              // Налаштовуємо розмір (десь 24px, щоб відповідало попередньому font-size-24)
+           
               style={{ width: '24px', height: '24px' }}
               className={`
                 ${dateDiffStatus ? "color-green-icon " : "color-red-icon"}

@@ -5,7 +5,6 @@ import { FaTimes, FaPlus, FaClipboardList, FaUserAlt } from "react-icons/fa";
 import "./AddClaimModal.css";
 import CustomSelect from "./CustomSelect";
 import DealerSelect from "../../pages/DealerSelect";
-// Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
@@ -41,7 +40,7 @@ export default function AddClaimModal({
 
   const [dealerId, setDealerId] = useState("");
 
-  // Нові стани для помилок завантаження
+
   const [fetchErrors, setFetchErrors] = useState({
     reasons: null,
     solutions: null,
@@ -61,29 +60,23 @@ export default function AddClaimModal({
       window.addEventListener("keydown", handleEsc);
     }
 
-    // Очищуємо слухач при закритті модалки або демонтажі компонента
+  
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
 
-  /* =========================
-      🔒 Lock scroll
-     ========================= */
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
   }, [isOpen]);
 
-  /* =========================
-      🔄 Reset order number
-     ========================= */
+
   useEffect(() => {
     if (isOpen) setOrderNumber(initialOrderNumber);
   }, [isOpen, initialOrderNumber]);
 
-  /* =========================
-      📋 Load reasons
-     ========================= */
+
   const fetchReasons = async () => {
     if (!isOpen) return;
     setFetchErrors((p) => ({ ...p, reasons: null }));
@@ -120,12 +113,12 @@ export default function AddClaimModal({
         solutions: "Помилка завантаження варіантів вирішення",
       }));
     }
-  }, [reasonLink]); // Функція залежить від reasonLink
+  }, [reasonLink]); 
 
-  // 2. Тепер додаємо функцію в залежності useEffect
+  
   useEffect(() => {
     fetchSolutions();
-  }, [fetchSolutions]); // Тепер лінтер задоволений
+  }, [fetchSolutions]);
 
 
   const fetchSeries = useCallback(async () => {
@@ -160,15 +153,13 @@ export default function AddClaimModal({
         series: "Не вдалося отримати дані про серії конструкцій",
       }));
     }
-  }, [orderNumber]); // 👈 Функція залежить від orderNumber
+  }, [orderNumber]); 
 
   useEffect(() => {
     fetchSeries();
   }, [fetchSeries]);
 
-  /* =========================
-      🖼️ Photos
-     ========================= */
+
   const handleAddPhotos = (e) => {
     const files = Array.from(e.target.files);
     if (files.length) setPhotos((p) => [...p, ...files]);
@@ -179,9 +170,7 @@ export default function AddClaimModal({
     setPhotos((p) => p.filter((_, i) => i !== index));
   };
 
-  /* =========================
-      🔄 Reset
-     ========================= */
+
   const resetForm = () => {
     setOrderNumber("");
     setDeliveryDate("");
@@ -202,9 +191,7 @@ export default function AddClaimModal({
     onClose();
   };
 
-  /* =========================
-      🚀 Submit
-     ========================= */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -279,9 +266,7 @@ export default function AddClaimModal({
 
   if (!isOpen) return null;
 
-  /* =========================
-      🧩 Render
-     ========================= */
+
   return createPortal(
     <div className="claim-modal-overlay" onClick={handleCloseWithReset}>
       <div className="claim-modal-window" onClick={(e) => e.stopPropagation()}>

@@ -25,7 +25,7 @@ export default function AddOrEditFilePage() {
         `${API_URL.replace("/api", "")}/documents/${res.data.filePath}`,
       );
     } catch (err) {
-      console.error("Помилка завантаження документа:", err);
+      // console.error("Помилка завантаження документа:", err);
     }
   };
 
@@ -52,7 +52,7 @@ export default function AddOrEditFilePage() {
 
       navigate("/files");
     } catch (err) {
-      console.error("Помилка збереження:", err);
+      // console.error("Помилка збереження:", err);
       alert("Помилка збереження. Перевірте консоль.");
     }
   };

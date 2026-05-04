@@ -122,7 +122,7 @@ export default function PaymentsPage() {
       setDebtItems(resDebts.data.debts?.items || []);
       setDebtTotal(resDebts.data.debts?.total || null);
     } catch (_e) {
-      console.error("Error loading payment data:", _e);
+      // console.error("Error loading payment data:", _e);
       setError("Помилка завантаження фінансових даних");
     } finally {
       setLoading(false);
@@ -184,8 +184,7 @@ export default function PaymentsPage() {
     return summary;
   }, [orders]);
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((o) => {
+  const filteredOrders = useMemo(() => {    return orders.filter((o) => {
       const statusOk = statusFilter === "all" || o.OrderStage === statusFilter;
       const contractOk =
         contractFilter === "all" || o.Dogovor_GUID === contractFilter;
@@ -254,10 +253,10 @@ export default function PaymentsPage() {
     // } else {
 
     setDetailModalOpen(false);
-    addNotification(
-      `Замовлення № ${zakazNum} додано у фільтр пошуку.`,
-      "success",
-    );
+    // addNotification(
+    //   `Замовлення № ${zakazNum} додано у фільтр пошуку.`,
+    //   "success",
+    // );
   };
 
   const openPaymentModal = (order) => {
@@ -808,9 +807,9 @@ export default function PaymentsPage() {
                         <td className="bold" style={{ color: "#1da8df" }}>
                           {formatCurrency(
                             o.Debt ||
-                              o.BezPeredOplaty ||
+                              // o.BezPeredOplaty ||
                               o.NedoAvans ||
-                              o.Summa,
+                              o.Summa || o.ZakazSumma,
                           )}{" "}
                           {o.CurrencyName || "грн"}
                         </td>

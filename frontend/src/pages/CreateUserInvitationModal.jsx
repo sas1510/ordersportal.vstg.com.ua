@@ -54,7 +54,9 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
         const res = await axiosInstance.get("/users/get_active_users_1c");
         setUsers1c(res.data.users || []);
       } catch (err) {
-        console.error(err);
+        if (process.env.NODE_ENV === 'development') {
+                  console.error(err);
+        }
         addNotification("Помилка завантаження бази 1С", "error");
       } finally {
         setLoadingUsers(false);
@@ -102,7 +104,9 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        console.error("Error copying text:", err);
+        if (process.env.NODE_ENV === 'development') {
+                  console.error("Error copying text:", err);
+        }
         addNotification("Помилка копіювання", "error");
       }
       document.body.removeChild(textArea);

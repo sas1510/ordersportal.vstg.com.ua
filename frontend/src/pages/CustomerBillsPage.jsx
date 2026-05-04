@@ -63,7 +63,9 @@ const CustomerBillsPage = () => {
       setBills(res.data?.items || []);
     } catch (err) {
       setError("Не вдалося завантажити список");
-      console.error("Error fetching bills:", err);
+      if (process.env.NODE_ENV === 'development') {
+            console.error("Error fetching bills:", err);  
+        }
     } finally {
       setLoading(false);
     }
@@ -101,7 +103,9 @@ const CustomerBillsPage = () => {
 
       addNotification("Файл завантажено", "success");
     } catch (err) {
-      console.error("PDF Download Error:", err);
+      if (process.env.NODE_ENV === 'development') {
+            console.error("PDF Download Error:", err);  
+        }
       addNotification("Помилка при завантаженні PDF", "error");
     } finally {
       setPdfDownloadingId(null);

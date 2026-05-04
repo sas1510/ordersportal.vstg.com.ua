@@ -641,7 +641,10 @@ export default function DealerAddressesPage() {
         setSuggestions(data);
         setNoResults(data.length === 0); // 🆕 Якщо масив порожній — активуємо повідомлення
       } catch (err) {
-        console.error("Error fetching suggestions:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching suggestions:", err);
+        }
+
         setNoResults(true);
       }
     }, 400);
@@ -740,7 +743,9 @@ export default function DealerAddressesPage() {
         setIsNewAddress(false);
       }
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error saving address:", err);
+      }
       addNotification("❌ Помилка збереження", "error");
     } finally {
       setSaving(false);

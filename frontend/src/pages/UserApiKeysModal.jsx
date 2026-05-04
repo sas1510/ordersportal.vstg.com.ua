@@ -24,7 +24,9 @@ export default function UserApiKeysModal({ user, onClose }) {
       );
       setKeys(res.data.keys || []);
     } catch (e) {
-      console.error("Не вдалося завантажити ключі", e);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Не вдалося завантажити ключі", e);
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,10 @@ export default function UserApiKeysModal({ user, onClose }) {
         ),
       );
     } catch (_e) {
-      console.error(_e);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Не вдалося деактивувати API-ключ", _e);
+      }
+  
       alert("Не вдалося деактивувати API-ключ");
     } finally {
       setProcessingId(null);

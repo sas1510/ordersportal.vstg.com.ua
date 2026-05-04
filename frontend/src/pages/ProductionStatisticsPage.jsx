@@ -96,7 +96,10 @@ export default function ProductionStatisticsPage() {
   setLoading(false);
 
 } catch (err) {
-  console.error("Critical error:", err);
+  if (process.env.NODE_ENV === "development") {
+    console.error("Error loading statistics data:", err);
+  }
+
   setError("Критична помилка завантаження");
   setLoading(false);
 }

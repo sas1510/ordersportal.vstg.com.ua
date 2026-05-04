@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
-// Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 
 import {
@@ -98,10 +97,10 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
       const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
 
       const response = await axiosInstance.get(url, {
-        responseType: "blob", // Обов'язково для отримання бінарних даних
+        responseType: "blob", 
       });
 
-      // 1. Отримуємо правильний MIME-тип з заголовків відповіді
+  
       const contentType = response.headers["content-type"] || "application/pdf";
       const blob = new Blob([response.data], { type: contentType });
       const objectUrl = window.URL.createObjectURL(blob);
@@ -109,20 +108,20 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
       const isPdf = fileName.toLowerCase().endsWith(".pdf");
       const isImage = /\.(jpg|jpeg|png|webp)$/i.test(fileName);
 
-      // 2. Логіка для PDF та зображень (Перегляд)
+
       if (isPdf || isImage) {
         const link = document.createElement("a");
         link.href = objectUrl;
         link.target = "_blank";
-        // Для PDF НЕ додаємо атрибут download, щоб він відкрився, а не скачався
+      
         if (isImage) {
-          link.download = fileName; // Зображення краще віддавати на скачування або теж у новій вкладці
+          link.download = fileName; 
         }
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
-      // 3. Логіка для інших файлів (ZKZ, ZIP і т.д.)
+
       else {
         const link = document.createElement("a");
         link.href = objectUrl;
@@ -132,7 +131,7 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
         document.body.removeChild(link);
       }
 
-      // 4. Важливо: не видаляємо URL миттєво, даємо браузеру час завантажити файл у нову вкладку
+
       setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
     } catch (err) {
       console.error("Download error:", err);
@@ -144,9 +143,7 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
 
   if (!orderGuid) return null;
 
-  /* =========================
-     UI
-  ========================= */
+
   return createPortal(
     <div className="orders-file-modal-overlay" onClick={onClose}>
       <div

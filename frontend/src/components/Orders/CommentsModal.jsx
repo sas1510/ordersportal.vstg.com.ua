@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-// Додаємо getAccessToken в імпорт
 import axiosInstance, { getAccessToken } from "../../api/axios";
 import { FaRegCommentDots, FaPaperPlane } from "react-icons/fa";
 import "./CommentsModal.css";
-// Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 
 const AUTHOR_COLORS = [
@@ -36,7 +34,7 @@ const CommentsModal = ({
   const [currentUser, setCurrentUser] = useState(null);
   const commentsEndRef = useRef(null);
   const socket = useRef(null);
-  const reconnectTimeout = useRef(null); // Реф для таймера перепідключення
+  const reconnectTimeout = useRef(null); 
 
   const { addNotification } = useNotification();
   const chatId = `${transactionTypeId}_${baseTransactionGuid}`;
@@ -138,7 +136,6 @@ const CommentsModal = ({
       window.addEventListener("keydown", handleEsc);
     }
 
-    // Очищуємо слухач при закритті модалки або демонтажі компонента
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
@@ -153,7 +150,7 @@ const CommentsModal = ({
 
     return () => {
       if (socket.current) {
-        socket.current.onclose = null; // Прибираємо реконект при демонтажі
+        socket.current.onclose = null; 
         socket.current.close();
       }
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);

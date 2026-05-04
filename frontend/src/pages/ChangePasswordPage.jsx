@@ -108,6 +108,7 @@ const ChangePasswordPage = () => {
                 className="cp-input"
                 disabled={loading}
                 onChange={handleChange}
+                autocomplete="current-password"
               />
             </label>
 
@@ -120,6 +121,7 @@ const ChangePasswordPage = () => {
                 className="cp-input"
                 disabled={loading}
                 onChange={handleChange}
+                autocomplete="new-password"
               />
             </label>
 
@@ -132,6 +134,8 @@ const ChangePasswordPage = () => {
                 className="cp-input"
                 disabled={loading}
                 onChange={handleChange}
+                autocomplete="new-password"
+
               />
             </label>
 

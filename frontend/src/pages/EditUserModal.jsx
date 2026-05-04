@@ -52,7 +52,10 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
       onUpdated();
       onClose();
     } catch (e) {
-      console.error("Error updating user:", e);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error updating user:", e);
+      }
+
       addNotification("Помилка при оновленні даних", "error");
     } finally {
       setIsSaving(false);

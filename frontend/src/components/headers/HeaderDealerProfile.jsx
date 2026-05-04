@@ -15,7 +15,7 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
     return cleanName.length > maxLength ? cleanName.substring(0, maxLength).trim() + "..." : cleanName;
   };
 
-  // Форматуємо число
+
   const formattedAmount = new Intl.NumberFormat("uk-UA", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

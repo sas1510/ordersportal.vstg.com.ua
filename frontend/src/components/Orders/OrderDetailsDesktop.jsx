@@ -4,25 +4,24 @@ import { formatDateHumanShorter } from "../../utils/formatters";
 // import { formatDate } from "../../utils/formatters";
 import "./OrderDetailsDesktop.css";
 
-// КРОК 1: Обгортаємо функціональний компонент у React.memo
+
 export default React.memo(function OrderDetailsDesktop({ order }) {
-  //                                ^^^^^^^^^^
-  // Мемоїзуємо статичну функцію, що перевіряє на порожнє значення
+
   const isEmpty = useCallback(
     (val) => val === undefined || val === null || String(val).trim() === "",
     [],
   );
 
-  // --- 1. Оплата (Мемоїзація обчислюваного значення) ---
+
   const paymentDue = useMemo(() => {
     if (isEmpty(order.amount) || isEmpty(order.paid)) return 0;
-    // Використовуємо parseFloat для коректного обчислення
+
     const due = parseFloat(order.amount) - parseFloat(order.paid);
-    // Обмежуємо точність для уникнення проблем з плаваючою комою
+  
     return Math.round(due * 100) / 100;
   }, [order.amount, order.paid, isEmpty]);
 
-  // --- 2. Статус (Мемоїзація статичної функції) ---
+
   const getStatusStyle = useCallback((status) => {
     switch (status) {
       case "Новий":
@@ -42,47 +41,45 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
     }
   }, []);
 
-  // --- 3. Дата (Мемоїзація допоміжних функцій) ---
+
   const parseDate = useCallback((dateStr) => {
     if (!dateStr) return null;
     const d = new Date(dateStr);
     return isNaN(d.getTime()) ? null : d;
-  }, []); // Не залежить від пропсів
+  }, []); 
 
   const getDateStatus = useCallback(
     (plannedStr, actualStr) => {
       const planned = parseDate(plannedStr);
       const actual = parseDate(actualStr);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Обнуляємо час для коректного порівняння дат
+      today.setHours(0, 0, 0, 0); 
 
-      // Червоний, якщо немає ні фактичної, ні планової
+  
       if (!planned && !actual)
         return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" };
 
-      // Якщо є фактична дата → зелений
+
       if (actual)
         return { icon: "text-WS---DarkGreen ", bg: "bg-WS---DarkGreen-Light" };
 
-      // Якщо нема фактичної, але є планова дата
-      // Порівнюємо лише дати
+
       if (planned && planned < today)
-        return { icon: "text-WS---DarkRed", bg: "bg-WS---DarkRed-Light" }; // прострочено (змінив bg на більш агресивний)
-      return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" }; // ще в процесі (або планова дата в майбутньому)
+        return { icon: "text-WS---DarkRed", bg: "bg-WS---DarkRed-Light" }; 
+      return { icon: "text-WS---DarkGrey", bg: "bg-WS---DarkGrey-Light" }; 
     },
     [parseDate],
-  ); // Залежить від parseDate
+  ); 
 
-  // --- 4. Мемоїзація обчислень для кожного елемента Timeline (для зменшення вбудованого JSX) ---
 
   const paymentIsDue = paymentDue > 0;
 
-  // Виробництво
+
   const productionStatus = useMemo(() => {
     const factDate = order.factProductionMax;
     const planDate = order.planProductionMax;
     const status = getDateStatus(planDate, factDate);
-    const isPending = !factDate && !planDate; // Визначаємо, чи статус "в очікуванні" (немає ні планової, ні фактичної дати)
+    const isPending = !factDate && !planDate; 
 
     const displayDate = factDate ? (
       formatDateHuman(factDate)
@@ -109,7 +106,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
   const readyStatus = useMemo(() => {
     const isDelayed = !order.factReadyMax && order.dateDelay;
 
-    // Якщо є затримка, повертаємо "агресивний" червоний статус
+
     if (isDelayed) {
       return {
         icon: "text-WS---DarkGrey ",

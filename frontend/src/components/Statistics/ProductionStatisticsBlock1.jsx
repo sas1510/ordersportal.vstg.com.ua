@@ -10,7 +10,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
   const [dealerGuid, _setDealerGuid] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // 💎 масив активних віджетів
+  
   const [activeWidgets, setActiveWidgets] = useState([
     "efficiency",
     "volume",
@@ -49,7 +49,7 @@ export default function ProductionStatisticsBlock({ selectedYear }) {
     loadData();
   }, [selectedYear, dealerGuid, isAdmin]);
 
-  // 📦 функція яка дає правильні дані конкретному віджету
+
   const resolveWidgetData = (widgetKey) => {
     if (!data) return null;
 

@@ -283,22 +283,21 @@ export const ReclamationItemMobile = ({
   onEdit,
   isExpanded,
   onToggle,
-  _expandedIssueId, // Додано підкреслення, щоб лінтер не сварився
-  _onIssueToggle,    // Додано підкреслення
+  _expandedIssueId, 
+  _onIssueToggle,   
   onMarkAsRead,
 }) => {
-  // 1. УСІ ХУКИ МАЮТЬ БУТИ ТУТ (ДО ПЕРЕВІРКИ RECLAMATION)
-  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
-  const [_selectedComments, setSelectedComments] = useState([]); // Додано _
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const { role } = useAuthGetRole(); // Видалено user, бо він не використовується
 
-  // 2. ТЕПЕР МОЖНА РОБИТИ ПЕРЕВІРКУ
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [_selectedComments, setSelectedComments] = useState([]); 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const { role } = useAuthGetRole();
+
   if (!reclamation) {
     return null;
   }
 
-  // === ЛОГІКА ===
+
   const expanded = isExpanded;
   const toggleExpanded = onToggle;
   const isCustomer = role === "customer";
@@ -318,8 +317,8 @@ export const ReclamationItemMobile = ({
 
   const canDelete =  !managerAssigned;
 
-  // Функції дій
-  const handleEditClick = (e) => { // Тепер ви можете підключити це до кнопки редагування
+ 
+  const handleEditClick = (e) => { 
     e.stopPropagation();
     if (!canEdit) return;
     if (onEdit) onEdit(reclamation);
@@ -347,7 +346,7 @@ export const ReclamationItemMobile = ({
     setIsCommentsOpen(true);
   };
 
-  // Видалено handleDownload та issueList, бо вони не використовуються в JSX нижче
+
 
 
   const getStatusClass = (status) => {
@@ -400,15 +399,15 @@ export const ReclamationItemMobile = ({
       }}
     >
 
-               {/* Header - Номер, дата і меню */}
+
      <div
   className="flex flex-col w-full  font-['Inter']"
   onClick={toggleExpanded}
 >
-  {/* Header - Номер, статус і дії (Стиль як у замовленні) */}
+ 
   <div className="flex items-stretch justify-between mb-1 w-full gap-3 min-h-[60px] pb-1 border-bottom">
     
-    {/* 1. ЛІВА ЧАСТИНА: Номер та Дата */}
+
     <div className="basis-2/5 flex flex-col justify-center items-start pr-2 border-right shrink-0">
       <div className="flex flex-col w-full text-start gap-[6px] no-wrap">
         <div className="text-base font-bold w-full text-start pb-1 text-WS---DarkGrey border-bottom leading-tight no-wrap">
@@ -420,10 +419,10 @@ export const ReclamationItemMobile = ({
       </div>
     </div>
 
-    {/* 2. ЦЕНТРАЛЬНА ЧАСТИНА: Статус (Кольори як у замовленні) */}
+
 <div className="basis-2/5 font-['Inter'] flex flex-col justify-center items-start min-w-0 border-right px-2 gap-1">
   
-  {/* Перший рядок: Статус */}
+
   <div className={`flex items-center gap-1  pb-1  border-bottom w-full  ${getStatusClass(reclamation.status)}`}>
     <span className="icon-info-with-circle text-[18px] shrink-0 mr-1"></span>
     <span className="text-[13px] leading-tight truncate">
@@ -431,9 +430,9 @@ export const ReclamationItemMobile = ({
     </span>
   </div>
 
-  {/* Другий рядок: Дилер */}
+
   <div className="flex items-center gap-1 pt-0.5 text-WS---DarkGrey w-full ">
-    {/* Можна змінити іконку на icon-user або подібну, якщо є в паку, щоб вони відрізнялися */}
+
       <img 
         src={profileReclamation} 
         alt="Історія" 
@@ -446,7 +445,6 @@ export const ReclamationItemMobile = ({
 
 </div>
 
-    {/* 3. ПРАВА ЧАСТИНА: Дії (Редагувати/Видалити) */}
     <div 
       className="flex-1 shrink-0 ml-auto flex flex-col justify-center items-center gap-2" 
       onClick={(e) => e.stopPropagation()}
@@ -478,7 +476,7 @@ export const ReclamationItemMobile = ({
   className="flex flex-col w-full h-full rounded pb-2 border-bottom" 
   style={{ flex: "2 1 0%", minWidth: 0 }}
 >
-  {/* Текст коментаря - 2/3 висоти */}
+
   <div 
     className="font-['Inter'] overflow-hidden" 
     style={{ 
@@ -493,7 +491,7 @@ export const ReclamationItemMobile = ({
     </div>
   </div>
 
-  {/* Кнопка історії - 1/3 висоти */}
+ 
   <div 
     className="flex items-center justify-end pt-2" 
     style={{ flex: "1 1 0%", minHeight: 0 }}
@@ -501,12 +499,12 @@ export const ReclamationItemMobile = ({
     <button
       className="flex items-center bg-transparent border-none p-0 cursor-pointer group"
       onClick={(e) => {
-        e.stopPropagation(); // Важливо, щоб не спрацював toggleExpanded
+        e.stopPropagation(); 
         handleViewComments(e, reclamation.comments || []);
       }}
     >
       <div className="relative flex items-center">
-        {/* Використовуємо вашу картинку або іконку */}
+       
         <img 
           src={historyOfMessage} 
           alt="Історія" 
@@ -515,7 +513,7 @@ export const ReclamationItemMobile = ({
           }`} 
         />
         
-        {/* Індикатор нечитаних повідомлень */}
+       
         {reclamation.hasUnreadMessages && (
           <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-red-600 rounded-full border border-white" />
         )}

@@ -10,7 +10,7 @@ const ConfirmModal = ({
   message = "Ви впевнені, що хочете виконати цю дію?",
   confirmText = "Підтвердити",
   cancelText = "Скасувати",
-  type = "warning", // warning, danger, success, info
+  type = "warning", 
 }) => {
 
 
@@ -25,7 +25,7 @@ const ConfirmModal = ({
       window.addEventListener("keydown", handleEsc);
     }
 
-    // Очищуємо слухач при закритті модалки або демонтажі компонента
+   
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };

@@ -70,19 +70,18 @@ const PortalOriginal = () => {
     const searchQuery = params.get("search");
     const yearQuery = params.get("year");
 
-    // 1. Обробили рік з URL
+
     if (yearQuery && yearQuery !== selectedYear) {
       setLoading(true);
       setSelectedYear(yearQuery);
 
-      // Очищаємо параметри з URL, щоб вони не заважали користувачу міняти рік вручну
-      // replace: true не створює нову історію переходів (кнопка "Назад" працюватиме адекватно)
+     
       navigate(location.pathname, { replace: true });
       return;
     }
 
     if (searchQuery) {
-      // 2. Встановлюємо фільтри
+
       setFilter((prev) => ({
         ...prev,
         name: searchQuery,
@@ -92,7 +91,7 @@ const PortalOriginal = () => {
 
       setLimit(ITEMS_PER_LOAD);
 
-      // 3. Розгортаємо, якщо дані завантажені
+
       if (calculationsData.length > 0) {
         const found = calculationsData.find(
           (calc) =>
@@ -109,8 +108,6 @@ const PortalOriginal = () => {
         if (found) {
           setExpandedCalc(found.id);
 
-          // Очищаємо пошук з URL після успішного знаходження,
-          // щоб при рефреші сторінка не стрибала знову до цього замовлення
           navigate(location.pathname, { replace: true });
 
           setTimeout(() => {
@@ -163,7 +160,7 @@ const PortalOriginal = () => {
     cancelAll();
     const controller = register();
     setReloading(true);
-    setError(null); // Очищуємо попередню помилку
+    setError(null); 
 
     try {
       const response = await axiosInstance.get("/order/get_orders_info/", {
@@ -182,7 +179,7 @@ const PortalOriginal = () => {
     } catch (err) {
       if (err.name !== "CanceledError") {
         setError("Не вдалося оновити дані. Перевірте з'єднання.");
-        console.error("Помилка оновлення:", err);
+        // console.error("Помилка оновлення:", err);
       }
     } finally {
       setReloading(false);
@@ -208,7 +205,6 @@ const PortalOriginal = () => {
     if (hasMore) setLimit((prev) => prev + ITEMS_PER_LOAD);
   }, [hasMore]);
 
-  // --- Filtering ---
   const statusSummary = useMemo(() => {
     const summary = {
       Всі: 0,
@@ -302,7 +298,7 @@ const PortalOriginal = () => {
     return slice;
   }, [fullFiltered, limit]);
 
-  // --- MAIN LOAD ---
+
   useEffect(() => {
     cancelAll();
     const controller = register();
@@ -327,7 +323,7 @@ const PortalOriginal = () => {
       } catch (err) {
         if (err.name !== "CanceledError") {
           setError("Не вдалося оновити дані. Перевірте з'єднання. ");
-          console.error("Помилка оновлення:", err);
+          // console.error("Помилка оновлення:", err);
         }
         setCalculationsData([]);
       } finally {
@@ -379,16 +375,16 @@ const PortalOriginal = () => {
                   src={filterIcon} 
                   alt="Стрілка" 
                   className="align-center mr-1 min-w-[20px] h-[20px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                
                 />
           </div>
-            {/* Блок вибору року тепер тут */}
+           
             <div className="year-inline-selector row  mr-6 ">
               <img 
                   src={yearIcon} 
                   alt="Стрілка" 
                   className="align-center mr-1 w-[26px] h-[25px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+  
                 />
 <div 
   className="justify-start text-white text-sm uppercase mr-2 tracking-wide"
@@ -414,7 +410,7 @@ const PortalOriginal = () => {
 
  
 
-            {/* Список місяців */}
+          
             <ul className="gap-6 row no-wrap month-list">
               <li
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
@@ -546,7 +542,7 @@ const PortalOriginal = () => {
                   src={plusIcon} 
                   alt="+" 
                   className="align-center mr-2 " 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                
                 />
               <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">новий прорахунок</div>
             </li>
@@ -665,7 +661,7 @@ const PortalOriginal = () => {
         <div className="content justify-center" id="content" >
           <div className="items-wrapper column gap-14" id="items-wrapper">
             {error ? (
-              /* 1. Стан ПОМИЛКИ: показуємо тільки великий блок помилки */
+
               <div className="error-empty-state column align-center jc-center">
                 <span className="icon icon-warning text-red font-size-48 mb-16"></span>
                 <h3 className="font-size-20 weight-600 mb-8">
@@ -684,7 +680,7 @@ const PortalOriginal = () => {
                 </button>
               </div>
             ) : totalFilteredCount === 0 ? (
-              /* 2. Стан ПУСТО: запит успішний, але даних немає */
+         
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">
                   Немає прорахунків для відображення
@@ -722,7 +718,7 @@ const PortalOriginal = () => {
               )
             )}
 
-            {/* КНОПКА "ЗАВАНТАЖИТИ ЩЕ" та лічильник */}
+  
             {hasMore && (
               <div
                 className="row w-100"
@@ -756,7 +752,7 @@ const PortalOriginal = () => {
               </div>
             )}
 
-            {/* Повідомлення, якщо всі дані завантажено */}
+
             {!hasMore && totalFilteredCount > ITEMS_PER_LOAD && (
               <div
                 className="row justify-content-center text-grey"
@@ -770,10 +766,10 @@ const PortalOriginal = () => {
         </div>
       </div>
 
-      {/* ✅ NewCalculationModal тепер використовує handleCloseCalc для коректного закриття */}
+      
       <NewCalculationModal
         isOpen={isCalcModalOpen}
-        onClose={handleCloseCalc} // ЗМІНЕНО
+        onClose={handleCloseCalc} 
         onSave={handleSaveCalculation}
       />
       </div>
