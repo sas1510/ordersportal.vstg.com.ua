@@ -451,11 +451,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 return
 
             message_text = data.get('message')
+            
             recipient_id_1c = data.get('recipient_guid')
 
-            if not recipient_id_1c:
-                await self.send_error("Відсутній обов'язковий параметр: recipient_guid")
-                return
+            if isinstance(recipient_id_1c, str):
+                recipient_id_1c = recipient_id_1c.strip()
+
+            if recipient_id_1c in ["", "N/A", "null", "None", "undefined"]:
+                recipient_id_1c = None
+
+
+
+            # if not recipient_id_1c:
+            #     await self.send_error("Відсутній обов'язковий параметр: recipient_guid")
+            #     return
+
+
 
             try:
                 chat_parts = self.chat_id.split("_")
