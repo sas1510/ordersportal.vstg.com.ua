@@ -1972,6 +1972,13 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
 
     def create(self, request):
+        logger.info("CreateCalculation START", extra={
+            "tags": {
+                "action": "create_calculation",
+                "stage": "start"
+            }
+        })
+
         serializer = CalculationCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -1981,6 +1988,12 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             allow_admin=True,
             admin_param="contractor_guid",
         )
+
+    #     logger.info("Contractor resolved", extra={
+    #     "tags": {
+    #         "contractor_guid": str(contractor_guid),
+    #     }
+    # })
 
         file = data["file"]
 
@@ -1996,10 +2009,41 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             file_b64=file["fileDataB64"],
         )
 
+        # logger.info("Payload built for 1C", extra={
+        #     "tags": {
+        #         "action": "create_calculation",
+        #         "stage": "payload_ready",
+        #         "order_number": data.get("order_number"),
+        #     }
+        # })
+
+        # # ---------- 1C CALL ----------
+        # logger.info("Sending request to 1C", extra={
+        #     "tags": {
+        #         "service": "1c",
+        #         "action": "request_send"
+        #     }
+        # })
+
         result = self._send_to_1c(payload)
 
 
+        # logger.info("1C response received", extra={
+        #     "tags": {
+        #         "service": "1c",
+        #         "stage": "response_received",
+        #         "success": result.get("success", True),
+        #     }
+        # })
+
+
         if not result.get("success", True):
+            logger.error("1C returned error", extra={
+                "tags": {
+                    "service": "1c",
+                    "status": "error",
+                }
+            })
             raise ValidationError(
                 {
                     "detail": "1С повернула помилку",
@@ -2011,6 +2055,13 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         calculation_guid = extract_calculation_guid(result)
 
         if not calculation_guid:
+            logger.error("Missing calculation GUID from 1C response", extra={
+                "tags": {
+                    "service": "1c",
+                    "error": "missing_guid"
+                }
+            })
+
             raise ValidationError({
                 "detail": "1С не повернула calculationGUID",
                 "1c_response": result,
@@ -2047,6 +2098,13 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                     # Це дивно для GUID. Спробуємо примусово привести до str:
                     # writer_bin = guid_to_1c_bin(str(raw_writer_id))
 
+            # logger.info("Creating ChatMessage", extra={
+            #     "tags": {
+            #         "chat": "create",
+            #         "calculation_guid": str(calculation_guid)
+            #     }
+            # })
+
             # 2. Створюємо запис
             ChatMessage.objects.create(
                 chat_id=f"1_{calculation_guid}", 
@@ -2060,6 +2118,14 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 # event_type="CalculationCreated", # Додав, бо в моделі воно обов'язкове
                 transaction_type_id=1 
             )
+
+            # logger.info("ChatMessage created successfully", extra={
+            #     "tags": {
+            #         "chat": "success",
+            #         "calculation_guid": str(calculation_guid)
+            #     }
+            # })
+
         except Exception as e:
             import traceback
             logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")
@@ -2070,6 +2136,15 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         #     message_text=serializer.validated_data["comment"],
         #     writer_guid=writer_guid,
         # )
+
+        logger.info("CreateCalculation END", extra={
+            "tags": {
+                "action": "create_calculation",
+                "stage": "end",
+                "calculation_guid": str(calculation_guid)
+            }
+        })
+
 
 
         return Response(
