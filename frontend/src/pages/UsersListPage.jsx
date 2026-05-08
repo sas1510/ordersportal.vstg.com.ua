@@ -89,12 +89,19 @@ export default function UsersListPage() {
         </select>
 
         <input
-          type="text"
-          placeholder="Пошук дилера / логін / email…"
-          className="ulp-search-input rounded-lg px-4 py-2 shadow-sm w-72"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+  type="text"
+  name="user_search_query"
+  autoComplete="new-password" // іноді допомагає саме це значення
+  placeholder="Пошук дилера / логін / email…"
+  className="ulp-search-input rounded-lg px-4 py-2 shadow-sm w-72"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  
+  // ОСЬ ЦЕЙ БЛОК:
+  readOnly 
+  onFocus={(e) => e.target.removeAttribute('readonly')}
+  onBlur={(e) => e.target.setAttribute('readonly', true)}
+/>
       </div>
 
       {/* TABLE */}
@@ -180,10 +187,11 @@ export default function UsersListPage() {
                       </button>
 
                       <button
+                      type="button"
                         className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full transition-colors"
                         onClick={() => setSelectedUser(u)}
                       >
-                        Пароль
+                        Змінити пароль
                       </button>
 
                       <button

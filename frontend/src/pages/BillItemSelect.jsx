@@ -16,7 +16,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
     );
   }, [items, search]);
 
-  // close on outside click
+
   useEffect(() => {
     const handleClick = (e) => {
       if (
@@ -31,7 +31,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  // calculate position
+
   const rect = controlRef.current?.getBoundingClientRect();
   const style = rect
     ? {

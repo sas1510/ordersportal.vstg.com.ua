@@ -12,20 +12,21 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const initialLimit = 100;
 
-// Перейменовуємо компонент
+
+
 const AdditionalOrders = () => {
   const { register, cancelAll } = useCancelAllRequests();
 
-  // Перейменовуємо змінні, пов'язані з "Прорахунками" на "Додаткові Замовлення"
-  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false); // Замість isCalcModalOpen
-  const [additionalOrdersData, setAdditionalOrdersData] = useState([]); // Замість calculationsData
+
+  const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+  const [additionalOrdersData, setAdditionalOrdersData] = useState([]); 
   const [_filteredItems, setFilteredItems] = useState([]);
   const [filter, setFilter] = useState({ status: "Всі", month: 0, name: "" });
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
-  ); // Виправлено на String
+  ); 
   const [loading, setLoading] = useState(true);
-  const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null); // Замість expandedCalc
+  const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null); 
   const [expandedOrder, setExpandedOrder] = useState(null);
 //   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [showDealerModal, setShowDealerModal] = useState(false); // Видалено
@@ -64,20 +65,19 @@ const AdditionalOrders = () => {
   const navigate = useNavigate();
 
   const handleDeleteAdditionalOrder = useCallback((additionalOrderId) => {
-    // Замість handleDeleteCalculation
-    // Видаляємо додаткове замовлення з state
+
     setAdditionalOrdersData((prev) =>
       prev.filter((ord) => ord.id !== additionalOrderId),
     );
     setFilteredItems((prev) =>
       prev.filter((ord) => ord.id !== additionalOrderId),
     );
-    // Скидаємо ліміт відображення, щоб уникнути помилок після видалення
+ 
     setDisplayLimit(initialLimit);
   }, []);
 
   const handleUpdateAdditionalOrder = useCallback((updatedOrder) => {
-    // Замість handleUpdateCalculation
+    
     setAdditionalOrdersData((prev) =>
       prev.map((ord) => (ord.id === updatedOrder.id ? updatedOrder : ord)),
     );
@@ -86,8 +86,7 @@ const AdditionalOrders = () => {
     );
   }, []);
 
-  //   const handleAddClick = () => setIsModalOpen(true);
-  //   const handleClose = () => setIsModalOpen(false);
+
 
   const handleAdditionalOrderRead = useCallback((id) => {
     setAdditionalOrdersData((prev) =>
@@ -107,16 +106,15 @@ const AdditionalOrders = () => {
       formData,
     );
 
-    // ВАЖЛИВО: Перевіряємо поле 'success' (як у вашому JSON), 
-    // або статус відповіді 201 (як у вкладці Headers)
+
     if (response.data?.success === true || response.status === 201) {
       setIsNewOrderModalOpen(false);
       setRefreshTrigger((prev) => prev + 1);
       
-      // Якщо хочете виводити повідомлення про успіх БЕЗ слова "Помилка":
+   
       // alert(response.data?.message || "Дозамовлення створено");
     } else {
-      // Сюди код потрапить, тільки якщо success === false
+     
       alert("Помилка: " + (response.data?.message || "Невідома помилка"));
     }
   } catch (err) {
@@ -143,10 +141,10 @@ const AdditionalOrders = () => {
     }
   };
 
-  // Оновлено, щоб приймати опціонально список даних
+
   const getFilteredItems = useCallback(
     (statusFilter, monthFilter, nameFilter, data = additionalOrdersData) => {
-      let filtered = [...data]; // Використовуємо надані дані
+      let filtered = [...data]; 
 
       if (statusFilter && statusFilter !== "Всі") {
         filtered = filtered.filter((additionalOrder) => {
@@ -168,7 +166,7 @@ const AdditionalOrders = () => {
         filtered = filtered.filter(
           (additionalOrder) =>
             additionalOrder.number?.toLowerCase().includes(query) ||
-            additionalOrder.mainOrderNumber?.toLowerCase().includes(query) || // Додано пошук по основному номеру
+            additionalOrder.mainOrderNumber?.toLowerCase().includes(query) || 
             additionalOrder.orders.some((order) =>
               order.number?.toLowerCase().includes(query),
             ),
@@ -185,7 +183,7 @@ const AdditionalOrders = () => {
 
     const fetchData = async () => {
       setLoading(true);
-      setError(null); // Важливо скидати помилку при зміні року
+      setError(null); 
 
       try {
         const response = await axiosInstance.get(
@@ -234,13 +232,13 @@ const AdditionalOrders = () => {
 
     fetchData();
     return () => controller.abort();
-  }, [selectedYear, refreshTrigger]); // Залиште тільки selectedYear, щоб уникнути циклів
+  }, [selectedYear, refreshTrigger]); 
 
   const reloadAdditionalOrders = useCallback(async () => {
     cancelAll();
     const controller = register();
     setReloading(true);
-    setError(null); // Очищуємо попередню помилку
+    setError(null); 
 
     try {
       const response = await axiosInstance.get(
@@ -261,8 +259,7 @@ const AdditionalOrders = () => {
         }));
 
         setAdditionalOrdersData(formatted);
-        // Фільтрація відбудеться автоматично через useMemo (якщо ви перейшли на нього)
-        // або вручну:
+       
         setFilteredItems(
           getFilteredItems(filter.status, filter.month, filter.name, formatted),
         );
@@ -281,7 +278,7 @@ const AdditionalOrders = () => {
 
   const getStatusSummary = useMemo(() => {
     return () => {
-      // 🔥 ОНОВЛЕНИЙ СПИСОК СТАТУСІВ З УРАХУВАННЯМ SQL
+
       const summary = {
         Всі: 0,
         Новий: 0,
@@ -291,7 +288,7 @@ const AdditionalOrders = () => {
         "Очікуємо підтвердження": 0,
         "У виробництві": 0,
         Готовий: 0,
-        Відвантажено: 0, // Додано
+        Відвантажено: 0, 
         Відмова: 0,
       };
 
@@ -302,7 +299,7 @@ const AdditionalOrders = () => {
             summary[order.status] += 1;
         });
       });
-      summary["Всі"] = additionalOrdersData.length; // Коректний підсумок для верхнього рівня
+      summary["Всі"] = additionalOrdersData.length;
       return summary;
     };
   }, [additionalOrdersData]);
@@ -327,37 +324,37 @@ const AdditionalOrders = () => {
   const statusSummary = getStatusSummary();
   const monthSummary = getMonthSummary();
 
-  // --- ОБРОБНИКИ ФІЛЬТРАЦІЇ ---
+
   const handleFilterClick = (statusKey) => {
     setFilter((prev) => ({ ...prev, status: statusKey }));
-    // Фільтрація відбувається на `additionalOrdersData`
+
     setFilteredItems(getFilteredItems(statusKey, filter.month, filter.name));
-    setDisplayLimit(initialLimit); // Скидаємо ліміт при зміні фільтра
+    setDisplayLimit(initialLimit); 
   };
 
   const handleMonthClick = (month) => {
     const newMonth = filter.month === month ? 0 : month;
     setFilter((prev) => ({ ...prev, month: newMonth }));
     setFilteredItems(getFilteredItems(filter.status, newMonth, filter.name));
-    setDisplayLimit(initialLimit); // Скидаємо ліміт при зміні фільтра
+    setDisplayLimit(initialLimit); 
   };
 
   const handleSearchChange = (e) => {
     const name = e.target.value;
     setFilter((prev) => ({ ...prev, name }));
     setFilteredItems(getFilteredItems(filter.status, filter.month, name));
-    setDisplayLimit(initialLimit); // Скидаємо ліміт при зміні пошуку
+    setDisplayLimit(initialLimit); 
   };
 
   const handleClearSearch = () => {
     setFilter((prev) => ({ ...prev, name: "" }));
     setFilteredItems(getFilteredItems(filter.status, filter.month, ""));
-    setDisplayLimit(initialLimit); // Скидаємо ліміт при очищенні пошуку
+    setDisplayLimit(initialLimit); 
   };
-  // ----------------------------
+
 
   const handleLoadMore = () => {
-    // ФУНКЦІЯ ЗАВАНТАЖЕННЯ НАСТУПНОЇ ПОРЦІЇ
+  
     setDisplayLimit((prev) => prev + initialLimit);
   };
 
@@ -374,13 +371,13 @@ const AdditionalOrders = () => {
   }, [filter, additionalOrdersData, getFilteredItems]);
 
   const toggleAdditionalOrder = (id) =>
-    setExpandedAdditionalOrder(expandedAdditionalOrder === id ? null : id); // Замість toggleCalc
+    setExpandedAdditionalOrder(expandedAdditionalOrder === id ? null : id); 
   const toggleOrder = (id) =>
     setExpandedOrder(expandedOrder === id ? null : id);
 
-  // Елементи для відображення
+
   const itemsToDisplay = sortedItems.slice(0, displayLimit);
-  // Перевірка, чи потрібно показувати кнопку "Завантажити ще"
+
   const showLoadMoreButton = sortedItems.length > displayLimit;
 
   const nextLoadCount = Math.min(
@@ -395,7 +392,7 @@ const AdditionalOrders = () => {
     const searchQuery = params.get("search");
     const yearQuery = params.get("year");
 
-    // 1. Рік
+  
     if (yearQuery && yearQuery !== selectedYear) {
       setSelectedYear(yearQuery);
       setLoading(true);
@@ -450,10 +447,10 @@ const AdditionalOrders = () => {
 
   return (
     <div className="column portal-body">
-      {/* ⚠️ ВИДАЛЕНО DealerSelectModal */}
+
 
       <div className="content-summary row w-100 " style={{justifyContent: 'center'}} >
-        {/* Кнопка-гамбургер для мобільного -- ПЕРЕМІЩЕНО СЮДИ */}
+
        
 
         {/* <div className="year-selector row">
@@ -480,7 +477,7 @@ const AdditionalOrders = () => {
                   src={filterIcon} 
                   alt="Стрілка" 
                   className="align-center mr-1 min-w-[20px] h-[20px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                 
                 />
           </div>
           {/* Для великих екранів — список місяців */}
@@ -489,7 +486,7 @@ const AdditionalOrders = () => {
                   src={yearIcon} 
                   alt="Стрілка" 
                   className="align-center mr-2 w-[26px] h-[25px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+              
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
@@ -548,7 +545,7 @@ const AdditionalOrders = () => {
             })}
           </ul>
 
-          {/* Для малих екранів — випадаючий список */}
+       
           <select
             className="month-select flex-1"
             value={filter.month}
@@ -587,7 +584,7 @@ const AdditionalOrders = () => {
 
       <div className="content-wrapper row w-100 h-100">
          <div className="row  h-100 max-w-[1334px]  w-100">
-        {/* Sidebar з фільтрами */}
+
        
             {isSidebarOpen && (
                   <div 
@@ -637,7 +634,7 @@ const AdditionalOrders = () => {
             ></span> */}
           </div>
 
-          {/* ⚠️ ВИДАЛЕНО блок вибору дилера */}
+
 
 
           <ul className="buttons">
@@ -649,10 +646,10 @@ const AdditionalOrders = () => {
                   src={plusIcon} 
                   alt="+" 
                   className="align-center mr-2 " 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                
                 />
               <div className="text-center  text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нове додаткове замовлення</div>{" "}
-              {/* Змінено текст */}
+  
             </li>
           </ul>
 
@@ -673,13 +670,13 @@ const AdditionalOrders = () => {
                 label: "Всі дод. замовлення",
                 icon: allCalcIcon,
                 statusKey: "Всі",
-              }, // Змінено текст
+              },
               {
                 id: "new",
                 label: "Нові дод. замовлення",
                 icon: newCalcIcon,
                 statusKey: "Новий",
-              }, // Змінено текст
+              }, 
               {
                 id: "processing",
                 label: "В роботі",
@@ -721,7 +718,7 @@ const AdditionalOrders = () => {
                 label: "Відвантажено",
                 icon: deliveredIcon,
                 statusKey: "Відвантажено",
-              }, // Додано
+              }, 
               {
                 id: "rejected",
                 label: "Відмова",
@@ -755,11 +752,11 @@ const AdditionalOrders = () => {
           </ul>
         </div>
 
-        {/* Основний контент */}
+  
         <div className="content" id="content">
           <div className="items-wrapper column gap-14" id="items-wrapper">
             {error ? (
-              /* --- СТАН ПОМИЛКИ --- */
+           
               <div className="error-empty-state column align-center jc-center">
                 <span className="icon icon-warning text-red font-size-48 mb-16"></span>
                 <h3 className="font-size-20 weight-600 mb-8">
@@ -778,19 +775,19 @@ const AdditionalOrders = () => {
                 </button>
               </div>
             ) : sortedItems.length === 0 ? (
-              /* --- СТАН ПУСТО --- */
+          
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">
                   Немає додаткових замовлень для відображення
                 </div>
               </div>
             ) : (
-              // ВИКОРИСТОВУЄМО itemsToDisplay ДЛЯ ПАГІНАЦІЇ
+          
               itemsToDisplay.map((additionalOrder) =>
                 isMobile ? (
-                  <AdditionalOrderItemMobile // Зберігаємо ім'я компонента, але він тепер відображає Дод. Замовлення
+                  <AdditionalOrderItemMobile 
                     key={additionalOrder.id}
-                    calc={additionalOrder} // Передаємо дані Дод. Замовлення як calc
+                    calc={additionalOrder} 
                     isExpanded={expandedAdditionalOrder === additionalOrder.id}
                     onToggle={() => toggleAdditionalOrder(additionalOrder.id)}
                     expandedOrderId={expandedOrder}
@@ -801,9 +798,9 @@ const AdditionalOrders = () => {
                     reloadCalculations={reloadAdditionalOrders}
                   />
                 ) : (
-                  <AdditionalOrderItem // Зберігаємо ім'я компонента, але він тепер відображає Дод. Замовлення
+                  <AdditionalOrderItem 
                     key={additionalOrder.id}
-                    calc={additionalOrder} // Передаємо дані Дод. Замовлення як calc
+                    calc={additionalOrder} 
                     isExpanded={expandedAdditionalOrder === additionalOrder.id}
                     onToggle={() => toggleAdditionalOrder(additionalOrder.id)}
                     expandedOrderId={expandedOrder}
@@ -818,7 +815,7 @@ const AdditionalOrders = () => {
             )}
           </div>
 
-          {/* КНОПКА ЗАВАНТАЖИТИ ЩЕ (СТИЛІЗОВАНА ВЕРСІЯ) */}
+         
           {showLoadMoreButton && (
             <div
               className="row w-100"

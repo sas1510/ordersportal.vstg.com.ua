@@ -7,7 +7,7 @@ import os
 
 from pathlib import Path
 from dotenv import load_dotenv
-
+import logging
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG=False
+DEBUG=True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -167,7 +167,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": True,   # True на https
+    "AUTH_COOKIE_SECURE": False,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -295,6 +295,8 @@ CELERY_BEAT_SCHEDULE = {
 
 
 
+# Треба буде поправити на проді, але для тестів з локальним
+#  фронтом так зручно. На проді треба конткретні домени, а не всі.  CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -303,9 +305,13 @@ CORS_ALLOWED_ORIGINS = [
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://172.17.19.107"
+    "http://172.17.19.107",
+    # "http://192.168.50.50",
+
     
 ]
+
+
 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -335,6 +341,8 @@ CSRF_TRUSTED_ORIGINS = [
 # settings.py
 
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua']
+
+
 
 
 # SILKY_PYTHON_PROFILER = True  
@@ -407,18 +415,25 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
 
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
 
-if not DEBUG:
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        },
+    },
 
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+    },
 
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}

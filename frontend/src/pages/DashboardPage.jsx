@@ -1,9 +1,13 @@
 import { useState } from "react";
 import DashboardGrid from "../widgets/DashboardGrid";
 import { widgetRegistry } from "../widgets/widgetRegistry";
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardPage() {
   const [editMode, setEditMode] = useState(false);
+  const { t } = useTranslation();
+
+
 
   const [widgets, setWidgets] = useState([
     { id: "1", type: "efficiency" },

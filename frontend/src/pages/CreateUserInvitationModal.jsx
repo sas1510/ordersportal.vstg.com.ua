@@ -46,7 +46,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
       user.Code?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  // Завантаження користувачів з 1С
+
   useEffect(() => {
     const fetchUsers1c = async () => {
       setLoadingUsers(true);
@@ -65,7 +65,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
     fetchUsers1c();
   }, [addNotification]);
 
-  // Закриття списку при кліку поза полем
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -85,7 +85,6 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
     setIsListOpen(false);
   };
 
-  // Універсальна функція копіювання (Працює всюди)
   const performCopyAction = (text, successMsg) => {
     if (!text) return;
 
@@ -126,7 +125,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
     }
   };
 
-  // Рендер складного сповіщення про наявний інвайт
+
   const renderComplexErrorNotification = (errObj) => (
     <div className="notification-complex-error">
       <div className="notif-header">

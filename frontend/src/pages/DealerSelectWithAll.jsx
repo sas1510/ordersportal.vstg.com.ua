@@ -12,12 +12,10 @@ const DealerSelectWithAll = ({ value, onChange }) => {
   const [error, setError] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  const wrapperRef = useRef(null); // 👈 wrapper
+  const wrapperRef = useRef(null); 
   const searchRef = useRef(null);
 
-  /* =========================
-     LOAD DEALERS
-     ========================= */
+
   useEffect(() => {
     const loadDealers = async () => {
       try {
@@ -36,9 +34,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     loadDealers();
   }, []);
 
-  /* =========================
-     CLOSE ON CLICK OUTSIDE
-     ========================= */
+
   useEffect(() => {
     if (!open) return;
 
@@ -56,9 +52,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     };
   }, [open]);
 
-  /* =========================
-     FOCUS SEARCH ON OPEN
-     ========================= */
+
   useEffect(() => {
     if (open) {
       setHighlightedIndex(-1);
@@ -66,28 +60,22 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     }
   }, [open]);
 
-  /* =========================
-     SELECTED LABEL
-     ========================= */
+
   const selectedLabel =
     value === ALL_DEALERS_VALUE
       ? "Всі дилери"
       : dealers.find((d) => d.ContractorID === value)?.ContractorName;
 
-  /* =========================
-     FILTERED LIST
-     ========================= */
+
   const filteredDealers = dealers.filter((d) =>
     d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  /* =========================
-     KEYBOARD NAVIGATION
-     ========================= */
+
   const handleKeyDown = (e) => {
     if (!open) return;
 
-    const totalItems = filteredDealers.length + 1; // +1 for ALL
+    const totalItems = filteredDealers.length + 1; 
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -121,12 +109,10 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     }
   };
 
-  /* =========================
-     RENDER
-     ========================= */
+
   return (
     <div className="dealer-select" ref={wrapperRef}>
-      {/* CONTROL */}
+
       <div
         className="dealer-select__control"
         onClick={() => setOpen((o) => !o)}
@@ -137,7 +123,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
         <span className="arrow">▾</span>
       </div>
 
-      {/* DROPDOWN */}
+
       {open && (
         <div className="dealer-select__dropdown" onKeyDown={handleKeyDown}>
           <input
@@ -163,7 +149,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
             {!loading && !error && (
               <>
-                {/* ALL DEALERS */}
+
                 <div
                   className={`dealer-select__option all-dealers ${
                     highlightedIndex === 0 ? "active" : ""
@@ -179,7 +165,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
                   <strong>Всі дилери</strong>
                 </div>
 
-                {/* DEALERS */}
+
                 {filteredDealers.length === 0 ? (
                   <div className="dealer-select__empty">Нічого не знайдено</div>
                 ) : (

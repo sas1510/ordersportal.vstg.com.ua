@@ -13,6 +13,9 @@ import {
   FaFolderOpen,
 } from "react-icons/fa";
 import ConfirmModal from "../components/Orders/ConfirmModal";
+import { useTranslation } from 'react-i18next';
+
+
 
 import { useNotification } from "../hooks/useNotification";
 import "./Files.css";
@@ -22,6 +25,7 @@ const API_URL = "/media-resources/";
 const FILE_RESOURCE_TYPE = "file";
 
 const FilesPage = () => {
+  const { t, i18n} = useTranslation();
   const [files, setFiles] = useState([]);
   const [filteredFiles, setFilteredFiles] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,14 +35,19 @@ const FilesPage = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
+  const [editingFile, setEditingFile] = useState(null);
+  const [editTitles, setEditTitles] = useState({ ua: "", en: "", it: "" });
+  const [editDescriptions, setEditDescriptions] = useState({ ua: "", en: "", it: "" });
+  const [editNewFile, setEditNewFile] = useState(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [newFile, setNewFile] = useState(null);
   const [title, setTitle] = useState("");
   const [loadingAdd, setLoadingAdd] = useState(false);
 
   const [editTitle, setEditTitle] = useState("");
-  const [editNewFile, setEditNewFile] = useState(null);
-  const [editingFile, setEditingFile] = useState(null);
+
 
   const { role } = useAuthGetRole();
   const isAdmin = role === "admin";
@@ -50,6 +59,11 @@ const FilesPage = () => {
   const downloadIcon = "/assets/icons/DownloadIcon.png";
   const profileIcon = "/assets/icons/ProfileFilesIcon.png";
   const fileIcon = "/assets/icons/FileIconFilePage.png";
+
+
+  const [titles, setTitles] = useState({ ua: "", en: "", it: "" });
+  const [descriptions, setDescriptions] = useState({ ua: "", en: "", it: "" });
+
 
   // Визначаємо, чи активна темна тема
   const isDarkTheme = document.body.classList.contains("dark-theme");
@@ -65,9 +79,9 @@ const FilesPage = () => {
       setFilteredFiles(response.data);
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
-      console.error("Помилка завантаження файлів:", error);
+      console.error(t('files.errors.download'), error);
       }
-      addNotification("Помилка завантаження файлів", "error");
+      addNotification(t('files.errors.download'), "error");
     } finally {
       setLoading(false);
     }
@@ -97,36 +111,38 @@ const FilesPage = () => {
 
   const handleAddFile = async (e) => {
     e.preventDefault();
-    if (!newFile) return addNotification("Оберіть файл", "error");
+    if (!newFile) return addNotification(t('files.choose_file'), "error");
+    if (!titles.ua) return addNotification("Українська назва обов'язкова", "warning");
 
     setLoadingAdd(true);
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64String = reader.result.split(",")[1];
-      const extension = newFile.name.includes(".")
-        ? newFile.name.split(".").pop().toLowerCase()
-        : "";
+      const extension = newFile.name.split(".").pop().toLowerCase();
 
+      // Шлемо окремі поля, які ViewSet запакує в JSON
       const payload = {
-        title: title || newFile.name.replace(/\.[^/.]+$/, ""),
+        title_ua: titles.ua,
+        title_en: titles.en,
+        title_it: titles.it,
+        description_ua: descriptions.ua,
+        description_en: descriptions.en,
+        description_it: descriptions.it,
         resource_type: FILE_RESOURCE_TYPE,
         file_base64: base64String,
         file_extension: extension,
-        description: "",
       };
 
       try {
         await axiosInstance.post(API_URL, payload);
         setAddModalOpen(false);
-        setTitle("");
+        setTitles({ ua: "", en: "", it: "" });
+        setDescriptions({ ua: "", en: "", it: "" });
         setNewFile(null);
         fetchFiles();
-        addNotification("Файл успішно додано!", "success");
+        addNotification(t('files.feedback.success'), "success");
       } catch (error) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("Помилка POST:", error.response?.data || error);
-        }
-        addNotification("Не вдалося додати файл", "error");
+        addNotification(t('files.errors.error_add_file'), "error");
       } finally {
         setLoadingAdd(false);
       }
@@ -137,40 +153,66 @@ const FilesPage = () => {
 
   const handleEditClick = (file) => {
     setEditingFile(file);
-    setEditTitle(file.title);
+    setEditTitles({
+      ua: file.titles?.ua || "",
+      en: file.titles?.en || "",
+      it: file.titles?.it || ""
+    });
+    setEditDescriptions({
+      ua: file.descriptions?.ua || "",
+      en: file.descriptions?.en || "",
+      it: file.descriptions?.it || ""
+    });
     setEditNewFile(null);
     setEditModalOpen(true);
   };
 
   const handleEditConfirm = async (e) => {
     e.preventDefault();
-    if (!editingFile) return;
+    if (!editTitles.ua) return addNotification("Українська назва обов'язкова", "warning");
 
-    let payload = { title: editTitle, resource_type: FILE_RESOURCE_TYPE };
+    setLoadingEdit(true);
+    const payload = {
+      title_ua: editTitles.ua,
+      title_en: editTitles.en,
+      title_it: editTitles.it,
+      description_ua: editDescriptions.ua,
+      description_en: editDescriptions.en,
+      description_it: editDescriptions.it,
+      resource_type: FILE_RESOURCE_TYPE,
+    };
+
+    const sendRequest = async (finalPayload) => {
+      try {
+        await axiosInstance.put(`${API_URL}${editingFile.id}/`, finalPayload);
+        addNotification(t('files.feedback.success'), "success");
+        fetchFiles();
+        setEditModalOpen(false);
+      } catch (error) {
+        addNotification(t('files.errors.error_change_file'), "error");
+      } finally {
+        setLoadingEdit(false);
+      }
+    };
 
     if (editNewFile) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64String = reader.result.split(",")[1];
-        const extension = editNewFile.name.includes(".")
-          ? editNewFile.name.split(".").pop().toLowerCase()
-          : "";
-
-        payload.file_base64 = base64String;
-        payload.file_extension = extension;
-
-        await sendEditRequest(payload);
+        payload.file_base64 = reader.result.split(",")[1];
+        payload.file_extension = editNewFile.name.split(".").pop().toLowerCase();
+        await sendRequest(payload);
       };
       reader.readAsDataURL(editNewFile);
     } else {
-      await sendEditRequest(payload);
+      await sendRequest(payload);
     }
   };
+
 
   const sendEditRequest = async (payload) => {
     try {
       await axiosInstance.put(`${API_URL}${editingFile.id}/`, payload);
-      addNotification("Файл успішно змінено!", "success");
+      addNotification(t('files.errors.error'), "success");
       fetchFiles();
       setEditModalOpen(false);
       setEditingFile(null);
@@ -178,9 +220,9 @@ const FilesPage = () => {
       setEditNewFile(null);
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
-        console.error("Помилка PUT:", error.response?.data || error);
+        console.error(t('files.errors.error'), error.response?.data || error);
       }
-      addNotification("Не вдалося змінити файл", "error");
+      addNotification(t('files.errors.error_change_file'), "error");
     }
   };
 
@@ -189,48 +231,36 @@ const FilesPage = () => {
     setSelectedFile(file);
     setDeleteModalOpen(true);
   };
-  const handleDeleteConfirm = async () => {
+ const handleDeleteConfirm = async () => {
     try {
       await axiosInstance.delete(`${API_URL}${selectedFile.id}/`);
       fetchFiles();
-      addNotification(`Файл "${selectedFile.title}" видалено`, "success");
+      addNotification(`Файл видалено`, "success");
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Помилка при видаленні:", error);
-      }
-      addNotification("Не вдалося видалити файл", "error");
+      addNotification("Помилка видалення", "error");
     } finally {
       setDeleteModalOpen(false);
     }
   };
 
   const handleDownload = (file) => {
-    if (!file.file_base64) {
-      return addNotification(
-        "Немає даних для завантаження файлу. Можливо, бекенд не повертає Base64.",
-        "error",
-      );
-    }
-
+    if (!file.file_base64) return addNotification("No file data", "error");
     const byteCharacters = atob(file.file_base64);
     const byteNumbers = Array.from(byteCharacters).map((c) => c.charCodeAt(0));
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray]);
-
-    const fileNameWithExt = file.file_extension
-      ? `${file.title}.${file.file_extension}`
-      : file.title;
-
+    const blob = new Blob([new Uint8Array(byteNumbers)]);
+    const fileName = file.file_extension ? `${file.titles[i18n.language] || file.titles.ua}.${file.file_extension}` : "file";
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    link.download = fileNameWithExt;
+    link.download = fileName;
     link.click();
   };
 
-  const formatDate = (isoString) => {
+  const formatDate = (isoString, lng = "uk-UA") => {
+
+
     if (!isoString) return "Невідомо";
     const date = new Date(isoString);
-    return date.toLocaleDateString("uk-UA", {
+    return date.toLocaleDateString(lng === "en" ? "en-US" : "uk-UA", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -281,15 +311,15 @@ const FilesPage = () => {
     
 
     <h1 className="text-[24px] xl:text-[32px] font-bold uppercase tracking-wider text-center">
-      Файли
+       {t('files.header.title')}
     </h1>
 
 <div className="flex flex-col md:flex-row items-center md:items-end justify-center gap-6 relative">
   
 
   <p className="text-[16px] xl:text-[20px] font-light text-center leading-tight">
-    Корисні матеріали для завантаження: <br />
-    сертифікати, протоколи випробувань, будівельні норми тощо.
+     {t('files.header.subtitle_1')} <br />
+    {t('files.header.subtitle_2')}
   </p>
 
 
@@ -300,14 +330,14 @@ const FilesPage = () => {
         className="w-full bg-custom-green hover:bg-custom-green-dark text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
         onClick={() => setAddModalOpen(true)}
       >
-        <img src={plusIcon} className="mr-2" /> Додати файл
+        <img src={plusIcon} className="mr-2" /> {t('files.buttons.add')}
       </button>
     )}
 
     <div className="relative w-full">
       <input
         type="text"
-        placeholder="пошук за назвою"
+        placeholder={t('files.searchPlaceholder')}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className="w-full py-2.5 px-11 rounded-[5px] bg-white text-zinc-800 border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-lime-500"
@@ -456,7 +486,7 @@ const FilesPage = () => {
                         : undefined,
                     }}
                   >
-                    {file.title}
+                    {file.titles[i18n.language] || file.titles.ua}
                   </div>
                   <div
                     className="row gap-5 items-center justify-start text-grey text-sm"
@@ -469,9 +499,9 @@ const FilesPage = () => {
 
                     <img src={profileIcon} className="pr-[8px]" />
                    
-                    <span>Адміністратор</span> 
+                    <span>{t('files.adminRole')}</span> 
                     <div className="w-[8px] h-[8px] bg-custom-green rounded-[50%]" />
-                    <span>{formatDate(file.created_at)}</span>
+                    <span>{formatDate(file.created_at, i18n.language)}</span>
                   </div>
                 </div>
               </div>
@@ -481,7 +511,7 @@ const FilesPage = () => {
                   className="button bg-custom-green h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
                   onClick={() => handleDownload(file)}
                 >
-                  <img src={downloadIcon} />  <div className="text-[16px] uppercase !hidden md:!block">Завантажити</div>
+                  <img src={downloadIcon} />  <div className="text-[16px] uppercase !hidden md:!block">{t('files.buttons.download')}</div>
                 </button>
 
                 {isAdmin && (
@@ -490,13 +520,13 @@ const FilesPage = () => {
                      className="button bg-WS---DarkGreen-Light h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
                       onClick={() => handleEditClick(file)}
                     >
-                      <FaEdit size={25} />      <div className="text-[16px] uppercase !hidden md:!block">Редагувати</div>
+                      <FaEdit size={25} />      <div className="text-[16px] uppercase !hidden md:!block">{t('files.buttons.edit')}</div>
                     </button>
                     <button
                       className="button bg-WS---DarkRed h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
                       onClick={() => handleDeleteClick(file)}
                     >
-                      <FaTrash size={25}/> <div className="text-[16px] uppercase !hidden md:!block">Видалити </div>
+                      <FaTrash size={25}/> <div className="text-[16px] uppercase !hidden md:!block">{t('files.buttons.delete')}</div>
                     </button>
                   </>
                 )}
@@ -512,146 +542,62 @@ const FilesPage = () => {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
         type="danger"
-        title="Видалення файлу"
-        message={`Ви дійсно хочете видалити файл "${selectedFile?.title}"?`}
-        confirmText="Видалити"
-        cancelText="Скасувати"
+        title={t("files.feedback.deleteFile")}
+        message={t("files.feedback.confirmDeleteMessage")}
+        confirmText={t("files.buttons.delete")}
+        cancelText={t("files.buttons.cancel")}
       />
 
-      {addModalOpen && (
-        <div
-          className="file-modal-overlay"
-          onClick={() => setAddModalOpen(false)}
-        >
-          <div
-            className="file-modal-window"
-            onClick={(e) => e.stopPropagation()}
-          >
+        {addModalOpen && (
+        <div className="file-modal-overlay" onClick={() => setAddModalOpen(false)}>
+          <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
             <div className="file-modal-header">
-              <div className="header-content">
-                <div className="file-icon">📎</div>
-                <h3>Додати файл</h3>
+              <h3>{t('files.buttons.add')}</h3>
+              <button onClick={() => setAddModalOpen(false)}>✕</button>
+            </div>
+            <form className="file-form p-4 column gap-4" onSubmit={handleAddFile}>
+              <div className="column gap-2">
+                <label>Назва (UA) *</label>
+                <input type="text" value={titles.ua} onChange={e => setTitles({...titles, ua: e.target.value})} required className="file-input" />
               </div>
-              <button
-                className="file-close-btn"
-                onClick={() => setAddModalOpen(false)}
-                aria-label="Закрити"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddFile} className="file-form">
-              <label className="file-label">
-                <span>Назва файлу</span>
-                <input
-                  type="text"
-                  placeholder="Назва файлу..."
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="file-input"
-                />
-              </label>
-
-              <label className="file-label">
-                <span>Оберіть файл</span>
-                <input
-                  type="file"
-                  onChange={(e) => setNewFile(e.target.files[0])}
-                  className="file-input"
-                />
-              </label>
+              <div className="column gap-2">
+                <label>Title (EN)</label>
+                <input type="text" value={titles.en} onChange={e => setTitles({...titles, en: e.target.value})} className="file-input" />
+              </div>
+              {/* <div className="column gap-2">
+                <label>Titolo (IT)</label>
+                <input type="text" value={titles.it} onChange={e => setTitles({...titles, it: e.target.value})} className="file-input" />
+              </div> */}
+              <div className="column gap-2">
+                <label>{t('files.choose_file')}</label>
+                <input type="file" onChange={e => setNewFile(e.target.files[0])} className="file-input" />
+              </div>
+              <div className="file-modal-footer">
+                <button type="button" onClick={() => setAddModalOpen(false)}>{t('files.buttons.cancel')}</button>
+                <button type="submit" disabled={loadingAdd}>{loadingAdd ? "..." : t('files.buttons.upload')}</button>
+              </div>
             </form>
-
-            <div className="file-modal-footer">
-              <button
-                type="button"
-                className="file-btn-cancel"
-                onClick={() => setAddModalOpen(false)}
-              >
-                ✕ Скасувати
-              </button>
-              <button
-                type="button"
-                className="file-btn-save"
-                onClick={handleAddFile}
-                disabled={loadingAdd}
-              >
-                {loadingAdd ? (
-                  <div className="loader-small"></div>
-                ) : (
-                  "💾 Завантажити"
-                )}
-              </button>
-            </div>
           </div>
         </div>
       )}
 
-      {editModalOpen && (
-        <div
-          className="file-modal-overlay"
-          onClick={() => setEditModalOpen(false)}
-        >
-          <div
-            className="file-modal-window edit-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="file-modal-header"
-             
-            >
-              <div className="header-content">
-                <div className="file-icon">✏️</div>
-                <h3>Редагувати файл</h3>
+     {editModalOpen && (
+        <div className="file-modal-overlay" onClick={() => setEditModalOpen(false)}>
+          <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
+            <div className="file-modal-header">
+              <div className="header-content"><FaEdit className="mr-2" /><h3>{t('files.buttons.edit')}</h3></div>
+              <button onClick={() => setEditModalOpen(false)}>✕</button>
+            </div>
+            <form className="file-form p-4 column gap-4" onSubmit={handleEditConfirm}>
+              <div className="column gap-1"><label>Назва (UA) *</label><input type="text" value={editTitles.ua} onChange={e => setEditTitles({...editTitles, ua: e.target.value})} className="file-input" required /></div>
+              <div className="column gap-1"><label>Title (EN)</label><input type="text" value={editTitles.en} onChange={e => setEditTitles({...editTitles, en: e.target.value})} className="file-input" /></div>
+              {/* <div className="column gap-1"><label>Titolo (IT)</label><input type="text" value={editTitles.it} onChange={e => setEditTitles({...editTitles, it: e.target.value})} className="file-input" /></div> */}
+              <div className="column gap-1"><label>Змінити файл (необов'язково)</label><input type="file" onChange={e => setEditNewFile(e.target.files[0])} className="file-input" /></div>
+              <div className="file-modal-footer">
+                <button type="button" onClick={() => setEditModalOpen(false)}>{t('files.buttons.cancel')}</button>
+                <button type="submit" disabled={loadingEdit}>{loadingEdit ? "..." : t('files.buttons.save')}</button>
               </div>
-              <button
-                className="file-close-btn"
-                onClick={() => setEditModalOpen(false)}
-                aria-label="Закрити"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleEditConfirm} className="file-form">
-              <label className="file-label">
-                <span>Назва файлу</span>
-                <input
-                  type="text"
-                  placeholder="Назва файлу..."
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="file-input"
-                />
-              </label>
-
-              <label className="file-label">
-                <span>Оберіть новий файл (необов'язково)</span>
-                <input
-                  type="file"
-                  onChange={(e) => setEditNewFile(e.target.files[0])}
-                  className="file-input"
-                />
-              </label>
             </form>
-
-            <div className="file-modal-footer">
-              <button
-                type="button"
-                className="file-btn-cancel"
-                onClick={() => setEditModalOpen(false)}
-              >
-                ✕ Скасувати
-              </button>
-              <button
-                type="button"
-                className="file-btn-save edit-btn"
-                onClick={handleEditConfirm}
-              >
-                💾 Зберегти зміни
-              </button>
-            </div>
           </div>
         </div>
       )}

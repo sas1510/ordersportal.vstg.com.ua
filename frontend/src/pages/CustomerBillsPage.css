@@ -112,7 +112,7 @@
   height: 36px;
   padding: 0 10px;
   border-radius: 4px;
-  border: 1px dashed var(--grey-border-color);
+  /* border: 1px dashed var(--grey-border-color); */
   background-color: #fff;
   color: var(--text-color);
 }

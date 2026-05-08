@@ -224,11 +224,11 @@ logger = logging.getLogger(__name__)
     summary="Отримати довідник причин рекламацій",
     description=(
         "Повертає список **причин рекламацій**.\n\n"
-        "📌 Дані беруться з SQL-процедури **dbo.GetComplaintsIssue**.\n\n"
-        "🔐 **Доступ:**\n"
+        " Дані беруться з SQL-процедури **dbo.GetComplaintsIssue**.\n\n"
+        " **Доступ:**\n"
         "- JWT (користувач порталу)\n"
         "- або **1C API Key**\n\n"
-        "🧾 Поле **Link** повертається як **GUID string** "
+        " Поле **Link** повертається як **GUID string** "
         "(конвертація з BINARY(16))."
     ),
 
@@ -264,12 +264,12 @@ def get_issue_complaints(request):
     summary="Отримати способів вирішення рекламації",
     description=(
         "Повертає список **вирішень рекламації** для заданої причини.\n\n"
-        "📌 **reason_id** — GUID причини рекламації (рядок).\n\n"
-        "📦 Дані беруться з SQL-процедури **dbo.GetComplaintSolutions**.\n\n"
-        "🔐 **Доступ:**\n"
+        " **reason_id** — GUID причини рекламації (рядок).\n\n"
+        " Дані беруться з SQL-процедури **dbo.GetComplaintSolutions**.\n\n"
+        " **Доступ:**\n"
         "- JWT (користувач порталу)\n"
         "- або **1C API Key**\n\n"
-        "🧾 Поле **Link** у відповіді повертається як **GUID string** "
+        " Поле **Link** у відповіді повертається як **GUID string** "
         "(конвертація з BINARY(16))."
     ),
     parameters=[
@@ -326,17 +326,17 @@ def get_gm_solutions(request, reason_id):
     summary="Отримати серії рекламації по замовленню",
     description=(
         "Повертає **серії рекламації** для вказаного номера замовлення.\n\n"
-        "📌 Дані беруться з SQL-процедури **dbo.GetComplaintSeriesByOrder**.\n\n"
-        "🔐 **Доступ:**\n"
+        " Дані беруться з SQL-процедури **dbo.GetComplaintSeriesByOrder**.\n\n"
+        " **Доступ:**\n"
         "- **JWT**:\n"
         "  - *admin * → доступ до будь-якого контрагента\n"
         "  - *customer* → тільки до **свого** контрагента\n"
         "- **1C API Key** → доступ без обмежень\n\n"
-        "📎 **contractor (query-параметр)**:\n"
+        " **contractor (query-параметр)**:\n"
         "- необовʼязковий\n"
         "- GUID контрагента\n"
         "- для JWT customer ігнорується (береться з user.user_id_1C)\n\n"
-        "🧾 Поле **SeriesLink** у відповіді повертається як **GUID string** "
+        " Поле **SeriesLink** у відповіді повертається як **GUID string** "
         "(конвертація з BINARY(16))."
     ),
     parameters=[
@@ -393,7 +393,7 @@ def get_complaint_series_by_order(request, order_number):
                 raise ValueError("Invalid contractor GUID")
         # якщо не передано – contractor_bin залишається None → SQL не фільтрує
 
-    # 📦 SQL
+
     with connection.cursor() as cursor:
         if contractor_bin:
             cursor.execute(
@@ -485,38 +485,32 @@ class ReclamationViewSet(viewsets.ViewSet):
         try:
             user = request.user
 
-            # 🧠 Визначаємо роль
+ 
             role = getattr(user, "role", None)
             role = role.lower() if role else ""
 
             is_admin = role in ("admin", "manager", "region_manager")
 
-            # --------------------------------------------------
-            # 🧩 contractor_guid
-            # --------------------------------------------------
+
             if is_admin:
                 contractor_guid = request.data.get("contractor_guid")
                 if not contractor_guid:
                     raise ValueError("contractor_guid is required for admin")
             else:
-                # ❗ дилер / клієнт — беремо з користувача
+
                 contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
                 if not contractor_guid:
                     raise ValueError("contractor_guid not found for user")
 
 
-            # --------------------------------------------------
-            # 👤 author_guid — ЗАВЖДИ з користувача
-            # --------------------------------------------------
+
             author_guid = bin_to_guid_1c(
                 getattr(user, "user_id_1C", None)
             )
             if not author_guid:
                 raise ValueError("author_guid not found for user")
 
-            # --------------------------------------------------
-            # 🧾 Основні дані
-            # --------------------------------------------------
+ 
             main_data = {
                 "kontragentGUID": contractor_guid,
                 "authorGUID": author_guid, 
@@ -532,40 +526,38 @@ class ReclamationViewSet(viewsets.ViewSet):
 
             payload = self._generate_reclamation_json(request, main_data)
 
-            # ==================================================
-            # 🔥 REAL MODE
-            # ==================================================
+
             result = send_to_1c("CreateReclamation", payload)
 
 
 
             reclamation_guid = None
             if isinstance(result.get("results"), list) and len(result["results"]) > 0:
-                # Беремо перший елемент масиву та ключ 'ReclamationGUID'
+      
                 reclamation_guid = result["results"][0].get("ReclamationGUID")
 
             contractor_bin = guid_to_1c_bin(contractor_guid)
-            # ---------- СТВОРЕННЯ ПОВІДОМЛЕННЯ В ЧАТ ----------
+     
             if reclamation_guid:
                 try:
                     reclamation_bin = guid_to_1c_bin(str(reclamation_guid))
                     
-                    # Шукаємо основного менеджера контрагента
+                  
                     main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
                     
-                    # Якщо менеджера немає, отримувач — сам контрагент (або за замовчуванням)
+            
                     final_recipient = main_manager_bin if main_manager_bin else contractor_bin
 
                     ChatMessage.objects.create(
-                        chat_id=f"2_{reclamation_guid}",  # Формат 2_Guid для рекламацій
+                        chat_id=f"2_{reclamation_guid}",  
                         related_object_id=reclamation_bin,
                         author=contractor_bin,                      
                         recipient=final_recipient,               
-                        text=request.data.get("description"), #or "Створено нову рекламацію",
+                        text=request.data.get("description"), 
                         is_read=False,
                         is_sent_vtg=False,
                         is_notification=False,
-                        transaction_type_id=2  # Припустимо, 2 — це тип для рекламацій
+                        transaction_type_id=2  
                     )
                 except Exception as chat_err:
                     logger.error(f"Помилка створення ChatMessage для рекламації {reclamation_guid}: {str(chat_err)}")
@@ -578,7 +570,7 @@ class ReclamationViewSet(viewsets.ViewSet):
             return Response(
                 {
                     "success": True,
-                    "payload": payload,   # 🔍 теж повертаємо
+                    "payload": payload,  
                     # "reclamationGuid": reclamation_guid,
                 },
                 status=status.HTTP_201_CREATED,
@@ -609,16 +601,15 @@ class ReclamationViewSet(viewsets.ViewSet):
         DELETE /api/complaints/delete_complaint/<reclamation_guid>/
         """
         try:
-            # 1. Формуємо payload згідно з вашою вимогою
+         
             payload = {
                 "reclamationGuid": str(reclamation_guid)
             }
 
-            # 2. Відправляємо запит у 1С з Query "MarkOnDeleteReclamation"
-            # Використовуємо вашу існуючу утиліту send_to_1c
+            
             result = send_to_1c("MarkOnDeleteReclamation", payload)
 
-            # 3. Повертаємо успішну відповідь фронтенду
+           
             return Response(
                 {
                     "success": True,
@@ -645,11 +636,11 @@ class ReclamationViewSet(viewsets.ViewSet):
     summary="Отримати файли претензії (БВ)",
     description=(
         "Повертає **всі файли претензії** (фото, відео, pdf).\n\n"
-        "📌 Дані беруться з SQL-процедури **dbo.GetClaimFiles_BV**.\n\n"
-        "🔐 Доступ:\n"
+        " Дані беруться з SQL-процедури **dbo.GetClaimFiles_BV**.\n\n"
+        " Доступ:\n"
         "- JWT\n"
         "- або 1C API Key\n\n"
-        "📎 File_GUID та Claim_GUID повертаються як GUID string."
+        " File_GUID та Claim_GUID повертаються як GUID string."
     ),
     parameters=[
         OpenApiParameter(
@@ -665,7 +656,7 @@ class ReclamationViewSet(viewsets.ViewSet):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_claim_files(request, claim_guid):
     try:
-        # 🔹 GUID → BINARY(16)
+
         claim_link_bin = guid_to_1c_bin(claim_guid)
 
         with connection.cursor() as cursor:
@@ -738,9 +729,7 @@ def preview_complaint_file(request, claim_guid):
     content_type, _ = mimetypes.guess_type(filename)
     content_type = content_type or "application/octet-stream"
 
-    # ======================================================
-    # 1️⃣ SMB
-    # ======================================================
+  
     remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{filename}'
     full_username = f"VSTG\\{settings.SMB_USERNAME}"
 
@@ -753,7 +742,7 @@ def preview_complaint_file(request, claim_guid):
     remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{safe_filename}'
 
     try:
-        subprocess.run(  # nosec B603
+        subprocess.run( 
                 [
                     "/usr/bin/smbclient",
                     f"//{settings.SMB_SERVER}/{settings.SMB_SHARE}",
@@ -778,9 +767,6 @@ def preview_complaint_file(request, claim_guid):
         if os.path.exists(tmp.name):
             os.unlink(tmp.name)
 
-    # ======================================================
-    # 2️⃣ FALLBACK — 1C DB
-    # ======================================================
     try:
         binary_guid = guid_to_1c_bin(file_guid)
 

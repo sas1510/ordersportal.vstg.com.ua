@@ -151,7 +151,7 @@ axiosInstance.interceptors.response.use(
         const { access } = res.data;
         setAccessToken(access);
 
-        // 2) Оновлюємо user дані
+        
         const userRes = await axiosInstance.get("/user/me/");
         setUser(userRes.data);
 

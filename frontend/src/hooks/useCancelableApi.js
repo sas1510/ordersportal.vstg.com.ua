@@ -5,12 +5,12 @@ export function useCancelableApi() {
   const controllerRef = useRef(null);
 
   const request = async (config) => {
-    // Якщо попередній запит існує → скасовуємо
+
     if (controllerRef.current) {
       controllerRef.current.abort();
     }
 
-    // Новий AbortController
+    
     controllerRef.current = new AbortController();
 
     try {
@@ -29,7 +29,7 @@ export function useCancelableApi() {
 
   useEffect(() => {
     return () => {
-      // при виході зі сторінки скасувати всі активні запити
+  
       if (controllerRef.current) controllerRef.current.abort();
     };
   }, []);

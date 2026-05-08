@@ -3,6 +3,7 @@ import axiosInstance from "../../api/axios.js";
 import { useNotification } from "../../hooks/useNotification";
 import "./NewCalculationModal.css";
 import DealerSelect from "../../pages/DealerSelect";
+import { useTranslation } from "react-i18next";
 import {
   FaTimes,
   FaSave,
@@ -17,10 +18,10 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
-
+  const { t, i18n} = useTranslation();
   const [orderNumber, setOrderNumber] = useState("");
   const [file, setFile] = useState(null);
-  const [fileName, setFileName] = useState("Файл не обрано");
+  const [fileName, setFileName] = useState(t("orders.newOrderModal.error_message_2"));
   const [itemsCount, setItemsCount] = useState(1);
   const [comment, setComment] = useState("");
   const [_submitError, setSubmitError] = useState(null);
@@ -87,11 +88,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     if (!coords) {
       addNotification(
         <div style={{ lineHeight: "1.4" }}>
-          <strong>Увага! Гео-координати не встановлені.</strong> <br />
-          Для коректного прорахунку логістики необхідно вказати точку на карті.{" "}
+          <strong>{t("orders.newOrderModal.coord_message_1")}</strong> <br />
+          {t("orders.newOrderModal.coord_message_2")}{" "}
           <br />
-          Будь ласка, <strong>зверніться до вашого менеджера</strong> для
-          оновлення даних адреси <br />
+          {t("orders.newOrderModal.coord_message_3")}
           {/* <a
             href="https://ordersportal.vstg.com.ua/edit-addresses"
             target="_blank"
@@ -150,7 +150,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           className="flex ai-center jc-space-between gap-5"
           style={{ minWidth: "250px" }}
         >
-          <span>Не вдалося завантажити адреси:</span>
+          <span>{t("orders.newOrderModal.error_message_1")}</span>
           <button
             onClick={() => loadAddresses(contractorGuid)}
             style={{
@@ -166,7 +166,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               whiteSpace: "nowrap",
             }}
           >
-            ПОВТОРИТИ
+            {t("orders.newOrderModal.repeat")}
           </button>
         </div>,
         "error",
@@ -217,12 +217,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
-    setFileName(selected ? selected.name : "Файл не обрано");
+    setFileName(selected ? selected.name : t("orders.newOrderModal.error_message_2"));
   };
 
   const handleClearFile = () => {
     setFile(null);
-    setFileName("Файл не обрано");
+    setFileName(t("orders.newOrderModal.error_message_2"));
     const input = document.getElementById("new-calc-file");
     if (input) input.value = "";
   };
@@ -230,7 +230,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const resetForm = () => {
     setOrderNumber("");
     setFile(null);
-    setFileName("Файл не обрано");
+    setFileName(t("orders.newOrderModal.error_message_2"));
     setItemsCount(1);
     setComment("");
     setDealerId("");
@@ -253,13 +253,13 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setSubmitError(null);
 
     if (!orderNumber || !file || !itemsCount) {
-      addNotification("Заповніть усі поля", "error");
+      addNotification(t("orders.newOrderModal.error_message_3"), "error");
       return;
     }
 
     if (addressMode === "dealer") {
       if (!addressGuid) {
-        addNotification("Оберіть адресу доставки", "error");
+        addNotification(t("orders.newOrderModal.error_message_4"), "error");
         return;
       }
       // // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
@@ -288,7 +288,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       addressMode === "client" &&
       (!customAddress.text || !customAddress.lat || !customAddress.lng)
     ) {
-      addNotification("Оберіть клієнтську адресу", "error");
+      addNotification(t("orders.newOrderModal.error_message_5"), "error");
       return;
     }
 
@@ -349,7 +349,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
         payload,
       );
 
-      addNotification(`Прорахунок №${orderNumber} створено ✅`, "success");
+      addNotification(t("orders.newOrderModal.order_created", { orderNumber: orderNumber }), "success");
       onSave?.(response.data);
       resetForm();
       onClose();
@@ -361,7 +361,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           style={{ minWidth: "250px" }}
         >
           <div className="column">
-            <strong>Помилка створення: </strong>
+            <strong>{t("orders.newOrderModal.error_message_6")}</strong>
             {/* <span style={{ fontSize: '13px', opacity: 0.9 }}>{serverMessage}</span> */}
           </div>
           <button
@@ -379,7 +379,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
-            ПОВТОРИТИ
+            {t("orders.newOrderModal.repeat")}
           </button>
         </div>,
         "error",
@@ -402,7 +402,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           <div className="new-calc-modal-border-top">
             <div className="new-calc-modal-header">
               <span className="icon icon-calculator" />
-              <h3>Створити новий прорахунок</h3>
+              <h3>{t("orders.newOrderModal.order_create")}</h3>
               <span
                 className="icon icon-cross new-calc-close-btn"
                 onClick={handleCloseWithReset}
@@ -426,7 +426,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 <div className="new-calc-label-row">
                   <span className="flex items-center gap-2">
                     <FaUserAlt />
-                    <span>Дилер:</span>
+                    <span>{t("orders.newOrderModal.dealer")}</span>
                   </span>
                   <DealerSelect value={dealerId} onChange={setDealerId} />
                 </div>
@@ -438,7 +438,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                     checked={addressMode === "dealer"}
                     onChange={() => setAddressMode("dealer")}
                   />
-                  Моя адреса
+                  {t("orders.newOrderModal.myAddress")}
                 </label>
                 <label>
                   <input
@@ -446,13 +446,13 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                     checked={addressMode === "client"}
                     onChange={() => setAddressMode("client")}
                   />
-                  Клієнтська адреса
+                   {t("orders.newOrderModal.clientAddress")}
                 </label>
               </div>
 
               {addressMode === "dealer" && (
                 <div className="new-calc-label-row address-dropdown-wrapper">
-                  <span>Адреса доставки:</span>
+                  <span>{t("orders.newOrderModal.address")}</span>
                   <div
                     className={`address-dropdown ${isAddressOpen ? "open" : ""}`}
                     onClick={() =>
@@ -462,10 +462,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                     <div className="address-dropdown-selected">
                       <span>
                         {addressesLoading
-                          ? "Завантаження адрес..."
+                          ? t("orders.newOrderModal.loadingOfAddress")
                           : addresses.find(
                               (a) => a.AddressKindGUID === addressGuid,
-                            )?.AddressValue || "Оберіть адресу доставки"}
+                            )?.AddressValue || t("orders.newOrderModal.error_message_4")}
                       </span>
                       <FaChevronDown
                         className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`}
@@ -495,13 +495,13 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               {addressMode === "client" && (
                 <div className="client-address-block">
                   <label className="new-calc-label">
-                    <span>Клієнтська адреса:</span>
+                    <span>{t("orders.newOrderModal.clientAddress")}</span>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <input
                         className="new-calc-input"
                         readOnly
                         value={customAddress.text || ""}
-                        placeholder="Адреса не обрана"
+                        placeholder={t("orders.newOrderModal.error_message_7")}
                         onClick={() => setIsClientAddressModalOpen(true)}
                       />
                       <button
@@ -510,7 +510,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                         style={{ padding: "0 15px", whiteSpace: "nowrap" }}
                         onClick={() => setIsClientAddressModalOpen(true)}
                       >
-                        Обрати
+                        {t("orders.newOrderModal.choose")}
                       </button>
                     </div>
                   </label>
@@ -523,7 +523,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   className="new-calc-upload-label"
                 >
                   <FaUpload size={20} />
-                  <span>Завантажити файл (.zkz)</span>
+                  <span>{t("orders.newOrderModal.downloadZKZ")}</span>
                   <input
                     type="file"
                     id="new-calc-file"
@@ -547,7 +547,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               </div>
 
               <label className="new-calc-label-row">
-                <span>Кількість конструкцій:</span>
+                <span>{t("orders.newOrderModal.numberOfConstruction")}</span>
                 <input
                   type="number"
                   min="1"
@@ -558,7 +558,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               </label>
 
               <label className="new-calc-label">
-                <span>Коментар:</span>
+                <span>{t("orders.newOrderModal.comment")}</span>
                 <textarea
                   rows={4}
                   value={comment}
@@ -574,14 +574,14 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               className="new-calc-btn-cancel"
               onClick={handleCloseWithReset}
             >
-              <FaTimes /> Відмінити
+              <FaTimes /> {t("orders.newOrderModal.cancel")}
             </button>
             <button
               className="new-calc-btn-save"
               onClick={handleSubmit}
               disabled={loading}
             >
-              <FaSave /> {loading ? "Створюємо..." : "Зберегти"}
+              <FaSave /> {loading ? t("orders.newOrderModal.creating") : t("orders.newOrderModal.save")}
             </button>
           </div>
         </div>

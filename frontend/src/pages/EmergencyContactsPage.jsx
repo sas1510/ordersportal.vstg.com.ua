@@ -29,7 +29,7 @@ const EmergencyContactsPage = () => {
     department: "",
   });
 
-  const [deleteContactId, setDeleteContactId] = useState(null); // для модалки видалення
+  const [deleteContactId, setDeleteContactId] = useState(null); 
   const [isSending, setIsSending] = useState(false);
 
 
@@ -106,12 +106,12 @@ const EmergencyContactsPage = () => {
         setContacts((prev) =>
           prev.map((c) => (c.id === editingContact.id ? updatedContact : c)),
         );
-        addNotification("✅ Контакт оновлено", "success");
+        addNotification(" Контакт оновлено", "success");
       } else {
         const response = await axiosInstance.post("/contacts/", payload);
         updatedContact = response.data;
         setContacts((prev) => [...prev, updatedContact]);
-        addNotification("✅ Контакт додано", "success");
+        addNotification("Контакт додано", "success");
       }
       closeModal();
     } catch (error) {
@@ -119,7 +119,7 @@ const EmergencyContactsPage = () => {
         console.error("Error saving contact:", error);
       }
 
-      addNotification("❌ Не вдалося зберегти контакт", "error");
+      addNotification(" Не вдалося зберегти контакт", "error");
     } finally {
       setIsSending(false);
     }
@@ -135,13 +135,13 @@ const EmergencyContactsPage = () => {
     try {
       await axiosInstance.delete(`/contacts/${deleteContactId}/`);
       setContacts((prev) => prev.filter((c) => c.id !== deleteContactId));
-      addNotification("✅ Контакт видалено", "success");
+      addNotification(" Контакт видалено", "success");
       closeModal();
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
         console.error("Error deleting contact:", error);
       }
-      addNotification("❌ Не вдалося видалити контакт", "error");
+      addNotification(" Не вдалося видалити контакт", "error");
     } finally {
       setIsSending(false);
     }
@@ -170,7 +170,8 @@ const EmergencyContactsPage = () => {
   };
 
   return (
-    <div className="emergency-portal-body">
+    <div className="emergency-portal-body items-center ">
+      <div className="w-full max-w-[1334px]">
       <h1 className="text-color mt-6 text-4xl font-bold pb-0">
         Контакти для термінового дзвінка
       </h1>
@@ -185,15 +186,15 @@ const EmergencyContactsPage = () => {
             <div className="emergency-column">
               <div className="emergency-text-info">{contact.contact_name}</div>
               <div className="emergency-text-grey flex items-center gap-2">
-                <span className="text-red-500 text-lg">📞</span>{" "}
+                <span className="text-red-500 text-lg"><i class="fa fa-phone" aria-hidden="true"></i></span>{" "}
                 {contact.phone || "-"}
               </div>
               <div className="emergency-text-grey flex items-center gap-2">
-                <span className="text-blue-500 text-lg">✉️</span>{" "}
+                <span className="text-blue-500 text-lg"><i class="fa fa-envelope" aria-hidden="true"></i></span>{" "}
                 {contact.email || "-"}
               </div>
               <div className="emergency-text-grey italic text-sm flex items-center gap-2">
-                <span className="text-green-500 text-lg">🧩</span>{" "}
+                <span className="text-green-500 text-lg"><i class="fa fa-building" aria-hidden="true"></i> </span>{" "}
                 {contact.department || "-"}
               </div>
             </div>
@@ -408,6 +409,7 @@ const EmergencyContactsPage = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

@@ -16,7 +16,7 @@ export default function ConfirmModal({
         className={`confirm-window ${danger ? "danger" : ""}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
+
         <div className="confirm-header">
           <div className="confirm-title">
             <AlertTriangle size={22} />
@@ -28,10 +28,10 @@ export default function ConfirmModal({
           </button>
         </div>
 
-        {/* BODY */}
+
         <div className="confirm-body">{message}</div>
 
-        {/* FOOTER */}
+
         <div className="confirm-footer">
           <button className="confirm-btn-cancel" onClick={onCancel}>
             {cancelText}

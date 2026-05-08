@@ -10,7 +10,7 @@ import useWindowWidth from "../hooks/useWindowWidth";
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";
 
-const ALL_DEALERS_VALUE = "__ALL__"; // має збігатися з DealerSelect
+const ALL_DEALERS_VALUE = "__ALL__"; 
 const initialLimit = 100;
 
 const AdminAdditionalOrders = () => {
@@ -94,8 +94,7 @@ const AdminAdditionalOrders = () => {
         });
       }
 
-      // Місяць фільтруємо на фронті для одного дилера.
-      // Для ALL дилерів бек вже віддає по місяцю, але це не заважає (буде той самий результат).
+      
       if (monthFilter !== 0) {
         filtered = filtered.filter((additionalOrder) => {
           const date = new Date(additionalOrder.dateRaw);
@@ -120,9 +119,7 @@ const AdminAdditionalOrders = () => {
     [additionalOrdersData],
   );
 
-  // =========================
-  // AUTO SET MONTH ON FIRST "ALL"
-  // =========================
+
   useEffect(() => {
     if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
       setFilter((prev) => {
@@ -132,14 +129,12 @@ const AdminAdditionalOrders = () => {
     }
   }, [isAdmin, dealerGuid, currentMonth]);
 
-  // Тригерити fetch по місяцю тільки коли ALL
+
   const shouldRefetchOnMonthChange = useMemo(() => {
     return isAdmin && dealerGuid === ALL_DEALERS_VALUE;
   }, [isAdmin, dealerGuid]);
 
-  // =========================
-  // DATA FETCH (тільки на: рік, дилер, місяць(ALL))
-  // =========================
+
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
@@ -152,12 +147,12 @@ const AdminAdditionalOrders = () => {
 
         if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
           endpoint = "/additional_orders/get_additional_orders_info_all/";
-          params.month = filter.month || currentMonth; // month обов’язковий
+          params.month = filter.month || currentMonth; 
         } else if (dealerGuid) {
-          // конкретний дилер / звичайний юзер
+  
           params.contractor = dealerGuid;
         } else if (isAdmin && !dealerGuid) {
-          // адмін нічого не вибрав
+     
           setAdditionalOrdersData([]);
           setFilteredItems([]);
           setLoading(false);
@@ -181,8 +176,7 @@ const AdminAdditionalOrders = () => {
 
           setAdditionalOrdersData(allOrders);
 
-          // ❗ ВАЖЛИВО: фільтри статус/пошук/місяць для одного дилера — тільки client-side
-          // Тут після fetch застосуємо поточні filter.* до нових даних:
+
           setFilteredItems(
             getFilteredItems(
               filter.status,
@@ -218,9 +212,7 @@ const AdminAdditionalOrders = () => {
     shouldRefetchOnMonthChange ? filter.month : null,
   ]);
 
-  // =========================
-  // HANDLERS (НЕ ВИКЛИКАЮТЬ БЕК)
-  // =========================
+
   const handleFilterClick = (statusKey) => {
     setFilter((prev) => ({ ...prev, status: statusKey }));
     setFilteredItems(
@@ -235,19 +227,19 @@ const AdminAdditionalOrders = () => {
   };
 
   const handleMonthClick = (month) => {
-    // ALL: “Весь рік” заборонено/приховано
+
     if (dealerGuid === ALL_DEALERS_VALUE && month === 0) return;
 
     const newMonth =
       filter.month === month
         ? dealerGuid === ALL_DEALERS_VALUE
           ? month
-          : 0 // для одного дилера можна скинути повторним кліком
+          : 0 
         : month;
 
     setFilter((prev) => ({ ...prev, month: newMonth }));
 
-    // Один дилер: фільтруємо локально (без fetch)
+
     if (dealerGuid !== ALL_DEALERS_VALUE) {
       setFilteredItems(
         getFilteredItems(
@@ -258,7 +250,7 @@ const AdminAdditionalOrders = () => {
         ),
       );
     }
-    // ALL: fetch піде автоматично, бо filter.month у deps тільки для ALL
+
 
     setDisplayLimit(initialLimit);
   };
@@ -298,14 +290,12 @@ const AdminAdditionalOrders = () => {
   }, []);
 
   const handleSaveAdditionalOrder = useCallback((_newOrder) => {
-    // залишаю твою заглушку (як було в твоєму коді)
+
     setIsNewOrderModalOpen(false);
     setDisplayLimit(initialLimit);
   }, []);
 
-  // =========================
-  // SUMMARIES
-  // =========================
+
   const statusSummary = useMemo(() => {
     const summary = {
       Всі: 0,
@@ -350,9 +340,7 @@ const AdminAdditionalOrders = () => {
     return summary;
   }, [additionalOrdersData]);
 
-  // =========================
-  // SORT + PAGINATION
-  // =========================
+
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort(
       (a, b) => new Date(b.dateRaw).getTime() - new Date(a.dateRaw).getTime(),
@@ -410,7 +398,7 @@ const AdminAdditionalOrders = () => {
                   src={filterIcon} 
                   alt="Стрілка" 
                   className="align-center mr-1 min-w-[20px] h-[20px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+       
                 />
           </div>
 
@@ -420,7 +408,7 @@ const AdminAdditionalOrders = () => {
                   src={yearIcon} 
                   alt="Стрілка" 
                   className="align-center mr-2 w-[26px] h-[25px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+           
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
@@ -442,9 +430,9 @@ const AdminAdditionalOrders = () => {
               </select>
             </div>
 
-          {/* ===== DESKTOP MONTH LIST ===== */}
+       
           <ul className="gap-6 row no-wrap month-list flex-1">
-            {/* Для ALL — ховаємо "Весь рік" */}
+
             {dealerGuid !== ALL_DEALERS_VALUE && (
               <li
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
@@ -493,13 +481,13 @@ const AdminAdditionalOrders = () => {
             })}
           </ul>
 
-          {/* ===== MOBILE MONTH SELECT (ОЦЕ БУЛО ЗАГУБЛЕНО) ===== */}
+
           <select
             className="month-select flex-1"
             value={filter.month}
             onChange={(e) => handleMonthClick(Number(e.target.value))}
           >
-            {/* Для ALL — не показуємо "Весь рік" */}
+
             {dealerGuid !== ALL_DEALERS_VALUE && (
               <option value={0}>Весь рік</option>
             )}
@@ -540,7 +528,7 @@ const AdminAdditionalOrders = () => {
       <div className="content-wrapper row w-100 h-100">
 
         <div className="row  h-100 max-w-[1334px]  w-100">
-        {/* Sidebar */}
+
         
             {isSidebarOpen && (
                   <div 
@@ -625,13 +613,13 @@ const AdminAdditionalOrders = () => {
                 label: "Всі дод. замовлення",
                 icon: allCalcIcon,
                 statusKey: "Всі",
-              }, // Змінено текст
+              },
               {
                 id: "new",
                 label: "Нові дод. замовлення",
                 icon: newCalcIcon,
                 statusKey: "Новий",
-              }, // Змінено текст
+              }, 
               {
                 id: "processing",
                 label: "В роботі",
@@ -699,7 +687,7 @@ const AdminAdditionalOrders = () => {
           </ul>
         </div>
 
-        {/* Main content */}
+   
         <div className="content" id="content">
           <div className="items-wrapper column gap-1">
             {sortedItems.length === 0 ? (

@@ -302,36 +302,38 @@
 
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, useContext, useCallback } from "react";
+import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
 import HeaderUserProfile from "./HeaderUserProfile";
 import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderAdmin.css";
+import LanguageSwitcher from './LanguageSwitcher';
 
-const NAV_LINKS = [
-  { title: "Акції WDS", to: "/promo-wds-codes" },
-  { title: "Замовлення", to: "/admin-order" },
-  { title: "Рекламації", to: "/admin-reclamation" },
-  { title: "Дозамовлення", to: "/admin-additional-order" },
-  { title: "Файли", to: "/files" },
-  { title: "Відео", to: "/videos" },
+// const NAV_LINKS = [
+//   { title: "Акції WDS", to: "/promo-wds-codes" },
+//   { title: "Замовлення", to: "/admin-order" },
+//   { title: "Рекламації", to: "/admin-reclamation" },
+//   { title: "Дозамовлення", to: "/admin-additional-order" },
+//   { title: "Файли", to: "/files" },
+//   { title: "Відео", to: "/videos" },
 
-];
+// ];
 
-const FINANCE_SUBMENU = [
-  { title: "Рух коштів", to: "/finance/cash-flow" },
-  { title: "Аналітика", to: "/finance/statistics" },
-  { title: "Рахунки", to: "/finance/customer-bills" },
-];
+// const FINANCE_SUBMENU = [
+//   { title: "Рух коштів", to: "/finance/cash-flow" },
+//   { title: "Аналітика", to: "/finance/statistics" },
+//   { title: "Рахунки", to: "/finance/customer-bills" },
+// ];
 
-const SETTINGS_SUBMENU = [
-  { title: "Користувачі", to: "/users-list" },
-  { title: "Менеджер TG", to: "/manager-qr" },
-  { title: "Статистика SOS", to: "/urgentLogs" },
-  { title: "Термінові контакти", to: "/emergency-contacts" },
-];
+// const SETTINGS_SUBMENU = [
+//   { title: "Користувачі", to: "/users-list" },
+//   { title: "Менеджер TG", to: "/manager-qr" },
+//   { title: "Статистика SOS", to: "/urgentLogs" },
+//   { title: "Термінові контакти", to: "/emergency-contacts" },
+// ];
 
 export default function HeaderAdmin() {
 
@@ -340,6 +342,29 @@ export default function HeaderAdmin() {
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
+
+  const NAV_LINKS = useMemo(() => [
+    { title: t('nav.promo_wds'), to: "/promo-wds-codes" },
+    { title: t('nav.orders'), to: "/admin-order" },
+    { title: t('nav.complaints'), to: "/admin-reclamation" },
+    { title: t('nav.additional_orders'), to: "/admin-additional-order" },
+    { title: t('nav.files'), to: "/files" },
+    { title: t('nav.videos'), to: "/videos" },
+  ], [t]);
+
+  const FINANCE_SUBMENU = useMemo(() => [
+    { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
+    { title: t('nav.finance_analytics'), to: "/finance/statistics" },
+    { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
+  ], [t]);
+
+  const SETTINGS_SUBMENU = useMemo(() => [
+    { title: t('nav.settings_users'), to: "/users-list" },
+    { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
+    { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
+    { title: t('nav.settings_emergency_contacts'), to: "/emergency-contacts" },
+  ], [t]);
 
   // --- UI СТАН ---
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -440,7 +465,7 @@ export default function HeaderAdmin() {
                         : "text-[#44403E] hover:bg-gray-50"
                     }`}
                   >
-                    Фінанси ▾
+                    {t('nav.finance')} ▾
                   </button>
                   {showFinanceMenu && (
                     <ul className="absolute top-full left-0 w-48 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
@@ -466,7 +491,7 @@ export default function HeaderAdmin() {
                       showSettings ? "text-[#6B98BF] bg-gray-50" : "text-[#44403E] hover:bg-gray-50"
                     }`}
                   >
-                    Налашт. ▾
+                    {t('nav.settings_short')} ▾
                   </button>
                   {showSettings && (
                     <ul className="absolute top-full left-0 w-48 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
@@ -506,7 +531,7 @@ export default function HeaderAdmin() {
                         to="/change-password"
                         className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
                       >
-                        Змінити пароль
+                        {t('nav.change_password')}
                       </Link>
                     </li>
                   </ul>
@@ -518,8 +543,10 @@ export default function HeaderAdmin() {
                   <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
                 </button>
 
+                <LanguageSwitcher />
+
                 <button onClick={handleLogoutAction} className="hover:opacity-70 transition-opacity">
-                  <img src={exitIcon} alt="Вихід" className="w-[20px] h-[20px] object-contain" />
+                  <img src={exitIcon} alt={t('nav.logout')} className="w-[20px] h-[20px] object-contain" />
                 </button>
               </div>
             </div>
@@ -570,7 +597,7 @@ export default function HeaderAdmin() {
                           onClick={() => setShowFinanceMenu(!showFinanceMenu)}
                           className="w-full py-4 px-[15%] flex items-center justify-between text-[#44403E]"
                         >
-                          <span className="text-xl font-bold">Фінанси</span>
+                          <span className="text-xl font-bold">{t('nav.finance')}</span>
                           <span className={`transition-transform ${showFinanceMenu ? 'rotate-180' : ''}`}>▼</span>
                         </button>
                         {showFinanceMenu && (
@@ -585,12 +612,12 @@ export default function HeaderAdmin() {
                       </div>
 
                       {/* Налаштування (Моб) */}
-                      <div className="relative max-w-[319px] left-[5%] right-[5%] flex flex-col w-full border-t border-dashed border-[#B4D947]">
+                      <div className="relative max-w-[319px] flex flex-col w-full border-t border-dashed border-[#B4D947]">
                         <button 
                           onClick={() => setShowSettings(!showSettings)}
-                          className="w-full py-4 px-[12%] flex items-center justify-between text-[#44403E]"
+                          className="w-full py-4  flex items-center  px-[15%]  justify-between text-[#44403E]"
                         >
-                          <span className="text-xl font-bold">Налаштування</span>
+                          <span className="text-xl font-bold">{t('nav.settings_short')}</span>
                           <span className={`transition-transform ${showSettings ? 'rotate-180' : ''}`}>▼</span>
                         </button>
                         {showSettings && (
@@ -612,12 +639,12 @@ export default function HeaderAdmin() {
                         className="flex items-center px-[15%] gap-4 py-4 w-full"
                       >
                         <img className="w-6 h-6 object-contain" src={profileIcon} alt="profile" />
-                        <span className="text-[#234461] text-xl font-bold flex-grow text-left">Профіль</span>
+                        <span className="text-[#234461] text-xl font-bold flex-grow text-left">{t('nav.profile')}</span>
                         <img className={`w-4 transition-transform ${profileOpen ? 'rotate-180' : ''}`} src={polygonIcon} alt="poly" />
                       </button>
                       {profileOpen && (
                         <div className="px-[15%] pb-4 flex flex-col gap-2">
-                          <Link to="/change-password" title="password-change" className="text-[#44403E] text-lg font-medium">Змінити пароль</Link>
+                          <Link to="/change-password" title="password-change" className="text-[#44403E] text-lg font-medium">{t('nav.change_password')}</Link>
                         </div>
                       )}
                     </div>
@@ -630,7 +657,7 @@ export default function HeaderAdmin() {
                       className="flex items-center justify-center gap-3 w-full py-3 border-t border-dashed border-gray-300"
                     >
                       <img className="w-7 h-6" src={exitIcon} alt="exit" />
-                      <span className="text-[#44403E] text-xl font-bold">Вихід</span>
+                      <span className="text-[#44403E] text-xl font-bold">{t('nav.logout')}</span>
                     </button>
                   </div>
                 </div>

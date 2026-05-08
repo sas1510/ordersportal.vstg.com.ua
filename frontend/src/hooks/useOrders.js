@@ -10,8 +10,8 @@ export function useOrders(url) {
 
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get(url); // через axios
-        setOrders(response.data); // дані вже в response.data
+        const response = await axiosInstance.get(url);
+        setOrders(response.data); 
       } catch (error) {
         console.error("Error fetching orders:", error);
       } finally {

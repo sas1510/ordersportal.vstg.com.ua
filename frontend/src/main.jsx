@@ -11,6 +11,7 @@ import AuthProvider from "./context/AuthProvider";
 import { NotificationProvider } from "./components/notification/Notifications.jsx";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "leaflet/dist/leaflet.css";
+import "./hooks/i18n"; 
 
 
 // import './styles/datatables.css';

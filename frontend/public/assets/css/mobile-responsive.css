@@ -702,7 +702,7 @@ body.dark-theme .order-item {
 }
 
 :root {
-  /* Light Theme (Default) */
+ 
   --color-bg-primary: #ffffff;
   --color-bg-subtle: #f9f9f9;
   --color-text-primary: #404040;
@@ -712,7 +712,7 @@ body.dark-theme .order-item {
 }
 
 body.dark-theme {
-  /* Dark Theme */
+
   --color-bg-primary: #282c34;
   --color-bg-subtle: #333740;
   --color-text-primary: #e0e0e0;

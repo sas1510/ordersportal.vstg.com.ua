@@ -329,6 +329,7 @@ import "./HomePage.css";
 
 import { motion , useScroll, useTransform } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslation } from 'react-i18next';
 import {
   faAward,
   faUsers,
@@ -347,37 +348,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 
-const statsData = [
-  { 
-    id: 1, 
-    image: "/assets/icons/award-icon.png",
-    value: "18+", 
-    label: "років досвіду", 
-    isJSX: false 
-  },
-  { 
-    id: 2, 
-    image: "/assets/icons/people-icon.png", 
-    value: "500+", 
-    label: "працівників", 
-    isJSX: false 
-  },
-  { 
-    id: 3, 
-    image: "/assets/icons/factory-icon.png", 
-    value: "16 000 м²", 
-    label: "площа заводу", 
-    isJSX: true 
-  },
-  { 
-    id: 4, 
-    image: "/assets/icons/window-icon.png", 
-    value: "35 000", 
-    label: "вікон на місяць", 
-    isJSX: false 
-  },
-];
-
 
 
 
@@ -395,6 +365,7 @@ const videos = [
 ];
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -410,6 +381,39 @@ export default function Dashboard() {
   const handshake = "/assets/icons/Handshake.png";
 
   const [isMobile, setIsMobile] = useState(false);
+
+  
+const statsData = [
+  { 
+    id: 1, 
+    image: "/assets/icons/award-icon.png",
+    value: "18+", 
+    label: t('stats.experience'),
+    isJSX: false 
+  },
+  { 
+    id: 2, 
+    image: "/assets/icons/people-icon.png", 
+    value: "500+", 
+    label: t('stats.employees'),
+    isJSX: false 
+  },
+  { 
+    id: 3, 
+    image: "/assets/icons/factory-icon.png", 
+    value: "16 000 м²", 
+    label: t('stats.area'),
+    isJSX: true 
+  },
+  { 
+    id: 4, 
+    image: "/assets/icons/window-icon.png", 
+    value: "35 000", 
+    label: t('stats.windows_monthly'),
+    isJSX: false 
+  },
+];
+
 
   useEffect(() => {
     // Функція для перевірки ширини екрана
@@ -434,7 +438,7 @@ export default function Dashboard() {
       iconAlt: "Window icon",
       value: "35 000",
       valueClass: "left-[427px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
-      label: "ПВХ вікон на місяць",
+      label: t('production.pvc_windows'),
       labelClass: "top-[390px] left-[427px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
       bgClass: "absolute top-[247px] left-[427px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
     },
@@ -446,7 +450,7 @@ export default function Dashboard() {
       iconAlt: "Door icon",
       value: "9 000",
       valueClass: "left-[734px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
-      label: "ПВХ дверей на місяць",
+      label: t('production.pvc_doors'), 
       labelClass: "top-[390px] left-[734px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
       bgClass: "absolute top-[247px] left-[734px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
     },
@@ -458,7 +462,7 @@ export default function Dashboard() {
       iconAlt: "Cicle icon",
       value: "Full Cycle",
       valueClass: "absolute top-[337px] left-[1041px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
-      label: "Інновації",
+      label: t('production.innovations'),
       labelClass: "top-[390px] left-[1041px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
       bgClass: "absolute top-[247px] left-[1041px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
     },
@@ -470,18 +474,14 @@ export default function Dashboard() {
     iconAlt: "Plant icon",
     iconClass: "absolute top-[150px] left-[202px] w-[49px] h-[50px] aspect-[0.99] object-cover",
     textClass: "top-[152px] left-[269px] w-[478px] font-['Inter'] font-normal text-xl absolute text-[#44403E] tracking-[0] leading-tight",
-    text: (
-      <>
-        Завод площею 16 000 м² розташований <br />у с. Великий Кучурів (5 км від Чернівців).
-      </>
-    ),
+    text: t('info.factory_location')
   },
   {
     icon: exportIcon,
     iconAlt: "Export icon",
     iconClass: "absolute top-[151px] left-[765px] w-[50px] h-[50px] aspect-[1] object-cover",
     textClass: "top-[152px] left-[844px] w-[367px] font-['Inter'] font-normal text-xl absolute text-[#44403E] tracking-[0] leading-tight",
-    text: "Експортна географія: Німеччина, Італія, Румунія, Канада та США.",
+    text: t('info.export_geography')
   },
 ];
 
@@ -492,60 +492,7 @@ export default function Dashboard() {
     el.scrollBy({ left: offset, behavior: "smooth" });
   };
 
-  const stats = [
-    {
-      value: "18+",
-      label: "Років досвіду",
-      icon: faAward,
-      className: "text-info",
-    },
-    {
-      value: "500+",
-      label: "Працівників",
-      icon: faUsers,
-      className: "text-success",
-    },
-    {
-      value: "16,000м²",
-      label: "Площа заводу",
-      icon: faIndustry,
-      className: "text-main",
-    },
-    {
-      value: "35,000",
-      label: "Вікон на місяць",
-      icon: faWindowRestore,
-      className: "text-info",
-    },
-  ];
-
-  const values = [
-    {
-      icon: faPalette,
-      title: "Естетика",
-      desc: "Сучасний дизайн",
-      colorClass: "text-info",
-    },
-    {
-      icon: faCheckDouble,
-      title: "Якість",
-      desc: "Європейські стандарти",
-      colorClass: "text-success",
-    },
-    {
-      icon: faTags,
-      title: "Найкраща ціна",
-      desc: "Власне виробництво",
-      colorClass: "text-danger",
-    },
-    {
-      icon: faShieldHalved,
-      title: "Безпека",
-      desc: "Надійний захист",
-      colorClass: "text-info",
-    },
-  ];
-
+  
 
   const aesteticIcon = "/assets/icons/AesteticIcon.png";
   const costIcon = "/assets/icons/CostIcon.png";
@@ -558,9 +505,9 @@ export default function Dashboard() {
     icon: aesteticIcon,
     iconAlt: "Aestetic icon",
     iconClass: "w-[93px] h-[80px]", 
-    title: "ЕСТЕТИКА",
+    title: t('values.aesthetics.title'),
     mdLeft: "md:left-0",
-    description: "Сучасний дизайн",
+    description: t('values.aesthetics.desc'),
     mobileOrder: "max-md:order-1",
   },
   {
@@ -568,9 +515,9 @@ export default function Dashboard() {
     icon: qualityIcon,
     iconAlt: "Quality icon",
     iconClass: "w-[85px] h-[100px]",
-    title: "ЯКІСТЬ",
+    title: t('values.quality.title'),
     mdLeft: "md:left-[25.5%]", 
-    description: "Європейські стандарти",
+    description: t('values.quality.desc'),
     mobileOrder: "max-md:order-3",
   },
   {
@@ -578,9 +525,9 @@ export default function Dashboard() {
     icon: costIcon,
     iconAlt: "Cost icon",
     iconClass: "w-[90px] h-[80px]",
-    title: "НАЙКРАЩА ЦІНА",
+    title: t('values.price.title'),
     mdLeft: "md:left-[51.1%]", 
-    description: "Власне виробництво",
+    description: t('values.price.desc'),
     mobileOrder: "max-md:order-4",
   },
   {
@@ -588,9 +535,9 @@ export default function Dashboard() {
     icon: safetyIcon,
     iconAlt: "Safety icon",
     iconClass: "w-[86px] h-[100px]",
-    title: "БЕЗПЕКА",
+    title: t('values.safety.title'),
     mdLeft: "md:left-[76.7%]", 
-    description: "Надійний захист",
+    description: t('values.safety.desc'),
     mobileOrder: "max-md:order-2",
   },
 ];
@@ -641,10 +588,9 @@ export default function Dashboard() {
           transition={{ duration: 0.8 }}
           className="hero-text-block"
         >
-          <div className="hero-welcome">Вітаємо на порталі замовлень</div>
+          <div className="hero-welcome">{t('hero.welcome')}</div>
           <h1 className="font-['Inter'] font-[1000] text-[24px] md:text-[40px] leading-[100%] tracking-normal text-center w-full max-w-[627px] mx-auto text-white">
-            Професійні Віконні Системи <br />
-            для Європейського Ринку
+            {t('hero.title_line1')} <br /> {t('hero.title_line2')}
           </h1>
    
         </motion.div>
@@ -730,7 +676,7 @@ export default function Dashboard() {
       className="font-['Inter'] font-[900] text-[24px] text-[#44403E] text-center mb-8 uppercase"
       style={{ WebkitTextStroke: '1px #44403E' }}
     >
-      Виробничі Потужності
+           {t('production.title')}
     </motion.h2>
     
     {/* Список інфо-елементів з каскадною появою зліва */}
@@ -760,7 +706,7 @@ export default function Dashboard() {
       className="font-['Inter'] font-[900] text-[24px] text-[#44403E] mb-6 uppercase" 
       style={{ WebkitTextStroke: '1px #44403E' }}
     >
-      Технологічний Цикл
+      {t('production.cycle_title')}
     </motion.h3>
 
     {/* Картки статистики з ефектом "спливання" знизу */}
@@ -801,12 +747,12 @@ export default function Dashboard() {
             
             <div className="absolute top-[68px] left-[427px] w-[586px] font-['Inter'] font-[900] text-[32px] text-center text-[#44403E] uppercase"
                  style={{ WebkitTextStroke: '1px #44403E' }}>
-              Виробничі Потужності
+              {t('production.title')}
             </div>
 
             <div className="absolute top-[299px] left-[120px] w-[279px] font-['Inter'] font-black text-[32px] text-center text-[#44403E] leading-tight uppercase"
                  style={{ WebkitTextStroke: '1px #44403E' }}>
-              Технологічний <br /> Цикл
+              {t('production.cycle_title')}
             </div>
 
             {statCards.map((card, index) => (
@@ -888,7 +834,7 @@ export default function Dashboard() {
         <div className="max-w-8xl mx-auto px-12 relative"> 
           
           <div className="text-center mb-10">
-            <h2 className="text-xl md:text-3xl font-['Inter'] font-bold text-white">Медіа-Огляд</h2>
+            <h2 className="text-xl md:text-3xl font-['Inter'] font-bold text-white">{t('media.title')}</h2>
           </div>
       
           {/* Кнопки навігації (залишаємо вашу логіку) */}
@@ -1003,8 +949,7 @@ className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px]
   className="mt-[23px] font-['Inter'] font-[900] text-[20px] sm:text-[24px] md:text-[32px] text-[#44403E] text-center uppercase tracking-tight leading-[1.1]"
   style={{ WebkitTextStroke: '0.5px #44403E' }}
 >
-  Двері, які відкривають світ <br className="max-sm:hidden" />
-  успішного партнерства
+  {t('partnership.title_line1')} <br /> {t('partnership.title_line2')}
 </motion.h2>
 
 {/* Опис */}
@@ -1015,8 +960,8 @@ className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px]
   transition={{ delay: 0.3, duration: 0.6 }}
   className="mt-4 w-full font-['Inter'] font-normal text-[15px] md:text-[18px] lg:text-[22px] text-[#44403E] text-center leading-tight"
 >
-  Станьте частиною надійної дилерської мережі "Вікна Стиль". <br className="max-sm:hidden" />
-  18 років досвіду та європейські стандарти якості для вашого бізнесу.
+  {t('partnership.desc_line1')} <br className="max-sm:hidden" />
+  {t('partnership.desc_line2')}
 </motion.p>
 
   </div>

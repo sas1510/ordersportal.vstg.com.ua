@@ -157,7 +157,7 @@ export default function CreateCustomerBillPage() {
         </select>
       </div>
 
-      {/* Далі йдуть товари (orderItems) */}
+
       {orderItems.map((item, idx) => (
         <div key={idx} className="border p-2 mt-2">
           <h4>Позиція {idx + 1}</h4>

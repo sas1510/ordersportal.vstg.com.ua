@@ -1,0 +1,280 @@
+{
+  "hero": {
+    "welcome": "Welcome to the Ordering Portal",
+    "title_line1": "Professional Window Systems",
+    "title_line2": "for the European Market"
+  },
+  "stats": {
+    "experience": "years of experience",
+    "employees": "employees",
+    "area": "factory area",
+    "windows_monthly": "windows per month"
+  },
+  "production": {
+    "title": "Production Capacities",
+    "cycle_title": "Technology Cycle",
+    "cycle_title_br": "Technology Cycle",
+    "pvc_windows": "PVC windows per month",
+    "pvc_doors": "PVC doors per month",
+    "innovations": "Innovations"
+  },
+  "info": {
+    "factory_location": "The 16,000 m² factory is located in Velykyi Kuchuriv (5 km from Chernivtsi).",
+    "export_geography": "Export geography: Germany, Italy, Romania, Canada, and the USA."
+  },
+  "values": {
+    "aesthetics": { "title": "Aesthetics", "desc": "Modern design" },
+    "quality": { "title": "Quality", "desc": "European standards" },
+    "price": { "title": "Best Price", "desc": "In-house production" },
+    "safety": { "title": "Safety", "desc": "Reliable protection" }
+  },
+  "media": {
+    "title": "Media Review"
+  },
+  "partnership": {
+    "title_line1": "Doors that open the world",
+    "title_line2": "of successful partnership",
+    "desc_line1": "Become part of the reliable \"Vikna Style\" dealer network.",
+    "desc_line2": "18 years of experience and European quality standards for your business."
+  },
+  "nav": {
+    "promo_wds": "WDS Promo",
+    "orders": "Orders",
+    "complaints": "Complaints",
+    "additional_orders": "Extra Orders",
+    "files": "Files",
+    "videos": "Videos",
+    "payment": "Payment",
+    "finance": "Finance",
+    "finance_cash_flow": "Cash Flow",
+    "finance_analytics": "Analytics",
+    "finance_bills": "Invoices",
+    "change_password": "Change Password",
+    "emergency_line": "Hotline",
+    "logout": "Logout",
+    "menu": "Menu",
+    "default_dealer": "Dealer",
+    "settings_short": "Settings",
+    "settings": "Settings",
+    "settings_users": "Users",
+    "settings_tg_manager": "TG Manager",
+    "settings_sos_stats": "SOS Stats",
+    "settings_emergency_contacts": "Emergency Contacts",
+    "profile": "Profile",
+    "notifications": "Notifications"
+
+  },
+  "common": {
+    "loading": "Loading...",
+    "currency_uah": "UAH",
+    "close": "Close",
+    "logo_alt": "Vikna Style",
+    "date_from": "Date From",
+    "date_to": "Date To",
+    "dealer": "Dealer",
+    "show": "Show",
+    "no_results": "No results found"
+
+  },
+  "notifications": {
+    "title": "Notifications",
+    "new_message": "New message"
+  },
+
+
+  "login": {
+    "welcome_title": "Welcome back!",
+    "welcome_subtitle": "Sign in to the analytics and ordering portal",
+    "form_title": "System Login",
+    "form_subtitle": "Enter your credentials to gain access",
+    "username_label": "Username",
+    "username_placeholder": "Enter your login",
+    "password_label": "Password",
+    "password_placeholder": "Enter your password",
+    "remember_me": "Remember me",
+    "button_submit": "Login",
+    "button_loading": "Logging in...",
+    "error_invalid_credentials": "Invalid username or password",
+    "error_auth": "Authorization error",
+    "error_server_unavailable": "Server unavailable. Please check your connection.",
+    "error_general": "An error occurred"
+  
+}, 
+"wds": {
+    "title": "Promo WDS-codes",
+    "loading_text": "Searching for promotional offers…",
+    "no_data": "No promo codes found for the specified period",
+    "error_select_dealer": "Please select a dealer",
+    "error_load": "Error loading WDS codes",
+    "table_date": "Date",
+    "table_code": "WDS Code",
+    "table_code_short": "WDS",
+    "table_order_no": "Order No.",
+    "table_order_short": "Order",
+    "table_series": "Profile series",
+    "table_series_short": "Series",
+    "default_series": "Standard"
+  },
+  "dealer_select": {
+    "placeholder": "— Select Dealer —",
+    "search_placeholder": "Search dealer…",
+    "error_load": "Error loading dealers"
+  },
+  "files": {
+    "header": {
+      "title": "Files",
+      "subtitle_1": "Useful materials for download:",
+      "subtitle_2": "certificates, test reports, etc."
+    },
+    "searchPlaceholder": "search by name",
+    "choose_file": "Choose file",
+    "noResults": "No files found",
+    "empty": "No files available",
+    "adminRole": "Administrator",
+    "unknownDate": "Unknown",
+    "buttons": { 
+      "add": "Add file",
+      "download": "Download",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "upload": "Upload",
+      "save": "Save changes"
+    },
+    "errors": {
+        "download" : "Error download files",
+        "error" : "Error:",
+        "error_add_file" : "Failed to add file",
+        "error_change_file" : "Failed to modify file"
+
+    },
+    "feedback": {
+        "success" : "File added successfully!",
+        "edit" : "File successfully modified!",
+        "confirmDeleteMessage" : "Are you sure you want to delete the file?",
+        "deleteFile" : "Deleting a file"
+    }
+    
+  
+},
+"videos": {
+    "header": {
+      "title": "Videos",
+      "subtitle": "Useful video materials to help in your work"
+    },
+    "categories": {
+      "tech": "Technical Training",
+      "media": "Media Reviews",
+      "factory": "Factory Videos",
+      "install": "Installation Videos",
+      "social": "Social Networks"
+    },
+    "buttons": {
+      "add": "Add Video",
+      "save": "Save",
+      "saving": "Saving...",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "modals": {
+      "add_title": "Add New Video",
+      "edit_title": "Edit Video",
+      "delete_confirm": "Delete Video",
+      "delete_message": "Are you sure you want to delete"
+    },
+    "search_placeholder": "Search videos...",
+    "all_videos": "All videos",
+    "errors": {
+      "load": "Error loading videos",
+      "save": "Error while saving",
+      "delete": "Error while deleting"
+    }
+  },
+ "orders": {
+    "newOrderModal": {
+        "coord_message_1": "Attention! Geo-coordinates are not set.",
+        "coord_message_2": "To calculate logistics correctly, you must specify a point on the map.",
+        "coord_message_3": "Please contact your manager to update the address data",
+        "error_message_1": "Failed to load addresses:",
+        "error_message_2": "No file chosen",
+        "error_message_3": "Please fill in all fields",
+        "error_message_4": "Please select a delivery address",
+        "error_message_5": "Please select a client address",
+        "error_message_6": "Creation error:",
+        "error_message_7": "Address not selected",
+        "order_created": "Calculation №{{orderNumber}} has been created ✅",
+        "order_create": "Create new calculation",
+        "dealer": "Dealer:",
+        "myAddress": "My address",
+        "clientAddress": "Client address",
+        "address": "Delivery address:",
+        "loadingOfAddress": "Loading addresses...",
+        "choose": "Select",
+        "downloadZKZ": "Upload file (.zkz)",
+        "numberOfConstruction": "Number of units:",
+        "comment": "Comment:",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "save": "Save",
+        "repeat": "RETRY"
+    }
+},
+"clientAddressModal": {
+    "title": "🏠 Client Address",
+    "contactSection": "Client Contact Info",
+    "addressSection": "Delivery Address",
+    "findOnMap": "Find on Map",
+    "searchPlaceholder": "Search for address on map...",
+    "dragHint": "Drag the marker to refine the location",
+    "cancel": "Cancel",
+    "save": "Save",
+    "fields": {
+        "fullName": "Full Name (First and Last Name) *",
+        "phone": "Phone (+380...) *",
+        "extraInfo": "Additional Information",
+        "region": "Region/State *",
+        "district": "District/County *",
+        "city": "City/Town *",
+        "street": "Street *",
+        "house": "House/Building No. *",
+        "apartment": "Apartment",
+        "entrance": "Entrance",
+        "floor": "Floor",
+        "note": "Note"
+    },
+    "errors": {
+        "requiredField": "Please fill in the required field: {{field}}",
+        "fillRequired": "Please fill in the required address fields",
+        "invalidName": "Please enter the client's Full Name (First and Last)",
+        "invalidPhone": "Invalid phone format (+380XXXXXXXXX)",
+        "selectOnMap": "Please select a point on the map",
+        "preciseLocation": "Refine the location: drag the marker or click more precisely"
+    },
+    "success": "Client address data saved successfully ✅"
+    },
+    "commentsModal": {
+        "title": "Chat",
+        "noMessages": "No messages yet",
+        "placeholder": "Your message...",
+        "errors": {
+            "fetchProfile": "Profile error",
+            "fetchHistory": "Failed to load chat history",
+            "authFailed": "Authorization failed, reconnecting in 5 sec...",
+            "wsClosed": "Connection closed (code: {{code}}). Reconnecting...",
+            "wsError": "WS error",
+            "connectionLost": "Connection lost. Please try refreshing the page."
+        }
+    },
+    "counterpartyModal": {
+        "dealer": "Dealer",
+        "recipient": "Recipient:",
+        "phone": "Phone:",
+        "additional": "Additional Info:",
+        "deliveryAddress": "Delivery Address:",
+        "pickup": "Pickup",
+        "close": "Close"
+    }
+
+
+
+}

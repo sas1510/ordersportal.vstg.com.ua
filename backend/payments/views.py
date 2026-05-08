@@ -171,15 +171,22 @@ from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
 from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
 from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 
+# import logging
+import time
+
+# logger = logging.getLogger(__name__)
+
+from backend.utils.logging_setup import logger
+
 
 @extend_schema(
     summary="Отримати фінансовий леджер дилера",
     description=(
         "Повертає повний фінансовий леджер дилера за період.\n\n"
-        "🔐 Доступ:\n"
+        " Доступ:\n"
         "- JWT (admin → будь-який дилер, dealer → тільки свій)\n"
         "- 1C API Key → без обмежень\n\n"
-        "📌 SQL: dbo.GetDealerFullLedger"
+        " SQL: dbo.GetDealerFullLedger"
     ),
     tags=["payments"],
     parameters=[
@@ -210,59 +217,83 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_payment_status_view(request):
-    # -------------------------------------------------
-    # 📅 DATES (ОБОВʼЯЗКОВІ)
-    # -------------------------------------------------
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
     date_from = parse_date(request.GET.get("date_from"), "date_from")
     date_to = parse_date(request.GET.get("date_to"), "date_to")
 
+
+
     
 
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
-    contractor_binary, _ = resolve_contractor(
+
+    contractor_binary, contractor_guid = resolve_contractor(
         request,
         allow_admin=True,
         admin_param="contractor",
     )
 
-    # -------------------------------------------------
-    # 📦 SQL
-    # -------------------------------------------------
-    sql = """
-        EXEC dbo.GetDealerFullLedger_3
-            @Контрагент = %s,
-            @ДатаЗ = %s,
-            @ДатаПо = %s
-    """
-
-    results = []
-    with connection.cursor() as cursor:
-        cursor.execute(sql, [contractor_binary, date_from, date_to])
-        columns = [col[0] for col in cursor.description]
-
-        for row in cursor.fetchall():
-            results.append(dict(zip(columns, row)))
-
-    # -------------------------------------------------
-    # 🔧 bytes → HEX (НЕ міняємо структуру)
-    # -------------------------------------------------
-    def convert_bytes(value):
-        if isinstance(value, (bytes, bytearray, memoryview)):
-            return value.hex().upper()
-        return value
-
-    results = [
-        {k: convert_bytes(v) for k, v in row.items()}
-        for row in results
-    ]
-
-    return JsonResponse(
-        results,
-        safe=False,
-        json_dumps_params={"ensure_ascii": False}
+    logger.info(
+        f"Fetching payment status: Contractor={contractor_binary.hex().upper() if contractor_binary else 'None'}, "
+        f"From={date_from}, To={date_to}"
     )
+
+    try:
+        sql = """
+            EXEC dbo.GetDealerFullLedger_3
+                @Контрагент = %s,
+                @ДатаЗ = %s,
+                @ДатаПо = %s
+        """
+
+        results = []
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [contractor_binary, date_from, date_to])
+            columns = [col[0] for col in cursor.description]
+
+            for row in cursor.fetchall():
+                results.append(dict(zip(columns, row)))
+
+
+        def convert_bytes(value):
+            if isinstance(value, (bytes, bytearray, memoryview)):
+                return value.hex().upper()
+            return value
+
+        results = [
+            {k: convert_bytes(v) for k, v in row.items()}
+            for row in results
+        ]
+
+        duration = time.time() - start_time
+        logger.info(f"Payment status request completed in {duration:.3f}s. Rows returned: {len(results)}")
+
+
+        return JsonResponse(
+            results,
+            safe=False,
+            json_dumps_params={"ensure_ascii": False}
+        )
+    except Exception as e:
+        # Розраховуємо тривалість навіть при помилці
+        duration = time.time() - start_time
+        
+        # 4. Лог помилки
+        logger.error(f"Payment ledger error for {user_name}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_payment_ledger',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        
+        return JsonResponse(
+            {"error": "Internal server error", "detail": str(e)}, 
+            status=500
+        )
 
 
 
@@ -293,61 +324,104 @@ def get_payment_status_view(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_dealer_payment_page_data_view(request):
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
-    contractor_binary, _ = resolve_contractor(
-        request,
-        allow_admin=True,
-        admin_param="contractor",
-    )
 
-    # -------------------------------------------------
-    # 📦 SQL
-    # -------------------------------------------------
-    sql = """
-        EXEC dbo.GetDealerPaymentPageData
-            @Contractor = %s
-    """
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
-    with connection.cursor() as cursor:
 
-        # -------- FIRST RESULTSET (orders)
-        cursor.execute(sql, [contractor_binary])
-        columns1 = [col[0] for col in cursor.description]
-        orders = [
-            dict(zip(columns1, row))
-            for row in cursor.fetchall()
-        ]
+ 
+    try:
+        contractor_binary, contractor_guid = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor",
+        )
+    except Exception as e:
+        logger.error(f"Contractor resolution failed in payment page: {str(e)}")
+        return JsonResponse({"error": "Unauthorized or missing contractor"}, status=400)
 
-        # -------- SECOND RESULTSET (contracts)
-        contracts = []
-        if cursor.nextset():
-            columns2 = [col[0] for col in cursor.description]
-            contracts = [
-                dict(zip(columns2, row))
+
+    logger.info(f"Loading payment page data for {contractor_guid}", extra={
+        'tags': {
+            'action': 'get_payment_page_data',
+            'user': user_name,
+            'contractor': contractor_guid
+        }
+    })
+
+
+
+    try:
+        sql = """
+            EXEC dbo.GetDealerPaymentPageData
+                @Contractor = %s
+        """
+
+
+
+        with connection.cursor() as cursor:
+
+
+            cursor.execute(sql, [contractor_binary])
+            columns1 = [col[0] for col in cursor.description]
+            orders = [
+                dict(zip(columns1, row))
                 for row in cursor.fetchall()
             ]
 
-    # -------------------------------------------------
-    # 🔧 bytes → HEX (НЕ міняємо структуру)
-    # -------------------------------------------------
-    def fix(v):
-        if isinstance(v, (bytes, bytearray, memoryview)):
-            return bin_to_guid_1c(v)
-        return v
+    
+            contracts = []
+            if cursor.nextset():
+                columns2 = [col[0] for col in cursor.description]
+                contracts = [
+                    dict(zip(columns2, row))
+                    for row in cursor.fetchall()
+                ]
 
-    orders = [{k: fix(v) for k, v in r.items()} for r in orders]
-    contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
 
-    return JsonResponse(
-        {
-            "orders": orders,
-            "contracts": contracts
-        },
-        json_dumps_params={"ensure_ascii": False},
-        safe=False
-    )
+        def fix(v):
+            if isinstance(v, (bytes, bytearray, memoryview)):
+                return bin_to_guid_1c(v)
+            return v
+
+        orders = [{k: fix(v) for k, v in r.items()} for r in orders]
+        contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
+
+        duration = time.time() - start_time
+
+        # 2. Лог успіху з метриками обох наборів даних
+        logger.info(f"Payment page data loaded for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_payment_page_data',
+                'status': 'success',
+                'orders_count': len(orders),
+                'contracts_count': len(contracts),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+
+        return JsonResponse(
+            {
+                "orders": orders,
+                "contracts": contracts
+            },
+            json_dumps_params={"ensure_ascii": False},
+            safe=False
+        )
+    
+    except Exception as e:
+        duration = time.time() - start_time
+        # 3. Лог помилки
+        logger.error(f"Error loading payment page data: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_payment_page_data',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        return JsonResponse({"error": "Internal server error", "detail": str(e)}, status=500)
 
 
 
@@ -382,49 +456,83 @@ def get_dealer_payment_page_data_view(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_dealer_advance_balance(request):
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (DRY, ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
-    contractor_bin, _ = resolve_contractor(
-        request,
-        allow_admin=True,
-        admin_param="contractor_guid",
-    )
 
-    # -------------------------------------------------
-    # 📦 SQL
-    # -------------------------------------------------
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetDealerAllAdvancedBalance
-                @Контрагент = %s
-            """,
-            [contractor_bin]
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+    try:
+        contractor_bin, contractor_guid = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
         )
+    except Exception as e:
+        logger.error(f"Contractor resolution failed in payment page: {str(e)}")
+        return JsonResponse({"error": "Unauthorized or missing contractor"}, status=400)
+    
 
-        rows = cursor.fetchall()
-        columns = [col[0] for col in cursor.description]
+    # logger.info(f"Fetching advance balance for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_advance_balance',
+    #         'user': user_name,
+    #         'contractor': contractor_guid
+    #     }
+    # })
 
-    # -------------------------------------------------
-    # 🔄 FORMAT (НЕ МІНЯЄМО СТРУКТУРУ)
-    # -------------------------------------------------
-    result = []
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetDealerAllAdvancedBalance
+                    @Контрагент = %s
+                """,
+                [contractor_bin]
+            )
 
-    for row in rows:
-        row_dict = {}
+            rows = cursor.fetchall()
+            columns = [col[0] for col in cursor.description]
 
-        for col, val in zip(columns, row):
-            # 🔥 binary(16) → GUID
-            if isinstance(val, (bytes, bytearray, memoryview)):
-                row_dict[col] = bin_to_guid_1c(bytes(val))
-            else:
-                row_dict[col] = val
 
-        result.append(row_dict)
+        result = []
 
-    return Response(result, status=200)
+        for row in rows:
+            row_dict = {}
 
+            for col, val in zip(columns, row):
+
+                if isinstance(val, (bytes, bytearray, memoryview)):
+                    row_dict[col] = bin_to_guid_1c(bytes(val))
+                else:
+                    row_dict[col] = val
+
+            result.append(row_dict)
+
+        duration = time.time() - start_time
+
+        # 4. Лог успіху
+        logger.info(f"Successfully retrieved advance balance for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_advance_balance',
+                'status': 'success',
+                'count': len(result),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+
+        return Response(result, status=200)
+    
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error fetching advance balance for {contractor_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_advance_balance',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        raise e
 
 @extend_schema(
     summary="Експорт статусу оплат в Excel",
@@ -471,20 +579,16 @@ def get_dealer_advance_balance(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def export_payment_status_excel(request):
-    # -------------------------------------------------
-    # 📅 DATES (ОБОВʼЯЗКОВІ)
-    # -------------------------------------------------
+
+    start_time = time.time()
+
     date_from = parse_date(request.GET.get("date_from"), "date_from")
     date_to = parse_date(request.GET.get("date_to"), "date_to")
 
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
+
     contractor_bin, contractor_guid = resolve_contractor(request)
 
-    # -------------------------------------------------
-    # 📊 EXCEL
-    # -------------------------------------------------
+
     wb = Workbook(write_only=True)
     ws = wb.create_sheet("Payment Status")
 
@@ -495,55 +599,70 @@ def export_payment_status_excel(request):
         "Оплата", "Зал. зам.", "Статус"
     ])
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetDealerFullLedger_3
-              @Контрагент = %s,
-              @ДатаЗ = %s,
-              @ДатаПо = %s
-            """,
-            [contractor_bin, date_from, date_to]
+    try:
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetDealerFullLedger_3
+                @Контрагент = %s,
+                @ДатаЗ = %s,
+                @ДатаПо = %s
+                """,
+                [contractor_bin, date_from, date_to]
+            )
+
+            cols = [c[0] for c in cursor.description]
+            idx = {c: i for i, c in enumerate(cols)}
+
+            while True:
+                rows = cursor.fetchmany(2000)
+                if not rows:
+                    break
+
+                for r in rows:
+                    period = r[idx["Date"]]
+                    delta = r[idx["DeltaRow"]] or 0
+                    inout = r[idx["FlowDirection"]]
+
+                    ws.append([
+                        period.date().isoformat() if period else "",
+                        period.time().strftime("%H:%M") if period else "",
+                        r[idx["FinalDogovorName"]],
+                        r[idx["DealType"]],
+                        r[idx["CumSaldoStart"]],
+                        abs(delta) if inout == "Прихід" else "",
+                        abs(delta) if inout == "Витрата" else "",
+                        r[idx["CumSaldo"]],
+                        r[idx["OrderNumber"]],
+                        r[idx["OrderAmount"]],
+                        abs(delta),
+                        r[idx["OrderBalance"]],
+                        r[idx["PaymentStatus"]],
+                    ])
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="payment_status_{date_from}_{date_to}.xlsx"'
         )
 
-        cols = [c[0] for c in cursor.description]
-        idx = {c: i for i, c in enumerate(cols)}
+        wb.save(response)
+        return response
+    except Exception as e:
 
-        while True:
-            rows = cursor.fetchmany(2000)
-            if not rows:
-                break
+    
+        duration = time.time() - start_time
+        logger.error(f"Error fetching excel for {contractor_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'export_payment_status_excel',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
 
-            for r in rows:
-                period = r[idx["Date"]]
-                delta = r[idx["DeltaRow"]] or 0
-                inout = r[idx["FlowDirection"]]
-
-                ws.append([
-                    period.date().isoformat() if period else "",
-                    period.time().strftime("%H:%M") if period else "",
-                    r[idx["FinalDogovorName"]],
-                    r[idx["DealType"]],
-                    r[idx["CumSaldoStart"]],
-                    abs(delta) if inout == "Прихід" else "",
-                    abs(delta) if inout == "Витрата" else "",
-                    r[idx["CumSaldo"]],
-                    r[idx["OrderNumber"]],
-                    r[idx["OrderAmount"]],
-                    abs(delta),
-                    r[idx["OrderBalance"]],
-                    r[idx["PaymentStatus"]],
-                ])
-
-    response = HttpResponse(
-        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
-    response["Content-Disposition"] = (
-        f'attachment; filename="payment_status_{date_from}_{date_to}.xlsx"'
-    )
-
-    wb.save(response)
-    return response
+        raise e
 
 
 
@@ -568,51 +687,90 @@ def export_payment_status_excel(request):
     }
 )
 def dealer_bills_add_info(contractor_guid: str):
-    contractor_bin = guid_to_1c_bin_2(contractor_guid)
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "EXEC dbo.GetDealerBillsAdd %s",
-            [contractor_bin]
-        )
+    start_time = time.time()
+    
+  
+    # logger.info(f"Fetching billing add-info for contractor {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_bills_add_info',
+    #         'contractor': contractor_guid
+    #     }
+    # })
 
-        # ---------- 1️⃣ Contractor ----------
-        row = cursor.fetchone()
-        contractor = (
-            convert_row(
-                dict(zip([c[0] for c in cursor.description], row))
+    try:
+
+        contractor_bin = guid_to_1c_bin_2(contractor_guid)
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetDealerBillsAdd %s",
+                [contractor_bin]
             )
-            if row else None
-        )
 
-        # ---------- 2️⃣ Addresses ----------
-        cursor.nextset()
-        addresses = [
-            convert_row(dict(zip([c[0] for c in cursor.description], r)))
-            for r in cursor.fetchall()
-        ]
 
-        # ---------- 3️⃣ Accounts ----------
-        cursor.nextset()
-        accounts = [
-            convert_row(dict(zip([c[0] for c in cursor.description], r)))
-            for r in cursor.fetchall()
-        ]
+            row = cursor.fetchone()
+            contractor = (
+                convert_row(
+                    dict(zip([c[0] for c in cursor.description], row))
+                )
+                if row else None
+            )
 
-        # ---------- 4️⃣ Nomenclature ----------
-        cursor.nextset()
-        nomenclature = [
-            dict(zip([c[0] for c in cursor.description], r))
-            for r in cursor.fetchall()
-        ]
+            cursor.nextset()
+            addresses = [
+                convert_row(dict(zip([c[0] for c in cursor.description], r)))
+                for r in cursor.fetchall()
+            ]
 
-    return {
-        "contractor": contractor,
-        "addresses": addresses,
-        "accounts": accounts,
-        "nomenclature": nomenclature,
-    }
+  
+            cursor.nextset()
+            accounts = [
+                convert_row(dict(zip([c[0] for c in cursor.description], r)))
+                for r in cursor.fetchall()
+            ]
 
+           
+            cursor.nextset()
+            nomenclature = [
+                dict(zip([c[0] for c in cursor.description], r))
+                for r in cursor.fetchall()
+            ]
+
+        duration = time.time() - start_time
+
+        logger.info(f"Successfully retrieved billing info for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_bills_add_info',
+                'status': 'success',
+                'contractor': contractor_guid,
+                'addr_count': len(addresses),
+                'acc_count': len(accounts),
+                'nom_count': len(nomenclature),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+
+        return {
+            "contractor": contractor,
+            "addresses": addresses,
+            "accounts": accounts,
+            "nomenclature": nomenclature,
+        }
+    
+
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error fetching billing info for {contractor_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_bills_add_info',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        raise e
 
 
 
@@ -645,20 +803,37 @@ def dealer_bills_add_info(contractor_guid: str):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def dealer_bills_add_info_view(request):
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
+
+    start_time = time.time()
+
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+
     contractor_bin, contractor_guid = resolve_contractor(request)
 
-    # -------------------------------------------------
-    # 📦 DATA
-    # -------------------------------------------------
-    data = dealer_bills_add_info(contractor_guid)
+    try:
 
-    return Response({
-        # "contractor": contractor_guid,
-        "data": data
-    })
+
+        data = dealer_bills_add_info(contractor_guid)
+
+        return Response({
+            # "contractor": contractor_guid,
+            "data": data
+        })
+
+    except Exception as e:
+        duration = time.time() - start_time
+       
+        logger.error(f"API Error in billing add-info view: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'view_bills_add_info',
+                'status': 'error',
+                'user': user_name,
+                'duration_sec': round(duration, 4)
+            }
+        })
+  
+        raise e
 
 
 
@@ -704,48 +879,87 @@ def dealer_bills_add_info_view(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def customer_bills_view(request):
-    # -------------------------------------------------
-    # 📅 DATES
-    # -------------------------------------------------
-    date_from = parse_date(request.GET.get("date_from"), "date_from")
-    date_to = parse_date(request.GET.get("date_to"), "date_to")
 
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+    
+
+    raw_from = request.GET.get("date_from")
+    raw_to = request.GET.get("date_to")
+    date_from = parse_date(raw_from, "date_from")
+    date_to = parse_date(raw_to, "date_to")
+
     contractor_bin, contractor_guid = resolve_contractor(
         request,
         allow_admin=True,
         admin_param="contractor",
     )
 
-    # -------------------------------------------------
-    # 📦 SQL
-    # -------------------------------------------------
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetCustomerBillsByContractorAndDates
-                @ContractorBin = %s,
-                @DateFrom = %s,
-                @DateTo = %s
-            """,
-            [contractor_bin, date_from, date_to]
-        )
+    # logger.info(f"Fetching customer bills for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_customer_bills',
+    #         'user': user_name,
+    #         'contractor': contractor_guid,
+    #         'period_start': raw_from,
+    #         'period_end': raw_to
+    #     }
+    # })
+    try:
 
-        columns = [c[0] for c in cursor.description]
-        rows = cursor.fetchall()
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetCustomerBillsByContractorAndDates
+                    @ContractorBin = %s,
+                    @DateFrom = %s,
+                    @DateTo = %s
+                """,
+                [contractor_bin, date_from, date_to]
+            )
 
-    data = [
-        convert_row(dict(zip(columns, row)))
-        for row in rows
-    ]
+            columns = [c[0] for c in cursor.description]
+            rows = cursor.fetchall()
 
-    return Response({
-        "contractor": contractor_guid,
-        "count": len(data),
-        "items": data
-    })
+        data = [
+            convert_row(dict(zip(columns, row)))
+            for row in rows
+        ]
+
+        duration = time.time() - start_time
+
+
+        logger.info(f"Successfully retrieved {len(data)} customer bills", extra={
+            'tags': {
+                'action': 'get_customer_bills',
+                'status': 'success',
+                'contractor': contractor_guid,
+                'count': len(data),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+
+
+        return Response({
+            "contractor": contractor_guid,
+            "count": len(data),
+            "items": data
+        })
+    
+    except Exception as e:
+        duration = time.time() - start_time
+
+        logger.error(f"Error fetching customer bills: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_customer_bills',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        raise e
+
+
 
 
 
@@ -763,16 +977,28 @@ def get_contractor_guid_from_db(user):
 @api_view(["POST"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def create_invoice(request):
+    start_time = time.time()
+
     user = request.user
     data = request.data
 
     contractor_guid = get_contractor_guid_from_db(user)
+    user_name = user.username if user.is_authenticated else "api_key_user"
 
     if not contractor_guid:
-        return Response(
-            {"error": "User has no 1C contractor GUID"},
-            status=400
-        )
+        logger.warning(f"Invoice creation failed: No 1C GUID for user {user_name}")
+        return Response({"error": "User has no 1C contractor GUID"}, status=400)
+
+    items_count = len(data.get("OrderItemsLIST", []))
+    
+
+    # logger.info(f"User {user_name} is creating invoice", extra={
+    #     'tags': {
+    #         'action': 'create_invoice',
+    #         'contractor': contractor_guid,
+    #         'items_count': items_count
+    #     }
+    # })
 
     payload_1c = {
         "contragentGUID": contractor_guid,
@@ -794,14 +1020,30 @@ def create_invoice(request):
             for i in data.get("OrderItemsLIST", [])
         ],
     }
+    try:
+        result = send_to_1c(
+            payload=payload_1c,
+            query="CreateBill",
+        )
 
-    result = send_to_1c(
-        payload=payload_1c,
-        query="CreateBill",
-    )
+        duration = time.time() - start_time
 
-    return Response({"status": "ok", "data": result}, status=201)
+        logger.info(f"Invoice created successfully for {contractor_guid}", extra={
+            'tags': {
+                'action': 'create_invoice',
+                'status': 'success',
+                'duration_sec': round(duration, 4)
+            },
+            'response_1c': result
+        })
+        return Response({"status": "ok", "data": result}, status=201)
 
+    
+    except Exception as e:
+        logger.error(f"Invoice creation error: {str(e)}", exc_info=True, extra={
+            'tags': {'action': 'create_invoice', 'status': 'error'}
+        })
+        return Response({"error": "1C Connection Error"}, status=502)
 
 
 
@@ -810,7 +1052,9 @@ def create_invoice(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def make_payment_from_advance(request):
+    start_time = time.time()
     data = request.data
+    user_name = request.user.username
 
     amount = data.get("amount")
     contract = data.get("contract")
@@ -830,37 +1074,48 @@ def make_payment_from_advance(request):
         "order_id": order_id,
     }
 
+    try:
+        response_1c = send_to_1c(
+            payload=payload_1c,
+            query="PaymentForOrders",
 
-    response_1c = send_to_1c(
-        payload=payload_1c,
-        query="PaymentForOrders",
-        # url НЕ передаємо — візьметься settings.ONE_C_URL
-        # method="POST" — за замовчуванням
-    )
-
-    results = response_1c.get("results", []) if isinstance(response_1c, dict) else []
-    
-    # 2. Шукаємо хоча б один неуспішний результат
-    # Якщо список порожній або хоча б один елемент має success: false
-    if not results or any(not item.get("success", False) for item in results):
-        return Response(
-            {
-                "success": False,
-                "error": "1С відхилила запит або повернула помилку",
-                "details_from_1c": response_1c
-            },
-            status=status.HTTP_400_BAD_REQUEST
         )
 
-    # 3. Якщо все добре
-    return Response(
-        {
-            "success": True,
-            "sent_to_1c": payload_1c,
-            "response_1c": response_1c,
-        },
-        status=status.HTTP_200_OK,
-    )
+        results = response_1c.get("results", []) if isinstance(response_1c, dict) else []
+
+        duration = time.time() - start_time
+
+        if not results or any(not item.get("success", False) for item in results):
+
+            logger.warning(f"1C rejected advance payment for order {order_id}", extra={
+                'tags': {'action': 'advance_payment', 'status': 'rejected'},
+                'response': response_1c
+            })
+            return Response(
+                {
+                    "success": False,
+                    "error": "1С відхилила запит або повернула помилку",
+                    "details_from_1c": response_1c
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        logger.info(f"Advance payment successful", extra={
+            'tags': {'action': 'advance_payment', 'status': 'success', 'duration_sec': round(duration, 4)}
+        })
+
+    
+        return Response(
+            {
+                "success": True,
+                "sent_to_1c": payload_1c,
+                "response_1c": response_1c,
+            },
+            status=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        logger.error(f"Advance payment critical error: {str(e)}", exc_info=True)
+        return Response({"success": False, "error": "Internal error"}, status=500)
 
 
 
@@ -869,15 +1124,30 @@ def make_payment_from_advance(request):
 class GetBillPDF(APIView):
     permission_classes = [IsAuthenticated]
 
+
+
+
     def post(self, request, bill_guid):
+        start_time = time.time()
+        user_name = request.user.username
+        
+     
+        # logger.info(f"User {user_name} requested PDF for bill {bill_guid}", extra={
+        #     'tags': {
+        #         'action': 'download_bill_pdf',
+        #         'bill_id': bill_guid,
+        #         'user': user_name
+        #     }
+        # })
         # 1. Перевірка доступу (resolve_contractor)
         try:
-            _, _ = resolve_contractor(
+            _, contractor_guid = resolve_contractor(
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
             )
         except (ValueError, PermissionError) as e:
+            logger.warning(f"Unauthorized PDF access by {user_name}: {str(e)}")
             return Response({"detail": str(e)}, status=400)
 
         if not bill_guid or bill_guid == "undefined":
@@ -890,28 +1160,38 @@ class GetBillPDF(APIView):
                 query="CustomerBillPdf"
             )
         except ValidationError as e:
+            logger.error(f"1C Validation error for bill {bill_guid}: {str(e)}")
             return Response(e.detail, status=400)
 
         if not pdf_b64:
+            logger.error(f"1C returned empty file for bill {bill_guid}")
             return Response({"detail": "1С повернула порожній файл"}, status=404)
 
         # 3. Формування PDF відповіді
         try:
             pdf_binary = base64.b64decode(pdf_b64)
+            duration = time.time() - start_time
             
+            logger.info(f"PDF bill {bill_guid} sent successfully", extra={
+                'tags': {
+                    'action': 'download_bill_pdf',
+                    'status': 'success',
+                    'size_kb': round(len(pdf_binary) / 1024, 2),
+                    'duration_sec': round(duration, 4)
+                }
+            })
+
             response = HttpResponse(pdf_binary, content_type='application/pdf')
-            # Використовуємо BillGuid для назви файлу
+          
             filename = f"Bill_{bill_guid[:8]}.pdf"
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             
             return response
 
         except Exception as e:
-            return Response(
-                {"detail": f"Помилка обробки файлу: {str(e)}"},
-                status=500
-            )
-
+            logger.error(f"Error processing PDF for bill {bill_guid}: {str(e)}", exc_info=True)
+            return Response({"detail": f"Помилка обробки файлу: {str(e)}"}, status=500) 
+        
 
 
 from django.db import connection, DatabaseError
@@ -946,10 +1226,14 @@ from rest_framework import serializers
     }
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated]) # Або IsAuthenticatedOr1CApiKey
-@safe_view # Ваш кастомний декоратор для логування помилок
+@permission_classes([IsAuthenticated]) 
+@safe_view 
 def get_partner_full_data_view(request):
-    # 1. Отримуємо бінарний ID контрагента
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "unknown"
+
+    
     try:
         contractor_binary, contractor_guid = resolve_contractor(
             request,
@@ -959,7 +1243,15 @@ def get_partner_full_data_view(request):
     except (ValueError, PermissionError) as e:
         return JsonResponse({"detail": str(e)}, status=400)
 
-    # Функція для конвертації бінарних даних 1С (UUID) у HEX-рядок
+  
+    # logger.info(f"Fetching full partner data for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_partner_full_data',
+    #         'user': user_name,
+    #         'contractor': contractor_guid
+    #     }
+    # })
+
     def fix_value(v):
         if isinstance(v, (bytes, bytearray, memoryview)):
             return v.hex().upper()
@@ -974,42 +1266,76 @@ def get_partner_full_data_view(request):
 
     try:
         with connection.cursor() as cursor:
-            # Викликаємо процедуру
+        
             cursor.execute("EXEC dbo.GetPartnerFullData @Contractor = %s", [contractor_binary])
 
-            # --- RESULT 1: Orders (Актуальні замовлення)
+   
             orders = get_dict_list(cursor)
 
-            # --- RESULT 2: Contracts (Авансові договори)
+          
             contracts = []
             if cursor.nextset():
                 contracts = get_dict_list(cursor)
 
-            # --- RESULT 3: Debts (Деталізація боргу)
+      
             debt_items = []
             debt_summary = []
             if cursor.nextset():
                 raw_debts = get_dict_list(cursor)
-                # Розділяємо звичайні рядки та рядки підсумків (SortOrder)
+               
                 debt_items = [d for d in raw_debts if d.get('SortOrder') == 0]
                 debt_summary = [d for d in raw_debts if d.get('SortOrder') == 1]
 
+        duration = time.time() - start_time
+
+
+        logger.info(f"Partner full data loaded for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_partner_full_data',
+                'status': 'success',
+                'orders_count': len(orders),
+                'contracts_count': len(contracts),
+                'debt_rows': len(debt_items),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        return JsonResponse(
+            {
+                "contractor_guid": contractor_guid,
+                "orders": orders,
+                "contracts": contracts,
+                "debts": {
+                    "items": debt_items,
+                    "summaries": debt_summary 
+                }
+            },
+            json_dumps_params={"ensure_ascii": False}
+        )
+
+
+
     except DatabaseError as e:
+
+        duration = time.time() - start_time
         error_msg = str(e)
-        if "927" in error_msg or "recovery" in error_msg.lower():
+
+
+        status_tag = 'db_recovery' if ("927" in error_msg or "recovery" in error_msg.lower()) else 'db_error'
+        
+        logger.error(f"Database error in PartnerFullData: {error_msg}", extra={
+            'tags': {
+                'action': 'get_partner_full_data',
+                'status': status_tag,
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        if status_tag == 'db_recovery':
             return JsonResponse({"error": "database_recovery", "detail": "База оновлюється..."}, status=503)
         return JsonResponse({"detail": f"SQL Error: {error_msg}"}, status=500)
+    
 
+    
     # Формуємо єдину відповідь
-    return JsonResponse(
-        {
-            "contractor_guid": contractor_guid,
-            "orders": orders,
-            "contracts": contracts,
-            "debts": {
-                "items": debt_items,
-                "summaries": debt_summary # Список підсумків за валютами
-            }
-        },
-        json_dumps_params={"ensure_ascii": False}
-    )

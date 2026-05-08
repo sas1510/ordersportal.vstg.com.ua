@@ -108,7 +108,7 @@ const AdminPortalOriginal = () => {
     [calculationsData],
   );
 
-  // Додай цей useEffect на початку списку ефектів
+ 
   useEffect(() => {
     if (isAdmin && !dealerGuid) {
       setDealerGuid(ALL_DEALERS_VALUE);
@@ -196,16 +196,16 @@ const AdminPortalOriginal = () => {
         let endpoint = "/order/get_orders_info/";
         const params = { year: selectedYear };
 
-        // 🔥 ADMIN + ALL DEALERS
+
         if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
           endpoint = "/order/get_orders_info_all/";
-          params.month = filter.month || currentMonth; // month required
+          params.month = filter.month || currentMonth; 
         }
-        // 👤 ADMIN (ONE DEALER) або USER
+  
         else if (dealerGuid) {
           params.contractor_guid = dealerGuid;
         }
-        // 👑 ADMIN але нічого не вибрано
+    
         else if (isAdmin && !dealerGuid) {
           setCalculationsData([]);
           setFilteredItems([]);
@@ -306,15 +306,15 @@ const AdminPortalOriginal = () => {
     setDisplayLimit(ITEMS_PER_LOAD);
   };
 
-  // Усередині AdminPortalOriginal перед return:
+
 
   const handleDeleteSuccess = useCallback(
     async (id) => {
-      // Варіант А: Швидке видалення зі списку (UI)
+      
       setCalculationsData((prev) => prev.filter((item) => item.id !== id));
       setFilteredItems((prev) => prev.filter((item) => item.id !== id));
 
-      // Варіант Б: Повне оновлення з сервера (щоб оновити лічильники в сайдбарі)
+      // Повне оновлення з сервера (щоб оновити лічильники в сайдбарі)
       // await reloadCalculations();
     },
     [setCalculationsData, setFilteredItems],
@@ -414,7 +414,7 @@ const AdminPortalOriginal = () => {
                   src={filterIcon} 
                   alt="Стрілка" 
                   className="align-center mr-1 min-w-[20px] h-[20px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                
                 />
           </div>
             <div className="year-inline-selector row">
@@ -422,7 +422,7 @@ const AdminPortalOriginal = () => {
                   src={yearIcon} 
                   alt="Стрілка" 
                   className="align-center mr-2 w-[26px] h-[25px]" 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+             
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
             Звітний рік
@@ -599,7 +599,7 @@ const AdminPortalOriginal = () => {
                   src={plusIcon} 
                   alt="+" 
                   className="align-center mr-2 " 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+              
                 />
               <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">новий прорахунок</div>
             </li>

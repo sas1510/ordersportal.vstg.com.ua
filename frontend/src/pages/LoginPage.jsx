@@ -4,10 +4,12 @@ import axiosInstance from "../api/axios";
 import { RoleContext } from "../context/RoleContext";
 import { useTheme } from "../hooks/useTheme";
 import "./LoginPage.css";
+import { useTranslation } from 'react-i18next';
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../hooks/useNotification";
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -68,20 +70,14 @@ export default function LoginPage() {
     } catch (error) {
       if (error.response) {
         if (error.response.status === 401) {
-          addNotification("Невірний логін або пароль", "error");
+          addNotification(t('login.error_invalid_credentials'), "error");
         } else {
-          addNotification(
-            `Помилка авторизації (${error.response.status})`,
-            "error",
-          );
+          addNotification(`${t('login.error_auth')} (${error.response.status})`, "error");
         }
       } else if (error.request) {
-        addNotification(
-          "Сервер недоступний. Перевірте підключення.",
-          "warning",
-        );
+        addNotification(t('login.error_server_unavailable'), "warning");
       } else {
-        addNotification("Сталася помилка: " + error.message, "error");
+        addNotification(t('login.error_general'), "error");
       }
     }
 
@@ -137,9 +133,9 @@ export default function LoginPage() {
                   <div className="welcome-divider"></div>
 
                   <div className="welcome-text-block">
-                    <p className="welcome-line">Вітаємо знову!</p>
+                    <p className="welcome-line">{t('login.welcome_title')}</p>
                     <p className="welcome-subline">
-                      Увійдіть до порталу аналітики та замовлень
+                      {t('login.welcome_subtitle')}
                     </p>
                   </div>
                 </div>
@@ -147,22 +143,22 @@ export default function LoginPage() {
                 <div className="stats-grid-login">
                   <div className="stat-item">
                     <i className="fa fa-magic stat-icon"></i>
-                    <div className="stat-label">Естетика</div>
+                    <div className="stat-label">{t('values.aesthetics.title')}</div>
                   </div>
 
                   <div className="stat-item">
                     <i className="fa fa-star stat-icon"></i>
-                    <div className="stat-label">Якість</div>
+                    <div className="stat-label">{t('values.quality.title')}</div>
                   </div>
 
                   <div className="stat-item">
                     <i className="fa fa-tags stat-icon"></i>
-                    <div className="stat-label">Найкраща ціна</div>
+                    <div className="stat-label">{t('values.price.title')}</div>
                   </div>
 
                   <div className="stat-item">
                     <i className="fa fa-shield-alt stat-icon"></i>
-                    <div className="stat-label">Безпека</div>
+                    <div className="stat-label">{t('values.safety.title')}</div>
                   </div>
                 </div>
                 <div className="energy-line"></div>
@@ -172,22 +168,22 @@ export default function LoginPage() {
             {/* Права панель - форма входу */}
             <div className="form-panel">
               <div className="form-wrapper">
-                <h2 className="form-title">Вхід у систему</h2>
+                <h2 className="form-title">{t('login.form_title')}</h2>
                 <p className="form-subtitle">
-                  Введіть ваші облікові дані для доступу
+                  {t('login.form_subtitle')}
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate className="login-form">
                   {/* Поле логіну */}
                   <div className="form-group">
-                    <label className="form-label">Ім'я користувача</label>
+                    <label className="form-label">{t('login.username_label')}</label>
                     <div className="input-wrapper">
                       <span className="input-icon">
                         <i className="fa fa-user"></i>
                       </span>
                       <input
                         type="text"
-                        placeholder="Введіть логін"
+                        placeholder={t('login.username_placeholder')}
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
@@ -198,14 +194,14 @@ export default function LoginPage() {
 
                   {/* Поле пароля */}
                   <div className="form-group">
-                    <label className="form-label">Пароль</label>
+                    <label className="form-label">{t('login.password_label')}</label>
                     <div className="input-wrapper">
                       <span className="input-icon">
                         <i className="fa fa-lock"></i>
                       </span>
                       <input
                         type={showPassword ? "text" : "password"}
-                        placeholder="Введіть пароль"
+                        placeholder={t('login.password_placeholder')}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
@@ -237,7 +233,7 @@ export default function LoginPage() {
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
                       />
-                      <span>Запам'ятати мене</span>
+                      <span>{t('login.remember_me')}</span>
                     </label>
                     {/* <a href="#" className="forgot-link">
                       Забули пароль?
@@ -250,7 +246,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className={`submit-button ${loading ? "loading" : ""}`}
                   >
-                    {loading ? "Увійти" : "Увійти"}
+                    {loading ? t('login.button_loading') : t('login.button_submit')}
                   </button>
 
                   {/* Повідомлення про помилку */}

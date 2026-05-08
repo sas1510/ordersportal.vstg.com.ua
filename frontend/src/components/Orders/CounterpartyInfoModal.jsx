@@ -8,9 +8,10 @@ import {
   FaStickyNote,
 } from "react-icons/fa";
 import "./CounterpartyInfoModal.css";
+import { useTranslation } from "react-i18next";
 
 const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
-
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -23,12 +24,10 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
       window.addEventListener("keydown", handleEsc);
     }
 
-    
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
   }, [isOpen, onClose]);
-
 
   if (!isOpen || !data) return null;
 
@@ -43,7 +42,7 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
           <div className="counterparty-modal-header">
             <span className="flex items-center gap-8">
               <FaUserAlt />
-              Контрагент
+              {t("counterpartyModal.dealer")}
             </span>
             <span
               className="icon icon-cross counterparty-close-btn"
@@ -57,7 +56,7 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
           <div className="counterparty-info-grid">
             <div className="info-row">
               <span className="label no-wrap">
-                <FaUser size={14} /> <span>Одержувач:</span>
+                <FaUser size={14} /> <span>{t("counterpartyModal.recipient")}</span>
               </span>
               <span className="value">{data.name || "—"}</span>
             </div>
@@ -65,7 +64,7 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
             {data.phone && (
               <div className="info-row">
                 <span className="label no-wrap">
-                  <FaPhone /> Телефон:
+                  <FaPhone /> {t("counterpartyModal.phone")}
                 </span>
                 <span className="value">{data.phone}</span>
               </div>
@@ -74,17 +73,19 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
             {data.recipientAdditionalInfo && (
               <div className="info-row">
                 <span className="label no-wrap">
-                  <FaStickyNote /> Додатково:
+                  <FaStickyNote /> {t("counterpartyModal.additional")}
                 </span>
                 <span className="value">{data.recipientAdditionalInfo}</span>
               </div>
             )}
 
             <div className="info-row">
-              <span className="label  no-wrap">
-                <FaMapMarkerAlt /> Адреса доставки:
+              <span className="label no-wrap">
+                <FaMapMarkerAlt /> {t("counterpartyModal.deliveryAddress")}
               </span>
-              <span className="value">{data.address || "Самовивіз"}</span>
+              <span className="value">
+                {data.address || t("counterpartyModal.pickup")}
+              </span>
             </div>
           </div>
         </div>
@@ -92,7 +93,7 @@ const CounterpartyInfoModal = ({ isOpen, onClose, data }) => {
         {/* Footer */}
         <div className="counterparty-modal-footer">
           <button className="counterparty-btn-close" onClick={onClose}>
-            <FaTimes /> Закрити
+            <FaTimes /> {t("counterpartyModal.close")}
           </button>
         </div>
       </div>

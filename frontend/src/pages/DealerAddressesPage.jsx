@@ -602,7 +602,7 @@ export default function DealerAddressesPage() {
     const list = res.data.addresses || [];
     setAddresses(list);
 
-    // ✅ АВТОВИБІР АДРЕСИ
+
     if (!selectedAddress && list.length > 0) {
       onSelectAddress(list[0]); // перша адреса
     }
@@ -639,7 +639,7 @@ export default function DealerAddressesPage() {
         const data = await res.json();
 
         setSuggestions(data);
-        setNoResults(data.length === 0); // 🆕 Якщо масив порожній — активуємо повідомлення
+        setNoResults(data.length === 0); //  Якщо масив порожній — активуємо повідомлення
       } catch (err) {
         if (process.env.NODE_ENV === "development") {
           console.error("Error fetching suggestions:", err);
@@ -682,7 +682,7 @@ export default function DealerAddressesPage() {
   //   setMapDisplayName(address || "Локація з повідомлення");
   //   setSearch(address || "");
 
-  //   addNotification("📍 Локацію успішно визначено", "success");
+  //   addNotification(" Локацію успішно визначено", "success");
   // };
 
   /* ================= SAVE LOGIC ================= */
@@ -724,9 +724,9 @@ export default function DealerAddressesPage() {
         note: formAddr.note,
       });
 
-      addNotification("✅ Дані успішно оновлено", "success");
+      addNotification("Дані успішно оновлено", "success");
 
-      // 🔄 Тепер оновлюємо список адрес із 1С
+      //  Тепер оновлюємо список адрес із 1С
       await loadAddresses();
 
       // Опційно: виділяємо останню збережену адресу
@@ -746,7 +746,7 @@ export default function DealerAddressesPage() {
       if (process.env.NODE_ENV === "development") {
         console.error("Error saving address:", err);
       }
-      addNotification("❌ Помилка збереження", "error");
+      addNotification("Помилка збереження", "error");
     } finally {
       setSaving(false);
     }
@@ -840,7 +840,7 @@ export default function DealerAddressesPage() {
             >
               <div className="title">{a.AddressValue}</div>
               {!parseCoords(a.Coordinates) && (
-                <div className="warning">📍 Потрібна точка</div>
+                <div className="warning"> Потрібна точка</div>
               )}
             </div>
           ))}

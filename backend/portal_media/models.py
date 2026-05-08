@@ -39,10 +39,10 @@ class MediaResource(models.Model):
     # --- Спільні поля ---
     id = models.BigAutoField(primary_key=True, db_column='ID')
 
-    title = models.CharField(
-        max_length=255, 
-        verbose_name="Назва/Заголовок", 
-        db_column='Title'
+    titles = models.JSONField(
+        default=dict, 
+        verbose_name="Назви (UA, EN, IT...)",
+        db_column='Titles'
     )
     
     # ЗВ'ЯЗОК З КАТЕГОРІЄЮ (Випадаючий список)
@@ -56,12 +56,14 @@ class MediaResource(models.Model):
         db_column='CategoryID'
     )
 
-    description = models.TextField(
+    descriptions = models.JSONField(
+        default=dict, 
         blank=True, 
-        null=True, 
-        verbose_name="Опис", 
-        db_column='Description'
+        null=True,
+        verbose_name="Описи (UA, EN, IT...)",
+        db_column='Descriptions'
     )
+
     author = models.ForeignKey(
         CustomUser, 
         on_delete=models.SET_NULL, 
@@ -94,11 +96,12 @@ class MediaResource(models.Model):
     )
 
     # --- Поля для 'YOUTUBE' та 'TIKTOK' ---
-    url = models.URLField(
-        blank=True, 
-        null=True, 
-        verbose_name="Посилання (URL)",
-        db_column='Url'
+    urls = models.JSONField(
+        default=dict,
+        blank=True,
+        null=True,
+        verbose_name="Посилання (URL) для різних мов",
+        db_column='Urls'
     )
 
     # --- Поля тільки для 'FILE' ---
@@ -126,23 +129,31 @@ class MediaResource(models.Model):
     )
 
     def __str__(self):
-        cat_name = self.category.name if self.category else "Без категорії"
-        return f"[{cat_name}] {self.title}"
-
+        # Правильний варіант для JSONField
+        name = self.titles.get('ua', 'Resource') if isinstance(self.titles, dict) else "Resource"
+        return name
+    
     def clean(self):
         super().clean()
+        # Валідація для відео: перевіряємо чи є хоча б одне посилання у JSON
+        if self.resource_type in ['youtube', 'tiktok', 'instagram', 'facebook']:
+            if not self.urls or not any(self.urls.values()):
+                raise ValidationError("Для відео-ресурсів потрібно додати хоча б одне посилання.")
+
+    # def clean(self):
+    #     super().clean()
         
-        if self.resource_type in (self.ResourceType.YOUTUBE, self.ResourceType.TIKTOK):
-            if not self.url:
-                raise ValidationError(f"Для типу '{self.get_resource_type_display()}' поле 'Посилання (URL)' є обов'язковим.")
-            self.file_data = None 
-            self.file_extension = None
+    #     if self.resource_type in (self.ResourceType.YOUTUBE, self.ResourceType.TIKTOK):
+    #         if not self.url:
+    #             raise ValidationError(f"Для типу '{self.get_resource_type_display()}' поле 'Посилання (URL)' є обов'язковим.")
+    #         self.file_data = None 
+    #         self.file_extension = None
         
-        elif self.resource_type == self.ResourceType.FILE:
-            if not self.file_data or not self.file_extension:
-                if not self.pk: 
-                     raise ValidationError("Для типу 'Файл' поля 'Бінарні дані' та 'Розширення' є обов'язковими.")
-            self.url = None
+    #     elif self.resource_type == self.ResourceType.FILE:
+    #         if not self.file_data or not self.file_extension:
+    #             if not self.pk: 
+    #                  raise ValidationError("Для типу 'Файл' поля 'Бінарні дані' та 'Розширення' є обов'язковими.")
+    #         self.url = None
 
     class Meta:
         verbose_name = "Медіа Ресурс"

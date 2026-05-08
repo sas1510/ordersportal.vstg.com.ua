@@ -19,16 +19,16 @@ export const useGlobalNotifications = () => {
 
       if (data.type === "initial_notifications") {
         console.log(`У вас ${data.unread_count} непрочитаних повідомлень`);
-        // Можна зберегти в Redux/State для відображення цифри на дзвонику
+
       }
 
       if (data.type === "new_notification") {
         addNotification(
           `Нове повідомлення: ${data.message}`,
           "info",
-          5000, // тривалість 5 сек
+          5000, 
         );
-        // Оновити лічильник у хедері
+      
       }
     };
 

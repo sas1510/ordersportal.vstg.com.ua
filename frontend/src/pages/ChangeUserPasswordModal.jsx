@@ -36,14 +36,14 @@ export default function ChangeUserPasswordModal({ user, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/45 dark:bg-black/60 flex items-center justify-center z-[9999]"
+      className="fixed inset-0 bg-black/45 dark:bg-black/60 flex items-center justify-center z-[10001]"
       onClick={onClose}
     >
       <div
         className="change-pass-modal rounded-xl w-[420px] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
+
         <div className="change-pass-header px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 text-white">
             <KeyRound size={26} />
@@ -58,7 +58,7 @@ export default function ChangeUserPasswordModal({ user, onClose }) {
           </button>
         </div>
 
-        {/* BODY */}
+
         <div className="p-6 space-y-4">
           <div className="change-pass-label text-base">
             Встановити новий пароль для:
@@ -76,7 +76,7 @@ export default function ChangeUserPasswordModal({ user, onClose }) {
           />
         </div>
 
-        {/* FOOTER */}
+
         <div className="change-pass-footer px-6 py-4 flex justify-end gap-3">
           <button
             className="change-pass-btn-cancel px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition"

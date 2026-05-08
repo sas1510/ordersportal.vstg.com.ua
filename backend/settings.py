@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
+import logging
 
 load_dotenv()
 
@@ -16,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG=False
+DEBUG=True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -167,7 +168,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": True,   # True на https
+    "AUTH_COOKIE_SECURE": False,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -294,9 +295,11 @@ CELERY_BEAT_SCHEDULE = {
 
 
 
-
+# Треба буде поправити на проді, але для тестів з локальним
+#  фронтом так зручно. На проді треба конткретні домени, а не всі.  CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_ALL_ORIGINS = True
+
 
 
 CORS_ALLOWED_ORIGINS = [
@@ -418,3 +421,27 @@ if not DEBUG:
 
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
+
+    
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+
+    "formatters": {
+        "standard": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        },
+    },
+
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "standard",
+        },
+    },
+
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+}

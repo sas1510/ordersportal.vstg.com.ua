@@ -1,3 +1,4 @@
+
 export const numToUAMoneyFormat = (num) => {
   if (!num) return "0 грн";
   return parseFloat(num).toLocaleString("uk-UA", {
@@ -44,11 +45,13 @@ export const formatDateHuman = (dateStr) => {
   });
 };
 
-export const formatDateHumanShorter = (dateStr) => {
+export const formatDateHumanShorter = (dateStr, lng = "uk-UA") => {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (isNaN(date)) return null;
-  return date.toLocaleDateString("uk-UA", {
+
+  // Використовуємо передану мову для форматування
+  return date.toLocaleDateString(lng === "en" ? "en-US" : "uk-UA", {
     day: "2-digit",
     month: "short",
     year: "numeric",

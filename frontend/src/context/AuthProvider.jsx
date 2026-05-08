@@ -5,10 +5,22 @@ import axiosInstance, {
 } from "../api/axios";
 import { RoleContext } from "./RoleContext";
 import { AuthContext } from "./AuthContext";
+import { useLocation } from "react-router-dom";
 
 import PortalLoader from "../components/ui/PortalLoader";
 
 export default function AuthProvider({ children }) {
+
+const location = useLocation();
+
+const publicPaths = ["/", "/home", "/login"];
+
+const isInvite = location.pathname.startsWith("/invite/");
+
+const isPublicRoute =
+  publicPaths.includes(location.pathname) || isInvite;
+
+
   const [accessToken, setAccessTokenState] = useState(
     localStorage.getItem("access") || null,
   );
@@ -60,6 +72,11 @@ export default function AuthProvider({ children }) {
 
   useEffect(() => {
     const initAuth = async () => {
+
+      if (isPublicRoute) {
+        setLoading(false);
+        return;
+      }
       if (!accessToken) {
         try {
           const res = await axiosInstance.post(

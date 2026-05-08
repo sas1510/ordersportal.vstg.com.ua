@@ -11,7 +11,7 @@ export const useDealerContext = () => {
   useEffect(() => {
     if (!isLoading) {
       if (isAdmin) {
-        setDealerGuid(null); // admin може обирати дилера
+        setDealerGuid(null); 
       } else {
         setDealerGuid(user?.user_id_1c || null);
       }

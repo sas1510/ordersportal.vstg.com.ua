@@ -5,7 +5,7 @@
     var(--portal-bg-color-end) 45%,
     var(--portal-bg-color-start)
   );
-  padding: 60px 10%;
+  padding: 80px 10%;
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;

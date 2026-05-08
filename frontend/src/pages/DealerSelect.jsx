@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslation } from "react-i18next"; // 👈 Імпорт
 import axiosInstance from "../api/axios";
 import "./DealerSelect.css";
 
 const DealerSelect = ({ value, onChange }) => {
+  const { t } = useTranslation(); // 👈 Ініціалізація
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -11,10 +13,25 @@ const DealerSelect = ({ value, onChange }) => {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const searchRef = useRef(null);
+  const wrapperRef = useRef(null);
 
-  // =========================
-  // LOAD DEALERS
-  // =========================
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      wrapperRef.current &&
+      !wrapperRef.current.contains(event.target)
+    ) {
+      setOpen(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
   useEffect(() => {
     const loadDealers = async () => {
       try {
@@ -24,16 +41,15 @@ const DealerSelect = ({ value, onChange }) => {
         if (process.env.NODE_ENV === "development") {
           console.error("Error fetching dealers:", e);
         }
-        setError("Помилка завантаження дилерів");
+        setError(t('dealer_select.error_load')); // 👈 Переклад помилки
       } finally {
         setLoading(false);
       }
     };
 
     loadDealers();
-  }, []);
+  }, [t]);
 
-  // Фокус на input при відкритті
   useEffect(() => {
     if (open) {
       setHighlightedIndex(-1);
@@ -47,9 +63,6 @@ const DealerSelect = ({ value, onChange }) => {
     d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  // =========================
-  // KEYBOARD HANDLING
-  // =========================
   const handleKeyDown = (e) => {
     if (!open) return;
 
@@ -83,25 +96,23 @@ const DealerSelect = ({ value, onChange }) => {
   };
 
   return (
-    <div className="dealer-select">
-      {/* CONTROL */}
+    <div className="dealer-select" ref={wrapperRef}>
       <div
         className="dealer-select__control"
         onClick={() => setOpen((o) => !o)}
       >
         <span className={selected ? "" : "placeholder"}>
-          {selected ? selected.ContractorName : "— Оберіть дилера —"}
+          {selected ? selected.ContractorName : t('dealer_select.placeholder')}
         </span>
         <span className="arrow">▾</span>
       </div>
 
-      {/* DROPDOWN */}
       {open && (
         <div className="dealer-select__dropdown" onKeyDown={handleKeyDown}>
           <input
             ref={searchRef}
             type="text"
-            placeholder="Пошук дилера…"
+            placeholder={t('dealer_select.search_placeholder')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -112,7 +123,7 @@ const DealerSelect = ({ value, onChange }) => {
 
           <div className="dealer-select__list">
             {loading && (
-              <div className="dealer-select__empty">Завантаження…</div>
+              <div className="dealer-select__empty">{t('common.loading')}</div>
             )}
 
             {!loading && error && (
@@ -120,7 +131,7 @@ const DealerSelect = ({ value, onChange }) => {
             )}
 
             {!loading && !error && filtered.length === 0 && (
-              <div className="dealer-select__empty">Нічого не знайдено</div>
+              <div className="dealer-select__empty">{t('common.no_results')}</div>
             )}
 
             {!loading &&

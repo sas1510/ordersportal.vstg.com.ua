@@ -18,6 +18,7 @@ from django.core.exceptions import ValidationError
 from django.utils.timezone import now
 from django.db import DatabaseError
 
+
 # from .serializers import MessageSerializer
 from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
 from backend.utils.BinToGuid1C import convert_row
@@ -54,7 +55,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from datetime import datetime
-
+import time 
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -68,6 +69,11 @@ from zoneinfo import ZoneInfo
 
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+# import logging
+
+# logger = logging.getLogger(__name__)
+
+from backend.utils.logging_setup import logger
 
 def get_current_time_kyiv() -> str:
     return (
@@ -133,12 +139,12 @@ def parse_reclamation_details(text):
     summary="Get complaints by contractor",
     description=(
         "Повертає рекламації за контрагентом.\n\n"
-        "🔐 **Доступ:**\n"
+        " **Доступ:**\n"
         "- JWT:\n"
         "  - admin → може передати contractor\n"
         "  - інші ролі → тільки свій контрагент\n"
         "- 1C API key → автоматично використовується UserId1C\n\n"
-        "📌 **Параметри:**\n"
+        " **Параметри:**\n"
         "- contractor — GUID контрагента (обовʼязково ТІЛЬКИ для admin)\n"
         "- year — рік (необовʼязково)"
     ),
@@ -163,8 +169,14 @@ def parse_reclamation_details(text):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def complaints_view(request):
-    contractor_bin, _ = resolve_contractor(request)
-    # year = int(request.GET.get("year")) if request.GET.get("year") else None
+    start_time = time.time()
+    
+    # 🔐 Визначення контрагента
+    try:
+        contractor_bin, contractor_guid = resolve_contractor(request)
+    except (ValueError, PermissionError) as e:
+        logger.warning(f"Unauthorized complaints access attempt: {str(e)}")
+        return Response({"error": str(e)}, status=403)
 
     year_raw = request.GET.get("year")
     try:
@@ -172,35 +184,28 @@ def complaints_view(request):
     except (ValueError, TypeError):
         return Response({"error": "Рік має бути числом"}, status=400)
 
-    # 1. Отримуємо дані з 1С через збережену процедуру
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "EXEC dbo.GetComplaintsFull @User1C_ID=%s, @Year=%s",
-            [contractor_bin, year]
-        )
-        columns = [c[0] for c in cursor.description]
-        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+    # 1. 📦 SQL запит до 1С
+    # logger.info(f"Fetching complaints from 1C", extra={
+    #     'tags': {'action': 'get_complaints', 'contractor': contractor_guid, 'year': year}
+    # })
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetComplaintsFull @User1C_ID=%s, @Year=%s",
+                [contractor_bin, year]
+            )
+            columns = [c[0] for c in cursor.description]
+            rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+        
+        sql_duration = time.time() - start_time
+    except Exception as e:
+        logger.error(f"SQL Execution Error (GetComplaintsFull): {str(e)}", exc_info=True)
+        return Response({"error": "Помилка бази даних 1С"}, status=500)
 
-    # 2. Збираємо всі Binary GUID рекламацій для перевірки повідомлень
-    complaint_bins = [
-        row["ComplaintGuid"] 
-        for row in rows 
-        if row.get("ComplaintGuid")
-    ]
-
-    # 3. Шукаємо унікальні ID рекламацій, де є непрочитані повідомлення від менеджера
-    # Виключаємо повідомлення, написані самим дилером
-    # unread_complaint_bins = set(
-    #     Message.objects.filter(
-    #         base_transaction_id__in=complaint_bins,
-    #         is_read=False
-    #     )
-    #     .exclude(writer_id=contractor_bin)
-    #     .values_list('base_transaction_id', flat=True)
-    #     .distinct()
-    # )
-
-
+  
+    complaint_bins = [row["ComplaintGuid"] for row in rows if row.get("ComplaintGuid")]
+    
     unread_complaint_bins = set(
         ChatMessage.objects.filter(
             related_object_id__in=complaint_bins,
@@ -212,12 +217,10 @@ def complaints_view(request):
         .distinct()
     )
 
-
-    # 4. Обробка рядків та "збагачення" статусом повідомлень
+    # 3. 🛠 Обробка рядків та парсинг (AdditionalInformation)
+    # Це потенційно "вузьке" місце через регулярні вирази в parse_reclamation_details
     for row in rows:
         c_guid_bin = row.get("ComplaintGuid")
-        
-        # Перевіряємо наявність у нашому set (працює миттєво)
         row["HasUnreadMessages"] = c_guid_bin in unread_complaint_bins
 
         if c_guid_bin:
@@ -226,18 +229,29 @@ def complaints_view(request):
             row["ManagerLink"] = bin_to_guid_1c(row["ManagerLink"])
 
         full_text = row.get("AdditionalInformation")
-        parsed_info = parse_reclamation_details(full_text)
+        # Парсимо деталі (тут логування помилок парсингу може бути корисним)
+        try:
+            parsed_info = parse_reclamation_details(full_text)
+            row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
+            row["DeterminationDateText"] = parsed_info.get("ParsedDeterminationDate")
+            row["ParsedDescription"] = parsed_info.get("ParsedDescription") or full_text
+        except Exception:
+            logger.warning(f"Failed to parse complaint details for {row.get('ComplaintGuid')}", exc_info=True)
+            row["ParsedDescription"] = full_text
 
-        row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
-        row["DeterminationDateText"] = parsed_info.get("ParsedDeterminationDate")
-        row["ParsedDescription"] = (
-            parsed_info.get("ParsedDescription") or full_text
-        )
+    # 📈 Фінальний лог
+    total_duration = time.time() - start_time
+    logger.info(f"Complaints processed", extra={
+        'tags': {
+            'action': 'get_complaints',
+            'duration_total': round(total_duration, 3),
+            'duration_sql': round(sql_duration, 3),
+            'count': len(rows),
+            'contractor': contractor_guid
+        }
+    })
 
     return Response({"status": "success", "data": rows})
-
-
-
 
 
 
@@ -421,6 +435,8 @@ async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensiti
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def api_get_orders(request):
+    start_time = time.time()
+    
     # ---------- PARAMS ----------
     year_str = request.GET.get("year")
     if not year_str:
@@ -431,60 +447,79 @@ def api_get_orders(request):
     except ValueError:
         return Response({"error": "Invalid year"}, status=400)
 
-    # ---------- 🔐 CONTRACTOR (DRY) ----------
+    # ---------- 🔐 CONTRACTOR ----------
     try:
-        contractor_bin, _ = resolve_contractor(
+        contractor_bin, contractor_guid = resolve_contractor(
             request,
             allow_admin=True,
             admin_param="contractor_guid",
         )
-    except ValueError as e:
-        return Response({"error": str(e)}, status=400)
-    except PermissionError as e:
-        return Response({"detail": str(e)}, status=403)
+    except (ValueError, PermissionError) as e:
+        # Логуємо помилку доступу - це важливо для безпеки
+        logger.warning(f"Access denied for orders: {str(e)}", extra={
+            'tags': {'action': 'get_orders', 'status': 'forbidden'}
+        })
+        return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
     # ---------- 📦 DATA ----------
-    data = async_to_sync(async_get_data)(year, contractor_bin)
+    # Логуємо початок важкого запиту
+    # logger.info(f"Fetching orders for year {year}", extra={
+    #     'tags': {'contractor': contractor_guid, 'year': year}
+    # })
 
-    calc_bins = [
-        guid_to_1c_bin(calc["id"])
-        for calc in data
-        if calc.get("id")
-    ]
-
-    unread_calc_bins = set(
-        ChatMessage.objects.filter(
-            related_object_id__in=calc_bins,
-            is_read=False,
-            is_notification=False
+    try:
+        data = async_to_sync(async_get_data)(year, contractor_bin)
+        
+        # Перевірка непрочитаних повідомлень (ваш існуючий код)
+        calc_bins = [guid_to_1c_bin(calc["id"]) for calc in data if calc.get("id")]
+        
+        unread_calc_bins = set(
+            ChatMessage.objects.filter(
+                related_object_id__in=calc_bins,
+                is_read=False,
+                is_notification=False
+            )
+            .exclude(author=contractor_bin)
+            .values_list("related_object_id", flat=True)
+            .distinct()
         )
-        .exclude(author=contractor_bin)
-        .values_list("related_object_id", flat=True)
-        .distinct()
-    )
 
-    
-    for calc in data:
-        calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
+        for calc in data:
+            calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
 
+        # Фінальний лог успіху з часом виконання
+        duration = time.time() - start_time
+        logger.info(f"Orders fetched successfully", extra={
+            'tags': {
+                'action': 'get_orders',
+                'duration_sec': round(duration, 3),
+                'results_count': len(data),
+                'contractor': contractor_guid
+            }
+        })
 
-    return Response({
-        "status": "success",
-        "data": {
-            "calculation": data
-        }
-    })
+        return Response({
+            "status": "success",
+            "data": {"calculation": data}
+        })
+
+    except Exception as e:
+        # Логуємо критичну помилку (наприклад, таймаут БД)
+        logger.error(f"Failed to fetch orders: {str(e)}", exc_info=True, extra={
+            'tags': {'action': 'get_orders', 'contractor': contractor_guid}
+        })
+        return Response({"error": "Internal server error during data fetch"}, status=500)
 
 
 @extend_schema(
     summary="Повертає дозакази (Additional Orders)",
     description=(
         "Повертає дозакази за контрагентом.\n\n"
-        "🔐 **Доступ:**\n"
+        " **Доступ:**\n"
         "- JWT admin → може передати contractor\n"
         "- JWT dealer/customer → тільки свій контрагент\n"
         "- 1C API key → автоматично по UserId1C\n\n"
-        "📌 **Параметри:**\n"
+        " **Параметри:**\n"
         "- contractor — GUID контрагента (обовʼязково ТІЛЬКИ для admin)\n"
         "- year — рік (необовʼязково)"
     ),
@@ -509,6 +544,7 @@ def api_get_orders(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def additional_orders_view(request):
+    start_time = time.time()
     # -------------------------------------------------
     # PARAMS
     # -------------------------------------------------
@@ -517,25 +553,39 @@ def additional_orders_view(request):
     # -------------------------------------------------
     # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
     # -------------------------------------------------
-    contractor_bin, _ = resolve_contractor(request)
+    try:
+        contractor_bin, contractor_guid = resolve_contractor(request)
+    except (ValueError, PermissionError) as e:
+        logger.warning(f"Unauthorized access to additional orders: {str(e)}")
+        return Response({"error": str(e)}, status=403)
+    
+    logger.info(f"Fetching additional orders", extra={
+        'tags': {'action': 'get_additional_orders', 'contractor': contractor_guid, 'year': year}
+    })
 
 
 
     # -------------------------------------------------
     # 📦 SQL
     # -------------------------------------------------
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetAdditionalOrder
-                @User1C_ID = %s,
-                @Year = %s
-            """,
-            [contractor_bin, year]
-        )
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetAdditionalOrder
+                    @User1C_ID = %s,
+                    @Year = %s
+                """,
+                [contractor_bin, year]
+            )
 
-        columns = [c[0] for c in cursor.description]
-        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+            columns = [c[0] for c in cursor.description]
+            rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+        
+        sql_duration = time.time() - start_time
+    except Exception as e:
+        logger.error(f"SQL Error in additional_orders_view: {str(e)}", exc_info=True)
+        return Response({"error": "Internal database error"}, status=500)
 
     additional_order_bins = [
             r["AdditionalOrderGuid"]
@@ -572,68 +622,83 @@ def additional_orders_view(request):
     formatted = []
 
     for r in rows:
-        additional_guid_bin = r.get("AdditionalOrderGuid")
+        try:
+            additional_guid_bin = r.get("AdditionalOrderGuid")
 
-        has_unread = additional_guid_bin in unread_additional_orders
-    
-        if r.get("AdditionalOrderGuid"):
-            r["AdditionalOrderGuid"] = bin_to_guid_1c(r["AdditionalOrderGuid"])
+            has_unread = additional_guid_bin in unread_additional_orders
+        
+            if r.get("AdditionalOrderGuid"):
+                r["AdditionalOrderGuid"] = bin_to_guid_1c(r["AdditionalOrderGuid"])
 
-        parsed = parse_reclamation_details(r.get("AdditionalInformation"))
+            parsed = parse_reclamation_details(r.get("AdditionalInformation"))
 
-        order_sum = float(r.get("DocumentAmount") or 0)
-        total_paid = float(r.get("TotalPayments") or 0)
-        qty = int(r.get("ConstructionsQTY") or 0)
-        status = r.get("StatusName") or "Новий"
-        number = r.get("AdditionalOrderNumber") or "unknown"
+            order_sum = float(r.get("DocumentAmount") or 0)
+            total_paid = float(r.get("TotalPayments") or 0)
+            qty = int(r.get("ConstructionsQTY") or 0)
+            status = r.get("StatusName") or "Новий"
+            number = r.get("AdditionalOrderNumber") or "unknown"
 
-        formatted.append({
-            "guid": r.get("AdditionalOrderGuid"),
-            "id": number,
-            "number": number,
-            "hasUnreadMessages": has_unread,
-            "numberWEB": r.get("NumberWEB"),
-            "mainOrderNumber": r.get("OrderNumber"),
-            "mainOrderDate": clean_date(r.get("MainOrderDate")),
-            "dateRaw": clean_date(r.get("AdditionalOrderDate")),
-            "date": clean_date(r.get("AdditionalOrderDate")),
-            "dealer": r.get("Customer") or r.get("OrganizationName") or "",
-            "dealerId": bin_to_guid_1c(r.get("CustomerID")),
-            "managerName": r.get("ResponsibleName"),
-            "managerLink": bin_to_guid_1c(r.get("ManagerLink")),
-            "organizationName": r.get("OrganizationName"),
-            "debt": order_sum - total_paid,
-            "file": None,
-            "message": parsed.get("ParsedDescription") or r.get("AdditionalInformation"),
-            "orderCountInCalc": 1,
-            "constructionsCount": qty,
-            "constructionsQTY": qty,
-            "amount": order_sum,
-            "statuses": {status: 1},
-            "currency": r.get("Currency"),
-            "orders": [
-                {
-                    "id": r.get("ClaimOrderNumber") or number,
-                    "number": r.get("ClaimOrderNumber") or "",
-                    "guid": bin_to_guid_1c(r.get("OrderGUID")) or "",
-                    "dateRaw": clean_date(r.get("ClaimOrderDate")),
-                    "date": clean_date(r.get("ClaimOrderDate")),
-                    "status": status,
-                    "amount": order_sum,
-                    "count": qty,
-                    "paid": total_paid,
-                    "realizationDate": clean_date(r.get("SoldDate")),
-                    "routeStatus": r.get("RouteStatus"),
-                    "seriesList": r.get("SeriesList"),
-                    "resolutionPaths": r.get("ResolutionPaths"),
-                    "organizationName": r.get("OrganizationName"),
-                    "planProduction": clean_date(r.get("DateLaunched")),
-                    "factStartProduction": clean_date(r.get("DateTransferredToWarehouse")),
-                    "factReady": clean_date(r.get("ProducedDate")),
-                    "currency": r.get("Currency"),
-                }
-            ],
-        })
+            formatted.append({
+                "guid": r.get("AdditionalOrderGuid"),
+                "id": number,
+                "number": number,
+                "hasUnreadMessages": has_unread,
+                "numberWEB": r.get("NumberWEB"),
+                "mainOrderNumber": r.get("OrderNumber"),
+                "mainOrderDate": clean_date(r.get("MainOrderDate")),
+                "dateRaw": clean_date(r.get("AdditionalOrderDate")),
+                "date": clean_date(r.get("AdditionalOrderDate")),
+                "dealer": r.get("Customer") or r.get("OrganizationName") or "",
+                "dealerId": bin_to_guid_1c(r.get("CustomerID")),
+                "managerName": r.get("ResponsibleName"),
+                "managerLink": bin_to_guid_1c(r.get("ManagerLink")),
+                "organizationName": r.get("OrganizationName"),
+                "debt": order_sum - total_paid,
+                "file": None,
+                "message": parsed.get("ParsedDescription") or r.get("AdditionalInformation"),
+                "orderCountInCalc": 1,
+                "constructionsCount": qty,
+                "constructionsQTY": qty,
+                "amount": order_sum,
+                "statuses": {status: 1},
+                "currency": r.get("Currency"),
+                "orders": [
+                    {
+                        "id": r.get("ClaimOrderNumber") or number,
+                        "number": r.get("ClaimOrderNumber") or "",
+                        "guid": bin_to_guid_1c(r.get("OrderGUID")) or "",
+                        "dateRaw": clean_date(r.get("ClaimOrderDate")),
+                        "date": clean_date(r.get("ClaimOrderDate")),
+                        "status": status,
+                        "amount": order_sum,
+                        "count": qty,
+                        "paid": total_paid,
+                        "realizationDate": clean_date(r.get("SoldDate")),
+                        "routeStatus": r.get("RouteStatus"),
+                        "seriesList": r.get("SeriesList"),
+                        "resolutionPaths": r.get("ResolutionPaths"),
+                        "organizationName": r.get("OrganizationName"),
+                        "planProduction": clean_date(r.get("DateLaunched")),
+                        "factStartProduction": clean_date(r.get("DateTransferredToWarehouse")),
+                        "factReady": clean_date(r.get("ProducedDate")),
+                        "currency": r.get("Currency"),
+                    }
+                ],
+            })
+        except Exception as e:
+            logger.error(f"Error formatting additional order row: {str(e)}", exc_info=True)
+            continue
+
+    total_duration = time.time() - start_time
+    logger.info(f"Additional orders processed", extra={
+        'tags': {
+            'action': 'get_additional_orders',
+            'duration_total': round(total_duration, 3),
+            'duration_sql': round(sql_duration, 3),
+            'count': len(formatted),
+            'contractor': contractor_guid
+        }
+    })
 
     return Response({
         "status": "success",
@@ -653,9 +718,7 @@ from django.http import JsonResponse
 from django.db import connection, DatabaseError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-import logging
 
-logger = logging.getLogger(__name__)
 
 
 
@@ -664,11 +727,11 @@ logger = logging.getLogger(__name__)
     description=(
         "Повертає **всі файли замовлення** (ZKZ, фото, документи), "
         "які зберігаються в 1С.\n\n"
-        "📦 Дані отримуються через SQL-процедуру **dbo.GetOrdersFiles**.\n\n"
-        "🔐 **Доступ:**\n"
+        " Дані отримуються через SQL-процедуру **dbo.GetOrdersFiles**.\n\n"
+        " **Доступ:**\n"
         "- JWT (авторизований користувач порталу)\n"
         "- або 1C API Key\n\n"
-        "🖥 Використовується для відображення файлів у React-модалці."
+        " Використовується для відображення файлів у React-модалці."
     ),
     parameters=[
         OpenApiParameter(
@@ -718,6 +781,18 @@ def order_files_view(request, order_guid):
     Повертає список файлів для React-модалки.
     """
 
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+    # 1. Початковий лог (Debug або Info)
+    logger.info(f"Fetching files list for order {order_guid}", extra={
+        'tags': {
+            'action': 'get_order_files_list',
+            'order_guid': order_guid,
+            'user': user_name
+        }
+    })
+
     try:
         with connection.cursor() as cursor:
             cursor.execute(
@@ -727,6 +802,8 @@ def order_files_view(request, order_guid):
 
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
+
+        sql_duration = time.time() - start_time
 
         files = [
             {
@@ -738,6 +815,18 @@ def order_files_view(request, order_guid):
             for row_dict in (dict(zip(columns, row)) for row in rows)
         ]
 
+        total_duration = time.time() - start_time
+
+        logger.info(f"Successfully got {len(files)} files for order {order_guid}", extra={
+            'tags': {
+                'action': 'get_order_files_list',
+                'status': 'success',
+                'count': len(files),
+                'sql_duration': round(sql_duration, 4),
+                'total_duration': round(total_duration, 4)
+            }
+        })
+
         return JsonResponse(
             {"status": "success", "files": files},
             status=200,
@@ -746,7 +835,9 @@ def order_files_view(request, order_guid):
 
 
     except DatabaseError as e:
-        logger.exception("DB error in order_files_view")
+        logger.error(f"DB Error in order_files_view for order {order_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {'action': 'get_order_files_list', 'status': 'db_error'}
+        })
         return JsonResponse(
             {
                 "status": "error",
@@ -756,7 +847,9 @@ def order_files_view(request, order_guid):
         )
 
     except Exception as e:
-        logger.exception("Unexpected error in order_files_view")
+        logger.error(f"Unexpected error in order_files_view for order {order_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {'action': 'get_order_files_list', 'status': 'unexpected_error'}
+        })
         return JsonResponse(
             {
                 "status": "error",
@@ -782,7 +875,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-import logging
+
 from django.http import StreamingHttpResponse, Http404
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
@@ -793,7 +886,6 @@ from django.http import StreamingHttpResponse, Http404
 from rest_framework.decorators import api_view, permission_classes
 from django.conf import settings
 
-logger = logging.getLogger(__name__)
 # views.py
 
 import mimetypes
@@ -818,13 +910,13 @@ from rest_framework.permissions import IsAuthenticated
     description=(
         "Завантажує **файл замовлення** (ZKZ, фото, документ) "
         "безпосередньо з файлового сховища **1С (SMB)**.\n\n"
-        "📦 Файл зчитується зі спільного ресурсу 1С по шляху:\n"
+        " Файл зчитується зі спільного ресурсу 1С по шляху:\n"
         "`Заказ покупателя/{order_guid}/{file_guid}/{filename}`\n\n"
-        "🔐 **Доступ:**\n"
+        " **Доступ:**\n"
         "- JWT (авторизований користувач порталу)\n"
         "- або **1C API Key**\n\n"
-        "⚠️ **Обовʼязково:** параметр `filename` має бути переданий у query.\n\n"
-        "⬇️ Відповідь повертається як **binary stream** з заголовком "
+        " **Обовʼязково:** параметр `filename` має бути переданий у query.\n\n"
+        "⬇ Відповідь повертається як **binary stream** з заголовком "
         "`Content-Disposition: attachment`."
     ),
     parameters=[
@@ -870,24 +962,40 @@ def download_order_file(request, order_guid, file_guid):
     """
     Завантажує файл замовлення з SMB (1С) без створення важких системних процесів.
     """
+
+    start_time = time.time()
+    
+    
+
     filename = request.GET.get("filename")
     if not filename:
         raise Http404("Filename is required")
 
     filename = unquote(filename)
 
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
     # Формуємо шлях для бібліотеки: /Server/Share/Folder/...
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
 
+    logger.info(f"File download request from SMB", extra={
+        'tags': {
+            'action': 'download_file',
+            'order_guid': order_guid,
+            'file_name': filename,
+            'user': user_name
+        }
+    })
+
     try:
-        # 1. Отримуємо інформацію про файл (замість process.returncode)
+
         stat = smbclient.stat(remote_path)
+        file_size_mb = round(stat.st_size / (1024 * 1024), 2)
         
-        # 2. Відкриваємо файл як потік (Stream)
-        # Це НЕ завантажує файл у RAM, а читає його частинами
+
         file_handle = smbclient.open_file(remote_path, mode="rb")
 
-        # 3. Визначаємо тип контенту та спосіб відображення
+        # 3. Визначаємо тип та спосіб відображення
         content_type, _ = mimetypes.guess_type(filename)
         content_type = content_type or "application/octet-stream"
 
@@ -901,15 +1009,34 @@ def download_order_file(request, order_guid, file_guid):
             content_type=content_type
         )
         
-        # Передаємо розмір файлу, щоб браузер показував прогрес-бар завантаження
+ 
         response["Content-Length"] = stat.st_size
         response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
         response["Access-Control-Expose-Headers"] = "Content-Disposition"
 
+
+        duration = time.time() - start_time
+        
+        # 2. Лог успішного ініціювання стрімінгу
+        logger.info(f"SMB Stream started: {filename}", extra={
+            'tags': {
+                'action': 'download_file',
+                'status': 'success',
+                'file_size_mb': file_size_mb,
+                'duration_init_sec': round(duration, 4)
+            }
+        })
+
         return response
 
     except Exception as e:
-        logger.error(f"SMB Download Error: {str(e)} for path {remote_path}")
+        logger.error(f"SMB Download Error: {str(e)} | Path: {remote_path}", exc_info=True, extra={
+            'tags': {
+                'action': 'download_file',
+                'status': 'failed',
+                'file_name': filename
+            }
+        })
         raise Http404("Файл не знайдено або доступ заборонено")
 
 
@@ -953,10 +1080,10 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     description=(
         "ADMIN ONLY.\n\n"
         "Повертає **всі дозакази** за вказаний рік і місяць.\n\n"
-        "🔐 Доступ:\n"
+        " Доступ:\n"
         "- JWT (роль admin)\n"
         "- або 1C API Key\n\n"
-        "📦 Структура відповіді **ідентична additional_orders_view**."
+        " Структура відповіді **ідентична additional_orders_view**."
     ),
     parameters=[
         OpenApiParameter(
@@ -987,6 +1114,8 @@ def get_additional_orders_info_all(request):
     Повертає ВСІ дозакази за місяць
     СТРУКТУРА = additional_orders_view
     """
+    start_time = time.time()
+
 
     year = request.GET.get("year")
     month = request.GET.get("month")
@@ -1001,6 +1130,16 @@ def get_additional_orders_info_all(request):
             raise ValueError
     except ValueError:
         return Response({"error": "Invalid year or month"}, status=400)
+    
+
+    logger.info(f"ADMIN: Fetching ALL additional orders for {year}-{month:02d}", extra={
+        'tags': {
+            'action': 'admin_get_all_additional_orders',
+            'year': year,
+            'month': month,
+            'admin_user': request.user.username if request.user else 'unknown'
+        }
+    })
 
     # ---------- helper ----------
     def clean_date_stub(date_value):
@@ -1012,124 +1151,152 @@ def get_additional_orders_info_all(request):
         return date_value
     # ---------------------------
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers]
-                @Year = %s,
-                @Month = %s
-            """,
-            [year, month]
-        )
-        columns = [c[0] for c in cursor.description]
-        raw_rows = cursor.fetchall()
+    try: 
 
-    # ✅ ПРАВИЛЬНО формуємо rows
-    rows = []
-    for r in raw_rows:
-        raw = dict(zip(columns, r))
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers]
+                    @Year = %s,
+                    @Month = %s
+                """,
+                [year, month]
+            )
+            columns = [c[0] for c in cursor.description]
+            raw_rows = cursor.fetchall()
 
-        # ⬅️ ГАРАНТОВАНО зберігаємо binary GUID
-        raw_guid = raw.get("AdditionalOrderGuid")
+        sql_duration = time.time() - start_time
 
-        if isinstance(raw_guid, memoryview):
-            raw_guid = raw_guid.tobytes()
 
-        raw["_AdditionalOrderGuid_raw"] = raw_guid
+        rows = []
+        for r in raw_rows:
+            raw = dict(zip(columns, r))
 
-        rows.append(raw)
+    
+            raw_guid = raw.get("AdditionalOrderGuid")
 
-    formatted_orders = []
+            if isinstance(raw_guid, memoryview):
+                raw_guid = raw_guid.tobytes()
 
-    for row in rows:
-        full_text = row.get("AdditionalInformation")
-        parsed_info = parse_reclamation_details(full_text)
+            raw["_AdditionalOrderGuid_raw"] = raw_guid
 
-        complaint_number = row.get("AdditionalOrderNumber") or "unknown"
+            rows.append(raw)
 
-        order_sum = float(row.get("DocumentAmount") or 0)
-        total_paid = float(row.get("TotalPayments") or 0)
-        constructions_qty = int(row.get("ConstructionsQTY") or 0)
-        status_name = row.get("StatusName") or "Новий"
+        formatted_orders = []
 
-        additional_order_date = clean_date_stub(row.get("AdditionalOrderDate"))
-        main_order_date = clean_date_stub(row.get("MainOrderDate"))
-        claim_order_date = clean_date_stub(row.get("ClaimOrderDate"))
+        for row in rows:
+            try:
+                full_text = row.get("AdditionalInformation")
+                parsed_info = parse_reclamation_details(full_text)
 
-        sold_date = clean_date_stub(row.get("SoldDate"))
-        date_launched = clean_date_stub(row.get("DateLaunched"))
-        date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
-        produced_date = clean_date_stub(row.get("ProducedDate"))
+                complaint_number = row.get("AdditionalOrderNumber") or "unknown"
 
-        raw_guid = row.get("_AdditionalOrderGuid_raw")
-        additional_order_guid = bin_to_guid_1c(raw_guid) if raw_guid else None
+                order_sum = float(row.get("DocumentAmount") or 0)
+                total_paid = float(row.get("TotalPayments") or 0)
+                constructions_qty = int(row.get("ConstructionsQTY") or 0)
+                status_name = row.get("StatusName") or "Новий"
+
+                additional_order_date = clean_date_stub(row.get("AdditionalOrderDate"))
+                main_order_date = clean_date_stub(row.get("MainOrderDate"))
+                claim_order_date = clean_date_stub(row.get("ClaimOrderDate"))
+
+                sold_date = clean_date_stub(row.get("SoldDate"))
+                date_launched = clean_date_stub(row.get("DateLaunched"))
+                date_transferred = clean_date_stub(row.get("DateTransferredToWarehouse"))
+                produced_date = clean_date_stub(row.get("ProducedDate"))
+
+                raw_guid = row.get("_AdditionalOrderGuid_raw")
+                additional_order_guid = bin_to_guid_1c(raw_guid) if raw_guid else None
+
+                
+                raw_guid_manager = row.get("ManagerLink")
+
+                if isinstance(raw_guid_manager, memoryview):
+                    raw_guid_manager = raw_guid_manager.tobytes()
+
+                if isinstance(raw_guid_manager, (bytes, bytearray)):
+                    row["ManagerLink"] = bin_to_guid_1c(raw_guid_manager)
+                else:
+                    row["ManagerLink"] = None
+
+
+                calc = {
+                    "guid": additional_order_guid,
+                    "id": complaint_number,
+                    "number": complaint_number,
+                    "numberWEB": row.get("NumberWEB"),
+                    "mainOrderNumber": row.get("OrderNumber"),
+                    "mainOrderDate": main_order_date,
+                    "dateRaw": additional_order_date,
+                    "date": additional_order_date,
+                    "dealer": row.get("Customer") or row.get("OrganizationName") or "",
+                    "dealerId": bin_to_guid_1c(row.get("CustomerID")),
+                    "managerName": row.get("ResponsibleName"),
+                    "organizationName": row.get("OrganizationName"),
+                    "debt": order_sum - total_paid,
+                    "file": None,
+                    "message": parsed_info.get("ParsedDescription") or full_text,
+                    "orderCountInCalc": 1,
+                    "constructionsCount": constructions_qty,
+                    "constructionsQTY": constructions_qty,
+                    "amount": order_sum,
+                    "statuses": {status_name: 1},
+                    "managerLink": row.get("ManagerLink"),
+                    "currency": row.get("Currency"),
+                    "orders": [
+                        {
+                            "id": row.get("ClaimOrderNumber") or complaint_number,
+                            "number": row.get("ClaimOrderNumber") or "",
+                            "dateRaw": claim_order_date,
+                            "date": claim_order_date,
+                            "status": status_name,
+                            "amount": order_sum,
+                            "count": constructions_qty,
+                            "paid": total_paid,
+                            "realizationDate": sold_date,
+                            "routeStatus": row.get("RouteStatus"),
+                            "seriesList": row.get("SeriesList"),
+                            "resolutionPaths": row.get("ResolutionPaths"),
+                            "organizationName": row.get("OrganizationName"),
+                            "planProduction": date_launched,
+                            "factStartProduction": date_transferred,
+                            "factReady": produced_date,
+                            "currency": row.get("Currency"),
+                        }
+                    ],
+                }
+
+                formatted_orders.append(calc)
+            except Exception as row_error:
+                # Якщо один рядок битий, не ламаємо весь звіт
+                logger.error(f"Error formatting row {row.get('AdditionalOrderNumber')}: {str(row_error)}")
+                continue
 
         
-        raw_guid_manager = row.get("ManagerLink")
+        total_duration = time.time() - start_time
+        
+        # Фінальний лог з кількістю оброблених даних
+        logger.info(f"ADMIN: Successfully fetched {len(formatted_orders)} additional orders", extra={
+            'tags': {
+                'action': 'admin_get_all_additional_orders',
+                'sql_duration': round(sql_duration, 3),
+                'total_duration': round(total_duration, 3),
+                'count': len(formatted_orders)
+            }
+        })
+            
 
-        if isinstance(raw_guid_manager, memoryview):
-            raw_guid_manager = raw_guid_manager.tobytes()
+        return Response({
+            "status": "success",
+            "data": {
+                "calculation": formatted_orders
+            }
+        })
+    
+    except Exception as e:
+        logger.error(f"ADMIN: Critical failure fetching monthly orders: {str(e)}", exc_info=True)
+        return Response({"error": "Внутрішня помилка при генерації звіту"}, status=500)
 
-        if isinstance(raw_guid_manager, (bytes, bytearray)):
-            row["ManagerLink"] = bin_to_guid_1c(raw_guid_manager)
-        else:
-            row["ManagerLink"] = None
-
-
-        calc = {
-            "guid": additional_order_guid,
-            "id": complaint_number,
-            "number": complaint_number,
-            "numberWEB": row.get("NumberWEB"),
-            "mainOrderNumber": row.get("OrderNumber"),
-            "mainOrderDate": main_order_date,
-            "dateRaw": additional_order_date,
-            "date": additional_order_date,
-            "dealer": row.get("Customer") or row.get("OrganizationName") or "",
-            "dealerId": bin_to_guid_1c(row.get("CustomerID")),
-            "managerName": row.get("ResponsibleName"),
-            "organizationName": row.get("OrganizationName"),
-            "debt": order_sum - total_paid,
-            "file": None,
-            "message": parsed_info.get("ParsedDescription") or full_text,
-            "orderCountInCalc": 1,
-            "constructionsCount": constructions_qty,
-            "constructionsQTY": constructions_qty,
-            "amount": order_sum,
-            "statuses": {status_name: 1},
-            "managerLink": row.get("ManagerLink"),
-            "currency": row.get("Currency"),
-            "orders": [
-                {
-                    "id": row.get("ClaimOrderNumber") or complaint_number,
-                    "number": row.get("ClaimOrderNumber") or "",
-                    "dateRaw": claim_order_date,
-                    "date": claim_order_date,
-                    "status": status_name,
-                    "amount": order_sum,
-                    "count": constructions_qty,
-                    "paid": total_paid,
-                    "realizationDate": sold_date,
-                    "routeStatus": row.get("RouteStatus"),
-                    "seriesList": row.get("SeriesList"),
-                    "resolutionPaths": row.get("ResolutionPaths"),
-                    "organizationName": row.get("OrganizationName"),
-                    "planProduction": date_launched,
-                    "factStartProduction": date_transferred,
-                    "factReady": produced_date,
-                    "currency": row.get("Currency"),
-                }
-            ],
-        }
-
-        formatted_orders.append(calc)
-
-    return Response({
-        "status": "success",
-        "data": {
-            "calculation": formatted_orders
-        }
-    })
 
 
 from rest_framework.decorators import api_view, permission_classes
@@ -1143,7 +1310,7 @@ from backend.utils.BinToGuid1C import convert_row
 @extend_schema(
     summary="Усі рекламації за місяць (ADMIN)",
     description=(
-        "🔒 **ADMIN ONLY**\n\n"
+        " **ADMIN ONLY**\n\n"
         "Повертає **всі рекламації** за вказаний рік і місяць.\n\n"
         "**Доступ:**\n"
         "- JWT (користувач з роллю `admin`)\n"
@@ -1179,6 +1346,7 @@ def complaints_view_all_by_month(request):
     Повертає ВСІ рекламації за МІСЯЦЬ
     SQL: GetComplaintsFull_ByMonth
     """
+    start_time = time.time()
 
     year_str = request.GET.get("year")
     month_str = request.GET.get("month")
@@ -1199,71 +1367,108 @@ def complaints_view_all_by_month(request):
             {"error": "Invalid year or month"},
             status=400
         )
+    
+    logger.info(f"ADMIN: Fetching ALL complaints for {year}-{month:02d}", extra={
+        'tags': {
+            'action': 'admin_get_all_complaints',
+            'year': year,
+            'month': month,
+            'admin_user': request.user.username if request.user else 'unknown'
+        }
+    })
 
     # =========================
     # SQL
     # =========================
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC [dbo].[GetComplaintsFull_ByMonth]
-                @Year = %s,
-                @Month = %s
-            """,
-            [year, month]
-        )
 
-        columns = [col[0] for col in cursor.description]
-        raw_rows = cursor.fetchall()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC [dbo].[GetComplaintsFull_ByMonth]
+                    @Year = %s,
+                    @Month = %s
+                """,
+                [year, month]
+            )
 
-    processed_rows = []
+            columns = [col[0] for col in cursor.description]
+            raw_rows = cursor.fetchall()
+            
+        sql_duration = time.time() - start_time
+        processed_rows = []
 
-    for r in raw_rows:
-        row = dict(zip(columns, r))
-        row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
-        # =========================
-        # GUID: BINARY(16) → string
-        # =========================
-        raw_guid = row.get("ComplaintGuid")
+        for r in raw_rows:
+            try:
+                row = dict(zip(columns, r))
+                row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
+                # =========================
+                # GUID: BINARY(16) → string
+                # =========================
+                raw_guid = row.get("ComplaintGuid")
 
-        if isinstance(raw_guid, memoryview):
-            raw_guid = raw_guid.tobytes()
+                if isinstance(raw_guid, memoryview):
+                    raw_guid = raw_guid.tobytes()
 
-        if isinstance(raw_guid, (bytes, bytearray)):
-            row["ComplaintGuid"] = bin_to_guid_1c(raw_guid)
-        else:
-            row["ComplaintGuid"] = None
+                if isinstance(raw_guid, (bytes, bytearray)):
+                    row["ComplaintGuid"] = bin_to_guid_1c(raw_guid)
+                else:
+                    row["ComplaintGuid"] = None
 
 
-        raw_guid_manager = row.get("ManagerLink")
+                raw_guid_manager = row.get("ManagerLink")
 
-        if isinstance(raw_guid_manager, memoryview):
-            raw_guid_manager = raw_guid_manager.tobytes()
+                if isinstance(raw_guid_manager, memoryview):
+                    raw_guid_manager = raw_guid_manager.tobytes()
 
-        if isinstance(raw_guid_manager, (bytes, bytearray)):
-            row["ManagerLink"] = bin_to_guid_1c(raw_guid_manager)
-        else:
-            row["ManagerLink"] = None
+                if isinstance(raw_guid_manager, (bytes, bytearray)):
+                    row["ManagerLink"] = bin_to_guid_1c(raw_guid_manager)
+                else:
+                    row["ManagerLink"] = None
 
-        # =========================
-        # PARSE AdditionalInformation
-        # =========================
-        full_text = row.get("AdditionalInformation")
-        parsed_info = parse_reclamation_details(full_text)
+                # =========================
+                # PARSE AdditionalInformation
+                # =========================
+                full_text = row.get("AdditionalInformation")
+                parsed_info = parse_reclamation_details(full_text)
 
-        row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
-        row["DeterminationDateText"] = parsed_info.get("ParsedDeterminationDate")
-        row["ParsedDescription"] = (
-            parsed_info.get("ParsedDescription") or full_text
-        )
+                row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
+                row["DeterminationDateText"] = parsed_info.get("ParsedDeterminationDate")
+                row["ParsedDescription"] = (
+                    parsed_info.get("ParsedDescription") or full_text
+                )
 
-        processed_rows.append(row)
+                processed_rows.append(row)
 
-    return JsonResponse({
-        "status": "success",
-        "data": processed_rows
-    }, json_dumps_params={"ensure_ascii": False})
+            except Exception as row_error:
+                # Логуємо помилку конкретного рядка, але продовжуємо роботу
+                logger.error(f"Error processing complaint row: {str(row_error)}", exc_info=True)
+                continue
 
+        total_duration = time.time() - start_time
+
+        logger.info(f"ADMIN: Successfully processed {len(processed_rows)} complaints", extra={
+            'tags': {
+                'action': 'admin_get_all_complaints',
+                'sql_duration': round(sql_duration, 3),
+                'total_duration': round(total_duration, 3),
+                'count': len(processed_rows)
+            }
+        })
+            
+
+        return JsonResponse({
+            "status": "success",
+            "data": processed_rows
+        }, json_dumps_params={"ensure_ascii": False})
+    
+    except Exception as e:
+        # Критична помилка (наприклад, SQL сервер не відповідає)
+        logger.error(f"ADMIN: Critical failure in complaints_view_all_by_month: {str(e)}", exc_info=True)
+        return JsonResponse({
+            "status": "error",
+            "message": "Внутрішня помилка сервера при отриманні рекламацій"
+        }, status=500)
 
 
 
@@ -1308,6 +1513,7 @@ def orders_view_all_by_month(request):
     Повертає ВСІ замовлення порталу за МІСЯЦЬ
     Структура ПОВНІСТЮ ідентична get_orders_by_year_and_contractor
     """
+    start_time = time.time()
 
 
     year_str = request.GET.get("year")
@@ -1323,148 +1529,186 @@ def orders_view_all_by_month(request):
             raise ValueError
     except ValueError:
         return JsonResponse({"error": "Invalid year or month"}, status=400)
+    
+
+    logger.info(f"ADMIN: Fetching ALL orders for month {year}-{month:02d}", extra={
+        'tags': {
+            'action': 'admin_get_monthly_orders',
+            'year': year,
+            'month': month,
+            'admin_user': request.user.username if request.user else 'unknown'
+        }
+    })
 
     # =====================================================
     # SQL
     # =====================================================
-    with connection.cursor() as cursor:
-        #  EXEC [dbo].[GetOrdersMonth]
-        cursor.execute(
-            """
-            EXEC [dbo].[GetOrdersMonthWithCalculations]
-                @Year = %s,
-                @Month = %s
-            """,
-            [year, month]
+    try:
+        with connection.cursor() as cursor:
+            #  EXEC [dbo].[GetOrdersMonth]
+            cursor.execute(
+                """
+                EXEC [dbo].[GetOrdersMonthWithCalculations]
+                    @Year = %s,
+                    @Month = %s
+                """,
+                [year, month]
+            )
+            columns = [col[0] for col in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        sql_duration = time.time() - start_time
+
+        # =====================================================
+        # GROUP → CALCULATION (1:1 логіка)
+        # =====================================================
+        calcs_dict = {}
+
+        for row in rows:
+            try:
+                calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
+
+                constructions_count = int(row.get("ConstructionsCount") or 0)
+                calculation_date = row.get("CalcDate") or row.get("CalculationDate")
+                order_date = row.get("OrderDate")
+
+                if calc_id not in calcs_dict:
+                    calcs_dict[calc_id] = {
+                        "id": calc_id,
+                        "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
+                        "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber")  or row.get("OrderNumber") or "",
+                        "dateRaw": calculation_date,
+                        "date": calculation_date,
+                        "orders": [],
+                        "dealer": row.get("Customer"),
+                        "dealerId": bin_to_guid_1c(row.get("ContractorID")),
+                        "constructionsQTY": constructions_count,
+                        "authorGuid": row.get("CalcAuthor_GUID") or "", 
+                        "authorName": row.get("CalcAuthorName") or "", 
+                        "recipient": row.get("Recipient") or row.get("Customer"), 
+                        "recipientPhone": row.get("RecipientPhone") or '', 
+                        "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
+                        "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
+                        "file": bin_to_guid_1c(row.get("FileLink")) or '',
+                        "fileName": row.get("CalcFileName") or '',
+                        "message": row.get("Message"),
+                        "manager": bin_to_guid_1c(row.get("Manager")),
+                        "raw_order_dates": [order_date] if order_date else [],
+                        "currency": row.get("Currency") or '',
+                    }
+                else:
+                    calcs_dict[calc_id]["constructionsQTY"] += constructions_count
+                    if order_date:
+                        calcs_dict[calc_id]["raw_order_dates"].append(order_date)
+
+                # ---------- ORDER ----------
+                order = {
+                    "id": row.get("OrderID"),
+                    "idGuid": row.get("OrderID_GUID"),
+                    "number": row.get("OrderNumber") or "",
+                    "dateRaw": row.get("OrderDate"),
+                    "date": row.get("OrderDate"),
+                    "status": row.get("OrderStage") or "Новий",
+                    "amount": float(row.get("OrderSum") or 0),
+                    "count": constructions_count,
+                    "paid": float(row.get("PaidAmount") or 0),
+                    "planProductionMin": row.get("ProductionDateMin"),
+                    "planProductionMax": row.get("ProductionDateMax"),
+                    "factProductionMin": row.get("ProductionStartDateMin"),
+                    "factProductionMax": row.get("ProductionStartDateMax"),
+                    "factReadyMin": row.get("ProductionReadyDateMin"),
+                    "factReadyMax": row.get("ProductionReadyDateMax"),
+                    "realizationDate": row.get("SaleDate"),
+                    "quantityRealized": float(row.get("SoldQuantity") or 0),
+                    "deliveryAddress": row.get("DeliveryAddress") or "",
+                    "planDeparture": row.get("PlannedDepartureDate"),
+                    "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
+                    "arrivalTime": row.get("ArrivalTime"),
+                    "routeStatus": row.get("RouteStatus"),
+                    "organizationName": row.get("OrganizationName"),
+                    "managerName": row.get("ManagerName"),
+                    "dateDelay": row.get("DateDelays"),
+                    "currency": row.get("Currency") or '',
+                }
+
+                calcs_dict[calc_id]["orders"].append(order)
+
+            except Exception as row_error:
+                logger.error(f"Error processing order row: {str(row_error)}", exc_info=True)
+                continue
+
+        # =====================================================
+        # AGGREGATES
+        # =====================================================
+        formatted_calcs = []
+
+        for calc in calcs_dict.values():
+            orders = calc["orders"]
+            status_counts = {}
+            total_amount = 0
+            total_paid = 0
+
+            #  дата прорахунку (fallback)
+            if not calc["dateRaw"] and calc["raw_order_dates"]:
+                min_date = min(d for d in calc["raw_order_dates"] if d)
+                calc["dateRaw"] = min_date
+                calc["date"] = min_date
+
+            del calc["raw_order_dates"]
+
+            for o in orders:
+                st = o["status"]
+                if st:
+                    status_counts[st] = status_counts.get(st, 0) + 1
+
+                if st != "Відмова":
+                    total_amount += o["amount"]
+                    total_paid += o["paid"]
+
+            calc["statuses"] = status_counts
+            calc["orderCountInCalc"] = len(orders)
+            calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
+            calc["amount"] = total_amount
+            calc["debt"] = total_amount - total_paid
+            if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
+                calc["constructionsQTY"] = row.get("CalcConstructionsCount")
+
+
+            formatted_calcs.append(calc)
+
+
+        total_duration = time.time() - start_time
+
+        # Фінальний лог успіху
+        logger.info(f"ADMIN: Successfully processed {len(formatted_calcs)} calculations", extra={
+            'tags': {
+                'action': 'admin_get_monthly_orders',
+                'sql_duration': round(sql_duration, 3),
+                'total_duration': round(total_duration, 3),
+                'rows_count': len(rows),
+                'calcs_count': len(formatted_calcs)
+            }
+        })
+
+        
+
+        # =====================================================
+        # RESPONSE
+        # =====================================================
+        return JsonResponse(
+            {
+                "status": "success",
+                "data": {
+                    "calculation": formatted_calcs
+                }
+            },
+            json_dumps_params={"ensure_ascii": False},
+            safe=False
         )
-        columns = [col[0] for col in cursor.description]
-        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    # =====================================================
-    # GROUP → CALCULATION (1:1 логіка)
-    # =====================================================
-    calcs_dict = {}
-
-    for row in rows:
-        calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
-
-        constructions_count = int(row.get("ConstructionsCount") or 0)
-        calculation_date = row.get("CalcDate") or row.get("CalculationDate")
-        order_date = row.get("OrderDate")
-
-        if calc_id not in calcs_dict:
-            calcs_dict[calc_id] = {
-                "id": calc_id,
-                "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
-                "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber")  or row.get("OrderNumber") or "",
-                "dateRaw": calculation_date,
-                "date": calculation_date,
-                "orders": [],
-                "dealer": row.get("Customer"),
-                "dealerId": bin_to_guid_1c(row.get("ContractorID")),
-                "constructionsQTY": constructions_count,
-                "authorGuid": row.get("CalcAuthor_GUID") or "", 
-                "authorName": row.get("CalcAuthorName") or "", 
-                "recipient": row.get("Recipient") or row.get("Customer"), 
-                "recipientPhone": row.get("RecipientPhone") or '', 
-                "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
-                "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
-                "file": bin_to_guid_1c(row.get("FileLink")) or '',
-                "fileName": row.get("CalcFileName") or '',
-                "message": row.get("Message"),
-                "manager": bin_to_guid_1c(row.get("Manager")),
-                "raw_order_dates": [order_date] if order_date else [],
-                "currency": row.get("Currency") or '',
-            }
-        else:
-            calcs_dict[calc_id]["constructionsQTY"] += constructions_count
-            if order_date:
-                calcs_dict[calc_id]["raw_order_dates"].append(order_date)
-
-        # ---------- ORDER ----------
-        order = {
-            "id": row.get("OrderID"),
-            "idGuid": row.get("OrderID_GUID"),
-            "number": row.get("OrderNumber") or "",
-            "dateRaw": row.get("OrderDate"),
-            "date": row.get("OrderDate"),
-            "status": row.get("OrderStage") or "Новий",
-            "amount": float(row.get("OrderSum") or 0),
-            "count": constructions_count,
-            "paid": float(row.get("PaidAmount") or 0),
-            "planProductionMin": row.get("ProductionDateMin"),
-            "planProductionMax": row.get("ProductionDateMax"),
-            "factProductionMin": row.get("ProductionStartDateMin"),
-            "factProductionMax": row.get("ProductionStartDateMax"),
-            "factReadyMin": row.get("ProductionReadyDateMin"),
-            "factReadyMax": row.get("ProductionReadyDateMax"),
-            "realizationDate": row.get("SaleDate"),
-            "quantityRealized": float(row.get("SoldQuantity") or 0),
-            "deliveryAddress": row.get("DeliveryAddress") or "",
-            "planDeparture": row.get("PlannedDepartureDate"),
-            "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
-            "arrivalTime": row.get("ArrivalTime"),
-            "routeStatus": row.get("RouteStatus"),
-            "organizationName": row.get("OrganizationName"),
-            "managerName": row.get("ManagerName"),
-            "dateDelay": row.get("DateDelays"),
-            "currency": row.get("Currency") or '',
-        }
-
-        calcs_dict[calc_id]["orders"].append(order)
-
-    # =====================================================
-    # AGGREGATES
-    # =====================================================
-    formatted_calcs = []
-
-    for calc in calcs_dict.values():
-        orders = calc["orders"]
-        status_counts = {}
-        total_amount = 0
-        total_paid = 0
-
-        # 📌 дата прорахунку (fallback)
-        if not calc["dateRaw"] and calc["raw_order_dates"]:
-            min_date = min(d for d in calc["raw_order_dates"] if d)
-            calc["dateRaw"] = min_date
-            calc["date"] = min_date
-
-        del calc["raw_order_dates"]
-
-        for o in orders:
-            st = o["status"]
-            if st:
-                status_counts[st] = status_counts.get(st, 0) + 1
-
-            if st != "Відмова":
-                total_amount += o["amount"]
-                total_paid += o["paid"]
-
-        calc["statuses"] = status_counts
-        calc["orderCountInCalc"] = len(orders)
-        calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
-        calc["amount"] = total_amount
-        calc["debt"] = total_amount - total_paid
-        if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
-            calc["constructionsQTY"] = row.get("CalcConstructionsCount")
-
-
-        formatted_calcs.append(calc)
-
-    # =====================================================
-    # RESPONSE
-    # =====================================================
-    return JsonResponse(
-        {
-            "status": "success",
-            "data": {
-                "calculation": formatted_calcs
-            }
-        },
-        json_dumps_params={"ensure_ascii": False},
-        safe=False
-    )
+    
+    except Exception as e:
+        logger.error(f"ADMIN: Critical failure in orders_view_all_by_month: {str(e)}", exc_info=True)
+        return JsonResponse({"error": "Внутрішня помилка сервера"}, status=500)
 
 
 def safe_float(v):
@@ -1538,12 +1782,7 @@ def build_1c_payload(
 
     calc = payload["calculations"][0]
 
-    # =====================================================
-    # 🏠 СЦЕНАРІЙ 1: доставка дилеру
-    # =====================================================
-    # =====================================================
-    # 🏠 СЦЕНАРІЙ 1: доставка дилеру
-    # =====================================================
+  
     if delivery_address_guid:
         # Створюємо безпечну змінну для координат
         coords = delivery_address_coordinates or {} 
@@ -1560,9 +1799,7 @@ def build_1c_payload(
         }
         return payload
 
-    # =====================================================
-    # 👤 СЦЕНАРІЙ 2: доставка клієнту
-    # =====================================================
+
     if not isinstance(client_address, dict):
         raise ValidationError("client_address is required for client delivery")
 
@@ -1638,12 +1875,12 @@ from rest_framework.response import Response
     summary="Створення прорахунку та відправка в 1С",
     description=(
         "Створює новий прорахунок та відправляє його в 1С.\n\n"
-        "📌 **Формат:** JSON (без multipart)\n"
-        "📎 **Файл:** base64\n\n"
-        "🔐 **Доступ:**\n"
+        " **Формат:** JSON (без multipart)\n"
+        " **Файл:** base64\n\n"
+        " **Доступ:**\n"
         "- JWT (portal)\n"
         "- 1C API key\n\n"
-        "❗ Контрагент:\n"
+        " Контрагент:\n"
         "- admin / manager → передається в payload\n"
         "- dealer / api key → визначається автоматично"
     ),
@@ -1685,6 +1922,12 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         
         
     def _send_to_1c(self, payload: dict) -> dict:
+
+
+        start_time = time.time()
+        query_type = payload.get('Query', 'Unknown')
+        
+        logger.info(f"Sending request to 1C", extra={'tags': {'query': query_type}})
         try:
             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
@@ -1703,23 +1946,26 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 verify=settings.ONE_C_VERIFY_SSL,
             )
 
+
+            duration = time.time() - start_time
+            logger.info(f"1C Response received", extra={
+                'tags': {
+                    'service': '1c-api', 
+                    'duration_sec': duration,
+                    'status_code': response.status_code
+                }
+            })
+
+
+
             response.raise_for_status()
 
-        except requests.exceptions.RequestException as e:
-            raise ValidationError({
-                "detail": "Помилка зʼєднання з 1С",
-                "error": str(e),
-                "payload_sent_to_1c": payload,
-            })
+        except Exception as e:
 
-        try:
-            return response.json()
-        except ValueError:
-            raise ValidationError({
-                "detail": "1С повернула не JSON",
-                "response_text": response.text,
-                "payload_sent_to_1c": payload,
+            logger.error(f"1C Integration Failed", exc_info=True, extra={
+                'tags': {'service': '1c-api', 'action': 'create_calculation'}
             })
+            raise
 
 
 
@@ -1855,13 +2101,13 @@ from django.db import connection
     summary="Адреси дилера (доставка / юридичні)",
     description=(
         "Повертає список **адрес дилера** (доставка та/або юридичні).\n\n"
-        "📌 Дані беруться з SQL-процедури **dbo.GetDealerAddresses**.\n\n"
-        "🔐 **Доступ:**\n"
+        " Дані беруться з SQL-процедури **dbo.GetDealerAddresses**.\n\n"
+        " **Доступ:**\n"
         "- JWT:\n"
         "  - admin   → можуть передати contractor\n"
         "  - customer / dealer → тільки свій контрагент\n"
         "- 1C API Key → автоматично по UserId1C\n\n"
-        "📥 **Параметри:**\n"
+        " **Параметри:**\n"
         "- `contractor` — GUID контрагента (обовʼязково ТІЛЬКИ для admin)"
     ),
     parameters=[
@@ -1883,23 +2129,59 @@ from django.db import connection
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_dealer_addresses(request):
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
-    contractor_bin, _ = resolve_contractor(
+    contractor_bin, contractor_guid = resolve_contractor(
         request,
         allow_admin=True,
         admin_param="contractor"
     )
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "EXEC dbo.GetDealerAddresses @ContractorLink=%s",
-            [contractor_bin]
-        )
-        columns = [c[0] for c in cursor.description]
-        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+    logger.info(f"Fetching addresses for contractor", extra={
+        'tags': {
+            'action': 'get_dealer_addresses',
+            'contractor': contractor_guid,
+            'user': user_name
+        }
+    })
 
-    return Response({"success": True, "addresses": rows})
+    try:
 
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetDealerAddresses @ContractorLink=%s",
+                [contractor_bin]
+            )
+            columns = [c[0] for c in cursor.description]
+            rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+
+        duration = time.time() - start_time
+
+        # logger.info(f"Successfully retrieved {len(rows)} addresses", extra={
+        #     'tags': {
+        #         'action': 'get_dealer_addresses',
+        #         'status': 'success',
+        #         'contractor': contractor_guid,
+        #         'count': len(rows),
+        #         'duration_sec': round(duration, 4)
+        #     }
+        # })
+
+        return Response({"success": True, "addresses": rows})
+
+    except Exception as e:
+       
+        logger.error(f"Error retrieving dealer addresses: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_dealer_addresses',
+                'status': 'error',
+                'contractor': contractor_guid
+            }
+        })
+
+        raise e
 
 
 # views.py
@@ -1919,13 +2201,13 @@ from rest_framework.response import Response
     summary="Отримати WDS-коди по контрагенту",
     description=(
         "Повертає список **WDS-кодів** для контрагента.\n\n"
-        "📌 Дані отримуються з процедури **dbo.GetWDSCodes_ByContractor**.\n\n"
-        "🔐 **Доступ:**\n"
+        " Дані отримуються з процедури **dbo.GetWDSCodes_ByContractor**.\n\n"
+        " **Доступ:**\n"
         "- JWT:\n"
         "  - admin → може передати contractor\n"
         "  - dealer / customer → тільки свій контрагент\n"
         "- 1C API Key → автоматично по UserId1C\n\n"
-        "📅 Можна обмежити вибірку датами (`date_from`, `date_to`).\n"
+        " Можна обмежити вибірку датами (`date_from`, `date_to`).\n"
         "Формат дат: **YYYY-MM-DD**."
     ),
     parameters=[
@@ -1961,33 +2243,80 @@ from rest_framework.response import Response
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def wds_codes_by_contractor(request):
+    
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
     contractor_bin, contractor_guid = resolve_contractor(request)
 
-    date_from = parse_date(request.GET.get("date_from"), "date_from")
-    date_to = parse_date(request.GET.get("date_to"), "date_to")
+    raw_from = request.GET.get("date_from")
+    raw_to = request.GET.get("date_to")
+    
+    date_from = parse_date(raw_from, "date_from")
+    date_to = parse_date(raw_to, "date_to")
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetWDSCodes_ByContractor
-                @Контрагент = %s,
-                @DateFrom   = %s,
-                @DateTo     = %s
-            """,
-            [contractor_bin, date_from, date_to]
-        )
-
-        columns = [c[0] for c in cursor.description]
-        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
-
-    return Response({
-        "contractor": contractor_guid,
-        "date_from": request.GET.get("date_from"),
-        "date_to": request.GET.get("date_to"),
-        "count": len(rows),
-        "items": rows
+    logger.info(f"Fetching WDS codes for contractor", extra={
+        'tags': {
+            'action': 'get_wds_codes',
+            'contractor': contractor_guid,
+            'user': user_name,
+            'period_start': raw_from,
+            'period_end': raw_to
+        }
     })
+
+
+    try:
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetWDSCodes_ByContractor
+                    @Контрагент = %s,
+                    @DateFrom   = %s,
+                    @DateTo     = %s
+                """,
+                [contractor_bin, date_from, date_to]
+            )
+
+            columns = [c[0] for c in cursor.description]
+            rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+
+
+        
+        duration = time.time() - start_time
+
+
+        logger.info(f"Successfully got {len(rows)} WDS codes", extra={
+            'tags': {
+                'action': 'get_wds_codes',
+                'status': 'success',
+                'contractor': contractor_guid,
+                'count': len(rows),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        return Response({
+            "contractor": contractor_guid,
+            "date_from": request.GET.get("date_from"),
+            "date_to": request.GET.get("date_to"),
+            "count": len(rows),
+            "items": rows
+        })
+    except Exception as e:
+
+        logger.error(f"Error retrieving WDS codes: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_wds_codes',
+                'status': 'error',
+                'contractor': contractor_guid
+            }
+        })
+        raise e
+    
+
+
 
 
 
@@ -2019,6 +2348,11 @@ def wds_codes_by_contractor(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_messages(request):
+
+
+    start_time = time.time()
+
+
     base_transaction_guid = request.GET.get("base_transaction_guid")
     transaction_type_id = request.GET.get("transaction_type_id")
     author_guid_param = request.GET.get("author_guid")
@@ -2031,9 +2365,11 @@ def get_messages(request):
 
     # --- ВИЗНАЧЕННЯ ПОТОЧНОГО АВТОРА (ХТО ВІДКРИВ) ---
     current_author_bin = None
+    auth_method = "JWT" if request.auth != "1C_API_KEY" else "1C_API_KEY"
+
     
     if request.auth == "1C_API_KEY":
-        # Якщо авторизація за ключем, вимагаємо параметр author_guid
+
         if not author_guid_param:
             return Response({"error": "author_guid parameter is required for API Key auth"}, status=400)
         try:
@@ -2041,8 +2377,7 @@ def get_messages(request):
         except Exception:
             return Response({"error": "Invalid author_guid format"}, status=400)
     else:
-        # Якщо JWT - беремо з об'єкта користувача
-        # (Перевірте, чи поле називається саме user_id_1C у вашій моделі CustomUser)
+ 
         current_author_bin = getattr(request.user, 'user_id_1C', None)
 
     try:
@@ -2050,15 +2385,14 @@ def get_messages(request):
     except Exception:
         return Response({"error": "Invalid base_transaction_guid"}, status=400)
 
-    # 1. Отримуємо QuerySet
+
     messages_qs = ChatMessage.objects.filter(
         related_object_id=base_transaction_bin,
         transaction_type_id=transaction_type_id,
         is_notification=False
     ).order_by("timestamp")
 
-    # 2. ЛОГІКА ПРОЧИТАННЯ
-    # Позначаємо прочитаними всі повідомлення, де автор НЕ той, хто зараз відкрив чат
+ 
     if current_author_bin:
         messages_qs.filter(
             is_read=False
@@ -2066,10 +2400,10 @@ def get_messages(request):
             author=current_author_bin
         ).update(is_read=True)
 
-    # 3. Виконуємо запит після оновлення статусів
+
     messages = list(messages_qs)
 
-    # Далі ваш існуючий код формування відповіді (мапінг авторів)
+  
     author_ids = {
         m.author
         for m in messages
@@ -2104,6 +2438,19 @@ def get_messages(request):
             "author": author_data,
         })
 
+    duration = time.time() - start_time
+    
+    # ФІНАЛЬНИЙ ЛОГ
+    logger.info(f"Messages retrieved for transaction {base_transaction_guid}", extra={
+        'tags': {
+            'action': 'get_messages',
+            'transaction_id': base_transaction_guid,
+            'auth_type': auth_method,
+            'messages_count': len(result),
+            'duration_sec': round(duration, 4)
+        }
+    })
+
     return Response(result)
 
 
@@ -2113,7 +2460,7 @@ def get_messages(request):
     summary="Завантажити файл заявки на прорахунок",
     description=(
         "Завантажує файл зі сховища **1С (SMB)** для заявок на прорахунок (ВМ).\n\n"
-        "📦 Шлях у сховищі:\n"
+        " Шлях у сховищі:\n"
         "`Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}`"
     ),
     parameters=[
@@ -2128,43 +2475,47 @@ def get_messages(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def download_calculation_file(request, calc_guid, file_guid):
     """
-    Завантажує файл заявки на прорахунок (ВМ) з SMB без використання subprocess.
+    Завантажує файл заявки на прорахунок (ВМ) 
     """
+
+
+    start_time = time.time()
+
     filename = request.GET.get("filename")
     if not filename:
         raise Http404("Filename is required")
 
     filename = unquote(filename)
 
-    # Формуємо шлях. Бібліотека smbclient очікує формат: /Server/Share/Path
-    # Зверніть увагу: ми використовуємо прямі слеші, smbclient сам їх конвертує
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}"
 
+    
+    logger.info(f"Start get a file {remote_path}")
+
     try:
-        # Перевіряємо існування файлу перед відкриттям
+
         stat = smbclient.stat(remote_path)
-        
-        # Відкриваємо файл у бінарному режимі для читання
-        # smbclient.open_file повертає об'єкт, який підтримує ітерацію
+
         file_handle = smbclient.open_file(remote_path, mode="rb")
 
         content_type, _ = mimetypes.guess_type(filename)
         
-        # StreamingHttpResponse ефективно передає файл частинами
+
         response = StreamingHttpResponse(
             file_handle, 
             content_type=content_type or "application/octet-stream"
         )
         
-        # Додаємо розмір файлу, щоб браузер показував прогрес завантаження
+  
         response["Content-Length"] = stat.st_size
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
 
     except Exception as e:
-        # Якщо файл не знайдено або немає доступу
-        logger.error(f"SMB Download Error for path {remote_path}: {str(e)}")
+
+        logger.error(f"SMB Download Error for path {remote_path}: {str(e)}", exc_info=True, extra={
+            'tags': {'action': 'download_calculation_file'}})
         raise Http404("Файл не знайдено або помилка доступу")
     
 
@@ -2175,24 +2526,46 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
-# from .onec_integration import set_customer_bill
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def confirm_order(request, order_id):
+    start_time = time.time()
+    user = request.user
+
+
+    logger.info(f"User {user.username} is confirming order №{order_id}", extra={
+        'tags': {
+            'action': 'confirm_order',
+            'order_id': order_id,
+            'user': user.username,
+            'status': 'initiated'
+        }
+    })
+
     try:
-        # Підготовка даних для 1С
-        # Використовуємо "set_customer_bill" як назву Query (якщо так налаштовано в 1С)
         query_name = "ConfirmOrder"
-        
         payload = {
             "order_id": str(order_id),
-            # "user": request.user.username,
-            # Додайте інші поля, якщо 1С їх очікує
+            "confirmed_by_user": user.username 
         }
 
-        # Виклик вашої утиліти
+  
         result = send_to_1c(query_name, payload)
+        
+        duration = time.time() - start_time
+
+
+        logger.info(f"Successfully confirmed order №{order_id} in 1C", extra={
+            'tags': {
+                'action': 'confirm_order',
+                'order_id': order_id,
+                'user': user.username,
+                'status': 'success',
+                'duration_sec': round(duration, 3)
+            },
+            '1c_response': result 
+        })
 
         return Response({
             "success": True,
@@ -2201,12 +2574,29 @@ def confirm_order(request, order_id):
         }, status=status.HTTP_200_OK)
 
     except ValidationError as e:
-        # Це виключення прокинеться з send_to_1c при помилках зв'язку
+        duration = time.time() - start_time
+        logger.error(f"Validation error in confirm order №{order_id}: {str(e)}", extra={
+            'tags': {
+                'action': 'confirm_order',
+                'order_id': order_id,
+                'status': 'validation_error',
+                'duration_sec': round(duration, 3)
+            }
+        })
         return Response(e.detail, status=status.HTTP_502_BAD_GATEWAY)
-    except Exception as e:
-        logger.error(f"Unexpected error in confirm_order: {str(e)}")
-        return Response({"detail": "Внутрішня помилка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Unexpected error in confirm order №{order_id}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'confirm_order',
+                'order_id': order_id,
+                'status': 'critical_error',
+                'duration_sec': round(duration, 3)
+            }
+        })
+        return Response({"detail": "Внутрішня помилка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
 
 from rest_framework.views import APIView
@@ -2226,30 +2616,88 @@ class DeleteCalculationView(APIView):
         """
 
 
+        start_time = time.time()
+        user = request.user
+        user_name = user.username if user.is_authenticated else "anonymous"
+
+        # 1. Логуємо намір видалення
+        logger.info(f"User {user_name} is deleting calculation {calculation_guid}", extra={
+            'tags': {
+                'action': 'delete_calculation',
+                'status': 'initiated',
+                'calculation_id': str(calculation_guid),
+                'user': user_name
+            }
+        })
+
+
         payload = {
             "calculation_id": str(calculation_guid),
         }
 
-        result = send_to_1c("DeleteCalculation", payload)
-        # result = None
-        if not result.get("success", True):
+        try:
+
+            result = send_to_1c("DeleteCalculation", payload)
+
+            duration = time.time() - start_time
+
+            if not result.get("success", True):
+                logger.warning(f"1C rejected deletion of calculation {calculation_guid}", extra={
+                    'tags': {
+                        'action': 'delete_calculation',
+                        'status': 'failed_by_1c',
+                        'calculation_id': str(calculation_guid),
+                        'duration_sec': round(duration, 3)
+                    },
+                    'result_1c': result
+                })
+
+
+                return Response(
+                    {
+                        "detail": "1С повернула помилку",
+                        "result_1c": result,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+
+            logger.info(f"Successfully deleted calculation {calculation_guid}", extra={
+                'tags': {
+                    'action': 'delete_calculation',
+                    'status': 'success',
+                    'calculation_id': str(calculation_guid),
+                    'user': user_name,
+                    'duration_sec': round(duration, 3)
+                }
+            })
+
             return Response(
                 {
-                    "detail": "1С повернула помилку",
+                    "success": True,
+                    "calculation_id": str(calculation_guid),
                     "result_1c": result,
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_200_OK,
             )
+    
+        except Exception as e:
+            duration = time.time() - start_time
+            logger.error(f"Error during calculation deletion {calculation_guid}: {str(e)}", exc_info=True, extra={
+                'tags': {
+                    'action': 'delete_calculation',
+                    'status': 'error',
+                    'calculation_id': str(calculation_guid),
+                    'duration_sec': round(duration, 3)
+                }
+            })
+            return Response(
+                {"detail": "Внутрішня помилка при видаленні прорахунку"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
 
-        return Response(
-            {
-                "success": True,
-                "calculation_id": str(calculation_guid),
-                "result_1c": result,
-            },
-            status=status.HTTP_200_OK,
-        )
-
+    
    
 
 
@@ -2640,7 +3088,12 @@ class PartnerDebtsView(APIView):
 
     def get(self, request):
 
+        start_time = time.time()
+        user_name = request.user.username if request.user.is_authenticated else "unknown"
+
         try:
+
+
          
             contractor_bin, contractor_guid = resolve_contractor(
                 request,
@@ -2648,11 +3101,19 @@ class PartnerDebtsView(APIView):
                 admin_param="contractor_guid",
             )
         except (ValueError, PermissionError) as e:
+            logger.warning(f"Unauthorized debt access attempt by {user_name}: {str(e)}")
             return Response({"detail": str(e)}, status=400)
 
-        # db_alias = 'db_2' # або ваш аліас 'default' / 'oknastyle_bi'
-        
-        # 2. Виклик процедури
+        # db_alias = 'db_2' 
+
+        # logger.info(f"Fetching partner debts for {contractor_guid}", extra={
+        #     'tags': {
+        #         'action': 'get_partner_debts',
+        #         'user': user_name,
+        #         'contractor': contractor_guid
+        #     }
+        # })
+
         try:
             with connection.cursor() as cursor:
 
@@ -2665,27 +3126,49 @@ class PartnerDebtsView(APIView):
                 orders = [item for item in raw_data if item.get('SortOrder') == 0]
                 summary = next((item for item in raw_data if item.get('SortOrder') == 1), None)
 
+
+            duration = time.time() - start_time
+
+            logger.info(f"Successfully got debts for {contractor_guid}", extra={
+                'tags': {
+                    'action': 'get_partner_debts',
+                    'status': 'success',
+                    'duration_sec': round(duration, 4),
+                    'items_count': len(orders)
+                }
+            })
+
+            return Response({
+                "contractor_guid": contractor_guid,
+                "debts": {
+                    "items": orders,
+                    "total": summary
+                }
+            })
+
+
+
         except DatabaseError as e:
+            duration = time.time() - start_time
             error_msg = str(e)
 
+            # Специфічне логування помилки відновлення бази (927)
             if "927" in error_msg or "recovery" in error_msg.lower():
+                logger.error(f"Database in recovery mode during debt request: {error_msg}", extra={
+                    'tags': {'action': 'get_partner_debts', 'status': 'db_recovery', 'duration_sec': round(duration, 4)}
+                })
                 return Response({
                     "error": "database_recovery",
                     "detail": "База даних оновлюється. Спробуйте через декілька хвилин."
                 }, status=503)
             
+           
+            logger.error(f"SQL Error in PartnerDebtsView: {error_msg}", exc_info=True, extra={
+                'tags': {'action': 'get_partner_debts', 'status': 'db_error', 'contractor': contractor_guid}
+            })
             return Response({
                 "detail": f"Помилка бази даних: {error_msg}"
             }, status=500)
-
-        # 3. Формуємо відповідь
-        return Response({
-            "contractor_guid": contractor_guid,
-            "debts": {
-                "items": orders,
-                "total": summary
-            }
-        })
 
 
 
@@ -2836,45 +3319,88 @@ def get_user_notifications(request):
     Повертає список сповіщень. 
     Підтримує фільтрацію за конкретним контрагентом для адмінів через параметри запиту.
     """
+
+    
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "unknown"
+
     try:
-        # Визначаємо бінарний ID контрагента (ігноруємо рядковий GUID, він нам не потрібен для фільтра)
-        contractor_bin, _ = resolve_contractor(request)
+
+        contractor_bin, contractor_guid = resolve_contractor(request)
     except (PermissionError, ValueError) as e:
+        logger.warning(f"Notification access denied for {user_name}: {str(e)}")
         return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-  
-    notifications_qs = ChatMessage.objects.filter(
-        recipient=contractor_bin,
-        is_notification=True
-    ).select_related('transaction_type').order_by('-timestamp')[:100]
-
-    result = []
-    for msg in notifications_qs:
-
-        t_type_id = msg.transaction_type_id if msg.transaction_type_id else 0
-        
-        doc_num = get_document_number_by_guid(msg.related_object_id, t_type_id)
-
-        doc_year = get_document_year_by_guid(msg.related_object_id, t_type_id)
-
-        result.append({
-            "id": msg.id,
-            "eventType": msg.event_type,
-            "message": msg.text,
-            "isRead": msg.is_read,
-            "createdAt": msg.timestamp,
-            "transactionType": msg.transaction_type.type_name if msg.transaction_type else None,
-            "doc_number": doc_num, # Додаємо людський номер
-            "relatedObjectId": bin_to_guid_1c(msg.related_object_id) if msg.related_object_id else None,
-            "authorId": bin_to_guid_1c(msg.author) if msg.author else None,
-            "chatId": msg.chat_id,
-            "docYear": doc_year,
-        })
-
-    return Response({
-        "status": "success",
-        "data": result
+    
+    logger.info(f"User {user_name} fetching notifications", extra={
+        'tags': {
+            'action': 'get_notifications',
+            'user': user_name,
+            'contractor': contractor_guid
+        }
     })
+
+    try:
+
+        notifications_qs = ChatMessage.objects.filter(
+            recipient=contractor_bin,
+            is_notification=True
+        ).select_related('transaction_type').order_by('-timestamp')[:100]
+
+        result = []
+        for msg in notifications_qs:
+
+            t_type_id = msg.transaction_type_id if msg.transaction_type_id else 0
+            
+            doc_num = get_document_number_by_guid(msg.related_object_id, t_type_id)
+
+            doc_year = get_document_year_by_guid(msg.related_object_id, t_type_id)
+
+            result.append({
+                "id": msg.id,
+                "eventType": msg.event_type,
+                "message": msg.text,
+                "isRead": msg.is_read,
+                "createdAt": msg.timestamp,
+                "transactionType": msg.transaction_type.type_name if msg.transaction_type else None,
+                "doc_number": doc_num,
+                "relatedObjectId": bin_to_guid_1c(msg.related_object_id) if msg.related_object_id else None,
+                "authorId": bin_to_guid_1c(msg.author) if msg.author else None,
+                "chatId": msg.chat_id,
+                "docYear": doc_year,
+            })
+
+        duration = time.time() - start_time
+
+        # logger.info(f"Successfully retrieved {len(result)} notifications", extra={
+        #     'tags': {
+        #         'action': 'get_notifications',
+        #         'status': 'success',
+        #         'contractor': contractor_guid,
+        #         'count': len(result),
+        #         'duration_sec': round(duration, 4)
+        #     }
+        # })
+
+
+        return Response({
+            "status": "success",
+            "data": result
+        })
+    
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error fetching notifications for {user_name}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_notifications',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
+        return Response({
+            "status": "error", 
+            "message": "Внутрішня помилка при отриманні сповіщень"
+        }, status=500)
 
 
 from rest_framework.decorators import api_view, permission_classes
@@ -2890,30 +3416,57 @@ def get_notifications_count(request):
     """
     Повертає кількість непрочитаних сповіщень для поточного контрагента.
     """
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "unknown"
+
     try:
-        # Використовуємо вашу єдину точку визначення контрагента
-        contractor_bin, _ = resolve_contractor(request)
+
+        contractor_bin, contractor_guid = resolve_contractor(request)
     except (PermissionError, ValueError) as e:
+        logger.warning(f"Notification count access denied for {user_name}: {str(e)}")
         return Response({
             "status": "error", 
             "message": str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
 
-    # Рахуємо тільки ті записи, де:
-    # 1. Отримувач — наш поточний контрагент
-    # 2. Це саме сповіщення (is_notification=True)
-    # 3. Воно ще не прочитане
-    unread_count = ChatMessage.objects.filter(
-        recipient=contractor_bin,
-        is_notification=True,
-        is_read=False
-    ).count()
+    try:
+        unread_count = ChatMessage.objects.filter(
+            recipient=contractor_bin,
+            is_notification=True,
+            is_read=False
+        ).count()
 
-    return Response({
-        "status": "success",
-        "unreadCount": unread_count
-    })
+        duration = time.time() - start_time
 
+        logger.info(f"Unread notifications count for {user_name}: {unread_count}", extra={
+            'tags': {
+                'action': 'get_notifications_count',
+                'status': 'success',
+                'user': user_name,
+                'contractor': contractor_guid,
+                'unread_val': unread_count,
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        return Response({
+            "status": "success",
+            "unreadCount": unread_count
+        })
+
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error counting notifications for {user_name}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_notifications_count',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
+        return Response({
+            "status": "error", 
+            "message": "Internal server error during counting"
+        }, status=500)
 
 
 
@@ -2923,26 +3476,64 @@ def mark_notifications_as_read(request):
     """
     Позначає всі сповіщення (is_notification=True) поточного контрагента як прочитані.
     """
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "unknown"
+
     try:
-        # Визначаємо, для кого саме ми закриваємо сповіщення
-        contractor_bin, _ = resolve_contractor(request)
+
+        contractor_bin, contractor_guid = resolve_contractor(request)
     except (PermissionError, ValueError) as e:
+
+        logger.error(f"Unauthorized mark_as_read attempt by {user_name}: {str(e)}", extra={
+            'tags': {'action': 'mark_notifications_read', 'status': 'auth_error', 'user': user_name}
+        })
         return Response({
             "status": "error", 
             "message": str(e)
         }, status=status.HTTP_400_BAD_REQUEST)
 
-    # Оновлюємо тільки записи, що є сповіщеннями для цього отримувача
-    updated_count = ChatMessage.objects.filter(
-        recipient=contractor_bin,
-        is_notification=True,
-        is_read=False
-    ).update(is_read=True)
 
-    return Response({
-        "status": "success", 
-        "message": f"Позначено як прочитані: {updated_count} сповіщень"
-    })
+    try:
+        updated_count = ChatMessage.objects.filter(
+            recipient=contractor_bin,
+            is_notification=True,
+            is_read=False
+        ).update(is_read=True)
+
+        duration = time.time() - start_time
+
+        # 3. Лог успіху
+        # logger.info(f"User {user_name} marked {updated_count} notifications as read", extra={
+        #     'tags': {
+        #         'action': 'mark_notifications_read',
+        #         'status': 'success',
+        #         'user': user_name,
+        #         'contractor': contractor_guid,
+        #         'updated_count': updated_count,
+        #         'duration_sec': round(duration, 4)
+        #     }
+        # })
+
+
+
+        return Response({
+            "status": "success", 
+            "message": f"Позначено як прочитані: {updated_count} сповіщень"
+        })
+    
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error marking notifications as read for {user_name}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'mark_notifications_read',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
+        return Response({
+            "status": "error", 
+            "message": "Внутрішня помилка сервера при оновленні сповіщень"
+        }, status=500)
 
 
 
@@ -2965,19 +3556,47 @@ class ChatHistoryView(generics.ListAPIView):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def mark_single_notification_as_read(request, pk):
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "unknown"
+
     try:
         # Шукаємо сповіщення, яке належить саме цьому користувачу (через recipient)
         from records.models import ChatMessage
-        contractor_bin, _ = resolve_contractor(request)
+        contractor_bin, contractor_guid = resolve_contractor(request)
         
         notification = ChatMessage.objects.get(pk=pk, recipient=contractor_bin)
         notification.is_read = True
         notification.save()
+
+        duration = time.time() - start_time
+
+        # 3. Лог успіху
+        logger.info(f"Notification {pk} marked as read by {user_name}", extra={
+            'tags': {
+                'action': 'mark_single_notification_read',
+                'status': 'success',
+                'notification_id': pk,
+                'user': user_name,
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
         
         return Response({"status": "success"})
+    
     except ChatMessage.DoesNotExist:
+        logger.warning(f"Notification {pk} not found for user {user_name}", extra={
+            'tags': {
+                'action': 'mark_single_notification_read',
+                'status': 'not_found',
+                'notification_id': pk
+            }
+        })
         return Response({"status": "error", "message": "Notification not found"}, status=404)
     
+
+
 from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -2992,27 +3611,48 @@ class PortalManagerReportView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
+        start_time = time.time()
+        user_name = request.user.username if request.user.is_authenticated else "unknown"
+
+        # logger.info(f"User {user_name} requested Portal Manager Report", extra={
+        #     'tags': {
+        #         'action': 'get_manager_report',
+        #         'user': user_name
+        #     }
+        # })
+
         try:
             with connection.cursor() as cursor:
-                # 1. Виконуємо збережену процедуру
+       
                 cursor.execute("EXEC [dbo].[GetPortalManagersWithDealers]")
                 
-                # 2. Отримуємо назви колонок (ManagerID, FullManagerName тощо)
+             
                 columns = [col[0] for col in cursor.description]
                 
-                # 3. Формуємо дані
+              
                 managers_list = []
                 for row in cursor.fetchall():
-                    # Перетворюємо кортеж рядка в словник
+                
                     row_dict = dict(zip(columns, row))
                     
-                    # 4. Конвертуємо BINARY(16) у зрозумілий GUID (string)
+     
                     if row_dict.get("ManagerID"):
                         row_dict["ManagerID"] = bin_to_guid_1c(row_dict["ManagerID"])
                     
                     managers_list.append(row_dict)
 
-            # Повертаємо масив об'єктів напряму
+            duration = time.time() - start_time
+
+            logger.info(f"Portal Manager Report generated successfully", extra={
+                'tags': {
+                    'action': 'get_manager_report',
+                    'status': 'success',
+                    'count': len(managers_list),
+                    'duration_sec': round(duration, 4)
+                }
+            })
+
             return Response({
                 "success": True,
                 "count": len(managers_list),
@@ -3020,9 +3660,15 @@ class PortalManagerReportView(APIView):
             })
 
         except Exception as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"PortalManagerReport error: {str(e)}")
+            duration = time.time() - start_time
+            # 3. Лог помилки
+            logger.error(f"PortalManagerReport error: {str(e)}", exc_info=True, extra={
+                'tags': {
+                    'action': 'get_manager_report',
+                    'status': 'error',
+                    'duration_sec': round(duration, 4)
+                }
+            })
             
             return Response({
                 "success": False, 

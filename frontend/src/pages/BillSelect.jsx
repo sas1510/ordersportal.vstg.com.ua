@@ -25,7 +25,7 @@ const BillSelect = ({
     );
   }, [options, search, searchable, getLabel]);
 
-  // close on outside click
+
   useEffect(() => {
     const handler = (e) => {
       if (

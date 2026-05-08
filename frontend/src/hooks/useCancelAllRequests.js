@@ -12,12 +12,12 @@ export default function useCancelAllRequests() {
 
   const cancelAll = () => {
     controllers.current.forEach((c) => {
-      c.abort(); // Safe to call even if already aborted
+      c.abort(); 
     });
     controllers.current = [];
   };
 
-  // ❗ ВАЖЛИВО: ТУТ ПОВИНЕН БУТИ ВИКЛИК cancelAll()
+  
   useEffect(() => {
     return () => {
       cancelAll();

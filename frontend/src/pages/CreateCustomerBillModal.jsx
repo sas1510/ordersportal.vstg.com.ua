@@ -5,7 +5,7 @@ import BillSelect from "./BillSelect";
 import "./CreateCustomerBillModal.css";
 import { useNotification } from "../hooks/useNotification";
 
-/* ===================== STEPS ===================== */
+
 const STEPS = {
   BASE: 1,
   ITEMS: 2,
@@ -64,7 +64,7 @@ export default function CreateCustomerBillModal({
 
   const [loading, setLoading] = useState(false);
 
-  /* ===================== LOAD PROFILE ===================== */
+
   useEffect(() => {
     if (!isOpen) return;
     const fetchProfile = async () => {
@@ -86,7 +86,7 @@ export default function CreateCustomerBillModal({
     };
     fetchProfile();
   }, [isOpen, addNotification]);
-  /* ===================== ITEMS ===================== */
+
   const handleAddItem = () => {
     setOrderItems((prev) => [
       ...prev,
@@ -391,11 +391,10 @@ export default function CreateCustomerBillModal({
                   }
                 }
 
-                // Якщо перевірки пройдені — йдемо далі
+                
                 setStep(step + 1);
               }}
-              // Тепер ми НЕ використовуємо атрибут disabled, щоб спрацьовував onClick
-              // Але можемо додати клас для візуального напів-прозорого стану, якщо хочете
+
               style={{
                 opacity:
                   (step === STEPS.BASE &&

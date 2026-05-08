@@ -12,29 +12,29 @@
 }
 
 .inactive {
-  opacity: 0.5; /* робимо іконку прозорішою */
-  cursor: default; /* курсор не активний */
+  opacity: 0.5;
+  cursor: default;
 }
 
-/* для самого меню кнопок редагування/видалення */
+
 .calc-menu-buttons {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 4px; /* менший проміжок між іконками */
-  padding: 2px 4px; /* мінімальні відступи */
-  height: auto; /* щоб блок не тягнувся на 60px */
-  width: auto; /* тільки під контент */
-  min-width: 0; /* щоб flex не розтягував */
+  gap: 4px; 
+  padding: 2px 4px; 
+  height: auto; 
+  width: auto; 
+  min-width: 0; 
 }
 
-/* іконки всередині */
+
 .calc-menu-buttons .icon {
-  font-size: 16px; /* або 14px для ще компактніше */
+  font-size: 16px; 
   cursor: pointer;
 }
 
-/* Клас для червоної іконки (коли видалення дозволено) */
+
 .icon-delete-red {
   /* Точний розрахунок для кольору #BA523B */
   filter: invert(38%) sepia(58%) saturate(644%) hue-rotate(326deg) brightness(92%) contrast(88%) !important;

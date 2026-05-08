@@ -37,7 +37,7 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
 
   return (
     <div
-      className="deactivate-modal-overlay fixed inset-0 flex items-center justify-center z-[9999]"
+      className="deactivate-modal-overlay fixed inset-0 flex items-center justify-center z-[10001]"
       onClick={onClose}
     >
       <div

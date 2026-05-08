@@ -1,0 +1,286 @@
+{
+  "hero": {
+    "welcome": "Вітаємо на порталі замовлень",
+    "title_line1": "Професійні Віконні Системи",
+    "title_line2": "для Європейського Ринку"
+  },
+  "stats": {
+    "experience": "років досвіду",
+    "employees": "працівників",
+    "area": "площа заводу",
+    "windows_monthly": "вікон на місяць"
+  },
+  "production": {
+    "title": "Виробничі Потужності",
+    "cycle_title": "Технологічний Цикл",
+    "cycle_title_br": "Технологічний Цикл",
+    "pvc_windows": "ПВХ вікон на місяць",
+    "pvc_doors": "ПВХ дверей на місяць",
+    "innovations": "Інновації"
+  },
+  "info": {
+    "factory_location": "Завод площею 16 000 м² розташований у с. Великий Кучурів (5 км від Чернівців).",
+    "export_geography": "Експортна географія: Німеччина, Італія, Румунія, Канада та США."
+  },
+  "values": {
+    "aesthetics": { "title": "Естетика", "desc": "Сучасний дизайн" },
+    "quality": { "title": "Якість", "desc": "Європейські стандарти" },
+    "price": { "title": "Найкраща ціна", "desc": "Власне виробництво" },
+    "safety": { "title": "Безпека", "desc": "Надійний захист" }
+  },
+  "media": {
+    "title": "Медіа-Огляд"
+  },
+  "partnership": {
+    "title_line1": "Двері, які відкривають світ",
+    "title_line2": "успішного партнерства",
+    "desc_line1": "Станьте частиною надійної дилерської мережі \"Вікна Стиль\".",
+    "desc_line2": "18 років досвіду та європейські стандарти якості для вашого бізнесу."
+  },
+  "nav": {
+    "promo_wds": "Акції WDS",
+    "orders": "Замовлення",
+    "complaints": "Рекламації",
+    "additional_orders": "Дозамовлення",
+    "files": "Файли",
+    "videos": "Відео",
+    "payment": "Оплата",
+    "finance": "Фінанси",
+    "finance_cash_flow": "Рух коштів",
+    "finance_analytics": "Аналітика",
+    "finance_bills": "Рахунки",
+    "change_password": "Змінити пароль",
+    "emergency_line": "Гаряча лінія",
+    "logout": "Вихід",
+    "menu": "Меню",
+    "default_dealer": "Дилер",
+    "settings_short": "Налашт.",
+    "settings": "Налаштування",
+    "settings_users": "Користувачі",
+    "settings_tg_manager": "Менеджер TG",
+    "settings_sos_stats": "Статистика SOS",
+    "profile": "Профіль",
+    "settings_emergency_contacts": "Термінові контакти"
+  },
+  "common": {
+    "loading": "Завантаження...",
+    "currency_uah": "грн",
+    "close": "Закрити",
+    "logo_alt": "Вікна Стиль",
+    "date_from": "Дата з",
+    "date_to": "Дата по",
+    "dealer": "Дилер",
+    "show": "Показати",
+    "no_results": "Нічого не знайдено"
+  },
+  "notifications": {
+    "title": "Сповіщення",
+    "new_message": "Нове повідомлення"
+  },
+  
+  "login": {
+    "welcome_title": "Вітаємо знову!",
+    "welcome_subtitle": "Увійдіть до порталу аналітики та замовлень",
+    "form_title": "Вхід у систему",
+    "form_subtitle": "Введіть ваші облікові дані для доступу",
+    "username_label": "Ім'я користувача",
+    "username_placeholder": "Введіть логін",
+    "password_label": "Пароль",
+    "password_placeholder": "Введіть пароль",
+    "remember_me": "Запам'ятати мене",
+    "button_submit": "Увійти",
+    "button_loading": "Вхід...",
+    "error_invalid_credentials": "Невірний логін або пароль",
+    "error_auth": "Помилка авторизації",
+    "error_server_unavailable": "Сервер недоступний. Перевірте підключення.",
+    "error_general": "Сталася помилка"
+  
+},
+
+  "wds": {
+    "title": "Акційні WDS-коди",
+    "loading_text": "Пошук акційних пропозицій…",
+    "no_data": "За вказаний період акційних кодів не знайдено",
+    "error_select_dealer": "Оберіть дилера",
+    "error_load": "Помилка завантаження WDS-кодів",
+    "table_date": "Дата",
+    "table_code": "WDS Код",
+    "table_code_short": "WDS",
+    "table_order_no": "№ Замовлення",
+    "table_order_short": "Замовлення",
+    "table_series": "Серія профілю",
+    "table_series_short": "Серія",
+    "default_series": "Стандарт"
+  },
+  "dealer_select": {
+    "placeholder": "— Оберіть дилера —",
+    "search_placeholder": "Пошук дилера…",
+    "error_load": "Помилка завантаження дилерів"
+  },
+  "files" : {
+    "header": {
+      "title": "Файли",
+      "subtitle_1": "Корисні матеріали для завантаження: ",
+      "subtitle_2": "сертифікати, протоколи випробувань тощо."
+
+    },
+    "searchPlaceholder": "пошук за назвою",
+    "choose_file": "Оберіть файл",
+    "noResults": "Файлів не знайдено",
+    "empty": "Файлів ще немає",
+    "adminRole": "Адміністратор",
+    "unknownDate": "Невідомо",
+    "buttons": {
+      "add": "Додати файл",
+      "download": "Завантажити",
+      "edit": "Редагувати",
+      "delete": "Видалити",
+      "cancel": "Скасувати",
+      "upload": "Завантажити",
+      "save": "Зберегти зміни"
+    },
+    "errors": {
+        "download" : "Помилка завантаження файлів",
+        "error" : "Помилка:",
+        "error_change_file" : "Не вдалося змінити файл",
+        "error_add_file" : "Не вдалося додати файл"
+
+    },
+    "feedback": {
+        "success" : "Файл успішно додано!",
+        "edit" : "Файл успішно змінено!",
+        "confirmDeleteMessage" : "Ви дійсно хочете видалити файл?",
+        "deleteFile" : "Видалення файлу"
+    }
+    
+  
+  },
+  "videos": {
+    "header": {
+      "title": "Відео",
+      "subtitle": "Корисні відеоматеріали, які допомагають в роботі"
+    },
+    "categories": {
+      "tech": "Технічні навчання",
+      "media": "Медіа-огляди",
+      "factory": "Відео з виробництва",
+      "install": "Відео з монтажу",
+      "social": "Соціальні мережі"
+    },
+    "buttons": {
+      "add": "Додати відео",
+      "save": "Зберегти",
+      "saving": "Збереження...",
+      "edit": "Редагувати",
+      "delete": "Видалити"
+    },
+    "modals": {
+      "add_title": "Додати нове відео",
+      "edit_title": "Редагувати відео",
+      "delete_confirm": "Видалення відео",
+      "delete_message": "Ви впевнені, що хочете видалити відео"
+    },
+    "search_placeholder": "Пошук відео...",
+    "all_videos": "Всі відео",
+    "errors": {
+      "load": "Помилка завантаження відео",
+      "save": "Помилка при збереженні",
+      "delete": "Помилка при видаленні"
+    }
+  },
+    "orders": {
+        "newOrderModal": {
+            "coord_message_1": "Увага! Гео-координати не встановлені.",
+            "coord_message_2": "Для коректного прорахунку логістики необхідно вказати точку на карті.",
+            "coord_message_3": "Будь ласка, зверніться до вашого менеджера для оновлення даних адреси ",
+            "error_message_1": "Не вдалося завантажити адреси:",
+            "error_message_2": "Файл не обрано",
+            "error_message_3": "Заповніть усі поля",
+            "error_message_4": "Оберіть адресу доставки",
+            "error_message_5": "Оберіть клієнтську адресу",
+            "error_message_6": "Помилка створення:",
+            "error_message_7": "Адреса не обрана",
+            "order_created": "Прорахунок №{{orderNumber}} створено ✅",
+            "order_create": "Створити новий прорахунок",
+            "dealer": "Дилер:",
+            "myAddress": "Моя адреса",
+            "clientAddress": "Клієнтська адреса",
+            "address": "Адреса доставки:",
+            "loadingOfAddress": "Завантаження адрес...",
+            "choose": "Обрати",
+            "downloadZKZ": "Завантажити файл (.zkz)",
+            "numberOfConstruction": "Кількість конструкцій:",
+            "comment": "Коментар:",
+            "cancel": "Відмінити",
+            "creating": "Створюємо...",
+            "save": "Зберегти",
+            "repeat": "ПОВТОРИТИ"
+        }
+    },
+    "clientAddressModal": {
+        "title": "🏠 Клієнтська адреса",
+        "contactSection": "Контакти клієнта",
+        "addressSection": "Адреса доставки",
+        "findOnMap": "Знайти на карті",
+        "searchPlaceholder": "Пошук адреси на карті...",
+        "dragHint": "Перетягніть маркер для уточнення точки",
+        "cancel": "Скасувати",
+        "save": "Зберегти",
+        "fields": {
+            "fullName": "ПІБ клієнта (Прізвище та Ім'я) *",
+            "phone": "Телефон (+380...) *",
+            "extraInfo": "Додаткова інформація",
+            "region": "Область *",
+            "district": "Район *",
+            "city": "Місто *",
+            "street": "Вулиця *",
+            "house": "Будинок *",
+            "apartment": "Квартира",
+            "entrance": "Підʼїзд",
+            "floor": "Поверх",
+            "note": "Примітка"
+        },
+        "errors": {
+            "requiredField": "Заповніть обовʼязкове поле: {{field}}",
+            "fillRequired": "Заповніть обовʼязкові поля адреси",
+            "invalidName": "Вкажіть ПІБ клієнта (Прізвище та Ім'я)",
+            "invalidPhone": "Некоректний формат телефону (+380XXXXXXXXX)",
+            "selectOnMap": "Оберіть точку на карті",
+            "preciseLocation": "Уточніть точку: перетягніть маркер або клацніть точніше"
+        },
+        "success": "Дані про адресу клієнта успішно збережено ✅"
+    },
+        "commentsModal": {
+        "title": "Чат",
+        "noMessages": "Повідомлень ще немає",
+        "placeholder": "Ваше повідомлення...",
+        "errors": {
+            "fetchProfile": "Помилка профілю",
+            "fetchHistory": "Не вдалося завантажити історію",
+            "authFailed": "Авторизація не вдалася, реконект через 5 сек...",
+            "wsClosed": "З'єднання закритo (код: {{code}}). Перепідключення...",
+            "wsError": "WS помилка",
+            "connectionLost": "З'єднання втрачено. Спробуйте оновити сторінку."
+        },
+        "counterpartyModal": {
+            "dealer": "Дилер",
+            "recipient": "Одержувач:",
+            "phone": "Телефон:",
+            "additional": "Додатково:",
+            "deliveryAddress": "Адреса доставки:",
+            "pickup": "Самовивіз",
+            "close": "Закрити"
+        }
+
+    }
+
+
+
+
+
+
+
+
+
+}
+

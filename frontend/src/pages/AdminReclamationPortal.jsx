@@ -15,15 +15,13 @@ import useWindowWidth from "../hooks/useWindowWidth";
 import { useTheme } from "../hooks/useTheme";
 import "../components/Reclamations/ReclamationItem.css";
 
-/* ================= CONSTANTS ================= */
+
 const RECLAMATIONS_API_URL = "/complaints/get_reclamation_info/";
 const RECLAMATIONS_API_ALL_URL = "/complaints/get_reclamation_info_all/";
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
 
-/* =========================================================
- * FORMAT API DATA
- * ========================================================= */
+
 function formatApiData(data) {
   if (!Array.isArray(data)) return [];
 
@@ -76,9 +74,7 @@ function formatApiData(data) {
   });
 }
 
-/* =========================================================
- * MAIN COMPONENT
- * ========================================================= */
+
 const AdminReclamationPortal = () => {
   const { register, cancelAll } = useCancelAllRequests();
 
@@ -147,9 +143,7 @@ const AdminReclamationPortal = () => {
     return years;
   }, [currentYear]);
 
-  /* =====================================================
-   * CLIENT-SIDE FILTERING
-   * ===================================================== */
+
   const getFilteredItems = useCallback(
     (status, month, name, data = reclamationsData) => {
       let result = [...data];
@@ -178,9 +172,6 @@ const AdminReclamationPortal = () => {
     [reclamationsData],
   );
 
-  /* =====================================================
-   * AUTO MONTH FOR ALL DEALERS
-   * ===================================================== */
   useEffect(() => {
     if (isAdmin && dealerGuid === ALL_DEALERS_VALUE && filter.month === 0) {
       setFilter((prev) => ({ ...prev, month: currentMonth }));
@@ -192,9 +183,6 @@ const AdminReclamationPortal = () => {
     [isAdmin, dealerGuid],
   );
 
-  /* =====================================================
-   * FETCH DATA
-   * ===================================================== */
   useEffect(() => {
     cancelAll();
 
@@ -253,9 +241,7 @@ const AdminReclamationPortal = () => {
     shouldRefetchOnMonthChange ? filter.month : null,
   ]);
 
-  /* =====================================================
-   * SUMMARIES
-   * ===================================================== */
+
   const statusSummary = useMemo(() => {
     const s = {
       Всі: 0,
@@ -289,14 +275,12 @@ const AdminReclamationPortal = () => {
     return m;
   }, [reclamationsData]);
 
-  /* =====================================================
-   * HANDLERS
-   * ===================================================== */
+
   const handleStatusClick = (status) => {
     setFilter((prev) => ({ ...prev, status }));
     setFilteredItems(getFilteredItems(status, filter.month, filter.name));
     setVisibleItemsCount(ITEMS_PER_LOAD);
-    if (isMobile) setIsSidebarOpen(false); // Закриваємо на мобілці після вибору
+    if (isMobile) setIsSidebarOpen(false); 
   };
 
   const handleMonthClick = (month) => {
@@ -331,9 +315,7 @@ const AdminReclamationPortal = () => {
     setVisibleItemsCount(ITEMS_PER_LOAD);
   };
 
-  /* =====================================================
-   * SORT + PAGINATION
-   * ===================================================== */
+
   const sortedItems = useMemo(
     () =>
       [...filteredItems].sort(
@@ -345,9 +327,7 @@ const AdminReclamationPortal = () => {
   const itemsToShow = sortedItems.slice(0, visibleItemsCount);
   const showLoadMoreButton = sortedItems.length > visibleItemsCount;
 
-  /* =====================================================
-   * UI
-   * ===================================================== */
+
   if (loading) {
     return (
       <div className="loading-spinner-wrapper">
@@ -359,7 +339,7 @@ const AdminReclamationPortal = () => {
 
   return (
     <div className={`column portal-body ${theme}`}>
-      {/* ================= HEADER + MONTHS ================= */}
+
       <div className="content-summary row w-100" style={{justifyContent:'center'}}>
         
 {/* 
@@ -388,7 +368,6 @@ const AdminReclamationPortal = () => {
             src={filterIcon} 
             alt="Стрілка" 
             className="align-center mr-1 min-w-[20px] h-[20px]" 
-            /* inline-style тут вже не потрібні, якщо є класи зверху */
         />
         </div>
 
@@ -406,7 +385,7 @@ const AdminReclamationPortal = () => {
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
         >
-            {/* Динамічна генерація: поточний рік + 2 попередні */}
+
             {Array.from({ length: 3 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 return (
@@ -419,7 +398,6 @@ const AdminReclamationPortal = () => {
     </div>
 
         
-          {/* ===== DESKTOP: кнопки ===== */}
           {!isMobilePagination && (
             <ul className=" flex-1  gap-6 row no-wrap month-list">
               {dealerGuid !== ALL_DEALERS_VALUE && (
@@ -469,7 +447,6 @@ const AdminReclamationPortal = () => {
             </ul>
           )}
 
-          {/* ===== MOBILE: select ===== */}
           {isMobilePagination && (
             <select
               className="month-select flex-1 "
@@ -516,11 +493,11 @@ const AdminReclamationPortal = () => {
         </div>
       </div>
 
-      {/* ================= CONTENT ================= */}
+
       <div className="content-wrapper row w-100 h-100">
         <div className="row  h-100 max-w-[1334px]  w-100">
 
-        {/* OVERLAY (Background for mobile sidebar) */}
+  
         {isMobile && isSidebarOpen && (
           <div
             className="sidebar-overlay"
@@ -528,11 +505,11 @@ const AdminReclamationPortal = () => {
           />
         )}
 
-        {/* SIDEBAR */}
+ 
         <div
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
-          {/* КНОПКА ЗАКРИТТЯ САЙДБАРУ (Тільки для мобілки) */}
+      
           {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
                         {isSidebarOpen && <span>Фільтри Рекламацій</span>}
                         {isSidebarOpen && (
@@ -574,8 +551,7 @@ const AdminReclamationPortal = () => {
             <>
             <div className="dealer-select-wrapper">
               {/* <div className="delimiter1" /> */}
-              {/* Якщо DealerSelectWithAll теж має закривати сайдбар, 
-                                можна передати обгортку в onChange */}
+
               <DealerSelectWithAll
                 value={dealerGuid}
                 onChange={(val) => {
@@ -604,7 +580,7 @@ const AdminReclamationPortal = () => {
                       src={plusIcon} 
                       alt="+" 
                       className="align-center mr-2 " 
-                      /* inline-style тут вже не потрібні, якщо є класи зверху */
+
                       />
                   <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нова рекламація</div>
         
@@ -613,7 +589,7 @@ const AdminReclamationPortal = () => {
             </>
           )}
 
-          {/* ===== FILTERS WITH ICONS ===== */}
+
           <ul className="filter column align-center">
              <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
               min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 

@@ -36,13 +36,13 @@ BOT_TOKEN = settings.BOT_TOKEN
     summary="Терміновий дзвінок клієнту (SOS)",
     description=(
         "Надсилає **терміновий запит на дзвінок** для обраного контакту служби підтримки.\n\n"
-        "📌 Повідомлення відправляється:\n"
+        " Повідомлення відправляється:\n"
         "- у **Telegram** (якщо вказано telegram_id)\n"
         "- на **Email** (обовʼязково)\n\n"
-        "🧾 Повідомлення містить:\n"
+        " Повідомлення містить:\n"
         "- імʼя клієнта\n"
         "- номер телефону клієнта\n\n"
-        "📊 Результат зберігається в журналі SOS-викликів."
+        " Результат зберігається в журналі SOS-викликів."
     ),
     tags=["urgent-call"],
     auth=[{"jwtAuth": []}],
@@ -98,7 +98,7 @@ def urgent_call_request(request):
     client_name = getattr(request.user, 'full_name', None) or request.user.username
     client_phone = getattr(request.user, 'phone_number', None) or "Не вказано"
 
-    message = f"📞 Терміново зателефонуйте клієнту {client_name} за номером {client_phone}."
+    message = f" Терміново зателефонуйте клієнту {client_name} за номером {client_phone}."
     success = True
     errors = []
 
@@ -155,12 +155,12 @@ from .serializers import HelpServiceLogSerializer
     summary="Журнал SOS-викликів",
     description=(
         "Повертає список **усіх термінових (SOS) викликів**.\n\n"
-        "📌 Містить інформацію:\n"
+        " Містить інформацію:\n"
         "- хто ініціював виклик\n"
         "- кому було відправлено повідомлення\n"
         "- дату та час\n"
         "- статус успішності\n\n"
-        "🔐 **Доступ:**\n"
+        " **Доступ:**\n"
         "- JWT\n"
         "- зазвичай використовується адміністраторами"
     ),

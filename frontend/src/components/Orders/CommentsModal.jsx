@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axiosInstance, { getAccessToken } from "../../api/axios";
 import { FaRegCommentDots, FaPaperPlane } from "react-icons/fa";
 import "./CommentsModal.css";
+import { useTranslation } from "react-i18next";
 import { useNotification } from "../../hooks/useNotification";
 
 const AUTHOR_COLORS = [
@@ -29,6 +30,7 @@ const CommentsModal = ({
   transactionTypeId,
   manager,
 }) => {
+  const { t, i18n } = useTranslation();
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
@@ -45,7 +47,7 @@ const CommentsModal = ({
       setCurrentUser(res.data);
       return res.data;
     } catch (err) {
-      console.error("Помилка профілю:", err);
+      // console.error(t("commentsModal.errors.fetchProfile"), err);
       return null;
     }
   }, []);
@@ -61,7 +63,7 @@ const CommentsModal = ({
       });
       setComments(res.data || []);
     } catch  {
-      addNotification("Не вдалося завантажити історію", "error");
+      addNotification(t("commentsModal.errors.fetchHistory"), "error");
     }
   }, [baseTransactionGuid, transactionTypeId, addNotification]);
 
@@ -71,7 +73,7 @@ const CommentsModal = ({
     try {
       await axiosInstance.get("/user/me/");
     } catch  {
-      console.error("Авторизація не вдалася, реконект через 5 сек...");
+      // console.error(t("commentsModal.errors.authFailed"));
       reconnectTimeout.current = setTimeout(connectWS, 5000);
       return;
     }
@@ -112,7 +114,7 @@ const CommentsModal = ({
     };
 
     ws.onclose = (e) => {
-      console.log(`WS закритo (код: ${e.code}). Перепідключення...`);
+      // console.log(`WS закритo (код: ${e.code}). Перепідключення...`);
 
       if (isOpen) {
         reconnectTimeout.current = setTimeout(connectWS, 3000);
@@ -120,7 +122,7 @@ const CommentsModal = ({
     };
 
     ws.onerror = (err) => {
-      console.error("WS помилка:", err);
+      // console.error("WS помилка:", err);
       ws.close();
     };
   }, [chatId, isOpen]);
@@ -187,7 +189,7 @@ const CommentsModal = ({
       }
     } else {
       addNotification(
-        "З'єднання втрачено. Спробуйте оновити сторінку.",
+        t("commentsModal.errors.connectionLost"),
         "error",
       );
     }
@@ -206,7 +208,7 @@ const CommentsModal = ({
             size={20}
             style={{ marginRight: 8, color: "#76b448" }}
           />
-          <h3>Чат</h3>
+          <h3>{t("commentsModal.title")}</h3>
           <span className="comments-close-x" onClick={onClose}>
             &times;
           </span>
@@ -214,7 +216,7 @@ const CommentsModal = ({
 
         <div className="comments-modal-body">
           {comments.length === 0 ? (
-            <div className="comments-no-comments">Повідомлень ще немає</div>
+            <div className="comments-no-comments">{t("commentsModal.noMessages")}</div>
           ) : (
             <ul className="comments-list">
               {comments.map((c, idx) => {
@@ -231,7 +233,7 @@ const CommentsModal = ({
                       </strong>
                       <span className="comments-date">
                         {new Date(c.created_at || Date.now()).toLocaleString(
-                          "uk-UA",
+                          i18n.language === "en" ? "en-US" : "uk-UA" // Динамічна локаль часу
                         )}
                       </span>
                     </div>
@@ -247,7 +249,7 @@ const CommentsModal = ({
         <div className="comments-form-container">
           <div className="textarea-wrapper">
             <textarea
-              placeholder="Ваше повідомлення..."
+             placeholder={t("commentsModal.placeholder")}
               value={newComment}
               onChange={(e) => {
                 setNewComment(e.target.value);

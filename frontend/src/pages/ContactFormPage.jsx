@@ -11,7 +11,7 @@ const ContactFormPage = () => {
     department: "",
   });
   const navigate = useNavigate();
-  const { id } = useParams(); // якщо є id — редагування, якщо нема — створення
+  const { id } = useParams(); 
 
   useEffect(() => {
     if (id) {
@@ -41,15 +41,15 @@ const ContactFormPage = () => {
 
     method(url, form)
     .then(() => {
-      addNotification("Контакт успішно збережено!", "success"); // Додаємо позитивний фідбек
+      addNotification("Контакт успішно збережено!", "success"); 
       navigate("/contacts");
     })
     .catch((err) => {
-      // 1. Показуємо зрозумілу помилку користувачеві
+ 
       const errorMessage = err.response?.data?.message || "Не вдалося зберегти контакт.";
       addNotification(errorMessage, "error");
 
-      // 2. Логуємо помилку в консоль тільки для себе (в режимі розробки)
+
       if (process.env.NODE_ENV === 'development') {
         console.error("Помилка збереження контакту:", err);
       }

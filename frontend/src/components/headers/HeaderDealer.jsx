@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, useContext, useCallback } from "react";
+import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
@@ -9,29 +9,30 @@ import NotificationDrawer from "../../pages/NotificationPage";
 import HeaderDealerProfile from "./HeaderDealerProfile";
 import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderDealerProfile.css";
+import { useTranslation } from 'react-i18next';
 
 
+// const NAV_LINKS = [
+//   { title: "Акції WDS", to: "/promo-wds-codes", highlight: true },
+//   { title: "Замовлення", to: "/orders" },
+//   { title: "Рекламації", to: "/complaints" },
+//   { title: "Дозамовлення", to: "/additional-orders" },
+//   { title: "Файли", to: "/files" },
+//   { title: "Відео", to: "/videos" },
+//   { title: "Оплата", to: "/payment" },
+// ];
 
-const NAV_LINKS = [
-  { title: "Акції WDS", to: "/promo-wds-codes", highlight: true },
-  { title: "Замовлення", to: "/orders" },
-  { title: "Рекламації", to: "/complaints" },
-  { title: "Дозамовлення", to: "/additional-orders" },
-  { title: "Файли", to: "/files" },
-  { title: "Відео", to: "/videos" },
-  { title: "Оплата", to: "/payment" },
-];
-
-const FINANCE_SUBMENU = [
-  { title: "Рух коштів", to: "/finance/cash-flow" },
-  { title: "Аналітика", to: "/finance/statistics" },
-  { title: "Рахунки", to: "/finance/customer-bills" },
-];
+// const FINANCE_SUBMENU = [
+//   { title: "Рух коштів", to: "/finance/cash-flow" },
+//   { title: "Аналітика", to: "/finance/statistics" },
+//   { title: "Рахунки", to: "/finance/customer-bills" },
+// ];
 
 
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
 
 export default function HeaderDealer() {
+  const { t } = useTranslation();
   const isMobile = useMediaQuery({ maxWidth: 1180 });
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +41,22 @@ export default function HeaderDealer() {
   const { addNotification } = useNotification();
 
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const NAV_LINKS = useMemo(() => [
+    { title: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true },
+    { title: t('nav.orders'), to: "/orders" },
+    { title: t('nav.complaints'), to: "/complaints" },
+    { title: t('nav.additional_orders'), to: "/additional-orders" },
+    { title: t('nav.files'), to: "/files" },
+    { title: t('nav.videos'), to: "/videos" },
+    { title: t('nav.payment'), to: "/payment" },
+  ], [t]);
+
+  const FINANCE_SUBMENU = useMemo(() => [
+    { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
+    { title: t('nav.finance_analytics'), to: "/finance/statistics" },
+    { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
+  ], [t]);
 
   // --- СТАН ДАНИХ ---
   const [unreadCount, setUnreadCount] = useState(0);
@@ -76,7 +93,8 @@ export default function HeaderDealer() {
       if (countRes.data.status === "success") setUnreadCount(countRes.data.unreadCount);
       if (listRes.data.status === "success") setNotifications(listRes.data.data);
     } catch (err) {
-      console.error("Помилка завантаження сповіщень:", err);
+      
+      console.error("Error loading notifications:", err);
     }
   }, []);
 
@@ -293,7 +311,7 @@ useEffect(() => {
                   color: showFinanceMenu || location.pathname.includes("/finance") ? 'var(--header-active-text)' : 'var(--header-text)'
                 }}
               >
-                Фінанси <span className={`transition-transform ${showFinanceMenu ? "rotate-180" : ""}`}>▾</span>
+                {t('nav.finance')} <span className={`transition-transform ${showFinanceMenu ? "rotate-180" : ""}`}>▾</span>
               </button>
 
               {showFinanceMenu && (
@@ -345,7 +363,7 @@ useEffect(() => {
             className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
             onClick={() => setProfileOpen(false)}
           >
-            Змінити пароль
+            {t('nav.change_password')}
           </Link>
         </li>
         <li>
@@ -354,7 +372,7 @@ useEffect(() => {
             className="block px-4 py-3 text-[14px] font-medium text-red-600 hover:bg-red-50 transition-colors"
             onClick={() => setProfileOpen(false)}
           >
-            Гаряча лінія
+            {t('nav.settings_emergency_contacts')}
           </Link>
         </li>
       </ul>
@@ -364,7 +382,7 @@ useEffect(() => {
       
           <div className="flex items-center px-3 gap-7">
             <div className="relative cursor-pointer" onClick={() => setIsNotificationOpen(true)}>
-              <img src={bellIcon} alt="Сповіщення" className="w-[20px] h-[20px] object-contain" />
+              <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
               {unreadCount > 0 && (
                 <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B4D947] rounded-full border-2 border-white flex items-center justify-center">
                   <span className="text-[#44403E] text-[9px] font-black">
@@ -379,7 +397,7 @@ useEffect(() => {
             </button> */}
 
             <button onClick={() => { logout(); navigate("/home"); }} className="text-[#44403E] hover:text-red-500 text-lg">
-               <img src={exitIcon} alt="Вихід" className="w-[20px] h-[20px] object-contain" />
+               <img src={exitIcon} alt={t('nav.logout')} className="w-[20px] h-[20px] object-contain" />
             </button>
           </div>
         </div>
@@ -390,7 +408,7 @@ useEffect(() => {
         <div className="ml-auto flex items-center gap-5 mr-4" ref={mobileMenuRef}>
     
              <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
-              <img src={bellIcon} alt="Сповіщення" className="w-[20px] h-[20px]" />
+              <img src={bellIcon} alt={t('nav.notifications')}  className="w-[20px] h-[20px]" />
               {unreadCount > 0 && (
                 <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B4D947] rounded-full border-2 border-white flex items-center justify-center">
                   <span className="text-[#44403E] text-[9px] font-black">
@@ -454,7 +472,7 @@ useEffect(() => {
         location.pathname.includes("/finance") ? "text-[#6B98BF]" : "text-[#44403E]"
       }`}
     >
-      <span className="text-xl font-bold">Фінанси</span>
+      <span className="text-xl font-bold">{t('nav.finance')}</span>
       <span className={`text-[12px] transition-transform ml-2 ${showFinanceMenu ? 'rotate-180' : ''}`}>▼</span>
     </button>
     
@@ -508,14 +526,14 @@ useEffect(() => {
           className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50 border-b border-dotted border-[#B4D947]"
           onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
         >
-          Змінити пароль
+          {t('nav.change_password')}
         </Link>
         <Link
           to="/emergency-contacts"
           className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50"
           onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
         >
-          Гаряча лінія
+          {t('nav.settings_emergency_contacts')}
         </Link>
       </div>
     </div>
@@ -541,8 +559,8 @@ useEffect(() => {
           onClick={() => { logout(); navigate("/home"); }}
           className="flex items-center justify-center gap-3 w-full"
         >
-          <img className="w-7 h-6 mr-2" src={exitIcon} alt="exit" />
-          <span className="text-[#44403E] text-xl font-bold">Вихід</span>
+          <img className="w-7 h-6 mr-2" src={exitIcon} alt={t('nav.logout')} />
+          <span className="text-[#44403E] text-xl font-bold">{t('nav.logout')}</span>
         </button>
       </div>
     </div>

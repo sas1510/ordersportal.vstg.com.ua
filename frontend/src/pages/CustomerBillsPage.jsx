@@ -42,7 +42,7 @@ const CustomerBillsPage = () => {
   const [_error, setError] = useState("");
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
 
-  // Стан для конкретної кнопки PDF
+
   const [pdfDownloadingId, setPdfDownloadingId] = useState(null);
 
   const fetchBills = async () => {
@@ -82,8 +82,8 @@ const CustomerBillsPage = () => {
       const response = await axiosInstance.post(
         `/payments/get_bill_pdf/${billGuid}/`,
         {
-          BillGuid: billGuid, // Відповідає структурі 1С
-          contractor_guid: dealerGuid, // Потрібно для resolve_contractor, якщо ви Адмін
+          BillGuid: billGuid, 
+          contractor_guid: dealerGuid, 
         },
         { responseType: "blob" },
       );

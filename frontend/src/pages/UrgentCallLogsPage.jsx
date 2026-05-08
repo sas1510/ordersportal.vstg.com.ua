@@ -120,12 +120,12 @@ export default function EmergencyCallLogsPage() {
         setLogs((prev) =>
           prev.map((log) => (log.id === editingLog.id ? updatedContact : log)),
         );
-        addNotification("✅ Контакт успішно оновлено", "success");
+        addNotification(" Контакт успішно оновлено", "success");
       } else {
         const response = await axiosInstance.post("/contacts/", payload);
         updatedContact = response.data;
         setLogs((prev) => [...prev, updatedContact]);
-        addNotification("✅ Контакт успішно додано", "success");
+        addNotification(" Контакт успішно додано", "success");
       }
 
       closeModal();
@@ -133,7 +133,7 @@ export default function EmergencyCallLogsPage() {
       if (process.env.NODE_ENV === "development") {
         console.error("Помилка при збереженні контакту:", error);
       }
-      addNotification("❌ Помилка при збереженні контакту", "error");
+      addNotification(" Помилка при збереженні контакту", "error");
     } finally {
       setSaving(false);
     }
@@ -164,7 +164,8 @@ export default function EmergencyCallLogsPage() {
   };
 
   return (
-    <div className="emergency-log-body">
+    <div className="emergency-log-body items-center text-center">
+      <div className="w-full max-w-[1334px]">
       <div className="flex justify-between items-center mb-2">
         <h1 className="emergency-log-title text-color mt-3 text-4xl font-bold mb-0">
           Журнал термінових дзвінків
@@ -245,7 +246,7 @@ export default function EmergencyCallLogsPage() {
                   <td>{log.contact_phone}</td>
                   <td>{log.contact_email}</td>
                   <td style={{ color: log.success ? "green" : "red" }}>
-                    {log.success ? "✅ Успішно" : "❌ Помилка"}
+                    {log.success ? " Успішно" : " Помилка"}
                   </td>
                 </tr>
               ))
@@ -355,6 +356,7 @@ export default function EmergencyCallLogsPage() {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
