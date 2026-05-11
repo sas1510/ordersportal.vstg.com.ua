@@ -355,8 +355,12 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.contractor_ws import resolve_contractor_ws
 from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
 from backend.utils.tasks import send_webpush_notification
-import logging
-logger = logging.getLogger(__name__)
+# import logging
+
+
+# logger = logging.getLogger(__name__)
+from backend.utils.logging_setup import logger
+
 from celery import current_app
 
 import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
@@ -379,13 +383,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     return doc_owner_bin == user_contractor_bin
             return False
         except Exception as e:
-            print(f"Ownership Error: {str(e)}")
+            logger.error(f"Ownership Check Error: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'check_document_ownership'
+            
+            }
+        })
             return False
         
 
     async def connect(self):
         self.user = self.scope.get("user")
         if not self.user or self.user.is_anonymous:
+            logger.warning("WebSocket Connect Rejected: Anonymous user", extra={
+            'tags': {
+                'action': 'connect_socket'
+            
+            }
+        })
             await self.close(code=4001)
             return
 
@@ -396,16 +411,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             from backend.utils.contractor_ws import resolve_contractor_ws 
             self.contractor_bin, self.contractor_guid = resolve_contractor_ws(self.scope)
         except Exception as e:
+            logger.error(f"Contractor resolution failed for {self.user}: {str(e)}", extra={
+            'tags': {
+                'action': 'connect_socket'
+            
+            }
+        })
             self.contractor_bin = None
             self.contractor_guid = getattr(self.user, 'user_id_1C', None)
 
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
         self.room_group_name = f'chat_{self.chat_id}'
 
-        # Додаємо GUID користувача в список активних у цій кімнаті
+    
         user_guid_str = str(bin_to_guid_1c(self.contractor_bin)) if self.contractor_bin else str(self.contractor_guid)
         if user_guid_str:
             await self.redis_conn.sadd(f"active_users_{self.room_group_name}", user_guid_str.lower())
+            logger.info(f"WS Connect: User {user_guid_str} joined {self.room_group_name}", extra={
+            'tags': {
+                'action': 'connect_socket'
+            
+            }
+        })
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
@@ -413,11 +440,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, 'room_group_name'):
-            # Видаляємо користувача зі списку активних
+    
             user_guid_str = str(bin_to_guid_1c(self.contractor_bin)) if self.contractor_bin else str(self.contractor_guid)
             if user_guid_str:
                 await self.redis_conn.srem(f"active_users_{self.room_group_name}", user_guid_str.lower())
             
+
+            # logger.info(f"WS Disconnect: User {user_guid_str} left {self.room_group_name} (Code: {close_code})")
             await self.redis_conn.close()
             await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
@@ -446,12 +475,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             try:
                 data = json.loads(text_data)
             except json.JSONDecodeError:
-            
+                logger.warning(f"WS Receive: Invalid JSON from {self.user}", extra={
+                    'tags': {
+                        'action': 'receive_socket'
+                    
+                    }
+                })
                 await self.send_error("Некоректний формат JSON")
                 return
 
             message_text = data.get('message')
-            
+
             recipient_id_1c = data.get('recipient_guid')
 
             if isinstance(recipient_id_1c, str):
@@ -474,13 +508,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 base_transaction_guid = chat_parts[1]
                 base_guid = guid_to_1c_bin(base_transaction_guid)
             except (IndexError, ValueError, Exception):
+                logger.error(f"WS Receive: Malformed chat_id: {self.chat_id}", extra={
+                    'tags': {
+                        'action': 'receive_socket'
+                    
+                    }
+                })
                 await self.send_error("Некоректний формат chat_id")
                 return
             
             if getattr(self.user, 'role', '') == 'customer':
                 is_owner = await self.check_document_ownership(base_guid, t_type, self.contractor_bin)
                 if not is_owner:
-                    print(f"SECURITY: User {self.user.username} tried to post to chat {self.chat_id} belonging to another contractor!")
+                    logger.critical(f"SECURITY ALERT: User {self.user.username} tried to post to chat {self.chat_id} belonging to another contractor!", extra={
+                        'tags': {
+                            'action': 'receive_socket'
+                        
+                        }
+                    })
                     await self.send_error("Доступ заборонено: Ви не є власником цього документа")
                     return 
 
@@ -504,6 +549,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
             if not saved_msg:
+                logger.error(f"WS Receive: DB Save failed for message in {self.chat_id}" , extra={
+                    'tags': {
+                        'action': 'receive_socket'
+                    
+                    }
+                })
                 await self.send_error("Помилка збереження")
                 return
 
@@ -531,6 +582,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         args=[t_type, base_guid_str, recipient_id_1c, message_text, saved_msg.id],
                         countdown=6 
                     )
+
+                    logger.info(f"Task queued: send_chat_notification_to_1c for msg {saved_msg.id}")
                     
 
 
@@ -637,6 +690,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             import traceback
             traceback.print_exc()
+            logger.error(f"Critical error in ChatConsumer.receive: {str(e)}",  extra={
+                    'tags': {
+                        'action': 'receive_socket'
+                    
+                    }
+                })
+            logger.error(f"Critical error in ChatConsumer.receive: {traceback.format_exc()}", extra={
+                    'tags': {
+                        'action': 'receive_socket'
+                    
+                    }
+                })
         
             await self.send_error(f"Внутрішня помилка сервера: {str(e)}")
 
@@ -644,15 +709,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_main_message(self, text, base_guid, recipient_bin, t_type, author_bin):
-        return ChatMessage.objects.create(
-            chat_id=self.chat_id,
-            author=author_bin,
-            recipient=recipient_bin,
-            text=text,
-            related_object_id=base_guid,
-            transaction_type_id=t_type,
-            is_notification=False
-        )
+        try:
+            return ChatMessage.objects.create(
+                chat_id=self.chat_id,
+                author=author_bin,
+                recipient=recipient_bin,
+                text=text,
+                related_object_id=base_guid,
+                transaction_type_id=t_type,
+                is_notification=False
+            )
+        except Exception as e:
+            logger.error(f"DB Error saving message: {str(e)}",  extra={
+                    'tags': {
+                        'action': 'save_main_message_socket'
+                    
+                    }
+                })
+            return None
+
 
     @database_sync_to_async
     def create_notification_record(self, text, base_guid, recipient_bin, t_type, author_bin):
@@ -707,6 +782,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return chat_msg, notification_text
         except Exception:
             return None, None
+        
+
+    async def send_error(self, message):
+        await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
         
 
 

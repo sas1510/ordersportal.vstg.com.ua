@@ -559,9 +559,9 @@ def additional_orders_view(request):
         logger.warning(f"Unauthorized access to additional orders: {str(e)}")
         return Response({"error": str(e)}, status=403)
     
-    logger.info(f"Fetching additional orders", extra={
-        'tags': {'action': 'get_additional_orders', 'contractor': contractor_guid, 'year': year}
-    })
+    # logger.info(f"Fetching additional orders", extra={
+    #     'tags': {'action': 'get_additional_orders', 'contractor': contractor_guid, 'year': year}
+    # })
 
 
 
@@ -785,13 +785,13 @@ def order_files_view(request, order_guid):
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
     # 1. Початковий лог (Debug або Info)
-    logger.info(f"Fetching files list for order {order_guid}", extra={
-        'tags': {
-            'action': 'get_order_files_list',
-            'order_guid': order_guid,
-            'user': user_name
-        }
-    })
+    # logger.info(f"Fetching files list for order {order_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_order_files_list',
+    #         'order_guid': order_guid,
+    #         'user': user_name
+    #     }
+    # })
 
     try:
         with connection.cursor() as cursor:
@@ -978,14 +978,14 @@ def download_order_file(request, order_guid, file_guid):
     # Формуємо шлях для бібліотеки: /Server/Share/Folder/...
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
 
-    logger.info(f"File download request from SMB", extra={
-        'tags': {
-            'action': 'download_file',
-            'order_guid': order_guid,
-            'file_name': filename,
-            'user': user_name
-        }
-    })
+    # logger.info(f"File download request from SMB", extra={
+    #     'tags': {
+    #         'action': 'download_file',
+    #         'order_guid': order_guid,
+    #         'file_name': filename,
+    #         'user': user_name
+    #     }
+    # })
 
     try:
 
@@ -1018,14 +1018,14 @@ def download_order_file(request, order_guid, file_guid):
         duration = time.time() - start_time
         
         # 2. Лог успішного ініціювання стрімінгу
-        logger.info(f"SMB Stream started: {filename}", extra={
-            'tags': {
-                'action': 'download_file',
-                'status': 'success',
-                'file_size_mb': file_size_mb,
-                'duration_init_sec': round(duration, 4)
-            }
-        })
+        # logger.info(f"SMB Stream started: {filename}", extra={
+        #     'tags': {
+        #         'action': 'download_file',
+        #         'status': 'success',
+        #         'file_size_mb': file_size_mb,
+        #         'duration_init_sec': round(duration, 4)
+        #     }
+        # })
 
         return response
 
@@ -1368,14 +1368,14 @@ def complaints_view_all_by_month(request):
             status=400
         )
     
-    logger.info(f"ADMIN: Fetching ALL complaints for {year}-{month:02d}", extra={
-        'tags': {
-            'action': 'admin_get_all_complaints',
-            'year': year,
-            'month': month,
-            'admin_user': request.user.username if request.user else 'unknown'
-        }
-    })
+    # logger.info(f"ADMIN: Fetching ALL complaints for {year}-{month:02d}", extra={
+    #     'tags': {
+    #         'action': 'admin_get_all_complaints',
+    #         'year': year,
+    #         'month': month,
+    #         'admin_user': request.user.username if request.user else 'unknown'
+    #     }
+    # })
 
     # =========================
     # SQL
@@ -1531,14 +1531,14 @@ def orders_view_all_by_month(request):
         return JsonResponse({"error": "Invalid year or month"}, status=400)
     
 
-    logger.info(f"ADMIN: Fetching ALL orders for month {year}-{month:02d}", extra={
-        'tags': {
-            'action': 'admin_get_monthly_orders',
-            'year': year,
-            'month': month,
-            'admin_user': request.user.username if request.user else 'unknown'
-        }
-    })
+    # logger.info(f"ADMIN: Fetching ALL orders for month {year}-{month:02d}", extra={
+    #     'tags': {
+    #         'action': 'admin_get_monthly_orders',
+    #         'year': year,
+    #         'month': month,
+    #         'admin_user': request.user.username if request.user else 'unknown'
+    #     }
+    # })
 
     # =====================================================
     # SQL
@@ -1927,7 +1927,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         start_time = time.time()
         query_type = payload.get('Query', 'Unknown')
         
-        logger.info(f"Sending request to 1C", extra={'tags': {'query': query_type}})
+        # logger.info(f"Sending request to 1C", extra={'tags': {'query': query_type}})
         try:
             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
@@ -1972,12 +1972,12 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
 
     def create(self, request):
-        logger.info("CreateCalculation START", extra={
-            "tags": {
-                "action": "create_calculation",
-                "stage": "start"
-            }
-        })
+        # logger.info("CreateCalculation START", extra={
+        #     "tags": {
+        #         "action": "create_calculation",
+        #         "stage": "start"
+        #     }
+        # })
 
         serializer = CalculationCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -2137,11 +2137,12 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         #     writer_guid=writer_guid,
         # )
 
-        logger.info("CreateCalculation END", extra={
+        logger.info(f"CreateCalculation END", extra={
             "tags": {
                 "action": "create_calculation",
                 "stage": "end",
-                "calculation_guid": str(calculation_guid)
+                "calculation_guid": str(calculation_guid),
+                "contractor_guid": str(contractor_guid)
             }
         })
 
@@ -2214,13 +2215,13 @@ def get_dealer_addresses(request):
         admin_param="contractor"
     )
 
-    logger.info(f"Fetching addresses for contractor", extra={
-        'tags': {
-            'action': 'get_dealer_addresses',
-            'contractor': contractor_guid,
-            'user': user_name
-        }
-    })
+    # logger.info(f"Fetching addresses for contractor", extra={
+    #     'tags': {
+    #         'action': 'get_dealer_addresses',
+    #         'contractor': contractor_guid,
+    #         'user': user_name
+    #     }
+    # })
 
     try:
 
@@ -2331,15 +2332,15 @@ def wds_codes_by_contractor(request):
     date_from = parse_date(raw_from, "date_from")
     date_to = parse_date(raw_to, "date_to")
 
-    logger.info(f"Fetching WDS codes for contractor", extra={
-        'tags': {
-            'action': 'get_wds_codes',
-            'contractor': contractor_guid,
-            'user': user_name,
-            'period_start': raw_from,
-            'period_end': raw_to
-        }
-    })
+    # logger.info(f"Fetching WDS codes for contractor", extra={
+    #     'tags': {
+    #         'action': 'get_wds_codes',
+    #         'contractor': contractor_guid,
+    #         'user': user_name,
+    #         'period_start': raw_from,
+    #         'period_end': raw_to
+    #     }
+    # })
 
 
     try:
@@ -2566,7 +2567,7 @@ def download_calculation_file(request, calc_guid, file_guid):
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}"
 
     
-    logger.info(f"Start get a file {remote_path}")
+    # logger.info(f"Start get a file {remote_path}")
 
     try:
 
@@ -2610,14 +2611,14 @@ def confirm_order(request, order_id):
     user = request.user
 
 
-    logger.info(f"User {user.username} is confirming order №{order_id}", extra={
-        'tags': {
-            'action': 'confirm_order',
-            'order_id': order_id,
-            'user': user.username,
-            'status': 'initiated'
-        }
-    })
+    # logger.info(f"User {user.username} is confirming order №{order_id}", extra={
+    #     'tags': {
+    #         'action': 'confirm_order',
+    #         'order_id': order_id,
+    #         'user': user.username,
+    #         'status': 'initiated'
+    #     }
+    # })
 
     try:
         query_name = "ConfirmOrder"
@@ -2697,14 +2698,14 @@ class DeleteCalculationView(APIView):
         user_name = user.username if user.is_authenticated else "anonymous"
 
         # 1. Логуємо намір видалення
-        logger.info(f"User {user_name} is deleting calculation {calculation_guid}", extra={
-            'tags': {
-                'action': 'delete_calculation',
-                'status': 'initiated',
-                'calculation_id': str(calculation_guid),
-                'user': user_name
-            }
-        })
+        # logger.info(f"User {user_name} is deleting calculation {calculation_guid}", extra={
+        #     'tags': {
+        #         'action': 'delete_calculation',
+        #         'status': 'initiated',
+        #         'calculation_id': str(calculation_guid),
+        #         'user': user_name
+        #     }
+        # })
 
 
         payload = {
@@ -3408,13 +3409,13 @@ def get_user_notifications(request):
         logger.warning(f"Notification access denied for {user_name}: {str(e)}")
         return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
-    logger.info(f"User {user_name} fetching notifications", extra={
-        'tags': {
-            'action': 'get_notifications',
-            'user': user_name,
-            'contractor': contractor_guid
-        }
-    })
+    # logger.info(f"User {user_name} fetching notifications", extra={
+    #     'tags': {
+    #         'action': 'get_notifications',
+    #         'user': user_name,
+    #         'contractor': contractor_guid
+    #     }
+    # })
 
     try:
 
@@ -3514,16 +3515,16 @@ def get_notifications_count(request):
 
         duration = time.time() - start_time
 
-        logger.info(f"Unread notifications count for {user_name}: {unread_count}", extra={
-            'tags': {
-                'action': 'get_notifications_count',
-                'status': 'success',
-                'user': user_name,
-                'contractor': contractor_guid,
-                'unread_val': unread_count,
-                'duration_sec': round(duration, 4)
-            }
-        })
+        # logger.info(f"Unread notifications count for {user_name}: {unread_count}", extra={
+        #     'tags': {
+        #         'action': 'get_notifications_count',
+        #         'status': 'success',
+        #         'user': user_name,
+        #         'contractor': contractor_guid,
+        #         'unread_val': unread_count,
+        #         'duration_sec': round(duration, 4)
+        #     }
+        # })
 
         return Response({
             "status": "success",
@@ -3648,16 +3649,16 @@ def mark_single_notification_as_read(request, pk):
         duration = time.time() - start_time
 
         # 3. Лог успіху
-        logger.info(f"Notification {pk} marked as read by {user_name}", extra={
-            'tags': {
-                'action': 'mark_single_notification_read',
-                'status': 'success',
-                'notification_id': pk,
-                'user': user_name,
-                'contractor': contractor_guid,
-                'duration_sec': round(duration, 4)
-            }
-        })
+        # logger.info(f"Notification {pk} marked as read by {user_name}", extra={
+        #     'tags': {
+        #         'action': 'mark_single_notification_read',
+        #         'status': 'success',
+        #         'notification_id': pk,
+        #         'user': user_name,
+        #         'contractor': contractor_guid,
+        #         'duration_sec': round(duration, 4)
+        #     }
+        # })
         
         return Response({"status": "success"})
     

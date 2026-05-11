@@ -235,10 +235,10 @@ def get_payment_status_view(request):
         admin_param="contractor",
     )
 
-    logger.info(
-        f"Fetching payment status: Contractor={contractor_binary.hex().upper() if contractor_binary else 'None'}, "
-        f"From={date_from}, To={date_to}"
-    )
+    # logger.info(
+    #     f"Fetching payment status: Contractor={contractor_binary.hex().upper() if contractor_binary else 'None'}, "
+    #     f"From={date_from}, To={date_to}"
+    # )
 
     try:
         sql = """
@@ -268,7 +268,7 @@ def get_payment_status_view(request):
         ]
 
         duration = time.time() - start_time
-        logger.info(f"Payment status request completed in {duration:.3f}s. Rows returned: {len(results)}")
+        # logger.info(f"Payment status request completed in {duration:.3f}s. Rows returned: {len(results)}")
 
 
         return JsonResponse(
@@ -337,17 +337,22 @@ def get_dealer_payment_page_data_view(request):
             admin_param="contractor",
         )
     except Exception as e:
-        logger.error(f"Contractor resolution failed in payment page: {str(e)}")
+        logger.error(f"Contractor resolution failed in payment page: {str(e)}", extra={
+                    'tags': {
+                        'action': 'get_dealer_payment_page_data_view'
+                    
+                    }
+                })
         return JsonResponse({"error": "Unauthorized or missing contractor"}, status=400)
 
 
-    logger.info(f"Loading payment page data for {contractor_guid}", extra={
-        'tags': {
-            'action': 'get_payment_page_data',
-            'user': user_name,
-            'contractor': contractor_guid
-        }
-    })
+    # logger.info(f"Loading payment page data for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_payment_page_data',
+    #         'user': user_name,
+    #         'contractor': contractor_guid
+    #     }
+    # })
 
 
 
@@ -390,15 +395,15 @@ def get_dealer_payment_page_data_view(request):
         duration = time.time() - start_time
 
         # 2. Лог успіху з метриками обох наборів даних
-        logger.info(f"Payment page data loaded for {contractor_guid}", extra={
-            'tags': {
-                'action': 'get_payment_page_data',
-                'status': 'success',
-                'orders_count': len(orders),
-                'contracts_count': len(contracts),
-                'duration_sec': round(duration, 4)
-            }
-        })
+        # logger.info(f"Payment page data loaded for {contractor_guid}", extra={
+        #     'tags': {
+        #         'action': 'get_payment_page_data',
+        #         'status': 'success',
+        #         'orders_count': len(orders),
+        #         'contracts_count': len(contracts),
+        #         'duration_sec': round(duration, 4)
+        #     }
+        # })
 
 
         return JsonResponse(

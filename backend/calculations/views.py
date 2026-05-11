@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 
 # Припускаємо, що OrderCreateSerializer імпортовано коректно
 from .serializers import OrderCreateSerializer 
+from backend.utils.logging_setup import logger
 
 
 # ====================================================================
@@ -17,7 +18,7 @@ def send_order_to_external_system(validated_data, uploaded_file):
     """
     ІМІТАЦІЯ: Відправка даних про прорахунок у 1С через SOAP/XML.
     """
-    # ❗️ Залишаємо імітацію для цілей тестування
+
     external_id = f"1C_MOCK_{validated_data.get('order_number')}" 
     return external_id, None 
 
@@ -34,16 +35,33 @@ class CreateOrderView(APIView):
         uploaded_file = request.FILES.get("file")
         now = timezone.now()
 
-        # 1. ПЕРЕВІРКА ФАЙЛУ
+        user_log_label = f"User(id={user.id}, role={user.role})"
+
+        logger.info(f"Start CreateOrderView.post for {user_log_label}")
+
+
+
         if not uploaded_file:
+            logger.warning(f"Order creation failed: No file provided. {user_log_label}", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
             return Response({"error": "Файл обов'язковий (file)"}, status=400)
 
-        # 2. КОДУВАННЯ ФАЙЛУ В Base64
+
         try:
             file_bytes = uploaded_file.read()
             file_base64 = base64.b64encode(file_bytes).decode('utf-8')
-        except Exception:
-             return Response({"error": "Не вдалося прочитати або закодувати файл."}, status=400)
+        except Exception as e:
+            logger.error(f"File encoding error for {user_log_label}: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
+            return Response({"error": "Не вдалося прочитати або закодувати файл."}, status=400)
 
         # ВИЗНАЧЕННЯ РОЛЕЙ ТА КОМЕНТАРЯ
         role = user.role
@@ -51,25 +69,58 @@ class CreateOrderView(APIView):
         comment_text = request.data.get("Comment")
 
 
-        # 3. ВИЗНАЧЕННЯ КЛІЄНТА (CUSTOMER) -- ЛОГІКА З РОЛЯМИ ВІДНОВЛЕНА
+        
         customer_id = None
         
         if role in manager_roles:
             # Менеджер: клієнт має бути вказаний у CustomerId
             customer_id = request.data.get("CustomerId")
+            # logger.info(f"Manager {user_log_label} is creating order for CustomerId: {customer_id}")
             if not customer_id:
+                logger.warning(f"Validation error: Manager didn't provide CustomerId.", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
                 return Response({"error": "CustomerId є обов'язковим для менеджерів."}, status=400)
         else:
             # Звичайний користувач: клієнт - це сам користувач, використовуємо user_id_1C
             try:
                 customer_id = user.user_id_1C
             except AttributeError:
+                logger.error(f"Profile error: User {user_log_label} has no user_id_1C.", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
                 return Response({"error": "Об'єкт користувача не містить поля user_id_1C."}, status=400)
-                
+            except Exception as e:
+                logger.error(f"Error accessing user_id_1C: {str(e)}", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
+                return Response({"error": "Внутрішня помилка при визначенні ID клієнта."}, status=400)
+
             if not customer_id:
-                 return Response({"error": "Не знайдено ID контрагента (user_id_1C) для поточного користувача."}, status=400)
+                logger.error(f"Profile error: User {user_log_label} has no user_id_1C.", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
+                return Response({"error": "Не знайдено ID контрагента (user_id_1C) для поточного користувача."}, status=400)
         
         if not customer_id:
+            logger.error(f"Profile error: User {user_log_label} has no user_id_1C.", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
             return Response({"error": "Не вдалося визначити ID клієнта."}, status=400)
 
 
@@ -83,20 +134,39 @@ class CreateOrderView(APIView):
             "create_date": now,
         })
 
+        
+
         if serializer.is_valid():
             validated_data = serializer.validated_data
             validated_data['comment'] = comment_text 
             
             # 5. ВІДПРАВКА В ЗОВНІШНЮ СИСТЕМУ (ІМІТАЦІЯ)
-            external_id, error = send_order_to_external_system(validated_data, uploaded_file) 
+            try:
+                external_id, error = send_order_to_external_system(validated_data, uploaded_file) 
+            except Exception as e:
+                logger.error(f"Critical crash during send_order_to_external_system: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
+                return Response({"error": "Критична помилка при спробі зв'язку з 1С."}, status=500)
+
 
             if error:
+                logger.error(f"1C returned error for order {validated_data.get('order_number')}: {error}", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
                 return Response({
                     "error": "Помилка при створенні прорахунку у зовнішній програмі.", 
                     "details": error
                 }, status=503)
 
             # 6. УСПІШНА ВІДПОВІДЬ
+            # logger.info(f"Order successfully created. External ID: {external_id}. {user_log_label}")
             return Response({
                 "message": "Прорахунок успішно створено у зовнішній системі.",
                 "external_id": external_id,
@@ -105,6 +175,12 @@ class CreateOrderView(APIView):
             }, status=201)
 
         # 7. ПОМИЛКИ ВАЛІДАЦІЇ
+        logger.warning(f"Serializer validation failed for {user_log_label}: {serializer.errors}", extra={
+                    'tags': {
+                        'action': 'CreateOrderView (post)'
+                    
+                    }
+                })
         return Response(serializer.errors, status=400)
 
 ##подивитися пізніше 

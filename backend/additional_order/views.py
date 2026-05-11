@@ -1,6 +1,6 @@
 
 import json
-import logging
+# import logging
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -13,7 +13,15 @@ from backend.utils.get_main_manager import get_contractor_main_manager_bin
 from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 from records.models import ChatMessage
 
-logger = logging.getLogger(__name__)
+from django.shortcuts import render
+
+
+from django.http import JsonResponse
+
+
+# logger = logging.getLogger(__name__)
+from backend.utils.logging_setup import logger
+
 
 
 @api_view(["GET"])
@@ -31,18 +39,20 @@ def get_additional_order_nomenclature(request):
                         row_dict[key] = bin_to_guid_1c(row_dict[key])
                 results.append(row_dict)
 
+        # logger.info(f"Successfully fetched {len(results)} nomenclature items")
+
         return Response({"nomenclature": results})
 
     except Exception as e:
+        logger.error("Error in get_additional_order_nomenclature", exc_info=True, extra={
+                    'tags': {
+                        'action': 'get_additional_order_nomenclature'
+                    
+                    }
+                })
         # Важливо: тут не має бути ніяких "from .views import..."
         return Response({"error": str(e)}, status=500)
     
-
-
-from django.shortcuts import render
-
-# Create your views here.
-from django.http import JsonResponse
 
 
 
@@ -61,31 +71,40 @@ def check_order_exists(request):
     if not order_number:
         return JsonResponse({"error": "order_number is required"}, status=400)
 
-    contragent_bin = None
-    if contragent_hex:
-        try:
-            # конвертуємо hex string у bytes
-            contragent_bin = bytes.fromhex(contragent_hex)
-        except ValueError:
-            return JsonResponse({"error": "Invalid contragent hex format"}, status=400)
+    try:
+        contragent_bin = None
+        if contragent_hex:
+            try:
+                # конвертуємо hex string у bytes
+                contragent_bin = bytes.fromhex(contragent_hex)
+            except ValueError:
+                return JsonResponse({"error": "Invalid contragent hex format"}, status=400)
 
-    with connection.cursor() as cursor:
-        if contragent_bin:
-            cursor.execute(
-                "EXEC [dbo].[CheckOrderExists] @OrderNumber=%s, @Контрагент=%s",
-                [order_number, contragent_bin]
-            )
-        else:
-            cursor.execute(
-                "EXEC [dbo].[CheckOrderExists] @OrderNumber=%s",
-                [order_number]
-            )
+        with connection.cursor() as cursor:
+            if contragent_bin:
+                cursor.execute(
+                    "EXEC [dbo].[CheckOrderExists] @OrderNumber=%s, @Контрагент=%s",
+                    [order_number, contragent_bin]
+                )
+            else:
+                cursor.execute(
+                    "EXEC [dbo].[CheckOrderExists] @OrderNumber=%s",
+                    [order_number]
+                )
 
-        row = cursor.fetchone()
-        exists = row[0] if row else 0
+            row = cursor.fetchone()
+            exists = row[0] if row else 0
 
-    return JsonResponse({"order_exists": bool(exists)})
+        return JsonResponse({"order_exists": bool(exists)})
 
+    except Exception as e:
+        logger.error(f"Error checking order exists for {order_number}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'check_order_exists'
+                    
+                    }
+                })
+        return JsonResponse({"error": "Database query failed"}, status=500)
 
 
 
@@ -118,8 +137,14 @@ def get_issue_add_order(request):
         return Response({"issues": results})
 
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
-    
+        logger.error("Error in get_issue_add_order", exc_info=True, extra={
+                    'tags': {
+                        'action': 'check_order_exists'
+                    
+                    }
+                })
+        return Response({"error": "Failed to fetch issues"}, status=500)
+
 
 import json
 import requests
@@ -138,6 +163,8 @@ class AdditionalOrderViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated] 
 
     def create(self, request):
+        user = request.user
+        payload = {}
         try:
             user = request.user
             
@@ -150,82 +177,117 @@ class AdditionalOrderViewSet(viewsets.ViewSet):
     
                 contractor_guid = request.data.get("contractor_guid")
                 if not contractor_guid:
+                    logger.warning(f"Admin {user.id} attempted create without contractor_guid", extra={
+                    'tags': {
+                        'action': 'AdditionalOrderViewSet (create)'
+                    
+                    }
+                })
                     raise ValueError("contractor_guid is required for admin role")
             else:
 
                 contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
                 if not contractor_guid:
+                    logger.error(f"User {user.id} has no user_id_1C in profile", extra={
+                        'tags': {
+                            'action': 'AdditionalOrderViewSet (create)'
+                        
+                        }
+                    })
                     raise ValueError("contractor_guid not found for this user")
 
 
             author_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
             if not author_guid:
+
+                logger.warning(f"author_guid not found for this user {user.id}", extra={
+                    'tags': {
+                        'action': 'AdditionalOrderViewSet (create)'
+                    
+                    }
+                })
                 raise ValueError("author_guid not found for this user")
 
             payload = {
                 "kontragentGUID": contractor_guid,
                 # "authorGUID": author_guid,
-                "orderNumber": request.data.get("orderNumber"),      # Номер замовлення
-                # "noOrder": bool(request.data.get("noOrder", False)), # Чекбокс "Без замовлення"
-                "nomenclatureLink": request.data.get("nomenclatureLink"), # Посилання на елемент
+                "orderNumber": request.data.get("orderNumber"),     
+                # "noOrder": bool(request.data.get("noOrder", False)), 
+                "nomenclatureLink": request.data.get("nomenclatureLink"), 
                 "nomenclatureQuantity": request.data.get("quantity") ,
-                "comment": request.data.get("comment", ""),               # Коментар
+                "comment": request.data.get("comment", ""),               
             }
 
-            # 5. Відправляємо в 1С через існуючу утиліту send_to_1c
-            # Query "CreateAdditionalOrder" має бути підтриманий на стороні 1С
+            
             result = send_to_1c("CreateAdditionalOrder", payload)
 
             reclamation_guid = None
             if isinstance(result.get("results"), list) and len(result["results"]) > 0:
-                # Беремо перший елемент масиву та ключ 'ReclamationGUID'
+           
                 reclamation_guid = result["results"][0].get("ReclamationGUID")
 
             contractor_bin = guid_to_1c_bin(contractor_guid)
-            # ---------- СТВОРЕННЯ ПОВІДОМЛЕННЯ В ЧАТ ----------
+  
             if reclamation_guid:
                 try:
                     reclamation_bin = guid_to_1c_bin(str(reclamation_guid))
                     
-                    # Шукаємо основного менеджера контрагента
+         
                     main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
                     
-                    # Якщо менеджера немає, отримувач — сам контрагент (або за замовчуванням)
+      
                     final_recipient = main_manager_bin if main_manager_bin else contractor_bin
 
                     ChatMessage.objects.create(
-                        chat_id=f"3_{reclamation_guid}",  # Формат 2_Guid для рекламацій
+                        chat_id=f"3_{reclamation_guid}", 
                         related_object_id=reclamation_bin,
                         author=contractor_bin,                      
                         recipient=final_recipient,               
-                        text=request.data.get("comment"), #or "Створено нову рекламацію",
+                        text=request.data.get("comment"), 
                         is_read=False,
                         is_sent_vtg=False,
                         is_notification=False,
                         transaction_type_id=3  
                     )
                 except Exception as chat_err:
-                    logger.error(f"Помилка створення ChatMessage для рекламації {reclamation_guid}: {str(chat_err)}")
-            # --------------------------------------------------
+                    logger.error(f"Error creating ChatMessage for reclamation {reclamation_guid}: {str(chat_err)}", extra={
+                    'tags': {
+                        'action': 'AdditionalOrderViewSet (create)'
+                    
+                    }
+                })
+
             
 
             return Response(
                 {
                     "success": True,
                     "message": "Дозамовлення успішно створено",
-                    "data": result, # Відповідь від 1С (наприклад, номер створеного дозамовлення)
-                    "payload_sent": payload # Корисно для дебагу
+                    "data": result, 
+                    # "payload_sent": payload 
                 },
                 status=status.HTTP_201_CREATED,
             )
 
         except requests.RequestException as e:
+            logger.error(f"1C Connection error during additional order: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'AdditionalOrderViewSet (create)'
+                    
+                    }
+                })
             return Response(
                 {"success": False, "error": f"Помилка зв'язку з 1С: {str(e)}", "payload_sent": payload},
                 status=status.HTTP_502_BAD_GATEWAY,
                 
             )
         except Exception as e:
+            logger.error(f"Unexpected error in AdditionalOrder create: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'AdditionalOrderViewSet (create)'
+                    
+                    }
+                })
             return Response(
                 {"success": False, "error": str(e), "payload_sent": payload},
                 status=status.HTTP_400_BAD_REQUEST,

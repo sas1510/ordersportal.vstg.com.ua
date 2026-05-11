@@ -203,6 +203,7 @@ from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
 from backend.utils.onec_api import send_to_1c
 from backend.utils.get_main_manager import get_contractor_main_manager_bin
+from backend.utils.logging_setup import logger
 
 
 # --- Локальні модулі поточної аплікації (.) ---
@@ -214,7 +215,7 @@ from .utils import (
 )
 
 # Налаштування логера
-logger = logging.getLogger(__name__)
+
 
 
 
@@ -254,10 +255,17 @@ def get_issue_complaints(request):
         return Response({"issues": results})
 
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
-    
 
-
+            logger.error(f"Error while get_issue_complaints: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'get_issue_complaints'
+                    
+                    }
+                })
+            return Response(
+                {"error": "Internal Server Error. Спробуйте пізніше або зверніться до підтримки."}, 
+                status=500
+            )
 
 
 @extend_schema(
@@ -318,8 +326,19 @@ def get_gm_solutions(request, reason_id):
         return JsonResponse({"solutions": results}, safe=False)
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-
+            logger.error(
+                f"Error get_gm_solutions {reason_id}: {str(e)}", 
+                exc_info=True, extra={
+                    'tags': {
+                        'action': 'get_gm_solutions'
+                    
+                    }
+                }
+            )
+            return Response(
+                {"error": "Помилка сервера при отриманні даних"}, 
+                status=500
+            )
 
 
 @extend_schema(
@@ -375,62 +394,104 @@ def get_complaint_series_by_order(request, order_number):
 
     contractor_bin = None  # дефолт
 
-    if is_1c:
-        contractor_bin = getattr(user, "user_id_1C", None)
-        if not contractor_bin:
-            raise PermissionError("API key user has no UserId1C")
-    elif role in ("dealer", "customer"):
-        contractor_bin = getattr(user, "user_id_1C", None)
-        if not contractor_bin:
-            raise PermissionError("User has no contractor assigned")
-    elif role == "admin":
-        # admin може передати contractor, але необов'язково
-        contractor_guid = request.GET.get("contractor")
-        if contractor_guid:
-            try:
-                contractor_bin = guid_to_1c_bin(contractor_guid)
-            except Exception:
-                raise ValueError("Invalid contractor GUID")
-        # якщо не передано – contractor_bin залишається None → SQL не фільтрує
+    try:
+        if is_1c:
+            contractor_bin = getattr(user, "user_id_1C", None)
+            if not contractor_bin:
+                logger.error(f"1C API Key error: User {user.id} has no user_id_1C", extra={
+                    'tags': {
+                        'action': 'get_complaint_series_by_order'
+                    
+                    }
+                })
+                raise PermissionError("API key user has no UserId1C")
+        elif role in ("dealer", "customer"):
+            contractor_bin = getattr(user, "user_id_1C", None)
+            if not contractor_bin:
+                logger.warning(f"Access denied: User {user.id} ({role}) has no contractor assigned", extra={
+                    'tags': {
+                        'action': 'get_complaint_series_by_order'
+                    
+                    }
+                })
+                raise PermissionError("User has no contractor assigned")
+        elif role == "admin":
+            # admin може передати contractor, але необов'язково
+            contractor_guid = request.GET.get("contractor")
+            if contractor_guid:
+                try:
+                    contractor_bin = guid_to_1c_bin(contractor_guid)
+                    # logger.debug(f"Admin filtering by contractor: {contractor_guid}")
+                except Exception:
+                    logger.error(f"Invalid GUID format from admin: {contractor_guid}", extra={
+                    'tags': {
+                        'action': 'get_complaint_series_by_order'
+                    
+                    }
+                })
+                    raise ValueError("Invalid contractor GUID")
+            # якщо не передано – contractor_bin залишається None → SQL не фільтрує
 
 
-    with connection.cursor() as cursor:
-        if contractor_bin:
-            cursor.execute(
-                """
-                EXEC dbo.GetComplaintSeriesByOrder
-                    @OrderNumber = %s,
-                    @Контрагент  = %s
-                """,
-                [order_number, contractor_bin]
-            )
-        else:
-            # contractor_bin = None → повертаємо всі серії
-            cursor.execute(
-                """
-                EXEC dbo.GetComplaintSeriesByOrder
-                    @OrderNumber = %s,
-                    @Контрагент  = NULL
-                """,
-                [order_number]
-            )
+        with connection.cursor() as cursor:
+            if contractor_bin:
+                # logger.info(f"Execution SQL: GetComplaintSeriesByOrder @OrderNumber={order_number}, @contactor=BIN_DATA")
+                cursor.execute(
+                    """
+                    EXEC dbo.GetComplaintSeriesByOrder
+                        @OrderNumber = %s,
+                        @Контрагент  = %s
+                    """,
+                    [order_number, contractor_bin]
+                )
+            else:
+                # logger.info(f"Execution SQL: (Full Access): GetComplaintSeriesByOrder @OrderNumber={order_number}, @contactor=NULL")
+                # contractor_bin = None → повертаємо всі серії
+                cursor.execute(
+                    """
+                    EXEC dbo.GetComplaintSeriesByOrder
+                        @OrderNumber = %s,
+                        @Контрагент  = NULL
+                    """,
+                    [order_number]
+                )
 
-        columns = [col[0] for col in cursor.description]
-        rows = cursor.fetchall()
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
 
-    # 🎛 FORMAT
-    results = []
-    for row in rows:
-        row_dict = dict(zip(columns, row))
-        if row_dict.get("SeriesLink"):
-            row_dict["SeriesLink"] = bin_to_guid_1c(row_dict["SeriesLink"])
-        results.append(row_dict)
+        # 🎛 FORMAT
+        results = []
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            if row_dict.get("SeriesLink"):
+                row_dict["SeriesLink"] = bin_to_guid_1c(row_dict["SeriesLink"])
+            results.append(row_dict)
 
-    return Response({
-        "series": results or None
-    })
+        # logger.info(f"Успішно знайдено {len(results)} серій для замовлення {order_number}")
 
+        return Response({
+            "series": results or None
+        })
 
+    except (PermissionError, ValueError) as e:
+
+        logger.warning(f"Validation error for user {user.id}: {str(e)}", extra={
+                    'tags': {
+                        'action': 'get_complaint_series_by_order'
+                    
+                    }
+                })
+        return Response({"error": str(e)}, status=400)
+    
+    except Exception as e:
+   
+        logger.error(f"Unhandled exception in get_complaint_series_by_order: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'get_complaint_series_by_order'
+                    
+                    }
+                })
+        return Response({"error": "Internal Server Error"}, status=500)
 
 
 class ReclamationViewSet(viewsets.ViewSet):
@@ -442,14 +503,24 @@ class ReclamationViewSet(viewsets.ViewSet):
 
     permission_classes = [IsAuthenticatedOr1CApiKey]
 
-    # --------------------------------------------------
-    # 🔒 Формування payload для 1C
-    # --------------------------------------------------
+
     def _generate_reclamation_json(self, request, main_data):
         # ---------- SERIES ----------
-        series_list = request.data.get("series", [])
-        if isinstance(series_list, str):
-            series_list = json.loads(series_list)
+        series_raw = request.data.get("series")
+        photos_raw = request.data.get("photos")
+        
+        try:
+            series_list = json.loads(series_raw) if isinstance(series_raw, str) else (series_raw or [])
+            photos_list = json.loads(photos_raw) if isinstance(photos_raw, str) else (photos_raw or [])
+        except json.JSONDecodeError as e:
+            logger.error(f"Reclamation JSON parse error: {str(e)} | Data: series={series_raw}, photos={photos_raw}", extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (_generate_reclamation_json)'
+                    
+                    }
+                })
+            raise ValueError("Invalid JSON format in series or photos")
+
 
         prepared_series = [
             {
@@ -459,10 +530,8 @@ class ReclamationViewSet(viewsets.ViewSet):
             for s in series_list
         ]
 
-        # ---------- PHOTOS ----------
-        photos_list = request.data.get("photos", [])
-        if isinstance(photos_list, str):
-            photos_list = json.loads(photos_list)
+        # if isinstance(photos_list, str):
+        #     photos_list = json.loads(photos_list)
 
         prepared_photos = [
             {
@@ -482,10 +551,13 @@ class ReclamationViewSet(viewsets.ViewSet):
     # 🧾 CREATE
     # --------------------------------------------------
     def create(self, request):
-        try:
-            user = request.user
+        user = request.user
+        user_log_label = f"User(id={user.id}, email={user.email})"
 
- 
+
+        try:
+            # logger.info(f"Starting reclamation creation for {user_log_label}")
+
             role = getattr(user, "role", None)
             role = role.lower() if role else ""
 
@@ -495,11 +567,23 @@ class ReclamationViewSet(viewsets.ViewSet):
             if is_admin:
                 contractor_guid = request.data.get("contractor_guid")
                 if not contractor_guid:
+                    logger.warning(f"{user_log_label} (Admin) attempted create without contractor_guid", extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (create)'
+                    
+                    }
+                })
                     raise ValueError("contractor_guid is required for admin")
             else:
 
                 contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
                 if not contractor_guid:
+                    logger.error(f"User {user_log_label} has no user_id_1C linked", extra={
+                        'tags': {
+                            'action': 'ReclamationViewSet (create)'
+                        
+                        }
+                    })
                     raise ValueError("contractor_guid not found for user")
 
 
@@ -508,6 +592,12 @@ class ReclamationViewSet(viewsets.ViewSet):
                 getattr(user, "user_id_1C", None)
             )
             if not author_guid:
+                logger.error(f"author_guid not found for user", extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (create)'
+                    
+                    }
+                })
                 raise ValueError("author_guid not found for user")
 
  
@@ -526,8 +616,14 @@ class ReclamationViewSet(viewsets.ViewSet):
 
             payload = self._generate_reclamation_json(request, main_data)
 
+            # log_payload = {k: v for k, v in payload.items() if k != 'photos'}
+            # logger.info(f"Sending to 1C 'CreateReclamation'. Payload (no photos): {log_payload}")
+
+
 
             result = send_to_1c("CreateReclamation", payload)
+
+            # logger.info(f"1C Response: {result}")
 
 
 
@@ -560,7 +656,12 @@ class ReclamationViewSet(viewsets.ViewSet):
                         transaction_type_id=2  
                     )
                 except Exception as chat_err:
-                    logger.error(f"Помилка створення ChatMessage для рекламації {reclamation_guid}: {str(chat_err)}")
+                    logger.error(f"Failed to create ChatMessage for reclamation {reclamation_guid}", extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (create)'
+                    
+                    }
+                })
             # --------------------------------------------------
 
             # reclamation_guid = result.get("reclamationGuid")
@@ -577,22 +678,23 @@ class ReclamationViewSet(viewsets.ViewSet):
             )
 
         except requests.RequestException as e:
-            return Response(
-                {
-                    "success": False,
-                    "error": f"Помилка звʼязку з 1C: {str(e)}",
-                },
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
+            logger.error(f"1C Connection Error (user {user}): {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (create)'
+                    
+                    }
+                })
+            return Response({"success": False, "error": "Помилка звʼязку з 1C"}, status=status.HTTP_502_BAD_GATEWAY)
 
         except Exception as e:
-            return Response(
-                {
-                    "success": False,
-                    "error": str(e),
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            logger.error(f"Unexpected error in Reclamation create (user {user}): {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (create)'
+                    
+                    }
+                })
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
     def destroy(self, request, reclamation_guid=None):
@@ -601,6 +703,8 @@ class ReclamationViewSet(viewsets.ViewSet):
         DELETE /api/complaints/delete_complaint/<reclamation_guid>/
         """
         try:
+
+            # logger.info(f"Marking reclamation {reclamation_guid} for deletion. User: {request.user.id}")
          
             payload = {
                 "reclamationGuid": str(reclamation_guid)
@@ -608,6 +712,7 @@ class ReclamationViewSet(viewsets.ViewSet):
 
             
             result = send_to_1c("MarkOnDeleteReclamation", payload)
+            # logger.info(f"1C MarkOnDelete response: {result}")
 
            
             return Response(
@@ -620,11 +725,23 @@ class ReclamationViewSet(viewsets.ViewSet):
             )
 
         except requests.RequestException as e:
+            logger.error(f"Error connect to 1C to delete reclamation {reclamation_guid}: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (destroy)'
+                    
+                    }
+                })
             return Response(
                 {"success": False, "error": f"Помилка зв'язку з 1С: {str(e)}"},
                 status=status.HTTP_502_BAD_GATEWAY
             )
         except Exception as e:
+            logger.error(f"Error deleting reclamation {reclamation_guid}: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'ReclamationViewSet (destroy)'
+                    
+                    }
+                })
             return Response(
                 {"success": False, "error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -655,9 +772,24 @@ class ReclamationViewSet(viewsets.ViewSet):
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_claim_files(request, claim_guid):
-    try:
+    user_info = f"User: {request.user.id if request.user else 'API-Key'}"
 
-        claim_link_bin = guid_to_1c_bin(claim_guid)
+    try:
+        # logger.info(f"Fetching files for claim_guid: {claim_guid} | {user_info}")
+
+        try:
+            claim_link_bin = guid_to_1c_bin(claim_guid)
+        except Exception as e:
+            logger.warning(f"Invalid claim_guid format: {claim_guid} | Error: {str(e)}", extra={
+                    'tags': {
+                        'action': 'get_claim_files'
+                    
+                    }
+                })
+            return Response({"error": "Invalid GUID format"}, status=400)
+
+
+
 
         with connection.cursor() as cursor:
             cursor.execute(
@@ -667,8 +799,12 @@ def get_claim_files(request, claim_guid):
 
             columns = [col[0] for col in cursor.description]
             files = []
+            rows = cursor.fetchall()
 
-            for row in cursor.fetchall():
+
+            # logger.info(f"DB found {len(rows)} files for claim: {claim_guid}")
+
+            for row in rows:
                 row_dict = dict(zip(columns, row))
 
                 # 🔹 GUID конвертації
@@ -683,6 +819,12 @@ def get_claim_files(request, claim_guid):
         return Response({"files": files})
 
     except Exception as e:
+        logger.error(f"Error in get_claim_files for guid {claim_guid}: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'get_claim_files'
+                    
+                    }
+                })
         return Response({"error": str(e)}, status=500)
 
 
@@ -693,31 +835,69 @@ def get_claim_files(request, claim_guid):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def generate_media_token_view(request):
     file_guid = request.data.get("file_guid")
+    user_info = f"User ID: {request.user.id if request.user.is_authenticated else 'API-Key'}"
+
+
 
     if not file_guid:
+        logger.warning(f"Media token request failed: file_guid missing | {user_info}", extra={
+                    'tags': {
+                        'action': 'generate_media_token_view'
+                    
+                    }
+                })
         return Response({"error": "file_guid required"}, status=400)
+    
+    try:
 
-    token = generate_media_token(file_guid, ttl_seconds=180) 
+        token = generate_media_token(file_guid, ttl_seconds=180) 
+        # logger.info(f"Media token generated for file: {file_guid} | {user_info}")
 
-    return Response({"token": token})
+        return Response({"token": token})
+    
+    except Exception as e:
+        logger.error(f"Token generation failed for file {file_guid}: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'generate_media_token_view'
+                    
+                    }
+                })
+        return Response({"error": "Could not generate security token"}, status=500)
 
 
 
 
 @api_view(["GET"])
-@permission_classes([])  # доступ через media-token
+@permission_classes([]) 
 def preview_complaint_file(request, claim_guid):
     token = request.GET.get("token")
     filename = request.GET.get("filename")
     is_video = filename.lower().endswith(('.mp4', '.webm', '.ogg'))
 
+
+    user_ip = request.META.get('REMOTE_ADDR')
+
+
     if not token or not filename:
+        logger.warning(f"Preview attempt blocked: Missing token or filename. IP: {user_ip}", extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
+
         if is_video:
             return redirect(settings.FRONTEND_URL + "file-preview/invalid")
         return HttpResponse(status=404)
 
     file_guid = verify_media_token(token)
     if not file_guid:
+        logger.error(f"Invalid or expired media token: {token} | File: {filename} | IP: {user_ip}" , extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
         if is_video:
             return redirect(
                 f"{settings.FRONTEND_URL}file-preview/invalid"
@@ -729,7 +909,7 @@ def preview_complaint_file(request, claim_guid):
     content_type, _ = mimetypes.guess_type(filename)
     content_type = content_type or "application/octet-stream"
 
-  
+
     remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{filename}'
     full_username = f"VSTG\\{settings.SMB_USERNAME}"
 
@@ -742,6 +922,9 @@ def preview_complaint_file(request, claim_guid):
     remote_path = f'Претензия (БВ)/{claim_guid}/{file_guid}/{safe_filename}'
 
     try:
+
+        # logger.info(f"Attempting SMB download: //{settings.SMB_SERVER}/{settings.SMB_SHARE}/{remote_path}")
+
         subprocess.run( 
                 [
                     "/usr/bin/smbclient",
@@ -754,6 +937,8 @@ def preview_complaint_file(request, claim_guid):
                 capture_output=True,
             )
         
+        # logger.info(f"SMB success for {safe_filename}")
+        
 
         response = RangedFileResponse(
             request,
@@ -763,11 +948,29 @@ def preview_complaint_file(request, claim_guid):
         response["Content-Disposition"] = f'inline; filename="{filename}"'
         return response
 
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        stderr = e.stderr.decode() if e.stderr else "No stderr"
+        logger.warning(f"SMB download failed (Expected if file in DB). Path: {remote_path} | Error: {stderr}", extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
         if os.path.exists(tmp.name):
             os.unlink(tmp.name)
 
+    except Exception as e:
+        logger.error(f"SMB unexpected error: {str(e)}", exc_info=True, extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
+
+
+
     try:
+        # logger.info(f"Falling back to DB for file_guid: {file_guid}")
         binary_guid = guid_to_1c_bin(file_guid)
 
         with connection.cursor() as cursor:
@@ -778,6 +981,12 @@ def preview_complaint_file(request, claim_guid):
             row = cursor.fetchone()
 
             if not row or not row[0]:
+                logger.error(f"File not found in DB or SMB: {file_guid} ({filename})", extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
                 return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
 
             raw_db_blob = row[0]
@@ -785,11 +994,18 @@ def preview_complaint_file(request, claim_guid):
 
         file_bytes = extract_1c_binary(raw_db_blob)
         if not file_bytes:
+            logger.error(f"1C Binary extraction failed (corrupted blob): {file_guid}", extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
             return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
 
         tmp = tempfile.NamedTemporaryFile(delete=False)
         tmp.write(file_bytes)
         tmp.close()
+        # logger.info(f"DB file extraction success: {file_guid}")
 
         response = RangedFileResponse(
             request,
@@ -801,9 +1017,12 @@ def preview_complaint_file(request, claim_guid):
         )
         return response
 
-    except Exception:
+    except Exception as e:
+        logger.exception(f"Critical error in preview_complaint_file: {str(e)}", extra={
+                    'tags': {
+                        'action': 'preview_complaint_file'
+                    
+                    }
+                })
         return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
-
-
-
 
