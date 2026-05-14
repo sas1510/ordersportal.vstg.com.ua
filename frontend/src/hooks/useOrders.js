@@ -13,7 +13,9 @@ export function useOrders(url) {
         const response = await axiosInstance.get(url);
         setOrders(response.data); 
       } catch (error) {
-        console.error("Error fetching orders:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching orders:", error);
+        }
       } finally {
         setLoading(false);
       }

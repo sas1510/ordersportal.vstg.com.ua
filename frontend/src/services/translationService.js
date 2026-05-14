@@ -20,7 +20,9 @@ export const translateText = async (text, targetLang) => {
     localStorage.setItem(cacheKey, result);
     return result;
   } catch (error) {
-    console.error("Translation error:", error);
+    if (process.env.NODE_ENV === "development") {
+        console.error("Translation error:", error);
+    }
     return text; // Повертаємо оригінал, щоб інтерфейс не "падав"
   }
 };

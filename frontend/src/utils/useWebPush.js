@@ -22,7 +22,9 @@ function getBrowserName() {
 }
 
 export const subscribeToPush = async () => {
-  console.log("--- Спроба підписки на Push ---");
+  if (process.env.NODE_ENV === "development") {
+    console.log("--- Спроба підписки на Push ---");
+  }
 
   try {
     // 1. Перевірка оточення
@@ -34,28 +36,38 @@ export const subscribeToPush = async () => {
     }
 
     // 2. Реєстрація воркера
-    console.log("Крок 1: Реєстрація Service Worker...");
+    if (process.env.NODE_ENV === "development") {
+      console.log("Крок 1: Реєстрація Service Worker...");
+    }
     const registration = await navigator.serviceWorker.register(
       "/service-worker.js",
       {
         scope: "/",
       },
     );
-    console.log("Service Worker зареєстровано:", registration);
-
+    if (process.env.NODE_ENV === "development") {
+      console.log("Service Worker зареєстровано:", registration);
+    }
+    if (process.env.NODE_ENV === "development") {
     // 3. Запит дозволу (Ось тут має з'явитися вікно!)
-    console.log("Крок 2: Запит дозволу (Notification.requestPermission)...");
+      console.log("Крок 2: Запит дозволу (Notification.requestPermission)...");
+    }
 
     // Скидаємо стан, якщо він default, щоб змусити браузер спитати
     const permission = await Notification.requestPermission();
-    console.log("Результат запиту дозволу:", permission);
+    if (process.env.NODE_ENV === "development") {
+
+      console.log("Результат запиту дозволу:", permission);
+    }
 
     if (permission !== "granted") {
       throw new Error("Користувач відхилив запит на сповіщення");
     }
 
     // 4. Підписка на Push Service (Google/Mozilla)
-    console.log("Крок 3: Отримання підписки від Push Service...");
+    if (process.env.NODE_ENV === "development") {
+      console.log("Крок 3: Отримання підписки від Push Service...");
+    }
     const publicVapidKey =
       "BL9wQus0T21rgqRFcjZhUmiZ6w0nv5siH9AFJBLayIqPbNCNMbsWPfjpNIQ3PH1RtnUuzbA7uGEJfwdgnmpImLY";
 
@@ -67,10 +79,14 @@ export const subscribeToPush = async () => {
     const subscription =
       await registration.pushManager.subscribe(subscribeOptions);
     const subJson = subscription.toJSON();
-    console.log("Підписка отримана:", subJson);
+    if (process.env.NODE_ENV === "development") {
+      console.log("Підписка отримана:", subJson);
+    }
 
     // 5. Відправка на бекенд (Django)
-    console.log("Крок 4: Відправка на сервер...");
+    if (process.env.NODE_ENV === "development") {
+      console.log("Крок 4: Відправка на сервер...");
+    }
     const payload = {
       subscription: subJson,
       browser: getBrowserName(),
@@ -81,18 +97,25 @@ export const subscribeToPush = async () => {
       "/webpush/save_information/",
       payload,
     );
-    console.log("Сервер зберіг підписку:", response.data);
+    if (process.env.NODE_ENV === "development") {
+      console.log("Сервер зберіг підписку:", response.data);
+    }
 
     return true;
   } catch (error) {
-    console.error("Помилка підписки:", error.message);
+    if (process.env.NODE_ENV === "development") {
+
+      console.error("Помилка підписки:", error.message);
+    }
     alert("Помилка: " + error.message);
     throw error;
   }
 };
 
 export const unsubscribeFromPush = async () => {
-  console.log("--- Спроба відписки від Push ---");
+  if (process.env.NODE_ENV === "development") {
+    console.log("--- Спроба відписки від Push ---");
+  }
   try {
     const registration = await navigator.serviceWorker.getRegistration();
     if (!registration) return;
@@ -107,21 +130,29 @@ export const unsubscribeFromPush = async () => {
           subscription: subJson,
           status: "false",
         });
-        console.log("Бекенд: підписку видалено");
+        if (process.env.NODE_ENV === "development") {
+          console.log("Бекенд: підписку видалено");
+        }
       } catch (apiError) {
+        if (process.env.NODE_ENV === "development") {
         console.warn(
           "Не вдалося видалити підписку з сервера, але продовжуємо відписку в браузері",
           apiError,
         );
       }
+      }
 
       const successful = await subscription.unsubscribe();
-      console.log("Браузер: відписка успішна?", successful);
+      if (process.env.NODE_ENV === "development") {
+        console.log("Браузер: відписка успішна?", successful);
+      }
     }
 
     return true;
   } catch (error) {
-    console.error("Помилка при відписці:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Помилка при відписці:", error);
+    }
     throw error;
   }
 };

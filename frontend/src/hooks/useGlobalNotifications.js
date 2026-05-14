@@ -18,7 +18,9 @@ export const useGlobalNotifications = () => {
       const data = JSON.parse(e.data);
 
       if (data.type === "initial_notifications") {
-        console.log(`У вас ${data.unread_count} непрочитаних повідомлень`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`У вас ${data.unread_count} непрочитаних повідомлень`);
+        }
 
       }
 

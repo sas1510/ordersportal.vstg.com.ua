@@ -20,7 +20,9 @@ export function useCancelableApi() {
       });
     } catch (err) {
       if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
-        console.log("⛔ Запит скасовано:", config.url);
+        if (process.env.NODE_ENV === "development") {
+          console.log("⛔ Запит скасовано:", config.url);
+        }
         return null;
       }
       throw err;

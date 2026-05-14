@@ -17,7 +17,9 @@ export const useCacheBuster = () => {
         const currentVersion = localStorage.getItem("app_version");
 
         if (currentVersion && currentVersion !== latestVersion) {
-          console.log(`Нова версія (${latestVersion}) доступна. Оновлюємо...`);
+          if (process.env.NODE_ENV === "development") {
+            console.log(`Нова версія (${latestVersion}) доступна. Оновлюємо...`);
+          }
           localStorage.setItem("app_version", latestVersion);
 
           window.location.reload();
@@ -26,7 +28,9 @@ export const useCacheBuster = () => {
           localStorage.setItem("app_version", latestVersion);
         }
       } catch (error) {
-        console.error("Не вдалося перевірити версію:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Не вдалося перевірити версію:", error);
+        }
       }
     };
 

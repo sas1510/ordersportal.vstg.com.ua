@@ -8,7 +8,9 @@ export const autoTranslate = async (text, targetLanguage) => {
     const data = await response.json();
     return data[0][0][0]; 
   } catch (error) {
-    console.error("Auto-translation error:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Auto-translation error:", error);
+    }
     return text; 
   }
 };
