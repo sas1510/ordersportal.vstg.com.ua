@@ -34,13 +34,15 @@
   width: 100%;
   padding-top: 100px;
   padding-bottom: 60px;
+    display: flex;
+  flex-direction: column;
 
 
   /* Адаптивні відступи зліва і справа */
   /* padding-left: clamp(5px, 5vw, 100px);
   padding-right: clamp(5px, 5vw, 100px); */
 
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
 }
 

@@ -6,15 +6,6 @@
   --info-bg-solid: #cfdcef; /* 🔑 НЕпрозорий для sticky */
 }
 
-.mobile-payments-container {
-  padding: 0;
-  min-height: 100vh;
-  background: radial-gradient(
-    circle,
-    var(--portal-bg-color-end) 45%,
-    var(--portal-bg-color-start)
-  );
-}
 
 /* ==================== HEADER ==================== */
 .mobile-header {
@@ -166,9 +157,24 @@
 
 /* ==================== GROUPS LIST ==================== */
 .mobile-groups-list {
-  padding-top: 80px;
+  flex-grow: 1; /* Список займає весь залишок висоти (100% - хедер) */
+  /* overflow-y: auto; Скрол тільки всередині списку */
   padding: 8px;
+  -webkit-overflow-scrolling: touch;
 }
+
+.mobile-payments-container {
+  /* padding: 100px; */
+  height: 100vh;
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
+  overflow: scroll;
+  padding-bottom: 30px;
+}
+
 
 .mobile-empty {
   text-align: center;
