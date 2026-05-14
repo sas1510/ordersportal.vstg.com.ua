@@ -157,8 +157,8 @@
 
 /* ==================== GROUPS LIST ==================== */
 .mobile-groups-list {
-  flex-grow: 1; /* Список займає весь залишок висоти (100% - хедер) */
-  /* overflow-y: auto; Скрол тільки всередині списку */
+  flex-grow: 1; 
+ 
   padding: 8px;
   -webkit-overflow-scrolling: touch;
 }

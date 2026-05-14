@@ -201,6 +201,8 @@ export default function HeaderDealer() {
             createdAt: payload.timestamp || new Date().toISOString(),
             isRead: false,
             authorName: payload.author_name,
+            transactionType: payload.transactionType,
+            doc_number: payload.doc_number,
           };
           setNotifications((prev) => [newEntry, ...prev]);
           addNotification(`🔔 ${payload.author_name || ""}: ${newEntry.message}`, "info", 6000);
