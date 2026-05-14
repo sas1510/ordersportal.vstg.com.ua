@@ -3,7 +3,7 @@ import axiosInstance from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { useNotification } from "../hooks/useNotification";
 import { QRCodeCanvas } from "qrcode.react";
-import { useTranslation } from "react-i18next"; // Додано хук перекладу
+import { useTranslation } from "react-i18next"; 
 import AutoTranslatedText from "../components/AutoTranslatedText";
 import "./EmergencyContactsPage.css";
 

@@ -654,7 +654,9 @@ import { useNotification } from "../hooks/useNotification";
 import { subscribeToPush, unsubscribeFromPush } from "../utils/useWebPush";
 import { Popover } from "react-tiny-popover";
 import QRCode from "react-qr-code";
-import { useTranslation } from "react-i18next"; // Імпорт хука
+import { useTranslation } from "react-i18next"; 
+import AutoTranslatedText from "../components/AutoTranslatedText";
+
 
 const NotificationDrawer = ({
   isOpen,
@@ -664,7 +666,7 @@ const NotificationDrawer = ({
   unreadCount,
   setUnreadCount,
 }) => {
-  const { t } = useTranslation(); // Використання t()
+  const { t } = useTranslation(); 
   const [loading] = useState(false);
   const [filter, setFilter] = useState("ALL");
 
@@ -944,13 +946,16 @@ const NotificationDrawer = ({
                     <span className="item-type">
                       {n.eventType === "ORDER_STUCK_REMINDER"
                         ? t("notifications.types.reminder")
-                        : n.transactionType || t("notifications.types.system")}
+                        : 
+                          n.transactionType 
+                    ? t(`notifications.transaction_types.${n.transactionType}`, { defaultValue: n.transactionType }) 
+                    : t("notifications.types.system")}
                     </span>
                     <span className="item-date">
                       {new Date(n.createdAt).toLocaleDateString("uk-UA")}
                     </span>
                   </div>
-                  <p className="item-message">{n.message}</p>
+                  <p className="item-message">  <AutoTranslatedText text={n.message} /></p>
                 </div>
               </div>
             ))

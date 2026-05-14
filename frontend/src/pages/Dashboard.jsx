@@ -2745,7 +2745,7 @@ const statsData = [
             className="w-full h-full border-0"
             title={`tiktok-video-${index}`}
             // 3. Повний набір дозволів
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; visibility"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; visibility; unload"
             allowFullScreen
             // 4. ПРАВИЛЬНИЙ sandbox (без allow-all-origin)
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"

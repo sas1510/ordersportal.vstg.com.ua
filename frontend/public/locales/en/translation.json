@@ -132,7 +132,12 @@
       "tg_link": "Failed to get Telegram link"
     },
     "excel_success": "Excel downloaded successfully",
-    "excel_error": "Failed to download Excel"
+    "excel_error": "Failed to download Excel",
+    "transaction_types": {
+      "Прорахунок": "Calculation",
+      "Рекламація": "Reclamation",
+      "Доп. замовлення": "Additional order"
+    }
   },
 
 
