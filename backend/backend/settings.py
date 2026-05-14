@@ -167,7 +167,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE":True,   # True на https
+    "AUTH_COOKIE_SECURE": True,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }

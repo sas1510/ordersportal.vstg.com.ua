@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
 from backend.utils.logging_setup import logger
+from jwt import ExpiredSignatureError
 
 User = get_user_model()
 # logger = logging.getLogger(__name__)
@@ -17,13 +18,18 @@ def get_user_from_jwt(token_key):
         token = AccessToken(token_key)
         user = User.objects.get(id=token['user_id'])
         return user
+    
+    except ExpiredSignatureError:
+
+        return None
+        
     except Exception as e:
+        
         logger.error(f"JWT AUTH ERROR: {str(e)}", extra={
-                    'tags': {
-                        'action': 'get_user_from_jwt (socket)'
-                    
-                    }
-                }) # Це покаже чому саме (Expired, Invalid signature, etc)
+            'tags': {
+                'action': 'get_user_from_jwt (socket)'
+            }
+        })
         return None
 
 @database_sync_to_async
