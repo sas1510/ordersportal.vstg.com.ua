@@ -11,11 +11,14 @@ import useWindowWidth from "../hooks/useWindowWidth";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import { useLocation, useNavigate } from "react-router-dom";
 // import { useDealerContext } from "../hooks/useDealerContext";
+import { useTranslation } from "react-i18next";
 
 const ITEMS_PER_LOAD = 100;
 
 const PortalOriginal = () => {
   const { register, cancelAll } = useCancelAllRequests();
+  const {t, i18n } = useTranslation();
+  const locale = i18n.language;
 
   // const {
   //     currentUser,
@@ -64,6 +67,7 @@ const PortalOriginal = () => {
   const navigate = useNavigate();
 
   const location = useLocation();
+  const fullMonthLabels = t("portal_calc.months.full", { returnObjects: true }) || [];
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -174,11 +178,12 @@ const PortalOriginal = () => {
         setLimit(ITEMS_PER_LOAD);
         setHasMore(allCalculations.length > ITEMS_PER_LOAD);
       } else {
-        setError("Сервер повернув помилку при оновленні даних.");
+        setError(t("portal_calc.errors.server_error"));
       }
     } catch (err) {
       if (err.name !== "CanceledError") {
-        setError("Не вдалося оновити дані. Перевірте з'єднання.");
+  
+        setError(t("portal_calc.errors.connection_error"));
         // console.error("Помилка оновлення:", err);
       }
     } finally {
@@ -205,19 +210,33 @@ const PortalOriginal = () => {
     if (hasMore) setLimit((prev) => prev + ITEMS_PER_LOAD);
   }, [hasMore]);
 
-  const statusSummary = useMemo(() => {
-    const summary = {
-      Всі: 0,
-      Новий: 0,
-      // "В обробці": 0,
-      "Очікуємо оплату": 0,
-      "Очікуємо підтвердження": 0,
-      Підтверджений: 0,
-      "У виробництві": 0,
-      Готовий: 0,
-      Відвантажений: 0,
-      Відмова: 0,
-    };
+  // const statusSummary = useMemo(() => {
+  //   const summary = {
+  //     Всі: 0,
+  //     Новий: 0,
+  //     // "В обробці": 0,
+  //     "Очікуємо оплату": 0,
+  //     "Очікуємо підтвердження": 0,
+  //     Підтверджений: 0,
+  //     "У виробництві": 0,
+  //     Готовий: 0,
+  //     Відвантажений: 0,
+  //     Відмова: 0,
+  //   };
+
+    const statusSummary = useMemo(() => {
+      const summary = {
+        "Всі": 0,
+        "Новий": 0,
+        "Очікуємо оплату": 0,
+        "Очікуємо підтвердження": 0,
+        "Підтверджений": 0,
+        "У виробництві": 0,
+        "Готовий": 0,
+        "Відвантажений": 0,
+        "Відмова": 0,
+      };
+
 
     calculationsData.forEach((calc) => {
       summary["Всі"] += calc.orders.length || 1;
@@ -289,9 +308,12 @@ const PortalOriginal = () => {
 
   const buttonText =
     loadAmount < ITEMS_PER_LOAD
-      ? `Завантажити ще (${loadAmount})`
-      : `Завантажити ще (100 із ${remainingCount})`;
+      // ? `Завантажити ще (${loadAmount})`
+      ? t("portal_calc.ui.load_more_all", {count: loadAmount})
+      : t("portal_calc.ui.load_more", {total: remainingCount});
 
+
+      // {t("portal.ui.load_more", { count: Math.min(ITEMS_PER_LOAD, totalFilteredCount - limit), total: totalFilteredCount - limit })}
   const paginatedItems = useMemo(() => {
     const slice = fullFiltered.slice(0, limit);
     setHasMore(fullFiltered.length > limit);
@@ -322,7 +344,7 @@ const PortalOriginal = () => {
         }
       } catch (err) {
         if (err.name !== "CanceledError") {
-          setError("Не вдалося оновити дані. Перевірте з'єднання. ");
+          setError(t("portal_calc.errors.connection_error"));
           // console.error("Помилка оновлення:", err);
         }
         setCalculationsData([]);
@@ -339,7 +361,7 @@ const PortalOriginal = () => {
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
         <div className="loading-text">
-          {reloading ? "Оновлення даних..." : "Завантаження..."}
+          {reloading ? t("portal_calc.ui.reloading") : t("portal_calc.ui.loading")}
         </div>
       </div>
     );
@@ -390,7 +412,7 @@ const PortalOriginal = () => {
   className="justify-start text-white text-sm uppercase mr-2 tracking-wide"
   style={{ fontWeight: 50, fontFamily: "'Inter', sans-serif" }}
 >
-  Звітний рік
+  {t("portal_calc.ui.report_year")}
 </div>
              <select
                 className="year-select-minimal mr-2"
@@ -416,11 +438,12 @@ const PortalOriginal = () => {
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
                 onClick={() => handleFilterChange("month", 0)}
               >
-                Весь рік
+                {t("portal_calc.months.all_year")}
               </li>
               {Array.from({ length: 12 }, (_, i) => {
                 const num = i + 1;
-                const labels = ["Січ.", "Лют.", "Бер.", "Квіт.", "Трав.", "Черв.", "Лип.", "Сер.", "Вер.", "Жов.", "Лис.", "Груд."];
+                // const labels = ["Січ.", "Лют.", "Бер.", "Квіт.", "Трав.", "Черв.", "Лип.", "Сер.", "Вер.", "Жов.", "Лис.", "Груд."];
+                const labels = t("portal_calc.months.short", { returnObjects: true });
                 return (
                   <li
                     key={num}
@@ -434,39 +457,27 @@ const PortalOriginal = () => {
             </ul>
 
 
-            <select
-            className="month-select row"
-            value={filter.month}
-            onChange={(e) => handleMonthClick(Number(e.target.value))}
-          >
-            <option value={0}>Весь рік</option>
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              const labels = [
-                "Січень",
-                "Лютий",
-                "Березень",
-                "Квітень",
-                "Травень",
-                "Червень",
-                "Липень",
-                "Серпень",
-                "Вересень",
-                "Жовтень",
-                "Листопад",
-                "Грудень",
-              ];
-              return (
-                <option
-                  key={num}
-                  value={num}
-                  disabled={monthSummary[num] === 0}
-                >
-                  {labels[i]} ({monthSummary[num]})
-                </option>
-              );
-            })}
-          </select>
+          <select
+    className="month-select row"
+    value={filter.month}
+    // Використовуємо той самий handleFilterChange, що і в списку вище
+    onChange={(e) => handleFilterChange("month", Number(e.target.value))}
+  >
+    <option value={0}>{t("portal_calc.months.all_year")}</option>
+    {fullMonthLabels.map((label, i) => {
+      const num = i + 1;
+      const count = monthSummary[num] || 0;
+      return (
+        <option 
+          key={num} 
+          value={num} 
+          disabled={count === 0}
+        >
+          {label} ({count})
+        </option>
+      );
+    })}
+  </select>
           </div>
 </div>
       </div>
@@ -488,7 +499,7 @@ const PortalOriginal = () => {
                   >
                     {isSidebarOpen &&
                     <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
-                      {isSidebarOpen && <span>Фільтри</span>}
+                      {isSidebarOpen && <span>{t("portal_calc.ui.filters")}</span>}
                       {isSidebarOpen && (
               <button 
                 onClick={() => setIsSidebarOpen(false)} 
@@ -508,7 +519,7 @@ const PortalOriginal = () => {
   <input
     type="text"
     className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
-    placeholder="номер прорахунку, замовлення"
+    placeholder={t("portal_calc.ui.search_placeholder")}
     value={filter.name}
     onChange={(e) => handleFilterChange("name", e.target.value)}
   />
@@ -544,7 +555,7 @@ const PortalOriginal = () => {
                   className="align-center mr-2 " 
                 
                 />
-              <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">новий прорахунок</div>
+              <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">{t("portal_calc.ui.new_calculation")}</div>
             </li>
           </ul>
 
@@ -566,69 +577,17 @@ const PortalOriginal = () => {
   
 
             {/* <li className="delimiter1"></li> */}
-            {[
-              {
-                id: "all",
-                label: "Всі прорахунки",
-                icon: allCalcIcon,
-                statusKey: "Всі",
-              },
-              {
-                id: "new",
-                label: "Нові прорахунки",
-                icon: newCalcIcon,
-                statusKey: "Новий",
-              },
-              // {
-              //   id: "processing",
-              //   label: "В обробці",
-              //   icon: inProcessingIcon,
-              //   statusKey: "В обробці",
-              // },
-              {
-                id: "waiting-confirm",
-                label: "Очікують підтвердження",
-                icon: waitingForConfirmIcon,
-                statusKey: "Очікуємо підтвердження",
-              },
-              {
-                id: "waiting-payment",
-                label: "Очікують оплату",
-                icon: waitingForPaymentIcon,
-                statusKey: "Очікуємо оплату",
-              },
-
-              {
-                id: "confirmed",
-                label: "Підтверджені",
-                icon: confirmedIcon,
-                statusKey: "Підтверджений",
-              },
-              {
-                id: "production",
-                label: "У виробництві",
-                icon: factoryIcon,
-                statusKey: "У виробництві",
-              },
-              {
-                id: "ready",
-                label: "Готові замовлення",
-                icon: finishedIcon,
-                statusKey: "Готовий",
-              },
-              {
-                id: "delivered",
-                label: "Відвантажені",
-                icon: deliveredIcon,
-                statusKey: "Відвантажений",
-              },
-              {
-                id: "rejected",
-                label: "Відмова",
-                icon: canceledCalcIcon,
-                statusKey: "Відмова",
-              },
-            ].map(({ id, label, icon, statusKey }) => (
+      {[
+                  { id: "all", label: t("portal_calc.filter_labels.all"), icon: allCalcIcon, statusKey: "Всі" },
+                  { id: "new", label: t("portal_calc.filter_labels.new"), icon: newCalcIcon, statusKey: "Новий" },
+                  { id: "waiting-confirm", label: t("portal_calc.filter_labels.waiting_confirm"), icon: waitingForConfirmIcon, statusKey: "Очікуємо підтвердження" },
+                  { id: "waiting-payment", label: t("portal_calc.filter_labels.waiting_payment"), icon: waitingForPaymentIcon, statusKey: "Очікуємо оплату" },
+                  { id: "confirmed", label: t("portal_calc.filter_labels.confirmed"), icon: confirmedIcon, statusKey: "Підтверджений" },
+                  { id: "production", label: t("portal_calc.filter_labels.production"), icon: factoryIcon, statusKey: "У виробництві" },
+                  { id: "ready", label: t("portal_calc.filter_labels.ready"), icon: finishedIcon, statusKey: "Готовий" },
+                  { id: "delivered", label: t("portal_calc.filter_labels.delivered"), icon: deliveredIcon, statusKey: "Відвантажений" },
+                  { id: "rejected", label: t("portal_calc.filter_labels.rejected"), icon: canceledCalcIcon, statusKey: "Відмова" },
+                ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
                 className={`filter-item row ${filter.status === statusKey ? "active" : ""}`}
@@ -665,25 +624,25 @@ const PortalOriginal = () => {
               <div className="error-empty-state column align-center jc-center">
                 <span className="icon icon-warning text-red font-size-48 mb-16"></span>
                 <h3 className="font-size-20 weight-600 mb-8">
-                  Упс! Не вдалося завантажити дані
+                 {t("portal_calc.ui.error_title")}
                 </h3>
                 <p className="text-grey mb-24 text-center">
-                  Виникла проблема під час з'єднання із сервером. <br />
-                  Перевірте інтернет та спробуйте ще раз.
+                  {t("portal_calc.ui.error_title_2")} <br />
+                  {t("portal_calc.ui.error_title_3")} 
                 </p>
                 <button
                   className="btn btn-primary btn-load-more-big"
                   onClick={reloadCalculations}
                 >
                   <span className="icon icon-loop2 mr-10"></span>
-                  Спробувати знову
+                   {t("portal_calc.ui.try_again")}
                 </button>
               </div>
             ) : totalFilteredCount === 0 ? (
          
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">
-                  Немає прорахунків для відображення
+                  {t("portal_calc.ui.no_calculations")}
                 </div>
               </div>
             ) : (
@@ -758,7 +717,7 @@ const PortalOriginal = () => {
                 className="row justify-content-center text-grey"
                 style={{ marginTop: "20px", marginBottom: "20px" }}
               >
-                Всі прорахунки завантажено ({totalFilteredCount}).
+                {t("portal_calc.ui.all_loaded", { count: totalFilteredCount })}
               </div>
             )}
           </div>

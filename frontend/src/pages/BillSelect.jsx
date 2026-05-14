@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./BillSelect.css";
+import { useTranslation } from "react-i18next";
+import AutoTranslatedText from "../components/ui/AutoTranslatedText";
 
 const BillSelect = ({
   value,
@@ -11,6 +13,7 @@ const BillSelect = ({
   searchable = true,
   onChange,
 }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const controlRef = useRef(null);
@@ -21,10 +24,9 @@ const BillSelect = ({
   const filtered = useMemo(() => {
     if (!searchable) return options;
     return options.filter((o) =>
-      getLabel(o).toLowerCase().includes(search.toLowerCase()),
+      getLabel(o).toLowerCase().includes(search.toLowerCase())
     );
   }, [options, search, searchable, getLabel]);
-
 
   useEffect(() => {
     const handler = (e) => {
@@ -59,7 +61,12 @@ const BillSelect = ({
         onClick={() => setOpen((o) => !o)}
       >
         <span className={selected ? "" : "placeholder"}>
-          {selected ? getLabel(selected) : placeholder}
+          {selected ? (
+            
+            <AutoTranslatedText text={getLabel(selected)} />
+          ) : (
+            placeholder || t("common.select_placeholder")
+          )}
         </span>
         <span className="arrow">▾</span>
       </button>
@@ -76,7 +83,7 @@ const BillSelect = ({
                 <input
                   autoFocus
                   className="bill-select__search"
-                  placeholder="Пошук…"
+                  placeholder={t("common.search") + "..."}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -84,13 +91,17 @@ const BillSelect = ({
             )}
 
             <div className="bill-select__list">
+              {filtered.length === 0 && (
+                <div className="bill-select__empty">{t("common.no_data")}</div>
+              )}
+              
               {filtered.map((o) => {
-                const selected = getValue(o) === value;
+                const isSelected = getValue(o) === value;
                 return (
                   <div
                     key={getValue(o)}
                     className={`bill-select__option ${
-                      selected ? "selected" : ""
+                      isSelected ? "selected" : ""
                     }`}
                     onClick={() => {
                       onChange(getValue(o));
@@ -98,13 +109,14 @@ const BillSelect = ({
                       setSearch("");
                     }}
                   >
-                    {getLabel(o)}
+                    {/* АВТОПЕРЕКЛАД КОЖНОЇ ОПЦІЇ В СПИСКУ */}
+                    <AutoTranslatedText text={getLabel(o)} />
                   </div>
                 );
               })}
             </div>
           </div>,
-          document.body,
+          document.body
         )}
     </>
   );

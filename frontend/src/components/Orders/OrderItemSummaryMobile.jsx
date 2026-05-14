@@ -11,19 +11,24 @@ import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from "./OrderDetailsMobile";
-import { formatDateHumanShorter } from "../../utils/formatters";
+import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 import PaymentModal from "./PaymentModal";
 
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
+import { useTranslation } from "react-i18next";
+
 
 export default React.memo(function OrderItemSummaryMobile({ order, calculationDate, onRefresh }) {
+  const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const locale = i18n.language;
+
 
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
 
@@ -90,6 +95,23 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 
     return state;
   }, []);
+
+  const translatedStatus = useMemo(() => {
+  const statusMap = {
+    "Новий": t("order_status.new"),
+    "В обробці": t("order_status.processing"),
+    "Очікуємо підтвердження": t("order_status.waiting_confirmation"),
+    "Очікуємо оплату": t("order_status.waiting_payment"),
+    "Підтверджений": t("order_status.confirmed"),
+    "Оплачено": t("order_status.paid"),
+    "У виробництві": t("order_status.production"),
+    "Готовий": t("order_status.ready"),
+    "Відвантажений": t("order_status.shipped"),
+    "Відмова": t("order_status.rejected"),
+  };
+
+  return statusMap[order.status] || order.status;
+}, [order.status, t]);
 
 
   const debtAmount = useMemo(() => {
@@ -163,13 +185,16 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         amount: Number(amount),
       });
 
-      addNotification("Оплату успішно виконано!", "success");
+     addNotification(
+        t("order_mobile.notifications.payment_success"),
+        "success",
+      );
       setIsPaymentOpen(false);
 
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
-      addNotification("Оплату успішно виконано!", "success");
+      addNotification(t("errors.paymentError"), "error");
     }
   };
 
@@ -215,7 +240,9 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 
       if (response.status === 200 || response.status === 204) {
         addNotification(
-          `Замовлення ${order.number} успішно підтверджено!`,
+          t("order_mobile.notifications.order_confirmed", {
+            number: order.number,
+          }),
           "success",
         );
 
@@ -253,7 +280,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
                 № {order.number}
               </div>
               <div className="text-[11px] text-WS---DarkGrey">
-                 {formatDateHumanShorter(order.date)}
+                 {formatDateHumanShorter_full(order.date, locale)}
               </div>
             </div>
           </div>
@@ -265,7 +292,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
                   {order.count}
                 </span>
               </div>
-              <span className="text-grey text-[10px] mt-1">Конструкції</span>
+              <span className="text-grey text-[10px] mt-1">{t("order_mobile.labels.constructions")}</span>
             </div>
 
             <div 
@@ -276,7 +303,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
        
              <img src={fileIcon} className="align-center mr-2"  alt="" />
             
-              <div className="text-[13px] text-dark">Файли</div>
+              <div className="text-[13px] text-dark">{t("order_mobile.labels.files")}</div>
             </div>
 
 
@@ -292,7 +319,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
       <div className="text-WS---DarkGreen text-[14px] font-bold leading-tight">
         {formatMoney2(order.amount, order.currency)}
       </div>
-      <div className="text-grey text-[8px]">Сума замовлення</div>
+      <div className="text-grey text-[8px]"> {t("order_mobile.labels.order_amount")}</div>
     </div>
   </div>
 
@@ -304,7 +331,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
       <div className="text-WS---DarkRed  text-[14px] font-bold leading-tight">
         {formatMoney2(debtAmount, order.currency)}
       </div>
-      <div className="text-grey text-[8px]">Сума боргу</div>
+      <div className="text-grey text-[8px]">{t("order_mobile.labels.debt_amount")}</div>
     </div>
   </div>
 
@@ -312,7 +339,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 <div className="flex items-center gap-2 pl-3 flex-1">
   <span className={`icon-info-with-circle font-size-24 mr-2 shrink-0 ${getStatusClass(order.status)}`}></span>
   <div className={`font-size-14 leading-tight ${getStatusClass(order.status)}`}>
-    {order.status}
+    {translatedStatus}
   </div>
 </div>
 
@@ -357,7 +384,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
           disabled={!buttonState.confirm}
           onClick={openConfirmModal}
         >
-          Підтвердити
+          {t("order_mobile.buttons.confirm")}
         </button>
 
         {/* Сплатити */}
@@ -366,7 +393,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
           disabled={!buttonState.pay}
           onClick={openPaymentModal}
         >
-          Сплатити
+          {t("order_mobile.buttons.pay")}
         </button>
       </>
     ) : (
@@ -382,7 +409,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         openReorderModal();
       }}
     >
-      Дозамовлення
+      {t("order_mobile.buttons.reorder")}
     </button>
 
     {/* Рекламація */}
@@ -394,7 +421,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         openClaimModal();
       }}
     >
-      Рекламація
+      {t("order_mobile.buttons.claim")}
     </button>
   </div>
 
@@ -403,8 +430,8 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     className="flex flex-col items-center justify-center min-w-[40px] text-center gap-1 cursor-help"
     title={
       dateDiffStatus
-        ? "Швидке оформлення (менше доби)"
-        : "Замовлення оформлено пізніше ніж через добу"
+        ? t("order_mobile.fast_order.fast")
+    : t("order_mobile.fast_order.slow")
     }
   >
     {dateDiffStatus === null ? null : (
@@ -423,7 +450,11 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
       </div>
     )}
     <span className="text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
-      Швидке<br/>оформлення
+      <>
+        {t("order_mobile.fast_order.title_1")}
+        <br />
+        {t("order_mobile.fast_order.title_2")}
+      </>
     </span>
   </div>
 </div>
@@ -461,9 +492,11 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmOrder}
-        title="Підтвердження замовлення"
-        message={`Ви впевнені, що бажаєте підтвердити замовлення ${order.number}? Це змінить його статус.`}
-        confirmText="Підтвердити"
+        title={t("order_mobile.confirm_modal.title")}
+        message={t("order_mobile.confirm_modal.message", {
+          number: order.number,
+        })}
+        confirmText={t("order_mobile.confirm_modal.confirm")}
         type="success"
       />
 

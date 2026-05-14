@@ -13,10 +13,13 @@ import "./Orders.css";
 
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { useTranslation } from "react-i18next";
+// import (useTranslation)
 
 
 export const CalculationItem = React.memo(
   ({ calc, onDelete, onEdit, onMarkAsRead , reloadCalculations}) => {
+    const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
     const [_selectedComments, setSelectedComments] = useState([]);
@@ -97,11 +100,9 @@ export const CalculationItem = React.memo(
         window.URL.revokeObjectURL(url);
       } catch (error) {
         // console.error("Помилка при завантаженні файлу прорахунку:", error);
-        addNotification(
-          "Не вдалося завантажити файл. Можливо, він відсутній на сервері.",
-        );
+        addNotification(t('calc.error_download'), "error");
       }
-    }, [calc.id, calc.fileGuid, calc.file, calc.number]);
+    }, [calc.id, calc.fileGuid, calc.file, calc.number, addNotification, t]);
 
     const handleDelete = useCallback(async () => {
       if (onDelete) await onDelete(calc.id);
@@ -187,7 +188,7 @@ export const CalculationItem = React.memo(
                 № {calc.number}
               </div>
               <div className="text-xs text-WS---DarkGrey pt-1">
-                {formatDateTimeShort(calc.date)}
+                {formatDateTimeShort(calc.date, i18n.language)}
               </div>
             </div>
           </div>
@@ -243,7 +244,7 @@ export const CalculationItem = React.memo(
           <div className="summary-item expandable row w-23 align-start space-between">
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
               <div className="comments-text-wrapper-last ">
-                {calc.message || "Без коментарів"}
+               {calc.message || t('calc.no_comments')}
               </div>
               <button
                 className="btn-comments row"
@@ -260,7 +261,7 @@ export const CalculationItem = React.memo(
                 
                 />
                 <div className="text-WS---DarkGrey no-wrap ">
-                Історія коментарів
+                {t('calc.comment_history')}
                 </div>
               </button>
             </div>
@@ -300,7 +301,7 @@ export const CalculationItem = React.memo(
                     <div className="order-number">
                       {calc.file && calc.file !== ""
                         ? `${calc.number}.zkz`
-                        : "Немає файлу"}
+                        : t('calc.no_file')}
                     </div>
                   </div>
                 </div>
@@ -314,9 +315,7 @@ export const CalculationItem = React.memo(
                     className={`mr-0.5 object-contain inline-block align-middle ${recipientIconClass}`} 
                     title={
                       isDealerRecipient
-                        ? "Отримувач — дилер"
-                        : "Отримувач — інший контрагент"
-                    }
+                        ? t('calc.recipient_dealer') : t('calc.recipient_other')}
                   />
 
                   <span
@@ -329,7 +328,7 @@ export const CalculationItem = React.memo(
                     {isAdmin ? (
                       <span>{calc.dealer}</span>
                     ) : (
-                      <span>Отримувач</span>
+                      <span>{t('calc.recipient_label')}</span>
                     )}
                   </span>
                 </div>
@@ -349,13 +348,13 @@ export const CalculationItem = React.memo(
                     key={status}
                     className={`row gap-3 left  calc-status ${getStatusClass(status)}`}
                   >
-                    <div>{status}</div>
+                    <div>{t(`statuses.${status}`, status)}</div>
                     <div>({count})</div>
                   </div>
                 ))
               ) : (
                 <div className="row gap-3 left no-wrap calc-status text-warning">
-                  <div>Новий</div>
+                  <div>{t('statuses.Новий')}</div>
                 </div>
               )}
             </div>
@@ -376,7 +375,7 @@ export const CalculationItem = React.memo(
             {orderList.length === 0 ? (
               <div className="order-item !border-b-0 column gap-14 w-100 align-center">
                 <div className="font-size-22 text-grey uppercase float-center">
-                  Ще немає замовлень по цьому прорахунку
+                  {t('calc.no_orders_yet')}
                 </div>
               </div>
             ) : (

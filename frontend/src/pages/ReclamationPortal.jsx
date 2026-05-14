@@ -15,6 +15,8 @@ import useWindowWidth from '../hooks/useWindowWidth';
 import '../components/Reclamations/ReclamationItem.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { useTranslation } from 'react-i18next';
+
 
 
 const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
@@ -74,7 +76,8 @@ function formatApiData(data) {
 
 const ReclamationPortal = () => {
 
-    const { register, cancelAll } = useCancelAllRequests();
+    const { register, cancelAll } = useCancelAllRequests(); 
+    const {t, i18n} = useTranslation();
     const searchIcon = "/assets/icons/SearchIcon.png";
     const filterIcon = "/assets/icons/FiltersIcon.png";
 
@@ -343,6 +346,16 @@ const ReclamationPortal = () => {
 
     }, [reclamationsData, filter, selectedYear]);
 
+    const statusItems = [
+        { label: t('statuses.all'), statusKey: "Всі", icon: allCalcIcon },
+        { label: t('statuses.new'), statusKey: "Новий", icon: newCalcIcon },
+        { label: t('statuses.in_progress'), statusKey: "В роботі", icon: inProcessingIcon },
+        { label: t('statuses.production'), statusKey: "Виробництво", icon: factoryIcon },
+        { label: t('statuses.in_stock'), statusKey: "На складі", icon: finishedIcon },
+        { label: t('statuses.resolved'), statusKey: "Вирішено", icon: checkMarkIcon },
+        { label: t('statuses.rejected'), statusKey: "Відмова", icon: canceledCalcIcon }
+    ];
+
 
 
     /* --------------------------------------------------------
@@ -356,8 +369,8 @@ const ReclamationPortal = () => {
 
     const buttonText =
         loadAmount < ITEMS_PER_LOAD
-            ? `Завантажити ще (${loadAmount})`
-            : `Завантажити ще (100 із ${remaining})`;
+            ?  t("portal_calc.ui.load_more_all", {count: loadAmount})
+            :  t("portal_calc.ui.load_more", {total: remaining});
 
 
 
@@ -367,9 +380,7 @@ const ReclamationPortal = () => {
             <div className="loading-spinner-wrapper">
                 <div className="loading-spinner"></div>
                 <div className="loading-text">
-                    {loading
-                        ? 'Завантаження даних по рекламаціях...'
-                        : 'Оновлення списку рекламацій...'}
+                    {loading ? t('reclamation.common.loading_data') : t('reclamation.common.updating_list')}
                 </div>
             </div>
         );
@@ -410,7 +421,7 @@ const ReclamationPortal = () => {
                 className="align-center mr-1 w-[26px] h-[25px]" 
                 />
                 <div className=" flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-1">
-                Звітний рік
+                {t('reclamation.common.report_year')}
                 </div>
                 <select
                 className="year-select-minimal"
@@ -437,14 +448,15 @@ const ReclamationPortal = () => {
                 className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
                 onClick={() => setFilter(prev => ({ ...prev, month: 0 }))}
             >
-                Весь рік
+                {t('portal_calc.months.all_year')}
             </li>
 
             {Array.from({ length: 12 }, (_, i) => {
                 const num = i + 1;
                 const labels = [
-                    'Січ.', 'Лют.', 'Бер.', 'Квіт.', 'Трав.', 'Черв.',
-                    'Лип.', 'Сер.', 'Вер.', 'Жов.', 'Лис.', 'Груд.'
+                    t('reclamation.months.jan'), t('reclamation.months.feb'), t('reclamation.months.mar'), t('reclamation.months.apr'), 
+                    t('reclamation.months.may'), t('reclamation.months.jun'), t('reclamation.months.jul'), t('reclamation.months.aug'), 
+                    t('reclamation.months.sep'), t('reclamation.months.oct'), t('reclamation.months.nov'), t('reclamation.months.dec')
                 ];
 
                 return (
@@ -475,14 +487,15 @@ const ReclamationPortal = () => {
                 month: Number(e.target.value)
             }))}
         >
-            <option value={0}>Весь рік</option>
+            <option value={0}>{t('portal_calc.months.all_year')}</option>
 
             {Array.from({ length: 12 }, (_, i) => {
                 const num = i + 1;
-                const labels = [
-                    'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
-                    'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
-                ];
+                // const labels = [
+                //     'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+                //     'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
+                // ];
+                const labels = t("portal_calc.months.full", { returnObjects: true });
 
                 return (
                     <option
@@ -540,7 +553,7 @@ const ReclamationPortal = () => {
                         <input
                             type="text"
                              className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
-                            placeholder="номер рекламації"
+                            placeholder={t("reclamation.common.search_placeholder")}
                             value={filter.name}
                             onChange={e => setFilter(prev => ({ ...prev, name: e.target.value }))}
                         />
@@ -569,7 +582,7 @@ const ReclamationPortal = () => {
                                 className="align-center mr-2 " 
                              
                                 />
-                            <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нова рекламація</div>
+                            <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">{t('reclamation.common.new_reclamation')}</div>
                         </li>
                     </ul>
 
@@ -588,15 +601,13 @@ const ReclamationPortal = () => {
                         {/* <li className="delimiter1"></li> */}
 
                         {[
-                            { label: "Всі рекламації", statusKey: "Всі", icon: allCalcIcon },
-                            { label: "Новий", statusKey: "Новий", icon: newCalcIcon },
-                            { label: "В роботі", statusKey: "В роботі", icon: inProcessingIcon },
-                            { label: "Виробництво", statusKey: "Виробництво", icon: factoryIcon },
-                            { label: "На складі", statusKey: "На складі", icon: finishedIcon },
-                            // { label: "Відвантажено", statusKey: "Відвантажено", icon: deliveredIcon },
-                            // { label: "Підтверджено", statusKey: "Підтверджено", icon: deliveredIcon },
-                            { label: "Вирішено", statusKey: "Вирішено", icon: checkMarkIcon },
-                            { label: "Відмова", statusKey: "Відмова", icon: canceledCalcIcon }
+                            { label: t('reclamation.statuses.all'), statusKey: "Всі", icon: allCalcIcon },
+                            { label: t('reclamation.statuses.new'), statusKey: "Новий", icon: newCalcIcon },
+                            { label: t('reclamation.statuses.in_progress'), statusKey: "В роботі", icon: inProcessingIcon },
+                            { label: t('reclamation.statuses.production'), statusKey: "Виробництво", icon: factoryIcon },
+                            { label: t('reclamation.statuses.in_stock'), statusKey: "На складі", icon: finishedIcon },
+                            { label: t('reclamation.statuses.resolved'), statusKey: "Вирішено", icon: checkMarkIcon },
+                            { label: t('reclamation.statuses.rejected'), statusKey: "Відмова", icon: canceledCalcIcon }
                         ].map(item => (
                             <li
                                 key={item.statusKey}
@@ -630,17 +641,16 @@ const ReclamationPortal = () => {
      
                             <div className="error-empty-state column align-center jc-center" style={{ minHeight: '300px' }}>
                                 <span className="icon icon-warning text-red font-size-48 mb-16"></span>
-                                <h3 className="font-size-20 weight-600 mb-8">Упс! Не вдалося завантажити дані</h3>
+                                <h3 className="font-size-20 weight-600 mb-8">{t('reclamation.common.error_title')}</h3>
                                 <p className="text-grey mb-24 text-center">
-                                    Виникла проблема під час з'єднання із сервером. <br/>
-                                    Перевірте інтернет та спробуйте ще раз.
+                                    {t('reclamation.common.error_desc')}
                                 </p>
                                 <button 
                                     className="btn btn-primary btn-load-more-big" 
                                     onClick={reloadReclamations}
                                 >
                                     <span className="icon icon-loop2 mr-10"></span>
-                                    Спробувати знову
+                                    {t('reclamation.common.try_again')}
                                 </button>
                             </div>
                         ) : sortedItems.length === 0 ? (
@@ -712,7 +722,8 @@ const ReclamationPortal = () => {
                                 marginTop: '10px',
                                 marginBottom: '10px'
                             }}>
-                                Всі рекламації завантажено ({sortedItems.length})
+                                {t('reclamation.common.all_loaded', { total: sortedItems.length })}
+                                {/* Всі рекламації завантажено ({sortedItems.length}) */}
                             </div>
                         )}
 

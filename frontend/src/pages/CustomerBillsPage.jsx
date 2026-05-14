@@ -6,6 +6,7 @@ import DealerSelect from "./DealerSelect";
 import { useDealerContext } from "../hooks/useDealerContext";
 import CreateCustomerBillModal from "./CreateCustomerBillModal";
 import { useNotification } from "../hooks/useNotification";
+import { useTranslation } from "react-i18next";
 
 /* =========================
    HELPERS
@@ -21,16 +22,19 @@ const getCurrentMonthRange = () => {
   return { dateFrom, dateTo };
 };
 
-const formatDate = (d) => (d ? new Date(d).toLocaleDateString("uk-UA") : "—");
-const formatMoney = (v) =>
-  Number(v || 0).toLocaleString("uk-UA", { minimumFractionDigits: 2 });
+// Updated locale to en-US for English formatting
+const formatDate = (d, lang = "en-US") => (d ? new Date(d).toLocaleDateString(lang) : "—");
+const formatMoney = (v, lang = "en-US") =>
+  Number(v || 0).toLocaleString(lang, { minimumFractionDigits: 2 });
 
 /* =========================
    COMPONENT
    ========================= */
 const CustomerBillsPage = () => {
-  const { dealerGuid, setDealerGuid, isAdmin, currentUser } =
-    useDealerContext();
+  const { t, i18n } = useTranslation();
+  const currentLang = i18n.language || "en-US";
+
+  const { dealerGuid, setDealerGuid, isAdmin, currentUser } = useDealerContext();
   const { addNotification } = useNotification();
   const USER_ROLE = currentUser?.role;
 
@@ -41,7 +45,6 @@ const CustomerBillsPage = () => {
   const [loading, setLoading] = useState(!isAdmin);
   const [_error, setError] = useState("");
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
-
 
   const [pdfDownloadingId, setPdfDownloadingId] = useState(null);
 
@@ -62,17 +65,18 @@ const CustomerBillsPage = () => {
       });
       setBills(res.data?.items || []);
     } catch (err) {
-      setError("Не вдалося завантажити список");
+      setError(t("bills.error_loading"));
       if (process.env.NODE_ENV === 'development') {
-            console.error("Error fetching bills:", err);  
-        }
+        console.error("Error fetching bills:", err);
+      }
     } finally {
       setLoading(false);
     }
   };
+
   const handleDownloadPDF = async (billGuid, billNumber) => {
     if (!billGuid || billGuid === "undefined") {
-      addNotification("Помилка: Невірний ID рахунку", "error");
+      addNotification(t("bills.error_invalid_id"), "error");
       return;
     }
 
@@ -82,8 +86,8 @@ const CustomerBillsPage = () => {
       const response = await axiosInstance.post(
         `/payments/get_bill_pdf/${billGuid}/`,
         {
-          BillGuid: billGuid, 
-          contractor_guid: dealerGuid, 
+          BillGuid: billGuid,
+          contractor_guid: dealerGuid,
         },
         { responseType: "blob" },
       );
@@ -101,12 +105,12 @@ const CustomerBillsPage = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
 
-      addNotification("Файл завантажено", "success");
+      addNotification(t("bills.file_downloaded"), "success");
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
-            console.error("PDF Download Error:", err);  
-        }
-      addNotification("Помилка при завантаженні PDF", "error");
+        console.error("PDF Download Error:", err);
+      }
+      addNotification(t("bills.error_downloading"), "error");
     } finally {
       setPdfDownloadingId(null);
     }
@@ -116,13 +120,12 @@ const CustomerBillsPage = () => {
     if (!isAdmin || (isAdmin && dealerGuid)) fetchBills();
   }, [dealerGuid, isAdmin]);
 
-
   if (loading) {
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
         <div className="loading-text">
-           Завантаження...
+          {t("common.loading")}
         </div>
       </div>
     );
@@ -130,85 +133,87 @@ const CustomerBillsPage = () => {
 
   return (
     <div className="portal-body">
-
-    <div className="max-w-[1334px] mx-auto ">
-      <div className="customer-bills-header">
-        <h1 className="page-title">Рахунки</h1>
-        <div className="bills-filter">
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
-          {isAdmin && (
-            <DealerSelect value={dealerGuid} onChange={setDealerGuid} />
-          )}
-          <button
-            className="btn btn-filter-bill"
-            onClick={fetchBills}
-            disabled={isAdmin && !dealerGuid}
-          >
-            <FaSearch /> Пошук
-          </button>
-          {USER_ROLE === "customer" && (
+      <div className="max-w-[1334px] mx-auto ">
+        <div className="customer-bills-header">
+          <h1 className="page-title">{t("bills.title")}</h1>
+          <div className="bills-filter">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+            {isAdmin && (
+              <DealerSelect value={dealerGuid} onChange={setDealerGuid} />
+            )}
             <button
-              className="btn btn-create-bill"
-              onClick={() => setIsCreateBillOpen(true)}
+              className="btn btn-filter-bill"
+              onClick={fetchBills}
+              disabled={isAdmin && !dealerGuid}
             >
-              + Додати рахунок
+              <FaSearch /> {t("common.search")}
             </button>
+            {USER_ROLE === "customer" && (
+              <button
+                className="btn btn-create-bill"
+                onClick={() => setIsCreateBillOpen(true)}
+              >
+                + {t("bills.add_bill")}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="customer-bills-panel">
+          <table className="customer-bills-table">
+            <thead>
+              <tr>
+                <th>{t("bills.date")}</th>
+                <th>{t("bills.bill_number")}</th>
+                <th className="center">{t("bills.amount")}</th>
+                <th className="center">{t("bills.file")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bills.map((b) => (
+                <tr key={b.BillGuid}>
+                  <td>{formatDate(b.BillDate, currentLang)}</td>
+                  <td className="text-bold">{b.BillNumber}</td>
+                  <td className="center">{formatMoney(b.TotalAmount, currentLang)}</td>
+                  <td className="center">
+                    <button
+                      className="btn-bill-download"
+                      disabled={pdfDownloadingId !== null}
+                      onClick={() => handleDownloadPDF(b.BillGuid, b.BillNumber)}
+                    >
+                      {pdfDownloadingId === b.BillGuid ? (
+                        <FaSpinner className="pdf-icon spinning" />
+                      ) : (
+                        <FaFilePdf className="pdf-icon" />
+                      )}
+                      <span>{pdfDownloadingId === b.BillGuid ? "" : "PDF"}</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {bills.length === 0 && (
+            <div className="no-data-placeholder">
+               {t("bills.no_bills_found")}
+            </div>
           )}
         </div>
-      </div>
 
-      <div className="customer-bills-panel">
-        <table className="customer-bills-table">
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>№ рахунку</th>
-              <th className="center">Сума</th>
-              <th className="center">Файл</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bills.map((b) => (
-              <tr key={b.BillGuid}>
-                {" "}
-                {/* Виправлено регістр */}
-                <td>{formatDate(b.BillDate)}</td>
-                <td className="text-bold">{b.BillNumber}</td>
-                <td className="center">{formatMoney(b.TotalAmount)}</td>
-                <td className="center">
-                  <button
-                    className="btn-bill-download"
-                    disabled={pdfDownloadingId !== null}
-                    onClick={() => handleDownloadPDF(b.BillGuid, b.BillNumber)} // Виправлено регістр
-                  >
-                    {pdfDownloadingId === b.BillGuid ? (
-                      <FaSpinner className="pdf-icon spinning" />
-                    ) : (
-                      <FaFilePdf className="pdf-icon" />
-                    )}
-                    <span>{pdfDownloadingId === b.BillGuid ? "" : "PDF"}</span>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <CreateCustomerBillModal
-        isOpen={isCreateBillOpen}
-        onClose={() => setIsCreateBillOpen(false)}
-        onSuccess={fetchBills}
-      />
+        <CreateCustomerBillModal
+          isOpen={isCreateBillOpen}
+          onClose={() => setIsCreateBillOpen(false)}
+          onSuccess={fetchBills}
+        />
       </div>
     </div>
   );

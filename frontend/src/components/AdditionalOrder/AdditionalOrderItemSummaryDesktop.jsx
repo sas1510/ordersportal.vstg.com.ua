@@ -12,9 +12,13 @@ import OrderFilesModal from "../Orders/OrderFilesModal"; // Переконайс
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { useTranslation } from "react-i18next";
+import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 
 export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) {
-  // =========================== UI STATE ===========================
+
+  const {t, i18n} = useTranslation();
+  const locale = i18n.language ;
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
@@ -28,7 +32,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
   const moneyGreen = "/assets/icons/MoneyGreen.png";
   const moneyRed = "/assets/icons/MoneyRed.png";
   const fileIcon = "/assets/icons/FileIcon.png";
-    const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+  const windowsIcon = "/assets/icons/WindowsIconCalc.png";
 
   const { user } = useAuthGetRole();
   // const isAdmin = role === "admin";
@@ -115,7 +119,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         `/orders/${order.guid}/confirm/`,
       );
       if (response.status === 200 || response.status === 204) {
-        addNotification(`Замовлення ${order.number} підтверджено!`, "success");
+        addNotification(
+          t("order_mobile.notifications.order_confirmed", {
+            number: order.number,
+          }),
+          "success",
+        );
         setIsConfirmModalOpen(false);
       }
 
@@ -133,14 +142,14 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         order_id: order.guid,
         amount: Number(amount),
       });
-      addNotification("Оплату виконано!", "success");
+      addNotification(t("order_mobile.notifications.payment_success"), "success");
       
       setIsPaymentOpen(false);
 
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
-      addNotification("Помилка виконання оплати", "error");
+      addNotification(t("errors.paymentError"), "error");
     }
   };
 
@@ -159,17 +168,17 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             />
         </div>
 
-        {/* Номер та Дата */}
+
         <div className="text-WS---DarkGrey summary-item row no-wrap">
           <div className="column items-center w-full">
             <div className="text-[15px]  text-bold border-bottom w-full ">
               {order.number}
             </div>
-            <div className=" text-start text-[11px]  mb-1">{order.date}</div>
+            <div className=" text-start text-[11px]  mb-1">{formatDateHumanShorter_full(order.dateRaw, locale)}</div>
           </div>
         </div>
 
-        {/* Кількість */}
+       
         <div className="summary-item flex items-center w-6 justify-center no-wrap">
           <div className="row gap-5 align-center">
              <img 
@@ -194,7 +203,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
                 className="align-center mr-0.5 w-[20px] h-[25px]" 
               
               />
-            <div className="text-WS---DarkGrey underline font-size-14">Файли</div>
+            <div className="text-WS---DarkGrey underline font-size-14">{t("order_mobile.labels.files")}</div>
           </div>
         </div>
 
@@ -211,7 +220,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
               {formatMoney2(order.amount, order.currency)}
             </div>
             <div className="text-grey text-[8px]">
-              Сума замовлення
+              {t("order_mobile.labels.order_amount")}
             </div>
           </div>
         </div>
@@ -229,25 +238,25 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
               {formatMoney2(debtAmount, order.currency)}
             </div>
             <div className="text-grey text-[8px]">
-              Сума боргу
+              {t("order_mobile.labels.debt_amount")}
             </div>
           </div>
         </div>
 
-        {/* Статус */}
+     
         <div className="summary-item w-[180px] row justify-start no-wrap">
           <div className="row gap-14 align-center">
             <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
             <div className={`text-[12px] ${getStatusClass(order.status)}`}>
-              {order.status}
+              {t(`statuses.${order.status}`)}
             </div>
           </div>
         </div>
 
-        {/* Кнопки дій */}
+
 <div className="flex flex-col gap-1.5 w-fit p-1" onClick={(e) => e.stopPropagation()}>
   
-  {/* Верхній ряд: Підтвердити та Сплатити */}
+
   {user?.role !== "admin" && (
     <div className="flex gap-1.5">
       <button
@@ -257,7 +266,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         disabled={!buttonState.confirm}
         onClick={() => setIsConfirmModalOpen(true)}
       >
-        <div className="text-[12px] font-bold text-center">Підтвердити</div>
+        <div className="text-[12px] font-bold text-center">{t("order_mobile.buttons.confirm")}</div>
       </button>
 
       <button
@@ -267,7 +276,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         disabled={!buttonState.pay}
         onClick={() => setIsPaymentOpen(true)}
       >
-        <div className="text-[12px] font-bold text-center">Сплатити</div>
+        <div className="text-[12px] font-bold text-center">{t("order_mobile.buttons.pay")}</div>
       </button>
     </div>
   )}
@@ -284,7 +293,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         setIsClaimModalOpen(true);
       }}
     >
-      <div className="text-[12px] font-bold text-center">Рекламація</div>
+      <div className="text-[12px] font-bold text-center">{t("order_mobile.buttons.claim")}</div>
     </button>
   </div>
 </div>
@@ -324,9 +333,11 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmOrder}
-        title="Підтвердження замовлення"
-        message={`Ви впевнені, що хочете підтвердити замовлення ${order.number}?`}
-        confirmText="Підтвердити"
+        title={t("order_mobile.confirm_modal.title")}
+        message={t("order_mobile.confirm_modal.message", {
+          number: order.number,
+        })}
+        confirmText={t("order_mobile.confirm_modal.confirm")}
         type="success"
       />
 

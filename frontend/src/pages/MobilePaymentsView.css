@@ -86,8 +86,8 @@
   top: 0;
   z-index: 300;
 
-  margin-left: 8px;
-  margin-right: 8px;
+  /* margin-left: 8px;
+  margin-right: 8px; */
 }
 
 @keyframes slideDown {
@@ -166,6 +166,7 @@
 
 /* ==================== GROUPS LIST ==================== */
 .mobile-groups-list {
+  padding-top: 80px;
   padding: 8px;
 }
 

@@ -15,7 +15,7 @@ export const formatDate = (input) => {
   try {
     // Якщо це формат типу "24.09.2025 00:00:00"
     if (/^\d{2}\.\d{2}\.\d{4}/.test(input)) {
-      return input.split(" ")[0]; // обрізаємо все після пробілу
+      return input.split(" ")[0]; 
     }
 
     // Якщо це формат ISO ("2025-09-24T00:00:00")
@@ -27,18 +27,49 @@ export const formatDate = (input) => {
       return `${day}.${month}.${year}`;
     }
 
-    // fallback: якщо не змогли розпарсити
+
     return "Не вказано";
   } catch {
     return "Не вказано";
   }
 };
 
-export const formatDateHuman = (dateStr) => {
+export const formatDateHuman = (dateStr, lng = "uk") => {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (isNaN(date)) return null;
-  return date.toLocaleDateString("uk-UA", {
+
+
+  const locale = lng === "en" ? "en-GB" : "uk-UA";
+
+  return date.toLocaleDateString(locale, {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+};
+
+export const formatDateHumanShorter_full = (dateStr, lng = "uk-UA") => {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  if (isNaN(date)) return null;
+
+  // Форматуємо відповідно до мови
+  return date.toLocaleString(lng === "en" ? "en-GB" : "uk-UA", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+
+export const formatDateHuman_ln = (dateStr, locale) => {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  if (isNaN(date)) return null;
+  return date.toLocaleDateString(locale, {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -50,20 +81,22 @@ export const formatDateHumanShorter = (dateStr, lng = "uk-UA") => {
   const date = new Date(dateStr);
   if (isNaN(date)) return null;
 
-  // Використовуємо передану мову для форматування
-  return date.toLocaleDateString(lng === "en" ? "en-US" : "uk-UA", {
+
+  return date.toLocaleDateString(lng, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 };
 
+
+
 export const formatDateTimeCustom = (input) => {
   if (!input || input === "Не вказано") return "Не вказано";
 
   const date = new Date(input);
 
-  // Перевірка на валідність дати
+
   if (isNaN(date)) return "Не вказано";
 
   const day = String(date.getDate()).padStart(2, "0");
@@ -75,23 +108,32 @@ export const formatDateTimeCustom = (input) => {
   return `${day}.${month}.${year} | ${hours}:${minutes}`;
 };
 
-export const formatDateTimeShort = (input) => {
-  if (!input || input === "Не вказано") return "Не вказано";
+export const formatDateTimeShort = (input, lng = "uk") => {
+
+  const currentLocale = lng === "en" ? "en-GB" : "uk-UA";
+  
+ 
+  const fallback = lng === "en" ? "Not specified" : "Не вказано";
+
+  if (!input || input === "Не вказано" || input === "Not specified") {
+    return fallback;
+  }
 
   const date = new Date(input);
-  if (isNaN(date)) return "Не вказано";
+  if (isNaN(date)) return fallback;
 
-  // Отримуємо дату: "2 лют. "
-  const datePart = date.toLocaleDateString("uk-UA", {
+ 
+  const datePart = date.toLocaleDateString(currentLocale, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
 
-  // Отримуємо час: "15:40"
-  const timePart = date.toLocaleTimeString("uk-UA", {
+
+  const timePart = date.toLocaleTimeString(currentLocale, {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: lng === "en", 
   });
 
   return `${datePart} ${timePart}`;
@@ -102,7 +144,7 @@ export const formatDateTimeCustomShort = (input) => {
 
   const date = new Date(input);
 
-  // Перевірка на валідність дати
+
   if (isNaN(date)) return "Не вказано";
 
   const day = String(date.getDate()).padStart(2, "0");

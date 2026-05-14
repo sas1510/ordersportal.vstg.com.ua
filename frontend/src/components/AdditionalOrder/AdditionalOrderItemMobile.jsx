@@ -5,8 +5,9 @@ import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "../Orders/CommentsModal";
 import { AdditionalOrderMenu } from "./AdditionalOrderMenu";
 import {
-  formatDateTimeShort, formatDateHumanShorter 
+  formatDateTimeShort, formatDateHumanShorter_full, formatDateHumanShorter
 } from "../../utils/formatters";
+import { useTranslation } from "react-i18next";
 
 
 export const AdditionalOrderItemMobile = ({
@@ -18,7 +19,10 @@ export const AdditionalOrderItemMobile = ({
   const [expanded, setExpanded] = useState(false);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]);
-      const windowsIcon = "/assets/icons/WindowsIconCalc.png";
+  const {t, i18n} = useTranslation();
+  const locale = i18n.language;
+
+        const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
     const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
     const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
@@ -121,7 +125,7 @@ export const AdditionalOrderItemMobile = ({
     </div>
     
     <div className="text-xs test-start text-WS---DarkGrey no-wrap">
-      {formatDateTimeShort(calc.date)}
+      {formatDateHumanShorter_full(calc.dateRaw, locale)}
     </div>
 
   </div>
@@ -142,13 +146,13 @@ export const AdditionalOrderItemMobile = ({
             key={status}
             className={`flex items-center gap-2 leading-tight ${getStatusClass(status)}`}
           >
-            <div className="truncate">{status}</div>
+            <div className="truncate">{t(`statuses.${status}`, { defaultValue: status })}</div>
             <div className="">({count})</div>
           </div>
         ))
       ) : (
         <div className="flex items-center gap-2 text-warning leading-tight">
-          <div>Новий</div>
+          <div>{t(`statuses.Новий`)}</div>
         </div>
       )}
     </div>
@@ -166,7 +170,7 @@ export const AdditionalOrderItemMobile = ({
     </div>
     
     <span className="text-[13px] text-WS---DarkGrey truncate leading-tight font-medium">
-      {calc.dealer || "Без дилера"}
+      {calc.dealer || t("additional_order.no_dealer")}
     </span>
   </div>
 
@@ -213,7 +217,7 @@ export const AdditionalOrderItemMobile = ({
         {calc.constructionsQTY}
       </span>
     </div>
-    <span className="text-grey text-[10px] mt-1">Конструкції</span>
+    <span className="text-grey text-[10px] mt-1">{t("order_mobile.labels.constructions")}</span>
   </div>
 
 
@@ -235,7 +239,7 @@ export const AdditionalOrderItemMobile = ({
                      № {calc.mainOrderNumber}
                    </div>
                    <div className="text-start text-[13px]  mb-1">
-                     {formatDateHumanShorter(calc.mainOrderDate)}
+                     {formatDateHumanShorter_full(calc.mainOrderDate, locale)}
                    </div>
                  </>
                ) : (
@@ -243,7 +247,7 @@ export const AdditionalOrderItemMobile = ({
                    className="text-[16px] text-grey"
                    style={{ whiteSpace: "normal" }}
                  >
-                   Без основного замовлення
+                   {t("additional_order.no_main_order")}
                  </div>
                )}
              </div>
@@ -284,7 +288,7 @@ export const AdditionalOrderItemMobile = ({
               className="comments-text-wrapper-last"
               title="Останній коментар / Опис"
             >
-              {calc.message || "Без опису / коментарів"}
+              {calc.message || t("additional_order.no_description")}
             </div>
             {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
             <button
@@ -304,7 +308,7 @@ export const AdditionalOrderItemMobile = ({
                   className="align-center mr-0.5" 
                 
                 />
-              Історія коментарів
+              {t("additional_order.history_button")}
             </button>
           </div>
 
@@ -321,8 +325,8 @@ export const AdditionalOrderItemMobile = ({
           <div className="flex items-center gap-1.5">
              <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">
               {expanded
-                ? "Приховати замовлення"
-                : `Показати замовлення (${ordersWithNumbers.length})`}
+                ? t("portal_calc.ui.hide_orders")
+                : t("portal_calc.ui.show_orders", { count: ordersWithNumbers.length })}
             </span>
             <span
               className={`icon ${expanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}
@@ -336,7 +340,7 @@ export const AdditionalOrderItemMobile = ({
           {ordersWithNumbers.length === 0 ? (
             <div className="order-item column gap-14 w-100 align-center p-3 md:p-8 !border-0">
               <div className="text-[16px] md:font-size-22 text-grey uppercase text-center">
-                Це дозамовлення не містить підпорядкованих замовлень
+                {t("additional_order.no_sub_orders")}
               </div>
             </div>
           ) : (

@@ -14,11 +14,14 @@ import CounterpartyInfoModal from "./CounterpartyInfoModal";
 
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { useTranslation } from "react-i18next";
 
 
 export const CalculationItemMobile = React.memo(
   ({ calc, onDelete, _onEdit, onMarkAsRead, reloadCalculations }) => {
     //
+    const {t, i18n} = useTranslation();
+    const locale = i18n.language;
     const [expanded, setExpanded] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
     const [_selectedComments, setSelectedComments] = useState([]);
@@ -93,9 +96,9 @@ export const CalculationItemMobile = React.memo(
         link.parentNode.removeChild(link);
         window.URL.revokeObjectURL(url);
       } catch (error) {
-        console.error("Помилка при завантаженні файлу прорахунку:", error);
+        // console.error("Помилка при завантаженні файлу прорахунку:", error);
         addNotification(
-          "Не вдалося завантажити файл. Можливо, він відсутній на сервері.",
+          t("calc.error_download"), "warning"
         );
       }
     }, [calc.id, calc.fileGuid, calc.file, calc.number]);
@@ -196,7 +199,7 @@ export const CalculationItemMobile = React.memo(
     </div>
     
     <div className="text-xs test-start text-WS---DarkGrey no-wrap">
-      {formatDateTimeShort(calc.date)}
+      {formatDateTimeShort(calc.date, locale)}
     </div>
 
   </div>
@@ -215,7 +218,7 @@ export const CalculationItemMobile = React.memo(
             <span className="icon-info-with-circle text-[20px] shrink-0 mr-2"></span>
             
             <span className="text-[13px] font-normal">
-              {status} ({count})
+              {t(`statuses.${status}`, status)} ({count})
             </span>
           </div>
         );
@@ -255,7 +258,7 @@ export const CalculationItemMobile = React.memo(
         ? "opacity-20 grayscale cursor-not-allowed" 
         : "cursor-pointer active:scale-95 hover:brightness-110 icon-calc-delete"
       }`} 
-    title={hasOrders ? "Неможливо видалити: є замовлення" : "Видалити прорахунок"}
+    title={hasOrders ?  t("portal_calc.ui.delete_calc_disallowed") : t("portal_calc.ui.delete_calc_allowed")}
   />
 </div>
 
@@ -272,7 +275,7 @@ export const CalculationItemMobile = React.memo(
         {calc.constructionsQTY}
       </span>
     </div>
-    <span className="text-grey text-[10px] mt-1">Конструкції</span>
+    <span className="text-grey text-[10px] mt-1">{t("portal_calc.ui.constructions")}</span>
   </div>
 
  
@@ -283,7 +286,7 @@ export const CalculationItemMobile = React.memo(
         {orderList.length}
       </span>
     </div>
-    <span className="text-grey text-[10px] mt-1">Замовлення</span>
+    <span className="text-grey text-[10px] mt-1">{t("portal_calc.ui.orders")}</span>
   </div>
 
 
@@ -316,7 +319,7 @@ export const CalculationItemMobile = React.memo(
 
     <div className="flex flex-col h-full justify-between">
       <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
-        {calc.message || "Без коментарів"}
+        {calc.message || t("calc.no_comments")}
       </div>
       
       <button
@@ -327,7 +330,7 @@ export const CalculationItemMobile = React.memo(
         }}
       >
         <img src={historyOfMessage} className="mr-1" alt="" />
-        <span className="text-[13px]">Історія коментарів</span>
+        <span className="text-[13px]">{t("calc.comment_history")}</span>
       </button>
     </div>
   </div>
@@ -349,7 +352,7 @@ export const CalculationItemMobile = React.memo(
       >
         <img src={fileIcon} className="w-[16px] h-[20px] mr-1.5" alt="" />
         <div className="text-[13px] text-WS---DarkGrey">
-          {calc.file ? `${calc.number}.zkz` : "Немає файлу"}
+          {calc.file ? `${calc.number}.zkz` : t("calc.no_comments")}
         </div>
       </div>
 
@@ -364,7 +367,7 @@ export const CalculationItemMobile = React.memo(
         >
           <img src={recipientIcon} className={`mr-1 ${recipientIconClass}`} alt="" />
           <span className="text-[13px] text-WS---DarkGrey">
-            {isAdmin ? calc.dealer : "Отримувач"}
+            {isAdmin ? calc.dealer : t("calc.recipient_label")}
           </span>
         </div>
       )}
@@ -401,8 +404,8 @@ export const CalculationItemMobile = React.memo(
             <div className="flex items-center gap-1.5">
               <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">
                 {expanded
-                  ? "Приховати замовлення"
-                  : `Показати замовлення (${orderList.length})`}
+                  ? t("portal_calc.ui.hide_orders") 
+                  : t("portal_calc.ui.show_orders", { count: orderList.length })}
               </span>
               <span
                 className={`icon text-WS---DarkBlue  ${expanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}
@@ -417,7 +420,7 @@ export const CalculationItemMobile = React.memo(
             {orderList.length === 0 ? (
               <div className="order-item column gap-14 w-100 align-center !pt-3 md:!pt-8 !border-b-0">
                 <div className="font-size-16 md:font-size-22 text-center text-WS---DarkGrey  uppercase text-center">
-                  Ще немає замовлень по цьому прорахунку
+                  {t("calc.no_orders_yet")}
                 </div>
               </div>
             ) : (

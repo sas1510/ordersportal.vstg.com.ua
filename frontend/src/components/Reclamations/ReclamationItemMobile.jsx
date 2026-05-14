@@ -276,6 +276,8 @@ import { ComplaintItemDetailViewMobile } from "./ComplaintItemSummaryMobile";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import DeleteConfirmModal from "../Orders/DeleteConfirmModal";
 import { ComplaintItemDetailView } from "./ComplaintItemSummaryDesktop";
+import { useTranslation } from "react-i18next";
+import { formatDateHumanShorter_full } from "../../utils/formatters";
 
 export const ReclamationItemMobile = ({
   reclamation,
@@ -287,7 +289,7 @@ export const ReclamationItemMobile = ({
   _onIssueToggle,   
   onMarkAsRead,
 }) => {
-
+  const {t, i18n } = useTranslation();
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]); 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -316,6 +318,7 @@ export const ReclamationItemMobile = ({
 
 
   const canDelete =  !managerAssigned;
+  const locale = i18n.language;
 
  
   const handleEditClick = (e) => { 
@@ -388,6 +391,23 @@ export const ReclamationItemMobile = ({
 
   };
 
+  const getTranslatedStatus = (status) => {
+    if (status && status.includes("Виробництво")) return t("reclamation.status.production");
+
+    switch (status) {
+      case "Новий": return t("reclamation.status.new");
+      case "В роботі": return t("reclamation.status.in_work");
+      case "Виробництво": return t("reclamation.status.production");
+      case "На складі": return t("reclamation.status.in_stock");
+      case "Відвантажений": return t("reclamation.status.shipped");
+      case "Підтверджено": return t("reclamation.status.confirmed");
+      case "Вирішено": return t("reclamation.status.resolved");
+      case "Відмова": return t("reclamation.status.rejected");
+      default: return status;
+    }
+  };
+
+
   return (
     <div
       className="reclamation-item column font-['Inter']"
@@ -414,7 +434,7 @@ export const ReclamationItemMobile = ({
           № {reclamation.id}
         </div>
         <div className="text-xs pt-0.5 text-start text-WS---DarkGrey no-wrap">
-          від {reclamation.date}
+          {formatDateHumanShorter_full(reclamation.dateRaw, locale)}
         </div>
       </div>
     </div>
@@ -426,7 +446,7 @@ export const ReclamationItemMobile = ({
   <div className={`flex items-center gap-1  pb-1  border-bottom w-full  ${getStatusClass(reclamation.status)}`}>
     <span className="icon-info-with-circle text-[18px] shrink-0 mr-1"></span>
     <span className="text-[13px] leading-tight truncate">
-      {reclamation.status}
+      {getTranslatedStatus(reclamation.status)}
     </span>
   </div>
 
@@ -439,7 +459,7 @@ export const ReclamationItemMobile = ({
         className={`mr-1`} 
       />
     <span className="text-[13px]  text-WS---DarkGrey truncate leading-tight">
-      {reclamation.dealer || "Без дилера"}
+      {reclamation.dealer || "-"}
     </span>
   </div>
 
@@ -460,14 +480,15 @@ export const ReclamationItemMobile = ({
       
       <img 
         src={deleteIcon} 
-        alt="Видалити" 
+        alt={t("reclamation.delete")}
         onClick={handleDeleteClick}
         className={`transition-all 
           ${!canDelete 
             ? "opacity-20 grayscale cursor-not-allowed" 
             : "icon-delete-red cursor-pointer active:scale-95"
           }`} 
-        title={!canDelete ? "Немає прав на видалення" : "Видалити рекламацію"}
+        title={!canDelete ? t("reclamation.delete_forbidden")
+                  : t("reclamation.delete")}
       />
     </div>
   </div>
@@ -487,7 +508,7 @@ export const ReclamationItemMobile = ({
     }}
   >
     <div className="w-full text-[13px] leading-tight text-gray-700 line-clamp-2">
-      {reclamation.message || "Детальний опис відсутній"}
+      {reclamation.message || "-"}
     </div>
   </div>
 
@@ -520,7 +541,7 @@ export const ReclamationItemMobile = ({
       </div>
 
       <span className="text-[13px] font-['Inter'] text-WS---DarkGrey  ml-1">
-        Історія коментарів
+          {t("reclamation.comment_history")}
       </span>
     </button>
   </div>
@@ -539,7 +560,7 @@ export const ReclamationItemMobile = ({
 
         <div className="flex justify-center mt-1.5 pb-0.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">{expanded ? "Приховати" : "Деталі"}</span>
+            <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">{expanded ? t('reclamation.common.hide') : t('reclamation.common.details')}</span>
             <span className={`icon ${expanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}></span>
           </div>
         </div>

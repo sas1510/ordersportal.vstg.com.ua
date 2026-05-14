@@ -5,10 +5,9 @@ import { AdditionalOrderMenu } from "./AdditionalOrderMenu"; // Використ
 // Компоненти для замовлень, які можуть бути вкладені
 import AdditionalOrderItemSummaryDesktop from "./AdditionalOrderItemSummaryDesktop";
 // import AdditionalOrderItemSummaryMobile from './AdditionalOrderItemSummaryMobile';
-
-
+import { useTranslation } from "react-i18next";
 import { User, ClipboardCheck, LayoutGrid, Calendar } from "lucide-react"; // Імпорт іконок
-import { formatDateHumanShorter } from "../../utils/formatters"; // Припускаємо, що це ваша утиліта
+import { formatDateHumanShorter, formatDateHumanShorter_full  } from "../../utils/formatters"; // Припускаємо, що це ваша утиліта
 import "./AdditionalOrderItem.css";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
@@ -20,7 +19,8 @@ export const AdditionalOrderItem = ({
   reloadCalculations
 }) => {
   const additionalOrder = calc;
-
+  const {t, i18n} = useTranslation();
+  const locale = i18n.language;
   const [expanded, setExpanded] = useState(false);
   const toggleExpanded = () => setExpanded((prev) => !prev);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -157,14 +157,14 @@ export const AdditionalOrderItem = ({
 
         <div
           className="summary-item row w-9 no-wrap"
-          style={{ minWidth: "130px" }}
+          style={{ minWidth: "150px" }}
         >
           <div className="column">
             <div className="text-[16px] text-bold text-WS---DarkGrey border-bottom">
               № {additionalOrder.number}
             </div>
             <div className="text-[13px] text-WS---DarkGrey">
-              {formatDateHumanShorter(additionalOrder.dateRaw)}
+              {formatDateHumanShorter_full(additionalOrder.dateRaw, locale)}
             </div>
           </div>
         </div>
@@ -198,7 +198,7 @@ export const AdditionalOrderItem = ({
                   № {additionalOrder.mainOrderNumber}
                 </div>
                 <div className="text-start text-[13px]  mb-1">
-                  {formatDateHumanShorter(additionalOrder.mainOrderDate)}
+                  {formatDateHumanShorter(additionalOrder.mainOrderDate, locale)}
                 </div>
               </>
             ) : (
@@ -206,7 +206,7 @@ export const AdditionalOrderItem = ({
                 className="text-[15px] text-grey"
                 style={{ whiteSpace: "normal" }}
               >
-                Без основного замовлення
+                {t("additional_order.no_main_order")}
               </div>
             )}
           </div>
@@ -239,7 +239,7 @@ export const AdditionalOrderItem = ({
               className="comments-text-wrapper-last"
               title="Останній коментар / Опис"
             >
-              {additionalOrder.message || "Без опису / коментарів"}
+              {additionalOrder.message || t("additional_order.no_description")}
             </div>
             {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
             <button
@@ -256,7 +256,7 @@ export const AdditionalOrderItem = ({
                   className="align-center mr-0.5" 
                 
                 />
-              Історія коментарів
+              {t("additional_order.history_button")}
             </button>
           </div>
         </div>
@@ -277,13 +277,13 @@ export const AdditionalOrderItem = ({
             key={status}
             className={`flex items-center gap-2 leading-tight ${getStatusClass(status)}`}
           >
-            <div className="truncate">{status}</div>
+            <div className="truncate">{t(`statuses.${status}`, { defaultValue: status })}</div>
             <div className="">({count})</div>
           </div>
         ))
       ) : (
         <div className="flex items-center gap-2 text-warning leading-tight">
-          <div>Новий</div>
+          <div>{t(`statuses.Новий`, { defaultValue: "Новий" })}</div>
         </div>
       )}
     </div>
@@ -301,7 +301,7 @@ export const AdditionalOrderItem = ({
     </div>
     
     <span className="text-[13px] text-WS---DarkGrey truncate leading-tight font-medium">
-      {additionalOrder.dealer || "Без дилера"}
+      {additionalOrder.dealer || t("additional_order.no_dealer")}
     </span>
   </div>
 
@@ -331,7 +331,7 @@ export const AdditionalOrderItem = ({
           {ordersWithNumbers.length === 0 ? (
             <div className="order-item column gap-14 w-100 align-center !border-0 !p-0">
               <div className="font-size-22 text-grey uppercase float-center">
-                Це дозамовлення не містить підпорядкованих замовлень
+                {t("additional_order.no_sub_orders")}
               </div>
             </div>
           ) : (

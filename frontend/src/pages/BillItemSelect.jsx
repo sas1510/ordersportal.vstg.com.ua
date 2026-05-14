@@ -1,8 +1,11 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import "./BillItemSelect.css";
+import { useTranslation } from "react-i18next";
+import AutoTranslatedText from "../components/ui/AutoTranslatedText"; // Шлях до вашого компонента
 
 const BillItemSelect = ({ value, items, onChange, placeholder }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const controlRef = useRef(null);
@@ -12,10 +15,9 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
 
   const filteredItems = useMemo(() => {
     return items.filter((i) =>
-      i.NameBills.toLowerCase().includes(search.toLowerCase()),
+      i.NameBills.toLowerCase().includes(search.toLowerCase())
     );
   }, [items, search]);
-
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -30,7 +32,6 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
     if (open) document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
-
 
   const rect = controlRef.current?.getBoundingClientRect();
   const style = rect
@@ -52,9 +53,15 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
         onClick={() => setOpen((o) => !o)}
       >
         <span className={selectedItem ? "" : "placeholder"}>
-          {selectedItem
-            ? `${selectedItem.NameBills} (${selectedItem.EdIzm})`
-            : placeholder || "— оберіть товар —"}
+          {selectedItem ? (
+            <>
+              {/* ПЕРЕКЛАД ОБРАНОГО ТОВАРУ */}
+              <AutoTranslatedText text={selectedItem.NameBills} />
+              <span className="unit"> <AutoTranslatedText text={selectedItem.EdIzm} /></span>
+            </>
+          ) : (
+            placeholder || t("create_bill.placeholders.product")
+          )}
         </span>
         <span className="arrow">▾</span>
       </button>
@@ -70,7 +77,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
               <input
                 autoFocus
                 className="bill-select__search"
-                placeholder="Пошук товару…"
+                placeholder={t("common.search") + "..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -78,7 +85,7 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
 
             <div className="bill-select__list">
               {filteredItems.length === 0 && (
-                <div className="bill-select__empty">Нічого не знайдено</div>
+                <div className="bill-select__empty">{t("common.no_data")}</div>
               )}
 
               {filteredItems.map((i) => {
@@ -96,14 +103,15 @@ const BillItemSelect = ({ value, items, onChange, placeholder }) => {
                       setSearch("");
                     }}
                   >
-                    {i.NameBills}
-                    <span className="unit">({i.EdIzm})</span>
+                    {/* АВТОПЕРЕКЛАД КОЖНОЇ ОПЦІЇ В СПИСКУ */}
+                    <AutoTranslatedText text={i.NameBills} />
+                    <span className="unit"> (<AutoTranslatedText text={i.EdIzm} />)</span>
                   </div>
                 );
               })}
             </div>
           </div>,
-          document.body,
+          document.body
         )}
     </>
   );

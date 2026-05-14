@@ -73,12 +73,66 @@
     "date_to": "Date To",
     "dealer": "Dealer",
     "show": "Show",
-    "no_results": "No results found"
+    "no_results": "No results found",
+    "loadingFiles": "Loading files…",
+    "downloading": "Downloading...",
+    "view": "View",
+    "download": "Download",
+    "search": "Search",
+    "back": "Back",
+    "next": "Next",
+    "refresh": "Refresh",
+    "generating": "Generating",
+    "no_data": "No data found",
+    "try_again": "Try again",
+        "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "add": "Add",
+    "update": "Update",
+    "saving": "Saving...",
+    "deleting": "Deleting..."
+
+
 
   },
   "notifications": {
     "title": "Notifications",
-    "new_message": "New message"
+    "new_message": "New message",
+    "downloadError": "Failed to open or download the file.",
+    "mark_all_read": "Mark all as read",
+    "empty_all": "You have no notifications",
+    "empty_filter": "Nothing found",
+    "filters": {
+      "all": "All",
+      "messages": "Messages",
+      "reminders": "Reminders"
+    },
+    "types": {
+      "reminder": "Reminder",
+      "system": "System"
+    },
+    "push": {
+      "btn_enable": "Enable",
+      "btn_disable": "Disable",
+      "enable_title": "Enable desktop notifications",
+      "disable_title": "Disable notifications on this device",
+      "blocked_title": "Access blocked in browser",
+      "activated": "Browser notifications activated!",
+      "disabled": "Notifications disabled",
+      "error_enable": "Failed to enable notifications.",
+      "error_disable": "Error disabling notifications"
+    },
+    "tg": {
+      "bot_title": "Telegram Bot",
+      "qr_text": "Scan to connect",
+      "open_chat": "Open chat"
+    },
+    "errors": {
+      "tg_link": "Failed to get Telegram link"
+    },
+    "excel_success": "Excel downloaded successfully",
+    "excel_error": "Failed to download Excel"
   },
 
 
@@ -217,7 +271,10 @@
         "creating": "Creating...",
         "save": "Save",
         "repeat": "RETRY"
-    }
+
+    },
+    "modalFilesTitle": "Order Files",
+    "noFilesFound": "No files found for this order."
 },
 "clientAddressModal": {
     "title": "🏠 Client Address",
@@ -273,7 +330,542 @@
         "deliveryAddress": "Delivery Address:",
         "pickup": "Pickup",
         "close": "Close"
+    },
+        
+    "delete_modal": {
+        "title": "Confirm Deletion",
+        "warning": "Are you sure you want to delete {{type}} \"{{name}}\"?",
+        "description": "This action is irreversible. All related data will also be deleted.",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "deleting": "Deleting...",
+        "success": "{{type}} \"{{name}}\" deleted successfully ✅",
+        "error_unknown": "Unknown item type ❌",
+        "types": {
+        "order": "order",
+        "calculation": "calculation",
+        "client": "client",
+        "product": "product",
+        "reclamation": "reclamation",
+        "additionalOrder": "additional order",
+        "record": "record"
+        }
+  }, 
+  
+  "reorder_modal": {
+    "title": "Additional Order",
+    "order_number": "Order Number:",
+    "order_placeholder": "Enter number...",
+    "no_order": "Without order",
+    "item_label": "Item for reorder:",
+    "loading": "Loading...",
+    "select_placeholder": "-- Select an item --",
+    "quantity": "Quantity:",
+    "comment_label": "Counterparty comment:",
+    "comment_placeholder": "Your comment...",
+    "btn_cancel": "Cancel",
+    "btn_save": "Add",
+    "success_create": "Additional order created successfully!"
+  }, 
+
+  
+  "add_claim": {
+    "title": "Add Claim",
+    "order_number": "Order Number:",
+    "order_not_found": "Order not found",
+    "retry": "Retry",
+    "dealer": "Dealer:",
+    "select_dealer": "Select dealer",
+    "select_series": "Select series:",
+    "delivery_date": "Delivery Date:",
+    "claim_date": "Claim Date:",
+    "reason_label": "Claim Reason:",
+    "solution_label": "Solution Option:",
+    "description_label": "Description:",
+    "photos_label": "Claim Photos:",
+    "add_photo": "Add Photo",
+    "btn_cancel": "Cancel",
+    "btn_save": "Add Claim",
+    "loading": "Loading...",
+    "success_msg": "Claim added successfully",
+    "error_default": "Error creating claim",
+    "errors": {
+      "reasons": "Error loading claim reasons",
+      "solutions": "Error loading solution options",
+      "series": "Failed to get design series data"
     }
+  },
+  
+  "select": {
+    "default_placeholder": "-- Select --",
+    "no_options": "No options available"
+  },
+
+  "reasons": {
+    "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "Reimburse (compensate) the cost of damaged order elements, works, services at the manufacturer's expense",
+    "Доукомплектувати замовлення за рахунок виробника": "Complete the order at the manufacturer's expense",
+    "Доукомплектувати замовлення за рахунок замовника": "Complete the order at the customer's expense",
+    "Дозамовлення за рахунок замовника": "Additional order at the customer's expense",
+    "Повернути конструкцію на виробництво (неліквід)": "Return the structure to production (non-liquid/defective)"
+  }, 
+  
+  "payment_modal": {
+    "title": "Payment for Order No. {{number}}",
+    "loading": "Loading...",
+    "error_no_currency": "You have no advance contracts in {{currency}}.",
+    "error_no_contracts": "You have no advance contracts.",
+    "error_load_failed": "Failed to load balance data.",
+    "order_currency": "Order Currency:",
+    "amount_to_pay": "Amount to pay:",
+    "advance_contract": "Advance Contract ({{currency}}):",
+    "select_contract": "Select contract",
+    "available": "Available:",
+    "payment_amount": "Payment Amount:",
+    "error_min_amount": "Amount must be greater than 0",
+    "error_max_amount": "Maximum amount is {{amount}}",
+    "btn_cancel": "Cancel",
+    "btn_pay": "Pay",
+    "btn_processing": "Processing..."
+  },
+  
+  "confirm_modal": {
+    "default_title": "Confirm Action",
+    "default_message": "Are you sure you want to perform this action?",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  },
+  
+  "order_mobile": {
+    
+
+    "labels": {
+      "constructions": "Constructions",
+      "files": "Files",
+      "order_amount": "Order amount",
+      "debt_amount": "Debt amount"
+    },
+    "buttons": {
+      "confirm": "Confirm",
+      "pay": "Pay",
+      "reorder": "Reorder",
+      "claim": "Claim"
+    },
+    "fast_order": {
+      "fast": "Fast processing (less than 24 hours)",
+      "slow": "Order processed later than 24 hours",
+      "title_1": "Fast",
+      "title_2": "processing"
+    },
+    "confirm_modal": {
+      "title": "Order confirmation",
+      "message": "Are you sure you want to confirm order {{number}}?",
+      "confirm": "Confirm"
+    },
+    "notifications": {
+      "payment_success": "Payment completed successfully!",
+      "order_confirmed": "Order {{number}} confirmed successfully!"
+    },
+    "steps": {
+      "order": "Order",
+      "payment": "Payment",
+      "confirmation": "Confirmation",
+      "production": "Production",
+      "readiness": "Readiness",
+      "delivery": "Delivery",
+      "delay": "Delay"
+    },
+    "statuses": {
+      "no_date": "No date",
+      "paid": "Paid",
+      "debt": "Debt",
+      "not_confirmed": "Not confirmed",
+      "no_data": "No data",
+      "plan": "Plan",
+      "not_ready": "Not ready",
+      "not_delivered": "Not delivered",
+      "from" : "from",
+      "to" : "to"
+    }
+  },
+  
+  "order_status": {
+    "new": "New",
+    "processing": "Processing",
+    "waiting_payment": "Waiting for payment",
+    "waiting_confirmation": "Waiting for confirmation",
+    "rejected": "Rejected",
+    "ready": "Ready",
+    "shipped": "Shipped",
+    "confirmed": "Confirmed",
+    "production": "In production",
+    "in_work": "In progress"
+  },
+
+  "errors": {
+    "serverError": "The server returned an error.",
+    "errorSendData": "Failed to send data: ",
+    "errorSendData_2": "Failed to send data.",
+    "error": "Error: ",
+    "unknownError": "Unknown error",
+    "fetchFilesFailed": "Failed to retrieve files.",
+    "paymentError": "Error occurred during payment processing",
+    "fetch_failed": "Error loading data"
+  },
+
+  "calc": {
+    "constructions_qty": "Number of constructions",
+    "orders_qty": "Number of orders",
+    "no_comments": "No comments",
+    "comment_history": "Comment history",
+    "no_file": "No file",
+    "recipient_dealer": "Recipient is dealer",
+    "recipient_other": "Recipient is another counterparty",
+    "recipient_label": "Recipient",
+    "no_orders_yet": "No orders for this calculation yet",
+    "error_download": "Failed to download file. It might be missing on the server."
+  },
+  "statuses": {
+    "Новий": "New",
+    "Очікуємо підтвердження": "Awaiting confirmation",
+    "Очікуємо оплату": "Awaiting payment",
+    "Підтверджений": "Confirmed",
+    "У виробництві": "In production",
+    "В обробці": "Processing",
+    "Відмова": "Rejected",
+    "Готовий": "Ready",
+    "Відвантажений": "Shipped",
+    "Відвантажено": "Shipped",
+    "В роботі": "In work"
+  },
+  "portal_calc": {
+    "ui": {
+      "loading": "Loading...",
+      "reloading": "Updating data...",
+      "report_year": "Reporting year",
+      "filters": "Filters",
+      "search_placeholder": "calculation number, order",
+      "new_calculation": "new calculation",
+      "error_title": "Oops! Failed to load data",
+      "error_title_2": "There was a problem connecting to the server.",
+      "error_title_3": "Check your internet connection and try again.",
+      "try_again": "Try again",
+      "no_calculations": "No calculations to display",
+      "load_more_all": "Load more ({{count}})",
+      "load_more": "Load more (100 of {{total}})",
+      "all_loaded": "All calculations loaded ({{count}}).",
+      "delete_calc_allowed": "Delete calculation",
+      "delete_cal_disallowed": "Cannot delete: orders exist",
+      "constructions": "Constructions",
+      "orders": "Orders",
+      "hide_orders": "Hide orders",
+      "show_orders": "Show orders ({{count}})"
+    },
+    "months": {
+      "all_year": "Full year",
+      "short": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      "full": ["January","February","March","April","May","June","July","August","September","October","November","December"]
+    },
+    "filter_labels": {
+      "all": "All calculations",
+      "new": "New calculations",
+      "waiting_confirm": "Awaiting confirmation",
+      "waiting_payment": "Awaiting payment",
+      "confirmed": "Confirmed",
+      "production": "In production",
+      "ready": "Ready orders",
+      "delivered": "Shipped",
+      "rejected": "Rejected"
+    },
+    "errors": {
+      "server_error": "Server returned an error while updating data.",
+      "connection_error": "Failed to update data. Check your connection."
+    }
+  },
+  
+  "complaints": {
+    "detail": {
+      "not_specified": "Not specified",
+      "main_info": "Main Information",
+      "number": "Complaint Number",
+      "act_number": "Act Number",
+      "order_number": "Order Number",
+      "organization": "Organization",
+      "series": "Construction Series",
+      "dates": "Dates",
+      "date_complaint": "Complaint Date",
+      "date_delivery": "Delivery Date",
+      "date_detection": "Detection Date",
+      "date_produced": "Produced",
+      "date_shipped": "Shipped",
+      "manager": "Responsible Manager:",
+      "description_title": "Complaint Description",
+      "problem_title": "Problem",
+      "resolution_title": "Resolution",
+      "photo": "Photo",
+      "video": "Video",
+      "errors": {
+        "load_media_fail": "Failed to load complaint media files.",
+        "try_again": "Try again",
+        "open_photo_fail": "Failed to open photo for viewing",
+        "general_error": "An error occurred while loading images"
+      }
+    }
+  }, 
+  "reclamation": {
+    "no_comments": "No comments",
+    "comment_history": "Comment history",
+    "delete": "Delete",
+    "delete_forbidden": "Deletion unavailable",
+    "delete_forbidden_manager": "Cannot delete: manager assigned",
+    "status": {
+      "new": "New",
+      "in_work": "In progress",
+      "production": "In production",
+      "in_stock": "In stock",
+      "shipped": "Shipped",
+      "confirmed": "Confirmed",
+      "resolved": "Resolved",
+      "rejected": "Rejected"
+    },
+   
+  "common": {
+    "hide": "Hide",
+    "details": "Details",
+    "loading_data": "Loading reclamation data...",
+    "updating_list": "Updating reclamation list...",
+    "report_year": "Reporting year",
+    "all_year": "Whole year",
+    "search_placeholder": "reclamation number",
+    "new_reclamation": "New reclamation",
+    "all_reclamations": "All reclamations",
+    "load_more": "Load more ({{count}})",
+    "load_more_full": "Load more (100 of {{remaining}})",
+    "all_loaded": "All reclamations loaded ({{total}})",
+    "not_found": "No reclamations found",
+    "error_title": "Oops! Failed to load data",
+    "error_desc": "There was a problem connecting to the server. Please check your internet and try again.",
+    "try_again": "Try again",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "add": "Add",
+    "update": "Update",
+    "saving": "Saving...",
+    "deleting": "Deleting..."
+  },
+  "statuses": {
+    "all": "All reclamations",
+    "new": "New",
+    "in_progress": "In progress",
+    "production": "Production",
+    "in_stock": "In stock",
+    "resolved": "Resolved",
+    "rejected": "Rejected"
+  },
+  "months": {
+    "jan": "Jan.", "feb": "Feb.", "mar": "Mar.", "apr": "Apr.", "may": "May", "jun": "Jun.",
+    "jul": "Jul.", "aug": "Aug.", "sep": "Sep.", "oct": "Oct.", "nov": "Nov.", "dec": "Dec."
+  }
+
+  },
+  
+  "additional_order": {
+    "no_main_order": "No main order",
+    "no_description": "No description / comments",
+    "history_button": "Comment history",
+    "no_dealer": "No dealer assigned",
+    "no_sub_orders": "This additional order contains no sub-orders",
+    "delete_sub_orders": "Delete additional order",
+    "cannot_delete_manager": "Cannot delete: manager assigned ({{name}})",
+    "search_placeholder": "additional order number",
+    "new_order_btn": "New additional order",
+    "statuses": {
+      "all":"ALl add. order",
+      "new": "New",
+      "waiting_confirm": "Awaiting confirmation",
+      "waiting_pay": "Awaiting payment",
+      "confirmed": "Confirmed",
+      "in_production": "In production",
+      "in_processing": "Processing",
+      "in_work": "In progress",
+      "rejected": "Rejected",
+      "ready": "Ready",
+      "shipped": "Shipped"
+    },
+    "states": {
+      "error_title": "Oops! Failed to load data",
+      "error_text": "There was a problem connecting to the server. Please check your connection and try again.",
+      "try_again": "Try again",
+      "no_data": "No additional orders to display",
+      "load_more": "Load more ({{count}} of {{total}})",
+      "all_loaded": "All additional orders loaded ({{total}})."
+    }
+    
+  },
+  "bills": {
+    "title": "Invoices",
+    "add_bill": "Create Invoice",
+    "date": "Date",
+    "bill_number": "Invoice №",
+    "amount": "Amount",
+    "file": "File",
+    "no_bills_found": "No invoices found for the selected period.",
+    "file_downloaded": "File downloaded successfully",
+    "error_loading": "Failed to load the list",
+    "error_invalid_id": "Error: Invalid Bill ID",
+    "error_downloading": "Error downloading PDF"
+  },
+  "create_bill": {
+    "title": "Create Invoice",
+    "steps": {
+      "details": "Details selection",
+      "items": "Adding items",
+      "confirm": "Confirmation"
+    },
+    "fields": {
+      "iban": "IBAN",
+      "address": "Address",
+      "product": "Product",
+      "quantity": "Qty",
+      "price": "Price",
+      "width": "Width (mm)",
+      "height": "Height (mm)",
+      "total": "Total Amount",
+      "payment_date": "Payment Date",
+      "delivery_date": "Delivery Date",
+      "comment": "Comment"
+    },
+    "placeholders": {
+      "iban": "— select IBAN —",
+      "address": "— select address —",
+      "product": "— select product —"
+    },
+    "actions": {
+      "add_item": "Add Item",
+      "remove_item": "Remove position",
+      "submit": "Create Invoice",
+      "creating": "Creating..."
+    },
+    "notifications": {
+      "profile_error": "Error loading profile, please try reopening the form",
+      "success": "Invoice created successfully!",
+      "submit_error": "Failed to create invoice. Please try again."
+    },
+    "validation": {
+      "step1": "Please select IBAN and delivery address",
+      "step2": "Check items: name, quantity, and price must be filled"
+    }
+  },
+  "change_password": {
+    "header": "Change Password",
+    "logged_in_as": "Logged in as:",
+    "old_password_label": "Current Password",
+    "new_password_label": "New Password",
+    "confirm_password_label": "Confirm New Password",
+    "btn_submit": "Change Password",
+    "btn_loading": "Changing...",
+    "info_changing": "Changing password...",
+    "success_message": "Password changed successfully!",
+    "error_mismatch": "New password and confirmation do not match.",
+    "error_length": "Password must be at least 6 characters long.",
+    "error_general": "Error. Please check your current password."
+  },
+  "emergency": {
+    "page_title": "Emergency Call Contacts",
+    "no_contacts": "No contacts found.",
+    "unknown_user": "Unknown user",
+    "actions": {
+      "call": "Urgent Call",
+      "connect_telegram": "Connect Telegram"
+    },
+    "modal": {
+      "add_title": "Add Contact",
+      "edit_title": "Edit Contact",
+      "placeholder_name": "Name",
+      "placeholder_phone": "Phone",
+      "placeholder_dept": "Department",
+      "delete_confirm_title": "Delete Confirmation",
+      "delete_confirm_text": "Are you sure you want to delete this contact?"
+    },
+    "telegram": {
+      "title": "Connecting Telegram",
+      "scan_qr": "Scan the QR code or click the button below"
+    },
+    "notifications": {
+      "fetch_error": "Failed to fetch contact list",
+      "fill_required": "Please fill in all required fields",
+      "updated": "Contact updated",
+      "added": "Contact added",
+      "save_error": "Failed to save contact",
+      "deleted": "Contact deleted",
+      "delete_error": "Failed to delete contact",
+      "sending_call": "Sending notification...",
+      "call_sent": "Notification sent",
+      "call_error": "Failed to send notification"
+    }
+  },
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "dealer": "Dealer"
+  },
+  "payments": {
+    "title": "Cash flow",
+    "when": "When",
+    "date": "Date",
+    "show_orders_mobile": "Distributed on request",
+    "hide_orders_mobile": "Hide order",
+    "operation": "Operation",
+    "start_balance": "Start balance",
+    "start_short": "Start",
+    "income": "Income",
+    "expense": "Expense",
+    "balance": "Balance",
+    "channel": "Channel",
+    "details_contract": "Details / Contract",
+    "total_for": "Total for",
+    "correction": "Correction",
+    "order_no": "Order No.",
+    "amount": "Amount",
+    "debt": "Debt",
+    "paid_before": "Paid before",
+    "payment": "Payment",
+    "percent": "Percent",
+    "contract": "Contract",
+    "no_contract": "No contract",
+    "unknown_date": "Unknown date",
+    "show_orders": "Applied to {{count}} orders",
+    "hide_orders": "Hide {{count}} orders",
+    "channels": {
+      "bank": "BANK",
+      "cash": "CASH",
+      "order_short": "ORDER"
+    },
+    "docTypes": {
+      "ППВход": "Bank Transfer",
+      "ПКО": "Cash Order",
+      "ВозвратОтПокупателя": "Return from Buyer",
+      "КорректировкаДолга": "Debt Adjustment"
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

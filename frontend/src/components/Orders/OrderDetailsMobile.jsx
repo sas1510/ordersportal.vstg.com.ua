@@ -1,8 +1,14 @@
 import React, { useCallback, useMemo } from "react";
-import { formatDateHuman, formatDateHumanShorter } from "../../utils/formatters";
+import { formatDateHuman, formatDateHuman_ln, formatDateHumanShorter } from "../../utils/formatters";
 import "./OrderDetailsMobile.css";
+import { useTranslation } from "react-i18next";
+
 
 export default React.memo(function OrderDetailsMobile({ order }) {
+
+  const {t, i18n} = useTranslation();
+  const locale = i18n.language === 'en' ? 'en-US' : 'uk-UA';
+
   
   const isEmpty = useCallback(
     (val) => val === undefined || val === null || String(val).trim() === "",
@@ -17,6 +23,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
   }, [order.amount, order.paid, isEmpty]);
 
   const paymentIsDue = paymentDue > 0;
+
 
   // --- 2. Статус (Стиль іконок) ---
   const getStatusStyle = useCallback((status) => {
@@ -41,6 +48,22 @@ export default React.memo(function OrderDetailsMobile({ order }) {
     return isNaN(d.getTime()) ? null : d;
   }, []);
 
+  const translatedStatus = useMemo(() => {
+  const statusMap = {
+    "Новий": t("order_status.new"),
+    "В обробці": t("order_status.processing"),
+    "Очікуємо оплату": t("order_status.waiting_payment"),
+    "Очікуємо підтвердження": t("order_status.waiting_confirmation"),
+    "Відмова": t("order_status.rejected"),
+    "Готовий": t("order_status.ready"),
+    "Відвантажений": t("order_status.shipped"),
+    "Підтверджений": t("order_status.confirmed"),
+    "У виробництві": t("order_status.production"),
+  };
+
+  return statusMap[order.status] || order.status;
+}, [order.status, t]);
+
   const getDateStatus = useCallback((plannedStr, actualStr) => {
     const planned = parseDate(plannedStr);
     const actual = parseDate(actualStr);
@@ -59,10 +82,10 @@ export default React.memo(function OrderDetailsMobile({ order }) {
     const isPending = !order.factProductionMax && !order.planProductionMax;
     const displayDate = order.factProductionMax 
 
-      ? formatDateHumanShorter(order.factProductionMax) 
+      ? formatDateHumanShorter(order.factProductionMax, locale) 
       : order.planProductionMax 
-        ? `План: ${formatDateHumanShorter(order.planProductionMax)}` 
-        : "Немає даних";
+        ? `${t("order_mobile.statuses.plan")}: ${formatDateHumanShorter(order.planProductionMax, locale)}` 
+        : t("order_mobile.statuses.no_data");
     return { status, displayDate, isPending };
   }, [order.factProductionMax, order.planProductionMax, getDateStatus]);
 
@@ -96,9 +119,9 @@ export default React.memo(function OrderDetailsMobile({ order }) {
               </svg>
             </div>
             <div className="badge">
-              <div className="badge-title">Замовлення</div>
+              <div className="badge-title">{t("order_mobile.steps.order")}</div>
               <div className="badge-content bg-WS---DarkGreen-Light">
-                {formatDateHumanShorter(order.date) || "Немає дати"}
+                {formatDateHumanShorter(order.date, locale) ||  t("order_mobile.statuses.no_date")}
               </div>
             </div>
           </li>
@@ -126,9 +149,9 @@ export default React.memo(function OrderDetailsMobile({ order }) {
 </svg>
             </div>
             <div className="badge">
-              <div className="badge-title">Оплата</div>
+              <div className="badge-title">{t("order_mobile.steps.payment")}</div>
               <div className={`badge-content ${paymentIsDue ? "bg-WS---DarkRed-Light" : "bg-WS---DarkGreen-Light"}`}>
-                {paymentIsDue ? `Борг: ${paymentDue.toLocaleString("uk-UA", { minimumFractionDigits: 2 })}` : "Сплачено"}
+                {paymentIsDue ? `${t("order_mobile.statuses.debt")}: ${paymentDue.toLocaleString(locale, { minimumFractionDigits: 2 })}` :  t("order_mobile.statuses.paid")}
               </div>
             </div>
           </li>
@@ -150,10 +173,10 @@ export default React.memo(function OrderDetailsMobile({ order }) {
               </svg>
             </div>
             <div className="badge">
-              <div className="badge-title">Підтвердження</div>
+              <div className="badge-title">{t("order_mobile.steps.confirmation")}</div>
               <div className={`badge-content ${isEmpty(order.status) ? "bg-WS---DarkRed-Light" : "bg-WS---DarkGreen-Light"}`}>
-                {order.status || "Не підтверджено"}
-              </div>
+  {translatedStatus || t("order_mobile.statuses.not_confirmed")}
+</div>
             </div>
           </li>
 
@@ -182,7 +205,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
 
             </div>
             <div className="badge">
-              <div className="badge-title">Виробництво</div>
+              <div className="badge-title">{t("order_mobile.steps.production")}</div>
               <div className={`badge-content ${productionStatus.status.bg}`}>
                 {productionStatus.displayDate}
               </div>
@@ -217,9 +240,9 @@ export default React.memo(function OrderDetailsMobile({ order }) {
 
             </div>
             <div className="badge">
-              <div className="badge-title">{readyStatus.isDelayed ? "Затримка" : "Готовність"}</div>
+              <div className="badge-title">{readyStatus.isDelayed ? t("order_mobile.steps.delay") : t("order_mobile.steps.readiness")}</div>
               <div className={`badge-content ${readyStatus.bg}`}>
-                {order.factReadyMax ? formatDateHumanShorter(order.factReadyMax) : (order.dateDelay ? formatDateHumanShorter(order.dateDelay) : "Не готовий")}
+                {order.factReadyMax ? formatDateHumanShorter(order.factReadyMax, locale) : (order.dateDelay ? formatDateHumanShorter(order.dateDelay, locale) : t("order_mobile.statuses.not_ready"))}
               </div>
             </div>
           </li>
@@ -243,9 +266,9 @@ export default React.memo(function OrderDetailsMobile({ order }) {
             </div>
         
             <div className="badge">
-              <div className="badge-title">Доставка</div>
+              <div className="badge-title">{t("order_mobile.steps.delivery")}</div>
               <div className={`badge-content ${deliveryStatus.bg}`}>
-                {formatDateHuman(order.realizationDate) || "Не доставлено"}
+                {formatDateHuman_ln(order.realizationDate, locale) || t("order_mobile.statuses.not_delivered")}
               </div>
             </div>
           </li>

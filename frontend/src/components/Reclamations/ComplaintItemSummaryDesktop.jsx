@@ -14,6 +14,7 @@ import PhotoModal from "./PhotoModal";
 import { formatDate } from "../../utils/formatters";
 
 import { useNotification } from "../../hooks/useNotification";
+import { useTranslation } from "react-i18next";
 
 
 
@@ -26,7 +27,9 @@ const InfoRow = ({
   className = "",
   style = {},
   colors,
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <div
     className={`flex flex-col justify-start py-1 font-['Inter'] flex-1 ${
       !isFirstInRow ? "pl-4" : "pl-0"
@@ -59,10 +62,11 @@ const InfoRow = ({
         textAlign: "left",
       }}
     >
-      {value || "Не вказано"}
+      {value || t("complaints.detail.not_specified")}
     </span>
   </div>
-);
+  )
+};
 
 
 
@@ -156,6 +160,8 @@ const isVideo = (name) => /\.(mp4|webm|ogg)$/i.test(name);
 
 
 const ComplaintItemDetailView = ({ complaint }) => {
+
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const c = theme === "dark" ? colorsSet.dark : colorsSet.light;
   const { addNotification } = useNotification();
@@ -190,12 +196,12 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
       addNotification(
         <div className="flex flex-col gap-2 items-center text-center">
-          <span>Не вдалося завантажити медіа-файли рекламації.</span>
+          <span>{t("complaints.detail.errors.load_media_fail")}</span>
           <button
             onClick={() => loadFiles()}
             className="bg-white text-red-600 px-3 py-1.5 rounded text-xs font-bold w-fit shadow-md active:scale-95 transition-transform"
           >
-            Спробувати ще раз
+            {t("complaints.detail.errors.try_again")}
           </button>
         </div>,
         "warning",
@@ -258,10 +264,10 @@ const ComplaintItemDetailView = ({ complaint }) => {
         setPhotoIndex(index);
         setPhotoOpen(true);
       } else {
-        addNotification("Не вдалося відкрити фото для перегляду", "warning");
+        addNotification(t("complaints.detail.errors.open_photo_fail"), "warning");
       }
     } catch  {
-      addNotification("Сталася помилка при завантаженні зображень", "danger");
+      addNotification(t("complaints.detail.errors.general_error"), "danger");
     } finally {
       setIsMediaLoading(false);
     }
@@ -297,7 +303,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
   />
   
   <span style={{ whiteSpace: "nowrap" }}>
-    Основна інформація
+    {t("complaints.detail.main_info")}
   </span>
 
  
@@ -314,24 +320,24 @@ const ComplaintItemDetailView = ({ complaint }) => {
 </h3>
               <HorizontalInfoGroup columns={4} colors={c}>
                 <InfoRow
-                  label="Номер рекламації"
+                  label={t("complaints.detail.number")}
                   className="!pl-0"
                   value={complaint.number}
                   colors={c}
                 />
                 <InfoRow
-                  label="Номер акту"
+                  label={t("complaints.detail.act_number")}
                   value={complaint.actNumber}
                   colors={c}
                 />
                 <InfoRow
-                  label="Номер замовлення"
+                  label={t("complaints.detail.order_number")}
                   value={complaint.orderNumber}
                   colors={c}
                 />
 
                 <InfoRow
-                  label="Організація"
+                  label={t("complaints.detail.organization")}
                   value={complaint.organization}
                   colors={c}
                 />
@@ -364,7 +370,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
   />
   
   <span style={{ whiteSpace: "nowrap" }}>
-    Серії конструкцій
+    {t("complaints.detail.series")}
   </span>
 
 
@@ -409,7 +415,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                   alt="Іконка" 
                   className="mr-1" 
                 />
-                Дати
+                {t("complaints.detail.dates")}
 
                 <div 
   style={{
@@ -426,31 +432,31 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
               <HorizontalInfoGroup columns={5} colors={c}>
                 <InfoRow
-                  label="Дата рекламації"
+                  label={t("complaints.detail.date_complaint")}
                   value={formatDate(complaint.date)}
                   colors={c}
                 />
                 <InfoRow
-                  label="Дата доставки"
+                  label={t("complaints.detail.date_delivery")}
                   value={formatDate(complaint.deliveryDate)}
                   colors={c}
                 />
                 <InfoRow
-                  label="Дата виявлення"
+                  label={t("complaints.detail.date_detection")}
                   value={formatDate(complaint.determinationDate)}
                   colors={c}
                 />
                 {complaint.producedDate &&
-                  complaint.producedDate !== "Не вказано" && (
+                  complaint.producedDate !== t("complaints.detail.not_specified") && (
                     <InfoRow
-                      label="Виготовлено"
+                      label={t("complaints.detail.date_produced")}
                       value={formatDate(complaint.producedDate)}
                       colors={c}
                     />
                   )}
-                {complaint.soldDate && complaint.soldDate !== "Не вказано" && (
+                {complaint.soldDate && complaint.soldDate !== t("complaints.detail.not_specified") && (
                   <InfoRow
-                    label="Відвантажено"
+                    label={t("complaints.detail.date_shipped")}
                     value={formatDate(complaint.soldDate)}
                     colors={c}
                   />
@@ -486,11 +492,11 @@ const ComplaintItemDetailView = ({ complaint }) => {
                 alt="Іконка" 
                 className="mr-1" 
               />
-              <h3 className="text-base font-bold">Відповідальний менеджер:</h3>
+              <h3 className="text-base font-bold">{t("complaints.detail.manager")}</h3>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-sm font-medium" style={{ color: c.text }}>
-                {complaint.manager || "Не вказано"}
+                {complaint.manager || t("complaints.detail.not_specified")}
               </div>
             </div>
           </div>
@@ -517,7 +523,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                   className="text-base font-bold mb-0.5"
                   style={{ color: c.text }}
                 >
-                  Опис рекламації
+                  {t("complaints.detail.description_title")}
                 </h3>
                 <p
                   className="text-sm leading-relaxed"
@@ -547,7 +553,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
         alt="problem" 
       />
       <h4 className="font-bold text-[#BA523B] text-[16px] leading-none">
-        Проблема
+        {t("complaints.detail.problem_title")}
       </h4>
     </div>
 
@@ -575,7 +581,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                     alt="success" 
                   />
                   <h4 className="font-bold text-[#516C00] text-[16px] leading-none">
-                    Вирішення
+                     {t("complaints.detail.resolution_title")}
                   </h4>
                 </div>
 
@@ -602,7 +608,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                     className="mr-1" 
                   />
                   <h3 className="text-base font-bold" style={{ color: c.text }}>
-                    Фото ({imageFiles.length}) {isMediaLoading && "..."}
+                     {t("complaints.detail.photo")} ({imageFiles.length}) {isMediaLoading && "..."}
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -634,7 +640,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
                     className="mr-1" 
                   />
                   <h3 className="text-base font-bold" style={{ color: c.text }}>
-                    Відео ({videoFiles.length})
+                     {t("complaints.detail.video")} ({videoFiles.length})
                   </h3>
                 </div>
                 <div className="flex flex-col gap-2">

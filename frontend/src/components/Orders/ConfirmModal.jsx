@@ -1,18 +1,19 @@
 import React, { useEffect } from "react";
-import { FaExclamationTriangle, FaCheck, FaTimes } from "react-icons/fa";
+import { FaExclamationTriangle, FaCheck, FaTimes, FaInfoCircle } from "react-icons/fa";
+import { useTranslation } from "react-i18next"; // 🔥 Імпорт i18n
 import "./ConfirmModal.css";
 
 const ConfirmModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = "Підтвердження дії",
-  message = "Ви впевнені, що хочете виконати цю дію?",
-  confirmText = "Підтвердити",
-  cancelText = "Скасувати",
-  type = "warning", 
+  title, // Тепер опціонально, бо є i18n
+  message,
+  confirmText,
+  cancelText,
+  type = "warning",
 }) => {
-
+  const { t } = useTranslation(); // 🔥 Хук перекладу
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -25,7 +26,6 @@ const ConfirmModal = ({
       window.addEventListener("keydown", handleEsc);
     }
 
-   
     return () => {
       window.removeEventListener("keydown", handleEsc);
     };
@@ -57,7 +57,7 @@ const ConfirmModal = ({
       case "success":
         return <FaCheck size={40} />;
       case "info":
-        return <FaExclamationTriangle size={40} />;
+        return <FaInfoCircle size={40} />; // Змінив іконку для info
       case "warning":
       default:
         return <FaExclamationTriangle size={40} />;
@@ -65,6 +65,12 @@ const ConfirmModal = ({
   };
 
   if (!isOpen) return null;
+
+  // Визначаємо тексти: пріоритет у пропсів, якщо їх немає — беремо з i18n
+  const displayTitle = title || t("confirm_modal.default_title");
+  const displayMessage = message || t("confirm_modal.default_message");
+  const displayConfirmText = confirmText || t("confirm_modal.confirm");
+  const displayCancelText = cancelText || t("confirm_modal.cancel");
 
   return (
     <div className="confirm-modal-overlay" onClick={onClose}>
@@ -80,7 +86,7 @@ const ConfirmModal = ({
             <span style={{ display: "flex", alignItems: "center" }}>
               {getTypeIcon()}
             </span>
-            <h3 style={{ fontSize: "18px" }}>{title}</h3>
+            <h3 style={{ fontSize: "18px" }}>{displayTitle}</h3>
             <span
               className="icon icon-cross confirm-close-btn"
               onClick={onClose}
@@ -95,12 +101,12 @@ const ConfirmModal = ({
           >
             <div style={{ color: getTypeColor() }}>{getTypeIcon()}</div>
           </div>
-          <p className="confirm-message">{message}</p>
+          <p className="confirm-message">{displayMessage}</p>
         </div>
 
         <div className="confirm-modal-footer">
           <button className="confirm-btn-cancel-confirm" onClick={onClose}>
-            <FaTimes size={16} color="#fff" /> {cancelText}
+            <FaTimes size={16} color="#fff" /> {displayCancelText}
           </button>
 
           <button
@@ -108,7 +114,7 @@ const ConfirmModal = ({
             onClick={handleConfirm}
             style={{ backgroundColor: getTypeColor() }}
           >
-            <FaCheck size={16} color="#fff" /> {confirmText}
+            <FaCheck size={16} color="#fff" /> {displayConfirmText}
           </button>
         </div>
 

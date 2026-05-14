@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import axiosInstance from "../../api/axios";
 import OrderDetailsMobile from "./OrderDetailsMobile";
-import {formatDateHumanShorter } from "../../utils/formatters";
+
 // Модальні вікна
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "./AddReorderModal";
@@ -12,20 +12,23 @@ import OrderFilesModal from "../Orders/OrderFilesModal";
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { useTranslation } from "react-i18next";
+
+import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 
 
 export default function AdditionalOrderItemSummaryMobile({ order }) {
+  const {t, i18n} = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
-
   const { addNotification } = useNotification();
-
+  const locale = i18n.language;
   const { user } = useAuthGetRole();
-  // const isAdmin = role === "admin";
+
 
   const debtAmount = useMemo(() => {
     const paid = order.paid ?? 0;
@@ -102,11 +105,11 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
         `/additional-orders/${order.guid}/confirm/`,
       );
       if (response.status === 200 || response.status === 204) {
-        addNotification(`Замовлення ${order.number} підтверджено!`, "success");
+        addNotification(t('order_mobile.notifications.order_confirmed', { number: order.number }), "success");
         setIsConfirmModalOpen(false);
       }
     } catch (error) {
-      addNotification(`Помилка: ${error.message}`, "error");
+      addNotification(`${t("errors.error")} ${error.message}`, "error");
     }
   };
 
@@ -117,10 +120,10 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
         order_id: order.guid,
         amount: Number(amount),
       });
-      addNotification("Оплату виконано!", "success");
+      addNotification(t("order_mobile.notifications.payment_success"), "success");
       setIsPaymentOpen(false);
     } catch {
-      addNotification("Помилка виконання оплати", "error");
+      addNotification(t("errors.paymentError"), "error");
     }
   };
 
@@ -157,7 +160,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
                         № {order.number}
                       </div>
                       <div className="text-[11px] text-WS---DarkGrey">
-                         {order.date}
+                          {formatDateHumanShorter_full(order.dateRaw, locale)}
                       </div>
                     </div>
                   </div>
@@ -169,7 +172,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
                           {order.count}
                         </span>
                       </div>
-                      <span className="text-grey text-[10px] mt-1">Конструкції</span>
+                      <span className="text-grey text-[10px] mt-1">{t("order_mobile.labels.constructions")}</span>
                     </div>
         
                     {/* <div 
@@ -192,7 +195,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
         >
            <img src={fileIcon} className="align-center mr-2"  alt="" />
           <div className="text-[13px] text-WS---DarkGrey underline">
-            Файли
+            {t("order_mobile.labels.files")}
           </div>
         </div>
 
@@ -211,7 +214,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
               <div className="text-WS---DarkGreen text-[14px] font-bold leading-tight">
                 {formatMoney2(order.amount, order.currency)}
               </div>
-              <div className="text-grey text-[8px]">Сума замовлення</div>
+              <div className="text-grey text-[8px]">{t("order_mobile.labels.order_amount")}</div>
             </div>
           </div>
         
@@ -223,7 +226,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
               <div className="text-WS---DarkRed  text-[14px] font-bold leading-tight">
                 {formatMoney2(debtAmount, order.currency)}
               </div>
-              <div className="text-grey text-[8px]">Сума боргу</div>
+              <div className="text-grey text-[8px]">{t("order_mobile.labels.debt_amount")}</div>
             </div>
           </div>
         
@@ -245,7 +248,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
                 disabled={!buttonState.confirm}
                 onClick={() => setIsConfirmModalOpen(true)}
               >
-                Підтвердити
+                {t("order_mobile.buttons.confirm")}
               </button>
 
               <button
@@ -253,7 +256,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
                 disabled={!buttonState.pay}
                 onClick={() => setIsPaymentOpen(true)}
               >
-                Сплатити
+                 {t("order_mobile.buttons.pay")}
               </button>
             </>
           )}
@@ -263,7 +266,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
             disabled={!buttonState.claim}
             onClick={() => setIsClaimModalOpen(true)}
           >
-            Рекламація
+            {t("order_mobile.buttons.claim")}
           </button>
         </div>
 
@@ -308,9 +311,11 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmOrder}
-        title="Підтвердження"
-        message={`Підтвердити замовлення ${order.number}?`}
-        confirmText="Так"
+        title={t("order_mobile.confirm_modal.title")}
+        message={t("order_mobile.confirm_modal.message", {
+          number: order.number,
+        })}
+        confirmText={t("order_mobile.confirm_modal.confirm")}
         type="success"
       />
 

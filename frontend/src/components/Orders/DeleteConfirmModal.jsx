@@ -1,106 +1,273 @@
-// import React, { useEffect } from 'react';
-// import axiosInstance from '../../api/axios.js';
-// import './DeleteConfirmModal.css';
-// import { useNotification } from '../notification/Notifications.jsx';
-// import { FaExclamationTriangle, FaTrash, FaTimes } from 'react-icons/fa';
+// // import React, { useEffect } from 'react';
+// // import axiosInstance from '../../api/axios.js';
+// // import './DeleteConfirmModal.css';
+// // import { useNotification } from '../notification/Notifications.jsx';
+// // import { FaExclamationTriangle, FaTrash, FaTimes } from 'react-icons/fa';
 
-// const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType, onDeleted }) => {
+// // const DeleteConfirmModal = ({ isOpen, onClose, itemData, itemType: propItemType, onDeleted }) => {
+// //   const { addNotification } = useNotification();
+
+// //   if (!isOpen || !itemData) return null;
+
+// //   const type = propItemType || itemData?.type;
+
+// //   // 1. Визначення відображуваного імені
+// //   const itemName = (() => {
+// //     if (type === 'calculation' || type === 'additionalOrder') {
+// //       return itemData?.number || itemData?.id || 'запис';
+// //     }
+// //     if (type === 'reclamation') {
+// //       return itemData?.id || itemData?.numberWEB || 'рекламацію';
+// //     }
+// //     return (
+// //       itemData?.number ||
+// //       itemData?.orderNumber ||
+// //       itemData?.title ||
+// //       itemData?.id ||
+// //       'цей запис'
+// //     );
+// //   })();
+
+// //   // 2. Словник для текстових повідомлень
+// //   const mapType = {
+// //     order: 'замовлення',
+// //     calculation: 'прорахунок',
+// //     client: 'клієнта',
+// //     product: 'товар',
+// //     reclamation: 'рекламацію',
+// //     additionalOrder: 'дозамовлення' // Додано для коректного відображення
+// //   };
+
+// //   const itemType = mapType[type] || 'запис';
+
+// //   useEffect(() => {
+// //     const handleEsc = (event) => {
+// //       if (event.key === 'Escape' && !isDeleting) {
+// //         onClose();
+// //       }
+// //     };
+
+// //     if (isOpen) {
+// //       document.body.style.overflow = 'hidden';
+// //       window.addEventListener('keydown', handleEsc);
+// //     }
+
+// //     return () => {
+// //       document.body.style.overflow = '';
+// //       window.removeEventListener('keydown', handleEsc);
+// //     };
+// //   }, [isOpen, onClose, isDeleting]);
+
+// //   useEffect(() => {
+// //     if (isOpen) {
+// //       document.body.style.overflow = 'hidden';
+// //     }
+// //     return () => {
+// //       document.body.style.overflow = '';
+// //     };
+// //   }, [isOpen]);
+
+// //   const handleDelete = async () => {
+// //     try {
+// //       let endpoint = '';
+
+// //       // 3. ВИЗНАЧЕННЯ ЕНДПОІНТІВ
+// //       switch (type) {
+// //         case 'reclamation':
+// //           endpoint = `/complaints/delete_complaint/${itemData.guid}/`;
+// //           break;
+// //         case 'additionalOrder':
+// //           // Точка на бек так само, як у рекламаціях (через GUID або ID)
+// //           endpoint = `/additional-orders/delete_order/${itemData.guid || itemData.id}/`;
+// //           break;
+// //         case 'calculation':
+// //           endpoint = `/calculations/${itemData.id}/delete/`;
+// //           break;
+// //         case 'order':
+// //           endpoint = `/orders/${itemData.id}/delete/`;
+// //           break;
+// //         case 'client':
+// //           endpoint = `/clients/${itemData.id}/delete/`;
+// //           break;
+// //         case 'product':
+// //           endpoint = `/products/${itemData.id}/delete/`;
+// //           break;
+// //         default:
+// //           console.warn('Невідомий тип елемента для видалення:', itemData);
+// //           addNotification('Невідомий тип елемента ❌', 'error');
+// //           return;
+// //       }
+
+// //       // 4. ВИКЛИК API
+// //       // Якщо дозамовлення працює через той же механізм, що й рекламації — використовуємо .delete()
+// //       if (type === 'reclamation' || type === 'additionalOrder') {
+// //         await axiosInstance.delete(endpoint);
+// //       } else {
+// //         await axiosInstance.post(endpoint);
+// //       }
+
+// //       if (onDeleted) onDeleted(itemData.id);
+
+// //       addNotification(`${itemType} "${itemName}" успішно видалено ✅`, 'success');
+// //       onClose();
+// //     } catch (error) {
+// //       console.error('Помилка при видаленні:', error);
+// //       const msg = error.response?.data?.error || error.response?.data?.detail || `Не вдалося видалити ${itemType}`;
+// //       addNotification(msg, 'error');
+// //     }
+// //   };
+
+// //   return (
+// //     <div className="modal-overlay" onClick={onClose}>
+// //       <div className="modal-content-square" onClick={(e) => e.stopPropagation()}>
+// //         <div className="modal-border-top" />
+// //         <div className="modal-header">
+// //           <div className="header-icon">
+// //             <FaExclamationTriangle size={50} color="#e74c3c" />
+// //           </div>
+// //           <h2>Підтвердження видалення</h2>
+// //         </div>
+// //         <div className="modal-body">
+// //           <p>
+// //             Ви дійсно бажаєте видалити {itemType} "<strong>{itemName}</strong>"?
+// //           </p>
+// //           <p className="description">
+// //             Ця дія є незворотною. Всі пов'язані дані будуть також видалені.
+// //           </p>
+// //         </div>
+// //         <div className="modal-footer">
+// //           <button
+// //             type="button"
+// //             className="btn btn-grey-delete"
+// //             onClick={(e) => {
+// //               e.stopPropagation();
+// //               onClose();
+// //             }}
+// //           >
+// //             <FaTimes style={{ marginRight: 6 }} /> Скасувати
+// //           </button>
+// //           <button className="btn btn-danger-delete" onClick={handleDelete}>
+// //             <FaTrash style={{ marginRight: 6 }} /> Видалити
+// //           </button>
+// //         </div>
+// //         <div className="modal-border-bottom" />
+// //       </div>
+// //     </div>
+// //   );
+// // };
+
+// // export default DeleteConfirmModal;
+
+// import React, { useEffect, useState } from "react";
+// import axiosInstance from "../../api/axios.js";
+// import "./DeleteConfirmModal.css";
+// import { createPortal } from "react-dom";
+// import { useNotification } from "../../hooks/useNotification";
+// import {
+//   FaExclamationTriangle,
+//   FaTrash,
+//   FaTimes,
+//   FaSpinner,
+// } from "react-icons/fa";
+
+// import { useTranslation } from "react-i18next";
+
+// const DeleteConfirmModal = ({
+//   isOpen,
+//   onClose,
+//   itemData,
+//   itemType: propItemType,
+//   onDeleted,
+// }) => {
 //   const { addNotification } = useNotification();
+//   const [isDeleting, setIsDeleting] = useState(false); 
+//   const { t } = useTranslation();
+
+
+//   useEffect(() => {
+//     const handleEsc = (event) => {
+//       if (event.key === "Escape" && !isDeleting) {
+//         onClose();
+//       }
+//     };
+
+//     if (isOpen) {
+//       document.body.style.overflow = "hidden";
+//       window.addEventListener("keydown", handleEsc);
+//     }
+
+//     return () => {
+//       document.body.style.overflow = "";
+//       window.removeEventListener("keydown", handleEsc);
+//     };
+//   }, [isOpen, onClose, isDeleting]);
 
 //   if (!isOpen || !itemData) return null;
 
 //   const type = propItemType || itemData?.type;
 
-//   // 1. Визначення відображуваного імені
+
 //   const itemName = (() => {
-//     if (type === 'calculation' || type === 'additionalOrder') {
-//       return itemData?.number || itemData?.id || 'запис';
+//     if (type === "calculation" || type === "additionalOrder") {
+//       return itemData?.number || itemData?.id || t();
 //     }
-//     if (type === 'reclamation') {
-//       return itemData?.id || itemData?.numberWEB || 'рекламацію';
+//     if (type === "reclamation") {
+//       return itemData?.id || itemData?.numberWEB || "рекламацію";
 //     }
 //     return (
 //       itemData?.number ||
 //       itemData?.orderNumber ||
 //       itemData?.title ||
 //       itemData?.id ||
-//       'цей запис'
+//       "цей запис"
 //     );
 //   })();
 
-//   // 2. Словник для текстових повідомлень
+
 //   const mapType = {
-//     order: 'замовлення',
-//     calculation: 'прорахунок',
-//     client: 'клієнта',
-//     product: 'товар',
-//     reclamation: 'рекламацію',
-//     additionalOrder: 'дозамовлення' // Додано для коректного відображення
+//     order: "Замовлення",
+//     calculation: "Прорахунок",
+//     client: "Клієнта",
+//     product: "Товар",
+//     reclamation: "Рекламацію",
+//     additionalOrder: "Дозамовлення",
 //   };
 
-//   const itemType = mapType[type] || 'запис';
-
-//   useEffect(() => {
-//     const handleEsc = (event) => {
-//       if (event.key === 'Escape' && !isDeleting) {
-//         onClose();
-//       }
-//     };
-
-//     if (isOpen) {
-//       document.body.style.overflow = 'hidden';
-//       window.addEventListener('keydown', handleEsc);
-//     }
-
-//     return () => {
-//       document.body.style.overflow = '';
-//       window.removeEventListener('keydown', handleEsc);
-//     };
-//   }, [isOpen, onClose, isDeleting]);
-
-//   useEffect(() => {
-//     if (isOpen) {
-//       document.body.style.overflow = 'hidden';
-//     }
-//     return () => {
-//       document.body.style.overflow = '';
-//     };
-//   }, [isOpen]);
+//   const itemType = mapType[type] || "запис";
 
 //   const handleDelete = async () => {
-//     try {
-//       let endpoint = '';
+//     if (isDeleting) return; // Захист від подвійного кліку
 
-//       // 3. ВИЗНАЧЕННЯ ЕНДПОІНТІВ
+//     setIsDeleting(true);
+//     try {
+//       let endpoint = "";
+
 //       switch (type) {
-//         case 'reclamation':
+//         case "reclamation":
 //           endpoint = `/complaints/delete_complaint/${itemData.guid}/`;
 //           break;
-//         case 'additionalOrder':
-//           // Точка на бек так само, як у рекламаціях (через GUID або ID)
-//           endpoint = `/additional-orders/delete_order/${itemData.guid || itemData.id}/`;
+//         case "additionalOrder":
+//           endpoint = `/complaints/delete_complaint/${itemData.guid || itemData.id}/`;
 //           break;
-//         case 'calculation':
+//         case "calculation":
 //           endpoint = `/calculations/${itemData.id}/delete/`;
 //           break;
-//         case 'order':
+//         case "order":
 //           endpoint = `/orders/${itemData.id}/delete/`;
 //           break;
-//         case 'client':
+//         case "client":
 //           endpoint = `/clients/${itemData.id}/delete/`;
 //           break;
-//         case 'product':
+//         case "product":
 //           endpoint = `/products/${itemData.id}/delete/`;
 //           break;
 //         default:
-//           console.warn('Невідомий тип елемента для видалення:', itemData);
-//           addNotification('Невідомий тип елемента ❌', 'error');
+//           addNotification("Невідомий тип елемента ❌", "error");
+//           setIsDeleting(false);
 //           return;
 //       }
 
-//       // 4. ВИКЛИК API
-//       // Якщо дозамовлення працює через той же механізм, що й рекламації — використовуємо .delete()
-//       if (type === 'reclamation' || type === 'additionalOrder') {
+//       if (type === "reclamation" || type === "additionalOrder") {
 //         await axiosInstance.delete(endpoint);
 //       } else {
 //         await axiosInstance.post(endpoint);
@@ -108,25 +275,38 @@
 
 //       if (onDeleted) onDeleted(itemData.id);
 
-//       addNotification(`${itemType} "${itemName}" успішно видалено ✅`, 'success');
+//       addNotification(
+//         `${itemType} "${itemName}" успішно видалено ✅`,
+//         "success",
+//       );
 //       onClose();
 //     } catch (error) {
-//       console.error('Помилка при видаленні:', error);
-//       const msg = error.response?.data?.error || error.response?.data?.detail || `Не вдалося видалити ${itemType}`;
-//       addNotification(msg, 'error');
+//       console.error("Помилка при видаленні:", error);
+//       const msg =
+//         error.response?.data?.error ||
+//         error.response?.data?.detail ||
+//         `Не вдалося видалити ${itemType}`;
+//       addNotification(msg, "error");
+//     } finally {
+//       setIsDeleting(false);
 //     }
 //   };
 
-//   return (
-//     <div className="modal-overlay" onClick={onClose}>
-//       <div className="modal-content-square" onClick={(e) => e.stopPropagation()}>
+//  const modalLayout =  (
+//     <div className="modal-overlay" onClick={!isDeleting ? onClose : null}>
+//       <div
+//         className="modal-content-square"
+//         onClick={(e) => e.stopPropagation()}
+//       >
 //         <div className="modal-border-top" />
+
 //         <div className="modal-header">
 //           <div className="header-icon">
 //             <FaExclamationTriangle size={50} color="#e74c3c" />
 //           </div>
 //           <h2>Підтвердження видалення</h2>
 //         </div>
+
 //         <div className="modal-body">
 //           <p>
 //             Ви дійсно бажаєте видалити {itemType} "<strong>{itemName}</strong>"?
@@ -135,34 +315,50 @@
 //             Ця дія є незворотною. Всі пов'язані дані будуть також видалені.
 //           </p>
 //         </div>
+
 //         <div className="modal-footer">
 //           <button
 //             type="button"
 //             className="btn btn-grey-delete"
-//             onClick={(e) => {
-//               e.stopPropagation();
-//               onClose();
-//             }}
+//             onClick={onClose}
+//             disabled={isDeleting}
 //           >
 //             <FaTimes style={{ marginRight: 6 }} /> Скасувати
 //           </button>
-//           <button className="btn btn-danger-delete" onClick={handleDelete}>
-//             <FaTrash style={{ marginRight: 6 }} /> Видалити
+
+//           <button
+//             className="btn btn-danger-delete"
+//             onClick={handleDelete}
+//             disabled={isDeleting}
+//           >
+//             {isDeleting ? (
+//               <>
+//                 <FaSpinner className="spinning" style={{ marginRight: 6 }} />{" "}
+//                 Видалення...
+//               </>
+//             ) : (
+//               <>
+//                 <FaTrash style={{ marginRight: 6 }} /> Видалити
+//               </>
+//             )}
 //           </button>
 //         </div>
+
 //         <div className="modal-border-bottom" />
 //       </div>
 //     </div>
 //   );
+
+//   return createPortal(modalLayout, document.body);
 // };
 
 // export default DeleteConfirmModal;
-
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../api/axios.js";
 import "./DeleteConfirmModal.css";
 import { createPortal } from "react-dom";
 import { useNotification } from "../../hooks/useNotification";
+import { useTranslation } from "react-i18next"; // Імпорт i18n
 import {
   FaExclamationTriangle,
   FaTrash,
@@ -177,9 +373,9 @@ const DeleteConfirmModal = ({
   itemType: propItemType,
   onDeleted,
 }) => {
+  const { t } = useTranslation(); // Використання i18n
   const { addNotification } = useNotification();
-  const [isDeleting, setIsDeleting] = useState(false); 
-
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -203,37 +399,28 @@ const DeleteConfirmModal = ({
 
   const type = propItemType || itemData?.type;
 
+  // Визначення типу об'єкта через словник i18n
+  const itemType = t(`delete_modal.types.${type}`, { defaultValue: t("delete_modal.types.record") });
 
+  // Визначення імені об'єкта
   const itemName = (() => {
     if (type === "calculation" || type === "additionalOrder") {
-      return itemData?.number || itemData?.id || "запис";
+      return itemData?.number || itemData?.id || t("delete_modal.types.record");
     }
     if (type === "reclamation") {
-      return itemData?.id || itemData?.numberWEB || "рекламацію";
+      return itemData?.id || itemData?.numberWEB || itemType;
     }
     return (
       itemData?.number ||
       itemData?.orderNumber ||
       itemData?.title ||
       itemData?.id ||
-      "цей запис"
+      t("delete_modal.types.record")
     );
   })();
 
-
-  const mapType = {
-    order: "Замовлення",
-    calculation: "Прорахунок",
-    client: "Клієнта",
-    product: "Товар",
-    reclamation: "Рекламацію",
-    additionalOrder: "Дозамовлення",
-  };
-
-  const itemType = mapType[type] || "запис";
-
   const handleDelete = async () => {
-    if (isDeleting) return; // Захист від подвійного кліку
+    if (isDeleting) return;
 
     setIsDeleting(true);
     try {
@@ -259,7 +446,7 @@ const DeleteConfirmModal = ({
           endpoint = `/products/${itemData.id}/delete/`;
           break;
         default:
-          addNotification("Невідомий тип елемента ❌", "error");
+          addNotification(t("delete_modal.error_unknown"), "error");
           setIsDeleting(false);
           return;
       }
@@ -273,44 +460,36 @@ const DeleteConfirmModal = ({
       if (onDeleted) onDeleted(itemData.id);
 
       addNotification(
-        `${itemType} "${itemName}" успішно видалено ✅`,
-        "success",
+        t("delete_modal.success", { type: itemType, name: itemName }),
+        "success"
       );
       onClose();
     } catch (error) {
-      console.error("Помилка при видаленні:", error);
-      const msg =
-        error.response?.data?.error ||
-        error.response?.data?.detail ||
-        `Не вдалося видалити ${itemType}`;
+      console.error("Delete error:", error);
+      const msg = error.response?.data?.error || error.response?.data?.detail || t("delete_modal.error_unknown");
       addNotification(msg, "error");
     } finally {
       setIsDeleting(false);
     }
   };
 
- const modalLayout =  (
+  const modalLayout = (
     <div className="modal-overlay" onClick={!isDeleting ? onClose : null}>
-      <div
-        className="modal-content-square"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal-content-square" onClick={(e) => e.stopPropagation()}>
         <div className="modal-border-top" />
 
         <div className="modal-header">
           <div className="header-icon">
             <FaExclamationTriangle size={50} color="#e74c3c" />
           </div>
-          <h2>Підтвердження видалення</h2>
+          <h2>{t("delete_modal.title")}</h2>
         </div>
 
         <div className="modal-body">
           <p>
-            Ви дійсно бажаєте видалити {itemType} "<strong>{itemName}</strong>"?
+            {t("delete_modal.warning", { type: itemType, name: itemName })}
           </p>
-          <p className="description">
-            Ця дія є незворотною. Всі пов'язані дані будуть також видалені.
-          </p>
+          <p className="description">{t("delete_modal.description")}</p>
         </div>
 
         <div className="modal-footer">
@@ -320,7 +499,7 @@ const DeleteConfirmModal = ({
             onClick={onClose}
             disabled={isDeleting}
           >
-            <FaTimes style={{ marginRight: 6 }} /> Скасувати
+            <FaTimes style={{ marginRight: 6 }} /> {t("delete_modal.cancel")}
           </button>
 
           <button
@@ -330,12 +509,11 @@ const DeleteConfirmModal = ({
           >
             {isDeleting ? (
               <>
-                <FaSpinner className="spinning" style={{ marginRight: 6 }} />{" "}
-                Видалення...
+                <FaSpinner className="spinning" style={{ marginRight: 6 }} /> {t("delete_modal.deleting")}
               </>
             ) : (
               <>
-                <FaTrash style={{ marginRight: 6 }} /> Видалити
+                <FaTrash style={{ marginRight: 6 }} /> {t("delete_modal.delete")}
               </>
             )}
           </button>

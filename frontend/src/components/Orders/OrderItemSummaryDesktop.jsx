@@ -7,10 +7,19 @@ import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
 import {
 
+  formatDateHumanShorter_full,
   formatDateTimeShort
 
 } from "../../utils/formatters";
 
+import {
+
+  formatDateHumanShorter
+
+} from "../../utils/formatters";
+
+
+import { useTranslation  } from "react-i18next";
 import { useNotification } from "../../hooks/useNotification";
 
 import ConfirmModal from "./ConfirmModal";
@@ -24,6 +33,8 @@ export default React.memo(function OrderItemSummaryDesktop({
   calculationDate,
   onRefresh
 }) {
+  const {t, i18n} = useTranslation();
+  const locale = i18n.language;
   const { addNotification } = useNotification();
 
 
@@ -129,18 +140,18 @@ export default React.memo(function OrderItemSummaryDesktop({
     const result = Array.isArray(response.data) ? response.data[0] : response.data;
 
     if (result?.success === true || response.status === 201) {
-      addNotification("Дозамовлення успішно створено!", "success");
+      addNotification(t("reorder_modal.success_create"), "success");
       setIsReorderModalOpen(false); 
     
       if (typeof setRefreshTrigger === 'function') {
         setRefreshTrigger((prev) => prev + 1);
       }
     } else {
-      addNotification("Помилка: " + (result?.message || "Невідома помилка"), "error");
+      addNotification( t("errors.error") + (result?.message || t("errors.unknownError")), "error");
     }
   } catch (err) {
-    console.error("Помилка відправки:", err);
-    addNotification("Не вдалося відправити дані: " + (err.response?.data?.message || err.message), "error");
+    // console.error("Помилка відправки:", err);
+    addNotification(t("errors.errorSendData") + (err.response?.data?.message || err.message), "error");
   } finally {
     setLoading(false);
   }
@@ -197,6 +208,8 @@ export default React.memo(function OrderItemSummaryDesktop({
     }
   }, []);
 
+
+
   // ========================= MODAL OPENERS =========================
 
   const openClaimModal = useCallback(() => {
@@ -228,7 +241,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
 
   const handlePaymentConfirm = async (contractID, amount) => {
-    console.log("ОПЛАТА:", { contractID, amount, orderID: order.id });
+    // console.log("ОПЛАТА:", { contractID, amount, orderID: order.id });
 
     try {
       await axiosInstance.post("/payments/make_payment_from_advance/", {
@@ -237,13 +250,16 @@ export default React.memo(function OrderItemSummaryDesktop({
         amount: Number(amount),
       });
 
-      addNotification("Оплату успішно виконано!", "success");
+        addNotification(
+        t("order_mobile.notifications.payment_success"),
+        "success",
+      );
       setIsPaymentOpen(false);
 
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error(error);
-      addNotification("Помилка при виконанні оплати", "error");
+      addNotification(t("errors.paymentError"), "error");
     }
   };
 
@@ -256,7 +272,9 @@ export default React.memo(function OrderItemSummaryDesktop({
 
       if (response.status === 200 || response.status === 204) {
         addNotification(
-          `Замовлення ${order.number} успішно підтверджено!`,
+          t("order_mobile.notifications.order_confirmed", {
+            number: order.number,
+          }),
           "success",
         );
       }
@@ -266,7 +284,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
       
     } catch (error) {
-      addNotification(`Помилка підтвердження: ${error.message}`, "error");
+      addNotification(`${t("errors.error")} ${error.message}`, "error");
     }
   }, []);
 
@@ -283,6 +301,25 @@ export default React.memo(function OrderItemSummaryDesktop({
 
     return diffInDays <= 1;
   }, [order.date, calculationDate]);
+
+
+    const translatedStatus = useMemo(() => {
+    const statusMap = {
+      "Новий": t("order_status.new"),
+      "В обробці": t("order_status.processing"),
+      "Очікуємо підтвердження": t("order_status.waiting_confirmation"),
+      "Очікуємо оплату": t("order_status.waiting_payment"),
+      "Підтверджений": t("order_status.confirmed"),
+      "Оплачено": t("order_status.paid"),
+      "У виробництві": t("order_status.production"),
+      "Готовий": t("order_status.ready"),
+      "Відвантажений": t("order_status.shipped"),
+      "Відмова": t("order_status.rejected"),
+    };
+  
+    return statusMap[order.status] || order.status;
+  }, [order.status, t]);
+  
 
   return (
     <div className="order-item !border-b-0 flex flex-col w-full gap-0">
@@ -309,7 +346,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             </div>
             <div className=" text-start text-[11px]  pt-1">
               {/* {formatDateHumanShorter(order.date)} */}
-              {formatDateTimeShort(order.createDate)}
+              {formatDateHumanShorter_full(order.date, locale)}
             </div>
           </div>
         </div>
@@ -339,7 +376,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                 className="align-center mr-0.5 w-[20px] h-[25px]" 
               
               />
-            <div className="text-WS---DarkGrey text-[13px] underline">Файли</div>
+            <div className="text-WS---DarkGrey text-[13px] underline">{t("order_mobile.labels.files")}</div>
           </div>
         </div>
 
@@ -356,7 +393,7 @@ export default React.memo(function OrderItemSummaryDesktop({
               {formatMoney2(order.amount, order.currency)}
             </div>
             <div className="text-grey text-[8px]">
-              Сума замовлення
+              {t("order_mobile.labels.order_amount")}
             </div>
           </div>
         </div>
@@ -374,7 +411,7 @@ export default React.memo(function OrderItemSummaryDesktop({
               {formatMoney2(debtAmount, order.currency)}
             </div>
             <div className="text-grey text-[8px]">
-              Сума боргу
+              {t("order_mobile.labels.debt_amount")}
             </div>
           </div>
         </div>
@@ -386,7 +423,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
             
             <div className={`text-[12px] ${getStatusClass(order.status)}`}>
-              {order.status}
+                 {translatedStatus}
             </div>
           </div>
         </div>
@@ -403,7 +440,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         disabled={!buttonState.confirm}
         onClick={openConfirmModal}
       >
-        <div className="text-[12px] font-bold font-['Inter'] ">Підтвердити</div>
+        <div className="text-[12px] font-bold font-['Inter'] ">{t("order_mobile.buttons.confirm")}</div>
       </button>
 
       {/* PAY */}
@@ -414,7 +451,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         disabled={!buttonState.pay}
         onClick={openPaymentModal}
       >
-        <div className="text-[12px] font-bold font-['Inter'] mx-1">Сплатити</div>
+        <div className="text-[12px] font-bold font-['Inter'] mx-1">{t("order_mobile.buttons.pay")}</div>
       </button>
     </>
   )}
@@ -427,7 +464,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     disabled={!buttonState.reorder}
     onClick={openReorderModal}
   >
-    <div className="text-[12px] font-bold font-['Inter']  ">Дозамовлення</div>
+    <div className="text-[12px] font-bold font-['Inter']  ">{t("order_mobile.buttons.reorder")}</div>
   </button>
 
   {/* CLAIM */}
@@ -438,7 +475,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     disabled={!buttonState.claim}
 onClick={openClaimModal}
   >
-    <div className="text-[12px] font-bold font-['Inter'] ">Рекламація</div>
+    <div className="text-[12px] font-bold font-['Inter'] ">{t("order_mobile.buttons.claim")}</div>
   </button>
 </div>
 
@@ -447,8 +484,8 @@ onClick={openClaimModal}
         className="summary-item flex items-center justify-center w-4"
         title={
           dateDiffStatus
-            ? "Швидке оформлення"
-            : "Замовлення оформлено пізніше ніж через добу"
+              ? t("order_mobile.fast_order.fast")
+              : t("order_mobile.fast_order.slow")
         }
       >
  
@@ -489,9 +526,11 @@ onClick={openClaimModal}
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmOrder}
-        title="Підтвердження замовлення"
-        message={`Ви впевнені, що хочете підтвердити замовлення ${order.number}?`}
-        confirmText="Підтвердити"
+        title={t("order_mobile.confirm_modal.title")}
+        message={t("order_mobile.confirm_modal.message", {
+          number: order.number,
+        })}
+        confirmText={t("order_mobile.confirm_modal.confirm")}
         type="success"
       />
 

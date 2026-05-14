@@ -46,8 +46,10 @@
 import "./CalcMenu.css";
 import { useState } from "react";
 import DeleteConfirmModal from "../Orders/DeleteConfirmModal";
+import { useTranslation } from "react-i18next";
 
 export const AdditionalOrderMenu = ({ calc, _onEdit, onDelete }) => {
+  const {t} = useTranslation();
   const additionalOrder = calc;
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -71,10 +73,10 @@ export const AdditionalOrderMenu = ({ calc, _onEdit, onDelete }) => {
         src={deleteIcon}
         alt="Видалити"
         title={
-          managerAssigned
-            ? `Неможливо видалити: призначено менеджера (${additionalOrder.managerName})`
-            : "Видалити додаткове замовлення"
-        }
+        managerAssigned
+          ? t("additional_order.cannot_delete_manager", { name: additionalOrder.managerName })
+          : t("additional_order.delete_sub_orders")
+      }
         onClick={handleDeleteClick}
         className={` object-contain transition-all ${
           managerAssigned 

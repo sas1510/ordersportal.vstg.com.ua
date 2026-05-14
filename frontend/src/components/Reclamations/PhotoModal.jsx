@@ -10,14 +10,14 @@ export default function PhotoModal({
   currentIndex = 0,
   setCurrentIndex,
 }) {
-  const thumbsRef = useRef(null); // Створюємо референс для контейнера мініатюр
+  const thumbsRef = useRef(null); 
 
   const prev = () =>
     setCurrentIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
   const next = () =>
     setCurrentIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
 
-  // АВТОПРОКРУТКА: Спрацьовує при зміні currentIndex
+
   useEffect(() => {
     if (isOpen && thumbsRef.current) {
       const activeThumb = thumbsRef.current.querySelector(

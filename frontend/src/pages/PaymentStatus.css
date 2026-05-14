@@ -32,13 +32,13 @@
   );
   height: 100vh;
   width: 100%;
-  padding-top: 140px;
+  padding-top: 100px;
   padding-bottom: 60px;
 
 
   /* Адаптивні відступи зліва і справа */
-  padding-left: clamp(5px, 5vw, 100px);
-  padding-right: clamp(5px, 5vw, 100px);
+  /* padding-left: clamp(5px, 5vw, 100px);
+  padding-right: clamp(5px, 5vw, 100px); */
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -834,13 +834,21 @@ span.td-date {
   color: #999; /* нейтральна */
 }
 
+@media (max-width: 1354px) { 
+  .payments-body {
+      padding-top: 100px;
+    padding-left: 10px;
+    padding-right: 10px ;
+  }
+}
+
 /* ========================================
    📱 MOBILE ADAPTATION (<= 768px)
    ======================================== */
 @media (max-width: 1050px) {
   /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
   .payments-body {
-    padding-top: 140px;
+    padding-top: 100px;
     padding-bottom: 40px;
     padding-left: 8px !important;
     padding-right: 8px !important;
@@ -983,6 +991,6 @@ span.td-date {
 @media (max-width: 768px) {
   .payments-body {
     padding-bottom: 25px !important;
-    padding-top: 140px !important;
+    padding-top: 60px !important;
   }
 }

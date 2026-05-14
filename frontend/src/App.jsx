@@ -159,12 +159,12 @@ function AppRoutes() {
     );
   }
 
-  // 2. Якщо сторінка НЕ публічна і йде завантаження ролі — показуємо лоадер
+
   if (isLoading) {
     return <PortalLoader />;
   }
 
-  // 3. Визначаємо Layout і маршрути за роллю (для авторизованих)
+
   let LayoutComponent = PublicLayout;
   let routes = [];
 

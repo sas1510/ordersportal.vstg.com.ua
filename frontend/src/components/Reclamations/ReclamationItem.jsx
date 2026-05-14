@@ -6,7 +6,8 @@ import CommentsModal from "../Orders/CommentsModal";
 import DeleteConfirmModal from "../Orders/DeleteConfirmModal"; 
 import { ComplaintItemDetailView } from "./ComplaintItemSummaryDesktop";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
-import { formatDateHumanShorter } from "../../utils/formatters";
+import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
+import { useTranslation } from "react-i18next";
 
 
 export const ReclamationItem = ({
@@ -19,11 +20,14 @@ export const ReclamationItem = ({
 
 }) => {
 
+  const {t, i18n} = useTranslation();
+
   const expanded = isExpanded;
   const toggleExpanded = onToggle;
 
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]);
+  const locale = i18n.language;
 //   const windowWidth = useWindowWidth();
 //   const isMobile = windowWidth < 1024;
 
@@ -66,7 +70,7 @@ export const ReclamationItem = ({
     // Для тесту прибираємо або коментуємо перевірку статусу тут:
     // if (reclamation.status !== 'Нова') return;
 
-    console.log("Клік по кошику! Відкриваємо модалку...");
+    // console.log("Клік по кошику! Відкриваємо модалку...");
     setIsMenuOpen(false);
     setIsDeleteModalOpen(true);
   };
@@ -211,6 +215,22 @@ export const ReclamationItem = ({
 
   };
 
+  const getTranslatedStatus = (status) => {
+    if (status && status.includes("Виробництво")) return t("reclamation.status.production");
+
+    switch (status) {
+      case "Новий": return t("reclamation.status.new");
+      case "В роботі": return t("reclamation.status.in_work");
+      case "Виробництво": return t("reclamation.status.production");
+      case "На складі": return t("reclamation.status.in_stock");
+      case "Відвантажений": return t("reclamation.status.shipped");
+      case "Підтверджено": return t("reclamation.status.confirmed");
+      case "Вирішено": return t("reclamation.status.resolved");
+      case "Відмова": return t("reclamation.status.rejected");
+      default: return status;
+    }
+  };
+
 //   const responsibleManager = reclamation.manager || "Не вказано";
 //   const deliveryDate = reclamation.deliveryDate || "Не вказано";
 //   const actNumber = reclamation.actNumber || "Не вказано";
@@ -238,7 +258,7 @@ export const ReclamationItem = ({
               № {reclamation.id}
             </div>
             <div className="text-[13px] text-WS---DarkGrey">
-              {formatDateHumanShorter(reclamation.dateRaw)}
+              {formatDateHumanShorter_full(reclamation.dateRaw, locale)}
             </div>
           </div>
         </div>
@@ -270,7 +290,7 @@ export const ReclamationItem = ({
       }}
     >
       <div className="w-full text-[14px] leading-tight line-clamp-2">
-        {reclamation.message || "Без коментарів"}
+        {reclamation.message || t("reclamation.no_comments")}
       </div>
     </div>
 
@@ -299,7 +319,7 @@ export const ReclamationItem = ({
           )}
         </div>
         <span className="text-[13px] font-['Inter'] text-WS---DarkGrey pr-2">
-          Історія коментарів
+          {t("reclamation.comment_history")}
         </span>
       </button>
     </div>
@@ -334,7 +354,7 @@ export const ReclamationItem = ({
             className={`column gap-2 text-[13px] no-wrap calc-status font-['Inter'] ${getStatusClass(reclamation.status)}`}
           >
             <div className="text-[13px]">
-              {reclamation.status}
+              {getTranslatedStatus(reclamation.status)}
             </div>
           </div>
         </div>
@@ -354,7 +374,7 @@ export const ReclamationItem = ({
 
           <img
             src={deleteIcon}
-            alt="Видалити"
+            alt={t("reclamation.delete")}
             className={`transition-all ${
               !canDelete 
                 ? "opacity-30 grayscale cursor-not-allowed" 
@@ -363,9 +383,9 @@ export const ReclamationItem = ({
             title={
               !canDelete
                 ? managerAssigned
-                  ? "Неможливо видалити: призначено менеджера"
-                  : "Недоступно для видалення"
-                : "Видалити"
+                  ? t("reclamation.delete_forbidden_manager")
+                  : t("reclamation.delete_forbidden")
+                : t("reclamation.delete")
             }
             onClick={canDelete ? handleDeleteClick : undefined}
           />
