@@ -451,7 +451,7 @@ import DealerSelect from "./DealerSelect";
 import { formatPercent } from "../utils/formatMoney";
 // Імпортуємо хук перекладу
 import { useTranslation } from "react-i18next";
-import AutoTranslatedText from "../components/ui/AutoTranslatedText";
+import AutoTranslatedText from "../components/AutoTranslatedText";
 
 const MobilePaymentsView = ({
   groups,

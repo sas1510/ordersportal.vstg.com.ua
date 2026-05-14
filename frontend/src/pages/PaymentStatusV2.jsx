@@ -1469,7 +1469,7 @@ import { useNotification } from "../hooks/useNotification";
 import { formatPercent } from "../utils/formatMoney";
 // Імпортуємо хук перекладу
 import { useTranslation } from "react-i18next";
-import AutoTranslatedText from "../components/ui/AutoTranslatedText";
+import AutoTranslatedText from "../components/AutoTranslatedText";
 
 const formatCurrency = (value, unit, i18n) => {
   if (value == null || isNaN(Number(value))) return "—";
