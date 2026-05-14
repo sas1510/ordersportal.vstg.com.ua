@@ -34,8 +34,8 @@
   width: 100%;
   padding-top: 100px;
   padding-bottom: 60px;
-    display: flex;
-  flex-direction: column;
+    /* display: flex;
+  flex-direction: column; */
 
 
   /* Адаптивні відступи зліва і справа */
