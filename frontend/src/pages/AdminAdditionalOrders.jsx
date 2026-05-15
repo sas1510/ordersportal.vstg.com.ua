@@ -5,6 +5,8 @@ import { AdditionalOrderItem } from "../components/AdditionalOrder/AdditionalOrd
 import { AdditionalOrderItemMobile } from "../components/AdditionalOrder/AdditionalOrderItemMobile";
 import AddReorderModal from "../components/AdditionalOrder/AddReorderModal";
 import useWindowWidth from "../hooks/useWindowWidth";
+
+import { useTranslation } from "react-i18next";
 // import { useTheme } from '../context/ThemeContext';
 
 import DealerSelectWithAll from "./DealerSelectWithAll";
@@ -15,7 +17,7 @@ const initialLimit = 100;
 
 const AdminAdditionalOrders = () => {
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
-
+  const {t} = useTranslation();
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -50,6 +52,20 @@ const AdminAdditionalOrders = () => {
 
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
+
+  const statusIcons = {
+    all: "/assets/icons/AdditionalOrderIcon.png",
+    new: "/assets/icons/NewCalcIcon.png",
+    processing: "/assets/icons/InProcessingIcon.png",
+    waitingPay: "/assets/icons/WaitingForPaymentIcon.png",
+    waitingConfirm: "/assets/icons/WaitingForConfirmIcon.png",
+    confirmed: "/assets/icons/ConfirmedIcon.png",
+    factory: "/assets/icons/FactoringIcon.png",
+    finished: "/assets/icons/FinishedIcon.png",
+    delivered: "/assets/icons/DeliveredIcon.png",
+    canceled: "/assets/icons/CancelCalc.png",
+  };
+
   // const { theme } = useTheme();
 
   const currentMonth = useMemo(() => new Date().getMonth() + 1, []);
@@ -363,7 +379,7 @@ const AdminAdditionalOrders = () => {
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
-        <div className="loading-text">Завантаження...</div>
+        <div className="loading-text">{t("common.loading")}</div>
       </div>
     );
 
@@ -411,7 +427,7 @@ const AdminAdditionalOrders = () => {
            
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            Звітний рік
+            {t("portal_calc.ui.report_year")}
           </div>
 
              <select
@@ -438,27 +454,29 @@ const AdminAdditionalOrders = () => {
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
                 onClick={() => handleMonthClick(0)}
               >
-                Весь рік
+                {t("portal_calc.months.all_year")}
               </li>
             )}
             
 
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
-              const labels = [
-                "Січ.",
-                "Лют.",
-                "Бер.",
-                "Квіт.",
-                "Трав.",
-                "Черв.",
-                "Лип.",
-                "Сер.",
-                "Вер.",
-                "Жов.",
-                "Лис.",
-                "Груд.",
-              ];
+              // const labels = [
+              //   "Січ.",
+              //   "Лют.",
+              //   "Бер.",
+              //   "Квіт.",
+              //   "Трав.",
+              //   "Черв.",
+              //   "Лип.",
+              //   "Сер.",
+              //   "Вер.",
+              //   "Жов.",
+              //   "Лис.",
+              //   "Груд.",
+              // ];
+
+              const labels = t("portal_calc.months.short", { returnObjects: true });
 
               const disabled =
                 dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
@@ -489,25 +507,26 @@ const AdminAdditionalOrders = () => {
           >
 
             {dealerGuid !== ALL_DEALERS_VALUE && (
-              <option value={0}>Весь рік</option>
+              <option value={0}>{t("portal_calc.months.all_year")}</option>
             )}
 
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
-              const labels = [
-                "Січень",
-                "Лютий",
-                "Березень",
-                "Квітень",
-                "Травень",
-                "Червень",
-                "Липень",
-                "Серпень",
-                "Вересень",
-                "Жовтень",
-                "Листопад",
-                "Грудень",
-              ];
+              // const labels = [
+              //   "Січень",
+              //   "Лютий",
+              //   "Березень",
+              //   "Квітень",
+              //   "Травень",
+              //   "Червень",
+              //   "Липень",
+              //   "Серпень",
+              //   "Вересень",
+              //   "Жовтень",
+              //   "Листопад",
+              //   "Грудень",
+              // ];
+              const labels = t("portal_calc.months.full", { returnObjects: true });
 
               const disabled =
                 dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
@@ -541,7 +560,7 @@ const AdminAdditionalOrders = () => {
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
           {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between">
-            {isSidebarOpen && <span>Фільтри</span>}
+            {isSidebarOpen && <span>{t("portal_calc.ui.filters")}</span>}
             {isSidebarOpen && (
               <span
                 className="icon icon-cross"
@@ -554,7 +573,7 @@ const AdminAdditionalOrders = () => {
             <input
               type="text"
               className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
-              placeholder="номер дод. замовлення"
+               placeholder={t("additional_order.search_placeholder")}
               value={filter.name}
               onChange={handleSearchChange}
             />
@@ -568,7 +587,7 @@ const AdminAdditionalOrders = () => {
           {isAdmin && (
             <>
               {/* <div className="delimiter1" /> */}
-              <div className="dealer-select-wrapper mt-2 ">
+              <div className="dealer-select-wrapper  mb-2 ">
                 <DealerSelectWithAll
                   value={dealerGuid}
                   onChange={setDealerGuid}
@@ -579,7 +598,7 @@ const AdminAdditionalOrders = () => {
 
           {/* <div className="delimiter1"></div> */}
 
-          <ul className="buttons">
+          {/* <ul className="buttons">
             <li
               className="btn btn-add-calc"
               onClick={() => setIsNewOrderModalOpen(true)}
@@ -588,11 +607,11 @@ const AdminAdditionalOrders = () => {
                   src={plusIcon} 
                   alt="+" 
                   className="align-center mr-2 " 
-                  /* inline-style тут вже не потрібні, якщо є класи зверху */
+                 
                 />
               <div className="text-center text-WS---DarkGrey text-[14px] font-bold font-['Inter'] uppercase">Нове дод. замовлення</div>{" "}
             </li>
-          </ul>
+          </ul> */}
 
           <ul className="filter column align-center">
 
@@ -608,73 +627,33 @@ const AdminAdditionalOrders = () => {
               max-[1260px]:overflow-visible">
             {/* <li className="delimiter1"></li> */}
             {[
-             {
-                id: "all",
-                label: "Всі дод. замовлення",
-                icon: allCalcIcon,
-                statusKey: "Всі",
-              },
-              {
-                id: "new",
-                label: "Нові дод. замовлення",
-                icon: newCalcIcon,
-                statusKey: "Новий",
-              }, 
-              {
-                id: "processing",
-                label: "В роботі",
-                icon: inProcessingIcon,
-                statusKey: "В роботі",
-              },
-              {
-                id: "waiting-payment",
-                label: "Очікують оплату",
-                icon: waitingForPaymentIcon,
-                statusKey: "Очікуємо оплату",
-              },
-              {
-                id: "waiting-confirm",
-                label: "Очікують підтвердження",
-                icon: waitingForConfirmIcon,
-                statusKey: "Очікуємо підтвердження",
-              },
-              {
-                id: "confirmed",
-                label: "Підтверджені",
-                icon: confirmedIcon,
-                statusKey: "Підтверджений",
-              },
-              {
-                id: "production",
-                label: "Замовлення у виробництві",
-                icon:factoryIcon,
-                statusKey: "У виробництві",
-              },
-              {
-                id: "ready",
-                label: "Готові замовлення",
-                icon: finishedIcon,
-                statusKey: "Готовий",
-              },
-              {
-                id: "shipped",
-                label: "Відвантажено",
-                icon: deliveredIcon,
-                statusKey: "Відвантажено",
-              }, // Додано
-              {
-                id: "rejected",
-                label: "Відмова",
-                icon: canceledCalcIcon,
-                statusKey: "Відмова",
-              },
+              { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Всі" },
+              { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "Новий" },
+              { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "В роботі" },
+              { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "Очікуємо оплату" },
+              { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "Очікуємо підтвердження" },
+              { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "Підтверджений" },
+              { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "У виробництві" },
+              { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Готовий" },
+              { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Відвантажено" },
+              { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Відмова" },
             ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
                 className={`filter-item ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleFilterClick(statusKey)}
               >
-                <span className={`icon ${icon} font-size-24`}></span>
+                {/* <span className={`icon ${icon} font-size-24`}></span> */}
+
+                <img 
+                  src={icon}
+                  alt="" 
+                  className={`mr-3 object-contain transition-all duration-300
+                      ${filter.status === statusKey 
+                      ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
+                      : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                      }`} 
+                  />
                 <span className="w-100">{label}</span>
                 <span
                   className={statusSummary[statusKey] === 0 ? "disabled" : ""}
@@ -693,7 +672,7 @@ const AdminAdditionalOrders = () => {
             {sortedItems.length === 0 ? (
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">
-                  Немає додаткових замовлень для відображення
+                   {t("additional_order.states.no_data")}
                 </div>
               </div>
             ) : (
@@ -754,7 +733,7 @@ const AdminAdditionalOrders = () => {
                   className="icon icon-loop2"
                   style={{ marginRight: "10px" }}
                 ></span>
-                {`Завантажити ще (${nextLoadCount} з ${sortedItems.length - displayLimit})`}
+                {t("additional_order.states.load_more", { count: nextLoadCount, total: sortedItems.length - displayLimit })}
               </button>
             </div>
           )}
@@ -768,7 +747,7 @@ const AdminAdditionalOrders = () => {
                 justifyContent: "center",
               }}
             >
-              Всі додаткові замовлення завантажено ({sortedItems.length}).
+              {t("additional_order.states.all_loaded", { total: sortedItems.length })}
             </div>
           )}
         </div>

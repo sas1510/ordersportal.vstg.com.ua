@@ -67,7 +67,6 @@ const PortalOriginal = () => {
   const navigate = useNavigate();
 
   const location = useLocation();
-  const fullMonthLabels = t("portal_calc.months.full", { returnObjects: true }) || [];
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -457,27 +456,41 @@ const PortalOriginal = () => {
             </ul>
 
 
-          <select
-    className="month-select row"
-    value={filter.month}
-    // Використовуємо той самий handleFilterChange, що і в списку вище
-    onChange={(e) => handleFilterChange("month", Number(e.target.value))}
-  >
-    <option value={0}>{t("portal_calc.months.all_year")}</option>
-    {fullMonthLabels.map((label, i) => {
-      const num = i + 1;
-      const count = monthSummary[num] || 0;
-      return (
-        <option 
-          key={num} 
-          value={num} 
-          disabled={count === 0}
-        >
-          {label} ({count})
-        </option>
-      );
-    })}
-  </select>
+            <select
+            className="month-select row"
+            value={filter.month}
+            onChange={(e) => handleMonthClick(Number(e.target.value))}
+          >
+            <option value={0}>{t("portal_calc.months.all_year")}</option>
+            {Array.from({ length: 12 }, (_, i) => {
+              const num = i + 1;
+
+              const labels = t("portal_calc.months.full", { returnObjects: true });
+              // const labels = [
+              //   "Січень",
+              //   "Лютий",
+              //   "Березень",
+              //   "Квітень",
+              //   "Травень",
+              //   "Червень",
+              //   "Липень",
+              //   "Серпень",
+              //   "Вересень",
+              //   "Жовтень",
+              //   "Листопад",
+              //   "Грудень",
+              // ];
+              return (
+                <option
+                  key={num}
+                  value={num}
+                  disabled={monthSummary[num] === 0}
+                >
+                  {labels[i]} ({monthSummary[num]})
+                </option>
+              );
+            })}
+          </select>
           </div>
 </div>
       </div>

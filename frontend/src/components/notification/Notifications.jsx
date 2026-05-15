@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { FaTimes } from "react-icons/fa";
-import { NotificationContext } from "./NotificationContext"; // Імпорт контексту
+import { NotificationContext } from "./NotificationContext"; 
 import "./Notifications.css";
 
 export const NotificationProvider = ({ children }) => {

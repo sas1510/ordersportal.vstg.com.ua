@@ -11,6 +11,7 @@ import useWindowWidth from "../hooks/useWindowWidth";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";
+import { useTranslation } from "react-i18next";
 
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
@@ -18,6 +19,8 @@ const ALL_DEALERS_VALUE = "__ALL__";
 const AdminPortalOriginal = () => {
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
   const { register, cancelAll } = useCancelAllRequests();
+
+  const {t, i18n } = useTranslation();
 
   const [calculationsData, setCalculationsData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -145,7 +148,7 @@ const AdminPortalOriginal = () => {
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
 
-      // ✅ Синхронізуємо UI
+
       setDealerGuid(ALL_DEALERS_VALUE);
       setSelectedYear(String(year));
       setFilter((prev) => ({
@@ -249,9 +252,7 @@ const AdminPortalOriginal = () => {
     shouldRefetchOnMonthChange ? filter.month : null,
   ]);
 
-  // =====================================================
-  // SUMMARIES (for counts + disable months)
-  // =====================================================
+
   const statusSummary = useMemo(() => {
     const summary = {
       Всі: 0,
@@ -295,9 +296,7 @@ const AdminPortalOriginal = () => {
     return summary;
   }, [calculationsData]);
 
-  // =====================================================
-  // HANDLERS (NO FETCH)
-  // =====================================================
+
   const handleStatusClick = (status) => {
     setFilter((prev) => ({ ...prev, status }));
     setFilteredItems(
@@ -314,8 +313,6 @@ const AdminPortalOriginal = () => {
       setCalculationsData((prev) => prev.filter((item) => item.id !== id));
       setFilteredItems((prev) => prev.filter((item) => item.id !== id));
 
-      // Повне оновлення з сервера (щоб оновити лічильники в сайдбарі)
-      // await reloadCalculations();
     },
     [setCalculationsData, setFilteredItems],
   );
@@ -365,9 +362,7 @@ const AdminPortalOriginal = () => {
 
   const handleLoadMore = () => setDisplayLimit((prev) => prev + ITEMS_PER_LOAD);
 
-  // =====================================================
-  // SORT + PAGINATION
-  // =====================================================
+
   const sortedItems = useMemo(
     () =>
       [...filteredItems].sort(
@@ -382,13 +377,14 @@ const AdminPortalOriginal = () => {
     ITEMS_PER_LOAD,
     sortedItems.length - displayLimit,
   );
+  const remainingItems = sortedItems.length - displayLimit;
 
   if (loading || reloading) {
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
         <div className="loading-text">
-          {reloading ? "Оновлення даних..." : "Завантаження..."}
+           {reloading ? t("portal_calc.ui.reloading") : t("portal_calc.ui.loading")}
         </div>
       </div>
     );
@@ -425,7 +421,7 @@ const AdminPortalOriginal = () => {
              
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            Звітний рік
+             {t("portal_calc.ui.report_year")}
           </div>
              <select
                 className="year-select-minimal"
@@ -449,26 +445,13 @@ const AdminPortalOriginal = () => {
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
                 onClick={() => handleMonthClick(0)}
               >
-                Весь рік
+                {t("portal_calc.months.all_year")}
               </li>
             )}
 
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
-              const labels = [
-                "Січ.",
-                "Лют.",
-                "Бер.",
-                "Квіт.",
-                "Трав.",
-                "Черв.",
-                "Лип.",
-                "Сер.",
-                "Вер.",
-                "Жов.",
-                "Лис.",
-                "Груд.",
-              ];
+              const labels = t("portal_calc.months.short", { returnObjects: true });
 
               const disabled =
                 dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
@@ -497,25 +480,12 @@ const AdminPortalOriginal = () => {
             onChange={(e) => handleMonthClick(Number(e.target.value))}
           >
             {dealerGuid !== ALL_DEALERS_VALUE && (
-              <option value={0}>Весь рік</option>
+              <option value={0}> {t("portal_calc.months.all_year")}</option>
             )}
 
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
-              const labels = [
-                "Січень",
-                "Лютий",
-                "Березень",
-                "Квітень",
-                "Травень",
-                "Червень",
-                "Липень",
-                "Серпень",
-                "Вересень",
-                "Жовтень",
-                "Листопад",
-                "Грудень",
-              ];
+              const labels = t("portal_calc.months.full", { returnObjects: true });
 
               const disabled =
                 dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
@@ -541,7 +511,7 @@ const AdminPortalOriginal = () => {
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
           {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between">
-            {isSidebarOpen && <span>Фільтри</span>}
+            {isSidebarOpen && <span>{t("portal_calc.ui.filters")}</span>}
             {isSidebarOpen && (
               <span
                 className="icon icon-cross"
@@ -554,7 +524,7 @@ const AdminPortalOriginal = () => {
             <input
               type="text"
               className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
-              placeholder="номер прорахунку, замовлення"
+              placeholder={t("portal_calc.ui.search_placeholder")}
               value={filter.name}
               onChange={handleSearchChange}
             />
@@ -601,7 +571,7 @@ const AdminPortalOriginal = () => {
                   className="align-center mr-2 " 
               
                 />
-              <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">новий прорахунок</div>
+              <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">{t("portal_calc.ui.new_calculation")}</div>
             </li>
           </ul>
 
@@ -611,7 +581,7 @@ const AdminPortalOriginal = () => {
               min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
               min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
               
-              /* Скидання для малих екранів (менше 1260px) */
+     
               max-[1260px]:bg-transparent 
               max-[1260px]:shadow-none 
               max-[1260px]:py-0 
@@ -620,68 +590,16 @@ const AdminPortalOriginal = () => {
             {/* <li className="delimiter1"></li> */}
 
             {[
-             {
-                id: "all",
-                label: "Всі прорахунки",
-                icon: allCalcIcon,
-                statusKey: "Всі",
-              },
-              {
-                id: "new",
-                label: "Нові прорахунки",
-                icon: newCalcIcon,
-                statusKey: "Новий",
-              },
-              // {
-              //   id: "processing",
-              //   label: "В обробці",
-              //   icon: inProcessingIcon,
-              //   statusKey: "В обробці",
-              // },
-              {
-                id: "waiting-confirm",
-                label: "Очікують підтвердження",
-                icon: waitingForConfirmIcon,
-                statusKey: "Очікуємо підтвердження",
-              },
-              {
-                id: "waiting-payment",
-                label: "Очікують оплату",
-                icon: waitingForPaymentIcon,
-                statusKey: "Очікуємо оплату",
-              },
-
-              {
-                id: "confirmed",
-                label: "Підтверджені",
-                icon: confirmedIcon,
-                statusKey: "Підтверджений",
-              },
-              {
-                id: "production",
-                label: "У виробництві",
-                icon: factoryIcon,
-                statusKey: "У виробництві",
-              },
-              {
-                id: "ready",
-                label: "Готові замовлення",
-                icon: finishedIcon,
-                statusKey: "Готовий",
-              },
-              {
-                id: "delivered",
-                label: "Відвантажені",
-                icon: deliveredIcon,
-                statusKey: "Відвантажений",
-              },
-              {
-                id: "rejected",
-                label: "Відмова",
-                icon: canceledCalcIcon,
-                statusKey: "Відмова",
-              },
-            ].map(({ id, label, icon, statusKey }) => (
+                  { id: "all", label: t("portal_calc.filter_labels.all"), icon: allCalcIcon, statusKey: "Всі" },
+                  { id: "new", label: t("portal_calc.filter_labels.new"), icon: newCalcIcon, statusKey: "Новий" },
+                  { id: "waiting-confirm", label: t("portal_calc.filter_labels.waiting_confirm"), icon: waitingForConfirmIcon, statusKey: "Очікуємо підтвердження" },
+                  { id: "waiting-payment", label: t("portal_calc.filter_labels.waiting_payment"), icon: waitingForPaymentIcon, statusKey: "Очікуємо оплату" },
+                  { id: "confirmed", label: t("portal_calc.filter_labels.confirmed"), icon: confirmedIcon, statusKey: "Підтверджений" },
+                  { id: "production", label: t("portal_calc.filter_labels.production"), icon: factoryIcon, statusKey: "У виробництві" },
+                  { id: "ready", label: t("portal_calc.filter_labels.ready"), icon: finishedIcon, statusKey: "Готовий" },
+                  { id: "delivered", label: t("portal_calc.filter_labels.delivered"), icon: deliveredIcon, statusKey: "Відвантажений" },
+                  { id: "rejected", label: t("portal_calc.filter_labels.rejected"), icon: canceledCalcIcon, statusKey: "Відмова" },
+                ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
                 className={`filter-item ${filter.status === statusKey ? "active" : ""}`}
@@ -714,7 +632,7 @@ const AdminPortalOriginal = () => {
             {itemsToShow.length === 0 ? (
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">
-                  Немає прорахунків для відображення
+                  {t("portal_calc.ui.no_calculations")}
                 </div>
               </div>
             ) : (
@@ -779,7 +697,13 @@ const AdminPortalOriginal = () => {
                     className="icon icon-loop2"
                     style={{ marginRight: "10px" }}
                   ></span>
-                  {`Завантажити ще (${nextLoadCount} з ${sortedItems.length - displayLimit})`}
+
+                  {t("portal_calc.ui.load_more_admin", {
+                    next: nextLoadCount, 
+                    total: remainingItems
+                  })}
+                  
+
                 </button>
               </div>
             )}
@@ -789,7 +713,7 @@ const AdminPortalOriginal = () => {
                 className="row justify-content-center text-grey"
                 style={{ marginTop: "20px", marginBottom: "20px" }}
               >
-                Всі прорахунки завантажено ({sortedItems.length}).
+                {t("portal_calc.ui.all_loaded", { count: sortedItems.length})}
               </div>
             )}
           </div>

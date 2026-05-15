@@ -59,7 +59,7 @@ const ChangePasswordPage = () => {
         });
 
         addNotification(
-          response.data.message || t("change_password.success_message"),
+          t("change_password.success_message"),
           "success",
         );
 
@@ -69,15 +69,23 @@ const ChangePasswordPage = () => {
           confirmNewPassword: "",
         });
       } catch (err) {
-        const errorMessage =
-          err.response?.data?.error ||
-          err.response?.data?.message ||
-          t("change_password.error_general");
+          const backendError = err.response?.data?.error;
+          let errorMessage = t("change_password.error_general");
 
-        addNotification(errorMessage, "error");
-      } finally {
-        setLoading(false);
-      }
+        
+          if (backendError === "Невірний поточний пароль.") {
+            errorMessage = t("change_password.error_wrong_old");
+          } else if (backendError?.includes("Потрібні обидва поля")) {
+            errorMessage = t("change_password.error_fields_required");
+          } else if (err.response?.data?.message) {
+       
+            errorMessage = err.response.data.message;
+          }
+
+          addNotification(errorMessage, "error");
+        } finally {
+          setLoading(false);
+        }
     },
     [formData, addNotification, t],
   );

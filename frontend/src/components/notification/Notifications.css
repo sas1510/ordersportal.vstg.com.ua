@@ -30,6 +30,7 @@
   color: #fff;
 }
 .notification.success {
+  /* background: var(--success-color); */
   background: var(--success-color);
   color: #fff;
 }

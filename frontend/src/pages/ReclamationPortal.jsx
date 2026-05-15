@@ -533,7 +533,7 @@ const ReclamationPortal = () => {
 
 
                     {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
-                        {isSidebarOpen && <span>Фільтри Рекламацій</span>}
+                        {isSidebarOpen && <span>{t("portal_calc.ui.filters")}</span>}
                         {isSidebarOpen && (
                                 <button 
                                 onClick={() => setIsSidebarOpen(false)} 
@@ -656,7 +656,7 @@ const ReclamationPortal = () => {
                         ) : sortedItems.length === 0 ? (
                     
                             <div className="no-data column align-center h-100">
-                                <div className="font-size-24 text-grey">Рекламацій не знайдено</div>
+                                <div className="font-size-24 text-grey">{t("reclamation.no-data")}</div>
                             </div>
                         ) : (
 

@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import axiosInstance from "../api/axios";
 import "./DealerSelect.css";
+import { useTranslation } from "react-i18next";
+
+
 
 const ALL_DEALERS_VALUE = "__ALL__";
 
@@ -14,6 +17,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
   const wrapperRef = useRef(null); 
   const searchRef = useRef(null);
+  const {t} = useTranslation();
 
 
   useEffect(() => {
@@ -25,7 +29,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
         if (process.env.NODE_ENV === "development") {
           console.error("Error fetching dealers:", e);
         } 
-        setError("Помилка завантаження дилерів");
+        setError(t("dealer_select.error_load"));
       } finally {
         setLoading(false);
       }
@@ -63,7 +67,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
   const selectedLabel =
     value === ALL_DEALERS_VALUE
-      ? "Всі дилери"
+      ? t("dealer_select.all_dealers")
       : dealers.find((d) => d.ContractorID === value)?.ContractorName;
 
 
@@ -118,7 +122,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
         onClick={() => setOpen((o) => !o)}
       >
         <span className={selectedLabel ? "" : "placeholder"}>
-          {selectedLabel || "— Оберіть дилера —"}
+          {selectedLabel || t("dealer_select.placeholder")}
         </span>
         <span className="arrow">▾</span>
       </div>
@@ -129,7 +133,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
           <input
             ref={searchRef}
             type="text"
-            placeholder="Пошук дилера…"
+            placeholder={t("dealer_select.search_placeholder")}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -140,7 +144,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
           <div className="dealer-select__list">
             {loading && (
-              <div className="dealer-select__empty">Завантаження…</div>
+              <div className="dealer-select__empty">{t("dealer_select.loading")}</div>
             )}
 
             {!loading && error && (
@@ -162,12 +166,12 @@ const DealerSelectWithAll = ({ value, onChange }) => {
                     setHighlightedIndex(-1);
                   }}
                 >
-                  <strong>Всі дилери</strong>
+                  <strong>{t("dealer_select.all_dealers")}</strong>
                 </div>
 
 
                 {filteredDealers.length === 0 ? (
-                  <div className="dealer-select__empty">Нічого не знайдено</div>
+                  <div className="dealer-select__empty">{t("dealer_select.empty")}</div>
                 ) : (
                   filteredDealers.map((d, idx) => (
                     <div

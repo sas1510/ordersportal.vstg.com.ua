@@ -431,6 +431,7 @@ import "./CreateCustomerBillModal.css";
 import { useNotification } from "../hooks/useNotification";
 import { useTranslation } from "react-i18next";
 import AutoTranslatedText from "../components/ui/AutoTranslatedText";
+import { FaPlus } from "react-icons/fa";
 
 const STEPS = {
   BASE: 1,
@@ -703,8 +704,13 @@ export default function CreateCustomerBillModal({
                   </div>
                 ))}
 
-                <button className="add-product-btn" onClick={handleAddItem}>
-                  ➕ {t("create_bill.actions.add_item")}
+                <button 
+                  className="add-product-btn no-wrap" 
+                  onClick={handleAddItem}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
+                >
+                  <FaPlus/> 
+                  <span>{t("create_bill.actions.add_item")}</span>
                 </button>
               </>
             )}

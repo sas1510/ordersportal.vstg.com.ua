@@ -495,7 +495,7 @@ const AdditionalOrders = () => {
                  
                 />
           </div>
-          {/* Для великих екранів — список місяців */}
+
            <div className="year-inline-selector row">
               <img 
                   src={yearIcon} 

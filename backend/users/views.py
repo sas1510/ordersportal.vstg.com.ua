@@ -319,12 +319,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from django.conf import settings
 
-
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import Group
 from django.utils import timezone
 
 from backend.permissions import IsAdminJWT
@@ -372,11 +372,6 @@ from django.contrib.auth.hashers import make_password
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-# Імпортуйте ваші моделі та утиліти
-# from .models import CustomUser, Invitation
-# from .serializers import CreateInvitationSerializer
-# from backend.utils.GuidToBin1C import guid_to_1c_bin
 from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password
@@ -385,11 +380,16 @@ from rest_framework.response import Response
 
 import uuid
 from datetime import timedelta
+from datetime import timedelta
+from django.utils import timezone
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
-# Імпортуйте ваші моделі та серіалізатори
-# from .models import CustomUser, Invitation
-# from .serializers import CreateInvitationSerializer
-# from .utils import guid_to_1c_bin
+
+from .models import Invitation, CustomUser
+from .serializers import CompleteRegistrationSerializer
+
 import uuid
 from datetime import timedelta
 from django.utils import timezone
@@ -397,12 +397,6 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-
-# import logging
-# import logging_setup
-
-# logger = logging.getLogger(__name__)
 
 from backend.utils.logging_setup import logger
 
@@ -410,9 +404,7 @@ from backend.utils.logging_setup import logger
 User = get_user_model()
 
 from django.contrib.auth import login
-# ----------------------
-# Логін
-# ----------------------
+
 
 @extend_schema(
     summary="Авторизація користувача (JWT)",
@@ -576,10 +568,6 @@ class CustomTokenRefreshView(TokenRefreshView):
         # logger.debug("JWT Token refreshed successfully")
         return Response({"access": access})
 
-# ----------------------
-# Логаут
-# ----------------------
-
 @extend_schema(exclude=True)
 class LogoutView(APIView):
     @extend_schema(
@@ -620,9 +608,7 @@ class LogoutView(APIView):
         # resp.delete_cookie("csrftoken")
         return resp
 
-# ----------------------
-# Поточний користувач
-# ----------------------
+
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -639,15 +625,6 @@ class CurrentUserView(APIView):
             "role": getattr(user, "role", "")
         })
 
-from datetime import timedelta
-from django.utils import timezone
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-
-
-from .models import Invitation, CustomUser
-from .serializers import CompleteRegistrationSerializer
 
 # @extend_schema_view(
 #     get=extend_schema(
@@ -930,24 +907,9 @@ def get_user_name_view(request):
 
     return JsonResponse({"full_name": full_name})
 
-# ----------------------
-# Логіка Дилерів
-# ----------------------
-# УВАГА: Модель 'ManagerDealer' не була надана.
-# Цей код припускає, що вона існує і має поля 
-# 'manager_user_id_1C' та 'dealer_user_id_1C'.
 
 
 
-
-
-from rest_framework.response import Response
-from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import Group
-
-
-## Функція для Клієнта (потрібен старий пароль)
 @extend_schema(
     tags=["Auth"],  # 👈 AUTH TAG
     summary="Change password",
@@ -1133,7 +1095,7 @@ def admin_change_user_password(request, user_id):
         target_user.save()
 
         duration = time.time() - start_time
-        # Критично важливий лог для аудиту безпеки
+
         logger.info(f"ADMIN {admin_user.username} changed password for user {target_user.username}", extra={
             'tags': {
                 'action': 'admin_change_password',

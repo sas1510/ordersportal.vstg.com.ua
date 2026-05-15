@@ -177,8 +177,12 @@
   "dealer_select": {
     "placeholder": "— Select Dealer —",
     "search_placeholder": "Search dealer…",
-    "error_load": "Error loading dealers"
+    "error_load": "Error loading dealers",
+    "empty": "Empty",
+    "all_dealers": "All dealers"
   },
+
+  
   "files": {
     "header": {
       "title": "Files",
@@ -557,6 +561,7 @@
       "no_calculations": "No calculations to display",
       "load_more_all": "Load more ({{count}})",
       "load_more": "Load more (100 of {{total}})",
+      "load_more_admin": "Load more ({{next}} of {{total}})",
       "all_loaded": "All calculations loaded ({{count}}).",
       "delete_calc_allowed": "Delete calculation",
       "delete_cal_disallowed": "Cannot delete: orders exist",
@@ -618,6 +623,8 @@
   }, 
   "reclamation": {
     "no_comments": "No comments",
+    "no-data": "No complaints found.",
+    "load_more": "Load more",
     "comment_history": "Comment history",
     "delete": "Delete",
     "delete_forbidden": "Deletion unavailable",
@@ -685,7 +692,7 @@
     "search_placeholder": "additional order number",
     "new_order_btn": "New additional order",
     "statuses": {
-      "all":"ALl add. order",
+      "all":"All add. order",
       "new": "New",
       "waiting_confirm": "Awaiting confirmation",
       "waiting_pay": "Awaiting payment",
@@ -773,7 +780,9 @@
     "success_message": "Password changed successfully!",
     "error_mismatch": "New password and confirmation do not match.",
     "error_length": "Password must be at least 6 characters long.",
-    "error_general": "Error. Please check your current password."
+    "error_general": "Error. Please check your current password.",
+    "error_wrong_old": "Incorrect current password.",
+    "error_fields_required": "Both fields are required."
   },
   "emergency": {
     "page_title": "Emergency Call Contacts",
@@ -852,7 +861,61 @@
       "ВозвратОтПокупателя": "Return from Buyer",
       "КорректировкаДолга": "Debt Adjustment"
     }
-  }
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Manager",
+    "operator": "Operator",
+    "director": "Director",
+    "region_manager": "Region Manager",
+    "complaint_manager": "Complaint Manager",
+    "customer": "Dealer"
+  },
+  "invite": {
+    "header": "Complete Registration",
+    "admin_params": "Access parameters from administrator:",
+    "label_login": "Your system login",
+    "label_role": "Account type",
+    "label_expire": "Account active until:",
+    "unlimited": "Unlimited",
+    "personal_data": "Personal Data",
+    "warning_edit": "Check and edit contact details if necessary and set a password.",
+    "warning_save": "Important: save your login and password!",
+    "label_fullname": "Full Name",
+    "label_email": "Email",
+    "label_phone": "Phone",
+    "label_password": "New Password",
+    "btn_submit": "Create Profile",
+    "success_message": "Registration completed successfully! You can now log in.",
+    "back_to_login": "Back to login",
+    "password_rules": {
+      "min_length": "At least 8 characters",
+      "lowercase": "Must contain a lowercase letter",
+      "uppercase": "Must contain an uppercase letter",
+      "number": "Must contain a digit",
+      "special": "Must contain a special character"
+    },
+    "strength": {
+      "weak": "Weak password",
+      "medium": "Medium password",
+      "strong": "Strong password"
+    },
+    "tg": {
+      "title": "Connect Telegram Bot",
+      "description": "Scan the QR code to receive order notifications",
+      "button": "Go to Telegram"
+    },
+    "errors": {
+      "load_fail": "Failed to load data",
+      "invalid_password": "Password does not meet security requirements",
+      "invalid_phone": "Invalid phone format. Use +380XXXXXXXXX",
+      "reg_fail": "Registration error",
+      "invite_used": "This link has already been used",
+      "invite_expired": "This link is no longer active",
+      "invalid_code": "Invalid invitation code"
+      }
+    }
+  
 
 
 

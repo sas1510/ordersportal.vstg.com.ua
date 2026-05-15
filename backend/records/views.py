@@ -1,79 +1,63 @@
-from django.shortcuts import render
+import os
+import re
+import json
+import base64
+import time
+import collections
+import mimetypes
+import requests
+import smbclient
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+from urllib.parse import unquote
 
-from django.http import JsonResponse
-from django.db import connection
+from django.conf import settings
+from django.db import connection, connections, transaction, DatabaseError
+from django.db.models import Q
+from django.http import JsonResponse, StreamingHttpResponse, Http404
+from django.shortcuts import render
+from django.utils.timezone import now
+from django.core.exceptions import ValidationError
+from django.views.decorators.http import require_GET
+
+from rest_framework import status, viewsets, generics, serializers
+from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-import os
-from .utils import get_author_from_1c
 from rest_framework.response import Response
-from rest_framework import status
-from django.db.models import Q
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.get_main_manager import get_contractor_main_manager_bin
-import smbclient
-from zoneinfo import ZoneInfo
-from django.core.exceptions import ValidationError
-from django.utils.timezone import now
-from django.db import DatabaseError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
-
-# from .serializers import MessageSerializer
-from backend.permissions import  IsAdminJWTOr1CApiKey, IsAuthenticatedOr1CApiKey
-from backend.utils.BinToGuid1C import convert_row
-
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, inline_serializer, OpenApiResponse, OpenApiExample
-from rest_framework import serializers
-from rest_framework.decorators import api_view, permission_classes
-
-from drf_spectacular.types import OpenApiTypes
-import re
-from backend.utils.onec_api import send_to_1c
-
-from backend.permissions import IsAdminJWT
-from .serializers import  CalculationCreateSerializer
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, 
+    inline_serializer, OpenApiResponse, OpenApiExample
+)
 
 from users.models import CustomUser
-
-import requests
-from django.conf import settings
-from requests.auth import HTTPBasicAuth
-from rest_framework.exceptions import ValidationError
-
+from .models import ChatMessage, TransactionType
+from .serializers import ChatMessageSerializer, CalculationCreateSerializer
+from .utils import get_author_from_1c
+from backend.authentication import OneCApiKeyAuthentication
+from backend.permissions import (
+    IsAuthenticatedOr1CApiKey, 
+    IsAdminJWTOr1CApiKey, 
+    IsAdminJWT
+)
+from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.get_main_manager import get_contractor_main_manager_bin
+from backend.utils.db_1c_lookups import (
+    get_author_name_from_db, 
+    get_document_number_by_guid, 
+    get_document_year_by_guid
+)
 from backend.utils.contractor import resolve_contractor
+from backend.utils.onec_api import send_to_1c
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from backend.permissions import IsAuthenticatedOr1CApiKey
-
-from django.http import JsonResponse
-from django.db import connection
-from django.db import connection
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from datetime import datetime
-import time 
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from django.http import JsonResponse
-from django.db import connection
-from datetime import timezone
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
-
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
-# import logging
-
-# logger = logging.getLogger(__name__)
-
 from backend.utils.logging_setup import logger
+
+
+
 
 def get_current_time_kyiv() -> str:
     return (
@@ -91,20 +75,20 @@ def parse_reclamation_details(text):
     if not text:
         return {}
 
-    # 1. Пошук дат
+
     date_delivery_match = re.search(r"Дата доставки:\s*([\d\.\s:]+)", text, re.IGNORECASE)
     date_determination_match = re.search(r"Дата визначення рекламації\s*:\s*([\d\.\s:]+)", text, re.IGNORECASE)
 
-    # 2. Пошук маркерів
+
     order_prefix_match = re.search(
         r"(Заказ покупателя|Заказ покупателя претензия)\s*[\d\w-]+\s*(dated|от)",
         text,
         re.IGNORECASE
     )
-    # Шукаємо "Опис рекламації:", "Опис:" або "Коментар:"
+  
     description_prefix_match = re.search(r"(?:Опис(?: рекламації)?|Коментар):\s*", text, re.IGNORECASE)
 
-    # 🔹 Якщо маркера "Опис рекламації:" немає — не парсимо опис
+  
     if not description_prefix_match:
         return {
             'ParsedDeliveryDate': date_delivery_match.group(1).strip() if date_delivery_match else None,
@@ -112,13 +96,13 @@ def parse_reclamation_details(text):
             'ParsedDescription': None
         }
 
-    # 3. Якщо є — визначаємо межі опису
+
     start_index = description_prefix_match.end()
     end_index = order_prefix_match.start() if order_prefix_match else len(text)
 
     raw_description = text[start_index:end_index].strip()
 
-    # 4. Очищення
+    
     clean_description = re.sub(
         r"Дата доставки:\s*[\d\.\s:]+|Дата визначення\s*:\s*[\d\.\s:]+|Номер замовлення\s*:\s*[\d\w\s-]*",
         "",
@@ -171,7 +155,7 @@ def parse_reclamation_details(text):
 def complaints_view(request):
     start_time = time.time()
     
-    # 🔐 Визначення контрагента
+    
     try:
         contractor_bin, contractor_guid = resolve_contractor(request)
     except (ValueError, PermissionError) as e:
@@ -184,7 +168,7 @@ def complaints_view(request):
     except (ValueError, TypeError):
         return Response({"error": "Рік має бути числом"}, status=400)
 
-    # 1. 📦 SQL запит до 1С
+    
     # logger.info(f"Fetching complaints from 1C", extra={
     #     'tags': {'action': 'get_complaints', 'contractor': contractor_guid, 'year': year}
     # })
@@ -217,8 +201,8 @@ def complaints_view(request):
         .distinct()
     )
 
-    # 3. 🛠 Обробка рядків та парсинг (AdditionalInformation)
-    # Це потенційно "вузьке" місце через регулярні вирази в parse_reclamation_details
+    
+    
     for row in rows:
         c_guid_bin = row.get("ComplaintGuid")
         row["HasUnreadMessages"] = c_guid_bin in unread_complaint_bins
@@ -229,7 +213,7 @@ def complaints_view(request):
             row["ManagerLink"] = bin_to_guid_1c(row["ManagerLink"])
 
         full_text = row.get("AdditionalInformation")
-        # Парсимо деталі (тут логування помилок парсингу може бути корисним)
+    
         try:
             parsed_info = parse_reclamation_details(full_text)
             row["DeliveryDateText"] = parsed_info.get("ParsedDeliveryDate")
@@ -239,7 +223,7 @@ def complaints_view(request):
             logger.warning(f"Failed to parse complaint details for {row.get('ComplaintGuid')}", exc_info=True)
             row["ParsedDescription"] = full_text
 
-    # 📈 Фінальний лог
+    
     total_duration = time.time() - start_time
     logger.info(f"Complaints processed", extra={
         'tags': {
@@ -262,14 +246,14 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     
     Якщо CalculationDate відсутня, використовує найранішу OrderDate.
     """
-    # Тут замінено замовлення  на замовлення з прорахунками
+    
     # query = """
     #     EXEC [GetOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
     # """
     try:
         year = int(year)
     except (ValueError, TypeError):
-        # Якщо прийшла лапка або сміття — повертаємо 400, а не 500
+    
         return []
 
     query = """
@@ -295,7 +279,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
                 "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
-                "date": calculation_date, # Буде оновлено пізніше, якщо потрібно
+                "date": calculation_date, 
                 "orders": [],
                 "calcConstructionsFromSQL": row.get("CalcConstructionsCount"),
                 "dealer": row.get("Customer"),
@@ -312,7 +296,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "message": row.get("CalcComment"),
                 "manager": bin_to_guid_1c(row.get("Manager")),
                 "currency": row.get("Currency"),
-                "raw_order_dates": [order_date] if order_date else [], # Тимчасове поле для дат
+                "raw_order_dates": [order_date] if order_date else [], 
             }
         else:
             calcs_dict[calc_id]["constructionsQTY"] += current_order_count
@@ -320,7 +304,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                  calcs_dict[calc_id]["raw_order_dates"].append(order_date)
 
 
-        # Додаємо ордер до масиву
+    
         order = {
             "id": row.get("OrderID"),
             "idGuid": row.get("OrderID_GUID"),
@@ -354,7 +338,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         }
         calcs_dict[calc_id]["orders"].append(order)
 
-    # --- Обчислюємо агрегати ---
+   
     formatted_calcs = []
     for calc in calcs_dict.values():
         orders = calc["orders"]
@@ -362,19 +346,19 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         total_amount = 0
         total_paid = 0
 
-        # ВИЗНАЧЕННЯ ДАТИ ПРОРАХУНКУ, ЯКЩО ВОНА ВІДСУТНЯ
+   
         if not calc["dateRaw"] and calc["raw_order_dates"]:
-            # Знаходимо найменшу (найранішу) дату серед замовлень
+   
             min_date = min(
                 (d for d in calc["raw_order_dates"] if d), default=None
             )
             calc["dateRaw"] = min_date
             calc["date"] = min_date 
         
-        # Видаляємо тимчасове поле
+   
         del calc["raw_order_dates"]
         
-        # Агрегати на рівні ордера (статуси, суми)
+   
         for o in orders:
             st = o["status"]
             if st:
@@ -383,7 +367,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 total_amount += o["amount"]
                 total_paid += o["paid"]
 
-        # Агрегати на рівні просчету
+   
         calc["statuses"] = status_counts
         calc["orderCountInCalc"] = len(orders)
         
@@ -437,7 +421,7 @@ async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensiti
 def api_get_orders(request):
     start_time = time.time()
     
-    # ---------- PARAMS ----------
+
     year_str = request.GET.get("year")
     if not year_str:
         return Response({"error": "year is required"}, status=400)
@@ -447,7 +431,7 @@ def api_get_orders(request):
     except ValueError:
         return Response({"error": "Invalid year"}, status=400)
 
-    # ---------- 🔐 CONTRACTOR ----------
+
     try:
         contractor_bin, contractor_guid = resolve_contractor(
             request,
@@ -455,14 +439,13 @@ def api_get_orders(request):
             admin_param="contractor_guid",
         )
     except (ValueError, PermissionError) as e:
-        # Логуємо помилку доступу - це важливо для безпеки
+
         logger.warning(f"Access denied for orders: {str(e)}", extra={
             'tags': {'action': 'get_orders', 'status': 'forbidden'}
         })
         return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
 
-    # ---------- 📦 DATA ----------
-    # Логуємо початок важкого запиту
+
     # logger.info(f"Fetching orders for year {year}", extra={
     #     'tags': {'contractor': contractor_guid, 'year': year}
     # })
@@ -470,7 +453,7 @@ def api_get_orders(request):
     try:
         data = async_to_sync(async_get_data)(year, contractor_bin)
         
-        # Перевірка непрочитаних повідомлень (ваш існуючий код)
+   
         calc_bins = [guid_to_1c_bin(calc["id"]) for calc in data if calc.get("id")]
         
         unread_calc_bins = set(
@@ -487,7 +470,7 @@ def api_get_orders(request):
         for calc in data:
             calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
 
-        # Фінальний лог успіху з часом виконання
+    
         duration = time.time() - start_time
         logger.info(f"Orders fetched successfully", extra={
             'tags': {
@@ -504,7 +487,7 @@ def api_get_orders(request):
         })
 
     except Exception as e:
-        # Логуємо критичну помилку (наприклад, таймаут БД)
+    
         logger.error(f"Failed to fetch orders: {str(e)}", exc_info=True, extra={
             'tags': {'action': 'get_orders', 'contractor': contractor_guid}
         })
@@ -545,14 +528,10 @@ def api_get_orders(request):
 @safe_view
 def additional_orders_view(request):
     start_time = time.time()
-    # -------------------------------------------------
-    # PARAMS
-    # -------------------------------------------------
+
     year = int(request.GET.get("year")) if request.GET.get("year") else None
 
-    # -------------------------------------------------
-    # 🔐 CONTRACTOR (ЄДИНА ТОЧКА ІСТИНИ)
-    # -------------------------------------------------
+
     try:
         contractor_bin, contractor_guid = resolve_contractor(request)
     except (ValueError, PermissionError) as e:
@@ -564,10 +543,6 @@ def additional_orders_view(request):
     # })
 
 
-
-    # -------------------------------------------------
-    # 📦 SQL
-    # -------------------------------------------------
     try:
         with connection.cursor() as cursor:
             cursor.execute(
@@ -593,15 +568,6 @@ def additional_orders_view(request):
             if r.get("AdditionalOrderGuid")
         ]
 
-    # unread_additional_orders = set(
-    #     Message.objects.filter(
-    #         base_transaction_id__in=additional_order_bins,
-    #         is_read=False
-    #     )
-    #     .exclude(writer_id=contractor_bin)
-    #     .values_list("base_transaction_id", flat=True)
-    #     .distinct()
-    # )
 
     unread_additional_orders = set(
         ChatMessage.objects.filter(
@@ -615,10 +581,6 @@ def additional_orders_view(request):
     )
 
 
-
-    # -------------------------------------------------
-    # 🎛 FORMAT DATA
-    # -------------------------------------------------
     formatted = []
 
     for r in rows:
@@ -706,18 +668,6 @@ def additional_orders_view(request):
             "calculation": formatted
         }
     })
-
-
-from django.http import JsonResponse
-from django.db import connection
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-
-from django.http import JsonResponse
-from django.db import connection, DatabaseError
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -860,45 +810,6 @@ def order_files_view(request, order_guid):
 
 
 
-from django.conf import settings
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-# Вам необхідно додати ці імпорти на початку Django views.py
-# from django.conf import settings
-# import subprocess
-
-
-# ======================== ТИМЧАСОВИЙ КОД ДЛЯ ДІАГНОСТИКИ ========================
-
-from django.conf import settings
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-
-from django.http import StreamingHttpResponse, Http404
-from django.conf import settings
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-from urllib.parse import unquote
-from django.http import StreamingHttpResponse, Http404
-from rest_framework.decorators import api_view, permission_classes
-from django.conf import settings
-
-# views.py
-
-import mimetypes
-from urllib.parse import unquote
-
-from django.conf import settings
-from django.http import StreamingHttpResponse, Http404
-from django.views.decorators.http import require_GET
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-
-
 
 
 
@@ -975,7 +886,7 @@ def download_order_file(request, order_guid, file_guid):
 
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
-    # Формуємо шлях для бібліотеки: /Server/Share/Folder/...
+
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
 
     # logger.info(f"File download request from SMB", extra={
@@ -1017,7 +928,7 @@ def download_order_file(request, order_guid, file_guid):
 
         duration = time.time() - start_time
         
-        # 2. Лог успішного ініціювання стрімінгу
+   
         # logger.info(f"SMB Stream started: {filename}", extra={
         #     'tags': {
         #         'action': 'download_file',
@@ -1059,21 +970,6 @@ def download_order_file(request, order_guid, file_guid):
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db import connection
-
-from backend.utils.BinToGuid1C import convert_row
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db import connection
-
-from backend.utils.BinToGuid1C import convert_row
-from backend.utils.GuidToBin1C import guid_to_1c_bin
 
 @extend_schema(
     summary="Повертає всі дозакази за місяць (ADMIN)",
@@ -1141,7 +1037,7 @@ def get_additional_orders_info_all(request):
         }
     })
 
-    # ---------- helper ----------
+
     def clean_date_stub(date_value):
         if not date_value:
             return None
@@ -1149,7 +1045,6 @@ def get_additional_orders_info_all(request):
         if s.startswith(("0001-01-01", "2001-01-01", "1753-01-01")):
             return None
         return date_value
-    # ---------------------------
 
     try: 
 
@@ -1268,14 +1163,14 @@ def get_additional_orders_info_all(request):
 
                 formatted_orders.append(calc)
             except Exception as row_error:
-                # Якщо один рядок битий, не ламаємо весь звіт
+
                 logger.error(f"Error formatting row {row.get('AdditionalOrderNumber')}: {str(row_error)}")
                 continue
 
         
         total_duration = time.time() - start_time
         
-        # Фінальний лог з кількістю оброблених даних
+      
         logger.info(f"ADMIN: Successfully fetched {len(formatted_orders)} additional orders", extra={
             'tags': {
                 'action': 'admin_get_all_additional_orders',
@@ -1299,13 +1194,7 @@ def get_additional_orders_info_all(request):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse
-from django.db import connection
 
-from backend.utils.BinToGuid1C import convert_row
-# from .utils import parse_reclamation_details
 
 @extend_schema(
     summary="Усі рекламації за місяць (ADMIN)",
@@ -1377,9 +1266,7 @@ def complaints_view_all_by_month(request):
     #     }
     # })
 
-    # =========================
-    # SQL
-    # =========================
+
 
     try:
         with connection.cursor() as cursor:
@@ -1402,9 +1289,7 @@ def complaints_view_all_by_month(request):
             try:
                 row = dict(zip(columns, r))
                 row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
-                # =========================
-                # GUID: BINARY(16) → string
-                # =========================
+          
                 raw_guid = row.get("ComplaintGuid")
 
                 if isinstance(raw_guid, memoryview):
@@ -1426,9 +1311,7 @@ def complaints_view_all_by_month(request):
                 else:
                     row["ManagerLink"] = None
 
-                # =========================
-                # PARSE AdditionalInformation
-                # =========================
+    
                 full_text = row.get("AdditionalInformation")
                 parsed_info = parse_reclamation_details(full_text)
 
@@ -1441,7 +1324,7 @@ def complaints_view_all_by_month(request):
                 processed_rows.append(row)
 
             except Exception as row_error:
-                # Логуємо помилку конкретного рядка, але продовжуємо роботу
+
                 logger.error(f"Error processing complaint row: {str(row_error)}", exc_info=True)
                 continue
 
@@ -1463,7 +1346,7 @@ def complaints_view_all_by_month(request):
         }, json_dumps_params={"ensure_ascii": False})
     
     except Exception as e:
-        # Критична помилка (наприклад, SQL сервер не відповідає)
+
         logger.error(f"ADMIN: Critical failure in complaints_view_all_by_month: {str(e)}", exc_info=True)
         return JsonResponse({
             "status": "error",
@@ -1472,15 +1355,9 @@ def complaints_view_all_by_month(request):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse
-from django.db import connection
 
 
 
-
-# from backend.utils.BinToGuid1C import convert_row
 @extend_schema(
     summary="Усі замовлення за місяць (ADMIN)",
     description="Повертає ВСІ замовлення порталу за вказаний місяць",
@@ -1540,9 +1417,7 @@ def orders_view_all_by_month(request):
     #     }
     # })
 
-    # =====================================================
-    # SQL
-    # =====================================================
+
     try:
         with connection.cursor() as cursor:
             #  EXEC [dbo].[GetOrdersMonth]
@@ -1559,9 +1434,7 @@ def orders_view_all_by_month(request):
 
         sql_duration = time.time() - start_time
 
-        # =====================================================
-        # GROUP → CALCULATION (1:1 логіка)
-        # =====================================================
+  
         calcs_dict = {}
 
         for row in rows:
@@ -1601,7 +1474,7 @@ def orders_view_all_by_month(request):
                     if order_date:
                         calcs_dict[calc_id]["raw_order_dates"].append(order_date)
 
-                # ---------- ORDER ----------
+               
                 order = {
                     "id": row.get("OrderID"),
                     "idGuid": row.get("OrderID_GUID"),
@@ -1637,9 +1510,6 @@ def orders_view_all_by_month(request):
                 logger.error(f"Error processing order row: {str(row_error)}", exc_info=True)
                 continue
 
-        # =====================================================
-        # AGGREGATES
-        # =====================================================
         formatted_calcs = []
 
         for calc in calcs_dict.values():
@@ -1648,7 +1518,7 @@ def orders_view_all_by_month(request):
             total_amount = 0
             total_paid = 0
 
-            #  дата прорахунку (fallback)
+
             if not calc["dateRaw"] and calc["raw_order_dates"]:
                 min_date = min(d for d in calc["raw_order_dates"] if d)
                 calc["dateRaw"] = min_date
@@ -1679,7 +1549,6 @@ def orders_view_all_by_month(request):
 
         total_duration = time.time() - start_time
 
-        # Фінальний лог успіху
         logger.info(f"ADMIN: Successfully processed {len(formatted_calcs)} calculations", extra={
             'tags': {
                 'action': 'admin_get_monthly_orders',
@@ -1691,10 +1560,6 @@ def orders_view_all_by_month(request):
         })
 
         
-
-        # =====================================================
-        # RESPONSE
-        # =====================================================
         return JsonResponse(
             {
                 "status": "success",
@@ -1774,7 +1639,6 @@ def build_1c_payload(
                     }
                 ],
 
-                # ❗ orderGUID не передаємо, якщо його немає
                 "orders": [],
             }
         ]
@@ -1784,14 +1648,13 @@ def build_1c_payload(
 
   
     if delivery_address_guid:
-        # Створюємо безпечну змінну для координат
+
         coords = delivery_address_coordinates or {} 
         
         calc["address"] = {
             "addressGUID": str(delivery_address_guid),
             "addressName": None,
             "addressCoordinates": {
-                # Тепер .get() не впаде, навіть якщо координат немає
                 "lat": coords.get("lat"),
                 "lng": coords.get("lng"),
             },
@@ -1841,35 +1704,8 @@ def extract_calculation_guid(result) -> str | None:
     return first.get("calculationGUID")
 
 
-# def save_calculation_comment(
-#     *,
-#     calculation_bin: bytes,
-#     comment: str,
-#     writer_guid: bytes | None,
-# ):
-#     if not comment:
-#         return
 
 
-
-  
-
-#     Message.objects.create(
-#         base_transaction_id=calculation_bin,
-#         transaction_type_id=1,   # 👈 явний FK
-#         writer_id=writer_guid,
-#         message=comment,
-#         is_read=False,
-#         is_send=False,
-#     )
-
-
-
-import json
-import base64
-
-from rest_framework import viewsets, status
-from rest_framework.response import Response
 
 @extend_schema(
     summary="Створення прорахунку та відправка в 1С",
@@ -2067,7 +1903,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 "1c_response": result,
             })
 
-        # ---------- ЗБЕРІГАЄМО КОМЕНТАР ----------
+     
         # writer_guid = None
         # if request.user and request.user.is_authenticated:
         #     writer_guid = request.user.user_id_1C
@@ -2078,12 +1914,10 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         #     writer_guid=writer_guid,
         # )
         try:
-            # 1. Формуємо бінарні значення
-            # Переконуємося, що на вхід йде рядок
+           
             calculation_bin = guid_to_1c_bin(str(calculation_guid))
             main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
-            
-            # Якщо менеджер не знайдений в 1С, можна залишити самого контрагента або None
+          
             final_recipient = main_manager_bin if main_manager_bin else contractor_bin
             
             # writer_bin = None
@@ -2105,13 +1939,13 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             #     }
             # })
 
-            # 2. Створюємо запис
+
             ChatMessage.objects.create(
                 chat_id=f"1_{calculation_guid}", 
                 related_object_id=calculation_bin,
                 author=contractor_bin,                      
                 recipient=final_recipient,               
-                text=data.get("comment"), #or "Створено новий розрахунок",
+                text=data.get("comment"), 
                 is_read=False,
                 is_sent_vtg=True,
                 is_notification=False,
@@ -2130,6 +1964,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             import traceback
             logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")
             logger.error(traceback.format_exc())
+
         # save_message(
         #     transaction_type_id=serializer.validated_data["transaction_type_id"],
         #     base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
@@ -2164,14 +1999,6 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
 
 
-
-
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db import connection
 
 
 @extend_schema(
@@ -2261,17 +2088,6 @@ def get_dealer_addresses(request):
         raise e
 
 
-# views.py
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.db import connection
-
-from datetime import datetime
-from django.db import connection
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 
 @extend_schema(
@@ -2396,12 +2212,6 @@ def wds_codes_by_contractor(request):
 
 
 
-
-
-
-
-# records/views.py
-
 @extend_schema(
     summary="Отримати історію коментарів транзакції",
     description="""
@@ -2440,7 +2250,6 @@ def get_messages(request):
             status=400
         )
 
-    # --- ВИЗНАЧЕННЯ ПОТОЧНОГО АВТОРА (ХТО ВІДКРИВ) ---
     current_author_bin = None
     auth_method = "JWT" if request.auth != "1C_API_KEY" else "1C_API_KEY"
 
@@ -2517,16 +2326,16 @@ def get_messages(request):
 
     duration = time.time() - start_time
     
-    # ФІНАЛЬНИЙ ЛОГ
-    logger.info(f"Messages retrieved for transaction {base_transaction_guid}", extra={
-        'tags': {
-            'action': 'get_messages',
-            'transaction_id': base_transaction_guid,
-            'auth_type': auth_method,
-            'messages_count': len(result),
-            'duration_sec': round(duration, 4)
-        }
-    })
+
+    # logger.info(f"Messages retrieved for transaction {base_transaction_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_messages',
+    #         'transaction_id': base_transaction_guid,
+    #         'auth_type': auth_method,
+    #         'messages_count': len(result),
+    #         'duration_sec': round(duration, 4)
+    #     }
+    # })
 
     return Response(result)
 
@@ -2598,10 +2407,6 @@ def download_calculation_file(request, calc_guid, file_guid):
 
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 
 
 @api_view(["POST"])
@@ -2676,13 +2481,6 @@ def confirm_order(request, order_id):
     
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from django.conf import settings
-import base64
-import requests
 
 class DeleteCalculationView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2691,7 +2489,6 @@ class DeleteCalculationView(APIView):
         """
         Видалення прорахунку + відправка в 1С
         """
-
 
         start_time = time.time()
         user = request.user
@@ -2774,23 +2571,6 @@ class DeleteCalculationView(APIView):
             )
         
 
-    
-   
-
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db import connection
-
-from backend.utils.contractor import resolve_contractor
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db import connection
-import collections
 
 class ProductionStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -2840,12 +2620,6 @@ class ProductionStatisticsView(APIView):
         })
     
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db import connection
-from backend.utils.contractor import resolve_contractor 
-
 class DealerDetailedStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -2890,19 +2664,10 @@ class DealerDetailedStatisticsView(APIView):
         return Response({
             "contractor_guid": contractor_guid,
             "year": year,
-            "kpi": summary,      # Готові цифри для верхніх карток дашборду
-            "items": items,      # Список для детальної таблиці
+            "kpi": summary,      
+            "items": items,      
         })
     
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.db import connections
-from django.db import connections, DatabaseError
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
 
 
 class DealerFullAnalyticsView(APIView):
@@ -2919,7 +2684,7 @@ class DealerFullAnalyticsView(APIView):
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
 
-        # 2. Отримуємо дати
+        
         date_from = request.GET.get("date_from", "2026-01-01")
         date_to = request.GET.get("date_to", "2026-12-31")
         db_alias = 'db_2'
@@ -2979,18 +2744,6 @@ class DealerFullAnalyticsView(APIView):
 
 
     
-
-from django.db import connections
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
-
-from django.db import connections
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-
 
 
 class OrdersDealerStatisticsView(APIView):
@@ -3074,17 +2827,6 @@ class OrdersDealerStatisticsView(APIView):
 
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from .models import TransactionType
-
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-
 # class DashboardConfigView(APIView):
 #     permission_classes = [IsAuthenticated]
 
@@ -3149,11 +2891,6 @@ from rest_framework.permissions import IsAuthenticated
 
 
 
-
-from django.db import connections, DatabaseError
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 
 class PartnerDebtsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -3251,144 +2988,6 @@ class PartnerDebtsView(APIView):
 
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.db import transaction
-from backend.authentication import OneCApiKeyAuthentication
-from backend.permissions import IsAuthenticatedOr1CApiKey
-# from .models import Notification
-
-
-
-
-# class ExternalMessageCreateView(APIView):
-#     """
-#     Створення коментаря на основі повного JSON-пакету від 1С.
-#     Захищено через X-API-KEY.
-#     """
- 
-#     authentication_classes = [OneCApiKeyAuthentication]
-#     permission_classes = [IsAuthenticatedOr1CApiKey]
-
-#     @transaction.atomic
-#     def post(self, request):
-#         data = request.data
-        
-#         transaction_type = data.get("transactionTypeId")
-#         base_guid = data.get("baseTransactionGuid")
-#         message_text = data.get("message")
-#         writer_guid = data.get("writerGuid1c")
-#         transaction_number = data.get("transactionNumber") or ""
-
-#         if not all([transaction_type, base_guid, message_text]):
-#             return Response(
-#                 {"error": "Поля transactionTypeId, baseTransactionGuid та Message є обов'язковими"},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-
-#         try:
-#             # 1. Зберігаємо саме повідомлення
-#             message = save_message(
-#                 transaction_type_id=transaction_type,
-#                 base_transaction_guid=base_guid,
-#                 message_text=message_text,
-#                 writer_guid=writer_guid 
-#             )
-
-#             # 2. Формуємо текст сповіщення залежно від типу
-#             notification_titles = {
-#                 1: "прорахунку",
-#                 2: "рекламації",
-#                 3: "доп. замовленні"
-#             }
-            
-#             title = notification_titles.get(int(transaction_type), "Документ")
-#             full_notification_message = f"З'явилося нове повідомлення у {title} № {transaction_number}"
-
-
-#             writer_bin = guid_to_1c_bin(writer_guid)
-#             target_user = CustomUser.objects.filter(user_id_1C=writer_bin).first()
-#             # 3. Створюємо запис у таблиці Notifications
-#             # Використовуємо прямий імпорт моделі або SQL за вашим стандартом
-#             from .models import Notification 
-            
-#             base_transaction_bin = guid_to_1c_bin(base_guid)
-            
-#             Notification.objects.create(
-#                 event_type="NEW_MESSAGE",            
-#                 base_transaction_id=base_transaction_bin, 
-#                 message=full_notification_message,   
-#                 is_read=False,                      
-#                 transaction_type_id=transaction_type,
-#                 new_value=transaction_number,
-#                 user=target_user                
-#             )
-
-#             return Response({
-#                 "status": "success",
-#                 "id": message.id,
-#                 "notification": "created"
-#             }, status=status.HTTP_201_CREATED)
-
-#         except Exception as e:
-#             return Response(
-#                 {"error": f"Внутрішня помилка сервера: {str(e)}"},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#             )
-        
-
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-
-from backend.utils.BinToGuid1C import bin_to_guid_1c
-
-# @api_view(["GET"])
-# @permission_classes([IsAuthenticated])
-# def get_user_notifications(request):
-#     """
-#     Повертає список сповіщень для поточного користувача.
-#     """
-#     # Отримуємо останні 20 сповіщень користувача
-#     notifications_qs = Notification.objects.filter(
-#         user=request.user
-#     ).select_related('transaction_type')[:20]
-
-#     result = []
-#     for n in notifications_qs:
-#         result.append({
-#             "id": n.id,
-#             "eventType": n.event_type,
-#             "message": n.message,
-#             "newValue": n.new_value,
-#             "oldValue": n.old_value,
-#             "isRead": n.is_read,
-#             "createdAt": n.created_at,
-#             "transactionType": n.transaction_type.type_name if n.transaction_type else None,
-#             "baseTransactionGuid": bin_to_guid_1c(n.base_transaction_id) if n.base_transaction_id else None,
-#         })
-
-#     return Response({
-#         "status": "success",
-#         "data": result
-#     })
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-# Не забудьте імпортувати вашу модель та функцію конвертації
-# from .models import ChatMessage
-# from .utils import bin_to_guid_1c 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_number_by_guid, get_document_year_by_guid
-
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_notifications(request):
@@ -3480,12 +3079,6 @@ def get_user_notifications(request):
         }, status=500)
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-# from .models import ChatMessage
-# from .utils import resolve_contractor
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -3617,9 +3210,6 @@ def mark_notifications_as_read(request):
 
 
 
-from rest_framework import generics
-from .models import ChatMessage
-from .serializers import ChatMessageSerializer
 
 class ChatHistoryView(generics.ListAPIView):
     serializer_class = ChatMessageSerializer
@@ -3638,7 +3228,7 @@ def mark_single_notification_as_read(request, pk):
     user_name = request.user.username if request.user.is_authenticated else "unknown"
 
     try:
-        # Шукаємо сповіщення, яке належить саме цьому користувачу (через recipient)
+       
         from records.models import ChatMessage
         contractor_bin, contractor_guid = resolve_contractor(request)
         
@@ -3674,11 +3264,6 @@ def mark_single_notification_as_read(request, pk):
     
 
 
-from django.db import connection
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 class PortalManagerReportView(APIView):
     """
@@ -3738,7 +3323,7 @@ class PortalManagerReportView(APIView):
 
         except Exception as e:
             duration = time.time() - start_time
-            # 3. Лог помилки
+   
             logger.error(f"PortalManagerReport error: {str(e)}", exc_info=True, extra={
                 'tags': {
                     'action': 'get_manager_report',

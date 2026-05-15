@@ -165,7 +165,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Права панель - форма входу */}
+            
             <div className="form-panel">
               <div className="form-wrapper">
                 <h2 className="form-title">{t('login.form_title')}</h2>
@@ -174,7 +174,7 @@ export default function LoginPage() {
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate className="login-form">
-                  {/* Поле логіну */}
+            
                   <div className="form-group">
                     <label className="form-label">{t('login.username_label')}</label>
                     <div className="input-wrapper">
@@ -188,11 +188,12 @@ export default function LoginPage() {
                         onChange={(e) => setUsername(e.target.value)}
                         required
                         className="form-input"
+                        autocomplete="username"
                       />
                     </div>
                   </div>
 
-                  {/* Поле пароля */}
+              
                   <div className="form-group">
                     <label className="form-label">{t('login.password_label')}</label>
                     <div className="input-wrapper">

@@ -14,7 +14,7 @@ import { useDealerContext } from "../hooks/useDealerContext";
 import useWindowWidth from "../hooks/useWindowWidth";
 import { useTheme } from "../hooks/useTheme";
 import "../components/Reclamations/ReclamationItem.css";
-
+import { useTranslation } from "react-i18next";
 
 const RECLAMATIONS_API_URL = "/complaints/get_reclamation_info/";
 const RECLAMATIONS_API_ALL_URL = "/complaints/get_reclamation_info_all/";
@@ -92,6 +92,8 @@ const AdminReclamationPortal = () => {
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
   );
+
+  const {t} = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [expandedReclamation, setExpandedReclamation] = useState(null);
@@ -332,7 +334,7 @@ const AdminReclamationPortal = () => {
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
-        <div className="loading-text">Завантаження рекламацій...</div>
+        <div className="loading-text">{t('reclamation.common.loading_data')}</div>
       </div>
     );
   }
@@ -378,7 +380,7 @@ const AdminReclamationPortal = () => {
             className="align-center mr-2 w-[26px] h-[25px]" 
         />
         <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            Звітний рік
+            {t('reclamation.common.report_year')}
         </div>
         <select
             className="year-select-minimal"
@@ -405,26 +407,32 @@ const AdminReclamationPortal = () => {
                   className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
                   onClick={() => handleMonthClick(0)}
                 >
-                  Весь рік
+                 {t('portal_calc.months.all_year')}
                 </li>
               )}
 
               {Array.from({ length: 12 }, (_, i) => {
                 const num = i + 1;
-                const labels = [
-                  "Січ.",
-                  "Лют.",
-                  "Бер.",
-                  "Квіт.",
-                  "Трав.",
-                  "Черв.",
-                  "Лип.",
-                  "Сер.",
-                  "Вер.",
-                  "Жов.",
-                  "Лис.",
-                  "Груд.",
+                // const labels = [
+                //   "Січ.",
+                //   "Лют.",
+                //   "Бер.",
+                //   "Квіт.",
+                //   "Трав.",
+                //   "Черв.",
+                //   "Лип.",
+                //   "Сер.",
+                //   "Вер.",
+                //   "Жов.",
+                //   "Лис.",
+                //   "Груд.",
+                // ];
+                 const labels = [
+                    t('reclamation.months.jan'), t('reclamation.months.feb'), t('reclamation.months.mar'), t('reclamation.months.apr'), 
+                    t('reclamation.months.may'), t('reclamation.months.jun'), t('reclamation.months.jul'), t('reclamation.months.aug'), 
+                    t('reclamation.months.sep'), t('reclamation.months.oct'), t('reclamation.months.nov'), t('reclamation.months.dec')
                 ];
+
 
                 const disabled =
                   dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
@@ -453,24 +461,11 @@ const AdminReclamationPortal = () => {
               value={filter.month}
               onChange={(e) => handleMonthClick(Number(e.target.value))}
             >
-              <option value={0}>Весь рік</option>
+              <option value={0}> {t('portal_calc.months.all_year')}</option>
 
               {Array.from({ length: 12 }, (_, i) => {
                 const num = i + 1;
-                const labels = [
-                  "Січень",
-                  "Лютий",
-                  "Березень",
-                  "Квітень",
-                  "Травень",
-                  "Червень",
-                  "Липень",
-                  "Серпень",
-                  "Вересень",
-                  "Жовтень",
-                  "Листопад",
-                  "Грудень",
-                ];
+                const labels = t("portal_calc.months.full", { returnObjects: true });
 
                 return (
                   <option
@@ -511,7 +506,7 @@ const AdminReclamationPortal = () => {
         >
       
           {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
-                        {isSidebarOpen && <span>Фільтри Рекламацій</span>}
+                        {isSidebarOpen && <span>{t("portal_calc.ui.filters")}</span>}
                         {isSidebarOpen && (
                                 <button 
                                 onClick={() => setIsSidebarOpen(false)} 
@@ -530,7 +525,7 @@ const AdminReclamationPortal = () => {
             <input
               type="text"
               className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
-              placeholder="номер рекламації"
+               placeholder={t("reclamation.common.search_placeholder")}
               value={filter.name}
               onChange={handleSearchChange}
             />
@@ -582,7 +577,7 @@ const AdminReclamationPortal = () => {
                       className="align-center mr-2 " 
 
                       />
-                  <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">Нова рекламація</div>
+                  <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">{t('reclamation.common.new_reclamation')}</div>
         
                 </li>
               </ul>
@@ -603,38 +598,13 @@ const AdminReclamationPortal = () => {
               max-[1260px]:overflow-visible">
 
             {[
-              {
-                label: "Всі рекламації",
-                statusKey: "Всі",
-                icon: allCalcIcon,
-              },
-              { label: "Нові", statusKey: "Новий", icon: newCalcIcon },
-              {
-                label: "В роботі",
-                statusKey: "В роботі",
-                icon: inProcessingIcon,
-              },
-              {
-                label: "Виробництво",
-                statusKey: "Виробництво",
-                icon: factoryIcon,
-              },
-              {
-                label: "На складі",
-                statusKey: "На складі",
-                icon: finishedIcon,
-              },
-              {
-                label: "Відвантажено",
-                statusKey: "Відвантажено",
-                icon: deliveredIcon,
-              },
-              { label: "Вирішено", statusKey: "Вирішено", icon:checkMarkIcon },
-              {
-                label: "Відмова",
-                statusKey: "Відмова",
-                icon: canceledCalcIcon,
-              },
+                { label: t('reclamation.statuses.all'), statusKey: "Всі", icon: allCalcIcon },
+                { label: t('reclamation.statuses.new'), statusKey: "Новий", icon: newCalcIcon },
+                { label: t('reclamation.statuses.in_progress'), statusKey: "В роботі", icon: inProcessingIcon },
+                { label: t('reclamation.statuses.production'), statusKey: "Виробництво", icon: factoryIcon },
+                { label: t('reclamation.statuses.in_stock'), statusKey: "На складі", icon: finishedIcon },
+                { label: t('reclamation.statuses.resolved'), statusKey: "Вирішено", icon: checkMarkIcon },
+                { label: t('reclamation.statuses.rejected'), statusKey: "Відмова", icon: canceledCalcIcon }
             ].map(({ label, statusKey, icon }) => (
               <li
                 key={statusKey}
@@ -668,7 +638,7 @@ const AdminReclamationPortal = () => {
           <div className="items-wrapper column gap-1">
             {itemsToShow.length === 0 ? (
               <div className="no-data column align-center">
-                Немає рекламацій
+              {t("reclamation.no-data")}
               </div>
             ) : (
               itemsToShow.map((r) =>
@@ -707,7 +677,7 @@ const AdminReclamationPortal = () => {
                 className="btn btn-primary uppercase btn-load-more-big"
                 onClick={() => setVisibleItemsCount((v) => v + ITEMS_PER_LOAD)}
               >
-                Завантажити ще
+                {t("reclamation.load_more")}
               </button>
             )}
           </div>

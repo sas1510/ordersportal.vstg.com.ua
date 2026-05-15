@@ -70,7 +70,7 @@ export const adminRoutes = [
   { path: "users-list", element: <UsersListPage /> },
 
   { path: "finance/cash-flow", element: <PaymentStatusV2 /> },
-  { path: "payment", element: <PaymentsPage /> },
+  // { path: "payment", element: <PaymentsPage /> },
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
   { path: "admin-additional-order", element: <AdminAdditionalOrders /> },
@@ -96,7 +96,7 @@ export const dealerRoutes = [
   { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
 
-  { path: "create-bill", element: <CreateCustomerBillPage /> },
+  // { path: "create-bill", element: <CreateCustomerBillPage /> },
 
   { path: "change-password", element: <ChangePasswordPage /> },
   { path: "finance/cash-flow", element: <PaymentStatusV2 /> },
@@ -104,7 +104,7 @@ export const dealerRoutes = [
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
   { path: "promo-wds-codes", element: <WDSCodesTable /> },
-  { path: "edit-addresses", element: <DealerAddressesPage /> },
+  // { path: "edit-addresses", element: <DealerAddressesPage /> },
   { path: "file-preview/invalid", element: <InvalidLinkPage /> },
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
   { path: "dashboardpage", element: <DashboardPage /> },
