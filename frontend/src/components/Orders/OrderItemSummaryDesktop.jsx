@@ -112,7 +112,7 @@ export default React.memo(function OrderItemSummaryDesktop({
       Новий: { confirm: true, pay: true,  reorder: true },
       "У виробництві" : {pay: true,  reorder: true},
       "Очікуємо підтвердження": { confirm: true, pay: true },
-      Підтверджений: { pay: true, confirm: true, reorder: true },
+      Підтверджений: { pay: true, reorder: true },
       "Очікуємо оплату": { pay: true, reorder: true },
       Оплачено: { pay: true, reorder: true },
       Готовий: { pay: true, reorder: true },
