@@ -210,11 +210,10 @@ export default React.memo(function OrderItemSummaryDesktop({
 
 
 
-  // ========================= MODAL OPENERS =========================
 
   const openClaimModal = useCallback(() => {
     setClaimOrderNumber(order.number);
-    setClaimOrderGuid(order.idGuid); // ✅ ОСЬ ТУТ
+    setClaimOrderGuid(order.idGuid); 
     setIsClaimModalOpen(true);
   }, [order.number, order.idGuid]);
 

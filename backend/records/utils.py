@@ -29,3 +29,146 @@ def get_author_from_1c(writer_id_bin):
     }
 
 
+
+
+import time
+import hmac
+import hashlib
+import base64
+from django.conf import settings
+
+SECRET = settings.SECRET_KEY.encode()
+
+def generate_media_token(file_guid: str, ttl_seconds: int = 180) -> str:
+    exp = int(time.time()) + ttl_seconds
+    payload_raw = f"{file_guid}|{exp}".encode()
+    
+    # 1. Кодуємо payload окремо
+    payload_b64 = base64.urlsafe_b64encode(payload_raw).decode().rstrip("=")
+
+    # 2. Робимо підпис на основі закодованого payload
+    signature = hmac.new(
+        SECRET,
+        payload_b64.encode(),
+        hashlib.sha256
+    ).digest()
+    sig_b64 = base64.urlsafe_b64encode(signature).decode().rstrip("=")
+
+    # 3. Склеюємо через крапку: b64_payload.b64_signature
+    return f"{payload_b64}.{sig_b64}"
+
+
+
+from django.db import connection
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+import zlib
+import struct
+from django.db import connection
+import zlib
+import struct
+from django.db import connection
+
+def load_file_from_db(file_guid: str) -> bytes | None:
+    """
+    Завантажує бінарний файл з бази 1С та розпаковує його, 
+    якщо він стиснутий (стандартна поведінка Хранилища 1С).
+    """
+    file_guid_bin = guid_to_1c_bin(file_guid)
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "EXEC dbo.GetBinaryFile @FileLink = %s",
+            [file_guid_bin]
+        )
+        row = cursor.fetchone()
+
+        if not row or not row[0]:
+            return None
+
+        file_content = row[0]  # Це VARBINARY з бази
+
+        # 1С зберігає дані з префіксом (зазвичай 16 байт заголовка)
+        # Якщо файл стиснутий, він починається з певних маркерів.
+        # Спробуємо розпакувати дані, пропускаючи заголовок 1С.
+        
+        try:
+            # Більшість файлів у Хранилищі 1С стиснуті Zlib.
+            # Спроба розпакувати, пропускаючи перші 16 байт (стандартний заголовок 1С)
+            # Якщо заголовок іншого розміру, можливо знадобиться відступ 2, 4 або 8 байт.
+            return zlib.decompress(file_content[16:])
+        except (zlib.error, IndexError):
+            try:
+                # Якщо не вдалося з 16, пробуємо з 2 байт (іноді заголовок мінімальний)
+                return zlib.decompress(file_content[2:])
+            except zlib.error:
+                # Якщо взагалі не розпаковується — повертаємо як є (можливо файл не стиснутий)
+                return bytes(file_content)
+            
+
+
+import zlib
+
+import zlib
+
+def extract_1c_binary(raw_blob):
+    """
+    Декодування внутрішнього формату 1С (ValueStorage).
+    Підтримує як стиснуті, так і нестиснуті дані.
+    """
+    if not raw_blob:
+        return None
+
+    signatures = [
+        b'\xff\xd8\xff',        # JPEG
+        b'\x89PNG\r\n\x1a\n',   # PNG
+        b'%PDF',                # PDF
+        b'PK\x03\x04',          # ZIP / ZKZ
+        b'GIF8',                # GIF
+        b'RIFF'                 # WebP
+    ]
+
+
+    for sig in signatures:
+        pos = raw_blob.find(sig)
+        if pos != -1:
+            return raw_blob[pos:]
+
+
+    decoded = None
+    for offset in range(0, 128):
+        try:
+ 
+            decoded = zlib.decompress(raw_blob[offset:], wbits=-15)
+            break
+        except zlib.error:
+            try:
+  
+                decoded = zlib.decompress(raw_blob[offset:])
+                break
+            except zlib.error:
+                continue
+
+    if not decoded:
+        return None
+
+
+    for sig in signatures:
+        pos = decoded.find(sig)
+        if pos != -1:
+            return decoded[pos:]
+
+    return decoded
+
+
+def guess_extension_from_bytes(file_bytes):
+    """Визначає розширення за першими байтами файлу (сигнатурами)"""
+    if file_bytes.startswith(b'\xff\xd8\xff'):
+        return '.jpg'
+    if file_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+        return '.png'
+    if file_bytes.startswith(b'%PDF'):
+        return '.pdf'
+    if file_bytes.startswith(b'RIFF') and file_bytes[8:12] == b'WEBP':
+        return '.webp'
+    return ''

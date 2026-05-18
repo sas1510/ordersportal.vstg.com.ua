@@ -10,7 +10,7 @@ import {
   formatDateTimeShort,
 } from "../../utils/formatters";
 import "./Orders.css";
-
+import OrderFilesPreviewModal from "./OrderFilesPreviewModal";
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
@@ -25,6 +25,8 @@ export const CalculationItem = React.memo(
     const [_selectedComments, setSelectedComments] = useState([]);
     const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
     const { addNotification } = useNotification();
+
+    const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
 
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
@@ -284,10 +286,9 @@ export const CalculationItem = React.memo(
                     calc.file && calc.file !== "" ? "pointer" : "default",
                     width: "100%",
                   }}
-                  onClick={(e) => {
+                 onClick={(e) => {
                     e.stopPropagation();
-                    if (!calc.file || calc.file === "") return;
-                    handleDownload(calc);
+                    setIsFilesModalOpen(true); // Відкриваємо модалку замість прямого завантаження
                   }}
                 >
                   {/* <div className="icon-document-file-numbers font-size-20 text-WS---DarkGrey mr-0" /> */}
@@ -300,7 +301,7 @@ export const CalculationItem = React.memo(
                   <div className="text-[12px] text-WS---DarkGrey ml-0">
                     <div className="order-number">
                       {calc.file && calc.file !== ""
-                        ? `${calc.number}.zkz`
+                        ? t('nav.files')
                         : t('calc.no_file')}
                     </div>
                   </div>
@@ -398,6 +399,12 @@ export const CalculationItem = React.memo(
           transactionTypeId={1}
           manager={isAdmin ? calc.dealerId : calc.manager}
         />
+        <OrderFilesPreviewModal
+  isOpen={isFilesModalOpen}
+  onClose={() => setIsFilesModalOpen(false)}
+  orderGuid={calc.id}      // GUID розрахунку для запиту до API
+  orderNumber={calc.number} // Номер для заголовка
+/>
 
         <CounterpartyInfoModal
           isOpen={isCounterpartyOpen}

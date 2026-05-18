@@ -57,6 +57,11 @@ from backend.utils.dates import parse_date, clean_date
 from backend.utils.logging_setup import logger
 
 
+from .utils import (
+    extract_1c_binary,
+    guess_extension_from_bytes
+)
+
 
 
 def get_current_time_kyiv() -> str:
@@ -1606,6 +1611,87 @@ def build_address_name(addr: dict | None) -> str:
 
     return ", ".join(parts)
 
+# def build_1c_payload(
+#     *,
+#     order_number,
+#     items_count,
+#     comment,
+#     contractor_guid,
+#     delivery_address_guid=None,
+#     delivery_address_coordinates=None,
+#     client_address: dict | None = None,
+#     file_name=None,
+#     file_b64=None,
+# ):
+#     payload = {
+#         "calculations": [
+#             {
+#                 # "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
+#                 "createdAt": get_current_time_kyiv(),
+            
+#                 "calculationNumber": order_number,
+#                 "itemsCount": int(items_count),
+#                 "comment": comment or "",
+
+#                 "kontragentGUID": str(contractor_guid),
+#                 "authorGUID": str(contractor_guid),
+
+#                 "file": [
+#                     {
+#                         "fileName": file_name,
+#                         "fileDataB64": file_b64,
+#                         "fileExtension": "ZKZ",
+#                     }
+#                 ],
+
+#                 "orders": [],
+#             }
+#         ]
+#     }
+
+#     calc = payload["calculations"][0]
+
+  
+#     if delivery_address_guid:
+
+#         coords = delivery_address_coordinates or {} 
+        
+#         calc["address"] = {
+#             "addressGUID": str(delivery_address_guid),
+#             "addressName": None,
+#             "addressCoordinates": {
+#                 "lat": coords.get("lat"),
+#                 "lng": coords.get("lng"),
+#             },
+#             "addressAdditionalInfo": None,
+#         }
+#         return payload
+
+
+#     if not isinstance(client_address, dict):
+#         raise ValidationError("client_address is required for client delivery")
+
+#     address_name = build_address_name(client_address)
+
+#     calc["address"] = {
+#         "addressGUID": None,
+#         "addressName": address_name,
+#         "addressCoordinates": {
+#             "lat": safe_float(client_address.get("lat")),
+#             "lng": safe_float(client_address.get("lng")),
+#         },
+#         "addressAdditionalInfo": client_address.get("note", ""),
+#     }
+
+#     calc["recipient"] = {
+#         "recipientName": client_address.get("full_name"),
+#         "recipientPhone": client_address.get("phone"),
+#         "recipientAddionalInformation":
+#             client_address.get("extra_info", "") or "",
+#     }
+
+#     return payload
+
 def build_1c_payload(
     *,
     order_number,
@@ -1617,27 +1703,46 @@ def build_1c_payload(
     client_address: dict | None = None,
     file_name=None,
     file_b64=None,
+    photos=None,
 ):
+    if photos is None:
+        photos = []
+
+    # 1. Формуємо спільний список файлів
+    all_files = []
+
+    # Додаємо головний файл проекту (.ZKZ), якщо він переданий
+    if file_b64:
+        all_files.append({
+            "fileName": file_name or f"order_{order_number}.zkz",
+            "fileDataB64": file_b64,
+            "fileExtension": "ZKZ",
+            "fileDataType": "Calculation"  # Додатковий маркер для 1С (за бажанням)
+        })
+
+    # Додаємо всі фотографії до того ж масиву
+    for p in photos:
+        ext = p["fileName"].split(".")[-1].upper() if "." in p["fileName"] else "JPG"
+        all_files.append({
+            "fileName": p["fileName"],
+            "fileDataB64": p["fileDataB64"],
+            "fileExtension": ext,
+            "fileDataType": "Photo"  # Допомагає 1С розрізнити типи в одному масиві
+        })
+
+    # 2. Формуємо основний пейлоад
     payload = {
         "calculations": [
             {
-                # "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
                 "createdAt": get_current_time_kyiv(),
-            
                 "calculationNumber": order_number,
                 "itemsCount": int(items_count),
                 "comment": comment or "",
-
                 "kontragentGUID": str(contractor_guid),
                 "authorGUID": str(contractor_guid),
-
-                "file": [
-                    {
-                        "fileName": file_name,
-                        "fileDataB64": file_b64,
-                        "fileExtension": "ZKZ",
-                    }
-                ],
+                
+              
+                "file": all_files, 
 
                 "orders": [],
             }
@@ -1646,11 +1751,9 @@ def build_1c_payload(
 
     calc = payload["calculations"][0]
 
-  
+    # Логіка обробки адреси (залишається без змін)
     if delivery_address_guid:
-
         coords = delivery_address_coordinates or {} 
-        
         calc["address"] = {
             "addressGUID": str(delivery_address_guid),
             "addressName": None,
@@ -1660,33 +1763,27 @@ def build_1c_payload(
             },
             "addressAdditionalInfo": None,
         }
-        return payload
+    else:
+        if not isinstance(client_address, dict):
+            raise ValidationError("client_address is required for client delivery")
 
-
-    if not isinstance(client_address, dict):
-        raise ValidationError("client_address is required for client delivery")
-
-    address_name = build_address_name(client_address)
-
-    calc["address"] = {
-        "addressGUID": None,
-        "addressName": address_name,
-        "addressCoordinates": {
-            "lat": safe_float(client_address.get("lat")),
-            "lng": safe_float(client_address.get("lng")),
-        },
-        "addressAdditionalInfo": client_address.get("note", ""),
-    }
-
-    calc["recipient"] = {
-        "recipientName": client_address.get("full_name"),
-        "recipientPhone": client_address.get("phone"),
-        "recipientAddionalInformation":
-            client_address.get("extra_info", "") or "",
-    }
+        address_name = build_address_name(client_address)
+        calc["address"] = {
+            "addressGUID": None,
+            "addressName": address_name,
+            "addressCoordinates": {
+                "lat": safe_float(client_address.get("lat")),
+                "lng": safe_float(client_address.get("lng")),
+            },
+            "addressAdditionalInfo": client_address.get("note", ""),
+        }
+        calc["recipient"] = {
+            "recipientName": client_address.get("full_name"),
+            "recipientPhone": client_address.get("phone"),
+            "recipientAddionalInformation": client_address.get("extra_info", "") or "",
+        }
 
     return payload
-
 
 def extract_calculation_guid(result) -> str | None:
     if not isinstance(result, dict):
@@ -1707,70 +1804,307 @@ def extract_calculation_guid(result) -> str | None:
 
 
 
-@extend_schema(
-    summary="Створення прорахунку та відправка в 1С",
-    description=(
-        "Створює новий прорахунок та відправляє його в 1С.\n\n"
-        " **Формат:** JSON (без multipart)\n"
-        " **Файл:** base64\n\n"
-        " **Доступ:**\n"
-        "- JWT (portal)\n"
-        "- 1C API key\n\n"
-        " Контрагент:\n"
-        "- admin / manager → передається в payload\n"
-        "- dealer / api key → визначається автоматично"
-    ),
-    request=inline_serializer(
-        name="CreateCalculationRequest",
-        fields={
-            "contractor_guid": serializers.UUIDField(
-                required=False,
-                allow_null=True,
-                help_text="GUID контрагента (тільки для admin)"
-            ),
-            "order_number": serializers.CharField(),
-            "items_count": serializers.IntegerField(),
-            "delivery_address_guid": serializers.UUIDField(
-                required=False,
-                allow_null=True
-            ),
-            "comment": serializers.CharField(
-                required=False,
-                allow_blank=True
-            ),
-            "file": inline_serializer(
-                name="CalculationFile",
-                fields={
-                    "fileName": serializers.CharField(),
-                    "fileDataB64": serializers.CharField(),
-                }
-            ),
-        }
-    ),
-    responses={201: ..., 400: ...},
-    tags={"order"}
-)
+# @extend_schema(
+#     summary="Створення прорахунку та відправка в 1С",
+#     description=(
+#         "Створює новий прорахунок та відправляє його в 1С.\n\n"
+#         " **Формат:** JSON (без multipart)\n"
+#         " **Файл:** base64\n\n"
+#         " **Доступ:**\n"
+#         "- JWT (portal)\n"
+#         "- 1C API key\n\n"
+#         " Контрагент:\n"
+#         "- admin / manager → передається в payload\n"
+#         "- dealer / api key → визначається автоматично"
+#     ),
+#     request=inline_serializer(
+#         name="CreateCalculationRequest",
+#         fields={
+#             "contractor_guid": serializers.UUIDField(
+#                 required=False,
+#                 allow_null=True,
+#                 help_text="GUID контрагента (тільки для admin)"
+#             ),
+#             "order_number": serializers.CharField(),
+#             "items_count": serializers.IntegerField(),
+#             "delivery_address_guid": serializers.UUIDField(
+#                 required=False,
+#                 allow_null=True
+#             ),
+#             "comment": serializers.CharField(
+#                 required=False,
+#                 allow_blank=True
+#             ),
+#             "file": inline_serializer(
+#                 name="CalculationFile",
+#                 fields={
+#                     "fileName": serializers.CharField(),
+#                     "fileDataB64": serializers.CharField(),
+#                 }
+#             ),
+#         }
+#     ),
+#     responses={201: ..., 400: ...},
+#     tags={"order"}
+# )
+# class CreateCalculationViewSet(viewsets.ViewSet):
+
+
+#     permission_classes = [IsAuthenticatedOr1CApiKey]
+
+        
+        
+#     def _send_to_1c(self, payload: dict) -> dict:
+
+
+#         start_time = time.time()
+#         query_type = payload.get('Query', 'Unknown')
+        
+#         # logger.info(f"Sending request to 1C", extra={'tags': {'query': query_type}})
+#         try:
+#             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
+#             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
+
+#             response = requests.post(
+#                 settings.ONE_C_URL,
+ 
+#                 json=payload,
+#                 headers={
+#                     "Content-Type": "application/json; charset=utf-8",
+#                     "Accept": "application/json",
+#                     "Authorization": f"Basic {auth_b64}",
+#                     "Query": "CreateCalculation"
+#                 },
+#                 timeout=30,
+#                 verify=settings.ONE_C_VERIFY_SSL,
+#             )
+
+
+#             duration = time.time() - start_time
+#             logger.info(f"1C Response received", extra={
+#                 'tags': {
+#                     'service': '1c-api', 
+#                     'duration_sec': duration,
+#                     'status_code': response.status_code
+#                 }
+#             })
+
+
+
+#             response.raise_for_status()
+#             return response.json()
+
+#         except Exception as e:
+
+#             logger.error(f"1C Integration Failed", exc_info=True, extra={
+#                 'tags': {'service': '1c-api', 'action': 'create_calculation'}
+#             })
+#             raise
+
+
+
+
+#     def create(self, request):
+#         # logger.info("CreateCalculation START", extra={
+#         #     "tags": {
+#         #         "action": "create_calculation",
+#         #         "stage": "start"
+#         #     }
+#         # })
+
+#         serializer = CalculationCreateSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         data = serializer.validated_data
+
+#         contractor_bin, contractor_guid = resolve_contractor(
+#             request,
+#             allow_admin=True,
+#             admin_param="contractor_guid",
+#         )
+
+#     #     logger.info("Contractor resolved", extra={
+#     #     "tags": {
+#     #         "contractor_guid": str(contractor_guid),
+#     #     }
+#     # })
+
+#         file = data["file"]
+
+#         payload = build_1c_payload(
+#             order_number=data["order_number"],
+#             items_count=data["items_count"],
+#             comment=data.get("comment", ""),
+#             contractor_guid=contractor_guid,
+#             delivery_address_guid=data.get("delivery_address_guid"),
+#             delivery_address_coordinates=data.get("delivery_address_coordinates"),
+#             client_address=data.get("client_address"),
+#             file_name=file["fileName"],
+#             file_b64=file["fileDataB64"],
+#         )
+
+#         # logger.info("Payload built for 1C", extra={
+#         #     "tags": {
+#         #         "action": "create_calculation",
+#         #         "stage": "payload_ready",
+#         #         "order_number": data.get("order_number"),
+#         #     }
+#         # })
+
+#         # # ---------- 1C CALL ----------
+#         # logger.info("Sending request to 1C", extra={
+#         #     "tags": {
+#         #         "service": "1c",
+#         #         "action": "request_send"
+#         #     }
+#         # })
+
+#         result = self._send_to_1c(payload)
+
+
+#         # logger.info("1C response received", extra={
+#         #     "tags": {
+#         #         "service": "1c",
+#         #         "stage": "response_received",
+#         #         "success": result.get("success", True),
+#         #     }
+#         # })
+
+
+#         if not result.get("success", True):
+#             logger.error("1C returned error", extra={
+#                 "tags": {
+#                     "service": "1c",
+#                     "status": "error",
+#                 }
+#             })
+#             raise ValidationError(
+#                 {
+#                     "detail": "1С повернула помилку",
+#                     "1c_response": result,
+#                     "payload_sent_to_1c": payload,
+#                 }
+#             )
+        
+#         calculation_guid = extract_calculation_guid(result)
+
+#         if not calculation_guid:
+#             logger.error("Missing calculation GUID from 1C response", extra={
+#                 "tags": {
+#                     "service": "1c",
+#                     "error": "missing_guid"
+#                 }
+#             })
+
+#             raise ValidationError({
+#                 "detail": "1С не повернула calculationGUID",
+#                 "1c_response": result,
+#             })
+
+     
+#         # writer_guid = None
+#         # if request.user and request.user.is_authenticated:
+#         #     writer_guid = request.user.user_id_1C
+
+#         # save_calculation_comment(
+#         #     calculation_bin=guid_to_1c_bin(calculation_guid),
+#         #     comment=data.get("comment", ""),
+#         #     writer_guid=writer_guid,
+#         # )
+#         try:
+           
+#             calculation_bin = guid_to_1c_bin(str(calculation_guid))
+#             main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
+          
+#             final_recipient = main_manager_bin if main_manager_bin else contractor_bin
+            
+#             # writer_bin = None
+#             # if request.user and request.user.is_authenticated:
+#             #     # Отримуємо значення
+#             #     raw_writer_id = getattr(request.user, 'user_id_1C', None)
+                
+#                 # if raw_writer_id:
+#                     # ВИПРАВЛЕННЯ: якщо raw_writer_id це bytes, декодуємо в str, 
+#                     # якщо це str, функція guid_to_1c_bin має його обробити.
+#                     # Але судячи з помилки, функція хоче bytes для методу replace? 
+#                     # Це дивно для GUID. Спробуємо примусово привести до str:
+#                     # writer_bin = guid_to_1c_bin(str(raw_writer_id))
+
+#             # logger.info("Creating ChatMessage", extra={
+#             #     "tags": {
+#             #         "chat": "create",
+#             #         "calculation_guid": str(calculation_guid)
+#             #     }
+#             # })
+
+
+#             ChatMessage.objects.create(
+#                 chat_id=f"1_{calculation_guid}", 
+#                 related_object_id=calculation_bin,
+#                 author=contractor_bin,                      
+#                 recipient=final_recipient,               
+#                 text=data.get("comment"), 
+#                 is_read=False,
+#                 is_sent_vtg=True,
+#                 is_notification=False,
+#                 # event_type="CalculationCreated", # Додав, бо в моделі воно обов'язкове
+#                 transaction_type_id=1 
+#             )
+
+#             # logger.info("ChatMessage created successfully", extra={
+#             #     "tags": {
+#             #         "chat": "success",
+#             #         "calculation_guid": str(calculation_guid)
+#             #     }
+#             # })
+
+#         except Exception as e:
+#             import traceback
+#             logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")
+#             logger.error(traceback.format_exc())
+
+#         # save_message(
+#         #     transaction_type_id=serializer.validated_data["transaction_type_id"],
+#         #     base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
+#         #     message_text=serializer.validated_data["comment"],
+#         #     writer_guid=writer_guid,
+#         # )
+
+#         logger.info(f"CreateCalculation END", extra={
+#             "tags": {
+#                 "action": "create_calculation",
+#                 "stage": "end",
+#                 "calculation_guid": str(calculation_guid),
+#                 "contractor_guid": str(contractor_guid)
+#             }
+#         })
+
+
+
+#         return Response(
+#             {
+#                 "success": True,
+#                 "calculation_guid": result.get("calculationGUID"),
+
+#                 "payload_sent_to_1c": payload,
+
+      
+#                 "result_1c": result,
+#             },
+#             status=201,
+#         )
+
+
 class CreateCalculationViewSet(viewsets.ViewSet):
-
-
     permission_classes = [IsAuthenticatedOr1CApiKey]
 
-        
-        
     def _send_to_1c(self, payload: dict) -> dict:
-
-
         start_time = time.time()
-        query_type = payload.get('Query', 'Unknown')
-        
-        # logger.info(f"Sending request to 1C", extra={'tags': {'query': query_type}})
         try:
             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
 
             response = requests.post(
                 settings.ONE_C_URL,
- 
                 json=payload,
                 headers={
                     "Content-Type": "application/json; charset=utf-8",
@@ -1782,9 +2116,8 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 verify=settings.ONE_C_VERIFY_SSL,
             )
 
-
             duration = time.time() - start_time
-            logger.info(f"1C Response received", extra={
+            logger.info("1C Response received", extra={
                 'tags': {
                     'service': '1c-api', 
                     'duration_sec': duration,
@@ -1792,29 +2125,45 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 }
             })
 
-
-
             response.raise_for_status()
             return response.json()
 
         except Exception as e:
-
-            logger.error(f"1C Integration Failed", exc_info=True, extra={
+            logger.error("1C Integration Failed", exc_info=True, extra={
                 'tags': {'service': '1c-api', 'action': 'create_calculation'}
             })
             raise
 
-
-
-
+    @extend_schema(
+        summary="Створення прорахунку та відправка в 1С",
+        description=(
+            "Створює новий прорахунок та відправляє його в 1С разом із супутніми файлами та фото.\n\n"
+            " **Формат:** JSON (без multipart)\n"
+            " **Файли та фото:** Передаються масивом об'єктів з Base64-кодуванням даних.\n\n"
+            " **Доступ:**\n"
+            "- JWT (portal)\n"
+            "- 1C API key\n\n"
+            " Контрагент:\n"
+            "- admin / manager → передається в payload (можна вказати contractor_guid)\n"
+            "- dealer / api key → визначається автоматично"
+        ),
+        # Використовуємо реальний серіалізатор, Swagger сам згенерує схему для file та photos[]
+        request=CalculationCreateSerializer,
+        responses={
+            201: {
+                "type": "object",
+                "properties": {
+                    "success": {"type": "boolean"},
+                    "calculation_guid": {"type": "string", "format": "uuid"},
+                    "payload_sent_to_1c": {"type": "object"},
+                    "result_1c": {"type": "object"}
+                }
+            },
+            400: {"description": "Помилка валідації вхідних даних або відмова 1С"}
+        },
+        tags=["order"]
+    )
     def create(self, request):
-        # logger.info("CreateCalculation START", extra={
-        #     "tags": {
-        #         "action": "create_calculation",
-        #         "stage": "start"
-        #     }
-        # })
-
         serializer = CalculationCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -1825,14 +2174,10 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             admin_param="contractor_guid",
         )
 
-    #     logger.info("Contractor resolved", extra={
-    #     "tags": {
-    #         "contractor_guid": str(contractor_guid),
-    #     }
-    # })
-
         file = data["file"]
+        photos = data.get("photos", [])  # Безпечно витягуємо масив фотографій
 
+        # Будуємо пейлоад для 1С, додаючи параметр `photos`
         payload = build_1c_payload(
             order_number=data["order_number"],
             items_count=data["items_count"],
@@ -1843,103 +2188,39 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             client_address=data.get("client_address"),
             file_name=file["fileName"],
             file_b64=file["fileDataB64"],
+            photos=photos,  # <-- ПЕРЕДАЄМО МАСИВ ФОТО В БІЛДЕР ПЕЙЛОАДУ
         )
 
-        # logger.info("Payload built for 1C", extra={
-        #     "tags": {
-        #         "action": "create_calculation",
-        #         "stage": "payload_ready",
-        #         "order_number": data.get("order_number"),
-        #     }
-        # })
-
-        # # ---------- 1C CALL ----------
-        # logger.info("Sending request to 1C", extra={
-        #     "tags": {
-        #         "service": "1c",
-        #         "action": "request_send"
-        #     }
-        # })
-
+        # ---------- ВИКЛИК 1С ----------
         result = self._send_to_1c(payload)
-
-
-        # logger.info("1C response received", extra={
-        #     "tags": {
-        #         "service": "1c",
-        #         "stage": "response_received",
-        #         "success": result.get("success", True),
-        #     }
-        # })
-
 
         if not result.get("success", True):
             logger.error("1C returned error", extra={
-                "tags": {
-                    "service": "1c",
-                    "status": "error",
-                }
+                "tags": {"service": "1c", "status": "error"}
             })
-            raise ValidationError(
-                {
-                    "detail": "1С повернула помилку",
-                    "1c_response": result,
-                    "payload_sent_to_1c": payload,
-                }
-            )
+            raise ValidationError({
+                "detail": "1С повернула помилку",
+                "1c_response": result,
+                "payload_sent_to_1c": payload,
+            })
         
         calculation_guid = extract_calculation_guid(result)
 
         if not calculation_guid:
             logger.error("Missing calculation GUID from 1C response", extra={
-                "tags": {
-                    "service": "1c",
-                    "error": "missing_guid"
-                }
+                "tags": {"service": "1c", "error": "missing_guid"}
             })
-
             raise ValidationError({
                 "detail": "1С не повернула calculationGUID",
                 "1c_response": result,
             })
 
-     
-        # writer_guid = None
-        # if request.user and request.user.is_authenticated:
-        #     writer_guid = request.user.user_id_1C
-
-        # save_calculation_comment(
-        #     calculation_bin=guid_to_1c_bin(calculation_guid),
-        #     comment=data.get("comment", ""),
-        #     writer_guid=writer_guid,
-        # )
+        # ---------- СТВОРЕННЯ ЧАТ-ПОВІДОМЛЕННЯ ----------
         try:
-           
             calculation_bin = guid_to_1c_bin(str(calculation_guid))
             main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
-          
             final_recipient = main_manager_bin if main_manager_bin else contractor_bin
             
-            # writer_bin = None
-            # if request.user and request.user.is_authenticated:
-            #     # Отримуємо значення
-            #     raw_writer_id = getattr(request.user, 'user_id_1C', None)
-                
-                # if raw_writer_id:
-                    # ВИПРАВЛЕННЯ: якщо raw_writer_id це bytes, декодуємо в str, 
-                    # якщо це str, функція guid_to_1c_bin має його обробити.
-                    # Але судячи з помилки, функція хоче bytes для методу replace? 
-                    # Це дивно для GUID. Спробуємо примусово привести до str:
-                    # writer_bin = guid_to_1c_bin(str(raw_writer_id))
-
-            # logger.info("Creating ChatMessage", extra={
-            #     "tags": {
-            #         "chat": "create",
-            #         "calculation_guid": str(calculation_guid)
-            #     }
-            # })
-
-
             ChatMessage.objects.create(
                 chat_id=f"1_{calculation_guid}", 
                 related_object_id=calculation_bin,
@@ -1949,30 +2230,14 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 is_read=False,
                 is_sent_vtg=True,
                 is_notification=False,
-                # event_type="CalculationCreated", # Додав, бо в моделі воно обов'язкове
                 transaction_type_id=1 
             )
-
-            # logger.info("ChatMessage created successfully", extra={
-            #     "tags": {
-            #         "chat": "success",
-            #         "calculation_guid": str(calculation_guid)
-            #     }
-            # })
-
         except Exception as e:
             import traceback
             logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")
             logger.error(traceback.format_exc())
 
-        # save_message(
-        #     transaction_type_id=serializer.validated_data["transaction_type_id"],
-        #     base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
-        #     message_text=serializer.validated_data["comment"],
-        #     writer_guid=writer_guid,
-        # )
-
-        logger.info(f"CreateCalculation END", extra={
+        logger.info("CreateCalculation END", extra={
             "tags": {
                 "action": "create_calculation",
                 "stage": "end",
@@ -1981,23 +2246,15 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             }
         })
 
-
-
         return Response(
             {
                 "success": True,
                 "calculation_guid": result.get("calculationGUID"),
-
                 "payload_sent_to_1c": payload,
-
-      
                 "result_1c": result,
             },
-            status=201,
+            status=status.HTTP_201_CREATED,
         )
-
-
-
 
 
 
@@ -2347,7 +2604,7 @@ def get_messages(request):
     description=(
         "Завантажує файл зі сховища **1С (SMB)** для заявок на прорахунок (ВМ).\n\n"
         " Шлях у сховищі:\n"
-        "`Заявка на просчет (ВМ)/{calc_guid}/{file_guid}/{filename}`"
+        "`я/{calc_guid}/{file_guid}/{filename}`"
     ),
     parameters=[
         OpenApiParameter(name="calc_guid", type=OpenApiTypes.UUID, location=OpenApiParameter.PATH, description="GUID заявки (прорахунку)", required=True),
@@ -3336,3 +3593,231 @@ class PortalManagerReportView(APIView):
                 "success": False, 
                 "error": "Не вдалося отримати звіт з бази даних."
             }, status=500)
+        
+
+
+import os
+import time
+import mimetypes
+import logging
+import tempfile
+from urllib.parse import unquote, quote
+import smbclient
+from django.conf import settings
+from django.http import Http404, StreamingHttpResponse
+from django.db import connection, DatabaseError
+from django.shortcuts import redirect
+from rest_framework.decorators import api_view, permission_classes
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from ranged_fileresponse import RangedFileResponse
+
+
+@extend_schema(
+    summary="Завантажити файл прорахунку (SMB або БД)",
+    description=(
+        "Намагається завантажити файл (ZKZ, фото, документ) зі сховища SMB за шляхом:\n"
+        "`Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}`.\n\n"
+        "Якщо файл відсутній на диску, автоматично спрацьовує **fallback у Базу Даних**, "
+        "звідки бінарні дані витягуються через процедуру `dbo.GetBinaryFile`."
+    ),
+    parameters=[
+        OpenApiParameter("order_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID прорахунку замовлення", required=True),
+        OpenApiParameter("file_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID файлу", required=True),
+        OpenApiParameter("filename", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Назва файлу з розширенням", required=True),
+    ],
+    tags=["order"]
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def download_calc(request, order_guid, file_guid):
+    """
+    Завантажує файл прорахунку/фотографію з папки 'Заявка на просчет (ВМ)' через SMB 
+    або витягує його з бази даних, якщо файл збережено в SQL.
+    """
+    start_time = time.time()
+    filename = request.GET.get("filename")
+    
+    if not filename:
+        raise Http404("Filename is required")
+
+    filename = unquote(filename)
+    content_type, _ = mimetypes.guess_type(filename)
+    content_type = content_type or "application/octet-stream"
+
+    # Визначаємо inline для фото/тексту, щоб вони відкривалися в браузері/модалці
+    inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
+    file_ext = os.path.splitext(filename.lower())[1]
+    disposition = "inline" if file_ext in inline_extensions else "attachment"
+
+    # Шлях до сховища заявок на прорахунок
+    remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}"
+
+    # ==========================================
+    # 🚀 СТРАТЕГІЯ 1: Спроба прочитати з SMB
+    # ==========================================
+    try:
+        stat = smbclient.stat(remote_path)
+        file_handle = smbclient.open_file(remote_path, mode="rb")
+        
+        response = StreamingHttpResponse(file_handle, content_type=content_type)
+        response["Content-Length"] = stat.st_size
+        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
+        response["Access-Control-Expose-Headers"] = "Content-Disposition"
+        
+        return response
+
+    except Exception as smb_error:
+        logger.warning(
+            f"SMB calculation file missing, switching to DB fallback. Path: {remote_path} | Reason: {str(smb_error)}",
+            extra={'tags': {'action': 'download_calc', 'stage': 'smb_fallback'}}
+        )
+
+    # ==========================================
+    # 🗄 СТРАТЕГІЯ 2: Fallback в Базу Даних (SQL)
+    # ==========================================
+    try:
+        binary_guid = guid_to_1c_bin(file_guid)
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC [dbo].[GetBinaryFile] @FileLink = %s",
+                [binary_guid]
+            )
+            row = cursor.fetchone()
+
+            if not row or not row[0]:
+                logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
+                return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+
+            raw_db_blob = row[0]
+            db_filename = row[1] or filename
+
+        file_bytes = extract_1c_binary(raw_db_blob)
+        if not file_bytes:
+            logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
+            return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
+        
+
+        current_ext = os.path.splitext(filename)[1]
+        if not current_ext:  # Якщо в назві немає розширення
+            detected_ext = guess_extension_from_bytes(file_bytes[:16])
+            if detected_ext:
+                filename += detected_ext
+                # Оновлюємо контент-тип після додавання розширення
+                content_type, _ = mimetypes.guess_type(filename)
+                content_type = content_type or "application/octet-stream"
+
+                if detected_ext in [".pdf", ".jpg", "jpg", "JPG", ".jpeg", ".png", ".webp"]:
+                    disposition = "inline"
+
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
+        tmp.write(file_bytes)
+        tmp.close()
+
+        response = RangedFileResponse(
+            request,
+            open(tmp.name, "rb"),
+            content_type=content_type
+        )
+        response["Content-Disposition"] = f'{disposition}; filename="{filename or db_filename}"'
+        
+        return response
+
+    except Exception as db_error:
+        logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
+        return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+    
+
+
+@extend_schema(
+    summary="Отримати список файлів прорахунку",
+    description=(
+        "Повертає список усіх файлів (ZKZ, фото, документи), які прив'язані до "
+        "конкретної заявки на прорахунок в 1С.\n\n"
+        "Дані вичитуються через SQL-процедуру `dbo.GetOrdersFiles`.\n"
+        "Використовується для первинного рендерингу списку всередині React-модалки прев'ю."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="order_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.PATH,
+            description="GUID заявки на прорахунок (order_guid)",
+            required=True,
+        ),
+    ],
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "status": {"type": "string", "example": "success"},
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "fileGuid": {"type": "string", "example": "b1b2c3d4-..."},
+                            "fileName": {"type": "string", "example": "чертеж.png"},
+                            "type": {"type": "string", "example": "Фото обьекта"},
+                            "date": {"type": "string", "format": "date-time"}
+                        }
+                    }
+                }
+            }
+        },
+        400: {"description": "Некоректний формат GUID"},
+        500: {"description": "Внутрішня помилка сервера або БД"}
+    },
+    tags=["order"],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated]) # Або ваша кастомна IsAuthenticatedOr1CApiKey
+def get_calc_files(request, order_guid):
+    """
+    Отримує список метаданих файлів (ZKZ, фото) для модалки.
+    """
+    start_time = time.time()
+    
+    if not order_guid or len(str(order_guid)) < 32:
+        return Response({"status": "error", "message": "Invalid GUID format"}, status=400)
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetCalcFiles @OrderLinkGUID=%s", [str(order_guid)])
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+
+        files = []
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            
+            f_guid = row_dict.get("File_GUID")
+            f_name = row_dict.get("File_FileName")
+            f_type = row_dict.get("File_DataType_Name") or "Файл"
+            f_date = row_dict.get("File_Date")
+
+            # 1. ОБРОБКА ВІДСУТНЬОЇ НАЗВИ
+            if not f_name:
+                short_id = str(f_guid)[:8] if f_guid else "unknown"
+                f_name = f"{f_type.replace(' ', '_')}_{short_id}"
+
+            # 2. ВІРТУАЛЬНЕ РОЗШИРЕННЯ ДЛЯ ФРОНТЕНДУ (щоб працювали іконки)
+            name_only, ext = os.path.splitext(f_name)
+            if not ext:
+                if "фото" in f_type.lower():
+                    f_name = f"{name_only}.jpg"
+                elif "просчет" in f_type.lower() or "заявка" in f_type.lower():
+                    f_name = f"{name_only}.zkz"
+
+            files.append({
+                "fileGuid": f_guid,
+                "fileName": f_name,
+                "type": f_type,
+                "date": f_date,
+            })
+
+        return Response({"status": "success", "files": files}, status=200)
+
+    except Exception as e:
+        # logger.error(f"Error in get_calc_files: {e}")
+        return Response({"status": "error", "message": "Внутрішня помилка сервера"}, status=500)

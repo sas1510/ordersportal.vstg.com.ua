@@ -11,6 +11,7 @@ import {
   FaTrash,
   FaUserAlt,
   FaChevronDown,
+  FaCamera, // Додали іконку для фотографій
 } from "react-icons/fa";
 
 import ClientAddressModal from "./ClientAddressModal";
@@ -18,7 +19,7 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const { addNotification } = useNotification();
-  const { t, i18n} = useTranslation();
+  const { t, i18n } = useTranslation();
   const [orderNumber, setOrderNumber] = useState("");
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState(t("orders.newOrderModal.error_message_2"));
@@ -35,7 +36,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const [addressMode, setAddressMode] = useState("dealer"); // dealer | client
 
- 
   const [dealerCoords, setDealerCoords] = useState(null); // { lat, lng }
 
   const [customAddress, setCustomAddress] = useState({
@@ -47,18 +47,16 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const [isClientAddressModalOpen, setIsClientAddressModalOpen] =
     useState(false);
 
-  const {  role } = useAuthGetRole();
-  // const isAdmin = role === "admin";
+  // 📸 Стейт для зберігання масиву обраних фотографій
+  const [photos, setPhotos] = useState([]);
 
+  const { role } = useAuthGetRole();
   const isManager = ["manager", "region_manager", "admin"].includes(role);
-
 
   const extractCoordinates = (addressObj) => {
     if (!addressObj) return null;
-
     let lat = null;
     let lng = null;
-
 
     if (typeof addressObj.Coordinates === "string") {
       const [latStr, lngStr] = addressObj.Coordinates.split(",");
@@ -66,7 +64,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       lng = parseFloat(lngStr);
     }
 
- 
     lat = lat ?? addressObj.Latitude ?? addressObj.lat;
     lng = lng ?? addressObj.Longitude ?? addressObj.lng;
 
@@ -78,13 +75,11 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     ) {
       return { lat, lng };
     }
-
     return null;
   };
 
   const checkAddressCoordinates = (addressObj) => {
     const coords = extractCoordinates(addressObj);
-
     if (!coords) {
       addNotification(
         <div style={{ lineHeight: "1.4" }}>
@@ -92,26 +87,14 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           {t("orders.newOrderModal.coord_message_2")}{" "}
           <br />
           {t("orders.newOrderModal.coord_message_3")}
-          {/* <a
-            href="https://ordersportal.vstg.com.ua/edit-addresses"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold", display: "inline-block", marginTop: "5px" }}
-          >
-            Редагувати адресу на карті
-          </a> */}
         </div>,
         "warning",
         10000,
       );
     }
-
     return coords;
   };
 
-  /* =========================
-      📦 Завантаження адрес
-     ========================= */
   const loadAddresses = async (contractorGuid = null) => {
     setAddressesLoading(true);
     setAddresses([]);
@@ -124,7 +107,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       });
 
       const list = res.data?.addresses || [];
-
       const deliveryAddresses = list.filter(
         (a) =>
           typeof a.AddressKind === "string" &&
@@ -146,16 +128,13 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     } catch (err) {
       console.error(err);
       addNotification(
-        <div
-          className="flex ai-center jc-space-between gap-5"
-          style={{ minWidth: "250px" }}
-        >
+        <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: "250px" }}>
           <span>{t("orders.newOrderModal.error_message_1")}</span>
           <button
             onClick={() => loadAddresses(contractorGuid)}
             style={{
               background: "white",
-              color: "#d32f2f", 
+              color: "#d32f2f",
               border: "none",
               borderRadius: "4px",
               padding: "4px 4px",
@@ -171,35 +150,22 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
         </div>,
         "error",
         0,
-        // 10000 // Збільшуємо час відображення до 10 сек, щоб користувач встиг натиснути
       );
     } finally {
       setAddressesLoading(false);
     }
   };
 
-
-
   useEffect(() => {
     const handleEsc = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
+      if (event.key === "Escape") onClose();
     };
-
-    if (isOpen) {
-      window.addEventListener("keydown", handleEsc);
-    }
-
-
-    return () => {
-      window.removeEventListener("keydown", handleEsc);
-    };
+    if (isOpen) window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
-
     if (isManager) {
       if (dealerId) loadAddresses(dealerId);
     } else {
@@ -227,6 +193,18 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     if (input) input.value = "";
   };
 
+  // 📸 Хендлер вибору фотографій (дозволяє додавати декілька)
+  const handlePhotosChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    // Додаємо нові файли до вже існуючих у стейті
+    setPhotos((prevPhotos) => [...prevPhotos, ...selectedFiles]);
+  };
+
+  // 📸 Хендлер видалення окремого фото з масиву
+  const handleRemovePhoto = (indexToRemove) => {
+    setPhotos((prevPhotos) => prevPhotos.filter((_, index) => index !== indexToRemove));
+  };
+
   const resetForm = () => {
     setOrderNumber("");
     setFile(null);
@@ -240,6 +218,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setIsAddressOpen(false);
     setAddressMode("dealer");
     setCustomAddress({ text: "", lat: null, lng: null });
+    setPhotos([]); // Очищуємо фото
   };
 
   const handleCloseWithReset = () => {
@@ -247,6 +226,15 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     onClose();
   };
 
+  // Хелпер для конвертації файлу в Base64 string
+  const fileToBase64 = (fileObject) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(fileObject);
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -257,31 +245,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       return;
     }
 
-    if (addressMode === "dealer") {
-      if (!addressGuid) {
-        addNotification(t("orders.newOrderModal.error_message_4"), "error");
-        return;
-      }
-      // // ПЕРЕВІРКА НАЯВНОСТІ КООРДИНАТ
-      // if (!dealerCoords) {
-      //     addNotification(
-      //       <div style={{ lineHeight: "1.4" }}>
-      //         <strong>Помилка!</strong> Обрана адреса не має гео-координат. <br />
-      //         Будь ласка, оберіть іншу адресу або додайте точку на карті. <br />
-      //         <a
-      //           href="https://ordersportal.vstg.com.ua/edit-addresses"
-      //           target="_blank"
-      //           rel="noopener noreferrer"
-      //           style={{ color: "#fff", textDecoration: "underline", fontWeight: "bold" }}
-      //         >
-      //           Додати точку на карті
-      //         </a>
-      //       </div>,
-      //       "warning",
-      //       12000
-      //     );
-      //     return;
-      // }
+    if (addressMode === "dealer" && !addressGuid) {
+      addNotification(t("orders.newOrderModal.error_message_4"), "error");
+      return;
     }
 
     if (
@@ -295,13 +261,21 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setLoading(true);
 
     try {
-      const fileBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(",")[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      // 1. Конвертуємо основний файл розрахунку
+      const mainFileBase64 = await fileToBase64(file);
 
+      // 2. Асинхронно конвертуємо весь масив фотографій у формат [{ fileName, fileDataB64 }, ...]
+      const convertedPhotos = await Promise.all(
+        photos.map(async (photoFile) => {
+          const b64Data = await fileToBase64(photoFile);
+          return {
+            fileName: photoFile.name,
+            fileDataB64: b64Data,
+          };
+        })
+      );
+
+      // 3. Формуємо фінальний JSON payload
       const payload = {
         ...(isManager && dealerId && { contractor_guid: dealerId }),
         order_number: orderNumber,
@@ -309,8 +283,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
         comment,
         file: {
           fileName: file.name,
-          fileDataB64: fileBase64,
+          fileDataB64: mainFileBase64,
         },
+        photos: convertedPhotos, // <-- ПЕРЕДАЄМО МАСИВ ФОТО НА БЕКЕНД
         ...(addressMode === "dealer"
           ? {
               delivery_address_guid: addressGuid,
@@ -323,7 +298,6 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 text: customAddress.text,
                 lat: customAddress.lat,
                 lng: customAddress.lng,
-
                 region: customAddress.region,
                 district: customAddress.district,
                 city: customAddress.city,
@@ -333,21 +307,15 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 entrance: customAddress.entrance,
                 floor: customAddress.floor,
                 note: customAddress.note,
-
                 full_name: customAddress.fullName,
                 phone: customAddress.phone,
                 extra_info: customAddress.extraInfo,
-
-                contractor_guid:
-                  customAddress.contractor_guid || dealerId || null,
+                contractor_guid: customAddress.contractor_guid || dealerId || null,
               },
             }),
       };
 
-      const response = await axiosInstance.post(
-        "/calculations/create/",
-        payload,
-      );
+      const response = await axiosInstance.post("/calculations/create/", payload);
 
       addNotification(t("orders.newOrderModal.order_created", { orderNumber: orderNumber }), "success");
       onSave?.(response.data);
@@ -356,13 +324,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     } catch (error) {
       console.error(error);
       addNotification(
-        <div
-          className="flex ai-center jc-space-between gap-5"
-          style={{ minWidth: "250px" }}
-        >
+        <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: "250px" }}>
           <div className="column">
             <strong>{t("orders.newOrderModal.error_message_6")}</strong>
-            {/* <span style={{ fontSize: '13px', opacity: 0.9 }}>{serverMessage}</span> */}
           </div>
           <button
             onClick={handleSubmit}
@@ -383,7 +347,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           </button>
         </div>,
         "error",
-        10000, // 0 означає, що нотифікація не зникне сама, поки користувач не натисне або не закриє
+        10000,
       );
     } finally {
       setLoading(false);
@@ -395,18 +359,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   return (
     <>
       <div className="new-calc-modal-overlay" onClick={onClose}>
-        <div
-          className="new-calc-modal-window"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="new-calc-modal-window" onClick={(e) => e.stopPropagation()}>
           <div className="new-calc-modal-border-top">
             <div className="new-calc-modal-header">
               <span className="icon icon-calculator" />
               <h3>{t("orders.newOrderModal.order_create")}</h3>
-              <span
-                className="icon icon-cross new-calc-close-btn"
-                onClick={handleCloseWithReset}
-              />
+              <span className="icon icon-cross new-calc-close-btn" onClick={handleCloseWithReset} />
             </div>
           </div>
 
@@ -431,6 +389,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <DealerSelect value={dealerId} onChange={setDealerId} />
                 </div>
               )}
+              
               <div className="address-mode-switch">
                 <label>
                   <input
@@ -446,7 +405,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                     checked={addressMode === "client"}
                     onChange={() => setAddressMode("client")}
                   />
-                   {t("orders.newOrderModal.clientAddress")}
+                  {t("orders.newOrderModal.clientAddress")}
                 </label>
               </div>
 
@@ -455,21 +414,15 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <span>{t("orders.newOrderModal.address")}</span>
                   <div
                     className={`address-dropdown ${isAddressOpen ? "open" : ""}`}
-                    onClick={() =>
-                      !addressesLoading && setIsAddressOpen((p) => !p)
-                    }
+                    onClick={() => !addressesLoading && setIsAddressOpen((p) => !p)}
                   >
                     <div className="address-dropdown-selected">
                       <span>
                         {addressesLoading
                           ? t("orders.newOrderModal.loadingOfAddress")
-                          : addresses.find(
-                              (a) => a.AddressKindGUID === addressGuid,
-                            )?.AddressValue || t("orders.newOrderModal.error_message_4")}
+                          : addresses.find((a) => a.AddressKindGUID === addressGuid)?.AddressValue || t("orders.newOrderModal.error_message_4")}
                       </span>
-                      <FaChevronDown
-                        className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`}
-                      />
+                      <FaChevronDown className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`} />
                     </div>
 
                     {isAddressOpen && (
@@ -517,11 +470,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 </div>
               )}
 
+              {/* 1. Блок основного файлу проекту (.zkz) */}
               <div className="new-calc-file-upload">
-                <label
-                  htmlFor="new-calc-file"
-                  className="new-calc-upload-label"
-                >
+                <label htmlFor="new-calc-file" className="new-calc-upload-label">
                   <FaUpload size={20} />
                   <span>{t("orders.newOrderModal.downloadZKZ")}</span>
                   <input
@@ -535,14 +486,57 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 <div className="new-calc-file-name">
                   <span>{fileName}</span>
                   {file && (
-                    <button
-                      type="button"
-                      className="new-calc-clear-file"
-                      onClick={handleClearFile}
-                    >
+                    <button type="button" className="new-calc-clear-file" onClick={handleClearFile}>
                       <FaTrash size={14} />
                     </button>
                   )}
+                </div>
+              </div>
+
+              {/* 📸 2. НОВИЙ БЛОК: Завантаження додаткових фотографій */}
+              <div className="new-calc-file-upload" style={{ marginTop: "15px" }}>
+                <label htmlFor="new-calc-photos" className="new-calc-upload-label" style={{ backgroundColor: "#76b448" }}>
+                  <FaCamera className="text-white" size={20} />
+                  <span className="text-white">Додати зображення</span>
+                  <input
+                    type="file"
+                    id="new-calc-photos"
+                    accept="image/*"
+                    multiple // дозволяє виділити кілька файлів одночасно
+                    onChange={handlePhotosChange}
+                    hidden
+                  />
+                </label>
+                
+                {/* Список обраних зображень */}
+                <div className="new-calc-photos-list" style={{ marginTop: "10px", width: "100%" }}>
+                  {photos.map((photo, index) => (
+                    <div 
+                      key={index} 
+                      className="new-calc-file-name" 
+                      style={{ 
+                        display: "flex", 
+                        justifyContent: "space-between", 
+                        alignItems: "center",
+                        padding: "6px 10px",
+                        backgroundColor: "#f5f5f5",
+                        borderRadius: "4px",
+                        marginBottom: "5px"
+                      }}
+                    >
+                      <span style={{ fontSize: "13px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: "85%" }}>
+                        {photo.name} ({(photo.size / 1024).toFixed(1)} KB)
+                      </span>
+                      <button
+                        type="button"
+                        className="new-calc-clear-file"
+                        style={{ color: "#d32f2f", background: "none", border: "none", cursor: "pointer" }}
+                        onClick={() => handleRemovePhoto(index)}
+                      >
+                        <FaTrash size={13} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -570,17 +564,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           </div>
 
           <div className="new-calc-modal-footer">
-            <button
-              className="new-calc-btn-cancel"
-              onClick={handleCloseWithReset}
-            >
+            <button className="new-calc-btn-cancel" onClick={handleCloseWithReset}>
               <FaTimes /> {t("orders.newOrderModal.cancel")}
             </button>
-            <button
-              className="new-calc-btn-save"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
+            <button className="new-calc-btn-save" onClick={handleSubmit} disabled={loading}>
               <FaSave /> {loading ? t("orders.newOrderModal.creating") : t("orders.newOrderModal.save")}
             </button>
           </div>
@@ -589,10 +576,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
       {isClientAddressModalOpen && (
         <ClientAddressModal
-          initialValue={{
-            ...customAddress,
-            contractor_guid: dealerId,
-          }}
+          initialValue={{ ...customAddress, contractor_guid: dealerId }}
           contractorGuid={dealerId}
           onClose={() => setIsClientAddressModalOpen(false)}
           onSave={(addr) => {

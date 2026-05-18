@@ -118,7 +118,7 @@
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  color: #555;
+  color: #808080 !important;
   font-weight: 500;
   padding: 10px;
   transition: color 0.2s;
