@@ -15,7 +15,7 @@ import CounterpartyInfoModal from "./CounterpartyInfoModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
-
+import OrderFilesPreviewModal from "./OrderFilesPreviewModal";
 
 export const CalculationItemMobile = React.memo(
   ({ calc, onDelete, _onEdit, onMarkAsRead, reloadCalculations }) => {
@@ -27,6 +27,8 @@ export const CalculationItemMobile = React.memo(
     const [_selectedComments, setSelectedComments] = useState([]);
     const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+    
 
     const { addNotification } = useNotification();
 
@@ -345,14 +347,15 @@ export const CalculationItemMobile = React.memo(
           cursor: calc.file ? "pointer" : "default", 
           borderBottom: '1px dotted var(--grey-border-color)' 
         }}
-        onClick={(e) => {
+         onClick={(e) => {
           e.stopPropagation();
-          if (calc.file) handleDownload(calc);
+          setIsFilesModalOpen(true); // Відкриваємо модалку замість прямого завантаження
         }}
       >
         <img src={fileIcon} className="w-[16px] h-[20px] mr-1.5" alt="" />
         <div className="text-[13px] text-WS---DarkGrey">
-          {calc.file ? `${calc.number}.zkz` : t("calc.no_comments")}
+          {calc.file ? t('nav.files')
+                        : t('calc.no_file')}
         </div>
       </div>
 
@@ -450,6 +453,14 @@ export const CalculationItemMobile = React.memo(
           itemData={calc}
           itemType="calculation"
         />
+
+        <OrderFilesPreviewModal
+          isOpen={isFilesModalOpen}
+          onClose={() => setIsFilesModalOpen(false)}
+          orderGuid={calc.id}      // GUID розрахунку для запиту до API
+          orderNumber={calc.number} // Номер для заголовка
+        />
+
 
         <CounterpartyInfoModal
           isOpen={isCounterpartyOpen}

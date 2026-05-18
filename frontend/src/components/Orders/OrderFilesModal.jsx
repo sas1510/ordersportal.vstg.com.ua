@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
@@ -6,38 +6,32 @@ import { useTranslation } from "react-i18next";
 
 import {
   FaSpinner,
-  FaEye,
-  FaDownload,
   FaTimes,
   FaFileAlt,
+  FaDownload,
+  FaEye,
+  FaImage,
+  FaFileArchive,
 } from "react-icons/fa";
 
-import { FaRegFileImage, FaRegFilePdf, FaFileZipper } from "react-icons/fa6";
+// Використовуємо той самий файл стилів для ідентичного вигляду
+import "./OrderFilesPreviewModal.css"; 
 
-import "./OrderFilesModal.css";
-
-const OrderFilesModal = ({ orderGuid, onClose }) => {
+const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
-  
+
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [downloadingFileGuid, setDownloadingFileGuid] = useState(null);
-
-  const filesListUrl = `order/${orderGuid}/files/`;
 
   /* =========================
       ЕФЕКТИ (ESC та Scroll)
   ========================= */
   useEffect(() => {
-    const handleEsc = (event) => {
-      if (event.key === "Escape") onClose();
-    };
-
+    const handleEsc = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handleEsc);
     document.body.style.overflow = "hidden";
-
     return () => {
       window.removeEventListener("keydown", handleEsc);
       document.body.style.overflow = "";
@@ -49,159 +43,167 @@ const OrderFilesModal = ({ orderGuid, onClose }) => {
   ========================= */
   useEffect(() => {
     if (!orderGuid) return;
-
     const loadFiles = async () => {
       try {
-        const response = await axiosInstance.get(filesListUrl);
-
+        const response = await axiosInstance.get(`order/${orderGuid}/files/`);
         if (response.data?.status === "success") {
           setFiles(response.data.files || []);
-        } else {
-          setError(t("errors.serverError", "Сервер повернув помилку."));
         }
       } catch (err) {
-        console.error("❌ Error fetching files:", err);
-        setError(t("errors.fetchFilesFailed", "Не вдалося отримати файли."));
+        addNotification(t("errors.fetchFilesFailed"), "error");
       } finally {
         setLoading(false);
       }
     };
-
     loadFiles();
-  }, [orderGuid, filesListUrl, t]);
+  }, [orderGuid, t, addNotification]);
 
   /* =========================
-      ЛОГІКА ЗАВАНТАЖЕННЯ ФАЙЛУ
+      ГРУПУВАННЯ ФАЙЛІВ
   ========================= */
-  const handleDownload = async (fileGuid, fileName) => {
-    setDownloadingFileGuid(fileGuid);
+  const groups = useMemo(() => {
+    return {
+      zkz: files.filter(f => f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz")),
+      images: files.filter(f => f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName)),
+      others: files.filter(f => {
+        const isZkz = f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz");
+        const isImg = f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName);
+        return !isZkz && !isImg;
+      })
+    };
+  }, [files]);
 
+  /* =========================
+      ЛОГІКА ЗАВАНТАЖЕННЯ
+  ========================= */
+  const handleDownload = async (file) => {
+    setDownloadingFileGuid(file.fileGuid);
     try {
-      const params = new URLSearchParams({ filename: fileName });
-      const url = `order/${orderGuid}/files/${fileGuid}/download/?${params.toString()}`;
+      const url = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
+      const response = await axiosInstance.get(url, { responseType: "blob" });
 
-      const response = await axiosInstance.get(url, {
-        responseType: "blob", 
-      });
-
-      const contentType = response.headers["content-type"] || "application/pdf";
-      const blob = new Blob([response.data], { type: contentType });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
       const objectUrl = window.URL.createObjectURL(blob);
-
-      const isPdf = fileName.toLowerCase().endsWith(".pdf");
-      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(fileName);
+      
+      const isPdf = file.fileName.toLowerCase().endsWith(".pdf");
+      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.fileName);
 
       const link = document.createElement("a");
       link.href = objectUrl;
-
+      
       if (isPdf || isImage) {
-        link.target = "_blank";
-        if (isImage) link.download = fileName; 
+        window.open(objectUrl, "_blank");
       } else {
-        link.download = fileName;
+        link.setAttribute("download", file.fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
       setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
     } catch (err) {
-      console.error("Download error:", err);
-      addNotification(t("notifications.downloadError", "Не вдалося відкрити або завантажити файл."), "error");
+      addNotification(t("notifications.downloadError"), "error");
     } finally {
       setDownloadingFileGuid(null);
     }
   };
 
-  const getFileIcon = (fileName = "") => {
-    const ext = fileName.split(".").pop().toLowerCase();
-    if (ext === "pdf") return <FaRegFilePdf style={{ color: "#c0392b" }} />;
-    if (ext === "zkz") return <FaFileAlt style={{ color: "#3498db" }} />;
-    if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext))
-      return <FaRegFileImage style={{ color: "#4a90e2" }} />;
-    if (["zip", "rar", "7z"].includes(ext))
-      return <FaFileZipper style={{ color: "#d88a00" }} />;
-    return <FaFileAlt style={{ color: "#666" }} />;
+  const getFileIcon = (fileName) => {
+    const ext = fileName.toLowerCase().split(".").pop();
+    if (ext === "zkz") return <FaFileArchive className="file-icon icon-zkz" />;
+    if (["jpg", "jpeg", "png", "webp"].includes(ext)) return <FaImage className="file-icon icon-image" />;
+    return <FaFileAlt className="file-icon icon-doc" />;
   };
 
   if (!orderGuid) return null;
 
+  const renderFileCard = (file) => {
+    const isDownloading = downloadingFileGuid === file.fileGuid;
+    const isViewable = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.fileName);
+
+    return (
+      <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : isViewable ? 'card-image' : 'card-other'}`}>
+        <div className="file-card-info">
+          {getFileIcon(file.fileName)}
+          <div className="file-details">
+            <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
+            <span className="file-date-text">
+              {file.date ? new Date(file.date).toLocaleString(i18n.language) : t("common.noDate")}
+            </span>
+          </div>
+        </div>
+        <button 
+          className="file-action-btn" 
+          disabled={isDownloading}
+          onClick={() => handleDownload(file)}
+          title={isViewable ? t("common.view") : t("common.download")}
+        >
+          {isDownloading ? <FaSpinner className="spinner-animation" /> : isViewable ? <FaEye /> : <FaDownload />}
+        </button>
+      </div>
+    );
+  };
+
   return createPortal(
-    <div className="orders-file-modal-overlay" onClick={onClose}>
-      <div className="orders-file-modal-window" onClick={(e) => e.stopPropagation()}>
+    <div className="preview-modal-overlay" onClick={onClose}>
+      <div className="preview-modal-window" onClick={(e) => e.stopPropagation()}>
         
         {/* HEADER */}
-        <div className="orders-file-modal-header">
-          <div className="header-content">
-            <FaFileAlt />
-            <h3>{t("orders.modalFilesTitle", "Файли замовлення")}</h3>
+        <div className="preview-modal-header">
+          <div className="preview-header-title">
+            <h3>{t("orders.modalFilesTitle")} {orderNumber ? `№ ${orderNumber}` : ""}</h3>
+            <span className="preview-subtitle">{t("orders.modalFilesSubtitle", "Документація та фото")}</span>
           </div>
-          <span className="icon icon-cross file-cross-close-btn" onClick={onClose}></span>
+          <button className="preview-close-btn" onClick={onClose}>
+            <FaTimes size={18} />
+          </button>
         </div>
 
         {/* BODY */}
-        <div className="orders-file-body">
-          {loading && <p>{t("common.loadingFiles", "Завантаження файлів…")}</p>}
-          {error && <p className="error-text">{error}</p>}
+        <div className="preview-modal-body">
+          {loading ? (
+            <div className="preview-loading-box">
+              <FaSpinner className="spinner-animation" size={30} />
+              <p>{t("common.loadingFiles")}</p>
+            </div>
+          ) : files.length === 0 ? (
+            <div className="preview-empty-box">
+              <FaFileAlt size={40} style={{ color: "#bbb", marginBottom: "10px" }} />
+              <p>{t("orders.noFilesFound")}</p>
+            </div>
+          ) : (
+            <div className="preview-files-container">
+              {groups.zkz.length > 0 && (
+                <div className="preview-section">
+                  <h4> {t("orders.sectionProjects", "Файли")}</h4>
+                  <div className="preview-grid">{groups.zkz.map(renderFileCard)}</div>
+                </div>
+              )}
 
-          {!loading && !error && files.length === 0 && (
-            <p>{t("orders.noFilesFound", "Файлів для цього замовлення не знайдено.")}</p>
-          )}
+              {groups.images.length > 0 && (
+                <div className="preview-section">
+                  <h4>{t("orders.sectionPhotos", "Фотографії об'єкта")}</h4>
+                  <div className="preview-grid">{groups.images.map(renderFileCard)}</div>
+                </div>
+              )}
 
-          {!loading && files.length > 0 && (
-            <ul className="file-list">
-              {files.map((file) => {
-                const isDownloading = downloadingFileGuid === file.fileGuid;
-                const isPdf = file.fileName.toLowerCase().endsWith(".pdf");
-
-                return (
-                  <li key={file.fileGuid} className="file-item">
-                    <div className="file-info-group">
-                      <div className="file-icon-wrapper">{getFileIcon(file.fileName)}</div>
-                      <div className="file-details">
-                        <b className="file-name-b">{file.fileName}</b>
-                        <div className="file-meta">
-                           {new Date(file.date).toLocaleString(i18n.language)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      className="file-download-btn no-wrap"
-                      disabled={isDownloading}
-                      onClick={() => handleDownload(file.fileGuid, file.fileName)}
-                    >
-                      {isDownloading ? (
-                        <div className="btn-content">
-                          <FaSpinner className="fa-spin" />
-                          <span>{t("common.downloading", "Завантаження...")}</span>
-                        </div>
-                      ) : isPdf ? (
-                        <div className="btn-content">
-                          <FaEye /> 
-                          <span className="hide-on-mobile">{t("common.view", "Переглянути")}</span>
-                        </div>
-                      ) : (
-                        <div className="btn-content">
-                          <FaDownload /> 
-                          <span className="hide-on-mobile">{t("common.download", "Завантажити")}</span>
-                        </div>
-                      )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+              {groups.others.length > 0 && (
+                <div className="preview-section">
+                  <h4> {t("orders.sectionOthers", "Інше")}</h4>
+                  <div className="preview-grid">{groups.others.map(renderFileCard)}</div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
         {/* FOOTER */}
-        <div className="orders-file-modal-footer">
-          <button type="button" className="order-file-close-btn" onClick={onClose}>
-            <FaTimes /> {t("common.close", "Закрити")}
+        <div className="preview-modal-footer">
+          <span className="preview-footer-count">{t("orders.totalFiles", "Всього")}: {files.length}</span>
+          <button className="preview-btn-close-footer" onClick={onClose}>
+            {t("common.close")}
           </button>
         </div>
+
       </div>
     </div>,
     document.body

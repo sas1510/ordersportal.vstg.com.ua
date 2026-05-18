@@ -187,7 +187,7 @@ export const CalculationItem = React.memo(
           >
             <div className="column">
               <div className="text-base m text-bold text-WS---DarkGrey border-bottom pb-1">
-                № {calc.number}
+                № {calc.number} 
               </div>
               <div className="text-xs text-WS---DarkGrey pt-1">
                 {formatDateTimeShort(calc.date, i18n.language)}
@@ -400,11 +400,11 @@ export const CalculationItem = React.memo(
           manager={isAdmin ? calc.dealerId : calc.manager}
         />
         <OrderFilesPreviewModal
-  isOpen={isFilesModalOpen}
-  onClose={() => setIsFilesModalOpen(false)}
-  orderGuid={calc.id}      // GUID розрахунку для запиту до API
-  orderNumber={calc.number} // Номер для заголовка
-/>
+          isOpen={isFilesModalOpen}
+          onClose={() => setIsFilesModalOpen(false)}
+          orderGuid={calc.id}      // GUID розрахунку для запиту до API
+          orderNumber={calc.number} // Номер для заголовка
+        />
 
         <CounterpartyInfoModal
           isOpen={isCounterpartyOpen}
