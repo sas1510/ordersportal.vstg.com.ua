@@ -37,12 +37,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.accept()
             # logger.info(f"Notification socket ACCEPTED. Group: {self.group_name} | Channel: {self.channel_name}")
         else:
-            logger.warning(f"Notification socket REJECTED: No GUID found for {user_info}. Closing connection.", extra={
-                    'tags': {
-                        'action': 'connect_notification_socket'
+            # logger.warning(f"Notification socket REJECTED: No GUID found for {user_info}. Closing connection.", extra={
+            #         'tags': {
+            #             'action': 'connect_notification_socket'
                     
-                    }
-                })
+            #         }
+            #     })
             await self.close()
 
 

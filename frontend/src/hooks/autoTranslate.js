@@ -8,7 +8,7 @@ export const autoTranslate = async (text, targetLanguage) => {
     const data = await response.json();
     return data[0][0][0];
   } catch (error) {
-    // console.error("Auto-translation error:", error);
+
     return text; 
   }
 };

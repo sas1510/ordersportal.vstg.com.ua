@@ -25,11 +25,11 @@ def get_user_from_jwt(token_key):
         
     except Exception as e:
         
-        logger.error(f"JWT AUTH ERROR: {str(e)}", extra={
-            'tags': {
-                'action': 'get_user_from_jwt (socket)'
-            }
-        })
+        # logger.error(f"JWT AUTH ERROR: {str(e)}", extra={
+        #     'tags': {
+        #         'action': 'get_user_from_jwt (socket)'
+        #     }
+        # })
         return None
 
 @database_sync_to_async
@@ -105,13 +105,13 @@ class HybridAuthMiddleware:
                 # print(f"Attempting JWT Auth with: {token_param[:10]}...")
                     scope['user'] = await get_user_from_jwt(token_param) or AnonymousUser()
                     # logger.info(f"WS Auth Success: JWT User='{user.username}' (id={user.id})")
-                else:
-                    logger.warning(f"WS Auth Failed: Invalid JWT token", extra={
-                    'tags': {
-                        'action': 'HybridAuthMiddleware (socket)'
+                # else:
+                    # logger.warning(f"WS Auth Failed: Invalid JWT token", extra={
+                    # 'tags': {
+                    #     'action': 'HybridAuthMiddleware (socket)'
                     
-                    }
-                })
+                    # }
+                # })
 
             elif api_key_header or api_key_param:
                 key_to_use = api_key_header or api_key_param
@@ -123,13 +123,13 @@ class HybridAuthMiddleware:
                 if user:
                     scope['user'] = user
                     # logger.info(f"WS Auth Success: API Key User='{user.username}' (Source: {source})")
-                else:
-                    logger.warning(f"WS Auth Failed: Invalid API Key from {source}", extra={
-                    'tags': {
-                        'action': 'HybridAuthMiddleware (socket)'
+                # else:
+                #     logger.warning(f"WS Auth Failed: Invalid API Key from {source}", extra={
+                #     'tags': {
+                #         'action': 'HybridAuthMiddleware (socket)'
                     
-                    }
-                })
+                #     }
+                # })
 
             else:
                 None
