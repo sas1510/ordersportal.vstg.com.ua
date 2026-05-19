@@ -9,10 +9,12 @@ import {
   FaTimes,
   FaFileAlt,
   FaDownload,
+  FaEye,
   FaImage,
   FaFileArchive,
 } from "react-icons/fa";
 
+// Використовуємо той самий файл стилів для ідентичного вигляду
 import "./OrderFilesPreviewModal.css"; 
 
 const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
@@ -72,53 +74,38 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   }, [files]);
 
   /* =========================
-      ЛОГІКА ПРЯМОГО ЗАВАНТАЖЕННЯ
+      ЛОГІКА ЗАВАНТАЖЕННЯ
   ========================= */
-  const handleDownload = async (fileItem) => {
-  try {
-     const url = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
+  const handleDownload = async (file) => {
+    setDownloadingFileGuid(file.fileGuid);
+    try {
+      const url = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
+      const response = await axiosInstance.get(url, { responseType: "blob" });
 
-    const response = await axiosInstance.get(url, {
-      responseType: "blob",
-    });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const objectUrl = window.URL.createObjectURL(blob);
+      
+      const isPdf = file.fileName.toLowerCase().endsWith(".pdf");
+      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.fileName);
 
-    const blob = response.data;
-
-    // 🔥 ВАЖЛИВО: перевірка чи це HTML (помилка сервера)
-    const isHtml =
-      blob.type === "text/html" ||
-      blob.type.includes("html");
-
-    if (isHtml) {
-      addNotification("Файл не знайдено або сервер повернув помилку", "error");
-      return;
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      
+      if (isPdf || isImage) {
+        window.open(objectUrl, "_blank");
+      } else {
+        link.setAttribute("download", file.fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
+    } catch (err) {
+      addNotification(t("notifications.downloadError"), "error");
+    } finally {
+      setDownloadingFileGuid(null);
     }
-
-    const downloadUrl = window.URL.createObjectURL(
-      new Blob([blob], {
-        type:
-          response.headers["content-type"] ||
-          "application/octet-stream",
-      })
-    );
-
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = fileItem.fileName;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(() => {
-      window.URL.revokeObjectURL(downloadUrl);
-    }, 1000);
-
-  } catch (error) {
-    console.error("File download error:", error);
-    addNotification("Помилка під час завантаження файлу", "error");
-  }
-};
+  };
 
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();
@@ -131,9 +118,10 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
 
   const renderFileCard = (file) => {
     const isDownloading = downloadingFileGuid === file.fileGuid;
+    const isViewable = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.fileName);
 
     return (
-      <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : /\.(jpg|jpeg|png|webp)$/i.test(file.fileName) ? 'card-image' : 'card-other'}`}>
+      <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : isViewable ? 'card-image' : 'card-other'}`}>
         <div className="file-card-info">
           {getFileIcon(file.fileName)}
           <div className="file-details">
@@ -147,9 +135,9 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
           className="file-action-btn" 
           disabled={isDownloading}
           onClick={() => handleDownload(file)}
-          title={t("common.download")}
+          title={isViewable ? t("common.view") : t("common.download")}
         >
-          {isDownloading ? <FaSpinner className="spinner-animation" /> : <FaDownload />}
+          {isDownloading ? <FaSpinner className="spinner-animation" /> : isViewable ? <FaEye /> : <FaDownload />}
         </button>
       </div>
     );
