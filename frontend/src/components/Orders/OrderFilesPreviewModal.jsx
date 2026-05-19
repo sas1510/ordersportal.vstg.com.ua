@@ -47,38 +47,43 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   // 2. Функція скачування файлу через оновлений ендпоінт download_calc
   const handleDownloadFile = async (fileItem) => {
   try {
-    const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
+    const url =
+      `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/` +
+      `?filename=${encodeURIComponent(fileItem.fileName)}`;
 
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // iPhone / iPad Safari
+    if (isIOS) {
+      window.open(url, "_blank");
+      return;
+    }
+
+    // Інші браузери
     const response = await axiosInstance.get(url, {
       responseType: "blob",
     });
 
-    // Для .zkz ставимо generic binary mime
     const blob = new Blob([response.data], {
-      type: "application/octet-stream",
+      type:
+        response.headers["content-type"] ||
+        "application/octet-stream",
     });
 
     const downloadUrl = window.URL.createObjectURL(blob);
 
-    const isIPhone =
-      /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const link = document.createElement("a");
 
-    if (isIPhone) {
-      // iOS Safari
-      window.location.href = downloadUrl;
-    } else {
-      // Інші браузери
-      const link = document.createElement("a");
-      link.href = downloadUrl;
+    link.href = downloadUrl;
 
-      // ВАЖЛИВО: filename без додаткових розширень
-      link.setAttribute("download", fileItem.fileName);
+    // ВАЖЛИВО
+    link.download = fileItem.fileName;
 
-      document.body.appendChild(link);
-      link.click();
+    document.body.appendChild(link);
 
-      link.remove();
-    }
+    link.click();
+
+    link.remove();
 
     setTimeout(() => {
       window.URL.revokeObjectURL(downloadUrl);
@@ -86,7 +91,11 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
 
   } catch (error) {
     console.error("File download error:", error);
-    addNotification("Помилка під час завантаження файлу", "error");
+
+    addNotification(
+      "Помилка під час завантаження файлу",
+      "error"
+    );
   }
 };
 
