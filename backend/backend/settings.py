@@ -27,7 +27,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 INSTALLED_APPS = [
 
-    'daphne',  # Обов'язково першим
+    'daphne', 
     'channels',
     'django.contrib.admin',
     'django.contrib.auth',

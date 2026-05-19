@@ -55,13 +55,13 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
   const isViewable = isPdf || isImage;
 
-  // Визначаємо, чи це пристрій на базі iOS (iPhone / iPad)
+  // Визначаємо пристрої Apple (iOS)
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   let previewWindow = null;
 
-  // 1. СИНХРОННО ВІДКРИВАЄМО ВКЛАДКУ ДЛЯ IOS ТА ДЕСКТОПІВ (запобігає блокуванню попапів)
+  // 1. ВІДКРИТТЯ ВКЛАДКИ ДЛЯ ПЕРЕГЛЯДУ (Тільки для фото та PDF)
   if (isViewable) {
     previewWindow = window.open("", "_blank");
     if (previewWindow) {
@@ -89,20 +89,23 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
     const response = await axiosInstance.get(url, { responseType: "blob" });
 
-    // Формуємо коректний MIME-тип контенту
+    // Визначаємо MIME-тип
     let blobType = response.headers["content-type"];
     if (isImage) {
       blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
     } else if (isPdf) {
       blobType = "application/pdf";
+    } else if (!blobType || blobType === "application/octet-stream") {
+      // КРИТИЧНО ДЛЯ IOS: примусово ставимо універсальний бінарний тип для невідомих файлів (.zkz)
+      blobType = "application/octet-stream";
     }
 
     const blob = new Blob([response.data], { type: blobType });
 
+    // 2. ОБРОБКА РЕЗУЛЬТАТУ ЗАЛЕЖНО ВІД ТИПУ ТА ДЕВАЙСУ
     if (isViewable && previewWindow) {
-      // 2. АДАПТИВНА ЛОГІКА РЕНДЕРИНГУ КОНТЕНТУ
       if (isIOS && isImage) {
-
+        // Перегляд фото на iPhone (через Base64)
         const reader = new FileReader();
         reader.onloadend = () => {
           if (previewWindow && !previewWindow.closed) {
@@ -111,30 +114,37 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
         };
         reader.readAsDataURL(blob);
       } else {
-       
+        // Перегляд фото/PDF на Ноутбуках та ПК
         const downloadUrl = window.URL.createObjectURL(blob);
         previewWindow.location.href = downloadUrl;
-        
-        // Даємо десктопному браузеру 15 секунд на зчитування Blob з пам'яті додатка
         setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
       }
     } else {
-  
+      // 3. СКАЧУВАННЯ ФАЙЛІВ ДЛЯ КОНСТРУКТОРІВ (.ZKZ)
       const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", fileItem.fileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+
+      if (isIOS) {
+        // 🔥 СПЕЦІАЛЬНИЙ ФІКС ДЛЯ IPHONE:
+        // Замість створення прихованого кліку (який блокує сокет Safari),
+        // ми примусово перенаправляємо поточне вікно браузера на цей Blob.
+        // Safari розпізнає octet-stream і запропонує користувачу вікно: "Завантажити цей файл?"
+        window.location.href = downloadUrl;
+      } else {
+        // Стандартний метод скачування для Ноутбуків та Android
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.setAttribute("download", fileItem.fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
     }
 
   } catch (error) {
-    // print.error("File download error:", error);
+    print.error("File download error:", error);
     addNotification("Помилка під час обробки файлу", "error");
-    
-    // Якщо сталася помилка на бекенді, закриваємо пусту вкладку «Завантаження...»
     if (previewWindow) previewWindow.close();
   } finally {
     setDownloadingFileGuid(null);
