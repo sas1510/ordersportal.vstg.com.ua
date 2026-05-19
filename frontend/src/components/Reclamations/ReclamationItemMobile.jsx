@@ -530,7 +530,8 @@ export const ReclamationItemMobile = ({
           src={historyOfMessage} 
           alt="Історія" 
           className={`mr-1 ${
-            reclamation.hasUnreadMessages ? "brightness-110" : ""
+            reclamation.hasUnreadMessages ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
+                        : "opacity-100"
           }`} 
         />
         

@@ -312,7 +312,8 @@ export const ReclamationItem = ({
             src={historyOfMessage} 
             alt="Історія" 
             className={`mr-1 w-[18px] h-[18px] object-contain ${
-              reclamation.hasUnreadMessages ? "brightness-110" : ""
+              reclamation.hasUnreadMessages ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
+                        : "opacity-100"
             }`} 
           />
           {reclamation.hasUnreadMessages && (

@@ -305,7 +305,9 @@ export const AdditionalOrderItemMobile = ({
             > <img 
                   src={historyOfMessage} 
 
-                  className="align-center mr-0.5" 
+                  className={` align-center mr-0.5 ${calc.hasUnreadMessages 
+                        ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
+                        : "opacity-100"}` }
                 
                 />
               {t("additional_order.history_button")}
