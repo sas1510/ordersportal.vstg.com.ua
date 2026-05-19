@@ -969,10 +969,7 @@ def download_order_file(request, order_guid, file_guid):
 
             if not row or not row[0]:
                 logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
-                return Response(
-                    {"error": "file not found"},
-                    status=404
-                )
+                return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
 
             raw_db_blob = row[0]
             db_filename = row[1] or filename
@@ -980,11 +977,8 @@ def download_order_file(request, order_guid, file_guid):
         file_bytes = extract_1c_binary(raw_db_blob)
         if not file_bytes:
             logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
-            return Response(
-                {"error": "file not found"},
-                status=404
-            )
-                    
+            return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
+        
 
         current_ext = os.path.splitext(filename)[1]
         if not current_ext:  # Якщо в назві немає розширення
@@ -1013,10 +1007,7 @@ def download_order_file(request, order_guid, file_guid):
 
     except Exception as db_error:
         logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
-        return Response(
-        {"error": "file not found"},
-        status=404
-    )
+        return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
     
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticatedOr1CApiKey])
@@ -3673,125 +3664,91 @@ from rest_framework.decorators import api_view, permission_classes
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from ranged_fileresponse import RangedFileResponse
 
-
-# @extend_schema(
-#     summary="Завантажити файл прорахунку (SMB або БД)",
-#     description=(
-#         "Намагається завантажити файл (ZKZ, фото, документ) зі сховища SMB за шляхом:\n"
-#         "`Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}`.\n\n"
-#         "Якщо файл відсутній на диску, автоматично спрацьовує **fallback у Базу Даних**, "
-#         "звідки бінарні дані витягуються через процедуру `dbo.GetBinaryFile`."
-#     ),
-#     parameters=[
-#         OpenApiParameter("order_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID прорахунку замовлення", required=True),
-#         OpenApiParameter("file_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID файлу", required=True),
-#         OpenApiParameter("filename", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Назва файлу з розширенням", required=True),
-#     ],
-#     tags=["order"]
-# )
-import mimetypes
 import os
-import tempfile
 import time
-
-import smbclient
-
-from django.conf import settings
-from django.db import connection
+import mimetypes
+import tempfile
+from urllib.parse import unquote, quote
 from django.http import Http404, StreamingHttpResponse
 from django.shortcuts import redirect
-from django.utils.http import quote
-from urllib.parse import unquote
-
+from django.db import connection
+from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
-
-# Реєструємо кастомний mime для .zkz
-mimetypes.add_type("application/octet-stream", ".zkz")
-
-
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+@extend_schema(
+    summary="Завантажити файл прорахунку (SMB або БД)",
+    description=(
+        "Намагається завантажити файл (ZKZ, фото, документ) зі сховища SMB за шляхом:\n"
+        "`Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}`.\n\n"
+        "Якщо файл відсутній на диску, автоматично спрацьовує **fallback у Базу Даних**, "
+        "звідки бінарні дані витягуються через процедуру `dbo.GetBinaryFile`."
+    ),
+    parameters=[
+        OpenApiParameter("order_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID прорахунку замовлення", required=True),
+        OpenApiParameter("file_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID файлу", required=True),
+        OpenApiParameter("filename", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Назва файлу з розширенням", required=True),
+    ],
+    tags=["order"]
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def download_calc(request, order_guid, file_guid):
     """
-    Завантажує файл прорахунку/фотографію з SMB
-    або fallback у SQL базу.
+    Завантажує файл прорахунку/фотографію з папки 'Заявка на просчет (ВМ)' через SMB 
+    або витягує його з бази даних, якщо файл збережено в SQL.
     """
-
     start_time = time.time()
-
     filename = request.GET.get("filename")
-
+    
     if not filename:
-        raise Http404("Filename is required")
+        return Response({"error": "Filename is required"}, status=400)
 
     filename = unquote(filename)
+    content_type, _ = mimetypes.guess_type(filename)
+    content_type = content_type or "application/octet-stream"
 
+    # Визначаємо inline для фото/тексту, щоб вони відкривалися в браузері/модалці
+    inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
     file_ext = os.path.splitext(filename.lower())[1]
+    
+    # 🔥 IOS ФІКС: Якщо запит йде з iPhone/iPad, примусово ставимо attachment та octet-stream,
+    # щоб змусити мобільний Safari одразу скачувати файл, а не відкривати картинку/pdf на всю сторінку.
+    user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+    is_ios = 'iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent
 
-    # Спеціальна обробка для .zkz
-    if file_ext == ".zkz":
+    if is_ios:
+        disposition = "attachment"
         content_type = "application/octet-stream"
     else:
-        content_type, _ = mimetypes.guess_type(filename)
-        content_type = content_type or "application/octet-stream"
+        disposition = "inline" if file_ext in inline_extensions else "attachment"
 
-    # Inline тільки для preview-able файлів
-    inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
+    # Шлях до сховища заявок на прорахунок
+    remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}"
 
-    disposition = "inline" if file_ext in inline_extensions else "attachment"
-
-    remote_path = (
-        f"/{settings.SMB_SERVER}/"
-        f"{settings.SMB_SHARE}/"
-        f"Заявка на просчет (ВМ)/"
-        f"{order_guid}/"
-        f"{file_guid}/"
-        f"{filename}"
-    )
-
-    # ==================================================
-    # 🚀 SMB
-    # ==================================================
+    # ==========================================
+    # 🚀 СТРАТЕГІЯ 1: Спроба прочитати з SMB
+    # ==========================================
     try:
         stat = smbclient.stat(remote_path)
-
         file_handle = smbclient.open_file(remote_path, mode="rb")
-
-        response = StreamingHttpResponse(
-            file_handle,
-            content_type=content_type
-        )
-
+        
+        response = StreamingHttpResponse(file_handle, content_type=content_type)
         response["Content-Length"] = stat.st_size
-
-        response["Content-Disposition"] = (
-            f"{disposition}; "
-            f'filename="{filename}"; '
-            f"filename*=UTF-8''{quote(filename)}"
-        )
-
+        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
         response["Access-Control-Expose-Headers"] = "Content-Disposition"
-
-        # Додатково для iOS/Safari
-        response["X-Content-Type-Options"] = "nosniff"
-
+        
         return response
 
     except Exception as smb_error:
         logger.warning(
-            f"SMB calculation file missing, switching to DB fallback. "
-            f"Path: {remote_path} | Reason: {str(smb_error)}",
-            extra={
-                "tags": {
-                    "action": "download_calc",
-                    "stage": "smb_fallback"
-                }
-            }
+            f"SMB calculation file missing, switching to DB fallback. Path: {remote_path} | Reason: {str(smb_error)}",
+            extra={'tags': {'action': 'download_calc', 'stage': 'smb_fallback'}}
         )
 
-    # ==================================================
-    # 🗄 SQL FALLBACK
-    # ==================================================
+    # ==========================================
+    # 🗄 СТРАТЕГІЯ 2: Fallback в Базу Даних (SQL)
+    # ==========================================
     try:
         binary_guid = guid_to_1c_bin(file_guid)
 
@@ -3800,67 +3757,34 @@ def download_calc(request, order_guid, file_guid):
                 "EXEC [dbo].[GetBinaryFile] @FileLink = %s",
                 [binary_guid]
             )
-
             row = cursor.fetchone()
 
             if not row or not row[0]:
-                logger.error(
-                    f"Calculation file not found anywhere: "
-                    f"{file_guid} ({filename})"
-                )
-
-                return Response(
-                    {"error": "file not found"},
-                    status=404
-                )
+                logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
+                # 🔥 ВИПРАВЛЕНО: Замість редіректу на HTML повертаємо 404 статус
+                raise Http404("Файл не знайдено в базі даних 1С")
 
             raw_db_blob = row[0]
             db_filename = row[1] or filename
 
         file_bytes = extract_1c_binary(raw_db_blob)
-
         if not file_bytes:
-            logger.error(
-                f"1C Binary extraction failed "
-                f"(corrupted blob) for calculation file: {file_guid}"
-            )
-
-            return Response(
-                    {"error": "file not found"},
-                    status=404
-                )
-
-        # Якщо розширення відсутнє — пробуємо визначити
+            logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
+            # 🔥 ВИПРАВЛЕНО: Повертаємо ValidationError або 400 Bad Request
+            return Response({"error": "Файл пошкоджено всередині бази даних 1С"}, status=400)
+        
         current_ext = os.path.splitext(filename)[1]
-
-        if not current_ext:
+        if not current_ext:  # Якщо в назві немає розширення
             detected_ext = guess_extension_from_bytes(file_bytes[:16])
-
             if detected_ext:
                 filename += detected_ext
-
-                if detected_ext == ".zkz":
-                    content_type = "application/octet-stream"
-                else:
+                if not is_ios:
                     content_type, _ = mimetypes.guess_type(filename)
-                    content_type = (
-                        content_type or "application/octet-stream"
-                    )
+                    content_type = content_type or "application/octet-stream"
+                    if detected_ext in [".pdf", ".jpg", "jpg", "JPG", ".jpeg", ".png", ".webp"]:
+                        disposition = "inline"
 
-                if detected_ext.lower() in [
-                    ".pdf",
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                    ".webp",
-                ]:
-                    disposition = "inline"
-
-        tmp = tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=os.path.splitext(filename)[1]
-        )
-
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
         tmp.write(file_bytes)
         tmp.close()
 
@@ -3869,30 +3793,16 @@ def download_calc(request, order_guid, file_guid):
             open(tmp.name, "rb"),
             content_type=content_type
         )
-
-        response["Content-Disposition"] = (
-            f"{disposition}; "
-            f'filename="{filename or db_filename}"; '
-            f"filename*=UTF-8''{quote(filename or db_filename)}"
-        )
-
+        response["Content-Disposition"] = f'{disposition}; filename="{filename or db_filename}"'
         response["Access-Control-Expose-Headers"] = "Content-Disposition"
-
-        response["X-Content-Type-Options"] = "nosniff"
-
+        
         return response
 
+    except Http404 as e:
+        raise e
     except Exception as db_error:
-        logger.exception(
-            f"Critical error in download_calc DB extraction: "
-            f"{str(db_error)}"
-        )
-
-        return Response(
-                    {"error": "file not found"},
-                    status=404
-                )
-
+        logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
+        return Response({"error": "Помилка під час вивантаження файлу з бази даних"}, status=500)
 @extend_schema(
     summary="Отримати список файлів прорахунку",
     description=(
