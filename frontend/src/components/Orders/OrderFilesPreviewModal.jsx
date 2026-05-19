@@ -45,44 +45,42 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   }, [isOpen, orderGuid]);
 
   // 2. Функція скачування файлу через оновлений ендпоінт download_calc
-  const handleDownloadFile = async (fileItem) => {
+const handleDownloadFile = async (fileItem) => {
   try {
     const url =
       `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/` +
       `?filename=${encodeURIComponent(fileItem.fileName)}`;
 
-    // const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    // // iPhone / iPad Safari
-    // if (isIOS) {
-    //   window.open(url, "_blank");
-    //   return;
-    // }
-
-    // Інші браузери
     const response = await axiosInstance.get(url, {
       responseType: "blob",
     });
 
-    const blob = new Blob([response.data], {
-      type:
-        response.headers["content-type"] ||
-        "application/octet-stream",
-    });
+    const blob = response.data;
 
-    const downloadUrl = window.URL.createObjectURL(blob);
+    // 🔥 ВАЖЛИВО: перевірка чи це HTML (помилка сервера)
+    const isHtml =
+      blob.type === "text/html" ||
+      blob.type.includes("html");
+
+    if (isHtml) {
+      addNotification("Файл не знайдено або сервер повернув помилку", "error");
+      return;
+    }
+
+    const downloadUrl = window.URL.createObjectURL(
+      new Blob([blob], {
+        type:
+          response.headers["content-type"] ||
+          "application/octet-stream",
+      })
+    );
 
     const link = document.createElement("a");
-
     link.href = downloadUrl;
-
-    // ВАЖЛИВО
     link.download = fileItem.fileName;
 
     document.body.appendChild(link);
-
     link.click();
-
     link.remove();
 
     setTimeout(() => {
@@ -91,14 +89,9 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
 
   } catch (error) {
     console.error("File download error:", error);
-
-    addNotification(
-      "Помилка під час завантаження файлу",
-      "error"
-    );
+    addNotification("Помилка під час завантаження файлу", "error");
   }
 };
-
   // Helper для визначення іконки
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();

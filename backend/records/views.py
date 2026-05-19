@@ -969,7 +969,10 @@ def download_order_file(request, order_guid, file_guid):
 
             if not row or not row[0]:
                 logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
-                return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+                return Response(
+                    {"error": "file not found"},
+                    status=404
+                )
 
             raw_db_blob = row[0]
             db_filename = row[1] or filename
@@ -977,8 +980,11 @@ def download_order_file(request, order_guid, file_guid):
         file_bytes = extract_1c_binary(raw_db_blob)
         if not file_bytes:
             logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
-            return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
-        
+            return Response(
+                {"error": "file not found"},
+                status=404
+            )
+                    
 
         current_ext = os.path.splitext(filename)[1]
         if not current_ext:  # Якщо в назві немає розширення
@@ -1007,7 +1013,10 @@ def download_order_file(request, order_guid, file_guid):
 
     except Exception as db_error:
         logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
-        return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+        return Response(
+            {"error": "file not found"},
+            status=404
+        )
     
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticatedOr1CApiKey])
