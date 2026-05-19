@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from "react";
-import axiosInstance from "../../api/axios.js";
+import React, { useState, useEffect, useMemo } from "react";
+import axiosInstance from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
 import { useTranslation } from "react-i18next";
-import { 
-  FaTimes, 
-  FaFileDownload, 
-  FaFileAlt, 
-  FaImage, 
-  FaFileArchive, 
-  FaSpinner
+
+import {
+  FaSpinner,
+  FaTimes,
+  FaFileAlt,
+  FaDownload,
+  FaEye,
+  FaImage,
+  FaFileArchive,
 } from "react-icons/fa";
-import "./OrderFilesPreviewModal.css";
+
+import "./OrderFilesPreviewModal.css"; 
 
 const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => {
   const { t } = useTranslation();
@@ -18,8 +21,9 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [downloadingFileGuid, setDownloadingFileGuid] = useState(null);
 
-  // 1. Завантаження списку файлів прорахунку за новим ендпоінтом get_calc_files
+  // 1. Завантаження списку файлів
   useEffect(() => {
     const fetchOrderFiles = async () => {
       if (!isOpen || !orderGuid) return;
@@ -44,33 +48,57 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     fetchOrderFiles();
   }, [isOpen, orderGuid]);
 
-  // 2. Функція скачування файлу через оновлений ендпоінт download_calc
+  // 2. Оновлена функція перегляду зображень/PDF або завантаження інших файлів
   const handleDownloadFile = async (fileItem) => {
+    setDownloadingFileGuid(fileItem.fileGuid);
     try {
-      // ПРАВИЛЬНИЙ УРЛ: підставляємо download_calc відповідно до вашого urls.py
       const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
-      
-      // Запит як blob для коректного отримання binary stream (з урахуванням SMB/DB Fallback)
       const response = await axiosInstance.get(url, { responseType: "blob" });
-      
-      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+
+      const ext = fileItem.fileName.toLowerCase().split(".").pop();
+      const isPdf = ext === "pdf";
+      const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
+
+      // Формуємо чистий MIME-тип, ігноруючи заголовок "application/octet-stream" від Django
+      let blobType = response.headers["content-type"];
+      if (isImage) {
+        blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+      } else if (isPdf) {
+        blobType = "application/pdf";
+      }
+
+      const blob = new Blob([response.data], { type: blobType });
       const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
       
-      link.setAttribute("download", fileItem.fileName);
-      document.body.appendChild(link);
-      link.click();
+      if (isPdf || isImage) {
+        // Стабільний метод відкриття вкладки без блокування попап-системами браузерів
+        const previewWindow = window.open();
+        if (previewWindow) {
+          previewWindow.location.href = downloadUrl;
+        } else {
+          window.open(downloadUrl, "_blank");
+        }
+      } else {
+        // Пряме завантаження для конструкторських форматів (.zkz та ін.)
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.setAttribute("download", fileItem.fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      // Збільшено час таймауту, щоб великі зображення встигли вичитати бінарний потік
+      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
     } catch (error) {
       console.error("File download error:", error);
-      addNotification("Помилка під час завантаження файлу", "error");
+      addNotification("Помилка під час обробки файлу", "error");
+    } finally {
+      setDownloadingFileGuid(null);
     }
   };
 
-  // Helper для визначення іконки
+  // Helper для визначення іконки файлу
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();
     if (ext === "zkz") return <FaFileArchive className="file-icon icon-zkz" />;
@@ -78,19 +106,60 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     return <FaFileAlt className="file-icon icon-doc" />;
   };
 
-  // Закриття по нажаттю на клавішу Escape
+  // Закриття по натисканню на клавішу Escape
   useEffect(() => {
     const handleEsc = (e) => { e.key === "Escape" && onClose(); };
-    if (isOpen) window.addEventListener("keydown", handleEsc);
-    return () => window.removeEventListener("keydown", handleEsc);
+    if (isOpen) {
+      window.addEventListener("keydown", handleEsc);
+      document.body.style.overflow = "hidden"; // Блокуємо скрол основної сторінки
+    }
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "";
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // 🔥 НАДІЙНЕ ГРУПУВАННЯ: Фільтруємо за типом (File_DataType_Name), який повертає SQL процедура 1С
+  // Групування файлів
   const zkzFiles = files.filter(f => f.type && f.type.toLowerCase().includes("просчет") || f.fileName.toLowerCase().endsWith(".zkz"));
-  const imageFiles = files.filter(f => f.type && f.type.toLowerCase().includes("фото") || ["jpg", "jpeg", "png", "webp"].includes(f.fileName.toLowerCase().split(".").pop()));
+  const imageFiles = files.filter(f => f.type && f.type.toLowerCase().includes("фото") || ["jpg", "jpeg", "png", "webp", "gif"].includes(f.fileName.toLowerCase().split(".").pop()));
   const otherFiles = files.filter(f => !zkzFiles.includes(f) && !imageFiles.includes(f));
+
+  // Рендеринг окремої картки для уникнення дублювання коду
+  const renderFileRow = (file, cardClass) => {
+    const isDownloading = downloadingFileGuid === file.fileGuid;
+    const ext = file.fileName.toLowerCase().split(".").pop();
+    const isViewable = ["jpg", "jpeg", "png", "webp", "gif", "pdf"].includes(ext);
+
+    return (
+      <div key={file.fileGuid} className={`file-card ${cardClass}`}>
+        <div className="file-card-info">
+          {getFileIcon(file.fileName)}
+          <div className="file-details">
+            <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
+            <span className="file-date-text">
+              {file.date ? new Date(file.date).toLocaleString() : "Дата не вказана"}
+            </span>
+          </div>
+        </div>
+        <button 
+          className="file-action-btn" 
+          disabled={isDownloading}
+          onClick={() => handleDownloadFile(file)} 
+          title={isViewable ? "Переглянути у браузері" : "Завантажити файл"}
+        >
+          {isDownloading ? (
+            <FaSpinner className="spinner-animation" />
+          ) : isViewable ? (
+            <FaEye />
+          ) : (
+            <FaDownload />
+          )}
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="preview-modal-overlay" onClick={onClose}>
@@ -100,7 +169,6 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
         <div className="preview-modal-header">
           <div className="preview-header-title">
             <h3>Файли прорахунку {orderNumber ? `№ ${orderNumber}` : ""}</h3>
-            {/* <span className="preview-subtitle">Сховище заявок, фотографій та файлів конфігуратора з 1С</span> */}
           </div>
           <button className="preview-close-btn" onClick={onClose}>
             <FaTimes size={18} />
@@ -125,24 +193,9 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
               {/* СЕКЦІЯ 1: Заявки на прорахунок (.ZKZ) */}
               {zkzFiles.length > 0 && (
                 <div className="preview-section">
-                  <h4>Файли</h4>
+                  <h4>Файли прорахунку</h4>
                   <div className="preview-grid">
-                    {zkzFiles.map(file => (
-                      <div key={file.fileGuid} className="file-card card-zkz">
-                        <div className="file-card-info">
-                          {getFileIcon(file.fileName)}
-                          <div className="file-details">
-                            <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
-                            <span className="file-date-text">
-                              {file.date ? new Date(file.date).toLocaleString() : "Дата не вказана"}
-                            </span>
-                          </div>
-                        </div>
-                        <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Завантажити файл">
-                          <FaFileDownload />
-                        </button>
-                      </div>
-                    ))}
+                    {zkzFiles.map(file => renderFileRow(file, "card-zkz"))}
                   </div>
                 </div>
               )}
@@ -152,22 +205,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                 <div className="preview-section">
                   <h4>Фотографії</h4>
                   <div className="preview-grid">
-                    {imageFiles.map(file => (
-                      <div key={file.fileGuid} className="file-card card-image">
-                        <div className="file-card-info">
-                          {getFileIcon(file.fileName)}
-                          <div className="file-details">
-                            <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
-                            <span className="file-date-text">
-                              {file.date ? new Date(file.date).toLocaleString() : "Дата не вказана"}
-                            </span>
-                          </div>
-                        </div>
-                        <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Скачати зображення">
-                          <FaFileDownload />
-                        </button>
-                      </div>
-                    ))}
+                    {imageFiles.map(file => renderFileRow(file, "card-image"))}
                   </div>
                 </div>
               )}
@@ -177,22 +215,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                 <div className="preview-section">
                   <h4>Додаткові документи</h4>
                   <div className="preview-grid">
-                    {otherFiles.map(file => (
-                      <div key={file.fileGuid} className="file-card card-other">
-                        <div className="file-card-info">
-                          {getFileIcon(file.fileName)}
-                          <div className="file-details">
-                            <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
-                            <span className="file-date-text">
-                              {file.date ? new Date(file.date).toLocaleString() : "Дата не вказана"}
-                            </span>
-                          </div>
-                        </div>
-                        <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Завантажити документ">
-                          <FaFileDownload />
-                        </button>
-                      </div>
-                    ))}
+                    {otherFiles.map(file => renderFileRow(file, "card-other"))}
                   </div>
                 </div>
               )}
