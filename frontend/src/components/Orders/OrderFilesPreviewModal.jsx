@@ -50,45 +50,47 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-  // Формуємо урл відповідно до вашого urls.py
-  const fileUrl = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
-
-  // 🔥 ФІКС ДЛЯ IPHONE / IOS: Завантажуємо напряму без посередництва Blob
+  // 1. Якщо це iPhone, використовуємо перевірений прямий редірект (запобігає утворенню .zkz.html та unknown)
   if (isIOS) {
-    // Беремо базовий URL з конфігу axios, щоб сформувати повне абсолютне посилання
+    const fileUrl = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
     const baseURL = axiosInstance.defaults.baseURL || "";
     const cleanBaseURL = baseURL.endsWith('/') ? baseURL : `${baseURL}/`;
     const cleanFileUrl = fileUrl.startsWith('/') ? fileUrl.substring(1) : fileUrl;
     
     const directLink = `${cleanBaseURL}${cleanFileUrl}`;
-
-    // Відкриваємо пряме посилання. Safari отримає від Django правильні HTTP-заголовки
-    // Content-Disposition з оригінальним іменем файлу із 1С і завантажить чистий .zkz / .pdf / .png
     window.open(directLink, "_blank");
     return;
   }
 
-  // --- СТАНДАРТНА ЛОГІКА ДЛЯ НОУТБУКІВ ТА ПК (Через фоновий Blob) ---
+  // 2. ДЛЯ НОУТБУКІВ ТА ПК: Копіюємо один в один вашу робочу логіку з `handleDownload`
   try {
-    // Запит як blob для коректного отримання binary stream (з урахуванням SMB/DB Fallback)
-    const response = await axiosInstance.get(fileUrl, { responseType: "blob" });
-    
-    // ПЕРЕВІРКА НА HTML: Якщо бекенд віддав помилку у вигляді HTML-сторінки, не даємо її скачати
+    const fileName = fileItem.fileName;
+
+    const response = await axiosInstance.get(
+      `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/`,
+      {
+        params: { filename: fileName },
+        responseType: "blob",
+      }
+    );
+
+    // Захист від HTML-сторінок помилок сервера (щоб не качати биті файли)
     const contentType = response.headers["content-type"] || "";
     if (contentType.includes("text/html")) {
       addNotification("Файл пошкоджено або не знайдено на сервері 1С", "error");
       return;
     }
 
-    const blob = new Blob([response.data], { type: contentType });
-    const downloadUrl = window.URL.createObjectURL(blob);
+    // Точно так само, як у вашому успішному прикладі — огортаємо response.data безпосередньо
+    const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = downloadUrl;
-    
-    link.setAttribute("download", fileItem.fileName);
+
+    link.setAttribute("download", fileName);
+
     document.body.appendChild(link);
     link.click();
-    
+
     link.parentNode.removeChild(link);
     window.URL.revokeObjectURL(downloadUrl);
   } catch (error) {
