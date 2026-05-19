@@ -51,13 +51,13 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
       `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/` +
       `?filename=${encodeURIComponent(fileItem.fileName)}`;
 
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // iPhone / iPad Safari
-    if (isIOS) {
-      window.open(url, "_blank");
-      return;
-    }
+    // // iPhone / iPad Safari
+    // if (isIOS) {
+    //   window.open(url, "_blank");
+    //   return;
+    // }
 
     // Інші браузери
     const response = await axiosInstance.get(url, {
