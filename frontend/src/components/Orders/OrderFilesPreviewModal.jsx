@@ -50,22 +50,27 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-  // 1. Якщо це iPhone, використовуємо перевірений прямий редірект (запобігає утворенню .zkz.html та unknown)
+  const fileName = fileItem.fileName;
+
+  // 🔥 1. ЗАЛІЗОБЕТОННИЙ ФІКС ДЛЯ IPHONE (БЕЗ WINDOW.OPEN)
   if (isIOS) {
-    const fileUrl = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
+    // Формуємо правильний URL для скачування
+    const fileUrl = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileName)}`;
+    
+    // Збираємо абсолютне посилання з урахуванням налаштувань вашого axiosInstance
     const baseURL = axiosInstance.defaults.baseURL || "";
     const cleanBaseURL = baseURL.endsWith('/') ? baseURL : `${baseURL}/`;
     const cleanFileUrl = fileUrl.startsWith('/') ? fileUrl.substring(1) : fileUrl;
-    
     const directLink = `${cleanBaseURL}${cleanFileUrl}`;
-    window.open(directLink, "_blank");
+
+    // Змінюємо локацію поточного вікна. 
+    // На iPhone Safari не закриє додаток, а просто виведе рідне вікно для завантаження чистого .zkz/.pdf/.png
+    window.location.href = directLink;
     return;
   }
 
-  // 2. ДЛЯ НОУТБУКІВ ТА ПК: Копіюємо один в один вашу робочу логіку з `handleDownload`
+  // 2. ДЛЯ НОУТБУКІВ ТА ПК (Ваша стабільна робоча логіка через Blob)
   try {
-    const fileName = fileItem.fileName;
-
     const response = await axiosInstance.get(
       `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/`,
       {
@@ -74,18 +79,16 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
       }
     );
 
-    // Захист від HTML-сторінок помилок сервера (щоб не качати биті файли)
+    // Захист від HTML-сторінок помилок сервера
     const contentType = response.headers["content-type"] || "";
     if (contentType.includes("text/html")) {
       addNotification("Файл пошкоджено або не знайдено на сервері 1С", "error");
       return;
     }
 
-    // Точно так само, як у вашому успішному прикладі — огортаємо response.data безпосередньо
     const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = downloadUrl;
-
     link.setAttribute("download", fileName);
 
     document.body.appendChild(link);
