@@ -77,7 +77,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   const handleDownload = async (fileItem) => {
   try {
     const url =
-      `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/` +
+      `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_order/` +
       `?filename=${encodeURIComponent(fileItem.fileName)}`;
 
     const response = await axiosInstance.get(url, {
