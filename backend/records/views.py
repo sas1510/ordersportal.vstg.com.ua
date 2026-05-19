@@ -1014,9 +1014,9 @@ def download_order_file(request, order_guid, file_guid):
     except Exception as db_error:
         logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
         return Response(
-            {"error": "file not found"},
-            status=404
-        )
+        {"error": "file not found"},
+        status=404
+    )
     
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticatedOr1CApiKey])
@@ -3809,9 +3809,9 @@ def download_calc(request, order_guid, file_guid):
                     f"{file_guid} ({filename})"
                 )
 
-                return redirect(
-                    f"{settings.FRONTEND_URL}"
-                    f"file-preview/not-found?filename={quote(filename)}"
+                return Response(
+                    {"error": "file not found"},
+                    status=404
                 )
 
             raw_db_blob = row[0]
@@ -3825,10 +3825,10 @@ def download_calc(request, order_guid, file_guid):
                 f"(corrupted blob) for calculation file: {file_guid}"
             )
 
-            return redirect(
-                f"{settings.FRONTEND_URL}"
-                f"file-preview/corrupted?filename={quote(filename)}"
-            )
+            return Response(
+                    {"error": "file not found"},
+                    status=404
+                )
 
         # Якщо розширення відсутнє — пробуємо визначити
         current_ext = os.path.splitext(filename)[1]
@@ -3888,10 +3888,10 @@ def download_calc(request, order_guid, file_guid):
             f"{str(db_error)}"
         )
 
-        return redirect(
-            f"{settings.FRONTEND_URL}"
-            f"file-preview/not-found?filename={quote(filename)}"
-        )
+        return Response(
+                    {"error": "file not found"},
+                    status=404
+                )
 
 @extend_schema(
     summary="Отримати список файлів прорахунку",
