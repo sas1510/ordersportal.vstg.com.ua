@@ -9,12 +9,10 @@ import {
   FaTimes,
   FaFileAlt,
   FaDownload,
-  FaEye,
   FaImage,
   FaFileArchive,
 } from "react-icons/fa";
 
-// Використовуємо той самий файл стилів для ідентичного вигляду
 import "./OrderFilesPreviewModal.css"; 
 
 const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
@@ -74,32 +72,50 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   }, [files]);
 
   /* =========================
-      ЛОГІКА ЗАВАНТАЖЕННЯ
+      ЛОГІКА ПРЯМОГО ЗАВАНТАЖЕННЯ
   ========================= */
   const handleDownload = async (file) => {
+    // Визначаємо Apple iOS пристрої (iPhone / iPad)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
     setDownloadingFileGuid(file.fileGuid);
     try {
       const url = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
       const response = await axiosInstance.get(url, { responseType: "blob" });
 
-      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      // 1. ПЕРЕВІРКА НА HTML (Захист від завантаження помилок виду .zkz.html)
+      const contentType = response.headers["content-type"] || "";
+      if (contentType.includes("text/html")) {
+        addNotification(t("errors.fileCorrupted", "Файл пошкоджено або не знайдено в 1С"), "error");
+        return;
+      }
+
+      // 2. ФОРМУЄМО СУВОРУ БІНАРНУ МАРКУ ДЛЯ IOS
+      let blobType = contentType;
+      if (isIOS) {
+        // Примушуємо Safari качати, а не намагатися відкрити фото/PDF всередині вікна
+        blobType = "application/octet-stream";
+      }
+
+      const blob = new Blob([response.data], { type: blobType });
       const objectUrl = window.URL.createObjectURL(blob);
       
-      const isPdf = file.fileName.toLowerCase().endsWith(".pdf");
-      const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.fileName);
-
-      const link = document.createElement("a");
-      link.href = objectUrl;
-      
-      if (isPdf || isImage) {
-        window.open(objectUrl, "_blank");
+      // 3. СКАЧУВАННЯ В ЗАЛЕЖНОСТІ ВІД ПЛАТФОРМИ
+      if (isIOS) {
+        // На iPhone прямий редірект локації на Blob викликає системне завантаження файлу
+        window.location.href = objectUrl;
       } else {
+        // На ноутбуках і ПК скачуємо класично через приховане посилання
+        const link = document.createElement("a");
+        link.href = objectUrl;
         link.setAttribute("download", file.fileName);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
-      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 5000);
+
+      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 15000);
     } catch (err) {
       addNotification(t("notifications.downloadError"), "error");
     } finally {
@@ -118,10 +134,9 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
 
   const renderFileCard = (file) => {
     const isDownloading = downloadingFileGuid === file.fileGuid;
-    const isViewable = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.fileName);
 
     return (
-      <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : isViewable ? 'card-image' : 'card-other'}`}>
+      <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : /\.(jpg|jpeg|png|webp)$/i.test(file.fileName) ? 'card-image' : 'card-other'}`}>
         <div className="file-card-info">
           {getFileIcon(file.fileName)}
           <div className="file-details">
@@ -135,9 +150,9 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
           className="file-action-btn" 
           disabled={isDownloading}
           onClick={() => handleDownload(file)}
-          title={isViewable ? t("common.view") : t("common.download")}
+          title={t("common.download")}
         >
-          {isDownloading ? <FaSpinner className="spinner-animation" /> : isViewable ? <FaEye /> : <FaDownload />}
+          {isDownloading ? <FaSpinner className="spinner-animation" /> : <FaDownload />}
         </button>
       </div>
     );
