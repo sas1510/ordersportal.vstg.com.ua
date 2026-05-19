@@ -55,14 +55,15 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
   const isViewable = isPdf || isImage;
 
-  // Визначаємо пристрої Apple (iOS)
+  // Визначаємо, чи це пристрій на базі iOS (iPhone / iPad)
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                 (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   let previewWindow = null;
 
-  // 1. ВІДКРИТТЯ ВКЛАДКИ ДЛЯ ПЕРЕГЛЯДУ (Тільки для фото та PDF)
-  if (isViewable) {
+  // 1. ВІДКРИВАЄМО ВКЛАДКУ ДЛЯ ПЕРЕГЛЯДУ: Тільки для ноутбуків/ПК.
+  // На iPhone ми тепер примусово завантажуємо зображення, а не переглядаємо.
+  if (isViewable && !isIOS) {
     previewWindow = window.open("", "_blank");
     if (previewWindow) {
       previewWindow.document.write(`
@@ -89,62 +90,44 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
     const response = await axiosInstance.get(url, { responseType: "blob" });
 
-    // Визначаємо MIME-тип
+    // Формуємо коректний MIME-тип контенту
     let blobType = response.headers["content-type"];
     if (isImage) {
       blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
     } else if (isPdf) {
       blobType = "application/pdf";
     } else if (!blobType || blobType === "application/octet-stream") {
-      // КРИТИЧНО ДЛЯ IOS: примусово ставимо універсальний бінарний тип для невідомих файлів (.zkz)
+      
       blobType = "application/octet-stream";
     }
 
     const blob = new Blob([response.data], { type: blobType });
+    const downloadUrl = window.URL.createObjectURL(blob);
 
-    // 2. ОБРОБКА РЕЗУЛЬТАТУ ЗАЛЕЖНО ВІД ТИПУ ТА ДЕВАЙСУ
-    if (isViewable && previewWindow) {
-      if (isIOS && isImage) {
-        // Перегляд фото на iPhone (через Base64)
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (previewWindow && !previewWindow.closed) {
-            previewWindow.location.href = reader.result;
-          }
-        };
-        reader.readAsDataURL(blob);
-      } else {
-        // Перегляд фото/PDF на Ноутбуках та ПК
-        const downloadUrl = window.URL.createObjectURL(blob);
-        previewWindow.location.href = downloadUrl;
-        setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
-      }
+    // 2. ОБРОБКА РЕЗУЛЬТАТУ
+    if (isIOS) {
+      window.location.href = downloadUrl;
+    } else if (isViewable && previewWindow) {
+ 
+      previewWindow.location.href = downloadUrl;
     } else {
-      // 3. СКАЧУВАННЯ ФАЙЛІВ ДЛЯ КОНСТРУКТОРІВ (.ZKZ)
-      const downloadUrl = window.URL.createObjectURL(blob);
 
-      if (isIOS) {
-        // 🔥 СПЕЦІАЛЬНИЙ ФІКС ДЛЯ IPHONE:
-        // Замість створення прихованого кліку (який блокує сокет Safari),
-        // ми примусово перенаправляємо поточне вікно браузера на цей Blob.
-        // Safari розпізнає octet-stream і запропонує користувачу вікно: "Завантажити цей файл?"
-        window.location.href = downloadUrl;
-      } else {
-        // Стандартний метод скачування для Ноутбуків та Android
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.setAttribute("download", fileItem.fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      
-      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", fileItem.fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
+    
+    // Даємо браузеру час на зчитування Blob з пам'яті
+    setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
 
   } catch (error) {
-    print.error("File download error:", error);
+    // print.error("File download error:", error);
     addNotification("Помилка під час обробки файлу", "error");
+    
+    // Закриваємо пусту вкладку, якщо вона була відкрита
     if (previewWindow) previewWindow.close();
   } finally {
     setDownloadingFileGuid(null);
