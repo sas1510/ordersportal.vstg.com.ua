@@ -50,54 +50,96 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
 
   // 2. Оновлена функція перегляду зображень/PDF або завантаження інших файлів
   const handleDownloadFile = async (fileItem) => {
-    setDownloadingFileGuid(fileItem.fileGuid);
-    try {
-      const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
-      const response = await axiosInstance.get(url, { responseType: "blob" });
+  const ext = fileItem.fileName.toLowerCase().split(".").pop();
+  const isPdf = ext === "pdf";
+  const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
+  const isViewable = isPdf || isImage;
 
-      const ext = fileItem.fileName.toLowerCase().split(".").pop();
-      const isPdf = ext === "pdf";
-      const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
+  // Визначаємо, чи це пристрій на базі iOS (iPhone / iPad)
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-      // Формуємо чистий MIME-тип, ігноруючи заголовок "application/octet-stream" від Django
-      let blobType = response.headers["content-type"];
-      if (isImage) {
-        blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
-      } else if (isPdf) {
-        blobType = "application/pdf";
-      }
+  let previewWindow = null;
 
-      const blob = new Blob([response.data], { type: blobType });
-      const downloadUrl = window.URL.createObjectURL(blob);
-      
-      if (isPdf || isImage) {
-        // Стабільний метод відкриття вкладки без блокування попап-системами браузерів
-        const previewWindow = window.open();
-        if (previewWindow) {
-          previewWindow.location.href = downloadUrl;
-        } else {
-          window.open(downloadUrl, "_blank");
-        }
-      } else {
-        // Пряме завантаження для конструкторських форматів (.zkz та ін.)
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.setAttribute("download", fileItem.fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      
-      // Збільшено час таймауту, щоб великі зображення встигли вичитати бінарний потік
-      setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
-    } catch (error) {
-      console.error("File download error:", error);
-      addNotification("Помилка під час обробки файлу", "error");
-    } finally {
-      setDownloadingFileGuid(null);
+  // 1. СИНХРОННО ВІДКРИВАЄМО ВКЛАДКУ ДЛЯ IOS ТА ДЕСКТОПІВ (запобігає блокуванню попапів)
+  if (isViewable) {
+    previewWindow = window.open("", "_blank");
+    if (previewWindow) {
+      previewWindow.document.write(`
+        <html>
+          <head>
+            <title>Завантаження...</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; color:#666; background-color:#f4f4f5; margin:0;">
+            <div style="text-align:center;">
+              <div style="margin-bottom:12px; font-weight:600;">Завантаження файлу...</div>
+              <div style="font-size:13px; color:#999;">Будь ласка, зачекайте, формується перегляд.</div>
+            </div>
+          </body>
+        </html>
+      `);
     }
-  };
+  }
 
+  setDownloadingFileGuid(fileItem.fileGuid);
+
+  try {
+    const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
+    const response = await axiosInstance.get(url, { responseType: "blob" });
+
+    // Формуємо коректний MIME-тип контенту
+    let blobType = response.headers["content-type"];
+    if (isImage) {
+      blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+    } else if (isPdf) {
+      blobType = "application/pdf";
+    }
+
+    const blob = new Blob([response.data], { type: blobType });
+
+    if (isViewable && previewWindow) {
+      // 2. АДАПТИВНА ЛОГІКА РЕНДЕРИНГУ КОНТЕНТУ
+      if (isIOS && isImage) {
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (previewWindow && !previewWindow.closed) {
+            previewWindow.location.href = reader.result;
+          }
+        };
+        reader.readAsDataURL(blob);
+      } else {
+       
+        const downloadUrl = window.URL.createObjectURL(blob);
+        previewWindow.location.href = downloadUrl;
+        
+        // Даємо десктопному браузеру 15 секунд на зчитування Blob з пам'яті додатка
+        setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
+      }
+    } else {
+  
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", fileItem.fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    }
+
+  } catch (error) {
+    // print.error("File download error:", error);
+    addNotification("Помилка під час обробки файлу", "error");
+    
+    // Якщо сталася помилка на бекенді, закриваємо пусту вкладку «Завантаження...»
+    if (previewWindow) previewWindow.close();
+  } finally {
+    setDownloadingFileGuid(null);
+  }
+};
   // Helper для визначення іконки файлу
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();
