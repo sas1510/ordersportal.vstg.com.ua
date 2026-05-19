@@ -912,83 +912,103 @@ def download_order_file(request, order_guid, file_guid):
     Завантажує файл замовлення з SMB (1С) без створення важких системних процесів.
     """
 
+    """
+    Завантажує файл прорахунку/фотографію з папки 'Заявка на просчет (ВМ)' через SMB 
+    або витягує його з бази даних, якщо файл збережено в SQL.
+    """
     start_time = time.time()
-    
-    
-
     filename = request.GET.get("filename")
+    
     if not filename:
         raise Http404("Filename is required")
 
     filename = unquote(filename)
+    content_type, _ = mimetypes.guess_type(filename)
+    content_type = content_type or "application/octet-stream"
 
-    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+    # Визначаємо inline для фото/тексту, щоб вони відкривалися в браузері/модалці
+    inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
+    file_ext = os.path.splitext(filename.lower())[1]
+    disposition = "inline" if file_ext in inline_extensions else "attachment"
 
-
+    # Шлях до сховища заявок на прорахунок
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заказ покупателя/{order_guid}/{file_guid}/{filename}"
 
-    # logger.info(f"File download request from SMB", extra={
-    #     'tags': {
-    #         'action': 'download_file',
-    #         'order_guid': order_guid,
-    #         'file_name': filename,
-    #         'user': user_name
-    #     }
-    # })
-
+    # ==========================================
+    # 🚀 СТРАТЕГІЯ 1: Спроба прочитати з SMB
+    # ==========================================
     try:
-
         stat = smbclient.stat(remote_path)
-        file_size_mb = round(stat.st_size / (1024 * 1024), 2)
-        
-
         file_handle = smbclient.open_file(remote_path, mode="rb")
-
-        # 3. Визначаємо тип та спосіб відображення
-        content_type, _ = mimetypes.guess_type(filename)
-        content_type = content_type or "application/octet-stream"
-
-        inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
-        file_ext = os.path.splitext(filename.lower())[1]
-        disposition = "inline" if file_ext in inline_extensions else "attachment"
-
-        # 4. Формуємо відповідь
-        response = StreamingHttpResponse(
-            file_handle, 
-            content_type=content_type
-        )
         
- 
+        response = StreamingHttpResponse(file_handle, content_type=content_type)
         response["Content-Length"] = stat.st_size
         response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
         response["Access-Control-Expose-Headers"] = "Content-Disposition"
-
-
-        duration = time.time() - start_time
         
-   
-        # logger.info(f"SMB Stream started: {filename}", extra={
-        #     'tags': {
-        #         'action': 'download_file',
-        #         'status': 'success',
-        #         'file_size_mb': file_size_mb,
-        #         'duration_init_sec': round(duration, 4)
-        #     }
-        # })
-
         return response
 
-    except Exception as e:
-        logger.error(f"SMB Download Error: {str(e)} | Path: {remote_path}", exc_info=True, extra={
-            'tags': {
-                'action': 'download_file',
-                'status': 'failed',
-                'file_name': filename
-            }
-        })
-        raise Http404("Файл не знайдено або доступ заборонено")
+    except Exception as smb_error:
+        logger.warning(
+            f"SMB calculation file missing, switching to DB fallback. Path: {remote_path} | Reason: {str(smb_error)}",
+            extra={'tags': {'action': 'download_calc', 'stage': 'smb_fallback'}}
+        )
 
+    # ==========================================
+    # 🗄 СТРАТЕГІЯ 2: Fallback в Базу Даних (SQL)
+    # ==========================================
+    try:
+        binary_guid = guid_to_1c_bin(file_guid)
 
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC [dbo].[GetBinaryFile] @FileLink = %s",
+                [binary_guid]
+            )
+            row = cursor.fetchone()
+
+            if not row or not row[0]:
+                logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
+                return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+
+            raw_db_blob = row[0]
+            db_filename = row[1] or filename
+
+        file_bytes = extract_1c_binary(raw_db_blob)
+        if not file_bytes:
+            logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
+            return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
+        
+
+        current_ext = os.path.splitext(filename)[1]
+        if not current_ext:  # Якщо в назві немає розширення
+            detected_ext = guess_extension_from_bytes(file_bytes[:16])
+            if detected_ext:
+                filename += detected_ext
+                # Оновлюємо контент-тип після додавання розширення
+                content_type, _ = mimetypes.guess_type(filename)
+                content_type = content_type or "application/octet-stream"
+
+                if detected_ext in [".pdf", ".jpg", "jpg", "JPG", ".jpeg", ".png", ".webp"]:
+                    disposition = "inline"
+
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
+        tmp.write(file_bytes)
+        tmp.close()
+
+        response = RangedFileResponse(
+            request,
+            open(tmp.name, "rb"),
+            content_type=content_type
+        )
+        response["Content-Disposition"] = f'{disposition}; filename="{filename or db_filename}"'
+        
+        return response
+
+    except Exception as db_error:
+        logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
+        return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+    
 # @api_view(["POST"])
 # @permission_classes([IsAuthenticatedOr1CApiKey])
 # def create_message(request):
