@@ -644,17 +644,21 @@ class ReclamationViewSet(viewsets.ViewSet):
             
                     final_recipient = main_manager_bin if main_manager_bin else contractor_bin
 
-                    ChatMessage.objects.create(
-                        chat_id=f"2_{reclamation_guid}",  
-                        related_object_id=reclamation_bin,
-                        author=contractor_bin,                      
-                        recipient=final_recipient,               
-                        text=request.data.get("description"), 
-                        is_read=False,
-                        is_sent_vtg=False,
-                        is_notification=False,
-                        transaction_type_id=2  
-                    )
+                    comment_text = request.data.get("description")
+                    comment_text = comment_text.strip() if comment_text else None
+
+                    if comment_text:
+                        ChatMessage.objects.create(
+                            chat_id=f"2_{reclamation_guid}",  
+                            related_object_id=reclamation_bin,
+                            author=contractor_bin,                      
+                            recipient=final_recipient,               
+                            text=request.data.get("description"), 
+                            is_read=False,
+                            is_sent_vtg=False,
+                            is_notification=False,
+                            transaction_type_id=2  
+                        )
                 except Exception as chat_err:
                     logger.error(f"Failed to create ChatMessage for reclamation {reclamation_guid}", extra={
                     'tags': {

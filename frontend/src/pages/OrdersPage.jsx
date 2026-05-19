@@ -144,14 +144,13 @@ const PortalOriginal = () => {
     );
   }, []);
 
-  const handleMarkAsRead = (orderId) => {
+const handleMarkAsRead = (calcId) => {
   setCalculationsData((prev) =>
-    prev.map((calc) => ({
-      ...calc,
-      orders: calc.orders.map((order) =>
-        order.id === orderId ? { ...order, hasUnreadMessages: false } : order
-      ),
-    }))
+    prev.map((calc) => 
+      calc.id === calcId 
+        ? { ...calc, hasUnreadMessages: false } // Знайшли потрібний прорахунок — гасимо іконку
+        : calc                                  // Усі інші залишаємо без змін
+    )
   );
 };
 

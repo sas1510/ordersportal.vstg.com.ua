@@ -117,7 +117,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
           ) : files.length === 0 ? (
             <div className="preview-empty-box">
               <FaFileAlt size={40} style={{ color: "#bbb", marginBottom: "10px" }} />
-              <p>Для цієї заявки файлів або фотографій не знайдено.</p>
+              <p>Файлів або фотографій не знайдено.</p>
             </div>
           ) : (
             <div className="preview-files-container">

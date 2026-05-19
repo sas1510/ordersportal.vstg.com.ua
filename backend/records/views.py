@@ -493,7 +493,26 @@ def api_get_orders(request):
         
    
         calc_bins = [guid_to_1c_bin(calc["id"]) for calc in data if calc.get("id")]
-        
+        calc_bins = []
+        calc_to_bin_map = {}
+        calc_to_str_map = {}
+
+        for calc in data:
+            calc_id = calc.get("id")
+            if calc_id:
+                # Перевіряємо тип, щоб не зламати guid_to_1c_bin / bin_to_guid_1c
+                if isinstance(calc_id, (bytes, bytearray)):
+                    c_bin = calc_id
+                    c_str = bin_to_guid_1c(calc_id)
+                else:
+                    c_bin = guid_to_1c_bin(str(calc_id))
+                    c_str = str(calc_id)
+                
+                calc_bins.append(c_bin)
+                calc_to_bin_map[calc_id] = c_bin
+                calc_to_str_map[calc_id] = c_str
+
+
         unread_calc_bins = set(
             ChatMessage.objects.filter(
                 related_object_id__in=calc_bins,
@@ -505,8 +524,55 @@ def api_get_orders(request):
             .distinct()
         )
 
+        all_messages = (
+            ChatMessage.objects.filter(
+                related_object_id__in=calc_bins,
+                is_notification=False
+            )
+            .order_by('id')
+            .values('related_object_id', 'text')
+        )
+
+        # Збираємо унікальну мапу в Python: { "id_прорахунку_строковий": "текст_повідомлення" }
+        first_messages_map = {}
+        for msg in all_messages:
+            obj_id = msg['related_object_id']
+            
+            if isinstance(obj_id, (bytes, bytearray)):
+                guid_str = bin_to_guid_1c(obj_id)
+            else:
+                guid_str = str(obj_id)
+                
+            key = str(guid_str).lower().strip()
+            if key not in first_messages_map:
+                first_messages_map[key] = msg['text']
+        
+
         for calc in data:
-            calc["hasUnreadMessages"] = guid_to_1c_bin(calc.get("id")) in unread_calc_bins
+            calc_id = calc.get("id")
+            if not calc_id:
+                continue
+
+            # Беремо вже готові значення з кеш-мапи (захист від ValueError)
+            calc_bin_key = calc_to_bin_map.get(calc_id)
+            c_guid_str = calc_to_str_map.get(calc_id)
+            
+            lookup_key = c_guid_str.lower().strip() if c_guid_str else None
+
+            # Проставляємо прапорець непрочитаних
+            calc["hasUnreadMessages"] = calc_bin_key in unread_calc_bins
+
+            # Перевіряємо, чи є повідомлення у мапі чату
+            db_first_message = first_messages_map.get(lookup_key) if lookup_key else None
+
+            # Якщо в об'єкті вже є message (CalcComment з SQL) і він не порожній — залишаємо його.
+            # Якщо він порожній — записуємо туди перше повідомлення з чату
+            current_msg = calc.get("message")
+            if not current_msg or not str(current_msg).strip():
+                calc["message"] = db_first_message
+
+            # Додатково повертаємо FirstMessage як окреме поле, якщо фронт його очікує
+            calc["firstMessage"] = db_first_message
 
     
         duration = time.time() - start_time
@@ -2228,9 +2294,9 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         )
 
         file = data["file"]
-        photos = data.get("photos", [])  # Безпечно витягуємо масив фотографій
+        photos = data.get("photos", []) 
 
-        # Будуємо пейлоад для 1С, додаючи параметр `photos`
+      
         payload = build_1c_payload(
             order_number=data["order_number"],
             items_count=data["items_count"],
@@ -2241,10 +2307,10 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             client_address=data.get("client_address"),
             file_name=file["fileName"],
             file_b64=file["fileDataB64"],
-            photos=photos,  # <-- ПЕРЕДАЄМО МАСИВ ФОТО В БІЛДЕР ПЕЙЛОАДУ
+            photos=photos,  
         )
 
-        # ---------- ВИКЛИК 1С ----------
+
         result = self._send_to_1c(payload)
 
         if not result.get("success", True):
@@ -2268,23 +2334,27 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 "1c_response": result,
             })
 
-        # ---------- СТВОРЕННЯ ЧАТ-ПОВІДОМЛЕННЯ ----------
+      
         try:
             calculation_bin = guid_to_1c_bin(str(calculation_guid))
             main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
             final_recipient = main_manager_bin if main_manager_bin else contractor_bin
             
-            ChatMessage.objects.create(
-                chat_id=f"1_{calculation_guid}", 
-                related_object_id=calculation_bin,
-                author=contractor_bin,                      
-                recipient=final_recipient,               
-                text=data.get("comment"), 
-                is_read=False,
-                is_sent_vtg=True,
-                is_notification=False,
-                transaction_type_id=1 
-            )
+            comment_text = data.get("comment")
+            comment_text = comment_text.strip() if comment_text else None
+
+            if comment_text:
+                ChatMessage.objects.create(
+                    chat_id=f"1_{calculation_guid}", 
+                    related_object_id=calculation_bin,
+                    author=contractor_bin,                      
+                    recipient=final_recipient,               
+                    text=comment_text, 
+                    is_read=False,
+                    is_sent_vtg=True,
+                    is_notification=False,
+                    transaction_type_id=1 
+                )
         except Exception as e:
             import traceback
             logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")

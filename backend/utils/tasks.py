@@ -257,7 +257,7 @@ def send_webpush_notification(recipient_id_1c, title, message):
 
 
 @shared_task(name='check_and_send_telegram_notification')
-def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type, doc_number, is_dealer):
+def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type, doc_number, is_dealer, author_name):
     from records.models import ChatMessage
     from django.conf import settings
     import os
@@ -308,7 +308,8 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
             text = (
                 f"🔔 <b>Непрочитане повідомлення!</b>\n"
                 f"У {document_type} <b>№{doc_number}</b>.\n\n"
-                f"<i>\"{msg.text}...\"</i>"
+                f"<i>\"{msg.text}...\"</i>\n"
+                f"<i>\Від {author_name}.\</i>"
                 f"{link_html}"
             )
 

@@ -321,7 +321,7 @@ export const CalculationItemMobile = React.memo(
 
     <div className="flex flex-col h-full justify-between">
       <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
-        {calc.message || t("calc.no_comments")}
+        {calc.message || calc.firstMessage ||  t("calc.no_comments")}
       </div>
       
       <button
@@ -331,7 +331,14 @@ export const CalculationItemMobile = React.memo(
           handleViewComments(calc.comments || []);
         }}
       >
-        <img src={historyOfMessage} className="mr-1" alt="" />
+        <img 
+          src={historyOfMessage} 
+          alt="Chat History"
+          className={`align-center mr-0.5 max-w-[20px] max-h-[20px] transition-all duration-300 ${
+            calc.hasUnreadMessages 
+              ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
+              : "opacity-70"
+          }`} />
         <span className="text-[13px]">{t("calc.comment_history")}</span>
       </button>
     </div>

@@ -246,7 +246,7 @@ export const CalculationItem = React.memo(
           <div className="summary-item expandable row w-23 align-start space-between">
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
               <div className="comments-text-wrapper-last ">
-               {calc.message || t('calc.no_comments')}
+               {calc.message || calc.firstMessage || t('calc.no_comments')}
               </div>
               <button
                 className="btn-comments row"
@@ -257,11 +257,14 @@ export const CalculationItem = React.memo(
                 }}
               >
                   <img 
-                  src={historyOfMessage} 
-      
-                  className="align-center mr-0.5 max-w-[20px] max-h-[20px]" 
-                
-                />
+                    src={historyOfMessage} 
+                    alt="Chat History"
+                    className={`align-center mr-0.5 max-w-[20px] max-h-[20px] transition-all duration-300 ${
+                      calc.hasUnreadMessages 
+                        ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
+                        : "opacity-100"
+                    }`} 
+                  />
                 <div className="text-WS---DarkGrey no-wrap ">
                 {t('calc.comment_history')}
                 </div>

@@ -172,7 +172,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
               {groups.zkz.length > 0 && (
                 <div className="preview-section">
                   <h4> {t("orders.sectionProjects", "Файли")}</h4>
-                  <div className="preview-grid">{groups.zkz.map(renderFileCard)}</div>
+                  <div className="previ ew-grid">{groups.zkz.map(renderFileCard)}</div>
                 </div>
               )}
 

@@ -44,7 +44,6 @@ urlpatterns = [
     path('portal-managers/', PortalManagerReportView.as_view(), name='portal-managers-report'),
     path('orders/<uuid:order_guid>/files/', get_calc_files, name='get_calc_files'),
     
-    # Урл для скачування конкретного файлу
     path('orders/<uuid:order_guid>/files/<uuid:file_guid>/download_calc/', download_calc, name='download_calc'),
 ]
 
