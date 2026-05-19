@@ -74,46 +74,53 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   /* =========================
       ЛОГІКА ПРЯМОГО ЗАВАНТАЖЕННЯ
   ========================= */
+  /* =========================
+      ЛОГІКА ПРЯМОГО ЗАВАНТАЖЕННЯ
+  ========================= */
   const handleDownload = async (file) => {
     // Визначаємо Apple iOS пристрої (iPhone / iPad)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
+    // ПРАВИЛЬНИЙ УРЛ ДО ВАШОГО БЕКЕНДУ
+    const fileUrl = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
+
+    // 🔥 ФІКС ДЛЯ IPHONE: Скачуємо напряму через відкриття лінку
+    if (isIOS) {
+      // Формуємо повне посилання з урахуванням базового URL вашого axiosInstance
+      const baseURL = axiosInstance.defaults.baseURL || "";
+      const cleanBaseURL = baseURL.endsWith('/') ? baseURL : `${baseURL}/`;
+      const cleanFileUrl = fileUrl.startsWith('/') ? fileUrl.substring(1) : fileUrl;
+      
+      const directLink = `${cleanBaseURL}${cleanFileUrl}`;
+
+      // Відкриваємо пряме посилання в новій вкладці. 
+      // Бекенд віддасть файл, Safari підхопить його оригінальну назву з 1С і скачає як треба
+      window.open(directLink, "_blank");
+      return;
+    }
+
+    // --- ЛОГІКА ДЛЯ НОУТБУКІВ ТА ПК (Залишається через Blob) ---
     setDownloadingFileGuid(file.fileGuid);
     try {
-      const url = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
-      const response = await axiosInstance.get(url, { responseType: "blob" });
+      const response = await axiosInstance.get(fileUrl, { responseType: "blob" });
 
-      // 1. ПЕРЕВІРКА НА HTML (Захист від завантаження помилок виду .zkz.html)
+      // Перевірка на HTML (Захист від завантаження помилок виду .zkz.html)
       const contentType = response.headers["content-type"] || "";
       if (contentType.includes("text/html")) {
         addNotification(t("errors.fileCorrupted", "Файл пошкоджено або не знайдено в 1С"), "error");
         return;
       }
 
-      // 2. ФОРМУЄМО СУВОРУ БІНАРНУ МАРКУ ДЛЯ IOS
-      let blobType = contentType;
-      if (isIOS) {
-        // Примушуємо Safari качати, а не намагатися відкрити фото/PDF всередині вікна
-        blobType = "application/octet-stream";
-      }
-
-      const blob = new Blob([response.data], { type: blobType });
+      const blob = new Blob([response.data], { type: contentType });
       const objectUrl = window.URL.createObjectURL(blob);
       
-      // 3. СКАЧУВАННЯ В ЗАЛЕЖНОСТІ ВІД ПЛАТФОРМИ
-      if (isIOS) {
-        // На iPhone прямий редірект локації на Blob викликає системне завантаження файлу
-        window.location.href = objectUrl;
-      } else {
-        // На ноутбуках і ПК скачуємо класично через приховане посилання
-        const link = document.createElement("a");
-        link.href = objectUrl;
-        link.setAttribute("download", file.fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.setAttribute("download", file.fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       setTimeout(() => window.URL.revokeObjectURL(objectUrl), 15000);
     } catch (err) {
