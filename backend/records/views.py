@@ -206,11 +206,44 @@ def complaints_view(request):
         .distinct()
     )
 
+
+    all_messages = (
+        ChatMessage.objects.filter(
+            related_object_id__in=complaint_bins,
+            is_notification=False
+        )
+        .order_by('id')
+        .values('related_object_id', 'text')
+    )
+
+    # 2. Збираємо унікальну мапу в Python: { "id_рекламації": "текст_повідомлення" }
+    first_messages_map = {}
+    for msg in all_messages:
+        obj_id = msg['related_object_id']
+        
+        # Якщо Django повернув сирі байти (bytes), перетворюємо їх через bin_to_guid_1c, 
+        # щоб отримати такий самий формат, як для рядків з 1С
+        if isinstance(obj_id, (bytes, bytearray)):
+            guid_str = bin_to_guid_1c(obj_id)
+        else:
+            guid_str = str(obj_id)
+            
+        key = str(guid_str).lower().strip()
+        if key not in first_messages_map:
+            first_messages_map[key] = msg['text']
     
     
     for row in rows:
         c_guid_bin = row.get("ComplaintGuid")
         row["HasUnreadMessages"] = c_guid_bin in unread_complaint_bins
+
+        c_guid_str = bin_to_guid_1c(c_guid_bin) if c_guid_bin else None
+        # customer_str = bin_to_guid_1c(row.get("CustomerLink")) if row.get("CustomerLink") else None
+        # manager_str = bin_to_guid_1c(row.get("ManagerLink")) if row.get("ManagerLink") else None
+
+        lookup_key = str(c_guid_str).lower().strip() if c_guid_str else None
+
+        row["FirstMessage"] = first_messages_map.get(lookup_key) if lookup_key else None
 
         if c_guid_bin:
             row["ComplaintGuid"] = bin_to_guid_1c(c_guid_bin)
@@ -296,8 +329,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "recipientPhone": row.get("RecipientPhone") or '', 
                 "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
                 "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
-                "file": bin_to_guid_1c(row.get("FileLink")) or '',
-                "fileName": row.get("CalcFileName") or '',
+                "file": row.get("AllFileNames") or '',
+                "fileName": row.get("AllFileNames") or '',
                 "message": row.get("CalcComment"),
                 "manager": bin_to_guid_1c(row.get("Manager")),
                 "currency": row.get("Currency"),

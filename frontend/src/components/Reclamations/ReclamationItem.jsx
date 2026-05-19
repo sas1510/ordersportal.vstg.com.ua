@@ -290,7 +290,8 @@ export const ReclamationItem = ({
       }}
     >
       <div className="w-full text-[14px] leading-tight line-clamp-2">
-        {reclamation.message || t("reclamation.no_comments")}
+        {/* {reclamation.message || t("reclamation.no_comments")} */}
+         {reclamation.firstMessage || t("reclamation.no_comments")}
       </div>
     </div>
 

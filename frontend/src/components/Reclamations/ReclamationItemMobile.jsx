@@ -508,7 +508,7 @@ export const ReclamationItemMobile = ({
     }}
   >
     <div className="w-full text-[13px] leading-tight text-gray-700 line-clamp-2">
-      {reclamation.message || "-"}
+      {reclamation.firstMessage || "-"}
     </div>
   </div>
 

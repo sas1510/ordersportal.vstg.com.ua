@@ -69,6 +69,7 @@ function formatApiData(data) {
 
             statuses: { [statusKey]: 1 },
             message: item.ParsedDescription,
+            firstMessage: item.FirstMessage,
         };
     });
 }
