@@ -74,54 +74,36 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   /* =========================
       ЛОГІКА ПРЯМОГО ЗАВАНТАЖЕННЯ
   ========================= */
-  const handleDownload = async (file) => {
-    // Визначаємо Apple iOS пристрої (iPhone / iPad)
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const handleDownload = async (fileItem) => {
+  try {
+    const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(
+      fileItem.fileName
+    )}`;
 
-    setDownloadingFileGuid(file.fileGuid);
-    try {
-      const url = `order/${orderGuid}/files/${file.fileGuid}/download/?filename=${encodeURIComponent(file.fileName)}`;
-      const response = await axiosInstance.get(url, { responseType: "blob" });
+    const response = await axiosInstance.get(url, {
+      responseType: "blob",
+    });
 
-      // 1. ПЕРЕВІРКА НА HTML (Захист від завантаження помилок виду .zkz.html)
-      const contentType = response.headers["content-type"] || "";
-      if (contentType.includes("text/html")) {
-        addNotification(t("errors.fileCorrupted", "Файл пошкоджено або не знайдено в 1С"), "error");
-        return;
-      }
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "application/octet-stream",
+    });
 
-      // 2. ФОРМУЄМО СУВОРУ БІНАРНУ МАРКУ ДЛЯ IOS
-      let blobType = contentType;
-      if (isIOS) {
-        // Примушуємо Safari качати, а не намагатися відкрити фото/PDF всередині вікна
-        blobType = "application/octet-stream";
-      }
+    const downloadUrl = window.URL.createObjectURL(blob);
 
-      const blob = new Blob([response.data], { type: blobType });
-      const objectUrl = window.URL.createObjectURL(blob);
-      
-      // 3. СКАЧУВАННЯ В ЗАЛЕЖНОСТІ ВІД ПЛАТФОРМИ
-      if (isIOS) {
-        // На iPhone прямий редірект локації на Blob викликає системне завантаження файлу
-        window.location.href = objectUrl;
-      } else {
-        // На ноутбуках і ПК скачуємо класично через приховане посилання
-        const link = document.createElement("a");
-        link.href = objectUrl;
-        link.setAttribute("download", file.fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.setAttribute("download", fileItem.fileName);
 
-      setTimeout(() => window.URL.revokeObjectURL(objectUrl), 15000);
-    } catch (err) {
-      addNotification(t("notifications.downloadError"), "error");
-    } finally {
-      setDownloadingFileGuid(null);
-    }
-  };
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    console.error("Download error:", error);
+    addNotification("Помилка під час завантаження файлу", "error");
+  }
+};
 
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();
