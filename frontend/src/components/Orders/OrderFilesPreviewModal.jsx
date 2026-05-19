@@ -61,8 +61,8 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
 
   let previewWindow = null;
 
-  // 1. ВІДКРИВАЄМО ВКЛАДКУ ДЛЯ ПЕРЕГЛЯДУ: Тільки для ноутбуків/ПК.
-  // На iPhone ми тепер примусово завантажуємо зображення, а не переглядаємо.
+  // 1. ВІДКРИВАЄМО ВКЛАДКУ ДЛЯ ПЕРЕГЛЯДУ: Тільки для ноутбуків/ПК і тільки для PDF/Зображень.
+  // На iPhone тепер все йде в скачування без відкриття нових вікон.
   if (isViewable && !isIOS) {
     previewWindow = window.open("", "_blank");
     if (previewWindow) {
@@ -76,7 +76,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
           <body style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; color:#666; background-color:#f4f4f5; margin:0;">
             <div style="text-align:center;">
               <div style="margin-bottom:12px; font-weight:600;">Завантаження файлу...</div>
-              <div style="font-size:13px; color:#999;">Будь ласка, зачекайте, формується перегляд.</div>
+              <div style="font-size:13px; color:#999;">Будь ласка, зачекайте.</div>
             </div>
           </body>
         </html>
@@ -90,28 +90,37 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
     const response = await axiosInstance.get(url, { responseType: "blob" });
 
-    // Формуємо коректний MIME-тип контенту
+    // 2. ФОРМУЄМО MIME-ТИП ЗАЛЕЖНО ВІД ДЕВАЙСУ
     let blobType = response.headers["content-type"];
-    if (isImage) {
-      blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
-    } else if (isPdf) {
-      blobType = "application/pdf";
-    } else if (!blobType || blobType === "application/octet-stream") {
-      
+    
+    if (isIOS) {
+      // 🔥 ГОЛОВНИЙ ФІКС ДЛЯ IPHONE:
+      // Примусово затираємо тип на "application/octet-stream" для ВСІХ файлів (навіть фото та pdf).
+      // Це змушує мобільний Safari віддати файл на завантаження в iOS, а не відкривати його.
       blobType = "application/octet-stream";
+    } else {
+      // Для ноутбуків залишаємо правильні типи для перегляду
+      if (isImage) {
+        blobType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+      } else if (isPdf) {
+        blobType = "application/pdf";
+      } else if (!blobType || blobType === "application/octet-stream") {
+        blobType = "application/octet-stream";
+      }
     }
 
     const blob = new Blob([response.data], { type: blobType });
     const downloadUrl = window.URL.createObjectURL(blob);
 
-    // 2. ОБРОБКА РЕЗУЛЬТАТУ
+    // 3. ОБРОБКА РЕЗУЛЬТАТУ
     if (isIOS) {
+      // Пряме скачування на iPhone для всього (ZKZ, PDF, Фото)
       window.location.href = downloadUrl;
     } else if (isViewable && previewWindow) {
- 
+      // Перегляд на Ноутбуках/ПК для PDF та Фото
       previewWindow.location.href = downloadUrl;
     } else {
-
+      // Скачування на Ноутбуках/ПК для всього іншого (.zkz)
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.setAttribute("download", fileItem.fileName);
@@ -120,14 +129,10 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
       document.body.removeChild(link);
     }
     
-    // Даємо браузеру час на зчитування Blob з пам'яті
     setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 15000);
 
   } catch (error) {
-    // print.error("File download error:", error);
     addNotification("Помилка під час обробки файлу", "error");
-    
-    // Закриваємо пусту вкладку, якщо вона була відкрита
     if (previewWindow) previewWindow.close();
   } finally {
     setDownloadingFileGuid(null);
