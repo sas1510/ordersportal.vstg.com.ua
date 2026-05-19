@@ -3664,18 +3664,7 @@ from rest_framework.decorators import api_view, permission_classes
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from ranged_fileresponse import RangedFileResponse
 
-import os
-import time
-import mimetypes
-import tempfile
-from urllib.parse import unquote, quote
-from django.http import Http404, StreamingHttpResponse
-from django.shortcuts import redirect
-from django.db import connection
-from django.conf import settings
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+
 @extend_schema(
     summary="Завантажити файл прорахунку (SMB або БД)",
     description=(
@@ -3702,7 +3691,7 @@ def download_calc(request, order_guid, file_guid):
     filename = request.GET.get("filename")
     
     if not filename:
-        return Response({"error": "Filename is required"}, status=400)
+        raise Http404("Filename is required")
 
     filename = unquote(filename)
     content_type, _ = mimetypes.guess_type(filename)
@@ -3711,17 +3700,7 @@ def download_calc(request, order_guid, file_guid):
     # Визначаємо inline для фото/тексту, щоб вони відкривалися в браузері/модалці
     inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
     file_ext = os.path.splitext(filename.lower())[1]
-    
-    # 🔥 IOS ФІКС: Якщо запит йде з iPhone/iPad, примусово ставимо attachment та octet-stream,
-    # щоб змусити мобільний Safari одразу скачувати файл, а не відкривати картинку/pdf на всю сторінку.
-    user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
-    is_ios = 'iphone' in user_agent or 'ipad' in user_agent or 'ipod' in user_agent
-
-    if is_ios:
-        disposition = "attachment"
-        content_type = "application/octet-stream"
-    else:
-        disposition = "inline" if file_ext in inline_extensions else "attachment"
+    disposition = "inline" if file_ext in inline_extensions else "attachment"
 
     # Шлях до сховища заявок на прорахунок
     remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}"
@@ -3761,8 +3740,7 @@ def download_calc(request, order_guid, file_guid):
 
             if not row or not row[0]:
                 logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
-                # 🔥 ВИПРАВЛЕНО: Замість редіректу на HTML повертаємо 404 статус
-                raise Http404("Файл не знайдено в базі даних 1С")
+                raise Http404()
 
             raw_db_blob = row[0]
             db_filename = row[1] or filename
@@ -3770,19 +3748,20 @@ def download_calc(request, order_guid, file_guid):
         file_bytes = extract_1c_binary(raw_db_blob)
         if not file_bytes:
             logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
-            # 🔥 ВИПРАВЛЕНО: Повертаємо ValidationError або 400 Bad Request
-            return Response({"error": "Файл пошкоджено всередині бази даних 1С"}, status=400)
+            raise Http404()
         
+
         current_ext = os.path.splitext(filename)[1]
         if not current_ext:  # Якщо в назві немає розширення
             detected_ext = guess_extension_from_bytes(file_bytes[:16])
             if detected_ext:
                 filename += detected_ext
-                if not is_ios:
-                    content_type, _ = mimetypes.guess_type(filename)
-                    content_type = content_type or "application/octet-stream"
-                    if detected_ext in [".pdf", ".jpg", "jpg", "JPG", ".jpeg", ".png", ".webp"]:
-                        disposition = "inline"
+                # Оновлюємо контент-тип після додавання розширення
+                content_type, _ = mimetypes.guess_type(filename)
+                content_type = content_type or "application/octet-stream"
+
+                if detected_ext in [".pdf", ".jpg", "jpg", "JPG", ".jpeg", ".png", ".webp"]:
+                    disposition = "inline"
 
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
         tmp.write(file_bytes)
@@ -3794,15 +3773,15 @@ def download_calc(request, order_guid, file_guid):
             content_type=content_type
         )
         response["Content-Disposition"] = f'{disposition}; filename="{filename or db_filename}"'
-        response["Access-Control-Expose-Headers"] = "Content-Disposition"
         
         return response
 
-    except Http404 as e:
-        raise e
     except Exception as db_error:
         logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
-        return Response({"error": "Помилка під час вивантаження файлу з бази даних"}, status=500)
+        raise Http404()
+    
+
+
 @extend_schema(
     summary="Отримати список файлів прорахунку",
     description=(
