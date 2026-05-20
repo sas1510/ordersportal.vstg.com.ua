@@ -1264,6 +1264,7 @@ def get_additional_orders_info_all(request):
                     "currency": row.get("Currency"),
                     "orders": [
                         {
+                            "guid": bin_to_guid_1c(row.get("OrderGUID")) or "",
                             "id": row.get("ClaimOrderNumber") or complaint_number,
                             "number": row.get("ClaimOrderNumber") or "",
                             "dateRaw": claim_order_date,
@@ -1586,8 +1587,8 @@ def orders_view_all_by_month(request):
                         "recipientPhone": row.get("RecipientPhone") or '', 
                         "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
                         "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
-                        "file": bin_to_guid_1c(row.get("FileLink")) or '',
-                        "fileName": row.get("CalcFileName") or '',
+                        "file": row.get("AllFileNames") or '',
+                        "fileName": row.get("AllFileNames") or '',
                         "message": row.get("Message"),
                         "manager": bin_to_guid_1c(row.get("Manager")),
                         "raw_order_dates": [order_date] if order_date else [],

@@ -8,7 +8,7 @@ import useWindowWidth from "../hooks/useWindowWidth";
 
 import { useTranslation } from "react-i18next";
 // import { useTheme } from '../context/ThemeContext';
-
+import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";
 
@@ -16,6 +16,7 @@ const ALL_DEALERS_VALUE = "__ALL__";
 const initialLimit = 100;
 
 const AdminAdditionalOrders = () => {
+    const { register, cancelAll } = useCancelAllRequests();
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
   const {t} = useTranslation();
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
@@ -229,6 +230,49 @@ const AdminAdditionalOrders = () => {
   ]);
 
 
+  const reloadAdditionalOrders = useCallback(async () => {
+    cancelAll();
+    const controller = register();
+    setReloading(true);
+    setError(null); 
+
+    try {
+      const response = await axiosInstance.get(
+        "/additional_orders/get_additional_orders_info_all/",
+        { params: { year: selectedYear }, signal: controller.signal },
+      );
+
+      if (response.data?.status === "success") {
+        const rawData = response.data.data?.calculation || [];
+
+        const formatted = rawData.map((item) => ({
+          ...item,
+          date: formatDateHuman(item.dateRaw),
+          orders: (item.orders || []).map((order) => ({
+            ...order,
+            date: formatDateHuman(order.dateRaw),
+          })),
+        }));
+
+        setAdditionalOrdersData(formatted);
+       
+        setFilteredItems(
+          getFilteredItems(filter.status, filter.month, filter.name, formatted),
+        );
+        setDisplayLimit(initialLimit);
+      } else {
+        setError(t("additiona_order.errors.server_error"));
+      }
+    } catch (err) {
+      if (err.name !== "CanceledError") {
+        setError(t("additiona_order.errors.connect_error"));
+      }
+    } finally {
+      setReloading(false);
+    }
+  }, [cancelAll, register, selectedYear, filter, getFilteredItems]);
+
+
   const handleFilterClick = (statusKey) => {
     setFilter((prev) => ({ ...prev, status: statusKey }));
     setFilteredItems(
@@ -279,6 +323,19 @@ const AdminAdditionalOrders = () => {
     );
     setDisplayLimit(initialLimit);
   };
+
+  const handleAdditionalOrderRead = useCallback((id) => {
+    setAdditionalOrdersData((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, hasUnreadMessages: false } : o)),
+    );
+
+    setFilteredItems((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, hasUnreadMessages: false } : o)),
+    );
+  }, []);
+
+
+
 
   const handleClearSearch = () => {
     setFilter((prev) => ({ ...prev, name: "" }));
@@ -687,6 +744,8 @@ const AdminAdditionalOrders = () => {
                     onOrderToggle={toggleOrder}
                     onDelete={handleDeleteAdditionalOrder}
                     onEdit={handleUpdateAdditionalOrder}
+                    onMarkAsRead={handleAdditionalOrderRead}
+                    reloadCalculations={reloadAdditionalOrders}
                   />
                 ) : (
                   <AdditionalOrderItem
@@ -698,6 +757,8 @@ const AdminAdditionalOrders = () => {
                     onOrderToggle={toggleOrder}
                     onDelete={handleDeleteAdditionalOrder}
                     onEdit={handleUpdateAdditionalOrder}
+                    onMarkAsRead={handleAdditionalOrderRead}
+                    reloadCalculations={reloadAdditionalOrders}
                   />
                 ),
               )
