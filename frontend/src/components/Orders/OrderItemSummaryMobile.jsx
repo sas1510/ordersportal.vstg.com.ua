@@ -78,10 +78,12 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
     };
 
   
+    
     const statusConfig = {
-      Новий: { confirm: true, pay: true },
+      Новий: { confirm: true, pay: true,  reorder: true },
+      "У виробництві" : {pay: true,  reorder: true},
       "Очікуємо підтвердження": { confirm: true, pay: true },
-      Підтверджений: {  pay: true, reorder: true },
+      Підтверджений: { pay: true, reorder: true },
       "Очікуємо оплату": { pay: true, reorder: true },
       Оплачено: { pay: true, reorder: true },
       Готовий: { pay: true, reorder: true },

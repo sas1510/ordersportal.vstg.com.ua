@@ -290,13 +290,13 @@ export const AdditionalOrderItemMobile = ({
             >
               {calc.message || t("additional_order.no_description")}
             </div>
-            {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
+           
             <button
               className="btn-comments row"
               style={{ 
                 position: "relative", 
-                alignSelf: "flex-end", // ПРИТИСКАЄ ТІЛЬКИ КНОПКУ
-                marginTop: "auto"     // Опціонально: притисне кнопку до низу, якщо колонка висока
+                alignSelf: "flex-end", 
+                marginTop: "auto"     
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -322,7 +322,6 @@ export const AdditionalOrderItemMobile = ({
 
   
 
-        {/* Індикатор розкриття */}
         <div className="flex justify-center mt-1 mb-1 pt-1.5">
           <div className="flex items-center gap-1.5">
              <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">
@@ -359,8 +358,8 @@ export const AdditionalOrderItemMobile = ({
       <CommentsModal
         isOpen={isCommentsOpen}
         onClose={() => setIsCommentsOpen(false)}
-        baseTransactionGuid={calc.guid} // 🔑 GUID з 1С
-        transactionTypeId={3} // 🔑 ID типу "Рекламація"
+        baseTransactionGuid={calc.guid} 
+        transactionTypeId={3} 
         activePersonId={calc.dealerId}
         // writerGuid={writerGuid} // або з context
       />

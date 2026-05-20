@@ -17,6 +17,8 @@ import {
   formatDateHumanShorter
 
 } from "../../utils/formatters";
+import { AppIcon } from "../Icons/AppIcon";
+
 
 
 import { useTranslation  } from "react-i18next";
@@ -329,12 +331,13 @@ export default React.memo(function OrderItemSummaryDesktop({
       >
         {/* ICON */}
         <div className="summary-item row no-wrap !border-r-0 !pr-0">
-            <img 
+            {/* <img 
                   src={listCalcIcon} 
                   // alt="Вікно" 
                   className="align-center mr-0.5" 
                 
-                />
+                /> */}
+                <AppIcon name="listCalc" className="align-center mr-0.5 w-[26px] h-[35px] " />
         </div>
 
         {/* NUMBER + DATE */}
@@ -353,12 +356,13 @@ export default React.memo(function OrderItemSummaryDesktop({
         {/* COUNT */}
         <div className="summary-item flex items-center w-8 justify-center">
           <div className="row gap-5 align-center">
-                 <img 
+                 {/* <img 
                   src={windowsIcon} 
                   // alt="Вікно" 
                   className="align-center mr-1 w-[25px] h-[25px]" 
                 
-                />
+                /> */}
+                <AppIcon name="windows" className="align-center mr-1 w-[25px] h-[25px] " />
             <div className="font-size-16 text-WS---DarkBlue">{order.count}</div>
           </div>
         </div>
@@ -369,24 +373,26 @@ export default React.memo(function OrderItemSummaryDesktop({
           onClick={openFilesModal}
         >
           <div className="row gap-1 align-center">
-            <img 
+            {/* <img 
                 src={fileIcon} 
                 // alt="Вікно" 
                 className="align-center mr-0.5 w-[20px] h-[25px]" 
               
-              />
+              /> */}
+              <AppIcon name="file" className="align-center mr-0.5 w-[20px] h-[25px] " />
             <div className="text-WS---DarkGrey text-[13px] underline">{t("order_mobile.labels.files")}</div>
           </div>
         </div>
 
         {/* AMOUNT */}
         <div className="summary-item row no-wrap">
-                 <img 
+                 {/* <img 
                   src={moneyGreen} 
                   // alt="Вікно" 
                   className="align-center mr-0.5" 
                 
-                />
+                /> */}
+                <AppIcon name="moneyGreen" className="align-center mr-0.5 w-[20px] h-[18px] " />
           <div className="flex flex-col flex-1 ml-1">
             <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
@@ -399,12 +405,14 @@ export default React.memo(function OrderItemSummaryDesktop({
 
         {/* DEBT */}
         <div className="summary-item row no-wrap">
-          <img 
+          {/* <img 
                   src={moneyRed} 
                   // alt="Вікно" 
                   className="align-center mr-0.5" 
                 
-                />
+                /> */}
+
+          <AppIcon name="moneyRed" className="align-center mr-0.5 w-[20px] h-[18px] " />
           <div className="flex flex-col flex-1 ml-1">
             <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
