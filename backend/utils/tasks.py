@@ -309,7 +309,7 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
                 f"🔔 <b>Непрочитане повідомлення!</b>\n"
                 f"У {document_type} <b>№{doc_number}</b>.\n\n"
                 f"<i>\"{msg.text}...\"</i>\n"
-                f"<i>\Від {author_name}.\</i>"
+                f"<i>Від {author_name}.</i>"
                 f"{link_html}"
             )
 
