@@ -456,6 +456,7 @@ import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { FaEdit, FaTrash } from "react-icons/fa"; 
 import { useTranslation } from 'react-i18next';
 import "./Videos.css";
+import { AppIcon } from "../components/Icons/AppIcon";
 
 import InstagramProfileIframe from "./InstagramProfileIframe";
 import TikTokWidget from "./TikTokWidget";
@@ -745,9 +746,23 @@ const VideosPage = () => {
               <div className="social-submenu">
                 <div className="submenu-divider-dashed" />
                 <div className="social-icons-row flex p-2 justify-center">
-                  <button onClick={() => handleSocialClick('TikTok')}><img src={tiktokIcon} alt="T" className={selectedSocial === 'TikTok' ? 'border-round-active' : ''} /></button>
-                  <button onClick={() => handleSocialClick('Facebook')}><img src={facebookIcon} alt="F" className={selectedSocial === 'Facebook' ? 'border-round-active' : ''} /></button>
-                  <button onClick={() => handleSocialClick('Instagram')}><img src={instagramIcon} alt="I" className={selectedSocial === 'Instagram' ? 'border-round-active' : ''} /></button>
+                 <button onClick={() => handleSocialClick('TikTok')}>
+                  <AppIcon 
+                    name="tikTok" 
+                    className={selectedSocial === 'TikTok' ? 'border-round-active w-[42px] h-[42px]' : 'w-[26px] h-[30px]'} 
+                  />
+                </button>
+
+                  <button onClick={() => handleSocialClick('Facebook')}>
+                  <AppIcon 
+                    name="Facebook" 
+                    className={selectedSocial === 'Facebook' ? 'border-round-active w-[42px] h-[42px]' : 'w-[30px] h-[30px]'} 
+                  /></button>
+                  <button onClick={() => handleSocialClick('Instagram')}>
+                  <AppIcon 
+                    name="Insta" 
+                    className={selectedSocial === 'Instagram' ? 'border-round-active w-[42px] h-[42px]' : 'w-[30px] h-[30px]'} 
+                  /></button>
                 </div>
               </div>
             )}
