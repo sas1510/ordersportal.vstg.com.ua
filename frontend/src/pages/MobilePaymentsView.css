@@ -105,7 +105,7 @@
 }
 
 .mobile-input-date {
-  width: 100%;
+  width: 95%;
   padding: 7px 14px;
   border: 1px dashed var(--grey-border-color);
   border-radius: 3px;
@@ -129,7 +129,7 @@
 
 .mobile-btn {
   flex: 1;
-  padding: 8px 16px;
+  padding: 8px 8px;
   border: none;
   border-radius: 3px;
   font-size: 16px;

@@ -118,6 +118,7 @@
 }
 
 .btn-filter-bill {
+  /* flex-basis: 100%; */
   height: 40px;
   padding: 0 16px;
   background-color: var(--info-color);
@@ -252,6 +253,7 @@ body.dark-theme .btn-bill-download:hover {
     border-width: 1px; /* тонше */
     border-style: solid; /* замість dashed */
   }
+  
 
   .filter-item-bill input {
     height: 34px;
@@ -287,12 +289,12 @@ body.dark-theme .btn-bill-download:hover {
   }
 
   /* Кнопки дій */
-  .btn-filter,
+  /* .btn-filter-bill,
   .btn-create-bill {
     height: 34px;
     padding: 0 12px;
     font-size: 12px;
-  }
+  } */
 
   /* Заголовок */
   .customer-bills-header .page-title {
@@ -343,14 +345,22 @@ body.dark-theme .btn-bill-download:hover {
     display: flex;
     justify-content: center;
   }
+.bills-filter .btn-create-bill {
+  margin-top: 8px;
+  flex-basis: 47%; /* Займає трохи менше половини */
+  display: flex;
+  justify-content: center;
+}
 
-  .bills-filter .btn-create-bill {
-    margin-top: 8px;
-    margin-left: 0;
-    flex-basis: 100%;
-    display: flex;
-    justify-content: center;
-  }
+.bills-filter .btn-filter-bill {
+  margin-top: 8px;
+  margin-right: 2%; /* Відступ між кнопками */
+  flex-basis: 47%; /* Займає другу половину */
+  display: flex;
+  justify-content: center;
+}
+
+
 }
 
 @keyframes fadeSlideInSoft {
