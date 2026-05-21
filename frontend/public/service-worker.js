@@ -1,9 +1,7 @@
 /* eslint-env serviceworker */
 /* eslint-disable no-restricted-globals */
 self.addEventListener('push', function(event) {
-    if (process.env.NODE_ENV === "development") {
-        console.log('[Service Worker] Сигнал отримано!');
-    }
+   
     
     let payload = {};
 
@@ -11,11 +9,7 @@ self.addEventListener('push', function(event) {
         try {
  
             payload = event.data.json();
-            if (process.env.NODE_ENV === "development") {
-                if (process.env.NODE_ENV === "development") {
-                    console.log('[Service Worker] Дані отримано:', payload);
-                }
-            }
+            
         } catch  {
 
             payload = {
