@@ -298,7 +298,7 @@ body.dark-theme .reclamation-item.web-reclamation:hover {
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 998; /* Нижче ніж сайдбар */
+  z-index: 10000; /* Нижче ніж сайдбар */
 }
 
 /* Сайдбар на мобілці */

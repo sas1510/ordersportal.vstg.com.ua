@@ -2,18 +2,34 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import { useTheme } from "../hooks/useTheme";
 import PaymentModal from "../components/Orders/PaymentModal";
-import { formatDateHuman, formatDateHumanShorter } from "../utils/formatters";
-
+import DebtDetailModal from "./DebtDetailModal"; // 👈 Імпортуємо нову модалку
+import { formatDateHuman } from "../utils/formatters";
+import PaymentsMobileContent from "./PaymentsMobileContent.jsx";
 // Стилі
 import "../components/Portal/PortalOriginal.css";
 import "../components/Portal/PortalSidebar.css";
 import "./PaymentsPage.css";
 import { useNotification } from "../hooks/useNotification";
+import { AppIcon } from "../components/Icons/AppIcon";
+import PaymentsAnalyticsMobile from "./PaymentsAnalyticsMobile";
 
 // Хук для мобільної версії
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(
-    window.matchMedia("(max-width: 1260px)").matches,
+    window.matchMedia("(max-width: 1024px)").matches,
+  );
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1024px)");
+    const listener = (e) => setIsMobile(e.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, []);
+  return isMobile;
+};
+
+const useIsMobile_2 = () => {
+  const [isMobile, setIsMobile] = useState(
+    window.matchMedia("(max-width: 1269px)").matches,
   );
   useEffect(() => {
     const media = window.matchMedia("(max-width: 1260px)");
@@ -28,8 +44,30 @@ export default function PaymentsPage() {
   const { isDark } = useTheme();
   const isMobile = useIsMobile();
 
-  // Дані
+  const isMobileLarger = useIsMobile_2();
 
+  const yearIcon = "/assets/icons/YearIcon.png";
+  const plusIcon = "/assets/icons/PlusIcon.png";
+
+  const allPayment = "/assets/icons/AllPayment.png";
+  const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
+  const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
+  const waitingForConfirmIcon = "/assets/icons/WaitingForConfirmIcon.png";
+  const confirmedIcon = "/assets/icons/ConfirmedIcon.png";
+  const factoryIcon = "/assets/icons/FactoringIcon.png";
+  const finishedIcon = "/assets/icons/FinishedIcon.png";
+  const deliveredIcon = "/assets/icons/DeliveredIcon.png";
+  const canceledCalcIcon = "/assets/icons/CancelCalc.png";
+  const filterIcon = "/assets/icons/FiltersIcon.png";
+  const nelicvid = "/assets/icons/Nelicvid.png";
+  const allContracts = "/assets/icons/AllContracts.png";
+  const contract = "/assets/icons/Contracts.png";
+  
+
+  const closeIcon = "/assets/icons/CloseButton.png";
+
+  // Дані
   const { addNotification } = useNotification();
   const [orders, setOrders] = useState([]);
   const [contracts, setContracts] = useState([]);
@@ -59,7 +97,6 @@ export default function PaymentsPage() {
     "Очікуємо підтвердження": "status-wait-confirm",
     Підтверджено: "status-confirmed",
     Резервування: "status-reserved",
-    // "В роботі": "status-in-work",
     "У виробництві": "status-production",
     Готовий: "status-ready",
     Відвантажений: "status-shipped",
@@ -68,23 +105,14 @@ export default function PaymentsPage() {
   };
 
   const STATUS_FILTERS = [
-    { key: "all", label: "Усі замовлення", icon: "icon-layers2" },
-    {
-      key: "Очікуємо підтвердження",
-      label: "Очікуємо підтвердження",
-      icon: "icon-clipboard",
-    },
-    {
-      key: "Очікуємо оплату",
-      label: "Очікуємо оплату",
-      icon: "icon-coin-dollar",
-    },
-    { key: "Підтверджено", label: "Підтверджено", icon: "icon-check" },
-    // { key: "В роботі", label: "В роботі", icon: "icon-cogs" },
-    { key: "У виробництві", label: "У виробництві", icon: "icon-cog" },
-    { key: "Готовий", label: "Готовий", icon: "icon-box" },
-    { key: "Відвантажений", label: "Відвантажений", icon: "icon-truck" },
-    { key: "Неліквід", label: "Неліквід", icon: "icon-circle-with-cross" },
+    { key: "all", label: "Усі замовлення", icon: allPayment, colorClass: "status-all" },
+    { key: "Очікуємо підтвердження", label: "Очікуємо підтвердження", icon: waitingForConfirmIcon, colorClass: "status-wait-confirm" },
+    { key: "Очікуємо оплату", label: "Очікуємо оплату", icon: waitingForPaymentIcon, colorClass: "status-wait-payment" },
+    { key: "Підтверджено", label: "Підтверджено", icon: confirmedIcon, colorClass: "status-confirmed" },
+    { key: "У виробництві", label: "У виробництві", icon: factoryIcon, colorClass: "status-production" },
+    { key: "Готовий", label: "Готовий", icon: finishedIcon, colorClass: "status-ready" },
+    { key: "Відвантажений", label: "Відвантажений", icon: deliveredIcon, colorClass: "status-shipped" },
+    { key: "Неліквід", label: "Неліквід", icon: nelicvid, colorClass: "status-closed" },
   ];
 
   const contractorGUID =
@@ -122,7 +150,6 @@ export default function PaymentsPage() {
       setDebtItems(resDebts.data.debts?.items || []);
       setDebtTotal(resDebts.data.debts?.total || null);
     } catch (_e) {
-      // console.error("Error loading payment data:", _e);
       setError("Помилка завантаження фінансових даних");
     } finally {
       setLoading(false);
@@ -133,31 +160,21 @@ export default function PaymentsPage() {
     loadData();
   }, [loadData]);
 
-  // Додайте цей useEffect поруч з іншими useEffect у компоненті
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        // Закриваємо модалку деталей
-        if (detailModalOpen) {
-          setDetailModalOpen(false);
-        }
-        // Закриваємо модалку оплати через існуючу функцію
-        if (modalOpen) {
-          closeModal();
-        }
+        if (detailModalOpen) setDetailModalOpen(false);
+        if (modalOpen) closeModal();
       }
     };
 
-    // Додаємо слухач, тільки якщо хоча б одна модалка відкрита
     if (detailModalOpen || modalOpen) {
       window.addEventListener("keydown", handleKeyDown);
     }
-
-    // Обов'язково прибираємо слухач при демонтажі або закритті
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [detailModalOpen, modalOpen]); // Залежності, щоб ефект оновлювався при відкритті/закритті
+  }, [detailModalOpen, modalOpen]);
 
   // =====================================================
   // SIDEBAR FILTERS LOGIC
@@ -184,7 +201,8 @@ export default function PaymentsPage() {
     return summary;
   }, [orders]);
 
-  const filteredOrders = useMemo(() => {    return orders.filter((o) => {
+  const filteredOrders = useMemo(() => {
+    return orders.filter((o) => {
       const statusOk = statusFilter === "all" || o.OrderStage === statusFilter;
       const contractOk =
         contractFilter === "all" || o.Dogovor_GUID === contractFilter;
@@ -235,28 +253,11 @@ export default function PaymentsPage() {
     setDetailModalOpen(true);
   };
 
-  // ✅ ОНОВЛЕНА ФУНКЦІЯ ОПЛАТИ З МОДАЛКИ (З ФІЛЬТРОМ)
   const handlePayFromDetails = (zakazNum) => {
-    // const orderToPay = orders.find(
-    //   (o) => String(o.OrderNumber) === String(zakazNum),
-    // );
-
     setSearch(String(zakazNum));
-
     setStatusFilter("all");
     setContractFilter("all");
-
-    // if (orderToPay) {
-    //   setDetailModalOpen(false);
-    //   setSelectedOrder(orderToPay);
-    //   setModalOpen(true);
-    // } else {
-
     setDetailModalOpen(false);
-    // addNotification(
-    //   `Замовлення № ${zakazNum} додано у фільтр пошуку.`,
-    //   "success",
-    // );
   };
 
   const openPaymentModal = (order) => {
@@ -283,20 +284,20 @@ export default function PaymentsPage() {
     }
   };
 
+  const searchIcon = "/assets/icons/SearchIcon.png";
+
   const Sidebar = (
-    <div
-      className={`content-filter-payment column ${isMobile ? (isSidebarOpen ? "open" : "closed") : ""}`}
-    >
-      {isMobile && (
+    <div className={`content-filter-payment column !pr-4 ${isMobileLarger ? (isSidebarOpen ? "open" : "closed") : ""}`}>
+      {isMobileLarger && (
         <div className="sidebar-header-payment row ai-center jc-space-between">
           <span>Фільтри</span>
-          <span
-            className="icon icon-cross"
-            onClick={() => setIsSidebarOpen(false)}
-          />
+          <div onClick={() => setIsSidebarOpen(false)} >
+           <AppIcon name="closeFiltersButton" className='w-[30px] h-[30px]' />
+           </div>
+          {/* <span className="icon icon-cross" onClick={() => setIsSidebarOpen(false)} /> */}
         </div>
       )}
-      <span className="payment-filter-headers-name">Пошук</span>
+      <span className="payment-filter-headers-name uppercase">Пошук</span>
       <div className="search-wrapper-payment">
         <input
           type="text"
@@ -305,558 +306,382 @@ export default function PaymentsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        {!!search && (
-          <span
-            className="icon icon-cancel2 clear-search-payment"
-            onClick={() => setSearch("")}
-          />
-        )}
+        <img src={searchIcon} alt="" className="relative right-[-2%] top-[-60%] cursor-pointer text-[18px] text-[var(--text-color)] leading-none" />
       </div>
 
-      <div className="delimiter1" />
-      <span className="payment-filter-headers-name">Статуси</span>
-      <ul className="filter column align-center">
-        {STATUS_FILTERS.map(({ key, label, icon }) => {
-          const count =
-            key === "all" ? statusSummary.all : statusSummary[key] || 0;
-          return (
-            <li
-              key={key}
-              className={`filter-item ${statusFilter === key ? "active" : ""} ${count === 0 ? "empty-filter" : ""}`}
-              onClick={() => {
-                if (count > 0) setStatusFilter(key);
-                if (isMobile) setIsSidebarOpen(false);
-              }}
-            >
-              <span className={`icon ${icon} font-size-24`} />
-              <span className="w-100">{label}</span>
-              <span>{count}</span>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="filters-scroll">
 
-      <div className="delimiter1" />
-      <span className="payment-filter-headers-name">Договори</span>
-      <ul className="filter column align-center">
-        <li
-          className={`filter-item ${contractFilter === "all" ? "active" : ""}`}
-          onClick={() => {
-            setContractFilter("all");
-            if (isMobile) setIsSidebarOpen(false);
-          }}
-        >
-          <span className="icon icon-files-empty font-size-24" />
-          <span className="w-100">Усі договори</span>
-          <span>{orders.length}</span>
-        </li>
-        {contractFilters.map((c) => (
+      <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[18px] min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] max-[1260px]:bg-transparent max-[1260px]:shadow-none max-[1260px]:py-0 max-[1260px]:w-full max-[1260px]:overflow-visible">
+        <div className="payment-type-headers-name !pl-3 !pb-2 uppercase">Статуси</div>
+        <ul className="filter column align-center">
+          {STATUS_FILTERS.map(({ key, label, icon }) => {
+            const count = key === "all" ? statusSummary.all : statusSummary[key] || 0;
+            return (
+              <li
+                key={key}
+                className={`filter-item ${statusFilter === key ? "active" : ""} `}
+                onClick={() => {
+                  setStatusFilter(key);
+                  if (isMobileLarger) setIsSidebarOpen(false);
+                }}
+              >
+                <img
+                  src={icon}
+                  alt=""
+                  className={`mr-3 object-contain transition-all duration-300 ${statusFilter === key ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"}`}
+                />
+                <span className="w-100">{label}</span>
+                <span>{count}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div className="divider-bottom" />
+
+      <div className="min-[1260px]:w-72 mt-3 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[18px] min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] max-[1260px]:bg-transparent max-[1260px]:shadow-none max-[1260px]:py-0 max-[1260px]:w-full max-[1260px]:overflow-visible">
+        <div className="payment-type-headers-name !pl-3 !pb-2 uppercase">Договори</div>
+        <ul className="filter column align-center">
           <li
-            key={c.guid}
-            className={`filter-item ${contractFilter === c.guid ? "active" : ""}`}
+            className={`filter-item ${contractFilter === "all" ? "active" : ""}`}
             onClick={() => {
-              setContractFilter(c.guid);
-              if (isMobile) setIsSidebarOpen(false);
+              setContractFilter("all");
+              if (isMobileLarger) setIsSidebarOpen(false);
             }}
           >
-            <span className="icon icon-file-text2 font-size-24" />
-            <span className="w-100 no-wrap-ellipsis" title={c.name}>
-              {c.name}
+            <img
+              src={allContracts}
+              alt=""
+              className={`mr-3 w-[20px] h-[20px] object-contain transition-all duration-300 ${contractFilter === "all" ? "brightness-0 invert" : "opacity-70 brightness-0"}`}
+            />
+            <span className="w-100">Усі договори</span>
+            <span className={`status-badge ${contractFilter === "all" ? "badge-active" : orders.length === 0 ? "badge-zero" : "badge-normal"}`}>
+              {orders.length}
             </span>
-            <span>{c.count}</span>
           </li>
-        ))}
-      </ul>
+
+          {contractFilters.map((c) => {
+            const isActive = contractFilter === c.guid;
+            return (
+              <li
+                key={c.guid}
+                className={`filter-item ${isActive ? "active" : ""}`}
+                onClick={() => {
+                  setContractFilter(c.guid);
+                  if (isMobileLarger) setIsSidebarOpen(false);
+                }}
+              >
+                <img
+                  src={contract}
+                  alt=""
+                  className={`mr-3 w-[20px] h-[20px] object-contain transition-all duration-300 ${isActive ? "brightness-0 invert" : "opacity-70 brightness-0"}`}
+                />
+                <span className="w-100 no-wrap-ellipsis" title={c.name}>
+                  {c.name}
+                </span>
+                <span className={`status-badge ${isActive ? "badge-active" : c.count === 0 ? "badge-zero" : "badge-normal"}`}>
+                  {c.count}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
     </div>
   );
 
   return (
     <div className={`column portal-body ${isDark ? "dark-theme" : ""}`}>
-
-      
       {loading && (
         <div className="loading-spinner-wrapper">
           <div className="loading-spinner"></div>
         </div>
       )}
-      {isMobile && isSidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setIsSidebarOpen(false)}
-        />
+      {isMobileLarger && isSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
       )}
 
       <div className="content-wrapper row w-100 h-100">
-        {Sidebar}
+        <div className="row h-100 max-w-[1334px] w-100">
+          {Sidebar}
 
-        <div className="content p-30" id="content">
-          <div className="pp-header">
-            <div className="pp-title-header row ai-center gap-7">
-              {isMobile && !isSidebarOpen && (
-                <span
-                  className="icon icon-menu font-size-24"
+          <div className="content scroll-bar-custom " id="content">
+            <div className="pp-header">
+              <div className="pp-title-header row ai-center gap-7">
+                {isMobileLarger && (
+                  // <span
+                  //   className="icon icon-menu font-size-24"
+                  //   onClick={() => setIsSidebarOpen(true)}
+                  //   style={{ cursor: "pointer" }}
+                  // />
+                  <div
+                  className="mobile-sidebar-toggle mr-1"
                   onClick={() => setIsSidebarOpen(true)}
-                  style={{ cursor: "pointer" }}
-                />
-              )}
-              <span>Фінанси</span>
+                
+                >
+                     <AppIcon name="filters" className='w-[20px] h-[20px]' />
+                </div>
+                )}
+                <div className="payment-type-headers-name uppercase !mt-0 !gap-0 !pt-0 leading-none">
+                  Фінанси
+                </div>
+              </div>
+              <button className="pp-reload flex items-center gap-2 font-bold " onClick={loadData}>
+                <AppIcon name="reload" className='w-[18px] h-[18px]' /> Оновити дані
+              </button>
             </div>
-            <button className="pp-reload" onClick={loadData}>
-              ⟳ Оновити дані
-            </button>
-          </div>
 
-          {error && <div className="pp-error">{error}</div>}
+            {error && <div className="pp-error">{error}</div>}
 
-          {/* АНАЛІТИЧНА ТАБЛИЦЯ */}
-          {debtTotal && (
-            <div className="analytics-container">
-              {/* Цей блок видно ТІЛЬКИ на десктопі */}
-              <div className="analytics-table-container desktop-only-payment">
-                <table className="analytics-table">
-                  <thead>
-                    <tr>
-                      <th>Ліміт боргів</th>
-                      <th>Переліміт боргів</th>
-                      <th>Використання ліміту</th>
-                      <th>Без передоплати</th>
-                      <th>Недоавансовані</th>
-                      <th>Борг після реалізації</th>
-                      <th>Борг після завершення маршрута</th>
-                      <th>Гроші в дорозі</th>
-                      <th style={{ whiteSpace: "nowrap" }}>Борг {">"} 10дн</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td
-                        className={
-                          debtTotal.CustomerLimit == null
-                            ? " bold-text "
-                            : "text-success bold-text"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                      >
-                        {debtTotal.CustomerLimit === null ||
-                        debtTotal.CustomerLimit === 0
+            {/* АНАЛІТИЧНА ТАБЛИЦЯ */}
+            {debtTotal &&
+              (isMobile ? (
+                <PaymentsAnalyticsMobile
+                  debtTotal={debtTotal}
+                  formatCurrency={formatCurrency}
+                  showDebtDetails={showDebtDetails}
+                />
+              ) : (
+                <div className="analytics-container">
+                  <div className="analytics-row-top">
+                    <div className="analytics-card !pl-0">
+                      <div className="card-title">Ліміт боргів</div>
+                      <div className="card-value">
+                        {debtTotal.CustomerLimit === null || debtTotal.CustomerLimit === 0
                           ? "—"
                           : `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`}
-                      </td>
-                      <td
-                        className={
-                          Number(debtTotal.Debt || 0) +
-                            Number(debtTotal.Summa || 0) >
-                            debtTotal.CustomerLimit &&
-                          debtTotal.CustomerLimit > 0
-                            ? "text-danger bold-text"
-                            : "bold-text"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                      >
-                        {debtTotal.CustomerLimit > 0 &&
-                        Number(debtTotal.Debt || 0) +
-                          Number(debtTotal.Summa || 0) >
-                          debtTotal.CustomerLimit
+                      </div>
+                      <div className="mobile-vert-divider" />
+                    </div>
+
+                    <div className="analytics-card">
+                      <div className="card-title">Переліміт боргів</div>
+                      <div className={`card-value ${Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit && debtTotal.CustomerLimit > 0 ? "text-danger" : ""}`}>
+                        {debtTotal.CustomerLimit > 0 && Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit
                           ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                      <td
-                        className={
-                          debtTotal.CustomerLimit == null
-                            ? " bold-text "
-                            : "text-info bold-text"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                      >
-                        {debtTotal.CustomerLimit > 0
-                          ? formatCurrency(
-                              Math.min(
-                                Number(debtTotal.CustomerLimit),
-                                Number(debtTotal.Debt || 0) +
-                                  Number(debtTotal.Summa || 0) +
-                                  Number(debtTotal.BezPeredOplaty || 0),
-                              ),
-                            )
-                          : "—"}{" "}
-                        {debtTotal.CustomerLimit > 0 && `${debtTotal.CurrencyName}`}
-                      </td>
-                      <td
-                        className={
-                          Number(debtTotal.BezPeredOplaty || 0) > 0
-                            ? "orange-text pointer-link text-bold"
-                            : "orange-text text-bold"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                        onClick={() =>
-                          Number(debtTotal.BezPeredOplaty || 0) > 0 &&
-                          showDebtDetails("no_prepayment")
-                        }
-                      >
-                        {Number(debtTotal.BezPeredOplaty || 0) > 0
-                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                      <td
-                        className={
-                          Number(debtTotal.NedoAvans || 0) > 0
-                            ? "dark-orange-text pointer-link"
-                            : "dark-orange-text"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                        onClick={() =>
-                          Number(debtTotal.NedoAvans || 0) > 0 &&
-                          showDebtDetails("nedoavans")
-                        }
-                      >
-                        {Number(debtTotal.NedoAvans || 0) > 0
-                          ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                      <td
-                        className="dark-orange-text"
-                        style={{ whiteSpace: "nowrap" }}
-                      >
-                        {Number(debtTotal.Debt || 0) +
-                          Number(debtTotal.Summa || 0) >
-                        0
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                      <td
-                        className={
-                          Number(debtTotal.Debt || 0) > 0
-                            ? "dark-orange-text pointer-link"
-                            : "dark-orange-text"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                        onClick={() =>
-                          Number(debtTotal.Debt || 0) > 0 &&
-                          showDebtDetails("in_route")
-                        }
-                      >
-                        {Number(debtTotal.Debt || 0) > 0
-                          ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                      <td
-                        className={
-                          Number(debtTotal.Summa || 0) > 0
-                            ? "text-warning pointer-link text-bold"
-                            : " text-bold"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                        onClick={() =>
-                          Number(debtTotal.Summa || 0) > 0 &&
-                          showDebtDetails("money_way")
-                        }
-                      >
-                        {Number(debtTotal.Summa || 0) > 0
-                          ? `${formatCurrency(debtTotal.Summa)} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                      <td
-                        className={
-                          Number(debtTotal.DebtMoreTen || 0) > 0
-                            ? "text-danger pointer-link text-bold"
-                            : " text-bold"
-                        }
-                        style={{ whiteSpace: "nowrap" }}
-                        onClick={() =>
-                          Number(debtTotal.DebtMoreTen || 0) > 0 &&
-                          showDebtDetails("critical")
-                        }
-                      >
-                        {Number(debtTotal.DebtMoreTen || 0) > 0
-                          ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || "грн"}`
-                          : "—"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Цей блок видно ТІЛЬКИ на мобілці */}
-              <div className="analytics-mobile-grid mobile-only-payment">
-                <div className="analytics-card">
-                  <span className="label">Ліміт боргів</span>
-                  <span className="value bold-text">
-                    {debtTotal.CustomerLimit
-                      ? `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`
-                      : "—"}
-                  </span>
-                </div>
-
-                <div className="analytics-card">
-                  <span className="label">Переліміт</span>
-                  <span className="value red-text">
-                    {debtTotal.CustomerLimit > 0 &&
-                    Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) >
-                      debtTotal.CustomerLimit
-                      ? formatCurrency(
-                          Number(debtTotal.Debt || 0) +
-                            Number(debtTotal.Summa || 0) +
-                            Number(debtTotal.BezPeredOplaty || 0) -
-                            debtTotal.CustomerLimit,
-                        )
-                      : "0,00"}{" "}
-                    {debtTotal.CurrencyName || "грн"}
-                  </span>
-                </div>
-
-                <div
-                  className="analytics-card clickable"
-                  onClick={() =>
-                    Number(debtTotal.BezPeredOplaty || 0) > 0 &&
-                    showDebtDetails("no_prepayment")
-                  }
-                >
-                  <span className="label">Без передоплати</span>
-                  <span className="value orange-text">
-                    {formatCurrency(debtTotal.BezPeredOplaty)} {debtTotal.CurrencyName || "грн"}
-                  </span>
-                </div>
-
-                <div
-                  className="analytics-card clickable"
-                  onClick={() =>
-                    Number(debtTotal.DebtMoreTen || 0) > 0 &&
-                    showDebtDetails("critical")
-                  }
-                >
-                  <span className="label">Борг {">"} 10дн</span>
-                  <span className="value red-text">
-                    {formatCurrency(debtTotal.DebtMoreTen)} {debtTotal.CurrencyName || "грн"}
-                  </span>
-                </div>
-
-                <div
-                  className="analytics-card clickable"
-                  onClick={() =>
-                    Number(debtTotal.Debt || 0) > 0 &&
-                    showDebtDetails("in_route")
-                  }
-                >
-                  <span className="label">У маршрутах</span>
-                  <span className="value dark-orange-text">
-                    {formatCurrency(debtTotal.Debt)} {debtTotal.CurrencyName || "грн"}
-                  </span>
-                </div>
-
-                <div className="analytics-card">
-                  <span className="label">Борг (реаліз.)</span>
-                  <span className="value dark-orange-text">
-                    {formatCurrency(
-                      Number(debtTotal.Debt || 0) +
-                        Number(debtTotal.Summa || 0),
-                    )}{" "}
-                    {debtTotal.CurrencyName || "грн"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* АВАНСИ */}
-          <h2 className="pp-title" style={{ marginTop: 24 }}>
-            Ваші аванси на договорах
-          </h2>
-          <div className="pp-badges">
-            {contracts.length === 0 ? (
-              <div className="pp-empty">Аванси відсутні</div>
-            ) : (
-              contracts.map((c, i) => (
-                <div key={i} className="pp-badge">
-                  {c.DogovorName} —{" "}
-                  <strong>{formatCurrency(c.DogovorBalance)} {c.CurrencyName}</strong>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* СПИСОК ЗАМОВЛЕНЬ */}
-          <h2 className="pp-title" style={{ marginTop: 24 }}>
-            Замовлення до оплати
-          </h2>
-          <div className="pp-orders-wrapper">
-            {filteredOrders.length === 0 ? (
-              <div className="pp-empty">
-                Немає замовлень за обраними фільтрами
-              </div>
-            ) : (
-              filteredOrders.map((o, i) => (
-                <div className="pp-order-card" key={i}>
-                  <div className="pp-row pp-order-row">
-                    <div className="pp-order-col">
-                      <div className="pp-num">№ {o.OrderNumber}</div>
-                      <div className="pp-date">
-                        {o.OrderDate
-                          ? formatDateHuman(o.OrderDate.slice(0, 10))
                           : "—"}
                       </div>
                     </div>
-                    <div className="pp-status-col">
-                      <span
-                        className={`status-pill ${STATUS_COLORS[normalizeStatus(o.OrderStage)] || "status-unknown"}`}
-                      >
-                        {normalizeStatus(o.OrderStage)}
-                      </span>
+
+                    <div className="analytics-card">
+                      <div className="card-title">Використання ліміту</div>
+                      <div className="card-value">
+                        {debtTotal.CustomerLimit > 0
+                          ? formatCurrency(Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0)))
+                          : "—"}{" "}
+                        {debtTotal.CustomerLimit > 0 && `${debtTotal.CurrencyName}`}
+                      </div>
                     </div>
-                    <div className="pp-info">
-                      <span>Сума:</span>{" "}
-                      <strong className="order-sum">
-                        {formatCurrency(o.OrderSum)} 
-                      <span style={{ fontSize: '0.7em', marginLeft: '2px', color: 'inherit' }}>
-                        {o.CurrencyName || "грн"}
-                      </span>
-                      </strong>
+
+                    <div
+                      className={`analytics-card ${Number(debtTotal.BezPeredOplaty || 0) > 0 ? "pointer-link" : ""}`}
+                      onClick={() => Number(debtTotal.BezPeredOplaty || 0) > 0 && showDebtDetails("no_prepayment")}
+                    >
+                      <div className="card-title">Без передоплати</div>
+                      <div className="card-value">
+                        {Number(debtTotal.BezPeredOplaty || 0) > 0
+                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName || "грн"}`
+                          : "—"}
+                      </div>
                     </div>
-                    <div className="pp-info">
-                      <span>Оплачено:</span>{" "}
-                      <strong className="pp-green">
-                        {formatCurrency(o.PaidAmount)}          
-                      <span style={{ fontSize: '0.7em', marginLeft: '2px', color: 'inherit'}}>
-                        {o.CurrencyName || "грн"}
-                      </span>
-                      </strong>
+
+                    <div
+                      className={`analytics-card !pr-0 ${Number(debtTotal.NedoAvans || 0) > 0 ? "pointer-link" : ""}`}
+                      onClick={() => Number(debtTotal.NedoAvans || 0) > 0 && showDebtDetails("nedoavans")}
+                    >
+                      <div className="card-title">Недоавансовані</div>
+                      <div className="card-value">
+                        {Number(debtTotal.NedoAvans || 0) > 0
+                          ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName || "грн"}`
+                          : "—"}
+                      </div>
                     </div>
-                    <div className="pp-info">
-                      <span>Залишок:</span>{" "}
-                      <strong className="pp-red">
-                        {formatCurrency(o.DebtAmount)} 
-                              <span style={{ fontSize: '0.7em', marginLeft: '2px',  color: 'inherit'}}>
-                        {o.CurrencyName || "грн"}
-                      </span>
-                      </strong>
+                  </div>
+
+                  <div className="analytics-divider" />
+
+                  <div className="analytics-row-bottom">
+                    <div className="analytics-card !pl-0">
+                      <div className="card-title">Борг після реалізації</div>
+                      <div className="card-value">
+                        {Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > 0
+                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} ${debtTotal.CurrencyName || "грн"}`
+                          : "—"}
+                      </div>
                     </div>
-                    <div className="pp-pay-btn-wrapper">
-                      <button
-                        className="pp-pay-btn"
-                        onClick={() => openPaymentModal(o)}
-                      >
-                        Оплатити
-                      </button>
+
+                    <div
+                      className={`analytics-card ${Number(debtTotal.Debt || 0) > 0 ? "pointer-link" : ""}`}
+                      onClick={() => Number(debtTotal.Debt || 0) > 0 && showDebtDetails("in_route")}
+                    >
+                      <div className="card-title">Борг після завершення маршрута</div>
+                      <div className="card-value">
+                        {Number(debtTotal.Debt || 0) > 0
+                          ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || "грн"}`
+                          : "—"}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`analytics-card ${Number(debtTotal.Summa || 0) > 0 ? "pointer-link" : ""}`}
+                      onClick={() => Number(debtTotal.Summa || 0) > 0 && showDebtDetails("money_way")}
+                    >
+                      <div className="card-title">Гроші в дорозі</div>
+                      <div className="card-value">
+                        {Number(debtTotal.Summa || 0) > 0
+                          ? `${formatCurrency(debtTotal.Summa)} ${debtTotal.CurrencyName || "грн"}`
+                          : "—"}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`analytics-card !pr-0 ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "pointer-link" : ""}`}
+                      onClick={() => Number(debtTotal.DebtMoreTen || 0) > 0 && showDebtDetails("critical")}
+                    >
+                      <div className="card-title">Борг {">"} 10дн</div>
+                      <div className={`card-value ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "text-danger" : ""}`}>
+                        {Number(debtTotal.DebtMoreTen || 0) > 0
+                          ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || "грн"}`
+                          : "—"}
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))
+              ))}
+
+            {/* АВАНСИ */}
+            <h2 className="pp-title" style={{ marginTop: 24 }}>
+              Ваші аванси на договорах
+            </h2>
+            <div className="pp-badges">
+              {contracts.length === 0 ? (
+                <div className="pp-empty">Аванси відсутні</div>
+              ) : (
+                contracts.map((c, i) => (
+                  <div key={i} className="pp-badge">
+                    {c.DogovorName} —{"\u00A0"}
+                    <strong> {formatCurrency(c.DogovorBalance)} {c.CurrencyName}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* СПИСОК ЗАМОВЛЕНЬ */}
+            <h2 className="pp-title" style={{ marginTop: 24 }}>
+              Замовлення до оплати
+            </h2>
+            {isMobile ? (
+              <PaymentsMobileContent
+                filteredOrders={filteredOrders}
+                openPaymentModal={openPaymentModal}
+                formatCurrency={formatCurrency}
+                normalizeStatus={normalizeStatus}
+                STATUS_FILTERS={STATUS_FILTERS}
+                inProcessingIcon={inProcessingIcon}
+              />
+            ) : (
+              <div className="pp-orders-wrapper">
+                {filteredOrders.length === 0 ? (
+                  <div className="pp-empty">Немає замовлень за обраними фільтрами</div>
+                ) : (
+                  filteredOrders.map((o, i) => (
+                    <div className="pp-order-card" key={i}>
+                      <div className="pp-section pp-order-meta">
+                        <div className="pp-num">№ {o.OrderNumber}</div>
+                        <div className="pp-date">
+                          {o.OrderDate ? formatDateHuman(o.OrderDate.slice(0, 10)) : "—"}
+                        </div>
+                      </div>
+
+                      <div className="pp-section pp-status-col">
+                        {(() => {
+                          const currentStatus = normalizeStatus(o.OrderStage);
+                          const statusObj = STATUS_FILTERS.find((f) => f.key === currentStatus);
+                          const statusIcon = statusObj ? statusObj.icon : inProcessingIcon;
+                          const statusColor = statusObj ? statusObj.colorClass : "status-unknown";
+
+                          return (
+                            <span className={`status-pill ${statusColor}`}>
+                              <img src={statusIcon} alt="" className="brightness-0 invert" />
+                              {currentStatus}
+                            </span>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="pp-section pp-info-block">
+                        <div className="pp-label">Сума</div>
+                        <div className="pp-value-wrapper">
+                          <AppIcon name="money" className="w-[20px] h-[18px]" />
+                          <strong className="order-sum">
+                            {formatCurrency(o.OrderSum)}
+                            <span className="pp-currency">{o.CurrencyName || "грн"}</span>
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="pp-section pp-info-block">
+                        <div className="pp-label">Оплачено</div>
+                        <div className="pp-value-wrapper">
+                          <AppIcon name="moneyGreen" className="w-[20px] h-[18px]" />
+                          <strong className="pp-green">
+                            {formatCurrency(o.PaidAmount)}
+                            <span className="pp-currency">{o.CurrencyName || "грн"}</span>
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="pp-section pp-info-block">
+                        <div className="pp-label">Залишок</div>
+                        <div className="pp-value-wrapper">
+                          <AppIcon name="moneyRed" className="w-[20px] h-[18px]" />
+                          <strong className="pp-red">
+                            {formatCurrency(o.DebtAmount)}
+                            <span className="pp-currency">{o.CurrencyName || "грн"}</span>
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="pp-section pp-pay-btn-wrapper">
+                        <button className="pp-pay-btn" onClick={() => openPaymentModal(o)}>
+                          <span className="pp-pay-icon">
+                            <AppIcon name="pay" className="w-[20px] h-[20px]" />
+                          </span>
+                          Оплатити
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* DRILL-DOWN MODAL */}
-      {detailModalOpen && (
-        <div
-          className="pay-modal-overlay"
-          onClick={() => setDetailModalOpen(false)}
-        >
-          <div
-            className="pay-modal-window"
-            style={{ width: "750px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="pay-modal-header">
-              <h3>{detailTitle}</h3>
-              <span
-                className="pay-close-btn icon-cross"
-                onClick={() => setDetailModalOpen(false)}
-              />
-            </div>
-            <div
-              className="pay-modal-body"
-              style={{
-                padding: "0px 10px",
-                overflowY: "auto",
-                maxHeight: "60vh",
-              }}
-            >
-              <table className="details-list-table">
-                <thead
-                  style={{
-                    position: "sticky",
-                    top: 0,
-                    background: isDark ? "#2b2b2b" : "#fff",
-                    zIndex: 10,
-                  }}
-                >
-                  <tr>
-                    <th>№</th>
-                    <th className="mobile-none">Дата</th>
-                    <th>Сума</th>
-                    {/* <th className="mobile-none">Статус маршруту</th> */}
-                    <th style={{ textAlign: "center" }}>Дія</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDetailOrders.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan="5"
-                        style={{ textAlign: "center", padding: "20px" }}
-                      >
-                        Дані відсутні
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredDetailOrders.map((o, idx) => (
-                      <tr key={idx}>
-                        <td className="bold">{o.ZakazNum}</td>
-                        <td className="mobile-none">
-                          {formatDateHumanShorter(o.ZakazDate?.slice(0, 10))}
-                        </td>
-                        <td className="bold" style={{ color: "#1da8df" }}>
-                          {formatCurrency(
-                            o.Debt ||
-                              // o.BezPeredOplaty ||
-                              o.NedoAvans ||
-                              o.Summa || o.ZakazSumma,
-                          )}{" "}
-                          {o.CurrencyName || "грн"}
-                        </td>
-                        {/* <td className="mobile-none">{o.RouteStatus || "—"}</td> */}
-                        <td className="detail-action">
-                          <div className="center-wrapper">
-                            <button
-                              className="pay-btn-confirm mini-action-btn"
-                              onClick={() => handlePayFromDetails(o.ZakazNum)}
-                              title="Знайти в списку"
-                            >
-                              <span className="icon-search" />
-                              <span className="btn-text mobile-none">
-                                {" "}
-                                Знайти
-                              </span>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className="pay-modal-footer">
-              <button
-                className="pay-btn-cancel"
-                onClick={() => setDetailModalOpen(false)}
-              >
-                Закрити
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PAYMENT MODAL */}
-      {modalOpen && selectedOrder && (
-        <PaymentModal
-          order={selectedOrder}
-          contracts={contracts}
-          onClose={closeModal}
-          onConfirm={makePayment}
+        {/* 🛠️ ВИКОРИСТОВУЄМО ОНОВЛЕНУ МOДАЛКУ ДЕТАЛЕЙ */}
+        <DebtDetailModal
+          isOpen={detailModalOpen}
+          title={detailTitle}
+          orders={filteredDetailOrders}
+          isDark={isDark}
           formatCurrency={formatCurrency}
+          onClose={() => setDetailModalOpen(false)}
+          onPay={handlePayFromDetails}
         />
-      )}
+
+        {/* PAYMENT MODAL */}
+        {modalOpen && selectedOrder && (
+          <PaymentModal
+            order={selectedOrder}
+            contracts={contracts}
+            onClose={closeModal}
+            onConfirm={makePayment}
+            formatCurrency={formatCurrency}
+          />
+        )}
+      </div>
     </div>
   );
 }

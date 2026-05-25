@@ -51,7 +51,7 @@ const AdditionalOrders = () => {
 
 
   const allCalcIcon = "/assets/icons/AdditionalOrderIcon.png";
-  const newCalcIcon = "/assets/icons/NewCal cIcon.png";
+  const newCalcIcon = "/assets/icons/NewCalcIcon.png";
   const inProcessingIcon = "/assets/icons/InProcessingIcon.png";
   const waitingForPaymentIcon = "/assets/icons/WaitingForPaymentIcon.png";
   const waitingForConfirmIcon = "/assets/icons/WaitingForConfirmIcon.png";

@@ -18,6 +18,8 @@
 }
 
 .pp-title-header .icon-menu {
+  font-size: 16px;
+  font-weight: 500;
   line-height: 1;
   display: flex;
   align-items: center;
@@ -86,9 +88,9 @@
 .pp-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-  margin-top: 12px;
+  align-items: start;
+  margin-bottom: 4px;
+  /* margin-top: 12px; */
 }
 
 .pp-title-header {
@@ -106,13 +108,14 @@
 /* ---------------- BUTTON ---------------- */
 
 .pp-reload {
-  background: var(--info-color);
-  color: white;
-  padding: 7px 18px;
+  background: var(--WS---Green);
+  color: var(--WS---DarkGrey);
+  padding: 4px 18px;
   border-radius: 5px;
   border: none;
   cursor: pointer;
   transition: 0.25s;
+  flex-direction: row;
 }
 
 .pp-reload:hover {
@@ -151,23 +154,23 @@
 /* ---------------- TITLES ---------------- */
 
 .pp-title {
-  font-size: 21px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--WS---DarkGrey);
   margin-bottom: 12px;
-  color: var(--grey-text-color);
   margin-top: 20px;
-}
+} 
 
 /* ---------------- ORDER CARD ---------------- */
 
 .pp-order-card {
-  background: var(--cream-bg-color);
+  background: white;
   padding: 14px;
-  border-radius: 6px;
-  border: 1px dashed var(--grey-border-color);
+  border-radius: 0px 5px 5px 0px;
   margin-bottom: 12px;
   box-shadow: 1px 1px 4px var(--shadow-color);
   display: flex;
+  border-left: 7px solid var(--WS---Green) ;
   flex-direction: column;
 }
 
@@ -211,13 +214,20 @@
 }
 
 .pp-badge {
-  background: #5b77b8;
+  height: 47px;
+  background: var(--WS--DarkBlue);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 0px 5px 5px 0px;
   font-size: 13px;
-  border: 1px solid #9fb5f3;
+  border-left: 7px solid var(--WS---Green);
   white-space: nowrap;
   color: #ffffff;
+
+  display: flex;
+  align-items: center;     
+  justify-content: center;
+  
+  box-sizing: border-box;  
 }
 
 .pp-info span {
@@ -253,6 +263,7 @@
   margin-bottom: 16px;
 }
 
+
 /* ---------------- ANIMATIONS ---------------- */
 
 .fade-in {
@@ -278,12 +289,12 @@
 
 /* Контейнер для всіх замовлень */
 .pp-orders-wrapper {
-  background: #ffffff;
-  padding: 20px;
+  /* background: #ffffff; */
+  /* padding: 20px;
   border-radius: 12px;
   border: 1px solid #e6dfd2;
   margin-top: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); */
 }
 
 /* Щоб картки гарно лягали всередину */
@@ -491,11 +502,22 @@
 }
 
 .payment-filter-headers-name {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--grey-text-color);
-  margin-top: 12px;
+  margin-right: 10px;
+  /* margin-top: 12px; */
   margin-bottom: 10px;
+  color: var(--WS---DarkGrey);
+
+}
+.payment-type-headers-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-right: 10px;
+  /* margin-top: 12px; */
+  margin-bottom: 10px;
+  color: var(--WS---DarkGrey);
+
 }
 
 .p-30 {
@@ -569,6 +591,16 @@
   .payment-filter-headers-name {
     display: none;
   }
+  .payment-type-headers-name {
+    margin-top: 12px;
+  }
+
+  .divider-bottom {
+    border-bottom: 1px solid #000;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
 }
 /* =====================================================
     АДАПТИВНІСТЬ (≤ 1190px) — ЗБЕРІГАЄМО ВЕРТИКАЛЬНИЙ ВИГЛЯД
@@ -618,11 +650,11 @@
     gap: 10px;
   }
 
-  .pp-title {
+  /* .pp-title {
     font-size: 17px;
     margin-top: 5px;
     margin-bottom: 0;
-  }
+  } */
 
   .pp-title-header {
     font-size: 20px;
@@ -645,9 +677,7 @@
   }
 
   /* Orders wrapper */
-  .pp-orders-wrapper {
-    padding: 12px;
-  }
+
 
   /* Order card */
   .pp-order-card {
@@ -753,7 +783,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 999;
+  z-index: 10000;
 }
 
 .pp-status {
@@ -868,24 +898,15 @@
 ================================ */
 
 .content-filter-payment {
-  height: calc(100vh - 110px); /* висота вікна мінус хедер порталу */
+ 
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--WS--MiddleGrey) transparent;
+  
 }
 
-/* гарний скрол */
-.content-filter-payment::-webkit-scrollbar {
-  width: 6px;
-}
 
-.content-filter-payment::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-}
-
-.dark-theme .content-filter-payment::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-}
 
 .content-filter-payment .search-wrapper-payment .clear-search-payment {
   position: relative;
@@ -897,6 +918,13 @@
   color: var(--text-color);
   line-height: 1;
 }
+
+.search-wrapper-payment {
+  /* padding: 0; */
+  margin: 0;
+  height: 50px;
+}
+
 
 .content-filter-payment .clear-search-payment:hover {
   color: var(--danger-color);
@@ -1019,14 +1047,14 @@ body.dark-theme .order-sum {
   border-color: #444;
 }
 
-.pointer-link {
+/* .pointer-link {
   cursor: pointer;
   text-decoration: underline dotted;
   transition: color 0.2s;
-}
+} */
 
 .pointer-link:hover {
-  color: #007bff;
+  color: #e8ffa1;
   background-color: rgba(0, 123, 255, 0.05);
 }
 
@@ -1250,7 +1278,7 @@ body.dark-theme .order-sum {
     padding: 10px 0;
   }
 
-  .analytics-card {
+  /* .analytics-card {
     background: var(--bg-card, #fff);
     border: 1px solid var(--border-color, #e0e0e0);
     border-radius: 10px;
@@ -1259,7 +1287,7 @@ body.dark-theme .order-sum {
     flex-direction: column;
     justify-content: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  }
+  } */
 
   .analytics-card.clickable {
     cursor: pointer;
@@ -1302,3 +1330,586 @@ body.dark-theme .order-sum {
 .detail-action {
   max-width: 50px;
 }
+
+/* Основний платівковий білий контейнер */
+.analytics-container {
+  background: #ffffff;
+  border-radius: 0px 5px 5px 0px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  padding: 16px 10px;
+  border-left: 7px solid var(--WS---Green);
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+/* Верхній ряд: чітко ділить простір на 5 рівних колонок */
+.analytics-row-top {
+  display: flex;
+  width: 100%;
+
+  /* gap: 20px; */
+}
+.analytics-row-top .analytics-card {
+  flex: 1; /* Кожна з 5 карток займає рівно 20% ширини */
+  min-width: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  
+}
+
+
+
+
+.analytics-row-top .analytics-card:not(:last-child) {
+  border-right: 1px dotted var(--WS---DarkGrey);
+}
+
+
+.analytics-divider {
+  width: 100%;
+  height: 2px;
+  background-color: #2c3e50; 
+  margin: 14px 0;
+}
+
+
+.analytics-row-bottom {
+  display: flex;
+  width: 100%;
+
+
+}
+.analytics-row-bottom .analytics-card {
+  flex: 1;
+  min-width: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+
+
+.analytics-row-bottom .analytics-card:not(:last-child) {
+  border-right: 1px dotted var(--WS---DarkGrey);
+}
+
+/* Елементи карток */
+.analytics-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.pointer-link {
+  cursor: pointer;
+}
+.pointer-link:hover .card-value {
+  text-decoration: underline;
+}
+.card-title {
+  font-size: 13px;
+  color: var(--WS---DarkGrey);
+  font-weight: 500;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  border-bottom: 1px dotted var(--WS---DarkGrey);
+}
+
+.card-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Стилізація кольорів для сум */
+.text-success { color: var(--WS---Green) !important; }
+.text-danger { color: var(--WS--DarkRed) !important; }
+.text-info { color: var(--WS--DarkBlue) !important; }
+.text-warning { color: var(--WS--DarkGreen) !important; }
+.orange-text { color: #2c3e50 !important; }
+.dark-orange-text { color: #2c3e50 !important; }
+.dark-text { color: #2c3e50 !important; }
+
+/* ================= АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ СМАРТФОНІВ ================= */
+@media (max-width: 640px) {
+  .analytics-row-top, 
+  .analytics-row-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* На телефонах обидва ряди гарно стають у 2 колонки */
+    gap: 12px 14px;
+  }
+  
+  .analytics-divider {
+    display: none; /* Ховаємо лінію на мобільних, щоб не перебивати сітку карт */
+  }
+  
+  .analytics-container {
+    padding: 12px 14px;
+  }
+  
+  .card-value {
+    font-size: 13px;
+  }
+}
+
+/* Контейнер для списку карток */
+.pp-orders-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+ 
+  background-color: #f4f4f4; /* Сірий бекграунд як на фоні */
+
+}
+
+/* Сама картка замовлення */
+.pp-order-card {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  background: #ffffff;
+  border-radius: 0px 5px 5px 0px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-left: 7px solid #99cc33; /* Зелений маркер зліва */
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+/* Спільний клас для секцій картки */
+.pp-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
+  height: 50px; /* Фіксована висота для вирівнювання розділювачів */
+}
+
+/* Додавання вертикальних пунктирних ліній МІЖ секціями */
+.pp-section:not(:last-child) {
+  border-right: 1px dotted var(--WS---DarkGrey);
+}
+
+/* 1. Блок номеру та дати */
+.pp-order-meta {
+  min-width: 130px;
+}
+.pp-num {
+  font-weight: 700;
+  font-size: 16px;
+  color: #333333;
+  margin-bottom: 4px;
+  border-bottom: 1px dotted var(--WS---DarkGrey) ;
+}
+.pp-date {
+  font-size: 13px;
+  color: #666666;
+}
+
+/* 2. Блок статусу (Відвантажений тощо) */
+.pp-status-col {
+  min-width: 150px;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 400;
+  color: #ffffff;
+  white-space: nowrap;
+}
+/* Колір для прикладу "Відвантажений" (фіолетовий) */
+.status-pill.status-shipped, 
+.status-pill { 
+  background-color: #6f3662; 
+}
+
+/* 3. Блоки з фінансами (Сума, Оплачено, Залишок) */
+.pp-info-block {
+  flex: 1;
+  min-width: 120px;
+}
+.pp-label {
+  font-size: 13px;
+  color: #666666;
+  margin-bottom: 4px;
+  text-align: center;
+}
+.pp-value-wrapper {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+}
+.pp-value-wrapper strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+.pp-currency {
+  font-size: 12px;
+  font-weight: normal;
+  color: #333333;
+  margin-left: 2px;
+}
+
+/* Кольори текстів */
+.order-sum { color: #333333; }
+
+.order-sum-payment { color: #333333; text-align: center; padding-top: 4px;}
+.pp-green { color: #4b721d; } /* Темно-зелений для цифр */
+.pp-green-payment { color: #4b721d; text-align: center; padding-top: 4px;} /* Темно-зелений для цифр */
+.pp-red { color: #b43c28; }   /* Червоний для залишку */
+.pp-red-payment { color: #b43c28; text-align: center; padding-top: 4px;}   /* Червоний для залишку */
+
+/* 4. Кнопка "Оплатити" */
+.pp-pay-btn-wrapper {
+  border-right: none !important; /* Прибираємо лінію перед кнопкою, якщо треба */
+  padding-right: 15px;
+}
+.pp-pay-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #557600; /* Оливково-зелений колір кнопки */
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+.pp-pay-btn:hover {
+  background-color: #445e00;
+}
+.pp-pay-icon {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+/* Плейсхолдер порожнього стану */
+.pp-empty {
+  padding: 30px;
+  text-align: center;
+  background: #fff;
+  border-radius: 6px;
+  color: #999;
+}
+
+/* Прості іконки стопок монет (замість зображень) */
+.pp-icon-coins {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'); /* Тимчасова іконка бакса, замініть на монетки */
+  background-size: contain;
+}
+
+/* Адаптивність для мобільних (перебудова в стовпчик) */
+@media (max-width: 768px) {
+  .pp-order-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0px;
+  }
+  .pp-section {
+    width: 100%;
+    height: auto;
+    padding: 10px 0;
+    border-right: none !important;
+    border-bottom: 1px dotted #ccc;
+  }
+  .pp-section:last-child {
+    border-bottom: none;
+  }
+  
+}
+
+/* Якщо іконки вже білі, просто задаємо їм розмір */
+.status-pill-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+/* Твої кастомні класи кольорів, які ти вказала в colorClass */
+.status-wait-confirm { background-color: #ED8B33; }
+.status-wait-payment { background-color: #BA523B; }
+.status-confirmed    { background-color: #44403E; }
+.status-production   { background-color: #234461; }
+.status-ready        { background-color: #516C00; }
+.status-shipped      { background-color: #733462; }
+.status-closed       { background-color: #AEAEAE; }
+.status-unknown      { background-color: #AEAEAE; }
+
+
+
+
+.analytics-mobile-grid {
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* Ділимо на 6 умовних частин */
+  gap: 10px;
+  background: var(--bg-card, #fff);
+  border-top: 7px solid var(--WS---Green);
+  
+
+
+}
+
+/* Перші 3 картки займають по 2 частини (разом 6) -> стають в один рядок */
+.analytics-mobile-grid .analytics-card:nth-child(-n+3) {
+  grid-column: span 2;
+}
+
+/* Всі наступні картки займають по 3 частини (разом 6) -> стають по дві в рядок */
+.analytics-mobile-grid .analytics-card:nth-child(n+4) {
+  grid-column: span 3;
+}
+
+
+.mobile-solid-divider {
+  grid-column: span 6; /* Розтягується на всю ширину (всі 6 колонок) */
+  height: 2px;
+  background-color: #000000;
+
+}
+body.dark-theme .mobile-solid-divider {
+  background-color: #444;
+}
+
+
+
+/* Для темної теми */
+body.dark-theme .mobile-vert-divider {
+  border-left-color: #666666;
+}
+
+/* Для темної теми міняємо колір на м'якший */
+body.dark-theme .mobile-vert-divider {
+  background-color: #444444;
+}
+
+@media (max-width: 1024px) {
+  /* Батьківська картка стає відносною для позиціонування лінії */
+  .analytics-mobile-grid .analytics-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 💡 Вертикальна лінія впритул праворуч */
+  .mobile-vert-divider {
+    position: absolute;
+    right: -5px;               /* Притискаємо впритул до правого краю (половина gap) */
+  
+    height: 100%;               /* Висота лінії відносно висоти картки */
+    width: 0px;                /* Для dotted товщина має бути 0 */
+    
+    border-right: 1px dotted #000000; /* Чорний пунктир */
+    pointer-events: none;      /* Щоб не перекривала кліки */
+    z-index: 2;
+  }
+
+  /* Темна тема */
+  body.dark-theme .mobile-vert-divider {
+    border-right-color: #666666;
+  }
+
+  .pp-order-card {
+    flex-direction: column;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.mobile-card {
+  border-top: 7px solid var(--WS---Green);
+  border-radius: 0px;
+  position: relative;
+  border-left: none ;
+  
+  /* Змінюємо на column, щоб лінія була зверху, а блоки йшли один під одним */
+  display: flex;
+  flex-direction: column; 
+  width: 100%; /* Розтягуємо саму картку по ширині контейнера */
+  
+  background: #fff;
+  overflow: hidden;
+  margin-bottom: 16px; /* Відступ між картками */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.card-top-accent {
+  width: 100%; /* Займає всю ширину верхньої плашки */
+  height: 4px;
+  background-color: #a3c73c; /* Салатова смужка */
+}
+
+.info-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Центруємо номер та статус по вертикалі */
+  padding: 14px 16px;
+  width: 100%;
+}
+
+/* Сітка 2х2 розтягнута на всю ширину картки */
+.mobile-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%; 
+ 
+  /* border-top: 1px dotted var(--WS---DarkGrey); Горизонтальний роздільник від шапки */
+}
+
+.grid-cell {
+  padding: 4px 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Вертикальний роздільник між стовпчиками для першого і другого рядка сітки */
+.cell-sum, .cell-debt {
+
+  border-right: 1px dotted var(--WS---DarkGrey);
+}
+
+.cell-paid {
+  margin-right: 16px;
+  padding-left: 4px;
+    margin-top: 4px;
+  margin-bottom: 4px;
+  padding-top: 4px;
+
+}
+
+
+.cell-debt {
+  margin-left: 16px ;
+  padding-right: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+
+
+.cell-sum {
+
+  margin-left: 16px ;
+  padding-right: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding-top: 4px;
+}
+
+
+/* Горизонтальний роздільник між рядками сітки */
+.cell-debt, .cell-action {
+  border-top: 1px dotted var(--WS---DarkGrey);
+}
+
+/* Повне розтягування та вирівнювання кнопки оплати всередині комірки */
+.cell-action {
+  justify-content: center;
+  align-items: center;
+  margin-right: 16px;
+  padding-left: 4px;
+  border-top: 1px dotted var(--WS---DarkGrey); /* Гарантуємо лінію над кнопкою */
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.mobile-pay-btn {
+  width: 90%; /* Кнопка займає весь простір виділеної комірки */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0px;
+}
+.scroll-bar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: var(--WS--MiddleGrey) transparent;
+}
+
+
+.mobile-label-payment {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  /* margin-bottom: 6px; */
+  color: var(--text-color);
+  text-align: center;
+  padding-bottom: 4px;
+  border-bottom: 1px dotted var(--WS---DarkGrey) ;
+}
+
+
+.info-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Центрує номер та статус по вертикалі */
+  padding: 12px 16px;
+  width: 100%;
+}
+
+.border-bottom-custom-payment {
+  width: calc(100% - 32px);
+  margin-left: 16px;
+  margin-right: 16px;
+  border-bottom: 1px dotted var(--WS---DarkGrey);
+}
+
+/* Додаємо лінію для блоку з номером та датою */
+.order-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Займає весь доступний простір зліва */
+  
+  /* 👈 Вертикальна пунктирна або суцільна лінія */
+  border-right: 1px dotted var(--WS---DarkGrey); 
+  
+  /* Відступи, щоб текст не притискався до лінії */
+  padding-right: 8px; 
+  margin-right: 8px;
+}
+

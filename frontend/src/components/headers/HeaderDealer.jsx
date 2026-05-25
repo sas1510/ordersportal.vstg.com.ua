@@ -712,6 +712,10 @@ export default function HeaderDealer() {
     return () => { isMounted = false; };
   }, []);
 
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
   // 3. Форматування балансу (Виправлено перенос за допомогою \u00A0 - нерозривний пробіл)
   const formattedBalance = useMemo(() => {
     return new Intl.NumberFormat("uk-UA", {
@@ -795,7 +799,8 @@ export default function HeaderDealer() {
       }
     };
     // ВИПРАВЛЕНО: Видалено addNotification із залежностей, щоб уникнути нескінченного циклу створення сокетів
-  }, [fetchInitialData]);
+  }, []);
+  // }, [fetchInitialData]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

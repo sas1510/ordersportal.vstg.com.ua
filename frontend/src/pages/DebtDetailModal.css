@@ -1,0 +1,249 @@
+/* ==========================================================================
+   DEBT DETAIL MODAL (ddm-)
+   ========================================================================== */
+
+/* Оверлей (затемнення фону) */
+.ddm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001;
+  /* backdrop-filter: blur(2px); */
+}
+
+/* Вікно модалки */
+.ddm-window {
+  background: var(--bg-white, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  max-width: 90%;
+  animation: ddmFadeIn 0.25s ease-out;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Шапка модалки */
+.ddm-header {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--WS--DarkBlue);
+  border-bottom: 1px solid var();
+  border-radius: 10px 10px 0px 0px;
+  height: 50px;
+}
+
+.ddm-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+}
+
+/* Кнопка закриття (хрестик) у шапці */
+.ddm-close-btn {
+  font-size: 20px;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.ddm-close-btn:hover {
+  color: #ef4444;
+}
+
+/* Контентна частина */
+.ddm-body {
+  padding: 0px 24px !important;
+  color: var(--text-color, #374151);
+  scrollbar-width: thin; 
+  scrollbar-color: var(--WS--MiddleGrey) transparent;
+  
+}
+
+/* Таблиця всередині модалки */
+.ddm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+.ddm-table th {
+  padding: 12px 0px;
+  font-weight: 600;
+  color: var(--WS---DarkGrey);
+  
+}
+
+.border-under-header th {
+  padding: 8px 0px;
+  /* Робимо додатковий відступ знизу до лінії */
+  padding-bottom: 6px !important; 
+}
+
+/* Магічний клас для шапки */
+.border-under-header {
+  position: relative; /* Щоб зафіксувати лінію відносно thead */
+}
+
+/* Створюємо лінію, яка ніколи не зникне при скролі */
+.border-under-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0; /* Лінія чітко внизу thead */
+  height: 2px; /* Товщина лінії */
+  background-color: var(--WS---DarkGrey, #6b7280); /* Твій колір */
+  z-index: 11; /* Вище, ніж z-index самого thead (10), тому tbody її не перекриє */
+  pointer-events: none; /* Щоб лінія не заважала клікам */
+}
+.ddm-table td {
+  padding: 12px 0px;
+  border-bottom: 1px dotted var(--WS---DarkGrey) ;
+  vertical-align: middle;
+}
+
+
+
+.ddm-td-empty {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+/* Кнопка "Знайти" в таблиці */
+.ddm-btn-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--WS--DarkBlue);
+  color: #ffffff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.ddm-btn-search:hover {
+  background-color: #158cb8;
+}
+
+.ddm-btn-search:active {
+  transform: scale(0.98);
+}
+
+.ddm-btn-search .icon-search {
+  font-size: 14px;
+}
+
+/* Футер модалки */
+.ddm-footer {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* Кнопка "Закрити" у футері */
+.ddm-btn-close {
+  background-color: var(--WS---DarkGrey);
+  height: 35px;
+  width: 112px;
+  font-size: 18px ;
+  color: #fff;
+  border: 1px solid #d1d5db;
+
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  justify-content: center;
+
+  transition: all 0.2s ease;
+}
+
+.ddm-btn-close:hover {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+/* ==========================================================================
+   DARK THEME REOVERRIDES (ТЕМНА ТЕМА)
+   ========================================================================== */
+.dark-theme .ddm-window {
+  background: #2b2b2b;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.dark-theme .ddm-header,
+.dark-theme .ddm-footer {
+  border-color: #3d3d3d;
+}
+
+.dark-theme .ddm-title {
+  color: #f3f4f6;
+}
+
+.dark-theme .ddm-table th {
+  color: #9ca3af;
+  border-color: #3d3d3d;
+}
+
+.dark-theme .ddm-table td {
+  border-color: #333333;
+}
+
+.dark-theme .ddm-btn-close {
+  background-color: #3d3d3d;
+  color: #e5e7eb;
+  border-color: #4a4a4a;
+}
+
+.dark-theme .ddm-btn-close:hover {
+  background-color: #4a4a4a;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   RESPONSIVE & ANIMATIONS (АДАПТИВНІСТЬ ТА АНІМАЦІЯ)
+   ========================================================================== */
+@keyframes ddmFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Медіа-запит для мобільних екранів (копіює поведінку твого класу .mobile-none) */
+@media (max-width: 900px) {
+  .mobile-none {
+    display: none !important;
+  }
+  
+  .ddm-window {
+    width: 95% !important;
+  }
+
+  .ddm-header, 
+
+  .ddm-footer {
+    padding: 12px 16px;
+  }
+}
+

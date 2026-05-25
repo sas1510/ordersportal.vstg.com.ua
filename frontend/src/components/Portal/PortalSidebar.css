@@ -15,24 +15,29 @@
 
 .content-filter-payment {
   padding: 8px;
-  height: calc(100% - 28px);
-  width: 100%;
-  max-width: 350px;
-  border-right: 1px dashed var(--grey-border-color);
+  height: calc(100%);
+  /* width: 100%; */
+  /* max-width: 350px; */
+
   /* background: #fff; */
   display: flex;
   flex-direction: column;
+  border-radius: 0px 20px 20px 0px;
 }
 
 /* ---------- Sidebar header (mobile) ---------- */
+.search-wrapper-payment {
+  width: 100%;
+  margin-bottom: 8px;
 
+}
 .sidebar-header-payment {
-  padding: 12px 16px;
+  padding: 16px 0px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e9ecef;
+  /* border-bottom: 1px solid #e9ecef; */
 }
 
 .sidebar-header-payment .icon-cross {
@@ -47,11 +52,11 @@
 }
 
 .content-filter-payment .search-orders {
-  width: 100%;
-  height: 50px;
-  padding: 0 40px 0 12px;
+  width: 285px;
+  height: 42px;
+  padding: 0 10px 0 40px;
   font-size: 16px;
-  border: 1px dashed var(--grey-border-color);
+  border: 1px solid var(--grey-border-color);
   border-radius: 5px;
   color: var(--text-color);
 }
@@ -103,8 +108,9 @@
 
 .content-filter-payment .filter li:hover,
 .content-filter-payment .filter li.active {
-  background-color: #fff;
-  border: 1px dashed var(--grey-border-color);
+  background-color: var(--WS--DarkBlue);
+  color: #fff;
+  /* border: 1px dashed var(--grey-border-color); */
 }
 
 .content-filter-payment .filter li.disabled {
@@ -120,17 +126,33 @@
     flex-direction: column;
   }
 
+  .content-filter-payment .search-orders {
+    width: 100%;
+  }
+
   .content-filter-payment {
+    padding: 0px;
     position: fixed;
-    top: 60px;
+    top: 0px;
     left: -100%;
-    width: 250px;
-    height: calc(100vh - 100px);
-    z-index: 999;
-    overflow-y: auto;
+    width: 320px;
+   
+    z-index: 10001 !important;
+ 
     transition: left 0.3s ease;
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    overflow-y: hidden;
+    
   }
+  .sidebar-header-payment {
+    padding-left: 8px;
+  }
+  .search-wrapper-payment {
+    padding-left: 8px;
+  }
+  
+
+  
 
   .content-filter-payment.open {
     left: 0;
@@ -140,6 +162,13 @@
   .content-filter-payment.closed {
     left: -100%;
   }
+
+  .filters-scroll {
+    overflow-y: auto;
+    scrollbar-width: thin; 
+    scrollbar-color: var(--WS--MiddleGrey) transparent;
+
+  }
 }
 
 /* ---------- Overlay ---------- */
@@ -148,7 +177,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  z-index: 998;
+  z-index: 10000;
 }
 
 /* ======================================================
@@ -184,3 +213,5 @@ body.dark-theme .content-filter-payment .filter li.active {
   background-color: #383838;
   border: 1px dashed #555;
 }
+
+

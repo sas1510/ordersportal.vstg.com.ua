@@ -10,6 +10,17 @@ from backend.utils.db_1c_lookups import get_author_name_from_db, get_document_nu
 from backend.utils.logging_setup import logger
 
 class NotificationConsumer(AsyncWebsocketConsumer):
+    async def receive(self, text_data=None, bytes_data=None):
+        """Обробка вхідних повідомлень від фронтенду (наприклад, ping)"""
+        try:
+            data = json.loads(text_data)
+            if data.get("type") == "ping":
+                # Просто ігноруємо або відповідаємо, щоб підтримати з'єднання
+                await self.send(text_data=json.dumps({"type": "pong"}))
+                return
+        except Exception:
+            pass
+        
     async def connect(self):
         self.user = self.scope.get("user")
         user_info = f"User(id={self.user.id if self.user else 'Anon'})"
