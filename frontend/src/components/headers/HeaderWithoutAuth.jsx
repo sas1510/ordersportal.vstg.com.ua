@@ -21,7 +21,7 @@ export default function HeaderWithoutAuth() {
           <img 
             src={logo} 
             alt="Вікна Стиль" 
-            className="h-[35px] w-auto transition-all" 
+            className="h-[45px] w-auto transition-all" 
           />
         </Link>
 

@@ -184,66 +184,124 @@ export const CalculationItem = React.memo(
           </div> */}
 
           <div
-            className="summary-item justify-between row w-9 no-wrap "
-            style={{ minWidth: "150px" }}
-          >
-            <div className="column">
-              <div className="text-base m text-bold text-WS---DarkGrey border-bottom pb-1">
-                № {calc.number} 
-              </div>
-              <div className="text-xs text-WS---DarkGrey pt-1">
-                {formatDateTimeShort(calc.date, i18n.language)}
-              </div>
-            </div>
-          </div>
+  className="summary-item justify-between row w-9 no-wrap"
+  style={{ minWidth: "150px" }}
+>
+  <div className="column">
+    {/* Блок Номера замовлення */}
+    <div className="column border-bottom pb-0.5">
+      <span className="text-[10px] text-grey leading-none">Номер прорахунку</span>
+      <div className="text-base m text-bold text-WS---DarkGrey mt-0.5">
+        № {calc.number} 
+      </div>
+    </div>
+    
+    {/* Блок Дати створення */}
+    <div className="column pt-1">
+      {/* <span className="text-[10px] text-grey leading-none">Дата </span> */}
+      <div className="text-xs text-WS---DarkGrey mt-0.5">
+        {formatDateTimeShort(calc.date, i18n.language)}
+      </div>
+    </div>
+  </div>
+</div>
 
-          <div
+<div
+  className="summary-item flex flex-col w-8"
+  title="Кількість замовлень"
+>
+
+  <span className="text-grey text-[10px] mb-1">
+    Замовлень
+  </span>
+  
+
+  <div className="flex items-center">
+    <img 
+      src={listCalcIcon} 
+      alt="Іконка списку" 
+           className="align-center mr-2" 
+    />
+    <div className="font-size-24 text-WS---DarkBlue font-bold">
+      {orderList.length}
+    </div>
+  </div>
+</div>
+
+<div
+  className="summary-item flex flex-col w-8"
+       title="Кількість конструкцій"
+>
+
+  <span className="text-grey text-[10px] mb-1">
+    Конструкцій
+  </span>
+  
+
+  <div className="flex items-center">
+                  <img 
+                  src={windowsIcon} 
+     
+                  className="align-center mr-2" 
+                
+                />
+    <div className="font-size-24 text-WS---DarkBlue font-bold">
+      {calc.constructionsQTY}
+    </div>
+  </div>
+</div>
+
+          {/* <div
             className="summary-item row w-8 no-wrap"
             title="Кількість конструкцій"
           >
               <img 
                   src={windowsIcon} 
-                  // alt="Вікно" 
+     
                   className="align-center mr-2" 
                 
                 />
-            {/* <span className="icon-layout5 font-size-24 text-info"></span> */}
+
             <div className="font-size-24 text-WS---DarkBlue">
               {calc.constructionsQTY}
             </div>
-          </div>
+          </div> */}
 
-          <div
-            className="summary-item row w-8 no-wrap"
-            title="Кількість замовлень"
-          >
-                <img 
-                  src={listCalcIcon} 
-                  // alt="Вікно" 
-                  className="align-center mr-2" 
-                
-                />
-            <div className="font-size-24 text-WS---DarkBlue">{orderList.length}</div>
-          </div>
 
-          <div className="summary-item row w-16 no-wrap">
-            <div className="row gap-14 align-center">
-               <img 
-                  src={moneyCalcIcon} 
-                  // alt="Вікно" 
-                  className="align-center mr-0.5" 
-                
-                />
-              <div className="column">
-                <div className="text-[16px]  text-WS---DarkGreen font-bold border-bottom">
-                  { formatMoney2(calc.amount, calc.currency) }
-                </div>
-                <div className="text-[16px]  text-WS---DarkRed font-bold">
-                  {formatMoney2(calc.debt, calc.currency)}
-                </div>
-              </div>
-            </div>
-          </div>
+<div className="summary-item row w-16 no-wrap items-center">
+  <div className="flex flex-row items-center gap-2"> 
+    {/* Іконка монет */}
+    <img 
+      src={moneyCalcIcon} 
+      alt="Іконка грошей" 
+      className="w-[30px] h-[30px] " 
+    />
+    
+    {/* Контейнер для обох сум із мінімальним вертикальним відступом */}
+    <div className="flex flex-col justify-center space-y-1">
+      
+      {/* Блок суми замовлення */}
+      <div className="flex flex-col leading-none">
+        <span className="text-[10px] text-grey-400 mb-0.5">Сума замовлення</span>
+        <div className="text-[15px] text-WS---DarkGreen font-bold">
+          { formatMoney2(calc.amount, calc.currency) }
+        </div>
+      </div>
+
+      {/* Розділова лінія (за бажанням, тоненька і акуратна) */}
+      <div className="border-bottom w-full"></div>
+
+      {/* Блок суми боргу */}
+      <div className="flex flex-col leading-none">
+        <span className="text-[10px] text-grey-400 mb-0.5">Сума боргу</span>
+        <div className="text-[15px] text-WS---DarkRed font-bold">
+          { formatMoney2(calc.debt, calc.currency) }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
           <div className="summary-item expandable row w-23 align-start space-between">
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
