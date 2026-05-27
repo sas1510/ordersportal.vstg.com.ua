@@ -555,18 +555,18 @@ export default function AddClaimModal({
     const res = await axiosInstance.get("/complaints/issues/");
     let issues = res.data?.issues || [];
 
-    // 🔥 Авто-переклад, якщо обрана англійська мова
+
     if (i18n.language === 'en') {
       issues = await Promise.all(issues.map(async (item) => {
         try {
-          // Викликаємо безкоштовне API перекладу
+
           const response = await fetch(
             `https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.Name)}&langpair=uk|en`
           );
           const data = await response.json();
           return { ...item, Name: data.responseData.translatedText };
         } catch (e) {
-          return item; // Якщо помилка — лишаємо українською
+          return item; 
         }
       }));
     }

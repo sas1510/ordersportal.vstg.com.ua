@@ -837,10 +837,13 @@ export default function HeaderDealer() {
   }, [mobileMenuOpen]);
 
   return (
+    // <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
     <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
+      {/* <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} /> */}
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
-      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}>
+      {/* <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
+      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
         <Link to="/dashboard" className="ml-[16px] flex-shrink-0 mr-4">
           <img src={logo} alt="Вікна Стиль" className="h-[35px] w-auto" />
         </Link>
@@ -940,11 +943,11 @@ export default function HeaderDealer() {
               </div>
           
               <div className="flex items-center px-3 gap-7">
-                <div className="relative cursor-pointer" onClick={() => setIsNotificationOpen(true)}>
+                <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B4D947] rounded-full border-2 border-white flex items-center justify-center">
-                      <span className="text-[#44403E] text-[9px] font-black">
+                    <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] bg-[#e46321] rounded-full border-2 border-white flex items-center justify-center">
+                      <span className="text-[#fff] text-[9px] font-black">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     </div>

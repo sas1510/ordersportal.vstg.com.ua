@@ -387,21 +387,21 @@ const statsData = [
   { 
     id: 1, 
     image: "/assets/icons/award-icon.png",
-    value: "18+", 
+    value: "21+", 
     label: t('stats.experience'),
     isJSX: false 
   },
   { 
     id: 2, 
     image: "/assets/icons/people-icon.png", 
-    value: "500+", 
+    value: "350+", 
     label: t('stats.employees'),
     isJSX: false 
   },
   { 
     id: 3, 
     image: "/assets/icons/factory-icon.png", 
-    value: "16 000 м²", 
+    value: "25 000 м²", 
     label: t('stats.area'),
     isJSX: true 
   },
@@ -621,7 +621,7 @@ const statsData = [
       <div className="stat-value font-black text-[24px] md:text-[40px] text-white leading-none">
         {stat.isJSX ? (
           <span className="flex items-baseline justify-center gap-1">
-            16 000 <small className="text-[14px] md:text-[20px]">м²</small>
+            25 000 <small className="text-[14px] md:text-[20px]">м²</small>
           </span>
         ) : (
           stat.value
@@ -850,7 +850,7 @@ const statsData = [
             />
           </button>
 
-          {/* Кнопка вправо */}
+ 
           <button 
             onClick={() => scrollByManual(340)} 
             className="absolute right-0 top-[60%] -translate-y-1/2 z-20 p-2 transition-all hover:scale-110 active:opacity-70"
@@ -862,7 +862,7 @@ const statsData = [
             />
           </button>
       
-          {/* Слайдер з прихованим скролбаром */}
+        
           <div 
             ref={containerRef} 
             className="media-slider flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar"
@@ -875,10 +875,10 @@ const statsData = [
                   key={index} 
                   className="flex-shrink-0 w-[320px] sm:w-[335px] snap-start"
                 >
-                  {/* Контейнер з фіксованим співвідношенням 9:16 */}
+           
                   <div className="aspect-[9/16] w-full  overflow-hidden ">
                      <iframe
-            // 2. Використовуємо v2 та посилання без зайвих параметрів
+     
             src={`https://www.tiktok.com/embed/v2/${videoId}`}
             className="w-full h-full border-0"
             title={`tiktok-video-${index}`}

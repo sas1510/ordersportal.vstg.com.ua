@@ -2249,21 +2249,21 @@ const statsData = [
   { 
     id: 1, 
     image: "/assets/icons/award-icon.png",
-    value: "18+", 
+    value: "21+", 
     label: t('stats.experience'),
     isJSX: false 
   },
   { 
     id: 2, 
     image: "/assets/icons/people-icon.png", 
-    value: "500+", 
+    value: "350+", 
     label: t('stats.employees'),
     isJSX: false 
   },
   { 
     id: 3, 
     image: "/assets/icons/factory-icon.png", 
-    value: "16 000 м²", 
+    value: "25 000 м²", 
     label: t('stats.area'),
     isJSX: true 
   },
@@ -2483,7 +2483,7 @@ const statsData = [
       <div className="stat-value font-black text-[24px] md:text-[40px] text-white leading-none">
         {stat.isJSX ? (
           <span className="flex items-baseline justify-center gap-1">
-            16 000 <small className="text-[14px] md:text-[20px]">м²</small>
+            25 000 <small className="text-[14px] md:text-[20px]">м²</small>
           </span>
         ) : (
           stat.value
