@@ -845,7 +845,7 @@ export default function HeaderDealer() {
       {/* <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
       <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
         <Link to="/dashboard" className="ml-[16px] flex-shrink-0 mr-4">
-          <img src={logo} alt="Вікна Стиль" className="h-[35px] w-auto" />
+          <img src={logo} alt="Вікна Стиль" className="h-[45px] w-auto" />
         </Link>
 
         {!isMobile ? (
