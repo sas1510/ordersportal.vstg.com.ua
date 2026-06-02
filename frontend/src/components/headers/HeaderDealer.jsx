@@ -854,8 +854,8 @@ export default function HeaderDealer() {
 
       {/* <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
       <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
-        <Link to="/dashboard" className="ml-[16px] flex-shrink-0 mr-4">
-          <img src={logo} alt="Вікна Стиль" className="h-[45px] w-auto" />
+        <Link to="/dashboard" className="ml-[16px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
+          <img src={logo} alt="Вікна Стиль" className="h-[45px] max-[1261px]:h-[40px] w-auto" />
         </Link>
 
         {!isMobile ? (
@@ -872,7 +872,7 @@ export default function HeaderDealer() {
                        {/* shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)] */}
                       <Link
                         to={link.to}
-                        className={`h-full w-full flex items-center justify-center px-2 text-[13px] font-bold transition-all text-center 
+                        className={`h-full w-full flex items-center justify-center px-1 text-[13px] font-bold transition-all text-center 
                          
                           shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
                           active:translate-y-[1px] active:shadow-none 
@@ -894,7 +894,7 @@ export default function HeaderDealer() {
 >
   <button 
     onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-    className={`w-full h-full px-2 text-[13px] font-bold flex items-center justify-center gap-1 transition-all
+    className={`w-full h-full px-1 text-[13px] font-bold flex items-center justify-center gap-1 transition-all
       /* Базовий ефект випуклості (тінь + легкий градієнт) */
       shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
       active:translate-y-[1px] active:shadow-none
@@ -975,7 +975,7 @@ export default function HeaderDealer() {
                 )}
               </div>
           
-              <div className="flex items-center px-3 gap-7">
+              <div className="flex items-center px-3 gap-7 max-[1261px]:px-1 max-[1261px]:gap-2">
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (

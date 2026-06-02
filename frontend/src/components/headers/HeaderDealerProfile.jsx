@@ -11,7 +11,7 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
   const formatName = (name) => {
     if (!name || name === "Завантаження...") return name;
     let cleanName = name.split('(')[0].trim();
-    const maxLength = 15; 
+    const maxLength = 13; 
     return cleanName.length > maxLength ? cleanName.substring(0, maxLength).trim() + "..." : cleanName;
   };
 
@@ -26,9 +26,12 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
       <div className="profile-menu-container">
         <div className="profile-rectangle" />
 
-        <div className="profile-name-text" title={fullName}>
-          {formatName(fullName)}
-        </div>
+        <div 
+  className="profile-name-text truncate max-w-[150px] hover:max-w-none hover:white-space-normal hover:overflow-visible transition-all" 
+  title={fullName}
+>
+  {formatName(fullName)}
+</div>
         <img className="profile-img-icon" alt="Profile" src={profileIcon} />
 
         <div className="profile-separator-line" />

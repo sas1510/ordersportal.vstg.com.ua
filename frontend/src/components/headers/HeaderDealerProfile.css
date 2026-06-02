@@ -1,13 +1,13 @@
 /* Основний контейнер, який вставляється в Header */
 .profile-box {
     height: 70px;
-    width: 182px;
+    width: 165px;
     position: relative;
 }
 
 .profile-menu-inner {
     height: 70px;
-    width: 182px;
+    width: 165px;
     position: relative;
 }
 
@@ -18,7 +18,7 @@
     left: 0;
     position: absolute;
     top: 0;
-    width: 182px;
+    width: 165px;
     border-left: 1px solid #e2e8f0;
     border-right: 1px solid #e2e8f0;
     z-index: 1;
@@ -30,7 +30,7 @@
     font-family: "Inter", sans-serif;
     font-size: 14px;
     font-weight: 700;
-    left: 41px;
+    left: 31px;
     position: absolute;
     top: 9px;
     white-space: nowrap;
@@ -40,7 +40,7 @@
 /* Іконка профілю */
 .profile-img-icon {
     height: 20px;
-    left: 15px;
+    left: 5px;
     position: absolute;
     top: 9px;
     width: 18px;
@@ -66,7 +66,7 @@
     font-family: "Inter", sans-serif;
     font-size: 16px;
     font-weight: 400; /* Як у твоєму класі .div */
-    left: 41px;
+    left: 31px;
     position: absolute;
     top: 43px;
     white-space: nowrap;
@@ -76,7 +76,7 @@
 /* Іконка грошей */
 .profile-money-img-icon {
     height: 20px;
-    left: 11px;
+    left: 5px;
     position: absolute;
     top: 42px;
     width: 22px;
