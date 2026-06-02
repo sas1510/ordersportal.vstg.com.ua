@@ -1493,7 +1493,7 @@ const CustomerBillsPage = () => {
                   <td>{formatDate(b.BillDate, currentLang)}</td>
                   <td className="text-bold">{b.BillNumber}</td>
                   <td className="center">{formatMoney(b.TotalAmount, currentLang)}</td>
-                  <td className="center">
+                  <td className="center row align-center">
                     <div className="bill-actions-cell">
                       <button
                         className="btn-bill-download"
@@ -1508,14 +1508,17 @@ const CustomerBillsPage = () => {
                         <span>{pdfDownloadingId === b.BillGuid ? "" : "PDF"}</span>
                       </button>
 
-                      <button
+                      
+                    </div>
+                     <div className="bill-actions-cell">
+                    <button
                         className="btn-bill-qr"
                         onClick={() => setActiveQrBill(b)}
                         title="Показати QR-код для оплати"
                       >
                         <span>QR</span>
                       </button>
-                    </div>
+                      </div>
                   </td>
                 </tr>
               ))}
@@ -1555,43 +1558,41 @@ const CustomerBillsPage = () => {
                   
                   {/* КНОПКИ ШВИДКОГО ПЕРЕХОДУ ДО БАНКІВ */}
                   <div className="bank-pay-buttons">
-                    <a 
-                      href="https://www.privat24.ua/" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="btn-bank btn-privat"
-                      title="Відкрити Приват24"
-                    >
-                      Оплатити через <span className="font-bold">Приват24</span>
-                    </a>
-                    <a 
-                      href="https://send.monobank.ua/" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="btn-bank btn-mono"
-                      title="Відкрити Monobank"
-                    >
-                      Оплатити через <span className="font-bold">Monobank</span>
-                    </a>
-                    
-                    {/* Автозаповнення реквізитів у веб-Приват24 для ПК */}
-                    <a 
-                      href={`https://next.privat24.ua/payments/form/${encodeURIComponent(
-                        JSON.stringify({
-                          companyIban: activeQrBill.InvoiceNumber || "",
-                          companyEdrpou: currentEdrpou,
-                          amount: Number(activeQrBill.TotalWithVAT || 0).toFixed(2),
-                          description: currentPurpose
-                        })
-                      )}`}
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="btn-bank btn-privat-web"
-                      title="Перейти в Приват24 з готовими реквізитами"
-                    >
-                      Онлайн-оплата в <span className="font-bold">Приват24 (ПК)</span>
-                    </a>
-                  </div>
+            {/* ПРИВАТ24 */}
+            <a 
+              href="https://www.privat24.ua/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-bank btn-privat text-[14px]"
+              title="Відкрити Приват24"
+            >
+              Відкрити <span className="font-bold">Приват24</span>
+            </a>
+            <br/>
+
+            {/* MONOBANK */}
+            <a 
+              href="https://online.monobank.ua/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-bank btn-mono text-[14px]"
+              title="Відкрити Monobank"
+            >
+              Відкрити <span className="font-bold">Monobank</span>
+            </a>
+            <br/>
+            {/* ОЩАДБАНК */}
+            <a 
+              href="https://online.oschadbank.ua/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="btn-bank btn-oschad text-[14px]"
+              title="Відкрити Ощадбанк"
+            >
+              Відкрити <span className="font-bold">Ощадбанк</span>
+            </a>
+            
+          </div>
                 </div>
                 
                 <div className="qr-modal-info">
@@ -1602,41 +1603,51 @@ const CustomerBillsPage = () => {
                   
                   <div className="qr-modal-details">
                     <div className="copy-row">
-                      <strong>Отримувач:</strong> 
+                      <div className="row">
+                      <strong>Отримувач:</strong> <FaCopy className="copy-icon !w-3 !h-3 mt-1" onClick={() => handleCopyText(activeQrBill.Receiver, "Назву отримувача скопійовано!")}/> <br></br> 
+                      </div>  
                       <span className="copyable-text" onClick={() => handleCopyText(activeQrBill.Receiver, "Назву отримувача скопійовано!")}>
-                        {activeQrBill.Receiver} <FaCopy className="copy-icon" />
+                        {activeQrBill.Receiver} 
                       </span>
                     </div>
 
                     <div className="copy-row">
-                      <strong>ЄДРПОУ:</strong> 
+                      <div className="row">
+                      <strong>ЄДРПОУ:</strong> <FaCopy className="copy-icon !w-3 !h-3 mt-1" onClick={() => handleCopyText(currentEdrpou, "ЄДРПОУ скопійовано!")} /> <br></br> 
+                      </div>
                       <span className="copyable-text" onClick={() => handleCopyText(currentEdrpou, "ЄДРПОУ скопійовано!")}>
-                        {currentEdrpou} <FaCopy className="copy-icon" />
+                        {currentEdrpou} 
                       </span>
                     </div>
 
                     <div className="copy-row">
-                      <strong>Рахунок (IBAN):</strong> 
+                      <div className="row">
+                      <strong>Рахунок (IBAN):</strong> <br></br> <FaCopy className="copy-icon !w-3 !h-3 mt-1" onClick={() => handleCopyText(activeQrBill.InvoiceNumber, "IBAN скопійовано!")}/>
+                      </div>
                       <span className="copyable-text iban-code" onClick={() => handleCopyText(activeQrBill.InvoiceNumber, "IBAN скопійовано!")}>
-                        <code>{activeQrBill.InvoiceNumber}</code> <FaCopy className="copy-icon" />
+                        <code>{activeQrBill.InvoiceNumber}</code> 
                       </span>
                     </div>
 
                     <div className="copy-row">
-                      <strong>Сума:</strong> 
-                      <span className="copyable-text qr-modal-amount" onClick={() => handleCopyText(Number(activeQrBill.TotalWithVAT || 0).toFixed(2), "Суму скопійовано!")}>
-                        {formatMoney(activeQrBill.TotalWithVAT, "uk-UA")} {activeQrBill.Currency || "грн"} <FaCopy className="copy-icon" />
+                      <div className="row">
+                      <strong>Сума:</strong> <FaCopy className="copy-icon  !w-3 !h-3 mt-1" onClick={() => handleCopyText(Number(activeQrBill.TotalWithVAT || 0).toFixed(2), "Суму скопійовано!")} /> <br></br> 
+                      </div>
+                      <span className="copyable-text qr-modal-amount row" onClick={() => handleCopyText(Number(activeQrBill.TotalWithVAT || 0).toFixed(2), "Суму скопійовано!")}>
+                        {formatMoney(activeQrBill.TotalWithVAT, "uk-UA")} {activeQrBill.Currency || "грн"} 
                       </span>
                     </div>
 
                     <div className="copy-row legacy-row">
-                      <strong>Призначення:</strong> 
+                      <div className="row">
+                      <strong >Призначення:</strong> <FaCopy className="copy-icon !w-3 !h-3 mt-1 " onClick={() => handleCopyText(currentPurpose, "Призначення платежу скопійовано!")}/> <br></br> 
+                      </div>
                       <span 
-                        className="copyable-text text-sm" 
+                        className="copyable-text text-sm row" 
                         onClick={() => handleCopyText(currentPurpose, "Призначення платежу скопійовано!")}
                       >
                         {currentPurpose}
-                        <FaCopy className="copy-icon" />
+                        
                       </span>
                     </div>
                   </div>

@@ -867,11 +867,13 @@ export default function HeaderDealer() {
                       key={link.to} 
                       className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0 "
                     >
+                      {/* Більша тінь shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),_inset_0_-1px_3px_rgba(0,0,0,0.05),_0_2px_5px_rgba(0,0,0,0.15)] */}
                       <Link
                         to={link.to}
                         className={`h-full w-full flex items-center justify-center px-2 text-[13px] font-bold transition-all text-center 
                           /* Базовий ефект випуклості (тінь + легкий градієнт) */
-                          shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
+                          shadow-[inset_0_2px_3px_rgba(255,255,255,0.45),_0_2px_4px_rgba(0,0,0,0.15)]
+                          
                           active:translate-y-[1px] active:shadow-none 
                           
                           ${location.pathname.startsWith(link.to) 

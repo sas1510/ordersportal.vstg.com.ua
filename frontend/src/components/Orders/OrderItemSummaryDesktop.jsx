@@ -488,7 +488,7 @@ onClick={openClaimModal}
   </button>
 </div>
 
-        {/* SMILEY COLUMN */}
+ 
       <div
         className="summary-item flex items-center justify-center w-4"
         title={
@@ -515,14 +515,14 @@ onClick={openClaimModal}
       </div>
       </div>
 
-      {/* DETAILS */}
+   
       {isExpanded && (
         <div className="separator-border w-full">
           <OrderDetailsDesktop order={order} />
         </div>
       )}
 
-      {/* FILES MODAL */}
+      
       {isFilesModalOpen && (
         <OrderFilesModal
           orderGuid={order.idGuid}
