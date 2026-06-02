@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import logging
 
 load_dotenv()
+OPENAI_API_KEY = config('OPENAI_API_KEY')
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     "drf_spectacular",
+    'ai_chat',
     "webpush",
     'users',
     'chat',

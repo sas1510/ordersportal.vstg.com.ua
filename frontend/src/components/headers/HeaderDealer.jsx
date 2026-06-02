@@ -600,6 +600,16 @@ import HeaderDealerProfile from "./HeaderDealerProfile";
 import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderDealerProfile.css";
 import { useTranslation } from 'react-i18next';
+import { 
+  Ticket, 
+  ShoppingBag, 
+  AlertTriangle, 
+  PlusCircle, 
+  FolderOpen, 
+  Video, 
+  CreditCard,
+  Wallet
+} from "lucide-react";
 
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
 
@@ -615,13 +625,13 @@ export default function HeaderDealer() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const NAV_LINKS = useMemo(() => [
-    { title: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true },
-    { title: t('nav.orders'), to: "/orders" },
-    { title: t('nav.complaints'), to: "/complaints" },
-    { title: t('nav.additional_orders'), to: "/additional-orders" },
-    { title: t('nav.files'), to: "/files" },
-    { title: t('nav.videos'), to: "/videos" },
-    { title: t('nav.payment'), to: "/payment" },
+    { title: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
+    { title: t('nav.orders'), to: "/orders", icon: ShoppingBag },
+    { title: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
+    { title: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle },
+    { title: t('nav.files'), to: "/files", icon: FolderOpen },
+    { title: t('nav.videos'), to: "/videos", icon: Video },
+    { title: t('nav.payment'), to: "/payment", icon: CreditCard },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
@@ -853,48 +863,68 @@ export default function HeaderDealer() {
             <nav className="flex h-full flex-grow">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
-                  <li key={link.to} className="h-full flex-1">
-                    <Link
-                      to={link.to}
-                      className={`h-full flex items-center justify-center px-1 text-[13px] font-bold transition-all text-center 
-                        ${location.pathname.startsWith(link.to) 
-                          ? "bg-[var(--header-accent)] text-[var(--header-active-text)]" 
-                          : "text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
-                        }`}
+                    <li 
+                      key={link.to} 
+                      className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0 "
                     >
-                      {link.title}
-                    </Link>
-                  </li>
-                ))}
+                      <Link
+                        to={link.to}
+                        className={`h-full w-full flex items-center justify-center px-2 text-[13px] font-bold transition-all text-center 
+                          /* Базовий ефект випуклості (тінь + легкий градієнт) */
+                          shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
+                          active:translate-y-[1px] active:shadow-none 
+                          
+                          ${location.pathname.startsWith(link.to) 
+                            ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner" 
+                            : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
+                          }`}
+                      >
+                        {link.icon && <link.icon className="!w-4 !h-4 shrink-0 mr-1" />}
+                        {link.title}
+                      </Link>
+                    </li>
+                  ))}
                 
-                <li className="h-full relative flex-1" ref={financeRef}>
-                  <button 
-                    onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-                    className="w-full h-full px-2 text-[14px] font-bold flex items-center justify-center gap-1 transition-colors"
-                    style={{
-                      backgroundColor: showFinanceMenu || location.pathname.includes("/finance") ? 'var(--header-accent)' : 'transparent',
-                      color: showFinanceMenu || location.pathname.includes("/finance") ? 'var(--header-active-text)' : 'var(--header-text)'
-                    }}
-                  >
-                    {t('nav.finance')} <span className={`transition-transform ${showFinanceMenu ? "rotate-180" : ""}`}>▾</span>
-                  </button>
+                <li 
+  className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" 
+  ref={financeRef}
+>
+  <button 
+    onClick={() => setShowFinanceMenu(!showFinanceMenu)}
+    className={`w-full h-full px-2 text-[13px] font-bold flex items-center justify-center gap-1 transition-all
+      /* Базовий ефект випуклості (тінь + легкий градієнт) */
+      shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
+      active:translate-y-[1px] active:shadow-none
 
-                  {showFinanceMenu && (
-                    <ul className="absolute top-full left-0 w-full bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
-                      {FINANCE_SUBMENU.map((item) => (
-                        <li key={item.to}>
-                          <Link
-                            to={item.to}
-                            className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
-                            onClick={() => setShowFinanceMenu(false)}
-                          >
-                            {item.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
+      ${showFinanceMenu || location.pathname.includes("/finance")
+        ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner" 
+        : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
+      }`}
+  >
+    {<Wallet className="!w-4 !h-4 shrink-0 mr-1" />}
+    {t('nav.finance')} 
+    <span className={`inline-block transition-transform duration-200 ${showFinanceMenu ? "rotate-180" : ""}`}>
+      ▾
+    </span>
+  </button>
+
+  {showFinanceMenu && (
+    <ul className="absolute top-[calc(100%+4px)] left-0 w-full bg-white shadow-xl  py-2 z-[1001]">
+      {FINANCE_SUBMENU.map((item) => (
+        <li key={item.to}>
+          <Link
+            to={item.to}
+            className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+            onClick={() => setShowFinanceMenu(false)}
+          >
+            
+            {item.title}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )}
+</li>
               </ul>
             </nav>
 
@@ -965,8 +995,8 @@ export default function HeaderDealer() {
             <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
               <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px]" />
               {unreadCount > 0 && (
-                <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#B4D947] rounded-full border-2 border-white flex items-center justify-center">
-                  <span className="text-[#44403E] text-[9px] font-black">
+                <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#e46321] rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-[#fff] text-[9px] font-black">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 </div>

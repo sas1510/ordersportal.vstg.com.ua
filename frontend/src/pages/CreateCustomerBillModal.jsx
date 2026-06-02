@@ -472,6 +472,7 @@ export default function CreateCustomerBillModal({
   const [addresses, setAddresses] = useState([]);
   const [itemsList, setItemsList] = useState([]);
   const [ibans, setIbans] = useState([]);
+  const [organisation, setOrganisation] = useState([]);
 
   const [selectedIban, setSelectedIban] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -501,6 +502,7 @@ export default function CreateCustomerBillModal({
         setAddresses(data.data.addresses || []);
         setIbans(data.data.accounts || []);
         setItemsList(data.data.nomenclature || []);
+        setOrganisation(data.data.organizations || []);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
           console.error("Error fetching profile:", err);

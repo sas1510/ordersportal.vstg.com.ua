@@ -2672,7 +2672,7 @@ const statsData = [
         <div className="
           md:absolute md:top-[135px] w-full 
           font-['Inter'] font-black /* Використовуємо стандартний Tailwind клас для 900+ */
-          text-base sm:text-lg md:text-[clamp(1.1rem,1.7vw,1.875rem)] 
+          text-base sm:text-lg md:md:text-[clamp(1rem,1.4vw,1.5rem)] 
           text-[#44403E] text-center uppercase tracking-tighter leading-none
         " style={{ WebkitTextStroke: '0.5px #44403E' }}>
           {feature.title}

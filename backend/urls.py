@@ -57,6 +57,7 @@ urlpatterns = [
     path('api/payments/', include('payments.urls')),  
     path('api/complaints/', include('reclamations.urls')),  
     path('api/additional_orders/', include('additional_order.urls')),  
+    path('api/', include('ai_chat.urls')),  
 
 
     path('api/webpush/save_information/', csrf_exempt(webpush_wrapper), name='save_webpush_info'),

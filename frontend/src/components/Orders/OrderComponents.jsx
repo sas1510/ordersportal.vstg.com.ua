@@ -274,7 +274,7 @@ export const CalculationItem = React.memo(
     <img 
       src={moneyCalcIcon} 
       alt="Іконка грошей" 
-      className="w-[30px] h-[30px] " 
+      className="w-[30px] h-[30px] mr-1" 
     />
     
     {/* Контейнер для обох сум із мінімальним вертикальним відступом */}

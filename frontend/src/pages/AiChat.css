@@ -1,0 +1,28 @@
+/* AiChat.css */
+.markdown-container ul {
+  list-style-type: disc !important;
+  margin-left: 20px !important;
+  margin-bottom: 10px !important;
+}
+
+.markdown-container ol {
+  list-style-type: decimal !important;
+  margin-left: 20px !important;
+  margin-bottom: 10px !important;
+}
+
+.markdown-container p {
+  margin-bottom: 8px !important;
+}
+
+.markdown-container strong {
+  font-weight: 700 !important;
+  color: #1f2937;
+}
+
+
+.recharts-default-tooltip {
+  border-radius: 6px !important;
+  border: 1px solid #e4e4e7 !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1) !important;
+}

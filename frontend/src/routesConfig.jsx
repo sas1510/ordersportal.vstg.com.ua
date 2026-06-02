@@ -12,7 +12,7 @@ import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 
 import ChangePassword from "./pages/ChangePassword";
 
-
+import AiChatPage from "./pages/AiChatPage";
 import DealerAddressesPage from "./pages/DealerAddressesPage";
 import ContactFormPage from "./pages/ContactFormPage";
 import UrgentCallLogsPage from "./pages/UrgentCallLogsPage";
@@ -83,6 +83,7 @@ export const adminRoutes = [
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "notifications", element: <NotificationPage /> },
   { path: "manager-qr", element: <ManagerQrDropdown /> },
+  //  { path: "/ai", element: <AiChatPage /> },
 ];
 
 export const dealerRoutes = [
@@ -110,6 +111,7 @@ export const dealerRoutes = [
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "/finance/statistics", element: <ProductionStatisticsPage /> },
   { path: "/notifications", element: <NotificationPage /> },
+  // { path: "/ai", element: <AiChatPage /> },
 ];
 
 // export const managerRoutes = [

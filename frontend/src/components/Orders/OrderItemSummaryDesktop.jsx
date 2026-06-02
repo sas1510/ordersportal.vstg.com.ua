@@ -340,32 +340,39 @@ export default React.memo(function OrderItemSummaryDesktop({
                 <AppIcon name="listCalc" className="align-center mr-0.5 w-[26px] h-[35px] " />
         </div>
 
-        {/* NUMBER + DATE */}
+ 
         <div className="text-WS---DarkGrey summary-item row no-wrap">
           <div className="column items-start w-full">
-            <div className="text-[15px]  text-bold border-bottom w-full pb-1 ">
-              {order.number}
+         
+            <div className="column border-bottom w-full pb-1">
+              <span className="text-[10px] text-grey leading-none">Номер замовлення</span>
+              <div className="text-[15px] text-bold mt-0.5">
+                № {order.number}
+              </div>
             </div>
-            <div className=" text-start text-[11px]  pt-1">
-              {/* {formatDateHumanShorter(order.date)} */}
+            
+
+            <div className="text-start text-[11px] pt-1">
               {formatDateHumanShorter_full(order.date, locale)}
             </div>
           </div>
         </div>
 
         {/* COUNT */}
-        <div className="summary-item flex items-center w-8 justify-center">
-          <div className="row gap-5 align-center">
-                 {/* <img 
-                  src={windowsIcon} 
-                  // alt="Вікно" 
-                  className="align-center mr-1 w-[25px] h-[25px]" 
-                
-                /> */}
-                <AppIcon name="windows" className="align-center mr-1 w-[25px] h-[25px] " />
-            <div className="font-size-16 text-WS---DarkBlue">{order.count}</div>
+       <div className="summary-item flex items-center w-8 justify-center">
+        <div className="column items-center w-full">
+          {/* Маленький підпис зверху */}
+          <span className="text-[10px] text-grey leading-none mb-2">Конструкцій</span>
+          
+          {/* Рядок з іконкою та значенням */}
+          <div className="row gap-2 align-center">
+            <AppIcon name="windows" className="w-[25px] h-[25px] shrink-0" />
+            <div className="text-[16px] font-bold text-WS---DarkBlue leading-none">
+              {order.count}
+            </div>
           </div>
         </div>
+      </div>
 
         {/* FILES */}
         <div
@@ -394,31 +401,26 @@ export default React.memo(function OrderItemSummaryDesktop({
                 /> */}
                 <AppIcon name="moneyGreen" className="align-center mr-0.5 w-[20px] h-[18px] " />
           <div className="flex flex-col flex-1 ml-1">
+            <div className="text-grey text-[10px]">
+              {t("order_mobile.labels.order_amount")}
+            </div>
             <div className="text-WS---DarkGreen font-bold text-[14px]">
               {formatMoney2(order.amount, order.currency)}
-            </div>
-            <div className="text-grey text-[8px]">
-              {t("order_mobile.labels.order_amount")}
             </div>
           </div>
         </div>
 
         {/* DEBT */}
         <div className="summary-item row no-wrap">
-          {/* <img 
-                  src={moneyRed} 
-                  // alt="Вікно" 
-                  className="align-center mr-0.5" 
-                
-                /> */}
+
 
           <AppIcon name="moneyRed" className="align-center mr-0.5 w-[20px] h-[18px] " />
           <div className="flex flex-col flex-1 ml-1">
+            <div className="text-grey text-[10px]">
+              {t("order_mobile.labels.debt_amount")}
+            </div>
             <div className="text-WS---DarkRed font-bold text-[14px]">
               {formatMoney2(debtAmount, order.currency)}
-            </div>
-            <div className="text-grey text-[8px]">
-              {t("order_mobile.labels.debt_amount")}
             </div>
           </div>
         </div>
@@ -435,11 +437,11 @@ export default React.memo(function OrderItemSummaryDesktop({
           </div>
         </div>
 
-        {/* BUTTONS */}
+
         <div className="summary-item row grid-buttons" onClick={(e) => e.stopPropagation()}>
   {user?.role !== "admin" && (
     <>
-      {/* CONFIRM */}
+
       <button
         className={`column align-center button bg-WS---DarkGrey ${
           !buttonState.confirm ? "disabled opacity-50" : ""
@@ -450,7 +452,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         <div className="text-[12px] font-bold font-['Inter'] ">{t("order_mobile.buttons.confirm")}</div>
       </button>
 
-      {/* PAY */}
+  
       <button
         className={`column align-center button bg-WS---DarkGreen  ${
           !buttonState.pay ? "disabled opacity-50" : ""

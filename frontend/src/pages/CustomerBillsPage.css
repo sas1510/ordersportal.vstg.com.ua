@@ -401,3 +401,126 @@ body.dark-theme .btn-bill-download:hover {
   margin-left: 8px;
   /* margin-right: 5px; */
 }
+
+.btn-bill-qr {
+  background-color: #fcfff9;
+  color: #2c2c2c;
+  border: 1px dashed #ccc;
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+}
+
+
+
+/* Оверлей (затемнення фону) */
+.qr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  backdrop-filter: blur(2px);
+}
+
+/* Контейнер модалки */
+.qr-modal-content {
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 550px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: qrModalShow 0.2s ease-out;
+}
+
+/* Кнопка закриття (хрестик) */
+.qr-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.qr-modal-close:hover {
+  color: #333;
+}
+
+/* Внутрішня розмітка модалки */
+.qr-modal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+@media (min-width: 480px) {
+  .qr-modal-body {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+  }
+}
+
+.qr-modal-code-wrapper {
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  display: inline-block;
+}
+
+.qr-modal-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.qr-modal-help-text {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.qr-modal-details {
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.qr-modal-amount {
+  font-weight: bold;
+  color: #2b8a3e;
+}
+
+.qr-code-style {
+  background: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+@keyframes qrModalShow {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

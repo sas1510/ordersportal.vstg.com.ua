@@ -348,7 +348,12 @@ from drf_spectacular.utils import extend_schema, OpenApiTypes, inline_serializer
 from rest_framework import serializers
 
 import time 
-
+import time
+from django.db import connection
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from asgiref.sync import async_to_sync, sync_to_async
 
 # views.py
 from django.utils import timezone
@@ -819,6 +824,15 @@ def get_customers(request):
     return Response(data)
 
 
+
+@sync_to_async
+def execute_balance_procedure(user_id_1c):
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetDealerAdvanceBalance @Контрагент=%s", [user_id_1c])
+        return cursor.fetchone()
+
+
+
 @extend_schema(
     summary="Баланс контрагента (Customer)",
     description=(
@@ -837,45 +851,56 @@ def get_customers(request):
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_balance_view(request):
+@safe_view
+def get_balance_view(request):  # Синхронна для DRF
     start_time = time.time()
     user = request.user
-    user_guid = bin_to_guid_1c(user.user_id_1C)
 
+    # Швидка синхронна перевірка прав, не заходячи в асинхронний контекст
     if getattr(user, 'role', None) not in ['customer']:
         logger.warning(f"Balance access denied for role {getattr(user, 'role', 'None')}: {user.username}")
         return JsonResponse({'detail': 'У вас немає прав для перегляду балансу.'}, status=403)
 
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("EXEC dbo.GetDealerAdvanceBalance @Контрагент=%s", [user.user_id_1C])
-            row = cursor.fetchone()
+    # Внутрішня асинхронна функція для I/O операцій
+    async def _async_logic():
+        try:
+            # Викликаємо збережену процедуру асинхронно
+            row = await execute_balance_procedure(user.user_id_1C)
+            
+            if not row:
+                logger.info(f"Balance empty for user {user.username}")
+                return {"data": {"sum": 0, "full_name": "", "currency": ""}}
 
-        duration = time.time() - start_time
-        
-        if not row:
-            logger.info(f"Balance empty for user {user.username}")
-            return JsonResponse({"sum": 0, "full_name": "", "currency": ""})
+            return {
+                "data": {
+                    "sum": row[0],
+                    "full_name": row[1],
+                    "currency": row[2],
+                }
+            }
+        except Exception as e:
+            return {"error": str(e)}
 
-        # Логуємо успішний запит балансу
-        # logger.info(f"Balance retrieved for {user.username}", extra={
-        #     'tags': {
-        #         'action': 'get_balance',
-        #         'user': user.username,
-        #         'duration_sec': round(duration, 3)
-        #     }
-        # })
+    # Запускаємо асинхронну логіку
+    result = async_to_sync(_async_logic)()
 
-        return JsonResponse({
-            "sum": row[0],
-            "full_name": row[1],
-            "currency": row[2],
-        })
-
-    except Exception as e:
-        logger.error(f"SQL Error in get_balance_view: {str(e)}", exc_info=True)
+    # Обробка результату
+    if "error" in result:
+        logger.error(f"SQL Error in get_balance_view: {result['error']}", exc_info=True)
         return JsonResponse({"detail": "Помилка отримання балансу з бази даних"}, status=500)
 
+    duration = time.time() - start_time
+    
+    # Роскомментуйте, якщо потрібен лог успіху на продакшені:
+    # logger.info(f"Balance retrieved for {user.username}", extra={
+    #     'tags': {
+    #         'action': 'get_balance',
+    #         'user': user.username,
+    #         'duration_sec': round(duration, 3)
+    #     }
+    # })
+
+    return JsonResponse(result["data"])
 
 @extend_schema(
     tags=["users"],

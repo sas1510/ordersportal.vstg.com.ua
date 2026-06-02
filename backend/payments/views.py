@@ -297,140 +297,130 @@ def get_payment_status_view(request):
 
 
 
-@extend_schema(
-    summary="Дані сторінки «Оплата» дилера",
-    description="Повертає замовлення та договори дилера для сторінки Оплата.",
-    tags=["payments"],
-    parameters=[
-        OpenApiParameter(
-            name="contractor",
-            type=OpenApiTypes.UUID,
-            location=OpenApiParameter.QUERY,
-            required=False,
-            description="GUID контрагента (тільки для admin)",
-        ),
-    ],
-    responses={
-        200: inline_serializer(
-            name="DealerPaymentPageData",
-            fields={
-                "orders": serializers.ListField(child=serializers.DictField()),
-                "contracts": serializers.ListField(child=serializers.DictField()),
-            }
-        )
-    }
-)
+import time
+import logging
+from django.db import connection
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from asgiref.sync import async_to_sync, sync_to_async
+
+logger = logging.getLogger(__name__)
+
+# 1. Асинхронна обгортка для читання кількох наборів даних (Multiple Result Sets) з MS SQL
+@sync_to_async
+def execute_payment_page_procedure(contractor_binary):
+    sql = """
+        EXEC dbo.GetDealerPaymentPageData
+            @Contractor = %s
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [contractor_binary])
+        
+        # Читаємо перший набір даних (orders)
+        columns1 = [col[0] for col in cursor.description] if cursor.description else []
+        orders = [dict(zip(columns1, row)) for row in cursor.fetchall()]
+
+        # Читаємо другий набір даних (contracts), якщо він є
+        contracts = []
+        if cursor.nextset() and cursor.description:
+            columns2 = [col[0] for col in cursor.description]
+            contracts = [dict(zip(columns2, row)) for row in cursor.fetchall()]
+            
+        return orders, contracts
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
-def get_dealer_payment_page_data_view(request):
-
+def get_dealer_payment_page_data_view(request):  # Синхронна для сумісності з DRF
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
+    # Внутрішня асинхронна функція для обробки I/O
+    async def _async_logic():
+        try:
+            # Загортаємо resolve_contractor, якщо вона робить синхронні запити в БД
+            contractor_binary, contractor_guid = await sync_to_async(resolve_contractor)(
+                request,
+                allow_admin=True,
+                admin_param="contractor",
+            )
+        except Exception as e:
+            logger.error(f"Contractor resolution failed in payment page: {str(e)}", extra={
+                'tags': {'action': 'get_dealer_payment_page_data_view'}
+            })
+            return {"error": "Unauthorized or missing contractor", "status_code": 400}
 
- 
-    try:
-        contractor_binary, contractor_guid = resolve_contractor(
-            request,
-            allow_admin=True,
-            admin_param="contractor",
+        try:
+            # Викликаємо збережену процедуру асинхронно
+            orders, contracts = await execute_payment_page_procedure(contractor_binary)
+            
+            # Допоміжна функція для очищення бінарних даних 1С (CPU-bound логіка)
+            def fix(v):
+                if isinstance(v, (bytes, bytearray, memoryview)):
+                    return bin_to_guid_1c(v)
+                return v
+
+            orders = [{k: fix(v) for k, v in r.items()} for r in orders]
+            contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
+
+            return {
+                "orders": orders,
+                "contracts": contracts,
+                "contractor_guid": contractor_guid,
+                "status": "success"
+            }
+
+        except Exception as e:
+            return {
+                "error": "Internal server error",
+                "detail": str(e),
+                "status_code": 500,
+                "contractor_guid": contractor_guid if 'contractor_guid' in locals() else "unknown"
+            }
+
+    # Запуск асинхронного таска у синхронному DRF
+    result = async_to_sync(_async_logic)()
+
+    # Якщо сталася помилка під час виконання логіки
+    if "error" in result:
+        duration = time.time() - start_time
+        logger.error(
+            f"Error loading payment page data: {result.get('detail')}", 
+            exc_info=True, 
+            extra={
+                'tags': {
+                    'action': 'get_payment_page_data',
+                    'status': 'error',
+                    'contractor': result.get("contractor_guid"),
+                    'duration_sec': round(duration, 4)
+                }
+            }
         )
-    except Exception as e:
-        logger.error(f"Contractor resolution failed in payment page: {str(e)}", extra={
-                    'tags': {
-                        'action': 'get_dealer_payment_page_data_view'
-                    
-                    }
-                })
-        return JsonResponse({"error": "Unauthorized or missing contractor"}, status=400)
+        return JsonResponse({"error": result["error"], "detail": result.get("detail", "")}, status=result["status_code"])
 
-
-    # logger.info(f"Loading payment page data for {contractor_guid}", extra={
+    # Успішний результат
+    duration = time.time() - start_time
+    
+    # Роскомментуйте, якщо логгер потрібен на продакшені:
+    # logger.info(f"Payment page data loaded for {result['contractor_guid']}", extra={
     #     'tags': {
     #         'action': 'get_payment_page_data',
-    #         'user': user_name,
-    #         'contractor': contractor_guid
+    #         'status': 'success',
+    #         'orders_count': len(result["orders"]),
+    #         'contracts_count': len(result["contracts"]),
+    #         'duration_sec': round(duration, 4)
     #     }
     # })
 
-
-
-    try:
-        sql = """
-            EXEC dbo.GetDealerPaymentPageData
-                @Contractor = %s
-        """
-
-
-
-        with connection.cursor() as cursor:
-
-
-            cursor.execute(sql, [contractor_binary])
-            columns1 = [col[0] for col in cursor.description]
-            orders = [
-                dict(zip(columns1, row))
-                for row in cursor.fetchall()
-            ]
-
-    
-            contracts = []
-            if cursor.nextset():
-                columns2 = [col[0] for col in cursor.description]
-                contracts = [
-                    dict(zip(columns2, row))
-                    for row in cursor.fetchall()
-                ]
-
-
-        def fix(v):
-            if isinstance(v, (bytes, bytearray, memoryview)):
-                return bin_to_guid_1c(v)
-            return v
-
-        orders = [{k: fix(v) for k, v in r.items()} for r in orders]
-        contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
-
-        duration = time.time() - start_time
-
-        # 2. Лог успіху з метриками обох наборів даних
-        # logger.info(f"Payment page data loaded for {contractor_guid}", extra={
-        #     'tags': {
-        #         'action': 'get_payment_page_data',
-        #         'status': 'success',
-        #         'orders_count': len(orders),
-        #         'contracts_count': len(contracts),
-        #         'duration_sec': round(duration, 4)
-        #     }
-        # })
-
-
-        return JsonResponse(
-            {
-                "orders": orders,
-                "contracts": contracts
-            },
-            json_dumps_params={"ensure_ascii": False},
-            safe=False
-        )
-    
-    except Exception as e:
-        duration = time.time() - start_time
-        # 3. Лог помилки
-        logger.error(f"Error loading payment page data: {str(e)}", exc_info=True, extra={
-            'tags': {
-                'action': 'get_payment_page_data',
-                'status': 'error',
-                'contractor': contractor_guid,
-                'duration_sec': round(duration, 4)
-            }
-        })
-        return JsonResponse({"error": "Internal server error", "detail": str(e)}, status=500)
-
-
-
-
+    return JsonResponse(
+        {
+            "orders": result["orders"],
+            "contracts": result["contracts"]
+        },
+        json_dumps_params={"ensure_ascii": False},
+        safe=False
+    )
 
 @extend_schema(
     summary="Авансові залишки дилера",
@@ -691,57 +681,78 @@ def export_payment_status_excel(request):
         )
     }
 )
-def dealer_bills_add_info(contractor_guid: str):
-
+def dealer_bills_add_info(contractor_guid: str, is_branch: bool = False):
     start_time = time.time()
     
-  
-    # logger.info(f"Fetching billing add-info for contractor {contractor_guid}", extra={
-    #     'tags': {
-    #         'action': 'get_bills_add_info',
-    #         'contractor': contractor_guid
-    #     }
-    # })
-
     try:
-
+      
         contractor_bin = guid_to_1c_bin_2(contractor_guid)
 
         with connection.cursor() as cursor:
+         
             cursor.execute(
-                "EXEC dbo.GetDealerBillsAdd %s",
+                "EXEC dbo.GetDealerBillsAdd_2 %s",
                 [contractor_bin]
             )
 
-
+          
             row = cursor.fetchone()
             contractor = (
-                convert_row(
-                    dict(zip([c[0] for c in cursor.description], row))
-                )
+                convert_row(dict(zip([c[0] for c in cursor.description], row)))
                 if row else None
             )
 
+           
             cursor.nextset()
             addresses = [
                 convert_row(dict(zip([c[0] for c in cursor.description], r)))
                 for r in cursor.fetchall()
             ]
 
-  
+          
             cursor.nextset()
             accounts = [
                 convert_row(dict(zip([c[0] for c in cursor.description], r)))
                 for r in cursor.fetchall()
             ]
 
-           
+            # Набір 4: Дозволена номенклатура
             cursor.nextset()
             nomenclature = [
                 dict(zip([c[0] for c in cursor.description], r))
                 for r in cursor.fetchall()
             ]
 
+           
+            cursor.nextset()
+
+            # 1. Збираємо всі записи з бази
+            all_organizations = [
+                dict(zip([c[0] for c in cursor.description], r))
+                for r in cursor.fetchall()
+            ]
+
+            
+            bank_key = 'AccountNameInRegBase'   
+
+            
+            if is_branch:
+           
+                organizations = all_organizations
+            else:
+                
+                target_banks = {
+                    'Акцiонерний банк"Пiвденний" (Расчетный)',
+                    'ПРИВАТБАНК Євро Віндоус UA783052990000026005041804757'
+                }
+                
+                
+                organizations = [
+                    org for org in all_organizations
+                    if org[bank_key].strip() in target_banks
+                ]
+
+                
         duration = time.time() - start_time
 
         logger.info(f"Successfully retrieved billing info for {contractor_guid}", extra={
@@ -752,18 +763,19 @@ def dealer_bills_add_info(contractor_guid: str):
                 'addr_count': len(addresses),
                 'acc_count': len(accounts),
                 'nom_count': len(nomenclature),
+                'org_count': len(organizations),
                 'duration_sec': round(duration, 4)
             }
         })
 
-
+        
         return {
             "contractor": contractor,
             "addresses": addresses,
             "accounts": accounts,
             "nomenclature": nomenclature,
+            "organizations": organizations,  # Нове поле з даними 5-го селекту
         }
-    
 
     except Exception as e:
         duration = time.time() - start_time
@@ -776,8 +788,6 @@ def dealer_bills_add_info(contractor_guid: str):
             }
         })
         raise e
-
-
 
 @extend_schema(
     summary="Додаткова інформація для рахунків дилера",
@@ -813,13 +823,14 @@ def dealer_bills_add_info_view(request):
 
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
+    is_branch = request.user.is_branch if request.user.is_authenticated else "api_key_user"
 
     contractor_bin, contractor_guid = resolve_contractor(request)
 
     try:
 
 
-        data = dealer_bills_add_info(contractor_guid)
+        data = dealer_bills_add_info(contractor_guid, is_branch)
 
         return Response({
             # "contractor": contractor_guid,
@@ -922,23 +933,68 @@ def customer_bills_view(request):
                 [contractor_bin, date_from, date_to]
             )
 
-            columns = [c[0] for c in cursor.description]
-            rows = cursor.fetchall()
+            # 1. ОБРОБКА ПЕРШОГО SELECT (Рахунки)
+            columns_bills = [c[0] for c in cursor.description]
+            rows_bills = cursor.fetchall()
+     
+            VAT_RATE = 0.20  # Ставка ПДВ (20%)
+            bills_data = []
 
-        data = [
-            convert_row(dict(zip(columns, row)))
-            for row in rows
-        ]
+            for row in rows_bills:
+                # Отримуємо початковий словник рядка
+                bill = convert_row(dict(zip(columns_bills, row)))
+                
+                # Приводимо значення до потрібних типів даних
+                total = float(bill.get("TotalAmount") or 0)
+                is_vat = bool(bill.get("IsVAT"))
+                include_vat = bool(bill.get("SumIncludeVAT"))
+                
+                
+                if is_vat:
+                    if include_vat:
+                        vat_amount = total * 20 / 120  
+                        total_with_vat = total
+                    else:
+                        vat_amount = total * VAT_RATE  
+                        total_with_vat = total + vat_amount
+                else:
+                    vat_amount = 0.0
+                    total_with_vat = total
+
+               
+                processed_bill = {
+                    **bill, 
+                    "InvoiceNumber": bill["InvoiceNumber"].replace(" ", "") if bill.get("InvoiceNumber") else "",
+                    "BillNumber": bill.get("BillNumber"),
+                    "BillNumber_2": str(bill["BillNumber"])[1:].lstrip('0') if bill.get("BillNumber") else "",
+                    "VAT_Amount": round(vat_amount, 2),
+                    "TotalWithVAT": round(total_with_vat, 2)
+                }
+                bills_data.append(processed_bill)
+            # Перемикаємо курсор на наступний SELECT
+            cursor.nextset()
+
+            # 2. ОБРОБКА ДРУГОГО SELECT (Організація)
+            columns_org = [c[0] for c in cursor.description]
+            rows_org = cursor.fetchall()
+            org_data = [
+                dict(zip(columns_org, row)) # тут convert_row зазвичай не потрібен, але можна додати за потреби
+                for row in rows_org
+            ]
+
+# Тепер у вас є два окремих списки:
+# bills_data -> список рахунків
+# org_data   -> дані організації (зазвичай 1 рядок)
 
         duration = time.time() - start_time
 
 
-        logger.info(f"Successfully retrieved {len(data)} customer bills", extra={
+        logger.info(f"Successfully retrieved {len(bills_data)} customer bills", extra={
             'tags': {
                 'action': 'get_customer_bills',
                 'status': 'success',
                 'contractor': contractor_guid,
-                'count': len(data),
+                'count': len(bills_data),
                 'duration_sec': round(duration, 4)
             }
         })
@@ -947,8 +1003,9 @@ def customer_bills_view(request):
 
         return Response({
             "contractor": contractor_guid,
-            "count": len(data),
-            "items": data
+            "count": len(bills_data),
+            "edrpou": org_data,
+            "items": bills_data
         })
     
     except Exception as e:

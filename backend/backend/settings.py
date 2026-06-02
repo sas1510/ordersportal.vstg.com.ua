@@ -23,6 +23,8 @@ ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+OPENAI_API_KEY = config('OPENAI_API_KEY')
+
 
 
 INSTALLED_APPS = [
@@ -50,6 +52,7 @@ INSTALLED_APPS = [
     'payments',
     'reclamations',
     'additional_order',
+    'ai_chat',
     # 'silk',
     # 'documents',
     # 'order',

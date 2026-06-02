@@ -35,7 +35,7 @@ urlpatterns = [
     path("admin/api-keys/by-user/<int:user_id>/", list_user_api_keys),
     path("save_dealer_address_coords/", save_dealer_address_coords),
     path(
-        "admin/api-keys/<int:key_id>/deactivate/",
+        "admin/api-keys/<int:key_id>/de activate/",
         deactivate_api_key
         ),
 

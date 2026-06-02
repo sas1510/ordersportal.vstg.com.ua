@@ -67,6 +67,7 @@ class CustomUser(AbstractUser):
 
     user_id_1C = models.BinaryField(max_length=255, null=True, blank=True, db_column='UserId1C')
     permit_finance_info = models.BooleanField(default=False, db_column='PermitFinanceInfo')
+    is_branch = models.BooleanField(default=False, db_column='IsBranch')
     update_time = models.DateTimeField(auto_now=True, db_column='UpdateTime')
     old_portal_id = models.CharField(max_length=450, null=True, blank=True, db_index=True, db_column='OldPortalId')
 
