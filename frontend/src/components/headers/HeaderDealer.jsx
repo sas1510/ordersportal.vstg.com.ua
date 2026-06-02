@@ -868,10 +868,12 @@ export default function HeaderDealer() {
                       className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0 "
                     >
                       {/* shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),_inset_0_-1px_3px_rgba(0,0,0,0.05),_0_2px_5px_rgba(0,0,0,0.15)] */}
+
+                       {/* shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)] */}
                       <Link
                         to={link.to}
                         className={`h-full w-full flex items-center justify-center px-2 text-[13px] font-bold transition-all text-center 
-                          /* Базовий ефект випуклості (тінь + легкий градієнт) */
+                         
                           shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
                           active:translate-y-[1px] active:shadow-none 
                           
@@ -977,7 +979,7 @@ export default function HeaderDealer() {
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] bg-[#e46321] rounded-full border-2 border-white flex items-center justify-center">
+                    <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] bg-[#e46321] rounded-full pulse-animation border-2 border-white flex items-center justify-center">
                       <span className="text-[#fff] text-[9px] font-black">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
