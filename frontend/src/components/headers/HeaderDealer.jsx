@@ -978,7 +978,7 @@ export default function HeaderDealer() {
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] bg-[#e46321] rounded-full border-2 border-white flex items-center justify-center">
+                    <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] pulse-animation bg-[#e46321] rounded-full border-2 border-white flex items-center justify-center">
                       <span className="text-[#fff] text-[9px] font-black">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>

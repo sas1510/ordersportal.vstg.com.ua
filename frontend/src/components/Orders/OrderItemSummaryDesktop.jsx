@@ -360,9 +360,9 @@ export default React.memo(function OrderItemSummaryDesktop({
 
         {/* COUNT */}
        <div className="summary-item flex items-center w-8 justify-center">
-        <div className="column items-center w-full">
+        <div className="column items-center w-full h-full">
           {/* Маленький підпис зверху */}
-          <span className="text-[10px] text-grey leading-none mb-2">Конструкцій</span>
+          <span className="text-[10px] text-grey leading-none mb-2 mt-1">Конструкцій</span>
           
           {/* Рядок з іконкою та значенням */}
           <div className="row gap-2 align-center">
@@ -391,39 +391,37 @@ export default React.memo(function OrderItemSummaryDesktop({
           </div>
         </div>
 
-        {/* AMOUNT */}
-        <div className="summary-item row no-wrap">
-                 {/* <img 
-                  src={moneyGreen} 
-                  // alt="Вікно" 
-                  className="align-center mr-0.5" 
-                
-                /> */}
-                <AppIcon name="moneyGreen" className="align-center mr-0.5 w-[20px] h-[18px] " />
-          <div className="flex flex-col flex-1 ml-1">
-            <div className="text-grey text-[10px]">
-              {t("order_mobile.labels.order_amount")}
-            </div>
-            <div className="text-WS---DarkGreen font-bold text-[14px]">
-              {formatMoney2(order.amount, order.currency)}
-            </div>
-          </div>
+    
+      <div className="summary-item flex flex-col h-full !justify-start">
+
+        <div className="text-grey text-[10px] mb-1 w-full align-center justify-center flex">
+          {t("order_mobile.labels.order_amount")}
         </div>
 
-        {/* DEBT */}
-        <div className="summary-item row no-wrap">
 
-
-          <AppIcon name="moneyRed" className="align-center mr-0.5 w-[20px] h-[18px] " />
-          <div className="flex flex-col flex-1 ml-1">
-            <div className="text-grey text-[10px]">
-              {t("order_mobile.labels.debt_amount")}
-            </div>
-            <div className="text-WS---DarkRed font-bold text-[14px]">
-              {formatMoney2(debtAmount, order.currency)}
-            </div>
+        <div className="flex items-center no-wrap">
+          <AppIcon name="moneyGreen" className="mr-1.5 w-[20px] h-[18px] shrink-0" />
+          <div className="text-WS---DarkGreen font-bold text-[15px]">
+            {formatMoney2(order.amount, order.currency)}
           </div>
         </div>
+      </div>
+
+
+    <div className="summary-item flex flex-col h-full !justify-start">
+
+      <div className="text-grey text-[10px] mb-1 w-full align-center justify-center flex">
+        {t("order_mobile.labels.debt_amount")}
+      </div>
+
+
+      <div className="flex items-center no-wrap">
+        <AppIcon name="moneyRed" className="mr-1.5 w-[20px] h-[18px] shrink-0" />
+        <div className="text-WS---DarkRed font-bold text-[15px]">
+          {formatMoney2(debtAmount, order.currency)}
+        </div>
+      </div>
+    </div>
 
         {/* STATUS */}
         <div className="summary-item row justify-start">

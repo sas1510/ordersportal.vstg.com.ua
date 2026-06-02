@@ -157,3 +157,19 @@ body.dark-theme {
   color: inherit;    /* Використовує колір основного тексту балансу */
   opacity: 0.8;      /* Трохи приглушуємо колір для візуального акценту на цифрах */
 }
+
+@keyframes pulse-orange {
+  0% {
+    box-shadow: 0 0 0 0 rgba(228, 99, 33, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(228, 99, 33, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(228, 99, 33, 0);
+  }
+}
+
+.pulse-animation {
+  animation: pulse-orange 2s infinite;
+}
