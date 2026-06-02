@@ -1557,8 +1557,8 @@ const CustomerBillsPage = () => {
                   />
                   
                   {/* КНОПКИ ШВИДКОГО ПЕРЕХОДУ ДО БАНКІВ */}
-                  <div className="bank-pay-buttons">
-            {/* ПРИВАТ24 */}
+                  {/* <div className="bank-pay-buttons">
+ 
             <a 
               href="https://www.privat24.ua/" 
               target="_blank" 
@@ -1570,7 +1570,6 @@ const CustomerBillsPage = () => {
             </a>
             <br/>
 
-            {/* MONOBANK */}
             <a 
               href="https://online.monobank.ua/" 
               target="_blank" 
@@ -1581,7 +1580,7 @@ const CustomerBillsPage = () => {
               Відкрити <span className="font-bold">Monobank</span>
             </a>
             <br/>
-            {/* ОЩАДБАНК */}
+      
             <a 
               href="https://online.oschadbank.ua/" 
               target="_blank" 
@@ -1592,7 +1591,7 @@ const CustomerBillsPage = () => {
               Відкрити <span className="font-bold">Ощадбанк</span>
             </a>
             
-          </div>
+          </div> */}
                 </div>
                 
                 <div className="qr-modal-info">
