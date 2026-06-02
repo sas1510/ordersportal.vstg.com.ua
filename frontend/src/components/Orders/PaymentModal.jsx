@@ -588,6 +588,8 @@ import "./PaymentModal.css";
 import { useNotification } from "../../hooks/useNotification";
 import { useTranslation } from "react-i18next"; // 🔥 Імпорт i18n
 import { FaCheck, FaTimes, FaSpinner, FaExclamationTriangle } from "react-icons/fa";
+import { Link } from "react-router-dom";
+
 
 export default function PaymentModal({
   order,
@@ -601,6 +603,7 @@ export default function PaymentModal({
   const [paymentAmount, setPaymentAmount] = useState("");
   const [amountError, setAmountError] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const CUSTOMER_BILLS_PATH = "/finance/customer-bills";
 
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -761,10 +764,21 @@ export default function PaymentModal({
               </label>
 
               {selectedContract && (
-                <div className="pay-available">
-                  {t("payment_modal.available")} <strong className={getAvailable() <= 0 ? "text-red" : ""}>
-                    {formatCurrency(getAvailable())} {orderCurrency}
-                  </strong>
+                <div className="pay-available-wrapper">
+                  <div className="pay-available">
+                    {t("payment_modal.available")}{" "}
+                    <strong className={getAvailable() <= 0 ? "text-red" : ""}>
+                      {formatCurrency(getAvailable())} {orderCurrency}
+                    </strong>
+                  </div>
+                  <div className="pay-topup-container justify-center">
+                    <Link 
+                      to={CUSTOMER_BILLS_PATH} 
+                      className="pay-topup-link "
+                    >
+                      Створити рахунок на поповнення авансового договору
+                    </Link>
+                  </div>
                 </div>
               )}
 

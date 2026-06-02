@@ -88,7 +88,7 @@
 
 .pay-available {
   margin-top: -10px;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
   text-align: center;
   font-size: 14px;
   color: #666;
@@ -460,4 +460,28 @@ body.dark-theme .pay-close-btn:hover {
   font-size: 16px;
   margin-bottom: 15px;
   text-align: center;
+}
+
+.pay-available-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 8px;
+}
+
+.pay-topup-container {
+  display: flex;
+  justify-content: flex-center;
+}
+
+.pay-topup-link {
+  font-size: 13px;
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.pay-topup-link:hover {
+  color: #004499;
 }
