@@ -1356,7 +1356,7 @@ const CustomerBillsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, isAdmin, dealerGuid, t]);
+  }, [ isAdmin, dealerGuid, t]);
 
   const handleDownloadPDF = useCallback(async (billGuid, billNumber) => {
     if (!billGuid || billGuid === "undefined") {

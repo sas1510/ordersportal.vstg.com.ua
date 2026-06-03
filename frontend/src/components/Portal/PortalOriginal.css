@@ -1914,8 +1914,51 @@ html {
    
 }
 
+
+/* Базовий контейнер елемента таймлайну */
+.timeline li {
+    position: relative;
+    display: inline-block;
+}
+
+
 .timeline li.is-pending {
-    border-top: 1px dotted #ccc; /* Сірий колір і крапки */
+   
+    border-top: none; 
+}
+
+
+.timeline li.is-pending::before {
+    content: "";
+    position: absolute;
+    /* top: 24px;  */
+    left: 0;
+    width: 40%; 
+    height: 0;
+    border-top: 1px dotted #525252; 
+    /* z-index: 1; */
+}
+
+
+.timeline li.is-pending::after {
+    content: "";
+    position: absolute;
+    top: -4px; 
+    left: 40%; 
+    
+
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 4px 0 4px 6px; 
+    border-color: transparent transparent transparent #525252; 
+    z-index: 2;
+}
+
+
+.timeline li.is-pending ~ li.is-pending::before,
+.timeline li.is-pending ~ li.is-pending::after {
+    display: none;
 }
 
 

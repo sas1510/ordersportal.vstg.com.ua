@@ -1071,6 +1071,8 @@ def create_invoice(request):
         "paymentDate": data.get("OrderPaymentDate"),
         "comment": data.get("InternalComment", ""),
         "totalSum": data.get("OrderSuma"),
+        "organizationCode": data.get("OrganizationCode"),
+        "linkReg": data.get("LinkReg"),
         "items": [
             {
                 "itemID": i.get("ItemGUID"),
@@ -1098,7 +1100,7 @@ def create_invoice(request):
             },
             'response_1c': result
         })
-        return Response({"status": "ok", "data": result}, status=201)
+        return Response({"status": "ok", "data": result, "payload": payload_1c}, status=201)
 
     
     except Exception as e:
