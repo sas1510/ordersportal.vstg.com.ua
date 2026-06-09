@@ -487,30 +487,31 @@ onClick={openClaimModal}
 </div>
 
  
-      <div
-        className="summary-item flex items-center justify-center w-4"
-        title={
-          dateDiffStatus
-              ? t("order_mobile.fast_order.fast")
-              : t("order_mobile.fast_order.slow")
-        }
-      >
- 
-<div className="font-size-24 flex items-center justify-center">
-  <div>{"< 24 год"}</div>
-          {dateDiffStatus === null ? null : (
-  
-            <img 
-              src={speedIcon} 
-              alt="Speed Icon"
-           
-              style={{ width: '24px', height: '24px' }}
-              className={`
-                ${dateDiffStatus ? "color-green-icon " : "color-red-icon"}
-              `}
-            />
-          )}
-        </div>
+
+<div
+  className="summary-item flex w-4 min-w-max items-center justify-center"
+  title={
+    dateDiffStatus
+      ? t("order_mobile.fast_order.fast")
+      : t("order_mobile.fast_order.slow")
+  }
+>
+  {/* Змінено на flex-col для вертикального відображення: текст зверху, іконка знизу */}
+<div className="flex flex-col items-center justify-center gap-1 text-center font-size-24 w-full">
+  {/* Обмежуємо ширину, щоб слова "Швидке" та "оформлення" стали одне під одним */}
+  <span className="block max-w-[65px] text-[10px] font-medium leading-tight break-words">
+    {"Швидке оформлення"}
+  </span>
+
+  {dateDiffStatus !== null && (
+    <img
+      src={speedIcon}
+      alt="Speed Icon"
+      style={{ width: "24px", height: "24px" }}
+      className={`shrink-0 ${dateDiffStatus ? "color-green-icon" : "color-red-icon"}`}
+    />
+  )}
+</div>
       </div>
       </div>
 
@@ -522,12 +523,13 @@ onClick={openClaimModal}
       )}
 
       
-      {isFilesModalOpen && (
-        <OrderFilesModal
-          orderGuid={order.idGuid}
-          onClose={() => setIsFilesModalOpen(false)}
-        />
-      )}
+{isFilesModalOpen && (
+  <OrderFilesModal
+    orderGuid={order.idGuid}
+    entityType="order" // Явно вказуємо, що це замовлення
+    onClose={() => setIsFilesModalOpen(false)}
+  />
+)}
 
       {/* CONFIRM ORDER */}
       <ConfirmModal

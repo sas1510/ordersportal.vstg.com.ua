@@ -13,9 +13,10 @@ import {
   FaFileArchive,
 } from "react-icons/fa";
 
-import "./OrderFilesPreviewModal.css"; 
+import "./OrderFilesPreviewModal.css";
 
-const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
+// Додали новий проп entityType ("order" або "calculation")
+const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose }) => {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
 
@@ -37,15 +38,23 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   }, [onClose]);
 
   /* =========================
-      ЗАВАНТАЖЕННЯ СПИСКУ
+      ЗАВАНТАЖЕННЯ СПИСКУ ФАЙЛІВ
   ========================= */
   useEffect(() => {
     if (!orderGuid) return;
     const loadFiles = async () => {
       try {
-        const response = await axiosInstance.get(`order/${orderGuid}/files/`);
+        // Динамічний URL для отримання списку файлів залежно від типу
+        const fetchUrl = entityType === "calculation"
+          ? `orders/${orderGuid}/files/` // Для прорахунків (як у вашому urls.py)
+          : `order/${orderGuid}/files/`; // Для звичайних замовлень
+
+        const response = await axiosInstance.get(fetchUrl);
         if (response.data?.status === "success") {
           setFiles(response.data.files || []);
+        } else if (Array.isArray(response.data)) {
+          // Якщо бекенд повертає просто масив замість об'єкта зі статусом
+          setFiles(response.data);
         }
       } catch (err) {
         addNotification(t("errors.fetchFilesFailed"), "error");
@@ -54,7 +63,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
       }
     };
     loadFiles();
-  }, [orderGuid, t, addNotification]);
+  }, [orderGuid, entityType, t, addNotification]);
 
   /* =========================
       ГРУПУВАННЯ ФАЙЛІВ
@@ -72,38 +81,41 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
   }, [files]);
 
   /* =========================
-      ЛОГІКА ПРЯМОГО ЗАВАНТАЖЕННЯ
+      ЛОГІКА ДИНАМІЧНОГО ЗАВАНТАЖЕННЯ
   ========================= */
   const handleDownload = async (fileItem) => {
-  try {
-    const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(
-      fileItem.fileName
-    )}`;
+    setDownloadingFileGuid(fileItem.fileGuid);
+    try {
+      // Визначаємо правильний ендпоінт відповідно до вашого urls.py
+      const url = entityType === "calculation"
+        ? `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`
+        : `/order/${orderGuid}/files/${fileItem.fileGuid}/download/?filename=${encodeURIComponent(fileItem.fileName)}`;
 
-    const response = await axiosInstance.get(url, {
-      responseType: "blob",
-    });
+      const response = await axiosInstance.get(url, {
+        responseType: "blob",
+      });
 
-    const blob = new Blob([response.data], {
-      type: response.headers["content-type"] || "application/octet-stream",
-    });
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"] || "application/octet-stream",
+      });
 
-    const downloadUrl = window.URL.createObjectURL(blob);
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", fileItem.fileName);
 
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.setAttribute("download", fileItem.fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
 
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    window.URL.revokeObjectURL(downloadUrl);
-  } catch (error) {
-    console.error("Download error:", error);
-    addNotification("Помилка під час завантаження файлу", "error");
-  }
-};
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Download error:", error);
+      addNotification("Помилка під час завантаження файлу", "error");
+    } finally {
+      setDownloadingFileGuid(null);
+    }
+  };
 
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();
@@ -147,7 +159,10 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
         {/* HEADER */}
         <div className="preview-modal-header">
           <div className="preview-header-title">
-            <h3>{t("orders.modalFilesTitle")} {orderNumber ? `№ ${orderNumber}` : ""}</h3>
+            <h3>
+              {entityType === "calculation" ? t("orders.modalCalcFilesTitle", "Файли прорахунку") : t("orders.modalFilesTitle")} 
+              {orderNumber ? ` № ${orderNumber}` : ""}
+            </h3>
             <span className="preview-subtitle">{t("orders.modalFilesSubtitle", "Документація та фото")}</span>
           </div>
           <button className="preview-close-btn" onClick={onClose}>
@@ -172,7 +187,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, onClose }) => {
               {groups.zkz.length > 0 && (
                 <div className="preview-section">
                   <h4> {t("orders.sectionProjects", "Файли")}</h4>
-                  <div className="previ ew-grid">{groups.zkz.map(renderFileCard)}</div>
+                  <div className="preview-grid">{groups.zkz.map(renderFileCard)}</div>
                 </div>
               )}
 
