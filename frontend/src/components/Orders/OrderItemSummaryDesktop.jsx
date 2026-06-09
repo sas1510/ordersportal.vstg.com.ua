@@ -496,7 +496,8 @@ onClick={openClaimModal}
         }
       >
  
-        <div className="font-size-24 flex items-center justify-center">
+<div className="font-size-24 flex items-center justify-center">
+  <div>{"< 24 год"}</div>
           {dateDiffStatus === null ? null : (
   
             <img 

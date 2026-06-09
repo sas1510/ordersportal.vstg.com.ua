@@ -776,8 +776,19 @@ header_logo_white.svg
    --WS--DarkRed:  #BA523B;
    --WS--DarkGreen:  #516C00;
    --WS--MiddleGrey:  #AEAEAE;
+   --WS-Status-Yellow:  #ED9121;
 
 
+}
+
+.text-WS-Green-Status {
+  font-family: 'Inter', sans-serif;
+  color: var(--WS--DarkGreen);
+}
+
+.text-WS-Yellow-Status {
+  font-family: 'Inter', sans-serif;
+  color: var(--WS-Status-Yellow);
 }
 
 .text-WS---DarkGrey {
@@ -1933,9 +1944,9 @@ html {
     position: absolute;
     /* top: 24px;  */
     left: 0;
-    width: 40%; 
+    width: 30%; 
     height: 0;
-    border-top: 1px dotted #525252; 
+    border-top: 2px dotted var(--WS--DarkRed); 
     /* z-index: 1; */
 }
 
@@ -1943,15 +1954,15 @@ html {
 .timeline li.is-pending::after {
     content: "";
     position: absolute;
-    top: -4px; 
-    left: 40%; 
+    top: -4.5px; 
+    left: 30%; 
     
 
     width: 0;
     height: 0;
     border-style: solid;
-    border-width: 4px 0 4px 6px; 
-    border-color: transparent transparent transparent #525252; 
+    border-width: 6px 0 6px 9px; 
+    border-color: transparent transparent transparent var(--WS--DarkRed); 
     z-index: 2;
 }
 

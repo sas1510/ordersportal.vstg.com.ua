@@ -1072,7 +1072,7 @@ def create_invoice(request):
         "comment": data.get("InternalComment", ""),
         "totalSum": data.get("OrderSuma"),
         "organizationCode": data.get("OrganizationCode"),
-        "linkReg": data.get("LinkReg"),
+        "taxIdInRegBase": data.get("TaxIdInRegBase"),
         "items": [
             {
                 "itemID": i.get("ItemGUID"),

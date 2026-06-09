@@ -128,23 +128,57 @@ export const CalculationItem = React.memo(
         : [];
     }, [calc.statuses]);
 
+    // const getStatusClass = useCallback((status) => {
+    //     switch (status) {
+    //       case "Новий":
+    
+    
+    //         return "text-WS---DarkBlue";
+            
+    //       case "Очікуємо підтвердження":
+    //         return "text-WS---Orange";
+    //       case "Очікуємо оплату":
+    //         return "text-WS---DarkRed";
+    
+    //       case "Підтверджений":
+    //         return "text-WS---DarkGrey";
+    
+    //       case "У виробництві":
+    //         return "text-WS---DarkBlueProfile"
+    //       case "В обробці":
+    
+    
+    //       case "Відмова":
+    //         return "text-WS---MiddleGrey";
+    
+    //       case "Готовий":
+    //         return "text-WS---DarkGreen";
+    //       case "Відвантажений":
+    //         return "text-WS---DarkPurple";
+    
+    //       default:
+    //         return "text-WS---MiddleGrey ";
+    //     }
+    //   }, []);
+
+    
     const getStatusClass = useCallback((status) => {
         switch (status) {
           case "Новий":
     
     
-            return "text-WS---DarkBlue";
+            return "text-WS-Yellow-Status";
             
           case "Очікуємо підтвердження":
-            return "text-WS---Orange";
+            return "text-WS-Yellow-Status";
           case "Очікуємо оплату":
-            return "text-WS---DarkRed";
+            return "text-WS-Yellow-Status";
     
           case "Підтверджений":
-            return "text-WS---DarkGrey";
+            return "text-WS-Yellow-Status";
     
           case "У виробництві":
-            return "text-WS---DarkBlueProfile"
+            return "text-WS-Green-Status"
           case "В обробці":
     
     
@@ -152,9 +186,9 @@ export const CalculationItem = React.memo(
             return "text-WS---MiddleGrey";
     
           case "Готовий":
-            return "text-WS---DarkGreen";
+            return "text-WS-Green-Status";
           case "Відвантажений":
-            return "text-WS---DarkPurple";
+            return "text-WS-Green-Status";
     
           default:
             return "text-WS---MiddleGrey ";

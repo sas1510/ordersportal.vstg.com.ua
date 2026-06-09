@@ -1316,6 +1316,8 @@ export default function CreateCustomerBillModal({
   const [deliveryDate, setDeliveryDate] = useState("");
   const [internalComment, setInternalComment] = useState("");
 
+
+
   const [orderItems, setOrderItems] = useState([
     { itemGUID: "", quantity: 1, price: 0, width: "", height: "" },
   ]);
@@ -1423,27 +1425,27 @@ export default function CreateCustomerBillModal({
     );
   }, [orderItems]);
 
-  const handleSubmit = async () => {
-    setLoading(true);
+const handleSubmit = async () => {
+  setLoading(true);
 
-    const dto = {
-      IbanGUID: selectedIban?.trim() ? selectedIban : null,
-      OrganizationCode: selectedOrgCode?.trim() ? selectedOrgCode : null,         // Передаємо код організації (напр. "000000001")
-      LinkReg: selectedOrgAccount?.trim() ? selectedOrgAccount : null,   // Передаємо LinkReg (напр. "7a0b48be-...")
-      AddressGUID: selectedAddress,
-      OrderSuma: totalSum,
-      InternalComment: internalComment,
-      OrderPaymentDate: paymentDate || null,
-      OrderDeliveryDate: deliveryDate || null,
-      OrderItemsLIST: orderItems.map((i) => ({
-        ItemGUID: i.itemGUID,
-        Count: Number(i.quantity) || 0,
-        Price: Number(i.price) || 0,
-        Width: i.width ? Number(i.width) : null,
-        Height: i.height ? Number(i.height) : null,
-      })),
-      OrderCreateDate: new Date().toISOString(),
-    };
+  const dto = {
+    IbanGUID: selectedIban?.trim() ? selectedIban : null,
+    OrganizationCode: selectedOrgCode?.trim() ? selectedOrgCode : null,
+    TaxIdInRegBase: selectedOrgAccount?.trim() ? selectedOrgAccount : null, // Змінено ключ та передається TaxIdInRegBase
+    AddressGUID: selectedAddress,
+    OrderSuma: totalSum,
+    InternalComment: internalComment,
+    OrderPaymentDate: paymentDate || null,
+    OrderDeliveryDate: deliveryDate || null,
+    OrderItemsLIST: orderItems.map((i) => ({
+      ItemGUID: i.itemGUID,
+      Count: Number(i.quantity) || 0,
+      Price: Number(i.price) || 0,
+      Width: i.width ? Number(i.width) : null,
+      Height: i.height ? Number(i.height) : null,
+    })),
+    OrderCreateDate: new Date().toISOString(),
+  };
 
     try {
       await axiosInstance.post("/payments/create_invoice/", dto);
@@ -1528,25 +1530,26 @@ export default function CreateCustomerBillModal({
                     />
                   </div>
 
-                  {/* 2. Селект для вибору Рахунку організації */}
-                  <div className="bill-field">
-                    <span className="bill-field__label">
-                      {t("create_bill.fields.org_account", "Рахунок для оплати")}
-                    </span>
-                    <BillSelect
-                      value={selectedOrgAccount}
-                      options={filteredAccounts}
-                      placeholder={
-                        selectedOrgCode 
-                          ? t("create_bill.placeholders.org_account", "Оберіть рахунок") 
-                          : t("create_bill.placeholders.select_org_first", "Спочатку оберіть організацію")
-                      }
-                      disabled={!selectedOrgCode}
-                      getValue={(org) => org.LinkReg}
-                      getLabel={(org) => `${org.AccountNameInRegBase} — ${org.AccountNumberInRegBase}`}
-                      onChange={setSelectedOrgAccount}
-                    />
-                  </div>
+                 {/* 2. Селект для вибору Рахунку організації */}
+<div className="bill-field">
+  <span className="bill-field__label">
+    {t("create_bill.fields.org_account", "Рахунок для оплати")}
+  </span>
+  <BillSelect
+    value={selectedOrgAccount}
+    options={filteredAccounts}
+    placeholder={
+      selectedOrgCode 
+        ? t("create_bill.placeholders.org_account", "Оберіть рахунок") 
+        : t("create_bill.placeholders.select_org_first", "Спочатку оберіть організацію")
+    }
+    disabled={!selectedOrgCode}
+    // МІНЯЄМО org.LinkReg на org.TaxIdInRegBase 👇
+    getValue={(org) => org.TaxIdInRegBase} 
+    getLabel={(org) => `${org.AccountNameInRegBase} — ${org.AccountNumberInRegBase}`}
+    onChange={setSelectedOrgAccount}
+  />
+</div>
 
                   {/* 3. Поле IBAN */}
                   <div className="bill-field">
