@@ -496,14 +496,13 @@ export const CalculationItem = React.memo(
           transactionTypeId={1}
           manager={isAdmin ? calc.dealerId : calc.manager}
         />
-{isFilesModalOpen && (
-  <OrderFilesPreviewModal
-    onClose={() => setIsFilesModalOpen(false)}
-    orderGuid={calc.id}       // GUID розрахунку для запиту до API
-    entityType="calculation"
-    orderNumber={calc.number} // Номер для заголовка
-  />
-)}
+        <OrderFilesPreviewModal
+          isOpen={isFilesModalOpen}
+          onClose={() => setIsFilesModalOpen(false)}
+          orderGuid={calc.id}      // GUID розрахунку для запиту до API
+          entityType="calculation"
+          orderNumber={calc.number} // Номер для заголовка
+        />
 
         <CounterpartyInfoModal
           isOpen={isCounterpartyOpen}
