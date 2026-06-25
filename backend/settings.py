@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG=False
+DEBUG=True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -113,7 +113,7 @@ DATABASES = {
     },
     'db_2': {
             'ENGINE': config('DB_ENGINE'),
-            'NAME': config('DB_NAME'),
+            'NAME': config('DB_NAME_2'),
             'USER': config('DB_USER'),
             'PASSWORD': config('DB_PASSWORD'),
             'HOST': config('DB_HOST_2'),
@@ -339,7 +339,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # settings.py
 
-ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua', 'www.ordersportal.vstg.com.ua']
+ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua', 'www.ordersportal.vstg.com.ua', 'backend']
 
 
 # SILKY_PYTHON_PROFILER = True  

@@ -608,14 +608,15 @@ import {
   FolderOpen, 
   Video, 
   CreditCard,
-  Wallet
+  Wallet,
+  BarChart3 
 } from "lucide-react";
 
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
 
 export default function HeaderDealer() {
   const { t } = useTranslation();
-  const isMobile = useMediaQuery({ maxWidth: 1180 });
+  const isMobile = useMediaQuery({ maxWidth: 1340 });
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useContext(AuthContext);
@@ -629,14 +630,14 @@ export default function HeaderDealer() {
     { title: t('nav.orders'), to: "/orders", icon: ShoppingBag },
     { title: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
     { title: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle },
-    { title: t('nav.files'), to: "/files", icon: FolderOpen },
+    { title: t('nav.tech_file'), to: "/files", icon: FolderOpen },
     { title: t('nav.videos'), to: "/videos", icon: Video },
+    { title: t('nav.finance_analytics'), to: "/statistics", icon: BarChart3  },
     { title: t('nav.payment'), to: "/payment", icon: CreditCard },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
-    { title: t('nav.finance_analytics'), to: "/finance/statistics" },
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
   ], [t]);
 
@@ -854,8 +855,8 @@ export default function HeaderDealer() {
 
       {/* <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
       <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
-        <Link to="/dashboard" className="ml-[16px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
-          <img src={logo} alt="Вікна Стиль" className="h-[45px] max-[1261px]:h-[40px] w-auto" />
+        <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
+          <img src={logo} alt="Вікна Стиль" className="h-[43px] max-[1261px]:h-[40px] w-auto" />
         </Link>
 
         {!isMobile ? (

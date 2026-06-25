@@ -349,13 +349,13 @@ export default function HeaderAdmin() {
     { title: t('nav.orders'), to: "/admin-order" },
     { title: t('nav.complaints'), to: "/admin-reclamation" },
     { title: t('nav.additional_orders'), to: "/admin-additional-order" },
-    { title: t('nav.files'), to: "/files" },
+    { title: t('nav.tech_file'), to: "/files" },
     { title: t('nav.videos'), to: "/videos" },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
-    { title: t('nav.finance_analytics'), to: "/finance/statistics" },
+    { title: t('nav.finance_analytics'), to: "/statistics" },
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
   ], [t]);
 
@@ -539,9 +539,9 @@ export default function HeaderAdmin() {
               </div>
 
               <div className="flex items-center px-6 gap-6">
-                <button onClick={toggleTheme} className="text-[#44403E] text-lg hover:scale-110 transition-transform">
+                {/* <button onClick={toggleTheme} className="text-[#44403E] text-lg hover:scale-110 transition-transform">
                   <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
-                </button>
+                </button> */}
 
                 <LanguageSwitcher />
 

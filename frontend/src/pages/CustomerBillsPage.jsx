@@ -1356,7 +1356,7 @@ const CustomerBillsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [ isAdmin, dealerGuid, t]);
+  }, [dateFrom, dateTo, isAdmin, dealerGuid, t]);
 
   const handleDownloadPDF = useCallback(async (billGuid, billNumber) => {
     if (!billGuid || billGuid === "undefined") {
@@ -1416,7 +1416,7 @@ const CustomerBillsPage = () => {
     if (!isAdmin || (isAdmin && dealerGuid)) {
       fetchBills();
     }
-  }, [dealerGuid, isAdmin, fetchBills]);
+  }, [dealerGuid, isAdmin]);
 
   // Винесено обчислення призначення платежу для активного модального вікна
   const currentPurpose = useMemo(() => {

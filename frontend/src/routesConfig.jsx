@@ -79,7 +79,7 @@ export const adminRoutes = [
   { path: "promo-wds-codes", element: <WDSCodesTable /> },
 
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
-  { path: "/finance/statistics", element: <ProductionStatisticsPage /> },
+  { path: "/statistics", element: <ProductionStatisticsPage /> },
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "notifications", element: <NotificationPage /> },
   { path: "manager-qr", element: <ManagerQrDropdown /> },
@@ -109,7 +109,7 @@ export const dealerRoutes = [
   { path: "file-preview/invalid", element: <InvalidLinkPage /> },
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
   { path: "dashboardpage", element: <DashboardPage /> },
-  { path: "/finance/statistics", element: <ProductionStatisticsPage /> },
+  { path: "/statistics", element: <ProductionStatisticsPage /> },
   { path: "/notifications", element: <NotificationPage /> },
   // { path: "/ai", element: <AiChatPage /> },
 ];

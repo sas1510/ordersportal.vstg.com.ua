@@ -1734,7 +1734,7 @@ def orders_view_all_by_month(request):
             try:
                 calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
 
-                constructions_count = int(row.get("ConstructionsCount") or 0)
+                constructions_count = int(row.get("CalcConstructionsCount") or 0)
                 calculation_date = row.get("CalcDate") or row.get("CalculationDate")
                 order_date = row.get("OrderDate")
 
@@ -2456,11 +2456,23 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        contractor_bin, contractor_guid = resolve_contractor(
-            request,
-            allow_admin=True,
-            admin_param="contractor_guid",
-        )
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            logger.warning(f"Access denied for create calculation: {str(e)}", extra={
+                "tags": {
+                    "action": "create_calculation",
+                    "status": "forbidden"
+                }
+            })
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         file = data["file"]
         photos = data.get("photos", []) 
@@ -3236,7 +3248,7 @@ class DealerFullAnalyticsView(APIView):
         
         date_from = request.GET.get("date_from", "2026-01-01")
         date_to = request.GET.get("date_to", "2026-12-31")
-        db_alias = 'db_2'
+        db_alias = 'default'
 
 
         try:
@@ -3311,7 +3323,7 @@ class OrdersDealerStatisticsView(APIView):
 
         date_from = request.GET.get("date_from", "2026-01-01")
         date_to = request.GET.get("date_to", "2026-12-31")
-        db_alias = 'db_2'
+        db_alias = 'default'
         
  
         try:
@@ -3927,69 +3939,73 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from ranged_fileresponse import RangedFileResponse
 
 
-@extend_schema(
-    summary="Завантажити файл прорахунку (SMB або БД)",
-    description=(
-        "Намагається завантажити файл (ZKZ, фото, документ) зі сховища SMB за шляхом:\n"
-        "`Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}`.\n\n"
-        "Якщо файл відсутній на диску, автоматично спрацьовує **fallback у Базу Даних**, "
-        "звідки бінарні дані витягуються через процедуру `dbo.GetBinaryFile`."
-    ),
-    parameters=[
-        OpenApiParameter("order_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID прорахунку замовлення", required=True),
-        OpenApiParameter("file_guid", OpenApiTypes.UUID, OpenApiParameter.PATH, description="GUID файлу", required=True),
-        OpenApiParameter("filename", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Назва файлу з розширенням", required=True),
-    ],
-    tags=["order"]
-)
+from django.http import StreamingHttpResponse, Http404
+from django.shortcuts import redirect
+from urllib.parse import quote, unquote
+import mimetypes
+import os
+import tempfile
+import smbclient
+
+
+def content_disposition_header(disposition, filename):
+    safe_ascii = filename.encode("ascii", "ignore").decode() or "file"
+    quoted = quote(filename)
+    return f'{disposition}; filename="{safe_ascii}"; filename*=UTF-8\'\'{quoted}'
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def download_calc(request, order_guid, file_guid):
-    """
-    Завантажує файл прорахунку/фотографію з папки 'Заявка на просчет (ВМ)' через SMB 
-    або витягує його з бази даних, якщо файл збережено в SQL.
-    """
-    start_time = time.time()
     filename = request.GET.get("filename")
-    
+
     if not filename:
         raise Http404("Filename is required")
 
     filename = unquote(filename)
-    content_type, _ = mimetypes.guess_type(filename)
-    content_type = content_type or "application/octet-stream"
-
-    # Визначаємо inline для фото/тексту, щоб вони відкривалися в браузері/модалці
-    inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
     file_ext = os.path.splitext(filename.lower())[1]
+
+    content_types = {
+        ".pdf": "application/pdf",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+        ".txt": "text/plain; charset=utf-8",
+        ".xml": "application/xml",
+        ".zkz": "application/octet-stream",
+    }
+
+    content_type = content_types.get(file_ext)
+    if not content_type:
+        content_type, _ = mimetypes.guess_type(filename)
+        content_type = content_type or "application/octet-stream"
+
+    inline_extensions = [".pdf", ".jpg", ".jpeg", ".png", ".webp", ".txt"]
     disposition = "inline" if file_ext in inline_extensions else "attachment"
 
-    # Шлях до сховища заявок на прорахунок
-    remote_path = f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}"
+    remote_path = (
+        f"/{settings.SMB_SERVER}/{settings.SMB_SHARE}/"
+        f"Заявка на просчет (ВМ)/{order_guid}/{file_guid}/{filename}"
+    )
 
-    # ==========================================
-    # 🚀 СТРАТЕГІЯ 1: Спроба прочитати з SMB
-    # ==========================================
     try:
         stat = smbclient.stat(remote_path)
         file_handle = smbclient.open_file(remote_path, mode="rb")
-        
+
         response = StreamingHttpResponse(file_handle, content_type=content_type)
         response["Content-Length"] = stat.st_size
-        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
-        response["Access-Control-Expose-Headers"] = "Content-Disposition"
-        
+        response["Content-Disposition"] = content_disposition_header(disposition, filename)
+        response["Access-Control-Expose-Headers"] = "Content-Disposition, Content-Length"
+
         return response
 
     except Exception as smb_error:
         logger.warning(
             f"SMB calculation file missing, switching to DB fallback. Path: {remote_path} | Reason: {str(smb_error)}",
-            extra={'tags': {'action': 'download_calc', 'stage': 'smb_fallback'}}
+            extra={"tags": {"action": "download_calc", "stage": "smb_fallback"}}
         )
 
-    # ==========================================
-    # 🗄 СТРАТЕГІЯ 2: Fallback в Базу Даних (SQL)
-    # ==========================================
     try:
         binary_guid = guid_to_1c_bin(file_guid)
 
@@ -4000,32 +4016,33 @@ def download_calc(request, order_guid, file_guid):
             )
             row = cursor.fetchone()
 
-            if not row or not row[0]:
-                logger.error(f"Calculation file not found anywhere: {file_guid} ({filename})")
-                return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
+        if not row or not row[0]:
+            return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
 
-            raw_db_blob = row[0]
-            db_filename = row[1] or filename
+        raw_db_blob = row[0]
+        db_filename = row[1] or filename
 
         file_bytes = extract_1c_binary(raw_db_blob)
+
         if not file_bytes:
-            logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
             return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
-        
 
         current_ext = os.path.splitext(filename)[1]
-        if not current_ext:  # Якщо в назві немає розширення
-            detected_ext = guess_extension_from_bytes(file_bytes[:16])
+
+        if not current_ext:
+            detected_ext = guess_extension_from_bytes(file_bytes[:32])
             if detected_ext:
                 filename += detected_ext
-                # Оновлюємо контент-тип після додавання розширення
-                content_type, _ = mimetypes.guess_type(filename)
-                content_type = content_type or "application/octet-stream"
+                file_ext = detected_ext.lower()
 
-                if detected_ext in [".pdf", ".jpg", "jpg", "JPG", ".jpeg", ".png", ".webp"]:
-                    disposition = "inline"
+        content_type = content_types.get(file_ext)
+        if not content_type:
+            content_type, _ = mimetypes.guess_type(filename)
+            content_type = content_type or "application/octet-stream"
 
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
+        disposition = "inline" if file_ext in inline_extensions else "attachment"
+
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=file_ext)
         tmp.write(file_bytes)
         tmp.close()
 
@@ -4034,15 +4051,16 @@ def download_calc(request, order_guid, file_guid):
             open(tmp.name, "rb"),
             content_type=content_type
         )
-        response["Content-Disposition"] = f'{disposition}; filename="{filename or db_filename}"'
-        
+
+        response["Content-Length"] = str(len(file_bytes))
+        response["Content-Disposition"] = content_disposition_header(disposition, filename or db_filename)
+        response["Access-Control-Expose-Headers"] = "Content-Disposition, Content-Length"
+
         return response
 
     except Exception as db_error:
         logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
         return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
-    
-
 
 @extend_schema(
     summary="Отримати список файлів прорахунку",
@@ -4136,3 +4154,72 @@ def get_calc_files(request, order_guid):
     except Exception as e:
         # logger.error(f"Error in get_calc_files: {e}")
         return Response({"status": "error", "message": "Внутрішня помилка сервера"}, status=500)
+    
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .services.manager_service import (
+    get_manager_by_contractor,
+    get_telegram_id_by_manager,
+)
+from .services.telegram_service import send_telegram_message
+from .services.telegram_service import send_telegram_message, send_telegram_file
+
+
+@api_view(["POST"])
+def send_support_notification_to_telegram(request):
+    contractor_id = request.data.get("contractorId")
+    text = request.data.get("text") or "Дилер відкрив чат підтримки"
+
+    if not contractor_id:
+        return Response({
+            "success": False,
+            "error": "contractorId is required"
+        }, status=400)
+
+    manager_guid = get_manager_by_contractor(contractor_id)
+
+    if not manager_guid:
+        return Response({
+            "success": False,
+            "error": "Не знайдено менеджера для контрагента"
+        }, status=404)
+
+    telegram_id = get_telegram_id_by_manager(manager_guid)
+
+    if not telegram_id:
+        return Response({
+            "success": False,
+            "error": "Не знайдено Telegram ID менеджера"
+        }, status=404)
+
+    tg_text = f"""
+<b>Нове звернення в підтримку</b>
+
+{text}
+
+ContractorId:
+<code>{contractor_id}</code>
+"""
+
+    file_obj = request.FILES.get("file")
+
+    if file_obj:
+        tg_response = send_telegram_file(
+            telegram_chat_id=telegram_id,
+            file_obj=file_obj,
+            caption=tg_text
+        )
+    else:
+        tg_response = send_telegram_message(
+            telegram_chat_id=telegram_id,
+            text=tg_text
+        )
+
+    return Response({
+        "success": True,
+        "telegramId": telegram_id,
+        "telegramMessageId": tg_response["result"]["message_id"]
+    })

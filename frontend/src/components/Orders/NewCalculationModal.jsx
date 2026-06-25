@@ -470,7 +470,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 </div>
               )}
 
-              {/* 1. Блок основного файлу проекту (.zkz) */}
+     
               <div className="new-calc-file-upload">
                 <label htmlFor="new-calc-file" className="new-calc-upload-label">
                   <FaUpload size={20} />
@@ -478,7 +478,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <input
                     type="file"
                     id="new-calc-file"
-                    accept=".zkz"
+                    // accept=".zkz"
                     onChange={handleFileChange}
                     hidden
                   />

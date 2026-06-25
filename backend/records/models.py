@@ -170,3 +170,46 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.author} -> {self.chat_id}: {self.text[:20]}..."
+    
+
+
+
+class ChatMessageAttachment(models.Model):
+    MessageId = models.ForeignKey(
+        ChatMessage,
+        db_column="MessageId",
+        on_delete=models.CASCADE,
+        related_name="attachments"
+    )
+    AttachmentType = models.CharField(max_length=20)
+    FileName = models.CharField(max_length=255, null=True, blank=True)
+    OriginalFileName = models.CharField(max_length=255, null=True, blank=True)
+    MimeType = models.CharField(max_length=100, null=True, blank=True)
+    FileExtension = models.CharField(max_length=20, null=True, blank=True)
+    FileSize = models.BigIntegerField(null=True, blank=True)
+    FileData = models.BinaryField()
+    DurationSeconds = models.IntegerField(null=True, blank=True)
+    CreatedAt = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "ChatMessageAttachment"
+        managed = False
+
+
+class ChatTelegramMap(models.Model):
+    MessageId = models.ForeignKey(
+        ChatMessage,
+        db_column="MessageId",
+        on_delete=models.CASCADE,
+        related_name="telegram_maps"
+    )
+    ChatId = models.BigIntegerField()
+    TelegramChatId = models.BigIntegerField()
+    TelegramMessageId = models.BigIntegerField()
+    TelegramReplyToMessageId = models.BigIntegerField(null=True, blank=True)
+    Direction = models.CharField(max_length=20)
+    CreatedAt = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "ChatTelegramMap"
+        managed = False

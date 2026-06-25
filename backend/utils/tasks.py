@@ -290,11 +290,11 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
             }
             page = pages_map.get(t_type, "orders")
             doc_year = msg.timestamp.year
-            # Формуємо URL
+      
             direct_link = f"{settings.FRONTEND_URL}{page}?search={doc_number}&year={doc_year}"
             link_html = f"\n\n🔗 <a href='{direct_link}'>Перейти до документа</a>"
 
-        # 3. Отримуємо Telegram ID з бази
+  
         with connection.cursor() as cursor:
             cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [recipient_bin])
             row = cursor.fetchone()
