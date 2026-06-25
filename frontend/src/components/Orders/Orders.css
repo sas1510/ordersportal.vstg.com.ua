@@ -144,3 +144,20 @@ body.dark-theme .separator-border {
 
 /* Зберігаємо анімацію пульсації для швидкості */
 
+
+
+.order-grid{
+    display:grid;
+    grid-template-columns:
+        30px     /* іконка */
+        133px    /* номер */
+        75px     /* конструкції */
+        80px     /* файли */
+        140px    /* сума */
+        140px    /* борг */
+        110px    /* статус */
+        215px    /* кнопки */
+        63px;    /* швидке */
+    align-items:center;
+    width: calc(100% - 20px);
+}

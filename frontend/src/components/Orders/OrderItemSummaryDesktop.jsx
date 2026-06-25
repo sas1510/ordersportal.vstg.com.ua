@@ -18,12 +18,8 @@ import {
 
 } from "../../utils/formatters";
 import { AppIcon } from "../Icons/AppIcon";
-
-
-
 import { useTranslation  } from "react-i18next";
 import { useNotification } from "../../hooks/useNotification";
-
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
@@ -326,7 +322,8 @@ export default React.memo(function OrderItemSummaryDesktop({
     <div className="order-item !border-b-0 flex flex-col w-full gap-0">
       {/* --- SUMMARY ROW --- */}
       <div
-        className="order-item-summary flex w-full cursor-pointer items-center"
+        // className="order-item-summary flex w-full cursor-pointer items-center"
+         className="order-item-summary order-grid cursor-pointer"
         onClick={toggleExpand}
       >
         {/* ICON */}
@@ -337,7 +334,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                   className="align-center mr-0.5" 
                 
                 /> */}
-                <AppIcon name="listCalc" className="align-center mr-0.5 w-[26px] h-[35px] " />
+                <AppIcon name="listCalc" className="align-center mr-0.5 h-[35px] " />
         </div>
 
  
@@ -359,7 +356,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         </div>
 
         {/* COUNT */}
-       <div className="summary-item flex items-center w-8 justify-center">
+       <div className="summary-item flex items-center  justify-center">
         <div className="column items-center w-full h-full">
           {/* Маленький підпис зверху */}
           <span className="text-[10px] text-grey leading-none mb-2 mt-1">Конструкцій</span>
@@ -376,7 +373,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
         {/* FILES */}
         <div
-          className="summary-item flex w-10 items-start justify-start cursor-pointer w-full  "
+          className="summary-item flex items-start justify-start cursor-pointer w-full  "
           onClick={openFilesModal}
         >
           <div className="row gap-1 align-center">
@@ -489,7 +486,7 @@ onClick={openClaimModal}
  
 
 <div
-  className="summary-item flex w-4 min-w-max items-center justify-center"
+  className="summary-item items-center justify-center"
   title={
     dateDiffStatus
       ? t("order_mobile.fast_order.fast")
