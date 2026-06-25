@@ -1980,6 +1980,25 @@ def build_address_name(addr: dict | None) -> str:
 
 #     return payload
 
+
+import os
+
+
+import os
+
+
+def get_file_extension(file_name: str | None, default_ext: str = "BIN") -> str:
+    if not file_name:
+        return default_ext
+
+    ext = os.path.splitext(file_name)[1]
+
+    if not ext:
+        return default_ext
+
+    return ext.replace(".", "").upper()
+
+
 def build_1c_payload(
     *,
     order_number,
@@ -1996,29 +2015,30 @@ def build_1c_payload(
     if photos is None:
         photos = []
 
-    # 1. Формуємо спільний список файлів
     all_files = []
 
-    # Додаємо головний файл проекту (.ZKZ), якщо він переданий
     if file_b64:
+        actual_file_name = file_name or f"order_{order_number}.bin"
+        file_ext = get_file_extension(actual_file_name)
+
         all_files.append({
-            "fileName": file_name or f"order_{order_number}.zkz",
+            "fileName": actual_file_name,
             "fileDataB64": file_b64,
-            "fileExtension": "ZKZ",
-            "fileDataType": "Calculation"  # Додатковий маркер для 1С (за бажанням)
+            "fileExtension": file_ext,
+            "fileDataType": "Calculation"
         })
 
-    # Додаємо всі фотографії до того ж масиву
     for p in photos:
-        ext = p["fileName"].split(".")[-1].upper() if "." in p["fileName"] else "JPG"
+        photo_name = p.get("fileName") or "photo.jpg"
+        photo_ext = get_file_extension(photo_name, "JPG")
+
         all_files.append({
-            "fileName": p["fileName"],
+            "fileName": photo_name,
             "fileDataB64": p["fileDataB64"],
-            "fileExtension": ext,
-            "fileDataType": "Photo"  # Допомагає 1С розрізнити типи в одному масиві
+            "fileExtension": photo_ext,
+            "fileDataType": "Photo"
         })
 
-    # 2. Формуємо основний пейлоад
     payload = {
         "calculations": [
             {
@@ -2028,10 +2048,7 @@ def build_1c_payload(
                 "comment": comment or "",
                 "kontragentGUID": str(contractor_guid),
                 "authorGUID": str(contractor_guid),
-                
-              
-                "file": all_files, 
-
+                "file": all_files,
                 "orders": [],
             }
         ]
@@ -2039,37 +2056,16 @@ def build_1c_payload(
 
     calc = payload["calculations"][0]
 
-    # Логіка обробки адреси (залишається без змін)
     if delivery_address_guid:
-        coords = delivery_address_coordinates or {} 
+        coords = delivery_address_coordinates or {}
         calc["address"] = {
-            "addressGUID": str(delivery_address_guid),
-            "addressName": None,
-            "addressCoordinates": {
-                "lat": coords.get("lat"),
-                "lng": coords.get("lng"),
-            },
-            "addressAdditionalInfo": None,
+            "type": "delivery",
+            "guid": str(delivery_address_guid),
+            "coordinates": coords,
         }
-    else:
-        if not isinstance(client_address, dict):
-            raise ValidationError("client_address is required for client delivery")
 
-        address_name = build_address_name(client_address)
-        calc["address"] = {
-            "addressGUID": None,
-            "addressName": address_name,
-            "addressCoordinates": {
-                "lat": safe_float(client_address.get("lat")),
-                "lng": safe_float(client_address.get("lng")),
-            },
-            "addressAdditionalInfo": client_address.get("note", ""),
-        }
-        calc["recipient"] = {
-            "recipientName": client_address.get("full_name"),
-            "recipientPhone": client_address.get("phone"),
-            "recipientAddionalInformation": client_address.get("extra_info", "") or "",
-        }
+    elif client_address:
+        calc["address"] = client_address
 
     return payload
 
