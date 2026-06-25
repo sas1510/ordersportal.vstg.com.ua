@@ -254,7 +254,7 @@ export const CalculationItem = React.memo(
     <img 
       src={listCalcIcon} 
       alt="Іконка списку" 
-           className="align-center mr-2" 
+           className="align-center mr-1" 
     />
     <div className="font-size-24 text-WS---DarkBlue font-bold">
       {orderList.length}
@@ -276,7 +276,7 @@ export const CalculationItem = React.memo(
                   <img 
                   src={windowsIcon} 
      
-                  className="align-center mr-2" 
+                  className="align-center mr-1" 
                 
                 />
     <div className="font-size-24 text-WS---DarkBlue font-bold">
@@ -337,7 +337,7 @@ export const CalculationItem = React.memo(
   </div>
 </div>
 
-          <div className="summary-item expandable row w-23 align-start space-between">
+          <div className="summary-item expandable row w-20 align-start space-between">
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
               <div className="comments-text-wrapper-last ">
                {calc.message || calc.firstMessage || t('calc.no_comments')}
