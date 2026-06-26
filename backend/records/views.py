@@ -2065,7 +2065,22 @@ def build_1c_payload(
         }
 
     elif client_address:
-        calc["address"] = client_address
+        address_name = build_address_name(client_address)
+
+        calc["address"] = {
+            "addressGUID": None,
+            "addressName": address_name,
+            "addressCoordinates": {
+                "lat": safe_float(client_address.get("lat")),
+                "lng": safe_float(client_address.get("lng")),
+            },
+            "addressAdditionalInfo": client_address.get("note", "") or "",
+        }
+        calc["recipient"] = {
+            "recipientName": client_address.get("full_name"),
+            "recipientPhone": client_address.get("phone"),
+            "recipientAddionalInformation": client_address.get("extra_info", "") or "",
+        }
 
     return payload
 
