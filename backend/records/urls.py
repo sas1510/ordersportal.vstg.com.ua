@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView
 
 
@@ -50,5 +50,6 @@ urlpatterns = [
         send_support_notification_to_telegram,
         name="send_support_notification_to_telegram"
     ),
+    path("telegram/webhook/", telegram_webhook),
 ]
 

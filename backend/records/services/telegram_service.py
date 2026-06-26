@@ -53,3 +53,34 @@ def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
 
     response.raise_for_status()
     return response.json()
+
+
+import requests
+from django.conf import settings
+
+
+def get_telegram_file_info(file_id: str):
+    url = f"https://api.telegram.org/bot{settings.BOT_TOKEN}/getFile"
+
+    response = requests.get(url, params={
+        "file_id": file_id
+    })
+
+    response.raise_for_status()
+    return response.json()["result"]
+
+
+def download_telegram_file(file_id: str):
+    file_info = get_telegram_file_info(file_id)
+    file_path = file_info["file_path"]
+
+    url = f"https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}"
+
+    response = requests.get(url)
+    response.raise_for_status()
+
+    return {
+        "bytes": response.content,
+        "file_path": file_path,
+        "file_size": file_info.get("file_size"),
+    }

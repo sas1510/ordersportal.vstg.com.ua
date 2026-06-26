@@ -4163,11 +4163,63 @@ from .services.manager_service import (
 from .services.telegram_service import send_telegram_message
 from .services.telegram_service import send_telegram_message, send_telegram_file
 
+import os
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+from .models import ChatMessage, ChatMessageAttachment, ChatTelegramMap
+from .services.manager_service import (
+    get_manager_by_contractor,
+    get_telegram_id_by_manager,
+)
+from .services.telegram_service import (
+    send_telegram_message,
+    send_telegram_file,
+)
+
+
+def detect_message_type(file_obj):
+    if not file_obj:
+        return "text"
+
+    content_type = file_obj.content_type or ""
+
+    if content_type.startswith("image/"):
+        return "image"
+
+    if content_type.startswith("video/"):
+        return "video"
+
+    if content_type.startswith("audio/"):
+        return "voice"
+
+    return "file"
+
+
+def get_file_extension(filename):
+    if not filename:
+        return None
+
+    ext = os.path.splitext(filename)[1]
+
+    if not ext:
+        return None
+
+    return ext.replace(".", "").lower()
+
 
 @api_view(["POST"])
 def send_support_notification_to_telegram(request):
     contractor_id = request.data.get("contractorId")
     text = request.data.get("text") or "Дилер відкрив чат підтримки"
+    client_name = request.data.get("clientName") or ""
+    contact_id = request.data.get("contactId")
+
+    file_obj = request.FILES.get("file")
+    message_type = request.data.get("messageType") or detect_message_type(file_obj)
 
     if not contractor_id:
         return Response({
@@ -4191,18 +4243,65 @@ def send_support_notification_to_telegram(request):
             "error": "Не знайдено Telegram ID менеджера"
         }, status=404)
 
+    try:
+        contractor_bin = guid_to_1c_bin(contractor_id)
+    except Exception:
+        contractor_bin = None
+
+    # 1. ЗБЕРІГАЄМО ПОВІДОМЛЕННЯ В БД
+    chat_id = f"support_{contractor_id}"
+
+    message = ChatMessage.objects.create(
+        chat_id=chat_id,
+        text=text,
+        author=contractor_bin,
+        recipient=manager_guid,
+        is_read=False,
+        is_sent_vtg=False,
+        is_notification=False,
+        event_type="support",
+        related_object_id=None,
+        transaction_type_id=4,
+    )
+
+    attachment = None
+
+    # 2. ЗБЕРІГАЄМО ФАЙЛ У БД
+    if file_obj:
+        file_bytes = file_obj.read()
+        file_obj.seek(0)
+
+        attachment = ChatMessageAttachment.objects.create(
+            MessageId=message,
+            AttachmentType=message_type,
+            FileName=file_obj.name,
+            OriginalFileName=file_obj.name,
+            MimeType=file_obj.content_type,
+            FileExtension=get_file_extension(file_obj.name),
+            FileSize=file_obj.size,
+            FileData=file_bytes,
+        )
+
     tg_text = f"""
 <b>Нове звернення в підтримку</b>
 
 {text}
 
+Клієнт:
+<code>{client_name}</code>
+
 ContractorId:
 <code>{contractor_id}</code>
+
+ChatId:
+<code>{chat_id}</code>
+
+Щоб відповісти дилеру — натисніть Reply на це повідомлення.
 """
 
-    file_obj = request.FILES.get("file")
-
+    # 3. ВІДПРАВЛЯЄМО В TELEGRAM
     if file_obj:
+        file_obj.seek(0)
         tg_response = send_telegram_file(
             telegram_chat_id=telegram_id,
             file_obj=file_obj,
@@ -4214,8 +4313,220 @@ ContractorId:
             text=tg_text
         )
 
+    ChatTelegramMap.objects.create(
+        MessageId=message,
+        ChatId=chat_id,
+        TelegramChatId=telegram_id,
+        TelegramMessageId=tg_response["result"]["message_id"],
+        TelegramReplyToMessageId=None,
+        Direction="PortalToTelegram",
+    )
+
+    telegram_message_id = tg_response["result"]["message_id"]
+
+    # 4. ОНОВЛЮЄМО ПОВІДОМЛЕННЯ
+    message.is_sent_vtg = True
+    message.save(update_fields=["is_sent_vtg"])
+
     return Response({
         "success": True,
+        "chatId": chat_id,
+        "messageId": message.id,
+        "attachmentId": attachment.Id if attachment else None,
         "telegramId": telegram_id,
-        "telegramMessageId": tg_response["result"]["message_id"]
+        "telegramMessageId": telegram_message_id,
     })
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+from backend.utils.GuidToBin1C import guid_to_1c_bin
+from .models import ChatMessage, ChatTelegramMap
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.conf import settings
+import json
+
+from .models import ChatMessage, ChatTelegramMap, ChatMessageAttachment
+from .services.telegram_service import download_telegram_file
+
+
+SUPPORT_TRANSACTION_TYPE_ID = 4
+
+
+@csrf_exempt
+def telegram_webhook(request):
+    # якщо викликаєш з n8n через X-API-KEY
+    api_key = request.headers.get("X-API-KEY")
+    if getattr(settings, "INTERNAL_API_KEY", None):
+        if api_key != settings.INTERNAL_API_KEY:
+            return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    data = json.loads(request.body.decode("utf-8"))
+
+    msg = data.get("message")
+    if not msg:
+        return JsonResponse({"ok": True})
+
+    telegram_chat_id = msg["chat"]["id"]
+    telegram_message_id = msg["message_id"]
+
+    reply = msg.get("reply_to_message")
+    if not reply:
+        return JsonResponse({"ok": True})
+
+    reply_to_message_id = reply["message_id"]
+
+    tg_map = ChatTelegramMap.objects.filter(
+        TelegramChatId=telegram_chat_id,
+        TelegramMessageId=reply_to_message_id
+    ).first()
+
+    if not tg_map:
+        return JsonResponse({
+            "ok": True,
+            "ignored": "reply source message not found"
+        })
+
+    text = msg.get("text") or msg.get("caption") or ""
+
+    manager_message = ChatMessage.objects.create(
+        chat_id=tg_map.ChatId,
+        text=text,
+        author=None,
+        recipient=None,
+        is_read=False,
+        is_sent_vtg=True,
+        is_notification=False,
+        event_type="support_reply",
+        related_object_id=None,
+        transaction_type_id=SUPPORT_TRANSACTION_TYPE_ID,
+    )
+
+    attachment = None
+    telegram_attachment = extract_telegram_attachment(msg)
+
+    if telegram_attachment:
+        downloaded = download_telegram_file(telegram_attachment["file_id"])
+
+        file_name = telegram_attachment["file_name"]
+        mime_type = telegram_attachment["mime_type"]
+
+        attachment = ChatMessageAttachment.objects.create(
+            MessageId=manager_message,
+            AttachmentType=telegram_attachment["type"],
+            FileName=file_name,
+            OriginalFileName=file_name,
+            MimeType=mime_type,
+            FileExtension=get_extension_from_name(file_name),
+            FileSize=telegram_attachment.get("file_size") or downloaded.get("file_size"),
+            FileData=downloaded["bytes"],
+            DurationSeconds=telegram_attachment.get("duration"),
+        )
+
+    ChatTelegramMap.objects.create(
+        MessageId=manager_message,
+        ChatId=tg_map.ChatId,
+        TelegramChatId=telegram_chat_id,
+        TelegramMessageId=telegram_message_id,
+        TelegramReplyToMessageId=reply_to_message_id,
+        Direction="TelegramToPortal",
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "messageId": manager_message.id,
+        "attachmentId": attachment.Id if attachment else None,
+    })
+
+
+import os
+import mimetypes
+
+
+def get_extension_from_name(filename):
+    if not filename:
+        return None
+
+    ext = os.path.splitext(filename)[1]
+    if not ext:
+        return None
+
+    return ext.replace(".", "").lower()
+
+
+def extract_telegram_attachment(msg):
+    """
+    Повертає:
+    {
+        "type": "image/video/voice/audio/file",
+        "file_id": "...",
+        "file_name": "...",
+        "mime_type": "...",
+        "file_size": 123
+    }
+    або None
+    """
+
+    if msg.get("photo"):
+        photo = msg["photo"][-1]
+
+        return {
+            "type": "image",
+            "file_id": photo["file_id"],
+            "file_name": f"telegram_photo_{photo['file_unique_id']}.jpg",
+            "mime_type": "image/jpeg",
+            "file_size": photo.get("file_size"),
+        }
+
+    if msg.get("video"):
+        video = msg["video"]
+
+        return {
+            "type": "video",
+            "file_id": video["file_id"],
+            "file_name": video.get("file_name") or f"telegram_video_{video['file_unique_id']}.mp4",
+            "mime_type": video.get("mime_type") or "video/mp4",
+            "file_size": video.get("file_size"),
+        }
+
+    if msg.get("voice"):
+        voice = msg["voice"]
+
+        return {
+            "type": "voice",
+            "file_id": voice["file_id"],
+            "file_name": f"telegram_voice_{voice['file_unique_id']}.ogg",
+            "mime_type": voice.get("mime_type") or "audio/ogg",
+            "file_size": voice.get("file_size"),
+            "duration": voice.get("duration"),
+        }
+
+    if msg.get("audio"):
+        audio = msg["audio"]
+
+        return {
+            "type": "audio",
+            "file_id": audio["file_id"],
+            "file_name": audio.get("file_name") or f"telegram_audio_{audio['file_unique_id']}.mp3",
+            "mime_type": audio.get("mime_type") or "audio/mpeg",
+            "file_size": audio.get("file_size"),
+            "duration": audio.get("duration"),
+        }
+
+    if msg.get("document"):
+        document = msg["document"]
+
+        return {
+            "type": "file",
+            "file_id": document["file_id"],
+            "file_name": document.get("file_name") or f"telegram_file_{document['file_unique_id']}",
+            "mime_type": document.get("mime_type") or "application/octet-stream",
+            "file_size": document.get("file_size"),
+        }
+
+    return None

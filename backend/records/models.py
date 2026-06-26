@@ -175,21 +175,23 @@ class ChatMessage(models.Model):
 
 
 class ChatMessageAttachment(models.Model):
+    Id = models.BigAutoField(primary_key=True, db_column="Id")
+
     MessageId = models.ForeignKey(
         ChatMessage,
         db_column="MessageId",
         on_delete=models.CASCADE,
         related_name="attachments"
     )
-    AttachmentType = models.CharField(max_length=20)
-    FileName = models.CharField(max_length=255, null=True, blank=True)
-    OriginalFileName = models.CharField(max_length=255, null=True, blank=True)
-    MimeType = models.CharField(max_length=100, null=True, blank=True)
-    FileExtension = models.CharField(max_length=20, null=True, blank=True)
-    FileSize = models.BigIntegerField(null=True, blank=True)
-    FileData = models.BinaryField()
-    DurationSeconds = models.IntegerField(null=True, blank=True)
-    CreatedAt = models.DateTimeField(auto_now_add=True)
+    AttachmentType = models.CharField(db_column="AttachmentType", max_length=20)
+    FileName = models.CharField(db_column="FileName", max_length=255, null=True, blank=True)
+    OriginalFileName = models.CharField(db_column="OriginalFileName", max_length=255, null=True, blank=True)
+    MimeType = models.CharField(db_column="MimeType", max_length=100, null=True, blank=True)
+    FileExtension = models.CharField(db_column="FileExtension", max_length=20, null=True, blank=True)
+    FileSize = models.BigIntegerField(db_column="FileSize", null=True, blank=True)
+    FileData = models.BinaryField(db_column="FileData")
+    DurationSeconds = models.IntegerField(db_column="DurationSeconds", null=True, blank=True)
+    CreatedAt = models.DateTimeField(db_column="CreatedAt", auto_now_add=True)
 
     class Meta:
         db_table = "ChatMessageAttachment"
@@ -197,18 +199,24 @@ class ChatMessageAttachment(models.Model):
 
 
 class ChatTelegramMap(models.Model):
+    Id = models.BigAutoField(primary_key=True, db_column="Id")
+
     MessageId = models.ForeignKey(
         ChatMessage,
         db_column="MessageId",
         on_delete=models.CASCADE,
         related_name="telegram_maps"
     )
-    ChatId = models.BigIntegerField()
-    TelegramChatId = models.BigIntegerField()
-    TelegramMessageId = models.BigIntegerField()
-    TelegramReplyToMessageId = models.BigIntegerField(null=True, blank=True)
-    Direction = models.CharField(max_length=20)
-    CreatedAt = models.DateTimeField(auto_now_add=True)
+    ChatId = models.CharField(db_column="ChatId", max_length=255)
+    TelegramChatId = models.BigIntegerField(db_column="TelegramChatId")
+    TelegramMessageId = models.BigIntegerField(db_column="TelegramMessageId")
+    TelegramReplyToMessageId = models.BigIntegerField(
+        db_column="TelegramReplyToMessageId",
+        null=True,
+        blank=True
+    )
+    Direction = models.CharField(db_column="Direction", max_length=20)
+    CreatedAt = models.DateTimeField(db_column="CreatedAt", auto_now_add=True)
 
     class Meta:
         db_table = "ChatTelegramMap"
