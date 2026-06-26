@@ -671,9 +671,9 @@ const AdditionalOrders = () => {
           </ul>
 
           <ul className="filter column align-center">
-              <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+              <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
               min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
-              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]  min-[1260px]:h-full
               
               /* Скидання для малих екранів (менше 1260px) */
               max-[1260px]:bg-transparent 
@@ -695,7 +695,7 @@ const AdditionalOrders = () => {
   ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
-                className={`filter-item ${filter.status === statusKey ? "active" : ""}`}
+                className={`filter-item  text-[#fff] ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleFilterClick(statusKey)}
               >
                 <img 
@@ -703,8 +703,8 @@ const AdditionalOrders = () => {
                   alt="" 
                   className={`mr-3 object-contain transition-all duration-300
                     ${filter.status === statusKey 
-                      ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
-                      : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                        ?  "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                    : "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
                     }`} 
                 />
                 <span className="w-100">{label}</span>

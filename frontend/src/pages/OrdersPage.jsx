@@ -576,9 +576,9 @@ const handleMarkAsRead = (calcId) => {
 
 
           <ul className="filter column align-center">
-            <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+            <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
               min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
-              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]    min-[1260px]:h-full
               
               /* Скидання для малих екранів (менше 1260px) */
               max-[1260px]:bg-transparent 
@@ -602,7 +602,7 @@ const handleMarkAsRead = (calcId) => {
                 ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
-                className={`filter-item row ${filter.status === statusKey ? "active" : ""}`}
+                className={`filter-item text-[#fff] row ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleFilterChange("status", statusKey)}
               >
 
@@ -613,11 +613,11 @@ const handleMarkAsRead = (calcId) => {
                 alt="" 
                 className={`mr-3 object-contain transition-all duration-300
                   ${filter.status === statusKey 
-                    ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
-                    : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                    ?  "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                    : "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
                   }`} 
               />
-                <span className="w-100  text-base font-normal font-['Inter']">{label}</span>
+                <span className="w-100  font-normal font-['Inter']">{label}</span>
                 <span
                   className={statusSummary[statusKey] === 0 ? "disabled" : ""}
                 >

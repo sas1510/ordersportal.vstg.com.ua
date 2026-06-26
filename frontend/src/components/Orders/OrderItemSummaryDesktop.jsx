@@ -496,10 +496,9 @@ onClick={openClaimModal}
   {/* Змінено на flex-col для вертикального відображення: текст зверху, іконка знизу */}
 <div className="flex flex-col items-center justify-center gap-1 text-center font-size-24 w-full">
   {/* Обмежуємо ширину, щоб слова "Швидке" та "оформлення" стали одне під одним */}
-  <span className="block max-w-[65px] text-[10px] font-medium leading-tight break-words">
-    {"Швидке оформлення"}
-  </span>
-
+  <span className="fast-order-text block max-w-[65px] text-[10px] font-medium leading-tight break-words">
+  Швидке оформлення
+</span>
   {dateDiffStatus !== null && (
     <img
       src={speedIcon}

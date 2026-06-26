@@ -352,7 +352,7 @@ overflow-y: scroll;
 
 .portal-body .content-filter {
   padding: 8px 0px;
-  height: calc(100% - 28px);
+  height: calc(100%);
   width: 100%; /* базова ширина на маленьких екранах */
   max-width: 285px; /* максимум на великих екранах */
   /* margin-right: 10px; */
@@ -435,8 +435,8 @@ overflow-y: scroll;
 
 .portal-body .content-filter .filter li span:last-child {
   padding: 3px 7px;
-  background-color: var(--WS--DarkBlue);
-  color: #fff;
+  background-color: #fff ;
+  color: var(--WS--DarkBlue) !important ;
   font-size: 12px;
   font-weight: bold;
   border-radius: 5px;
@@ -454,8 +454,16 @@ overflow-y: scroll;
 
 
 .portal-body .content-filter .filter li.active span:last-child {
-  background-color: #fff !important;
-  color: var(--WS--DarkBlue) !important;
+  /* background-color: #fff !important;
+  color: var(--WS--DarkBlue) !important; */
+  background-color:  var(--WS--DarkBlue) !important;
+  color:  #fff !important;
+
+}
+
+.portal-body .content-filter .filter li:hover span:last-child {
+  background-color:  var(--WS--DarkBlue) !important;
+  color:  #fff !important;
 }
 .portal-body .content-filter .filter li:last-child {
   /*border-right: 1px dotted var(--grey-border-color);*/
@@ -470,28 +478,35 @@ overflow-y: scroll;
 
 
 .portal-body .content-filter .filter .active {
-  background-color: var(--WS--DarkBlue);
+  /* background-color: var(--WS--DarkBlue); */
   /* border: 1px dotted var(--grey-border-color); */
-  color: #fff;
+  /* color: #fff; */
+    background-color: #fff;
+    color: var(--WS---DarkGrey) !important;
+  /* color:  var(--WS--DarkBlue); */
+
 }
 .portal-body .content-filter .filter .active img {
-  filter: brightness(0) invert(1);
+  /* filter: brightness(0) invert(1); */
 }
 .portal-body .content-filter .filter .active .span {
-  color: #fff;
+  /* color: #fff; */
+  color: var(--WS---DarkGrey) !important;
   background-color: #fff;
 }
 
 /* Ховер для звичайного (неактивного) елемента */
 .portal-body .content-filter .filter li:hover {
-  background-color: var(--WS--DarkBlue);
+  background-color: #fff;
+  color: var(--WS---DarkGrey);
   /* border: 1px dotted var(--grey-border-color); */
-  color: #fff;
+  /* color: #fff; */
 }
 
 /* Ховер для іконки (будь-якої: і активної, і звичайної) */
 .portal-body .content-filter .filter li:hover img {
-  filter: brightness(0) invert(1);
+      filter: none;
+    opacity: .7;
 }
 
 
@@ -589,7 +604,7 @@ overflow-y: scroll;
   /* background-color: var(--grey-border-color) !important; */
   cursor: not-allowed !important;
   opacity: 0.5 !important;
-  color: #fff !important;
+  /* color: #fff !important; */
 }
 
 /* поиск заказов по номеру */
@@ -2089,6 +2104,8 @@ html {
   font-family: 'Inter', sans-serif;
 }
 
+
+
 @media (max-width: 1850px) {
   .p-7 {
     padding: 4px !important;
@@ -2370,16 +2387,19 @@ html {
 }
 
 /* Ховер для звичайного (неактивного) елемента */
-.portal-body .content-filter .filter li:hover {
+/* .portal-body .content-filter .filter li:hover {
   background-color: var(--WS--DarkBlue);
-  /* border: 1px dotted var(--grey-border-color); */
+  /* border: 1px dotted var(--grey-border-color); 
   color: #fff;
-}
+} */
 
 /* Ховер для іконки (будь-якої: і активної, і звичайної) */
-.portal-body .content-filter .filter li:hover img {
+/* .portal-body .content-filter .filter li:hover img {
   filter: brightness(0) invert(1);
-}
+} */
+
+
+
 
 
 
@@ -3007,7 +3027,7 @@ body.dark-theme .content-filter .filter li:hover,
 body.dark-theme .content-filter .filter li.active {
   background-color: #383838 !important; /* Трохи світліший сірий hover */
   border: 1px dotted #555555 !important;
-  color: #ffffff !important;
+  /* color: #ffffff !important; */
 }
 
 /* Іконки всередині фільтрів */
@@ -3229,7 +3249,8 @@ body.dark-theme
 
     height: calc(100vh) !important; /* header + footer */
 
-    background: #fff !important;
+    background: var(--WS--DarkBlue) !important;
+    color: #fff !important;
     z-index: 10000 !important;
 
     display: flex !important;

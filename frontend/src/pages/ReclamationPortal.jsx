@@ -589,9 +589,9 @@ const ReclamationPortal = () => {
 
                     {/* Status Filters */}
                     <ul className="filter column align-center">
-                        <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
+                        <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
                             min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
-                            min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] 
+                            min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]  min-[1260px]:h-full
                             
                             /* Скидання для малих екранів (менше 1260px) */
                             max-[1260px]:bg-transparent 
@@ -612,7 +612,7 @@ const ReclamationPortal = () => {
                         ].map(item => (
                             <li
                                 key={item.statusKey}
-                                className={`filter-item font-['Inter'] ${filter.status === item.statusKey ? 'active' : ''}`}
+                                className={`filter-item  text-[#fff] font-['Inter'] ${filter.status === item.statusKey ? 'active' : ''}`}
                                 onClick={() => setFilter(prev => ({ ...prev, status: item.statusKey }))}
                             >
                                 <img 
@@ -620,8 +620,8 @@ const ReclamationPortal = () => {
                                     alt="" 
                                     className={`mr-3 object-contain transition-all duration-300
                                         ${filter.status === item.statusKey 
-                                        ? "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
-                                        : "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                                        ?  "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
+                                        : "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
                                         }`} 
                                     />
                                 <span className="w-100">{item.label}</span>

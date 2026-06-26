@@ -91,8 +91,7 @@ body.dark-theme .calc-item .item-summary {
 }
 
 .separator-border {
-  /* Замість padding використовуємо margin для виходу за межі */
-  margin-left: -28px; 
+
   
   /* Додаємо ширину, щоб компенсувати зсув вліво */
   width: calc(100% + 30px);
@@ -157,7 +156,67 @@ body.dark-theme .separator-border {
         140px    /* борг */
         110px    /* статус */
         215px    /* кнопки */
-        63px;    /* швидке */
+        70px;    /* швидке */
     align-items:center;
-    width: calc(100% - 20px);
+    width: calc(100%);
+}
+
+@media (max-width: 1360px) {
+  .order-grid{
+    display:grid;
+    grid-template-columns:
+        30px     /* іконка */
+        133px    /* номер */
+        70px     /* конструкції */
+        70px     /* файли */
+        140px    /* сума */
+        140px    /* борг */
+        90px    /* статус */
+        215px    /* кнопки */
+        65px;    /* швидке */
+    align-items:center;
+    width: calc(100%);
+}
+}
+
+@media (max-width: 1315px) {
+  .order-grid{
+    display:grid;
+    grid-template-columns:
+        30px     /* іконка */
+        133px    /* номер */
+        70px     /* конструкції */
+        70px     /* файли */
+        133px    /* сума */
+        133px    /* борг */
+        90px    /* статус */
+        215px    /* кнопки */
+        30px;    /* швидке */
+    align-items:center;
+    width: calc(100%);
+}
+}
+
+@media (max-width: 1260px) {
+.order-grid{
+    display:grid;
+    grid-template-columns:
+        30px     /* іконка */
+        133px    /* номер */
+        70px     /* конструкції */
+        75px     /* файли */
+        140px    /* сума */
+        140px    /* борг */
+        100px    /* статус */
+        215px    /* кнопки */
+        65px;    /* швидке */
+    align-items:center;
+    width: calc(100%);
+}
+}
+
+@media (max-width: 1315px) and (min-width: 1260px) {
+  .fast-order-text {
+    display: none;
+  }
 }
