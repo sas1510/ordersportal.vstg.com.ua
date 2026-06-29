@@ -55,7 +55,7 @@ const ConfirmModal = ({
       case "danger":
         return <FaExclamationTriangle size={40} />;
       case "success":
-        return <FaCheck size={40} />;
+        return <FaCheck size={30} />;
       case "info":
         return <FaInfoCircle size={40} />; // Змінив іконку для info
       case "warning":

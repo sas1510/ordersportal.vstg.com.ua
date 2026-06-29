@@ -61,7 +61,7 @@ body.dark-theme .calc-item .item-summary {
 
 .no-wrap .dealer-wrap {
   display: inline-block;
-  max-width: 100px;
+  max-width: 90px;
   white-space: normal !important;
   /* Розумне перенесення: пріоритет на пробіли */
   overflow-wrap: break-word;

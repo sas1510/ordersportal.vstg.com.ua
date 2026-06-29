@@ -41,6 +41,7 @@ import ProductionStatisticsPage from "./pages/ProductionStatisticsPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotificationPage from "./pages/NotificationPage";
 import ManagerQrDropdown from "./pages/ManagerQrDropdown";
+import SupportChatPage from "./pages/SupportChat"
 
 export const adminRoutes = [
   { path: "home", element: <HomePage /> },
@@ -96,6 +97,7 @@ export const dealerRoutes = [
 
   { path: "complaints", element: <ReclamationPortal /> },
   { path: "additional-orders", element: <AdditionalOrdersPage /> },
+  { path: "support", element: <SupportChatPage /> },
 
   // { path: "create-bill", element: <CreateCustomerBillPage /> },
 

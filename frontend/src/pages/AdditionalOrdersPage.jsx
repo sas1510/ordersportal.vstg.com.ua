@@ -605,7 +605,7 @@ const AdditionalOrders = () => {
        
             {isSidebarOpen && (
                   <div 
-                  className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                  className="fixed inset-0 !z-[10001] min-[1260px]:hidden transition-opacity" 
                   style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
                   onClick={() => setIsSidebarOpen(false)}
                 />

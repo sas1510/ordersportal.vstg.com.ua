@@ -15,6 +15,7 @@ import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes } from "./routesConfig";
 import { useCacheBuster } from "./hooks/useCacheBuster";
+import SupportChatWidget from "./components/SupportChatWidget";
 
 const routeTitles = {
   "/login": "Вхід — Портал замовлень",
@@ -180,7 +181,8 @@ function AppRoutes() {
   //   routes = managerRoutes;
   // }
 
-  return (
+return (
+  <>
     <Routes>
       {role ? (
         <Route path="/" element={<LayoutComponent />}>
@@ -190,14 +192,16 @@ function AppRoutes() {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       ) : (
-        // Якщо ролі немає і це не публічний шлях (перевірка вище)
         <Route
           path="*"
           element={<Navigate to="/login" state={{ from: location }} replace />}
         />
       )}
     </Routes>
-  );
+
+    {role && <SupportChatWidget />}
+  </>
+);
 }
 
 export default AppRoutes;

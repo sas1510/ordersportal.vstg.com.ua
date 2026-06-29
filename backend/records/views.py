@@ -4370,52 +4370,40 @@ def get_file_extension(filename):
 
     return ext.replace(".", "").lower()
 
-
 @api_view(["POST"])
 def send_support_notification_to_telegram(request):
     contractor_id = request.data.get("contractorId")
-    text = request.data.get("text") or "Дилер відкрив чат підтримки"
+    text = request.data.get("text") or "Повідомлення від дилера"
     client_name = request.data.get("clientName") or ""
-    contact_id = request.data.get("contactId")
 
     file_obj = request.FILES.get("file")
     message_type = request.data.get("messageType") or detect_message_type(file_obj)
 
     if not contractor_id:
-        return Response({
-            "success": False,
-            "error": "contractorId is required"
-        }, status=400)
+        return Response({"success": False, "error": "contractorId is required"}, status=400)
+
+    try:
+        contractor_bin = guid_to_1c_bin(contractor_id)
+    except Exception as e:
+        return Response({"success": False, "error": f"Invalid contractorId: {e}"}, status=400)
 
     manager_guid = get_manager_by_contractor(contractor_id)
 
     if not manager_guid:
-        return Response({
-            "success": False,
-            "error": "Не знайдено менеджера для контрагента"
-        }, status=404)
+        return Response({"success": False, "error": "Не знайдено менеджера для контрагента"}, status=404)
 
     telegram_id = get_telegram_id_by_manager(manager_guid)
 
     if not telegram_id:
-        return Response({
-            "success": False,
-            "error": "Не знайдено Telegram ID менеджера"
-        }, status=404)
+        return Response({"success": False, "error": "Не знайдено Telegram ID менеджера"}, status=404)
 
-    try:
-        contractor_bin = guid_to_1c_bin(contractor_id)
-    except Exception:
-        contractor_bin = None
-
-    # 1. ЗБЕРІГАЄМО ПОВІДОМЛЕННЯ В БД
     chat_id = f"support_{contractor_id}"
 
     message = ChatMessage.objects.create(
         chat_id=chat_id,
         text=text,
-        author=contractor_bin,
-        recipient=manager_guid,
+        author=contractor_bin,      # автор — дилер/контрагент
+        recipient=manager_guid,     # отримувач — менеджер
         is_read=False,
         is_sent_vtg=False,
         is_notification=False,
@@ -4426,7 +4414,6 @@ def send_support_notification_to_telegram(request):
 
     attachment = None
 
-    # 2. ЗБЕРІГАЄМО ФАЙЛ У БД
     if file_obj:
         file_bytes = file_obj.read()
         file_obj.seek(0)
@@ -4450,16 +4437,9 @@ def send_support_notification_to_telegram(request):
 Клієнт:
 <code>{client_name}</code>
 
-ContractorId:
-<code>{contractor_id}</code>
-
-ChatId:
-<code>{chat_id}</code>
-
-Щоб відповісти дилеру — натисніть Reply на це повідомлення.
+Щоб відповісти дилеру — натисніть Відповісти на це повідомлення.
 """
 
-    # 3. ВІДПРАВЛЯЄМО В TELEGRAM
     if file_obj:
         file_obj.seek(0)
         tg_response = send_telegram_file(
@@ -4473,18 +4453,18 @@ ChatId:
             text=tg_text
         )
 
+    telegram_chat_id = int(telegram_id)
+    telegram_message_id = int(tg_response["result"]["message_id"])
+
     ChatTelegramMap.objects.create(
         MessageId=message,
         ChatId=chat_id,
-        TelegramChatId=telegram_id,
-        TelegramMessageId=tg_response["result"]["message_id"],
+        TelegramChatId=telegram_chat_id,
+        TelegramMessageId=telegram_message_id,
         TelegramReplyToMessageId=None,
         Direction="PortalToTelegram",
     )
 
-    telegram_message_id = tg_response["result"]["message_id"]
-
-    # 4. ОНОВЛЮЄМО ПОВІДОМЛЕННЯ
     message.is_sent_vtg = True
     message.save(update_fields=["is_sent_vtg"])
 
@@ -4493,9 +4473,11 @@ ChatId:
         "chatId": chat_id,
         "messageId": message.id,
         "attachmentId": attachment.Id if attachment else None,
-        "telegramId": telegram_id,
+        "telegramId": telegram_chat_id,
         "telegramMessageId": telegram_message_id,
     })
+
+
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -4517,31 +4499,33 @@ from .services.telegram_service import download_telegram_file
 
 SUPPORT_TRANSACTION_TYPE_ID = 4
 
-
 @csrf_exempt
 def telegram_webhook(request):
-    # якщо викликаєш з n8n через X-API-KEY
     api_key = request.headers.get("X-API-KEY")
+
     if getattr(settings, "INTERNAL_API_KEY", None):
         if api_key != settings.INTERNAL_API_KEY:
             return JsonResponse({"error": "Unauthorized"}, status=401)
 
-    data = json.loads(request.body.decode("utf-8"))
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except Exception:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
 
     msg = data.get("message")
     if not msg:
         return JsonResponse({"ok": True})
 
-    telegram_chat_id = msg["chat"]["id"]
-    telegram_message_id = msg["message_id"]
+    telegram_chat_id = int(msg["chat"]["id"])
+    telegram_message_id = int(msg["message_id"])
 
     reply = msg.get("reply_to_message")
     if not reply:
-        return JsonResponse({"ok": True})
+        return JsonResponse({"ok": True, "ignored": "not a reply"})
 
-    reply_to_message_id = reply["message_id"]
+    reply_to_message_id = int(reply["message_id"])
 
-    tg_map = ChatTelegramMap.objects.filter(
+    tg_map = ChatTelegramMap.objects.select_related("MessageId").filter(
         TelegramChatId=telegram_chat_id,
         TelegramMessageId=reply_to_message_id
     ).first()
@@ -4552,13 +4536,15 @@ def telegram_webhook(request):
             "ignored": "reply source message not found"
         })
 
+    original_message = tg_map.MessageId
+
     text = msg.get("text") or msg.get("caption") or ""
 
     manager_message = ChatMessage.objects.create(
         chat_id=tg_map.ChatId,
         text=text,
-        author=None,
-        recipient=None,
+        author=original_message.recipient,     # автор — менеджер
+        recipient=original_message.author,     # отримувач — дилер/контрагент
         is_read=False,
         is_sent_vtg=True,
         is_notification=False,
@@ -4601,8 +4587,8 @@ def telegram_webhook(request):
         "ok": True,
         "messageId": manager_message.id,
         "attachmentId": attachment.Id if attachment else None,
+        "chatId": tg_map.ChatId,
     })
-
 
 import os
 import mimetypes
@@ -4690,3 +4676,122 @@ def extract_telegram_attachment(msg):
         }
 
     return None
+
+
+
+
+from django.http import FileResponse, Http404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from io import BytesIO
+
+from .models import ChatMessage, ChatMessageAttachment
+
+
+SUPPORT_TRANSACTION_TYPE_ID = 4
+
+
+def serialize_chat_message(message):
+    attachments = []
+
+    for a in message.attachments.all():
+        attachments.append({
+            "id": a.Id,
+            "type": a.AttachmentType,  # image/video/voice/audio/file
+            "fileName": a.FileName,
+            "originalFileName": a.OriginalFileName,
+            "mimeType": a.MimeType,
+            "fileExtension": a.FileExtension,
+            "fileSize": a.FileSize,
+            "durationSeconds": a.DurationSeconds,
+            "url": f"/api/support/chat/attachment/{a.Id}/",
+        })
+
+    return {
+        "id": message.id,
+        "chatId": message.chat_id,
+        "timestamp": message.timestamp,
+        "text": message.text,
+        "isRead": message.is_read,
+        "eventType": message.event_type,
+        "direction": "outgoing" if message.event_type == "support" else "incoming",
+        "attachments": attachments,
+    }
+
+
+@api_view(["GET"])
+def get_support_chat_history(request):
+    contractor_id = request.GET.get("contractorId")
+
+    if not contractor_id:
+        return Response({
+            "success": False,
+            "error": "contractorId is required"
+        }, status=400)
+
+    chat_id = f"support_{contractor_id}"
+
+    messages = (
+        ChatMessage.objects
+        .filter(
+            chat_id=chat_id,
+            transaction_type_id=SUPPORT_TRANSACTION_TYPE_ID
+        )
+        .prefetch_related("attachments")
+        .order_by("timestamp")
+    )
+
+    return Response({
+        "success": True,
+        "chatId": chat_id,
+        "messages": [serialize_chat_message(m) for m in messages],
+    })
+
+
+@api_view(["GET"])
+def get_support_chat_attachment(request, attachment_id):
+    try:
+        attachment = ChatMessageAttachment.objects.get(Id=attachment_id)
+    except ChatMessageAttachment.DoesNotExist:
+        raise Http404("Attachment not found")
+
+    file_bytes = attachment.FileData
+
+    response = FileResponse(
+        BytesIO(file_bytes),
+        content_type=attachment.MimeType or "application/octet-stream"
+    )
+
+    response["Content-Disposition"] = (
+        f'inline; filename="{attachment.OriginalFileName or attachment.FileName or "file"}"'
+    )
+
+    return response
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def mark_support_chat_as_read(request):
+    contractor_id = request.data.get("contractorId") or request.GET.get("contractorId")
+
+    if not contractor_id:
+        return Response({
+            "success": False,
+            "error": "contractorId is required"
+        }, status=400)
+
+    chat_id = f"support_{contractor_id}"
+
+    updated_count = ChatMessage.objects.filter(
+        chat_id=chat_id,
+        transaction_type_id=SUPPORT_TRANSACTION_TYPE_ID,
+        is_read=False
+    ).exclude(
+        event_type="support"
+    ).update(is_read=True)
+
+    return Response({
+        "success": True,
+        "chatId": chat_id,
+        "updatedCount": updated_count,
+    })

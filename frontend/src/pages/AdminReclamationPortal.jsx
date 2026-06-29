@@ -22,6 +22,7 @@ const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
 
 
+
 function formatApiData(data) {
   if (!Array.isArray(data)) return [];
 
@@ -78,6 +79,10 @@ function formatApiData(data) {
 const AdminReclamationPortal = () => {
   const { register, cancelAll } = useCancelAllRequests();
 
+
+  const [reloading, setReloading] = useState(false);
+  const [error, setError] = useState(null);
+
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
 
   const [reclamationsData, setReclamationsData] = useState([]);
@@ -107,6 +112,7 @@ const AdminReclamationPortal = () => {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1260;
   const isMobilePagination = windowWidth < 1150;
+  const [dealerChanging, setDealerChanging] = useState(false);
 
   
   // const location = useLocation();
@@ -129,7 +135,7 @@ const AdminReclamationPortal = () => {
       const filterIcon = "/assets/icons/FiltersIcon.png";
 
   const searchIcon = "/assets/icons/SearchIcon.png";
-      const closeIcon = "/assets/icons/CloseButton.png";
+  const closeIcon = "/assets/icons/CloseButton.png";
 
   const { theme } = useTheme();
 
@@ -230,9 +236,10 @@ const AdminReclamationPortal = () => {
           setFilteredItems([]);
         }
       } finally {
-        setLoading(false);
-        setVisibleItemsCount(ITEMS_PER_LOAD);
-      }
+          setLoading(false);
+          setDealerChanging(false);
+          setVisibleItemsCount(ITEMS_PER_LOAD);
+        }
     };
 
     loadData();
@@ -330,11 +337,13 @@ const AdminReclamationPortal = () => {
   const showLoadMoreButton = sortedItems.length > visibleItemsCount;
 
 
-  if (loading) {
+  if (loading || reloading || dealerChanging) {
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
-        <div className="loading-text">{t('reclamation.common.loading_data')}</div>
+        <div className="loading-text">
+          {t("reclamation.common.loading_data")}
+        </div>
       </div>
     );
   }
@@ -546,14 +555,25 @@ const AdminReclamationPortal = () => {
             <>
             <div className="dealer-select-wrapper text-[#44403E]">
               {/* <div className="delimiter1" /> */}
+                <DealerSelectWithAll
+                  value={dealerGuid}
+                  onChange={(val) => {
+                    const nextValue = val?.target?.value ?? val;
 
-              <DealerSelectWithAll
-                value={dealerGuid}
-                onChange={(val) => {
-                  setDealerGuid(val);
-                  if (isMobile) setIsSidebarOpen(false);
-                }}
-              />
+                    setDealerChanging(true);
+                    setLoading(true);
+                    setDealerGuid(nextValue);
+
+                    if (nextValue === ALL_DEALERS_VALUE) {
+                      setFilter((prev) => ({
+                        ...prev,
+                        month: prev.month || currentMonth,
+                      }));
+                    }
+
+                    if (isMobile) setIsSidebarOpen(false);
+                  }}
+                />
               </div>
             </>
             

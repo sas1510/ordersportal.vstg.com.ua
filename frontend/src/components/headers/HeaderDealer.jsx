@@ -601,6 +601,7 @@ import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderDealerProfile.css";
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from "./LanguageSwitcher";
+import { createPortal } from "react-dom";
 import { 
   Ticket, 
   ShoppingBag, 
@@ -1017,140 +1018,195 @@ export default function HeaderDealer() {
               <img src={menuIcon} alt="Меню" className="w-[20px] h-[20px]" />
             </button>
 
-            {mobileMenuOpen && (
-              <div className="fixed inset-0 z-[2000]" style={{backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)'}}>
-                <div 
-                  ref={mobileMenuRef}
-                  className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
-                  style={{ backgroundColor: 'var(--header-bg)', color: 'var(--header-text)' }}
+            {mobileMenuOpen &&
+  createPortal(
+    <div
+      className="fixed inset-0"
+      style={{
+        zIndex: 10001,
+        backgroundColor:
+          "color-mix(in srgb, var(--header-profile-bg), transparent 60%)",
+      }}
+      onClick={() => setMobileMenuOpen(false)}
+    >
+      <div
+        ref={mobileMenuRef}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+        style={{
+          zIndex: 10002,
+          backgroundColor: "var(--header-bg)",
+          color: "var(--header-text)",
+        }}
+      >
+        <div className="flex items-center justify-end">
+          <button onClick={() => setMobileMenuOpen(false)} className="p-2">
+            <img
+              src={closeIcon}
+              alt="Закрити"
+              className="w-[30px] h-[30px] object-contain"
+            />
+          </button>
+        </div>
+
+        <div className="flex-grow overflow-y-auto w-full">
+          <nav className="flex flex-col w-full">
+            {NAV_LINKS.map((link) => {
+              const isActive = location.pathname === link.to;
+
+              return (
+                <div key={link.to} className="relative w-full group">
+                  <Link
+                    to={link.to}
+                    className={`flex items-center w-full py-3 px-[15%] text-xl font-bold transition-colors ${
+                      isActive
+                        ? "bg-[#6B98BF] text-[#FFFFFF]"
+                        : "text-[#44403E] hover:bg-gray-50"
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.title}
+                  </Link>
+
+                  <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />
+                </div>
+              );
+            })}
+
+            <div className="relative flex flex-col w-full">
+              <button
+                onClick={() => setShowFinanceMenu(!showFinanceMenu)}
+                className={`w-full py-3 px-[15%] flex items-center group ${
+                  location.pathname.includes("/finance")
+                    ? "text-[#6B98BF]"
+                    : "text-[#44403E]"
+                }`}
+              >
+                <span className="text-xl font-bold">{t("nav.finance")}</span>
+                <span
+                  className={`text-[12px] transition-transform ml-2 ${
+                    showFinanceMenu ? "rotate-180" : ""
+                  }`}
                 >
-                  <div className="flex items-center justify-end">
-                    <button onClick={() => setMobileMenuOpen(false)} className="p-2">
-                      <img src={closeIcon} alt="Закрити" className="w-[30px] h-[30px] object-contain" />
-                    </button>
-                  </div>
+                  ▼
+                </span>
+              </button>
 
-                  <div className="flex-grow overflow-y-auto w-full">
-                    <nav className="flex flex-col w-full">
-                      {NAV_LINKS.map((link) => {
-                        const isActive = location.pathname === link.to;
-                        return (
-                          <div key={link.to} className="relative w-full group">
-                            <Link
-                              to={link.to}
-                              className={`flex items-center w-full py-3 px-[15%] text-xl font-bold transition-colors ${
-                                isActive 
-                                  ? "bg-[#6B98BF] text-[#FFFFFF]" 
-                                  : "text-[#44403E] hover:bg-gray-50"
-                              }`}
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              {link.title}
-                            </Link>
-                            <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />
-                          </div>
-                        );
-                      })}
+              {showFinanceMenu && (
+                <div className="bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
+                  {FINANCE_SUBMENU.map((sub) => {
+                    const isSubActive = location.pathname === sub.to;
 
-                      <div className="relative flex flex-col w-full">
-                        <button 
-                          onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-                          className={`w-full py-3 px-[15%] flex items-center group ${
-                            location.pathname.includes("/finance") ? "text-[#6B98BF]" : "text-[#44403E]"
-                          }`}
-                        >
-                          <span className="text-xl font-bold">{t('nav.finance')}</span>
-                          <span className={`text-[12px] transition-transform ml-2 ${showFinanceMenu ? 'rotate-180' : ''}`}>▼</span>
-                        </button>
-                        
-                        {showFinanceMenu && (
-                          <div className="bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
-                            {FINANCE_SUBMENU.map((sub) => {
-                              const isSubActive = location.pathname === sub.to;
-                              return (
-                                <Link
-                                  key={sub.to}
-                                  to={sub.to}
-                                  className={`flex py-2 px-[10%] text-[16px] font-semibold border-b border-[#44403E]/20 border-dotted last:border-0 ${
-                                    isSubActive ? "bg-[#B4D947]/20 text-[#234461]" : "text-[#44403E]"
-                                  }`}
-                                  onClick={() => setMobileMenuOpen(false)}
-                                >
-                                  {sub.title}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </nav>
-
-                    <div className="bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
-                      <div className="absolute top-0 left-[5%] right-[5%]" />
-
-                      <button 
-                        onClick={() => setProfileOpen(!profileOpen)}
-                        className="flex items-center px-[15%] gap-4 py-2 w-full hover:bg-gray-200/50 transition-colors"
+                    return (
+                      <Link
+                        key={sub.to}
+                        to={sub.to}
+                        className={`flex py-2 px-[10%] text-[16px] font-semibold border-b border-[#44403E]/20 border-dotted last:border-0 ${
+                          isSubActive
+                            ? "bg-[#B4D947]/20 text-[#234461]"
+                            : "text-[#44403E]"
+                        }`}
+                        onClick={() => setMobileMenuOpen(false)}
                       >
-                        <img className="object-contain mr-6" src={profileIcon} alt="profile" />
-                        <div className="flex items-center justify-between flex-grow min-w-0">
-                          <span className="text-[#234461] text-xl font-bold truncate">{fullName}</span>
-                          <img 
-                            className={`w-5 h-5 object-contain ml-2 transition-transform ${profileOpen ? 'rotate-180' : ''}`} 
-                            src={polygonIcon} 
-                            alt="polygon" 
-                          />
-                        </div>
-                      </button>
+                        {sub.title}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </nav>
 
-                      {profileOpen && (
-                        <div className="flex flex-col items-center w-full py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                          <div className="w-[75%] bg-white rounded-sm flex flex-col overflow-hidden">
-                            <Link
-                              to="/change-password"
-                              className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50 border-b border-dotted border-[#B4D947]"
-                              onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
-                            >
-                              {t('nav.change_password')}
-                            </Link>
-                            <Link
-                              to="/emergency-contacts"
-                              className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50"
-                              onClick={() => { setProfileOpen(false); setMobileMenuOpen(false); }}
-                            >
-                              {t('nav.settings_emergency_contacts')}
-                            </Link>
-                          </div>
-                        </div>
-                      )}
+          <div className="bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              className="flex items-center px-[15%] gap-4 py-2 w-full hover:bg-gray-200/50 transition-colors"
+            >
+              <img
+                className="object-contain mr-6"
+                src={profileIcon}
+                alt="profile"
+              />
 
-                      <div className="sidebar-divider mx-[5%] border-t border-dotted border-[#44403E]/50" />
+              <div className="flex items-center justify-between flex-grow min-w-0">
+                <span className="text-[#234461] text-xl font-bold truncate">
+                  {fullName}
+                </span>
 
-                      <div className="px-[15%] py-3">
-                        <LanguageSwitcher className="w-fit" />
-                      </div>
+                <img
+                  className={`w-5 h-5 object-contain ml-2 transition-transform ${
+                    profileOpen ? "rotate-180" : ""
+                  }`}
+                  src={polygonIcon}
+                  alt="polygon"
+                />
+              </div>
+            </button>
 
-                  
-                      <div className="flex items-center px-[15%] gap-4 py-3 pb-2 whitespace-nowrap">
-                        <img className="object-contain mr-4" src={moneyIcon} alt="money" />
-                        <span className="text-[#44403E] text-xl font-normal">{formattedBalance}</span>
-                      </div>
-                    </div>
-                  </div>
+            {profileOpen && (
+              <div className="flex flex-col items-center w-full py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="w-[75%] bg-white rounded-sm flex flex-col overflow-hidden">
+                  <Link
+                    to="/change-password"
+                    className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50 border-b border-dotted border-[#B4D947]"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    {t("nav.change_password")}
+                  </Link>
 
-                  <div className="relative bg-white shrink-0 py-6 w-full">
-                    <div className="absolute top-0 left-[5%] right-[5%] border-t border-dotted border-[#44403E]/50" />
-                    <button 
-                      onClick={() => { logout(); navigate("/home"); }}
-                      className="flex items-center justify-center gap-3 w-full"
-                    >
-                      <img className="w-7 h-6 mr-2" src={exitIcon} alt={t('nav.logout')} />
-                      <span className="text-[#44403E] text-xl font-bold">{t('nav.logout')}</span>
-                    </button>
-                  </div>
+                  <Link
+                    to="/emergency-contacts"
+                    className="px-6 py-2 text-[#44403E] text-base font-bold font-['Inter'] hover:bg-gray-50"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    {t("nav.settings_emergency_contacts")}
+                  </Link>
                 </div>
               </div>
             )}
+
+            <div className="sidebar-divider mx-[5%] border-t border-dotted border-[#44403E]/50" />
+
+            <div className="flex items-center px-[15%] gap-4 py-3 pb-2 whitespace-nowrap">
+              <img className="object-contain mr-4" src={moneyIcon} alt="money" />
+              <span className="text-[#44403E] text-xl font-normal">
+                {formattedBalance}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative bg-white shrink-0 py-6 w-full">
+          <div className="absolute top-0 left-[5%] right-[5%] border-t border-dotted border-[#44403E]/50" />
+
+          <button
+            onClick={() => {
+              logout();
+              navigate("/home");
+            }}
+            className="flex items-center justify-center gap-3 w-full"
+          >
+            <img
+              className="w-7 h-6 mr-2"
+              src={exitIcon}
+              alt={t("nav.logout")}
+            />
+
+            <span className="text-[#44403E] text-xl font-bold">
+              {t("nav.logout")}
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )}
           </div>
         )}
       </div>

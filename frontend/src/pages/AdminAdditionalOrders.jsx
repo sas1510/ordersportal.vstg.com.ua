@@ -22,11 +22,14 @@ const AdminAdditionalOrders = () => {
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [reloading, setReloading] = useState(false);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState({ status: "Всі", month: 0, name: "" });
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
   );
-  const [loading, setLoading] = useState(true);
+
   const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -432,7 +435,7 @@ const AdminAdditionalOrders = () => {
     sortedItems.length - displayLimit,
   );
 
-  if (loading)
+  if (loading || reloading)
     return (
       <div className="loading-spinner-wrapper">
         <div className="loading-spinner"></div>
@@ -608,7 +611,7 @@ const AdminAdditionalOrders = () => {
         
             {isSidebarOpen && (
                   <div 
-                  className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                  className="fixed inset-0 !z-[10001] min-[1260px]:hidden transition-opacity" 
                   style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
                   onClick={() => setIsSidebarOpen(false)}
                 />

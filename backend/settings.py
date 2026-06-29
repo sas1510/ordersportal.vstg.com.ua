@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG=False
+DEBUG=True
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -202,6 +202,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BOT_TOKEN = config('BOT_TOKEN', default='')
+TELEGRAM_BOT_TOKEN = config('BOT_TOKEN', default='')
 
 
 

@@ -123,7 +123,7 @@
     pointer-events: none; /* Щоб не клікалося, коли закрито */
     
     /* transition: all 0.3s ease-in-out; */
-    z-index: 10001;
+    z-index: 10002;
     
     /* Додаємо косметику, щоб воно виглядало як вікно */
     background: white;
@@ -151,7 +151,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
-    z-index: 10000;
+    z-index: 10001;
   }
 }
 

@@ -3251,7 +3251,7 @@ body.dark-theme
 
     background: var(--WS--DarkBlue) !important;
     color: #fff !important;
-    z-index: 10000 !important;
+    z-index: 10001 !important;
 
     display: flex !important;
     flex-direction: column !important;

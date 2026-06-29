@@ -163,7 +163,7 @@ export const AdditionalOrderItem = ({
             <div className="text-[16px] text-bold text-WS---DarkGrey border-bottom">
               № {additionalOrder.number}
             </div>
-            <div className="text-[13px] text-WS---DarkGrey">
+            <div className="text-[12px] text-WS---DarkGrey">
               {formatDateHumanShorter_full(additionalOrder.dateRaw, locale)}
             </div>
           </div>

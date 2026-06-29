@@ -6,7 +6,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 10001;
   animation: fadeIn 0.25s ease;
 }
 
@@ -19,7 +19,7 @@
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: scaleIn 0.25s ease;
-  max-height: 75vh;
+  max-height: 85vh;
 }
 
 /* ===== Header ===== */

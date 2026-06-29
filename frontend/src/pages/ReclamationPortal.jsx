@@ -108,6 +108,8 @@ const ReclamationPortal = () => {
     const [error, setError] = useState(null);
 
     const location = useLocation();
+    const [filterLoading, setFilterLoading] = useState(false);
+
     const yearIcon = "/assets/icons/YearIcon.png";
     const plusIcon = "/assets/icons/PlusIcon.png";
 
@@ -176,6 +178,10 @@ const ReclamationPortal = () => {
             }
         }
     }, [location.search, reclamationsData, selectedYear, navigate]); 
+
+
+
+    
 
 
     const reloadReclamations = useCallback(async () => {
@@ -522,7 +528,7 @@ const ReclamationPortal = () => {
 
                   {isSidebarOpen && (
                         <div 
-                        className="fixed inset-0 !z-[10000] min-[1260px]:hidden transition-opacity" 
+                        className="fixed inset-0 !z-[10001] min-[1260px]:hidden transition-opacity" 
                         style={{ backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)' }}
                         onClick={() => setIsSidebarOpen(false)}
                     />
