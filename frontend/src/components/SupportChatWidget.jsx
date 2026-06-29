@@ -107,7 +107,7 @@ const SupportChatWidget = () => {
   useEffect(() => {
   const interval = setInterval(
     loadHistory,
-    isOpen ? 3000 : 5 * 60 * 1000
+    isOpen ? 60000 : 5 * 60 * 1000
   );
 
   return () => clearInterval(interval);
