@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 import logo from "../../assets/icons/logo-vst.svg";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function HeaderWithoutAuth() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function HeaderWithoutAuth() {
 
 
         <div className="flex items-center gap-4 md:gap-6">
+          <LanguageSwitcher />
           
     
           <button

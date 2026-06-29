@@ -5,7 +5,6 @@ import { RoleContext } from "../context/RoleContext";
 import { useTheme } from "../hooks/useTheme";
 import "./LoginPage.css";
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from "../components/headers/LanguageSwitcher";
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../hooks/useNotification";
 
@@ -113,12 +112,9 @@ export default function LoginPage() {
         <div className="star s15"></div>
       </div>
 
-      {/* Основний контейнер */}
+        {/* Основний контейнер */}
       <div className="login-container-wrapper">
         <div className="login-card">
-          <div className="flex justify-end px-6 pt-6 md:px-8 md:pt-8">
-            <LanguageSwitcher />
-          </div>
           <div className="login-grid">
             {/* Ліва панель - інформаційна */}
             <div className="info-panel">
