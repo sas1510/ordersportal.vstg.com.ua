@@ -45,3 +45,6 @@ staticfiles/
 *.mov
 *.avi
 /src/assets/videos/
+
+.env.save
+.env.save.*
