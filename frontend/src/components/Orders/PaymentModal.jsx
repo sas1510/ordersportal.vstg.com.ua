@@ -610,8 +610,52 @@ export default function PaymentModal({
   const [loadError, setLoadError] = useState("");
   const { addNotification } = useNotification();
 
+  const normalizeCurrency = useCallback((value) => {
+    const raw = String(value || "").trim();
+    const normalized = raw.toLowerCase();
+
+    if (!raw) return "UAH";
+
+    if (
+      ["грн", "uah", "₴"].includes(normalized) ||
+      normalized.includes("hryv") ||
+      normalized.includes("грив")
+    ) {
+      return "UAH";
+    }
+
+    if (
+      ["eur", "€"].includes(normalized) ||
+      normalized.includes("euro") ||
+      normalized.includes("євро")
+    ) {
+      return "EUR";
+    }
+
+    if (
+      ["usd", "$"].includes(normalized) ||
+      normalized.includes("dollar") ||
+      normalized.includes("долар")
+    ) {
+      return "USD";
+    }
+
+    if (
+      ["pln", "zl", "zloty"].includes(normalized) ||
+      normalized.includes("zlot")
+    ) {
+      return "PLN";
+    }
+
+    return raw.toUpperCase();
+  }, []);
+
   const debt = useMemo(() => Number(order.DebtAmount || 0), [order]);
-  const orderCurrency = useMemo(() => order.CurrencyName || order.Currency || "грн", [order]);
+  const orderCurrency = useMemo(() => order.CurrencyName || order.Currency || t("common.currency_uah"), [order, t]);
+  const normalizedOrderCurrency = useMemo(
+    () => normalizeCurrency(orderCurrency),
+    [normalizeCurrency, orderCurrency],
+  );
 
   const getSelected = useCallback(
     () => contracts.find((c) => c.Dogovor_ID === selectedContract),
@@ -631,7 +675,7 @@ export default function PaymentModal({
       const allData = res.data || [];
       
       const filteredData = allData.filter(c => 
-        (c.CurrencyName || "грн") === orderCurrency
+        normalizeCurrency(c.CurrencyName || t("common.currency_uah")) === normalizedOrderCurrency
       );
       
       setContracts(filteredData);
@@ -659,7 +703,7 @@ export default function PaymentModal({
 
   useEffect(() => {
     loadContracts();
-  }, [orderCurrency]); 
+  }, [normalizedOrderCurrency, normalizeCurrency, orderCurrency, t]); 
 
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === "Escape" && !isSubmitting) onClose(); };
@@ -776,7 +820,7 @@ export default function PaymentModal({
                       to={CUSTOMER_BILLS_PATH} 
                       className="pay-topup-link "
                     >
-                      Створити рахунок на поповнення авансового договору
+                      {t("payment_modal.topup_invoice")}
                     </Link>
                   </div>
                 </div>

@@ -398,7 +398,6 @@ overflow-y: scroll;
 .portal-body .content-filter .filter li {
   cursor: pointer;
   padding: 12px 10px;
-  transition: all 0.5s ease;
   width: 100%;
   display: flex;         /* Додаємо, щоб align-items працював */
   align-items: center;
@@ -445,10 +444,8 @@ overflow-y: scroll;
 
 /* Коли наводимо на li, змінюємо стилі останнього span всередині нього */
 .portal-body .content-filter .filter li:hover span:last-child {
-  background-color: #fff !important; /* Фон стає білим */
-  color: var(--WS--DarkBlue) !important; /* Текст стає темно-синім */
-  /* Можна додати легку тінь, щоб білий бейдж краще виділявся на світлому ховер-фоні */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+  background-color: var(--WS--DarkBlue) !important;
+  color: #fff !important;
 }
 
 
@@ -461,10 +458,6 @@ overflow-y: scroll;
 
 }
 
-.portal-body .content-filter .filter li:hover span:last-child {
-  background-color:  var(--WS--DarkBlue) !important;
-  color:  #fff !important;
-}
 .portal-body .content-filter .filter li:last-child {
   /*border-right: 1px dotted var(--grey-border-color);*/
 }
@@ -503,10 +496,14 @@ overflow-y: scroll;
   /* color: #fff; */
 }
 
+.portal-body .content-filter .filter li.active:hover {
+  background-color: #fff;
+}
+
 /* Ховер для іконки (будь-якої: і активної, і звичайної) */
 .portal-body .content-filter .filter li:hover img {
-      filter: none;
-    opacity: .7;
+  filter: inherit;
+  opacity: inherit;
 }
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axiosInstance from "../../api/axios.js";
 import { useNotification } from "../../hooks/useNotification";
 import "./NewCalculationModal.css";
@@ -52,6 +52,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const { role } = useAuthGetRole();
   const isManager = ["manager", "region_manager", "admin"].includes(role);
+  const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
+    .toLowerCase()
+    .split("-")[0];
 
   const extractCoordinates = (addressObj) => {
     if (!addressObj) return null;
@@ -95,6 +98,34 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     return coords;
   };
 
+  const translateAddressesForLanguage = useCallback(
+    async (items = []) => {
+      if (resolvedLanguage === "uk") {
+        return items;
+      }
+
+      return Promise.all(
+        items.map(async (item) => {
+          try {
+            const response = await fetch(
+              `https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.AddressValue || "")}&langpair=uk|${resolvedLanguage}`,
+            );
+            const data = await response.json();
+            const translatedText = data?.responseData?.translatedText?.trim();
+
+            return {
+              ...item,
+              AddressValue: translatedText || item.AddressValue,
+            };
+          } catch {
+            return item;
+          }
+        }),
+      );
+    },
+    [resolvedLanguage],
+  );
+
   const loadAddresses = async (contractorGuid = null) => {
     setAddressesLoading(true);
     setAddresses([]);
@@ -113,9 +144,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           a.AddressKind.toLowerCase().includes("достав"),
       );
 
-      setAddresses(deliveryAddresses);
+      const translatedAddresses =
+        await translateAddressesForLanguage(deliveryAddresses);
 
-      const def = deliveryAddresses.find(
+      setAddresses(translatedAddresses);
+
+      const def = translatedAddresses.find(
         (a) =>
           a.IsDefault === "\u0001" || a.IsDefault === 1 || a.IsDefault === true,
       );
@@ -171,7 +205,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     } else {
       loadAddresses();
     }
-  }, [isOpen, dealerId]);
+  }, [isOpen, dealerId, isManager, resolvedLanguage]);
 
   const handleAddressSelect = (addr) => {
     setAddressGuid(addr.AddressKindGUID);
@@ -497,7 +531,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               <div className="new-calc-file-upload" style={{ marginTop: "15px" }}>
                 <label htmlFor="new-calc-photos" className="new-calc-upload-label" style={{ backgroundColor: "#76b448" }}>
                   <FaCamera className="text-white" size={20} />
-                  <span className="text-white">Додати зображення</span>
+                  <span className="text-white">{t("orders.newOrderModal.addImages")}</span>
                   <input
                     type="file"
                     id="new-calc-photos"

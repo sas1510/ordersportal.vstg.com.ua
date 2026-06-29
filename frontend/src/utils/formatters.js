@@ -1,4 +1,6 @@
 
+import i18n from "../hooks/i18n";
+
 export const numToUAMoneyFormat = (num) => {
   if (!num) return "0 грн";
   return parseFloat(num).toLocaleString("uk-UA", {
@@ -16,6 +18,11 @@ const resolveDateLocale = (lng = "uk") => {
   if (normalizedLng.startsWith("en")) return "en-GB";
 
   return "uk-UA";
+};
+
+const getCurrentLanguage = (lng) => {
+  if (lng) return lng;
+  return i18n.resolvedLanguage || i18n.language || "uk";
 };
 
 export const formatDate = (input) => {
@@ -43,13 +50,12 @@ export const formatDate = (input) => {
   }
 };
 
-export const formatDateHuman = (dateStr, lng = "uk") => {
+export const formatDateHuman = (dateStr, lng) => {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (isNaN(date)) return null;
 
-
-  const locale = resolveDateLocale(lng);
+  const locale = resolveDateLocale(getCurrentLanguage(lng));
 
   return date.toLocaleDateString(locale, {
     day: "2-digit",
@@ -58,13 +64,13 @@ export const formatDateHuman = (dateStr, lng = "uk") => {
   });
 };
 
-export const formatDateHumanShorter_full = (dateStr, lng = "uk-UA") => {
+export const formatDateHumanShorter_full = (dateStr, lng) => {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (isNaN(date)) return null;
 
   // Форматуємо відповідно до мови
-  return date.toLocaleString(resolveDateLocale(lng), {
+  return date.toLocaleString(resolveDateLocale(getCurrentLanguage(lng)), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -85,13 +91,12 @@ export const formatDateHuman_ln = (dateStr, locale) => {
   });
 };
 
-export const formatDateHumanShorter = (dateStr, lng = "uk-UA") => {
+export const formatDateHumanShorter = (dateStr, lng) => {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (isNaN(date)) return null;
 
-
-  return date.toLocaleDateString(lng, {
+  return date.toLocaleDateString(resolveDateLocale(getCurrentLanguage(lng)), {
     day: "2-digit",
     month: "short",
     year: "numeric",

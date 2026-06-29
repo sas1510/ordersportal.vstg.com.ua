@@ -4691,7 +4691,7 @@ from .models import ChatMessage, ChatMessageAttachment
 SUPPORT_TRANSACTION_TYPE_ID = 4
 
 
-def serialize_chat_message(message):
+def serialize_chat_message(message, target_language="uk"):
     attachments = []
 
     for a in message.attachments.all():
@@ -4707,11 +4707,25 @@ def serialize_chat_message(message):
             "url": f"/api/support/chat/attachment/{a.Id}/",
         })
 
+    original_text = message.text or ""
+    translated = translate_portal_message_for_view(
+        original_text,
+        target_language,
+        field_name="chat_message",
+        entity_type="chat_message",
+        entity_id=message.id,
+        source_locale_hint="uk",
+    )
+
     return {
         "id": message.id,
         "chatId": message.chat_id,
         "timestamp": message.timestamp,
-        "text": message.text,
+        "text": translated["message"],
+        "original_text": translated["original_message"],
+        "message_language": translated["message_language"],
+        "display_language": translated["display_language"],
+        "is_auto_translated": translated["is_auto_translated"],
         "isRead": message.is_read,
         "eventType": message.event_type,
         "direction": "outgoing" if message.event_type == "support" else "incoming",
@@ -4722,6 +4736,7 @@ def serialize_chat_message(message):
 @api_view(["GET"])
 def get_support_chat_history(request):
     contractor_id = request.GET.get("contractorId")
+    requested_language = get_requested_portal_language(request, fallback="uk")
 
     if not contractor_id:
         return Response({
@@ -4744,7 +4759,7 @@ def get_support_chat_history(request):
     return Response({
         "success": True,
         "chatId": chat_id,
-        "messages": [serialize_chat_message(m) for m in messages],
+        "messages": [serialize_chat_message(m, requested_language) for m in messages],
     })
 
 

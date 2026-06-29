@@ -12,6 +12,7 @@ import "./PaymentsPage.css";
 import { useNotification } from "../hooks/useNotification";
 import { AppIcon } from "../components/Icons/AppIcon";
 import PaymentsAnalyticsMobile from "./PaymentsAnalyticsMobile";
+import { useTranslation } from "react-i18next";
 
 // Хук для мобільної версії
 const useIsMobile = () => {
@@ -42,6 +43,7 @@ const useIsMobile_2 = () => {
 
 export default function PaymentsPage() {
   const { isDark } = useTheme();
+  const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
 
   const isMobileLarger = useIsMobile_2();
@@ -105,14 +107,14 @@ export default function PaymentsPage() {
   };
 
   const STATUS_FILTERS = [
-    { key: "all", label: "Усі замовлення", icon: allPayment, colorClass: "status-all" },
-    { key: "Очікуємо підтвердження", label: "Очікуємо підтвердження", icon: waitingForConfirmIcon, colorClass: "status-wait-confirm" },
-    { key: "Очікуємо оплату", label: "Очікуємо оплату", icon: waitingForPaymentIcon, colorClass: "status-wait-payment" },
-    { key: "Підтверджено", label: "Підтверджено", icon: confirmedIcon, colorClass: "status-confirmed" },
-    { key: "У виробництві", label: "У виробництві", icon: factoryIcon, colorClass: "status-production" },
-    { key: "Готовий", label: "Готовий", icon: finishedIcon, colorClass: "status-ready" },
-    { key: "Відвантажений", label: "Відвантажений", icon: deliveredIcon, colorClass: "status-shipped" },
-    { key: "Неліквід", label: "Неліквід", icon: nelicvid, colorClass: "status-closed" },
+    { key: "all", label: t("payments_page.status_filters.all"), icon: allPayment, colorClass: "status-all" },
+    { key: "Очікуємо підтвердження", label: t("payments_page.status_filters.waiting_confirmation"), icon: waitingForConfirmIcon, colorClass: "status-wait-confirm" },
+    { key: "Очікуємо оплату", label: t("payments_page.status_filters.waiting_payment"), icon: waitingForPaymentIcon, colorClass: "status-wait-payment" },
+    { key: "Підтверджено", label: t("payments_page.status_filters.confirmed"), icon: confirmedIcon, colorClass: "status-confirmed" },
+    { key: "У виробництві", label: t("payments_page.status_filters.production"), icon: factoryIcon, colorClass: "status-production" },
+    { key: "Готовий", label: t("payments_page.status_filters.ready"), icon: finishedIcon, colorClass: "status-ready" },
+    { key: "Відвантажений", label: t("payments_page.status_filters.shipped"), icon: deliveredIcon, colorClass: "status-shipped" },
+    { key: "Неліквід", label: t("payments_page.status_filters.non_liquid"), icon: nelicvid, colorClass: "status-closed" },
   ];
 
   const contractorGUID =
@@ -121,7 +123,9 @@ export default function PaymentsPage() {
 
   const formatCurrency = (value) => {
     if (value == null || isNaN(Number(value))) return "0,00";
-    return new Intl.NumberFormat("uk-UA", {
+    const locale =
+      i18n.language === "en" ? "en-US" : i18n.language === "de" ? "de-DE" : "uk-UA";
+    return new Intl.NumberFormat(locale, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(Number(value));
@@ -150,11 +154,11 @@ export default function PaymentsPage() {
       setDebtItems(resDebts.data.debts?.items || []);
       setDebtTotal(resDebts.data.debts?.total || null);
     } catch (_e) {
-      setError("Помилка завантаження фінансових даних");
+      setError(t("payments_page.errors.load_data"));
     } finally {
       setLoading(false);
     }
-  }, [contractorGUID]);
+  }, [contractorGUID, t]);
 
   useEffect(() => {
     loadData();
@@ -226,23 +230,23 @@ export default function PaymentsPage() {
     switch (type) {
       case "no_prepayment":
         filtered = debtItems.filter((o) => Number(o.BezPeredOplaty || 0) > 0);
-        title = "Замовлення без передоплати";
+        title = t("payments_page.analytics.no_prepayment_orders");
         break;
       case "critical":
         filtered = debtItems.filter((o) => Number(o.DebtMoreTen || 0) > 0);
-        title = "Замовлення з прострочкою > 10 днів";
+        title = t("payments_page.analytics.critical_orders");
         break;
       case "nedoavans":
         filtered = debtItems.filter((o) => Number(o.NedoAvans || 0) > 0);
-        title = "Недоавансовані замовлення";
+        title = t("payments_page.analytics.underfunded_orders");
         break;
       case "in_route":
         filtered = debtItems.filter((o) => Number(o.Debt || 0) > 0);
-        title = "Борг у маршрутах (в дорозі)";
+        title = t("payments_page.analytics.in_route_orders");
         break;
       case "money_way":
         filtered = debtItems.filter((o) => Number(o.Summa || 0) > 0);
-        title = "Гроші в дорозі";
+        title = t("payments_page.analytics.money_in_transit_orders");
         break;
       default:
         return;
@@ -252,6 +256,24 @@ export default function PaymentsPage() {
     setDetailTitle(title);
     setDetailModalOpen(true);
   };
+
+  const translateStatus = useCallback(
+    (status) => {
+      const statusMap = {
+        "Очікуємо оплату": t("order_status.waiting_payment"),
+        "Очікуємо підтвердження": t("order_status.waiting_confirmation"),
+        "Підтверджено": t("payments_page.status_filters.confirmed"),
+        "У виробництві": t("order_status.production"),
+        "Готовий": t("order_status.ready"),
+        "Відвантажений": t("order_status.shipped"),
+        "Неліквід": t("payments_page.status_filters.non_liquid"),
+        "Резервування": t("payments_page.statuses.reserved"),
+        "—": t("payments_page.common.no_data_short"),
+      };
+      return statusMap[status] || status;
+    },
+    [t],
+  );
 
   const handlePayFromDetails = (zakazNum) => {
     setSearch(String(zakazNum));
@@ -276,11 +298,11 @@ export default function PaymentsPage() {
         order_id: selectedOrder.OrderID_GUID,
         amount: Number(amount),
       });
-      addNotification("Оплату виконано!", "success");
+      addNotification(t("payments_page.notifications.payment_success"), "success");
       closeModal();
       loadData();
     } catch {
-      addNotification("Помилка при оплаті", "warning");
+      addNotification(t("payments_page.notifications.payment_error"), "warning");
     }
   };
 
@@ -290,29 +312,29 @@ export default function PaymentsPage() {
     <div className={`content-filter-payment column !pr-4 ${isMobileLarger ? (isSidebarOpen ? "open" : "closed") : ""}`}>
       {isMobileLarger && (
         <div className="sidebar-header-payment row ai-center jc-space-between">
-          <span>Фільтри</span>
+          <span>{t("payments_page.filters.title")}</span>
           <div onClick={() => setIsSidebarOpen(false)} >
            <AppIcon name="closeFiltersButton" className='w-[30px] h-[30px]' />
            </div>
           {/* <span className="icon icon-cross" onClick={() => setIsSidebarOpen(false)} /> */}
         </div>
       )}
-      <span className="payment-filter-headers-name uppercase">Пошук</span>
+      <span className="payment-filter-headers-name uppercase">{t("payments_page.filters.search")}</span>
       <div className="search-wrapper-payment">
         <input
           type="text"
           className="search-orders"
-          placeholder="номер замовлення"
+          placeholder={t("payments_page.filters.search_placeholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <img src={searchIcon} alt="" className="relative right-[-2%] top-[-60%] cursor-pointer text-[18px] text-[var(--text-color)] leading-none" />
+        <img src={searchIcon} alt={t("payments_page.filters.search")} className="relative right-[-2%] top-[-60%] cursor-pointer text-[18px] text-[var(--text-color)] leading-none" />
       </div>
 
       <div className="filters-scroll">
 
       <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[18px] min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] max-[1260px]:bg-transparent max-[1260px]:shadow-none max-[1260px]:py-0 max-[1260px]:w-full max-[1260px]:overflow-visible">
-        <div className="payment-type-headers-name !pl-3 !pb-2 uppercase">Статуси</div>
+        <div className="payment-type-headers-name !pl-3 !pb-2 uppercase">{t("payments_page.filters.statuses")}</div>
         <ul className="filter column align-center">
           {STATUS_FILTERS.map(({ key, label, icon }) => {
             const count = key === "all" ? statusSummary.all : statusSummary[key] || 0;
@@ -341,7 +363,7 @@ export default function PaymentsPage() {
       <div className="divider-bottom" />
 
       <div className="min-[1260px]:w-72 mt-3 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[18px] min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] max-[1260px]:bg-transparent max-[1260px]:shadow-none max-[1260px]:py-0 max-[1260px]:w-full max-[1260px]:overflow-visible">
-        <div className="payment-type-headers-name !pl-3 !pb-2 uppercase">Договори</div>
+        <div className="payment-type-headers-name !pl-3 !pb-2 uppercase">{t("payments_page.filters.contracts")}</div>
         <ul className="filter column align-center">
           <li
             className={`filter-item ${contractFilter === "all" ? "active" : ""}`}
@@ -355,7 +377,7 @@ export default function PaymentsPage() {
               alt=""
               className={`mr-3 w-[20px] h-[20px] object-contain transition-all duration-300 ${contractFilter === "all" ? "brightness-0 invert" : "opacity-70 brightness-0"}`}
             />
-            <span className="w-100">Усі договори</span>
+            <span className="w-100">{t("payments_page.filters.all_contracts")}</span>
             <span className={`status-badge ${contractFilter === "all" ? "badge-active" : orders.length === 0 ? "badge-zero" : "badge-normal"}`}>
               {orders.length}
             </span>
@@ -425,11 +447,11 @@ export default function PaymentsPage() {
                 </div>
                 )}
                 <div className="payment-type-headers-name uppercase !mt-0 !gap-0 !pt-0 leading-none">
-                  Фінанси
+                  {t("payments_page.title")}
                 </div>
               </div>
               <button className="pp-reload flex items-center gap-2 font-bold " onClick={loadData}>
-                <AppIcon name="reload" className='w-[18px] h-[18px]' /> Оновити дані
+                <AppIcon name="reload" className='w-[18px] h-[18px]' /> {t("payments_page.actions.refresh")}
               </button>
             </div>
 
@@ -447,26 +469,26 @@ export default function PaymentsPage() {
                 <div className="analytics-container">
                   <div className="analytics-row-top">
                     <div className="analytics-card !pl-0">
-                      <div className="card-title">Ліміт боргів</div>
+                      <div className="card-title">{t("payments_page.analytics.debt_limit")}</div>
                       <div className="card-value">
                         {debtTotal.CustomerLimit === null || debtTotal.CustomerLimit === 0
                           ? "—"
-                          : `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`}
+                          : `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || t("common.currency_uah")}`}
                       </div>
                       <div className="mobile-vert-divider" />
                     </div>
 
                     <div className="analytics-card">
-                      <div className="card-title">Переліміт боргів</div>
+                      <div className="card-title">{t("payments_page.analytics.overlimit")}</div>
                       <div className={`card-value ${Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit && debtTotal.CustomerLimit > 0 ? "text-danger" : ""}`}>
                         {debtTotal.CustomerLimit > 0 && Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
 
                     <div className="analytics-card">
-                      <div className="card-title">Використання ліміту</div>
+                      <div className="card-title">{t("payments_page.analytics.limit_usage")}</div>
                       <div className="card-value">
                         {debtTotal.CustomerLimit > 0
                           ? formatCurrency(Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0)))
@@ -479,10 +501,10 @@ export default function PaymentsPage() {
                       className={`analytics-card ${Number(debtTotal.BezPeredOplaty || 0) > 0 ? "pointer-link" : ""}`}
                       onClick={() => Number(debtTotal.BezPeredOplaty || 0) > 0 && showDebtDetails("no_prepayment")}
                     >
-                      <div className="card-title">Без передоплати</div>
+                      <div className="card-title">{t("payments_page.analytics.no_prepayment")}</div>
                       <div className="card-value">
                         {Number(debtTotal.BezPeredOplaty || 0) > 0
-                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
@@ -491,10 +513,10 @@ export default function PaymentsPage() {
                       className={`analytics-card !pr-0 ${Number(debtTotal.NedoAvans || 0) > 0 ? "pointer-link" : ""}`}
                       onClick={() => Number(debtTotal.NedoAvans || 0) > 0 && showDebtDetails("nedoavans")}
                     >
-                      <div className="card-title">Недоавансовані</div>
+                      <div className="card-title">{t("payments_page.analytics.underfunded")}</div>
                       <div className="card-value">
                         {Number(debtTotal.NedoAvans || 0) > 0
-                          ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
@@ -504,10 +526,10 @@ export default function PaymentsPage() {
 
                   <div className="analytics-row-bottom">
                     <div className="analytics-card !pl-0">
-                      <div className="card-title">Борг після реалізації</div>
+                      <div className="card-title">{t("payments_page.analytics.post_sale_debt")}</div>
                       <div className="card-value">
                         {Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > 0
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
@@ -516,10 +538,10 @@ export default function PaymentsPage() {
                       className={`analytics-card ${Number(debtTotal.Debt || 0) > 0 ? "pointer-link" : ""}`}
                       onClick={() => Number(debtTotal.Debt || 0) > 0 && showDebtDetails("in_route")}
                     >
-                      <div className="card-title">Борг після завершення маршрута</div>
+                      <div className="card-title">{t("payments_page.analytics.route_debt")}</div>
                       <div className="card-value">
                         {Number(debtTotal.Debt || 0) > 0
-                          ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
@@ -528,10 +550,10 @@ export default function PaymentsPage() {
                       className={`analytics-card ${Number(debtTotal.Summa || 0) > 0 ? "pointer-link" : ""}`}
                       onClick={() => Number(debtTotal.Summa || 0) > 0 && showDebtDetails("money_way")}
                     >
-                      <div className="card-title">Гроші в дорозі</div>
+                      <div className="card-title">{t("payments_page.analytics.money_in_transit")}</div>
                       <div className="card-value">
                         {Number(debtTotal.Summa || 0) > 0
-                          ? `${formatCurrency(debtTotal.Summa)} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(debtTotal.Summa)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
@@ -540,10 +562,10 @@ export default function PaymentsPage() {
                       className={`analytics-card !pr-0 ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "pointer-link" : ""}`}
                       onClick={() => Number(debtTotal.DebtMoreTen || 0) > 0 && showDebtDetails("critical")}
                     >
-                      <div className="card-title">Борг {">"} 10дн</div>
+                      <div className="card-title">{t("payments_page.analytics.debt_over_ten_days")}</div>
                       <div className={`card-value ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "text-danger" : ""}`}>
                         {Number(debtTotal.DebtMoreTen || 0) > 0
-                          ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || "грн"}`
+                          ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
@@ -553,11 +575,11 @@ export default function PaymentsPage() {
 
             {/* АВАНСИ */}
             <h2 className="pp-title" style={{ marginTop: 24 }}>
-              Ваші аванси на договорах
+              {t("payments_page.sections.advances")}
             </h2>
             <div className="pp-badges">
               {contracts.length === 0 ? (
-                <div className="pp-empty">Аванси відсутні</div>
+                <div className="pp-empty">{t("payments_page.empty.no_advances")}</div>
               ) : (
                 contracts.map((c, i) => (
                   <div key={i} className="pp-badge">
@@ -570,7 +592,7 @@ export default function PaymentsPage() {
 
             {/* СПИСОК ЗАМОВЛЕНЬ */}
             <h2 className="pp-title" style={{ marginTop: 24 }}>
-              Замовлення до оплати
+              {t("payments_page.sections.orders_to_pay")}
             </h2>
             {isMobile ? (
               <PaymentsMobileContent
@@ -578,20 +600,21 @@ export default function PaymentsPage() {
                 openPaymentModal={openPaymentModal}
                 formatCurrency={formatCurrency}
                 normalizeStatus={normalizeStatus}
+                translateStatus={translateStatus}
                 STATUS_FILTERS={STATUS_FILTERS}
                 inProcessingIcon={inProcessingIcon}
               />
             ) : (
               <div className="pp-orders-wrapper">
                 {filteredOrders.length === 0 ? (
-                  <div className="pp-empty">Немає замовлень за обраними фільтрами</div>
+                  <div className="pp-empty">{t("payments_page.empty.no_orders_filtered")}</div>
                 ) : (
                   filteredOrders.map((o, i) => (
                     <div className="pp-order-card" key={i}>
                       <div className="pp-section pp-order-meta">
                         <div className="pp-num">№ {o.OrderNumber}</div>
                         <div className="pp-date">
-                          {o.OrderDate ? formatDateHuman(o.OrderDate.slice(0, 10)) : "—"}
+                          {o.OrderDate ? formatDateHuman(o.OrderDate.slice(0, 10), i18n.language) : "—"}
                         </div>
                       </div>
 
@@ -605,41 +628,41 @@ export default function PaymentsPage() {
                           return (
                             <span className={`status-pill ${statusColor}`}>
                               <img src={statusIcon} alt="" className="brightness-0 invert" />
-                              {currentStatus}
+                              {translateStatus(currentStatus)}
                             </span>
                           );
                         })()}
                       </div>
 
                       <div className="pp-section pp-info-block">
-                        <div className="pp-label">Сума</div>
+                        <div className="pp-label">{t("payments_page.labels.amount")}</div>
                         <div className="pp-value-wrapper">
                           <AppIcon name="money" className="w-[20px] h-[18px]" />
                           <strong className="order-sum">
                             {formatCurrency(o.OrderSum)}
-                            <span className="pp-currency">{o.CurrencyName || "грн"}</span>
+                            <span className="pp-currency">{o.CurrencyName || t("common.currency_uah")}</span>
                           </strong>
                         </div>
                       </div>
 
                       <div className="pp-section pp-info-block">
-                        <div className="pp-label">Оплачено</div>
+                        <div className="pp-label">{t("payments_page.labels.paid")}</div>
                         <div className="pp-value-wrapper">
                           <AppIcon name="moneyGreen" className="w-[20px] h-[18px]" />
                           <strong className="pp-green">
                             {formatCurrency(o.PaidAmount)}
-                            <span className="pp-currency">{o.CurrencyName || "грн"}</span>
+                            <span className="pp-currency">{o.CurrencyName || t("common.currency_uah")}</span>
                           </strong>
                         </div>
                       </div>
 
                       <div className="pp-section pp-info-block">
-                        <div className="pp-label">Залишок</div>
+                        <div className="pp-label">{t("payments_page.labels.balance_due")}</div>
                         <div className="pp-value-wrapper">
                           <AppIcon name="moneyRed" className="w-[20px] h-[18px]" />
                           <strong className="pp-red">
                             {formatCurrency(o.DebtAmount)}
-                            <span className="pp-currency">{o.CurrencyName || "грн"}</span>
+                            <span className="pp-currency">{o.CurrencyName || t("common.currency_uah")}</span>
                           </strong>
                         </div>
                       </div>
@@ -649,7 +672,7 @@ export default function PaymentsPage() {
                           <span className="pp-pay-icon">
                             <AppIcon name="pay" className="w-[20px] h-[20px]" />
                           </span>
-                          Оплатити
+                          {t("payments_page.actions.pay")}
                         </button>
                       </div>
                     </div>

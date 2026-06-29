@@ -1,42 +1,71 @@
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import "./LanguageSwitcher.css";
 
-const LANGUAGES = [
-  { code: "uk", label: "UA" },
-  { code: "en", label: "EN" },
-  { code: "de", label: "DE" },
-];
-
-const LanguageSwitcher = ({ className = "" }) => {
+export default function LanguageSwitcher() {
   const { i18n } = useTranslation();
-  const currentLanguage = (i18n.resolvedLanguage || i18n.language || "uk").slice(0, 2);
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const current = (i18n.resolvedLanguage || i18n.language || "uk").slice(0, 2);
+
+  const languages = [
+    { code: "uk", label: "UA" },
+    { code: "en", label: "EN" },
+    { code: "de", label: "DE" },
+  ];
+
+  const currentLabel =
+    languages.find((l) => l.code === current)?.label || "UA";
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const changeLanguage = (code) => {
+    i18n.changeLanguage(code);
+    localStorage.setItem("portal_language", code);
+    setOpen(false);
+  };
 
   return (
-    <div
-      className={`inline-flex items-center rounded-lg border border-zinc-300 bg-white/90 p-1 shadow-sm ${className}`.trim()}
-      role="group"
-      aria-label="Language switcher"
-    >
-      {LANGUAGES.map(({ code, label }) => {
-        const isActive = currentLanguage === code;
+    <div className="language-dropdown" ref={ref}>
+      <button
+        type="button"
+        className="language-dropdown-btn"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        {currentLabel}
+        <span className={open ? "language-arrow open" : "language-arrow"}>
+          ▾
+        </span>
+      </button>
 
-        return (
-          <button
-            key={code}
-            type="button"
-            onClick={() => i18n.changeLanguage(code)}
-            className={`rounded-md px-2 py-1 text-xs font-semibold uppercase transition-colors ${
-              isActive
-                ? "bg-[#6B98BF] text-white"
-                : "text-zinc-700 hover:bg-zinc-100"
-            }`}
-            aria-pressed={isActive}
-          >
-            {label}
-          </button>
-        );
-      })}
+      {open && (
+        <div className="language-dropdown-menu">
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              type="button"
+              className={
+                lang.code === current
+                  ? "language-dropdown-item active"
+                  : "language-dropdown-item"
+              }
+              onClick={() => changeLanguage(lang.code)}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default LanguageSwitcher;
+}

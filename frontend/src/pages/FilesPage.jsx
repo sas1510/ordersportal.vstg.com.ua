@@ -36,8 +36,8 @@ const FilesPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   const [editingFile, setEditingFile] = useState(null);
-  const [editTitles, setEditTitles] = useState({ ua: "", en: "", it: "" });
-  const [editDescriptions, setEditDescriptions] = useState({ ua: "", en: "", it: "" });
+  const [editTitles, setEditTitles] = useState({ ua: "", en: "", it: "", de: "" });
+  const [editDescriptions, setEditDescriptions] = useState({ ua: "", en: "", it: "", de: "" });
   const [editNewFile, setEditNewFile] = useState(null);
   const [loadingEdit, setLoadingEdit] = useState(false);
 
@@ -61,8 +61,8 @@ const FilesPage = () => {
   const fileIcon = "/assets/icons/FileIconFilePage.png";
 
 
-  const [titles, setTitles] = useState({ ua: "", en: "", it: "" });
-  const [descriptions, setDescriptions] = useState({ ua: "", en: "", it: "" });
+  const [titles, setTitles] = useState({ ua: "", en: "", it: "", de: "" });
+  const [descriptions, setDescriptions] = useState({ ua: "", en: "", it: "", de: "" });
 
 
   // Визначаємо, чи активна темна тема
@@ -85,7 +85,7 @@ const FilesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [addNotification]);
+  }, [addNotification, t]);
 
 
   useEffect(() => {
@@ -112,7 +112,7 @@ const FilesPage = () => {
   const handleAddFile = async (e) => {
     e.preventDefault();
     if (!newFile) return addNotification(t('files.choose_file'), "error");
-    if (!titles.ua) return addNotification("Українська назва обов'язкова", "warning");
+    if (!titles.ua) return addNotification(t("files.errors.required_ua_title"), "warning");
 
     setLoadingAdd(true);
     const reader = new FileReader();
@@ -125,9 +125,11 @@ const FilesPage = () => {
         title_ua: titles.ua,
         title_en: titles.en,
         title_it: titles.it,
+        title_de: titles.de,
         description_ua: descriptions.ua,
         description_en: descriptions.en,
         description_it: descriptions.it,
+        description_de: descriptions.de,
         resource_type: FILE_RESOURCE_TYPE,
         file_base64: base64String,
         file_extension: extension,
@@ -136,8 +138,8 @@ const FilesPage = () => {
       try {
         await axiosInstance.post(API_URL, payload);
         setAddModalOpen(false);
-        setTitles({ ua: "", en: "", it: "" });
-        setDescriptions({ ua: "", en: "", it: "" });
+        setTitles({ ua: "", en: "", it: "", de: "" });
+        setDescriptions({ ua: "", en: "", it: "", de: "" });
         setNewFile(null);
         fetchFiles();
         addNotification(t('files.feedback.success'), "success");
@@ -156,12 +158,14 @@ const FilesPage = () => {
     setEditTitles({
       ua: file.titles?.ua || "",
       en: file.titles?.en || "",
-      it: file.titles?.it || ""
+      it: file.titles?.it || "",
+      de: file.titles?.de || "",
     });
     setEditDescriptions({
       ua: file.descriptions?.ua || "",
       en: file.descriptions?.en || "",
-      it: file.descriptions?.it || ""
+      it: file.descriptions?.it || "",
+      de: file.descriptions?.de || "",
     });
     setEditNewFile(null);
     setEditModalOpen(true);
@@ -169,23 +173,25 @@ const FilesPage = () => {
 
   const handleEditConfirm = async (e) => {
     e.preventDefault();
-    if (!editTitles.ua) return addNotification("Українська назва обов'язкова", "warning");
+    if (!editTitles.ua) return addNotification(t("files.errors.required_ua_title"), "warning");
 
     setLoadingEdit(true);
     const payload = {
       title_ua: editTitles.ua,
       title_en: editTitles.en,
       title_it: editTitles.it,
+      title_de: editTitles.de,
       description_ua: editDescriptions.ua,
       description_en: editDescriptions.en,
       description_it: editDescriptions.it,
+      description_de: editDescriptions.de,
       resource_type: FILE_RESOURCE_TYPE,
     };
 
     const sendRequest = async (finalPayload) => {
       try {
         await axiosInstance.put(`${API_URL}${editingFile.id}/`, finalPayload);
-        addNotification(t('files.feedback.success'), "success");
+        addNotification(t('files.feedback.edit'), "success");
         fetchFiles();
         setEditModalOpen(false);
       } catch (error) {
@@ -235,16 +241,16 @@ const FilesPage = () => {
     try {
       await axiosInstance.delete(`${API_URL}${selectedFile.id}/`);
       fetchFiles();
-      addNotification(`Файл видалено`, "success");
+      addNotification(t("files.feedback.deleted"), "success");
     } catch (error) {
-      addNotification("Помилка видалення", "error");
+      addNotification(t("files.errors.delete"), "error");
     } finally {
       setDeleteModalOpen(false);
     }
   };
 
   const handleDownload = (file) => {
-    if (!file.file_base64) return addNotification("No file data", "error");
+    if (!file.file_base64) return addNotification(t("files.errors.no_file_data"), "error");
     const byteCharacters = atob(file.file_base64);
     const byteNumbers = Array.from(byteCharacters).map((c) => c.charCodeAt(0));
     const blob = new Blob([new Uint8Array(byteNumbers)]);
@@ -258,9 +264,10 @@ const FilesPage = () => {
   const formatDate = (isoString, lng = "uk-UA") => {
 
 
-    if (!isoString) return "Невідомо";
+    if (!isoString) return t("files.unknownDate");
     const date = new Date(isoString);
-    return date.toLocaleDateString(lng === "en" ? "en-US" : "uk-UA", {
+    const locale = lng === "en" ? "en-US" : lng === "de" ? "de-DE" : "uk-UA";
+    return date.toLocaleDateString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -303,7 +310,7 @@ const FilesPage = () => {
   <section className="relative w-full min-h-[300px] flex items-center justify-center overflow-hidden ">
 
   <div className="absolute inset-0 z-0">
-    <img src={backgroundImage} className="w-full h-full object-cover" alt="Background" />
+    <img src={backgroundImage} className="w-full h-full object-cover" alt={t("files.hero_bg_alt")} />
     <div className="absolute inset-0 bg-black/50" />
   </div>
 
@@ -344,7 +351,7 @@ const FilesPage = () => {
       />
       <img 
         src={searchIcon} 
-        alt="Search" 
+        alt={t("files.search_alt")} 
         className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
       />
     </div>
@@ -453,7 +460,7 @@ const FilesPage = () => {
               color: isDarkTheme ? darkStyles.lightGreyColor : undefined,
             }}
           >
-            {searchQuery ? "Файлів не знайдено" : "Файлів ще немає"}
+            {searchQuery ? t("files.noResults") : t("files.empty")}
           </div>
         </div>
       ) : (
@@ -557,24 +564,24 @@ const FilesPage = () => {
             </div>
             <form className="file-form p-4 column gap-4" onSubmit={handleAddFile}>
               <div className="column gap-2">
-                <label>Назва (UA) *</label>
+                <label>{t("files.labels.title_ua")}</label>
                 <input type="text" value={titles.ua} onChange={e => setTitles({...titles, ua: e.target.value})} required className="file-input" />
               </div>
               <div className="column gap-2">
-                <label>Title (EN)</label>
+                <label>{t("files.labels.title_en")}</label>
                 <input type="text" value={titles.en} onChange={e => setTitles({...titles, en: e.target.value})} className="file-input" />
               </div>
-              {/* <div className="column gap-2">
-                <label>Titolo (IT)</label>
-                <input type="text" value={titles.it} onChange={e => setTitles({...titles, it: e.target.value})} className="file-input" />
-              </div> */}
+              <div className="column gap-2">
+                <label>{t("files.labels.title_de")}</label>
+                <input type="text" value={titles.de} onChange={e => setTitles({...titles, de: e.target.value})} className="file-input" />
+              </div>
               <div className="column gap-2">
                 <label>{t('files.choose_file')}</label>
                 <input type="file" onChange={e => setNewFile(e.target.files[0])} className="file-input" />
               </div>
               <div className="file-modal-footer">
                 <button type="button" onClick={() => setAddModalOpen(false)}>{t('files.buttons.cancel')}</button>
-                <button type="submit" disabled={loadingAdd}>{loadingAdd ? "..." : t('files.buttons.upload')}</button>
+                <button type="submit" disabled={loadingAdd}>{loadingAdd ? t("files.buttons.uploading") : t('files.buttons.upload')}</button>
               </div>
             </form>
           </div>
@@ -589,13 +596,13 @@ const FilesPage = () => {
               <button onClick={() => setEditModalOpen(false)}>✕</button>
             </div>
             <form className="file-form p-4 column gap-4" onSubmit={handleEditConfirm}>
-              <div className="column gap-1"><label>Назва (UA) *</label><input type="text" value={editTitles.ua} onChange={e => setEditTitles({...editTitles, ua: e.target.value})} className="file-input" required /></div>
-              <div className="column gap-1"><label>Title (EN)</label><input type="text" value={editTitles.en} onChange={e => setEditTitles({...editTitles, en: e.target.value})} className="file-input" /></div>
-              {/* <div className="column gap-1"><label>Titolo (IT)</label><input type="text" value={editTitles.it} onChange={e => setEditTitles({...editTitles, it: e.target.value})} className="file-input" /></div> */}
-              <div className="column gap-1"><label>Змінити файл (необов'язково)</label><input type="file" onChange={e => setEditNewFile(e.target.files[0])} className="file-input" /></div>
+              <div className="column gap-1"><label>{t("files.labels.title_ua")}</label><input type="text" value={editTitles.ua} onChange={e => setEditTitles({...editTitles, ua: e.target.value})} className="file-input" required /></div>
+              <div className="column gap-1"><label>{t("files.labels.title_en")}</label><input type="text" value={editTitles.en} onChange={e => setEditTitles({...editTitles, en: e.target.value})} className="file-input" /></div>
+              <div className="column gap-1"><label>{t("files.labels.title_de")}</label><input type="text" value={editTitles.de} onChange={e => setEditTitles({...editTitles, de: e.target.value})} className="file-input" /></div>
+              <div className="column gap-1"><label>{t("files.labels.change_file_optional")}</label><input type="file" onChange={e => setEditNewFile(e.target.files[0])} className="file-input" /></div>
               <div className="file-modal-footer">
                 <button type="button" onClick={() => setEditModalOpen(false)}>{t('files.buttons.cancel')}</button>
-                <button type="submit" disabled={loadingEdit}>{loadingEdit ? "..." : t('files.buttons.save')}</button>
+                <button type="submit" disabled={loadingEdit}>{loadingEdit ? t("files.buttons.saving") : t('files.buttons.save')}</button>
               </div>
             </form>
           </div>

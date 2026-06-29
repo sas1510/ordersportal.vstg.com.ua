@@ -1,6 +1,7 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { RoleContext } from "./context/RoleContext";
+import { useTranslation } from "react-i18next";
 
 import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -17,43 +18,45 @@ import { adminRoutes, dealerRoutes } from "./routesConfig";
 import { useCacheBuster } from "./hooks/useCacheBuster";
 import SupportChatWidget from "./components/SupportChatWidget";
 
-const routeTitles = {
-  "/login": "Вхід — Портал замовлень",
-  home: "Портал замовлень",
-  "/dashboard": "Головна",
-  "/users": "Користувачі",
-  "/files": "Файли",
-  "/files/add": "Додати файли",
-  "/files/edit/:id": "Редагування файлів",
-  "/videos": "Відео",
-  "/addUser": "Додати користувача",
-  "/organizations": "Організації",
-  "/regions": "Регіони",
-  "/contacts": "Контакти SOS",
-  "/orders": "Замовлення",
-  "/admin-order": "Замовлення",
-  "/complaints": "Рекламації",
-  "/admin-reclamation": "Рекламації",
-  "/additional-orders": "Список дозамовлень",
-  "/admin-additional-order": "Список дозамовлень",
-  "/orders-fin": "Фінанси",
-  "/change-password": "Зміна паролю",
-  "/users/:id/edit": "Редагування користувача",
-  "/finance/settlements": "Взаєморозрахунки",
-  "/finance/paymentMovement": "Рух коштів",
-  "/contacts/new": "Додання контактів SOS",
-  // "/contacts/new": "Вхід — Портал замовлень",
-  "/urgentLogs": "Звернення SOS",
-  "/contacts/:id/edit": "Редагування контактів SOS",
-  "/emergency-contacts": "SOS",
+const routeTitlePatterns = [
+  ["/login", "route_titles.login"],
+  ["/", "route_titles.home"],
+  ["/home", "route_titles.home"],
+  ["/dashboard", "route_titles.dashboard"],
+  ["/users", "route_titles.users"],
+  ["/files", "route_titles.files"],
+  ["/files/add", "route_titles.files_add"],
+  ["/files/edit/:id", "route_titles.files_edit"],
+  ["/videos", "route_titles.videos"],
+  ["/addUser", "route_titles.user_add"],
+  ["/organizations", "route_titles.organizations"],
+  ["/regions", "route_titles.regions"],
+  ["/contacts", "route_titles.contacts"],
+  ["/orders", "route_titles.orders"],
+  ["/admin-order", "route_titles.orders"],
+  ["/complaints", "route_titles.complaints"],
+  ["/admin-reclamation", "route_titles.complaints"],
+  ["/additional-orders", "route_titles.additional_orders"],
+  ["/admin-additional-order", "route_titles.additional_orders"],
+  ["/orders-fin", "route_titles.finance"],
+  ["/change-password", "route_titles.change_password"],
+  ["/users/:id/edit", "route_titles.user_edit"],
+  ["/finance/settlements", "route_titles.settlements"],
+  ["/finance/paymentMovement", "route_titles.cash_flow"],
+  ["/contacts/new", "route_titles.contacts_add"],
+  ["/urgentLogs", "route_titles.sos_requests"],
+  ["/contacts/:id/edit", "route_titles.contacts_edit"],
+  ["/emergency-contacts", "route_titles.emergency_contacts"],
+  ["/promo-wds-codes", "route_titles.promo_wds"],
+  ["/finance/payment", "route_titles.payment"],
+  ["/finance/customer-bills", "route_titles.customer_bills"],
+  ["/statistics", "route_titles.analytics"],
+  ["/finance/cash-flow", "route_titles.cash_flow"],
+  ["/edit-addresses", "route_titles.edit_addresses"],
+];
 
-  "/promo-wds-codes": "Акція WDS",
-  "/finance/payment": "Оплата",
-  "/finance/customer-bills": "Рахунки",
-  "/finance/statistics": "Аналітика",
-  "/finance/cash-flow": "Рух коштів",
-  "/edit-addresses": "Редагування адрес",
-};
+const pathToRegExp = (pattern) =>
+  new RegExp(`^${pattern.replace(/:[^/]+/g, "[^/]+")}$`);
 
 // function AppRoutes() {
 //   const { role, isLoading } = useContext(RoleContext);
@@ -132,15 +135,29 @@ function AppRoutes() {
   useCacheBuster();
   const { role, isLoading } = useContext(RoleContext);
   const location = useLocation();
+  const { t } = useTranslation();
+
+  const routeTitles = useMemo(
+    () =>
+      routeTitlePatterns.map(([pattern, key]) => ({
+        pattern,
+        regex: pathToRegExp(pattern),
+        title: t(key),
+      })),
+    [t],
+  );
 
   const publicPaths = ["/", "/home", "/login"];
   const isInvite = location.pathname.startsWith("/invite/");
   const isPublicRoute = publicPaths.includes(location.pathname) || isInvite;
 
   useEffect(() => {
-    const title = routeTitles[location.pathname] || "Портал замовлень";
+    const matchedRoute = routeTitles.find(({ regex }) =>
+      regex.test(location.pathname),
+    );
+    const title = matchedRoute?.title || t("route_titles.default");
     document.title = title;
-  }, [location]);
+  }, [location.pathname, routeTitles, t]);
 
   // --- ЛОГІКА ВІДОБРАЖЕННЯ ---
 

@@ -624,10 +624,10 @@ const ReclamationPortal = () => {
                                 <img 
                                     src={item.icon}
                                     alt="" 
-                                    className={`mr-3 object-contain transition-all duration-300
-                                        ${filter.status === item.statusKey 
-                                        ?  "opacity-70 group-hover:opacity-100 group-hover:brightness-0"
-                                        : "brightness-0 invert group-hover:invert-0 group-hover:brightness-0" 
+                                    className={`mr-3 object-contain ${
+                                        filter.status === item.statusKey 
+                                          ? "opacity-70"
+                                          : "brightness-0 invert"
                                         }`} 
                                     />
                                 <span className="w-100">{item.label}</span>

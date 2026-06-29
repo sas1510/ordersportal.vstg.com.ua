@@ -221,7 +221,7 @@
 //     document.body,
 //   );
 // }
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { FaTimes, FaPlus, FaSpinner } from "react-icons/fa";
 import axiosInstance from "../../api/axios";
@@ -235,7 +235,7 @@ export default function AddReorderModal({
   onSave,
   initialOrderNumber,
 }) {
-  const { t } = useTranslation(); // 🔥 Хук перекладу
+  const { t, i18n } = useTranslation(); // 🔥 Хук перекладу
   const [orderNumber, setOrderNumber] = useState("");
   const [noOrder, setNoOrder] = useState(false);
   const [nomenclature, setNomenclature] = useState([]);
@@ -245,6 +245,14 @@ export default function AddReorderModal({
   const [quantity, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
+    .toLowerCase()
+    .split("-")[0];
+
+  const normalizeOptionValue = useCallback(
+    (value = "") => value.replace(/^\*\s*/, "").trim(),
+    [],
+  );
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -265,7 +273,47 @@ export default function AddReorderModal({
       setOrderNumber(initialOrderNumber || "");
       fetchDropdownData();
     }
-  }, [isOpen, initialOrderNumber]);
+  }, [isOpen, initialOrderNumber, resolvedLanguage]);
+
+  const translateOptionsForLanguage = useCallback(
+    async (items = [], fieldName = "Name") => {
+      const normalizedItems = items.map((item) => ({
+        ...item,
+        [fieldName]: normalizeOptionValue(item?.[fieldName] || ""),
+      }));
+
+      if (resolvedLanguage === "uk") {
+        return normalizedItems;
+      }
+
+      return Promise.all(
+        normalizedItems.map(async (item) => {
+          const cleanValue = item?.[fieldName] || "";
+
+          if (!cleanValue) {
+            return item;
+          }
+
+          try {
+            const response = await fetch(
+              `https://api.mymemory.translated.net/get?q=${encodeURIComponent(cleanValue)}&langpair=uk|${resolvedLanguage}`,
+            );
+            const data = await response.json();
+            const translatedText = data?.responseData?.translatedText?.trim();
+            const finalText = translatedText || cleanValue;
+
+            return {
+              ...item,
+              [fieldName]: finalText,
+            };
+          } catch {
+            return item;
+          }
+        }),
+      );
+    },
+    [normalizeOptionValue, resolvedLanguage],
+  );
 
   const fetchDropdownData = async () => {
     setLoading(true);
@@ -289,12 +337,17 @@ export default function AddReorderModal({
         Name: r.Наименование || r.Name,
       }));
 
-      setNomenclature(formattedNom);
-      setReasons(formattedReasons);
+      const [translatedNom, translatedReasons] = await Promise.all([
+        translateOptionsForLanguage(formattedNom),
+        translateOptionsForLanguage(formattedReasons),
+      ]);
 
-      if (formattedNom.length > 0) setSelectedItem(formattedNom[0].Link);
-      if (formattedReasons.length > 0)
-        setSelectedReason(formattedReasons[0].Link);
+      setNomenclature(translatedNom);
+      setReasons(translatedReasons);
+
+      if (translatedNom.length > 0) setSelectedItem(translatedNom[0].Link);
+      if (translatedReasons.length > 0)
+        setSelectedReason(translatedReasons[0].Link);
     } catch {
       // Error handling
     } finally {

@@ -1,6 +1,7 @@
 import React from "react";
 import { formatDateHumanShorter } from "../utils/formatters";
 import "./DebtDetailModal.css"
+import { useTranslation } from "react-i18next";
 
 export default function DebtDetailModal({
   isOpen,
@@ -11,6 +12,7 @@ export default function DebtDetailModal({
   onPay,
   formatCurrency,
 }) {
+  const { t, i18n } = useTranslation();
   const searchIcon = "/assets/icons/SearchOrderPayment.png";
   const closeButton = "/assets/icons/Close_Button_PaymentModal.png";
 
@@ -27,7 +29,7 @@ export default function DebtDetailModal({
         <div className="ddm-header">
           <h3 className="ddm-title uppercase">{title}</h3>
           <button onClick={onClose} className="ddm-close-btn">
-            <img src={closeButton} alt="Закрити" />
+            <img src={closeButton} alt={t("common.close")} />
           </button>
         </div>
 
@@ -51,9 +53,9 @@ export default function DebtDetailModal({
             >
               <tr >
                 <th className="ddm-th-num border-under-header">№</th>
-                <th className="ddm-th-date mobile-none border-under-header">Дата</th>
-                <th className="ddm-th-amount border-under-header">Сума</th>
-                <th className="ddm-th-action border-under-header">Дія</th>
+                <th className="ddm-th-date mobile-none border-under-header">{t("payments_page.detail.date")}</th>
+                <th className="ddm-th-amount border-under-header">{t("payments_page.detail.amount")}</th>
+                <th className="ddm-th-action border-under-header">{t("payments_page.detail.action")}</th>
               </tr>
             </thead>
             <tbody>
@@ -64,7 +66,7 @@ export default function DebtDetailModal({
                     className="ddm-td-empty"
                     style={{ textAlign: "center", padding: "20px" }}
                   >
-                    Дані відсутні
+                    {t("payments_page.detail.empty")}
                   </td>
                 </tr>
               ) : (
@@ -72,28 +74,28 @@ export default function DebtDetailModal({
                   <tr key={idx} className="ddm-tr-row">
                     <td className="ddm-td-num">{o.ZakazNum}</td>
                     <td className="ddm-td-date mobile-none">
-                      {formatDateHumanShorter(o.ZakazDate?.slice(0, 10))}
+                      {formatDateHumanShorter(o.ZakazDate?.slice(0, 10), i18n.language)}
                     </td>
                     <td className="ddm-td-amount ">
                       {formatCurrency(
                         o.Debt || o.NedoAvans || o.Summa || o.ZakazSumma
                       )}{" "}
-                      {o.CurrencyName || "грн"}
+                      {o.CurrencyName || t("common.currency_uah")}
                     </td>
                     <td className="ddm-td-action">
                       <div className="ddm-action-wrapper" style={{ display: "flex", justifyContent: "start" }}>
                         <button
                           className="ddm-btn-search mini-action-btn"
                           onClick={() => onPay(o.ZakazNum)}
-                          title="Знайти в списку"
+                          title={t("payments_page.detail.find_in_list")}
                         >
                           <img 
                             src={searchIcon} 
-                            alt="Пошук" 
+                            alt={t("payments_page.filters.search")} 
                             className="ddm-search-icon-img" 
                             style={{ width: "16px", height: "16px", objectFit: "contain" }}
                           />
-                          <span className="ddm-btn-text mobile-none">Знайти</span>
+                          <span className="ddm-btn-text mobile-none">{t("payments_page.detail.find")}</span>
                         </button>
                       </div>
                     </td>
@@ -107,7 +109,7 @@ export default function DebtDetailModal({
         {/* Футер */}
         <div className="ddm-footer">
           <button className="ddm-btn-close" onClick={onClose}>
-            Закрити
+            {t("common.close")}
           </button>
         </div>
       </div>

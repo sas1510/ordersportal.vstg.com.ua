@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import axiosInstance from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { useNotification } from "../hooks/useNotification";
+import { useTranslation } from "react-i18next";
 
 const SupportChatPage = () => {
   const { user } = useAuthGetRole();
   const { addNotification } = useNotification();
+  const { t, i18n } = useTranslation();
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
@@ -24,7 +26,9 @@ const SupportChatPage = () => {
     user?.contractor_guid ||
     user?.user_id_1c;
 
-  const clientName = user?.full_name || user?.username || "Клієнт";
+  const currentLanguage = i18n.resolvedLanguage || i18n.language || "uk";
+  const clientName =
+    user?.full_name || user?.username || t("support_chat.default_client_name");
 
   const detectMessageType = (fileObj) => {
     if (!fileObj) return "text";
@@ -41,7 +45,10 @@ const SupportChatPage = () => {
 
     try {
       const { data } = await axiosInstance.get("/support/chat/history/", {
-        params: { contractorId },
+        params: {
+          contractorId,
+          lang: currentLanguage,
+        },
       });
 
       if (data.success) {
@@ -49,11 +56,11 @@ const SupportChatPage = () => {
       }
     } catch (error) {
       console.error(error);
-      addNotification("Не вдалося завантажити історію чату", "error");
+      addNotification(t("support_chat.errors.load_history"), "error");
     } finally {
       setIsLoading(false);
     }
-  }, [contractorId, addNotification]);
+  }, [contractorId, addNotification, currentLanguage, t]);
 
   useEffect(() => {
     loadHistory();
@@ -98,7 +105,7 @@ const SupportChatPage = () => {
       setIsRecording(true);
     } catch (error) {
       console.error("Voice recording error:", error);
-      addNotification("Не вдалося почати запис голосу", "error");
+      addNotification(t("support_chat.errors.recording_start"), "error");
     }
   };
 
@@ -114,12 +121,12 @@ const SupportChatPage = () => {
     if (isSending || isRecording) return;
 
     if (!text.trim() && !file) {
-      addNotification("Напишіть повідомлення або додайте файл", "warning");
+      addNotification(t("support_chat.errors.empty_message"), "warning");
       return;
     }
 
     if (!contractorId) {
-      addNotification("Не знайдено ContractorId користувача", "error");
+      addNotification(t("support_chat.errors.contractor_not_found"), "error");
       return;
     }
 
@@ -150,10 +157,10 @@ const SupportChatPage = () => {
 
       await loadHistory();
 
-      addNotification("Повідомлення відправлено", "success");
+      addNotification(t("support_chat.success.sent"), "success");
     } catch (error) {
       console.error(error);
-      addNotification("Не вдалося відправити повідомлення", "error");
+      addNotification(t("support_chat.errors.send_message"), "error");
     } finally {
       setIsSending(false);
     }
@@ -163,20 +170,20 @@ const SupportChatPage = () => {
     <div className="emergency-portal-body items-center">
       <div className="w-full max-w-[900px]">
         <h1 className="text-color mt-6 text-4xl font-bold pb-3">
-          Чат підтримки
+          {t("support_chat.page_title")}
         </h1>
 
         <div className="border rounded-xl bg-white flex flex-col h-[700px]">
           <div className="p-4 border-b font-semibold">
-            Підтримка менеджера
+            {t("support_chat.manager_support")}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
             {isLoading && messages.length === 0 ? (
-              <div className="text-center text-gray-500">Завантаження...</div>
+              <div className="text-center text-gray-500">{t("support_chat.loading")}</div>
             ) : messages.length === 0 ? (
               <div className="text-center text-gray-500">
-                Історії поки немає
+                {t("support_chat.empty_history")}
               </div>
             ) : (
               messages.map((msg) => (
@@ -204,7 +211,7 @@ const SupportChatPage = () => {
                     ))}
 
                     <div className="text-[10px] opacity-60 mt-2">
-                      {new Date(msg.timestamp).toLocaleString()}
+                      {new Date(msg.timestamp).toLocaleString(currentLanguage)}
                     </div>
                   </div>
                 </div>
@@ -217,7 +224,7 @@ const SupportChatPage = () => {
           <div className="p-4 border-t">
             {file && (
               <div className="mb-2 text-sm text-gray-600">
-                Додано файл: <b>{file.name}</b>
+                {t("support_chat.file_added")} <b>{file.name}</b>
 
                 <button
                   type="button"
@@ -225,14 +232,15 @@ const SupportChatPage = () => {
                   className="ml-3 underline"
                   disabled={isSending}
                 >
-                  Прибрати
+                  {t("support_chat.remove_file")}
                 </button>
               </div>
             )}
 
             {isRecording && (
               <div className="mb-2 text-sm text-red-500">
-                🎙 Йде запис голосового...
+                {"🎙 "}
+                {t("support_chat.recording_active")}
               </div>
             )}
 
@@ -251,7 +259,7 @@ const SupportChatPage = () => {
                   className="emergency-button-call"
                   onClick={startVoiceRecording}
                   disabled={isSending}
-                  title="Записати голосове"
+                  title={t("support_chat.actions.record_voice")}
                 >
                   🎙
                 </button>
@@ -261,7 +269,7 @@ const SupportChatPage = () => {
                   className="emerg-btn-cancel"
                   onClick={stopVoiceRecording}
                   disabled={isSending}
-                  title="Зупинити запис"
+                  title={t("support_chat.actions.stop_recording")}
                 >
                   ⏹
                 </button>
@@ -272,8 +280,8 @@ const SupportChatPage = () => {
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
                   isRecording
-                    ? "Йде запис голосового..."
-                    : "Напишіть повідомлення..."
+                    ? t("support_chat.recording_active")
+                    : t("support_chat.message_placeholder")
                 }
                 className="video-input flex-1"
                 disabled={isSending || isRecording}
@@ -288,7 +296,7 @@ const SupportChatPage = () => {
                 onClick={sendMessage}
                 disabled={isSending || isRecording || (!text.trim() && !file)}
               >
-                {isSending ? "Відправка..." : "Надіслати"}
+                {isSending ? t("support_chat.sending") : t("support_chat.actions.send")}
               </button>
             </div>
           </div>
@@ -299,6 +307,7 @@ const SupportChatPage = () => {
 };
 
 const AttachmentView = ({ attachment }) => {
+  const { t } = useTranslation();
   const url = attachment.url;
 
   if (attachment.type === "image") {
@@ -306,7 +315,7 @@ const AttachmentView = ({ attachment }) => {
       <a href={url} target="_blank" rel="noreferrer">
         <img
           src={url}
-          alt={attachment.fileName || "image"}
+          alt={attachment.fileName || t("support_chat.attachment.image_alt")}
           className="rounded mt-2 max-w-full"
           style={{ maxHeight: 260 }}
         />
@@ -336,7 +345,7 @@ const AttachmentView = ({ attachment }) => {
       rel="noreferrer"
       className="underline mt-2 block"
     >
-      📎 {attachment.originalFileName || attachment.fileName || "Файл"}
+      📎 {attachment.originalFileName || attachment.fileName || t("support_chat.attachment.file_fallback")}
     </a>
   );
 };

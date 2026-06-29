@@ -628,14 +628,14 @@ export default function HeaderDealer() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const NAV_LINKS = useMemo(() => [
-    { title: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
-    { title: t('nav.orders'), to: "/orders", icon: ShoppingBag },
-    { title: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
-    { title: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle },
-    { title: t('nav.tech_file'), to: "/files", icon: FolderOpen },
-    { title: t('nav.videos'), to: "/videos", icon: Video },
-    { title: t('nav.finance_analytics'), to: "/statistics", icon: BarChart3  },
-    { title: t('nav.payment'), to: "/payment", icon: CreditCard },
+    { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
+    { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/orders", icon: ShoppingBag },
+    { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
+    { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle },
+    { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files", icon: FolderOpen },
+    { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos", icon: Video },
+    { title: t('nav.finance_analytics_short'), mobileTitle: t('nav.finance_analytics'), to: "/statistics", icon: BarChart3  },
+    { title: t('nav.payment_short'), mobileTitle: t('nav.payment'), to: "/payment", icon: CreditCard },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
@@ -875,7 +875,7 @@ export default function HeaderDealer() {
                        {/* shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)] */}
                       <Link
                         to={link.to}
-                        className={`h-full w-full flex items-center justify-center px-1 text-[13px] font-bold transition-all text-center 
+                        className={`h-full w-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center 
                          
                           shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
                           active:translate-y-[1px] active:shadow-none 
@@ -885,7 +885,7 @@ export default function HeaderDealer() {
                             : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                           }`}
                       >
-                        {link.icon && <link.icon className="!w-4 !h-4 shrink-0 mr-1" />}
+                        {link.icon && <link.icon className="!w-[14px] !h-[14px] shrink-0 mr-[2px]" />}
                         {link.title}
                       </Link>
                     </li>
@@ -897,7 +897,7 @@ export default function HeaderDealer() {
 >
   <button 
     onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-    className={`w-full h-full px-1 text-[13px] font-bold flex items-center justify-center gap-1 transition-all
+    className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all
       /* Базовий ефект випуклості (тінь + легкий градієнт) */
       shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
       active:translate-y-[1px] active:shadow-none
@@ -907,8 +907,8 @@ export default function HeaderDealer() {
         : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
       }`}
   >
-    {<Wallet className="!w-4 !h-4 shrink-0 mr-1" />}
-    {t('nav.finance')} 
+    {<Wallet className="!w-[14px] !h-[14px] shrink-0 mr-[2px]" />}
+    {t('nav.finance_short')} 
     <span className={`inline-block transition-transform duration-200 ${showFinanceMenu ? "rotate-180" : ""}`}>
       ▾
     </span>
@@ -920,7 +920,7 @@ export default function HeaderDealer() {
         <li key={item.to}>
           <Link
             to={item.to}
-            className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+            className="block px-1 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
             onClick={() => setShowFinanceMenu(false)}
           >
             
@@ -978,7 +978,7 @@ export default function HeaderDealer() {
                 )}
               </div>
           
-              <div className="flex items-center px-3 gap-7 max-[1261px]:px-1 max-[1261px]:gap-2">
+              <div className="flex items-center px-2 gap-5 max-[1261px]:px-1 max-[1261px]:gap-2">
                 <LanguageSwitcher />
 
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
@@ -1065,7 +1065,7 @@ export default function HeaderDealer() {
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {link.title}
+                    {link.mobileTitle || link.title}
                   </Link>
 
                   <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />

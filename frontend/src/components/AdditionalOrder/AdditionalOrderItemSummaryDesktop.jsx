@@ -347,6 +347,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             OrderNumber: order.number,
             DebtAmount: debtAmount,
             OrderID: order.guid,
+            CurrencyName: order.currency,
           }}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}

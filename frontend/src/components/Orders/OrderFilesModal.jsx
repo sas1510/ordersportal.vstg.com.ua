@@ -111,7 +111,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error("Download error:", error);
-      addNotification("Помилка під час завантаження файлу", "error");
+      addNotification(t("orders.downloadFileError"), "error");
     } finally {
       setDownloadingFileGuid(null);
     }
@@ -136,7 +136,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose
           <div className="file-details">
             <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
             <span className="file-date-text">
-              {file.date ? new Date(file.date).toLocaleString(i18n.language) : t("common.noDate")}
+              {file.date ? new Date(file.date).toLocaleString(i18n.language) : t("files.unknownDate")}
             </span>
           </div>
         </div>
@@ -160,10 +160,10 @@ const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose
         <div className="preview-modal-header">
           <div className="preview-header-title">
             <h3>
-              {entityType === "calculation" ? t("orders.modalCalcFilesTitle", "Файли прорахунку") : t("orders.modalFilesTitle")} 
+              {entityType === "calculation" ? t("orders.modalCalcFilesTitle") : t("orders.modalFilesTitle")} 
               {orderNumber ? ` № ${orderNumber}` : ""}
             </h3>
-            <span className="preview-subtitle">{t("orders.modalFilesSubtitle", "Документація та фото")}</span>
+            <span className="preview-subtitle">{t("orders.modalFilesSubtitle")}</span>
           </div>
           <button className="preview-close-btn" onClick={onClose}>
             <FaTimes size={18} />
@@ -186,21 +186,21 @@ const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose
             <div className="preview-files-container">
               {groups.zkz.length > 0 && (
                 <div className="preview-section">
-                  <h4> {t("orders.sectionProjects", "Файли")}</h4>
+                  <h4>{t("orders.sectionProjects")}</h4>
                   <div className="preview-grid">{groups.zkz.map(renderFileCard)}</div>
                 </div>
               )}
 
               {groups.images.length > 0 && (
                 <div className="preview-section">
-                  <h4>{t("orders.sectionPhotos", "Фотографії об'єкта")}</h4>
+                  <h4>{t("orders.sectionPhotos")}</h4>
                   <div className="preview-grid">{groups.images.map(renderFileCard)}</div>
                 </div>
               )}
 
               {groups.others.length > 0 && (
                 <div className="preview-section">
-                  <h4> {t("orders.sectionOthers", "Інше")}</h4>
+                  <h4>{t("orders.sectionOthers")}</h4>
                   <div className="preview-grid">{groups.others.map(renderFileCard)}</div>
                 </div>
               )}
@@ -210,7 +210,7 @@ const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose
 
         {/* FOOTER */}
         <div className="preview-modal-footer">
-          <span className="preview-footer-count">{t("orders.totalFiles", "Всього")}: {files.length}</span>
+          <span className="preview-footer-count">{t("orders.totalFiles")}: {files.length}</span>
           <button className="preview-btn-close-footer" onClick={onClose}>
             {t("common.close")}
           </button>

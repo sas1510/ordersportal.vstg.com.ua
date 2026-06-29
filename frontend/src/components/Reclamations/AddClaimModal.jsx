@@ -490,7 +490,7 @@ import CustomSelect from "./CustomSelect";
 import DealerSelect from "../../pages/DealerSelect";
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
-import { useTranslation } from "react-i18next"; // 🔥 Імпорт i18n
+import { useTranslation } from "react-i18next"; 
 
 export default function AddClaimModal({
   isOpen,
@@ -548,38 +548,55 @@ export default function AddClaimModal({
     if (isOpen) setOrderNumber(initialOrderNumber);
   }, [isOpen, initialOrderNumber]);
 
+  const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
+    .toLowerCase()
+    .split("-")[0];
+
+  const translateOptionsForLanguage = useCallback(
+    async (items = []) => {
+      if (resolvedLanguage === "uk") {
+        return items;
+      }
+
+      return Promise.all(
+        items.map(async (item) => {
+          try {
+            const response = await fetch(
+              `https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.Name)}&langpair=uk|${resolvedLanguage}`,
+            );
+            const data = await response.json();
+            const translatedText = data?.responseData?.translatedText?.trim();
+
+            return {
+              ...item,
+              Name: translatedText || item.Name,
+            };
+          } catch {
+            return item;
+          }
+        }),
+      );
+    },
+    [resolvedLanguage],
+  );
 
   const fetchReasons = async () => {
-  if (!isOpen) return;
-  try {
-    const res = await axiosInstance.get("/complaints/issues/");
-    let issues = res.data?.issues || [];
+    if (!isOpen) return;
 
+    setFetchErrors((p) => ({ ...p, reasons: null }));
 
-    if (i18n.language === 'en') {
-      issues = await Promise.all(issues.map(async (item) => {
-        try {
-
-          const response = await fetch(
-            `https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.Name)}&langpair=uk|en`
-          );
-          const data = await response.json();
-          return { ...item, Name: data.responseData.translatedText };
-        } catch (e) {
-          return item; 
-        }
-      }));
+    try {
+      const res = await axiosInstance.get("/complaints/issues/");
+      const issues = await translateOptionsForLanguage(res.data?.issues || []);
+      setReasonOptions(issues);
+    } catch {
+      setFetchErrors((p) => ({ ...p, reasons: t("add_claim.errors.reasons") }));
     }
-
-    setReasonOptions(issues);
-  } catch {
-    setFetchErrors((p) => ({ ...p, reasons: t("add_claim.errors.reasons") }));
-  }
-};
+  };
 
   useEffect(() => {
     fetchReasons();
-  }, [isOpen, i18n.language]);
+  }, [isOpen, resolvedLanguage]);
 
   const fetchSolutions = useCallback(async () => {
     if (!reasonLink) {
@@ -590,29 +607,13 @@ export default function AddClaimModal({
     setFetchErrors((p) => ({ ...p, solutions: null }));
     try {
       const res = await axiosInstance.get(`/complaints/solutions/${reasonLink}/`);
-      let solutions = res.data?.solutions || [];
-
-      // 🔥 Авто-переклад варіантів вирішення для англійської мови
-      if (i18n.language === 'en') {
-        solutions = await Promise.all(solutions.map(async (item) => {
-          try {
-            const response = await fetch(
-              `https://api.mymemory.translated.net/get?q=${encodeURIComponent(item.Name)}&langpair=uk|en`
-            );
-            const data = await response.json();
-            return { ...item, Name: data.responseData.translatedText };
-          } catch (e) {
-            return item;
-          }
-        }));
-      }
-
+      const solutions = await translateOptionsForLanguage(res.data?.solutions || []);
       setSolutionOptions(solutions);
     } catch {
       setSolutionOptions([]);
       setFetchErrors((p) => ({ ...p, solutions: t("add_claim.errors.solutions") }));
     }
-  }, [reasonLink, t, i18n.language]);
+  }, [reasonLink, t, translateOptionsForLanguage]);
 
   useEffect(() => {
     fetchSolutions();

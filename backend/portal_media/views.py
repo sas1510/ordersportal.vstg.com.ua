@@ -26,10 +26,11 @@ from backend.utils.logging_setup import logger
 class MediaResourceViewSet(viewsets.ModelViewSet):
     """
     ViewSet для медіа-ресурсів. 
-    Автоматично пакує мовні поля (title_ua, url_it тощо) у JSONField.
+    Автоматично пакує мовні поля (title_ua, title_de, url_it тощо) у JSONField.
     """
     serializer_class = MediaResourceSerializer
     permission_classes = [IsAdminOrReadOnly]
+    localized_languages = ("ua", "en", "it", "de")
 
     def get_queryset(self):
         queryset = MediaResource.objects.select_related('category', 'author').all().order_by('-created_at')
@@ -49,37 +50,45 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
             
         return queryset
 
-    def _pack_localized_data(self, data):
+    def _pack_localized_data(self, data, instance=None):
         """
-        Допоміжний метод: збирає поля типу 'title_ua', 'title_en' 
+        Допоміжний метод: збирає поля типу 'title_ua', 'title_en', 'title_de'
         у JSON-структуру для titles, descriptions та urls.
+
+        Якщо ресурс оновлюється, значення мерджаться з існуючими JSON-полями,
+        щоб частковий PATCH/PUT не затирав інші локалі.
         """
-        
-        languages = ['ua', 'en', 'it']
-        
-   
-        titles = {}
-        descriptions = {}
-        urls = {}
 
-        for lang in languages:
+        localized_groups = {
+            "titles": "title",
+            "descriptions": "description",
+            "urls": "url",
+        }
 
-            t_val = data.get(f'title_{lang}')
-            if t_val: titles[lang] = t_val
+        for target_field, raw_prefix in localized_groups.items():
+            existing_values = {}
+            if instance is not None:
+                instance_values = getattr(instance, target_field, None)
+                if isinstance(instance_values, dict):
+                    existing_values.update(instance_values)
 
-       
-            d_val = data.get(f'description_{lang}')
-            if d_val: descriptions[lang] = d_val
+            payload_values = data.get(target_field)
+            if isinstance(payload_values, dict):
+                existing_values.update({
+                    lang: value for lang, value in payload_values.items() if value not in (None, "")
+                })
 
+            has_raw_values = False
+            for lang in self.localized_languages:
+                raw_key = f"{raw_prefix}_{lang}"
+                raw_value = data.pop(raw_key, None)
+                if raw_value not in (None, ""):
+                    existing_values[lang] = raw_value
+                    has_raw_values = True
 
-            u_val = data.get(f'url_{lang}')
-            if u_val: urls[lang] = u_val
+            if existing_values and (has_raw_values or target_field in data or instance is not None):
+                data[target_field] = existing_values
 
-     
-        if titles: data['titles'] = titles
-        if descriptions: data['descriptions'] = descriptions
-        if urls: data['urls'] = urls
-        
         return data
 
     def create(self, request, *args, **kwargs):
@@ -134,7 +143,7 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
         })
         
         data = request.data.copy()
-        data = self._pack_localized_data(data)
+        data = self._pack_localized_data(data, instance=instance)
         
         serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)

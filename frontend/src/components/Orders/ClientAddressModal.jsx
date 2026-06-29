@@ -39,13 +39,13 @@ const formatPhoneInput = (value) => {
 };
 
 
-function ClickHandler({ onSelect, onAddressFound }) {
+function ClickHandler({ onSelect, onAddressFound, language }) {
   useMapEvents({
     async click(e) {
       const coords = [e.latlng.lat, e.latlng.lng];
       onSelect(coords);
 
-      const address = await reverseGeocode(coords[0], coords[1]);
+      const address = await reverseGeocode(coords[0], coords[1], language);
       onAddressFound(address);
     },
   });
@@ -61,11 +61,11 @@ function MapViewUpdater({ center, zoom }) {
 }
 
 
-const reverseGeocode = async (lat, lon) => {
+const reverseGeocode = async (lat, lon, language = "uk") => {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      { headers: { "Accept-Language": "uk" } },
+      { headers: { "Accept-Language": language } },
     );
     const data = await res.json();
     return data?.display_name || "";
@@ -82,7 +82,9 @@ const buildAddressFromForm = (f) =>
 const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const { addNotification } = useNotification();
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language === 'ua' ? 'uk' : 'en';
+  const currentLang = (i18n.resolvedLanguage || i18n.language || "uk")
+    .toLowerCase()
+    .split("-")[0];
 
 
   const [formAddr, setFormAddr] = useState({
@@ -176,7 +178,7 @@ const handleFindOnMap = () => {
   const handleMarkerDrag = async (e) => {
     const { lat, lng } = e.target.getLatLng();
     setSelectedCoords([lat, lng]);
-    const address = await reverseGeocode(lat, lng);
+    const address = await reverseGeocode(lat, lng, currentLang);
     onAddressUpdateFromMap(address);
   };
 
@@ -350,6 +352,7 @@ const handleSave = () => {
               <ClickHandler
                 onSelect={setSelectedCoords}
                 onAddressFound={onAddressUpdateFromMap}
+                language={currentLang}
               />
               {selectedCoords && (
                 <Marker

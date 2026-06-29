@@ -51,22 +51,31 @@
   },
   "nav": {
     "promo_wds": "WDS-Promo",
+    "promo_wds_short": "WDS",
     "orders": "Bestellungen",
+    "orders_short": "Best.",
     "complaints": "Reklamationen",
+    "complaints_short": "Rekla.",
     "additional_orders": "Zusatzbestellungen",
+    "additional_orders_short": "Zusatz",
     "files": "Dateien",
+    "files_short": "Dateien",
     "videos": "Videos",
+    "videos_short": "Videos",
     "payment": "Zahlung",
+    "payment_short": "Zahl.",
     "finance": "Finanzen",
+    "finance_short": "Fin.",
     "finance_cash_flow": "Cashflow",
     "finance_analytics": "Analysen",
+    "finance_analytics_short": "Analyse",
     "finance_bills": "Rechnungen",
     "change_password": "Kennwort ändern",
     "emergency_line": "Hotline",
     "logout": "Abmelden",
     "menu": "Menü",
     "default_dealer": "Händler",
-    "settings_short": "Einstellungen",
+    "settings_short": "Einst.",
     "settings": "Einstellungen",
     "settings_users": "Benutzer",
     "settings_tg_manager": "TG-Manager",
@@ -74,7 +83,8 @@
     "settings_emergency_contacts": "Notfallkontakte",
     "profile": "Profil",
     "notifications": "Benachrichtigungen",
-    "tech_file": "Technische Unterlagen"
+    "tech_file": "Technische Unterlagen",
+    "tech_file_short": "Tech. Unterl."
   },
   "common": {
     "loading": "Laden...",
@@ -87,6 +97,7 @@
     "show": "Zeigen",
     "no_results": "Keine Ergebnisse gefunden",
     "loadingFiles": "Dateien werden geladen…",
+    "noDate": "Unbekannt",
     "downloading": "Herunterladen...",
     "view": "Ansehen",
     "download": "Herunterladen",
@@ -104,6 +115,38 @@
     "update": "Aktualisieren",
     "saving": "Speichern...",
     "deleting": "Wird gelöscht..."
+  },
+  "route_titles": {
+    "default": "Bestellportal",
+    "login": "Anmeldung — Bestellportal",
+    "home": "Bestellportal",
+    "dashboard": "Startseite",
+    "users": "Benutzer",
+    "files": "Dateien",
+    "files_add": "Dateien hinzufügen",
+    "files_edit": "Dateien bearbeiten",
+    "videos": "Videos",
+    "user_add": "Benutzer hinzufügen",
+    "organizations": "Organisationen",
+    "regions": "Regionen",
+    "contacts": "SOS-Kontakte",
+    "orders": "Bestellungen",
+    "complaints": "Reklamationen",
+    "additional_orders": "Zusatzbestellungen",
+    "finance": "Finanzen",
+    "change_password": "Passwort ändern",
+    "user_edit": "Benutzer bearbeiten",
+    "settlements": "Abrechnungen",
+    "cash_flow": "Cashflow",
+    "contacts_add": "SOS-Kontakte hinzufügen",
+    "sos_requests": "SOS-Anfragen",
+    "contacts_edit": "SOS-Kontakte bearbeiten",
+    "emergency_contacts": "SOS",
+    "promo_wds": "WDS-Promo",
+    "payment": "Zahlung",
+    "customer_bills": "Rechnungen",
+    "analytics": "Analysen",
+    "edit_addresses": "Adressen bearbeiten"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -193,7 +236,7 @@
       "subtitle_1": "Nützliche Materialien zum Download:",
       "subtitle_2": "Zertifikate, Prüfberichte etc."
     },
-    "searchPlaceholder": "Suche nach Namen",
+    "searchPlaceholder": "Suche nach Titel oder Autor...",
     "choose_file": "Datei auswählen",
     "noResults": "Keine Dateien gefunden",
     "empty": "Keine Dateien verfügbar",
@@ -206,17 +249,31 @@
       "delete": "Löschen",
       "cancel": "Stornieren",
       "upload": "Hochladen",
-      "save": "Änderungen speichern"
+      "save": "Änderungen speichern",
+      "uploading": "Wird hochgeladen...",
+      "saving": "Wird gespeichert..."
     },
+    "labels": {
+      "title_ua": "Titel (UA) *",
+      "title_en": "Titel (EN)",
+      "title_de": "Titel (DE)",
+      "change_file_optional": "Datei ersetzen (optional)"
+    },
+    "hero_bg_alt": "Dateien Hintergrund",
+    "search_alt": "Suche",
     "errors": {
       "download": "Fehler beim Herunterladen der Dateien",
       "error": "Fehler:",
+      "delete": "Datei konnte nicht gelöscht werden",
+      "no_file_data": "Keine Dateidaten",
+      "required_ua_title": "Der ukrainische Titel ist erforderlich",
       "error_add_file": "Datei konnte nicht hinzugefügt werden",
       "error_change_file": "Datei konnte nicht geändert werden"
     },
     "feedback": {
       "success": "Datei erfolgreich hinzugefügt!",
       "edit": "Datei erfolgreich geändert!",
+      "deleted": "Datei gelöscht",
       "confirmDeleteMessage": "Sind Sie sicher, dass Sie die Datei löschen möchten?",
       "deleteFile": "Eine Datei löschen"
     }
@@ -226,6 +283,12 @@
       "title": "Videos",
       "subtitle": "Nützliche Videomaterialien, die Sie bei Ihrer Arbeit unterstützen"
     },
+    "hero_bg_alt": "Video-Hintergrund",
+    "menu_alt": "Videomenü",
+    "search_alt": "Videos suchen",
+    "close_alt": "Schließen",
+    "add_alt": "Video hinzufügen",
+    "iframe_title": "Video",
     "categories": {
       "tech": "Technische Schulung",
       "media": "Medienrezensionen",
@@ -236,9 +299,31 @@
     "buttons": {
       "add": "Video hinzufügen",
       "save": "Speichern",
-      "saving": "Sparen...",
+      "saving": "Speichern...",
       "edit": "Bearbeiten",
       "delete": "Löschen"
+    },
+    "feedback": {
+      "added": "Video erfolgreich hinzugefügt",
+      "updated": "Video erfolgreich aktualisiert",
+      "deleted": "Video gelöscht"
+    },
+    "social_headers": {
+      "tiktok": "TikTok-Feed",
+      "facebook": "Facebook-Seite",
+      "instagram": "Instagram-Profil"
+    },
+    "form": {
+      "title_ua": "Titel (UA) *",
+      "title_en": "Titel (EN)",
+      "title_it": "Titel (IT)",
+      "title_de": "Titel (DE)",
+      "url_ua": "URL (UA) *",
+      "url_en": "URL (EN)",
+      "url_it": "URL (IT)",
+      "url_de": "URL (DE)",
+      "description_ua": "Beschreibung (UA)",
+      "description_de": "Beschreibung (DE)"
     },
     "modals": {
       "add_title": "Neues Video hinzufügen",
@@ -278,6 +363,7 @@
       "loadingOfAddress": "Adressen werden geladen...",
       "choose": "Wählen",
       "downloadZKZ": "Datei hochladen (.zkz)",
+      "addImages": "Bilder hinzufügen",
       "numberOfConstruction": "Anzahl der Einheiten:",
       "comment": "Kommentar:",
       "cancel": "Stornieren",
@@ -285,7 +371,14 @@
       "save": "Speichern",
       "repeat": "WIEDERHOLEN"
     },
-    "modalFilesTitle": "Dateien bestellen",
+    "modalFilesTitle": "Bestelldateien",
+    "modalCalcFilesTitle": "Kalkulationsdateien",
+    "modalFilesSubtitle": "Dokumentation und Fotos",
+    "sectionProjects": "Dateien",
+    "sectionPhotos": "Objektfotos",
+    "sectionOthers": "Sonstiges",
+    "totalFiles": "Gesamt",
+    "downloadFileError": "Fehler beim Herunterladen der Datei",
     "noFilesFound": "Für diese Bestellung wurden keine Dateien gefunden."
   },
   "clientAddressModal": {
@@ -408,6 +501,14 @@
     "no_options": "Keine Optionen verfügbar"
   },
   "reasons": {
+    "Переробити конструкцію на виробництві за рахунок виробника": "Die Konstruktion auf Kosten des Herstellers in der Produktion neu anfertigen",
+    "Переробити конструкцію на виробництві за рахунок замовника": "Die Konstruktion auf Kosten des Kunden in der Produktion neu anfertigen",
+    "Замінити фурнітуру за рахунок виробника": "Die Beschläge auf Kosten des Herstellers ersetzen",
+    "Замінити склопакет за рахунок виробника": "Die Isolierglaseinheit auf Kosten des Herstellers ersetzen",
+    "Замінити склопакет за рахунок замовника": "Die Isolierglaseinheit auf Kosten des Kunden ersetzen",
+    "Замінити пошкодженні матеріали за рахунок виробника": "Beschädigte Materialien auf Kosten des Herstellers ersetzen",
+    "Замінити пошкодженні матеріали за рахунок замовника": "Beschädigte Materialien auf Kosten des Kunden ersetzen",
+    "Замінити браковані матеріали за рахунок виробника": "Mangelhafte Materialien auf Kosten des Herstellers ersetzen",
     "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "Erstattung (Kompensation) der Kosten für beschädigte Bestellelemente, Arbeiten, Dienstleistungen auf Kosten des Herstellers",
     "Доукомплектувати замовлення за рахунок виробника": "Schließen Sie die Bestellung auf Kosten des Herstellers ab",
     "Доукомплектувати замовлення за рахунок замовника": "Schließen Sie die Bestellung auf Kosten des Kunden ab",
@@ -430,7 +531,85 @@
     "error_max_amount": "Der Höchstbetrag beträgt {{amount}}",
     "btn_cancel": "Stornieren",
     "btn_pay": "Zahlen",
-    "btn_processing": "Verarbeitung..."
+    "btn_processing": "Verarbeitung...",
+    "topup_invoice": "Rechnung zur Aufladung des Vorauszahlungsvertrags erstellen"
+  },
+  "payments_page": {
+    "title": "Finanzen",
+    "actions": {
+      "refresh": "Daten aktualisieren",
+      "pay": "Zahlen"
+    },
+    "filters": {
+      "title": "Filter",
+      "search": "Suche",
+      "search_placeholder": "Bestellnummer",
+      "statuses": "Status",
+      "contracts": "Verträge",
+      "all_contracts": "Alle Verträge"
+    },
+    "status_filters": {
+      "all": "Alle Bestellungen",
+      "waiting_confirmation": "Warten auf Bestätigung",
+      "waiting_payment": "Warten auf Zahlung",
+      "confirmed": "Bestätigt",
+      "production": "In Produktion",
+      "ready": "Bereit",
+      "shipped": "Ausgeliefert",
+      "non_liquid": "Nelikvid"
+    },
+    "statuses": {
+      "reserved": "Reserviert"
+    },
+    "labels": {
+      "amount": "Betrag",
+      "paid": "Bezahlt",
+      "balance_due": "Rest"
+    },
+    "sections": {
+      "advances": "Ihre Vorauszahlungen auf Verträge",
+      "orders_to_pay": "Zu zahlende Bestellungen"
+    },
+    "empty": {
+      "no_advances": "Keine Vorauszahlungen vorhanden",
+      "no_orders_filtered": "Keine Bestellungen für die gewählten Filter"
+    },
+    "errors": {
+      "load_data": "Fehler beim Laden der Finanzdaten"
+    },
+    "notifications": {
+      "payment_success": "Zahlung ausgeführt!",
+      "payment_error": "Fehler bei der Zahlung"
+    },
+    "analytics": {
+      "debt_limit": "Schuldenlimit",
+      "overlimit": "Limitüberschreitung",
+      "limit_usage": "Limitnutzung",
+      "no_prepayment": "Ohne Vorauszahlung",
+      "underfunded": "Unterfinanziert",
+      "post_sale_debt": "Schuld nach Realisierung",
+      "route_debt": "Schuld nach Routenabschluss",
+      "in_routes": "In Routen",
+      "money_in_transit": "Geld unterwegs",
+      "debt_over_ten_days": "Schuld > 10T",
+      "debt_over_ten_days_short": "Schuld > 10T",
+      "no_prepayment_orders": "Bestellungen ohne Vorauszahlung",
+      "critical_orders": "Bestellungen mit Verzug > 10 Tage",
+      "underfunded_orders": "Unterfinanzierte Bestellungen",
+      "in_route_orders": "Schuld in Routen (unterwegs)",
+      "money_in_transit_orders": "Geld unterwegs"
+    },
+    "detail": {
+      "date": "Datum",
+      "amount": "Betrag",
+      "action": "Aktion",
+      "empty": "Keine Daten vorhanden",
+      "find": "Finden",
+      "find_in_list": "In Liste finden"
+    },
+    "common": {
+      "no_data_short": "—"
+    }
   },
   "confirm_modal": {
     "default_title": "Aktion bestätigen",
@@ -939,6 +1118,43 @@
       "invite_used": "Dieser Link wurde bereits verwendet",
       "invite_expired": "Dieser Link ist nicht mehr aktiv",
       "invalid_code": "Ungültiger Einladungscode"
+    }
+  },
+  "support_chat": {
+    "title": "Support",
+    "page_title": "Support-Chat",
+    "manager_support": "Manager-Support",
+    "default_client_name": "Kunde",
+    "loading": "Wird geladen...",
+    "empty_history": "Noch kein Verlauf vorhanden",
+    "file_added": "Datei hinzugefügt:",
+    "remove_file": "Entfernen",
+    "welcome_title": "Willkommen!",
+    "welcome_text": "Schreiben Sie uns, wenn Sie Fragen zu Bestellung, Zahlung, Lieferung oder Reklamation haben.",
+    "recording_active": "Sprachnachricht wird aufgenommen...",
+    "recording_placeholder": "Aufnahme läuft...",
+    "message_placeholder": "Schreiben Sie eine Nachricht...",
+    "sending": "Wird gesendet...",
+    "actions": {
+      "attach_file": "Datei anhängen",
+      "record_voice": "Sprachnachricht aufnehmen",
+      "stop_recording": "Aufnahme stoppen",
+      "send": "Senden"
+    },
+    "attachment": {
+      "image_alt": "Bild",
+      "file_fallback": "Datei"
+    },
+    "success": {
+      "sent": "Nachricht gesendet"
+    },
+    "errors": {
+      "load_history": "Chatverlauf konnte nicht geladen werden",
+      "mark_read": "Chat konnte nicht als gelesen markiert werden",
+      "recording_start": "Sprachaufnahme konnte nicht gestartet werden",
+      "empty_message": "Schreiben Sie eine Nachricht oder fügen Sie eine Datei hinzu",
+      "contractor_not_found": "ContractorId des Benutzers wurde nicht gefunden",
+      "send_message": "Nachricht konnte nicht gesendet werden"
     }
   }
 }

@@ -345,12 +345,12 @@ export default function HeaderAdmin() {
   const { t } = useTranslation();
 
   const NAV_LINKS = useMemo(() => [
-    { title: t('nav.promo_wds'), to: "/promo-wds-codes" },
-    { title: t('nav.orders'), to: "/admin-order" },
-    { title: t('nav.complaints'), to: "/admin-reclamation" },
-    { title: t('nav.additional_orders'), to: "/admin-additional-order" },
-    { title: t('nav.tech_file'), to: "/files" },
-    { title: t('nav.videos'), to: "/videos" },
+    { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
+    { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order" },
+    { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation" },
+    { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/admin-additional-order" },
+    { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files" },
+    { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos" },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
@@ -444,7 +444,7 @@ export default function HeaderAdmin() {
                   <li key={link.to} className="h-full flex-1">
                     <Link
                       to={link.to}
-                      className={`h-full flex items-center justify-center px-1 text-[13px] font-bold transition-all text-center ${
+                      className={`h-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center ${
                         location.pathname.startsWith(link.to) 
                           ? "bg-[#6B98BF] text-white" 
                           : "text-[#44403E] hover:bg-gray-50 hover:text-[#6B98BF]"
@@ -459,13 +459,13 @@ export default function HeaderAdmin() {
                 <li className="h-full relative flex-1" ref={financeRef}>
                   <button 
                     onClick={() => { setShowFinanceMenu(!showFinanceMenu); setShowSettings(false); }}
-                    className={`w-full h-full px-2 text-[13px] font-bold flex items-center justify-center gap-1 transition-colors ${
+                    className={`w-full h-full px-1 text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-colors ${
                       showFinanceMenu || location.pathname.includes("/finance")
                         ? "text-[#6B98BF] bg-gray-50"
                         : "text-[#44403E] hover:bg-gray-50"
                     }`}
                   >
-                    {t('nav.finance')} ▾
+                    {t('nav.finance_short')} ▾
                   </button>
                   {showFinanceMenu && (
                     <ul className="absolute top-full left-0 w-48 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
@@ -487,7 +487,7 @@ export default function HeaderAdmin() {
                 <li className="h-full relative flex-1" ref={settingsRef}>
                   <button 
                     onClick={() => { setShowSettings(!showSettings); setShowFinanceMenu(false); }}
-                    className={`w-full h-full px-2 text-[13px] font-bold flex items-center justify-center gap-1 transition-colors ${
+                    className={`w-full h-full px-1 text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-colors ${
                       showSettings ? "text-[#6B98BF] bg-gray-50" : "text-[#44403E] hover:bg-gray-50"
                     }`}
                   >
@@ -514,7 +514,7 @@ export default function HeaderAdmin() {
 
             <div className="ml-auto flex items-center h-full flex-shrink-0">
               <div 
-                className="bg-[#EEEEEE] h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[180px]"
+                className="bg-[#EEEEEE] h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[168px]"
                 ref={profileRef}
               >
                 <button
@@ -538,7 +538,7 @@ export default function HeaderAdmin() {
                 )}
               </div>
 
-              <div className="flex items-center px-6 gap-6">
+              <div className="flex items-center px-4 gap-4">
                 {/* <button onClick={toggleTheme} className="text-[#44403E] text-lg hover:scale-110 transition-transform">
                   <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
                 </button> */}
@@ -585,7 +585,7 @@ export default function HeaderAdmin() {
                               location.pathname === link.to ? "bg-[#6B98BF] text-white" : "text-[#44403E]"
                             }`}
                           >
-                            {link.title}
+                            {link.mobileTitle || link.title}
                           </Link>
                           <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dashed border-[#B4D947]" />
                         </div>

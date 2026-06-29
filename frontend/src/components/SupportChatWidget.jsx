@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import axiosInstance from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { useNotification } from "../hooks/useNotification";
+import { useTranslation } from "react-i18next";
 import "./SupportChatWidget.css";
 import {
   FaComments,
@@ -16,6 +17,7 @@ import {
 const SupportChatWidget = () => {
   const { user } = useAuthGetRole();
   const { addNotification } = useNotification();
+  const { t, i18n } = useTranslation();
 
   const widgetRef = useRef(null);
 
@@ -39,7 +41,9 @@ const SupportChatWidget = () => {
     user?.contractor_guid ||
     user?.user_id_1c;
 
-  const clientName = user?.full_name || user?.username || "Клієнт";
+  const currentLanguage = i18n.resolvedLanguage || i18n.language || "uk";
+  const clientName =
+    user?.full_name || user?.username || t("support_chat.default_client_name");
 
   const detectMessageType = (fileObj) => {
     if (!fileObj) return "text";
@@ -62,18 +66,21 @@ const SupportChatWidget = () => {
 
     try {
       const { data } = await axiosInstance.get("/support/chat/history/", {
-        params: { contractorId },
+        params: {
+          contractorId,
+          lang: currentLanguage,
+        },
       });
 
       if (data.success) {
         setMessages(data.messages || []);
       }
     } catch (error) {
-      console.error("Не вдалося завантажити історію чату", error);
+      console.error(t("support_chat.errors.load_history"), error);
     } finally {
       setIsLoading(false);
     }
-  }, [contractorId]);
+  }, [contractorId, currentLanguage, t]);
 
   const markChatAsRead = useCallback(async () => {
     if (!contractorId) return;
@@ -89,9 +96,9 @@ const SupportChatWidget = () => {
         )
       );
     } catch (error) {
-      console.error("Не вдалося позначити чат як прочитаний", error);
+      console.error(t("support_chat.errors.mark_read"), error);
     }
-  }, [contractorId]);
+  }, [contractorId, t]);
 
   useEffect(() => {
     loadHistory();
@@ -168,7 +175,7 @@ const SupportChatWidget = () => {
       setIsRecording(true);
     } catch (error) {
       console.error("Voice recording error:", error);
-      addNotification("Не вдалося почати запис голосу", "error");
+      addNotification(t("support_chat.errors.recording_start"), "error");
     }
   };
 
@@ -184,12 +191,12 @@ const SupportChatWidget = () => {
     if (isSending || isRecording) return;
 
     if (!text.trim() && !file) {
-      addNotification("Напишіть повідомлення або додайте файл", "warning");
+      addNotification(t("support_chat.errors.empty_message"), "warning");
       return;
     }
 
     if (!contractorId) {
-      addNotification("Не знайдено ContractorId користувача", "error");
+      addNotification(t("support_chat.errors.contractor_not_found"), "error");
       return;
     }
 
@@ -224,8 +231,8 @@ const SupportChatWidget = () => {
         await markChatAsRead();
       }
     } catch (error) {
-      console.error("Не вдалося відправити повідомлення", error);
-      addNotification("Не вдалося відправити повідомлення", "error");
+      console.error(t("support_chat.errors.send_message"), error);
+      addNotification(t("support_chat.errors.send_message"), "error");
     } finally {
       setIsSending(false);
     }
@@ -248,7 +255,7 @@ const SupportChatWidget = () => {
         >
           <div className="support-widget-header">
             <div>
-              <div className="support-widget-title">Підтримка</div>
+              <div className="support-widget-title">{t("support_chat.title")}</div>
               {/* <div className="support-widget-status">
                 <span></span> Онлайн
               </div> */}
@@ -265,15 +272,12 @@ const SupportChatWidget = () => {
 
           <div className="support-widget-body">
             {isLoading && messages.length === 0 ? (
-              <div className="support-widget-empty">Завантаження...</div>
+              <div className="support-widget-empty">{t("support_chat.loading")}</div>
             ) : messages.length === 0 ? (
               <div className="support-widget-welcome">
                 <div className="support-widget-welcome-icon"><FaComments size={34} /></div>
-                <h3>Вітаємо!</h3>
-                <p>
-                  Напишіть нам, якщо виникли питання щодо замовлення, оплати,
-                  доставки або рекламації.
-                </p>
+                <h3>{t("support_chat.welcome_title")}</h3>
+                <p>{t("support_chat.welcome_text")}</p>
               </div>
             ) : (
               messages.map((msg) => (
@@ -285,7 +289,7 @@ const SupportChatWidget = () => {
                 >
                   <div className="support-message">
                     {msg.text && (
-                      <div clasName="support-message-text">{msg.text}</div>
+                      <div className="support-message-text">{msg.text}</div>
                     )}
 
                     {msg.attachments?.map((a) => (
@@ -293,7 +297,7 @@ const SupportChatWidget = () => {
                     ))}
 
                     <div className="support-message-time">
-                      {new Date(msg.timestamp).toLocaleString()}
+                      {new Date(msg.timestamp).toLocaleString(currentLanguage)}
                     </div>
                   </div>
                 </div>
@@ -323,7 +327,7 @@ const SupportChatWidget = () => {
             {isRecording && (
               <div className="support-recording">
                 <span className="support-recording-dot"></span>
-                Йде запис голосового...
+                {t("support_chat.recording_active")}
               </div>
             )}
 
@@ -342,7 +346,7 @@ const SupportChatWidget = () => {
                 className="support-icon-btn"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isSending || isRecording}
-                title="Додати файл"
+                title={t("support_chat.actions.attach_file")}
               >
                 <FaPaperclip />
               </button>
@@ -353,7 +357,7 @@ const SupportChatWidget = () => {
                   className="support-icon-btn"
                   onClick={startVoiceRecording}
                   disabled={isSending}
-                  title="Записати голосове"
+                  title={t("support_chat.actions.record_voice")}
                 >
                   <FaMicrophone />
                 </button>
@@ -363,7 +367,7 @@ const SupportChatWidget = () => {
                   className="support-icon-btn danger"
                   onClick={stopVoiceRecording}
                   disabled={isSending}
-                  title="Зупинити запис"
+                  title={t("support_chat.actions.stop_recording")}
                 >
                  <FaStop />
                 </button>
@@ -373,7 +377,9 @@ const SupportChatWidget = () => {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder={
-                  isRecording ? "Йде запис..." : "Напишіть повідомлення..."
+                  isRecording
+                    ? t("support_chat.recording_placeholder")
+                    : t("support_chat.message_placeholder")
                 }
                 disabled={isSending || isRecording}
                 className="support-text-input"
@@ -387,7 +393,7 @@ const SupportChatWidget = () => {
                 className="support-send-btn"
                 onClick={sendMessage}
                 disabled={isSending || isRecording || (!text.trim() && !file)}
-                title="Надіслати"
+                title={t("support_chat.actions.send")}
               >
                 <FaPaperPlane />
               </button>
@@ -402,6 +408,8 @@ const SupportChatWidget = () => {
         type="button"
         className="support-floating-button"
         onClick={() => setIsOpen((prev) => !prev)}
+        title={t("support_chat.title")}
+        aria-label={t("support_chat.title")}
       >
         <FaComments size={26} />
 
@@ -414,6 +422,7 @@ const SupportChatWidget = () => {
 };
 
 const AttachmentView = ({ attachment }) => {
+  const { t } = useTranslation();
   const url = attachment.url;
 
   if (attachment.type === "image") {
@@ -421,7 +430,7 @@ const AttachmentView = ({ attachment }) => {
       <a href={url} target="_blank" rel="noreferrer">
         <img
           src={url}
-          alt={attachment.fileName || "image"}
+          alt={attachment.fileName || t("support_chat.attachment.image_alt")}
           className="support-attachment-image"
         />
       </a>
@@ -445,7 +454,7 @@ const AttachmentView = ({ attachment }) => {
     >
       <>
         <FaFileAlt style={{ marginRight: 8 }} />
-        {attachment.originalFileName || attachment.fileName || "Файл"}
+        {attachment.originalFileName || attachment.fileName || t("support_chat.attachment.file_fallback")}
       </>
     </a>
   );

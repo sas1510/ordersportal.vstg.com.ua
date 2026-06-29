@@ -485,9 +485,9 @@ const VideosPage = () => {
 
   // Стан форми з підтримкою мов
   const [videoForm, setVideoForm] = useState({
-    title_ua: "", title_en: "", title_it: "",
-    url_ua: "", url_en: "", url_it: "",
-    description_ua: "", description_en: "", description_it: "",
+    title_ua: "", title_en: "", title_it: "", title_de: "",
+    url_ua: "", url_en: "", url_it: "", url_de: "",
+    description_ua: "", description_en: "", description_it: "", description_de: "",
     category: "2",
     resource_type: "youtube"
   });
@@ -628,9 +628,9 @@ const VideosPage = () => {
   const openAddModal = () => {
     setSelectedVideo(null);
     setVideoForm({ 
-      title_ua: "", title_en: "", title_it: "",
-      url_ua: "", url_en: "", url_it: "",
-      description_ua: "", description_en: "", description_it: "",
+      title_ua: "", title_en: "", title_it: "", title_de: "",
+      url_ua: "", url_en: "", url_it: "", url_de: "",
+      description_ua: "", description_en: "", description_it: "", description_de: "",
       category: "2", resource_type: "youtube" 
     });
     setIsModalOpen(true);
@@ -641,13 +641,16 @@ const VideosPage = () => {
     setVideoForm({
       title_ua: video.titles?.ua || "",
       title_en: video.titles?.en || "",
-      // title_it: video.titles?.it || "",
+      title_it: video.titles?.it || "",
+      title_de: video.titles?.de || "",
       url_ua: video.urls?.ua || "",
       url_en: video.urls?.en || "",
-      // url_it: video.urls?.it || "",
+      url_it: video.urls?.it || "",
+      url_de: video.urls?.de || "",
       description_ua: video.descriptions?.ua || "",
       description_en: video.descriptions?.en || "",
       description_it: video.descriptions?.it || "",
+      description_de: video.descriptions?.de || "",
       category: video.category,
       resource_type: video.resource_type
     });
@@ -656,7 +659,8 @@ const VideosPage = () => {
 
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString(i18n.language === 'en' ? "en-US" : "uk-UA", {
+    const locale = i18n.language === "en" ? "en-US" : i18n.language === "de" ? "de-DE" : "uk-UA";
+    return new Date(dateString).toLocaleString(locale, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -669,7 +673,7 @@ const VideosPage = () => {
   return (
     <div className="videos-container">
       <section className="videos-hero">
-        <img src={backgroundImage} className="videos-hero-bg" alt="bg" />
+        <img src={backgroundImage} className="videos-hero-bg" alt={t("videos.hero_bg_alt")} />
         <div className="videos-hero-overlay" />
         <div className="videos-hero-content w-full max-w-[1440px] mx-auto px-4">
           <h1 className="text-[24px] xl:text-[32px] font-bold uppercase tracking-wider text-center pt-[100px]">
@@ -683,7 +687,7 @@ const VideosPage = () => {
             {isAdmin && (
               <div className="w-full max-w-[285px] lg:max-w-[250px] lg:flex-1 flex justify-center lg:justify-end">
                 <button onClick={openAddModal} className="w-full bg-custom-green hover:bg-custom-green-dark text-WS---DarkGrey border border-zinc-300 font-semibold text-lg px-4 py-2 rounded-[5px] flex items-center justify-center gap-3 transition-colors">
-                  <img src={plusIcon} alt="add" />
+                  <img src={plusIcon} alt={t("videos.add_alt")} />
                   <span>{t('videos.buttons.add')}</span>
                 </button>
               </div>
@@ -693,7 +697,7 @@ const VideosPage = () => {
       </section>
 
       <div className="videos-sidebar-toggle" onClick={() => setIsSidebarOpen((prev) => !prev)}>
-        <img src={videoMenuIcon} alt="menu" />
+        <img src={videoMenuIcon} alt={t("videos.menu_alt")} />
         <span className="ml-2 font-semibold text-sm uppercase tracking-wide">{currentCategoryLabel}</span>
       </div>
 
@@ -703,7 +707,7 @@ const VideosPage = () => {
         <div className="column">
           {selectedCategory !== "social" && (
             <div className="search-wrapper relative !hidden md:!block">
-              <img src={searchIcon} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" alt="search" />
+              <img src={searchIcon} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50" alt={t("videos.search_alt")} />
               <input
                 placeholder={t('videos.search_placeholder')}
                 value={searchQuery}
@@ -716,7 +720,7 @@ const VideosPage = () => {
           <aside className={`videos-sidebar ${isSidebarOpen ? "open" : ""}`}>
             <div className="videos-sidebar-mobile-header">
               <span>{t('videos.sidebar.categories')}</span>
-              <button onClick={() => setIsSidebarOpen(false)}><img src={closeIcon} alt="close" /></button>
+              <button onClick={() => setIsSidebarOpen(false)}><img src={closeIcon} alt={t("videos.close_alt")} /></button>
             </div>
 
             <div className="videos-categories-nav">
@@ -731,7 +735,7 @@ const VideosPage = () => {
                   }}
                 >
                   {cat.icon && (
-                    <img src={cat.icon} className={`mr-2 shrink-0 block ${selectedCategory === cat.id ? "active-icon" : ""}`} alt="" />
+                    <img src={cat.icon} className={`mr-2 shrink-0 block ${selectedCategory === cat.id ? "active-icon" : ""}`} alt={cat.label} />
                   )}
                   <span className="whitespace-nowrap">{cat.label}</span>
                 </div>
@@ -739,7 +743,7 @@ const VideosPage = () => {
             </div>
 
             <div className={`row videos-category-item !border-b-0 flex items-center ${selectedCategory === "social" ? "active" : ""}`} onClick={() => setIsSocialOpen(!isSocialOpen)}>
-              <img src={socialIcon} className={`mr-3 shrink-0 ${selectedCategory === "social" ? "active-icon" : ""}`} alt="" />
+              <img src={socialIcon} className={`mr-3 shrink-0 ${selectedCategory === "social" ? "active-icon" : ""}`} alt={t("videos.categories.social")} />
               <span>{t('videos.categories.social')} {isSocialOpen ? "▲" : "▼"}</span>
             </div>
             {isSocialOpen && (
@@ -779,7 +783,7 @@ const VideosPage = () => {
                   {filteredVideos.map((video) => (
                     <div key={video.id} className={`video-card-display ${video.resource_type === "tiktok" ? "tiktok-big" : ""}`}>
                       <div className="video-thumbnail">
-                        <iframe src={getEmbedUrl(video)} allowFullScreen title="video" />
+                        <iframe src={getEmbedUrl(video)} allowFullScreen title={t("videos.iframe_title")} />
                       </div>
                       <div className="video-card-footer flex justify-between items-start">
                         <div className="flex flex-col">
@@ -807,19 +811,19 @@ const VideosPage = () => {
                 <div className="social-widgets-flex-container" style={{width: '100%', display: 'flex', flexDirection: 'column', gap: '30px', marginTop: filteredVideos.length > 0 ? '40px' : '0' }}>
                   {(!selectedSocial || selectedSocial === "TikTok") && (
                     <div className="social-widget-no-grid">
-                       <div className="widget-header" style={{width: '100%', marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>TikTok Стрічка</div>
+                       <div className="widget-header" style={{width: '100%', marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>{t("videos.social_headers.tiktok")}</div>
                        <TikTokWidget />
                     </div>
                   )}
                   {(!selectedSocial || selectedSocial === "Facebook") && (
                     <div className="social-widget-no-grid">
-                       <div className="widget-header" style={{ marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>Facebook Сторінка</div>
+                       <div className="widget-header" style={{ marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>{t("videos.social_headers.facebook")}</div>
                        <FacebookPageWidget />
                     </div>
                   )}
                   {(!selectedSocial || selectedSocial === "Instagram") && (
                     <div className="social-widget-no-grid">
-                       <div className="widget-header" style={{ marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>Instagram Профіль</div>
+                       <div className="widget-header" style={{ marginBottom: '15px', fontSize: '18px', fontWeight: 'bold' }}>{t("videos.social_headers.instagram")}</div>
                        <InstagramProfileIframe />
                     </div>
                   )}
@@ -833,36 +837,45 @@ const VideosPage = () => {
       {/* Модалка додавання/редагування */}
       {isModalOpen && (
         <div className="file-modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="file-modal-window"
+            style={{ width: "min(1040px, 92vw)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="file-modal-header">
               <h3>{selectedVideo ? t('videos.modals.edit_title') : t('videos.modals.add_title')}</h3>
               <button onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
             <form onSubmit={handleSaveVideo} className="claim-form p-4 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
               {/* Поля Назв */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <input className="file-input border p-2 rounded" placeholder="Назва (UA) *" value={videoForm.title_ua} onChange={(e) => setVideoForm({...videoForm, title_ua: e.target.value})} required />
-                <input className="file-input border p-2 rounded" placeholder="Title (EN)" value={videoForm.title_en} onChange={(e) => setVideoForm({...videoForm, title_en: e.target.value})} />
-                <input className="file-input border p-2 rounded" placeholder="Titolo (IT)" value={videoForm.title_it} onChange={(e) => setVideoForm({...videoForm, title_it: e.target.value})} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_ua")} value={videoForm.title_ua} onChange={(e) => setVideoForm({...videoForm, title_ua: e.target.value})} required />
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_en")} value={videoForm.title_en} onChange={(e) => setVideoForm({...videoForm, title_en: e.target.value})} />
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_it")} value={videoForm.title_it} onChange={(e) => setVideoForm({...videoForm, title_it: e.target.value})} />
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_de")} value={videoForm.title_de} onChange={(e) => setVideoForm({...videoForm, title_de: e.target.value})} />
               </div>
 
               {/* Поля URL */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <input className="file-input border p-2 rounded" placeholder="URL (UA) *" value={videoForm.url_ua} onChange={(e) => setVideoForm({...videoForm, url_ua: e.target.value})} required />
-                <input className="file-input border p-2 rounded" placeholder="URL (EN)" value={videoForm.url_en} onChange={(e) => setVideoForm({...videoForm, url_en: e.target.value})} />
-                <input className="file-input border p-2 rounded" placeholder="URL (IT)" value={videoForm.url_it} onChange={(e) => setVideoForm({...videoForm, url_it: e.target.value})} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_ua")} value={videoForm.url_ua} onChange={(e) => setVideoForm({...videoForm, url_ua: e.target.value})} required />
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_en")} value={videoForm.url_en} onChange={(e) => setVideoForm({...videoForm, url_en: e.target.value})} />
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_it")} value={videoForm.url_it} onChange={(e) => setVideoForm({...videoForm, url_it: e.target.value})} />
+                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_de")} value={videoForm.url_de} onChange={(e) => setVideoForm({...videoForm, url_de: e.target.value})} />
               </div>
               
               {/* Описи */}
-              <textarea className="file-input border p-2 rounded h-20" placeholder="Опис (UA)" value={videoForm.description_ua} onChange={(e) => setVideoForm({...videoForm, description_ua: e.target.value})} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <textarea className="file-input border p-2 rounded h-20" placeholder={t("videos.form.description_ua")} value={videoForm.description_ua} onChange={(e) => setVideoForm({...videoForm, description_ua: e.target.value})} />
+                <textarea className="file-input border p-2 rounded h-20" placeholder={t("videos.form.description_de")} value={videoForm.description_de} onChange={(e) => setVideoForm({...videoForm, description_de: e.target.value})} />
+              </div>
               
               <div className="flex gap-4">
                 <select className="file-input border p-2 rounded flex-1" value={videoForm.category} onChange={(e) => setVideoForm({...videoForm, category: e.target.value})}>
-                  <option value="2">Технічні навчання</option>
-                  <option value="3">Медіа-огляди</option>
-                  <option value="4">Відео з виробництва</option>
-                  <option value="5">Відео з монтажу</option>
-                  <option value="6">Відео з соцмереж</option>
+                  <option value="2">{t("videos.categories.tech")}</option>
+                  <option value="3">{t("videos.categories.media")}</option>
+                  <option value="4">{t("videos.categories.factory")}</option>
+                  <option value="5">{t("videos.categories.install")}</option>
+                  <option value="6">{t("videos.categories.social")}</option>
                 </select>
                 <select className="file-input border p-2 rounded flex-1" value={videoForm.resource_type} onChange={(e) => setVideoForm({...videoForm, resource_type: e.target.value})}>
                   <option value="youtube">YouTube</option>

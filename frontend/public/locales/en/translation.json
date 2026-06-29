@@ -51,15 +51,24 @@
   },
   "nav": {
     "promo_wds": "WDS Promo",
+    "promo_wds_short": "WDS Promo",
     "orders": "Orders",
+    "orders_short": "Orders",
     "complaints": "Complaints",
+    "complaints_short": "Complaints",
     "additional_orders": "Extra Orders",
+    "additional_orders_short": "Extra Orders",
     "files": "Files",
+    "files_short": "Files",
     "videos": "Videos",
+    "videos_short": "Videos",
     "payment": "Payment",
+    "payment_short": "Payment",
     "finance": "Finance",
+    "finance_short": "Finance",
     "finance_cash_flow": "Cash Flow",
     "finance_analytics": "Analytics",
+    "finance_analytics_short": "Analytics",
     "finance_bills": "Invoices",
     "change_password": "Change Password",
     "emergency_line": "Hotline",
@@ -74,7 +83,8 @@
     "settings_emergency_contacts": "Emergency Contacts",
     "profile": "Profile",
     "notifications": "Notifications",
-    "tech_file": "Technical Materials"
+    "tech_file": "Technical Materials",
+    "tech_file_short": "Technical Materials"
   },
   "common": {
     "loading": "Loading...",
@@ -87,6 +97,7 @@
     "show": "Show",
     "no_results": "No results found",
     "loadingFiles": "Loading files…",
+    "noDate": "Unknown",
     "downloading": "Downloading...",
     "view": "View",
     "download": "Download",
@@ -104,6 +115,38 @@
     "update": "Update",
     "saving": "Saving...",
     "deleting": "Deleting..."
+  },
+  "route_titles": {
+    "default": "Orders Portal",
+    "login": "Login — Orders Portal",
+    "home": "Orders Portal",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "files": "Files",
+    "files_add": "Add Files",
+    "files_edit": "Edit Files",
+    "videos": "Videos",
+    "user_add": "Add User",
+    "organizations": "Organizations",
+    "regions": "Regions",
+    "contacts": "SOS Contacts",
+    "orders": "Orders",
+    "complaints": "Complaints",
+    "additional_orders": "Additional Orders",
+    "finance": "Finance",
+    "change_password": "Change Password",
+    "user_edit": "Edit User",
+    "settlements": "Settlements",
+    "cash_flow": "Cash Flow",
+    "contacts_add": "Add SOS Contacts",
+    "sos_requests": "SOS Requests",
+    "contacts_edit": "Edit SOS Contacts",
+    "emergency_contacts": "SOS",
+    "promo_wds": "WDS Promo",
+    "payment": "Payment",
+    "customer_bills": "Invoices",
+    "analytics": "Analytics",
+    "edit_addresses": "Edit Addresses"
   },
   "notifications": {
     "title": "Notifications",
@@ -193,7 +236,7 @@
       "subtitle_1": "Useful materials for download:",
       "subtitle_2": "certificates, test reports, etc."
     },
-    "searchPlaceholder": "search by name",
+    "searchPlaceholder": "Search by title or author...",
     "choose_file": "Choose file",
     "noResults": "No files found",
     "empty": "No files available",
@@ -206,17 +249,31 @@
       "delete": "Delete",
       "cancel": "Cancel",
       "upload": "Upload",
-      "save": "Save changes"
+      "save": "Save changes",
+      "uploading": "Uploading...",
+      "saving": "Saving..."
     },
+    "labels": {
+      "title_ua": "Title (UA) *",
+      "title_en": "Title (EN)",
+      "title_de": "Title (DE)",
+      "change_file_optional": "Replace file (optional)"
+    },
+    "hero_bg_alt": "Files background",
+    "search_alt": "Search",
     "errors": {
-      "download": "Error download files",
+      "download": "Error downloading files",
       "error": "Error:",
+      "delete": "Failed to delete file",
+      "no_file_data": "No file data",
+      "required_ua_title": "Ukrainian title is required",
       "error_add_file": "Failed to add file",
       "error_change_file": "Failed to modify file"
     },
     "feedback": {
       "success": "File added successfully!",
       "edit": "File successfully modified!",
+      "deleted": "File deleted",
       "confirmDeleteMessage": "Are you sure you want to delete the file?",
       "deleteFile": "Deleting a file"
     }
@@ -226,6 +283,12 @@
       "title": "Videos",
       "subtitle": "Useful video materials to help in your work"
     },
+    "hero_bg_alt": "Videos background",
+    "menu_alt": "Video menu",
+    "search_alt": "Search videos",
+    "close_alt": "Close",
+    "add_alt": "Add video",
+    "iframe_title": "Video",
     "categories": {
       "tech": "Technical Training",
       "media": "Media Reviews",
@@ -239,6 +302,28 @@
       "saving": "Saving...",
       "edit": "Edit",
       "delete": "Delete"
+    },
+    "feedback": {
+      "added": "Video added successfully",
+      "updated": "Video updated successfully",
+      "deleted": "Video deleted"
+    },
+    "social_headers": {
+      "tiktok": "TikTok Feed",
+      "facebook": "Facebook Page",
+      "instagram": "Instagram Profile"
+    },
+    "form": {
+      "title_ua": "Title (UA) *",
+      "title_en": "Title (EN)",
+      "title_it": "Title (IT)",
+      "title_de": "Title (DE)",
+      "url_ua": "URL (UA) *",
+      "url_en": "URL (EN)",
+      "url_it": "URL (IT)",
+      "url_de": "URL (DE)",
+      "description_ua": "Description (UA)",
+      "description_de": "Description (DE)"
     },
     "modals": {
       "add_title": "Add New Video",
@@ -278,6 +363,7 @@
       "loadingOfAddress": "Loading addresses...",
       "choose": "Select",
       "downloadZKZ": "Upload file (.zkz)",
+      "addImages": "Add images",
       "numberOfConstruction": "Number of units:",
       "comment": "Comment:",
       "cancel": "Cancel",
@@ -286,6 +372,13 @@
       "repeat": "RETRY"
     },
     "modalFilesTitle": "Order Files",
+    "modalCalcFilesTitle": "Calculation Files",
+    "modalFilesSubtitle": "Documentation and photos",
+    "sectionProjects": "Files",
+    "sectionPhotos": "Object photos",
+    "sectionOthers": "Other",
+    "totalFiles": "Total",
+    "downloadFileError": "Error while downloading file",
     "noFilesFound": "No files found for this order."
   },
   "clientAddressModal": {
@@ -408,6 +501,14 @@
     "no_options": "No options available"
   },
   "reasons": {
+    "Переробити конструкцію на виробництві за рахунок виробника": "Remanufacture the structure in production at the manufacturer's expense",
+    "Переробити конструкцію на виробництві за рахунок замовника": "Remanufacture the structure in production at the customer's expense",
+    "Замінити фурнітуру за рахунок виробника": "Replace the hardware at the manufacturer's expense",
+    "Замінити склопакет за рахунок виробника": "Replace the insulated glass unit at the manufacturer's expense",
+    "Замінити склопакет за рахунок замовника": "Replace the insulated glass unit at the customer's expense",
+    "Замінити пошкодженні матеріали за рахунок виробника": "Replace damaged materials at the manufacturer's expense",
+    "Замінити пошкодженні матеріали за рахунок замовника": "Replace damaged materials at the customer's expense",
+    "Замінити браковані матеріали за рахунок виробника": "Replace defective materials at the manufacturer's expense",
     "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "Reimburse (compensate) the cost of damaged order elements, works, services at the manufacturer's expense",
     "Доукомплектувати замовлення за рахунок виробника": "Complete the order at the manufacturer's expense",
     "Доукомплектувати замовлення за рахунок замовника": "Complete the order at the customer's expense",
@@ -430,7 +531,85 @@
     "error_max_amount": "Maximum amount is {{amount}}",
     "btn_cancel": "Cancel",
     "btn_pay": "Pay",
-    "btn_processing": "Processing..."
+    "btn_processing": "Processing...",
+    "topup_invoice": "Create a top-up invoice for the advance contract"
+  },
+  "payments_page": {
+    "title": "Finance",
+    "actions": {
+      "refresh": "Refresh data",
+      "pay": "Pay"
+    },
+    "filters": {
+      "title": "Filters",
+      "search": "Search",
+      "search_placeholder": "order number",
+      "statuses": "Statuses",
+      "contracts": "Contracts",
+      "all_contracts": "All contracts"
+    },
+    "status_filters": {
+      "all": "All orders",
+      "waiting_confirmation": "Waiting for confirmation",
+      "waiting_payment": "Waiting for payment",
+      "confirmed": "Confirmed",
+      "production": "In production",
+      "ready": "Ready",
+      "shipped": "Shipped",
+      "non_liquid": "Non-liquid"
+    },
+    "statuses": {
+      "reserved": "Reserved"
+    },
+    "labels": {
+      "amount": "Amount",
+      "paid": "Paid",
+      "balance_due": "Balance"
+    },
+    "sections": {
+      "advances": "Your advances on contracts",
+      "orders_to_pay": "Orders to pay"
+    },
+    "empty": {
+      "no_advances": "No advances available",
+      "no_orders_filtered": "No orders match the selected filters"
+    },
+    "errors": {
+      "load_data": "Failed to load financial data"
+    },
+    "notifications": {
+      "payment_success": "Payment completed!",
+      "payment_error": "Payment error"
+    },
+    "analytics": {
+      "debt_limit": "Debt limit",
+      "overlimit": "Debt overlimit",
+      "limit_usage": "Limit usage",
+      "no_prepayment": "No prepayment",
+      "underfunded": "Underfunded",
+      "post_sale_debt": "Debt after sale",
+      "route_debt": "Debt after route completion",
+      "in_routes": "In routes",
+      "money_in_transit": "Money in transit",
+      "debt_over_ten_days": "Debt > 10d",
+      "debt_over_ten_days_short": "Debt > 10d",
+      "no_prepayment_orders": "Orders without prepayment",
+      "critical_orders": "Orders overdue by more than 10 days",
+      "underfunded_orders": "Underfunded orders",
+      "in_route_orders": "Debt in routes (in transit)",
+      "money_in_transit_orders": "Money in transit"
+    },
+    "detail": {
+      "date": "Date",
+      "amount": "Amount",
+      "action": "Action",
+      "empty": "No data available",
+      "find": "Find",
+      "find_in_list": "Find in list"
+    },
+    "common": {
+      "no_data_short": "—"
+    }
   },
   "confirm_modal": {
     "default_title": "Confirm Action",
@@ -939,6 +1118,43 @@
       "invite_used": "This link has already been used",
       "invite_expired": "This link is no longer active",
       "invalid_code": "Invalid invitation code"
+    }
+  },
+  "support_chat": {
+    "title": "Support",
+    "page_title": "Support Chat",
+    "manager_support": "Manager Support",
+    "default_client_name": "Client",
+    "loading": "Loading...",
+    "empty_history": "No history yet",
+    "file_added": "Attached file:",
+    "remove_file": "Remove",
+    "welcome_title": "Welcome!",
+    "welcome_text": "Write to us if you have any questions about orders, payment, delivery, or complaints.",
+    "recording_active": "Recording voice message...",
+    "recording_placeholder": "Recording...",
+    "message_placeholder": "Write a message...",
+    "sending": "Sending...",
+    "actions": {
+      "attach_file": "Attach file",
+      "record_voice": "Record voice",
+      "stop_recording": "Stop recording",
+      "send": "Send"
+    },
+    "attachment": {
+      "image_alt": "image",
+      "file_fallback": "File"
+    },
+    "success": {
+      "sent": "Message sent"
+    },
+    "errors": {
+      "load_history": "Failed to load chat history",
+      "mark_read": "Failed to mark chat as read",
+      "recording_start": "Failed to start voice recording",
+      "empty_message": "Write a message or attach a file",
+      "contractor_not_found": "User ContractorId was not found",
+      "send_message": "Failed to send message"
     }
   }
 }
