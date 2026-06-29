@@ -2,17 +2,45 @@ import requests
 from django.conf import settings
 
 
-def send_telegram_message(telegram_chat_id: int, text: str):
-    url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+def get_bot_token():
+    return (
+        getattr(settings, "BOT_TOKEN", None)
+        or getattr(settings, "TELEGRAM_BOT_TOKEN", None)
+    )
 
-    response = requests.post(url, json={
-        "chat_id": telegram_chat_id,
-        "text": text,
-        "parse_mode": "HTML",
-    })
 
-    response.raise_for_status()
+def parse_telegram_response(response):
+    if response.status_code == 413:
+        return {
+            "ok": False,
+            "error": "Файл завеликий для відправки в Telegram",
+            "status_code": 413,
+        }
+
+    if not response.ok:
+        return {
+            "ok": False,
+            "error": response.text,
+            "status_code": response.status_code,
+        }
+
     return response.json()
+
+
+def send_telegram_message(telegram_chat_id: int, text: str):
+    url = f"https://api.telegram.org/bot{get_bot_token()}/sendMessage"
+
+    response = requests.post(
+        url,
+        json={
+            "chat_id": telegram_chat_id,
+            "text": text,
+            "parse_mode": "HTML",
+        },
+        timeout=30,
+    )
+
+    return parse_telegram_response(response)
 
 
 def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
@@ -31,7 +59,7 @@ def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
         method = "sendDocument"
         field_name = "document"
 
-    url = f"https://api.telegram.org/bot{settings.BOT_TOKEN}/{method}"
+    url = f"https://api.telegram.org/bot{get_bot_token()}/{method}"
 
     file_obj.seek(0)
 
@@ -49,37 +77,61 @@ def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
                 content_type,
             )
         },
+        timeout=60,
     )
 
-    response.raise_for_status()
-    return response.json()
-
-
-import requests
-from django.conf import settings
+    return parse_telegram_response(response)
 
 
 def get_telegram_file_info(file_id: str):
-    url = f"https://api.telegram.org/bot{settings.BOT_TOKEN}/getFile"
+    url = f"https://api.telegram.org/bot{get_bot_token()}/getFile"
 
-    response = requests.get(url, params={
-        "file_id": file_id
-    })
+    response = requests.get(
+        url,
+        params={"file_id": file_id},
+        timeout=30,
+    )
 
-    response.raise_for_status()
-    return response.json()["result"]
+    data = parse_telegram_response(response)
+
+    if not data.get("ok"):
+        return data
+
+    return data["result"]
 
 
 def download_telegram_file(file_id: str):
     file_info = get_telegram_file_info(file_id)
+
+    if not isinstance(file_info, dict) or not file_info.get("file_path"):
+        return {
+            "ok": False,
+            "error": "Не вдалося отримати файл з Telegram",
+            "file_info": file_info,
+        }
+
     file_path = file_info["file_path"]
 
-    url = f"https://api.telegram.org/file/bot{settings.BOT_TOKEN}/{file_path}"
+    url = f"https://api.telegram.org/file/bot{get_bot_token()}/{file_path}"
 
-    response = requests.get(url)
-    response.raise_for_status()
+    response = requests.get(url, timeout=60)
+
+    if response.status_code == 413:
+        return {
+            "ok": False,
+            "error": "Файл завеликий для завантаження з Telegram",
+            "status_code": 413,
+        }
+
+    if not response.ok:
+        return {
+            "ok": False,
+            "error": response.text,
+            "status_code": response.status_code,
+        }
 
     return {
+        "ok": True,
         "bytes": response.content,
         "file_path": file_path,
         "file_size": file_info.get("file_size"),
