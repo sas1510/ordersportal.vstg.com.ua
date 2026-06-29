@@ -10,7 +10,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
 
   const {t, i18n} = useTranslation();
 
-  const locale = i18n.language === 'en' ? 'en-US' : 'uk-UA';
+  const locale = i18n.language === 'de' ? 'de-DE' : i18n.language === 'en' ? 'en-US' : 'uk-UA';
 
   const isEmpty = useCallback(
     (val) => val === undefined || val === null || String(val).trim() === "",

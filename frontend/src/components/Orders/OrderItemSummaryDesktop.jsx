@@ -342,7 +342,7 @@ export default React.memo(function OrderItemSummaryDesktop({
           <div className="column items-start w-full">
          
             <div className="column border-bottom w-full pb-1">
-              <span className="text-[10px] text-grey leading-none">Номер замовлення</span>
+              <span className="text-[10px] text-grey leading-none">{t("order_mobile.labels.order_number")}</span>
               <div className="text-[15px] text-bold mt-0.5">
                 № {order.number}
               </div>
@@ -359,7 +359,7 @@ export default React.memo(function OrderItemSummaryDesktop({
        <div className="summary-item flex items-center  justify-center">
         <div className="column items-center w-full h-full">
           {/* Маленький підпис зверху */}
-          <span className="text-[10px] text-grey leading-none mb-2 mt-1">Конструкцій</span>
+          <span className="text-[10px] text-grey leading-none mb-2 mt-1">{t("order_mobile.labels.constructions")}</span>
           
           {/* Рядок з іконкою та значенням */}
           <div className="row gap-2 align-center">

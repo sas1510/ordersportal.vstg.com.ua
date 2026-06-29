@@ -1,44 +1,42 @@
-// import i18n from 'i18next';
-// import { initReactI18next } from 'react-i18next';
-// import Backend from 'i18next-http-backend';
-// import LanguageDetector from 'i18next-browser-languagedetector';
+import i18n from "i18next";
+import Backend from "i18next-http-backend";
+import LanguageDetector from "i18next-browser-languagedetector";
+import { initReactI18next } from "react-i18next";
 
-// i18n
-//   .use(Backend) // Loads translations from /public/locales
-//   .use(LanguageDetector) // Detects user language (browser settings, cookies, etc.)
-//   .use(initReactI18next) // Passes i18n down to react-i18next
-//   .init({
-//     fallbackLng: 'en',
-//     debug: false,
-//     interpolation: {
-//       escapeValue: false, // React already safes from xss
-//     }
-//   });
-
-// export default i18n;
-
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import Backend from 'i18next-http-backend';
-// LanguageDetector можна не імпортувати, якщо ми хочемо фіксовану мову
+const supportedLngs = ["uk", "en", "de"];
+const fallbackLng = "uk";
 
 i18n
   .use(Backend)
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    lng: 'uk', // Встановлюємо українську як поточну
-    fallbackLng: 'uk', // Якщо переклад відсутній — теж українська
-    supportedLngs: ['uk'], // Обмежуємо список підтримуваних мов
-    
+    fallbackLng,
+    supportedLngs,
+    load: "languageOnly",
+    nonExplicitSupportedLngs: true,
     debug: false,
     interpolation: {
-      escapeValue: false, 
+      escapeValue: false,
     },
-    // Опціонально: вимикаємо виявлення мови браузером, щоб lng: 'uk' завжди перемагало
+    backend: {
+      loadPath: "/locales/{{lng}}/{{ns}}.json",
+    },
     detection: {
-      order: ['queryString', 'cookie'], // ігноруємо 'navigator' (налаштування браузера)
-      caches: ['cookie'],
-    }
+      order: ["querystring", "localStorage", "navigator", "htmlTag"],
+      lookupQuerystring: "lang",
+      caches: ["localStorage"],
+    },
   });
+
+i18n.on("languageChanged", (lng) => {
+  if (typeof document !== "undefined") {
+    document.documentElement.lang = lng;
+  }
+});
+
+if (typeof document !== "undefined") {
+  document.documentElement.lang = i18n.resolvedLanguage || fallbackLng;
+}
 
 export default i18n;

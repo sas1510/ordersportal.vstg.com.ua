@@ -9,6 +9,15 @@ export const numToUAMoneyFormat = (num) => {
 
 export const ifZero = (num) => (num === 0 ? "-" : num);
 
+const resolveDateLocale = (lng = "uk") => {
+  const normalizedLng = String(lng || "uk").toLowerCase();
+
+  if (normalizedLng.startsWith("de")) return "de-DE";
+  if (normalizedLng.startsWith("en")) return "en-GB";
+
+  return "uk-UA";
+};
+
 export const formatDate = (input) => {
   if (!input || input === "Не вказано") return "Не вказано";
 
@@ -40,7 +49,7 @@ export const formatDateHuman = (dateStr, lng = "uk") => {
   if (isNaN(date)) return null;
 
 
-  const locale = lng === "en" ? "en-GB" : "uk-UA";
+  const locale = resolveDateLocale(lng);
 
   return date.toLocaleDateString(locale, {
     day: "2-digit",
@@ -55,7 +64,7 @@ export const formatDateHumanShorter_full = (dateStr, lng = "uk-UA") => {
   if (isNaN(date)) return null;
 
   // Форматуємо відповідно до мови
-  return date.toLocaleString(lng === "en" ? "en-GB" : "uk-UA", {
+  return date.toLocaleString(resolveDateLocale(lng), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -110,10 +119,15 @@ export const formatDateTimeCustom = (input) => {
 
 export const formatDateTimeShort = (input, lng = "uk") => {
 
-  const currentLocale = lng === "en" ? "en-GB" : "uk-UA";
+  const normalizedLng = String(lng || "uk").toLowerCase();
+  const currentLocale = resolveDateLocale(normalizedLng);
   
  
-  const fallback = lng === "en" ? "Not specified" : "Не вказано";
+  const fallback = normalizedLng.startsWith("de")
+    ? "Nicht angegeben"
+    : normalizedLng.startsWith("en")
+      ? "Not specified"
+      : "Не вказано";
 
   if (!input || input === "Не вказано" || input === "Not specified") {
     return fallback;
@@ -133,7 +147,7 @@ export const formatDateTimeShort = (input, lng = "uk") => {
   const timePart = date.toLocaleTimeString(currentLocale, {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: lng === "en", 
+    hour12: normalizedLng.startsWith("en"), 
   });
 
   return `${datePart} ${timePart}`;

@@ -23,10 +23,22 @@
     "export_geography": "Export geography: Germany, Italy, Romania, Canada, and the USA."
   },
   "values": {
-    "aesthetics": { "title": "Aesthetics", "desc": "Modern design" },
-    "quality": { "title": "Quality", "desc": "European standards" },
-    "price": { "title": "Best Price", "desc": "In-house production" },
-    "safety": { "title": "Safety", "desc": "Reliable protection" }
+    "aesthetics": {
+      "title": "Aesthetics",
+      "desc": "Modern design"
+    },
+    "quality": {
+      "title": "Quality",
+      "desc": "European standards"
+    },
+    "price": {
+      "title": "Best Price",
+      "desc": "In-house production"
+    },
+    "safety": {
+      "title": "Safety",
+      "desc": "Reliable protection"
+    }
   },
   "media": {
     "title": "Media Review"
@@ -61,8 +73,8 @@
     "settings_sos_stats": "SOS Stats",
     "settings_emergency_contacts": "Emergency Contacts",
     "profile": "Profile",
-    "notifications": "Notifications"
-
+    "notifications": "Notifications",
+    "tech_file": "Technical Materials"
   },
   "common": {
     "loading": "Loading...",
@@ -85,16 +97,13 @@
     "generating": "Generating",
     "no_data": "No data found",
     "try_again": "Try again",
-        "edit": "Edit",
+    "edit": "Edit",
     "delete": "Delete",
     "cancel": "Cancel",
     "add": "Add",
     "update": "Update",
     "saving": "Saving...",
     "deleting": "Deleting..."
-
-
-
   },
   "notifications": {
     "title": "Notifications",
@@ -139,8 +148,6 @@
       "Доп. замовлення": "Additional order"
     }
   },
-
-
   "login": {
     "welcome_title": "Welcome back!",
     "welcome_subtitle": "Sign in to the analytics and ordering portal",
@@ -157,9 +164,8 @@
     "error_auth": "Authorization error",
     "error_server_unavailable": "Server unavailable. Please check your connection.",
     "error_general": "An error occurred"
-  
-}, 
-"wds": {
+  },
+  "wds": {
     "title": "Promo WDS-codes",
     "loading_text": "Searching for promotional offers…",
     "no_data": "No promo codes found for the specified period",
@@ -181,8 +187,6 @@
     "empty": "Empty",
     "all_dealers": "All dealers"
   },
-
-  
   "files": {
     "header": {
       "title": "Files",
@@ -195,7 +199,7 @@
     "empty": "No files available",
     "adminRole": "Administrator",
     "unknownDate": "Unknown",
-    "buttons": { 
+    "buttons": {
       "add": "Add file",
       "download": "Download",
       "edit": "Edit",
@@ -205,22 +209,19 @@
       "save": "Save changes"
     },
     "errors": {
-        "download" : "Error download files",
-        "error" : "Error:",
-        "error_add_file" : "Failed to add file",
-        "error_change_file" : "Failed to modify file"
-
+      "download": "Error download files",
+      "error": "Error:",
+      "error_add_file": "Failed to add file",
+      "error_change_file": "Failed to modify file"
     },
     "feedback": {
-        "success" : "File added successfully!",
-        "edit" : "File successfully modified!",
-        "confirmDeleteMessage" : "Are you sure you want to delete the file?",
-        "deleteFile" : "Deleting a file"
+      "success": "File added successfully!",
+      "edit": "File successfully modified!",
+      "confirmDeleteMessage": "Are you sure you want to delete the file?",
+      "deleteFile": "Deleting a file"
     }
-    
-  
-},
-"videos": {
+  },
+  "videos": {
     "header": {
       "title": "Videos",
       "subtitle": "Useful video materials to help in your work"
@@ -251,41 +252,43 @@
       "load": "Error loading videos",
       "save": "Error while saving",
       "delete": "Error while deleting"
+    },
+    "sidebar": {
+      "categories": "Categories"
     }
   },
- "orders": {
+  "orders": {
     "newOrderModal": {
-        "coord_message_1": "Attention! Geo-coordinates are not set.",
-        "coord_message_2": "To calculate logistics correctly, you must specify a point on the map.",
-        "coord_message_3": "Please contact your manager to update the address data",
-        "error_message_1": "Failed to load addresses:",
-        "error_message_2": "No file chosen",
-        "error_message_3": "Please fill in all fields",
-        "error_message_4": "Please select a delivery address",
-        "error_message_5": "Please select a client address",
-        "error_message_6": "Creation error:",
-        "error_message_7": "Address not selected",
-        "order_created": "Calculation №{{orderNumber}} has been created ✅",
-        "order_create": "Create new calculation",
-        "dealer": "Dealer:",
-        "myAddress": "My address",
-        "clientAddress": "Client address",
-        "address": "Delivery address:",
-        "loadingOfAddress": "Loading addresses...",
-        "choose": "Select",
-        "downloadZKZ": "Upload file (.zkz)",
-        "numberOfConstruction": "Number of units:",
-        "comment": "Comment:",
-        "cancel": "Cancel",
-        "creating": "Creating...",
-        "save": "Save",
-        "repeat": "RETRY"
-
+      "coord_message_1": "Attention! Geo-coordinates are not set.",
+      "coord_message_2": "To calculate logistics correctly, you must specify a point on the map.",
+      "coord_message_3": "Please contact your manager to update the address data",
+      "error_message_1": "Failed to load addresses:",
+      "error_message_2": "No file chosen",
+      "error_message_3": "Please fill in all fields",
+      "error_message_4": "Please select a delivery address",
+      "error_message_5": "Please select a client address",
+      "error_message_6": "Creation error:",
+      "error_message_7": "Address not selected",
+      "order_created": "Calculation №{{orderNumber}} has been created ✅",
+      "order_create": "Create new calculation",
+      "dealer": "Dealer:",
+      "myAddress": "My address",
+      "clientAddress": "Client address",
+      "address": "Delivery address:",
+      "loadingOfAddress": "Loading addresses...",
+      "choose": "Select",
+      "downloadZKZ": "Upload file (.zkz)",
+      "numberOfConstruction": "Number of units:",
+      "comment": "Comment:",
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "save": "Save",
+      "repeat": "RETRY"
     },
     "modalFilesTitle": "Order Files",
     "noFilesFound": "No files found for this order."
-},
-"clientAddressModal": {
+  },
+  "clientAddressModal": {
     "title": "🏠 Client Address",
     "contactSection": "Client Contact Info",
     "addressSection": "Delivery Address",
@@ -295,72 +298,70 @@
     "cancel": "Cancel",
     "save": "Save",
     "fields": {
-        "fullName": "Full Name (First and Last Name) *",
-        "phone": "Phone (+380...) *",
-        "extraInfo": "Additional Information",
-        "region": "Region/State *",
-        "district": "District/County *",
-        "city": "City/Town *",
-        "street": "Street *",
-        "house": "House/Building No. *",
-        "apartment": "Apartment",
-        "entrance": "Entrance",
-        "floor": "Floor",
-        "note": "Note"
+      "fullName": "Full Name (First and Last Name) *",
+      "phone": "Phone (+380...) *",
+      "extraInfo": "Additional Information",
+      "region": "Region/State *",
+      "district": "District/County *",
+      "city": "City/Town *",
+      "street": "Street *",
+      "house": "House/Building No. *",
+      "apartment": "Apartment",
+      "entrance": "Entrance",
+      "floor": "Floor",
+      "note": "Note"
     },
     "errors": {
-        "requiredField": "Please fill in the required field: {{field}}",
-        "fillRequired": "Please fill in the required address fields",
-        "invalidName": "Please enter the client's Full Name (First and Last)",
-        "invalidPhone": "Invalid phone format (+380XXXXXXXXX)",
-        "selectOnMap": "Please select a point on the map",
-        "preciseLocation": "Refine the location: drag the marker or click more precisely"
+      "requiredField": "Please fill in the required field: {{field}}",
+      "fillRequired": "Please fill in the required address fields",
+      "invalidName": "Please enter the client's Full Name (First and Last)",
+      "invalidPhone": "Invalid phone format (+380XXXXXXXXX)",
+      "selectOnMap": "Please select a point on the map",
+      "preciseLocation": "Refine the location: drag the marker or click more precisely"
     },
     "success": "Client address data saved successfully ✅"
-    },
-    "commentsModal": {
-        "title": "Chat",
-        "noMessages": "No messages yet",
-        "placeholder": "Your message...",
-        "errors": {
-            "fetchProfile": "Profile error",
-            "fetchHistory": "Failed to load chat history",
-            "authFailed": "Authorization failed, reconnecting in 5 sec...",
-            "wsClosed": "Connection closed (code: {{code}}). Reconnecting...",
-            "wsError": "WS error",
-            "connectionLost": "Connection lost. Please try refreshing the page."
-        }
-    },
-    "counterpartyModal": {
-        "dealer": "Dealer",
-        "recipient": "Recipient:",
-        "phone": "Phone:",
-        "additional": "Additional Info:",
-        "deliveryAddress": "Delivery Address:",
-        "pickup": "Pickup",
-        "close": "Close"
-    },
-        
-    "delete_modal": {
-        "title": "Confirm Deletion",
-        "warning": "Are you sure you want to delete {{type}} \"{{name}}\"?",
-        "description": "This action is irreversible. All related data will also be deleted.",
-        "cancel": "Cancel",
-        "delete": "Delete",
-        "deleting": "Deleting...",
-        "success": "{{type}} \"{{name}}\" deleted successfully ✅",
-        "error_unknown": "Unknown item type ❌",
-        "types": {
-        "order": "order",
-        "calculation": "calculation",
-        "client": "client",
-        "product": "product",
-        "reclamation": "reclamation",
-        "additionalOrder": "additional order",
-        "record": "record"
-        }
-  }, 
-  
+  },
+  "commentsModal": {
+    "title": "Chat",
+    "noMessages": "No messages yet",
+    "placeholder": "Your message...",
+    "errors": {
+      "fetchProfile": "Profile error",
+      "fetchHistory": "Failed to load chat history",
+      "authFailed": "Authorization failed, reconnecting in 5 sec...",
+      "wsClosed": "Connection closed (code: {{code}}). Reconnecting...",
+      "wsError": "WS error",
+      "connectionLost": "Connection lost. Please try refreshing the page."
+    }
+  },
+  "counterpartyModal": {
+    "dealer": "Dealer",
+    "recipient": "Recipient:",
+    "phone": "Phone:",
+    "additional": "Additional Info:",
+    "deliveryAddress": "Delivery Address:",
+    "pickup": "Pickup",
+    "close": "Close"
+  },
+  "delete_modal": {
+    "title": "Confirm Deletion",
+    "warning": "Are you sure you want to delete {{type}} \"{{name}}\"?",
+    "description": "This action is irreversible. All related data will also be deleted.",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "success": "{{type}} \"{{name}}\" deleted successfully ✅",
+    "error_unknown": "Unknown item type ❌",
+    "types": {
+      "order": "order",
+      "calculation": "calculation",
+      "client": "client",
+      "product": "product",
+      "reclamation": "reclamation",
+      "additionalOrder": "additional order",
+      "record": "record"
+    }
+  },
   "reorder_modal": {
     "title": "Additional Order",
     "order_number": "Order Number:",
@@ -375,9 +376,7 @@
     "btn_cancel": "Cancel",
     "btn_save": "Add",
     "success_create": "Additional order created successfully!"
-  }, 
-
-  
+  },
   "add_claim": {
     "title": "Add Claim",
     "order_number": "Order Number:",
@@ -404,20 +403,17 @@
       "series": "Failed to get design series data"
     }
   },
-  
   "select": {
     "default_placeholder": "-- Select --",
     "no_options": "No options available"
   },
-
   "reasons": {
     "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "Reimburse (compensate) the cost of damaged order elements, works, services at the manufacturer's expense",
     "Доукомплектувати замовлення за рахунок виробника": "Complete the order at the manufacturer's expense",
     "Доукомплектувати замовлення за рахунок замовника": "Complete the order at the customer's expense",
     "Дозамовлення за рахунок замовника": "Additional order at the customer's expense",
     "Повернути конструкцію на виробництво (неліквід)": "Return the structure to production (non-liquid/defective)"
-  }, 
-  
+  },
   "payment_modal": {
     "title": "Payment for Order No. {{number}}",
     "loading": "Loading...",
@@ -436,22 +432,19 @@
     "btn_pay": "Pay",
     "btn_processing": "Processing..."
   },
-  
   "confirm_modal": {
     "default_title": "Confirm Action",
     "default_message": "Are you sure you want to perform this action?",
     "confirm": "Confirm",
     "cancel": "Cancel"
   },
-  
   "order_mobile": {
-    
-
     "labels": {
       "constructions": "Constructions",
       "files": "Files",
       "order_amount": "Order amount",
-      "debt_amount": "Debt amount"
+      "debt_amount": "Debt amount",
+      "order_number": "Order Number"
     },
     "buttons": {
       "confirm": "Confirm",
@@ -492,11 +485,10 @@
       "plan": "Plan",
       "not_ready": "Not ready",
       "not_delivered": "Not delivered",
-      "from" : "from",
-      "to" : "to"
+      "from": "from",
+      "to": "to"
     }
   },
-  
   "order_status": {
     "new": "New",
     "processing": "Processing",
@@ -509,7 +501,6 @@
     "production": "In production",
     "in_work": "In progress"
   },
-
   "errors": {
     "serverError": "The server returned an error.",
     "errorSendData": "Failed to send data: ",
@@ -520,7 +511,6 @@
     "paymentError": "Error occurred during payment processing",
     "fetch_failed": "Error loading data"
   },
-
   "calc": {
     "constructions_qty": "Number of constructions",
     "orders_qty": "Number of orders",
@@ -568,12 +558,39 @@
       "constructions": "Constructions",
       "orders": "Orders",
       "hide_orders": "Hide orders",
-      "show_orders": "Show orders ({{count}})"
+      "show_orders": "Show orders ({{count}})",
+      "calculation_number": "Calculation Number"
     },
     "months": {
       "all_year": "Full year",
-      "short": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      "full": ["January","February","March","April","May","June","July","August","September","October","November","December"]
+      "short": [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+      ],
+      "full": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
     },
     "filter_labels": {
       "all": "All calculations",
@@ -591,7 +608,6 @@
       "connection_error": "Failed to update data. Check your connection."
     }
   },
-  
   "complaints": {
     "detail": {
       "not_specified": "Not specified",
@@ -620,7 +636,7 @@
         "general_error": "An error occurred while loading images"
       }
     }
-  }, 
+  },
   "reclamation": {
     "no_comments": "No comments",
     "no-data": "No complaints found.",
@@ -639,48 +655,55 @@
       "resolved": "Resolved",
       "rejected": "Rejected"
     },
-   
-  "common": {
-    "hide": "Hide",
-    "details": "Details",
-    "loading_data": "Loading reclamation data...",
-    "updating_list": "Updating reclamation list...",
-    "report_year": "Reporting year",
-    "all_year": "Whole year",
-    "search_placeholder": "reclamation number",
-    "new_reclamation": "New reclamation",
-    "all_reclamations": "All reclamations",
-    "load_more": "Load more ({{count}})",
-    "load_more_full": "Load more (100 of {{remaining}})",
-    "all_loaded": "All reclamations loaded ({{total}})",
-    "not_found": "No reclamations found",
-    "error_title": "Oops! Failed to load data",
-    "error_desc": "There was a problem connecting to the server. Please check your internet and try again.",
-    "try_again": "Try again",
-    "edit": "Edit",
-    "delete": "Delete",
-    "cancel": "Cancel",
-    "add": "Add",
-    "update": "Update",
-    "saving": "Saving...",
-    "deleting": "Deleting..."
+    "common": {
+      "hide": "Hide",
+      "details": "Details",
+      "loading_data": "Loading reclamation data...",
+      "updating_list": "Updating reclamation list...",
+      "report_year": "Reporting year",
+      "all_year": "Whole year",
+      "search_placeholder": "reclamation number",
+      "new_reclamation": "New reclamation",
+      "all_reclamations": "All reclamations",
+      "load_more": "Load more ({{count}})",
+      "load_more_full": "Load more (100 of {{remaining}})",
+      "all_loaded": "All reclamations loaded ({{total}})",
+      "not_found": "No reclamations found",
+      "error_title": "Oops! Failed to load data",
+      "error_desc": "There was a problem connecting to the server. Please check your internet and try again.",
+      "try_again": "Try again",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "add": "Add",
+      "update": "Update",
+      "saving": "Saving...",
+      "deleting": "Deleting..."
+    },
+    "statuses": {
+      "all": "All reclamations",
+      "new": "New",
+      "in_progress": "In progress",
+      "production": "Production",
+      "in_stock": "In stock",
+      "resolved": "Resolved",
+      "rejected": "Rejected"
+    },
+    "months": {
+      "jan": "Jan.",
+      "feb": "Feb.",
+      "mar": "Mar.",
+      "apr": "Apr.",
+      "may": "May",
+      "jun": "Jun.",
+      "jul": "Jul.",
+      "aug": "Aug.",
+      "sep": "Sep.",
+      "oct": "Oct.",
+      "nov": "Nov.",
+      "dec": "Dec."
+    }
   },
-  "statuses": {
-    "all": "All reclamations",
-    "new": "New",
-    "in_progress": "In progress",
-    "production": "Production",
-    "in_stock": "In stock",
-    "resolved": "Resolved",
-    "rejected": "Rejected"
-  },
-  "months": {
-    "jan": "Jan.", "feb": "Feb.", "mar": "Mar.", "apr": "Apr.", "may": "May", "jun": "Jun.",
-    "jul": "Jul.", "aug": "Aug.", "sep": "Sep.", "oct": "Oct.", "nov": "Nov.", "dec": "Dec."
-  }
-
-  },
-  
   "additional_order": {
     "no_main_order": "No main order",
     "no_description": "No description / comments",
@@ -692,7 +715,7 @@
     "search_placeholder": "additional order number",
     "new_order_btn": "New additional order",
     "statuses": {
-      "all":"All add. order",
+      "all": "All add. order",
       "new": "New",
       "waiting_confirm": "Awaiting confirmation",
       "waiting_pay": "Awaiting payment",
@@ -711,8 +734,11 @@
       "no_data": "No additional orders to display",
       "load_more": "Load more ({{count}} of {{total}})",
       "all_loaded": "All additional orders loaded ({{total}})."
+    },
+    "errors": {
+      "server_error": "Server error while loading data.",
+      "connect_error": "Failed to load data. Please check your connection."
     }
-    
   },
   "bills": {
     "title": "Invoices",
@@ -913,28 +939,6 @@
       "invite_used": "This link has already been used",
       "invite_expired": "This link is no longer active",
       "invalid_code": "Invalid invitation code"
-      }
     }
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  }
 }

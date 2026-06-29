@@ -224,7 +224,7 @@ export const CalculationItem = React.memo(
   <div className="column">
     {/* Блок Номера замовлення */}
     <div className="column border-bottom pb-0.5">
-      <span className="text-[10px] text-grey leading-none">Номер прорахунку</span>
+      <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span>
       <div className="text-base m text-bold text-WS---DarkGrey mt-0.5">
         № {calc.number} 
       </div>
@@ -242,18 +242,18 @@ export const CalculationItem = React.memo(
 
 <div
   className="summary-item flex flex-col w-8"
-  title="Кількість замовлень"
+  title={t("portal_calc.ui.orders")}
 >
 
   <span className="text-grey text-[10px] mb-1">
-    Замовлень
+    {t("portal_calc.ui.orders")}
   </span>
   
 
   <div className="flex items-center">
     <img 
       src={listCalcIcon} 
-      alt="Іконка списку" 
+      alt={t("portal_calc.ui.orders")} 
            className="align-center mr-1" 
     />
     <div className="font-size-24 text-WS---DarkBlue font-bold">
@@ -264,11 +264,11 @@ export const CalculationItem = React.memo(
 
 <div
   className="summary-item flex flex-col w-8"
-       title="Кількість конструкцій"
+       title={t("portal_calc.ui.constructions")}
 >
 
   <span className="text-grey text-[10px] mb-1">
-    Конструкцій
+    {t("portal_calc.ui.constructions")}
   </span>
   
 
@@ -316,7 +316,7 @@ export const CalculationItem = React.memo(
       
       {/* Блок суми замовлення */}
       <div className="flex flex-col leading-none">
-        <span className="text-[10px] text-grey-400 mb-0.5">Сума замовлення</span>
+        <span className="text-[10px] text-grey-400 mb-0.5">{t("order_mobile.labels.order_amount")}</span>
         <div className="text-[15px] text-WS---DarkGreen font-bold">
           { formatMoney2(calc.amount, calc.currency) }
         </div>
@@ -327,7 +327,7 @@ export const CalculationItem = React.memo(
 
       {/* Блок суми боргу */}
       <div className="flex flex-col leading-none">
-        <span className="text-[10px] text-grey-400 mb-0.5">Сума боргу</span>
+        <span className="text-[10px] text-grey-400 mb-0.5">{t("order_mobile.labels.debt_amount")}</span>
         <div className="text-[15px] text-WS---DarkRed font-bold">
           { formatMoney2(calc.debt, calc.currency) }
         </div>

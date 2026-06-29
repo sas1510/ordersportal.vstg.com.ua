@@ -1,0 +1,22 @@
+[0;1;32m●[0m ordersportal.service - Django Ordersportal Service
+     Loaded: loaded (/etc/systemd/system/ordersportal.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Tue 2025-11-04 14:44:01 EET; 2min 30s ago
+   Main PID: 768490 (gunicorn)
+      Tasks: 4 (limit: 115861)
+     Memory: 179.2M
+     CGroup: /system.slice/ordersportal.service
+             ├─768490 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/python3.11 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/gunicorn --workers 3 --bind unix:/var/www/html/ordersportal.vstg.com.ua/backend.sock backend.wsgi:application
+             ├─768502 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/python3.11 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/gunicorn --workers 3 --bind unix:/var/www/html/ordersportal.vstg.com.ua/backend.sock backend.wsgi:application
+             ├─768503 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/python3.11 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/gunicorn --workers 3 --bind unix:/var/www/html/ordersportal.vstg.com.ua/backend.sock backend.wsgi:application
+             └─768504 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/python3.11 /var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/gunicorn --workers 3 --bind unix:/var/www/html/ordersportal.vstg.com.ua/backend.sock backend.wsgi:application
+
+ноя 04 14:45:16 bi gunicorn[768502]:   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+ноя 04 14:45:16 bi gunicorn[768502]:   File "/var/www/html/ordersportal.vstg.com.ua/backend/contact/urls.py", line 3, in <module>
+ноя 04 14:45:16 bi gunicorn[768502]:     from .views import ContactViewSet, urgent_call_request, help_log_list
+ноя 04 14:45:16 bi gunicorn[768502]:   File "/var/www/html/ordersportal.vstg.com.ua/backend/contact/views.py", line 28, in <module>
+ноя 04 14:45:16 bi gunicorn[768502]:     BOT_TOKEN = settings.BOT_TOKEN
+ноя 04 14:45:16 bi gunicorn[768502]:                 ^^^^^^^^^^^^^^^^^^
+ноя 04 14:45:16 bi gunicorn[768502]:   File "/var/www/html/ordersportal.vstg.com.ua/backend/venv/lib/python3.11/site-packages/django/conf/__init__.py", line 83, in __getattr__
+ноя 04 14:45:16 bi gunicorn[768502]:     val = getattr(_wrapped, name)
+ноя 04 14:45:16 bi gunicorn[768502]:           ^^^^^^^^^^^^^^^^^^^^^^^
+ноя 04 14:45:16 bi gunicorn[768502]: AttributeError: 'Settings' object has no attribute 'BOT_TOKEN'

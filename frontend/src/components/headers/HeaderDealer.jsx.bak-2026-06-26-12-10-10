@@ -600,7 +600,6 @@ import HeaderDealerProfile from "./HeaderDealerProfile";
 import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderDealerProfile.css";
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from "./LanguageSwitcher";
 import { 
   Ticket, 
   ShoppingBag, 
@@ -978,8 +977,6 @@ export default function HeaderDealer() {
               </div>
           
               <div className="flex items-center px-3 gap-7 max-[1261px]:px-1 max-[1261px]:gap-2">
-                <LanguageSwitcher />
-
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (
@@ -1125,10 +1122,6 @@ export default function HeaderDealer() {
                       )}
 
                       <div className="sidebar-divider mx-[5%] border-t border-dotted border-[#44403E]/50" />
-
-                      <div className="px-[15%] py-3">
-                        <LanguageSwitcher className="w-fit" />
-                      </div>
 
                   
                       <div className="flex items-center px-[15%] gap-4 py-3 pb-2 whitespace-nowrap">

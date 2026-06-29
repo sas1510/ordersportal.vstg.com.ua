@@ -648,10 +648,6 @@ export default function HeaderAdmin() {
                         </div>
                       )}
                     </div>
-
-                    <div className="px-[15%] py-4">
-                      <LanguageSwitcher className="w-fit" />
-                    </div>
                   </div>
 
                   {/* Кнопка виходу (Моб) */}

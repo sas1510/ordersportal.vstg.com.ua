@@ -1,22 +1,41 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
-const LanguageSwitcher = () => {
+const LANGUAGES = [
+  { code: "uk", label: "UA" },
+  { code: "en", label: "EN" },
+  { code: "de", label: "DE" },
+];
+
+const LanguageSwitcher = ({ className = "" }) => {
   const { i18n } = useTranslation();
-
-  // Функція перемикання "по колу"
-  const toggleLanguage = () => {
-    const nextLanguage = i18n.language === 'uk' ? 'en' : 'uk';
-    i18n.changeLanguage(nextLanguage);
-  };
+  const currentLanguage = (i18n.resolvedLanguage || i18n.language || "uk").slice(0, 2);
 
   return (
-    <button 
-      onClick={toggleLanguage}
-      className="flex items-center gap-2 px-3 py-1 border border-zinc-300 rounded-md hover:bg-zinc-100 transition-colors font-semibold text-sm uppercase"
+    <div
+      className={`inline-flex items-center rounded-lg border border-zinc-300 bg-white/90 p-1 shadow-sm ${className}`.trim()}
+      role="group"
+      aria-label="Language switcher"
     >
-      {/* Показуємо мову, на яку МОЖНА переключитися, або поточну */}
-      {i18n.language === 'uk' ? 'EN' : 'UA'}
-    </button>
+      {LANGUAGES.map(({ code, label }) => {
+        const isActive = currentLanguage === code;
+
+        return (
+          <button
+            key={code}
+            type="button"
+            onClick={() => i18n.changeLanguage(code)}
+            className={`rounded-md px-2 py-1 text-xs font-semibold uppercase transition-colors ${
+              isActive
+                ? "bg-[#6B98BF] text-white"
+                : "text-zinc-700 hover:bg-zinc-100"
+            }`}
+            aria-pressed={isActive}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
   );
 };
 

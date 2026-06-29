@@ -1,0 +1,5 @@
+● ordersportal.service - Ordersportal ASGI Service (Gunicorn + Uvicorn)
+     Loaded: loaded (/etc/systemd/system/ordersportal.service; enabled; vendor preset: enabled)
+     Active: activating (auto-restart) (Result: exit-code) since Fri 2026-06-26 13:29:56 EEST; 2s ago
+    Process: 3986234 ExecStart=/var/www/html/ordersportal.vstg.com.ua/backend/venv/bin/gunicorn backend.asgi:application --workers 8 --worker-class uvicorn.workers.UvicornWorker --bind unix:/var/www/html/ordersportal.vstg.com.ua/backend.sock --log-level info [0;1;31m(code=exited, status=3)[0m
+   Main PID: 3986234 (code=exited, status=3)

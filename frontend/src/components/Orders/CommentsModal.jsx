@@ -233,7 +233,7 @@ const CommentsModal = ({
                       </strong>
                       <span className="comments-date">
                         {new Date(c.created_at || Date.now()).toLocaleString(
-                          i18n.language === "en" ? "en-US" : "uk-UA" // Динамічна локаль часу
+                          i18n.language === "de" ? "de-DE" : i18n.language === "en" ? "en-US" : "uk-UA" // Динамічна локаль часу
                         )}
                       </span>
                     </div>

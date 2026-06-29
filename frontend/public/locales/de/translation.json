@@ -1,0 +1,944 @@
+{
+  "hero": {
+    "welcome": "Willkommen im Bestellportal",
+    "title_line1": "Professionelle Fenstersysteme",
+    "title_line2": "für den europäischen Markt"
+  },
+  "stats": {
+    "experience": "Jahre Erfahrung",
+    "employees": "Mitarbeiter",
+    "area": "Fabrikgelände",
+    "windows_monthly": "Fenster und Türen pro Monat"
+  },
+  "production": {
+    "title": "Produktionskapazitäten",
+    "cycle_title": "Technologiezyklus",
+    "cycle_title_br": "Technologiezyklus",
+    "pvc_windows": "PVC-Fenster pro Monat",
+    "pvc_doors": "PVC-Türen pro Monat",
+    "innovations": "Innovationen"
+  },
+  "info": {
+    "factory_location": "Die 16.000 m² große Fabrik befindet sich in Velykyi Kuchuriv (5 km von Czernowitz entfernt).",
+    "export_geography": "Exportgeographie: Deutschland, Italien, Rumänien, Kanada und die USA."
+  },
+  "values": {
+    "aesthetics": {
+      "title": "Ästhetik",
+      "desc": "Modernes Design"
+    },
+    "quality": {
+      "title": "Qualität",
+      "desc": "Europäische Standards"
+    },
+    "price": {
+      "title": "Bester Service",
+      "desc": "Schnelle Lösung aller Fragen"
+    },
+    "safety": {
+      "title": "Sicherheit",
+      "desc": "Zuverlässiger Schutz"
+    }
+  },
+  "media": {
+    "title": "Medienrezension"
+  },
+  "partnership": {
+    "title_line1": "Türen, die die Welt öffnen",
+    "title_line2": "einer erfolgreichen Partnerschaft",
+    "desc_line1": "Werden Sie Teil des zuverlässigen Händlernetzwerks „Vikna Style“.",
+    "desc_line2": "18 Jahre Erfahrung und europäische Qualitätsstandards für Ihr Unternehmen."
+  },
+  "nav": {
+    "promo_wds": "WDS-Promo",
+    "orders": "Bestellungen",
+    "complaints": "Reklamationen",
+    "additional_orders": "Zusatzbestellungen",
+    "files": "Dateien",
+    "videos": "Videos",
+    "payment": "Zahlung",
+    "finance": "Finanzen",
+    "finance_cash_flow": "Cashflow",
+    "finance_analytics": "Analysen",
+    "finance_bills": "Rechnungen",
+    "change_password": "Kennwort ändern",
+    "emergency_line": "Hotline",
+    "logout": "Abmelden",
+    "menu": "Menü",
+    "default_dealer": "Händler",
+    "settings_short": "Einstellungen",
+    "settings": "Einstellungen",
+    "settings_users": "Benutzer",
+    "settings_tg_manager": "TG-Manager",
+    "settings_sos_stats": "SOS-Statistiken",
+    "settings_emergency_contacts": "Notfallkontakte",
+    "profile": "Profil",
+    "notifications": "Benachrichtigungen",
+    "tech_file": "Technische Unterlagen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "currency_uah": "UAH",
+    "close": "Schließen",
+    "logo_alt": "Vikna Style",
+    "date_from": "Datum von",
+    "date_to": "Datum bis",
+    "dealer": "Händler",
+    "show": "Zeigen",
+    "no_results": "Keine Ergebnisse gefunden",
+    "loadingFiles": "Dateien werden geladen…",
+    "downloading": "Herunterladen...",
+    "view": "Ansehen",
+    "download": "Herunterladen",
+    "search": "Suchen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "refresh": "Aktualisieren",
+    "generating": "Generieren",
+    "no_data": "Keine Daten gefunden",
+    "try_again": "Versuchen Sie es erneut",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen",
+    "update": "Aktualisieren",
+    "saving": "Speichern...",
+    "deleting": "Wird gelöscht..."
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "new_message": "Neue Nachricht",
+    "downloadError": "Die Datei konnte nicht geöffnet oder heruntergeladen werden.",
+    "mark_all_read": "Alle als gelesen markieren",
+    "empty_all": "Sie haben keine Benachrichtigungen",
+    "empty_filter": "Nichts gefunden",
+    "filters": {
+      "all": "Alle",
+      "messages": "Nachrichten",
+      "reminders": "Erinnerungen"
+    },
+    "types": {
+      "reminder": "Erinnerung",
+      "system": "System"
+    },
+    "push": {
+      "btn_enable": "Aktivieren",
+      "btn_disable": "Deaktivieren",
+      "enable_title": "Aktivieren Sie Desktop-Benachrichtigungen",
+      "disable_title": "Deaktivieren Sie Benachrichtigungen auf diesem Gerät",
+      "blocked_title": "Zugriff im Browser blockiert",
+      "activated": "Browserbenachrichtigungen aktiviert!",
+      "disabled": "Benachrichtigungen deaktiviert",
+      "error_enable": "Benachrichtigungen konnten nicht aktiviert werden.",
+      "error_disable": "Fehler beim Deaktivieren von Benachrichtigungen"
+    },
+    "tg": {
+      "bot_title": "Telegramm-Bot",
+      "qr_text": "Scannen, um eine Verbindung herzustellen",
+      "open_chat": "Chat öffnen"
+    },
+    "errors": {
+      "tg_link": "Telegram-Link konnte nicht abgerufen werden"
+    },
+    "excel_success": "Excel wurde erfolgreich heruntergeladen",
+    "excel_error": "Excel konnte nicht heruntergeladen werden",
+    "transaction_types": {
+      "Прорахунок": "Berechnung",
+      "Рекламація": "Rückgewinnung",
+      "Доп. замовлення": "Zusätzliche Bestellung"
+    }
+  },
+  "login": {
+    "welcome_title": "Willkommen zurück!",
+    "welcome_subtitle": "Melden Sie sich beim Analyse- und Bestellportal an",
+    "form_title": "Systemanmeldung",
+    "form_subtitle": "Geben Sie Ihre Zugangsdaten ein, um Zugang zu erhalten",
+    "username_label": "Benutzername",
+    "username_placeholder": "Geben Sie Ihr Login ein",
+    "password_label": "Passwort",
+    "password_placeholder": "Geben Sie Ihr Passwort ein",
+    "remember_me": "Erinnere dich an mich",
+    "button_submit": "Anmelden",
+    "button_loading": "Anmeldung...",
+    "error_invalid_credentials": "Ungültiger Benutzername oder Passwort",
+    "error_auth": "Autorisierungsfehler",
+    "error_server_unavailable": "Server nicht verfügbar. Bitte überprüfen Sie Ihre Verbindung.",
+    "error_general": "Es ist ein Fehler aufgetreten"
+  },
+  "wds": {
+    "title": "Promo-WDS-Codes",
+    "loading_text": "Auf der Suche nach Werbeangeboten…",
+    "no_data": "Für den angegebenen Zeitraum wurden keine Aktionscodes gefunden",
+    "error_select_dealer": "Bitte wählen Sie einen Händler aus",
+    "error_load": "Fehler beim Laden der WDS-Codes",
+    "table_date": "Datum",
+    "table_code": "WDS-Code",
+    "table_code_short": "WDS",
+    "table_order_no": "Bestell-Nr.",
+    "table_order_short": "Befehl",
+    "table_series": "Profilserie",
+    "table_series_short": "Serie",
+    "default_series": "Standard"
+  },
+  "dealer_select": {
+    "placeholder": "— Händler auswählen —",
+    "search_placeholder": "Händler suchen…",
+    "error_load": "Fehler beim Laden der Händler",
+    "empty": "Leer",
+    "all_dealers": "Alle Händler"
+  },
+  "files": {
+    "header": {
+      "title": "Dateien",
+      "subtitle_1": "Nützliche Materialien zum Download:",
+      "subtitle_2": "Zertifikate, Prüfberichte etc."
+    },
+    "searchPlaceholder": "Suche nach Namen",
+    "choose_file": "Datei auswählen",
+    "noResults": "Keine Dateien gefunden",
+    "empty": "Keine Dateien verfügbar",
+    "adminRole": "Administrator",
+    "unknownDate": "Unbekannt",
+    "buttons": {
+      "add": "Datei hinzufügen",
+      "download": "Herunterladen",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "cancel": "Stornieren",
+      "upload": "Hochladen",
+      "save": "Änderungen speichern"
+    },
+    "errors": {
+      "download": "Fehler beim Herunterladen der Dateien",
+      "error": "Fehler:",
+      "error_add_file": "Datei konnte nicht hinzugefügt werden",
+      "error_change_file": "Datei konnte nicht geändert werden"
+    },
+    "feedback": {
+      "success": "Datei erfolgreich hinzugefügt!",
+      "edit": "Datei erfolgreich geändert!",
+      "confirmDeleteMessage": "Sind Sie sicher, dass Sie die Datei löschen möchten?",
+      "deleteFile": "Eine Datei löschen"
+    }
+  },
+  "videos": {
+    "header": {
+      "title": "Videos",
+      "subtitle": "Nützliche Videomaterialien, die Sie bei Ihrer Arbeit unterstützen"
+    },
+    "categories": {
+      "tech": "Technische Schulung",
+      "media": "Medienrezensionen",
+      "factory": "Fabrikvideos",
+      "install": "Installationsvideos",
+      "social": "Soziale Netzwerke"
+    },
+    "buttons": {
+      "add": "Video hinzufügen",
+      "save": "Speichern",
+      "saving": "Sparen...",
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    },
+    "modals": {
+      "add_title": "Neues Video hinzufügen",
+      "edit_title": "Video bearbeiten",
+      "delete_confirm": "Video löschen",
+      "delete_message": "Sind Sie sicher, dass Sie löschen möchten?"
+    },
+    "search_placeholder": "Videos suchen...",
+    "all_videos": "Alle Videos",
+    "errors": {
+      "load": "Fehler beim Laden der Videos",
+      "save": "Fehler beim Speichern",
+      "delete": "Fehler beim Löschen"
+    },
+    "sidebar": {
+      "categories": "Kategorien"
+    }
+  },
+  "orders": {
+    "newOrderModal": {
+      "coord_message_1": "Aufmerksamkeit! Geokoordinaten sind nicht festgelegt.",
+      "coord_message_2": "Um die Logistik korrekt zu berechnen, müssen Sie einen Punkt auf der Karte angeben.",
+      "coord_message_3": "Bitte wenden Sie sich an Ihren Vorgesetzten, um die Adressdaten zu aktualisieren",
+      "error_message_1": "Adressen konnten nicht geladen werden:",
+      "error_message_2": "Keine Datei ausgewählt",
+      "error_message_3": "Bitte füllen Sie alle Felder aus",
+      "error_message_4": "Bitte wählen Sie eine Lieferadresse aus",
+      "error_message_5": "Bitte wählen Sie eine Kundenadresse aus",
+      "error_message_6": "Erstellungsfehler:",
+      "error_message_7": "Adresse nicht ausgewählt",
+      "order_created": "Berechnung №{{orderNumber}} wurde erstellt ✅",
+      "order_create": "Neue Berechnung erstellen",
+      "dealer": "Händler:",
+      "myAddress": "Meine Adresse",
+      "clientAddress": "Kundenadresse",
+      "address": "Lieferadresse:",
+      "loadingOfAddress": "Adressen werden geladen...",
+      "choose": "Wählen",
+      "downloadZKZ": "Datei hochladen (.zkz)",
+      "numberOfConstruction": "Anzahl der Einheiten:",
+      "comment": "Kommentar:",
+      "cancel": "Stornieren",
+      "creating": "Erstellen...",
+      "save": "Speichern",
+      "repeat": "WIEDERHOLEN"
+    },
+    "modalFilesTitle": "Dateien bestellen",
+    "noFilesFound": "Für diese Bestellung wurden keine Dateien gefunden."
+  },
+  "clientAddressModal": {
+    "title": "🏠 Kundenadresse",
+    "contactSection": "Kundenkontaktinformationen",
+    "addressSection": "Lieferadresse",
+    "findOnMap": "Auf der Karte finden",
+    "searchPlaceholder": "Adresse auf der Karte suchen...",
+    "dragHint": "Ziehen Sie die Markierung, um die Position zu verfeinern",
+    "cancel": "Stornieren",
+    "save": "Speichern",
+    "fields": {
+      "fullName": "Vollständiger Name (Vor- und Nachname) *",
+      "phone": "Telefon (+380...) *",
+      "extraInfo": "Weitere Informationen",
+      "region": "Region/Bundesland *",
+      "district": "Bezirk/Landkreis *",
+      "city": "Stadt/Ort *",
+      "street": "Straße *",
+      "house": "Haus-/Gebäude-Nr. *",
+      "apartment": "Wohnung",
+      "entrance": "Eingang",
+      "floor": "Boden",
+      "note": "Notiz"
+    },
+    "errors": {
+      "requiredField": "Bitte füllen Sie das Pflichtfeld aus: {{field}}",
+      "fillRequired": "Bitte füllen Sie die erforderlichen Adressfelder aus",
+      "invalidName": "Bitte geben Sie den vollständigen Namen des Kunden ein (Vor- und Nachname).",
+      "invalidPhone": "Ungültiges Telefonformat (+380XXXXXXXXX)",
+      "selectOnMap": "Bitte wählen Sie einen Punkt auf der Karte aus",
+      "preciseLocation": "Verfeinern Sie die Position: Ziehen Sie die Markierung oder klicken Sie genauer"
+    },
+    "success": "Kundenadressdaten erfolgreich gespeichert ✅"
+  },
+  "commentsModal": {
+    "title": "Chatten",
+    "noMessages": "Noch keine Nachrichten",
+    "placeholder": "Ihre Nachricht...",
+    "errors": {
+      "fetchProfile": "Profilfehler",
+      "fetchHistory": "Der Chatverlauf konnte nicht geladen werden",
+      "authFailed": "Autorisierung fehlgeschlagen, Wiederherstellung der Verbindung in 5 Sekunden...",
+      "wsClosed": "Verbindung geschlossen (Code: {{code}}). Verbindung wird wieder hergestellt...",
+      "wsError": "WS-Fehler",
+      "connectionLost": "Verbindung verloren. Versuchen Sie bitte, die Seite zu aktualisieren."
+    }
+  },
+  "counterpartyModal": {
+    "dealer": "Händler",
+    "recipient": "Empfänger:",
+    "phone": "Telefon:",
+    "additional": "Zusätzliche Informationen:",
+    "deliveryAddress": "Lieferadresse:",
+    "pickup": "Abholen",
+    "close": "Schließen"
+  },
+  "delete_modal": {
+    "title": "Bestätigen Sie den Löschvorgang",
+    "warning": "Sind Sie sicher, dass Sie {{type}} „{{name}}“ löschen möchten?",
+    "description": "Diese Aktion ist irreversibel. Sämtliche diesbezüglichen Daten werden ebenfalls gelöscht.",
+    "cancel": "Stornieren",
+    "delete": "Löschen",
+    "deleting": "Löschen...",
+    "success": "{{type}} „{{name}}“ erfolgreich gelöscht ✅",
+    "error_unknown": "Unbekannter Artikeltyp ❌",
+    "types": {
+      "order": "Befehl",
+      "calculation": "Berechnung",
+      "client": "Kunde",
+      "product": "Produkt",
+      "reclamation": "Rückgewinnung",
+      "additionalOrder": "zusätzliche Bestellung",
+      "record": "aufzeichnen"
+    }
+  },
+  "reorder_modal": {
+    "title": "Zusätzliche Bestellung",
+    "order_number": "Bestellnummer:",
+    "order_placeholder": "Nummer eingeben...",
+    "no_order": "Ohne Bestellung",
+    "item_label": "Artikel zur Nachbestellung:",
+    "loading": "Laden...",
+    "select_placeholder": "-- Wählen Sie einen Artikel aus --",
+    "quantity": "Menge:",
+    "comment_label": "Kommentar der Gegenpartei:",
+    "comment_placeholder": "Dein Kommentar...",
+    "btn_cancel": "Stornieren",
+    "btn_save": "Hinzufügen",
+    "success_create": "Zusätzlicher Auftrag erfolgreich erstellt!"
+  },
+  "add_claim": {
+    "title": "Anspruch hinzufügen",
+    "order_number": "Bestellnummer:",
+    "order_not_found": "Bestellung nicht gefunden",
+    "retry": "Wiederholen",
+    "dealer": "Händler:",
+    "select_dealer": "Händler auswählen",
+    "select_series": "Serie auswählen:",
+    "delivery_date": "Liefertermin:",
+    "claim_date": "Anspruchsdatum:",
+    "reason_label": "Anspruchsgrund:",
+    "solution_label": "Lösungsoption:",
+    "description_label": "Beschreibung:",
+    "photos_label": "Anspruchsfotos:",
+    "add_photo": "Foto hinzufügen",
+    "btn_cancel": "Stornieren",
+    "btn_save": "Anspruch hinzufügen",
+    "loading": "Laden...",
+    "success_msg": "Anspruch erfolgreich hinzugefügt",
+    "error_default": "Fehler beim Erstellen des Anspruchs",
+    "errors": {
+      "reasons": "Fehler beim Laden der Anspruchsgründe",
+      "solutions": "Fehler beim Laden der Lösungsoptionen",
+      "series": "Daten zur Designserie konnten nicht abgerufen werden"
+    }
+  },
+  "select": {
+    "default_placeholder": "-- Wählen --",
+    "no_options": "Keine Optionen verfügbar"
+  },
+  "reasons": {
+    "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "Erstattung (Kompensation) der Kosten für beschädigte Bestellelemente, Arbeiten, Dienstleistungen auf Kosten des Herstellers",
+    "Доукомплектувати замовлення за рахунок виробника": "Schließen Sie die Bestellung auf Kosten des Herstellers ab",
+    "Доукомплектувати замовлення за рахунок замовника": "Schließen Sie die Bestellung auf Kosten des Kunden ab",
+    "Дозамовлення за рахунок замовника": "Nachbestellung auf Kosten des Kunden",
+    "Повернути конструкцію на виробництво (неліквід)": "Bringen Sie die Struktur wieder in Produktion (nicht flüssig/defekt)."
+  },
+  "payment_modal": {
+    "title": "Zahlung für Bestellnr. {{number}}",
+    "loading": "Laden...",
+    "error_no_currency": "Sie haben keine Vorabverträge in {{currency}}.",
+    "error_no_contracts": "Sie haben keine Vorverträge.",
+    "error_load_failed": "Das Laden der Ausgleichsdaten ist fehlgeschlagen.",
+    "order_currency": "Bestellwährung:",
+    "amount_to_pay": "Zu zahlender Betrag:",
+    "advance_contract": "Vorabvertrag ({{currency}}):",
+    "select_contract": "Vertrag auswählen",
+    "available": "Verfügbar:",
+    "payment_amount": "Zahlungsbetrag:",
+    "error_min_amount": "Der Betrag muss größer als 0 sein",
+    "error_max_amount": "Der Höchstbetrag beträgt {{amount}}",
+    "btn_cancel": "Stornieren",
+    "btn_pay": "Zahlen",
+    "btn_processing": "Verarbeitung..."
+  },
+  "confirm_modal": {
+    "default_title": "Aktion bestätigen",
+    "default_message": "Sind Sie sicher, dass Sie diese Aktion ausführen möchten?",
+    "confirm": "Bestätigen",
+    "cancel": "Stornieren"
+  },
+  "order_mobile": {
+    "labels": {
+      "constructions": "Konstruktionen",
+      "files": "Dateien",
+      "order_amount": "Bestellmenge",
+      "debt_amount": "Schuldenbetrag",
+      "order_number": "Bestellnummer"
+    },
+    "buttons": {
+      "confirm": "Bestätigen",
+      "pay": "Zahlen",
+      "reorder": "Neu anordnen",
+      "claim": "Beanspruchen"
+    },
+    "fast_order": {
+      "fast": "Schnelle Bearbeitung (weniger als 24 Stunden)",
+      "slow": "Bestellung wurde später als 24 Stunden bearbeitet",
+      "title_1": "Schnell",
+      "title_2": "Verarbeitung"
+    },
+    "confirm_modal": {
+      "title": "Auftragsbestätigung",
+      "message": "Sind Sie sicher, dass Sie die Bestellung {{number}} bestätigen möchten?",
+      "confirm": "Bestätigen"
+    },
+    "notifications": {
+      "payment_success": "Zahlung erfolgreich abgeschlossen!",
+      "order_confirmed": "Bestellung {{number}} erfolgreich bestätigt!"
+    },
+    "steps": {
+      "order": "Befehl",
+      "payment": "Zahlung",
+      "confirmation": "Bestätigung",
+      "production": "Produktion",
+      "readiness": "Bereitschaft",
+      "delivery": "Lieferung",
+      "delay": "Verzögerung"
+    },
+    "statuses": {
+      "no_date": "Kein Datum",
+      "paid": "Bezahlt",
+      "debt": "Schulden",
+      "not_confirmed": "Nicht bestätigt",
+      "no_data": "Keine Daten",
+      "plan": "Planen",
+      "not_ready": "Nicht bereit",
+      "not_delivered": "Nicht geliefert",
+      "from": "aus",
+      "to": "Zu"
+    }
+  },
+  "order_status": {
+    "new": "Neu",
+    "processing": "Verarbeitung",
+    "waiting_payment": "Warten auf Zahlung",
+    "waiting_confirmation": "Warten auf Bestätigung",
+    "rejected": "Abgelehnt",
+    "ready": "Bereit",
+    "shipped": "Ausgeliefert",
+    "confirmed": "Bestätigt",
+    "production": "In Produktion",
+    "in_work": "Im Gange"
+  },
+  "errors": {
+    "serverError": "Der Server hat einen Fehler zurückgegeben.",
+    "errorSendData": "Daten konnten nicht gesendet werden:",
+    "errorSendData_2": "Daten konnten nicht gesendet werden.",
+    "error": "Fehler:",
+    "unknownError": "Unbekannter Fehler",
+    "fetchFilesFailed": "Dateien konnten nicht abgerufen werden.",
+    "paymentError": "Bei der Zahlungsabwicklung ist ein Fehler aufgetreten",
+    "fetch_failed": "Fehler beim Laden der Daten"
+  },
+  "calc": {
+    "constructions_qty": "Anzahl der Konstruktionen",
+    "orders_qty": "Anzahl der Bestellungen",
+    "no_comments": "Keine Kommentare",
+    "comment_history": "Kommentarverlauf",
+    "no_file": "Keine Datei",
+    "recipient_dealer": "Empfänger ist Händler",
+    "recipient_other": "Empfänger ist eine andere Gegenpartei",
+    "recipient_label": "Empfänger",
+    "no_orders_yet": "Für diese Berechnung liegen noch keine Bestellungen vor",
+    "error_download": "Datei konnte nicht heruntergeladen werden. Möglicherweise fehlt es auf dem Server."
+  },
+  "statuses": {
+    "Новий": "Neu",
+    "Очікуємо підтвердження": "Warten auf Bestätigung",
+    "Очікуємо оплату": "Warten auf Zahlung",
+    "Підтверджений": "Bestätigt",
+    "У виробництві": "In Produktion",
+    "В обробці": "Verarbeitung",
+    "Відмова": "Abgelehnt",
+    "Готовий": "Bereit",
+    "Відвантажений": "Ausgeliefert",
+    "Відвантажено": "Ausgeliefert",
+    "В роботі": "Bei der Arbeit"
+  },
+  "portal_calc": {
+    "ui": {
+      "loading": "Laden...",
+      "reloading": "Daten werden aktualisiert...",
+      "report_year": "Berichtsjahr",
+      "filters": "Filter",
+      "search_placeholder": "Berechnungsnummer, Bestellung",
+      "new_calculation": "neue Berechnung",
+      "error_title": "Hoppla! Daten konnten nicht geladen werden",
+      "error_title_2": "Beim Herstellen der Verbindung zum Server ist ein Problem aufgetreten.",
+      "error_title_3": "Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+      "try_again": "Versuchen Sie es erneut",
+      "no_calculations": "Keine Berechnungen zum Anzeigen",
+      "load_more_all": "Mehr laden ({{count}})",
+      "load_more": "Mehr laden (100 von {{total}})",
+      "load_more_admin": "Mehr laden ({{next}} von {{total}})",
+      "all_loaded": "Alle Berechnungen geladen ({{count}}).",
+      "delete_calc_allowed": "Berechnung löschen",
+      "delete_cal_disallowed": "Löschen nicht möglich: Es liegen Bestellungen vor",
+      "constructions": "Konstruktionen",
+      "orders": "Bestellungen",
+      "hide_orders": "Bestellungen ausblenden",
+      "show_orders": "Bestellungen anzeigen ({{count}})",
+      "calculation_number": "Berechnungsnummer"
+    },
+    "months": {
+      "all_year": "Ganzes Jahr",
+      "short": [
+        "Jan",
+        "Feb",
+        "Mär",
+        "Apr",
+        "Mai",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Okt",
+        "Nov",
+        "Dez"
+      ],
+      "full": [
+        "Januar",
+        "Februar",
+        "März",
+        "April",
+        "Mai",
+        "Juni",
+        "Juli",
+        "August",
+        "September",
+        "Oktober",
+        "November",
+        "Dezember"
+      ]
+    },
+    "filter_labels": {
+      "all": "Alle Berechnungen",
+      "new": "Neue Berechnungen",
+      "waiting_confirm": "Warten auf Bestätigung",
+      "waiting_payment": "Warten auf Zahlung",
+      "confirmed": "Bestätigt",
+      "production": "In Produktion",
+      "ready": "Fertige Bestellungen",
+      "delivered": "Ausgeliefert",
+      "rejected": "Abgelehnt"
+    },
+    "errors": {
+      "server_error": "Der Server hat beim Aktualisieren der Daten einen Fehler zurückgegeben.",
+      "connection_error": "Daten konnten nicht aktualisiert werden. Überprüfen Sie Ihre Verbindung."
+    }
+  },
+  "complaints": {
+    "detail": {
+      "not_specified": "Nicht angegeben",
+      "main_info": "Hauptinformationen",
+      "number": "Beschwerdenummer",
+      "act_number": "Aktnummer",
+      "order_number": "Bestellnummer",
+      "organization": "Organisation",
+      "series": "Baureihe",
+      "dates": "Termine",
+      "date_complaint": "Beschwerdedatum",
+      "date_delivery": "Liefertermin",
+      "date_detection": "Erkennungsdatum",
+      "date_produced": "Produziert",
+      "date_shipped": "Ausgeliefert",
+      "manager": "Verantwortlicher Manager:",
+      "description_title": "Beschreibung der Beschwerde",
+      "problem_title": "Problem",
+      "resolution_title": "Auflösung",
+      "photo": "Foto",
+      "video": "Video",
+      "errors": {
+        "load_media_fail": "Die Mediendateien für die Beschwerde konnten nicht geladen werden.",
+        "try_again": "Versuchen Sie es erneut",
+        "open_photo_fail": "Das Foto konnte nicht zur Ansicht geöffnet werden",
+        "general_error": "Beim Laden der Bilder ist ein Fehler aufgetreten"
+      }
+    }
+  },
+  "reclamation": {
+    "no_comments": "Keine Kommentare",
+    "no-data": "Keine Beschwerden gefunden.",
+    "load_more": "Mehr laden",
+    "comment_history": "Kommentarverlauf",
+    "delete": "Löschen",
+    "delete_forbidden": "Löschung nicht möglich",
+    "delete_forbidden_manager": "Kann nicht gelöscht werden: Manager zugewiesen",
+    "status": {
+      "new": "Neu",
+      "in_work": "Im Gange",
+      "production": "In Produktion",
+      "in_stock": "Auf Lager",
+      "shipped": "Ausgeliefert",
+      "confirmed": "Bestätigt",
+      "resolved": "Gelöst",
+      "rejected": "Abgelehnt"
+    },
+    "common": {
+      "hide": "Verstecken",
+      "details": "Einzelheiten",
+      "loading_data": "Reklamationsdaten werden geladen...",
+      "updating_list": "Reklamationsliste wird aktualisiert...",
+      "report_year": "Berichtsjahr",
+      "all_year": "Ganzes Jahr",
+      "search_placeholder": "Reklamationsnummer",
+      "new_reclamation": "Neue Rekultivierung",
+      "all_reclamations": "Alle Reklamationen",
+      "load_more": "Mehr laden ({{count}})",
+      "load_more_full": "Mehr laden (100 von {{remaining}})",
+      "all_loaded": "Alle Reklamationen geladen ({{total}})",
+      "not_found": "Keine Reklamationen gefunden",
+      "error_title": "Hoppla! Daten konnten nicht geladen werden",
+      "error_desc": "Beim Herstellen der Verbindung zum Server ist ein Problem aufgetreten. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+      "try_again": "Versuchen Sie es erneut",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "cancel": "Stornieren",
+      "add": "Hinzufügen",
+      "update": "Aktualisieren",
+      "saving": "Sparen...",
+      "deleting": "Löschen..."
+    },
+    "statuses": {
+      "all": "Alle Reklamationen",
+      "new": "Neu",
+      "in_progress": "Im Gange",
+      "production": "Produktion",
+      "in_stock": "Auf Lager",
+      "resolved": "Gelöst",
+      "rejected": "Abgelehnt"
+    },
+    "months": {
+      "jan": "Jan.",
+      "feb": "Feb.",
+      "mar": "Mär.",
+      "apr": "Apr.",
+      "may": "Mai",
+      "jun": "Jun.",
+      "jul": "Jul.",
+      "aug": "Aug.",
+      "sep": "Sep.",
+      "oct": "Okt.",
+      "nov": "Nov.",
+      "dec": "Dez."
+    }
+  },
+  "additional_order": {
+    "no_main_order": "Keine Hauptbestellung",
+    "no_description": "Keine Beschreibung/Kommentare",
+    "history_button": "Kommentarverlauf",
+    "no_dealer": "Kein Händler zugeordnet",
+    "no_sub_orders": "Diese Zusatzbestellung enthält keine Unterbestellungen",
+    "delete_sub_orders": "Zusätzliche Bestellung löschen",
+    "cannot_delete_manager": "Kann nicht gelöscht werden: Manager zugewiesen ({{name}})",
+    "search_placeholder": "zusätzliche Bestellnummer",
+    "new_order_btn": "Neue Zusatzbestellung",
+    "statuses": {
+      "all": "Alle Zusatzbestellungen",
+      "new": "Neu",
+      "waiting_confirm": "Warten auf Bestätigung",
+      "waiting_pay": "Warten auf Zahlung",
+      "confirmed": "Bestätigt",
+      "in_production": "In Produktion",
+      "in_processing": "Verarbeitung",
+      "in_work": "Im Gange",
+      "rejected": "Abgelehnt",
+      "ready": "Bereit",
+      "shipped": "Ausgeliefert"
+    },
+    "states": {
+      "error_title": "Hoppla! Daten konnten nicht geladen werden",
+      "error_text": "Beim Herstellen der Verbindung zum Server ist ein Problem aufgetreten. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "try_again": "Versuchen Sie es erneut",
+      "no_data": "Keine zusätzlichen Bestellungen zur Anzeige",
+      "load_more": "Mehr laden ({{count}} von {{total}})",
+      "all_loaded": "Alle zusätzlichen Bestellungen geladen ({{total}})."
+    },
+    "errors": {
+      "server_error": "Serverfehler beim Laden der Daten.",
+      "connect_error": "Daten konnten nicht geladen werden. Bitte überprüfen Sie Ihre Verbindung."
+    }
+  },
+  "bills": {
+    "title": "Rechnungen",
+    "add_bill": "Rechnung erstellen",
+    "date": "Datum",
+    "bill_number": "Rechnungsnummer",
+    "amount": "Menge",
+    "file": "Datei",
+    "no_bills_found": "Für den ausgewählten Zeitraum wurden keine Rechnungen gefunden.",
+    "file_downloaded": "Datei erfolgreich heruntergeladen",
+    "error_loading": "Die Liste konnte nicht geladen werden",
+    "error_invalid_id": "Fehler: Ungültige Rechnungs-ID",
+    "error_downloading": "Fehler beim Herunterladen der PDF-Datei"
+  },
+  "create_bill": {
+    "title": "Rechnung erstellen",
+    "steps": {
+      "details": "Detailauswahl",
+      "items": "Elemente hinzufügen",
+      "confirm": "Bestätigung"
+    },
+    "fields": {
+      "iban": "IBAN",
+      "address": "Adresse",
+      "product": "Produkt",
+      "quantity": "Menge",
+      "price": "Preis",
+      "width": "Breite (mm)",
+      "height": "Höhe (mm)",
+      "total": "Gesamtbetrag",
+      "payment_date": "Zahlungsdatum",
+      "delivery_date": "Liefertermin",
+      "comment": "Kommentar"
+    },
+    "placeholders": {
+      "iban": "— IBAN auswählen —",
+      "address": "— Adresse auswählen —",
+      "product": "— Produkt auswählen —"
+    },
+    "actions": {
+      "add_item": "Artikel hinzufügen",
+      "remove_item": "Position entfernen",
+      "submit": "Rechnung erstellen",
+      "creating": "Erstellen..."
+    },
+    "notifications": {
+      "profile_error": "Fehler beim Laden des Profils. Versuchen Sie bitte, das Formular erneut zu öffnen",
+      "success": "Rechnung erfolgreich erstellt!",
+      "submit_error": "Rechnung konnte nicht erstellt werden. Bitte versuchen Sie es erneut."
+    },
+    "validation": {
+      "step1": "Bitte wählen Sie IBAN und Lieferadresse aus",
+      "step2": "Überprüfen Sie die Artikel: Name, Menge und Preis müssen ausgefüllt sein"
+    }
+  },
+  "change_password": {
+    "header": "Kennwort ändern",
+    "logged_in_as": "Angemeldet als:",
+    "old_password_label": "Aktuelles Passwort",
+    "new_password_label": "Neues Passwort",
+    "confirm_password_label": "Bestätigen Sie das neue Passwort",
+    "btn_submit": "Kennwort ändern",
+    "btn_loading": "Ändern...",
+    "info_changing": "Passwort ändern...",
+    "success_message": "Passwort erfolgreich geändert!",
+    "error_mismatch": "Neues Passwort und Bestätigung stimmen nicht überein.",
+    "error_length": "Das Passwort muss mindestens 6 Zeichen lang sein.",
+    "error_general": "Fehler. Bitte überprüfen Sie Ihr aktuelles Passwort.",
+    "error_wrong_old": "Falsches aktuelles Passwort.",
+    "error_fields_required": "Beide Felder sind Pflichtfelder."
+  },
+  "emergency": {
+    "page_title": "Notrufkontakte",
+    "no_contacts": "Keine Kontakte gefunden.",
+    "unknown_user": "Unbekannter Benutzer",
+    "actions": {
+      "call": "Dringender Anruf",
+      "connect_telegram": "Telegram verbinden"
+    },
+    "modal": {
+      "add_title": "Kontakt hinzufügen",
+      "edit_title": "Kontakt bearbeiten",
+      "placeholder_name": "Name",
+      "placeholder_phone": "Telefon",
+      "placeholder_dept": "Abteilung",
+      "delete_confirm_title": "Bestätigung löschen",
+      "delete_confirm_text": "Sind Sie sicher, dass Sie diesen Kontakt löschen möchten?"
+    },
+    "telegram": {
+      "title": "Verbindungstelegramm",
+      "scan_qr": "Scannen Sie den QR-Code oder klicken Sie auf die Schaltfläche unten"
+    },
+    "notifications": {
+      "fetch_error": "Die Kontaktliste konnte nicht abgerufen werden",
+      "fill_required": "Bitte füllen Sie alle erforderlichen Felder aus",
+      "updated": "Kontakt aktualisiert",
+      "added": "Kontakt hinzugefügt",
+      "save_error": "Der Kontakt konnte nicht gespeichert werden",
+      "deleted": "Kontakt gelöscht",
+      "delete_error": "Der Kontakt konnte nicht gelöscht werden",
+      "sending_call": "Benachrichtigung wird gesendet...",
+      "call_sent": "Benachrichtigung gesendet",
+      "call_error": "Benachrichtigung konnte nicht gesendet werden"
+    }
+  },
+  "filters": {
+    "from": "Aus",
+    "to": "Zu",
+    "dealer": "Händler"
+  },
+  "payments": {
+    "title": "Cashflow",
+    "when": "Wann",
+    "date": "Datum",
+    "show_orders_mobile": "Wird auf Anfrage verteilt",
+    "hide_orders_mobile": "Bestellung ausblenden",
+    "operation": "Betrieb",
+    "start_balance": "Balance starten",
+    "start_short": "Start",
+    "income": "Einkommen",
+    "expense": "Kosten",
+    "balance": "Gleichgewicht",
+    "channel": "Kanal",
+    "details_contract": "Details / Vertrag",
+    "total_for": "Insgesamt für",
+    "correction": "Korrektur",
+    "order_no": "Bestell-Nr.",
+    "amount": "Menge",
+    "debt": "Schulden",
+    "paid_before": "Vorher bezahlt",
+    "payment": "Zahlung",
+    "percent": "Prozent",
+    "contract": "Vertrag",
+    "no_contract": "Kein Vertrag",
+    "unknown_date": "Unbekanntes Datum",
+    "show_orders": "Wird auf {{count}} Bestellungen angewendet",
+    "hide_orders": "{{count}} Bestellungen ausblenden",
+    "channels": {
+      "bank": "BANK",
+      "cash": "KASSE",
+      "order_short": "BEFEHL"
+    },
+    "docTypes": {
+      "ППВход": "Banküberweisung",
+      "ПКО": "Bargeldbestellung",
+      "ВозвратОтПокупателя": "Rücksendung vom Käufer",
+      "КорректировкаДолга": "Schuldenanpassung"
+    }
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Manager",
+    "operator": "Operator",
+    "director": "Direktor",
+    "region_manager": "Regionsleiter",
+    "complaint_manager": "Beschwerdemanager",
+    "customer": "Händler"
+  },
+  "invite": {
+    "header": "Vollständige Registrierung",
+    "admin_params": "Zugriffsparameter vom Administrator:",
+    "label_login": "Ihr System-Login",
+    "label_role": "Kontotyp",
+    "label_expire": "Konto aktiv bis:",
+    "unlimited": "Unbegrenzt",
+    "personal_data": "Persönliche Daten",
+    "warning_edit": "Überprüfen und bearbeiten Sie ggf. die Kontaktdaten und legen Sie ein Passwort fest.",
+    "warning_save": "Wichtig: Speichern Sie Ihren Login und Ihr Passwort!",
+    "label_fullname": "Vollständiger Name",
+    "label_email": "E-Mail",
+    "label_phone": "Telefon",
+    "label_password": "Neues Passwort",
+    "btn_submit": "Profil erstellen",
+    "success_message": "Registrierung erfolgreich abgeschlossen! Sie können sich jetzt anmelden.",
+    "back_to_login": "Zurück zum Login",
+    "password_rules": {
+      "min_length": "Mindestens 8 Zeichen",
+      "lowercase": "Muss einen Kleinbuchstaben enthalten",
+      "uppercase": "Muss einen Großbuchstaben enthalten",
+      "number": "Muss eine Ziffer enthalten",
+      "special": "Muss ein Sonderzeichen enthalten"
+    },
+    "strength": {
+      "weak": "Schwaches Passwort",
+      "medium": "Mittleres Passwort",
+      "strong": "Starkes Passwort"
+    },
+    "tg": {
+      "title": "Telegram-Bot verbinden",
+      "description": "Scannen Sie den QR-Code, um Bestellbenachrichtigungen zu erhalten",
+      "button": "Gehen Sie zu Telegram"
+    },
+    "errors": {
+      "load_fail": "Daten konnten nicht geladen werden",
+      "invalid_password": "Das Passwort entspricht nicht den Sicherheitsanforderungen",
+      "invalid_phone": "Ungültiges Telefonformat. Verwenden Sie +380XXXXXXXXX",
+      "reg_fail": "Registrierungsfehler",
+      "invite_used": "Dieser Link wurde bereits verwendet",
+      "invite_expired": "Dieser Link ist nicht mehr aktiv",
+      "invalid_code": "Ungültiger Einladungscode"
+    }
+  }
+}

@@ -66,24 +66,6 @@ from .utils import (
 )
 
 
-SUPPORTED_PORTAL_TRANSLATION_LANGS = {"uk", "en", "de"}
-ORDERSPORTAL_AI_TRANSLATE_URL = (
-    os.getenv("ORDERSPORTAL_AI_TRANSLATE_URL")
-    or os.getenv("ORDERSPORTAL_AI_WEBHOOK_URL")
-    or "http://192.168.200.177:5678/webhook/ordersportal-ai-translate"
-)
-ORDERSPORTAL_AI_TRANSLATE_KEY = (
-    os.getenv("ORDERSPORTAL_AI_TRANSLATE_KEY")
-    or os.getenv("ORDERSPORTAL_AI_WEBHOOK_KEY")
-)
-try:
-    ORDERSPORTAL_AI_TRANSLATE_TIMEOUT = float(
-        os.getenv("ORDERSPORTAL_AI_TRANSLATE_TIMEOUT", "8")
-    )
-except (TypeError, ValueError):
-    ORDERSPORTAL_AI_TRANSLATE_TIMEOUT = 8.0
-
-
 
 def get_current_time_kyiv() -> str:
     return (
@@ -141,108 +123,6 @@ def parse_reclamation_details(text):
         'ParsedDeterminationDate': date_determination_match.group(1).strip() if date_determination_match else None,
         'ParsedDescription': clean_description if clean_description else None,
     }
-
-
-
-def normalize_portal_language(value, fallback="uk"):
-    normalized_fallback = str(fallback or "uk").strip().lower()[:2]
-    if normalized_fallback not in SUPPORTED_PORTAL_TRANSLATION_LANGS:
-        normalized_fallback = "uk"
-
-    candidate = str(value or "").strip().lower().replace("_", "-")
-    if not candidate:
-        return normalized_fallback
-
-    primary = candidate.split(",")[0].split(";")[0].split("-")[0].strip()
-    if primary in SUPPORTED_PORTAL_TRANSLATION_LANGS:
-        return primary
-
-    return normalized_fallback
-
-
-
-def get_requested_portal_language(request, fallback="uk"):
-    return normalize_portal_language(
-        request.GET.get("lang")
-        or request.headers.get("X-Portal-Language")
-        or request.headers.get("Accept-Language")
-        or getattr(request, "LANGUAGE_CODE", None),
-        fallback=fallback,
-    )
-
-
-
-def translate_portal_message_for_view(
-    text,
-    target_language,
-    *,
-    field_name="chat_message",
-    entity_type="message",
-    entity_id=None,
-    source_locale_hint="uk",
-):
-    clean_text = str(text or "").strip()
-    normalized_target = normalize_portal_language(target_language, fallback="uk")
-    normalized_hint = normalize_portal_language(source_locale_hint, fallback="uk")
-
-    response_payload = {
-        "message": clean_text,
-        "original_message": clean_text,
-        "message_language": None,
-        "display_language": normalized_target,
-        "is_auto_translated": False,
-    }
-
-    if not clean_text:
-        response_payload["original_message"] = ""
-        return response_payload
-
-    if not ORDERSPORTAL_AI_TRANSLATE_URL or not ORDERSPORTAL_AI_TRANSLATE_KEY:
-        return response_payload
-
-    try:
-        response = requests.post(
-            ORDERSPORTAL_AI_TRANSLATE_URL,
-            headers={
-                "Content-Type": "application/json",
-                "X-API-KEY": ORDERSPORTAL_AI_TRANSLATE_KEY,
-            },
-            json={
-                "text": clean_text,
-                "targets": [normalized_target],
-                "field_name": field_name,
-                "entity_type": entity_type,
-                "entity_id": str(entity_id) if entity_id is not None else None,
-                "source_locale_hint": normalized_hint,
-            },
-            timeout=ORDERSPORTAL_AI_TRANSLATE_TIMEOUT,
-        )
-        response.raise_for_status()
-        payload = response.json()
-    except Exception as exc:
-        logger.warning(
-            "AI message translation failed for entity %s (%s): %s",
-            entity_id,
-            normalized_target,
-            str(exc),
-        )
-        return response_payload
-
-    translations = payload.get("translations") or {}
-    translated_text = translations.get(normalized_target)
-    if isinstance(translated_text, str) and translated_text.strip():
-        translated_text = translated_text.strip()
-        response_payload["message"] = translated_text
-        response_payload["is_auto_translated"] = translated_text != clean_text
-
-    source_language = payload.get("source_language")
-    if isinstance(source_language, str) and source_language.strip():
-        response_payload["message_language"] = normalize_portal_language(
-            source_language,
-            fallback=normalized_hint,
-        )
-
-    return response_payload
 
 
 
@@ -2185,22 +2065,7 @@ def build_1c_payload(
         }
 
     elif client_address:
-        address_name = build_address_name(client_address)
-
-        calc["address"] = {
-            "addressGUID": None,
-            "addressName": address_name,
-            "addressCoordinates": {
-                "lat": safe_float(client_address.get("lat")),
-                "lng": safe_float(client_address.get("lng")),
-            },
-            "addressAdditionalInfo": client_address.get("note", "") or "",
-        }
-        calc["recipient"] = {
-            "recipientName": client_address.get("full_name"),
-            "recipientPhone": client_address.get("phone"),
-            "recipientAddionalInformation": client_address.get("extra_info", "") or "",
-        }
+        calc["address"] = client_address
 
     return payload
 
@@ -2920,13 +2785,6 @@ def wds_codes_by_contractor(request):
             required=False, 
             description="GUID автора запиту (обов'язково для API Key)"
         ),
-        OpenApiParameter(
-            name="lang",
-            type=str,
-            location=OpenApiParameter.QUERY,
-            required=False,
-            description="Мова відображення повідомлень (uk, en, de). Якщо передано, вільний текст перекладається під час перегляду без збереження в БД."
-        ),
     ],
     responses={200: OpenApiResponse(description="Список повідомлень")},
     tags=["Messages"],
@@ -2942,7 +2800,6 @@ def get_messages(request):
     base_transaction_guid = request.GET.get("base_transaction_guid")
     transaction_type_id = request.GET.get("transaction_type_id")
     author_guid_param = request.GET.get("author_guid")
-    requested_language = get_requested_portal_language(request, fallback="uk")
 
     if not base_transaction_guid or not transaction_type_id:
         return Response(
@@ -3001,7 +2858,6 @@ def get_messages(request):
         for u in CustomUser.objects.filter(user_id_1C__in=author_ids)
     }
 
-    translated_messages = {}
     result = []
     for m in messages:
         author_data = None
@@ -3017,25 +2873,9 @@ def get_messages(request):
             else:
                 author_data = get_author_from_1c(m.author)
 
-        original_message = m.text or ""
-        if original_message not in translated_messages:
-            translated_messages[original_message] = translate_portal_message_for_view(
-                original_message,
-                requested_language,
-                field_name="chat_message",
-                entity_type="chat_message",
-                entity_id=m.id,
-                source_locale_hint="uk",
-            )
-        translated = translated_messages[original_message]
-
         result.append({
             "id": m.id,
-            "message": translated["message"],
-            "original_message": translated["original_message"],
-            "message_language": translated["message_language"],
-            "display_language": translated["display_language"],
-            "is_auto_translated": translated["is_auto_translated"],
+            "message": m.text,
             "created_at": m.timestamp,
             "is_read": m.is_read,
             "author": author_data,
