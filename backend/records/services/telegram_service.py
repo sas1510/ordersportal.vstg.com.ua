@@ -22,8 +22,9 @@ def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
         method = "sendPhoto"
         field_name = "photo"
     elif content_type.startswith("video/"):
-        method = "sendVideo"
-        field_name = "video"
+        # Send videos as documents so Telegram does not recompress or distort them.
+        method = "sendDocument"
+        field_name = "document"
     elif content_type.startswith("audio/"):
         method = "sendAudio"
         field_name = "audio"

@@ -120,6 +120,18 @@ const SupportChatWidget = () => {
   }, [isOpen, markChatAsRead]);
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    const hasUnreadIncoming = messages.some(
+      (msg) => msg.direction === "incoming" && !msg.isRead
+    );
+
+    if (hasUnreadIncoming) {
+      markChatAsRead();
+    }
+  }, [isOpen, messages, markChatAsRead]);
+
+  useEffect(() => {
     if (isOpen) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
