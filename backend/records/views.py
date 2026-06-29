@@ -4324,6 +4324,7 @@ from .services.manager_service import (
     get_manager_by_contractor,
     get_telegram_id_by_manager,
 )
+from .services.telegram_service import send_telegram_message
 from .services.telegram_service import send_telegram_message, send_telegram_file
 
 import os
@@ -4342,7 +4343,6 @@ from .services.telegram_service import (
     send_telegram_message,
     send_telegram_file,
 )
-import requests
 
 
 def detect_message_type(file_obj):
@@ -4444,43 +4444,13 @@ def send_support_notification_to_telegram(request):
 Щоб відповісти дилеру — натисніть Відповісти на це повідомлення.
 """
 
-    file_delivery_note = ""
-
     if file_obj:
         file_obj.seek(0)
-        try:
-            tg_response = send_telegram_file(
-                telegram_chat_id=telegram_id,
-                file_obj=file_obj,
-                caption=tg_text
-            )
-        except ValueError:
-            file_size_mb = round((getattr(file_obj, "size", 0) or 0) / (1024 * 1024), 2)
-            file_delivery_note = (
-                f"\n\n<b>Файл не доставлено в Telegram</b>\n"
-                f"Назва: <code>{file_obj.name}</code>\n"
-                f"Розмір: <code>{file_size_mb} MB</code>\n"
-                f"Причина: файл перевищує ліміт Telegram для ботів."
-            )
-            tg_response = send_telegram_message(
-                telegram_chat_id=telegram_id,
-                text=tg_text + file_delivery_note
-            )
-        except requests.HTTPError as exc:
-            if getattr(exc.response, "status_code", None) != 413:
-                raise
-
-            file_size_mb = round((getattr(file_obj, "size", 0) or 0) / (1024 * 1024), 2)
-            file_delivery_note = (
-                f"\n\n<b>Файл не доставлено в Telegram</b>\n"
-                f"Назва: <code>{file_obj.name}</code>\n"
-                f"Розмір: <code>{file_size_mb} MB</code>\n"
-                f"Причина: Telegram повернув 413 Request Entity Too Large."
-            )
-            tg_response = send_telegram_message(
-                telegram_chat_id=telegram_id,
-                text=tg_text + file_delivery_note
-            )
+        tg_response = send_telegram_file(
+            telegram_chat_id=telegram_id,
+            file_obj=file_obj,
+            caption=tg_text
+        )
     else:
         tg_response = send_telegram_message(
             telegram_chat_id=telegram_id,

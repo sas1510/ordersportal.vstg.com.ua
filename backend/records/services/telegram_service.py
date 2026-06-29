@@ -1,8 +1,6 @@
 import requests
 from django.conf import settings
 
-TELEGRAM_BOT_FILE_LIMIT_BYTES = 50 * 1024 * 1024
-
 
 def send_telegram_message(telegram_chat_id: int, text: str):
     url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -19,10 +17,6 @@ def send_telegram_message(telegram_chat_id: int, text: str):
 
 def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
     content_type = file_obj.content_type or "application/octet-stream"
-    file_size = getattr(file_obj, "size", None)
-
-    if file_size and file_size > TELEGRAM_BOT_FILE_LIMIT_BYTES:
-        raise ValueError("Telegram file is too large for bot upload")
 
     if content_type.startswith("image/"):
         method = "sendPhoto"
@@ -59,6 +53,10 @@ def send_telegram_file(telegram_chat_id: int, file_obj, caption: str = ""):
 
     response.raise_for_status()
     return response.json()
+
+
+import requests
+from django.conf import settings
 
 
 def get_telegram_file_info(file_id: str):
