@@ -197,6 +197,10 @@ def translate_portal_message_for_view(
         response_payload["original_message"] = ""
         return response_payload
 
+    if normalized_target == normalized_hint:
+        response_payload["message_language"] = normalized_hint
+        return response_payload
+
     if not ORDERSPORTAL_AI_TRANSLATE_URL or not ORDERSPORTAL_AI_TRANSLATE_KEY:
         return response_payload
 
@@ -4691,7 +4695,7 @@ from .models import ChatMessage, ChatMessageAttachment
 SUPPORT_TRANSACTION_TYPE_ID = 4
 
 
-def serialize_chat_message(message, target_language="uk"):
+def serialize_chat_message(message, target_language="uk", translated_cache=None):
     attachments = []
 
     for a in message.attachments.all():
@@ -4708,24 +4712,16 @@ def serialize_chat_message(message, target_language="uk"):
         })
 
     original_text = message.text or ""
-    translated = translate_portal_message_for_view(
-        original_text,
-        target_language,
-        field_name="chat_message",
-        entity_type="chat_message",
-        entity_id=message.id,
-        source_locale_hint="uk",
-    )
 
     return {
         "id": message.id,
         "chatId": message.chat_id,
         "timestamp": message.timestamp,
-        "text": translated["message"],
-        "original_text": translated["original_message"],
-        "message_language": translated["message_language"],
-        "display_language": translated["display_language"],
-        "is_auto_translated": translated["is_auto_translated"],
+        "text": original_text,
+        "original_text": original_text,
+        "message_language": "uk",
+        "display_language": normalize_portal_language(target_language, fallback="uk"),
+        "is_auto_translated": False,
         "isRead": message.is_read,
         "eventType": message.event_type,
         "direction": "outgoing" if message.event_type == "support" else "incoming",
