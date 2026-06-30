@@ -5146,6 +5146,7 @@ def support_large_video_upload(request):
     if SUPPORT_LARGE_VIDEO_UPLOAD_NOTE in (upload_message.text or ""):
         upload_message.text = (upload_message.text or "").replace(
             SUPPORT_LARGE_VIDEO_UPLOAD_NOTE,
+            "Менеджер додав відео.",
         ).strip()
         upload_message.save(update_fields=["text"])
 
