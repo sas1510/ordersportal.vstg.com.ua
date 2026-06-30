@@ -309,6 +309,7 @@ const SupportChatPage = () => {
 const AttachmentView = ({ attachment }) => {
   const { t } = useTranslation();
   const url = attachment.url;
+  const downloadUrl = attachment.downloadUrl || url;
 
   if (attachment.type === "image") {
     return (
@@ -324,13 +325,23 @@ const AttachmentView = ({ attachment }) => {
   }
 
   if (attachment.type === "video") {
+    if (!attachment.isAvailable || !downloadUrl) {
+      return (
+        <div className="underline mt-2 block">
+          {t("support_chat.large_video_upload.video_unavailable")}
+        </div>
+      );
+    }
+
     return (
-      <video
-        controls
-        src={url}
-        className="rounded mt-2 w-full"
-        style={{ maxHeight: 300 }}
-      />
+      <a
+        href={downloadUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="underline mt-2 block"
+      >
+        {t("support_chat.large_video_upload.download_button")}
+      </a>
     );
   }
 
@@ -340,7 +351,7 @@ const AttachmentView = ({ attachment }) => {
 
   return (
     <a
-      href={url}
+      href={downloadUrl}
       target="_blank"
       rel="noreferrer"
       className="underline mt-2 block"

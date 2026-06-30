@@ -4324,8 +4324,8 @@ from .services.manager_service import (
     get_manager_by_contractor,
     get_telegram_id_by_manager,
 )
-from .services.telegram_service import send_telegram_message
 from .services.telegram_service import send_telegram_message, send_telegram_file
+from .services.video_processing import maybe_prepare_video_upload
 
 import os
 
@@ -4382,6 +4382,11 @@ def send_support_notification_to_telegram(request):
 
     file_obj = request.FILES.get("file")
     message_type = request.data.get("messageType") or detect_message_type(file_obj)
+    upload_file_obj = file_obj
+    video_was_compressed = False
+
+    if file_obj and message_type == "video":
+        upload_file_obj, video_was_compressed, _ = maybe_prepare_video_upload(file_obj)
 
     if not contractor_id:
         return Response({"success": False, "error": "contractorId is required"}, status=400)
@@ -4418,18 +4423,18 @@ def send_support_notification_to_telegram(request):
 
     attachment = None
 
-    if file_obj:
-        file_bytes = file_obj.read()
-        file_obj.seek(0)
+    if upload_file_obj:
+        file_bytes = upload_file_obj.read()
+        upload_file_obj.seek(0)
 
         attachment = ChatMessageAttachment.objects.create(
             MessageId=message,
             AttachmentType=message_type,
-            FileName=file_obj.name,
-            OriginalFileName=file_obj.name,
-            MimeType=file_obj.content_type,
-            FileExtension=get_file_extension(file_obj.name),
-            FileSize=file_obj.size,
+            FileName=upload_file_obj.name,
+            OriginalFileName=upload_file_obj.name,
+            MimeType=upload_file_obj.content_type,
+            FileExtension=get_file_extension(upload_file_obj.name),
+            FileSize=upload_file_obj.size,
             FileData=file_bytes,
         )
 
@@ -4444,11 +4449,23 @@ def send_support_notification_to_telegram(request):
 Щоб відповісти дилеру — натисніть Відповісти на це повідомлення.
 """
 
-    if file_obj:
-        file_obj.seek(0)
+    fallback_download_url = None
+
+    if attachment:
+        from .services.attachment_tokens import build_support_chat_attachment_url
+
+        fallback_download_url = build_support_chat_attachment_url(
+            attachment.Id,
+            "download_support_chat_attachment",
+            request=request,
+            absolute=True,
+        )
+
+    if upload_file_obj:
+        upload_file_obj.seek(0)
         tg_response = send_telegram_file(
             telegram_chat_id=telegram_id,
-            file_obj=file_obj,
+            file_obj=upload_file_obj,
             caption=tg_text
         )
     else:
@@ -4458,19 +4475,84 @@ def send_support_notification_to_telegram(request):
         )
 
     telegram_chat_id = int(telegram_id)
-    telegram_message_id = int(tg_response["result"]["message_id"])
-
-    ChatTelegramMap.objects.create(
-        MessageId=message,
-        ChatId=chat_id,
-        TelegramChatId=telegram_chat_id,
-        TelegramMessageId=telegram_message_id,
-        TelegramReplyToMessageId=None,
-        Direction="PortalToTelegram",
+    telegram_message_id = None
+    telegram_sent = bool(isinstance(tg_response, dict) and tg_response.get("ok"))
+    telegram_error = None
+    is_too_large_video = bool(
+        attachment
+        and message_type == "video"
+        and isinstance(tg_response, dict)
+        and (
+            tg_response.get("status_code") == 413
+            or "too large" in (tg_response.get("error", "").lower())
+            or "завеликий" in (tg_response.get("error", "").lower())
+        )
     )
 
-    message.is_sent_vtg = True
-    message.save(update_fields=["is_sent_vtg"])
+    if telegram_sent:
+        telegram_message_id = int(tg_response["result"]["message_id"])
+
+        ChatTelegramMap.objects.create(
+            MessageId=message,
+            ChatId=chat_id,
+            TelegramChatId=telegram_chat_id,
+            TelegramMessageId=telegram_message_id,
+            TelegramReplyToMessageId=None,
+            Direction="PortalToTelegram",
+        )
+
+        message.is_sent_vtg = True
+        message.save(update_fields=["is_sent_vtg"])
+    else:
+        telegram_error = (
+            tg_response.get("description")
+            or tg_response.get("error")
+            or "Не вдалося надіслати повідомлення в Telegram"
+        )
+
+        if fallback_download_url and attachment:
+            if is_too_large_video:
+                fallback_text = (
+                    f"{tg_text}\n\n"
+                    f"<b>Відео завелике для надсилання напряму в Telegram.</b>\n"
+                    f"Файл: <code>{attachment.OriginalFileName or attachment.FileName or 'file'}</code>\n"
+                    f"<a href=\"{fallback_download_url}\">Завантажити відео</a>"
+                )
+            else:
+                fallback_text = (
+                    f"{tg_text}\n\n"
+                    f"<b>Вкладення не вдалося завантажити напряму в Telegram.</b>\n"
+                    f"Файл: <code>{attachment.OriginalFileName or attachment.FileName or 'file'}</code>\n"
+                    f"<a href=\"{fallback_download_url}\">Завантажити файл</a>"
+                )
+
+            fallback_response = send_telegram_message(
+                telegram_chat_id=telegram_id,
+                text=fallback_text,
+            )
+
+            if isinstance(fallback_response, dict) and fallback_response.get("ok"):
+                telegram_sent = True
+                telegram_error = None
+                telegram_message_id = int(fallback_response["result"]["message_id"])
+
+                ChatTelegramMap.objects.create(
+                    MessageId=message,
+                    ChatId=chat_id,
+                    TelegramChatId=telegram_chat_id,
+                    TelegramMessageId=telegram_message_id,
+                    TelegramReplyToMessageId=None,
+                    Direction="PortalToTelegram",
+                )
+
+                message.is_sent_vtg = True
+                message.save(update_fields=["is_sent_vtg"])
+            else:
+                telegram_error = (
+                    fallback_response.get("description")
+                    or fallback_response.get("error")
+                    or telegram_error
+                )
 
     return Response({
         "success": True,
@@ -4479,6 +4561,9 @@ def send_support_notification_to_telegram(request):
         "attachmentId": attachment.Id if attachment else None,
         "telegramId": telegram_chat_id,
         "telegramMessageId": telegram_message_id,
+        "telegramSent": telegram_sent,
+        "telegramError": telegram_error,
+        "videoCompressed": video_was_compressed,
     })
 
 
@@ -4502,6 +4587,7 @@ from .services.telegram_service import download_telegram_file
 
 
 SUPPORT_TRANSACTION_TYPE_ID = 4
+TELEGRAM_BOT_VIDEO_IMPORT_LIMIT_BYTES = 20 * 1024 * 1024
 
 @csrf_exempt
 def telegram_webhook(request):
@@ -4560,23 +4646,64 @@ def telegram_webhook(request):
     attachment = None
     telegram_attachment = extract_telegram_attachment(msg)
 
-    if telegram_attachment:
-        downloaded = download_telegram_file(telegram_attachment["file_id"])
+    def send_large_video_upload_prompt(file_name):
+        note_prefix = f"{text}\n\n" if text else ""
+        manager_message.text = f"{note_prefix}{SUPPORT_LARGE_VIDEO_UPLOAD_NOTE}"
+        manager_message.save(update_fields=["text"])
 
-        file_name = telegram_attachment["file_name"]
-        mime_type = telegram_attachment["mime_type"]
-
-        attachment = ChatMessageAttachment.objects.create(
-            MessageId=manager_message,
-            AttachmentType=telegram_attachment["type"],
-            FileName=file_name,
-            OriginalFileName=file_name,
-            MimeType=mime_type,
-            FileExtension=get_extension_from_name(file_name),
-            FileSize=telegram_attachment.get("file_size") or downloaded.get("file_size"),
-            FileData=downloaded["bytes"],
-            DurationSeconds=telegram_attachment.get("duration"),
+        _, signed_upload_token = create_large_video_upload_token(
+            message=manager_message,
+            original_file_name=file_name,
+            telegram_chat_id=telegram_chat_id,
+            telegram_message_id=telegram_message_id,
         )
+        upload_portal_url = build_large_video_upload_portal_url(signed_upload_token)
+        reply_markup = {
+            "inline_keyboard": [[
+                {
+                    "text": "Завантажити відео в портал",
+                    "url": upload_portal_url,
+                }
+            ]]
+        }
+
+        return send_telegram_message(
+            telegram_chat_id=telegram_chat_id,
+            text=(
+                "Відео завелике для автоматичного імпорту в портал.\n\n"
+                "Натисніть кнопку нижче та завантажте його через портал.\n\n"
+                "Посилання для завантаження дійсне протягом 2 годин."
+            ),
+            reply_markup=reply_markup
+        )
+
+    if telegram_attachment:
+        if (
+            telegram_attachment["type"] == "video"
+            and (telegram_attachment.get("file_size") or 0) > TELEGRAM_BOT_VIDEO_IMPORT_LIMIT_BYTES
+        ):
+            send_large_video_upload_prompt(telegram_attachment["file_name"])
+        else:
+            downloaded = download_telegram_file(telegram_attachment["file_id"])
+
+            file_name = telegram_attachment["file_name"]
+            mime_type = telegram_attachment["mime_type"]
+            downloaded_bytes = downloaded.get("bytes") if isinstance(downloaded, dict) else None
+
+            if downloaded_bytes:
+                attachment = ChatMessageAttachment.objects.create(
+                    MessageId=manager_message,
+                    AttachmentType=telegram_attachment["type"],
+                    FileName=file_name,
+                    OriginalFileName=file_name,
+                    MimeType=mime_type,
+                    FileExtension=get_extension_from_name(file_name),
+                    FileSize=telegram_attachment.get("file_size") or downloaded.get("file_size"),
+                    FileData=downloaded_bytes,
+                    DurationSeconds=telegram_attachment.get("duration"),
+                )
+            elif telegram_attachment["type"] == "video":
+                send_large_video_upload_prompt(file_name)
 
     ChatTelegramMap.objects.create(
         MessageId=manager_message,
@@ -4596,6 +4723,8 @@ def telegram_webhook(request):
 
 import os
 import mimetypes
+
+TELEGRAM_VIDEO_DOCUMENT_EXTENSIONS = {"mp4", "mov", "avi", "mkv", "webm", "m4v"}
 
 
 def get_extension_from_name(filename):
@@ -4644,6 +4773,18 @@ def extract_telegram_attachment(msg):
             "file_size": video.get("file_size"),
         }
 
+    if msg.get("animation"):
+        animation = msg["animation"]
+
+        return {
+            "type": "video",
+            "file_id": animation["file_id"],
+            "file_name": animation.get("file_name") or f"telegram_animation_{animation['file_unique_id']}.mp4",
+            "mime_type": animation.get("mime_type") or "video/mp4",
+            "file_size": animation.get("file_size"),
+            "duration": animation.get("duration"),
+        }
+
     if msg.get("voice"):
         voice = msg["voice"]
 
@@ -4670,12 +4811,26 @@ def extract_telegram_attachment(msg):
 
     if msg.get("document"):
         document = msg["document"]
+        document_name = document.get("file_name") or f"telegram_file_{document['file_unique_id']}"
+        document_mime_type = (
+            document.get("mime_type")
+            or mimetypes.guess_type(document_name)[0]
+            or "application/octet-stream"
+        )
+        document_extension = get_extension_from_name(document_name)
+        attachment_type = "file"
+
+        if (
+            document_mime_type.startswith("video/")
+            or document_extension in TELEGRAM_VIDEO_DOCUMENT_EXTENSIONS
+        ):
+            attachment_type = "video"
 
         return {
-            "type": "file",
+            "type": attachment_type,
             "file_id": document["file_id"],
-            "file_name": document.get("file_name") or f"telegram_file_{document['file_unique_id']}",
-            "mime_type": document.get("mime_type") or "application/octet-stream",
+            "file_name": document_name,
+            "mime_type": document_mime_type,
             "file_size": document.get("file_size"),
         }
 
@@ -4690,15 +4845,73 @@ from rest_framework.response import Response
 from io import BytesIO
 
 from .models import ChatMessage, ChatMessageAttachment
+from .services.attachment_tokens import (
+    build_support_chat_attachment_url,
+    validate_support_chat_attachment_token,
+)
+from .models import ChatLargeVideoUploadToken
+from .services.large_video_upload_tokens import (
+    build_large_video_upload_portal_url,
+    create_large_video_upload_token,
+    mark_large_video_upload_token_used,
+    validate_large_video_upload_signed_token,
+)
+from django.utils import timezone
+from datetime import timedelta
 
 
 SUPPORT_TRANSACTION_TYPE_ID = 4
+SUPPORT_VIDEO_RETENTION_HOURS = 24
+SUPPORT_LARGE_VIDEO_UPLOAD_NOTE = (
+    "Відео завелике для автоматичного імпорту в портал. "
+    "Менеджер має завантажити його через портал."
+)
 
 
-def serialize_chat_message(message, target_language="uk", translated_cache=None):
+def is_support_video_attachment_available(attachment):
+    if attachment.AttachmentType != "video":
+        return True
+
+    token_record = (
+        ChatLargeVideoUploadToken.objects
+        .filter(uploaded_attachment_id=attachment.Id, is_used=True)
+        .only("id")
+        .first()
+    )
+    if not token_record:
+        return True
+
+    created_at = getattr(attachment, "CreatedAt", None)
+    if not created_at:
+        return True
+
+    return created_at >= timezone.now() - timedelta(hours=SUPPORT_VIDEO_RETENTION_HOURS)
+
+
+def get_support_video_attachment_expiry(attachment):
+    created_at = getattr(attachment, "CreatedAt", None)
+    if attachment.AttachmentType != "video" or not created_at:
+        return None
+
+    token_record = (
+        ChatLargeVideoUploadToken.objects
+        .filter(uploaded_attachment_id=attachment.Id, is_used=True)
+        .only("id")
+        .first()
+    )
+    if not token_record:
+        return None
+
+    return created_at + timedelta(hours=SUPPORT_VIDEO_RETENTION_HOURS)
+
+
+def serialize_chat_message(message, target_language="uk", translated_cache=None, request=None):
     attachments = []
 
     for a in message.attachments.all():
+        is_available = is_support_video_attachment_available(a)
+        expires_at = get_support_video_attachment_expiry(a)
+
         attachments.append({
             "id": a.Id,
             "type": a.AttachmentType,  # image/video/voice/audio/file
@@ -4708,7 +4921,18 @@ def serialize_chat_message(message, target_language="uk", translated_cache=None)
             "fileExtension": a.FileExtension,
             "fileSize": a.FileSize,
             "durationSeconds": a.DurationSeconds,
-            "url": f"/api/support/chat/attachment/{a.Id}/",
+            "url": build_support_chat_attachment_url(
+                a.Id,
+                "get_support_chat_attachment",
+                request=request,
+            ) if is_available else None,
+            "downloadUrl": build_support_chat_attachment_url(
+                a.Id,
+                "download_support_chat_attachment",
+                request=request,
+            ) if is_available else None,
+            "isAvailable": is_available,
+            "availableUntil": expires_at.isoformat() if expires_at else None,
         })
 
     original_text = message.text or ""
@@ -4755,16 +4979,63 @@ def get_support_chat_history(request):
     return Response({
         "success": True,
         "chatId": chat_id,
-        "messages": [serialize_chat_message(m, requested_language) for m in messages],
+        "messages": [serialize_chat_message(m, requested_language, request=request) for m in messages],
     })
+
+
+def build_large_video_upload_error_payload(status_code):
+    if status_code == "used":
+        return {"success": False, "error": "Посилання вже використано.", "code": "used"}
+    if status_code == "expired":
+        return {"success": False, "error": "Термін дії посилання закінчився.", "code": "expired"}
+    if status_code == "mismatch":
+        return {"success": False, "error": "Недійсне посилання.", "code": "invalid"}
+    if status_code == "missing":
+        return {"success": False, "error": "Недійсне посилання.", "code": "invalid"}
+
+    return {"success": False, "error": "Недійсне посилання.", "code": "invalid"}
+
+
+def _can_access_support_chat_attachment(request, attachment_id):
+    if bool(getattr(getattr(request, "user", None), "is_authenticated", False)):
+        return True, None, None
+
+    token = request.GET.get("token")
+    if not token:
+        return False, "missing", "Attachment token is required"
+
+    is_valid, reason = validate_support_chat_attachment_token(attachment_id, token)
+    if is_valid:
+        return True, None, None
+
+    if reason == "expired":
+        return False, "expired", "Attachment token has expired"
+
+    return False, "invalid", "Attachment token is invalid"
 
 
 @api_view(["GET"])
 def get_support_chat_attachment(request, attachment_id):
+    has_access, error_code, error_message = _can_access_support_chat_attachment(
+        request,
+        attachment_id,
+    )
+    if not has_access:
+        return Response(
+            {"success": False, "error": error_message},
+            status=410 if error_code == "expired" else 403,
+        )
+
     try:
         attachment = ChatMessageAttachment.objects.get(Id=attachment_id)
     except ChatMessageAttachment.DoesNotExist:
         raise Http404("Attachment not found")
+
+    if not is_support_video_attachment_available(attachment):
+        return Response(
+            {"success": False, "error": "Відео більше недоступне у чаті."},
+            status=410,
+        )
 
     file_bytes = attachment.FileData
 
@@ -4778,6 +5049,115 @@ def get_support_chat_attachment(request, attachment_id):
     )
 
     return response
+
+
+@api_view(["GET"])
+def download_support_chat_attachment(request, attachment_id):
+    has_access, error_code, error_message = _can_access_support_chat_attachment(
+        request,
+        attachment_id,
+    )
+    if not has_access:
+        return Response(
+            {"success": False, "error": error_message},
+            status=410 if error_code == "expired" else 403,
+        )
+
+    try:
+        attachment = ChatMessageAttachment.objects.get(Id=attachment_id)
+    except ChatMessageAttachment.DoesNotExist:
+        raise Http404("Attachment not found")
+
+    if not is_support_video_attachment_available(attachment):
+        return Response(
+            {"success": False, "error": "Відео більше недоступне у чаті."},
+            status=410,
+        )
+
+    download_name = attachment.OriginalFileName or attachment.FileName or "file"
+    response = FileResponse(
+        BytesIO(attachment.FileData),
+        as_attachment=True,
+        filename=download_name,
+        content_type=attachment.MimeType or "application/octet-stream",
+    )
+
+    if attachment.FileSize:
+        response["Content-Length"] = str(attachment.FileSize)
+
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@api_view(["GET", "POST"])
+def support_large_video_upload(request):
+    signed_token = request.GET.get("token") or request.data.get("token")
+    token_record, status_code = validate_large_video_upload_signed_token(signed_token)
+
+    if status_code != "ok":
+        payload = build_large_video_upload_error_payload(status_code)
+        http_status = 410 if status_code in {"used", "expired"} else 403
+        return Response(payload, status=http_status)
+
+    if request.method == "GET":
+        return Response({
+            "success": True,
+            "chatId": token_record.chat_id,
+            "messageId": token_record.message_id,
+            "originalFileName": token_record.original_file_name,
+            "expiresAt": token_record.expires_at,
+            "used": token_record.is_used,
+        })
+
+    file_obj = request.FILES.get("file")
+    if not file_obj:
+        return Response(
+            {"success": False, "error": "Потрібно вибрати відеофайл.", "code": "missing_file"},
+            status=400,
+        )
+
+    upload_message = token_record.message
+    content_type = file_obj.content_type or ""
+    file_extension = get_file_extension(file_obj.name) or ""
+    is_video = content_type.startswith("video/") or file_extension in TELEGRAM_VIDEO_DOCUMENT_EXTENSIONS
+
+    if not is_video:
+        return Response(
+            {"success": False, "error": "Дозволено завантажувати лише відео.", "code": "invalid_file_type"},
+            status=400,
+        )
+
+    prepared_upload, _, _ = maybe_prepare_video_upload(file_obj)
+    prepared_upload.seek(0)
+    file_bytes = prepared_upload.read()
+    prepared_upload.seek(0)
+
+    attachment = ChatMessageAttachment.objects.create(
+        MessageId=upload_message,
+        AttachmentType="video",
+        FileName=prepared_upload.name,
+        OriginalFileName=prepared_upload.name,
+        MimeType=prepared_upload.content_type or content_type or "video/mp4",
+        FileExtension=get_file_extension(prepared_upload.name),
+        FileSize=getattr(prepared_upload, "size", len(file_bytes)),
+        FileData=file_bytes,
+    )
+
+    if SUPPORT_LARGE_VIDEO_UPLOAD_NOTE in (upload_message.text or ""):
+        upload_message.text = (upload_message.text or "").replace(
+            SUPPORT_LARGE_VIDEO_UPLOAD_NOTE,
+            "Менеджер завантажив відео через портал.",
+        ).strip()
+        upload_message.save(update_fields=["text"])
+
+    mark_large_video_upload_token_used(token_record, attachment.Id)
+
+    return Response({
+        "success": True,
+        "message": "Відео успішно завантажено.",
+        "attachmentId": attachment.Id,
+        "messageId": upload_message.id,
+    })
 
 
 @api_view(["POST"])

@@ -146,7 +146,8 @@
     "payment": "Zahlung",
     "customer_bills": "Rechnungen",
     "analytics": "Analysen",
-    "edit_addresses": "Adressen bearbeiten"
+    "edit_addresses": "Adressen bearbeiten",
+    "support_video_upload": "Video hochladen"
   },
   "notifications": {
     "title": "Benachrichtigungen",
@@ -1144,6 +1145,22 @@
     "attachment": {
       "image_alt": "Bild",
       "file_fallback": "Datei"
+    },
+    "large_video_upload": {
+      "title": "Großes Video hochladen",
+      "description": "Laden Sie das Video in das Portal hoch, damit es im Support-Chat erscheint.",
+      "download_button": "Herunterladen",
+      "select_file": "Videodatei auswählen",
+      "submit": "Video hochladen",
+      "success": "Das Video wurde erfolgreich ins Portal hochgeladen.",
+      "file_label": "Erwartete Datei",
+      "expires_label": "Link gültig bis",
+      "expires_soon": "Läuft bald ab",
+      "back_home": "Zurück zum Portal",
+      "used": "Dieser Link wurde bereits verwendet.",
+      "expired": "Dieser Link ist abgelaufen.",
+      "invalid": "Ungültiger Link.",
+      "video_unavailable": "Dieses Video ist nicht mehr verfügbar."
     },
     "success": {
       "sent": "Nachricht gesendet"

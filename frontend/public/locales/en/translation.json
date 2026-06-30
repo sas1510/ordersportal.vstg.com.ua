@@ -146,7 +146,8 @@
     "payment": "Payment",
     "customer_bills": "Invoices",
     "analytics": "Analytics",
-    "edit_addresses": "Edit Addresses"
+    "edit_addresses": "Edit Addresses",
+    "support_video_upload": "Video Upload"
   },
   "notifications": {
     "title": "Notifications",
@@ -1144,6 +1145,22 @@
     "attachment": {
       "image_alt": "image",
       "file_fallback": "File"
+    },
+    "large_video_upload": {
+      "title": "Large Video Upload",
+      "description": "Upload the video to the portal so it appears in the support chat.",
+      "download_button": "Download",
+      "select_file": "Select a video file",
+      "submit": "Upload video",
+      "success": "The video has been uploaded to the portal.",
+      "file_label": "Expected file",
+      "expires_label": "Link valid until",
+      "expires_soon": "Expires soon",
+      "back_home": "Back to portal",
+      "used": "This link has already been used.",
+      "expired": "This link has expired.",
+      "invalid": "Invalid link.",
+      "video_unavailable": "This video is no longer available."
     },
     "success": {
       "sent": "Message sent"

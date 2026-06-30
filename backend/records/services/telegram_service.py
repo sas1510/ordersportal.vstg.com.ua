@@ -27,16 +27,28 @@ def parse_telegram_response(response):
     return response.json()
 
 
-def send_telegram_message(telegram_chat_id: int, text: str):
+def send_telegram_message(
+    telegram_chat_id: int,
+    text: str,
+    reply_markup=None,
+    reply_to_message_id=None,
+):
     url = f"https://api.telegram.org/bot{get_bot_token()}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+    }
+
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+
+    if reply_to_message_id:
+        payload["reply_to_message_id"] = reply_to_message_id
 
     response = requests.post(
         url,
-        json={
-            "chat_id": telegram_chat_id,
-            "text": text,
-            "parse_mode": "HTML",
-        },
+        json=payload,
         timeout=30,
     )
 

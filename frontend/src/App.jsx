@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import InviteRegisterForm from "./pages/InviteRegisterForm";
 import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
+import SupportVideoUploadPage from "./pages/SupportVideoUploadPage";
 
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes } from "./routesConfig";
@@ -53,6 +54,7 @@ const routeTitlePatterns = [
   ["/statistics", "route_titles.analytics"],
   ["/finance/cash-flow", "route_titles.cash_flow"],
   ["/edit-addresses", "route_titles.edit_addresses"],
+  ["/support/video-upload", "route_titles.support_video_upload"],
 ];
 
 const pathToRegExp = (pattern) =>
@@ -147,7 +149,7 @@ function AppRoutes() {
     [t],
   );
 
-  const publicPaths = ["/", "/home", "/login"];
+  const publicPaths = ["/", "/home", "/login", "/support/video-upload"];
   const isInvite = location.pathname.startsWith("/invite/");
   const isPublicRoute = publicPaths.includes(location.pathname) || isInvite;
 
@@ -170,6 +172,7 @@ function AppRoutes() {
           <Route path="home" element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="invite/:code/" element={<InviteRegisterForm />} />
+          <Route path="support/video-upload" element={<SupportVideoUploadPage />} />
         </Route>
         {/* Якщо юзер авторизований і випадково зайшов на логін — можна буде додати редирект пізніше */}
         <Route path="*" element={<Navigate to={location.pathname} replace />} />

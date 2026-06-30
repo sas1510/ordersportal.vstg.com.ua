@@ -221,3 +221,46 @@ class ChatTelegramMap(models.Model):
     class Meta:
         db_table = "ChatTelegramMap"
         managed = False
+
+
+class ChatLargeVideoUploadToken(models.Model):
+    id = models.BigAutoField(primary_key=True, db_column="ID")
+    message = models.ForeignKey(
+        ChatMessage,
+        db_column="MessageId",
+        on_delete=models.CASCADE,
+        related_name="large_video_upload_tokens",
+    )
+    chat_id = models.CharField(db_column="ChatId", max_length=255, db_index=True)
+    token = models.CharField(db_column="Token", max_length=128, unique=True, db_index=True)
+    original_file_name = models.CharField(
+        db_column="OriginalFileName",
+        max_length=255,
+        null=True,
+        blank=True,
+    )
+    is_used = models.BooleanField(db_column="IsUsed", default=False)
+    used_at = models.DateTimeField(db_column="UsedAt", null=True, blank=True)
+    expires_at = models.DateTimeField(db_column="ExpiresAt")
+    created_at = models.DateTimeField(db_column="CreatedAt", auto_now_add=True)
+    uploaded_attachment_id = models.BigIntegerField(
+        db_column="UploadedAttachmentId",
+        null=True,
+        blank=True,
+    )
+    telegram_chat_id = models.BigIntegerField(
+        db_column="TelegramChatId",
+        null=True,
+        blank=True,
+    )
+    telegram_message_id = models.BigIntegerField(
+        db_column="TelegramMessageId",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        db_table = "ChatLargeVideoUploadToken"
+
+    def __str__(self):
+        return f"{self.chat_id}:{self.message_id}:{self.token[:10]}"
