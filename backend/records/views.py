@@ -4670,7 +4670,7 @@ def telegram_webhook(request):
         return send_telegram_message(
             telegram_chat_id=telegram_chat_id,
             text=(
-                "Відео завелике для автоматичного імпорту в портал.\n\n"
+                "Відео завелике для втоматичного імпорту в портал.\n\n"
                 "Натисніть кнопку нижче та завантажте його через портал.\n\n"
                 "Посилання для завантаження дійсне протягом 2 годин."
             ),
@@ -4863,8 +4863,8 @@ from datetime import timedelta
 SUPPORT_TRANSACTION_TYPE_ID = 4
 SUPPORT_VIDEO_RETENTION_HOURS = 24
 SUPPORT_LARGE_VIDEO_UPLOAD_NOTE = (
-    "Відео завелике для автоматичного імпорту в портал. "
-    "Менеджер має завантажити його через портал."
+    "Відео завелике для прямої передачі в портал. "
+    "Зачекайте будь ласка поки менеджер завантажити його."
 )
 
 
