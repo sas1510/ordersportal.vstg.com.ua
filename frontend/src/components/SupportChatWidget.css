@@ -515,11 +515,20 @@
 }
 
 .support-attachment-file {
-  display: block;
   margin-top: 8px;
   color: inherit;
   text-decoration: underline;
   word-break: break-word;
+}
+
+.support-attachment-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.support-attachment-icon {
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {

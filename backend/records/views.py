@@ -4377,7 +4377,7 @@ def get_file_extension(filename):
 @api_view(["POST"])
 def send_support_notification_to_telegram(request):
     contractor_id = request.data.get("contractorId")
-    text = request.data.get("text") or "Повідомлення від дилера"
+    text = request.data.get("text") or "Нове повідомлення"
     client_name = request.data.get("clientName") or ""
 
     file_obj = request.FILES.get("file")
@@ -5146,7 +5146,7 @@ def support_large_video_upload(request):
     if SUPPORT_LARGE_VIDEO_UPLOAD_NOTE in (upload_message.text or ""):
         upload_message.text = (upload_message.text or "").replace(
             SUPPORT_LARGE_VIDEO_UPLOAD_NOTE,
-            "Менеджер завантажив відео через портал.",
+            "Менеджер надіслав відео.",
         ).strip()
         upload_message.save(update_fields=["text"])
 

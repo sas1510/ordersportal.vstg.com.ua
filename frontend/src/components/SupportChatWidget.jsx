@@ -450,30 +450,32 @@ const AttachmentView = ({ attachment }) => {
     );
   }
 
-  if (attachment.type === "video") {
-    if (!attachment.isAvailable || !downloadUrl) {
-      return (
-        <div className="support-attachment-file">
-          <FaFileAlt style={{ marginRight: 8 }} />
-          {t("support_chat.large_video_upload.video_unavailable")}
-        </div>
-      );
-    }
-
+ if (attachment.type === "video") {
+  if (!attachment.isAvailable || !downloadUrl) {
     return (
-      <a
-        href={downloadUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="support-attachment-file"
-      >
-        <>
-          <FaFileAlt style={{ marginRight: 8 }} />
-          {t("support_chat.large_video_upload.download_button")}
-        </>
-      </a>
+      <div className="support-attachment-file">
+        <FaFileAlt className="support-attachment-icon" />
+        <span>
+          {t("support_chat.large_video_upload.video_unavailable")}
+        </span>
+      </div>
     );
   }
+
+  return (
+    <a
+      href={downloadUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="support-attachment-file"
+    >
+      <FaFileAlt className="support-attachment-icon" />
+      <span>
+        {t("support_chat.large_video_upload.download_button")}
+      </span>
+    </a>
+  );
+}
 
   if (attachment.type === "voice" || attachment.type === "audio") {
     return <audio controls src={url} className="support-attachment-audio" />;

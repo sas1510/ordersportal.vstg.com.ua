@@ -170,11 +170,7 @@ export default function SupportVideoUploadPage() {
           </>
         )}
 
-        {isUnavailable && (
-          <a href="/home" className="support-video-upload-link">
-            {t("support_chat.large_video_upload.back_home")}
-          </a>
-        )}
+
       </div>
     </div>
   );
