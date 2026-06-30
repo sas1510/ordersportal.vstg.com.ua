@@ -1095,7 +1095,7 @@
     "success_message": "Registrierung erfolgreich abgeschlossen! Sie können sich jetzt anmelden.",
     "back_to_login": "Zurück zum Login",
     "password_rules": {
-      "min_length": "Mindestens 8 Zeichen",
+      "min_length": "Mindestens 6 Zeichen",
       "lowercase": "Muss einen Kleinbuchstaben enthalten",
       "uppercase": "Muss einen Großbuchstaben enthalten",
       "number": "Muss eine Ziffer enthalten",

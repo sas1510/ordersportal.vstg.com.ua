@@ -818,34 +818,50 @@ export default function InviteRegisterForm() {
   };
 
   /* ================= PASSWORD VALIDATION ================= */
-  const passwordErrors = useMemo(() => {
-    const p = formData.password;
-    const errors = [];
-    if (!p) return errors;
-    if (p.length < 8) errors.push(t("invite.password_rules.min_length"));
-    if (!/[a-z]/.test(p)) errors.push(t("invite.password_rules.lowercase"));
-    if (!/[A-Z]/.test(p)) errors.push(t("invite.password_rules.uppercase"));
-    if (!/[0-9]/.test(p)) errors.push(t("invite.password_rules.number"));
-    if (!/[!@#$%^&*()_+=\-{}[\]:;"'<>,.?/]/.test(p)) errors.push(t("invite.password_rules.special"));
-    return errors;
-  }, [formData.password, t]);
+ /* ================= PASSWORD VALIDATION ================= */
+const passwordErrors = useMemo(() => {
+  const p = formData.password;
+  const errors = [];
+  if (!p) return errors;
 
-  const isPasswordValid = passwordErrors.length === 0;
+  if (p.length < 6) {
+    errors.push(t("invite.password_rules.min_length"));
+  }
 
-  const passwordStrength = useMemo(() => {
-    const p = formData.password;
-    let score = 0;
-    if (!p) return { score: 0, label: "", color: "#ccc" };
-    if (p.length >= 8) score++;
-    if (/[a-z]/.test(p)) score++;
-    if (/[A-Z]/.test(p)) score++;
-    if (/[0-9]/.test(p)) score++;
-    if (/[!@#$%^&*()_+=\-{}[\]:;"'<>,.?/]/.test(p)) score++;
+  return errors;
+}, [formData.password, t]);
 
-    if (score <= 1) return { score, label: t("invite.strength.weak"), color: "#e74c3c" };
-    if (score <= 3) return { score, label: t("invite.strength.medium"), color: "#f1c40f" };
-    return { score, label: t("invite.strength.strong"), color: "#2ecc71" };
-  }, [formData.password, t]);
+const isPasswordValid = passwordErrors.length === 0;
+
+const passwordStrength = useMemo(() => {
+  const p = formData.password;
+
+  if (!p) {
+    return { score: 0, label: "", color: "#ccc" };
+  }
+
+  if (p.length < 6) {
+    return {
+      score: 1,
+      label: t("invite.strength.weak"),
+      color: "#e74c3c",
+    };
+  }
+
+  if (p.length < 10) {
+    return {
+      score: 3,
+      label: t("invite.strength.medium"),
+      color: "#f1c40f",
+    };
+  }
+
+  return {
+    score: 5,
+    label: t("invite.strength.strong"),
+    color: "#2ecc71",
+  };
+}, [formData.password, t]);
 
   /* ================= LOAD DATA ================= */
   useEffect(() => {
