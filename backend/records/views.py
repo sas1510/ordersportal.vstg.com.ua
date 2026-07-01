@@ -2123,6 +2123,12 @@ def get_file_extension(file_name: str | None, default_ext: str = "BIN") -> str:
     return ext.replace(".", "").upper()
 
 
+from django.utils import timezone
+
+def get_current_time_kyiv():
+    return timezone.localtime(timezone.now()).isoformat()
+
+
 def build_1c_payload(
     *,
     order_number,
