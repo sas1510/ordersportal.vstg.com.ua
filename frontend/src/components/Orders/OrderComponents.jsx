@@ -434,7 +434,7 @@ export const CalculationItem = React.memo(
             </div>
           </div>
 
-         <div className="summary-item row w-16 no-wrap">
+         <div className="summary-item row w-16 ">
           <div className="row gap-2 align-center">
 
             <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
