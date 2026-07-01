@@ -422,7 +422,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
         {/* STATUS */}
         <div className="summary-item row justify-start">
-          <div className="row gap-4 align-center">
+          <div className="row gap-1 align-center">
             {/* Замінюємо 'text-info' на динамічний клас статусу */}
             <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
             
