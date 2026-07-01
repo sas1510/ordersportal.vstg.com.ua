@@ -4193,9 +4193,18 @@ def download_calc(request, order_guid, file_guid):
         if not file_bytes:
             return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
 
-        current_ext = os.path.splitext(filename)[1]
+        # назва з БД пріоритетніша
+        filename = db_filename or filename
 
-        if not current_ext:
+        # якщо це PDF — примусово ставимо правильне розширення
+        if file_bytes.startswith(b"%PDF"):
+            if not filename.lower().endswith(".pdf"):
+                filename += ".pdf"
+
+        file_ext = os.path.splitext(filename.lower())[1]
+
+        # якщо розширення все ще немає — пробуємо визначити по байтах
+        if not file_ext:
             detected_ext = guess_extension_from_bytes(file_bytes[:32])
             if detected_ext:
                 filename += detected_ext
@@ -4210,7 +4219,10 @@ def download_calc(request, order_guid, file_guid):
 
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=file_ext)
         tmp.write(file_bytes)
+        tmp.flush()
         tmp.close()
+
+        file_size = os.path.getsize(tmp.name)
 
         response = RangedFileResponse(
             request,
@@ -4218,12 +4230,11 @@ def download_calc(request, order_guid, file_guid):
             content_type=content_type
         )
 
-        response["Content-Length"] = str(len(file_bytes))
-        response["Content-Disposition"] = content_disposition_header(disposition, filename or db_filename)
+        response["Content-Length"] = str(file_size)
+        response["Content-Disposition"] = content_disposition_header(disposition, filename)
         response["Access-Control-Expose-Headers"] = "Content-Disposition, Content-Length"
 
         return response
-
     except Exception as db_error:
         logger.exception(f"Critical error in download_calc DB extraction: {str(db_error)}")
         return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
