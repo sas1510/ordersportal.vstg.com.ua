@@ -111,58 +111,52 @@ import zlib
 
 import zlib
 
-import zlib
-
-def trim_file_bytes(data: bytes) -> bytes:
-    if data.startswith(b"%PDF"):
-        eof_pos = data.rfind(b"%%EOF")
-        if eof_pos != -1:
-            return data[:eof_pos + len(b"%%EOF")]
-        return data
-
-    return data
-
-
 def extract_1c_binary(raw_blob):
+    """
+    Декодування внутрішнього формату 1С (ValueStorage).
+    Підтримує як стиснуті, так і нестиснуті дані.
+    """
     if not raw_blob:
         return None
 
-    raw_blob = bytes(raw_blob)
-
     signatures = [
-        b'\xff\xd8\xff',
-        b'\x89PNG\r\n\x1a\n',
-        b'%PDF',
-        b'PK\x03\x04',
-        b'GIF8',
-        b'RIFF',
+        b'\xff\xd8\xff',        # JPEG
+        b'\x89PNG\r\n\x1a\n',   # PNG
+        b'%PDF',                # PDF
+        b'PK\x03\x04',          # ZIP / ZKZ
+        b'GIF8',                # GIF
+        b'RIFF'                 # WebP
     ]
+
 
     for sig in signatures:
         pos = raw_blob.find(sig)
         if pos != -1:
-            return trim_file_bytes(raw_blob[pos:])
+            return raw_blob[pos:]
+
 
     decoded = None
-
-    for offset in range(0, 256):
-        for wbits in (-15, zlib.MAX_WBITS):
+    for offset in range(0, 128):
+        try:
+ 
+            decoded = zlib.decompress(raw_blob[offset:], wbits=-15)
+            break
+        except zlib.error:
             try:
-                decoded = zlib.decompress(raw_blob[offset:], wbits)
+  
+                decoded = zlib.decompress(raw_blob[offset:])
                 break
             except zlib.error:
-                pass
-
-        if decoded:
-            break
+                continue
 
     if not decoded:
         return None
 
+
     for sig in signatures:
         pos = decoded.find(sig)
         if pos != -1:
-            return trim_file_bytes(decoded[pos:])
+            return decoded[pos:]
 
     return decoded
 
