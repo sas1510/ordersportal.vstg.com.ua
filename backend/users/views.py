@@ -1005,6 +1005,7 @@ def change_password_client(request):
 
     try:
         user.set_password(new_password)
+        user.is_active = True
         user.save()
         
         duration = time.time() - start_time
@@ -1117,7 +1118,8 @@ def admin_change_user_password(request, user_id):
 
     try:
         target_user.set_password(password)
-        target_user.save()
+        target_user.is_active = True
+        target_user.save(update_fields=["password", "is_active"])
 
         duration = time.time() - start_time
 
