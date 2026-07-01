@@ -171,7 +171,7 @@ body.dark-theme .separator-border {
         70px     /* файли */
         140px    /* сума */
         140px    /* борг */
-        90px    /* статус */
+        120px    /* статус */
         215px    /* кнопки */
         65px;    /* швидке */
     align-items:center;
@@ -189,7 +189,7 @@ body.dark-theme .separator-border {
         70px     /* файли */
         133px    /* сума */
         133px    /* борг */
-        90px    /* статус */
+        120px    /* статус */
         215px    /* кнопки */
         30px;    /* швидке */
     align-items:center;
@@ -207,7 +207,7 @@ body.dark-theme .separator-border {
         75px     /* файли */
         140px    /* сума */
         140px    /* борг */
-        100px    /* статус */
+        120px    /* статус */
         215px    /* кнопки */
         65px;    /* швидке */
     align-items:center;
