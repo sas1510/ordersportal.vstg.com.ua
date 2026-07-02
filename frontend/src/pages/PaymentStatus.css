@@ -101,6 +101,67 @@ label {
   transform: translateY(-1px);
 }
 
+.cashflow-error-state {
+  margin-top: 8px;
+  padding: 36px 28px;
+  border-radius: 5px;
+  background: var(--cream-bg-color);
+  border: 1px dashed var(--grey-border-color);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.cashflow-error-state__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.cashflow-error-state.is-warning .cashflow-error-state__icon {
+  background: rgba(243, 156, 18, 0.14);
+  color: #b26b00;
+}
+
+.cashflow-error-state.is-danger .cashflow-error-state__icon {
+  background: rgba(192, 57, 43, 0.12);
+  color: var(--danger-color);
+}
+
+.cashflow-error-state__eyebrow {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey-text-color);
+}
+
+.cashflow-error-state__title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--text-color);
+}
+
+.cashflow-error-state__detail {
+  max-width: 720px;
+  margin: 14px auto 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--grey-text-color);
+}
+
+.cashflow-error-state__actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+}
+
 /* --- ТАБЛИЦЯ --- */
 .table-wrapper {
   overflow-x: auto;
@@ -355,6 +416,21 @@ label {
 
 .dark-theme .filters-container {
   background: #2c2c2c;
+}
+
+.dark-theme .cashflow-error-state {
+  background: #2c2c2c;
+  border-color: #555555;
+  box-shadow: none;
+}
+
+.dark-theme .cashflow-error-state__title {
+  color: #f3f4f6;
+}
+
+.dark-theme .cashflow-error-state__detail,
+.dark-theme .cashflow-error-state__eyebrow {
+  color: #b9bec6;
 }
 .dark-theme .input-date {
   background: #383838;
@@ -876,6 +952,26 @@ span.td-date {
     width: 100%;
     padding: 10px;
     font-size: 14px;
+  }
+
+  .cashflow-error-state {
+    padding: 28px 18px;
+  }
+
+  .cashflow-error-state__title {
+    font-size: 22px;
+  }
+
+  .cashflow-error-state__detail {
+    font-size: 14px;
+  }
+
+  .cashflow-error-state__actions {
+    justify-content: stretch;
+  }
+
+  .cashflow-error-state__actions .btn-primary {
+    width: 100%;
   }
 
   /* --- ТАБЛИЦЯ --- */

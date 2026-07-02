@@ -1525,6 +1525,52 @@ const getCurrentMonthDates = () => {
   return { dateFrom, dateTo };
 };
 
+const resolveCashFlowError = (err, t) => {
+  const status = err?.response?.status;
+  const payload = err?.response?.data || {};
+  const rawError = String(payload.error || "").toLowerCase();
+  const rawDetail = payload.detail || "";
+
+  if (status === 503 || rawError === "database_recovery") {
+    return {
+      title: "Фінансові дані тимчасово оновлюються",
+      detail:
+        rawDetail ||
+        "База даних зараз у процесі оновлення. Спробуйте ще раз трохи пізніше.",
+      tone: "warning",
+    };
+  }
+
+  if (status === 400) {
+    return {
+      title: "Не вдалося сформувати рух коштів",
+      detail:
+        rawDetail ||
+        payload.error ||
+        "Перевірте вибраного дилера або параметри запиту й спробуйте ще раз.",
+      tone: "warning",
+    };
+  }
+
+  if (status === 500) {
+    return {
+      title: "Сервіс руху коштів тимчасово недоступний",
+      detail:
+        rawDetail ||
+        "Сталася внутрішня помилка сервера. Спробуйте повторити запит пізніше.",
+      tone: "danger",
+    };
+  }
+
+  return {
+    title: t("errors.fetch_failed"),
+    detail:
+      rawDetail ||
+      "Не вдалося отримати дані про рух коштів. Оновіть сторінку або повторіть запит.",
+    tone: "danger",
+  };
+};
+
 const DocumentRow = React.memo(
   ({
     docGroup,
@@ -1785,7 +1831,8 @@ const PaymentStatusV2 = () => {
       setPaymentsData(Array.isArray(response.data) ? response.data : []);
       setSearchParams({ ...filters });
     } catch (err) {
-      setError(t('errors.fetch_failed'));
+      setPaymentsData([]);
+      setError(resolveCashFlowError(err, t));
     } finally {
       setLoading(false);
     }
@@ -1931,12 +1978,25 @@ const PaymentStatusV2 = () => {
 
   if (error)
     return (
-      <div className="error-state" style={{ marginTop: "80px", textAlign: "center" }}>
-        <h3>{error}</h3>
-        <button className="btn btn-primary" onClick={fetchData}>
-          <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }} />{" "}
-          {t('common.try_again')}
-        </button>
+      <div className={`payments-body ${theme}`}>
+        <div className="max-w-[1334px] mx-auto">
+          <div className={`cashflow-error-state ${error.tone === "warning" ? "is-warning" : "is-danger"}`}>
+            <div className="cashflow-error-state__icon">
+              <i
+                className={`fa-solid ${error.tone === "warning" ? "fa-triangle-exclamation" : "fa-circle-exclamation"}`}
+              />
+            </div>
+            <div className="cashflow-error-state__eyebrow">Finance / Cash Flow</div>
+            <h3 className="cashflow-error-state__title">{error.title}</h3>
+            <p className="cashflow-error-state__detail">{error.detail}</p>
+            <div className="cashflow-error-state__actions">
+              <button className="btn btn-primary" onClick={fetchData}>
+                <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }} />{" "}
+                {t('common.try_again')}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
 
