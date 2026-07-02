@@ -3,7 +3,7 @@
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
 from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read
-from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView
+from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView
 
 
 from django.urls import path
@@ -33,6 +33,8 @@ urlpatterns = [
     path('orders/<uuid:order_id>/confirm/', confirm_order, name='confirm-order'),  # +- log
     path("calculations/<uuid:calculation_guid>/delete/", DeleteCalculationView.as_view(),name="delete-calculation",),
     path("production-statistics/", ProductionStatisticsView.as_view()), #without log
+    path("production-timeliness/", ProductionTimelinessByContractorView.as_view()),
+    path("production-unified-analytics/", ProductionUnifiedAnalyticsView.as_view()),
     path("kpi-statistics/", DealerDetailedStatisticsView.as_view()),#without log
     path("full-statistics/", DealerFullAnalyticsView.as_view()),#without log
     path("order-statistics/", OrdersDealerStatisticsView.as_view()),#without log

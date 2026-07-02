@@ -3345,7 +3345,436 @@ class ProductionStatisticsView(APIView):
             "summary_chart": chart_data, 
             "items": items,              
         })
+
+
+def _dictfetchall(cursor):
+    if cursor.description is None:
+        return []
+    columns = [col[0] for col in cursor.description]
+    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+def _safe_float(value, default=0.0):
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_int(value, default=0):
+    try:
+        if value is None:
+            return default
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _normalize_production_timeliness_summary(row):
+    return {
+        "abc": row.get("ABC") or "Other",
+        "orders_count": _safe_int(row.get("OrdersCount")),
+        "in_time_count": _safe_int(row.get("InTimeCount")),
+        "delayed_count": _safe_int(row.get("DelayedCount")),
+        "not_finished_count": _safe_int(row.get("NotFinishedCount")),
+        "in_time_percent": _safe_float(row.get("InTimePercent")),
+        "avg_delay_days": _safe_float(row.get("AvgDelayDays")),
+        "max_delay_days": _safe_int(row.get("MaxDelayDays")),
+        "total_sum": _safe_float(row.get("TotalSum")),
+        "total_constructions": _safe_float(row.get("TotalConstructions")),
+        "produced_total": _safe_float(row.get("ProducedTotal")),
+    }
+
+
+def _normalize_production_timeliness_order(row):
+    order_id = row.get("OrderID")
+    if isinstance(order_id, (bytes, bytearray)):
+        order_id = bin_to_guid_1c(order_id)
+
+    return {
+        "order_id": order_id,
+        "abc": row.get("ABC") or "Other",
+        "order_number": row.get("OrderNumber"),
+        "client_order_number": row.get("ClientOrderNumber"),
+        "order_date": clean_date(row.get("OrderDate")),
+        "calc_period": clean_date(row.get("CalcPeriod")),
+        "planned_production_date": clean_date(row.get("PlannedProductionDate")),
+        "calculation_details": row.get("Расшифровка"),
+        "start_production_min": clean_date(row.get("StartProductionMin")),
+        "start_production_max": clean_date(row.get("StartProductionMax")),
+        "ready_production_min": clean_date(row.get("ReadyProductionMin")),
+        "ready_production_max": clean_date(row.get("ReadyProductionMax")),
+        "delay_days": _safe_int(row.get("DelayDays")),
+        "production_status": row.get("ProductionStatus"),
+        "late_days": row.get("LateDays"),
+        "delay_bucket": row.get("DelayBucket"),
+        "order_sum": _safe_float(row.get("OrderSum")),
+        "constructions_count": _safe_float(row.get("ConstructionsCount")),
+        "produced_total": _safe_float(row.get("ProducedTotal")),
+    }
+
+
+def _normalize_unified_summary_row(row, key_name):
+    return {
+        "name": row.get(key_name),
+        "orders_count": _safe_int(row.get("OrdersCount")),
+        "total_constructions": _safe_float(row.get("TotalConstructions")),
+        "total_sum": _safe_float(row.get("TotalSum")),
+    }
+
+
+def _normalize_unified_abc_row(row):
+    return {
+        "abc": row.get("ABC") or "No ABC",
+        "orders_count": _safe_int(row.get("OrdersCount")),
+        "in_time_count": _safe_int(row.get("InTimeCount")),
+        "delayed_count": _safe_int(row.get("DelayedCount")),
+        "not_produced_count": _safe_int(row.get("NotProducedCount")),
+        "in_time_percent": _safe_float(row.get("InTimePercent")),
+    }
+
+
+def _normalize_profile_system_row(row):
+    return {
+        "profile_system": row.get("ProfileSystem") or "Профіль не знайдено",
+        "total_constructions": _safe_float(row.get("TotalConstructions")),
+        "orders_count": _safe_int(row.get("OrdersCount")),
+        "total_sum": _safe_float(row.get("TotalSum")),
+        "avg_check": _safe_float(row.get("AvgCheck")),
+    }
+
+
+def _normalize_named_volume_row(row, field_name):
+    return {
+        "name": row.get(field_name) or "Не знайдено",
+        "orders_count": _safe_int(row.get("OrdersCount")),
+        "total_constructions": _safe_float(row.get("TotalConstructions")),
+        "total_sum": _safe_float(row.get("TotalSum")),
+    }
+
+
+def _normalize_period_metric_row(row, value_fields):
+    payload = {
+        "period_label": row.get("PeriodLabel"),
+        "period_sort": clean_date(row.get("PeriodSort")),
+    }
+    for field in value_fields:
+        payload[field] = _safe_float(row.get(field))
+    return payload
+
+
+def _normalize_abc_portfolio_row(row):
+    return {
+        "abc": row.get("ABC") or "No ABC",
+        "orders_count": _safe_int(row.get("OrdersCount")),
+        "total_constructions": _safe_float(row.get("TotalConstructions")),
+        "total_sum": _safe_float(row.get("TotalSum")),
+        "percent_by_orders": _safe_float(row.get("PercentByOrders")),
+    }
+
+
+def _normalize_construction_portfolio_row(row):
+    return {
+        "production_model": row.get("ProductionModel"),
+        "production_section": row.get("ProductionSection"),
+        "construction_type_name_ua": row.get("ConstructionTypeName_UA"),
+        "item_name_ua": row.get("ItemName_UA"),
+        "total_quantity": _safe_float(row.get("TotalQuantity")),
+        "unique_orders_count": _safe_int(row.get("UniqueOrdersCount")),
+        "order_numbers": row.get("OrderNumbers"),
+        "complexity_ua": row.get("Складність_UA"),
+    }
+
+
+class ProductionTimelinessByContractorView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        date_from_raw = request.GET.get("date_from")
+        date_to_raw = request.GET.get("date_to")
+
+        if not date_from_raw or not date_to_raw:
+            return Response(
+                {"detail": "date_from and date_to are required"},
+                status=400,
+            )
+
+        try:
+            date_from = parse_date(date_from_raw, "date_from")
+            date_to = parse_date(date_to_raw, "date_to")
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        if date_from > date_to:
+            return Response(
+                {"detail": "date_from must be less than or equal to date_to"},
+                status=400,
+            )
+
+        try:
+            with connections["default"].cursor() as cursor:
+                cursor.execute(
+                    """
+                    SET ANSI_WARNINGS OFF;
+                    EXEC [dbo].[GetABCProductionTimelinessByContractor]
+                        @ContractorID = %s,
+                        @DateFrom = %s,
+                        @DateTo = %s
+                    """,
+                    [contractor_bin, date_from, date_to],
+                )
+                summary_rows = _dictfetchall(cursor)
+
+                orders_rows = []
+                if cursor.nextset():
+                    orders_rows = _dictfetchall(cursor)
+        except DatabaseError as exc:
+            error_msg = str(exc)
+            if "927" in error_msg or "процессе восстановления" in error_msg.lower():
+                return Response(
+                    {
+                        "error": "database_recovery",
+                        "detail": "База даних оновлюється. Спробуйте через 3 хвилини.",
+                    },
+                    status=503,
+                )
+
+            return Response(
+                {
+                    "detail": "Помилка при зверненні до бази даних. Спробуйте пізніше.",
+                },
+                status=500,
+            )
+
+        summary = [
+            _normalize_production_timeliness_summary(row) for row in summary_rows
+        ]
+        orders = [_normalize_production_timeliness_order(row) for row in orders_rows]
+
+        totals = {
+            "orders_count": sum(item["orders_count"] for item in summary),
+            "in_time_count": sum(item["in_time_count"] for item in summary),
+            "delayed_count": sum(item["delayed_count"] for item in summary),
+            "not_finished_count": sum(item["not_finished_count"] for item in summary),
+            "total_sum": sum(item["total_sum"] for item in summary),
+            "total_constructions": sum(
+                item["total_constructions"] for item in summary
+            ),
+            "produced_total": sum(item["produced_total"] for item in summary),
+            "max_delay_days": max(
+                (item["max_delay_days"] for item in summary),
+                default=0,
+            ),
+        }
+        totals["avg_check"] = (
+            round(totals["total_sum"] / totals["orders_count"], 2)
+            if totals["orders_count"]
+            else 0
+        )
+        totals["in_time_percent"] = (
+            round(100 * totals["in_time_count"] / totals["orders_count"], 2)
+            if totals["orders_count"]
+            else 0
+        )
+        totals["delayed_percent"] = (
+            round(100 * totals["delayed_count"] / totals["orders_count"], 2)
+            if totals["orders_count"]
+            else 0
+        )
+        totals["not_finished_percent"] = (
+            round(100 * totals["not_finished_count"] / totals["orders_count"], 2)
+            if totals["orders_count"]
+            else 0
+        )
+
+        delayed_items = [
+            _safe_float(item.get("late_days"))
+            for item in orders
+            if _safe_float(item.get("late_days")) > 0
+        ]
+        totals["avg_delay_days"] = (
+            round(sum(delayed_items) / len(delayed_items), 2) if delayed_items else 0
+        )
+
+        return Response(
+            {
+                "contractor_guid": contractor_guid,
+                "period": {
+                    "from": date_from.isoformat(),
+                    "to": date_to.isoformat(),
+                },
+                "meta": totals,
+                "summary": summary,
+                "orders": orders,
+            }
+        )
     
+
+class ProductionUnifiedAnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        date_from_raw = request.GET.get("date_from")
+        date_to_raw = request.GET.get("date_to")
+
+        if not date_from_raw or not date_to_raw:
+            return Response(
+                {"detail": "date_from and date_to are required"},
+                status=400,
+            )
+
+        try:
+            date_from = parse_date(date_from_raw, "date_from")
+            date_to = parse_date(date_to_raw, "date_to")
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        if date_from > date_to:
+            return Response(
+                {"detail": "date_from must be less than or equal to date_to"},
+                status=400,
+            )
+
+        try:
+            with connections["default"].cursor() as cursor:
+                cursor.execute(
+                    """
+                    SET ANSI_WARNINGS OFF;
+                    EXEC [dbo].[GetContractorUnifiedAnalytics]
+                        @StartDate = %s,
+                        @EndDate = %s,
+                        @Contractor_ID = %s
+                    """,
+                    [date_from, date_to, contractor_bin],
+                )
+
+                status_rows = _dictfetchall(cursor)
+                stage_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                abc_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                profile_system_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                efficiency_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                volume_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                furniture_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                profile_color_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                abc_portfolio_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                construction_portfolio_rows = (
+                    _dictfetchall(cursor) if cursor.nextset() else []
+                )
+        except DatabaseError as exc:
+            error_msg = str(exc)
+            if "927" in error_msg or "процессе восстановления" in error_msg.lower():
+                return Response(
+                    {
+                        "error": "database_recovery",
+                        "detail": "База даних оновлюється. Спробуйте через 3 хвилини.",
+                    },
+                    status=503,
+                )
+
+            return Response(
+                {
+                    "detail": "Помилка при зверненні до бази даних. Спробуйте пізніше.",
+                },
+                status=500,
+            )
+
+        status_summary = [
+            _normalize_unified_summary_row(row, "OrderStatusName")
+            for row in status_rows
+        ]
+        stage_summary = [
+            _normalize_unified_summary_row(row, "OrderStage")
+            for row in stage_rows
+        ]
+        abc_summary = [_normalize_unified_abc_row(row) for row in abc_rows]
+        profile_systems = [
+            _normalize_profile_system_row(row) for row in profile_system_rows
+        ]
+        efficiency_dynamics = [
+            _normalize_period_metric_row(row, ["MinCheck", "MaxCheck", "AvgCheck"])
+            for row in efficiency_rows
+        ]
+        volume_dynamics = [
+            _normalize_period_metric_row(
+                row,
+                ["TotalConstructions", "TotalTurnover"],
+            )
+            for row in volume_rows
+        ]
+        furniture = [
+            _normalize_named_volume_row(row, "Furniture")
+            for row in furniture_rows
+        ]
+        profile_colors = [
+            _normalize_named_volume_row(row, "ProfileColor")
+            for row in profile_color_rows
+        ]
+        abc_portfolio = [
+            _normalize_abc_portfolio_row(row) for row in abc_portfolio_rows
+        ]
+        construction_portfolio = [
+            _normalize_construction_portfolio_row(row)
+            for row in construction_portfolio_rows
+        ]
+
+        profile_systems_sorted = sorted(
+            profile_systems,
+            key=lambda item: (
+                item["total_constructions"],
+                item["orders_count"],
+                item["total_sum"],
+            ),
+            reverse=True,
+        )
+
+        return Response(
+            {
+                "contractor_guid": contractor_guid,
+                "period": {
+                    "from": date_from.isoformat(),
+                    "to": date_to.isoformat(),
+                },
+                "status_summary": status_summary,
+                "stage_summary": stage_summary,
+                "abc_summary": abc_summary,
+                "profile_systems": profile_systems_sorted,
+                "efficiency_dynamics": efficiency_dynamics,
+                "volume_dynamics": volume_dynamics,
+                "furniture": furniture,
+                "profile_colors": profile_colors,
+                "abc_portfolio": abc_portfolio,
+                "construction_portfolio": construction_portfolio,
+                "meta": {
+                    "profile_systems_count": len(profile_systems_sorted),
+                    "top_profile_system": (
+                        profile_systems_sorted[0]["profile_system"]
+                        if profile_systems_sorted
+                        else None
+                    ),
+                },
+            }
+        )
+
 
 class DealerDetailedStatisticsView(APIView):
     permission_classes = [IsAuthenticated]
