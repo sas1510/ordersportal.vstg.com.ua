@@ -509,6 +509,9 @@ def complaints_view(request):  # Знову синхронна для DRF
                 row["ManagerLink"] = bin_to_guid_1c(row["ManagerLink"])
 
             full_text = row.get("AdditionalInformation")
+            row["BorderReturnDate"] = clean_date(row.get("BorderReturnDate"))
+            row["DebtCorrectionDate"] = clean_date(row.get("DebtCorrectionDate"))
+            row["ReturnDate"] = clean_date(row.get("ReturnDate"))
         
             try:
                 parsed_info = parse_reclamation_details(full_text)
@@ -634,6 +637,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "realizationDate": row.get("SaleDate"),
             "quantityRealized": float(row.get("SoldQuantity") or 0),
             "deliveryAddress": row.get("DeliveryAddress") or "",
+            "planDelivery": row.get("PlannedDeliveryDate"),
             "planDeparture": row.get("PlannedDepartureDate"),
             "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
             "arrivalTime": row.get("ArrivalTime"),
@@ -1498,6 +1502,9 @@ def get_additional_orders_info_all(request):
         for row in rows:
             try:
                 full_text = row.get("AdditionalInformation")
+                row["BorderReturnDate"] = clean_date(row.get("BorderReturnDate"))
+                row["DebtCorrectionDate"] = clean_date(row.get("DebtCorrectionDate"))
+                row["ReturnDate"] = clean_date(row.get("ReturnDate"))
                 parsed_info = parse_reclamation_details(full_text)
 
                 complaint_number = row.get("AdditionalOrderNumber") or "unknown"
@@ -1911,6 +1918,7 @@ def orders_view_all_by_month(request):
                     "realizationDate": row.get("SaleDate"),
                     "quantityRealized": float(row.get("SoldQuantity") or 0),
                     "deliveryAddress": row.get("DeliveryAddress") or "",
+                    "planDelivery": row.get("PlannedDeliveryDate"),
                     "planDeparture": row.get("PlannedDepartureDate"),
                     "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
                     "arrivalTime": row.get("ArrivalTime"),
@@ -2620,7 +2628,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
       
         payload = build_1c_payload(
-            order_number=data["order_number"],
+            order_number=data.get("order_number", ""),
             items_count=data["items_count"],
             comment=data.get("comment", ""),
             contractor_guid=contractor_guid,

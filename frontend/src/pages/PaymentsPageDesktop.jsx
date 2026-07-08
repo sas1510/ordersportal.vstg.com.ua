@@ -122,7 +122,7 @@ export default function PaymentsPageDesktop(props) {
                 <div className="analytics-row-top">
                   <div className="analytics-card"><div className="card-title">Ліміт боргів</div><div className="card-value">{debtTotal.CustomerLimit ? `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName}` : "—"}</div></div>
                   <div className="analytics-card" onClick={() => showDebtDetails("critical")}><div className="card-title">Переліміт боргів</div><div className="card-value">—</div></div>
-                  <div className="analytics-card"><div className="card-title">Використання ліміту</div><div className="card-value">{debtTotal.CustomerLimit ? formatCurrency(debtTotal.CustomerLimit) : "—"}</div></div>
+                  <div className="analytics-card"><div className="card-title">Використання ліміту</div><div className="card-value">{debtTotal.CustomerLimit ? formatCurrency(debtTotal.LimitUsage ?? Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0))) : "—"}</div></div>
                   <div className="analytics-card pointer-link" onClick={() => showDebtDetails("no_prepayment")}><div className="card-title">Без передоплати</div><div className="card-value">{Number(debtTotal.BezPeredOplaty) > 0 ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName}` : "—"}</div></div>
                   <div className="analytics-card pointer-link" onClick={() => showDebtDetails("nedoavans")}><div className="card-title">Недоавансовані</div><div className="card-value">{Number(debtTotal.NedoAvans) > 0 ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName}` : "—"}</div></div>
                 </div>

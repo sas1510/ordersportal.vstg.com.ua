@@ -491,7 +491,9 @@ export default function PaymentsPage() {
                       <div className="card-title">{t("payments_page.analytics.limit_usage")}</div>
                       <div className="card-value">
                         {debtTotal.CustomerLimit > 0
-                          ? formatCurrency(Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0)))
+                          ? formatCurrency(
+                              debtTotal.LimitUsage ?? Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0))
+                            )
                           : "—"}{" "}
                         {debtTotal.CustomerLimit > 0 && `${debtTotal.CurrencyName}`}
                       </div>

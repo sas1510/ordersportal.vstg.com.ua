@@ -21,6 +21,20 @@ const RECLAMATIONS_API_ALL_URL = "/complaints/get_reclamation_info_all/";
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
 
+function normalizePortalDate(value) {
+  if (!value) return null;
+  const stringValue = String(value);
+
+  if (
+    stringValue.startsWith("0001-01-01") ||
+    stringValue.startsWith("2001-01-01") ||
+    stringValue.startsWith("1753-01-01")
+  ) {
+    return null;
+  }
+
+  return value;
+}
 
 
 function formatApiData(data) {
@@ -47,12 +61,15 @@ function formatApiData(data) {
 
       deliveryDate: item.DeliveryDateText || null,
       determinationDate: item.DeterminationDateText || null,
-      readyDate: item.BorderReturnDate,
+      readyDate: normalizePortalDate(item.BorderReturnDate),
       producedDate: item.ProducedDate,
       soldDate: item.SoldDate,
+      debtCorrectionDate: normalizePortalDate(item.DebtCorrectionDate),
+      returnDate: normalizePortalDate(item.ReturnDate),
 
       status: statusKey,
-      problem: item.IssueName,
+      problem: item.ComplaintReasonName || item.IssueName,
+      complaintReasonName: item.ComplaintReasonName || item.IssueName || null,
       resolution: item.SolutionName || null,
       description: item.ParsedDescription,
 
@@ -62,6 +79,11 @@ function formatApiData(data) {
       amount: parseFloat(
         item.DocumentAmount || item.DocumentSum || item.CompensationAmount || 0,
       ),
+      documentAmount: item.DocumentAmount == null ? null : Number(item.DocumentAmount),
+      compensationAmount: item.CompensationAmount == null ? null : Number(item.CompensationAmount),
+      debtCorrectionAmount: item.DebtCorrectionAmount == null ? null : Number(item.DebtCorrectionAmount),
+      returnAmount: item.ReturnAmount == null ? null : Number(item.ReturnAmount),
+      currency: item.Currency || "грн",
       dealer: item.Customer || "N/A",
       dealerId: item.CustomerLink || "N/A",
 

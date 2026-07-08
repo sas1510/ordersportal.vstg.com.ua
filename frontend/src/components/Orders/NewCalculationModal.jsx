@@ -274,7 +274,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!orderNumber || !file || !itemsCount) {
+    if (!file || !itemsCount) {
       addNotification(t("orders.newOrderModal.error_message_3"), "error");
       return;
     }
@@ -404,14 +404,24 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
           <div className="new-calc-modal-body">
             <form className="new-calc-form" onSubmit={handleSubmit}>
-              <label className="new-calc-label-row">
-                <span>№:</span>
-                <input
-                  type="text"
-                  value={orderNumber}
-                  onChange={(e) => setOrderNumber(e.target.value)}
-                  className="new-calc-input"
-                />
+             <label className="new-calc-label">
+                <div className="new-calc-label-row">
+  <span className="new-calc-field-title">
+    Номер замовлення
+  </span>
+
+  <input
+    type="text"
+    value={orderNumber}
+    onChange={(e) => setOrderNumber(e.target.value)}
+    className="new-calc-input"
+    placeholder="PO-2026-154 (необов'язково)"
+  />
+</div>
+
+                <small className="new-calc-field-hint">
+                   Заповнюйте, якщо використовуєте власну нумерацію.
+                </small>
               </label>
 
               {isManager && (

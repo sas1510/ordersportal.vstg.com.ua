@@ -67,7 +67,7 @@ class MessageCreateSerializer(serializers.Serializer):
 
 
 class CalculationCreateSerializer(serializers.Serializer):
-    order_number = serializers.CharField()
+    order_number = serializers.CharField(required=False, allow_blank=True, default="")
     items_count = serializers.IntegerField(min_value=1)
     comment = serializers.CharField(required=False, allow_blank=True, default="")
     

@@ -670,17 +670,35 @@ const AdditionalOrders = () => {
             </li>
           </ul>
 
-          <ul className="filter column align-center">
+          {/* <ul className="filter column align-center">
               <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
               min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
               min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]  min-[1260px]:h-full
               
-              /* Скидання для малих екранів (менше 1260px) */
+
               max-[1260px]:bg-transparent 
               max-[1260px]:shadow-none 
               max-[1260px]:py-0 
               max-[1260px]:w-full 
-              max-[1260px]:overflow-visible">
+              max-[1260px]:overflow-visible"> */}
+
+                   <ul className="filter column align-center h-full overflow-hidden">
+  <div
+    className="
+      w-full
+      h-full
+      min-h-full
+      bg-[#6B98BF]
+      shadow-sm
+      py-[26px]
+      rounded-tl-[5px]
+      rounded-tr-[20px]
+      rounded-bl-[5px]
+      rounded-br-[20px]
+      overflow-y-auto
+      overflow-x-hidden
+    "
+  >
             {[
     { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Всі" },
     { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "Новий" },

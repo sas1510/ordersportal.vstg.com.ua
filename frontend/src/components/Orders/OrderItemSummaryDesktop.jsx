@@ -522,6 +522,7 @@ onClick={openClaimModal}
 {isFilesModalOpen && (
   <OrderFilesModal
     orderGuid={order.idGuid}
+    hideZkzFiles={true}
     entityType="order" // Явно вказуємо, що це замовлення
     onClose={() => setIsFilesModalOpen(false)}
   />

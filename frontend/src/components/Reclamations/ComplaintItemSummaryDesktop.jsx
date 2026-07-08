@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import axiosInstance from "../../api/axios";
 import PhotoModal from "./PhotoModal";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, formatDateTimeShort } from "../../utils/formatters";
+import { formatMoney2 } from "../../utils/formatMoney";
 
 import { useNotification } from "../../hooks/useNotification";
 import { useTranslation } from "react-i18next";
@@ -161,7 +162,7 @@ const isVideo = (name) => /\.(mp4|webm|ogg)$/i.test(name);
 
 const ComplaintItemDetailView = ({ complaint }) => {
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const c = theme === "dark" ? colorsSet.dark : colorsSet.light;
   const { addNotification } = useNotification();
@@ -182,6 +183,94 @@ const ComplaintItemDetailView = ({ complaint }) => {
   const deleteIcon = "/assets/icons/DeleteIcon.png";
   const successIcon = "/assets/icons/SuccessIcon.png";
   const photoIcon = "/assets/icons/PhotoIcon.png";
+  const locale = i18n.language;
+
+  const formatAmountValue = (value) =>
+    value == null || Number.isNaN(Number(value))
+      ? null
+      : formatMoney2(Number(value), complaint.currency || "грн");
+  const compensationBlockColors = {
+    ...c,
+    border: "#5f5f5f",
+  };
+  const submittedCompensationValue =
+    complaint.compensationAmount == null || Number(complaint.compensationAmount) === 0
+      ? null
+      : formatAmountValue(complaint.compensationAmount);
+  const compensatedAmountValue =
+    complaint.debtCorrectionAmount == null || Number(complaint.debtCorrectionAmount) === 0
+      ? null
+      : formatAmountValue(complaint.debtCorrectionAmount);
+  const compensatedSummary = [
+    compensatedAmountValue,
+    complaint.debtCorrectionDate
+      ? `${t("complaints.detail.from_date")} ${formatDateTimeShort(complaint.debtCorrectionDate, locale)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const complaintMetaRows = [
+    {
+      key: "complaintReasonName",
+      label: t("complaints.detail.complaint_reason"),
+      value: complaint.complaintReasonName,
+    },
+    {
+      key: "documentAmount",
+      label: t("complaints.detail.document_amount"),
+      value: formatAmountValue(complaint.documentAmount),
+    },
+    {
+      key: "borderReturnDate",
+      label: t("complaints.detail.border_return_date"),
+      value: complaint.readyDate ? formatDate(complaint.readyDate) : null,
+      highlight: true,
+    },
+    {
+      key: "submittedCompensation",
+      label: t("complaints.detail.compensation_requested"),
+      value: submittedCompensationValue,
+    },
+    {
+      key: "compensatedSummary",
+      label: t("complaints.detail.compensated"),
+      value: compensatedSummary || null,
+    },
+    {
+      key: "returnDate",
+      label: t("complaints.detail.date_received_production"),
+      value: complaint.returnDate
+        ? formatDateTimeShort(complaint.returnDate, locale)
+        : null,
+    },
+  ].filter((item) => item.value);
+  const dateRows = [
+    {
+      key: "dateComplaint",
+      label: t("complaints.detail.date_complaint"),
+      value: complaint.date ? formatDate(complaint.date) : null,
+    },
+    {
+      key: "dateDelivery",
+      label: t("complaints.detail.date_delivery"),
+      value: complaint.deliveryDate ? formatDate(complaint.deliveryDate) : null,
+    },
+    {
+      key: "dateDetection",
+      label: t("complaints.detail.date_detection"),
+      value: complaint.determinationDate ? formatDate(complaint.determinationDate) : null,
+    },
+    {
+      key: "dateProduced",
+      label: t("complaints.detail.date_produced"),
+      value: complaint.producedDate ? formatDate(complaint.producedDate) : null,
+    },
+    {
+      key: "dateShipped",
+      label: t("complaints.detail.date_shipped"),
+      value: complaint.soldDate ? formatDate(complaint.soldDate) : null,
+    },
+  ].filter((item) => item.value);
 
   const loadFiles = useCallback(async () => {
     if (!complaint?.guid) return;
@@ -341,15 +430,59 @@ const ComplaintItemDetailView = ({ complaint }) => {
                   value={complaint.organization}
                   colors={c}
                 />
-
               </HorizontalInfoGroup>
-             
-              
             </div>
           </div>
 
+          {complaintMetaRows.length > 0 && (
+            <div className="space-y-3">
+              <div className="rounded p-0 overflow-hidden">
+                <h3
+                  className="text-base font-bold mb-0 py-1 flex items-center"
+                  style={{
+                    color: c.text,
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <span
+                    className="inline-block mr-2 w-[12px] h-[12px] rounded-full shrink-0"
+                    style={{ backgroundColor: "#b4d947" }}
+                  />
 
-                    <div className="space-y-3">
+                  <span style={{ whiteSpace: "nowrap" }}>
+                    {t("complaints.detail.complaint_meta")}
+                  </span>
+
+                  <div
+                    style={{
+                      flex: 1,
+                      marginLeft: "10px",
+                      height: "1.5px",
+                      backgroundColor: "#4A4A4A",
+                      opacity: 0.8,
+                      transform: "translateY(4px)",
+                    }}
+                  />
+                </h3>
+                <HorizontalInfoGroup columns={Math.min(2, complaintMetaRows.length)} colors={compensationBlockColors}>
+                  {complaintMetaRows.map((item, index) => (
+                    <InfoRow
+                      key={item.key}
+                      label={item.label}
+                      className={index === 0 ? "!pl-0" : ""}
+                      value={item.value}
+                      highlight={item.highlight}
+                      colors={compensationBlockColors}
+                    />
+                  ))}
+                </HorizontalInfoGroup>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
         
@@ -399,6 +532,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
 
 
  
+          {dateRows.length > 0 && (
           <div className="space-y-3">
             <div
               className="rounded p-0 overflow-hidden"
@@ -430,40 +564,20 @@ const ComplaintItemDetailView = ({ complaint }) => {
               </h3>
 
 
-              <HorizontalInfoGroup columns={5} colors={c}>
-                <InfoRow
-                  label={t("complaints.detail.date_complaint")}
-                  value={formatDate(complaint.date)}
-                  colors={c}
-                />
-                <InfoRow
-                  label={t("complaints.detail.date_delivery")}
-                  value={formatDate(complaint.deliveryDate)}
-                  colors={c}
-                />
-                <InfoRow
-                  label={t("complaints.detail.date_detection")}
-                  value={formatDate(complaint.determinationDate)}
-                  colors={c}
-                />
-                {complaint.producedDate &&
-                  complaint.producedDate !== t("complaints.detail.not_specified") && (
-                    <InfoRow
-                      label={t("complaints.detail.date_produced")}
-                      value={formatDate(complaint.producedDate)}
-                      colors={c}
-                    />
-                  )}
-                {complaint.soldDate && complaint.soldDate !== t("complaints.detail.not_specified") && (
+              <HorizontalInfoGroup columns={Math.min(4, dateRows.length)} colors={c}>
+                {dateRows.map((item, index) => (
                   <InfoRow
-                    label={t("complaints.detail.date_shipped")}
-                    value={formatDate(complaint.soldDate)}
+                    key={item.key}
+                    label={item.label}
+                    className={index === 0 ? "!pl-0" : ""}
+                    value={item.value}
                     colors={c}
                   />
-                )}
+                ))}
               </HorizontalInfoGroup>
             </div>
           </div>
+          )}
 
 <div 
   style={{

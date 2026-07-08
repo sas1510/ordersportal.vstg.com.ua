@@ -128,6 +128,24 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
     return getDateStatus(order.planDelivery, order.realizationDate);
   }, [order.planDelivery, order.realizationDate, getDateStatus]);
 
+  const estimatedDeliveryDisplay = useMemo(() => {
+    if (!order.planDelivery || order.realizationDate) return null;
+
+    const startDate = parseDate(order.planDelivery);
+    if (!startDate) return null;
+
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 3);
+
+    return (
+      <div className="plan-block">
+        <div className="plan-name">{t("order_mobile.statuses.plan")}:</div>
+        <div>{t("order_mobile.statuses.from")} {formatDateHumanShorter(startDate, locale)}</div>
+        <div className="plan-dates">{t("order_mobile.statuses.to")} {formatDateHumanShorter(endDate, locale)}</div>
+      </div>
+    );
+  }, [order.planDelivery, order.realizationDate, parseDate, t, locale]);
+
 
   const translatedStatus = useMemo(() => {
   const statusMap = {
@@ -330,7 +348,9 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
             <div className="badge">
               <div className="badge-title">{t("order_mobile.steps.delivery")}</div>
               <div className={`badge-content ${deliveryStatus.bg}`}>
-                {formatDateHuman(order.realizationDate, locale) || t("order_mobile.statuses.not_delivered")}
+                {order.realizationDate
+                  ? formatDateHuman(order.realizationDate, locale)
+                  : estimatedDeliveryDisplay || t("order_mobile.statuses.not_delivered")}
               </div>
             </div>
           </li>

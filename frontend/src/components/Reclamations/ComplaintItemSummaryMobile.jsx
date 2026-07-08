@@ -375,7 +375,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { ImageIcon, Video } from "lucide-react";
 import axiosInstance from "../../api/axios";
 import PhotoModal from "./PhotoModal";
-import { formatDate } from "../../utils/formatters";
+import { formatDate, formatDateTimeShort } from "../../utils/formatters";
+import { formatMoney2 } from "../../utils/formatMoney";
 import { useNotification } from "../../hooks/useNotification";
 import { useTranslation } from "react-i18next";
 
@@ -401,7 +402,7 @@ const MobileInfoRow = ({ label, value, highlight, colors }) => {
 };
 
 const ComplaintItemDetailViewMobile = ({ complaint }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   
   const colorsSet = {
@@ -441,6 +442,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
 
   const c = theme === "dark" ? colorsSet.dark : colorsSet.light;
   const { addNotification } = useNotification();
+  const locale = i18n.language;
 
   const [files, setFiles] = useState([]);
   const [photoIndex, setPhotoIndex] = useState(0);
@@ -462,6 +464,89 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
     problem: "/assets/icons/ProblemIcon.png",
     success: "/assets/icons/SuccessIcon.png",
   };
+
+  const formatAmountValue = (value) =>
+    value == null || Number.isNaN(Number(value))
+      ? null
+      : formatMoney2(Number(value), complaint.currency || "грн");
+  const submittedCompensationValue =
+    complaint.compensationAmount == null || Number(complaint.compensationAmount) === 0
+      ? null
+      : formatAmountValue(complaint.compensationAmount);
+  const compensatedAmountValue =
+    complaint.debtCorrectionAmount == null || Number(complaint.debtCorrectionAmount) === 0
+      ? null
+      : formatAmountValue(complaint.debtCorrectionAmount);
+  const compensatedSummary = [
+    compensatedAmountValue,
+    complaint.debtCorrectionDate
+      ? `${t("complaints.detail.from_date")} ${formatDateTimeShort(complaint.debtCorrectionDate, locale)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const complaintMetaRows = [
+    {
+      key: "complaintReasonName",
+      label: t("complaints.detail.complaint_reason"),
+      value: complaint.complaintReasonName,
+    },
+    {
+      key: "documentAmount",
+      label: t("complaints.detail.document_amount"),
+      value: formatAmountValue(complaint.documentAmount),
+    },
+    {
+      key: "borderReturnDate",
+      label: t("complaints.detail.border_return_date"),
+      value: complaint.readyDate ? formatDate(complaint.readyDate) : null,
+      highlight: true,
+    },
+    {
+      key: "submittedCompensation",
+      label: t("complaints.detail.compensation_requested"),
+      value: submittedCompensationValue,
+    },
+    {
+      key: "compensatedSummary",
+      label: t("complaints.detail.compensated"),
+      value: compensatedSummary || null,
+    },
+    {
+      key: "returnDate",
+      label: t("complaints.detail.date_received_production"),
+      value: complaint.returnDate
+        ? formatDateTimeShort(complaint.returnDate, locale)
+        : null,
+    },
+  ].filter((item) => item.value);
+  const dateRows = [
+    {
+      key: "dateComplaint",
+      label: t("complaints.detail.date_complaint"),
+      value: complaint.date ? formatDate(complaint.date) : null,
+    },
+    {
+      key: "dateDelivery",
+      label: t("complaints.detail.date_delivery"),
+      value: complaint.deliveryDate ? formatDate(complaint.deliveryDate) : null,
+    },
+    {
+      key: "dateDetection",
+      label: t("complaints.detail.date_detection"),
+      value: complaint.determinationDate ? formatDate(complaint.determinationDate) : null,
+    },
+    {
+      key: "dateProduced",
+      label: t("complaints.detail.date_produced"),
+      value: complaint.producedDate ? formatDate(complaint.producedDate) : null,
+    },
+    {
+      key: "dateShipped",
+      label: t("complaints.detail.date_shipped"),
+      value: complaint.soldDate ? formatDate(complaint.soldDate) : null,
+    },
+  ].filter((item) => item.value);
 
   const loadFiles = useCallback(async () => {
     if (!complaint?.guid) return;
@@ -524,6 +609,24 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
           </div>
         </section>
 
+        {complaintMetaRows.length > 0 && (
+          <section>
+            <div className="flex items-center gap-2 mb-2">
+              <span
+                className="inline-block mr-2 w-[12px] h-[12px] rounded-full shrink-0"
+                style={{ backgroundColor: "#b4d947" }}
+              />
+              <h3 className="font-bold text-[16px] whitespace-nowrap">{t("complaints.detail.complaint_meta")}</h3>
+              <div style={{ flex: 1, marginLeft: "8px", height: "2px", backgroundColor: "#44403E", opacity: 0.8, transform: "translateY(4px)" }} />
+            </div>
+            <div className="flex flex-col">
+              {complaintMetaRows.map((item) => (
+                <MobileInfoRow key={item.key} label={item.label} value={item.value} highlight={item.highlight} colors={c} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Series */}
         <section>
           <div className="flex items-center gap-2 mb-2">
@@ -538,6 +641,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
         </section>
 
         {/* Dates */}
+        {dateRows.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-2">
             <img src={icons.dates} className="mr-1" alt="" />
@@ -545,13 +649,12 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
             <div style={{ flex: 1, marginLeft: "8px", height: "2px", backgroundColor: "#44403E", opacity: 0.8, transform: "translateY(4px)" }} />
           </div>
           <div className="flex flex-col">
-            <MobileInfoRow label={t("complaints.detail.date_complaint")} value={formatDate(complaint.date)} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.date_delivery")} value={formatDate(complaint.deliveryDate)} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.date_detection")} value={formatDate(complaint.determinationDate)} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.date_produced")} value={formatDate(complaint.producedDate)} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.date_shipped")} value={formatDate(complaint.soldDate)} colors={c} />
+            {dateRows.map((item) => (
+              <MobileInfoRow key={item.key} label={item.label} value={item.value} colors={c} />
+            ))}
           </div>
         </section>
+        )}
 
         {/* Manager */}
         <section className="border-t-[2px] border-gray-800 pt-3">

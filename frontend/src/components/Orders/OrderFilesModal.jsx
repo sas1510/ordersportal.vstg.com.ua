@@ -16,7 +16,13 @@ import {
 import "./OrderFilesPreviewModal.css";
 
 // Додали новий проп entityType ("order" або "calculation")
-const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose }) => {
+const OrderFilesModal = ({
+  orderGuid,
+  orderNumber,
+  entityType = "order",
+  hideZkzFiles = false,
+  onClose,
+}) => {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
 
@@ -69,16 +75,23 @@ const OrderFilesModal = ({ orderGuid, orderNumber, entityType = "order", onClose
       ГРУПУВАННЯ ФАЙЛІВ
   ========================= */
   const groups = useMemo(() => {
+    const visibleFiles = hideZkzFiles
+      ? files.filter(
+          (f) =>
+            !(f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz")),
+        )
+      : files;
+
     return {
-      zkz: files.filter(f => f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz")),
-      images: files.filter(f => f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName)),
-      others: files.filter(f => {
+      zkz: visibleFiles.filter(f => f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz")),
+      images: visibleFiles.filter(f => f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName)),
+      others: visibleFiles.filter(f => {
         const isZkz = f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz");
         const isImg = f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName);
         return !isZkz && !isImg;
       })
     };
-  }, [files]);
+  }, [files, hideZkzFiles]);
 
   /* =========================
       ЛОГІКА ДИНАМІЧНОГО ЗАВАНТАЖЕННЯ

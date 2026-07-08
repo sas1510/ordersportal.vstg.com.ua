@@ -485,6 +485,7 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
       {isFilesModalOpen && (
         <OrderFilesModal
           orderGuid={order.idGuid}
+          hideZkzFiles={true}
           onClose={() => setIsFilesModalOpen(false)}
         />
       )}

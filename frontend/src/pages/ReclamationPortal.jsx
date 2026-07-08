@@ -22,6 +22,20 @@ import { useTranslation } from 'react-i18next';
 const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
 const ITEMS_PER_LOAD = 100;
 
+function normalizePortalDate(value) {
+    if (!value) return null;
+    const stringValue = String(value);
+
+    if (
+        stringValue.startsWith('0001-01-01') ||
+        stringValue.startsWith('2001-01-01') ||
+        stringValue.startsWith('1753-01-01')
+    ) {
+        return null;
+    }
+
+    return value;
+}
 
 function formatApiData(data) {
     if (!Array.isArray(data)) return [];
@@ -46,12 +60,15 @@ function formatApiData(data) {
 
             deliveryDate: item.DeliveryDateText || null,
             determinationDate: item.DeterminationDateText || null,
-            readyDate: item.BorderReturnDate,
+            readyDate: normalizePortalDate(item.BorderReturnDate),
             producedDate: item.ProducedDate,
             soldDate: item.SoldDate,
+            debtCorrectionDate: normalizePortalDate(item.DebtCorrectionDate),
+            returnDate: normalizePortalDate(item.ReturnDate),
 
             status: statusKey,
-            problem: item.IssueName,
+            problem: item.ComplaintReasonName || item.IssueName,
+            complaintReasonName: item.ComplaintReasonName || item.IssueName || null,
             resolution: item.SolutionName || null,
             description: item.ParsedDescription,
 
@@ -60,6 +77,11 @@ function formatApiData(data) {
             managerLink: item.ManagerLink || 'N/A',
 
             amount: parseFloat(item.DocumentAmount || item.DocumentSum || item.CompensationAmount || 0),
+            documentAmount: item.DocumentAmount == null ? null : Number(item.DocumentAmount),
+            compensationAmount: item.CompensationAmount == null ? null : Number(item.CompensationAmount),
+            debtCorrectionAmount: item.DebtCorrectionAmount == null ? null : Number(item.DebtCorrectionAmount),
+            returnAmount: item.ReturnAmount == null ? null : Number(item.ReturnAmount),
+            currency: item.Currency || 'грн',
             dealer: item.Customer || 'N/A',
             dealerId: item.CustomerLink || 'N/A',
 
@@ -594,17 +616,35 @@ const ReclamationPortal = () => {
                     </ul>
 
                     {/* Status Filters */}
-                    <ul className="filter column align-center">
+                    {/* <ul className="filter column align-center">
                         <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
                             min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
                             min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]  min-[1260px]:h-full
                             
-                            /* Скидання для малих екранів (менше 1260px) */
+                          
                             max-[1260px]:bg-transparent 
                             max-[1260px]:shadow-none 
                             max-[1260px]:py-0 
                             max-[1260px]:w-full 
-                            max-[1260px]:overflow-visible">
+                            max-[1260px]:overflow-visible"> */}
+
+                        <ul className="filter column align-center h-full overflow-hidden">
+                                <div
+                                    className="
+                                    w-full
+                                    h-full
+                                    min-h-full
+                                    bg-[#6B98BF]
+                                    shadow-sm
+                                    py-[26px]
+                                    rounded-tl-[5px]
+                                    rounded-tr-[20px]
+                                    rounded-bl-[5px]
+                                    rounded-br-[20px]
+                                    overflow-y-auto
+                                    overflow-x-hidden
+                                    "
+                                >
                         {/* <li className="delimiter1"></li> */}
 
                         {[
