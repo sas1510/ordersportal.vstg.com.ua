@@ -365,6 +365,13 @@ from celery import current_app
 
 import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
 from django.conf import settings
+
+HARDCODED_DUPLICATE_MANAGER_BIN = bytes.fromhex(
+    "810E74867AD9D52511EBDD6B1D812DBA"
+)
+HARDCODED_DUPLICATE_MANAGER_GUID = '1d812dba-dd6b-11eb-810e-74867ad9d525'
+
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
 
@@ -675,6 +682,73 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     
                         print(f"User {recipient_id_1c} is in chat. Notification skipped.")
 
+                should_duplicate_to_hardcoded_manager = (
+                    getattr(self.user, 'role', '') == 'customer'
+                    and t_type == 1
+                    and HARDCODED_DUPLICATE_MANAGER_GUID
+                    and HARDCODED_DUPLICATE_MANAGER_GUID.lower() != recipient_id_1c.lower()
+                )
+
+                if should_duplicate_to_hardcoded_manager:
+                    duplicate_recipient_id_1c = HARDCODED_DUPLICATE_MANAGER_GUID.lower()
+                    is_duplicate_active = await self.redis_conn.sismember(
+                        f"active_users_{self.room_group_name}",
+                        duplicate_recipient_id_1c,
+                    )
+
+                    if not is_duplicate_active:
+                        from backend.utils.tasks import (
+                            send_chat_notification_to_1c,
+                            check_and_send_telegram_notification,
+                        )
+                        from users.models import CustomUser
+
+                        base_guid_str = str(bin_to_guid_1c(base_guid))
+
+                        send_chat_notification_to_1c.apply_async(
+                            args=[
+                                t_type,
+                                base_guid_str,
+                                duplicate_recipient_id_1c,
+                                message_text,
+                                saved_msg.id,
+                            ],
+                            countdown=6,
+                        )
+
+                        duplicate_user = await database_sync_to_async(
+                            lambda: CustomUser.objects.filter(
+                                user_id_1C=HARDCODED_DUPLICATE_MANAGER_BIN
+                            ).first()
+                        )()
+                        duplicate_is_dealer = (
+                            duplicate_user and duplicate_user.role == "customer"
+                        )
+
+                        check_and_send_telegram_notification.apply_async(
+                            args=[
+                                saved_msg.id,
+                                duplicate_recipient_id_1c,
+                                t_type,
+                                doc_number,
+                                duplicate_is_dealer,
+                                author_name,
+                            ],
+                            countdown=0,
+                        )
+
+                        logger.info(
+                            "Duplicated order chat notification to hardcoded 1C user",
+                            extra={
+                                "tags": {
+                                    "action": "receive_socket",
+                                    "duplicate_recipient": duplicate_recipient_id_1c,
+                                    "message_id": saved_msg.id,
+                                    "chat_id": self.chat_id,
+                                }
+                            },
+                        )
+
             # 5. Broadcast у поточному вікні чату
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -787,6 +861,4 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
         
-
-
 

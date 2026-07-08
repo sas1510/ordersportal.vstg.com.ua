@@ -804,12 +804,12 @@ def api_get_orders(request):
                 related_object_id__in=calc_bins,
                 is_notification=False
             )
-            .order_by('id')
+            .order_by('-id')
             .values('related_object_id', 'text')
         )
 
-        # Збираємо унікальну мапу в Python: { "id_прорахунку_строковий": "текст_повідомлення" }
-        first_messages_map = {}
+        # Збираємо унікальну мапу в Python: { "id_прорахунку_строковий": "текст_останнього_повідомлення" }
+        latest_messages_map = {}
         for msg in all_messages:
             obj_id = msg['related_object_id']
             
@@ -819,8 +819,8 @@ def api_get_orders(request):
                 guid_str = str(obj_id)
                 
             key = str(guid_str).lower().strip()
-            if key not in first_messages_map:
-                first_messages_map[key] = msg['text']
+            if key not in latest_messages_map:
+                latest_messages_map[key] = msg['text']
         
 
         for calc in data:
@@ -838,16 +838,15 @@ def api_get_orders(request):
             calc["hasUnreadMessages"] = calc_bin_key in unread_calc_bins
 
             # Перевіряємо, чи є повідомлення у мапі чату
-            db_first_message = first_messages_map.get(lookup_key) if lookup_key else None
+            db_latest_message = latest_messages_map.get(lookup_key) if lookup_key else None
 
-            # Якщо в об'єкті вже є message (CalcComment з SQL) і він не порожній — залишаємо його.
-            # Якщо він порожній — записуємо туди перше повідомлення з чату
-            current_msg = calc.get("message")
-            if not current_msg or not str(current_msg).strip():
-                calc["message"] = db_first_message
+            # Для замовлень у message повертаємо останній коментар із чату, якщо він є.
+            # Якщо чату ще немає — залишаємо початкове значення з SQL як fallback.
+            if db_latest_message and str(db_latest_message).strip():
+                calc["message"] = db_latest_message
 
-            # Додатково повертаємо FirstMessage як окреме поле, якщо фронт його очікує
-            calc["firstMessage"] = db_first_message
+            # Поле залишаємо для сумісності з фронтом, але тепер тут останній коментар.
+            calc["firstMessage"] = db_latest_message
 
     
         duration = time.time() - start_time
@@ -1872,7 +1871,7 @@ def orders_view_all_by_month(request):
                 if calc_id not in calcs_dict:
                     calcs_dict[calc_id] = {
                         "id": calc_id,
-                        "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
+                        "number": row.get("CalcDealerNumber") or row.get("CalcNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
                         "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber")  or row.get("OrderNumber") or "",
                         "dateRaw": calculation_date,
                         "date": calculation_date,
@@ -1935,6 +1934,47 @@ def orders_view_all_by_month(request):
                 logger.error(f"Error processing order row: {str(row_error)}", exc_info=True)
                 continue
 
+        calc_bins = []
+        calc_to_str_map = {}
+
+        for calc in calcs_dict.values():
+            calc_id = calc.get("id")
+            if not calc_id:
+                continue
+
+            if isinstance(calc_id, (bytes, bytearray)):
+                c_bin = calc_id
+                c_str = bin_to_guid_1c(calc_id)
+            else:
+                c_bin = guid_to_1c_bin(str(calc_id))
+                c_str = str(calc_id)
+
+            calc_bins.append(c_bin)
+            calc_to_str_map[calc_id] = c_str
+
+        latest_messages_map = {}
+        if calc_bins:
+            all_messages = (
+                ChatMessage.objects.filter(
+                    related_object_id__in=calc_bins,
+                    is_notification=False
+                )
+                .order_by("-id")
+                .values("related_object_id", "text")
+            )
+
+            for msg in all_messages:
+                obj_id = msg["related_object_id"]
+
+                if isinstance(obj_id, (bytes, bytearray)):
+                    guid_str = bin_to_guid_1c(obj_id)
+                else:
+                    guid_str = str(obj_id)
+
+                key = str(guid_str).lower().strip()
+                if key not in latest_messages_map:
+                    latest_messages_map[key] = msg["text"]
+
         formatted_calcs = []
 
         for calc in calcs_dict.values():
@@ -1967,6 +2007,15 @@ def orders_view_all_by_month(request):
             calc["debt"] = total_amount - total_paid
             if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
                 calc["constructionsQTY"] = row.get("CalcConstructionsCount")
+
+            calc_id = calc.get("id")
+            calc_guid_str = calc_to_str_map.get(calc_id)
+            lookup_key = calc_guid_str.lower().strip() if calc_guid_str else None
+            db_latest_message = latest_messages_map.get(lookup_key) if lookup_key else None
+
+            if db_latest_message and str(db_latest_message).strip():
+                calc["message"] = db_latest_message
+            calc["firstMessage"] = db_latest_message
 
 
             formatted_calcs.append(calc)
