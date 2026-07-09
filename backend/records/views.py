@@ -2247,10 +2247,13 @@ def build_1c_payload(
 
     if delivery_address_guid:
         coords = delivery_address_coordinates or {}
+
         calc["address"] = {
-            "type": "delivery",
-            "guid": str(delivery_address_guid),
-            "coordinates": coords,
+            "addressGUID": str(delivery_address_guid),
+            "addressCoordinates": {
+                "lat": safe_float(coords.get("lat")),
+                "lng": safe_float(coords.get("lng")),
+            },
         }
 
     elif client_address:
@@ -2265,6 +2268,7 @@ def build_1c_payload(
             },
             "addressAdditionalInfo": client_address.get("note", "") or "",
         }
+
         calc["recipient"] = {
             "recipientName": client_address.get("full_name"),
             "recipientPhone": client_address.get("phone"),

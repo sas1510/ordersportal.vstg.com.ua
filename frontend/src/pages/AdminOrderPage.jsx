@@ -100,6 +100,9 @@ const AdminPortalOriginal = () => {
         result = result.filter(
           (calc) =>
             calc.number?.toLowerCase().includes(q) ||
+            String(calc.dealer || calc.organizationName || "")
+              .toLowerCase()
+              .includes(q) ||
             (calc.orders || []).some((o) =>
               o.number?.toLowerCase().includes(q),
             ),

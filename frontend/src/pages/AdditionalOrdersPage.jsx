@@ -181,7 +181,10 @@ const AdditionalOrders = () => {
         filtered = filtered.filter(
           (additionalOrder) =>
             additionalOrder.number?.toLowerCase().includes(query) ||
-            additionalOrder.mainOrderNumber?.toLowerCase().includes(query) || 
+            additionalOrder.mainOrderNumber?.toLowerCase().includes(query) ||
+            String(additionalOrder.dealer || additionalOrder.organizationName || "")
+              .toLowerCase()
+              .includes(query) ||
             additionalOrder.orders.some((order) =>
               order.number?.toLowerCase().includes(query),
             ),
@@ -431,6 +434,9 @@ const AdditionalOrders = () => {
           (ord) =>
             String(ord.number).toLowerCase().includes(query) ||
             String(ord.mainOrderNumber).toLowerCase().includes(query) ||
+            String(ord.dealer || ord.organizationName || "")
+              .toLowerCase()
+              .includes(query) ||
             ord.orders?.some((o) =>
               String(o.number).toLowerCase().includes(query),
             ),

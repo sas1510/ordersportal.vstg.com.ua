@@ -193,6 +193,9 @@ const AdminReclamationPortal = () => {
         result = result.filter(
           (r) =>
             (r.number || "").toLowerCase().includes(q) ||
+            (r.actNumber || "").toLowerCase().includes(q) ||
+            (r.orderNumber || "").toLowerCase().includes(q) ||
+            (r.dealer || r.organization || "").toLowerCase().includes(q) ||
             (r.manager || "").toLowerCase().includes(q),
         );
       }

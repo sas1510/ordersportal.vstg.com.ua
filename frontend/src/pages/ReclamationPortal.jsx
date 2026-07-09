@@ -181,7 +181,10 @@ const ReclamationPortal = () => {
 
             if (reclamationsData.length > 0) {
                 const found = reclamationsData.find(r => 
-                    String(r.number) === searchQuery || String(r.actNumber) === searchQuery
+                    String(r.number) === searchQuery ||
+                    String(r.actNumber) === searchQuery ||
+                    String(r.orderNumber) === searchQuery ||
+                    String(r.dealer || r.organization || "").toLowerCase().includes(searchQuery.toLowerCase())
                 );
                 
                 if (found) {
@@ -360,6 +363,8 @@ const ReclamationPortal = () => {
                 out = out.filter(r =>
                     (r.number || '').toLowerCase().includes(q) ||
                     (r.actNumber || '').toLowerCase().includes(q) ||
+                    (r.orderNumber || '').toLowerCase().includes(q) ||
+                    (r.dealer || r.organization || '').toLowerCase().includes(q) ||
                     (r.manager || '').toLowerCase().includes(q)
                 );
             }

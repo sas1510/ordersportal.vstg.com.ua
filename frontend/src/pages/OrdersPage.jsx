@@ -101,6 +101,9 @@ const PortalOriginal = () => {
             String(calc.number)
               .toLowerCase()
               .includes(searchQuery.toLowerCase()) ||
+            String(calc.dealer || calc.organizationName || "")
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()) ||
             calc.orders?.some((o) =>
               String(o.number)
                 .toLowerCase()
@@ -286,6 +289,9 @@ const handleMarkAsRead = (calcId) => {
         items = items.filter(
           (calc) =>
             calc.number.toLowerCase().includes(q) ||
+            String(calc.dealer || calc.organizationName || "")
+              .toLowerCase()
+              .includes(q) ||
             calc.orders.some((o) => o.number?.toLowerCase().includes(q)),
         );
       }

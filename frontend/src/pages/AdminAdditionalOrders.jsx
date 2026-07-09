@@ -129,6 +129,9 @@ const AdminAdditionalOrders = () => {
           return (
             additionalOrder.number?.toLowerCase().includes(query) ||
             additionalOrder.mainOrderNumber?.toLowerCase().includes(query) ||
+            String(additionalOrder.dealer || additionalOrder.organizationName || "")
+              .toLowerCase()
+              .includes(query) ||
             orders.some((order) => order.number?.toLowerCase().includes(query))
           );
         });
