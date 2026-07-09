@@ -1843,7 +1843,6 @@ def orders_view_all_by_month(request):
 
     try:
         with connection.cursor() as cursor:
-            #  EXEC [dbo].[GetOrdersMonth]
             cursor.execute(
                 """
                 EXEC [dbo].[GetOrdersMonthWithCalculations]
@@ -1857,14 +1856,15 @@ def orders_view_all_by_month(request):
 
         sql_duration = time.time() - start_time
 
-  
         calcs_dict = {}
 
         for row in rows:
             try:
                 calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
 
-                constructions_count = int(row.get("CalcConstructionsCount") or 0)
+                calc_constructions_count = int(float(row.get("CalcConstructionsCount") or 0))
+                order_constructions_count = int(float(row.get("ConstructionsCount") or 0))
+
                 calculation_date = row.get("CalcDate") or row.get("CalculationDate")
                 order_date = row.get("OrderDate")
 
@@ -1872,32 +1872,30 @@ def orders_view_all_by_month(request):
                     calcs_dict[calc_id] = {
                         "id": calc_id,
                         "number": row.get("CalcDealerNumber") or row.get("CalcNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
-                        "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber")  or row.get("OrderNumber") or "",
+                        "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or row.get("OrderNumber") or "",
                         "dateRaw": calculation_date,
                         "date": calculation_date,
                         "orders": [],
                         "dealer": row.get("Customer"),
                         "dealerId": bin_to_guid_1c(row.get("ContractorID")),
-                        "constructionsQTY": constructions_count,
-                        "authorGuid": row.get("CalcAuthor_GUID") or "", 
-                        "authorName": row.get("CalcAuthorName") or "", 
-                        "recipient": row.get("Recipient") or row.get("Customer"), 
-                        "recipientPhone": row.get("RecipientPhone") or '', 
-                        "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or '', 
-                        "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
-                        "file": row.get("AllFileNames") or '',
-                        "fileName": row.get("AllFileNames") or '',
+                        "constructionsQTY": calc_constructions_count,
+                        "authorGuid": row.get("CalcAuthor_GUID") or "",
+                        "authorName": row.get("CalcAuthorName") or "",
+                        "recipient": row.get("Recipient") or row.get("Customer"),
+                        "recipientPhone": row.get("RecipientPhone") or "",
+                        "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or "",
+                        "deliveryAddresses": row.get("DeliveryAddresses") or row.get("OrderAddress") or "",
+                        "file": row.get("AllFileNames") or "",
+                        "fileName": row.get("AllFileNames") or "",
                         "message": row.get("Message"),
                         "manager": bin_to_guid_1c(row.get("Manager")),
                         "raw_order_dates": [order_date] if order_date else [],
-                        "currency": row.get("Currency") or '',
+                        "currency": row.get("Currency") or "",
                     }
                 else:
-                    calcs_dict[calc_id]["constructionsQTY"] += constructions_count
                     if order_date:
                         calcs_dict[calc_id]["raw_order_dates"].append(order_date)
 
-               
                 order = {
                     "id": row.get("OrderID"),
                     "idGuid": row.get("OrderID_GUID"),
@@ -1906,7 +1904,7 @@ def orders_view_all_by_month(request):
                     "date": row.get("OrderDate"),
                     "status": row.get("OrderStage") or "Новий",
                     "amount": float(row.get("OrderSum") or 0),
-                    "count": constructions_count,
+                    "count": order_constructions_count,
                     "paid": float(row.get("PaidAmount") or 0),
                     "planProductionMin": row.get("ProductionDateMin"),
                     "planProductionMax": row.get("ProductionDateMax"),
@@ -1925,7 +1923,7 @@ def orders_view_all_by_month(request):
                     "organizationName": row.get("OrganizationName"),
                     "managerName": row.get("ManagerName"),
                     "dateDelay": row.get("DateDelays"),
-                    "currency": row.get("Currency") or '',
+                    "currency": row.get("Currency") or "",
                 }
 
                 calcs_dict[calc_id]["orders"].append(order)
@@ -1953,6 +1951,7 @@ def orders_view_all_by_month(request):
             calc_to_str_map[calc_id] = c_str
 
         latest_messages_map = {}
+
         if calc_bins:
             all_messages = (
                 ChatMessage.objects.filter(
@@ -1972,6 +1971,7 @@ def orders_view_all_by_month(request):
                     guid_str = str(obj_id)
 
                 key = str(guid_str).lower().strip()
+
                 if key not in latest_messages_map:
                     latest_messages_map[key] = msg["text"]
 
@@ -1983,7 +1983,6 @@ def orders_view_all_by_month(request):
             total_amount = 0
             total_paid = 0
 
-
             if not calc["dateRaw"] and calc["raw_order_dates"]:
                 min_date = min(d for d in calc["raw_order_dates"] if d)
                 calc["dateRaw"] = min_date
@@ -1993,6 +1992,7 @@ def orders_view_all_by_month(request):
 
             for o in orders:
                 st = o["status"]
+
                 if st:
                     status_counts[st] = status_counts.get(st, 0) + 1
 
@@ -2002,11 +2002,12 @@ def orders_view_all_by_month(request):
 
             calc["statuses"] = status_counts
             calc["orderCountInCalc"] = len(orders)
-            calc["constructionsCount"] = row.get("CalcConstructionsCount") or calc["constructionsQTY"] 
+
+            # На рівні розрахунку повертаємо CalcConstructionsCount як є
+            calc["constructionsCount"] = calc["constructionsQTY"]
+
             calc["amount"] = total_amount
             calc["debt"] = total_amount - total_paid
-            if not calc["constructionsQTY"] or calc["constructionsQTY"] == 0:
-                calc["constructionsQTY"] = row.get("CalcConstructionsCount")
 
             calc_id = calc.get("id")
             calc_guid_str = calc_to_str_map.get(calc_id)
@@ -2015,25 +2016,26 @@ def orders_view_all_by_month(request):
 
             if db_latest_message and str(db_latest_message).strip():
                 calc["message"] = db_latest_message
-            calc["firstMessage"] = db_latest_message
 
+            calc["firstMessage"] = db_latest_message
 
             formatted_calcs.append(calc)
 
-
         total_duration = time.time() - start_time
 
-        logger.info(f"ADMIN: Successfully processed {len(formatted_calcs)} calculations", extra={
-            'tags': {
-                'action': 'admin_get_monthly_orders',
-                'sql_duration': round(sql_duration, 3),
-                'total_duration': round(total_duration, 3),
-                'rows_count': len(rows),
-                'calcs_count': len(formatted_calcs)
+        logger.info(
+            f"ADMIN: Successfully processed {len(formatted_calcs)} calculations",
+            extra={
+                "tags": {
+                    "action": "admin_get_monthly_orders",
+                    "sql_duration": round(sql_duration, 3),
+                    "total_duration": round(total_duration, 3),
+                    "rows_count": len(rows),
+                    "calcs_count": len(formatted_calcs),
+                }
             }
-        })
+        )
 
-        
         return JsonResponse(
             {
                 "status": "success",
@@ -2044,7 +2046,7 @@ def orders_view_all_by_month(request):
             json_dumps_params={"ensure_ascii": False},
             safe=False
         )
-    
+
     except Exception as e:
         logger.error(f"ADMIN: Critical failure in orders_view_all_by_month: {str(e)}", exc_info=True)
         return JsonResponse({"error": "Внутрішня помилка сервера"}, status=500)
