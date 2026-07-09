@@ -30,6 +30,10 @@ const OrderFilesModal = ({
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingFileGuid, setDownloadingFileGuid] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [previewText, setPreviewText] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const getFileExtension = (fileName = "") => fileName.toLowerCase().split(".").pop();
 
@@ -53,6 +57,15 @@ const OrderFilesModal = ({
     ].includes(ext);
   };
 
+  const getPreviewKind = (fileName = "") => {
+    const ext = getFileExtension(fileName);
+    if (["jpg", "jpeg", "png", "webp", "gif", "bmp", "svg"].includes(ext)) return "image";
+    if (["mp4", "webm"].includes(ext)) return "video";
+    if (["txt", "csv", "json", "xml"].includes(ext)) return "text";
+    if (ext === "pdf") return "pdf";
+    return "unknown";
+  };
+
   /* =========================
       ЕФЕКТИ (ESC та Scroll)
   ========================= */
@@ -65,6 +78,14 @@ const OrderFilesModal = ({
       document.body.style.overflow = "";
     };
   }, [onClose]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        window.URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   /* =========================
       ЗАВАНТАЖЕННЯ СПИСКУ ФАЙЛІВ
@@ -119,6 +140,16 @@ const OrderFilesModal = ({
   /* =========================
       ЛОГІКА ВІДКРИТТЯ/ЗАВАНТАЖЕННЯ ФАЙЛІВ
   ========================= */
+  const handleClosePreview = () => {
+    if (previewUrl) {
+      window.URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl("");
+    setPreviewText("");
+    setPreviewFile(null);
+    setPreviewLoading(false);
+  };
+
   const handleFileAction = async (fileItem) => {
     setDownloadingFileGuid(fileItem.fileGuid);
     try {
@@ -134,27 +165,33 @@ const OrderFilesModal = ({
         type: response.headers["content-type"] || "application/octet-stream",
       });
 
-      const objectUrl = window.URL.createObjectURL(blob);
-
       if (isPreviewableFile(fileItem.fileName)) {
-        const previewWindow = window.open(objectUrl, "_blank", "noopener,noreferrer");
+        const nextPreviewUrl = window.URL.createObjectURL(blob);
+        const previewKind = getPreviewKind(fileItem.fileName);
 
-        if (!previewWindow) {
-          const previewLink = document.createElement("a");
-          previewLink.href = objectUrl;
-          previewLink.target = "_blank";
-          previewLink.rel = "noopener noreferrer";
-          document.body.appendChild(previewLink);
-          previewLink.click();
-          previewLink.remove();
+        if (previewUrl) {
+          window.URL.revokeObjectURL(previewUrl);
         }
 
-        window.setTimeout(() => {
-          window.URL.revokeObjectURL(objectUrl);
-        }, 60000);
+        setPreviewLoading(true);
+        setPreviewFile({
+          ...fileItem,
+          previewKind,
+          contentType: blob.type || response.headers["content-type"] || "",
+        });
+        setPreviewText("");
+        setPreviewUrl(nextPreviewUrl);
+
+        if (previewKind === "text") {
+          const textContent = await blob.text();
+          setPreviewText(textContent);
+        }
+
+        setPreviewLoading(false);
         return;
       }
 
+      const objectUrl = window.URL.createObjectURL(blob);
       const downloadLink = document.createElement("a");
       downloadLink.href = objectUrl;
       downloadLink.setAttribute("download", fileItem.fileName);
@@ -165,9 +202,45 @@ const OrderFilesModal = ({
     } catch (error) {
       console.error("File action error:", error);
       addNotification(t("orders.downloadFileError"), "error");
+      handleClosePreview();
     } finally {
       setDownloadingFileGuid(null);
     }
+  };
+
+  const renderPreviewContent = () => {
+    if (!previewFile) return null;
+    if (previewLoading) {
+      return (
+        <div className="file-preview-state">
+          <FaSpinner className="spinner-animation" size={30} />
+          <p>{t("common.loadingFiles")}</p>
+        </div>
+      );
+    }
+
+    if (previewFile.previewKind === "image") {
+      return <img src={previewUrl} alt={previewFile.fileName} className="file-preview-image" />;
+    }
+
+    if (previewFile.previewKind === "video") {
+      return <video src={previewUrl} controls className="file-preview-video" />;
+    }
+
+    if (previewFile.previewKind === "pdf") {
+      return <iframe src={previewUrl} title={previewFile.fileName} className="file-preview-frame" />;
+    }
+
+    if (previewFile.previewKind === "text") {
+      return <pre className="file-preview-text">{previewText}</pre>;
+    }
+
+    return (
+      <div className="file-preview-state">
+        <FaFileAlt size={40} style={{ color: "#bbb", marginBottom: "10px" }} />
+        <p>{t("orders.downloadFileError")}</p>
+      </div>
+    );
   };
 
   const getFileIcon = (fileName) => {
@@ -212,8 +285,9 @@ const OrderFilesModal = ({
   };
 
   return createPortal(
-    <div className="preview-modal-overlay" onClick={onClose}>
-      <div className="preview-modal-window" onClick={(e) => e.stopPropagation()}>
+    <>
+      <div className="preview-modal-overlay" onClick={onClose}>
+        <div className="preview-modal-window" onClick={(e) => e.stopPropagation()}>
         
         {/* HEADER */}
         <div className="preview-modal-header">
@@ -275,8 +349,31 @@ const OrderFilesModal = ({
           </button>
         </div>
 
+        </div>
       </div>
-    </div>,
+
+      {previewFile && (
+        <div className="file-preview-overlay" onClick={handleClosePreview}>
+          <div className="file-preview-window" onClick={(e) => e.stopPropagation()}>
+            <div className="file-preview-header">
+              <div className="file-preview-title-wrap">
+                <h3 className="file-preview-title">{previewFile.fileName}</h3>
+                <span className="file-preview-subtitle">{t("orders.modalFilesSubtitle")}</span>
+              </div>
+              <button className="preview-close-btn" onClick={handleClosePreview}>
+                <FaTimes size={18} />
+              </button>
+            </div>
+            <div className="file-preview-body">{renderPreviewContent()}</div>
+            <div className="file-preview-footer">
+              <button className="preview-btn-close-footer" onClick={handleClosePreview}>
+                {t("common.close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>,
     document.body
   );
 };
