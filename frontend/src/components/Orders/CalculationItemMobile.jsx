@@ -132,6 +132,12 @@ export const CalculationItemMobile = React.memo(
       );
     }, [calc.orders]);
 
+    const totalOrderConstructions = useMemo(() => {
+      return orderList.reduce((sum, order) => {
+        const count = Number(order?.count ?? order?.constructionsQTY ?? 0);
+        return sum + (Number.isFinite(count) ? count : 0);
+      }, 0);
+    }, [orderList]);
 
     const statusEntries = useMemo(() => {
       return calc.statuses ? Object.entries(calc.statuses) : [];
@@ -435,8 +441,14 @@ export const CalculationItemMobile = React.memo(
               </div>
             ) : (
               orderList.map((order) => (
-                <OrderItemSummaryMobile key={order.number} order={order} calculationDate={calc.date}
-                  onRefresh={reloadCalculations} />
+                <OrderItemSummaryMobile
+                  key={order.number}
+                  order={order}
+                  calculationDate={calc.date}
+                  calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
+                  totalOrderConstructions={totalOrderConstructions}
+                  onRefresh={reloadCalculations}
+                />
               ))
             )}
           </div>

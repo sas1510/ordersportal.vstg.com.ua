@@ -20,13 +20,20 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
 
 
-export default React.memo(function OrderItemSummaryMobile({ order, calculationDate, onRefresh }) {
+export default React.memo(function OrderItemSummaryMobile({
+  order,
+  calculationDate,
+  calculationConstructionsCount,
+  totalOrderConstructions,
+  onRefresh,
+}) {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isConstructionWarningModalOpen, setIsConstructionWarningModalOpen] = useState(false);
   const locale = i18n.language;
 
 
@@ -212,6 +219,24 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
 
   const openConfirmModal = useCallback((e) => {
     e.stopPropagation();
+
+    const calculationCount = Number(calculationConstructionsCount);
+    const ordersTotal = Number(totalOrderConstructions);
+    const hasComparableCounts =
+      Number.isFinite(calculationCount) &&
+      Number.isFinite(ordersTotal) &&
+      calculationCount > 0;
+
+    if (hasComparableCounts && ordersTotal !== calculationCount) {
+      setIsConstructionWarningModalOpen(true);
+      return;
+    }
+
+    setIsConfirmModalOpen(true);
+  }, [calculationConstructionsCount, totalOrderConstructions]);
+
+  const handleConstructionWarningConfirm = useCallback(() => {
+    setIsConstructionWarningModalOpen(false);
     setIsConfirmModalOpen(true);
   }, []);
 
@@ -490,6 +515,23 @@ export default React.memo(function OrderItemSummaryMobile({ order, calculationDa
         />
       )}
 
+
+      <ConfirmModal
+        isOpen={isConstructionWarningModalOpen}
+        onClose={() => setIsConstructionWarningModalOpen(false)}
+        onConfirm={handleConstructionWarningConfirm}
+        title="Увага"
+        message={
+          "Сумарна кількість конструкцій у замовленнях (" +
+          totalOrderConstructions +
+          ") не збігається з кількістю у прорахунку (" +
+          calculationConstructionsCount +
+          ")."
+        }
+        confirmText="Окей"
+        type="warning"
+        showCancel={false}
+      />
 
       <ConfirmModal
         isOpen={isConfirmModalOpen}

@@ -29,6 +29,8 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 export default React.memo(function OrderItemSummaryDesktop({
   order,
   calculationDate,
+  calculationConstructionsCount,
+  totalOrderConstructions,
   onRefresh
 }) {
   const {t, i18n} = useTranslation();
@@ -40,6 +42,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isConstructionWarningModalOpen, setIsConstructionWarningModalOpen] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -221,6 +224,24 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   const openConfirmModal = useCallback((e) => {
     e.stopPropagation();
+
+    const calculationCount = Number(calculationConstructionsCount);
+    const ordersTotal = Number(totalOrderConstructions);
+    const hasComparableCounts =
+      Number.isFinite(calculationCount) &&
+      Number.isFinite(ordersTotal) &&
+      calculationCount > 0;
+
+    if (hasComparableCounts && ordersTotal !== calculationCount) {
+      setIsConstructionWarningModalOpen(true);
+      return;
+    }
+
+    setIsConfirmModalOpen(true);
+  }, [calculationConstructionsCount, totalOrderConstructions]);
+
+  const handleConstructionWarningConfirm = useCallback(() => {
+    setIsConstructionWarningModalOpen(false);
     setIsConfirmModalOpen(true);
   }, []);
 
@@ -527,6 +548,23 @@ onClick={openClaimModal}
     onClose={() => setIsFilesModalOpen(false)}
   />
 )}
+
+      <ConfirmModal
+        isOpen={isConstructionWarningModalOpen}
+        onClose={() => setIsConstructionWarningModalOpen(false)}
+        onConfirm={handleConstructionWarningConfirm}
+        title="Увага"
+        message={
+          "Сумарна кількість конструкцій у замовленнях (" +
+          totalOrderConstructions +
+          ") не збігається з кількістю у прорахунку (" +
+          calculationConstructionsCount +
+          ")."
+        }
+        confirmText="Окей"
+        type="warning"
+        showCancel={false}
+      />
 
       {/* CONFIRM ORDER */}
       <ConfirmModal

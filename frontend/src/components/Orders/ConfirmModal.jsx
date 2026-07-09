@@ -12,6 +12,7 @@ const ConfirmModal = ({
   confirmText,
   cancelText,
   type = "warning",
+  showCancel = true,
 }) => {
   const { t } = useTranslation(); // 🔥 Хук перекладу
 
@@ -105,9 +106,11 @@ const ConfirmModal = ({
         </div>
 
         <div className="confirm-modal-footer">
-          <button className="confirm-btn-cancel-confirm" onClick={onClose}>
-            <FaTimes size={16} color="#fff" /> {displayCancelText}
-          </button>
+          {showCancel && (
+            <button className="confirm-btn-cancel-confirm" onClick={onClose}>
+              <FaTimes size={16} color="#fff" /> {displayCancelText}
+            </button>
+          )}
 
           <button
             className="confirm-btn-confirm"
