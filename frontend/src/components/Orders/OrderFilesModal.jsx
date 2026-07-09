@@ -11,6 +11,7 @@ import {
   FaDownload,
   FaImage,
   FaFileArchive,
+  FaEye,
 } from "react-icons/fa";
 
 import "./OrderFilesPreviewModal.css";
@@ -29,6 +30,28 @@ const OrderFilesModal = ({
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloadingFileGuid, setDownloadingFileGuid] = useState(null);
+
+  const getFileExtension = (fileName = "") => fileName.toLowerCase().split(".").pop();
+
+  const isPreviewableFile = (fileName = "") => {
+    const ext = getFileExtension(fileName);
+    return [
+      "pdf",
+      "jpg",
+      "jpeg",
+      "png",
+      "webp",
+      "gif",
+      "bmp",
+      "svg",
+      "txt",
+      "csv",
+      "json",
+      "xml",
+      "mp4",
+      "webm",
+    ].includes(ext);
+  };
 
   /* =========================
       ЕФЕКТИ (ESC та Scroll)
@@ -94,15 +117,14 @@ const OrderFilesModal = ({
   }, [files, hideZkzFiles]);
 
   /* =========================
-      ЛОГІКА ДИНАМІЧНОГО ЗАВАНТАЖЕННЯ
+      ЛОГІКА ВІДКРИТТЯ/ЗАВАНТАЖЕННЯ ФАЙЛІВ
   ========================= */
-  const handleDownload = async (fileItem) => {
+  const handleFileAction = async (fileItem) => {
     setDownloadingFileGuid(fileItem.fileGuid);
     try {
-      // Визначаємо правильний ендпоінт відповідно до вашого urls.py
       const url = entityType === "calculation"
-        ? `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`
-        : `/order/${orderGuid}/files/${fileItem.fileGuid}/download/?filename=${encodeURIComponent(fileItem.fileName)}`;
+        ? "/orders/" + orderGuid + "/files/" + fileItem.fileGuid + "/download_calc/?filename=" + encodeURIComponent(fileItem.fileName)
+        : "/order/" + orderGuid + "/files/" + fileItem.fileGuid + "/download/?filename=" + encodeURIComponent(fileItem.fileName);
 
       const response = await axiosInstance.get(url, {
         responseType: "blob",
@@ -112,18 +134,36 @@ const OrderFilesModal = ({
         type: response.headers["content-type"] || "application/octet-stream",
       });
 
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.setAttribute("download", fileItem.fileName);
+      const objectUrl = window.URL.createObjectURL(blob);
 
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      if (isPreviewableFile(fileItem.fileName)) {
+        const previewWindow = window.open(objectUrl, "_blank", "noopener,noreferrer");
 
-      window.URL.revokeObjectURL(downloadUrl);
+        if (!previewWindow) {
+          const previewLink = document.createElement("a");
+          previewLink.href = objectUrl;
+          previewLink.target = "_blank";
+          previewLink.rel = "noopener noreferrer";
+          document.body.appendChild(previewLink);
+          previewLink.click();
+          previewLink.remove();
+        }
+
+        window.setTimeout(() => {
+          window.URL.revokeObjectURL(objectUrl);
+        }, 60000);
+        return;
+      }
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = objectUrl;
+      downloadLink.setAttribute("download", fileItem.fileName);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      window.URL.revokeObjectURL(objectUrl);
     } catch (error) {
-      console.error("Download error:", error);
+      console.error("File action error:", error);
       addNotification(t("orders.downloadFileError"), "error");
     } finally {
       setDownloadingFileGuid(null);
@@ -131,7 +171,7 @@ const OrderFilesModal = ({
   };
 
   const getFileIcon = (fileName) => {
-    const ext = fileName.toLowerCase().split(".").pop();
+    const ext = getFileExtension(fileName);
     if (ext === "zkz") return <FaFileArchive className="file-icon icon-zkz" />;
     if (["jpg", "jpeg", "png", "webp"].includes(ext)) return <FaImage className="file-icon icon-image" />;
     return <FaFileAlt className="file-icon icon-doc" />;
@@ -156,10 +196,16 @@ const OrderFilesModal = ({
         <button 
           className="file-action-btn" 
           disabled={isDownloading}
-          onClick={() => handleDownload(file)}
-          title={t("common.download")}
+          onClick={() => handleFileAction(file)}
+          title={isPreviewableFile(file.fileName) ? "Відкрити" : t("common.download")}
         >
-          {isDownloading ? <FaSpinner className="spinner-animation" /> : <FaDownload />}
+          {isDownloading ? (
+            <FaSpinner className="spinner-animation" />
+          ) : isPreviewableFile(file.fileName) ? (
+            <FaEye />
+          ) : (
+            <FaDownload />
+          )}
         </button>
       </div>
     );
