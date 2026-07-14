@@ -543,6 +543,27 @@ overflow-y: scroll;
   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); */
 }
 
+.btn-reclamation-rules {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 42px;
+  margin: 0 0 10px;
+  padding: 0 8px;
+  gap: 8px;
+  border-radius: 5px !important;
+  background-color: var(--WS--DarkBlue);
+  color: var(--WS---DarkGrey);
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.btn-reclamation-rules:hover {
+  opacity: 0.88;
+  color: #fff;
+  text-decoration: none;
+}
+
 .btn-select-dealer {
   /* буде як ширина батьківського контейнера */
   height: 42px; /* висота input з .search-orders */
@@ -684,7 +705,7 @@ overflow-y: scroll;
 }
 
 .content-summary .by-month-pagination-wrapper {
-  padding: 3px 32px;
+  padding: 3px 12px;
   align-items: center;
   justify-content: center;
   color: var(--text-color);
@@ -2176,7 +2197,7 @@ html {
   }
   .content-summary .by-month-pagination-wrapper {
     font-size: 12px !important;
-    padding: 4px 32px !important;
+    padding: 4px 12px !important;
 
     max-width: 1334px;
   }
@@ -2347,7 +2368,7 @@ html {
   }
   .content-summary .by-month-pagination-wrapper {
     font-size: 12px !important;
-    padding: 4px 32px !important;
+    padding: 4px 12px !important;
     max-width: 1334px;
   }
 
@@ -3371,7 +3392,7 @@ body.dark-theme
 .pagination-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   overflow-x: auto; /* Дозволяє скролити місяці на мобілках */
   padding: 0px 0;
   width: 100vw;
@@ -3600,3 +3621,333 @@ body {
   max-width: 100% !important;
 }
 
+.date-filter-inline {
+  flex-shrink: 0;
+}
+
+.date-filter-mode-switch {
+  display: flex;
+  padding: 1px;
+  border-radius: 6px;
+  background: #B4D947;
+}
+
+.date-filter-mode-button {
+
+  padding: 2px 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #111111;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.date-filter-mode-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.date-filter-mode-button.active {
+  background: #ffffff;
+  color: #507ca4;
+}
+
+.date-period-fields {
+  display: flex;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.date-period-field {
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.date-period-input {
+  width: 125px;
+  
+  padding: 2px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 6px;
+  outline: none;
+  background: #ffffff;
+  color: #364b5f;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+}
+
+.date-period-input:focus {
+  border-color: #f4ca59;
+  box-shadow: 0 0 0 2px rgba(244, 202, 89, 0.2);
+}
+
+.date-filter-search-button {
+
+  padding: 3px 5px;
+  border: 1px solid #ffffff;
+  border-radius: 7px;
+  margin-right: 2px;
+  background: #ffffff;
+  color: #507ca4;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.date-filter-search-button:hover:not(:disabled) {
+  border-color: var(--text-info);
+  color: #405f7c;
+}
+
+.date-filter-search-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-spinner-small {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(94, 131, 191, 0.25);
+  border-top-color: #5e83bf;
+  border-radius: 50%;
+  animation: portal-spinner 0.8s linear infinite;
+}
+
+@keyframes portal-spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 1259px) {
+  .date-filter-inline {
+    margin-right: 8px;
+  }
+
+  .date-period-fields {
+    gap: 4px;
+  }
+
+  .date-period-field span {
+    display: none;
+  }
+
+  .date-period-input {
+    width: 110px;
+  }
+}
+
+@media (max-width: 1240px) {
+  .content-summary .by-month-pagination-wrapper ul {
+
+  gap: 2px;
+
+}
+.content-summary .by-month-pagination-wrapper ul li {
+  padding: 3px 4px;
+}
+}
+
+
+
+@media (max-width: 720px) {
+  
+}
+
+.date-filter-search-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.date-filter-search-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .date-filter-search-button {
+    width: 36px;
+    height: 26px;
+    /* min-width: 36px; */
+
+    padding: 0;
+    gap: 0;
+  }
+
+  .date-filter-search-text {
+    display: none;
+  }
+
+  .date-filter-search-icon {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 440px) {
+  .date-filter-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+
+
+  /* Другий рядок */
+  .date-period-fields,
+  .date-filter-search-button {
+    order: 2;
+  }
+
+  .date-period-fields {
+    flex: 1;
+    display: flex;
+    gap: 6px;
+  }
+
+  .date-period-field {
+    flex: 1;
+  }
+
+  .date-period-input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .date-filter-search-button {
+    flex-shrink: 0;
+  }
+}
+
+.date-filter-inline {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.date-filter-top-row,
+.date-filter-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-filter-bottom-row {
+  width: 100%;
+}
+
+.date-period-fields {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-period-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.date-filter-search-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+
+
+  .date-filter-search-text {
+    display: none;
+  }
+
+
+}
+
+@media (max-width: 440px) {
+  .pagination-container {
+    flex-wrap: wrap !important;
+  }
+
+  .date-filter-inline {
+    width: calc(100%);
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+    margin-right: 0 !important;
+  }
+
+  .date-filter-top-row {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .date-filter-bottom-row {
+    width: 100%;
+    gap: 5px;
+  }
+
+  .date-period-fields {
+    flex: 1;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .date-period-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .date-period-field span {
+    display: none;
+  }
+
+  .date-period-input {
+    width: 100%;
+    min-width: 0;
+   
+    padding-left: 5px;
+    padding-right: 3px;
+    font-size: 12px;
+  }
+
+  .date-filter-search-button {
+    width: 36px;
+    min-width: 36px;
+    /* height: 36px; */
+  }
+
+  .date-filter-mode-switch {
+    flex-shrink: 0;
+  }
+
+  .date-filter-mode-button {
+    padding-left: 9px;
+    padding-right: 9px;
+  }
+
+  .year-select-minimal {
+    min-width: 70px;
+    flex: 1;
+  }
+}

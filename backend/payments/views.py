@@ -591,7 +591,8 @@ def export_payment_status_excel(request):
         "Дата", "Час", "Договір", "Канал",
         "Зал. поч.", "Прихід", "Розхід",
         "Зал. кін.", "№ зам.", "Сума зам.",
-        "Оплата", "Зал. зам.", "Статус"
+        "Оплата", "Зал. зам.", "Статус",
+        "Дата реалізації", "Реалізовано за день", "Машина"
     ])
 
     try:
@@ -634,6 +635,9 @@ def export_payment_status_excel(request):
                         abs(delta),
                         r[idx["OrderBalance"]],
                         r[idx["PaymentStatus"]],
+                        r[idx.get("RealizedDate")] if "RealizedDate" in idx else None,
+                        r[idx.get("RealizedPerDay")] if "RealizedPerDay" in idx else None,
+                        r[idx.get("CarNumber")] if "CarNumber" in idx else None,
                     ])
 
         response = HttpResponse(

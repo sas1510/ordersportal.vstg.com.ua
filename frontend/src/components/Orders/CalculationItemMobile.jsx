@@ -16,6 +16,7 @@ import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
 import OrderFilesPreviewModal from "./OrderFilesPreviewModal";
+import OrderNumbersListModal from "./OrderNumbersListModal";
 
 export const CalculationItemMobile = React.memo(
   ({ calc, onDelete, _onEdit, onMarkAsRead, reloadCalculations }) => {
@@ -28,6 +29,7 @@ export const CalculationItemMobile = React.memo(
     const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+    const [isOrderNumbersOpen, setIsOrderNumbersOpen] = useState(false);
     
 
     const { addNotification } = useNotification();
@@ -138,6 +140,20 @@ export const CalculationItemMobile = React.memo(
         return sum + (Number.isFinite(count) ? count : 0);
       }, 0);
     }, [orderList]);
+
+    const orderNumbers = useMemo(() => {
+      return orderList
+        .map((order) => String(order.number).trim())
+        .filter(Boolean);
+    }, [orderList]);
+
+    const visibleOrderNumbers = useMemo(() => {
+      return orderNumbers.slice(0, 3);
+    }, [orderNumbers]);
+
+    const hiddenOrderNumbersCount = useMemo(() => {
+      return Math.max(0, orderNumbers.length - visibleOrderNumbers.length);
+    }, [orderNumbers.length, visibleOrderNumbers.length]);
 
     const statusEntries = useMemo(() => {
       return calc.statuses ? Object.entries(calc.statuses) : [];
@@ -287,15 +303,41 @@ export const CalculationItemMobile = React.memo(
   </div>
 
  
-  <div className="basis-1/5 flex flex-col items-center justify-center border-right ">
+<div className="basis-1/5 flex min-w-0 flex-col items-center justify-center overflow-hidden border-right">
+  {orderNumbers.length === 0 ? (
     <div className="flex items-center gap-2">
-      <img src={listCalcIcon} className="align-center mr-2"  alt="" />
+      <img src={listCalcIcon} className="mr-1" alt="" />
       <span className="font-size-24 font-bold text-WS---DarkBlue">
-        {orderList.length}
+        0
       </span>
     </div>
-    <span className="text-grey text-[10px] mt-1">{t("portal_calc.ui.orders")}</span>
-  </div>
+  ) : (
+    <div className="flex w-full flex-col items-center overflow-hidden text-[10px] leading-tight text-WS---DarkBlue font-bold">
+      {visibleOrderNumbers.map((number) => (
+        <span key={number} className="block w-full truncate text-center">
+          {number}
+        </span>
+      ))}
+
+      {hiddenOrderNumbersCount > 0 && (
+        <button
+          type="button"
+          className="text-[8px] font-bold text-[#6B98BF] underline underline-offset-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOrderNumbersOpen(true);
+          }}
+        >
+          +{hiddenOrderNumbersCount} {t("portal_calc.ui.more_short")}
+        </button>
+      )}
+    </div>
+  )}
+
+  <span className="text-grey text-[10px]">
+    {t("portal_calc.ui.orders")}
+  </span>
+</div>
 
 
   <div className="flex items-center pl-3 flex-[2.5]">
@@ -478,6 +520,11 @@ export const CalculationItemMobile = React.memo(
           onClose={() => setIsFilesModalOpen(false)}
           orderGuid={calc.id}      // GUID розрахунку для запиту до API
           orderNumber={calc.number} // Номер для заголовка
+        />
+        <OrderNumbersListModal
+          isOpen={isOrderNumbersOpen}
+          onClose={() => setIsOrderNumbersOpen(false)}
+          numbers={orderNumbers}
         />
 
 

@@ -404,7 +404,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                 className="align-center mr-0.5 w-[20px] h-[25px]" 
               
               /> */}
-              <AppIcon name="file" className="align-center mr-0.5 w-[20px] h-[25px] " />
+              <AppIcon name="file" className="order-files-icon align-center mr-0.5 w-[20px] h-[25px]" />
             <div className="text-WS---DarkGrey text-[13px] underline">{t("order_mobile.labels.files")}</div>
           </div>
         </div>

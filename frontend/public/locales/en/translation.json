@@ -739,7 +739,10 @@
       "orders": "Orders",
       "hide_orders": "Hide orders",
       "show_orders": "Show orders ({{count}})",
-      "calculation_number": "Calculation Number"
+      "calculation_number": "Calculation Number",
+      "more_short": "more",
+      "order_numbers": "Order numbers",
+      "close_order_numbers": "Close order numbers list"
     },
     "months": {
       "all_year": "Full year",

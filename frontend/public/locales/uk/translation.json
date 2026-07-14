@@ -695,7 +695,7 @@
     "orders_qty": "Кількість замовлень",
     "no_comments": "Без коментарів",
     "comment_history": "Історія коментарів",
-    "no_file": "Немає файлу",
+    "no_file": "Без файлу",
     "recipient_dealer": "Отримувач — дилер",
     "recipient_other": "Отримувач — інший контрагент",
     "recipient_label": "Адреса доставки",
@@ -738,7 +738,10 @@
       "orders": "Замовлення",
       "hide_orders": "Приховати замовлення",
       "show_orders": "Показати замовлення ({{count}})",
-      "calculation_number": "Номер прорахунку"
+      "calculation_number": "Номер прорахунку",
+      "more_short": "ще",
+      "order_numbers": "Номери замовлень",
+      "close_order_numbers": "Закрити список номерів замовлень"
     },
     "months": {
       "all_year": "Весь рік",

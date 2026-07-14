@@ -739,7 +739,10 @@
       "orders": "Bestellungen",
       "hide_orders": "Bestellungen ausblenden",
       "show_orders": "Bestellungen anzeigen ({{count}})",
-      "calculation_number": "Berechnungsnummer"
+      "calculation_number": "Berechnungsnummer",
+      "more_short": "mehr",
+      "order_numbers": "Bestellnummern",
+      "close_order_numbers": "Liste der Bestellnummern schließen"
     },
     "months": {
       "all_year": "Ganzes Jahr",

@@ -797,6 +797,31 @@ const MobilePaymentsView = ({
                                 </div>
 
                                 <div className="order-mini-col">
+                                  <span className="order-mini-label">Реалізовано за день</span>
+                                  <span className="order-mini-value">
+                                    {item.RealizedPerDay != null
+                                      ? formatCurrency(item.RealizedPerDay, itemCurrency, i18n)
+                                      : "—"}
+                                  </span>
+                                </div>
+
+                                <div className="order-mini-col">
+                                  <span className="order-mini-label">Дата реалізації</span>
+                                  <span className="order-mini-value">
+                                    {item.RealizedDate
+                                      ? formatDateHuman(item.RealizedDate, i18n.language)
+                                      : "—"}
+                                  </span>
+                                </div>
+
+                                <div className="order-mini-col">
+                                  <span className="order-mini-label">Машина</span>
+                                  <span className="order-mini-value">
+                                    {item.CarNumber || "—"}
+                                  </span>
+                                </div>
+
+                                <div className="order-mini-col">
                                   <span className="order-mini-label">{t('payments.contract', 'Договір')}</span>
                                   <span className="order-mini-value">
                                     <AutoTranslatedText text={item.FinalDogovorName} />

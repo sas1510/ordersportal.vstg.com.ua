@@ -158,6 +158,40 @@ export const formatDateTimeShort = (input, lng = "uk") => {
   return `${datePart} ${timePart}`;
 };
 
+
+export const formatDateTimeShort_2 = (input, lng = "uk") => {
+  const normalizedLng = String(lng || "uk").toLowerCase();
+
+  const fallback = normalizedLng.startsWith("de")
+    ? "Nicht angegeben"
+    : normalizedLng.startsWith("en")
+      ? "Not specified"
+      : "Не вказано";
+
+  if (!input || input === "Не вказано" || input === "Not specified") {
+    return fallback;
+  }
+
+  const date = new Date(input);
+  if (isNaN(date)) return fallback;
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  const separator = normalizedLng.startsWith("de")
+    ? "um"
+    : normalizedLng.startsWith("en")
+      ? "at"
+      : "о";
+
+  return `${day}.${month}.${year} ${separator} ${hours}:${minutes}`;
+};
+
+
 export const formatDateTimeCustomShort = (input) => {
   if (!input || input === "Не вказано") return "Не вказано";
 

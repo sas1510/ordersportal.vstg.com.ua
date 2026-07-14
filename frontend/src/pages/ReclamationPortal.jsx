@@ -90,7 +90,7 @@ function formatApiData(data) {
             issues: [],
 
             statuses: { [statusKey]: 1 },
-            message: item.ParsedDescription,
+            message: item.Message || null,
             firstMessage: item.FirstMessage,
         };
     });
@@ -150,6 +150,7 @@ const ReclamationPortal = () => {
     const checkMarkIcon = "/assets/icons/CheckMark.png";
 
     const closeIcon = "/assets/icons/CloseButton.png";
+    const reclamationRulesPdf = "/assets/docs/reclamation-acceptance-rules-2025-05-06.pdf";
 
 
     const navigate = useNavigate();
@@ -606,9 +607,18 @@ const ReclamationPortal = () => {
 
 
 
-                    {/* Add New Reclamation */}
-                    {/* <div className="delimiter1" /> */}
                     <ul className="buttons">
+                        <li>
+                            <a
+                                className="btn-reclamation-rules"
+                                href={reclamationRulesPdf}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {/* <span className="text-[16px] font-bold leading-none">PDF</span> */}
+                                <div className="text-center text-[15px] text-white font-bold font-['Inter'] uppercase">Правила прийому рекламацій</div>
+                            </a>
+                        </li>
                         <li className=" btn-add-calc" onClick={() => setIsNewReclamationModalOpen(true)}>
                            <img 
                                 src={plusIcon} 

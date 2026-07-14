@@ -8,6 +8,8 @@ import mimetypes
 import requests
 import smbclient
 from datetime import datetime, timezone
+from datetime import date
+from django.utils.dateparse import parse_date as django_parse_date
 from zoneinfo import ZoneInfo
 from urllib.parse import unquote
 from asgiref.sync import sync_to_async
@@ -476,11 +478,11 @@ def complaints_view(request):  # Знову синхронна для DRF
                 related_object_id__in=complaint_bins,
                 is_notification=False
             )
-            .order_by('id')
+            .order_by('-id')
             .values('related_object_id', 'text')
         )
         
-        first_messages_map = {}
+        latest_messages_map = {}
         async for msg in all_messages_query:
             obj_id = msg['related_object_id']
             
@@ -490,8 +492,8 @@ def complaints_view(request):  # Знову синхронна для DRF
                 guid_str = str(obj_id)
                 
             key = str(guid_str).lower().strip()
-            if key not in first_messages_map:
-                first_messages_map[key] = msg['text']
+            if key not in latest_messages_map:
+                latest_messages_map[key] = msg['text']
         
         # Обробка та парсинг даних (CPU-bound процеси)
         for row in rows:
@@ -501,7 +503,9 @@ def complaints_view(request):  # Знову синхронна для DRF
             c_guid_str = bin_to_guid_1c(c_guid_bin) if c_guid_bin else None
             lookup_key = str(c_guid_str).lower().strip() if c_guid_str else None
 
-            row["FirstMessage"] = first_messages_map.get(lookup_key) if lookup_key else None
+            db_latest_message = latest_messages_map.get(lookup_key) if lookup_key else None
+            row["FirstMessage"] = db_latest_message
+            row["Message"] = db_latest_message
 
             if c_guid_bin:
                 row["ComplaintGuid"] = bin_to_guid_1c(c_guid_bin)
@@ -548,6 +552,291 @@ def complaints_view(request):  # Знову синхронна для DRF
 
 
     return Response({"status": "success", "data": result["data"]})
+
+
+
+
+from datetime import date, datetime
+
+from django.db import connection
+
+
+def get_orders_by_period_and_contractor(
+    date_from,
+    date_to,
+    contractor_id,
+):
+    """
+    Викликає SQL-процедуру
+    [dbo].[GetCalculationsWithOrdersByYearAndContractor2]
+    за довільний період.
+
+    date_from і date_to включаються у вибірку.
+
+    Якщо CalcDate відсутня, для прорахунку використовується
+    найраніша OrderDate.
+    """
+
+    def normalize_date(value):
+        if isinstance(value, datetime):
+            return value.date()
+
+        if isinstance(value, date):
+            return value
+
+        if isinstance(value, str):
+            return date.fromisoformat(value)
+
+        raise ValueError("Date must be date, datetime or YYYY-MM-DD string")
+
+    try:
+        local_date_from = normalize_date(date_from)
+        local_date_to = normalize_date(date_to)
+    except (ValueError, TypeError):
+        return []
+
+    if local_date_from > local_date_to:
+        return []
+
+    query = """
+        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor2]
+            @DateFrom = %s,
+            @DateTo = %s,
+            @Contractor_ID = %s
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            query,
+            [
+                local_date_from,
+                local_date_to,
+                contractor_id,
+            ],
+        )
+
+        columns = [column[0] for column in cursor.description]
+
+        rows = [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+    calcs_dict = {}
+
+    for row in rows:
+        calc_id = (
+            row.get("CalcID_GUID")
+            or row.get("ClientOrderNumber")
+            or row.get("OrderNumber")
+            or "default"
+        )
+
+        current_order_count = int(
+            row.get("ConstructionsCount") or 0
+        )
+
+        calculation_date = (
+            row.get("CalcDate")
+            or row.get("CalculationDate")
+        )
+
+        order_date = row.get("OrderDate")
+
+        if calc_id not in calcs_dict:
+            contractor_value = row.get("ContractorID")
+            manager_value = row.get("Manager")
+
+            calcs_dict[calc_id] = {
+                "id": calc_id,
+                "number": (
+                    row.get("CalcDealerNumber")
+                    or row.get("ClientOrderNumber")
+                    or row.get("CalcNumber")
+                    or ""
+                ),
+                "webNumber": (
+                    row.get("CalcDealerNumber")
+                    or row.get("WebNumber")
+                    or ""
+                ),
+                "dateRaw": calculation_date,
+                "date": calculation_date,
+                "orders": [],
+                "calcConstructionsFromSQL": (
+                    row.get("CalcConstructionsCount")
+                ),
+                "dealer": row.get("Customer"),
+                "dealerId": (
+                    bin_to_guid_1c(contractor_value)
+                    if contractor_value
+                    else None
+                ),
+                "constructionsQTY": current_order_count,
+                "authorGuid": (
+                    row.get("CalcAuthor_GUID") or ""
+                ),
+                "authorName": (
+                    row.get("CalcAuthorName") or ""
+                ),
+                "recipient": (
+                    row.get("Recipient")
+                    or row.get("Customer")
+                ),
+                "recipientPhone": (
+                    row.get("RecipientPhone") or ""
+                ),
+                "recipientAdditionalInfo": (
+                    row.get("RecipientAdditionalInfo") or ""
+                ),
+                "deliveryAddresses": (
+                    row.get("DeliveryAddresses")
+                    or row.get("OrderAddress")
+                    or ""
+                ),
+                "file": row.get("AllFileNames") or "",
+                "fileName": row.get("AllFileNames") or "",
+                "message": row.get("CalcComment"),
+                "manager": (
+                    bin_to_guid_1c(manager_value)
+                    if manager_value
+                    else None
+                ),
+                "currency": row.get("Currency"),
+                "raw_order_dates": (
+                    [order_date] if order_date else []
+                ),
+            }
+
+        elif order_date:
+            calcs_dict[calc_id]["raw_order_dates"].append(
+                order_date
+            )
+
+        # Прорахунок може існувати ще без Заказ покупателя.
+        # У такому випадку не створюємо порожній order.
+        order_id_guid = row.get("OrderID_GUID")
+        order_number = row.get("OrderNumber")
+
+        if not order_id_guid and not order_number:
+            continue
+
+        order = {
+            "id": row.get("OrderID"),
+            "idGuid": order_id_guid,
+            "number": order_number or "",
+            "dateRaw": order_date,
+            "date": order_date,
+            "status": row.get("OrderStage") or "Новий",
+            "amount": float(row.get("OrderSum") or 0),
+            "count": current_order_count,
+            "paid": float(row.get("PaidAmount") or 0),
+            "planProductionMin": row.get(
+                "ProductionDateMin"
+            ),
+            "planProductionMax": row.get(
+                "ProductionDateMax"
+            ),
+            "factProductionMin": row.get(
+                "ProductionStartDateMin"
+            ),
+            "factProductionMax": row.get(
+                "ProductionStartDateMax"
+            ),
+            "factReadyMin": row.get(
+                "ProductionReadyDateMin"
+            ),
+            "factReadyMax": row.get(
+                "ProductionReadyDateMax"
+            ),
+            "realizationDate": row.get("SaleDate"),
+            "quantityRealized": float(
+                row.get("SoldQuantity") or 0
+            ),
+            "deliveryAddress": (
+                row.get("OrderAddress") or ""
+            ),
+            "planDelivery": row.get(
+                "PlannedDeliveryDate"
+            ),
+            "planDeparture": row.get(
+                "PlannedDepartureDate"
+            ),
+            "goodsInDelivery": int(
+                row.get("ItemsInDeliveryCount") or 0
+            ),
+            "arrivalTime": row.get("ArrivalTime"),
+            "routeStatus": row.get("RouteStatus"),
+            "organizationName": row.get(
+                "OrganizationName"
+            ),
+            "dateDelay": row.get("DateDelays"),
+            "createDate": row.get("CreateDate"),
+            "currency": row.get("Currency"),
+        }
+
+        calcs_dict[calc_id]["orders"].append(order)
+
+    formatted_calcs = []
+
+    for calc in calcs_dict.values():
+        orders = calc["orders"]
+
+        status_counts = {}
+        total_amount = 0
+        total_paid = 0
+
+        if not calc["dateRaw"] and calc["raw_order_dates"]:
+            min_date = min(
+                (
+                    order_date
+                    for order_date in calc["raw_order_dates"]
+                    if order_date
+                ),
+                default=None,
+            )
+
+            calc["dateRaw"] = min_date
+            calc["date"] = min_date
+
+        del calc["raw_order_dates"]
+
+        for order in orders:
+            order_status = order["status"]
+
+            if order_status:
+                status_counts[order_status] = (
+                    status_counts.get(order_status, 0) + 1
+                )
+
+            if order_status != "Відмова":
+                total_amount += order["amount"]
+                total_paid += order["paid"]
+
+        calc["statuses"] = status_counts
+        calc["orderCountInCalc"] = len(orders)
+        calc["amount"] = total_amount
+        calc["debt"] = max(total_amount - total_paid, 0)
+
+        calc_constructions = calc.pop(
+            "calcConstructionsFromSQL",
+            None,
+        )
+
+        if calc_constructions is not None:
+            constructions_qty = int(calc_constructions)
+        else:
+            constructions_qty = sum(
+                order["count"]
+                for order in orders
+            )
+
+        calc["constructionsQTY"] = constructions_qty
+        calc["constructionsCount"] = constructions_qty
+
+        formatted_calcs.append(calc)
+
+    return formatted_calcs
 
 
 
@@ -704,8 +993,13 @@ from asgiref.sync import async_to_sync, sync_to_async
 from django.db.models import Q
 
 
-async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensitive=False)
+# async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensitive=False)
 
+
+async_get_data = sync_to_async(
+    get_orders_by_period_and_contractor,
+    thread_sensitive=True,
+)
 
 
 
@@ -733,17 +1027,79 @@ async_get_data = sync_to_async(get_orders_by_year_and_contractor, thread_sensiti
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def api_get_orders(request):
     start_time = time.time()
-    
 
     year_str = request.GET.get("year")
-    if not year_str:
-        return Response({"error": "year is required"}, status=400)
+    date_from_str = request.GET.get("date_from")
+    date_to_str = request.GET.get("date_to")
 
-    try:
-        year = int(year_str)
-    except ValueError:
-        return Response({"error": "Invalid year"}, status=400)
+    date_from = None
+    date_to = None
+    filter_type = None
 
+    # Варіант 1: переданий конкретний період.
+    if date_from_str or date_to_str:
+        if not date_from_str or not date_to_str:
+            return Response(
+                {
+                    "error": (
+                        "Для фільтрації за періодом потрібно передати "
+                        "date_from і date_to"
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            date_from = date.fromisoformat(date_from_str)
+            date_to = date.fromisoformat(date_to_str)
+        except ValueError:
+            return Response(
+                {
+                    "error": (
+                        "Invalid date format. "
+                        "Use YYYY-MM-DD for date_from and date_to"
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if date_from > date_to:
+            return Response(
+                {"error": "date_from cannot be greater than date_to"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        filter_type = "date_range"
+
+    # Варіант 2: залишаємо стару фільтрацію за роком.
+    elif year_str:
+        try:
+            year = int(year_str)
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Invalid year"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if year < 1900 or year > 2998:
+            return Response(
+                {"error": "Year must be between 1900 and 2998"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        date_from = date(year, 1, 1)
+        date_to = date(year, 12, 31)
+        filter_type = "year"
+
+    else:
+        return Response(
+            {
+                "error": (
+                    "year або date_from/date_to є обов'язковими"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         contractor_bin, contractor_guid = resolve_contractor(
@@ -752,126 +1108,182 @@ def api_get_orders(request):
             admin_param="contractor_guid",
         )
     except (ValueError, PermissionError) as e:
+        logger.warning(
+            f"Access denied for orders: {str(e)}",
+            extra={
+                "tags": {
+                    "action": "get_orders",
+                    "status": "forbidden",
+                }
+            },
+        )
 
-        logger.warning(f"Access denied for orders: {str(e)}", extra={
-            'tags': {'action': 'get_orders', 'status': 'forbidden'}
-        })
-        return Response({"error": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
-
-    # logger.info(f"Fetching orders for year {year}", extra={
-    #     'tags': {'contractor': contractor_guid, 'year': year}
-    # })
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     try:
-        data = async_to_sync(async_get_data)(year, contractor_bin)
-        
-   
-        calc_bins = [guid_to_1c_bin(calc["id"]) for calc in data if calc.get("id")]
+        data = async_to_sync(async_get_data)(
+            date_from,
+            date_to,
+            contractor_bin,
+        )
+
         calc_bins = []
         calc_to_bin_map = {}
         calc_to_str_map = {}
 
         for calc in data:
             calc_id = calc.get("id")
-            if calc_id:
-                # Перевіряємо тип, щоб не зламати guid_to_1c_bin / bin_to_guid_1c
-                if isinstance(calc_id, (bytes, bytearray)):
-                    c_bin = calc_id
-                    c_str = bin_to_guid_1c(calc_id)
-                else:
-                    c_bin = guid_to_1c_bin(str(calc_id))
-                    c_str = str(calc_id)
-                
-                calc_bins.append(c_bin)
-                calc_to_bin_map[calc_id] = c_bin
-                calc_to_str_map[calc_id] = c_str
 
-
-        unread_calc_bins = set(
-            ChatMessage.objects.filter(
-                related_object_id__in=calc_bins,
-                is_read=False,
-                is_notification=False
-            )
-            .exclude(author=contractor_bin)
-            .values_list("related_object_id", flat=True)
-            .distinct()
-        )
-
-        all_messages = (
-            ChatMessage.objects.filter(
-                related_object_id__in=calc_bins,
-                is_notification=False
-            )
-            .order_by('-id')
-            .values('related_object_id', 'text')
-        )
-
-        # Збираємо унікальну мапу в Python: { "id_прорахунку_строковий": "текст_останнього_повідомлення" }
-        latest_messages_map = {}
-        for msg in all_messages:
-            obj_id = msg['related_object_id']
-            
-            if isinstance(obj_id, (bytes, bytearray)):
-                guid_str = bin_to_guid_1c(obj_id)
-            else:
-                guid_str = str(obj_id)
-                
-            key = str(guid_str).lower().strip()
-            if key not in latest_messages_map:
-                latest_messages_map[key] = msg['text']
-        
-
-        for calc in data:
-            calc_id = calc.get("id")
             if not calc_id:
                 continue
 
-            # Беремо вже готові значення з кеш-мапи (захист від ValueError)
-            calc_bin_key = calc_to_bin_map.get(calc_id)
-            c_guid_str = calc_to_str_map.get(calc_id)
-            
-            lookup_key = c_guid_str.lower().strip() if c_guid_str else None
+            if isinstance(calc_id, (bytes, bytearray)):
+                calc_bin = bytes(calc_id)
+                calc_guid = bin_to_guid_1c(calc_bin)
+            else:
+                calc_guid = str(calc_id)
+                calc_bin = guid_to_1c_bin(calc_guid)
 
-            # Проставляємо прапорець непрочитаних
-            calc["hasUnreadMessages"] = calc_bin_key in unread_calc_bins
+            calc_bins.append(calc_bin)
 
-            # Перевіряємо, чи є повідомлення у мапі чату
-            db_latest_message = latest_messages_map.get(lookup_key) if lookup_key else None
+            # Ключ робимо строковим, щоб уникнути проблем
+            # із bytes/UUID/string.
+            calc_key = str(calc_guid).lower().strip()
 
-            # Для замовлень у message повертаємо останній коментар із чату, якщо він є.
-            # Якщо чату ще немає — залишаємо початкове значення з SQL як fallback.
-            if db_latest_message and str(db_latest_message).strip():
-                calc["message"] = db_latest_message
+            calc_to_bin_map[calc_key] = calc_bin
+            calc_to_str_map[calc_key] = calc_guid
 
-            # Поле залишаємо для сумісності з фронтом, але тепер тут останній коментар.
-            calc["firstMessage"] = db_latest_message
+        unread_calc_bins = set()
 
-    
+        if calc_bins:
+            unread_calc_bins = set(
+                ChatMessage.objects.filter(
+                    related_object_id__in=calc_bins,
+                    is_read=False,
+                    is_notification=False,
+                )
+                .exclude(author=contractor_bin)
+                .values_list("related_object_id", flat=True)
+                .distinct()
+            )
+
+        all_messages = []
+
+        if calc_bins:
+            all_messages = (
+                ChatMessage.objects.filter(
+                    related_object_id__in=calc_bins,
+                    is_notification=False,
+                )
+                .order_by("-id")
+                .values(
+                    "related_object_id",
+                    "text",
+                )
+            )
+
+        latest_messages_map = {}
+
+        for message in all_messages:
+            object_id = message["related_object_id"]
+
+            if isinstance(object_id, (bytes, bytearray)):
+                guid_str = bin_to_guid_1c(object_id)
+            else:
+                guid_str = str(object_id)
+
+            lookup_key = str(guid_str).lower().strip()
+
+            # Дані відсортовані за -id, тому перше повідомлення
+            # для прорахунку є останнім.
+            if lookup_key not in latest_messages_map:
+                latest_messages_map[lookup_key] = message["text"]
+
+        for calc in data:
+            calc_id = calc.get("id")
+
+            if not calc_id:
+                calc["hasUnreadMessages"] = False
+                calc["firstMessage"] = None
+                continue
+
+            if isinstance(calc_id, (bytes, bytearray)):
+                calc_guid = bin_to_guid_1c(calc_id)
+            else:
+                calc_guid = str(calc_id)
+
+            lookup_key = calc_guid.lower().strip()
+
+            calc_bin = calc_to_bin_map.get(lookup_key)
+
+            calc["hasUnreadMessages"] = (
+                calc_bin in unread_calc_bins
+                if calc_bin is not None
+                else False
+            )
+
+            latest_message = latest_messages_map.get(lookup_key)
+
+            # Якщо є коментар із чату — він має пріоритет.
+            # Якщо повідомлень немає, залишається CalcComment із SQL.
+            if latest_message and str(latest_message).strip():
+                calc["message"] = latest_message
+
+            calc["firstMessage"] = latest_message
+
         duration = time.time() - start_time
-        logger.info(f"Orders fetched successfully", extra={
-            'tags': {
-                'action': 'get_orders',
-                'duration_sec': round(duration, 3),
-                'results_count': len(data),
-                'contractor': contractor_guid
-            }
-        })
 
-        return Response({
-            "status": "success",
-            "data": {"calculation": data}
-        })
+        logger.info(
+            "Orders fetched successfully",
+            extra={
+                "tags": {
+                    "action": "get_orders",
+                    "duration_sec": round(duration, 3),
+                    "results_count": len(data),
+                    "contractor": contractor_guid,
+                    "filter_type": filter_type,
+                    "date_from": date_from.isoformat(),
+                    "date_to": date_to.isoformat(),
+                }
+            },
+        )
+
+        return Response(
+            {
+                "status": "success",
+                "filters": {
+                    "type": filter_type,
+                    "year": int(year_str) if filter_type == "year" else None,
+                    "dateFrom": date_from.isoformat(),
+                    "dateTo": date_to.isoformat(),
+                },
+                "data": {
+                    "calculation": data,
+                },
+            }
+        )
 
     except Exception as e:
-    
-        logger.error(f"Failed to fetch orders: {str(e)}", exc_info=True, extra={
-            'tags': {'action': 'get_orders', 'contractor': contractor_guid}
-        })
-        return Response({"error": "Internal server error during data fetch"}, status=500)
+        logger.error(
+            f"Failed to fetch orders: {str(e)}",
+            exc_info=True,
+            extra={
+                "tags": {
+                    "action": "get_orders",
+                    "contractor": contractor_guid,
+                    "date_from": date_from.isoformat(),
+                    "date_to": date_to.isoformat(),
+                }
+            },
+        )
 
-
+        return Response(
+            {"error": "Internal server error during data fetch"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 @sync_to_async
 def execute_additional_orders_procedure(contractor_bin, year):
@@ -1751,6 +2163,54 @@ def complaints_view_all_by_month(request):
                 logger.error(f"Error processing complaint row: {str(row_error)}", exc_info=True)
                 continue
 
+        complaint_bins = []
+        complaint_to_str_map = {}
+
+        for row in processed_rows:
+            complaint_guid = row.get("ComplaintGuid")
+            if not complaint_guid:
+                continue
+
+            try:
+                complaint_bin = guid_to_1c_bin(str(complaint_guid))
+            except Exception:
+                continue
+
+            complaint_bins.append(complaint_bin)
+            complaint_to_str_map[str(complaint_guid).lower().strip()] = complaint_bin
+
+        latest_messages_map = {}
+
+        if complaint_bins:
+            all_messages = (
+                ChatMessage.objects.filter(
+                    related_object_id__in=complaint_bins,
+                    is_notification=False
+                )
+                .order_by("-id")
+                .values("related_object_id", "text")
+            )
+
+            for msg in all_messages:
+                obj_id = msg["related_object_id"]
+
+                if isinstance(obj_id, (bytes, bytearray)):
+                    guid_str = bin_to_guid_1c(obj_id)
+                else:
+                    guid_str = str(obj_id)
+
+                key = str(guid_str).lower().strip()
+                if key not in latest_messages_map:
+                    latest_messages_map[key] = msg["text"]
+
+        for row in processed_rows:
+            complaint_guid = row.get("ComplaintGuid")
+            lookup_key = str(complaint_guid).lower().strip() if complaint_guid else None
+            db_latest_message = latest_messages_map.get(lookup_key) if lookup_key else None
+
+            row["FirstMessage"] = db_latest_message
+            row["Message"] = db_latest_message
+
         total_duration = time.time() - start_time
 
         logger.info(f"ADMIN: Successfully processed {len(processed_rows)} complaints", extra={
@@ -1809,50 +2269,74 @@ def complaints_view_all_by_month(request):
 @permission_classes([IsAdminJWT])
 def orders_view_all_by_month(request):
     """
-    ADMIN ONLY
-    Повертає ВСІ замовлення порталу за МІСЯЦЬ
-    Структура ПОВНІСТЮ ідентична get_orders_by_year_and_contractor
+    ADMIN ONLY.
+
+    Повертає всі заявки на прорахунок та пов'язані замовлення
+    контрагентів порталу за вказаний період.
+
+    GET-параметри:
+        year  — рік (наприклад 2025)
+        month — місяць (1–12)
+
+    Структура відповіді ідентична get_orders_by_year_and_contractor.
     """
     start_time = time.time()
 
+    date_from_str = request.GET.get("date_from")
+    date_to_str = request.GET.get("date_to")
 
-    year_str = request.GET.get("year")
-    month_str = request.GET.get("month")
+    if not date_from_str or not date_to_str:
+        return JsonResponse(
+            {
+                "error": (
+                    "Параметри date_from і date_to є обов'язковими. "
+                    "Формат: YYYY-MM-DD."
+                )
+            },
+            status=400,
+        )
 
-    if not year_str or not month_str:
-        return JsonResponse({"error": "year and month are required"}, status=400)
+    date_from = django_parse_date(date_from_str)
+    date_to = django_parse_date(date_to_str)
 
-    try:
-        year = int(year_str)
-        month = int(month_str)
-        if not 1 <= month <= 12:
-            raise ValueError
-    except ValueError:
-        return JsonResponse({"error": "Invalid year or month"}, status=400)
-    
+    if date_from is None or date_to is None:
+        return JsonResponse(
+            {
+                "error": (
+                    "Некоректний формат дати. "
+                    "Використовуйте формат YYYY-MM-DD."
+                )
+            },
+            status=400,
+        )
 
-    # logger.info(f"ADMIN: Fetching ALL orders for month {year}-{month:02d}", extra={
-    #     'tags': {
-    #         'action': 'admin_get_monthly_orders',
-    #         'year': year,
-    #         'month': month,
-    #         'admin_user': request.user.username if request.user else 'unknown'
-    #     }
-    # })
-
+    if date_from > date_to:
+        return JsonResponse(
+            {
+                "error": (
+                    "Дата початку періоду не може бути більшою "
+                    "за дату завершення."
+                )
+            },
+            status=400,
+        )
 
     try:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC [dbo].[GetOrdersMonthWithCalculations]
-                    @Year = %s,
-                    @Month = %s
+                EXEC [dbo].[GetOrdersMonthWithCalculations2]
+                    @DateFrom = %s,
+                    @DateTo = %s
                 """,
-                [year, month]
+                [date_from, date_to],
             )
-            columns = [col[0] for col in cursor.description]
-            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            columns = [column[0] for column in cursor.description]
+            rows = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
 
         sql_duration = time.time() - start_time
 
@@ -1860,41 +2344,105 @@ def orders_view_all_by_month(request):
 
         for row in rows:
             try:
-                calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
+                calc_id = (
+                    row.get("CalcID_GUID")
+                    or row.get("ClientOrderNumber")
+                    or row.get("OrderNumber")
+                    or "default"
+                )
 
-                calc_constructions_count = int(float(row.get("CalcConstructionsCount") or 0))
-                order_constructions_count = int(float(row.get("ConstructionsCount") or 0))
+                calc_constructions_count = int(
+                    float(row.get("CalcConstructionsCount") or 0)
+                )
 
-                calculation_date = row.get("CalcDate") or row.get("CalculationDate")
+                order_constructions_count = int(
+                    float(row.get("ConstructionsCount") or 0)
+                )
+
+                calculation_date = (
+                    row.get("CalcDate")
+                    or row.get("CalculationDate")
+                )
+
                 order_date = row.get("OrderDate")
 
                 if calc_id not in calcs_dict:
                     calcs_dict[calc_id] = {
                         "id": calc_id,
-                        "number": row.get("CalcDealerNumber") or row.get("CalcNumber") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "",
-                        "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or row.get("OrderNumber") or "",
+                        "number": (
+                            row.get("CalcDealerNumber")
+                            or row.get("CalcNumber")
+                            or row.get("ClientOrderNumber")
+                            or row.get("OrderNumber")
+                            or ""
+                        ),
+                        "webNumber": (
+                            row.get("CalcDealerNumber")
+                            or row.get("WebNumber")
+                            or row.get("OrderNumber")
+                            or ""
+                        ),
                         "dateRaw": calculation_date,
                         "date": calculation_date,
                         "orders": [],
                         "dealer": row.get("Customer"),
-                        "dealerId": bin_to_guid_1c(row.get("ContractorID")),
+                        "dealerId": bin_to_guid_1c(
+                            row.get("ContractorID")
+                        ),
                         "constructionsQTY": calc_constructions_count,
-                        "authorGuid": row.get("CalcAuthor_GUID") or "",
-                        "authorName": row.get("CalcAuthorName") or "",
-                        "recipient": row.get("Recipient") or row.get("Customer"),
-                        "recipientPhone": row.get("RecipientPhone") or "",
-                        "recipientAdditionalInfo": row.get("RecipientAdditionalInfo") or "",
-                        "deliveryAddresses": row.get("DeliveryAddresses") or row.get("OrderAddress") or "",
+                        "authorGuid": (
+                            row.get("CalcAuthor_GUID")
+                            or ""
+                        ),
+                        "authorName": (
+                            row.get("CalcAuthorName")
+                            or ""
+                        ),
+                        "recipient": (
+                            row.get("Recipient")
+                            or row.get("Customer")
+                        ),
+                        "recipientPhone": (
+                            row.get("RecipientPhone")
+                            or ""
+                        ),
+                        "recipientAdditionalInfo": (
+                            row.get("RecipientAdditionalInfo")
+                            or ""
+                        ),
+                        "deliveryAddresses": (
+                            row.get("DeliveryAddresses")
+                            or row.get("OrderAddress")
+                            or ""
+                        ),
                         "file": row.get("AllFileNames") or "",
                         "fileName": row.get("AllFileNames") or "",
                         "message": row.get("Message"),
-                        "manager": bin_to_guid_1c(row.get("Manager")),
-                        "raw_order_dates": [order_date] if order_date else [],
+                        "manager": bin_to_guid_1c(
+                            row.get("Manager")
+                        ),
+                        "raw_order_dates": (
+                            [order_date]
+                            if order_date
+                            else []
+                        ),
                         "currency": row.get("Currency") or "",
                     }
-                else:
-                    if order_date:
-                        calcs_dict[calc_id]["raw_order_dates"].append(order_date)
+
+                elif order_date:
+                    calcs_dict[calc_id][
+                        "raw_order_dates"
+                    ].append(order_date)
+
+                # Заявка може існувати без прив'язаного замовлення.
+                # У такому випадку не створюємо порожній order.
+                has_order = bool(
+                    row.get("OrderID_GUID")
+                    or row.get("OrderNumber")
+                )
+
+                if not has_order:
+                    continue
 
                 order = {
                     "id": row.get("OrderID"),
@@ -1902,34 +2450,81 @@ def orders_view_all_by_month(request):
                     "number": row.get("OrderNumber") or "",
                     "dateRaw": row.get("OrderDate"),
                     "date": row.get("OrderDate"),
-                    "status": row.get("OrderStage") or "Новий",
-                    "amount": float(row.get("OrderSum") or 0),
+                    "status": (
+                        row.get("OrderStage")
+                        or "Новий"
+                    ),
+                    "amount": float(
+                        row.get("OrderSum") or 0
+                    ),
                     "count": order_constructions_count,
-                    "paid": float(row.get("PaidAmount") or 0),
-                    "planProductionMin": row.get("ProductionDateMin"),
-                    "planProductionMax": row.get("ProductionDateMax"),
-                    "factProductionMin": row.get("ProductionStartDateMin"),
-                    "factProductionMax": row.get("ProductionStartDateMax"),
-                    "factReadyMin": row.get("ProductionReadyDateMin"),
-                    "factReadyMax": row.get("ProductionReadyDateMax"),
-                    "realizationDate": row.get("SaleDate"),
-                    "quantityRealized": float(row.get("SoldQuantity") or 0),
-                    "deliveryAddress": row.get("DeliveryAddress") or "",
-                    "planDelivery": row.get("PlannedDeliveryDate"),
-                    "planDeparture": row.get("PlannedDepartureDate"),
-                    "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
-                    "arrivalTime": row.get("ArrivalTime"),
-                    "routeStatus": row.get("RouteStatus"),
-                    "organizationName": row.get("OrganizationName"),
-                    "managerName": row.get("ManagerName"),
-                    "dateDelay": row.get("DateDelays"),
+                    "paid": float(
+                        row.get("PaidAmount") or 0
+                    ),
+                    "planProductionMin": row.get(
+                        "ProductionDateMin"
+                    ),
+                    "planProductionMax": row.get(
+                        "ProductionDateMax"
+                    ),
+                    "factProductionMin": row.get(
+                        "ProductionStartDateMin"
+                    ),
+                    "factProductionMax": row.get(
+                        "ProductionStartDateMax"
+                    ),
+                    "factReadyMin": row.get(
+                        "ProductionReadyDateMin"
+                    ),
+                    "factReadyMax": row.get(
+                        "ProductionReadyDateMax"
+                    ),
+                    "realizationDate": row.get(
+                        "SaleDate"
+                    ),
+                    "quantityRealized": float(
+                        row.get("SoldQuantity") or 0
+                    ),
+                    "deliveryAddress": (
+                        row.get("OrderAddress")
+                        or row.get("DeliveryAddress")
+                        or ""
+                    ),
+                    "planDelivery": row.get(
+                        "PlannedDeliveryDate"
+                    ),
+                    "planDeparture": row.get(
+                        "PlannedDepartureDate"
+                    ),
+                    "goodsInDelivery": int(
+                        row.get("ItemsInDeliveryCount") or 0
+                    ),
+                    "arrivalTime": row.get(
+                        "ArrivalTime"
+                    ),
+                    "routeStatus": row.get(
+                        "RouteStatus"
+                    ),
+                    "organizationName": row.get(
+                        "OrganizationName"
+                    ),
+                    "managerName": row.get(
+                        "ManagerName"
+                    ),
+                    "dateDelay": row.get(
+                        "DateDelays"
+                    ),
                     "currency": row.get("Currency") or "",
                 }
 
                 calcs_dict[calc_id]["orders"].append(order)
 
             except Exception as row_error:
-                logger.error(f"Error processing order row: {str(row_error)}", exc_info=True)
+                logger.error(
+                    "Error processing order row: %s",
+                    str(row_error),
+                    exc_info=True,
+                )
                 continue
 
         calc_bins = []
@@ -1937,18 +2532,29 @@ def orders_view_all_by_month(request):
 
         for calc in calcs_dict.values():
             calc_id = calc.get("id")
-            if not calc_id:
+
+            if not calc_id or calc_id == "default":
                 continue
 
-            if isinstance(calc_id, (bytes, bytearray)):
-                c_bin = calc_id
-                c_str = bin_to_guid_1c(calc_id)
-            else:
-                c_bin = guid_to_1c_bin(str(calc_id))
-                c_str = str(calc_id)
+            try:
+                if isinstance(calc_id, (bytes, bytearray)):
+                    calc_bin = bytes(calc_id)
+                    calc_guid_str = bin_to_guid_1c(calc_id)
+                else:
+                    calc_guid_str = str(calc_id)
+                    calc_bin = guid_to_1c_bin(calc_guid_str)
 
-            calc_bins.append(c_bin)
-            calc_to_str_map[calc_id] = c_str
+                if calc_bin:
+                    calc_bins.append(calc_bin)
+
+                calc_to_str_map[calc_id] = calc_guid_str
+
+            except Exception as conversion_error:
+                logger.warning(
+                    "Could not convert calculation ID %s: %s",
+                    calc_id,
+                    str(conversion_error),
+                )
 
         latest_messages_map = {}
 
@@ -1956,65 +2562,108 @@ def orders_view_all_by_month(request):
             all_messages = (
                 ChatMessage.objects.filter(
                     related_object_id__in=calc_bins,
-                    is_notification=False
+                    is_notification=False,
                 )
                 .order_by("-id")
-                .values("related_object_id", "text")
+                .values(
+                    "related_object_id",
+                    "text",
+                )
             )
 
-            for msg in all_messages:
-                obj_id = msg["related_object_id"]
+            for message in all_messages:
+                object_id = message["related_object_id"]
 
-                if isinstance(obj_id, (bytes, bytearray)):
-                    guid_str = bin_to_guid_1c(obj_id)
+                if isinstance(
+                    object_id,
+                    (bytes, bytearray),
+                ):
+                    guid_str = bin_to_guid_1c(object_id)
                 else:
-                    guid_str = str(obj_id)
+                    guid_str = str(object_id)
 
-                key = str(guid_str).lower().strip()
+                if not guid_str:
+                    continue
 
-                if key not in latest_messages_map:
-                    latest_messages_map[key] = msg["text"]
+                lookup_key = str(guid_str).lower().strip()
+
+                if lookup_key not in latest_messages_map:
+                    latest_messages_map[lookup_key] = (
+                        message["text"]
+                    )
 
         formatted_calcs = []
 
         for calc in calcs_dict.values():
             orders = calc["orders"]
+
             status_counts = {}
-            total_amount = 0
-            total_paid = 0
+            total_amount = 0.0
+            total_paid = 0.0
 
-            if not calc["dateRaw"] and calc["raw_order_dates"]:
-                min_date = min(d for d in calc["raw_order_dates"] if d)
-                calc["dateRaw"] = min_date
-                calc["date"] = min_date
+            if (
+                not calc["dateRaw"]
+                and calc["raw_order_dates"]
+            ):
+                valid_order_dates = [
+                    value
+                    for value in calc["raw_order_dates"]
+                    if value
+                ]
 
-            del calc["raw_order_dates"]
+                if valid_order_dates:
+                    min_date = min(valid_order_dates)
+                    calc["dateRaw"] = min_date
+                    calc["date"] = min_date
 
-            for o in orders:
-                st = o["status"]
+            calc.pop("raw_order_dates", None)
 
-                if st:
-                    status_counts[st] = status_counts.get(st, 0) + 1
+            for order in orders:
+                status = order["status"]
 
-                if st != "Відмова":
-                    total_amount += o["amount"]
-                    total_paid += o["paid"]
+                if status:
+                    status_counts[status] = (
+                        status_counts.get(status, 0) + 1
+                    )
+
+                if status != "Відмова":
+                    total_amount += order["amount"]
+                    total_paid += order["paid"]
 
             calc["statuses"] = status_counts
             calc["orderCountInCalc"] = len(orders)
 
-            # На рівні розрахунку повертаємо CalcConstructionsCount як є
-            calc["constructionsCount"] = calc["constructionsQTY"]
+            # Не сумуємо кількість конструкцій замовлень.
+            # Повертаємо CalcConstructionsCount із заявки як є.
+            calc["constructionsCount"] = (
+                calc["constructionsQTY"]
+            )
 
             calc["amount"] = total_amount
-            calc["debt"] = total_amount - total_paid
+            calc["debt"] = max(
+                total_amount - total_paid,
+                0,
+            )
 
             calc_id = calc.get("id")
             calc_guid_str = calc_to_str_map.get(calc_id)
-            lookup_key = calc_guid_str.lower().strip() if calc_guid_str else None
-            db_latest_message = latest_messages_map.get(lookup_key) if lookup_key else None
 
-            if db_latest_message and str(db_latest_message).strip():
+            lookup_key = (
+                calc_guid_str.lower().strip()
+                if calc_guid_str
+                else None
+            )
+
+            db_latest_message = (
+                latest_messages_map.get(lookup_key)
+                if lookup_key
+                else None
+            )
+
+            if (
+                db_latest_message
+                and str(db_latest_message).strip()
+            ):
                 calc["message"] = db_latest_message
 
             calc["firstMessage"] = db_latest_message
@@ -2024,32 +2673,54 @@ def orders_view_all_by_month(request):
         total_duration = time.time() - start_time
 
         logger.info(
-            f"ADMIN: Successfully processed {len(formatted_calcs)} calculations",
+            "ADMIN: Successfully processed %s calculations "
+            "for period %s — %s",
+            len(formatted_calcs),
+            date_from,
+            date_to,
             extra={
                 "tags": {
-                    "action": "admin_get_monthly_orders",
+                    "action": "admin_get_orders_by_date_range",
+                    "date_from": str(date_from),
+                    "date_to": str(date_to),
                     "sql_duration": round(sql_duration, 3),
-                    "total_duration": round(total_duration, 3),
+                    "total_duration": round(
+                        total_duration,
+                        3,
+                    ),
                     "rows_count": len(rows),
                     "calcs_count": len(formatted_calcs),
                 }
-            }
+            },
         )
 
         return JsonResponse(
             {
                 "status": "success",
                 "data": {
-                    "calculation": formatted_calcs
-                }
+                    "calculation": formatted_calcs,
+                },
             },
-            json_dumps_params={"ensure_ascii": False},
-            safe=False
+            json_dumps_params={
+                "ensure_ascii": False,
+            },
+            safe=False,
         )
 
-    except Exception as e:
-        logger.error(f"ADMIN: Critical failure in orders_view_all_by_month: {str(e)}", exc_info=True)
-        return JsonResponse({"error": "Внутрішня помилка сервера"}, status=500)
+    except Exception as error:
+        logger.error(
+            "ADMIN: Critical failure in "
+            "orders_view_all_by_date_range: %s",
+            str(error),
+            exc_info=True,
+        )
+
+        return JsonResponse(
+            {
+                "error": "Внутрішня помилка сервера",
+            },
+            status=500,
+        )
 
 
 def safe_float(v):

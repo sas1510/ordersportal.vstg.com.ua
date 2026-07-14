@@ -255,7 +255,7 @@ export const ReclamationItem = ({
         <div className="summary-item row no-wrap !pl-0 " style={{ flexBasis: "15%" }}>
           <div className="column !pl-0 w-full pr-3">
             <div className="text-base text-bold w-full text-WS---DarkGrey border-bottom">
-              № {reclamation.id}
+              № {reclamation.orderNumber}
             </div>
             <div className="text-[13px] text-WS---DarkGrey">
               {formatDateHumanShorter_full(reclamation.dateRaw, locale)}
@@ -290,8 +290,7 @@ export const ReclamationItem = ({
       }}
     >
       <div className="w-full text-[14px] leading-tight line-clamp-2">
-        {/* {reclamation.message || t("reclamation.no_comments")} */}
-         {reclamation.firstMessage || t("reclamation.no_comments")}
+        {reclamation.message || reclamation.firstMessage || t("reclamation.no_comments")}
       </div>
     </div>
 

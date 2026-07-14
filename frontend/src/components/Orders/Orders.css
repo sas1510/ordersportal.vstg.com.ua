@@ -173,10 +173,14 @@ body.dark-theme .separator-border {
         140px    /* борг */
         120px    /* статус */
         215px    /* кнопки */
-        65px;    /* швидке */
+        34px;    /* швидке */
     align-items:center;
     width: calc(100%);
 }
+
+  .fast-order-text {
+    display: none;
+  }
 }
 
 @media (max-width: 1315px) {
@@ -191,10 +195,32 @@ body.dark-theme .separator-border {
         133px    /* борг */
         120px    /* статус */
         215px    /* кнопки */
-        30px;    /* швидке */
+        34px;    /* швидке */
     align-items:center;
     width: calc(100%);
 }
+}
+
+@media (max-width: 1300px) and (min-width: 1260px) {
+  .order-grid{
+    display:grid;
+    grid-template-columns:
+        30px     /* іконка */
+        133px    /* номер */
+        70px     /* конструкції */
+        48px     /* файли */
+        128px    /* сума */
+        128px    /* борг */
+        120px    /* статус */
+        215px    /* кнопки */
+        34px;    /* швидке */
+    align-items:center;
+    width: calc(100%);
+  }
+
+  .order-files-icon {
+    display: none !important;
+  }
 }
 
 @media (max-width: 1260px) {
@@ -209,14 +235,8 @@ body.dark-theme .separator-border {
         140px    /* борг */
         120px    /* статус */
         215px    /* кнопки */
-        65px;    /* швидке */
+        34px;    /* швидке */
     align-items:center;
     width: calc(100%);
 }
-}
-
-@media (max-width: 1315px) and (min-width: 1260px) {
-  .fast-order-text {
-    display: none;
-  }
 }

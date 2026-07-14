@@ -7,10 +7,11 @@ import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
 import OrderItemSummaryDesktop from "./OrderItemSummaryDesktop";
 import {
-  formatDateTimeShort,
+  formatDateTimeShort, formatDateTimeShort_2
 } from "../../utils/formatters";
 import "./Orders.css";
 import OrderFilesPreviewModal from "./OrderFilesPreviewModal";
+import OrderNumbersListModal from "./OrderNumbersListModal";
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,7 @@ export const CalculationItem = React.memo(
     const { addNotification } = useNotification();
 
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+    const [isOrderNumbersOpen, setIsOrderNumbersOpen] = useState(false);
 
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
@@ -127,6 +129,20 @@ export const CalculationItem = React.memo(
         return sum + (Number.isFinite(count) ? count : 0);
       }, 0);
     }, [orderList]);
+
+    const orderNumbers = useMemo(() => {
+      return orderList
+        .map((order) => String(order.number).trim())
+        .filter(Boolean);
+    }, [orderList]);
+
+    const visibleOrderNumbers = useMemo(() => {
+      return orderNumbers.slice(0, 3);
+    }, [orderNumbers]);
+
+    const hiddenOrderNumbersCount = useMemo(() => {
+      return Math.max(0, orderNumbers.length - visibleOrderNumbers.length);
+    }, [orderNumbers.length, visibleOrderNumbers.length]);
 
     const statusEntries = useMemo(() => {
       return calc.statuses && Object.keys(calc.statuses).length > 0
@@ -230,42 +246,68 @@ export const CalculationItem = React.memo(
   <div className="column">
     {/* Блок Номера замовлення */}
     <div className="column border-bottom pb-0.5">
-      <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span>
-      <div className="text-base m text-bold text-WS---DarkGrey mt-0.5">
-        № {calc.number} 
+      {/* <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span> */}
+      <div className="text-[14px] m text-bold text-WS---DarkGrey mt-0.5">
+        {formatDateTimeShort_2(calc.date, i18n.language)} 
       </div>
     </div>
     
     {/* Блок Дати створення */}
     <div className="column pt-1">
       {/* <span className="text-[10px] text-grey leading-none">Дата </span> */}
-      <div className="text-xs text-WS---DarkGrey mt-0.5">
-        {formatDateTimeShort(calc.date, i18n.language)}
+      <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span>
+      <div className="text-[13px] text-bold text-WS---DarkGrey mt-0.5">
+        № {calc.number} 
       </div>
     </div>
   </div>
 </div>
 
 <div
-  className="summary-item flex flex-col w-8"
+  className="summary-item !gap-0 flex min-w-0 flex-col w-8 !p-0 overflow-hidden"
+  style={{
+    minWidth: "78px",
+    flex: "0 0 78px",
+  }}
   title={t("portal_calc.ui.orders")}
 >
-
-  <span className="text-grey text-[10px] mb-1">
+  <span className="text-grey text-[10px] mt-0.5">
     {t("portal_calc.ui.orders")}
   </span>
-  
 
-  <div className="flex items-center">
-    <img 
-      src={listCalcIcon} 
-      alt={t("portal_calc.ui.orders")} 
-           className="align-center mr-1" 
-    />
-    <div className="font-size-24 text-WS---DarkBlue font-bold">
-      {orderList.length}
+  {orderNumbers.length === 0 ? (
+    <div className="flex items-center">
+      <img
+        src={listCalcIcon}
+        alt={t("portal_calc.ui.orders")}
+        className="mr-1"
+      />
+      <div className="font-size-24 text-WS---DarkBlue font-bold">
+        0
+      </div>
     </div>
-  </div>
+  ) : (
+    <div className="flex w-full flex-col items-start overflow-hidden text-[12px] leading-tight text-WS---DarkBlue font-semibold">
+      {visibleOrderNumbers.map((number) => (
+        <div key={number} className="w-full truncate">
+          {number}
+        </div>
+      ))}
+
+      {hiddenOrderNumbersCount > 0 && (
+        <button
+          type="button"
+          className="text-left text-[8px] font-bold text-[#6B98BF] underline underline-offset-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOrderNumbersOpen(true);
+          }}
+        >
+          +{hiddenOrderNumbersCount} {t("portal_calc.ui.more_short")}
+        </button>
+      )}
+    </div>
+  )}
 </div>
 
 <div
@@ -510,6 +552,11 @@ export const CalculationItem = React.memo(
           orderGuid={calc.id}      // GUID розрахунку для запиту до API
           entityType="calculation"
           orderNumber={calc.number} // Номер для заголовка
+        />
+        <OrderNumbersListModal
+          isOpen={isOrderNumbersOpen}
+          onClose={() => setIsOrderNumbersOpen(false)}
+          numbers={orderNumbers}
         />
 
         <CounterpartyInfoModal

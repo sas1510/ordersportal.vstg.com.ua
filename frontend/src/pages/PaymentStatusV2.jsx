@@ -1707,6 +1707,28 @@ const DocumentRow = React.memo(
                             {item.PaymentStatus !== null ? `${formatPercent(item.PaymentStatus)} %` : "—"}
                           </span>
                         </div>
+                        <div>
+                          <span className="mini-label">Реалізовано за день</span>
+                          <span className="mini-value">
+                            {item.RealizedPerDay != null
+                              ? formatCurrency(item.RealizedPerDay, itemCurrency, i18n)
+                              : "—"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="mini-label">Дата реалізації</span>
+                          <span className="mini-value">
+                            {item.RealizedDate
+                              ? formatDateHuman(item.RealizedDate, i18n.language)
+                              : "—"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="mini-label">Машина</span>
+                          <span className="mini-value">
+                            {item.CarNumber || "—"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );
