@@ -15,6 +15,13 @@ export const CalculationMenu = ({
   const { t } = useTranslation();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const deleteIcon = "/assets/icons/DeleteIcon.png";
+  const canEdit = !hasOrders;
+
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    onEdit?.(calc);
+  };
 
   const handleDeleteClick = (e) => {
     e.stopPropagation();
@@ -34,19 +41,38 @@ export const CalculationMenu = ({
     : hasRefusableOrders
       ? t("portal_calc.ui.request_order_refusal")
       : t("portal_calc.ui.order_refusal_unavailable");
+
+  const editTitle = canEdit
+    ? t("portal_calc.ui.edit_calc_allowed")
+    : t("portal_calc.ui.edit_calc_disallowed");
+
   return (
     <div className="summary-item small row no-wrap gap-10 align-center">
-<img 
-  src={deleteIcon} 
-  alt={title}
-  onClick={!isDisabled ? handleDeleteClick : undefined}
-  className={` transition-all
-    ${isDisabled
-      ? "icon-delete-disabled cursor-not-allowed" 
-      : "icon-delete-red cursor-pointer active:scale-95"
-    }`} 
-  title={title}
-/>
+      <button
+        type="button"
+        onClick={handleEditClick}
+        className={`calc-menu-icon-button ${
+          canEdit
+            ? "calc-menu-icon-button--edit"
+            : "calc-menu-icon-button--disabled"
+        }`}
+        title={editTitle}
+        aria-label={editTitle}
+      >
+        <span className="icon icon-pencil font-size-18" />
+      </button>
+
+      <img
+        src={deleteIcon}
+        alt={title}
+        onClick={!isDisabled ? handleDeleteClick : undefined}
+        className={`transition-all
+          ${isDisabled
+            ? "icon-delete-disabled cursor-not-allowed"
+            : "icon-delete-red cursor-pointer active:scale-95"
+          }`}
+        title={title}
+      />
 
    
       <DeleteConfirmModal

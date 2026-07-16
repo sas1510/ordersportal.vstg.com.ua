@@ -64,6 +64,7 @@ from backend.utils.onec_api import send_to_1c
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
 from backend.utils.logging_setup import logger
+from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
 
 
 from .utils import (
@@ -89,6 +90,13 @@ try:
 except (TypeError, ValueError):
     ORDERSPORTAL_AI_TRANSLATE_TIMEOUT = 8.0
 
+
+def get_maintenance_json_response():
+    state = get_maintenance_state()
+    if not state["enabled"]:
+        return None
+
+    return JsonResponse(build_maintenance_payload(), status=503)
 
 
 def get_current_time_kyiv() -> str:
@@ -435,6 +443,9 @@ def execute_stored_procedure(contractor_bin, year):
 @safe_view
 def complaints_view(request):  # Знову синхронна для DRF
     start_time = time.time()
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     # Створюємо внутрішню асинхронну функцію, яка виконає всю I/O логіку
     async def _async_data_fetch():
@@ -601,6 +612,9 @@ def get_orders_by_period_and_contractor(
 
     if local_date_from > local_date_to:
         return []
+
+    if get_maintenance_state()["enabled"]:
+        raise RuntimeError("ONEC_MAINTENANCE_ACTIVE")
 
     query = """
         EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor2]
@@ -1033,6 +1047,9 @@ async_get_data = sync_to_async(
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def api_get_orders(request):
     start_time = time.time()
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     year_str = request.GET.get("year")
     date_from_str = request.GET.get("date_from")
@@ -1135,143 +1152,10 @@ def api_get_orders(request):
             date_to,
             contractor_bin,
         )
-
-        calc_bins = []
-        calc_to_bin_map = {}
-        calc_to_str_map = {}
-
-        for calc in data:
-            calc_id = calc.get("id")
-
-            if not calc_id:
-                continue
-
-            if isinstance(calc_id, (bytes, bytearray)):
-                calc_bin = bytes(calc_id)
-                calc_guid = bin_to_guid_1c(calc_bin)
-            else:
-                calc_guid = str(calc_id)
-                calc_bin = guid_to_1c_bin(calc_guid)
-
-            calc_bins.append(calc_bin)
-
-            # Ключ робимо строковим, щоб уникнути проблем
-            # із bytes/UUID/string.
-            calc_key = str(calc_guid).lower().strip()
-
-            calc_to_bin_map[calc_key] = calc_bin
-            calc_to_str_map[calc_key] = calc_guid
-
-        unread_calc_bins = set()
-
-        if calc_bins:
-            unread_calc_bins = set(
-                ChatMessage.objects.filter(
-                    related_object_id__in=calc_bins,
-                    is_read=False,
-                    is_notification=False,
-                )
-                .exclude(author=contractor_bin)
-                .values_list("related_object_id", flat=True)
-                .distinct()
-            )
-
-        all_messages = []
-
-        if calc_bins:
-            all_messages = (
-                ChatMessage.objects.filter(
-                    related_object_id__in=calc_bins,
-                    is_notification=False,
-                )
-                .order_by("-id")
-                .values(
-                    "related_object_id",
-                    "text",
-                )
-            )
-
-        latest_messages_map = {}
-
-        for message in all_messages:
-            object_id = message["related_object_id"]
-
-            if isinstance(object_id, (bytes, bytearray)):
-                guid_str = bin_to_guid_1c(object_id)
-            else:
-                guid_str = str(object_id)
-
-            lookup_key = str(guid_str).lower().strip()
-
-            # Дані відсортовані за -id, тому перше повідомлення
-            # для прорахунку є останнім.
-            if lookup_key not in latest_messages_map:
-                latest_messages_map[lookup_key] = message["text"]
-
-        for calc in data:
-            calc_id = calc.get("id")
-
-            if not calc_id:
-                calc["hasUnreadMessages"] = False
-                calc["firstMessage"] = None
-                continue
-
-            if isinstance(calc_id, (bytes, bytearray)):
-                calc_guid = bin_to_guid_1c(calc_id)
-            else:
-                calc_guid = str(calc_id)
-
-            lookup_key = calc_guid.lower().strip()
-
-            calc_bin = calc_to_bin_map.get(lookup_key)
-
-            calc["hasUnreadMessages"] = (
-                calc_bin in unread_calc_bins
-                if calc_bin is not None
-                else False
-            )
-
-            latest_message = latest_messages_map.get(lookup_key)
-
-            # Якщо є коментар із чату — він має пріоритет.
-            # Якщо повідомлень немає, залишається CalcComment із SQL.
-            if latest_message and str(latest_message).strip():
-                calc["message"] = latest_message
-
-            calc["firstMessage"] = latest_message
-
-        duration = time.time() - start_time
-
-        logger.info(
-            "Orders fetched successfully",
-            extra={
-                "tags": {
-                    "action": "get_orders",
-                    "duration_sec": round(duration, 3),
-                    "results_count": len(data),
-                    "contractor": contractor_guid,
-                    "filter_type": filter_type,
-                    "date_from": date_from.isoformat(),
-                    "date_to": date_to.isoformat(),
-                }
-            },
-        )
-
-        return Response(
-            {
-                "status": "success",
-                "filters": {
-                    "type": filter_type,
-                    "year": int(year_str) if filter_type == "year" else None,
-                    "dateFrom": date_from.isoformat(),
-                    "dateTo": date_to.isoformat(),
-                },
-                "data": {
-                    "calculation": data,
-                },
-            }
-        )
-
+    except RuntimeError as exc:
+        if str(exc) == "ONEC_MAINTENANCE_ACTIVE":
+            return JsonResponse(build_maintenance_payload(), status=503)
+        raise
     except Exception as e:
         logger.error(
             f"Failed to fetch orders: {str(e)}",
@@ -1290,6 +1174,127 @@ def api_get_orders(request):
             {"error": "Internal server error during data fetch"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+    calc_bins = []
+    calc_to_bin_map = {}
+    calc_to_str_map = {}
+
+    for calc in data:
+        calc_id = calc.get("id")
+
+        if not calc_id:
+            continue
+
+        if isinstance(calc_id, (bytes, bytearray)):
+            calc_bin = bytes(calc_id)
+            calc_guid = bin_to_guid_1c(calc_bin)
+        else:
+            calc_guid = str(calc_id)
+            calc_bin = guid_to_1c_bin(calc_guid)
+
+        calc_bins.append(calc_bin)
+        calc_key = str(calc_guid).lower().strip()
+        calc_to_bin_map[calc_key] = calc_bin
+        calc_to_str_map[calc_key] = calc_guid
+
+    unread_calc_bins = set()
+    if calc_bins:
+        unread_calc_bins = set(
+            ChatMessage.objects.filter(
+                related_object_id__in=calc_bins,
+                is_read=False,
+                is_notification=False,
+            )
+            .exclude(author=contractor_bin)
+            .values_list("related_object_id", flat=True)
+            .distinct()
+        )
+
+    all_messages = []
+    if calc_bins:
+        all_messages = (
+            ChatMessage.objects.filter(
+                related_object_id__in=calc_bins,
+                is_notification=False,
+            )
+            .order_by("-id")
+            .values(
+                "related_object_id",
+                "text",
+            )
+        )
+
+    latest_messages_map = {}
+    for message in all_messages:
+        object_id = message["related_object_id"]
+        if isinstance(object_id, (bytes, bytearray)):
+            guid_str = bin_to_guid_1c(object_id)
+        else:
+            guid_str = str(object_id)
+
+        lookup_key = str(guid_str).lower().strip()
+        if lookup_key not in latest_messages_map:
+            latest_messages_map[lookup_key] = message["text"]
+
+    for calc in data:
+        calc_id = calc.get("id")
+
+        if not calc_id:
+            calc["hasUnreadMessages"] = False
+            calc["firstMessage"] = None
+            continue
+
+        if isinstance(calc_id, (bytes, bytearray)):
+            calc_guid = bin_to_guid_1c(calc_id)
+        else:
+            calc_guid = str(calc_id)
+
+        lookup_key = calc_guid.lower().strip()
+        calc_bin = calc_to_bin_map.get(lookup_key)
+
+        calc["hasUnreadMessages"] = (
+            calc_bin in unread_calc_bins
+            if calc_bin is not None
+            else False
+        )
+
+        latest_message = latest_messages_map.get(lookup_key)
+        if latest_message and str(latest_message).strip():
+            calc["message"] = latest_message
+
+        calc["firstMessage"] = latest_message
+
+    duration = time.time() - start_time
+
+    logger.info(
+        "Orders fetched successfully",
+        extra={
+            "tags": {
+                "action": "get_orders",
+                "duration_sec": round(duration, 3),
+                "results_count": len(data),
+                "contractor": contractor_guid,
+                "filter_type": filter_type,
+                "date_from": date_from.isoformat(),
+                "date_to": date_to.isoformat(),
+            }
+        },
+    )
+
+    return Response(
+        {
+            "status": "success",
+            "filters": {
+                "type": filter_type,
+                "year": int(year_str) if filter_type == "year" else None,
+                "dateFrom": date_from.isoformat(),
+                "dateTo": date_to.isoformat(),
+            },
+            "data": {
+                "calculation": data,
+            },
+        }
+    )
 
 @sync_to_async
 def execute_additional_orders_procedure(contractor_bin, year):
@@ -1341,6 +1346,9 @@ def execute_additional_orders_procedure(contractor_bin, year):
 @safe_view
 def additional_orders_view(request):  # Синхронна обгортка для DRF
     start_time = time.time()
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     # Створюємо внутрішню асинхронну функцію для I/O операцій
     async def _async_data_fetch():
@@ -1848,6 +1856,9 @@ def get_additional_orders_info_all(request):
     СТРУКТУРА = additional_orders_view
     """
     start_time = time.time()
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
 
     year = request.GET.get("year")
@@ -2077,6 +2088,9 @@ def complaints_view_all_by_month(request):
     SQL: GetComplaintsFull_ByMonth
     """
     start_time = time.time()
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     year_str = request.GET.get("year")
     month_str = request.GET.get("month")
@@ -2287,6 +2301,9 @@ def orders_view_all_by_month(request):
     Структура відповіді ідентична get_orders_by_year_and_contractor.
     """
     start_time = time.time()
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     date_from_str = request.GET.get("date_from")
     date_to_str = request.GET.get("date_to")
@@ -3816,7 +3833,10 @@ def get_dealer_addresses(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def wds_codes_by_contractor(request):
-    
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
@@ -5035,6 +5055,9 @@ class PartnerDebtsView(APIView):
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     def get(self, request):
+        maintenance_response = get_maintenance_json_response()
+        if maintenance_response is not None:
+            return maintenance_response
 
         start_time = time.time()
         user_name = request.user.username if request.user.is_authenticated else "unknown"

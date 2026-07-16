@@ -204,6 +204,7 @@ from backend.utils.dates import parse_date, clean_date
 from backend.utils.onec_api import send_to_1c
 from backend.utils.get_main_manager import get_contractor_main_manager_bin
 from backend.utils.logging_setup import logger
+from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
 
 
 # --- Локальні модулі поточної аплікації (.) ---
@@ -215,6 +216,12 @@ from .utils import (
 )
 
 # Налаштування логера
+
+
+def get_maintenance_json_response():
+    if not get_maintenance_state()["enabled"]:
+        return None
+    return JsonResponse(build_maintenance_payload(), status=503)
 
 
 
@@ -237,6 +244,9 @@ from .utils import (
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_issue_complaints(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
     try:
         with connection.cursor() as cursor:
             cursor.execute("EXEC dbo.GetComplaintsIssue")
@@ -1029,4 +1039,3 @@ def preview_complaint_file(request, claim_guid):
                     }
                 })
         return redirect(f"{settings.FRONTEND_URL}file-preview/not-found?filename={quote(filename)}")
-

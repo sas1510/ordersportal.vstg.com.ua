@@ -5,7 +5,7 @@ from .views import (
     LogoutView,
     CurrentUserView, CreateInvitationView, CreateAdminDirectView
 )
-from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords, get_active_users_1c, get_telegram_link
+from .views import register_with_invite, get_customers, get_balance_view, get_user_name_view, admin_change_user_password, change_password_client, get_all_users_view, admin_edit_user_view, admin_deactivate_user_view, get_current_user, get_dealer_portal_users, get_dealer_addresses_change, create_api_key, list_user_api_keys, deactivate_api_key, save_dealer_address_coords, get_active_users_1c, get_telegram_link, one_c_maintenance_mode_view
 
 
 
@@ -33,6 +33,7 @@ urlpatterns = [
     path("get_dealer_addresses_change/", get_dealer_addresses_change, name="get_dealer_addresses_change"),
     path("admin/api-keys/create/", create_api_key),
     path("admin/api-keys/by-user/<int:user_id>/", list_user_api_keys),
+    path("system/maintenance/1c/", one_c_maintenance_mode_view),
     path("save_dealer_address_coords/", save_dealer_address_coords),
     path(
         "admin/api-keys/<int:key_id>/de activate/",

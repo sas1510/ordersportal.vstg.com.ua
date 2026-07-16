@@ -116,6 +116,21 @@
     "saving": "Saving...",
     "deleting": "Deleting..."
   },
+  "maintenance": {
+    "default_message": "Our database is currently being updated. Please wait a few minutes.",
+    "admin": {
+      "enable": "Enable 1C update mode",
+      "disable": "Disable 1C update mode",
+      "enable_short": "1C pause",
+      "disable_short": "1C on",
+      "active": "1C update mode is enabled",
+      "inactive": "1C update mode is disabled",
+      "loading": "1C...",
+      "enabled_success": "1C update mode has been enabled.",
+      "disabled_success": "1C update mode has been disabled.",
+      "toggle_error": "Failed to change 1C update mode."
+    }
+  },
   "route_titles": {
     "default": "Orders Portal",
     "login": "Login — Orders Portal",

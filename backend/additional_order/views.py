@@ -17,16 +17,26 @@ from django.shortcuts import render
 
 
 from django.http import JsonResponse
+from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
 
 
 # logger = logging.getLogger(__name__)
 from backend.utils.logging_setup import logger
 
 
+def get_maintenance_json_response():
+    if not get_maintenance_state()["enabled"]:
+        return None
+    return JsonResponse(build_maintenance_payload(), status=503)
+
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_additional_order_nomenclature(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
     try:
         with connection.cursor() as cursor:
             cursor.execute("EXEC dbo.GetAdditionalOrderNomenclature")
@@ -70,6 +80,10 @@ def check_order_exists(request):
 
     if not order_number:
         return JsonResponse({"error": "order_number is required"}, status=400)
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     try:
         contragent_bin = None
@@ -119,6 +133,9 @@ def check_order_exists(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def get_issue_add_order(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
     try:
         with connection.cursor() as cursor:
             cursor.execute("EXEC dbo.[GetAdditionalIssue]")
@@ -163,6 +180,9 @@ class AdditionalOrderViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated] 
 
     def create(self, request):
+        maintenance_response = get_maintenance_json_response()
+        if maintenance_response is not None:
+            return maintenance_response
         user = request.user
         payload = {}
         try:

@@ -61,18 +61,20 @@ export const CalculationItemMobile = React.memo(
 
     const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
 
-    // const handleEdit = useCallback(
-    //   (updatedCalc) => {
-    //     if (onEdit) onEdit(updatedCalc);
-    //   },
-    //   [onEdit],
-    // );
-
     const hasOrders = useMemo(
       () =>
         Array.isArray(calc.orders) &&
         calc.orders.some((o) => o.number && String(o.number).trim() !== ""),
       [calc.orders],
+    );
+
+    const handleEdit = useCallback(
+      (e) => {
+        e.stopPropagation();
+        if (hasOrders) return;
+        onEdit?.(calc);
+      },
+      [calc, hasOrders, onEdit],
     );
 
     const handleDownload = useCallback(async () => {
@@ -232,7 +234,7 @@ export const CalculationItemMobile = React.memo(
 <div className="flex items-stretch justify-between mb-1 w-full gap-3 min-h-[70px] pb-1 border-bottom">
   
 
-<div className="basis-2/5  flex flex-col justify-center items-center pr-2 border-right shrink-0">
+<div className="basis-2/5  flex flex-col justify-center items-center border-right shrink-0">
   <div className="flex flex-col w-full text-start gap-[6px]">
     <div className="w-full text-start pb-1 text-[12px] font-semibold text-WS---DarkGrey border-bottom leading-none whitespace-nowrap overflow-hidden text-ellipsis">
       {formatDateTimeShort_2(calc.date, locale)}
@@ -262,7 +264,7 @@ export const CalculationItemMobile = React.memo(
 </div>
 
 
-<div className="basis-2/5 flex items-center min-w-0 border-right px-2">
+<div className="basis-2/5 flex items-center min-w-0 border-right px-1">
   {statusEntries.length > 0 && (
     <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
       {statusEntries.map(([status, count]) => {
@@ -304,39 +306,59 @@ export const CalculationItemMobile = React.memo(
   className="flex-1 shrink-0 ml-auto flex justify-center items-center" 
   onClick={(e) => e.stopPropagation()}
 >
-  <img 
-    src={deleteIcon} 
-    alt={
-      !hasOrders
-        ? t("portal_calc.ui.delete_calc_allowed")
-        : refusableOrders.length > 0
-          ? t("portal_calc.ui.request_order_refusal")
-          : t("portal_calc.ui.order_refusal_unavailable")
-    }
-    onClick={(e) => {
-      e.stopPropagation();
-      if (!hasOrders) {
-        setIsDeleteModalOpen(true);
-        return;
+  <div className="flex flex-col items-center gap-2">
+    <button
+      type="button"
+      className={hasOrders ? "opacity-30 cursor-not-allowed" : "text-info active:scale-95 transition-transform"}
+      onClick={handleEdit}
+      title={
+        hasOrders
+          ? t("portal_calc.ui.edit_calc_disallowed")
+          : t("portal_calc.ui.edit_calc_allowed")
       }
+      aria-label={
+        hasOrders
+          ? t("portal_calc.ui.edit_calc_disallowed")
+          : t("portal_calc.ui.edit_calc_allowed")
+      }
+    >
+      <span className="icon icon-pencil font-size-20" />
+    </button>
 
-      if (refusableOrders.length > 0) {
-        setIsOrderRefusalOpen(true);
+    <img 
+      src={deleteIcon} 
+      alt={
+        !hasOrders
+          ? t("portal_calc.ui.delete_calc_allowed")
+          : refusableOrders.length > 0
+            ? t("portal_calc.ui.request_order_refusal")
+            : t("portal_calc.ui.order_refusal_unavailable")
       }
-    }}
-    className={` transition-all
-      ${hasOrders && refusableOrders.length === 0
-        ? "opacity-20 grayscale cursor-not-allowed" 
-        : "cursor-pointer active:scale-95 hover:brightness-110 icon-calc-delete"
-      }`} 
-    title={
-      !hasOrders
-        ? t("portal_calc.ui.delete_calc_allowed")
-        : refusableOrders.length > 0
-          ? t("portal_calc.ui.request_order_refusal")
-          : t("portal_calc.ui.order_refusal_unavailable")
-    }
-  />
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!hasOrders) {
+          setIsDeleteModalOpen(true);
+          return;
+        }
+
+        if (refusableOrders.length > 0) {
+          setIsOrderRefusalOpen(true);
+        }
+      }}
+      className={` transition-all
+        ${hasOrders && refusableOrders.length === 0
+          ? "opacity-20 grayscale cursor-not-allowed" 
+          : "cursor-pointer active:scale-95 hover:brightness-110 icon-calc-delete"
+        }`} 
+      title={
+        !hasOrders
+          ? t("portal_calc.ui.delete_calc_allowed")
+          : refusableOrders.length > 0
+            ? t("portal_calc.ui.request_order_refusal")
+            : t("portal_calc.ui.order_refusal_unavailable")
+      }
+    />
+  </div>
 
 </div>
 

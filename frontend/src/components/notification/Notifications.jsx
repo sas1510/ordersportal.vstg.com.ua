@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { NotificationContext } from "./NotificationContext"; 
 import "./Notifications.css";
@@ -32,6 +32,16 @@ export const NotificationProvider = ({ children }) => {
     },
     [closeNotification],
   );
+
+  useEffect(() => {
+    window.__portalAddNotification = addNotification;
+
+    return () => {
+      if (window.__portalAddNotification === addNotification) {
+        delete window.__portalAddNotification;
+      }
+    };
+  }, [addNotification]);
 
   return (
     <NotificationContext.Provider value={{ addNotification }}>

@@ -116,6 +116,21 @@
     "saving": "Speichern...",
     "deleting": "Wird gelöscht..."
   },
+  "maintenance": {
+    "default_message": "Unsere Datenbank wird gerade aktualisiert. Bitte warten Sie einige Minuten.",
+    "admin": {
+      "enable": "1C-Aktualisierungsmodus einschalten",
+      "disable": "1C-Aktualisierungsmodus ausschalten",
+      "enable_short": "1C Pause",
+      "disable_short": "1C an",
+      "active": "1C-Aktualisierung ist aktiviert",
+      "inactive": "1C-Aktualisierung ist deaktiviert",
+      "loading": "1C...",
+      "enabled_success": "Der 1C-Aktualisierungsmodus wurde aktiviert.",
+      "disabled_success": "Der 1C-Aktualisierungsmodus wurde deaktiviert.",
+      "toggle_error": "Der 1C-Aktualisierungsmodus konnte nicht geändert werden."
+    }
+  },
   "route_titles": {
     "default": "Bestellportal",
     "login": "Anmeldung — Bestellportal",

@@ -1769,6 +1769,11 @@ from django.utils import timezone
 from datetime import datetime
 import secrets
 
+from backend.maintenance_mode import (
+    DEFAULT_MAINTENANCE_MESSAGE,
+    get_maintenance_state,
+    set_maintenance_state,
+)
 from backend.permissions import IsAdminJWT
 from users.models import UserApiKey, CustomUser
 
@@ -1816,6 +1821,7 @@ def create_api_key(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+
     api_key_value = secrets.token_urlsafe(32)
 
     try:
@@ -1855,6 +1861,31 @@ def create_api_key(request):
     except Exception as e:
         logger.error(f"Failed to create API key for {dealer.username}: {str(e)}", exc_info=True)
         return Response({"detail": "Internal server error"}, status=500)
+
+
+@extend_schema(exclude=True)
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminJWT])
+def one_c_maintenance_mode_view(request):
+    if request.method == "GET":
+        return Response({"status": "success", "data": get_maintenance_state()})
+
+    raw_enabled = request.data.get("enabled")
+    if isinstance(raw_enabled, str):
+        enabled = raw_enabled.strip().lower() in {"1", "true", "yes", "on"}
+    else:
+        enabled = bool(raw_enabled)
+
+    message = request.data.get("message") or DEFAULT_MAINTENANCE_MESSAGE
+    updated_by = request.user.full_name or request.user.username
+
+    state = set_maintenance_state(
+        enabled=enabled,
+        message=message,
+        updated_by=updated_by,
+    )
+
+    return Response({"status": "success", "data": state})
 
 
 

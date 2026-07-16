@@ -170,6 +170,7 @@ from backend.utils.dates import parse_date, clean_date
 from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
 from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
 from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
+from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
 
 # import logging
 import time
@@ -177,6 +178,12 @@ import time
 # logger = logging.getLogger(__name__)
 
 from backend.utils.logging_setup import logger
+
+
+def get_maintenance_json_response():
+    if not get_maintenance_state()["enabled"]:
+        return None
+    return JsonResponse(build_maintenance_payload(), status=503)
 
 
 @extend_schema(
@@ -217,6 +224,9 @@ from backend.utils.logging_setup import logger
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_payment_status_view(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
@@ -333,6 +343,9 @@ def execute_payment_page_procedure(contractor_binary):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_dealer_payment_page_data_view(request):  # Синхронна для сумісності з DRF
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
@@ -822,6 +835,9 @@ def dealer_bills_add_info(contractor_guid: str, is_branch: bool = False):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def dealer_bills_add_info_view(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     start_time = time.time()
 
@@ -899,6 +915,9 @@ def dealer_bills_add_info_view(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def customer_bills_view(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
 
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
@@ -1043,6 +1062,9 @@ def get_contractor_guid_from_db(user):
 @api_view(["POST"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def create_invoice(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
     start_time = time.time()
 
     user = request.user
@@ -1120,6 +1142,9 @@ def create_invoice(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def make_payment_from_advance(request):
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
     start_time = time.time()
     data = request.data
     user_name = request.user.username

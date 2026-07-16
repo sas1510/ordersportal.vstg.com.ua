@@ -71,8 +71,10 @@
 import axios from "axios";
 
 const API_URL = (import.meta.env.VITE_API_URL || "") + "/api";
+const MAINTENANCE_NOTIFICATION_COOLDOWN_MS = 10000;
 
 let logoutHandler = null;
+let lastMaintenanceNotificationAt = 0;
 
 export function setLogoutHandler(handler) {
   logoutHandler = handler;
@@ -125,13 +127,40 @@ axiosInstance.interceptors.request.use(
 
 const skipRefresh = ["/login", "/register", "/token/refresh", "/logout"];
 
+function handleMaintenanceResponse(error) {
+  const status = error?.response?.status;
+  const payload = error?.response?.data || {};
+  const rawError = String(payload.error || "").toLowerCase();
+
+  if (status !== 503 || rawError !== "database_recovery") {
+    return;
+  }
+
+  const now = Date.now();
+  if (now - lastMaintenanceNotificationAt < MAINTENANCE_NOTIFICATION_COOLDOWN_MS) {
+    return;
+  }
+
+  lastMaintenanceNotificationAt = now;
+
+  const message =
+    payload.detail || "Наразі наша база оновлюється, зачекайте декілька хвилин.";
+
+  if (typeof window !== "undefined" && typeof window.__portalAddNotification === "function") {
+    window.__portalAddNotification(message, "warning", 8000);
+  }
+}
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    handleMaintenanceResponse(error);
 
-    const url = new URL(originalRequest.url, API_URL);
-    const endpoint = url.pathname.replace(/\/$/, "");
+    const originalRequest = error.config || {};
+
+    const endpoint = originalRequest.url
+      ? new URL(originalRequest.url, API_URL).pathname.replace(/\/$/, "")
+      : "";
 
     if (
       error.response?.status === 401 &&

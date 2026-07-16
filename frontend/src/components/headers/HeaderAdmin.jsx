@@ -306,6 +306,8 @@ import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "r
 import { useMediaQuery } from "react-responsive";
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../context/AuthContext";
+import axiosInstance from "../../api/axios";
+import { useNotification } from "../../hooks/useNotification";
 import HeaderUserProfile from "./HeaderUserProfile";
 import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderAdmin.css";
@@ -341,6 +343,7 @@ export default function HeaderAdmin() {
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
   const { t } = useTranslation();
+  const { addNotification } = useNotification();
 
   const NAV_LINKS = useMemo(() => [
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
@@ -369,6 +372,12 @@ export default function HeaderAdmin() {
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [maintenanceState, setMaintenanceState] = useState({
+    enabled: false,
+    message: "",
+  });
+  const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(true);
+  const [isMaintenanceSaving, setIsMaintenanceSaving] = useState(false);
 
   const financeRef = useRef(null);
   const settingsRef = useRef(null);
@@ -380,6 +389,42 @@ export default function HeaderAdmin() {
   const profileIcon = "/assets/icons/ProfileIconSubMenu.png";
   const polygonIcon = "/assets/icons/PolygonOpenProfileSubmenu.png";
 
+  const loadMaintenanceState = useCallback(async () => {
+    try {
+      const response = await axiosInstance.get("/system/maintenance/1c/");
+      setMaintenanceState(response.data?.data || { enabled: false, message: "" });
+    } catch (error) {
+      console.error("Failed to load 1C maintenance state:", error);
+    } finally {
+      setIsMaintenanceLoading(false);
+    }
+  }, []);
+
+  const handleMaintenanceToggle = useCallback(async () => {
+    setIsMaintenanceSaving(true);
+
+    try {
+      const response = await axiosInstance.post("/system/maintenance/1c/", {
+        enabled: !maintenanceState.enabled,
+      });
+
+      const nextState = response.data?.data || { enabled: !maintenanceState.enabled };
+      setMaintenanceState(nextState);
+      addNotification(
+        t(
+          nextState.enabled
+            ? "maintenance.admin.enabled_success"
+            : "maintenance.admin.disabled_success",
+        ),
+        "success",
+      );
+    } catch (error) {
+      console.error("Failed to toggle 1C maintenance mode:", error);
+      addNotification(t("maintenance.admin.toggle_error"), "error");
+    } finally {
+      setIsMaintenanceSaving(false);
+    }
+  }, [maintenanceState.enabled, addNotification, t]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -401,6 +446,10 @@ export default function HeaderAdmin() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    loadMaintenanceState();
+  }, [loadMaintenanceState]);
+
   // Блокування скролу при відкритому мобільному меню
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? "hidden" : "unset";
@@ -419,6 +468,17 @@ export default function HeaderAdmin() {
     logout();
     navigate("/home");
   };
+
+  const maintenanceButtonLabel =
+    isMaintenanceLoading || isMaintenanceSaving
+      ? t("maintenance.admin.loading")
+      : maintenanceState.enabled
+        ? t("maintenance.admin.disable_short")
+        : t("maintenance.admin.enable_short");
+
+  const maintenanceButtonClass = maintenanceState.enabled
+    ? "bg-[#A34747] text-white hover:bg-[#923d3d]"
+    : "bg-[#B4D947] text-[#44403E] hover:bg-[#a6ca42]";
 
   return (
     <header className="w-[calc(100%-20px)]  mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
@@ -537,6 +597,20 @@ export default function HeaderAdmin() {
               </div>
 
               <div className="flex items-center px-4 gap-4">
+                <button
+                  type="button"
+                  onClick={handleMaintenanceToggle}
+                  disabled={isMaintenanceLoading || isMaintenanceSaving}
+                  title={
+                    maintenanceState.enabled
+                      ? t("maintenance.admin.disable")
+                      : t("maintenance.admin.enable")
+                  }
+                  className={`min-w-[40px] rounded-[10px] px-2 py-2 text-[11px] font-bold leading-tight transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${maintenanceButtonClass}`}
+                >
+                  {maintenanceButtonLabel}
+                </button>
+
                 <LanguageSwitcher />
 
                 <button onClick={handleLogoutAction} className="hover:opacity-70 transition-opacity">
@@ -644,6 +718,22 @@ export default function HeaderAdmin() {
                     </div>
 
                     <div className="px-[15%] py-4">
+                      <button
+                        type="button"
+                        onClick={handleMaintenanceToggle}
+                        disabled={isMaintenanceLoading || isMaintenanceSaving}
+                        className={`w-full rounded-[12px] px-4 py-3 text-left text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${maintenanceButtonClass}`}
+                      >
+                        {maintenanceButtonLabel}
+                      </button>
+                      <div className="mt-2 text-sm text-[#66615A]">
+                        {maintenanceState.enabled
+                          ? t("maintenance.admin.active")
+                          : t("maintenance.admin.inactive")}
+                      </div>
+                    </div>
+
+                    <div className="px-[15%] pb-4">
                       <div className="flex items-center gap-3">
                         <LanguageSwitcher className="w-fit" />
                       </div>
