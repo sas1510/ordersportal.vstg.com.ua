@@ -6,6 +6,14 @@ import { initReactI18next } from "react-i18next";
 const supportedLngs = ["uk", "en", "de"];
 const fallbackLng = "uk";
 
+const getTranslationsVersion = () => {
+  if (typeof window === "undefined") {
+    return "static";
+  }
+
+  return localStorage.getItem("app_version") || "static";
+};
+
 i18n
   .use(Backend)
   .use(LanguageDetector)
@@ -20,7 +28,12 @@ i18n
       escapeValue: false,
     },
     backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json",
+      loadPath: (lngs, namespaces) => {
+        const lng = Array.isArray(lngs) ? lngs[0] : lngs;
+        const ns = Array.isArray(namespaces) ? namespaces[0] : namespaces;
+        const version = encodeURIComponent(getTranslationsVersion());
+        return `/locales/${lng}/${ns}.json?v=${version}`;
+      },
     },
     detection: {
       order: ["querystring", "localStorage", "navigator", "htmlTag"],
