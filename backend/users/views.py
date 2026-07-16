@@ -1766,6 +1766,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime as django_parse_datetime
 from datetime import datetime
 import secrets
 
@@ -1774,7 +1775,7 @@ from backend.maintenance_mode import (
     get_maintenance_state,
     set_maintenance_state,
 )
-from backend.permissions import IsAdminJWT
+from backend.permissions import IsAdminJWT, IsAdminJWTOr1CApiKey
 from users.models import UserApiKey, CustomUser
 
 @extend_schema(exclude=True)
@@ -1863,26 +1864,126 @@ def create_api_key(request):
         return Response({"detail": "Internal server error"}, status=500)
 
 
+def _parse_maintenance_bool(value, default=False):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def _extract_maintenance_datetime(payload, *keys):
+    for key in keys:
+        if key in payload:
+            raw_value = payload.get(key)
+            if raw_value in (None, ""):
+                return None, key
+
+            parsed_value = django_parse_datetime(str(raw_value).strip())
+            if parsed_value is None:
+                try:
+                    parsed_value = datetime.fromisoformat(
+                        str(raw_value).strip().replace("Z", "+00:00")
+                    )
+                except ValueError:
+                    try:
+                        parsed_value = datetime.strptime(
+                            str(raw_value).strip(),
+                            "%Y-%m-%d %H:%M:%S",
+                        )
+                    except ValueError:
+                        raise DRFValidationError(
+                            {key: "Datetime must be ISO-8601 or YYYY-MM-DD HH:MM:SS"}
+                        )
+
+            if timezone.is_naive(parsed_value):
+                parsed_value = timezone.make_aware(
+                    parsed_value,
+                    timezone.get_current_timezone(),
+                )
+            else:
+                parsed_value = parsed_value.astimezone(
+                    timezone.get_current_timezone()
+                )
+
+            return parsed_value, key
+
+    return None, None
+
+
 @extend_schema(exclude=True)
 @api_view(["GET", "POST"])
-@permission_classes([IsAdminJWT])
+@permission_classes([IsAdminJWTOr1CApiKey])
 def one_c_maintenance_mode_view(request):
     if request.method == "GET":
         return Response({"status": "success", "data": get_maintenance_state()})
 
-    raw_enabled = request.data.get("enabled")
-    if isinstance(raw_enabled, str):
-        enabled = raw_enabled.strip().lower() in {"1", "true", "yes", "on"}
-    else:
-        enabled = bool(raw_enabled)
+    current_state = get_maintenance_state()
+    payload = request.data
 
-    message = request.data.get("message") or DEFAULT_MAINTENANCE_MESSAGE
-    updated_by = request.user.full_name or request.user.username
+    has_enabled = "enabled" in payload
+    enabled = (
+        _parse_maintenance_bool(payload.get("enabled"))
+        if has_enabled
+        else current_state["manual_enabled"]
+    )
+
+    starts_at, starts_key = _extract_maintenance_datetime(
+        payload,
+        "starts_at",
+        "start_at",
+        "from",
+        "disabled_from",
+        "from_at",
+    )
+    ends_at, ends_key = _extract_maintenance_datetime(
+        payload,
+        "ends_at",
+        "end_at",
+        "to",
+        "disabled_to",
+        "to_at",
+    )
+
+    has_schedule_start = starts_key is not None
+    has_schedule_end = ends_key is not None
+    clear_schedule = _parse_maintenance_bool(
+        payload.get("clear_schedule"),
+        default=False,
+    )
+
+    if has_schedule_start != has_schedule_end:
+        raise DRFValidationError(
+            {
+                "schedule": (
+                    "Both starts_at and ends_at are required together."
+                )
+            }
+        )
+
+    if starts_at and ends_at and starts_at >= ends_at:
+        raise DRFValidationError(
+            {"schedule": "starts_at must be earlier than ends_at."}
+        )
+
+    message = payload.get("message") or current_state["message"] or DEFAULT_MAINTENANCE_MESSAGE
+    updated_by = (
+        getattr(request.user, "full_name", None)
+        or getattr(request.user, "username", None)
+        or "1C API"
+    )
+    source = "1c_api" if request.auth == "1C_API_KEY" else "admin_portal"
 
     state = set_maintenance_state(
         enabled=enabled,
         message=message,
         updated_by=updated_by,
+        starts_at=starts_at.isoformat() if has_schedule_start and starts_at else None,
+        ends_at=ends_at.isoformat() if has_schedule_end and ends_at else None,
+        clear_schedule=clear_schedule,
+        source=source,
     )
 
     return Response({"status": "success", "data": state})

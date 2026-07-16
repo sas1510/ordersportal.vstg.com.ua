@@ -37,6 +37,7 @@ export const CalculationItem = React.memo(
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
     const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
+    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
 
@@ -461,7 +462,11 @@ const iconColorClass = getStatusClass(mainStatus);
 
               {calc.dealer && (
                 <div className="text-WS---DarkGrey  row align-start gap-1">
-                  <img 
+
+                  {isAdmin ? (
+                      <span></span>
+                    ) : (
+                       <img 
                     src={recipientIcon} 
                     alt="" 
                     className={`mr-0.5 object-contain inline-block align-middle calc-summary-icon ${recipientIconClass}`} 
@@ -470,6 +475,8 @@ const iconColorClass = getStatusClass(mainStatus);
                         ? t('calc.recipient_dealer') : t('calc.recipient_other')}
                   />
 
+                    )}
+                 
                   <span
                     className="text-dark text-[12px] dealer-wrap dealer-clickable"
                     onClick={(e) => {

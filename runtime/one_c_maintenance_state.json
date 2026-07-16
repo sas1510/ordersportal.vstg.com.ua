@@ -1,6 +1,10 @@
 {
   "enabled": false,
+  "manual_enabled": false,
   "message": "Наразі наша база оновлюється, зачекайте декілька хвилин.",
-  "updated_at": "2026-07-16T09:28:47.685992+00:00",
-  "updated_by": "admin test"
+  "starts_at": null,
+  "ends_at": null,
+  "updated_at": "2026-07-16T13:03:18.738916+00:00",
+  "updated_by": "admin test",
+  "source": "admin_portal"
 }

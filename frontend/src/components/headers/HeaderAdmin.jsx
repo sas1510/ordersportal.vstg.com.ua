@@ -375,6 +375,10 @@ export default function HeaderAdmin() {
   const [maintenanceState, setMaintenanceState] = useState({
     enabled: false,
     message: "",
+    manual_enabled: false,
+    scheduled_enabled: false,
+    starts_at: null,
+    ends_at: null,
   });
   const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(true);
   const [isMaintenanceSaving, setIsMaintenanceSaving] = useState(false);
@@ -406,9 +410,12 @@ export default function HeaderAdmin() {
     try {
       const response = await axiosInstance.post("/system/maintenance/1c/", {
         enabled: !maintenanceState.enabled,
+        clear_schedule: maintenanceState.enabled,
       });
 
-      const nextState = response.data?.data || { enabled: !maintenanceState.enabled };
+      const nextState = response.data?.data || {
+        enabled: !maintenanceState.enabled,
+      };
       setMaintenanceState(nextState);
       addNotification(
         t(

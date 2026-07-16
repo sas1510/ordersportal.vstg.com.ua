@@ -186,6 +186,258 @@ def get_requested_portal_language(request, fallback="uk"):
 
 
 
+ORDER_LINK_PROPERTY_CODE = "00000000257"
+ORDER_DOCUMENT_TRANSACTION_TYPE_ID = 1
+GUID_TEXT_RE = re.compile(
+    r"^[0-9a-fA-F]{8}-"
+    r"[0-9a-fA-F]{4}-"
+    r"[0-9a-fA-F]{4}-"
+    r"[0-9a-fA-F]{4}-"
+    r"[0-9a-fA-F]{12}$"
+)
+
+
+def _normalize_guid_text(value):
+    guid_text = str(value or "").strip()
+    if GUID_TEXT_RE.match(guid_text):
+        return guid_text.lower()
+    return None
+
+
+def _extract_linked_order_number(raw_value):
+    if raw_value is None:
+        return None
+
+    if isinstance(raw_value, (bytes, bytearray)):
+        try:
+            resolved_number = get_document_number_by_guid(
+                bytes(raw_value),
+                ORDER_DOCUMENT_TRANSACTION_TYPE_ID,
+            )
+            if resolved_number and resolved_number != "X":
+                return str(resolved_number).strip()
+        except Exception:
+            return None
+        return None
+
+    raw_text = str(raw_value).strip()
+    if not raw_text:
+        return None
+
+    if GUID_TEXT_RE.match(raw_text):
+        try:
+            linked_guid_bin = guid_to_1c_bin(raw_text)
+        except Exception:
+            linked_guid_bin = None
+
+        if linked_guid_bin:
+            resolved_number = get_document_number_by_guid(
+                linked_guid_bin,
+                ORDER_DOCUMENT_TRANSACTION_TYPE_ID,
+            )
+            if resolved_number and resolved_number != "X":
+                return str(resolved_number).strip()
+
+        return raw_text
+
+    return raw_text
+
+
+def attach_34_order_bindings(calculations):
+    target_orders = []
+
+    for calc in calculations:
+        for order in calc.get("orders", []):
+            order_number = str(order.get("number") or "").strip()
+            if not order_number.startswith("34-"):
+                continue
+
+            if str(order.get("linkedOrderNumber") or "").strip():
+                continue
+
+            order_guid = _normalize_guid_text(order.get("idGuid"))
+            if not order_guid:
+                continue
+
+            try:
+                order_guid_bin = guid_to_1c_bin(order_guid)
+            except Exception:
+                order_guid_bin = None
+
+            target_orders.append(
+                {
+                    "guid": order_guid,
+                    "guid_bin": order_guid_bin,
+                    "order": order,
+                }
+            )
+
+    if not target_orders:
+        return calculations
+
+    guid_bins = [
+        item["guid_bin"]
+        for item in target_orders
+        if item.get("guid_bin")
+    ]
+    guid_texts = [
+        item["guid"]
+        for item in target_orders
+        if item.get("guid")
+    ]
+
+    if not guid_bins and not guid_texts:
+        return calculations
+
+    query_specs = []
+
+    if guid_bins:
+        binary_placeholders = ", ".join(["%s"] * len(guid_bins))
+        query_specs.extend(
+            [
+                (
+                    f"""
+                    SELECT
+                        zp.[Ссылка] AS object_ref,
+                        zp_base.[Номер] AS linked_value
+                    FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] zp
+                    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] zp_base
+                        ON zp_base.[Ссылка] = zp.[ДокументОснование]
+                    WHERE zp.[Ссылка] IN ({binary_placeholders})
+                      AND zp.[ДокументОснование] IS NOT NULL
+                      AND zp.[ДокументОснование] <> 0x00000000000000000000000000000000
+                      AND NULLIF(zp_base.[Номер], N'') IS NOT NULL
+                    """,
+                    [*guid_bins],
+                ),
+                (
+                    f"""
+                    SELECT
+                        reg.[Объект] AS object_ref,
+                        reg.[Значение] AS linked_value
+                    FROM [oknastyle_biV2].[dbo].[РегистрыСведений.ДополнительныеСвойстваОбъектов] reg
+                    INNER JOIN [oknastyle_biV2].[dbo].[ПланыВидовХарактеристик.СвойстваОбъектов] props
+                        ON reg.[Свойство] = props.[Ссылка]
+                    WHERE props.[Код] = %s
+                      AND reg.[Объект] IN ({binary_placeholders})
+                    """,
+                    [ORDER_LINK_PROPERTY_CODE, *guid_bins],
+                ),
+                (
+                    f"""
+                    SELECT
+                        reg.[ОбъектСсылка] AS object_ref,
+                        reg.[ЗначениеСсылка] AS linked_value
+                    FROM [oknastyle_biV2].[dbo].[РегистрыСведений.ДополнительныеСвойстваОбъектов] reg
+                    INNER JOIN [oknastyle_biV2].[dbo].[ПланыВидовХарактеристик.СвойстваОбъектов] props
+                        ON reg.[СвойствоСсылка] = props.[Ссылка]
+                    WHERE props.[Код] = %s
+                      AND reg.[ОбъектСсылка] IN ({binary_placeholders})
+                    """,
+                    [ORDER_LINK_PROPERTY_CODE, *guid_bins],
+                ),
+                (
+                    f"""
+                    SELECT
+                        reg._Fld30530_RRRef AS object_ref,
+                        CASE
+                            WHEN reg._Fld30533_RRRef IS NOT NULL
+                                 AND reg._Fld30533_RRRef <> 0x00000000000000000000000000000000
+                                THEN reg._Fld30533_RRRef
+                            WHEN NULLIF(reg._Fld30533_S, N'') IS NOT NULL
+                                THEN reg._Fld30533_S
+                            ELSE NULL
+                        END AS linked_value
+                    FROM [WST\WST].[oknastyle].[dbo].[_InfoRg30529] reg
+                    INNER JOIN [WST\WST].[oknastyle].[dbo].[_Chrc1161] props
+                        ON props._IDRRef = reg._Fld30531RRef
+                    WHERE props._Code = %s
+                      AND reg._Fld30530_RRRef IN ({binary_placeholders})
+                    """,
+                    [ORDER_LINK_PROPERTY_CODE, *guid_bins],
+                ),
+            ]
+        )
+
+    if guid_texts:
+        text_placeholders = ", ".join(["%s"] * len(guid_texts))
+        query_specs.extend(
+            [
+                (
+                    f"""
+                    SELECT
+                        reg.[Объект] AS object_ref,
+                        reg.[Значение] AS linked_value
+                    FROM [oknastyle_biV2].[dbo].[РегистрыСведений.ДополнительныеСвойстваОбъектов] reg
+                    INNER JOIN [oknastyle_biV2].[dbo].[ПланыВидовХарактеристик.СвойстваОбъектов] props
+                        ON reg.[Свойство] = props.[Ссылка]
+                    WHERE props.[Код] = %s
+                      AND reg.[Объект] IN ({text_placeholders})
+                    """,
+                    [ORDER_LINK_PROPERTY_CODE, *guid_texts],
+                ),
+                (
+                    f"""
+                    SELECT
+                        reg.[ОбъектСсылка] AS object_ref,
+                        reg.[ЗначениеСсылка] AS linked_value
+                    FROM [oknastyle_biV2].[dbo].[РегистрыСведений.ДополнительныеСвойстваОбъектов] reg
+                    INNER JOIN [oknastyle_biV2].[dbo].[ПланыВидовХарактеристик.СвойстваОбъектов] props
+                        ON reg.[СвойствоСсылка] = props.[Ссылка]
+                    WHERE props.[Код] = %s
+                      AND reg.[ОбъектСсылка] IN ({text_placeholders})
+                    """,
+                    [ORDER_LINK_PROPERTY_CODE, *guid_texts],
+                ),
+            ]
+        )
+
+    bindings_map = {}
+    target_guids = {item["guid"] for item in target_orders}
+
+    for query, params in query_specs:
+        if target_guids.issubset(bindings_map.keys()):
+            break
+
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
+        except DatabaseError as exc:
+            logger.warning(
+                "Could not resolve 34-order bindings with query variant: %s",
+                str(exc),
+            )
+            continue
+
+        for object_ref, linked_value in rows:
+            if isinstance(object_ref, (bytes, bytearray)):
+                object_guid = bin_to_guid_1c(object_ref)
+            else:
+                object_guid = (
+                    _normalize_guid_text(object_ref)
+                    or str(object_ref or "").strip().lower()
+                )
+
+            if (
+                not object_guid
+                or object_guid in bindings_map
+                or object_guid not in target_guids
+            ):
+                continue
+
+            linked_number = _extract_linked_order_number(linked_value)
+            if linked_number:
+                bindings_map[object_guid] = linked_number
+
+    for item in target_orders:
+        linked_order_number = bindings_map.get(item["guid"])
+        if linked_order_number:
+            item["order"]["linkedOrderNumber"] = linked_order_number
+
+    return calculations
+
+
 def translate_portal_message_for_view(
     text,
     target_language,
@@ -583,7 +835,7 @@ def get_orders_by_period_and_contractor(
 ):
     """
     Викликає SQL-процедуру
-    [dbo].[GetCalculationsWithOrdersByYearAndContractor2]
+    [dbo].[GetCalculationsWithOrdersByYearAndContractor3]
     за довільний період.
 
     date_from і date_to включаються у вибірку.
@@ -617,7 +869,7 @@ def get_orders_by_period_and_contractor(
         raise RuntimeError("ONEC_MAINTENANCE_ACTIVE")
 
     query = """
-        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor2]
+        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor3]
             @DateFrom = %s,
             @DateTo = %s,
             @Contractor_ID = %s
@@ -744,6 +996,7 @@ def get_orders_by_period_and_contractor(
             "id": row.get("OrderID"),
             "idGuid": order_id_guid,
             "number": order_number or "",
+            "linkedOrderNumber": row.get("LinkedOrderNumber") or None,
             "dateRaw": order_date,
             "date": order_date,
             "status": row.get("OrderStage") or "Новий",
@@ -855,7 +1108,7 @@ def get_orders_by_period_and_contractor(
 
         formatted_calcs.append(calc)
 
-    return formatted_calcs
+    return attach_34_order_bindings(formatted_calcs)
 
 
 
@@ -931,6 +1184,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "idGuid": row.get("OrderID_GUID"),
             # "id": row.get("OrderID"),
             "number": row.get("OrderNumber") or "",
+            "linkedOrderNumber": row.get("LinkedOrderNumber") or None,
             "dateRaw": row.get("OrderDate"),
             "date": row.get("OrderDate"),
             "status": row.get("OrderStage") or "Новий",
@@ -1005,7 +1259,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
         formatted_calcs.append(calc)
 
-    return formatted_calcs
+    return attach_34_order_bindings(formatted_calcs)
 
 
 
@@ -2693,6 +2947,8 @@ def orders_view_all_by_month(request):
             calc["firstMessage"] = db_latest_message
 
             formatted_calcs.append(calc)
+
+        formatted_calcs = attach_34_order_bindings(formatted_calcs)
 
         total_duration = time.time() - start_time
 

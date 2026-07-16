@@ -367,6 +367,11 @@ export default React.memo(function OrderItemSummaryDesktop({
               <div className="text-[15px] text-bold mt-0.5">
                 № {order.number}
               </div>
+              {order.linkedOrderNumber && (
+                <div className="text-[11px] text-grey mt-0.5 leading-tight">
+                  → {order.linkedOrderNumber}
+                </div>
+              )}
             </div>
             
 

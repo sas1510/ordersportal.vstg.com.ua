@@ -306,6 +306,11 @@ export default React.memo(function OrderItemSummaryMobile({
               <div className="text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight">
                 № {order.number}
               </div>
+              {order.linkedOrderNumber && (
+                <div className="text-[11px] text-grey leading-tight -mt-1">
+                  → {order.linkedOrderNumber}
+                </div>
+              )}
               <div className="text-[11px] text-WS---DarkGrey">
                  {formatDateHumanShorter_full(order.date, locale)}
               </div>

@@ -61,7 +61,7 @@ body.dark-theme .calc-item .item-summary {
 
 .no-wrap .dealer-wrap {
   display: inline-block;
-  max-width: 90px;
+  max-width: 95px;
   white-space: normal !important;
   /* Розумне перенесення: пріоритет на пробіли */
   overflow-wrap: break-word;
@@ -74,19 +74,19 @@ body.dark-theme .calc-item .item-summary {
 
 @media (max-width: 1600px) {
   .no-wrap .dealer-wrap {
-    max-width: 90px;
+    max-width: 95px;
   }
 }
 
 @media (max-width: 1500px) {
   .no-wrap .dealer-wrap {
-    max-width: 80px;
+    /* max-width: 80px; */
   }
 }
 
 @media (max-width: 1400px) {
   .no-wrap .dealer-wrap {
-    max-width: 70px;
+    /* max-width: 70px; */
   }
 }
 
