@@ -12,6 +12,7 @@ import {
 import "./Orders.css";
 import OrderFilesPreviewModal from "./OrderFilesPreviewModal";
 import OrderNumbersListModal from "./OrderNumbersListModal";
+import OrderRefusalModal from "./OrderRefusalModal";
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
@@ -31,11 +32,11 @@ export const CalculationItem = React.memo(
 
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
     const [isOrderNumbersOpen, setIsOrderNumbersOpen] = useState(false);
+    const [isOrderRefusalOpen, setIsOrderRefusalOpen] = useState(false);
 
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
     const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
-    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
 
@@ -130,6 +131,16 @@ export const CalculationItem = React.memo(
       }, 0);
     }, [orderList]);
 
+    const refusableOrders = useMemo(() => {
+      const allowedStatuses = new Set([
+        "Новий",
+        "Очікуємо підтвердження",
+        "Очікуємо оплату",
+      ]);
+
+      return orderList.filter((order) => allowedStatuses.has(order.status));
+    }, [orderList]);
+
     const orderNumbers = useMemo(() => {
       return orderList
         .map((order) => String(order.number).trim())
@@ -145,10 +156,18 @@ export const CalculationItem = React.memo(
     }, [orderNumbers.length, visibleOrderNumbers.length]);
 
     const statusEntries = useMemo(() => {
-      return calc.statuses && Object.keys(calc.statuses).length > 0
-        ? Object.entries(calc.statuses)
-        : [];
-    }, [calc.statuses]);
+        const entries =
+          calc.statuses && typeof calc.statuses === "object"
+            ? Object.entries(calc.statuses)
+            : [];
+
+        // Якщо замовлень і статусів немає — це новий прорахунок
+        if (entries.length === 0) {
+          return [["Новий", null]];
+        }
+
+        return entries;
+      }, [calc.statuses]);
 
     // const getStatusClass = useCallback((status) => {
     //     switch (status) {
@@ -218,12 +237,13 @@ export const CalculationItem = React.memo(
       }, []);
 
   
-    const mainStatus = statusEntries.length > 0 ? statusEntries[0][0] : null;
-    const iconColorClass = mainStatus ? getStatusClass(mainStatus) : "text-warning";
+
+const mainStatus = statusEntries[0][0];
+const iconColorClass = getStatusClass(mainStatus);
 
     return (
       <div
-        className={`calc-item column`}
+        className={`calc-item calc-item-soft column`}
         style={{
           borderLeft:
             calc.dealerId === calc.authorGuid
@@ -247,7 +267,7 @@ export const CalculationItem = React.memo(
     {/* Блок Номера замовлення */}
     <div className="column border-bottom pb-0.5">
       {/* <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span> */}
-      <div className="text-[14px] m text-bold text-WS---DarkGrey mt-0.5">
+      <div className="text-[14px] m text-bold text-WS---DarkGrey mt-0.5 calc-primary-text">
         {formatDateTimeShort_2(calc.date, i18n.language)} 
       </div>
     </div>
@@ -256,7 +276,7 @@ export const CalculationItem = React.memo(
     <div className="column pt-1">
       {/* <span className="text-[10px] text-grey leading-none">Дата </span> */}
       <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span>
-      <div className="text-[13px] text-bold text-WS---DarkGrey mt-0.5">
+      <div className="text-[13px] text-bold text-WS---DarkGrey mt-0.5 calc-primary-text">
         № {calc.number} 
       </div>
     </div>
@@ -280,14 +300,14 @@ export const CalculationItem = React.memo(
       <img
         src={listCalcIcon}
         alt={t("portal_calc.ui.orders")}
-        className="mr-1"
+        className="mr-1 calc-summary-icon"
       />
-      <div className="font-size-24 text-WS---DarkBlue font-bold">
+      <div className="font-size-24 text-WS---DarkBlue font-bold calc-primary-text">
         0
       </div>
     </div>
   ) : (
-    <div className="flex w-full flex-col items-start overflow-hidden text-[12px] leading-tight text-WS---DarkBlue font-semibold">
+    <div className="calc-orders-list flex w-full flex-col items-start overflow-hidden text-[12px] leading-tight text-WS---DarkBlue font-semibold">
       {visibleOrderNumbers.map((number) => (
         <div key={number} className="w-full truncate">
           {number}
@@ -324,10 +344,10 @@ export const CalculationItem = React.memo(
                   <img 
                   src={windowsIcon} 
      
-                  className="align-center mr-1" 
+                  className="align-center mr-1 calc-summary-icon" 
                 
                 />
-    <div className="font-size-24 text-WS---DarkBlue font-bold">
+    <div className="font-size-24 text-WS---DarkBlue font-bold calc-primary-text">
       {calc.constructionsQTY}
     </div>
   </div>
@@ -356,7 +376,7 @@ export const CalculationItem = React.memo(
     <img 
       src={moneyCalcIcon} 
       alt="Іконка грошей" 
-      className="w-[30px] h-[30px] mr-1" 
+      className="w-[30px] h-[30px] mr-1 calc-summary-icon calc-summary-icon--money" 
     />
     
     {/* Контейнер для обох сум із мінімальним вертикальним відступом */}
@@ -385,32 +405,18 @@ export const CalculationItem = React.memo(
   </div>
 </div>
 
-          <div className="summary-item expandable row w-20 align-start space-between">
+          <div
+            className="summary-item expandable row w-20 align-start space-between cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewComments(calc.comments || []);
+            }}
+            title={t('calc.comment_history')}
+          >
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
               <div className="comments-text-wrapper-last ">
                {calc.message || calc.firstMessage || t('calc.no_comments')}
               </div>
-              <button
-                className="btn-comments row"
-                style={{ position: "relative" }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleViewComments(calc.comments || []);
-                }}
-              >
-                  <img 
-                    src={historyOfMessage} 
-                    alt="Chat History"
-                    className={`align-center mr-0.5 max-w-[20px] max-h-[20px] transition-all duration-300 ${
-                      calc.hasUnreadMessages 
-                        ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
-                        : "opacity-100"
-                    }`} 
-                  />
-                <div className="text-WS---DarkGrey no-wrap ">
-                {t('calc.comment_history')}
-                </div>
-              </button>
             </div>
           </div>
 
@@ -440,7 +446,7 @@ export const CalculationItem = React.memo(
                   <img 
                     src={fileIcon} 
                     // alt="Вікно" 
-                    className="w-[16px] h-[20px] align-center mr-0.5" 
+                    className="w-[16px] h-[20px] align-center mr-0.5 calc-summary-icon" 
                   
                   />
                   <div className="text-[12px] text-WS---DarkGrey ml-0">
@@ -458,7 +464,7 @@ export const CalculationItem = React.memo(
                   <img 
                     src={recipientIcon} 
                     alt="" 
-                    className={`mr-0.5 object-contain inline-block align-middle ${recipientIconClass}`} 
+                    className={`mr-0.5 object-contain inline-block align-middle calc-summary-icon ${recipientIconClass}`} 
                     title={
                       isDealerRecipient
                         ? t('calc.recipient_dealer') : t('calc.recipient_other')}
@@ -485,7 +491,7 @@ export const CalculationItem = React.memo(
          <div className="summary-item row w-16 ">
           <div className="row gap-2 align-center">
 
-            <div className={`icon-info-with-circle font-size-24 ${iconColorClass}`}></div>
+            <div className={`icon-info-with-circle font-size-24 calc-status-icon ${iconColorClass}`}></div>
 
             <div className="column gap-3 text-[13px] flex-wrap scroll-y">
               {statusEntries.length > 0 ? (
@@ -507,12 +513,15 @@ export const CalculationItem = React.memo(
           </div>
         </div>
           <div onClick={(e) => e.stopPropagation()}>
-            <CalculationMenu
-              calc={calc}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          </div>
+              <CalculationMenu
+                calc={calc}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                hasOrders={orderList.length > 0}
+                hasRefusableOrders={refusableOrders.length > 0}
+                onRequestRefusal={() => setIsOrderRefusalOpen(true)}
+              />
+            </div>
         </div>
 
   
@@ -553,14 +562,24 @@ export const CalculationItem = React.memo(
           entityType="calculation"
           orderNumber={calc.number} // Номер для заголовка
         />
-        <OrderNumbersListModal
-          isOpen={isOrderNumbersOpen}
-          onClose={() => setIsOrderNumbersOpen(false)}
-          numbers={orderNumbers}
-        />
+      <OrderNumbersListModal
+        isOpen={isOrderNumbersOpen}
+        onClose={() => setIsOrderNumbersOpen(false)}
+        numbers={orderNumbers}
+      />
+      <OrderRefusalModal
+        isOpen={isOrderRefusalOpen}
+        onClose={() => setIsOrderRefusalOpen(false)}
+        calculationGuid={calc.id}
+        recipientGuid={isAdmin ? calc.dealerId : calc.manager}
+        orders={refusableOrders}
+        onSubmitted={() => {
+          reloadCalculations?.();
+        }}
+      />
 
-        <CounterpartyInfoModal
-          isOpen={isCounterpartyOpen}
+      <CounterpartyInfoModal
+        isOpen={isCounterpartyOpen}
           onClose={() => setIsCounterpartyOpen(false)}
           data={{
             name: calc.recipient,

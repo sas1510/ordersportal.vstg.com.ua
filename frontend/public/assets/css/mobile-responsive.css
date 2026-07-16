@@ -623,13 +623,7 @@ body.dark-theme
 }
 
 /* Фони карт та контейнерів */
-body.dark-theme .calc-item,
-body.dark-theme .order-item,
-body.dark-theme .bg-white {
-  background-color: #35373a; /* Slate 800 - карти */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  border: 1px dashed #686767; /* Slate 700 - тонка межа */
-}
+
 
 /* Зміна світлих фонових класів */
 body.dark-theme .bg-gray-50 {
@@ -695,11 +689,7 @@ body.dark-theme .bottom-sheet-handle {
   background: #475569; /* Slate 600 */
 }
 
-/* Тіні */
-body.dark-theme .calc-item,
-body.dark-theme .order-item {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
+
 
 :root {
  

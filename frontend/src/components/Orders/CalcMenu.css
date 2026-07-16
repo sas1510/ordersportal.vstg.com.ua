@@ -53,3 +53,31 @@
   filter: grayscale(100%);
   opacity: 0.2;
 }
+
+.calc-menu-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.calc-menu-icon-button--edit {
+  color: #6b98bf;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.calc-menu-icon-button--edit:hover {
+  color: #4f78a2;
+  transform: scale(1.08);
+}
+
+.calc-menu-icon-button--disabled {
+  color: #9ca3af;
+  opacity: 0.4;
+  cursor: not-allowed;
+}

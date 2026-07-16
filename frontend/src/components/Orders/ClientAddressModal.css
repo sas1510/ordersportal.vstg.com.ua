@@ -15,18 +15,19 @@
 .client-address-grid input {
   padding: 10px 12px;
   border-radius: 6px;
-  border: 1px solid #b9bbc0;
+  border: 1px solid var(--input-border, #b9bbc0);
   font-size: 14px;
-  color: #303133;
+  background: var(--input-bg, #ffffff);
+  color: var(--input-text, #303133);
 }
 
 .client-address-grid input::placeholder {
-  color: #909399;
+  color: var(--input-placeholder, #909399);
 }
 
 /* обовʼязкове поле */
 .client-address-grid input[placeholder*="*"] {
-  border-color: #ffdb70;
+  border-color: var(--accent-color, #908684);
 }
 
 /* ----- ACTIONS ----- */
@@ -42,7 +43,7 @@
   align-items: flex-end;
   gap: 8px;
 
-  background: #2e7d32;
+  background: var(--accent-color, #908684);
   color: #fff;
 
   padding: 10px 16px;
@@ -58,7 +59,7 @@
 }
 
 .client-address-find-btn:hover {
-  background: #256628;
+  background: var(--accent-hover, #9c9290);
 }
 
 .client-address-search {
@@ -79,7 +80,7 @@
 }
 
 .client-address-search {
-  border: 1px solid #b9bbc0;
+  border: 1px solid var(--input-border, #b9bbc0);
 }
 .dark-theme .client-address-grid input {
   color: #ffffff;
@@ -107,8 +108,8 @@
   left: 0;
   right: 0;
 
-  background: #fff;
-  border: 1px solid #ddd;
+  background: var(--card-background, #fff);
+  border: 1px solid var(--border-color, #ddd);
   border-radius: 6px;
 
   max-height: 240px;
@@ -125,5 +126,39 @@
 }
 
 .suggestion-item:hover {
-  background: #f2f2f2;
+  background: var(--accent-soft, #f2f2f2);
+}
+
+body.dark-theme .client-address-search,
+body.dark-theme .client-address-grid input {
+  background: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--input-text);
+}
+
+body.dark-theme .client-address-grid input::placeholder {
+  color: var(--input-placeholder);
+}
+
+body.dark-theme .client-address-find-btn {
+  background: var(--accent-color);
+  color: #ffffff;
+}
+
+body.dark-theme .client-address-find-btn:hover {
+  background: var(--accent-hover);
+}
+
+body.dark-theme .suggestions-dropdown {
+  background: var(--card-background);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+body.dark-theme .suggestion-item {
+  color: var(--text-color);
+}
+
+body.dark-theme .suggestion-item:hover {
+  background: var(--accent-soft);
 }

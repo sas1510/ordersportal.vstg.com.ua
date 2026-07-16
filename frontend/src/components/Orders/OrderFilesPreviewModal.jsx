@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { 
   FaTimes, 
   FaFileDownload, 
+  FaExternalLinkAlt,
   FaFileAlt, 
   FaImage, 
   FaFileArchive, 
@@ -70,12 +71,48 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     }
   };
 
+  const handleOpenFileInNewWindow = async (fileItem) => {
+    const openedWindow = window.open("", "_blank");
+    if (!openedWindow) {
+      addNotification(
+        t("orders.filesPreview.open_window_blocked", { defaultValue: "Браузер заблокував нове вікно" }),
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      const url = `/orders/${orderGuid}/files/${fileItem.fileGuid}/download_calc/?filename=${encodeURIComponent(fileItem.fileName)}`;
+      const response = await axiosInstance.get(url, { responseType: "blob" });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const objectUrl = window.URL.createObjectURL(blob);
+      openedWindow.location.href = objectUrl;
+      openedWindow.opener = null;
+
+      window.setTimeout(() => {
+        window.URL.revokeObjectURL(objectUrl);
+      }, 60000);
+    } catch (error) {
+      openedWindow.close();
+      console.error("Open file in new window error:", error);
+      addNotification(
+        t("orders.filesPreview.open_window_error", { defaultValue: "Не вдалося відкрити файл у новому вікні" }),
+        "error",
+      );
+    }
+  };
+
   // Helper для визначення іконки
   const getFileIcon = (fileName) => {
     const ext = fileName.toLowerCase().split(".").pop();
     if (ext === "zkz") return <FaFileArchive className="file-icon icon-zkz" />;
     if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) return <FaImage className="file-icon icon-image" />;
     return <FaFileAlt className="file-icon icon-doc" />;
+  };
+
+  const canOpenInNewWindow = (fileName = "") => {
+    const ext = fileName.toLowerCase().split(".").pop();
+    return ext !== "zkz";
   };
 
   // Закриття по нажаттю на клавішу Escape
@@ -138,9 +175,20 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                             </span>
                           </div>
                         </div>
-                        <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Завантажити файл">
-                          <FaFileDownload />
-                        </button>
+                        <div className="file-card-actions">
+                          {canOpenInNewWindow(file.fileName) && (
+                            <button
+                              className="file-action-btn"
+                              onClick={() => handleOpenFileInNewWindow(file)}
+                              title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+                            >
+                              <FaExternalLinkAlt />
+                            </button>
+                          )}
+                          <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Завантажити файл">
+                            <FaFileDownload />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -163,9 +211,20 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                             </span>
                           </div>
                         </div>
-                        <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Скачати зображення">
-                          <FaFileDownload />
-                        </button>
+                        <div className="file-card-actions">
+                          {canOpenInNewWindow(file.fileName) && (
+                            <button
+                              className="file-action-btn"
+                              onClick={() => handleOpenFileInNewWindow(file)}
+                              title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+                            >
+                              <FaExternalLinkAlt />
+                            </button>
+                          )}
+                          <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Скачати зображення">
+                            <FaFileDownload />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -188,9 +247,20 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                             </span>
                           </div>
                         </div>
-                        <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Завантажити документ">
-                          <FaFileDownload />
-                        </button>
+                        <div className="file-card-actions">
+                          {canOpenInNewWindow(file.fileName) && (
+                            <button
+                              className="file-action-btn"
+                              onClick={() => handleOpenFileInNewWindow(file)}
+                              title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+                            >
+                              <FaExternalLinkAlt />
+                            </button>
+                          )}
+                          <button className="file-action-btn" onClick={() => handleDownloadFile(file)} title="Завантажити документ">
+                            <FaFileDownload />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>

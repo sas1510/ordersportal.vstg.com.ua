@@ -36,7 +36,6 @@ export const ReclamationItem = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const menuRef = useRef(null);
   const deleteIcon = "/assets/icons/DeleteIcon.png";
-  const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
   const profileReclamation = "/assets/icons/ProfileReclamation.png";
 
   // const userRaw = localStorage.getItem("user");
@@ -281,51 +280,23 @@ export const ReclamationItem = ({
 
 
     <div 
-      className="comments-text-wrapper-last font-['Inter'] overflow-hidden" 
+      className="comments-text-wrapper-last font-['Inter'] overflow-hidden cursor-pointer" 
       style={{ 
         flex: "2 1 0%", 
         minHeight: 0,
         display: "flex",
         alignItems: "flex-start" 
       }}
+      onClick={(e) => {
+        e.stopPropagation();
+        handleViewComments(reclamation.comments || []);
+      }}
+      title={t("reclamation.comment_history")}
     >
       <div className="w-full text-[14px] leading-tight line-clamp-2">
         {reclamation.message || reclamation.firstMessage || t("reclamation.no_comments")}
       </div>
     </div>
-
-
-    <div 
-      className="flex items-center justify-end" 
-      style={{ flex: "1 1 0%", minHeight: 0 }}
-    >
-      <button
-        className="btn-comments flex items-center bg-transparent border-none p-0 cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleViewComments(reclamation.message || []);
-        }}
-      >
-        <div className="relative flex items-center">
-          <img 
-            src={historyOfMessage} 
-            alt="Історія" 
-            className={`mr-1 w-[18px] h-[18px] object-contain ${
-              reclamation.hasUnreadMessages ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
-                        : "opacity-100"
-            }`} 
-          />
-          {reclamation.hasUnreadMessages && (
-            <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-[var(--danger-color)] rounded-full border border-white" />
-          )}
-        </div>
-        <span className="text-[13px] font-['Inter'] text-WS---DarkGrey pr-2">
-          {t("reclamation.comment_history")}
-        </span>
-      </button>
-    </div>
-
-
   </div>
 </div>
 

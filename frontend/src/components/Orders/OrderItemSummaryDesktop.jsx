@@ -355,7 +355,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                   className="align-center mr-0.5" 
                 
                 /> */}
-                <AppIcon name="listCalc" className="align-center mr-0.5 h-[35px] " />
+                <AppIcon name="listCalc" className="order-summary-icon align-center mr-0.5 h-[35px]" />
         </div>
 
  
@@ -384,7 +384,7 @@ export default React.memo(function OrderItemSummaryDesktop({
           
           {/* Рядок з іконкою та значенням */}
           <div className="row gap-2 align-center">
-            <AppIcon name="windows" className="w-[25px] h-[25px] shrink-0" />
+            <AppIcon name="windows" className="order-summary-icon w-[25px] h-[25px] shrink-0" />
             <div className="text-[16px] font-bold text-WS---DarkBlue leading-none">
               {order.count}
             </div>
@@ -404,7 +404,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                 className="align-center mr-0.5 w-[20px] h-[25px]" 
               
               /> */}
-              <AppIcon name="file" className="order-files-icon align-center mr-0.5 w-[20px] h-[25px]" />
+              <AppIcon name="file" className="order-summary-icon order-summary-icon--accent order-files-icon align-center mr-0.5 w-[20px] h-[25px]" />
             <div className="text-WS---DarkGrey text-[13px] underline">{t("order_mobile.labels.files")}</div>
           </div>
         </div>
@@ -418,8 +418,8 @@ export default React.memo(function OrderItemSummaryDesktop({
 
 
         <div className="flex items-center no-wrap">
-          <AppIcon name="moneyGreen" className="mr-1.5 w-[20px] h-[18px] shrink-0" />
-          <div className="text-WS---DarkGreen font-bold text-[15px]">
+          <AppIcon name="moneyGreen" className="order-summary-icon--money-green mr-1.5 w-[20px] h-[18px] shrink-0" />
+          <div className="text-WS---DarkGreen order-summary-amount-text font-bold text-[15px]">
             {formatMoney2(order.amount, order.currency)}
           </div>
         </div>
@@ -434,8 +434,8 @@ export default React.memo(function OrderItemSummaryDesktop({
 
 
       <div className="flex items-center no-wrap">
-        <AppIcon name="moneyRed" className="mr-1.5 w-[20px] h-[18px] shrink-0" />
-        <div className="text-WS---DarkRed font-bold text-[15px]">
+        <AppIcon name="moneyRed" className="order-summary-icon--money-red mr-1.5 w-[20px] h-[18px] shrink-0" />
+        <div className="text-WS---DarkRed order-summary-debt-text font-bold text-[15px]">
           {formatMoney2(debtAmount, order.currency)}
         </div>
       </div>
@@ -445,9 +445,9 @@ export default React.memo(function OrderItemSummaryDesktop({
         <div className="summary-item row justify-start">
           <div className="row gap-1 align-center">
             {/* Замінюємо 'text-info' на динамічний клас статусу */}
-            <span className={`icon-info-with-circle font-size-20 ${getStatusClass(order.status)}`}></span>
+            <span className={`icon-info-with-circle font-size-20 order-status-icon ${getStatusClass(order.status)}`}></span>
             
-            <div className={`text-[12px] ${getStatusClass(order.status)}`}>
+            <div className={`text-[12px] order-status-text ${getStatusClass(order.status)}`}>
                  {translatedStatus}
             </div>
           </div>
@@ -459,7 +459,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     <>
 
       <button
-        className={`column align-center button bg-WS---DarkGrey ${
+        className={`column align-center button bg-WS---DarkGrey order-action-button order-action-button--confirm ${
           !buttonState.confirm ? "disabled opacity-50" : ""
         }`}
         disabled={!buttonState.confirm}
@@ -470,7 +470,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   
       <button
-        className={`column align-center button bg-WS---DarkGreen  ${
+        className={`column align-center button bg-WS---DarkGreen order-action-button order-action-button--pay ${
           !buttonState.pay ? "disabled opacity-50" : ""
         }`}
         disabled={!buttonState.pay}
@@ -483,7 +483,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   {/* REORDER */}
   <button
-    className={`column align-center button bg-WS---DarkBlue px-1 ${
+    className={`column align-center button bg-WS---DarkBlue px-1 order-action-button order-action-button--reorder ${
       !buttonState.reorder ? "disabled opacity-50" : ""
     }`}
     disabled={!buttonState.reorder}
@@ -494,7 +494,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   {/* CLAIM */}
   <button
-    className={`column align-center button bg-WS---DarkRed ${
+    className={`column align-center button bg-WS---DarkRed order-action-button order-action-button--claim ${
       !buttonState.claim ? "disabled opacity-50" : ""
     }`}
     disabled={!buttonState.claim}
@@ -517,7 +517,7 @@ onClick={openClaimModal}
   {/* Змінено на flex-col для вертикального відображення: текст зверху, іконка знизу */}
 <div className="flex flex-col items-center justify-center gap-1 text-center font-size-24 w-full">
   {/* Обмежуємо ширину, щоб слова "Швидке" та "оформлення" стали одне під одним */}
-  <span className="fast-order-text block max-w-[65px] text-[10px] font-medium leading-tight break-words">
+  <span className="fast-order-text order-fast-label block max-w-[65px] text-[10px] font-medium leading-tight break-words">
   Швидке оформлення
 </span>
   {dateDiffStatus !== null && (
@@ -525,7 +525,7 @@ onClick={openClaimModal}
       src={speedIcon}
       alt="Speed Icon"
       style={{ width: "24px", height: "24px" }}
-      className={`shrink-0 ${dateDiffStatus ? "color-green-icon" : "color-red-icon"}`}
+      className={`shrink-0 order-fast-icon ${dateDiffStatus ? "order-fast-icon--positive" : "order-fast-icon--negative"}`}
     />
   )}
 </div>

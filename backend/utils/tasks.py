@@ -304,14 +304,25 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
         token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
         
         if telegram_id and token:
+            message_text = (msg.text or "").strip()
+            is_refusal_request = message_text.startswith("Відмова. Номери:")
 
-            text = (
-                f"🔔 <b>Непрочитане повідомлення!</b>\n"
-                f"У {document_type} <b>№{doc_number}</b>.\n\n"
-                f"<i>\"{msg.text}...\"</i>\n"
-                f"<i>Від {author_name}.</i>"
-                f"{link_html}"
-            )
+            if is_refusal_request:
+                text = (
+                    f"🛑 <b>Запит на відмову</b>\n"
+                    f"У {document_type} <b>№{doc_number}</b>.\n\n"
+                    f"<b>{message_text}</b>\n"
+                    f"<i>Від {author_name}.</i>"
+                    f"{link_html}"
+                )
+            else:
+                text = (
+                    f"🔔 <b>Непрочитане повідомлення!</b>\n"
+                    f"У {document_type} <b>№{doc_number}</b>.\n\n"
+                    f"<i>\"{message_text}...\"</i>\n"
+                    f"<i>Від {author_name}.</i>"
+                    f"{link_html}"
+                )
 
             requests.post(
                 f"https://api.telegram.org/bot{token}/sendMessage", 

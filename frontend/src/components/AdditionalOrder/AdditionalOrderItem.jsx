@@ -29,7 +29,6 @@ export const AdditionalOrderItem = ({
   const windowsIcon = "/assets/icons/WindowsIconCalc.png";
   const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
 
-  const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const profileReclamation = "/assets/icons/ProfileReclamation.png";
 
 
@@ -233,7 +232,14 @@ export const AdditionalOrderItem = ({
         </div>
 
         {/* 5. Коментарі / Опис Рекламації */}
-        <div className="summary-item expandable row w-24 align-start space-between">
+        <div
+          className="summary-item expandable row w-24 align-start space-between cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleViewComments(additionalOrder.comments || []);
+          }}
+          title={t("additional_order.history_button")}
+        >
           <div className="column" style={{ flex: 1, minWidth: 0 }}>
             <div
               className="comments-text-wrapper-last"
@@ -241,26 +247,6 @@ export const AdditionalOrderItem = ({
             >
               {additionalOrder.message || t("additional_order.no_description")}
             </div>
-            {/* <ClampedText text={additionalOrder.message || "Без опису / коментарів"} lines={2} /> */}
-            <button
-              className="btn-comments row"
-              style={{ position: "relative", alignSelf: "flex-end", 
-                marginTop: "auto"    }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewComments(additionalOrder.comments || []);
-              }}
-            > <img 
-                  src={historyOfMessage} 
-
-
-                  className={`align-center mr-0.5 ${additionalOrder.hasUnreadMessages 
-                        ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
-                        : "opacity-100"}` }
-                
-                />
-              {t("additional_order.history_button")}
-            </button>
           </div>
         </div>
 

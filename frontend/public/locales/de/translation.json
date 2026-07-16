@@ -354,9 +354,15 @@
       "error_message_4": "Bitte wählen Sie eine Lieferadresse aus",
       "error_message_5": "Bitte wählen Sie eine Kundenadresse aus",
       "error_message_6": "Erstellungsfehler:",
+      "error_message_8": "Fehler beim Aktualisieren:",
       "error_message_7": "Adresse nicht ausgewählt",
       "order_created": "Berechnung №{{orderNumber}} wurde erstellt ✅",
+      "order_updated": "Berechnung №{{orderNumber}} wurde aktualisiert ✅",
       "order_create": "Neue Berechnung erstellen",
+      "order_edit": "Berechnung bearbeiten",
+      "order_number_label": "Bestellnummer",
+      "order_number_placeholder": "PO-2026-154 (optional)",
+      "order_number_hint": "Ausfüllen, wenn Sie eine eigene Nummerierung verwenden.",
       "dealer": "Händler:",
       "myAddress": "Meine Adresse",
       "clientAddress": "Kundenadresse",
@@ -369,6 +375,7 @@
       "comment": "Kommentar:",
       "cancel": "Stornieren",
       "creating": "Erstellen...",
+      "updating": "Wird aktualisiert...",
       "save": "Speichern",
       "repeat": "WIEDERHOLEN"
     },
@@ -734,7 +741,12 @@
       "load_more_admin": "Mehr laden ({{next}} von {{total}})",
       "all_loaded": "Alle Berechnungen geladen ({{count}}).",
       "delete_calc_allowed": "Berechnung löschen",
+      "edit_calc_allowed": "Berechnung bearbeiten",
+      "edit_calc_disallowed": "Bearbeiten ist nur vor der Erstellung von Bestellungen möglich",
+      "delete_calc_disallowed": "Löschen nicht möglich: Es liegen Bestellungen vor",
       "delete_cal_disallowed": "Löschen nicht möglich: Es liegen Bestellungen vor",
+      "request_order_refusal": "Ablehnung der Bestellungen anfragen",
+      "order_refusal_unavailable": "Keine Bestellungen für eine Ablehnung verfügbar",
       "constructions": "Konstruktionen",
       "orders": "Bestellungen",
       "hide_orders": "Bestellungen ausblenden",
@@ -789,6 +801,44 @@
     "errors": {
       "server_error": "Der Server hat beim Aktualisieren der Daten einen Fehler zurückgegeben.",
       "connection_error": "Daten konnten nicht aktualisiert werden. Überprüfen Sie Ihre Verbindung."
+    },
+    "daily_reminder": {
+      "title": "Tägliche Erinnerung",
+      "subtitle": "Sie haben heute Bestellungen, die Aufmerksamkeit benötigen.",
+      "count_line": "Bestellungen in diesem Status: {{count}}",
+      "show_tomorrow": "Diese Erinnerung morgen erneut anzeigen?",
+      "waiting_confirm": {
+        "title": "Warten auf Bestätigung",
+        "description": "Prüfen Sie die Bestellungen, die noch bestätigt werden müssen."
+      },
+      "waiting_payment": {
+        "title": "Warten auf Zahlung",
+        "description": "Prüfen Sie die Bestellungen, bei denen die Zahlung noch aussteht."
+      },
+      "actions": {
+        "open": "Öffnen",
+        "close": "Schließen",
+        "yes": "Ja",
+        "no": "Nein"
+      }
+    },
+    "order_refusal": {
+      "title": "Bestellablehnung",
+      "subtitle": "Wählen Sie die Bestellungen aus, für die eine Ablehnungsanfrage an den Manager gesendet werden soll.",
+      "close": "Schließen",
+      "no_eligible_orders": "In dieser Berechnung gibt es keine Bestellungen mit dem Status Neu, Warten auf Bestätigung oder Warten auf Zahlung.",
+      "select_all": "Alle auswählen",
+      "unselect_all": "Auswahl aufheben",
+      "selected_count": "Ausgewählt: {{count}}",
+      "cancel": "Abbrechen",
+      "submit": "Ablehnung senden",
+      "sending": "Wird gesendet...",
+      "success": "Die Ablehnungsanfrage wurde an den Manager gesendet.",
+      "errors": {
+        "select_one": "Wählen Sie mindestens eine Bestellung aus.",
+        "manager_missing": "Der Manager für diese Berechnung konnte nicht ermittelt werden.",
+        "send_failed": "Die Ablehnungsanfrage konnte nicht gesendet werden."
+      }
     }
   },
   "complaints": {

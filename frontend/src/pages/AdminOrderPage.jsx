@@ -132,6 +132,7 @@ const AdminPortalOriginal = () => {
   const [expandedOrder, setExpandedOrder] = useState(null);
 
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
+  const [editingCalculation, setEditingCalculation] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [displayLimit, setDisplayLimit] = useState(ITEMS_PER_LOAD);
@@ -674,6 +675,16 @@ const AdminPortalOriginal = () => {
     setFilteredItems((previous) =>
       previous.filter((item) => item.id !== id),
     );
+  }, []);
+
+  const handleEditCalculation = useCallback((calculation) => {
+    setEditingCalculation(calculation);
+    setIsCalcModalOpen(true);
+  }, []);
+
+  const handleOpenCreateCalculation = useCallback(() => {
+    setEditingCalculation(null);
+    setIsCalcModalOpen(true);
   }, []);
 
   const handleMonthClick = (month) => {
@@ -1277,9 +1288,7 @@ const AdminPortalOriginal = () => {
             <ul className="buttons">
               <li
                 className="btn-add-calc"
-                onClick={() =>
-                  setIsCalcModalOpen(true)
-                }
+                onClick={handleOpenCreateCalculation}
               >
                 <img
                   src={plusIcon}
@@ -1488,6 +1497,7 @@ const AdminPortalOriginal = () => {
                       onDelete={
                         handleDeleteSuccess
                       }
+                      onEdit={handleEditCalculation}
                     />
                   ) : (
                     <CalculationItem
@@ -1513,6 +1523,7 @@ const AdminPortalOriginal = () => {
                       onDelete={
                         handleDeleteSuccess
                       }
+                      onEdit={handleEditCalculation}
                     />
                   ),
                 )
@@ -1587,13 +1598,16 @@ const AdminPortalOriginal = () => {
 
       <NewCalculationModal
         isOpen={isCalcModalOpen}
-        onClose={() =>
-          setIsCalcModalOpen(false)
-        }
+        onClose={() => {
+          setEditingCalculation(null);
+          setIsCalcModalOpen(false);
+        }}
         onSave={async () => {
+          setEditingCalculation(null);
           setIsCalcModalOpen(false);
           await reloadCalculations();
         }}
+        initialCalculation={editingCalculation}
       />
     </div>
   );

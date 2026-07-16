@@ -17,9 +17,15 @@ import {
 import ClientAddressModal from "./ClientAddressModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
-const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
+const NewCalculationModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  initialCalculation = null,
+}) => {
   const { addNotification } = useNotification();
   const { t, i18n } = useTranslation();
+  const isEditMode = Boolean(initialCalculation?.id);
   const [orderNumber, setOrderNumber] = useState("");
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState(t("orders.newOrderModal.error_message_2"));
@@ -46,6 +52,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
   const [isClientAddressModalOpen, setIsClientAddressModalOpen] =
     useState(false);
+  const [orderNumberTouched, setOrderNumberTouched] = useState(false);
+  const [itemsCountTouched, setItemsCountTouched] = useState(false);
+  const [commentTouched, setCommentTouched] = useState(false);
+  const [addressTouched, setAddressTouched] = useState(false);
+  const [fileTouched, setFileTouched] = useState(false);
+  const [photosTouched, setPhotosTouched] = useState(false);
 
   // 📸 Стейт для зберігання масиву обраних фотографій
   const [photos, setPhotos] = useState([]);
@@ -55,6 +67,46 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
   const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
     .split("-")[0];
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setOrderNumber(
+      initialCalculation?.webNumber ||
+        initialCalculation?.number ||
+        "",
+    );
+    setFile(null);
+    setFileName(
+      initialCalculation?.fileName ||
+        t("orders.newOrderModal.error_message_2"),
+    );
+    setItemsCount(
+      initialCalculation?.constructionsCount ??
+        initialCalculation?.constructionsQTY ??
+        1,
+    );
+    setComment(initialCalculation?.sourceComment || "");
+    setDealerId(initialCalculation?.dealerId || "");
+    setAddresses([]);
+    setAddressGuid("");
+    setDealerCoords(null);
+    setIsAddressOpen(false);
+    setAddressMode("dealer");
+    setCustomAddress({
+      text: "",
+      lat: null,
+      lng: null,
+    });
+    setPhotos([]);
+    setOrderNumberTouched(false);
+    setItemsCountTouched(false);
+    setCommentTouched(false);
+    setAddressTouched(false);
+    setFileTouched(false);
+    setPhotosTouched(false);
+    setSubmitError(null);
+  }, [isOpen, initialCalculation, t]);
 
   const extractCoordinates = (addressObj) => {
     if (!addressObj) return null;
@@ -149,14 +201,38 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
       setAddresses(translatedAddresses);
 
+      const selectedSourceAddressText =
+        initialCalculation?.deliveryAddresses?.trim() || "";
+      const initialAddressIndex = deliveryAddresses.findIndex(
+        (address) =>
+          String(address?.AddressValue || "").trim() ===
+          selectedSourceAddressText,
+      );
+
+      const initialAddressByGuid = translatedAddresses.find(
+        (address) =>
+          address.AddressKindGUID ===
+          initialCalculation?.deliveryAddressGuid,
+      );
+
+      const initialAddressByText =
+        initialAddressIndex >= 0
+          ? translatedAddresses[initialAddressIndex]
+          : null;
+
       const def = translatedAddresses.find(
         (a) =>
           a.IsDefault === "\u0001" || a.IsDefault === 1 || a.IsDefault === true,
       );
 
-      if (def) {
-        setAddressGuid(def.AddressKindGUID);
-        const coords = checkAddressCoordinates(def);
+      const preselectedAddress =
+        initialAddressByGuid ||
+        initialAddressByText ||
+        def;
+
+      if (preselectedAddress) {
+        setAddressGuid(preselectedAddress.AddressKindGUID);
+        const coords = checkAddressCoordinates(preselectedAddress);
         setDealerCoords(coords);
       }
     } catch (err) {
@@ -212,17 +288,28 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setIsAddressOpen(false);
     const coords = checkAddressCoordinates(addr);
     setDealerCoords(coords);
+    setAddressTouched(true);
   };
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
-    setFileName(selected ? selected.name : t("orders.newOrderModal.error_message_2"));
+    setFileTouched(Boolean(selected));
+    setFileName(
+      selected
+        ? selected.name
+        : initialCalculation?.fileName ||
+            t("orders.newOrderModal.error_message_2"),
+    );
   };
 
   const handleClearFile = () => {
     setFile(null);
-    setFileName(t("orders.newOrderModal.error_message_2"));
+    setFileTouched(false);
+    setFileName(
+      initialCalculation?.fileName ||
+        t("orders.newOrderModal.error_message_2"),
+    );
     const input = document.getElementById("new-calc-file");
     if (input) input.value = "";
   };
@@ -232,6 +319,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     const selectedFiles = Array.from(e.target.files);
     // Додаємо нові файли до вже існуючих у стейті
     setPhotos((prevPhotos) => [...prevPhotos, ...selectedFiles]);
+    if (selectedFiles.length > 0) {
+      setPhotosTouched(true);
+    }
   };
 
   // 📸 Хендлер видалення окремого фото з масиву
@@ -253,6 +343,12 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     setAddressMode("dealer");
     setCustomAddress({ text: "", lat: null, lng: null });
     setPhotos([]); // Очищуємо фото
+    setOrderNumberTouched(false);
+    setItemsCountTouched(false);
+    setCommentTouched(false);
+    setAddressTouched(false);
+    setFileTouched(false);
+    setPhotosTouched(false);
   };
 
   const handleCloseWithReset = () => {
@@ -274,7 +370,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
     e.preventDefault();
     setSubmitError(null);
 
-    if (!file || !itemsCount) {
+    if ((!file && !isEditMode) || !itemsCount) {
       addNotification(t("orders.newOrderModal.error_message_3"), "error");
       return;
     }
@@ -296,7 +392,9 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
 
     try {
       // 1. Конвертуємо основний файл розрахунку
-      const mainFileBase64 = await fileToBase64(file);
+      const mainFileBase64 = file
+        ? await fileToBase64(file)
+        : null;
 
       // 2. Асинхронно конвертуємо весь масив фотографій у формат [{ fileName, fileDataB64 }, ...]
       const convertedPhotos = await Promise.all(
@@ -310,48 +408,111 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       );
 
       // 3. Формуємо фінальний JSON payload
-      const payload = {
-        ...(isManager && dealerId && { contractor_guid: dealerId }),
-        order_number: orderNumber,
-        items_count: Number(itemsCount),
-        comment,
-        file: {
+      const payload = isEditMode
+        ? {
+            ...(isManager && dealerId && { contractor_guid: dealerId }),
+            ...(orderNumberTouched && {
+              order_number: orderNumber,
+            }),
+            ...(itemsCountTouched && {
+              items_count: Number(itemsCount),
+            }),
+            ...(commentTouched && {
+              comment,
+            }),
+            ...(photosTouched && convertedPhotos.length > 0 && {
+              photos: convertedPhotos,
+            }),
+            ...(addressTouched &&
+              (addressMode === "dealer"
+                ? {
+                    delivery_address_guid: addressGuid,
+                    ...(dealerCoords && {
+                      delivery_address_coordinates: dealerCoords,
+                    }),
+                  }
+                : {
+                    client_address: {
+                      text: customAddress.text,
+                      lat: customAddress.lat,
+                      lng: customAddress.lng,
+                      region: customAddress.region,
+                      district: customAddress.district,
+                      city: customAddress.city,
+                      street: customAddress.street,
+                      house: customAddress.house,
+                      apartment: customAddress.apartment,
+                      entrance: customAddress.entrance,
+                      floor: customAddress.floor,
+                      note: customAddress.note,
+                      full_name: customAddress.fullName,
+                      phone: customAddress.phone,
+                      extra_info: customAddress.extraInfo,
+                      contractor_guid: customAddress.contractor_guid || dealerId || null,
+                    },
+                  })),
+          }
+        : {
+            ...(isManager && dealerId && { contractor_guid: dealerId }),
+            order_number: orderNumber,
+            items_count: Number(itemsCount),
+            comment,
+            photos: convertedPhotos,
+            ...(addressMode === "dealer"
+              ? {
+                  delivery_address_guid: addressGuid,
+                  ...(dealerCoords && {
+                    delivery_address_coordinates: dealerCoords,
+                  }),
+                }
+              : {
+                  client_address: {
+                    text: customAddress.text,
+                    lat: customAddress.lat,
+                    lng: customAddress.lng,
+                    region: customAddress.region,
+                    district: customAddress.district,
+                    city: customAddress.city,
+                    street: customAddress.street,
+                    house: customAddress.house,
+                    apartment: customAddress.apartment,
+                    entrance: customAddress.entrance,
+                    floor: customAddress.floor,
+                    note: customAddress.note,
+                    full_name: customAddress.fullName,
+                    phone: customAddress.phone,
+                    extra_info: customAddress.extraInfo,
+                    contractor_guid: customAddress.contractor_guid || dealerId || null,
+                  },
+                }),
+          };
+
+      if (file && mainFileBase64) {
+        payload.file = {
           fileName: file.name,
           fileDataB64: mainFileBase64,
-        },
-        photos: convertedPhotos, // <-- ПЕРЕДАЄМО МАСИВ ФОТО НА БЕКЕНД
-        ...(addressMode === "dealer"
-          ? {
-              delivery_address_guid: addressGuid,
-              ...(dealerCoords && {
-                delivery_address_coordinates: dealerCoords,
-              }),
-            }
-          : {
-              client_address: {
-                text: customAddress.text,
-                lat: customAddress.lat,
-                lng: customAddress.lng,
-                region: customAddress.region,
-                district: customAddress.district,
-                city: customAddress.city,
-                street: customAddress.street,
-                house: customAddress.house,
-                apartment: customAddress.apartment,
-                entrance: customAddress.entrance,
-                floor: customAddress.floor,
-                note: customAddress.note,
-                full_name: customAddress.fullName,
-                phone: customAddress.phone,
-                extra_info: customAddress.extraInfo,
-                contractor_guid: customAddress.contractor_guid || dealerId || null,
-              },
-            }),
-      };
+        };
+      }
 
-      const response = await axiosInstance.post("/calculations/create/", payload);
+      const endpoint = isEditMode
+        ? `/calculations/${initialCalculation.id}/update/`
+        : "/calculations/create/";
 
-      addNotification(t("orders.newOrderModal.order_created", { orderNumber: orderNumber }), "success");
+      const response = await axiosInstance.post(endpoint, payload);
+
+      if (response.data?.success === false) {
+        throw new Error(
+          response.data?.error ||
+            "1C returned an update error",
+        );
+      }
+
+      addNotification(
+        isEditMode
+          ? t("orders.newOrderModal.order_updated", { orderNumber: orderNumber || initialCalculation?.number || "" })
+          : t("orders.newOrderModal.order_created", { orderNumber: orderNumber }),
+        "success",
+      );
       onSave?.(response.data);
       resetForm();
       onClose();
@@ -360,7 +521,16 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
       addNotification(
         <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: "250px" }}>
           <div className="column">
-            <strong>{t("orders.newOrderModal.error_message_6")}</strong>
+            <strong>
+              {isEditMode
+                ? t("orders.newOrderModal.error_message_8")
+                : t("orders.newOrderModal.error_message_6")}
+            </strong>
+            {isEditMode && error?.message ? (
+              <span style={{ marginTop: "4px", fontSize: "12px" }}>
+                {error.message}
+              </span>
+            ) : null}
           </div>
           <button
             onClick={handleSubmit}
@@ -397,7 +567,11 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           <div className="new-calc-modal-border-top">
             <div className="new-calc-modal-header">
               <span className="icon icon-calculator" />
-              <h3>{t("orders.newOrderModal.order_create")}</h3>
+              <h3>
+                {isEditMode
+                  ? t("orders.newOrderModal.order_edit")
+                  : t("orders.newOrderModal.order_create")}
+              </h3>
               <span className="icon icon-cross new-calc-close-btn" onClick={handleCloseWithReset} />
             </div>
           </div>
@@ -405,22 +579,25 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           <div className="new-calc-modal-body">
             <form className="new-calc-form" onSubmit={handleSubmit}>
              <label className="new-calc-label">
-                <div className="new-calc-label-row">
+                <div className="new-calc-label-row new-calc-label-row--order-number">
   <span className="new-calc-field-title">
-    Номер замовлення
+    {t("orders.newOrderModal.order_number_label")}
   </span>
 
   <input
     type="text"
     value={orderNumber}
-    onChange={(e) => setOrderNumber(e.target.value)}
+    onChange={(e) => {
+      setOrderNumber(e.target.value);
+      setOrderNumberTouched(true);
+    }}
     className="new-calc-input"
-    placeholder="PO-2026-154 (необов'язково)"
+    placeholder={t("orders.newOrderModal.order_number_placeholder")}
   />
 </div>
 
                 <small className="new-calc-field-hint">
-                   Заповнюйте, якщо використовуєте власну нумерацію.
+                  {t("orders.newOrderModal.order_number_hint")}
                 </small>
               </label>
 
@@ -439,7 +616,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <input
                     type="radio"
                     checked={addressMode === "dealer"}
-                    onChange={() => setAddressMode("dealer")}
+                    onChange={() => {
+                      setAddressMode("dealer");
+                      setAddressTouched(true);
+                    }}
                   />
                   {t("orders.newOrderModal.myAddress")}
                 </label>
@@ -447,7 +627,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   <input
                     type="radio"
                     checked={addressMode === "client"}
-                    onChange={() => setAddressMode("client")}
+                    onChange={() => {
+                      setAddressMode("client");
+                      setAddressTouched(true);
+                    }}
                   />
                   {t("orders.newOrderModal.clientAddress")}
                 </label>
@@ -590,7 +773,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                   type="number"
                   min="1"
                   value={itemsCount}
-                  onChange={(e) => setItemsCount(e.target.value)}
+                  onChange={(e) => {
+                    setItemsCount(e.target.value);
+                    setItemsCountTouched(true);
+                  }}
                   className="new-calc-input-number"
                 />
               </label>
@@ -600,7 +786,10 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
                 <textarea
                   rows={4}
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  onChange={(e) => {
+                    setComment(e.target.value);
+                    setCommentTouched(true);
+                  }}
                   className="new-calc-textarea"
                 />
               </label>
@@ -612,7 +801,11 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
               <FaTimes /> {t("orders.newOrderModal.cancel")}
             </button>
             <button className="new-calc-btn-save" onClick={handleSubmit} disabled={loading}>
-              <FaSave /> {loading ? t("orders.newOrderModal.creating") : t("orders.newOrderModal.save")}
+              <FaSave /> {loading
+                ? isEditMode
+                  ? t("orders.newOrderModal.updating")
+                  : t("orders.newOrderModal.creating")
+                : t("orders.newOrderModal.save")}
             </button>
           </div>
         </div>
@@ -625,6 +818,7 @@ const NewCalculationModal = ({ isOpen, onClose, onSave }) => {
           onClose={() => setIsClientAddressModalOpen(false)}
           onSave={(addr) => {
             setCustomAddress(addr);
+            setAddressTouched(true);
             setIsClientAddressModalOpen(false);
           }}
         />

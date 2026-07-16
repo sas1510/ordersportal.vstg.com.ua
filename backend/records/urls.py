@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView
 
 
@@ -26,6 +26,7 @@ urlpatterns = [
     path("order/<str:order_guid>/files/", order_files_view), 
     path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"), #log stopped here
     path("calculations/create/", create_calculation),
+    path("calculations/<uuid:calculation_guid>/update/", UpdateCalculationView.as_view(), name="update_calculation"),
     path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"), 
     path("get_wds_codes/", wds_codes_by_contractor, name="get_wds_codes"), 
     path("messages/", get_messages, name="get-messages"),

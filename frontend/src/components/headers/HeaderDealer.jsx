@@ -592,7 +592,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
-import { useTheme } from "../../hooks/useTheme";
 import axiosInstance, { getAccessToken } from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
 import NotificationDrawer from "../../pages/NotificationPage";
@@ -611,7 +610,7 @@ import {
   Video, 
   CreditCard,
   Wallet,
-  BarChart3 
+  BarChart3
 } from "lucide-react";
 
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
@@ -622,7 +621,6 @@ export default function HeaderDealer() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useContext(AuthContext);
-  const { theme, toggleTheme } = useTheme();
   const { addNotification } = useNotification();
 
   const [profileOpen, setProfileOpen] = useState(false);
@@ -877,7 +875,7 @@ export default function HeaderDealer() {
                         to={link.to}
                         className={`h-full w-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center 
                          
-                          shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
+                          shadow-[0_2px_4px_rgba(0,0,0,0.1)]
                           active:translate-y-[1px] active:shadow-none 
                           
                           ${location.pathname.startsWith(link.to) 
@@ -898,8 +896,7 @@ export default function HeaderDealer() {
   <button 
     onClick={() => setShowFinanceMenu(!showFinanceMenu)}
     className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all
-      /* Базовий ефект випуклості (тінь + легкий градієнт) */
-      shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)]
+      shadow-[0_2px_4px_rgba(0,0,0,0.1)]
       active:translate-y-[1px] active:shadow-none
 
       ${showFinanceMenu || location.pathname.includes("/finance")
@@ -982,7 +979,7 @@ export default function HeaderDealer() {
                 <LanguageSwitcher />
 
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
-                  <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px] object-contain" />
+                  <img src={bellIcon} alt={t('nav.notifications')} className="header-theme-icon w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (
                     <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] bg-[#e46321] rounded-full pulse-animation border-2 border-white flex items-center justify-center">
                       <span className="text-[#fff] text-[9px] font-black">
@@ -993,7 +990,7 @@ export default function HeaderDealer() {
                 </div>
 
                 <button onClick={() => { logout(); navigate("/home"); }} className="text-[#44403E] hover:text-red-500 text-lg">
-                   <img src={exitIcon} alt={t('nav.logout')} className="w-[20px] h-[20px] object-contain" />
+                   <img src={exitIcon} alt={t('nav.logout')} className="header-theme-icon w-[20px] h-[20px] object-contain" />
                 </button>
               </div>
             </div>
@@ -1001,7 +998,7 @@ export default function HeaderDealer() {
         ) : (
           <div className="ml-auto flex items-center gap-5 mr-4" ref={mobileMenuRef}>
             <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
-              <img src={bellIcon} alt={t('nav.notifications')} className="w-[20px] h-[20px]" />
+              <img src={bellIcon} alt={t('nav.notifications')} className="header-theme-icon w-[20px] h-[20px]" />
               {unreadCount > 0 && (
                 <div className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] bg-[#e46321] rounded-full border-2 border-white flex items-center justify-center">
                   <span className="text-[#fff] text-[9px] font-black">
@@ -1015,7 +1012,7 @@ export default function HeaderDealer() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
               className="text-[#44403E] text-2xl focus:outline-none"
             >
-              <img src={menuIcon} alt="Меню" className="w-[20px] h-[20px]" />
+              <img src={menuIcon} alt="Меню" className="header-theme-icon w-[20px] h-[20px]" />
             </button>
 
             {mobileMenuOpen &&
@@ -1044,7 +1041,7 @@ export default function HeaderDealer() {
             <img
               src={closeIcon}
               alt="Закрити"
-              className="w-[30px] h-[30px] object-contain"
+              className="header-theme-icon w-[30px] h-[30px] object-contain"
             />
           </button>
         </div>
@@ -1123,7 +1120,7 @@ export default function HeaderDealer() {
               className="flex items-center px-[15%] gap-4 py-2 w-full hover:bg-gray-200/50 transition-colors"
             >
               <img
-                className="object-contain mr-6"
+                className="header-theme-icon object-contain mr-6"
                 src={profileIcon}
                 alt="profile"
               />
@@ -1134,7 +1131,7 @@ export default function HeaderDealer() {
                 </span>
 
                 <img
-                  className={`w-5 h-5 object-contain ml-2 transition-transform ${
+                  className={`header-theme-icon w-5 h-5 object-contain ml-2 transition-transform ${
                     profileOpen ? "rotate-180" : ""
                   }`}
                   src={polygonIcon}
@@ -1174,7 +1171,7 @@ export default function HeaderDealer() {
             <div className="sidebar-divider mx-[5%] border-t border-dotted border-[#44403E]/50" />
 
             <div className="flex items-center px-[15%] gap-4 py-3 pb-2 whitespace-nowrap">
-              <img className="object-contain mr-4" src={moneyIcon} alt="money" />
+              <img className="header-theme-icon object-contain mr-4" src={moneyIcon} alt="money" />
               <span className="text-[#44403E] text-xl font-normal">
                 {formattedBalance}
               </span>
@@ -1193,7 +1190,7 @@ export default function HeaderDealer() {
             className="flex items-center justify-center gap-3 w-full"
           >
             <img
-              className="w-7 h-6 mr-2"
+              className="header-theme-icon w-7 h-6 mr-2"
               src={exitIcon}
               alt={t("nav.logout")}
             />

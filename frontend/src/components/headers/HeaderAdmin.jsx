@@ -306,7 +306,6 @@ import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "r
 import { useMediaQuery } from "react-responsive";
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../context/AuthContext";
-import { useTheme } from "../../hooks/useTheme";
 import HeaderUserProfile from "./HeaderUserProfile";
 import logo from "../../assets/icons/logo-vst.svg";
 import "./HeaderAdmin.css";
@@ -341,7 +340,6 @@ export default function HeaderAdmin() {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
-  const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
 
   const NAV_LINKS = useMemo(() => [
@@ -539,14 +537,10 @@ export default function HeaderAdmin() {
               </div>
 
               <div className="flex items-center px-4 gap-4">
-                {/* <button onClick={toggleTheme} className="text-[#44403E] text-lg hover:scale-110 transition-transform">
-                  <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
-                </button> */}
-
                 <LanguageSwitcher />
 
                 <button onClick={handleLogoutAction} className="hover:opacity-70 transition-opacity">
-                  <img src={exitIcon} alt={t('nav.logout')} className="w-[20px] h-[20px] object-contain" />
+                  <img src={exitIcon} alt={t('nav.logout')} className="header-theme-icon w-[20px] h-[20px] object-contain" />
                 </button>
               </div>
             </div>
@@ -570,7 +564,7 @@ export default function HeaderAdmin() {
                   {/* Кнопка закриття */}
                   <div className="flex items-center justify-end p-2">
                     <button onClick={() => setMobileMenuOpen(false)}>
-                      <img src={closeIcon} alt="Закрити" className="w-[30px] h-[30px]" />
+                      <img src={closeIcon} alt="Закрити" className="header-theme-icon w-[30px] h-[30px]" />
                     </button>
                   </div>
 
@@ -638,9 +632,9 @@ export default function HeaderAdmin() {
                         onClick={() => setProfileOpen(!profileOpen)}
                         className="flex items-center px-[15%] gap-4 py-4 w-full"
                       >
-                        <img className="w-6 h-6 object-contain" src={profileIcon} alt="profile" />
+                        <img className="header-theme-icon w-6 h-6 object-contain" src={profileIcon} alt="profile" />
                         <span className="text-[#234461] text-xl font-bold flex-grow text-left">{t('nav.profile')}</span>
-                        <img className={`w-4 transition-transform ${profileOpen ? 'rotate-180' : ''}`} src={polygonIcon} alt="poly" />
+                        <img className={`header-theme-icon w-4 transition-transform ${profileOpen ? 'rotate-180' : ''}`} src={polygonIcon} alt="poly" />
                       </button>
                       {profileOpen && (
                         <div className="px-[15%] pb-4 flex flex-col gap-2">
@@ -650,7 +644,9 @@ export default function HeaderAdmin() {
                     </div>
 
                     <div className="px-[15%] py-4">
-                      <LanguageSwitcher className="w-fit" />
+                      <div className="flex items-center gap-3">
+                        <LanguageSwitcher className="w-fit" />
+                      </div>
                     </div>
                   </div>
 
@@ -660,7 +656,7 @@ export default function HeaderAdmin() {
                       onClick={handleLogoutAction}
                       className="flex items-center justify-center gap-3 w-full py-3 border-t border-dashed border-gray-300"
                     >
-                      <img className="w-7 h-6" src={exitIcon} alt="exit" />
+                      <img className="header-theme-icon w-7 h-6" src={exitIcon} alt="exit" />
                       <span className="text-[#44403E] text-xl font-bold">{t('nav.logout')}</span>
                     </button>
                   </div>

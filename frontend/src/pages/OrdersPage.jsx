@@ -16,11 +16,13 @@ import {
   CalculationItemMobile,
 } from "../components/Orders/CalculationItemMobile";
 import NewCalculationModal from "../components/Orders/NewCalculationModal";
+import OrdersDailyReminderModal from "../components/Orders/OrdersDailyReminderModal";
 
 import useWindowWidth from "../hooks/useWindowWidth";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 
 import "../components/Portal/PortalOriginal.css";
+import "../components/Orders/OrdersDailyReminderModal.css";
 
 const ITEMS_PER_LOAD = 100;
 
@@ -65,6 +67,7 @@ const PortalOriginal = () => {
 
   const [error, setError] = useState(null);
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
+  const [editingCalculation, setEditingCalculation] = useState(null);
   const [calculationsData, setCalculationsData] = useState([]);
 
   const [filter, setFilter] = useState({
@@ -91,6 +94,48 @@ const PortalOriginal = () => {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [limit, setLimit] = useState(ITEMS_PER_LOAD);
+  const [isDailyReminderOpen, setIsDailyReminderOpen] =
+    useState(false);
+
+  const getReminderStorageKey = useCallback(() => {
+    try {
+      const rawUser = localStorage.getItem("user");
+      const parsedUser = rawUser
+        ? JSON.parse(rawUser)
+        : null;
+
+      const identity =
+        parsedUser?.user_id_1c ||
+        parsedUser?.id ||
+        parsedUser?.username ||
+        localStorage.getItem("role") ||
+        "anonymous";
+
+      return `orders_daily_reminder_seen_${identity}_${getLocalDateString()}`;
+    } catch {
+      return `orders_daily_reminder_seen_anonymous_${getLocalDateString()}`;
+    }
+  }, []);
+
+  const getReminderOptOutKey = useCallback(() => {
+    try {
+      const rawUser = localStorage.getItem("user");
+      const parsedUser = rawUser
+        ? JSON.parse(rawUser)
+        : null;
+
+      const identity =
+        parsedUser?.user_id_1c ||
+        parsedUser?.id ||
+        parsedUser?.username ||
+        localStorage.getItem("role") ||
+        "anonymous";
+
+      return `orders_daily_reminder_opt_out_${identity}`;
+    } catch {
+      return "orders_daily_reminder_opt_out_anonymous";
+    }
+  }, []);
 
   const handleFilterChange = useCallback((key, value) => {
     setFilter((previous) => ({
@@ -216,12 +261,9 @@ const PortalOriginal = () => {
     setLimit(ITEMS_PER_LOAD);
   }, []);
 
-  const handleUpdateCalculation = useCallback((updatedCalc) => {
-    setCalculationsData((previous) =>
-      previous.map((calc) =>
-        calc.id === updatedCalc.id ? updatedCalc : calc,
-      ),
-    );
+  const handleUpdateCalculation = useCallback((calculation) => {
+    setEditingCalculation(calculation);
+    setIsCalcModalOpen(true);
   }, []);
 
   const handleMarkAsRead = useCallback((calcId) => {
@@ -238,7 +280,13 @@ const PortalOriginal = () => {
   }, []);
 
   const handleCloseCalc = useCallback(() => {
+    setEditingCalculation(null);
     setIsCalcModalOpen(false);
+  }, []);
+
+  const handleOpenCreateCalculation = useCallback(() => {
+    setEditingCalculation(null);
+    setIsCalcModalOpen(true);
   }, []);
 
   const toggleCalc = useCallback((id) => {
@@ -389,6 +437,7 @@ const PortalOriginal = () => {
   ]);
 
   const handleSaveCalculation = useCallback(async () => {
+    setEditingCalculation(null);
     setIsCalcModalOpen(false);
     await reloadCalculations();
   }, [reloadCalculations]);
@@ -778,6 +827,107 @@ const PortalOriginal = () => {
     ],
   );
 
+  const waitingConfirmCount =
+    statusSummary["Очікуємо підтвердження"] || 0;
+  const waitingPaymentCount =
+    statusSummary["Очікуємо оплату"] || 0;
+
+  const closeDailyReminder = useCallback(() => {
+    try {
+      localStorage.setItem(
+        getReminderStorageKey(),
+        JSON.stringify({
+          shownAt: new Date().toISOString(),
+          waitingConfirmCount,
+          waitingPaymentCount,
+        }),
+      );
+    } catch {
+      // ignore localStorage failures
+    }
+
+    setIsDailyReminderOpen(false);
+  }, [
+    getReminderStorageKey,
+    waitingConfirmCount,
+    waitingPaymentCount,
+  ]);
+
+  const handleReminderSelectStatus = useCallback(
+    (statusKey) => {
+      handleFilterChange("status", statusKey);
+      closeDailyReminder();
+    },
+    [handleFilterChange, closeDailyReminder],
+  );
+
+  const disableFutureDailyReminder = useCallback(() => {
+    try {
+      localStorage.setItem(
+        getReminderOptOutKey(),
+        JSON.stringify({
+          disabledAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      // ignore localStorage failures
+    }
+
+    closeDailyReminder();
+  }, [closeDailyReminder, getReminderOptOutKey]);
+
+  useEffect(() => {
+    if (loading || reloading) {
+      return;
+    }
+
+    const hasReminderItems =
+      waitingConfirmCount > 0 || waitingPaymentCount > 0;
+
+    if (!hasReminderItems) {
+      setIsDailyReminderOpen(false);
+      return;
+    }
+
+    if (
+      appliedDateFilter.mode !== "year" ||
+      appliedDateFilter.year !== currentYear
+    ) {
+      return;
+    }
+
+    try {
+      const isOptedOut = localStorage.getItem(
+        getReminderOptOutKey(),
+      );
+
+      if (isOptedOut) {
+        setIsDailyReminderOpen(false);
+        return;
+      }
+
+      const alreadyShown = localStorage.getItem(
+        getReminderStorageKey(),
+      );
+
+      if (!alreadyShown) {
+        setIsDailyReminderOpen(true);
+      }
+    } catch {
+      setIsDailyReminderOpen(true);
+    }
+  }, [
+    loading,
+    reloading,
+    waitingConfirmCount,
+    waitingPaymentCount,
+    appliedDateFilter.mode,
+    appliedDateFilter.year,
+    currentYear,
+    getReminderStorageKey,
+    getReminderOptOutKey,
+  ]);
+
   if (loading) {
     return (
       <div className="loading-spinner-wrapper">
@@ -792,6 +942,15 @@ const PortalOriginal = () => {
 
   return (
     <div className="column portal-body">
+      <OrdersDailyReminderModal
+        isOpen={isDailyReminderOpen}
+        waitingConfirmCount={waitingConfirmCount}
+        waitingPaymentCount={waitingPaymentCount}
+        onClose={closeDailyReminder}
+        onSelectStatus={handleReminderSelectStatus}
+        onDisableFuture={disableFutureDailyReminder}
+      />
+
       <div className="content-summary row w-100 justify-center">
         <div className="by-month-pagination-wrapper">
           <div className="pagination-container w-100 row items-center gap-2">
@@ -1126,7 +1285,7 @@ const PortalOriginal = () => {
             <ul className="buttons">
               <li
                 className="btn-add-calc"
-                onClick={() => setIsCalcModalOpen(true)}
+                onClick={handleOpenCreateCalculation}
               >
                 <img
                   src={plusIcon}
@@ -1134,7 +1293,7 @@ const PortalOriginal = () => {
                   className="align-center mr-2"
                 />
 
-                <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">
+                <div className="text-center text-[#44403F] text-[18px] font-bold font-['Inter'] uppercase">
                   {t(
                     "portal_calc.ui.new_calculation",
                   )}
@@ -1149,7 +1308,7 @@ const PortalOriginal = () => {
                   h-full
                   min-h-full
                   bg-[#6B98BF]
-                  shadow-sm
+              
                   py-[26px]
                   rounded-tl-[5px]
                   rounded-tr-[20px]
@@ -1376,6 +1535,7 @@ const PortalOriginal = () => {
         isOpen={isCalcModalOpen}
         onClose={handleCloseCalc}
         onSave={handleSaveCalculation}
+        initialCalculation={editingCalculation}
       />
     </div>
   );

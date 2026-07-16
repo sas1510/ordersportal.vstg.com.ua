@@ -39,7 +39,7 @@ body.dark-theme .background-danger-light {
 
 /* Для загального контенту у бейджах */
 body.dark-theme .badge-content {
-  color: #e0e0e0 !important; /* базовий світлий текст */
+  color: var(text-WS---DarkGrey) !important; /* базовий світлий текст */
 }
 
 /* Якщо у бейджів є певний фон — зробимо контрастні відтінки тексту */
@@ -75,5 +75,38 @@ body.dark-theme .badge-content.background-danger-light {
   color: #f59e0b;
 }
 
+body.dark-theme .order-item-details .timeline ul li .icon {
+  background: #797e86;
+  border-color: #868179;
+}
 
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkGrey,
+body.dark-theme .order-item-details .timeline ul li .icon.text-grey,
+body.dark-theme .order-item-details .timeline ul li .icon.text-gray-500,
+body.dark-theme .order-item-details .timeline ul li .icon.text-gray-600 {
+  color: #ddd8d3 !important;
+}
 
+body.dark-theme .order-item-details .timeline ul li .icon.text-success {
+  color: #22c55e !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-danger {
+  color: #ef4444 !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-warning {
+  color: #f59e0b !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkBlue {
+  color: #4da3ff !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkGreen {
+  color: #8ecf4f !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkRed {
+  color: #ff7a5c !important;
+}

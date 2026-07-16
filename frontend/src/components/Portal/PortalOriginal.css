@@ -819,6 +819,12 @@ header_logo_white.svg
   color: var(--WS--DarkGreen);
 }
 
+
+body.dark-theme .text-WS-Green-Status {
+  font-family: 'Inter', sans-serif;
+  color: var(--WS---Green);
+}
+
 .text-WS-Yellow-Status {
   font-family: 'Inter', sans-serif;
   color: var(--WS-Status-Yellow);
@@ -2092,7 +2098,7 @@ html {
 
 .loading-text {
   font-size: 16px;
-  color: #555;
+  color: #908684;
 }
 
 @keyframes spin {
@@ -2108,7 +2114,7 @@ html {
   font-size: 12px;
   color: var(--WS---DarkGrey);
   line-height: 1.2em; /* Висота рядка */
-  max-height: 2.4em; /* 2 рядки */
+  max-height: 3.6em; /* 3 рядки */
   overflow: hidden;
   word-break: break-word;
   font-family: 'Inter', sans-serif;
@@ -2801,29 +2807,13 @@ body.dark-theme *::-webkit-scrollbar-thumb {
   box-shadow: none;
 }
 
-.dark-theme .content-filter {
-  /* background-color: #2c2c2c; */
-  border-right: 1px dotted var(--grey-border-color);
-}
 
-.dark-theme .portal-body .content-filter .filter li {
-  /* background-color: #2c2c2c; */
-  color: var(--text-color);
-  border: 1px dotted transparent;
-}
 
-.dark-theme .portal-body .content-filter .filter li:hover,
-.dark-theme .portal-body .content-filter .filter .active {
-  background-color: #383838;
-  border: 1px dotted var(--grey-border-color);
-  color: #fff;
-}
 
 /* Пошук */
 .dark-theme .content-filter .search-orders {
   background-color: #383838;
   color: var(--text-color);
-  border: 1px dotted var(--grey-border-color);
 }
 
 .dark-theme .content-filter .search-orders::placeholder {
@@ -2880,53 +2870,46 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 }
 
 .dark-theme .btn-comments {
-  align-self: flex-end; /* кнопка зліва */
+  
   padding: 4px 8px;
   font-size: 12px;
   color: #f2f2f2;
 }
 
-.dark-theme .order-item {
-  /* Використовуємо інший темний фон, щоб відрізняти від calc-item */
-  background-color: #383838;
-  border: 1px dotted #555;
-  box-shadow: none;
-}
+
 
 .dark-theme .order-item .order-item-details {
-  background-color: #2c2c2c;
+  background-color: #5c5a57;
   color: var(--grey-text-color);
-  border-top: 1px dotted var(--grey-border-color);
+
 }
 
 /* Timeline (якщо використовується) */
 .dark-theme .timeline ul li {
-  border-top-color: #555;
-  border-left-color: #555;
+  border-top-color: #908684;
+  border-left-color: #908684;
 }
 .dark-theme .timeline ul li:last-child {
-  border-right-color: #555;
+  border-right-color: #908684;
 }
 .dark-theme .timeline ul li .icon {
-  background: #2c2c2c;
-  border-color: #555;
+  background: #5c5a57;
+  border-color: #908684;
 }
 .dark-theme .timeline ul li .badge {
   background-color: #383838;
-  border-color: #555;
+  border-color: #908684;
 }
-.dark-theme .timeline ul li .badge .badge-content {
-  color: var(--text-color);
-}
+
 
 /* Утиліти */
 .dark-theme .background-white {
-  background-color: #2c2c2c !important;
+  background-color: #5c5a57 !important;
 }
 
 /* Модальне вікно (якщо стилізовано через css) */
 .dark-theme .modal-css-content {
-  background-color: #2c2c2c;
+  background-color: #5c5a57;
   color: var(--text-color);
 }
 
@@ -2945,7 +2928,7 @@ body.dark-theme {
   --text-color: #e0e0e0; /* Основний текст */
   --grey-text-color: #a0a0a0; /* Текст, що став сірим */
   --grey-color: #777777; /* Сірий (для індикації) */
-  --grey-border-color: #444444; /* Межі, що стали сірими */
+  --grey-border-color: #908684; /* Межі, що стали сірими */
 
   /* Фони */
   --portal-bg-color-start: #1a1a1a; /* Основний фон сторінки */
@@ -2971,46 +2954,24 @@ body.dark-theme {
 
 /* --- ТЕМНИЙ ФІЛЬТР (SIDEBAR) У DARK MODE --- */
 
-/* Основний контейнер фільтра */
-body.dark-theme .content-filter {
-  /* Фон: Темно-сірий, як у мобільному меню */
-  background-color: #1a1a1a !important;
-
-  /* Текст: Світлий (для контрасту) */
-  color: #f0f0f0 !important;
-
-  /* Межа та тінь: темні */
-  border-right: 1px dotted #555555;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.8);
-}
 
 /* Заголовок та кнопка закриття */
 body.dark-theme .content-filter .sidebar-header span {
-  color: #f0f0f0 !important; /* Світлий текст заголовка */
+  color: var(--text-color) !important; /* Світлий текст заголовка */
 }
 
 body.dark-theme .content-filter .sidebar-header .icon-cross:hover {
   color: var(--danger-color) !important;
 }
 
-/* Розділювач */
-body.dark-theme .content-filter .delimiter1 {
-  border-bottom: 1px dotted #555555 !important;
-}
 
-body.dark-theme .delimiter1 {
-  border-bottom: 1px dotted #555555 !important;
-}
 
-body.dark-theme .content-filter .filter .delimiter1 {
-  border-bottom: 1px dotted #555555 !important;
-  margin-top: 0;
-}
+
 /* Поле пошуку */
 body.dark-theme .content-filter .search-orders {
   background-color: #383838 !important; /* Темний фон поля */
-  color: #f0f0f0 !important;
-  border: 1px dotted #555555 !important;
+  color: var(--text-color) !important;
+
 }
 
 body.dark-theme .content-filter .search-orders::placeholder {
@@ -3026,102 +2987,20 @@ body.dark-theme .content-filter .clear-search {
 body.dark-theme .content-filter .buttons .btn-add-calc,
 body.dark-theme .content-filter .buttons .btn-select-dealer {
   /* Зберігаємо яскраві фони, але текст/іконки мають бути білими */
-  color: #ffffff !important;
+  color: #f5f3f1 !important;
 }
 body.dark-theme .content-filter .buttons .btn-add-calc .icon,
 body.dark-theme .content-filter .buttons .btn-select-dealer .icon {
-  color: #ffffff !important;
-}
-
-/* Основний список фільтрів */
-body.dark-theme .content-filter .filter li {
-  color: #f0f0f0 !important; /* Світлий текст */
-  background-color: transparent !important;
-  border: 1px solid transparent !important;
-}
-
-/* Активний або Hover-елемент */
-body.dark-theme .content-filter .filter li:hover,
-body.dark-theme .content-filter .filter li.active {
-  background-color: #383838 !important; /* Трохи світліший сірий hover */
-  border: 1px dotted #555555 !important;
-  /* color: #ffffff !important; */
-}
-
-/* Іконки всередині фільтрів */
-body.dark-theme .content-filter .filter li .icon {
-  color: var(--info-color) !important;
+  color: #f5f3f1 !important;
 }
 
 /* --- ГАРАНТУЄМО, ЩО ВСЕ ВСЕРЕДИНІ ФІЛЬТРА ТЕМНЕ --- */
 
 /* Контейнер навколо поля пошуку */
-body.dark-theme .content-filter .search-wrapper {
-  /* Фон повинен успадковувати темний колір від батька (.content-filter)
-       або бути явно встановленим */
-  background-color: inherit; /* Успадкувати #2c2c2c */
-
-  /* Якщо є якісь межі, переконайтеся, що вони темні */
-  border-top: none !important;
-  border-bottom: none !important;
-}
-
-/* 2. Перевірка стилів самого поля введення (Input) */
-
-/* Раніше ми вже встановили це, але варто перевірити: */
 body.dark-theme .content-filter .search-orders {
   background-color: #383838 !important; /* Темний фон самого поля */
-  color: #f0f0f0 !important;
-  border: 1px dotted #555555 !important;
-}
-
-/* Перевірте, чи є у вас правило, подібне до цього, і змініть колір межі */
-body.dark-theme .content-filter .sidebar-header {
-  border-bottom: 0px dotted #555555 !important; /* Встановлюємо темну межу */
-}
-
-/* ==== РОЗДІЛЬНИКИ (світла + темна тема однакові) ==== */
-
-/* --- ЗМІНИ У DARK MODE: ЗБЕРЕЖЕННЯ КОНТРАСТНИХ МЕЖ --- */
-
-body.dark-theme {
-  --border-light-color: #555555; /* Темно-сірий, що виділяється на чорному */
-  --border-dark-color: #333333;
-}
-
-/* 1. Лінія під номером замовлення та у блоках суми */
-/* Припускаємо, що border-b або border-t стосуються світло-сірого */
-body.dark-theme .order-item-summary .summary-item .border-b,
-body.dark-theme .order-item-summary .summary-item .border-t {
-  /* Змінюємо колір межі на світло-сірий, щоб було видно на темному фоні */
-  border-color: #555555 !important;
-}
-
-/* 2. Лінія-розділювач перед розширеними деталями */
-/* Клас border-gray-300 або його еквівалент */
-body.dark-theme .order-item-details, /* Батьківський контейнер */
-body.dark-theme .mt-4.pt-4.border-t {
-  /* Переконайтеся, що верхня межа (деталей) світла */
-  border-color: #555555 !important;
-}
-
-body.dark-theme .pt-1.border-t {
-  /* Переконайтеся, що верхня межа (деталей) світла */
-  border-color: #555555 !important;
-}
-
-/* 3. Лінія-розділювач у профілі дилера (якщо вона там є) */
-body.dark-theme .profile-item-column .divider {
-  border-bottom: 1px dotted #555555 !important;
-}
-
-/* Межа під номером замовлення */
-body.dark-theme
-  .order-item-summary
-  .summary-item
-  .column
-  > div:first-child.border-b {
-  border-color: #555555 !important;
+  color: var(--text-color) !important;
+  
 }
 
 /* iPhone SAFE AREA FIX */
@@ -3950,4 +3829,159 @@ body {
     min-width: 70px;
     flex: 1;
   }
+}
+
+/* ===== Final Dark Theme Readability Override ===== */
+body.dark-theme {
+  --background-color: #5f5c56;
+  --text-color: #f5f3f1;
+  --text-muted-color: #ddd8d3;
+  --grey-text-color: #ddd8d3;
+  --grey-color: #a39c94;
+  --grey-border-color: #908684;
+  --color-primary: #f5f3f1;
+  --color-secondary: #ddd8d3;
+  --color-accent: #908684;
+  --color-highlight: #868179;
+  --color-muted: #4C4644;
+  /* --color-muted: #5f5c56; */
+  --portal-bg-color-start: var(--color-muted);
+  --portal-bg-color-end: var(--color-muted);
+  --cream-bg-color: var(--color-highlight);
+  --shadow-color: rgba(0, 0, 0, 0.26);
+  --info-bg-color: #868179;
+  --success-bg-color: #868179;
+  --warning-bg-color: #432424;
+  --danger-bg-color: #432424;
+  --info-color: #908684;
+  --success-color: #908684;
+  --warning-color: #432424;
+  --danger-color: #432424;
+}
+
+body.dark-theme,
+body.dark-theme #main,
+body.dark-theme .portal-body {
+  background-color: var(--color-muted) !important;
+  color: var(--text-color) !important;
+}
+
+body.dark-theme .portal-header,
+body.dark-theme .portal-footer {
+  background: #4c4644 !important;
+  color: var(--text-color) !important;
+}
+
+body.dark-theme .portal-header > .menu > ul > li:hover,
+body.dark-theme .portal-header > .menu > ul > .active {
+  background: rgba(127, 118, 116, 0.26) !important;
+  color: #f5f3f1 !important;
+}
+
+body.dark-theme .panel,
+body.dark-theme .calc-item,
+body.dark-theme .content-summary .by-month-pagination-wrapper,
+body.dark-theme .modal-css-content,
+body.dark-theme .background-white {
+  /* background-color: #53514d !important; */
+   background-color: #5c5a57 !important;
+  color: var(--text-color) !important;
+}
+
+
+
+body.dark-theme .content-summary .year-selector {
+  background-color: #868179 !important;
+  color: var(--text-color) !important;
+}
+
+body.dark-theme .content-filter .sidebar-header span,
+body.dark-theme .content-summary .year-selector,
+body.dark-theme .content-summary .by-month-pagination-wrapper ul li,
+body.dark-theme .order-item,
+body.dark-theme .calc-item,
+body.dark-theme .panel {
+  color: var(--text-color) !important;
+}
+
+body.dark-theme .text-grey,
+body.dark-theme .text-\[\#7b7b7b\],
+body.dark-theme .text-\[\#6B7280\],
+body.dark-theme .task .title,
+body.dark-theme .content-filter .clear-search,
+body.dark-theme .content-filter .search-orders::placeholder {
+  color: var(--text-muted-color) !important;
+}
+
+body.dark-theme .content-summary .by-month-pagination-wrapper ul li:hover,
+body.dark-theme .content-summary .by-month-pagination-wrapper ul .active,
+body.dark-theme .portal-body .content-summary .by-month-pagination-wrapper ul li:hover span:last-child,
+body.dark-theme .portal-body .content-summary .by-month-pagination-wrapper ul .active span:last-child {
+  background-color: rgba(127, 118, 116, 0.26) !important;
+  color: #f5f3f1 !important;
+}
+
+body.dark-theme .content-filter .search-orders,
+body.dark-theme .content-summary .year-selector select,
+body.dark-theme .content-summary .by-month-pagination-wrapper .month-select,
+body.dark-theme .search-orders,
+body.dark-theme .month-select,
+body.dark-theme .year-select-minimal,
+body.dark-theme .input-date,
+body.dark-theme .mobile-input-date,
+body.dark-theme input,
+body.dark-theme select,
+body.dark-theme textarea {
+  background-color: #868179 !important;
+  color: var(--color-primary) !important;
+  border-color: #6e6963 !important;
+}
+
+body.dark-theme .content-filter .search-orders:focus,
+body.dark-theme .content-summary .year-selector select:focus,
+body.dark-theme .content-summary .by-month-pagination-wrapper .month-select:focus,
+body.dark-theme input:focus,
+body.dark-theme select:focus,
+body.dark-theme textarea:focus {
+  outline: none;
+  border-color: #908684 !important;
+  box-shadow: 0 0 0 2px rgba(127, 118, 116, 0.18) !important;
+}
+
+
+
+
+body.dark-theme .timeline ul li .icon,
+body.dark-theme .timeline ul li .badge {
+  background-color: var(--color-highlight) !important;
+}
+
+body.dark-theme .portal-header > .menu > ul > li > .icon,
+body.dark-theme .portal-header > .profile > .icon,
+body.dark-theme .sidebar-header .icon-cross,
+body.dark-theme .btn-add-calc .icon,
+body.dark-theme .btn-select-dealer .icon,
+body.dark-theme .timeline ul li .icon,
+body.dark-theme .date-filter-search-icon {
+  color: #908684 !important;
+}
+
+body.dark-theme .portal-header > .menu > ul > li:hover .icon,
+body.dark-theme .portal-header > .menu > ul > .active .icon,
+body.dark-theme .btn-add-calc:hover .icon,
+body.dark-theme .btn-select-dealer:hover .icon {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .order-files-icon,
+body.dark-theme .date-filter-search-icon img,
+body.dark-theme img.icon-calc-delete {
+  filter: none;
+  opacity: 1;
+}
+
+body.dark-theme .order-files-icon:hover,
+body.dark-theme img.icon-calc-delete:hover {
+  filter: none;
+  opacity: 1;
 }

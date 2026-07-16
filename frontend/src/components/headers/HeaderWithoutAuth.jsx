@@ -1,11 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useTheme } from "../../hooks/useTheme";
 import logo from "../../assets/icons/logo-vst.svg";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function HeaderWithoutAuth() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const exitIcon = "/assets/icons/exit-icon.png";
 
   return (
@@ -29,7 +27,6 @@ export default function HeaderWithoutAuth() {
 
         <div className="flex items-center gap-4 md:gap-6">
           <LanguageSwitcher />
-          
     
           <button
             onClick={() => navigate("/login")}
@@ -39,7 +36,7 @@ export default function HeaderWithoutAuth() {
             <img 
               src={exitIcon} 
               alt="Увійти" 
-              className="w-[20px] md:h-[20px] md:w-[20px] md:h-[20px] object-contain" 
+              className="header-theme-icon w-[20px] md:h-[20px] md:w-[20px] md:h-[20px] object-contain" 
             />
           </button>
           

@@ -307,7 +307,6 @@ export const ReclamationItemMobile = ({
   const deleteIcon  = "/assets/icons/DeleteIcon.png";
 
   const profileReclamation = "/assets/icons/ProfileReclamation.png";
-    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
 
 
   
@@ -499,52 +498,22 @@ export const ReclamationItemMobile = ({
 >
 
   <div 
-    className="font-['Inter'] overflow-hidden" 
+    className="font-['Inter'] overflow-hidden cursor-pointer" 
     style={{ 
       flex: "2 1 0%", 
       minHeight: 0,
       display: "flex",
       alignItems: "flex-start" 
     }}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleViewComments(e, reclamation.comments || []);
+    }}
+    title={t("reclamation.comment_history")}
   >
     <div className="w-full text-[13px] leading-tight text-gray-700 line-clamp-2">
       {reclamation.message || reclamation.firstMessage || t("reclamation.no_comments")}
     </div>
-  </div>
-
- 
-  <div 
-    className="flex items-center justify-end pt-2" 
-    style={{ flex: "1 1 0%", minHeight: 0 }}
-  >
-    <button
-      className="flex items-center bg-transparent border-none p-0 cursor-pointer group"
-      onClick={(e) => {
-        e.stopPropagation(); 
-        handleViewComments(e, reclamation.comments || []);
-      }}
-    >
-      <div className="relative flex items-center">
-       
-        <img 
-          src={historyOfMessage} 
-          alt="Історія" 
-          className={`mr-1 ${
-            reclamation.hasUnreadMessages ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
-                        : "opacity-100"
-          }`} 
-        />
-        
-       
-        {reclamation.hasUnreadMessages && (
-          <span className="absolute -top-0.5 -right-1 w-2 h-2 bg-red-600 rounded-full border border-white" />
-        )}
-      </div>
-
-      <span className="text-[13px] font-['Inter'] text-WS---DarkGrey  ml-1">
-          {t("reclamation.comment_history")}
-      </span>
-    </button>
   </div>
 </div>
 

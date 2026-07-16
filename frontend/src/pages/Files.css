@@ -419,14 +419,14 @@ select.file-input option {
 /* --- Адаптація поля пошуку для темної теми --- */
 body.dark-theme .search-box input[type="text"] {
   /* Колір тексту в полі вводу */
-  color: #f0f0f0 !important;
+  color: #f5f3f1 !important;
   /* Placeholder також робимо світлим, якщо він не встановлений іншим правилом */
 }
 
 /* Якщо ви використовуєте більш специфічний клас для поля пошуку,
    можливо, вам знадобиться: */
 body.dark-theme .content-filter .search-orders {
-  color: #f0f0f0 !important;
+  color: #f5f3f1 !important;
 }
 
 /* ========================================================= */
@@ -435,7 +435,7 @@ body.dark-theme .content-filter .search-orders {
 
 /* 1. Адаптація тексту в полі пошуку (search input text color) */
 body.dark-theme .search-box input[type="text"] {
-  color: #f0f0f0 !important; /* Світлий текст на темному фоні */
+  color: #f5f3f1 !important; /* Світлий текст на темному фоні */
   caret-color: #f46c3b; /* Колір курсору */
 }
 /* Адаптація placeholder */
@@ -465,7 +465,7 @@ body.dark-theme .claim-item {
 }
 /* Забезпечуємо, щоб текст залишався світлим при hover */
 body.dark-theme .claim-item .text-info {
-  color: #ffffff !important;
+  color: #f5f3f1 !important;
 }
 body.dark-theme .claim-item .text-grey {
   color: #dddddd !important;
@@ -487,7 +487,7 @@ body.dark-theme .search-box {
 
 /* ВАЖЛИВО! Це змінює колір тексту в полі пошуку */
 body.dark-theme .search-box input[type="text"] {
-  color: #f0f0f0 !important;
+  color: #f5f3f1 !important;
   caret-color: #f46c3b;
 }
 
@@ -508,7 +508,7 @@ body.dark-theme .file-modal-overlay {
 /* ===== WINDOW ===== */
 body.dark-theme .file-modal-window {
   background: #2b2b2b;
-  color: #f0f0f0;
+  color: #f5f3f1;
   border: 1px solid #444;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
@@ -520,7 +520,7 @@ body.dark-theme .file-modal-header {
 }
 
 body.dark-theme .file-modal-header h3 {
-  color: #ffffff;
+  color: #f5f3f1;
 }
 
 body.dark-theme .file-icon {
@@ -534,7 +534,7 @@ body.dark-theme .file-close-btn {
 }
 
 body.dark-theme .file-close-btn:hover {
-  color: #ffffff;
+  color: #f5f3f1;
   background: #c75628 !important;
 }
 
@@ -551,7 +551,7 @@ body.dark-theme .file-label span {
 body.dark-theme .file-input {
   background: #1f1f1f;
   border: 1px solid #555;
-  color: #ffffff;
+  color: #f5f3f1;
 }
 
 body.dark-theme .file-input::placeholder {
@@ -582,7 +582,7 @@ body.dark-theme .file-btn-cancel:hover {
 
 body.dark-theme .file-btn-save {
   background: #4caf50;
-  color: #ffffff;
+  color: #f5f3f1;
 }
 
 body.dark-theme .file-btn-save:hover {
@@ -600,4 +600,143 @@ body.dark-theme .edit-modal .file-btn-save.edit-btn {
 
 body.dark-theme .edit-modal .file-btn-save.edit-btn:hover {
   background: #fb8c00;
+}
+
+body.dark-theme .file-body {
+  background: #5f5c56;
+  color: #f5f3f1;
+}
+
+body.dark-theme .files-search-input {
+  background: #797e86 !important;
+  border-color: #6e6963 !important;
+  color: #f5f3f1 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+body.dark-theme .files-search-input::placeholder {
+  color: #ddd8d3;
+}
+
+body.dark-theme .files-search-icon {
+  filter: brightness(0) saturate(100%) invert(91%) sepia(10%) saturate(166%) hue-rotate(350deg) brightness(95%) contrast(90%);
+}
+
+body.dark-theme .claim-item,
+body.dark-theme .file-item-dark {
+  background: #868179 !important;
+  border-color: #6e6963 !important;
+  color: #f5f3f1 !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.dark-theme .claim-item .text-info,
+body.dark-theme .claim-item .text-grey,
+body.dark-theme .file-label,
+body.dark-theme .photo-label-text {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .file-modal-overlay {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+body.dark-theme .file-modal-window {
+  background: #868179;
+  color: #f5f3f1;
+  border: 1px solid #6e6963;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+}
+
+body.dark-theme .file-modal-header {
+  background: #4c4644;
+  border-bottom-color: #6e6963;
+  color: #f5f3f1;
+}
+
+body.dark-theme .file-close-btn {
+  color: #f5f3f1;
+  background: transparent !important;
+}
+
+body.dark-theme .file-form,
+body.dark-theme .file-modal-footer {
+  background: #868179;
+}
+
+body.dark-theme .file-modal-footer {
+  border-top-color: #6e6963;
+}
+
+body.dark-theme .file-input,
+body.dark-theme .file-textarea,
+body.dark-theme .file-select,
+body.dark-theme select.file-input,
+body.dark-theme .series-list {
+  background: #797e86;
+  border-color: #6e6963;
+  color: #f5f3f1;
+}
+
+body.dark-theme .file-input::placeholder,
+body.dark-theme .file-textarea::placeholder {
+  color: #ddd8d3;
+}
+
+body.dark-theme .file-input:focus,
+body.dark-theme .file-textarea:focus,
+body.dark-theme .file-select:focus {
+  border-color: var(--WS--DarkBlue);
+  box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.18);
+}
+
+body.dark-theme .series-item {
+  color: #f5f3f1;
+}
+
+body.dark-theme .photo-thumb {
+  border-color: #6e6963;
+}
+
+body.dark-theme .file-btn-cancel {
+  background: var(--WS--DarkBlue);
+  color: #f5f3f1;
+  border: 1px solid rgba(245, 243, 241, 0.14);
+}
+
+body.dark-theme .file-btn-cancel:hover {
+  background: #2f78be;
+}
+
+body.dark-theme .file-btn-save {
+  background: var(--WS---Green);
+  color: #44403e;
+}
+
+body.dark-theme .file-btn-save.edit-btn {
+  background: var(--WS--DarkBlue);
+  color: #f5f3f1;
+}
+
+body.dark-theme .file-btn-save.edit-btn:hover {
+  background: #2f78be;
+}
+
+body.dark-theme .file-btn-save:disabled,
+body.dark-theme .file-btn-save.edit-btn:disabled {
+  color: #f5f3f1;
+  opacity: 0.7;
+}
+
+body.dark-theme .file-btn-save:hover {
+  background: #9bc83f;
+}
+
+body.dark-theme .edit-modal .file-modal-header {
+  background: var(--WS--DarkBlue);
+}
+
+body.dark-theme .edit-modal .file-form,
+body.dark-theme .edit-modal .file-modal-footer {
+  background: #868179;
 }

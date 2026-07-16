@@ -565,6 +565,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send_error("Помилка збереження")
                 return
 
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "message_saved",
+                        "message_id": saved_msg.id,
+                        "timestamp": saved_msg.timestamp.isoformat(),
+                    }
+                )
+            )
+
 
             if recipient_id_1c:
 
@@ -861,4 +871,3 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
         
-

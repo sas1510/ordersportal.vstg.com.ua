@@ -1,0 +1,252 @@
+.orders-reminder-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.46);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10040;
+}
+
+.orders-reminder-window {
+  width: min(720px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  border-top: 5px solid var(--WS---Green);
+}
+
+.orders-reminder-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid #e6e1d8;
+  background: #fffdf9;
+}
+
+.orders-reminder-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.orders-reminder-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(118, 180, 72, 0.16);
+  color: var(--WS---Green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orders-reminder-title {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #44403e;
+}
+
+.orders-reminder-subtitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #7b746b;
+}
+
+.orders-reminder-close {
+  background: transparent;
+  border: none;
+  color: #8a8379;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.orders-reminder-body {
+  padding: 18px 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.orders-reminder-card {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid #e5dfd5;
+  background: #fff;
+}
+
+.orders-reminder-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.orders-reminder-card--confirm .orders-reminder-card-icon {
+  background: rgba(38, 112, 196, 0.12);
+  color: var(--WS--DarkBlue);
+}
+
+.orders-reminder-card--payment .orders-reminder-card-icon {
+  background: rgba(118, 180, 72, 0.14);
+  color: var(--WS---Green);
+}
+
+.orders-reminder-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #44403e;
+}
+
+.orders-reminder-card-count {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5d5750;
+}
+
+.orders-reminder-card-text {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #7b746b;
+}
+
+.orders-reminder-action,
+.orders-reminder-dismiss {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
+.orders-reminder-action--confirm {
+  background: var(--WS--DarkBlue);
+  color: #ffffff;
+}
+
+.orders-reminder-action--payment {
+  background: var(--WS---Green);
+  color: #44403e;
+}
+
+.orders-reminder-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px 20px;
+}
+
+.orders-reminder-footer-question {
+  font-size: 13px;
+  color: #6f685f;
+}
+
+.orders-reminder-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.orders-reminder-dismiss {
+  background: #efebe4;
+  color: #5f584f;
+}
+
+.orders-reminder-stop {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 14px;
+  white-space: nowrap;
+  background: #432424;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .orders-reminder-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orders-reminder-footer-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .orders-reminder-card {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .orders-reminder-action,
+  .orders-reminder-dismiss,
+  .orders-reminder-stop {
+    width: 100%;
+  }
+}
+
+body.dark-theme .orders-reminder-overlay {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+body.dark-theme .orders-reminder-window {
+  background: #868179;
+  border-top-color: var(--WS---Green);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.26);
+}
+
+body.dark-theme .orders-reminder-header {
+  background: #4c4644;
+  border-bottom-color: #6e6963;
+}
+
+body.dark-theme .orders-reminder-title,
+body.dark-theme .orders-reminder-card-title {
+  color: #f5f3f1;
+}
+
+body.dark-theme .orders-reminder-subtitle,
+body.dark-theme .orders-reminder-card-count,
+body.dark-theme .orders-reminder-card-text,
+body.dark-theme .orders-reminder-footer-question {
+  color: #ddd8d3;
+}
+
+body.dark-theme .orders-reminder-close {
+  color: #ddd8d3;
+}
+
+body.dark-theme .orders-reminder-card {
+  background: #797e86;
+  border-color: #6e6963;
+}
+
+body.dark-theme .orders-reminder-dismiss {
+  background: #5f5c56;
+  color: #f5f3f1;
+}
+
+body.dark-theme .orders-reminder-stop {
+  background: #432424;
+  color: #ffffff;
+}

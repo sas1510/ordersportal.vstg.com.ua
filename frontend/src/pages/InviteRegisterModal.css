@@ -109,7 +109,6 @@
 
 .dark-theme .search-1c-input {
   background-color: #2a2a2a;
-  border-color: #3d3d3d;
   color: #ffffff;
 }
 
@@ -136,17 +135,12 @@
 
 .dark-theme .search-results-dropdown-add-user {
   background-color: #2a2a2a;
-  border-color: #3d3d3d;
 }
 
 .search-result-item-add-user {
   padding: 0.75rem;
   cursor: pointer;
   border-bottom: 1px solid #f3f4f6;
-}
-
-.dark-theme .search-result-item-add-user {
-  border-bottom-color: #3d3d3d;
 }
 
 .search-result-item-add-user:hover {
@@ -232,7 +226,6 @@
 
 .dark-theme .form-input-add-user {
   background-color: #2a2a2a;
-  border-color: #3d3d3d;
 }
 
 .input-with-icon-add-user {
@@ -258,10 +251,6 @@
   gap: 0.75rem;
   padding-top: 1rem;
   border-top: 1px solid #e5e7eb;
-}
-
-.dark-theme .form-footer-add-user {
-  border-color: #3d3d3d;
 }
 
 .btn-submit-add-user {

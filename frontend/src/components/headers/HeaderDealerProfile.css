@@ -52,7 +52,7 @@
 .profile-separator-line {
     height: 2px;
     border-top: 1px dashed #D1D5DB;
-    left: 16px;
+    left: 6px;
     position: absolute;
     top: 35px;
     width: 151px;
@@ -132,17 +132,16 @@
 }
 
 body.dark-theme {
-  /* Темна тема */
-  --header-bg: #1A1C1E;
-  --header-text: #E2E2E2;
-  --header-accent: #4A76A8;
-  --header-accent-hover: #3b5d85;
-  --header-decorative: #8CAF2F;
+  --header-bg: #4C4644;
+  --header-text: #F5F3F1;
+  /* --header-accent: #908684; */
+  --header-accent-hover: #ffffff;
+  --header-decorative: #868179;
   --header-active-text: #ffffff;
-  --header-submenu-bg: #25282B;
-  --header-profile-bg: #2D3135;
-  --header-border-dashed: rgba(180, 217, 71, 0.3);
-  --header-mobile-overlay: rgba(0, 0, 0, 0.7);
+  --header-submenu-bg: #868179;
+  --header-profile-bg: #777777;
+  --header-border-dashed: #6E6963;
+  --header-mobile-overlay: rgba(42, 42, 44, 0.68);
 }
 
 .profile-balance-text {

@@ -26,7 +26,7 @@ culationItem.css або загальному стилі) */
 body.dark-theme .calc-item {
   /* Базові стилі, якщо вони не визначені в інших місцях */
   /* border: 1px solid #ddd; */
-  margin-bottom: 3px;
+
   position: relative;
   border-left: 5px solid transparent; /* Базовий прозорий бордер для звичайних елементів */
 }
@@ -104,7 +104,7 @@ body.dark-theme .calc-item .item-summary {
 }
 
 body.dark-theme .separator-border {
-  border-top: 1px dotted #555;
+  border-top: 1px dotted #908684;
 }
 
 
@@ -142,6 +142,179 @@ body.dark-theme .separator-border {
 }
 
 /* Зберігаємо анімацію пульсації для швидкості */
+
+body.dark-theme .calc-item-soft {
+  background-color: #59636d !important;
+}
+
+body.dark-theme .calc-item-soft .item-summary,
+body.dark-theme .calc-item-soft .item-details {
+  color: #f8f9fa !important;
+}
+
+body.dark-theme .calc-item-soft .calc-primary-text,
+body.dark-theme .calc-item-soft .text-WS---DarkGrey,
+body.dark-theme .calc-item-soft .text-dark {
+  color: #f8f9fa !important;
+}
+
+body.dark-theme .calc-item-soft .calc-orders-list {
+  color: #dee2e6 !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---DarkBlue,
+body.dark-theme .calc-item-soft .calc-orders-list,
+body.dark-theme .calc-item-soft .calc-status-icon.text-WS---DarkBlue,
+body.dark-theme .calc-item-soft .calc-status .text-WS---DarkBlue {
+  color: #89b3d8 !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---DarkBlueProfile {
+  color: #89b3d8 !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---DarkPurple {
+  color: #cdbef5 !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---Orange {
+  color: #e6b66f !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---DarkGrey {
+  color: #f8f9fa !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---MiddleGrey {
+  color: #b8b0aa !important;
+}
+
+body.dark-theme .calc-item-soft .text-grey,
+body.dark-theme .calc-item-soft .text-grey-400 {
+  color: #adb5bd !important;
+}
+
+body.dark-theme .calc-item-soft .calc-summary-icon {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+body.dark-theme .calc-item-soft .calc-summary-icon--money {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+body.dark-theme .calc-item-soft .order-summary-icon {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .calc-item-soft .order-summary-icon--accent {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---DarkGreen {
+  color: #b4d947 !important;
+}
+
+body.dark-theme .calc-item-soft .text-WS---DarkRed {
+  color: #ff7a5c !important;
+}
+
+body.dark-theme .calc-item-soft .calc-summary-icon--money-green {
+  filter: invert(83%) sepia(33%) saturate(1028%) hue-rotate(28deg) brightness(95%) contrast(89%) !important;
+}
+
+body.dark-theme .calc-item-soft .calc-summary-icon--money-red {
+  filter: invert(39%) sepia(38%) saturate(1099%) hue-rotate(327deg) brightness(95%) contrast(88%) !important;
+}
+
+body.dark-theme .calc-item-soft .order-summary-icon--money-green {
+  color: #d2ee88 !important;
+}
+
+body.dark-theme .calc-item-soft .order-summary-icon--money-red {
+  color: #ff8f78 !important;
+}
+
+body.dark-theme .calc-item-soft .order-summary-amount-text {
+  color: #c7eb67 !important;
+}
+
+body.dark-theme .calc-item-soft .order-summary-debt-text {
+  color: #ff7a5c !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---DarkBlue,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---DarkBlue,
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---DarkBlueProfile,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---DarkBlueProfile {
+  color: #89b3d8 !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---DarkGreen,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---DarkGreen {
+  color: #b4d947 !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---DarkRed,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---DarkRed {
+  color: #ff7a5c !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---DarkPurple,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---DarkPurple {
+  color: #cdbef5 !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---Orange,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---Orange {
+  color: #e6b66f !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---DarkGrey,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---DarkGrey {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .calc-item-soft .order-status-icon.text-WS---MiddleGrey,
+body.dark-theme .calc-item-soft .order-status-text.text-WS---MiddleGrey {
+  color: #b8b0aa !important;
+}
+
+body.dark-theme .calc-item-soft .order-action-button {
+  color: #f5f3f1 !important;
+}
+
+body.dark-theme .calc-item-soft .order-action-button--confirm {
+  background-color: #868179 !important;
+}
+
+body.dark-theme .calc-item-soft .order-action-button--pay {
+  background-color: #7a942a !important;
+}
+
+body.dark-theme .calc-item-soft .order-action-button--reorder {
+  background-color: #6f8ba7 !important;
+}
+
+body.dark-theme .calc-item-soft .order-action-button--claim {
+  background-color: #9b5a4d !important;
+}
+
+body.dark-theme .calc-item-soft .order-fast-label {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .calc-item-soft .order-fast-icon-wrap {
+  background-color: #7a942a !important;
+}
+
+body.dark-theme .calc-item-soft .order-fast-icon--positive {
+  filter: brightness(0) saturate(100%)
+          invert(52%) sepia(36%) saturate(618%)
+          hue-rotate(74deg) brightness(103%) contrast(96%) !important;
+}
+body.dark-theme .calc-item-soft .order-fast-icon--negative {
+  filter: invert(81%) sepia(31%) saturate(827%) hue-rotate(31deg) brightness(97%) contrast(91%) !important;
+}
 
 
 

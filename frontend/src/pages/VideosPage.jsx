@@ -787,10 +787,10 @@ const VideosPage = () => {
                       </div>
                       <div className="video-card-footer flex justify-between items-start">
                         <div className="flex flex-col">
-                          <div className="font-bold text-[14px] line-clamp-2">
+                          <div className="video-card-title font-bold text-[14px] line-clamp-2">
                             {video.titles?.[i18n.language] || video.titles?.ua}
                           </div>
-                          <div className="text-[12px] text-gray-500 mt-1">
+                          <div className="video-card-date text-[12px] text-gray-500 mt-1">
                             {formatDate(video.created_at)}
                           </div>
                         </div>
@@ -844,7 +844,7 @@ const VideosPage = () => {
           >
             <div className="file-modal-header">
               <h3>{selectedVideo ? t('videos.modals.edit_title') : t('videos.modals.add_title')}</h3>
-              <button onClick={() => setIsModalOpen(false)}>✕</button>
+              <button className="videos-modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
             <form onSubmit={handleSaveVideo} className="claim-form p-4 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
               {/* Поля Назв */}

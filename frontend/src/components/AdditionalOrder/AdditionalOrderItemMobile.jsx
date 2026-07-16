@@ -25,7 +25,6 @@ export const AdditionalOrderItemMobile = ({
         const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
     const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
-    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
     const deleteIcon  = "/assets/icons/DeleteIcon.png";
@@ -283,35 +282,21 @@ export const AdditionalOrderItemMobile = ({
 
   <div className="flex items-stretch justify-between  w-full min-h-[70px] border-bottom pb-1">
 
-<div className="column" style={{ flex: 1, minWidth: 0 }}>
+<div
+  className="column cursor-pointer"
+  style={{ flex: 1, minWidth: 0 }}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleViewComments(calc.comments || []);
+  }}
+  title={t("additional_order.history_button")}
+>
             <div
               className="comments-text-wrapper-last"
               title="Останній коментар / Опис"
             >
               {calc.message || t("additional_order.no_description")}
             </div>
-           
-            <button
-              className="btn-comments row"
-              style={{ 
-                position: "relative", 
-                alignSelf: "flex-end", 
-                marginTop: "auto"     
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleViewComments(calc.comments || []);
-              }}
-            > <img 
-                  src={historyOfMessage} 
-
-                  className={` align-center mr-0.5 ${calc.hasUnreadMessages 
-                        ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
-                        : "opacity-100"}` }
-                
-                />
-              {t("additional_order.history_button")}
-            </button>
           </div>
 
   </div>

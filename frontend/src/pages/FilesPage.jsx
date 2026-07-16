@@ -292,16 +292,16 @@ const FilesPage = () => {
 
 
   const darkStyles = {
-    searchBoxBg: "#333333",
-    searchBoxBorder: "1px dashed #555555",
-    searchBoxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-    iconColor: "#aaaaaa",
-    delimiterBorder: "1px dashed #555",
-    fileItemBg: "#2c2c2c",
-    fileItemBorder: "1px solid #444",
-    fileItemShadow: "0 4px 12px rgba(0,0,0,0.3)",
-    lightTextColor: "#f0f0f0",
-    lightGreyColor: "#aaa",
+    searchBoxBg: "#797E86",
+    searchBoxBorder: "1px solid #6E6963",
+    searchBoxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+    iconColor: "#DDD8D3",
+    delimiterBorder: "1px solid #6E6963",
+    fileItemBg: "#868179",
+    fileItemBorder: "1px solid #6E6963",
+    fileItemShadow: "0 10px 24px rgba(0,0,0,0.18)",
+    lightTextColor: "#F5F3F1",
+    lightGreyColor: "#DDD8D3",
   };
 
   return (
@@ -341,18 +341,18 @@ const FilesPage = () => {
       </button>
     )}
 
-    <div className="relative w-full">
+    <div className="relative w-full files-search-shell">
       <input
         type="text"
         placeholder={t('files.searchPlaceholder')}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full py-2.5 px-11 rounded-[5px] bg-white text-zinc-800 border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-lime-500"
+        className="files-search-input w-full py-2.5 px-11 rounded-[5px] bg-white text-zinc-800 border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-lime-500"
       />
       <img 
         src={searchIcon} 
         alt={t("files.search_alt")} 
-        className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+        className="files-search-icon absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
       />
     </div>
   </div>
@@ -560,7 +560,7 @@ const FilesPage = () => {
           <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
             <div className="file-modal-header">
               <h3>{t('files.buttons.add')}</h3>
-              <button onClick={() => setAddModalOpen(false)}>✕</button>
+              <button className="file-close-btn" onClick={() => setAddModalOpen(false)}>✕</button>
             </div>
             <form className="file-form p-4 column gap-4" onSubmit={handleAddFile}>
               <div className="column gap-2">
@@ -580,8 +580,8 @@ const FilesPage = () => {
                 <input type="file" onChange={e => setNewFile(e.target.files[0])} className="file-input" />
               </div>
               <div className="file-modal-footer">
-                <button type="button" onClick={() => setAddModalOpen(false)}>{t('files.buttons.cancel')}</button>
-                <button type="submit" disabled={loadingAdd}>{loadingAdd ? t("files.buttons.uploading") : t('files.buttons.upload')}</button>
+                <button className="file-btn-cancel" type="button" onClick={() => setAddModalOpen(false)}>{t('files.buttons.cancel')}</button>
+                <button className="file-btn-save" type="submit" disabled={loadingAdd}>{loadingAdd ? t("files.buttons.uploading") : t('files.buttons.upload')}</button>
               </div>
             </form>
           </div>
@@ -590,10 +590,10 @@ const FilesPage = () => {
 
      {editModalOpen && (
         <div className="file-modal-overlay" onClick={() => setEditModalOpen(false)}>
-          <div className="file-modal-window" onClick={(e) => e.stopPropagation()}>
+          <div className="file-modal-window edit-modal" onClick={(e) => e.stopPropagation()}>
             <div className="file-modal-header">
               <div className="header-content"><FaEdit className="mr-2" /><h3>{t('files.buttons.edit')}</h3></div>
-              <button onClick={() => setEditModalOpen(false)}>✕</button>
+              <button className="file-close-btn" onClick={() => setEditModalOpen(false)}>✕</button>
             </div>
             <form className="file-form p-4 column gap-4" onSubmit={handleEditConfirm}>
               <div className="column gap-1"><label>{t("files.labels.title_ua")}</label><input type="text" value={editTitles.ua} onChange={e => setEditTitles({...editTitles, ua: e.target.value})} className="file-input" required /></div>
@@ -601,8 +601,8 @@ const FilesPage = () => {
               <div className="column gap-1"><label>{t("files.labels.title_de")}</label><input type="text" value={editTitles.de} onChange={e => setEditTitles({...editTitles, de: e.target.value})} className="file-input" /></div>
               <div className="column gap-1"><label>{t("files.labels.change_file_optional")}</label><input type="file" onChange={e => setEditNewFile(e.target.files[0])} className="file-input" /></div>
               <div className="file-modal-footer">
-                <button type="button" onClick={() => setEditModalOpen(false)}>{t('files.buttons.cancel')}</button>
-                <button type="submit" disabled={loadingEdit}>{loadingEdit ? t("files.buttons.saving") : t('files.buttons.save')}</button>
+                <button className="file-btn-cancel" type="button" onClick={() => setEditModalOpen(false)}>{t('files.buttons.cancel')}</button>
+                <button className="file-btn-save edit-btn" type="submit" disabled={loadingEdit}>{loadingEdit ? t("files.buttons.saving") : t('files.buttons.save')}</button>
               </div>
             </form>
           </div>

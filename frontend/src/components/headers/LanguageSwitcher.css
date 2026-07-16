@@ -60,3 +60,25 @@
   background: #6b98bf;
   color: #ffffff;
 }
+
+body.dark-theme .language-dropdown-btn {
+  border-color: #6e6963;
+  background: #868179;
+  color: #f5f3f1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+body.dark-theme .language-dropdown-menu {
+  background: #868179;
+}
+
+body.dark-theme .language-dropdown-item {
+  background: #868179;
+  color: #f5f3f1;
+}
+
+body.dark-theme .language-dropdown-item:hover,
+body.dark-theme .language-dropdown-item.active {
+  background: #908684;
+  color: #ffffff;
+}

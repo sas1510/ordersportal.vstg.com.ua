@@ -300,7 +300,7 @@ export default React.memo(function OrderItemSummaryMobile({
           
 
           <div className="flex flex-[2] items-center pr-1  border-right shrink-0">
-             <img src={listCalcIcon} className="align-center mr-2"  alt="" />
+             <img src={listCalcIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
             <div className="flex  flex-col gap-[6px] no-wrap w-full">
   
               <div className="text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight">
@@ -314,7 +314,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
             <div className="flex flex-col items-center pt-2 justify-center pr-2 border-right flex-1">
               <div className="flex items-center gap-2 no-wrap">
-                <img src={windowsIcon} className="align-center mr-2"  alt="" />
+                <img src={windowsIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
                 <span className="font-size-24 font-bold text-WS---DarkBlue">
                   {order.count}
                 </span>
@@ -328,7 +328,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
             >
        
-             <img src={fileIcon} className="align-center mr-2"  alt="" />
+             <img src={fileIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
             
               <div className="text-[13px] text-dark">{t("order_mobile.labels.files")}</div>
             </div>
@@ -341,9 +341,9 @@ export default React.memo(function OrderItemSummaryMobile({
   
   {/* 1. Сума замовлення */}
   <div className="flex items-center gap-2 pr-1 border-right  flex-1">
-    <img src={moneyGreen} className=" mr-1" alt="" />
+    <img src={moneyGreen} className="mr-1 calc-summary-icon--money-green" alt="" />
     <div className="flex flex-col">
-      <div className="text-WS---DarkGreen text-[14px] font-bold leading-tight">
+      <div className="text-WS---DarkGreen order-summary-amount-text text-[14px] font-bold leading-tight">
         {formatMoney2(order.amount, order.currency)}
       </div>
       <div className="text-grey text-[8px]"> {t("order_mobile.labels.order_amount")}</div>
@@ -353,9 +353,9 @@ export default React.memo(function OrderItemSummaryMobile({
   {/* 2. Сума боргу */}
   <div className="flex items-center gap-2 px-1 border-right flex-1">
     {/* Тут використовуємо червону іконку монет, якщо вона є, або ту саму */}
-    <img src={moneyRed} className="mr-1" alt="" /> 
+    <img src={moneyRed} className="mr-1 calc-summary-icon--money-red" alt="" /> 
     <div className="flex flex-col">
-      <div className="text-WS---DarkRed  text-[14px] font-bold leading-tight">
+      <div className="text-WS---DarkRed order-summary-debt-text text-[14px] font-bold leading-tight">
         {formatMoney2(debtAmount, order.currency)}
       </div>
       <div className="text-grey text-[8px]">{t("order_mobile.labels.debt_amount")}</div>
@@ -364,8 +364,8 @@ export default React.memo(function OrderItemSummaryMobile({
 
   {/* 3. Статус */}
 <div className="flex items-center gap-2 pl-3 flex-1">
-  <span className={`icon-info-with-circle font-size-24 mr-2 shrink-0 ${getStatusClass(order.status)}`}></span>
-  <div className={`font-size-14 leading-tight ${getStatusClass(order.status)}`}>
+  <span className={`icon-info-with-circle font-size-24 mr-2 shrink-0 order-status-icon ${getStatusClass(order.status)}`}></span>
+  <div className={`font-size-14 leading-tight order-status-text ${getStatusClass(order.status)}`}>
     {translatedStatus}
   </div>
 </div>
@@ -407,7 +407,7 @@ export default React.memo(function OrderItemSummaryMobile({
       <>
         {/* Підтвердити */}
         <button
-          className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+          className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
           disabled={!buttonState.confirm}
           onClick={openConfirmModal}
         >
@@ -416,7 +416,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
         {/* Сплатити */}
         <button
-          className="h-[31px] flex items-center font-['Inter']  justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+          className="h-[31px] flex items-center font-['Inter']  justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--pay"
           disabled={!buttonState.pay}
           onClick={openPaymentModal}
         >
@@ -429,7 +429,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
     {/* Дозамовлення */}
     <button
-      className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkBlue text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+      className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkBlue text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--reorder"
       disabled={!buttonState.reorder}
       onClick={(e) => {
         e.stopPropagation();
@@ -441,7 +441,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
     {/* Рекламація */}
     <button
-      className="h-[31px] flex items-center font-['Inter']  justify-center  px-2 bg-WS---DarkRed text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50"
+      className="h-[31px] flex items-center font-['Inter']  justify-center  px-2 bg-WS---DarkRed text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--claim"
       disabled={!buttonState.claim}
       onClick={(e) => {
         e.stopPropagation();
@@ -462,21 +462,15 @@ export default React.memo(function OrderItemSummaryMobile({
     }
   >
     {dateDiffStatus === null ? null : (
-      <div className="bg-white p-1 rounded-sm overflow-hidden flex items-center justify-center">
+      <div className="order-fast-icon-wrap bg-white p-1 rounded-sm overflow-hidden flex items-center justify-center">
         <img 
           src={speedIcon} 
           alt="Іконка швидкості"
-          className=" block"
-          style={{ 
-
-            filter: dateDiffStatus
-              ? 'invert(34%) sepia(87%) saturate(372%) hue-rotate(33deg) brightness(95%) contrast(91%)' /* Зелений #5A7302 */
-              : 'invert(38%) sepia(58%) saturate(651%) hue-rotate(325deg) brightness(90%) contrast(85%)'  /* Червоний #BC553D */
-          }}
+          className={`block order-fast-icon ${dateDiffStatus ? "order-fast-icon--positive" : "order-fast-icon--negative"}`}
         />
       </div>
     )}
-    <span className="text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
+    <span className="order-fast-label text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
       <>
         {t("order_mobile.fast_order.title_1")}
         <br />

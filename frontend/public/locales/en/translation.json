@@ -354,9 +354,15 @@
       "error_message_4": "Please select a delivery address",
       "error_message_5": "Please select a client address",
       "error_message_6": "Creation error:",
+      "error_message_8": "Update error:",
       "error_message_7": "Address not selected",
       "order_created": "Calculation №{{orderNumber}} has been created ✅",
+      "order_updated": "Calculation №{{orderNumber}} has been updated ✅",
       "order_create": "Create new calculation",
+      "order_edit": "Edit calculation",
+      "order_number_label": "Order number",
+      "order_number_placeholder": "PO-2026-154 (optional)",
+      "order_number_hint": "Fill it in if you use your own numbering.",
       "dealer": "Dealer:",
       "myAddress": "My address",
       "clientAddress": "Client address",
@@ -369,6 +375,7 @@
       "comment": "Comment:",
       "cancel": "Cancel",
       "creating": "Creating...",
+      "updating": "Updating...",
       "save": "Save",
       "repeat": "RETRY"
     },
@@ -734,7 +741,12 @@
       "load_more_admin": "Load more ({{next}} of {{total}})",
       "all_loaded": "All calculations loaded ({{count}}).",
       "delete_calc_allowed": "Delete calculation",
+      "edit_calc_allowed": "Edit calculation",
+      "edit_calc_disallowed": "Editing is available only before orders are created",
+      "delete_calc_disallowed": "Cannot delete: orders exist",
       "delete_cal_disallowed": "Cannot delete: orders exist",
+      "request_order_refusal": "Request order refusal",
+      "order_refusal_unavailable": "No orders are available for refusal",
       "constructions": "Constructions",
       "orders": "Orders",
       "hide_orders": "Hide orders",
@@ -789,6 +801,44 @@
     "errors": {
       "server_error": "Server returned an error while updating data.",
       "connection_error": "Failed to update data. Check your connection."
+    },
+    "daily_reminder": {
+      "title": "Daily reminder",
+      "subtitle": "You have orders that need attention today.",
+      "count_line": "Orders in this status: {{count}}",
+      "show_tomorrow": "Show this reminder again tomorrow?",
+      "waiting_confirm": {
+        "title": "Awaiting confirmation",
+        "description": "Review the orders that still need to be confirmed."
+      },
+      "waiting_payment": {
+        "title": "Awaiting payment",
+        "description": "Check the orders that are still waiting for payment."
+      },
+      "actions": {
+        "open": "Open",
+        "close": "Close",
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "order_refusal": {
+      "title": "Order refusal",
+      "subtitle": "Select the orders for which you want to send a refusal request to the manager.",
+      "close": "Close",
+      "no_eligible_orders": "There are no orders in this calculation with the statuses New, Awaiting confirmation, or Awaiting payment.",
+      "select_all": "Select all",
+      "unselect_all": "Clear selection",
+      "selected_count": "Selected: {{count}}",
+      "cancel": "Cancel",
+      "submit": "Send refusal",
+      "sending": "Sending...",
+      "success": "The refusal request has been sent to the manager.",
+      "errors": {
+        "select_one": "Select at least one order.",
+        "manager_missing": "Could not determine the manager for this calculation.",
+        "send_failed": "Failed to send the refusal request."
+      }
     }
   },
   "complaints": {

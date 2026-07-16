@@ -67,6 +67,7 @@ class MessageCreateSerializer(serializers.Serializer):
 
 
 class CalculationCreateSerializer(serializers.Serializer):
+    contractor_guid = serializers.UUIDField(required=False, allow_null=True)
     order_number = serializers.CharField(required=False, allow_blank=True, default="")
     items_count = serializers.IntegerField(min_value=1)
     comment = serializers.CharField(required=False, allow_blank=True, default="")
@@ -91,6 +92,27 @@ class CalculationCreateSerializer(serializers.Serializer):
         child=PhotoFileSerializer(),
         required=False,
         default=[]
+    )
+
+
+class CalculationUpdateSerializer(serializers.Serializer):
+    contractor_guid = serializers.UUIDField(required=False, allow_null=True)
+    order_number = serializers.CharField(required=False, allow_blank=True)
+    items_count = serializers.IntegerField(min_value=1, required=False)
+    comment = serializers.CharField(required=False, allow_blank=True)
+
+    delivery_address_guid = serializers.UUIDField(required=False, allow_null=True)
+    delivery_address_coordinates = serializers.DictField(
+        required=False, allow_null=True
+    )
+    client_address = serializers.DictField(
+        required=False, allow_null=True
+    )
+
+    file = PhotoFileSerializer(required=False, allow_null=True)
+    photos = serializers.ListField(
+        child=PhotoFileSerializer(),
+        required=False,
     )
 
 

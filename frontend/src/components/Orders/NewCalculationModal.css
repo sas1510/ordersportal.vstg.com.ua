@@ -169,6 +169,22 @@
   font-weight: 500;
 }
 
+.new-calc-label-row--order-number {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.new-calc-label-row--order-number .new-calc-field-title {
+  white-space: normal;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.new-calc-label-row--order-number .new-calc-input {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
 .new-calc-input,
 .new-calc-input-number {
   border: 1px solid #ccc;

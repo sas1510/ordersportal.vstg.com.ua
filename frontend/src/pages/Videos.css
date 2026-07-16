@@ -347,3 +347,83 @@
 .tiktok-big .video-thumbnail iframe {
   aspect-ratio: 9 / 16;
 }
+
+body.dark-theme .videos-container {
+  background: #5f5c56;
+  color: #f5f3f1;
+}
+
+body.dark-theme .videos-sidebar,
+body.dark-theme .videos-sidebar-toggle,
+body.dark-theme .social-widget-no-grid,
+body.dark-theme .video-card-footer {
+  background: #868179;
+  color: #f5f3f1;
+}
+
+body.dark-theme .videos-sidebar,
+body.dark-theme .videos-sidebar-toggle,
+body.dark-theme .video-card-footer,
+body.dark-theme .social-widget-no-grid {
+
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+body.dark-theme .videos-category-item {
+  color: #f5f3f1;
+  border-bottom-color: #6e6963;
+}
+
+body.dark-theme .videos-category-item.active {
+  background: var(--WS--DarkBlue);
+  color: #f5f3f1;
+}
+
+body.dark-theme .videos-sidebar-toggle span,
+body.dark-theme .videos-sidebar-mobile-header,
+body.dark-theme .widget-header,
+body.dark-theme .video-card-title {
+  color: #f5f3f1;
+}
+
+body.dark-theme .video-card-date {
+  color: #ddd8d3;
+}
+
+body.dark-theme .videos-sidebar-mobile-header button,
+body.dark-theme .videos-modal-close {
+  color: #f5f3f1;
+}
+
+body.dark-theme .videos-modal-close {
+  background: transparent;
+  border: none;
+}
+
+body.dark-theme .search-orders {
+  background: #797e86;
+  border-color: #6e6963;
+  color: #f5f3f1;
+}
+
+body.dark-theme .search-orders::placeholder {
+  color: #ddd8d3;
+}
+
+body.dark-theme .submenu-divider-dashed {
+  border-top-color: #ddd8d3;
+  opacity: 0.35;
+}
+
+body.dark-theme .menu-divider-dashed {
+  border-top-color: var(--WS---Green);
+  opacity: 0.55;
+}
+
+body.dark-theme .border-round-active {
+  border-color: var(--WS--DarkBlue);
+}
+
+body.dark-theme .sidebar-overlay-videos {
+  background: rgba(0, 0, 0, 0.55);
+}

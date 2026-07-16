@@ -39,7 +39,11 @@ from drf_spectacular.utils import (
 
 from users.models import CustomUser
 from .models import ChatMessage, TransactionType
-from .serializers import ChatMessageSerializer, CalculationCreateSerializer
+from .serializers import (
+    ChatMessageSerializer,
+    CalculationCreateSerializer,
+    CalculationUpdateSerializer,
+)
 from .utils import get_author_from_1c
 from backend.authentication import OneCApiKeyAuthentication
 from backend.permissions import (
@@ -696,6 +700,7 @@ def get_orders_by_period_and_contractor(
                 ),
                 "file": row.get("AllFileNames") or "",
                 "fileName": row.get("AllFileNames") or "",
+                "sourceComment": row.get("CalcComment") or "",
                 "message": row.get("CalcComment"),
                 "manager": (
                     bin_to_guid_1c(manager_value)
@@ -894,6 +899,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "deliveryAddresses": row.get("DeliveryAddresses") or row.get('OrderAddress') or '', 
                 "file": row.get("AllFileNames") or '',
                 "fileName": row.get("AllFileNames") or '',
+                "sourceComment": row.get("CalcComment") or "",
                 "message": row.get("CalcComment"),
                 "manager": bin_to_guid_1c(row.get("Manager")),
                 "currency": row.get("Currency"),
@@ -2417,6 +2423,7 @@ def orders_view_all_by_month(request):
                         ),
                         "file": row.get("AllFileNames") or "",
                         "fileName": row.get("AllFileNames") or "",
+                        "sourceComment": row.get("CalcComment") or "",
                         "message": row.get("Message"),
                         "manager": bin_to_guid_1c(
                             row.get("Manager")
@@ -2948,6 +2955,104 @@ def build_1c_payload(
 
     return payload
 
+
+def build_1c_update_payload(
+    *,
+    calculation_guid,
+    order_number=None,
+    items_count=None,
+    comment=None,
+    delivery_address_guid=None,
+    delivery_address_coordinates=None,
+    client_address: dict | None = None,
+    file_name=None,
+    file_b64=None,
+    photos=None,
+    include_order_number=False,
+    include_items_count=False,
+    include_comment=False,
+    include_address=False,
+    include_recipient=False,
+):
+    if photos is None:
+        photos = []
+
+    payload = {
+        "calculations": [
+            {
+                "calculationGUID": str(calculation_guid),
+            }
+        ]
+    }
+
+    calc = payload["calculations"][0]
+
+    if include_order_number:
+        calc["calculationNumber"] = order_number or ""
+
+    if include_items_count and items_count is not None:
+        calc["itemsCount"] = int(items_count)
+
+    if include_comment:
+        calc["comment"] = comment or ""
+
+    all_files = []
+
+    if file_b64:
+        actual_file_name = file_name or f"calculation_{calculation_guid}.bin"
+        file_ext = get_file_extension(actual_file_name)
+        all_files.append({
+            "fileName": actual_file_name,
+            "fileDataB64": file_b64,
+            "fileExtension": file_ext,
+            "fileDataType": "Calculation"
+        })
+
+    for photo in photos:
+        photo_name = photo.get("fileName") or "photo.jpg"
+        photo_ext = get_file_extension(photo_name, "JPG")
+        all_files.append({
+            "fileName": photo_name,
+            "fileDataB64": photo["fileDataB64"],
+            "fileExtension": photo_ext,
+            "fileDataType": "Photo"
+        })
+
+    if all_files:
+        calc["file"] = all_files
+
+    if include_address and delivery_address_guid:
+        coords = delivery_address_coordinates or {}
+
+        calc["address"] = {
+            "addressGUID": str(delivery_address_guid),
+            "addressCoordinates": {
+                "lat": safe_float(coords.get("lat")),
+                "lng": safe_float(coords.get("lng")),
+            },
+        }
+    elif include_address and client_address:
+        address_name = build_address_name(client_address)
+
+        calc["address"] = {
+            "addressGUID": None,
+            "addressName": address_name,
+            "addressCoordinates": {
+                "lat": safe_float(client_address.get("lat")),
+                "lng": safe_float(client_address.get("lng")),
+            },
+            "addressAdditionalInfo": client_address.get("note", "") or "",
+        }
+
+        if include_recipient:
+            calc["recipient"] = {
+                "recipientName": client_address.get("full_name"),
+                "recipientPhone": client_address.get("phone"),
+                "recipientAddionalInformation": client_address.get("extra_info", "") or "",
+            }
+
+    return payload
+
 def extract_calculation_guid(result) -> str | None:
     if not isinstance(result, dict):
         return None
@@ -3433,6 +3538,145 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 "result_1c": result,
             },
             status=status.HTTP_201_CREATED,
+        )
+
+
+@extend_schema(
+    summary="Оновлення прорахунку до формування замовлень",
+    description=(
+        "Оновлює прорахунок у 1С, якщо на його основі ще не сформовані замовлення.\n\n"
+        "Фронтенд надсилає той самий набір полів, що і при створенні, але основний файл є необов'язковим."
+    ),
+    request=CalculationUpdateSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "calculation_guid": {"type": "string", "format": "uuid"},
+                "payload_sent_to_1c": {"type": "object"},
+                "result_1c": {"type": "object"}
+            }
+        },
+        400: {"description": "Помилка валідації або відмова 1С"}
+    },
+    tags=["order"]
+)
+class UpdateCalculationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, calculation_guid):
+        serializer = CalculationUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        raw_data = request.data
+
+        include_order_number = "order_number" in raw_data
+        include_items_count = "items_count" in raw_data
+        include_comment = "comment" in raw_data
+        include_address = (
+            "delivery_address_guid" in raw_data
+            or "delivery_address_coordinates" in raw_data
+            or "client_address" in raw_data
+        )
+        include_recipient = "client_address" in raw_data
+        include_file = "file" in raw_data
+        include_photos = "photos" in raw_data
+
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+            )
+        except (ValueError, PermissionError) as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        file_data = (data.get("file") or {}) if include_file else {}
+        photos = data.get("photos", []) if include_photos else []
+
+        payload = build_1c_update_payload(
+            calculation_guid=calculation_guid,
+            order_number=data.get("order_number"),
+            items_count=data.get("items_count"),
+            comment=data.get("comment"),
+            delivery_address_guid=data.get("delivery_address_guid"),
+            delivery_address_coordinates=data.get("delivery_address_coordinates"),
+            client_address=data.get("client_address"),
+            file_name=file_data.get("fileName"),
+            file_b64=file_data.get("fileDataB64"),
+            photos=photos,
+            include_order_number=include_order_number,
+            include_items_count=include_items_count,
+            include_comment=include_comment,
+            include_address=include_address,
+            include_recipient=include_recipient,
+        )
+
+        if len(payload["calculations"][0].keys()) == 1:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Не передано жодного поля для оновлення.",
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        try:
+            auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
+            auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
+
+            response = requests.post(
+                settings.ONE_C_URL,
+                json=payload,
+                headers={
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Authorization": f"Basic {auth_b64}",
+                    "Query": "UpdateCalculation"
+                },
+                timeout=30,
+                verify=settings.ONE_C_VERIFY_SSL,
+            )
+            response.raise_for_status()
+            result = response.json()
+        except Exception as exc:
+            logger.error(
+                "1C Integration Failed during update_calculation",
+                exc_info=True,
+                extra={
+                    "tags": {
+                        "service": "1c-api",
+                        "action": "update_calculation",
+                        "calculation_guid": str(calculation_guid),
+                        "contractor_guid": str(contractor_guid),
+                    }
+                },
+            )
+            raise exc
+
+        if not result.get("success", True):
+            return Response(
+                {
+                    "success": False,
+                    "error": result.get("error") or "1С повернула помилку під час оновлення прорахунку",
+                    "result_1c": result,
+                    "payload_sent_to_1c": payload,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {
+                "success": True,
+                "calculation_guid": str(calculation_guid),
+                "payload_sent_to_1c": payload,
+                "result_1c": result,
+            },
+            status=status.HTTP_200_OK,
         )
 
 

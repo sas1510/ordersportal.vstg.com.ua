@@ -2,61 +2,316 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .dataTables_wrapper .dataTables_paginate .paginate_button {
-  @apply px-3 py-1 mx-1 rounded-lg border border-gray-300 text-gray-700 bg-white cursor-pointer transition;
+  @apply mx-1 cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1 text-gray-700 transition;
 }
 
-/* Ховер */
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-  @apply bg-blue-500 text-white border-blue-500;
+  @apply border-blue-500 bg-blue-500 text-white;
 }
 
-/* Активна кнопка (поточна сторінка) */
 .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  @apply bg-blue-600 text-white border-blue-600 font-semibold;
+  @apply border-blue-600 bg-blue-600 font-semibold text-white;
 }
 
-/* Disabled кнопки (наприклад, "Попередня" на першій сторінці) */
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-  @apply opacity-50 cursor-not-allowed bg-gray-200 text-gray-500;
+  @apply cursor-not-allowed bg-gray-200 text-gray-500 opacity-50;
 }
 
-/* Глобальні стилі для СВІТЛОЇ ТЕМИ (за замовчуванням) */
-body {
-  background-color: #f0f2f5;
-  color: #333;
-  transition:
-    background-color 0.3s,
-    color 0.3s; /* Додаємо плавний перехід */
+:root {
+  --background-color: #f0f2f5;
+  --text-color: #333333;
+  --text-muted-color: #6b7280;
+  --card-background: #ffffff;
+  --card-background-soft: #f8fafc;
+  --card-background-strong: #eef3f8;
+  --border-color: #d9e0e8;
+  --border-color-strong: #c8d2dd;
+  --input-bg: #ffffff;
+  --input-border: #cfd8e3;
+  --input-text: #1f2937;
+  --input-placeholder: #94a3b8;
+  --table-header-bg: #eef3f8;
+  --table-row-hover: #f3f8fd;
+  --surface-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  --modal-overlay-bg: rgba(15, 23, 42, 0.28);
+  --accent-color: #6b98bf;
+  --accent-hover: #5a86ae;
+  --accent-soft: rgba(107, 152, 191, 0.14);
+  --success-soft: rgba(108, 163, 82, 0.16);
+  --warning-soft: rgba(212, 169, 72, 0.16);
+  --danger-soft: rgba(201, 91, 91, 0.14);
 }
 
-/* Глобальні стилі для ТЕМНОЇ ТЕМИ */
 body.dark-theme {
-  background-color: #1a1a1a; /* Дуже темний фон */
-  color: #e0e0e0; /* Світлий текст */
+  --color-primary: #f5f3f1;
+  --color-secondary: #ddd8d3;
+  --color-accent: #908684;
+  --color-highlight: #868179;
+  /* --color-muted: #5f5c56; */
+  --color-muted: #4C4644;
+  --background-color: var(--color-muted);
+  --text-color: #f5f3f1;
+  --text-muted-color: #ddd8d3;
+  --card-background: #868179;
+  --card-background-soft: #868179;
+  --card-background-strong: #908684;
+  --border-color: #6e6963;
+  --border-color-strong: #7a746d;
+  --input-bg: #868179;
+  --input-border: #6e6963;
+  --input-text: #f5f3f1;
+  --input-placeholder: #ddd8d3;
+  --table-header-bg: #868179;
+  --table-row-hover: rgba(127, 118, 116, 0.2);
+  --surface-shadow: 0 14px 30px rgba(0, 0, 0, 0.26);
+  --modal-overlay-bg: rgba(39, 40, 44, 0.52);
+  --accent-color: #908684;
+  --accent-hover: #7f7674;
+  --accent-soft: rgba(144, 134, 132, 0.2);
+  --success-soft: rgba(144, 134, 132, 0.16);
+  --warning-soft: rgba(67, 36, 36, 0.18);
+  --danger-soft: rgba(67, 36, 36, 0.16);
+  --disabled-color: #a39c94;
 }
 
-/* Приклади для полів і контейнерів */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+body.dark-theme {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+#main {
+  background-color: transparent;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--input-text);
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder);
+}
+
 .dark-theme input,
 .dark-theme select,
 .dark-theme textarea {
-  background-color: #333;
-  color: #e0e0e0;
-  border-color: #555;
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--input-text);
 }
 
-/* Приклад, якщо ви використовуєте CSS-змінні */
-:root {
-  --background-color: #f0f2f5;
-  --text-color: #333;
-  --card-background: #ffffff;
+body.dark-theme .portal-body,
+
+body.dark-theme .panel,
+body.dark-theme .calc-item,
+
+body.dark-theme .claim-item,
+body.dark-theme .reclamation-item,
+body.dark-theme .customer-bills-panel,
+body.dark-theme .wds-codes-panel,
+body.dark-theme .wds-card,
+body.dark-theme .analytics-card,
+body.dark-theme .pp-order-card,
+body.dark-theme .production-panel,
+body.dark-theme .invite-panel,
+body.dark-theme .info-panel,
+body.dark-theme .form-panel,
+body.dark-theme .stat-card,
+body.dark-theme .info-box,
+body.dark-theme .tech-cycle-card,
+body.dark-theme .value-card,
+body.dark-theme .media-section,
+body.dark-theme .cta-section,
+body.dark-theme .video-card,
+body.dark-theme .notifications-list,
+body.dark-theme .notification-item,
+body.dark-theme .comments-modal-window,
+body.dark-theme .confirm-window,
+body.dark-theme .bill-modal-window,
+body.dark-theme .pay-modal-window,
+body.dark-theme .claim-modal-window,
+body.dark-theme .file-modal-window,
+body.dark-theme .photo-modal-window,
+body.dark-theme .portal-api-key-modal-window,
+body.dark-theme .api-keys-window,
+body.dark-theme .change-pass-modal,
+body.dark-theme .deactivate-modal,
+body.dark-theme .invite-info-card,
+body.dark-theme .preview-error-card,
+body.dark-theme .support-chat-window,
+body.dark-theme .customer-bills-panel,
+body.dark-theme .minimal-detail-table,
+body.dark-theme .detail-row-card {
+  background: var(--card-background);
+  color: var(--text-color);
 }
 
-.dark-theme {
-  --background-color: #1a1a1a;
-  --text-color: #e0e0e0;
-  --card-background: #2c2c2c;
+
+
+body.dark-theme .search-box,
+
+body.dark-theme .dealer-select__control,
+body.dark-theme .dealer-select__dropdown,
+body.dark-theme .dealer-select__search,
+body.dark-theme .status-dropdown,
+body.dark-theme .status-selected,
+body.dark-theme .month-select,
+body.dark-theme .year-select-minimal,
+body.dark-theme .mobile-header,
+body.dark-theme .mobile-filters,
+body.dark-theme .table-wrapper,
+body.dark-theme .analytics-table-container,
+body.dark-theme .qr-inline-panel,
+body.dark-theme .qr-modal-body {
+  background: var(--card-background);
+  color: var(--text-color);
 }
 
-/* Тепер ви можете використовувати ці змінні у всіх ваших компонентах! */
+body.dark-theme table,
+body.dark-theme .payments-table,
+body.dark-theme .analytics-table,
+body.dark-theme .minimal-detail-table,
+body.dark-theme .wds-table,
+body.dark-theme .api-keys-table {
+  background: var(--card-background);
+  color: var(--text-color);
+}
+
+body.dark-theme th,
+body.dark-theme .payments-table th,
+body.dark-theme .analytics-table th,
+body.dark-theme .minimal-detail-table th,
+body.dark-theme .wds-table th,
+body.dark-theme .api-keys-table th {
+  background: var(--table-header-bg);
+  color: var(--text-color);
+}
+
+body.dark-theme tbody tr:hover,
+body.dark-theme .payments-table tbody tr:hover,
+body.dark-theme .analytics-table tbody tr:hover,
+body.dark-theme .minimal-detail-table tbody tr:hover,
+body.dark-theme .wds-table tbody tr:hover,
+body.dark-theme .api-keys-table tbody tr:hover,
+body.dark-theme .dealer-select__option:hover,
+body.dark-theme .status-item:hover,
+body.dark-theme .pagination-item:hover,
+body.dark-theme .mobile-doc-main:hover,
+body.dark-theme .clickable-subcard:hover {
+  background: var(--table-row-hover);
+}
+
+body.dark-theme .comments-modal-overlay,
+body.dark-theme .claim-modal-overlay,
+body.dark-theme .file-modal-overlay,
+body.dark-theme .photo-modal-overlay,
+body.dark-theme .pay-modal-overlay,
+body.dark-theme .bill-modal-overlay,
+body.dark-theme .portal-api-key-modal-overlay,
+body.dark-theme .api-keys-overlay,
+body.dark-theme .deactivate-modal-overlay,
+body.dark-theme .qr-modal-overlay,
+body.dark-theme .support-drawer-overlay,
+body.dark-theme .notification-drawer-overlay {
+  background: var(--modal-overlay-bg);
+}
+
+body.dark-theme .btn,
+body.dark-theme button:not(.no-theme),
+body.dark-theme .btn-filter,
+body.dark-theme .btn-create,
+body.dark-theme .btn-load-more-big,
+body.dark-theme .btn-add-calc,
+body.dark-theme .btn-select-dealer {
+}
+
+body.dark-theme .bg-white,
+body.dark-theme .background-white,
+body.dark-theme .bg-\[\#FFFFFF\],
+body.dark-theme .bg-\[\#fff\] {
+  background-color: var(--card-background) !important;
+}
+
+body.dark-theme .text-black,
+body.dark-theme .text-dark,
+body.dark-theme .text-\[\#44403E\],
+body.dark-theme .text-\[\#234461\],
+body.dark-theme .text-WS---DarkGrey {
+  color: var(--text-color) !important;
+}
+
+body.dark-theme .text-grey,
+body.dark-theme .text-grey-400,
+body.dark-theme .text-\[\#7b7b7b\],
+body.dark-theme .text-\[\#6B7280\] {
+  color: var(--text-muted-color) !important;
+}
+
+body.dark-theme .loading-spinner-wrapper,
+body.dark-theme .portal-loader,
+body.dark-theme .error-empty-state {
+  background:
+    radial-gradient(circle at top left, rgba(144, 134, 132, 0.16), transparent 30%),
+    linear-gradient(180deg, #67635d 0%, #5f5c56 100%);
+}
+
+body.dark-theme .pagination-item,
+body.dark-theme .month-select,
+body.dark-theme .year-select-minimal,
+body.dark-theme .search-orders,
+body.dark-theme .mobile-input-date,
+body.dark-theme .input-date {
+  background: var(--input-bg);
+  color: var(--input-text);
+}
+
+body.dark-theme .portal-body *::-webkit-scrollbar-track,
+body.dark-theme *::-webkit-scrollbar-track {
+  background: #67645e;
+}
+
+body.dark-theme .portal-body *::-webkit-scrollbar-thumb,
+body.dark-theme *::-webkit-scrollbar-thumb {
+  background: #908684;
+}
+
+body.dark-theme .header-theme-toggle {
+  background: #908684 !important;
+  border-color: #6e6963 !important;
+  color: #f5f3f1 !important;
+}
+
+body.dark-theme .header-theme-toggle:hover {
+  background: #7f7674 !important;
+  color: #ffffff !important;
+}
+
+body.dark-theme .header-theme-icon {
+  filter: brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(230%) hue-rotate(340deg) brightness(94%) contrast(91%);
+}

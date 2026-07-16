@@ -3,23 +3,22 @@ import React, { useState, useCallback, useMemo } from "react";
 import OrderItemSummaryMobile from "./OrderItemSummaryMobile";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
-import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
 import {
-  formatDateTimeShort,
+  formatDateTimeShort_2,
 } from "../../utils/formatters";
 
 import { useNotification } from "../../hooks/useNotification";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
-
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTranslation } from "react-i18next";
 import OrderFilesPreviewModal from "./OrderFilesPreviewModal";
 import OrderNumbersListModal from "./OrderNumbersListModal";
+import OrderRefusalModal from "./OrderRefusalModal";
 
 export const CalculationItemMobile = React.memo(
-  ({ calc, onDelete, _onEdit, onMarkAsRead, reloadCalculations }) => {
+  ({ calc, onDelete, onEdit, onMarkAsRead, reloadCalculations }) => {
     //
     const {t, i18n} = useTranslation();
     const locale = i18n.language;
@@ -30,6 +29,7 @@ export const CalculationItemMobile = React.memo(
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
     const [isOrderNumbersOpen, setIsOrderNumbersOpen] = useState(false);
+    const [isOrderRefusalOpen, setIsOrderRefusalOpen] = useState(false);
     
 
     const { addNotification } = useNotification();
@@ -39,7 +39,6 @@ export const CalculationItemMobile = React.memo(
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
     const moneyCalcIcon = "/assets/icons/MoneyCalcIcon.png";
-    const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
     const deleteIcon  = "/assets/icons/DeleteIcon.png";
@@ -141,6 +140,16 @@ export const CalculationItemMobile = React.memo(
       }, 0);
     }, [orderList]);
 
+    const refusableOrders = useMemo(() => {
+      const allowedStatuses = new Set([
+        "Новий",
+        "Очікуємо підтвердження",
+        "Очікуємо оплату",
+      ]);
+
+      return orderList.filter((order) => allowedStatuses.has(order.status));
+    }, [orderList]);
+
     const orderNumbers = useMemo(() => {
       return orderList
         .map((order) => String(order.number).trim())
@@ -156,7 +165,16 @@ export const CalculationItemMobile = React.memo(
     }, [orderNumbers.length, visibleOrderNumbers.length]);
 
     const statusEntries = useMemo(() => {
-      return calc.statuses ? Object.entries(calc.statuses) : [];
+      const entries =
+        calc.statuses && typeof calc.statuses === "object"
+          ? Object.entries(calc.statuses)
+          : [];
+
+      if (entries.length === 0) {
+        return [["Новий", null]];
+      }
+
+      return entries;
     }, [calc.statuses]);
 
 
@@ -215,17 +233,31 @@ export const CalculationItemMobile = React.memo(
   
 
 <div className="basis-2/5  flex flex-col justify-center items-center pr-2 border-right shrink-0">
-  <div className="flex flex-col w-full text-start gap-[6px] no-wrap ">
-    
-
-    <div className="text-base font-bold w-full text-start pb-1 text-WS---DarkGrey border-bottom leading-tight w-fit no-wrap">
-      № {calc.number}
-    </div>
-    
-    <div className="text-xs test-start text-WS---DarkGrey no-wrap">
-      {formatDateTimeShort(calc.date, locale)}
+  <div className="flex flex-col w-full text-start gap-[6px]">
+    <div className="w-full text-start pb-1 text-[12px] font-semibold text-WS---DarkGrey border-bottom leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+      {formatDateTimeShort_2(calc.date, locale)}
     </div>
 
+    <div className="flex flex-col pt-0.5">
+      <span className="text-[10px] text-grey leading-none">
+        {t("portal_calc.ui.calculation_number")}
+      </span>
+      <div
+        className="text-[13px] font-bold text-start text-WS---DarkGrey leading-tight"
+        style={{
+          maxWidth: "120px",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          whiteSpace: "normal",
+          wordBreak: "break-all",
+        }}
+        title={`№ ${calc.number}`}
+      >
+        № {calc.number}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -239,10 +271,12 @@ export const CalculationItemMobile = React.memo(
         return (
           <div key={status} className={`flex items-center gap-1 ${statusClass}`}>
 
-            <span className="icon-info-with-circle text-[20px] shrink-0 mr-2"></span>
+            <span className="icon-info-with-circle text-[20px] shrink-0 mr-1"></span>
             
-            <span className="text-[13px] font-normal">
-              {t(`statuses.${status}`, status)} ({count})
+            <span className="text-[12px] font-normal">
+              {count == null
+                ? t(`statuses.${status}`, status)
+                : `${t(`statuses.${status}`, status)} (${count})`}
             </span>
           </div>
         );
@@ -272,18 +306,38 @@ export const CalculationItemMobile = React.memo(
 >
   <img 
     src={deleteIcon} 
-    alt="Видалити" 
+    alt={
+      !hasOrders
+        ? t("portal_calc.ui.delete_calc_allowed")
+        : refusableOrders.length > 0
+          ? t("portal_calc.ui.request_order_refusal")
+          : t("portal_calc.ui.order_refusal_unavailable")
+    }
     onClick={(e) => {
       e.stopPropagation();
-      if (!hasOrders) setIsDeleteModalOpen(true);
+      if (!hasOrders) {
+        setIsDeleteModalOpen(true);
+        return;
+      }
+
+      if (refusableOrders.length > 0) {
+        setIsOrderRefusalOpen(true);
+      }
     }}
     className={` transition-all
-      ${hasOrders 
+      ${hasOrders && refusableOrders.length === 0
         ? "opacity-20 grayscale cursor-not-allowed" 
         : "cursor-pointer active:scale-95 hover:brightness-110 icon-calc-delete"
       }`} 
-    title={hasOrders ?  t("portal_calc.ui.delete_calc_disallowed") : t("portal_calc.ui.delete_calc_allowed")}
+    title={
+      !hasOrders
+        ? t("portal_calc.ui.delete_calc_allowed")
+        : refusableOrders.length > 0
+          ? t("portal_calc.ui.request_order_refusal")
+          : t("portal_calc.ui.order_refusal_unavailable")
+    }
   />
+
 </div>
 
 </div>
@@ -292,21 +346,10 @@ export const CalculationItemMobile = React.memo(
 <div className="flex items-stretch justify-between mb-3 w-full min-h-[70px] border-bottom pb-1">
   
 
-  <div className="basis-1/5 flex flex-col items-center justify-center  border-right">
-    <div className="flex items-center gap-2">
-      <img src={windowsIcon} className="align-center mr-2"  alt="" />
-      <span className="font-size-24 font-bold text-WS---DarkBlue">
-        {calc.constructionsQTY}
-      </span>
-    </div>
-    <span className="text-grey text-[10px] mt-1">{t("portal_calc.ui.constructions")}</span>
-  </div>
-
- 
 <div className="basis-1/5 flex min-w-0 flex-col items-center justify-center overflow-hidden border-right">
   {orderNumbers.length === 0 ? (
     <div className="flex items-center gap-2">
-      <img src={listCalcIcon} className="mr-1" alt="" />
+      <img src={listCalcIcon} className="mr-1 calc-summary-icon" alt="" />
       <span className="font-size-24 font-bold text-WS---DarkBlue">
         0
       </span>
@@ -314,7 +357,16 @@ export const CalculationItemMobile = React.memo(
   ) : (
     <div className="flex w-full flex-col items-center overflow-hidden text-[10px] leading-tight text-WS---DarkBlue font-bold">
       {visibleOrderNumbers.map((number) => (
-        <span key={number} className="block w-full truncate text-center">
+        <span
+          key={number}
+          className="block w-full overflow-hidden break-all text-center leading-[1.1]"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+          }}
+          title={number}
+        >
           {number}
         </span>
       ))}
@@ -339,10 +391,20 @@ export const CalculationItemMobile = React.memo(
   </span>
 </div>
 
+  <div className="basis-1/5 flex flex-col items-center justify-center border-right">
+    <div className="flex items-center gap-2">
+      <img src={windowsIcon} className="align-center mr-2 calc-summary-icon" alt="" />
+      <span className="font-size-24 font-bold text-WS---DarkBlue">
+        {calc.constructionsQTY}
+      </span>
+    </div>
+    <span className="text-grey text-[10px] mt-1">{t("portal_calc.ui.constructions")}</span>
+  </div>
+
 
   <div className="flex items-center pl-3 flex-[2.5]">
     
-    <img src={moneyCalcIcon} className="mr-1" alt="" />
+    <img src={moneyCalcIcon} className="mr-1 calc-summary-icon calc-summary-icon--money-green" alt="" />
     
     <div className="flex flex-col w-full">
  
@@ -365,30 +427,19 @@ export const CalculationItemMobile = React.memo(
 <div className="flex items-stretch justify-between mb-3 w-full min-h-[70px] border-bottom pb-2 gap-4">
   
 
-  <div className="flex pr-4 border-right flex-[1.9]" onClick={(e) => e.stopPropagation()}> 
+  <div
+    className="flex pr-4 border-right flex-[1.9] cursor-pointer"
+    onClick={(e) => {
+      e.stopPropagation();
+      handleViewComments(calc.comments || []);
+    }}
+    title={t("calc.comment_history")}
+  > 
 
     <div className="flex flex-col h-full justify-between">
       <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
         {calc.message || calc.firstMessage ||  t("calc.no_comments")}
       </div>
-      
-      <button
-        className="btn-comments flex items-center gap-1.5 p-0 bg-transparent border-0"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleViewComments(calc.comments || []);
-        }}
-      >
-        <img 
-          src={historyOfMessage} 
-          alt="Chat History"
-          className={`align-center mr-0.5 max-w-[20px] max-h-[20px] transition-all duration-300 ${
-            calc.hasUnreadMessages 
-              ? "invert-[60%] sepia-[50%] saturate-[1500%] hue-rotate-[120deg] brightness-[100%] contrast-[100%]"
-              : "opacity-70"
-          }`} />
-        <span className="text-[13px]">{t("calc.comment_history")}</span>
-      </button>
     </div>
   </div>
 
@@ -407,7 +458,7 @@ export const CalculationItemMobile = React.memo(
           setIsFilesModalOpen(true); // Відкриваємо модалку замість прямого завантаження
         }}
       >
-        <img src={fileIcon} className="w-[16px] h-[20px] mr-1.5" alt="" />
+        <img src={fileIcon} className="w-[16px] h-[20px] mr-1.5 calc-summary-icon" alt="" />
         <div className="text-[13px] text-WS---DarkGrey">
           {calc.file ? t('nav.files')
                         : t('calc.no_file')}
@@ -423,7 +474,7 @@ export const CalculationItemMobile = React.memo(
             setIsCounterpartyOpen(true);
           }}
         >
-          <img src={recipientIcon} className={`mr-1 ${recipientIconClass}`} alt="" />
+          <img src={recipientIcon} className={`mr-1 calc-summary-icon ${recipientIconClass}`} alt="" />
           <span className="text-[13px] text-WS---DarkGrey">
             {isAdmin ? calc.dealer : t("calc.recipient_label")}
           </span>
@@ -525,6 +576,16 @@ export const CalculationItemMobile = React.memo(
           isOpen={isOrderNumbersOpen}
           onClose={() => setIsOrderNumbersOpen(false)}
           numbers={orderNumbers}
+        />
+        <OrderRefusalModal
+          isOpen={isOrderRefusalOpen}
+          onClose={() => setIsOrderRefusalOpen(false)}
+          calculationGuid={calc.id}
+          recipientGuid={isAdmin ? calc.dealerId : calc.manager}
+          orders={refusableOrders}
+          onSubmitted={() => {
+            reloadCalculations?.();
+          }}
         />
 
 

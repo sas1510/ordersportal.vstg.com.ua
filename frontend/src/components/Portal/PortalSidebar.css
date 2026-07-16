@@ -187,31 +187,14 @@
 body.dark-theme .content-filter-payment {
   background-color: #1a1a1a !important;
   color: #f0f0f0;
-  border-right: 1px dashed #555;
-}
-
-body.dark-theme .sidebar-header-payment {
-  border-bottom: 1px dashed #555;
 }
 
 body.dark-theme .content-filter-payment .search-orders {
   background-color: #383838;
   color: #f0f0f0;
-  border: 1px dashed #555;
 }
 
 body.dark-theme .content-filter-payment .search-orders::placeholder {
   color: #aaaaaa;
 }
-
-body.dark-theme .content-filter-payment .filter li {
-  color: #f0f0f0;
-}
-
-body.dark-theme .content-filter-payment .filter li:hover,
-body.dark-theme .content-filter-payment .filter li.active {
-  background-color: #383838;
-  border: 1px dashed #555;
-}
-
 

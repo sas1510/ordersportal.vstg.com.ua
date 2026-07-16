@@ -37,10 +37,6 @@ body.dark-theme .background-danger-light {
   color: #ffcdd2 !important; /* м’який рожевий текст */
 }
 
-/* Для загального контенту у бейджах */
-body.dark-theme .badge-content {
-  color: #e0e0e0 !important; /* базовий світлий текст */
-}
 
 /* Якщо у бейджів є певний фон — зробимо контрастні відтінки тексту */
 body.dark-theme .badge-content.background-success-light {

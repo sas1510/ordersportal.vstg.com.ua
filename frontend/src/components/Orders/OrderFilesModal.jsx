@@ -12,6 +12,7 @@ import {
   FaImage,
   FaFileArchive,
   FaEye,
+  FaExternalLinkAlt,
 } from "react-icons/fa";
 
 import "./OrderFilesPreviewModal.css";
@@ -39,6 +40,9 @@ const OrderFilesModal = ({
 
   const isPreviewableFile = (fileName = "") => {
     const ext = getFileExtension(fileName);
+    if (ext === "zkz") {
+      return false;
+    }
     return [
       "pdf",
       "jpg",
@@ -150,20 +154,48 @@ const OrderFilesModal = ({
     setPreviewLoading(false);
   };
 
+  const buildFileDownloadUrl = (fileItem) => {
+    return entityType === "calculation"
+      ? "/orders/" + orderGuid + "/files/" + fileItem.fileGuid + "/download_calc/?filename=" + encodeURIComponent(fileItem.fileName)
+      : "/order/" + orderGuid + "/files/" + fileItem.fileGuid + "/download/?filename=" + encodeURIComponent(fileItem.fileName);
+  };
+
+  const fetchFileBlob = async (fileItem) => {
+    const response = await axiosInstance.get(buildFileDownloadUrl(fileItem), {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"] || "application/octet-stream",
+    });
+
+    return { blob, response };
+  };
+
+  const handleOpenPreviewInNewWindow = () => {
+    if (!previewUrl) {
+      return;
+    }
+
+    const openedWindow = window.open("", "_blank");
+    if (!openedWindow) {
+      addNotification(
+        t("orders.filesPreview.open_window_blocked", {
+          defaultValue: "Браузер заблокував нове вікно",
+        }),
+        "warning",
+      );
+      return;
+    }
+
+    openedWindow.location.href = previewUrl;
+    openedWindow.opener = null;
+  };
+
   const handleFileAction = async (fileItem) => {
     setDownloadingFileGuid(fileItem.fileGuid);
     try {
-      const url = entityType === "calculation"
-        ? "/orders/" + orderGuid + "/files/" + fileItem.fileGuid + "/download_calc/?filename=" + encodeURIComponent(fileItem.fileName)
-        : "/order/" + orderGuid + "/files/" + fileItem.fileGuid + "/download/?filename=" + encodeURIComponent(fileItem.fileName);
-
-      const response = await axiosInstance.get(url, {
-        responseType: "blob",
-      });
-
-      const blob = new Blob([response.data], {
-        type: response.headers["content-type"] || "application/octet-stream",
-      });
+      const { blob, response } = await fetchFileBlob(fileItem);
 
       if (isPreviewableFile(fileItem.fileName)) {
         const nextPreviewUrl = window.URL.createObjectURL(blob);
@@ -203,6 +235,42 @@ const OrderFilesModal = ({
       console.error("File action error:", error);
       addNotification(t("orders.downloadFileError"), "error");
       handleClosePreview();
+    } finally {
+      setDownloadingFileGuid(null);
+    }
+  };
+
+  const handleOpenFileInNewWindow = async (fileItem) => {
+    const openedWindow = window.open("", "_blank");
+    if (!openedWindow) {
+      addNotification(
+        t("orders.filesPreview.open_window_blocked", {
+          defaultValue: "Браузер заблокував нове вікно",
+        }),
+        "warning",
+      );
+      return;
+    }
+
+    setDownloadingFileGuid(fileItem.fileGuid);
+    try {
+      const { blob } = await fetchFileBlob(fileItem);
+      const objectUrl = window.URL.createObjectURL(blob);
+      openedWindow.location.href = objectUrl;
+      openedWindow.opener = null;
+
+      window.setTimeout(() => {
+        window.URL.revokeObjectURL(objectUrl);
+      }, 60000);
+    } catch (error) {
+      openedWindow.close();
+      console.error("Open file in new window error:", error);
+      addNotification(
+        t("orders.filesPreview.open_window_error", {
+          defaultValue: "Не вдалося відкрити файл у новому вікні",
+        }),
+        "error",
+      );
     } finally {
       setDownloadingFileGuid(null);
     }
@@ -254,6 +322,7 @@ const OrderFilesModal = ({
 
   const renderFileCard = (file) => {
     const isDownloading = downloadingFileGuid === file.fileGuid;
+    const isPreviewable = isPreviewableFile(file.fileName);
 
     return (
       <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : /\.(jpg|jpeg|png|webp)$/i.test(file.fileName) ? 'card-image' : 'card-other'}`}>
@@ -266,20 +335,38 @@ const OrderFilesModal = ({
             </span>
           </div>
         </div>
-        <button 
-          className="file-action-btn" 
-          disabled={isDownloading}
-          onClick={() => handleFileAction(file)}
-          title={isPreviewableFile(file.fileName) ? "Відкрити" : t("common.download")}
-        >
-          {isDownloading ? (
-            <FaSpinner className="spinner-animation" />
-          ) : isPreviewableFile(file.fileName) ? (
-            <FaEye />
-          ) : (
-            <FaDownload />
+        <div className="file-card-actions">
+          {isPreviewable && (
+            <>
+              <button
+                className="file-action-btn"
+                disabled={isDownloading}
+                onClick={() => handleFileAction(file)}
+                title={t("common.open", { defaultValue: "Відкрити" })}
+              >
+                {isDownloading ? <FaSpinner className="spinner-animation" /> : <FaEye />}
+              </button>
+              <button
+                className="file-action-btn"
+                disabled={isDownloading}
+                onClick={() => handleOpenFileInNewWindow(file)}
+                title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+              >
+                <FaExternalLinkAlt />
+              </button>
+            </>
           )}
-        </button>
+          {!isPreviewable && (
+            <button
+              className="file-action-btn"
+              disabled={isDownloading}
+              onClick={() => handleFileAction(file)}
+              title={t("common.download")}
+            >
+              {isDownloading ? <FaSpinner className="spinner-animation" /> : <FaDownload />}
+            </button>
+          )}
+        </div>
       </div>
     );
   };
@@ -366,6 +453,13 @@ const OrderFilesModal = ({
             </div>
             <div className="file-preview-body">{renderPreviewContent()}</div>
             <div className="file-preview-footer">
+              <button
+                className="preview-btn-secondary-footer"
+                onClick={handleOpenPreviewInNewWindow}
+              >
+                <FaExternalLinkAlt />
+                <span>{t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}</span>
+              </button>
               <button className="preview-btn-close-footer" onClick={handleClosePreview}>
                 {t("common.close")}
               </button>
