@@ -1,5 +1,6 @@
 import { useTheme } from "../../hooks/useTheme";
 import "./HeaderDealerProfile.css"; 
+import { AppIcon } from "../Icons/AppIcon";
 
 // Приймаємо дані через props
 export default function HeaderDealerProfile({ balance, currency, fullName }) {
@@ -32,7 +33,8 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
 >
   {formatName(fullName)}
 </div>
-        <img className="profile-img-icon" alt="Profile" src={profileIcon} />
+        {/* <img className="profile-img-icon" alt="Profile" src={profileIcon} /> */}
+        <AppIcon name="ProfileUserHeader" className="profile-img-icon"/>
 
         <div className="profile-separator-line" />
 
@@ -42,7 +44,9 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
              {currency || "грн"}
           </span>
         </div>
-        <img className="profile-money-img-icon" alt="Money" src={moneyIcon} />
+        {/* <img className="profile-money-img-icon" alt="Money" src={moneyIcon} /> */}
+
+        <AppIcon name="money" className="profile-money-img-icon" />
       </div>
     </div>
   );

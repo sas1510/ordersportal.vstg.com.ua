@@ -1496,30 +1496,34 @@ def admin_deactivate_user_view(request, user_id):
     start_time = time.time()
     admin_user = request.user
 
-    # 🔐 Перевірка прав
     if request.user.role != "admin":
         logger.warning(f"Unauthorized deactivation attempt by {admin_user.username}")
         return Response({"detail": "Доступ заборонено"}, status=403)
 
-    # 🔎 Отримуємо користувача
+    if admin_user.id == user_id:
+        return Response({"detail": "Не можна деактивувати власний акаунт"}, status=400)
+
     try:
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
         return Response({"detail": "Користувача не знайдено"}, status=404)
 
-    # 🟥 Деактивуємо
-    user.is_active = False
+    if not user.is_active:
+        return Response({
+            "detail": "Користувач вже деактивований",
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "full_name": user.full_name,
+                "email": user.email,
+                "role": user.role,
+                "is_active": user.is_active,
+                "expire_date": user.expire_date,
+            }
+        }, status=200)
 
-    # Уникаємо помилок із datetime → date
-    if user.expire_date and hasattr(user.expire_date, "date"):
-        try:
-            user.expire_date = user.expire_date.date()
-        except Exception as e:
-            logger.error(f"Error converting expire_date for {user.username}: {str(e)}")
-            
-        
-
-    user.save()
+    CustomUser.objects.filter(id=user_id).update(is_active=False)
+    user.refresh_from_db()
 
     duration = time.time() - start_time
     logger.info(f"ADMIN {admin_user.username} DEACTIVATED user {user.username}", extra={
@@ -1531,7 +1535,6 @@ def admin_deactivate_user_view(request, user_id):
         }
     })
 
-    # 📤 Відповідь
     return Response({
         "detail": "Користувача деактивовано",
         "user": {
@@ -1543,6 +1546,60 @@ def admin_deactivate_user_view(request, user_id):
             "is_active": user.is_active,
             "expire_date": user.expire_date,
         }
+    }, status=200)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def admin_delete_user_view(request, user_id):
+    """
+    Повне видалення користувача порталу.
+    Доступ тільки для admin.
+    """
+
+    start_time = time.time()
+    admin_user = request.user
+
+    if request.user.role != "admin":
+        logger.warning(f"Unauthorized delete attempt by {admin_user.username}")
+        return Response({"detail": "Доступ заборонено"}, status=403)
+
+    if admin_user.id == user_id:
+        return Response({"detail": "Не можна видалити власний акаунт"}, status=400)
+
+    try:
+        user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    deleted_snapshot = {
+        "id": user.id,
+        "username": user.username,
+        "full_name": user.full_name,
+        "email": user.email,
+        "role": user.role,
+    }
+
+    try:
+        with transaction.atomic():
+            user.delete()
+    except Exception as exc:
+        logger.error(f"Error deleting user {deleted_snapshot['username']}: {str(exc)}", exc_info=True)
+        return Response({"detail": "Не вдалося видалити користувача"}, status=400)
+
+    duration = time.time() - start_time
+    logger.info(f"ADMIN {admin_user.username} DELETED user {deleted_snapshot['username']}", extra={
+        'tags': {
+            'action': 'admin_delete_user',
+            'admin': admin_user.username,
+            'target_user': deleted_snapshot['username'],
+            'duration_sec': round(duration, 3)
+        }
+    })
+
+    return Response({
+        "detail": "Користувача повністю видалено",
+        "user": deleted_snapshot,
     }, status=200)
 
 
@@ -1609,18 +1666,19 @@ from django.db import connection
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 
-
 @extend_schema(
-    summary="Користувачі порталу дилерів",
+    summary="Доступні користувачі порталу дилерів",
     description=(
-        "Повертає список **користувачів порталу дилерів**.\n\n"
-        "📌 Дані беруться з SQL-процедури **dbo.GetDealerPortalUsers**.\n\n"
-        "🧾 Поле **ContractorID** повертається у форматі **GUID** (string).\n\n"
-        "🔐 **Доступ:**\n"
-        "- **Admin (JWT)**\n"
-        "- **1C API Key**\n\n"
-        "❗ Перевірка прав доступу виконується виключно через permission "
-        "**IsAdminJWTOr1CApiKey**."
+        "Повертає список користувачів порталу дилерів відповідно до ролі "
+        "авторизованого користувача.\n\n"
+        "📌 Дані беруться з SQL-процедури "
+        "**dbo.GetDealerPortalUsers_2**.\n\n"
+        "Правила доступу:\n"
+        "- **admin**, **director** — усі активні дилери порталу;\n"
+        "- **manager** — закріплені за менеджером дилери;\n"
+        "- **region_manager** — закріплені за регіональним менеджером дилери;\n"
+        "- **dealer**, **customer** — лише власний контрагент.\n\n"
+        "🧾 Поле **ContractorID** повертається у форматі GUID."
     ),
     tags=["Dealer information"],
     auth=[
@@ -1629,44 +1687,109 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
     exclude=True
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWT])
+@permission_classes([IsAuthenticated])
 def get_dealer_portal_users(request):
     start_time = time.time()
- 
-    logger.info("Fetching dealer portal users via SQL", extra={
-        'tags': {'action': 'get_portal_users', 'user': request.user.username if request.user else 'unknown'}
-    })
+
+    requester_user_id = request.user.id
+    requester_username = request.user.username
+    requester_role = getattr(request.user, "role", None)
+
+    logger.info(
+        "Fetching available dealer portal users via SQL",
+        extra={
+            "tags": {
+                "action": "get_portal_users",
+                "user_id": requester_user_id,
+                "user": requester_username,
+                "role": requester_role,
+            }
+        },
+    )
 
     try:
         with connection.cursor() as cursor:
-            cursor.execute("EXEC dbo.GetDealerPortalUsers")
-            columns = [col[0] for col in cursor.description]
+            cursor.execute(
+                """
+                EXEC dbo.GetDealerPortalUsers_2
+                    @RequesterUserID = %s
+                """,
+                [requester_user_id],
+            )
+
+            columns = [column[0] for column in cursor.description]
             rows = cursor.fetchall()
 
         data = []
+
         for row in rows:
             record = dict(zip(columns, row))
-            if record.get("ContractorID"):
-                record["ContractorID"] = bin_to_guid_1c(record["ContractorID"])
+
+            contractor_id = record.get("ContractorID")
+
+            if contractor_id:
+                # BINARY(16) із бази 1С
+                if isinstance(contractor_id, (bytes, bytearray, memoryview)):
+                    record["ContractorID"] = bin_to_guid_1c(
+                        bytes(contractor_id)
+                    )
+                else:
+                    # Якщо драйвер уже повернув UUID/рядок
+                    record["ContractorID"] = str(contractor_id)
+
+            main_manager_id = record.get("MainManagerID")
+
+            if main_manager_id:
+                if isinstance(
+                    main_manager_id,
+                    (bytes, bytearray, memoryview),
+                ):
+                    record["MainManagerID"] = bin_to_guid_1c(
+                        bytes(main_manager_id)
+                    )
+                else:
+                    record["MainManagerID"] = str(main_manager_id)
+
             data.append(record)
 
         duration = time.time() - start_time
-        logger.info(f"Successfully fetched {len(data)} portal users", extra={
-            'tags': {
-                'action': 'get_portal_users',
-                'duration_sec': round(duration, 3),
-                'count': len(data)
-            }
-        })
+
+        logger.info(
+            "Successfully fetched available dealer portal users",
+            extra={
+                "tags": {
+                    "action": "get_portal_users",
+                    "user_id": requester_user_id,
+                    "role": requester_role,
+                    "duration_sec": round(duration, 3),
+                    "count": len(data),
+                }
+            },
+        )
 
         return Response(data)
-    
-    except Exception as e:
-        logger.error(f"Error executing GetDealerPortalUsers: {str(e)}", exc_info=True)
-        return Response({"error": "Internal database error"}, status=500)
-    
 
+    except Exception as exc:
+        duration = time.time() - start_time
 
+        logger.error(
+            "Error executing GetDealerPortalUsers_2: %s",
+            str(exc),
+            exc_info=True,
+            extra={
+                "tags": {
+                    "action": "get_portal_users",
+                    "user_id": requester_user_id,
+                    "role": requester_role,
+                    "duration_sec": round(duration, 3),
+                }
+            },
+        )
+
+        return Response(
+            {"error": "Internal database error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 

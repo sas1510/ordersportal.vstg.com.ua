@@ -92,7 +92,7 @@ body.dark-theme .order-item-details .timeline ul li .icon.text-success {
 }
 
 body.dark-theme .order-item-details .timeline ul li .icon.text-danger {
-  color: #ef4444 !important;
+  color: #ff7a5c !important;
 }
 
 body.dark-theme .order-item-details .timeline ul li .icon.text-warning {
@@ -109,4 +109,9 @@ body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkGreen {
 
 body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkRed {
   color: #ff7a5c !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon svg path,
+body.dark-theme .order-item-details .timeline ul li .icon svg rect {
+  fill: currentColor !important;
 }

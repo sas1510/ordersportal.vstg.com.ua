@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+﻿import { useState, useCallback } from "react";
 import axiosInstance from "../api/axios";
 import { useNotification } from "../hooks/useNotification";
 import { Settings, X, Save, Eraser } from "lucide-react";
@@ -51,16 +51,19 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
 
       onUpdated();
       onClose();
-    } catch (e) {
+    } catch (error) {
       if (process.env.NODE_ENV === "development") {
-        console.error("Error updating user:", e);
+        console.error("Error updating user:", error);
       }
 
-      addNotification("Помилка при оновленні даних", "error");
+      addNotification(
+        error?.response?.data?.detail || error?.response?.data?.error || "Помилка при оновленні даних",
+        "error",
+      );
     } finally {
       setIsSaving(false);
     }
-  }, [form, user.id, onUpdated, onClose, hasChanges, isSaving , addNotification]);
+  }, [form, user.id, onUpdated, onClose, hasChanges, isSaving, addNotification]);
 
   return (
     <div className="portal-user-edit-modal-overlay" onClick={onClose}>
@@ -68,7 +71,6 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
         className="portal-user-edit-modal-window"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
         <div className="portal-user-edit-modal-header">
           <div className="portal-user-edit-header-content">
             <div className="portal-user-edit-icon">
@@ -83,7 +85,6 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
           </button>
         </div>
 
-        {/* BODY */}
         <div className="portal-user-edit-form">
           <div className="portal-user-edit-grid">
             <label className="portal-user-edit-label">
@@ -136,21 +137,16 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
                 onChange={handleChange}
                 className="portal-user-edit-select"
               >
-                <option value="admin">Адмін</option>
+                <option value="admin">Адміністратор</option>
                 <option value="manager">Менеджер</option>
+                <option value="region_manager">Регіональний менеджер</option>
+                <option value="director">Директор</option>
+                <option value="complaint_manager">Менеджер рекламацій</option>
+                <option value="operator">Оператор</option>
                 <option value="customer">Дилер</option>
+                <option value="dealer">Дилер</option>
               </select>
             </label>
-            {/* 
-            <label className="portal-user-label">
-              <span>ID 1С</span>
-              <input
-                name="user_id_1C"
-                value={form.user_id_1C}
-                onChange={handleChange}
-                className="portal-user-input"
-              />
-            </label> */}
 
             <label className="portal-user-edit-label">
               <span>Дата закінчення доступу</span>
@@ -162,17 +158,6 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
                 className="portal-user-edit-input"
               />
             </label>
-
-            {/* <label className="portal-user-label">
-              <span>ID Старого Порталу</span>
-              <input
-                name="old_portal_id"
-                type="number"
-                value={form.old_portal_id}
-                onChange={handleChange}
-                className="portal-user-input"
-              />
-            </label> */}
 
             <label className="portal-user-edit-label portal-user-edit-checkbox-row">
               <input
@@ -196,7 +181,6 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
           </div>
         </div>
 
-        {/* FOOTER */}
         <div className="portal-user-edit-modal-footer">
           <button className="portal-user-edit-btn-cancel" onClick={onClose}>
             <Eraser size={18} />

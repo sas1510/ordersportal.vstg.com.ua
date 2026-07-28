@@ -308,10 +308,14 @@ import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../context/AuthContext";
 import axiosInstance from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { useTheme } from "../../hooks/useTheme";
 import HeaderUserProfile from "./HeaderUserProfile";
 import logo from "../../assets/icons/logo-vst.svg";
+import logoDark from "../../assets/icons/logo-vst-dark.svg";
 import "./HeaderAdmin.css";
 import LanguageSwitcher from './LanguageSwitcher';
+import { AppIcon } from "../Icons/AppIcon";
 
 // const NAV_LINKS = [
 //   { title: "Акції WDS", to: "/promo-wds-codes" },
@@ -337,15 +341,18 @@ import LanguageSwitcher from './LanguageSwitcher';
 // ];
 
 export default function HeaderAdmin() {
-
+  const { isAdmin } = useAuthGetRole();
   const isMobile = useMediaQuery({ maxWidth: 1460 }); 
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
   const { t } = useTranslation();
   const { addNotification } = useNotification();
+  const { theme, toggleTheme } = useTheme();
+  const currentLogo = theme === "dark" ? logoDark : logo;
 
   const NAV_LINKS = useMemo(() => [
+    { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order" },
     { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation" },
@@ -360,12 +367,15 @@ export default function HeaderAdmin() {
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
   ], [t]);
 
-  const SETTINGS_SUBMENU = useMemo(() => [
-    { title: t('nav.settings_users'), to: "/users-list" },
-    { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
-    { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
-    { title: t('nav.settings_emergency_contacts'), to: "/emergency-contacts" },
-  ], [t]);
+  const SETTINGS_SUBMENU = useMemo(() => (
+    isAdmin
+      ? [
+          { title: t('nav.settings_users'), to: "/users-list" },
+          { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
+          { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
+        ]
+      : []
+  ), [isAdmin, t]);
 
   // --- UI СТАН ---
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -454,8 +464,12 @@ export default function HeaderAdmin() {
   }, []);
 
   useEffect(() => {
-    loadMaintenanceState();
-  }, [loadMaintenanceState]);
+    if (isAdmin) {
+      loadMaintenanceState();
+    } else {
+      setIsMaintenanceLoading(false);
+    }
+  }, [isAdmin, loadMaintenanceState]);
 
   // Блокування скролу при відкритому мобільному меню
   useEffect(() => {
@@ -488,16 +502,15 @@ export default function HeaderAdmin() {
     : "bg-[#B4D947] text-[#44403E] hover:bg-[#a6ca42]";
 
   return (
-    <header className="w-[calc(100%-20px)]  mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
-    
-      <div className="w-full max-w-[1334px] h-2 md:h-[12px] bg-[#B4D947] rounded-t-sm" />
+    <header className="w-[calc(100%-20px)] mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
+      <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
      
-      <div className="w-full max-w-[1334px] h-12 md:h-[70px] bg-white flex items-center shadow-sm relative rounded-bl-[25px] rounded-br-[25px]">
+      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
         
 
-        <Link to="/dashboard" className="ml-[33px] flex-shrink-0 mr-4">
-          <img src={logo} alt="Вікна Стиль" className="h-[35px] w-auto" />
+        <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
+          <img src={currentLogo} alt="Вікна Стиль" className="h-[43px] max-[1261px]:h-[40px] w-auto" />
         </Link>
 
         {!isMobile ? (
@@ -506,13 +519,16 @@ export default function HeaderAdmin() {
             <nav className="flex h-full flex-grow">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
-                  <li key={link.to} className="h-full flex-1">
+                  <li
+                    key={link.to}
+                    className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0"
+                  >
                     <Link
                       to={link.to}
-                      className={`h-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center ${
+                      className={`h-full w-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
                         location.pathname.startsWith(link.to) 
-                          ? "bg-[#6B98BF] text-white" 
-                          : "text-[#44403E] hover:bg-gray-50 hover:text-[#6B98BF]"
+                          ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
+                          : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                       }`}
                     >
                       {link.title}
@@ -521,24 +537,24 @@ export default function HeaderAdmin() {
                 ))}
                 
 
-                <li className="h-full relative flex-1" ref={financeRef}>
+                <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={financeRef}>
                   <button 
                     onClick={() => { setShowFinanceMenu(!showFinanceMenu); setShowSettings(false); }}
-                    className={`w-full h-full px-1 text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-colors ${
+                    className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
                       showFinanceMenu || location.pathname.includes("/finance")
-                        ? "text-[#6B98BF] bg-gray-50"
-                        : "text-[#44403E] hover:bg-gray-50"
+                        ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
+                        : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                     }`}
                   >
                     {t('nav.finance_short')} ▾
                   </button>
                   {showFinanceMenu && (
-                    <ul className="absolute top-full left-0 w-48 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
+                    <ul className="absolute top-[calc(100%)] left-0  bg-white shadow-xl py-2 z-[1001]">
                       {FINANCE_SUBMENU.map((item) => (
                         <li key={item.to}>
                           <Link
                             to={item.to}
-                            className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+                            className="block px-4 py-3 text-[14px] font-medium  dropdown-header hover:bg-[#6B98BF] hover:text-white transition-colors"
                           >
                             {item.title}
                           </Link>
@@ -549,37 +565,42 @@ export default function HeaderAdmin() {
                 </li>
 
 
-                <li className="h-full relative flex-1" ref={settingsRef}>
-                  <button 
-                    onClick={() => { setShowSettings(!showSettings); setShowFinanceMenu(false); }}
-                    className={`w-full h-full px-1 text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-colors ${
-                      showSettings ? "text-[#6B98BF] bg-gray-50" : "text-[#44403E] hover:bg-gray-50"
-                    }`}
-                  >
-                    {t('nav.settings_short')} ▾
-                  </button>
-                  {showSettings && (
-                    <ul className="absolute top-full left-0 w-48 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
-                      {SETTINGS_SUBMENU.map((item) => (
-                        <li key={item.to}>
-                          <Link
-                            to={item.to}
-                            className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
-                          >
-                            {item.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
+                {SETTINGS_SUBMENU.length > 0 && (
+                  <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={settingsRef}>
+                    <button 
+                      onClick={() => { setShowSettings(!showSettings); setShowFinanceMenu(false); }}
+                      className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
+                        showSettings
+                          ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
+                          : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
+                      }`}
+                    >
+                      {t('nav.settings_short')} ▾
+                    </button>
+                    {showSettings && (
+                      <ul className="absolute top-[calc(100%)] left-0  bg-white shadow-xl py-2 z-[1001]">
+                        {SETTINGS_SUBMENU.map((item) => (
+                          <li key={item.to}>
+                            <Link
+                              to={item.to}
+                              className="block px-4 py-3 text-[14px] font-medium dropdown-header hover:bg-[#6B98BF] hover:text-white transition-colors"
+                            >
+                              {item.title}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                )}
               </ul>
             </nav>
 
 
             <div className="ml-auto flex items-center h-full flex-shrink-0">
               <div 
-                className="bg-[#EEEEEE] h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[168px]"
+                className="h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[220px] max-w-[260px]"
+                style={{ backgroundColor: 'var(--header-profile-bg)' }}
                 ref={profileRef}
               >
                 <button
@@ -590,37 +611,59 @@ export default function HeaderAdmin() {
                 </button>
 
                 {profileOpen && (
-                  <ul className="absolute top-full w-full right-0 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
+                  <ul className="absolute top-full w-full right-0 bg-white shadow-xl border-gray-100 py-2 z-[1001]">
                     <li>
                       <Link
                         to="/change-password"
-                        className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+                        className="block px-4 py-3 text-[14px] font-medium dropdown-header hover:bg-[#6B98BF] hover:text-white transition-colors"
                       >
                         {t('nav.change_password')}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/emergency-contacts"
+                        className="block px-4 py-3 text-[14px] font-medium text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        {t('nav.settings_emergency_contacts')}
                       </Link>
                     </li>
                   </ul>
                 )}
               </div>
 
-              <div className="flex items-center px-4 gap-4">
-                <button
-                  type="button"
-                  onClick={handleMaintenanceToggle}
-                  disabled={isMaintenanceLoading || isMaintenanceSaving}
-                  title={
-                    maintenanceState.enabled
-                      ? t("maintenance.admin.disable")
-                      : t("maintenance.admin.enable")
-                  }
-                  className={`min-w-[40px] rounded-[10px] px-2 py-2 text-[11px] font-bold leading-tight transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${maintenanceButtonClass}`}
-                >
-                  {maintenanceButtonLabel}
-                </button>
+              <div className="flex items-center px-2 gap-5 max-[1261px]:px-1 max-[1261px]:gap-2">
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={handleMaintenanceToggle}
+                    disabled={isMaintenanceLoading || isMaintenanceSaving}
+                    title={
+                      maintenanceState.enabled
+                        ? t("maintenance.admin.disable")
+                        : t("maintenance.admin.enable")
+                    }
+                    className={`min-w-[40px] rounded-[10px] px-2 py-2 text-[11px] font-bold leading-tight transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${maintenanceButtonClass}`}
+                  >
+                    {maintenanceButtonLabel}
+                  </button>
+                )}
 
                 <LanguageSwitcher />
 
-                <button onClick={handleLogoutAction} className="hover:opacity-70 transition-opacity">
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="theme-toggle-btn"
+                  title={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                  aria-label={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                >
+                  <span className="icon" aria-hidden="true">
+                    {theme === "dark" ? "☀" : "☾"}
+                  </span>
+                </button>
+
+                <button onClick={handleLogoutAction} className="text-[#44403E] hover:text-red-500 text-lg">
                   <img src={exitIcon} alt={t('nav.logout')} className="header-theme-icon w-[20px] h-[20px] object-contain" />
                 </button>
               </div>
@@ -631,7 +674,7 @@ export default function HeaderAdmin() {
           <div className="ml-auto flex items-center gap-5 mr-4">
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-              className="text-[#44403E] text-2xl focus:outline-none"
+              className="header-theme-icon text-2xl focus:outline-none"
             >
               ☰
             </button>
@@ -640,12 +683,12 @@ export default function HeaderAdmin() {
               <div className="fixed inset-0 bg-black/40 z-[2000]">
                 <div 
                   ref={mobileMenuRef}
-                  className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full bg-white rounded-tl-[20px] rounded-bl-[20px] flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+                  className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full bg-white rounded-tl-[20px] rounded-bl-[20px] flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden mobile-side-menu"
                 >
                   {/* Кнопка закриття */}
                   <div className="flex items-center justify-end p-2">
                     <button onClick={() => setMobileMenuOpen(false)}>
-                      <img src={closeIcon} alt="Закрити" className="header-theme-icon w-[30px] h-[30px]" />
+                      <img src={closeIcon} alt="Закрити" className=" w-[30px] h-[30px]" />
                     </button>
                   </div>
 
@@ -676,7 +719,7 @@ export default function HeaderAdmin() {
                           <span className={`transition-transform ${showFinanceMenu ? 'rotate-180' : ''}`}>▼</span>
                         </button>
                         {showFinanceMenu && (
-                          <div className="bg-[#F9FFE6]/50 mx-[5%] rounded-lg mb-2">
+                          <div className="mobile-side-menu-submenu bg-[#F9FFE6]/50 mx-[5%] rounded-lg mb-2">
                             {FINANCE_SUBMENU.map((sub) => (
                               <Link key={sub.to} to={sub.to} className="block py-3 px-[10%] text-lg font-semibold text-[#44403E] border-b border-dashed border-gray-200 last:border-0">
                                 {sub.title}
@@ -687,62 +730,79 @@ export default function HeaderAdmin() {
                       </div>
 
                       {/* Налаштування (Моб) */}
-                      <div className="relative max-w-[319px] flex flex-col w-full border-t border-dashed border-[#B4D947]">
-                        <button 
-                          onClick={() => setShowSettings(!showSettings)}
-                          className="w-full py-4  flex items-center  px-[15%]  justify-between text-[#44403E]"
-                        >
-                          <span className="text-xl font-bold">{t('nav.settings_short')}</span>
-                          <span className={`transition-transform ${showSettings ? 'rotate-180' : ''}`}>▼</span>
-                        </button>
-                        {showSettings && (
-                          <div className="bg-[#F9FFE6]/50 mx-[5%] rounded-lg mb-2">
-                            {SETTINGS_SUBMENU.map((sub) => (
-                              <Link key={sub.to} to={sub.to} className="block py-3 px-[10%] text-lg font-semibold text-[#44403E] border-b border-dashed border-gray-200 last:border-0">
-                                {sub.title}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      {SETTINGS_SUBMENU.length > 0 && (
+                        <div className="relative max-w-[319px] flex flex-col w-full border-t border-dashed border-[#B4D947]">
+                          <button 
+                            onClick={() => setShowSettings(!showSettings)}
+                            className="w-full py-4  flex items-center  px-[15%]  justify-between text-[#44403E]"
+                          >
+                            <span className="text-xl font-bold">{t('nav.settings_short')}</span>
+                            <span className={`transition-transform ${showSettings ? 'rotate-180' : ''}`}>▼</span>
+                          </button>
+                          {showSettings && (
+                            <div className="mobile-side-menu-submenu bg-[#F9FFE6]/50 mx-[5%] rounded-lg mb-2">
+                              {SETTINGS_SUBMENU.map((sub) => (
+                                <Link key={sub.to} to={sub.to} className="block py-3 px-[10%] text-lg font-semibold text-[#44403E] border-b border-dashed border-gray-200 last:border-0">
+                                  {sub.title}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </nav>
 
                     {/* Блок профілю в мобільному меню */}
-                    <div className="bg-[#EEEEEE] mt-4 w-full">
+                    <div className="mobile-side-menu-profile bg-[#EEEEEE] mt-4 w-full">
                       <button 
                         onClick={() => setProfileOpen(!profileOpen)}
                         className="flex items-center px-[15%] gap-4 py-4 w-full"
                       >
-                        <img className="header-theme-icon w-6 h-6 object-contain" src={profileIcon} alt="profile" />
+               
+                         <AppIcon name="ProfileUserHeader" className="profile-img-icon-mobile mr-4 "/>
                         <span className="text-[#234461] text-xl font-bold flex-grow text-left">{t('nav.profile')}</span>
                         <img className={`header-theme-icon w-4 transition-transform ${profileOpen ? 'rotate-180' : ''}`} src={polygonIcon} alt="poly" />
                       </button>
                       {profileOpen && (
                         <div className="px-[15%] pb-4 flex flex-col gap-2">
                           <Link to="/change-password" title="password-change" className="text-[#44403E] text-lg font-medium">{t('nav.change_password')}</Link>
+                          <Link to="/emergency-contacts" className="text-red-600 text-lg font-medium">{t('nav.settings_emergency_contacts')}</Link>
                         </div>
                       )}
                     </div>
 
-                    <div className="px-[15%] py-4">
-                      <button
-                        type="button"
-                        onClick={handleMaintenanceToggle}
-                        disabled={isMaintenanceLoading || isMaintenanceSaving}
-                        className={`w-full rounded-[12px] px-4 py-3 text-left text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${maintenanceButtonClass}`}
-                      >
-                        {maintenanceButtonLabel}
-                      </button>
-                      <div className="mt-2 text-sm text-[#66615A]">
-                        {maintenanceState.enabled
-                          ? t("maintenance.admin.active")
-                          : t("maintenance.admin.inactive")}
+                    {isAdmin && (
+                      <div className="px-[15%] py-4">
+                        <button
+                          type="button"
+                          onClick={handleMaintenanceToggle}
+                          disabled={isMaintenanceLoading || isMaintenanceSaving}
+                          className={`w-full rounded-[12px] px-4 py-3 text-left text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${maintenanceButtonClass}`}
+                        >
+                          {maintenanceButtonLabel}
+                        </button>
+                        <div className="mt-2 text-sm text-[#66615A]">
+                          {maintenanceState.enabled
+                            ? t("maintenance.admin.active")
+                            : t("maintenance.admin.inactive")}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="px-[15%] pb-4">
                       <div className="flex items-center gap-3">
                         <LanguageSwitcher className="w-fit" />
+                        <button
+                          type="button"
+                          onClick={toggleTheme}
+                          className="theme-toggle-btn"
+                          title={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                          aria-label={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                        >
+                          <span className="icon" aria-hidden="true">
+                            {theme === "dark" ? "☀" : "☾"}
+                          </span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -754,7 +814,7 @@ export default function HeaderAdmin() {
                       className="flex items-center justify-center gap-3 w-full py-3 border-t border-dashed border-gray-300"
                     >
                       <img className="header-theme-icon w-7 h-6" src={exitIcon} alt="exit" />
-                      <span className="text-[#44403E] text-xl font-bold">{t('nav.logout')}</span>
+                      <span className="text-dark text-xl font-bold">{t('nav.logout')}</span>
                     </button>
                   </div>
                 </div>

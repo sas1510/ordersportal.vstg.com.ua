@@ -1496,7 +1496,7 @@ const CustomerBillsPage = () => {
                   <td className="center row align-center">
                     <div className="bill-actions-cell">
                       <button
-                        className="btn-bill-download"
+                        className="btn-bill-download mr-0.5"
                         disabled={pdfDownloadingId !== null}
                         onClick={() => handleDownloadPDF(b.BillGuid, b.BillNumber)}
                       >
@@ -1595,7 +1595,7 @@ const CustomerBillsPage = () => {
                 </div>
                 
                 <div className="qr-modal-info">
-                  <h3>Швидка оплата (НБУ QR)</h3>
+                  <h3 className="text-grey">Швидка оплата (НБУ QR)</h3>
                   <p className="qr-modal-help-text">
                     Відкрийте додаток вашого банку (Приват24, Монобанк тощо), оберіть «Сканувати QR-код» або клікніть на реквізит нижче, щоб скопіювати його.
                   </p>

@@ -2,8 +2,7 @@
 // import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 // import { useMediaQuery } from "react-responsive";
 // import { AuthContext } from "../../context/AuthContext";
-// import { useTheme } from "../../hooks/useTheme";
-// import axiosInstance, { getAccessToken } from "../../api/axios";
+// // import axiosInstance, { getAccessToken } from "../../api/axios";
 // import { useNotification } from "../../hooks/useNotification";
 // import NotificationDrawer from "../../pages/NotificationPage";
 // import HeaderDealerProfile from "./HeaderDealerProfile";
@@ -432,7 +431,7 @@
 //   <div className="fixed inset-0 z-[2000] " style={{backgroundColor: 'color-mix(in srgb, var(--header-profile-bg), transparent 60%)'}}>
 //     <div 
 //       ref={mobileMenuRef}
-//       className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+//       className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden mobile-side-menu"
 //       style={{ backgroundColor: 'var(--header-bg)', color: 'var(--header-text)' }}
 //     >
  
@@ -479,7 +478,7 @@
 //     </button>
     
 //     {showFinanceMenu && (
-//       <div className="bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
+//       <div className="mobile-side-menu-submenu bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
 //         {FINANCE_SUBMENU.map((sub) => {
 //           const isSubActive = location.pathname === sub.to;
 //           return (
@@ -500,7 +499,7 @@
 //   </div>
 // </nav>
 
-// <div className="bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
+// <div className="mobile-side-menu-profile bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
 
 //   <div className="absolute top-0 left-[5%] right-[5%]" />
 
@@ -594,13 +593,16 @@ import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
 import axiosInstance, { getAccessToken } from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
+import { useTheme } from "../../hooks/useTheme";
 import NotificationDrawer from "../../pages/NotificationPage";
 import HeaderDealerProfile from "./HeaderDealerProfile";
 import logo from "../../assets/icons/logo-vst.svg";
+import logoDark from "../../assets/icons/logo-vst-dark.svg";
 import "./HeaderDealerProfile.css";
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from "./LanguageSwitcher";
 import { createPortal } from "react-dom";
+import { AppIcon } from "../Icons/AppIcon";
 import { 
   Ticket, 
   ShoppingBag, 
@@ -622,6 +624,8 @@ export default function HeaderDealer() {
   const location = useLocation();
   const { logout } = useContext(AuthContext);
   const { addNotification } = useNotification();
+  const { theme, toggleTheme } = useTheme();
+  const currentLogo = theme === "dark" ? logoDark : logo;
 
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -854,9 +858,12 @@ export default function HeaderDealer() {
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
       {/* <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
-      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
+      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative border  border-t-0 " style={{
+          backgroundColor: 'var(--header-bg)',
+          borderColor: '#d1d5db4d',
+        }}>
         <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
-          <img src={logo} alt="Вікна Стиль" className="h-[43px] max-[1261px]:h-[40px] w-auto" />
+          <img src={currentLogo} alt="Вікна Стиль" className="h-[43px] max-[1261px]:h-[40px] w-auto" />
         </Link>
 
         {!isMobile ? (
@@ -912,12 +919,12 @@ export default function HeaderDealer() {
   </button>
 
   {showFinanceMenu && (
-    <ul className="absolute top-[calc(100%+4px)] left-0 w-full bg-white shadow-xl  py-2 z-[1001]">
+    <ul className="absolute top-[calc(100%)] left-0 w-full bg-white shadow-xl  py-2 z-[1001]">
       {FINANCE_SUBMENU.map((item) => (
         <li key={item.to}>
           <Link
             to={item.to}
-            className="block px-1 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+            className="block px-1 py-3 text-[14px] font-medium  dropdown-header hover:bg-[#6B98BF] hover:text-white transition-colors"
             onClick={() => setShowFinanceMenu(false)}
           >
             
@@ -952,11 +959,11 @@ export default function HeaderDealer() {
                 </button>
 
                 {profileOpen && (
-                  <ul className="absolute top-full w-full right-0 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
+                  <ul className="absolute top-full w-full right-0 bg-white shadow-xl  py-2 z-[1001]">
                     <li>
                       <Link
                         to="/change-password"
-                        className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+                        className="block px-4 py-3 text-[14px] font-medium  dropdown-header hover:bg-[#6B98BF] hover:text-white transition-colors"
                         onClick={() => setProfileOpen(false)}
                       >
                         {t('nav.change_password')}
@@ -977,6 +984,18 @@ export default function HeaderDealer() {
           
               <div className="flex items-center px-2 gap-5 max-[1261px]:px-1 max-[1261px]:gap-2">
                 <LanguageSwitcher />
+
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="theme-toggle-btn"
+                  title={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                  aria-label={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                >
+                  <span className="icon" aria-hidden="true">
+                    {theme === "dark" ? "☀" : "☾"}
+                  </span>
+                </button>
 
                 <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="header-theme-icon w-[20px] h-[20px] object-contain" />
@@ -1029,7 +1048,7 @@ export default function HeaderDealer() {
       <div
         ref={mobileMenuRef}
         onClick={(e) => e.stopPropagation()}
-        className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden"
+        className="absolute top-0 right-0 w-[85%] max-w-[350px] h-full rounded-tl-[20px] rounded-bl-[20px] flex flex-col font-['Inter'] shadow-2xl animate-in slide-in-from-right duration-300 overflow-hidden mobile-side-menu"
         style={{
           zIndex: 10002,
           backgroundColor: "var(--header-bg)",
@@ -1041,7 +1060,7 @@ export default function HeaderDealer() {
             <img
               src={closeIcon}
               alt="Закрити"
-              className="header-theme-icon w-[30px] h-[30px] object-contain"
+              className="w-[30px] h-[30px] object-contain"
             />
           </button>
         </div>
@@ -1090,7 +1109,7 @@ export default function HeaderDealer() {
               </button>
 
               {showFinanceMenu && (
-                <div className="bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
+                <div className="mobile-side-menu-submenu bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
                   {FINANCE_SUBMENU.map((sub) => {
                     const isSubActive = location.pathname === sub.to;
 
@@ -1114,16 +1133,17 @@ export default function HeaderDealer() {
             </div>
           </nav>
 
-          <div className="bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
+          <div className="mobile-side-menu-profile bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className="flex items-center px-[15%] gap-4 py-2 w-full hover:bg-gray-200/50 transition-colors"
             >
-              <img
-                className="header-theme-icon object-contain mr-6"
+              {/* <img
+                className=" object-contain mr-6"
                 src={profileIcon}
                 alt="profile"
-              />
+              /> */}
+              <AppIcon name="ProfileUserHeader" className="profile-img-icon-mobile mr-4 "/>
 
               <div className="flex items-center justify-between flex-grow min-w-0">
                 <span className="text-[#234461] text-xl font-bold truncate">
@@ -1170,9 +1190,26 @@ export default function HeaderDealer() {
 
             <div className="sidebar-divider mx-[5%] border-t border-dotted border-[#44403E]/50" />
 
+            <div className="px-[15%] pt-3">
+              <div className="flex items-center gap-3">
+                <LanguageSwitcher className="w-fit" />
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="theme-toggle-btn"
+                  title={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                  aria-label={theme === "dark" ? "Увімкнути світлу тему" : "Увімкнути темну тему"}
+                >
+                  <span className="icon" aria-hidden="true">
+                    {theme === "dark" ? "☀" : "☾"}
+                  </span>
+                </button>
+              </div>
+            </div>
+
             <div className="flex items-center px-[15%] gap-4 py-3 pb-2 whitespace-nowrap">
-              <img className="header-theme-icon object-contain mr-4" src={moneyIcon} alt="money" />
-              <span className="text-[#44403E] text-xl font-normal">
+              <AppIcon name="money" className="profile-money-img-icon-mobile mr-4" />
+              <span className="text-success text-xl font-normal">
                 {formattedBalance}
               </span>
             </div>
@@ -1195,7 +1232,7 @@ export default function HeaderDealer() {
               alt={t("nav.logout")}
             />
 
-            <span className="text-[#44403E] text-xl font-bold">
+            <span className="text-dark text-xl font-bold">
               {t("nav.logout")}
             </span>
           </button>

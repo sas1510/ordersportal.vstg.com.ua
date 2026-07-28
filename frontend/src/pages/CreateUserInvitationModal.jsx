@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axiosInstance from "../api/axios";
 import { QRCodeCanvas } from "qrcode.react";
 import {
@@ -14,6 +14,12 @@ import {
 } from "lucide-react";
 import "./InviteRegisterModal.css";
 import { useNotification } from "../hooks/useNotification";
+
+const ROLE_OPTIONS = [
+  { value: "admin", label: "Адміністратор" },
+  { value: "manager", label: "Менеджер" },
+  { value: "region_manager", label: "Регіональний менеджер" },
+];
 
 export default function CreateUserInvitationModal({ onClose, onCreated }) {
   const { addNotification } = useNotification();
@@ -40,12 +46,15 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isListOpen, setIsListOpen] = useState(false);
 
-  const filteredUsers = users1c.filter(
-    (user) =>
-      !searchTerm ||
-      user.Code?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredUsers = users1c.filter((user) => {
+    if (!searchTerm) return true;
 
+    const query = searchTerm.toLowerCase();
+    return (
+      user.Code?.toLowerCase().includes(query) ||
+      user["Наименование"]?.toLowerCase().includes(query)
+    );
+  });
 
   useEffect(() => {
     const fetchUsers1c = async () => {
@@ -54,17 +63,17 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
         const res = await axiosInstance.get("/users/get_active_users_1c");
         setUsers1c(res.data.users || []);
       } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-                  console.error(err);
+        if (process.env.NODE_ENV === "development") {
+          console.error(err);
         }
         addNotification("Помилка завантаження бази 1С", "error");
       } finally {
         setLoadingUsers(false);
       }
     };
+
     fetchUsers1c();
   }, [addNotification]);
-
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -72,15 +81,16 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
         setIsListOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSelectUser1c = (selectedGuid) => {
-    const user = users1c.find((u) => u.Link === selectedGuid);
+    const user = users1c.find((item) => item.Link === selectedGuid);
     if (user) {
       setFormData((prev) => ({ ...prev, userGuid: selectedGuid }));
-      setSearchTerm(user.Code);
+      setSearchTerm(user.Code || "");
     }
     setIsListOpen(false);
   };
@@ -88,26 +98,28 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
   const performCopyAction = (text, successMsg) => {
     if (!text) return;
 
-    const fallbackCopy = (txt) => {
+    const fallbackCopy = (value) => {
       const textArea = document.createElement("textarea");
-      textArea.value = txt;
+      textArea.value = value;
       textArea.style.position = "fixed";
       textArea.style.left = "-9999px";
       textArea.style.top = "0";
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
+
       try {
         document.execCommand("copy");
         addNotification(successMsg, "success");
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        if (process.env.NODE_ENV === 'development') {
-                  console.error("Error copying text:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error copying text:", err);
         }
         addNotification("Помилка копіювання", "error");
       }
+
       document.body.removeChild(textArea);
     };
 
@@ -124,7 +136,6 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
       fallbackCopy(text);
     }
   };
-
 
   const renderComplexErrorNotification = (errObj) => (
     <div className="notification-complex-error">
@@ -160,6 +171,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
       const res = await axiosInstance.post("/create_invitations/", formData);
       setCreatedData(res.data);
@@ -170,9 +182,9 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
       if (typeof serverError === "object" && serverError.info) {
         addNotification(renderComplexErrorNotification(serverError), "info");
       } else {
-        const msg = serverError?.error || "Помилка при створенні запрошення";
-        setError(msg);
-        addNotification(msg, "error");
+        const message = serverError?.error || "Помилка при створенні запрошення";
+        setError(message);
+        addNotification(message, "error");
       }
     } finally {
       setLoading(false);
@@ -185,7 +197,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
         <div className="modal-header-add-user">
           <div className="modal-title-add-user">
             <ShieldCheck size={24} color="#5e83bf" />
-            <h2>Створити адміністратора</h2>
+            <h2>Створити користувача</h2>
           </div>
           <button onClick={onClose} className="close-btn-add-user">
             <X size={20} />
@@ -197,7 +209,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
             <form onSubmit={handleSubmit} className="form-group-add-user">
               <div className="source-1c-container" ref={searchRef}>
                 <label className="source-1c-label">
-                  <UserSearch size={16} /> Пошук в базі 1С (код або ПІБ)
+                  <UserSearch size={16} /> Пошук у базі 1С (код або ПІБ)
                 </label>
                 <div className="relative">
                   <input
@@ -212,13 +224,10 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                     }}
                     disabled={loadingUsers}
                   />
+
                   {loadingUsers && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2
-                        size={16}
-                        className="animate-spin"
-                        color="#3b82f6"
-                      />
+                      <Loader2 size={16} className="animate-spin" color="#3b82f6" />
                     </div>
                   )}
 
@@ -232,7 +241,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                             onClick={() => handleSelectUser1c(user.Link)}
                           >
                             <div className="user-code">{user.Code}</div>
-                            <div className="user-name">{user.Наименование}</div>
+                            <div className="user-name">{user["Наименование"]}</div>
                           </div>
                         ))
                       ) : (
@@ -305,6 +314,23 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
               </div>
 
               <div>
+                <label className="input-label-add-user">Роль доступу</label>
+                <select
+                  className="form-input-add-user"
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
+                >
+                  {ROLE_OPTIONS.map((roleOption) => (
+                    <option key={roleOption.value} value={roleOption.value}>
+                      {roleOption.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="input-label-add-user">
                   <Calendar size={12} /> Термін дії до:
                 </label>
@@ -357,15 +383,12 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                   marginBottom: "2rem",
                 }}
               >
-                Надішліть це посилання адміністратору:
+                Надішліть це посилання користувачу:
               </p>
 
               <div className="success-card-add-user">
                 <div className="invite-link-box-add-user">
-                  <span
-                    className="input-label-add-user"
-                    style={{ marginLeft: 0 }}
-                  >
+                  <span className="input-label-add-user" style={{ marginLeft: 0 }}>
                     Посилання для реєстрації
                   </span>
                   <span
@@ -395,10 +418,7 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                 <button
                   type="button"
                   onClick={() =>
-                    performCopyAction(
-                      createdData.inviteLink,
-                      "Запрошення скопійовано",
-                    )
+                    performCopyAction(createdData.inviteLink, "Запрошення скопійовано")
                   }
                   className="copy-btn-floating-add-user"
                 >

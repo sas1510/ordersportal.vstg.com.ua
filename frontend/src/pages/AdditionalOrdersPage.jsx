@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
 import { AdditionalOrderItem } from "../components/AdditionalOrder/AdditionalOrderItem";
 import { AdditionalOrderItemMobile } from "../components/AdditionalOrder/AdditionalOrderItemMobile";
 import AddReorderModal from "../components/AdditionalOrder/AddReorderModal";
-// import DealerSelectModal from '../components/Orders/DealerSelectModal'; // Видалено
+// import DealerSelectModal from '../components/Orders/DealerSelectModal'; // Р’РёРґР°Р»РµРЅРѕ
 import useWindowWidth from "../hooks/useWindowWidth";
 // import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
@@ -23,7 +23,7 @@ const AdditionalOrders = () => {
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]); 
   const [_filteredItems, setFilteredItems] = useState([]);
-  const [filter, setFilter] = useState({ status: "Всі", month: 0, name: "" });
+  const [filter, setFilter] = useState({ status: "Р’СЃС–", month: 0, name: "" });
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
   ); 
@@ -31,10 +31,10 @@ const AdditionalOrders = () => {
   const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null); 
   const [expandedOrder, setExpandedOrder] = useState(null);
 //   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [showDealerModal, setShowDealerModal] = useState(false); // Видалено
-  // const [dealer, setDealer] = useState(null); // Видалено
+  // const [showDealerModal, setShowDealerModal] = useState(false); // Р’РёРґР°Р»РµРЅРѕ
+  // const [dealer, setDealer] = useState(null); // Р’РёРґР°Р»РµРЅРѕ
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [displayLimit, setDisplayLimit] = useState(initialLimit); // СТАН ДЛЯ ПАГІНАЦІЇ
+  const [displayLimit, setDisplayLimit] = useState(initialLimit); // РЎРўРђРќ Р”Р›РЇ РџРђР“Р†РќРђР¦Р†Р‡
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
   //   const { theme, toggleTheme } = useTheme();
@@ -127,13 +127,13 @@ const AdditionalOrders = () => {
       setRefreshTrigger((prev) => prev + 1);
       
    
-      // alert(response.data?.message || "Дозамовлення створено");
+      // alert(response.data?.message || "Р”РѕР·Р°РјРѕРІР»РµРЅРЅСЏ СЃС‚РІРѕСЂРµРЅРѕ");
     } else {
      
       addNotificaton(t("errors.error") + (response.data?.message || t("errors.unknownError")), "error");
     }
   } catch (err) {
-    // console.error("Помилка відправки:", err);
+    // console.error("РџРѕРјРёР»РєР° РІС–РґРїСЂР°РІРєРё:", err);
     addNotificaton(t("errors.errorSendData_2"),  "error");
   } finally {
     setLoading(false);
@@ -161,10 +161,10 @@ const AdditionalOrders = () => {
     (statusFilter, monthFilter, nameFilter, data = additionalOrdersData) => {
       let filtered = [...data]; 
 
-      if (statusFilter && statusFilter !== "Всі") {
+      if (statusFilter && statusFilter !== "Р’СЃС–") {
         filtered = filtered.filter((additionalOrder) => {
           if (additionalOrder.orders.length === 0)
-            return statusFilter === "Новий";
+            return statusFilter === "РќРѕРІРёР№";
           return additionalOrder.orders.some(
             (order) => order.status === statusFilter,
           );
@@ -296,28 +296,28 @@ const AdditionalOrders = () => {
 
   const getStatusSummary = useMemo(() => {
     return () => {
-
       const summary = {
-        Всі: 0,
-        Новий: 0,
-        "В роботі": 0,
-        "Очікуємо оплату": 0,
-        Підтверджений: 0,
-        "Очікуємо підтвердження": 0,
-        "У виробництві": 0,
-        Готовий: 0,
-        Відвантажено: 0, 
-        Відмова: 0,
+        "Р’СЃС–": 0,
+        "РќРѕРІРёР№": 0,
+        "Р’ СЂРѕР±РѕС‚С–": 0,
+        "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ": 0,
+        "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№": 0,
+        "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ": 0,
+        "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–": 0,
+        "Р“РѕС‚РѕРІРёР№": 0,
+        "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ": 0,
+        "Р’С–РґРјРѕРІР°": 0,
       };
 
       additionalOrdersData.forEach((additionalOrder) => {
-        if (additionalOrder.orders.length === 0) summary["Новий"] += 1;
+        if (additionalOrder.orders.length === 0) summary["РќРѕРІРёР№"] += 1;
         additionalOrder.orders.forEach((order) => {
-          if (order.status && Object.hasOwn(summary, order.status))
+          if (order.status && Object.hasOwn(summary, order.status)) {
             summary[order.status] += 1;
+          }
         });
       });
-      summary["Всі"] = additionalOrdersData.length;
+      summary["Р’СЃС–"] = additionalOrdersData.length;
       return summary;
     };
   }, [additionalOrdersData]);
@@ -422,7 +422,7 @@ const AdditionalOrders = () => {
       setFilter((prev) => ({
         ...prev,
         name: searchQuery,
-        status: "Всі",
+        status: "Р’СЃС–",
         month: 0,
       }));
 
@@ -475,7 +475,7 @@ const AdditionalOrders = () => {
        
 
         {/* <div className="year-selector row">
-          <span>Звітний рік:</span>
+          <span>Р—РІС–С‚РЅРёР№ СЂС–Рє:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select
             value={selectedYear}
@@ -496,8 +496,8 @@ const AdditionalOrders = () => {
           >
                 <img 
                   src={filterIcon} 
-                  alt="Стрілка" 
-                  className="align-center mr-1 min-w-[20px] h-[20px]" 
+                  alt="РЎС‚СЂС–Р»РєР°" 
+                  className="portal-service-icon align-center mr-1 min-w-[20px] h-[20px]" 
                  
                 />
           </div>
@@ -505,8 +505,8 @@ const AdditionalOrders = () => {
            <div className="year-inline-selector row">
               <img 
                   src={yearIcon} 
-                  alt="Стрілка" 
-                  className="align-center mr-2 w-[26px] h-[25px]" 
+                  alt="РЎС‚СЂС–Р»РєР°" 
+                  className="portal-service-icon align-center mr-2 w-[26px] h-[25px]" 
               
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
@@ -540,18 +540,18 @@ const AdditionalOrders = () => {
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
               // const labels = [
-              //   "Січ.",
-              //   "Лют.",
-              //   "Бер.",
-              //   "Квіт.",
-              //   "Трав.",
-              //   "Черв.",
-              //   "Лип.",
-              //   "Сер.",
-              //   "Вер.",
-              //   "Жов.",
-              //   "Лис.",
-              //   "Груд.",
+              //   "РЎС–С‡.",
+              //   "Р›СЋС‚.",
+              //   "Р‘РµСЂ.",
+              //   "РљРІС–С‚.",
+              //   "РўСЂР°РІ.",
+              //   "Р§РµСЂРІ.",
+              //   "Р›РёРї.",
+              //   "РЎРµСЂ.",
+              //   "Р’РµСЂ.",
+              //   "Р–РѕРІ.",
+              //   "Р›РёСЃ.",
+              //   "Р“СЂСѓРґ.",
               // ];
               const labels = t("portal_calc.months.short", { returnObjects: true });
               return (
@@ -577,18 +577,18 @@ const AdditionalOrders = () => {
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
               // const labels = [
-              //   "Січень",
-              //   "Лютий",
-              //   "Березень",
-              //   "Квітень",
-              //   "Травень",
-              //   "Червень",
-              //   "Липень",
-              //   "Серпень",
-              //   "Вересень",
-              //   "Жовтень",
-              //   "Листопад",
-              //   "Грудень",
+              //   "РЎС–С‡РµРЅСЊ",
+              //   "Р›СЋС‚РёР№",
+              //   "Р‘РµСЂРµР·РµРЅСЊ",
+              //   "РљРІС–С‚РµРЅСЊ",
+              //   "РўСЂР°РІРµРЅСЊ",
+              //   "Р§РµСЂРІРµРЅСЊ",
+              //   "Р›РёРїРµРЅСЊ",
+              //   "РЎРµСЂРїРµРЅСЊ",
+              //   "Р’РµСЂРµСЃРµРЅСЊ",
+              //   "Р–РѕРІС‚РµРЅСЊ",
+              //   "Р›РёСЃС‚РѕРїР°Рґ",
+              //   "Р“СЂСѓРґРµРЅСЊ",
               // ];
               const labels = t("portal_calc.months.full", { returnObjects: true });
               return (
@@ -629,8 +629,8 @@ const AdditionalOrders = () => {
               >
                 <img 
                   src={closeIcon} 
-                  alt="Закрити" 
-                  className="" 
+                  alt="Р—Р°РєСЂРёС‚Рё" 
+                  className="portal-service-icon" 
                 />
               </button>
             )}
@@ -648,11 +648,11 @@ const AdditionalOrders = () => {
             <img 
               src={searchIcon} 
               alt="" 
-              className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
+              className="portal-service-icon absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
             />
             {/* <span
               className="icon icon-cancel2 clear-search"
-              title="Очистити пошук"
+              title="РћС‡РёСЃС‚РёС‚Рё РїРѕС€СѓРє"
               onClick={handleClearSearch}
             ></span> */}
           </div>
@@ -668,7 +668,7 @@ const AdditionalOrders = () => {
                 <img 
                   src={plusIcon} 
                   alt="+" 
-                  className="align-center mr-2 " 
+                  className="portal-service-icon align-center mr-2 " 
                 
                 />
               <div className="text-center  text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">{t("additional_order.new_order_btn")}</div>{" "}
@@ -706,16 +706,16 @@ const AdditionalOrders = () => {
     "
   >
             {[
-    { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Всі" },
-    { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "Новий" },
-    { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "В роботі" },
-    { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "Очікуємо оплату" },
-    { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "Очікуємо підтвердження" },
-    { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "Підтверджений" },
-    { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "У виробництві" },
-    { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Готовий" },
-    { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Відвантажено" },
-    { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Відмова" },
+    { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Р’СЃС–" },
+    { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "РќРѕРІРёР№" },
+    { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "Р’ СЂРѕР±РѕС‚С–" },
+    { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ" },
+    { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ" },
+    { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№" },
+    { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–" },
+    { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Р“РѕС‚РѕРІРёР№" },
+    { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ" },
+    { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Р’С–РґРјРѕРІР°" },
   ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
@@ -731,10 +731,8 @@ const AdditionalOrders = () => {
                       : "brightness-0 invert"
                     }`} 
                 />
-                <span className="w-100">{label}</span>
-                <span
-                  className={statusSummary[statusKey] === 0 ? "disabled" : ""}
-                >
+                <span className="w-100 additional-order-filter-label">{label}</span>
+                <span className="additional-order-filter-badge">
                   {statusSummary[statusKey]}
                 </span>
               </li>
@@ -865,3 +863,5 @@ const AdditionalOrders = () => {
 };
 
 export default AdditionalOrders;
+
+

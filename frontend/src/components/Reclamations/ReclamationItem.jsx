@@ -8,6 +8,8 @@ import { ComplaintItemDetailView } from "./ComplaintItemSummaryDesktop";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 import { useTranslation } from "react-i18next";
+import { AppIcon } from "../Icons/AppIcon";
+
 
 
 export const ReclamationItem = ({
@@ -183,17 +185,17 @@ export const ReclamationItem = ({
     switch (status) {
           case "Новий":
 
-            return "text-WS---DarkRed";
+            return "text-WS-Yellow-Status";
 
           case "В роботі":
-            return "text-WS---DarkBlue";
+            return "text-WS-Green-Status";
             
           case "Виробництво":
             return "text-WS---DarkBlueProfile"
 
               
           case "На складі":
-            return "text-WS---DarkGrey";
+            return "text-WS-Green-Status";
 
           case "Відвантажений":
           case "Підтверджено" :
@@ -251,7 +253,7 @@ export const ReclamationItem = ({
           <span className="icon icon-tools2 font-size-22 text-success"></span>
         </div> */}
 
-        <div className="summary-item row no-wrap !pl-0 " style={{ flexBasis: "15%" }}>
+        <div className="summary-item row no-wrap !pl-0 " style={{ flexBasis: "20%" }}>
           <div className="column !pl-0 w-full pr-3">
             <div className="text-base text-bold w-full text-WS---DarkGrey border-bottom">
               № {reclamation.orderNumber}
@@ -274,7 +276,7 @@ export const ReclamationItem = ({
                 </div>
                  */}
 
-<div className="summary-item expandable row w-30 align-start space-between !pt-0" >
+<div className="summary-item expandable row w-25 align-start space-between !pt-0" >
 
   <div className="flex flex-col w-full h-full" style={{ flex: "2 1 0%", minWidth: 0 }}>
 
@@ -308,11 +310,10 @@ export const ReclamationItem = ({
             <div className="flex items-center gap-1 text-grey text-[13px] break-words">
               {/* <span className="icon icon-user text-dark shrink-0"></span> */}
 
-                  <img 
-                      src={profileReclamation} 
-                      alt="Історія" 
-                      className={`mr-1`} 
-                    />
+                 <AppIcon
+                    name="UserIcon"
+                    className="w-[17px] h-[20px] text-dark shrink-0 mr-0.5"
+                  />
               <span className="text-dark leading-snug font-['Inter']">
                 {reclamation.dealer}
               </span>
@@ -379,7 +380,7 @@ export const ReclamationItem = ({
    
 
       {expanded && (
-        <div className="item-details column gap-14 !w-full">
+        <div className="item-details column gap-14 !w-full cursor-default ">
    
           <ComplaintItemDetailView
             key={reclamation.id}

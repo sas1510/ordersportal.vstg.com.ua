@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView
 
 
@@ -46,7 +46,11 @@ urlpatterns = [
     path('notifications/<int:pk>/mark-read/', views.mark_single_notification_as_read, name='single-notification-mark-read'),
     path('portal-managers/', PortalManagerReportView.as_view(), name='portal-managers-report'),
     path('orders/<uuid:order_guid>/files/', get_calc_files, name='get_calc_files'),
-    
+    path(
+        "orders/confirm-order-by-number/",
+        confirm_order_by_number,
+        name="confirm_order_by_number",
+    ),
     path('orders/<uuid:order_guid>/files/<uuid:file_guid>/download_calc/', download_calc, name='download_calc'),
     path(
         "support/telegram/send/",

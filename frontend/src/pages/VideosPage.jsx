@@ -467,7 +467,7 @@ const VideosPage = () => {
   const [videos, setVideos] = useState([]);
   const [filteredVideos, setFilteredVideos] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("tech");
+  const [selectedCategory, setSelectedCategory] = useState("factory");
   const [loading, setLoading] = useState(true);
   const [loadingSave, setLoadingSave] = useState(false);
   
@@ -479,8 +479,7 @@ const VideosPage = () => {
   const [isSocialOpen, setIsSocialOpen] = useState(false);
   const [selectedSocial, setSelectedSocial] = useState(null);
 
-  const { role } = useAuthGetRole();
-  const isAdmin = role === "admin";
+  const { isAdmin } = useAuthGetRole();
   const { addNotification } = useNotification();
 
   // Стан форми з підтримкою мов

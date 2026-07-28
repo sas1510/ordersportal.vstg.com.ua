@@ -452,6 +452,7 @@ import { formatPercent } from "../utils/formatMoney";
 // Імпортуємо хук перекладу
 import { useTranslation } from "react-i18next";
 import AutoTranslatedText from "../components/AutoTranslatedText";
+import { AppIcon } from "../components/Icons/AppIcon";
 
 const MobilePaymentsView = ({
   groups,
@@ -535,42 +536,45 @@ const MobilePaymentsView = ({
           </button>
         </div>
 
-        {/* FILTERS */}
-        {showFilters && (
-          <div className="mobile-filters">
-            <div className="mobile-filter-group">
-              <label className="mobile-label">{t('filters.from')}:</label>
-              <input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => onFilterChange("dateFrom", e.target.value)}
-                className="mobile-input-date"
-              />
-            </div>
+       {showFilters && (
+  <div className="mobile-filters">
+    <div className="mobile-dates-row">
+      <div className="mobile-filter-group">
+        <label className="mobile-label">{t('filters.from')}:</label>
+        <input
+          type="date"
+          value={filters.dateFrom}
+          onChange={(e) => onFilterChange("dateFrom", e.target.value)}
+          className="mobile-input-date"
+        />
+      </div>
 
-            <div className="mobile-filter-group">
-              <label className="mobile-label">{t('filters.to')}:</label>
-              <input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => onFilterChange("dateTo", e.target.value)}
-                className="mobile-input-date"
-              />
-            </div>
-            {isAdmin && (
-              <div className="mobile-filter-group">
-                <label className="mobile-label">{t('filters.dealer')}:</label>
+      <div className="mobile-filter-group">
+        <label className="mobile-label">{t('filters.to')}:</label>
+        <input
+          type="date"
+          value={filters.dateTo}
+          onChange={(e) => onFilterChange("dateTo", e.target.value)}
+          className="mobile-input-date"
+        />
+      </div>
+    </div>
 
-                <DealerSelect
-                  value={filters.contractor}
-                  onChange={(id) => {
-                    setDealerGuid(id);
-                    onFilterChange("contractor", id);
-                  }}
-                  isMobile
-                />
-              </div>
-            )}
+    {isAdmin && (
+      <div className="mobile-filter-group">
+        <label className="mobile-label">{t('filters.dealer')}:</label>
+
+        <DealerSelect
+          value={filters.contractor}
+          onChange={(id) => {
+            setDealerGuid(id);
+            onFilterChange("contractor", id);
+          }}
+          isMobile
+        />
+      </div>
+    )}
+
 
             <div className="mobile-filter-actions">
               <button
@@ -619,7 +623,7 @@ const MobilePaymentsView = ({
               {/* DATE HEADER */}
               <div className="mobile-date-header sticky-date">
                 <div className="mobile-date-title">
-                  📅 {formatDateHuman(group.date, i18n.language)}
+                   {formatDateHuman(group.date, i18n.language)}
                 </div>
               </div>
 
@@ -694,23 +698,24 @@ const MobilePaymentsView = ({
                           </span>
                         </div>
 
-                        {docGroup.totalIncome > 0 && (
-                          <div className="mobile-amount-item">
-                            <span className="mobile-amount-label">{t('payments.income')}:</span>
-                            <span className="mobile-amount-value text-green">
-                              {formatCurrency(docGroup.totalIncome, "", i18n)} {currency}
-                            </span>
-                          </div>
-                        )}
+                        <div className="mobile-amount-item">
+                          <span className="mobile-amount-label">{t('payments.income')}:</span>
+                          <span className="mobile-amount-value text-green">
+                            {docGroup.totalIncome > 0
+                              ? `${formatCurrency(docGroup.totalIncome, "", i18n)} ${currency}`
+                              : String.fromCharCode(8212)}
+                          </span>
+                        </div>
 
-                        {docGroup.totalExpense > 0 && (
-                          <div className="mobile-amount-item">
-                            <span className="mobile-amount-label">{t('payments.expense')}:</span>
-                            <span className="mobile-amount-value text-red">
-                              {formatCurrency(docGroup.totalExpense, "", i18n)} {currency}
-                            </span>
-                          </div>
-                        )}
+                        <div className="mobile-amount-item">
+                          <span className="mobile-amount-label">{t('payments.expense')}:</span>
+                          <span className="mobile-amount-value text-red">
+                            {docGroup.totalExpense > 0
+                              ? `${formatCurrency(docGroup.totalExpense, "", i18n)} ${currency}`
+                              : String.fromCharCode(8212)}
+                          </span>
+                        </div>
+
 
                         <div className="mobile-amount-item mobile-amount-total">
                           <span className="mobile-amount-label">{t('payments.balance')}:</span>
@@ -750,18 +755,19 @@ const MobilePaymentsView = ({
                           return (
                             <div
                               key={idx}
-                              className="order-mini-card-mobile clickable-subcard"
+                              className="order-mini-card-mobile"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className="order-mini-header">
                                 <i className="fa-solid fa-file-invoice" />{" "}
-                                {t('payments.order_no')} {item.OrderNumber}
+                                {t('payments.order_no')} {item.OrderNumber} {t('payments.from')} {formatDateHuman(item.OrderDate, i18n.language)}
                               </div>
 
                               <div className="order-mini-grid">
                                 <div className="order-mini-col">
                                   <span className="order-mini-label">{t('payments.amount')}</span>
                                   <span className="order-mini-value">
+                                    <AppIcon name="money" className="order-mini-money-icon" />
                                     {formatCurrency(item.OrderAmount, itemCurrency, i18n)}
                                   </span>
                                 </div>
@@ -769,6 +775,7 @@ const MobilePaymentsView = ({
                                 <div className="order-mini-col">
                                   <span className="order-mini-label">{t('payments.paid_before')}</span>
                                   <span className="order-mini-value text-grey">
+                                    <AppIcon name="money" className="order-mini-money-icon" />
                                     {formatCurrency(item.PaidBefore, itemCurrency, i18n)}
                                   </span>
                                 </div>
@@ -776,6 +783,7 @@ const MobilePaymentsView = ({
                                 <div className="order-mini-col">
                                   <span className="order-mini-label">{t('payments.payment')}</span>
                                   <span className={item.FlowDirection === "Прихід" ? "order-mini-green" : "order-mini-red"}>
+                                    <AppIcon name={item.FlowDirection === "Прихід" ? "moneyGreen" : "moneyRed"} className="order-mini-money-icon" />
                                     {formatCurrency(Math.abs(Number(item.PaymentApplied || 0)), itemCurrency, i18n)}
                                   </span>
                                 </div>
@@ -783,6 +791,7 @@ const MobilePaymentsView = ({
                                 <div className="order-mini-col">
                                   <span className="order-mini-label">{t('payments.debt', 'Борг')}</span>
                                   <span className="order-mini-red">
+                                    <AppIcon name="moneyRed" className="order-mini-money-icon" />
                                     {formatCurrency(item.OrderBalance, itemCurrency, i18n)}
                                   </span>
                                 </div>
@@ -797,6 +806,13 @@ const MobilePaymentsView = ({
                                 </div>
 
                                 <div className="order-mini-col">
+                                  <span className="order-mini-label">{t("payments.contract", "Договір")}</span>
+                                  <span className="order-mini-value">
+                                    <AutoTranslatedText text={item.FinalDogovorName || "—"} />
+                                  </span>
+                                </div>
+
+                                {/* <div className="order-mini-col">
                                   <span className="order-mini-label">Реалізовано за день</span>
                                   <span className="order-mini-value">
                                     {item.RealizedPerDay != null
@@ -806,34 +822,19 @@ const MobilePaymentsView = ({
                                 </div>
 
                                 <div className="order-mini-col">
-                                  <span className="order-mini-label">Дата реалізації</span>
+                                  <span className="order-mini-label">{t("payments.contract", "Договір")}</span>
                                   <span className="order-mini-value">
-                                    {item.RealizedDate
-                                      ? formatDateHuman(item.RealizedDate, i18n.language)
-                                      : "—"}
+                                    <AutoTranslatedText text={item.FinalDogovorName || "—"} />
                                   </span>
                                 </div>
 
                                 <div className="order-mini-col">
-                                  <span className="order-mini-label">Машина</span>
+                                  <span className="order-mini-label">{t("common.date", "Дата")}</span>
                                   <span className="order-mini-value">
-                                    {item.CarNumber || "—"}
+                                    {formatDateHuman(item.OrderDate) || "—"}
                                   </span>
-                                </div>
-
-                                <div className="order-mini-col">
-                                  <span className="order-mini-label">{t('payments.contract', 'Договір')}</span>
-                                  <span className="order-mini-value">
-                                    <AutoTranslatedText text={item.FinalDogovorName} />
-                                  </span>
-                                </div>
-
-                                <div className="order-mini-col">
-                                  <span className="order-mini-label">{t('payments.date', 'Дата')}</span>
-                                  <span className="order-mini-value">
-                                    {formatDateHuman(item.OrderDate, i18n.language)}
-                                  </span>
-                                </div>
+                                </div> */}
+                                
                               </div>
                             </div>
                           );

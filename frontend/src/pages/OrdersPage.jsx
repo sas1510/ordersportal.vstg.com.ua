@@ -376,13 +376,16 @@ const PortalOriginal = () => {
     appliedDateFilter.dateTo,
   ]);
 
-  const reloadCalculations = useCallback(async () => {
+  const reloadCalculations = useCallback(async (options = {}) => {
+    const { silent = false } = options;
     cancelAll();
 
     const controller = register();
 
-    setReloading(true);
-    setError(null);
+    if (!silent) {
+      setReloading(true);
+      setError(null);
+    }
 
     const params =
       appliedDateFilter.mode === "period"
@@ -424,7 +427,9 @@ const PortalOriginal = () => {
         setError(t("portal_calc.errors.connection_error"));
       }
     } finally {
-      setReloading(false);
+      if (!silent) {
+        setReloading(false);
+      }
     }
   }, [
     appliedDateFilter.mode,
@@ -435,6 +440,63 @@ const PortalOriginal = () => {
     register,
     t,
   ]);
+
+  const handleOrderPaymentSuccess = useCallback(
+    ({ orderIdGuid, amount }) => {
+      const paidDelta = Number(amount || 0);
+
+      if (!orderIdGuid || !Number.isFinite(paidDelta) || paidDelta <= 0) {
+        return;
+      }
+
+      setCalculationsData((previous) =>
+        previous.map((calc) => {
+          let hasUpdatedOrder = false;
+
+          const updatedOrders = (Array.isArray(calc.orders) ? calc.orders : []).map((order) => {
+            if (order?.idGuid !== orderIdGuid) {
+              return order;
+            }
+
+            hasUpdatedOrder = true;
+
+            const currentPaid = Number(order?.paid || 0);
+            const orderAmount = Number(order?.amount || 0);
+            const nextPaid = Math.min(orderAmount, currentPaid + paidDelta);
+
+            return {
+              ...order,
+              paid: nextPaid,
+            };
+          });
+
+          if (!hasUpdatedOrder) {
+            return calc;
+          }
+
+          const totals = updatedOrders.reduce(
+            (accumulator, order) => {
+              if (order?.status !== "Відмова") {
+                accumulator.amount += Number(order?.amount || 0);
+                accumulator.paid += Number(order?.paid || 0);
+              }
+
+              return accumulator;
+            },
+            { amount: 0, paid: 0 },
+          );
+
+          return {
+            ...calc,
+            orders: updatedOrders,
+            amount: totals.amount,
+            debt: Math.max(0, totals.amount - totals.paid),
+          };
+        }),
+      );
+    },
+    [],
+  );
 
   const handleSaveCalculation = useCallback(async () => {
     setEditingCalculation(null);
@@ -1444,6 +1506,7 @@ const PortalOriginal = () => {
                       reloadCalculations={
                         reloadCalculations
                       }
+                      onOrderPaymentSuccess={handleOrderPaymentSuccess}
                     />
                   ) : (
                     <CalculationItem
@@ -1465,6 +1528,7 @@ const PortalOriginal = () => {
                       reloadCalculations={
                         reloadCalculations
                       }
+                      onOrderPaymentSuccess={handleOrderPaymentSuccess}
                     />
                   ),
                 )

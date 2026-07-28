@@ -220,42 +220,108 @@ export default function PaymentsPage() {
     });
   }, [orders, statusFilter, contractFilter, search]);
 
+
+  const debtAnalytics = useMemo(() => {
+  const routeDebtOrders = debtItems.filter(
+    (order) => Number(order.Debt || 0) > 0,
+  );
+
+  const moneyInTransitOrders = debtItems.filter(
+    (order) =>
+      Number(order.Summa || 0) > 0 &&
+      Number(order.Debt || 0) <= 0,
+  );
+
+  const criticalOrders = debtItems.filter(
+    (order) => Number(order.DebtMoreTen || 0) > 0,
+  );
+
+  const noPrepaymentOrders = debtItems.filter(
+    (order) => Number(order.BezPeredOplaty || 0) > 0,
+  );
+
+  const underfundedOrders = debtItems.filter(
+    (order) => Number(order.NedoAvans || 0) > 0,
+  );
+
+  const routeDebtTotal = routeDebtOrders.reduce(
+    (sum, order) => sum + Number(order.Debt || 0),
+    0,
+  );
+
+  const moneyInTransitTotal = moneyInTransitOrders.reduce(
+    (sum, order) => sum + Number(order.Summa || 0),
+    0,
+  );
+
+  const postSaleDebtTotal =
+    routeDebtTotal + moneyInTransitTotal;
+
+  return {
+    routeDebtOrders,
+    moneyInTransitOrders,
+    criticalOrders,
+    noPrepaymentOrders,
+    underfundedOrders,
+
+    routeDebtTotal,
+    moneyInTransitTotal,
+    postSaleDebtTotal,
+  };
+}, [debtItems]);
+
+
   // =====================================================
   // DRILL-DOWN LOGIC
   // =====================================================
   const showDebtDetails = (type) => {
-    let filtered = [];
-    let title = "";
+  let filtered = [];
+  let title = "";
 
-    switch (type) {
-      case "no_prepayment":
-        filtered = debtItems.filter((o) => Number(o.BezPeredOplaty || 0) > 0);
-        title = t("payments_page.analytics.no_prepayment_orders");
-        break;
-      case "critical":
-        filtered = debtItems.filter((o) => Number(o.DebtMoreTen || 0) > 0);
-        title = t("payments_page.analytics.critical_orders");
-        break;
-      case "nedoavans":
-        filtered = debtItems.filter((o) => Number(o.NedoAvans || 0) > 0);
-        title = t("payments_page.analytics.underfunded_orders");
-        break;
-      case "in_route":
-        filtered = debtItems.filter((o) => Number(o.Debt || 0) > 0);
-        title = t("payments_page.analytics.in_route_orders");
-        break;
-      case "money_way":
-        filtered = debtItems.filter((o) => Number(o.Summa || 0) > 0);
-        title = t("payments_page.analytics.money_in_transit_orders");
-        break;
-      default:
-        return;
-    }
+  switch (type) {
+    case "no_prepayment":
+      filtered = debtAnalytics.noPrepaymentOrders;
+      title = t(
+        "payments_page.analytics.no_prepayment_orders",
+      );
+      break;
 
-    setFilteredDetailOrders(filtered);
-    setDetailTitle(title);
-    setDetailModalOpen(true);
-  };
+    case "critical":
+      filtered = debtAnalytics.criticalOrders;
+      title = t(
+        "payments_page.analytics.critical_orders",
+      );
+      break;
+
+    case "nedoavans":
+      filtered = debtAnalytics.underfundedOrders;
+      title = t(
+        "payments_page.analytics.underfunded_orders",
+      );
+      break;
+
+    case "in_route":
+      filtered = debtAnalytics.routeDebtOrders;
+      title = t(
+        "payments_page.analytics.in_route_orders",
+      );
+      break;
+
+    case "money_way":
+      filtered = debtAnalytics.moneyInTransitOrders;
+      title = t(
+        "payments_page.analytics.money_in_transit_orders",
+      );
+      break;
+
+    default:
+      return;
+  }
+
+  setFilteredDetailOrders(filtered);
+  setDetailTitle(title);
+  setDetailModalOpen(true);
+};
 
   const translateStatus = useCallback(
     (status) => {
@@ -479,13 +545,39 @@ export default function PaymentsPage() {
                     </div>
 
                     <div className="analytics-card">
-                      <div className="card-title">{t("payments_page.analytics.overlimit")}</div>
-                      <div className={`card-value ${Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit && debtTotal.CustomerLimit > 0 ? "text-danger" : ""}`}>
-                        {debtTotal.CustomerLimit > 0 && Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) - debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
+  <div className="card-title">
+    {t("payments_page.analytics.overlimit")}
+  </div>
+
+  <div
+    className={`card-value ${
+      (Number(debtTotal.Debt || 0) +
+        Number(debtTotal.Summa || 0) +
+        Number(debtTotal.BezPeredOplaty || 0)) >
+        Number(debtTotal.CustomerLimit || 0) &&
+      Number(debtTotal.CustomerLimit || 0) > 0
+        ? "text-danger"
+        : ""
+    }`}
+  >
+    {(() => {
+      const limit = Number(debtTotal.CustomerLimit || 0);
+
+      const limitUsage =
+        Number(debtTotal.Debt || 0) +
+        Number(debtTotal.Summa || 0) +
+        Number(debtTotal.BezPeredOplaty || 0);
+
+      const overLimit = limitUsage - limit;
+
+      return limit > 0 && overLimit > 0
+        ? `${formatCurrency(overLimit)} ${
+            debtTotal.CurrencyName || t("common.currency_uah")
+          }`
+        : "—";
+    })()}
+  </div>
+</div>
 
                     <div className="analytics-card">
                       <div className="card-title">{t("payments_page.analytics.limit_usage")}</div>
@@ -530,35 +622,65 @@ export default function PaymentsPage() {
                     <div className="analytics-card !pl-0">
                       <div className="card-title">{t("payments_page.analytics.post_sale_debt")}</div>
                       <div className="card-value">
-                        {Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > 0
-                          ? `${formatCurrency(Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0))} ${debtTotal.CurrencyName || t("common.currency_uah")}`
+                        {debtAnalytics.postSaleDebtTotal > 0
+                          ? `${formatCurrency(debtAnalytics.postSaleDebtTotal)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>
 
                     <div
-                      className={`analytics-card ${Number(debtTotal.Debt || 0) > 0 ? "pointer-link" : ""}`}
-                      onClick={() => Number(debtTotal.Debt || 0) > 0 && showDebtDetails("in_route")}
-                    >
-                      <div className="card-title">{t("payments_page.analytics.route_debt")}</div>
-                      <div className="card-value">
-                        {Number(debtTotal.Debt || 0) > 0
-                          ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
+  className={`analytics-card ${
+    debtAnalytics.routeDebtTotal > 0
+      ? "pointer-link"
+      : ""
+  }`}
+  onClick={() =>
+    debtAnalytics.routeDebtTotal > 0 &&
+    showDebtDetails("in_route")
+  }
+>
+  <div className="card-title">
+    {t("payments_page.analytics.route_debt")}
+  </div>
+
+  <div className="card-value">
+    {debtAnalytics.routeDebtTotal > 0
+      ? `${formatCurrency(
+          debtAnalytics.routeDebtTotal,
+        )} ${
+          debtTotal.CurrencyName ||
+          t("common.currency_uah")
+        }`
+      : "—"}
+  </div>
+</div>
 
                     <div
-                      className={`analytics-card ${Number(debtTotal.Summa || 0) > 0 ? "pointer-link" : ""}`}
-                      onClick={() => Number(debtTotal.Summa || 0) > 0 && showDebtDetails("money_way")}
-                    >
-                      <div className="card-title">{t("payments_page.analytics.money_in_transit")}</div>
-                      <div className="card-value">
-                        {Number(debtTotal.Summa || 0) > 0
-                          ? `${formatCurrency(debtTotal.Summa)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
+  className={`analytics-card ${
+    debtAnalytics.moneyInTransitTotal > 0
+      ? "pointer-link"
+      : ""
+  }`}
+  onClick={() =>
+    debtAnalytics.moneyInTransitTotal > 0 &&
+    showDebtDetails("money_way")
+  }
+>
+  <div className="card-title">
+    {t("payments_page.analytics.money_in_transit")}
+  </div>
+
+  <div className="card-value">
+    {debtAnalytics.moneyInTransitTotal > 0
+      ? `${formatCurrency(
+          debtAnalytics.moneyInTransitTotal,
+        )} ${
+          debtTotal.CurrencyName ||
+          t("common.currency_uah")
+        }`
+      : "—"}
+  </div>
+</div>
 
                     <div
                       className={`analytics-card !pr-0 ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "pointer-link" : ""}`}
@@ -661,7 +783,7 @@ export default function PaymentsPage() {
                       <div className="pp-section pp-info-block">
                         <div className="pp-label">{t("payments_page.labels.balance_due")}</div>
                         <div className="pp-value-wrapper">
-                          <AppIcon name="moneyRed" className="w-[20px] h-[18px]" />
+                          <AppIcon name="moneyRed" className="w-[20px] h-[18px] pp-red" />
                           <strong className="pp-red">
                             {formatCurrency(o.DebtAmount)}
                             <span className="pp-currency">{o.CurrencyName || t("common.currency_uah")}</span>

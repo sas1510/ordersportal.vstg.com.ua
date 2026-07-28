@@ -152,7 +152,7 @@ class CreateInvitationSerializer(serializers.Serializer):
     fullName = serializers.CharField(max_length=255, required=False, allow_blank=True)
     phoneNumber = serializers.CharField(max_length=20, required=False, allow_blank=True)
     expireDate = serializers.DateTimeField()
-    role = serializers.ChoiceField(choices=["admin", "customer", "Customer"])
+    role = serializers.ChoiceField(choices=["admin", "manager", "region_manager", "customer", "Customer"])
     userGuid = serializers.CharField()
 
 
@@ -161,6 +161,7 @@ from rest_framework import serializers
 
 class QRLinkSerializer(serializers.Serializer):
     tg_link = serializers.CharField()
+
 
 
 

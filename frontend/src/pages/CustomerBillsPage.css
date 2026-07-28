@@ -148,7 +148,7 @@
 }
 
 .customer-bills-table tbody td {
-  padding: 10px 12px;
+  padding: 6px 12px;
   border-bottom: 1px dashed var(--grey-border-color);
   font-size: 14px;
   color: var(--text-color);
@@ -169,7 +169,6 @@
 .btn-bill-download {
   background-color: #fff4ec;
   color: #2c2c2c;
-  border: 1px dashed #ccc;
   padding: 5px 12px;
   font-size: 12px;
   border-radius: 5px;
@@ -208,6 +207,12 @@ body.dark-theme .customer-bills-table tbody tr:hover {
 }
 
 body.dark-theme .btn-bill-download {
+  background-color: #5a534e;
+  border-color: #acacac;
+  color: #cccccc;
+}
+
+body.dark-theme .btn-bill-qr {
   background-color: #5a534e;
   border-color: #acacac;
   color: #cccccc;
@@ -270,8 +275,8 @@ body.dark-theme .btn-bill-download:hover {
   }
 
   .customer-bills-table tbody td {
-    padding: 8px 10px;
-    font-size: 13px;
+    padding: 4px 10px;
+    font-size: 10px;
     border-bottom-width: 1px;
     border-bottom-style: solid; /* замість dashed */
   }
@@ -405,7 +410,6 @@ body.dark-theme .btn-bill-download:hover {
 .btn-bill-qr {
   background-color: #fcfff9;
   color: #2c2c2c;
-  border: 1px dashed #ccc;
   padding: 5px 12px;
   font-size: 12px;
   border-radius: 5px;
@@ -444,6 +448,14 @@ body.dark-theme .btn-bill-download:hover {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   animation: qrModalShow 0.2s ease-out;
 }
+
+.dark-theme .qr-modal-content {
+  background: #2c2c2c;
+  color: #f5f3f1;
+  border: 1px solid #555;
+}
+
+
 
 /* Кнопка закриття (хрестик) */
 .qr-modal-close {

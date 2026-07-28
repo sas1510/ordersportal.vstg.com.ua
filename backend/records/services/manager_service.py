@@ -19,7 +19,7 @@ def get_manager_by_contractor(contractor_id: str):
 
 
 def get_telegram_id_by_manager(manager_guid):
-    with connections["db_2"].cursor() as cursor:
+    with connections["default"].cursor() as cursor:
         cursor.execute(
             "EXEC dbo.GetTelegramID @UserGUID=%s",
             [manager_guid]

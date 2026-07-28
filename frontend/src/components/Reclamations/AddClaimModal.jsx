@@ -502,8 +502,8 @@ export default function AddClaimModal({
   const { t, i18n } = useTranslation(); // 🔥 Хук перекладу
   const { addNotification } = useNotification();
 
-  const { role } = useAuthGetRole();
-  const isManager = ["manager", "region_manager", "admin"].includes(role);
+  const { isBackoffice } = useAuthGetRole();
+  const isManager = isBackoffice;
 
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
   const [deliveryDate, setDeliveryDate] = useState("");

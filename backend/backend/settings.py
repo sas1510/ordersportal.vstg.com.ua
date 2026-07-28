@@ -51,8 +51,9 @@ INSTALLED_APPS = [
     'portal_media',
     'payments',
     'reclamations',
-    'additional_order',
-    'ai_chat',
+    'bonus.apps.BonusConfig',
+
+
     # 'silk',
     # 'documents',
     # 'order',
@@ -62,8 +63,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'backend.maintenance_middleware.OneCMaintenanceMiddleware',
+    'django.middleware.security.SecurityMiddleware'
     # 'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',

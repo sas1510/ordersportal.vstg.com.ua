@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'payments',
     'reclamations',
     'additional_order',
+        'bonus',
     # 'silk',
     # 'documents',
     # 'order',

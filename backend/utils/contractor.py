@@ -1,4 +1,5 @@
 # backend/utils/contractor.py
+from django.db import connection
 from rest_framework.response import Response
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
@@ -9,13 +10,14 @@ def resolve_contractor(
     *,
     allow_admin=True,
     admin_param="contractor",
+    elevated_roles=None,
 ):
     """
     ЄДИНА точка визначення contractor.
 
     Правила:
     - 1C API key → user.user_id_1C
-    - JWT admin → може передати contractor
+    - JWT admin / дозволені backoffice-ролі → можуть передати contractor
     - JWT dealer/customer → тільки свій
 
     Повертає:
@@ -38,7 +40,13 @@ def resolve_contractor(
     # 🔐 JWT
     role = (getattr(user, "role", "") or "").lower()
 
-    if role == "admin" and allow_admin:
+    allowed_elevated_roles = {
+        str(item or "").strip().lower()
+        for item in (elevated_roles or ("admin",))
+        if str(item or "").strip()
+    }
+
+    if allow_admin and role in allowed_elevated_roles:
         contractor_guid = request.data.get(admin_param) if hasattr(request, 'data') else None
         if not contractor_guid:
             contractor_guid = request.GET.get(admin_param)
@@ -46,6 +54,26 @@ def resolve_contractor(
         if not contractor_guid:
             raise ValueError(f"{admin_param} is required for admin")
 
+        if role in {"manager", "region_manager"}:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
+                    [request.user.id],
+                )
+                columns = [column[0] for column in cursor.description]
+                contractor_index = columns.index("ContractorID")
+                allowed_guids = {
+                    str(
+                        bin_to_guid_1c(row[contractor_index])
+                        if isinstance(row[contractor_index], (bytes, bytearray, memoryview))
+                        else row[contractor_index]
+                    ).strip().lower()
+                    for row in cursor.fetchall()
+                    if row[contractor_index]
+                }
+
+            if str(contractor_guid).strip().lower() not in allowed_guids:
+                raise PermissionError("У вас немає доступу до вибраного дилера.")
 
         try:
             contractor_bin = guid_to_1c_bin(contractor_guid)

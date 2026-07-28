@@ -330,6 +330,7 @@ import "./HomePage.css";
 import { motion , useScroll, useTransform } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslation } from 'react-i18next';
+import { useTheme } from "../hooks/useTheme";
 import {
   faAward,
   faUsers,
@@ -366,6 +367,7 @@ const videos = [
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll();
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
@@ -434,37 +436,37 @@ const statsData = [
       id: "window",
       bgLeft: "left-[427px]",
       icon: windowIcon,
-      iconClass: "absolute top-[274px] left-[542px] w-[50px] h-[50px] aspect-[1] object-cover z-10",
+      iconClass: "homepage-icon-beige absolute top-[274px] left-[542px] w-[50px] h-[50px] aspect-[1] object-cover z-10",
       iconAlt: "Window icon",
       value: "35 000",
-      valueClass: "left-[427px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
+      valueClass: "homepage-production-desktop-value left-[427px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
       label: t('production.pvc_windows'),
-      labelClass: "top-[390px] left-[427px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
-      bgClass: "absolute top-[247px] left-[427px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
+      labelClass: "homepage-production-desktop-label top-[390px] left-[427px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
+      bgClass: "homepage-production-desktop-box absolute top-[247px] left-[427px] w-[279px] h-[180px]  rounded-sm border border-gray-300 shadow-sm",
     },
     {
       id: "door",
       bgLeft: "left-[734px]",
       icon: doorIcon,
-      iconClass: "absolute top-[274px] left-[862px] w-[24px] h-[50px] aspect-[0.47] object-cover z-10",
+      iconClass: "homepage-icon-beige absolute top-[274px] left-[862px] w-[24px] h-[50px] aspect-[0.47] object-cover z-10",
       iconAlt: "Door icon",
       value: "9 000",
-      valueClass: "left-[734px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
+      valueClass: "homepage-production-desktop-value left-[734px] absolute top-[337px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
       label: t('production.pvc_doors'), 
-      labelClass: "top-[390px] left-[734px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
-      bgClass: "absolute top-[247px] left-[734px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
+      labelClass: "homepage-production-desktop-label top-[390px] left-[734px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
+      bgClass: "homepage-production-desktop-box absolute top-[247px] left-[734px] w-[279px] h-[180px] rounded-sm border border-gray-300 shadow-sm",
     },
     {
       id: "cycle",
       bgLeft: "left-[1041px]",
       icon: cicleIcon,
-      iconClass: "absolute top-[274px] left-[1156px] w-[49px] h-[50px] aspect-[0.97] object-cover z-10",
+      iconClass: "homepage-icon-beige absolute top-[274px] left-[1156px] w-[49px] h-[50px] aspect-[0.97] object-cover z-10",
       iconAlt: "Cicle icon",
       value: "Full Cycle",
-      valueClass: "absolute top-[337px] left-[1041px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
+      valueClass: "homepage-production-desktop-value absolute top-[337px] left-[1041px] w-[279px] font-['Inter'] font-black text-[#44403E] text-[40px] text-center tracking-[0] leading-normal z-10",
       label: t('production.innovations'),
-      labelClass: "top-[390px] left-[1041px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
-      bgClass: "absolute top-[247px] left-[1041px] w-[279px] h-[180px] bg-white rounded-sm shadow-sm",
+      labelClass: "homepage-production-desktop-label top-[390px] left-[1041px] w-[279px] font-['Inter'] font-normal text-[22px] text-center absolute text-[#44403E] tracking-[0] leading-normal z-10",
+      bgClass: "homepage-production-desktop-box absolute top-[247px]  left-[1041px] w-[279px] h-[180px]  rounded-sm border border-gray-300 shadow-sm",
     },
   ];
 
@@ -473,7 +475,7 @@ const statsData = [
     icon: plantIcon,
     iconAlt: "Plant icon",
     iconClass: "absolute top-[150px] left-[202px] w-[49px] h-[50px] aspect-[0.99] object-cover",
-    textClass: "top-[152px] left-[269px] w-[478px] font-['Inter'] font-normal text-xl absolute text-[#44403E] tracking-[0] leading-tight",
+    textClass: " top-[152px] left-[269px] w-[478px] font-['Inter'] font-normal text-xl absolute text-[#44403E] tracking-[0] leading-tight",
     text: t('info.factory_location')
   },
   {
@@ -514,7 +516,7 @@ const statsData = [
     id: 2,
     icon: qualityIcon,
     iconAlt: "Quality icon",
-    iconClass: "w-[85px] h-[100px]",
+    iconClass: "homepage-icon-beige w-[85px] h-[100px]",
     title: t('values.quality.title'),
     mdLeft: "md:left-[25.5%]", 
     description: t('values.quality.desc'),
@@ -534,7 +536,7 @@ const statsData = [
     id: 4,
     icon: safetyIcon,
     iconAlt: "Safety icon",
-    iconClass: "w-[86px] h-[100px]",
+    iconClass: "homepage-icon-beige w-[86px] h-[100px]",
     title: t('values.safety.title'),
     mdLeft: "md:left-[76.7%]", 
     description: t('values.safety.desc'),
@@ -558,7 +560,7 @@ const statsData = [
     };
 
   return (
-    <div className="homepage-container">
+    <div className={`homepage-container ${isDark ? "homepage-dark" : ""}`}>
       {/* Hero Section */}
       <section className="hero-section">
       {/* 1. ФОНОВЕ ВІДЕО */}
@@ -659,7 +661,7 @@ const statsData = [
 
 {isMobile ? (
       /* 1. МОБІЛЬНА ВЕРСІЯ */
-      <section className="w-full bg-[#F0F4DB] py-12 px-4 overflow-hidden">
+      <section className="homepage-production-section homepage-production-mobile w-full bg-[#F0F4DB] py-12 px-4 overflow-hidden">
   <motion.div 
     initial="hidden"
     whileInView="visible"
@@ -673,7 +675,7 @@ const statsData = [
         visible: { opacity: 1, y: 0 }
       }}
       transition={{ duration: 0.6 }}
-      className="font-['Inter'] font-[900] text-[24px] text-[#44403E] text-center mb-8 uppercase"
+      className=" font-['Inter'] font-[900] text-[24px] text-[#44403E] text-center mb-8 uppercase"
       style={{ WebkitTextStroke: '1px #44403E' }}
     >
            {t('production.title')}
@@ -692,7 +694,7 @@ const statsData = [
           className="flex items-start gap-4"
         >
           <img src={item.icon} alt="" className="w-10 h-10 mr-2 shrink-0 object-contain" />
-          <p className="font-['Inter'] text-[16px] text-[#44403E] leading-tight">{item.text}</p>
+          <p className="homepage-production-copy font-['Inter'] text-[16px] text-[#44403E] leading-tight">{item.text}</p>
         </motion.div>
       ))}
     </div>
@@ -703,7 +705,7 @@ const statsData = [
         hidden: { opacity: 0, scale: 0.95 },
         visible: { opacity: 1, scale: 1 }
       }}
-      className="font-['Inter'] font-[900] text-[24px] text-[#44403E] mb-6 uppercase" 
+      className=" font-['Inter'] font-[900] text-[24px] text-[#44403E] mb-6 uppercase" 
       style={{ WebkitTextStroke: '1px #44403E' }}
     >
       {t('production.cycle_title')}
@@ -720,7 +722,7 @@ const statsData = [
           }}
           transition={{ delay: index * 0.15, duration: 0.5 }}
           whileTap={{ scale: 0.98 }} // Ефект натискання для мобілки
-          className="bg-white p-4 rounded-sm shadow-sm flex items-center gap-4"
+          className="homepage-production-card bg-white p-4 rounded-sm shadow-sm flex items-center gap-4"
         >
           <img src={card.icon} alt="" className="w-10 mr-3 h-10 object-contain" />
           <div>
@@ -728,7 +730,7 @@ const statsData = [
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               transition={{ delay: index * 0.2 + 0.3 }}
-              className="font-black text-[22px] text-[#44403E]"
+              className="homepage-production-card-value font-black text-[22px] text-[#44403E]"
             >
               {card.value}
             </motion.div>
@@ -741,16 +743,16 @@ const statsData = [
 </section>
     ) : (
       /* 2. ДЕСКТОП ВЕРСІЯ */
-      <section className="relative w-full flex justify-center bg-[#F0F4DB] overflow-hidden py-20 min-h-[600px]">
+      <section className="homepage-production-section homepage-production-desktop relative w-full flex justify-center bg-[#F0F4DB] overflow-hidden py-20 min-h-[600px]">
         <div className="w-full flex justify-center">
           <div className="relative w-[1440px] flex-shrink-0 origin-top scale-[0.7] lg:scale-[0.8] xl:scale-100">
             
-            <div className="absolute top-[68px] left-[427px] w-[586px] font-['Inter'] font-[900] text-[32px] text-center text-[#44403E] uppercase"
+            <div className=" absolute top-[68px] left-[427px] w-[586px] font-['Inter'] font-[900] text-[32px] text-center text-[#44403E] uppercase"
                  style={{ WebkitTextStroke: '1px #44403E' }}>
               {t('production.title')}
             </div>
 
-            <div className="absolute top-[299px] left-[120px] w-[279px] font-['Inter'] font-black text-[32px] text-center text-[#44403E] leading-tight uppercase"
+            <div className=" absolute top-[299px] left-[120px] w-[279px] font-['Inter'] font-black text-[32px] text-center text-[#44403E] leading-tight uppercase"
                  style={{ WebkitTextStroke: '1px #44403E' }}>
               {t('production.cycle_title')}
             </div>
@@ -775,7 +777,7 @@ const statsData = [
       </section>
     )}
 
-<section className="w-full py-10 md:py-24 flex justify-center bg-white px-4 overflow-hidden">
+<section className="homepage-values-section w-full py-10 md:py-24 flex justify-center bg-white px-4 overflow-hidden">
   <div className="relative max-w-[1201px] w-full grid grid-cols-2 gap-y-16 gap-x-4 md:block md:h-[200px]">
     
     {features.map((feature, index) => (
@@ -811,7 +813,7 @@ const statsData = [
           md:absolute md:top-[135px] w-full 
           font-['Inter'] font-black /* Використовуємо стандартний Tailwind клас для 900+ */
           text-base sm:text-lg md:md:text-[clamp(1rem,1.4vw,1.5rem)]
-          text-[#44403E] text-center uppercase tracking-tighter leading-none
+          text-[#44403E] text-center uppercase tracking-tighter leading-none homepage-values-title
         " style={{ WebkitTextStroke: '0.5px #44403E' }}>
           {feature.title}
         </div>
@@ -821,7 +823,7 @@ const statsData = [
           md:absolute md:top-[175px] w-full 
           font-['Inter'] font-normal 
           text-sm sm:text-base md:text-[clamp(0.9rem,1.2vw,1.375rem)] 
-          text-[#44403E] text-center mt-1 md:mt-0 opacity-90
+          text-[#44403E] text-center mt-1 md:mt-0 opacity-90 homepage-values-desc
         ">
           {feature.description}
         </div>
@@ -918,7 +920,7 @@ const statsData = [
         </div>
       </section> */}
      <motion.section 
-className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px] pb-[50px] flex justify-center bg-white"
+className="homepage-partnership-section w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px] pb-[50px] flex justify-center bg-white"
   style={{borderTop: '4px solid #B4D947'}}
   initial={{ opacity: 0 }}
   whileInView={{ opacity: 1 }}
@@ -946,7 +948,7 @@ className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px]
   whileInView={{ opacity: 1, y: 0 }}
   viewport={{ once: true }}
   transition={{ delay: 0.2, duration: 0.6 }}
-  className="mt-[23px] font-['Inter'] font-[900] text-[20px] sm:text-[24px] md:text-[32px] text-[#44403E] text-center uppercase tracking-tight leading-[1.1]"
+  className="homepage-partnership-title mt-[23px] font-['Inter'] font-[900] text-[20px] sm:text-[24px] md:text-[32px] text-[#44403E] text-center uppercase tracking-tight leading-[1.1]"
   style={{ WebkitTextStroke: '0.5px #44403E' }}
 >
   {t('partnership.title_line1')} <br /> {t('partnership.title_line2')}
@@ -958,7 +960,7 @@ className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px]
   whileInView={{ opacity: 1, y: 0 }}
   viewport={{ once: true }}
   transition={{ delay: 0.3, duration: 0.6 }}
-  className="mt-4 w-full font-['Inter'] font-normal text-[15px] md:text-[18px] lg:text-[22px] text-[#44403E] text-center leading-tight"
+  className="homepage-partnership-desc mt-4 w-full font-['Inter'] font-normal text-[15px] md:text-[18px] lg:text-[22px] text-[#44403E] text-center leading-tight"
 >
   {t('partnership.desc_line1')} <br className="max-sm:hidden" />
   {t('partnership.desc_line2')}
@@ -969,3 +971,5 @@ className="w-full lg:pt-[60px] md:pt-[40px] pt-[20px] lg:pb-[110px] md:pb-[70px]
     </div>
   );
 }
+
+

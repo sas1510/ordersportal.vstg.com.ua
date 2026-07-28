@@ -47,10 +47,7 @@ const FilesPage = () => {
   const [loadingAdd, setLoadingAdd] = useState(false);
 
   const [editTitle, setEditTitle] = useState("");
-
-
-  const { role } = useAuthGetRole();
-  const isAdmin = role === "admin";
+  const { isAdmin } = useAuthGetRole();
   const { addNotification } = useNotification();
 
   const backgroundImage = "/assets/icons/FileBackground.jpg";

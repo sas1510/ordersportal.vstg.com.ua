@@ -53,7 +53,7 @@ body.dark-theme {
   --background-color: var(--color-muted);
   --text-color: #f5f3f1;
   --text-muted-color: #ddd8d3;
-  --card-background: #868179;
+  --card-background: #878179;
   --card-background-soft: #868179;
   --card-background-strong: #908684;
   --border-color: #6e6963;
@@ -132,7 +132,7 @@ body.dark-theme .panel,
 body.dark-theme .calc-item,
 
 body.dark-theme .claim-item,
-body.dark-theme .reclamation-item,
+
 body.dark-theme .customer-bills-panel,
 body.dark-theme .wds-codes-panel,
 body.dark-theme .wds-card,
@@ -140,9 +140,8 @@ body.dark-theme .analytics-card,
 body.dark-theme .pp-order-card,
 body.dark-theme .production-panel,
 body.dark-theme .invite-panel,
-body.dark-theme .info-panel,
-body.dark-theme .form-panel,
-body.dark-theme .stat-card,
+
+
 body.dark-theme .info-box,
 body.dark-theme .tech-cycle-card,
 body.dark-theme .value-card,
@@ -151,7 +150,6 @@ body.dark-theme .cta-section,
 body.dark-theme .video-card,
 body.dark-theme .notifications-list,
 body.dark-theme .notification-item,
-body.dark-theme .comments-modal-window,
 body.dark-theme .confirm-window,
 body.dark-theme .bill-modal-window,
 body.dark-theme .pay-modal-window,
@@ -187,23 +185,27 @@ body.dark-theme .mobile-header,
 body.dark-theme .mobile-filters,
 body.dark-theme .table-wrapper,
 body.dark-theme .analytics-table-container,
-body.dark-theme .qr-inline-panel,
-body.dark-theme .qr-modal-body {
+body.dark-theme .qr-inline-panel
+{
   background: var(--card-background);
   color: var(--text-color);
 }
 
-body.dark-theme table,
+body.dark-theme .qr-modal-body
+{
+  background-color: #2c2c2c;
+}
+
 body.dark-theme .payments-table,
 body.dark-theme .analytics-table,
 body.dark-theme .minimal-detail-table,
-body.dark-theme .wds-table,
+
 body.dark-theme .api-keys-table {
   background: var(--card-background);
   color: var(--text-color);
 }
 
-body.dark-theme th,
+
 body.dark-theme .payments-table th,
 body.dark-theme .analytics-table th,
 body.dark-theme .minimal-detail-table th,
@@ -255,12 +257,12 @@ body.dark-theme .bg-white,
 body.dark-theme .background-white,
 body.dark-theme .bg-\[\#FFFFFF\],
 body.dark-theme .bg-\[\#fff\] {
-  background-color: var(--card-background) !important;
+  background-color: #4C4644 !important;
 }
 
 body.dark-theme .text-black,
 body.dark-theme .text-dark,
-body.dark-theme .text-\[\#44403E\],
+
 body.dark-theme .text-\[\#234461\],
 body.dark-theme .text-WS---DarkGrey {
   color: var(--text-color) !important;
@@ -312,6 +314,155 @@ body.dark-theme .header-theme-toggle:hover {
   color: #ffffff !important;
 }
 
-body.dark-theme .header-theme-icon {
-  filter: brightness(0) saturate(100%) invert(93%) sepia(8%) saturate(230%) hue-rotate(340deg) brightness(94%) contrast(91%);
+
+
+body.dark-theme .icon.icon-pencil.font-size-18,
+body.dark-theme .icon.icon-pencil.font-size-20 {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .new-calc-close-btn,
+body.dark-theme .confirm-close-btn,
+body.dark-theme .pay-close-btn,
+body.dark-theme .counterparty-close-btn,
+body.dark-theme .order-refusal-modal-close,
+body.dark-theme .photo-modal-close,
+body.dark-theme .videos-modal-close,
+body.dark-theme .qr-modal-close,
+body.dark-theme .file-close-btn,
+body.dark-theme .bill-close-btn,
+body.dark-theme .portal-api-key-close-btn,
+body.dark-theme .portal-user-edit-close-btn,
+body.dark-theme .emergency-close-btn,
+body.dark-theme .emergy-close-btn,
+body.dark-theme .video-close-btn,
+body.dark-theme .close-btn-add-user,
+body.dark-theme .orders-file-modal-header .close-btn,
+body.dark-theme .preview-close-btn {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .new-calc-close-btn:hover,
+body.dark-theme .confirm-close-btn:hover,
+body.dark-theme .pay-close-btn:hover,
+body.dark-theme .counterparty-close-btn:hover,
+body.dark-theme .order-refusal-modal-close:hover,
+body.dark-theme .photo-modal-close:hover,
+body.dark-theme .videos-modal-close:hover,
+body.dark-theme .qr-modal-close:hover,
+body.dark-theme .file-close-btn:hover,
+body.dark-theme .bill-close-btn:hover,
+body.dark-theme .portal-api-key-close-btn:hover,
+body.dark-theme .portal-user-edit-close-btn:hover,
+body.dark-theme .emergency-close-btn:hover,
+body.dark-theme .emergy-close-btn:hover,
+body.dark-theme .video-close-btn:hover,
+body.dark-theme .close-btn-add-user:hover,
+body.dark-theme .orders-file-modal-header .close-btn:hover,
+body.dark-theme .preview-close-btn:hover {
+  color: #f5f3f1 !important;
+}
+
+/* Consistent action colors: bills, files and videos. */
+.btn-filter-bill {
+  background: #6b98bf;
+  color: #ffffff;
+}
+
+.btn-create-bill {
+  background: #b4d947;
+  color: #44403e;
+}
+
+.btn-bill-download {
+  background: #fff1e8;
+  border-color: #e6b66f;
+  color: #8c4b2c;
+}
+
+body.dark-theme .btn-filter-bill {
+  background: #6b98bf;
+  color: #ffffff;
+}
+
+body.dark-theme .btn-create-bill {
+  background: #b4d947;
+  color: #44403e;
+}
+
+body.dark-theme .btn-bill-download {
+  background: #513d32;
+  border-color: #e6b66f;
+  color: #ffd1b5;
+}
+
+body.dark-theme .btn-bill-download:hover {
+  background: #654837;
+  color: #fff0e5;
+  border-color: #ffd19a;
+}
+
+body.dark-theme .file-btn-cancel {
+  background: #e6b66f;
+  color: #44403e;
+}
+
+body.dark-theme .file-btn-save,
+body.dark-theme .file-btn-save.edit-btn {
+  background: #b4d947;
+  color: #44403e;
+}
+
+body.dark-theme .add-photo-btn {
+  background: linear-gradient(135deg, #6b98bf, #89b3d8);
+  color: #ffffff;
+}
+
+.videos-add-btn {
+  background: linear-gradient(135deg, #b4d947, #92b82a);
+  color: #44403e;
+  border-radius: 5px;
+  font-weight: 700;
+  box-shadow: 0 8px 16px rgba(146, 184, 42, 0.22);
+}
+
+.videos-hero-overlay {
+  background: linear-gradient(120deg, rgba(31, 64, 55, 0.72), rgba(43, 108, 176, 0.6));
+}
+
+body.dark-theme .video-card-footer {
+  border-top-color: #b4d947;
+}
+
+body.dark-theme .videos-add-btn {
+  color: #44403e;
+}
+
+/* Ambient background glows for files and videos. */
+.file-body {
+  background:
+    radial-gradient(circle at 12% 16%, rgba(107, 152, 191, 0.2), transparent 25%),
+    radial-gradient(circle at 87% 76%, rgba(180, 217, 71, 0.18), transparent 27%),
+    radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+}
+
+.videos-container {
+  background:
+    radial-gradient(circle at 10% 18%, rgba(107, 152, 191, 0.22), transparent 24%),
+    radial-gradient(circle at 88% 80%, rgba(180, 217, 71, 0.18), transparent 26%),
+    #f3f3f3;
+}
+
+body.dark-theme .file-body {
+  background:
+    radial-gradient(circle at 12% 16%, rgba(137, 179, 216, 0.16), transparent 25%),
+    radial-gradient(circle at 87% 76%, rgba(180, 217, 71, 0.12), transparent 27%),
+    #333333;
+}
+
+body.dark-theme .videos-container {
+  background:
+    radial-gradient(circle at 10% 18%, rgba(137, 179, 216, 0.16), transparent 24%),
+    radial-gradient(circle at 88% 80%, rgba(180, 217, 71, 0.12), transparent 26%),
+    #333333;
 }

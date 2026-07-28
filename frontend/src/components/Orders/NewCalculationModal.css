@@ -303,7 +303,7 @@ body.dark-theme .new-calc-modal-overlay {
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .new-calc-modal-window {
   /* Темний фон вікна */
-  background: #1e1e1e;
+  background: #44403e;
   color: #f0f0f0; /* Світлий текст за замовчуванням */
   /* Темна тінь */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
@@ -339,7 +339,7 @@ body.dark-theme .new-calc-label-row {
 body.dark-theme .new-calc-input,
 body.dark-theme .new-calc-input-number,
 body.dark-theme .new-calc-textarea {
-  background: #333333; /* Темний фон поля */
+  background: #333333 !important; /* Темний фон поля */
   color: #f0f0f0; /* Світлий текст */
   border: 1px solid #555555; /* Темна межа */
 }
@@ -384,7 +384,7 @@ body.dark-theme .new-calc-clear-file:hover {
 
 /* ===== Footer кнопки ===== */
 body.dark-theme .new-calc-modal-footer {
-  background: #1e1e1e; /* Темний фон футера */
+  background: #44403e; /* Темний фон футера */
 }
 
 /* 1. Кнопка Скасувати */

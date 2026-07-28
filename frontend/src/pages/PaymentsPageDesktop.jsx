@@ -177,7 +177,7 @@ export default function PaymentsPageDesktop(props) {
                     <div className="pp-section pp-info-block">
                       <div className="pp-label">Залишок</div>
                       <div className="pp-value-wrapper">
-                        <AppIcon name="moneyRed" className="w-[20px] h-[18px]" />
+                        <AppIcon name="moneyRed" className="w-[20px] h-[18px] " />
                         <strong className="pp-red">{formatCurrency(o.DebtAmount)} <span className="pp-currency">{o.CurrencyName || "грн"}</span></strong>
                       </div>
                     </div>

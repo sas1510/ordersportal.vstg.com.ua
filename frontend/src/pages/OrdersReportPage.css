@@ -1,0 +1,20 @@
+.orders-report { min-height: calc(100vh - 90px); padding: 32px 24px; background: #f4f7fa; }
+.orders-report__panel { max-width: 1180px; margin: 0 auto; padding: 32px; border-radius: 20px; background: #fff; box-shadow: 0 10px 35px rgba(29, 68, 97, .1); }
+.orders-report__heading, .orders-report__filters, .orders-report__cards { display: flex; }
+.orders-report__heading { justify-content: space-between; gap: 24px; align-items: flex-start; }
+.orders-report h1 { margin: 0; color: #1c496a; font-size: 30px; }
+.orders-report p { color: #64748b; }
+.orders-report__total { min-width: 150px; padding: 14px 18px; text-align: right; border-radius: 12px; background: #eaf3f9; color: #376984; }
+.orders-report__total span, .orders-report__card span { display: block; font-size: 14px; font-weight: 600; }
+.orders-report__total strong { font-size: 32px; }
+.orders-report__filters { flex-wrap: wrap; align-items: end; gap: 16px; margin: 32px 0; padding: 20px; border-radius: 12px; background: #f8fafc; }
+.orders-report__filters label { display: grid; gap: 6px; color: #475569; font-size: 14px; font-weight: 600; }
+.orders-report__filters input { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; color: #1e293b; }
+.orders-report__filters button { padding: 11px 18px; border: 0; border-radius: 8px; background: #2d789e; color: #fff; font-weight: 700; cursor: pointer; }
+.orders-report__filters button:disabled { cursor: wait; opacity: .7; }
+.orders-report__cards { gap: 18px; }
+.orders-report__card { flex: 1; min-height: 190px; padding: 24px; border-radius: 16px; color: #fff; }
+.orders-report__card strong { display: block; margin: 18px 0 10px; font-size: 48px; line-height: 1; }
+.orders-report__card p { margin: 0; color: inherit; opacity: .9; }
+.orders-report__card--new { background: #3c8ab2; }.orders-report__card--confirmation { background: #d48b2a; }.orders-report__card--payment { background: #b55b58; }.orders-report__error { color: #b42318; font-weight: 600; }
+@media (max-width: 720px) { .orders-report { padding: 16px; }.orders-report__panel { padding: 22px; }.orders-report__heading, .orders-report__cards { flex-direction: column; }.orders-report__total { width: 100%; text-align: left; }.orders-report__filters label, .orders-report__filters input, .orders-report__filters button { width: 100%; } }

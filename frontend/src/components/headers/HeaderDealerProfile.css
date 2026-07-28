@@ -39,13 +39,44 @@
 
 /* Іконка профілю */
 .profile-img-icon {
+
     height: 20px;
     left: 5px;
     position: absolute;
     top: 9px;
+  
+    color: #234360;
     width: 18px;
     object-fit: cover;
     z-index: 2;
+}
+
+
+
+.dark-theme .profile-img-icon {
+    color: #6B98BF;
+  
+}
+
+
+.profile-img-icon-mobile {
+
+    height: 30px;
+    left: 5px;
+    /* position: absolute; */
+    top: 9px;
+  
+    color: #234360;
+    width: 27px;
+    object-fit: contain;
+    z-index: 2;
+}
+
+
+
+.dark-theme .profile-img-icon-mobile {
+    color: #6B98BF;
+  
 }
 
 /* Лінія розділювач */
@@ -82,8 +113,28 @@
     width: 22px;
     object-fit: cover;
     z-index: 2;
+    color: #506B00;
 }
 
+.dark-theme .profile-money-img-icon {
+    color: #B4D947;
+}
+
+
+.profile-money-img-icon-mobile {
+    height: 30px;
+    left: 5px;
+
+    top: 42px;
+    width: 34px;
+    object-fit: contain;
+    z-index: 2;
+    color: #506B00;
+}
+
+.dark-theme .profile-money-img-icon-mobile {
+    color: #B4D947;
+}
 /* Підтримка темної теми */
 .profile-box.dark .profile-rectangle {
     background-color: #2D2D2D;
@@ -91,27 +142,69 @@
 }
 
 .profile-box.dark .profile-name-text {
-    color: #B4D947;
+    color: #6B98BF;
 }
 
 .profile-box.dark .profile-balance-text {
-    color: #FFFFFF;
+    color: #B4D947;
 }
 
-.profile-box.dark .profile-separator-line {
-    background-color: #4B5563;
-}
 
 /* Додайте це в кінець HeaderDealerProfile.css */
 .admin-profile-box .profile-menu-container {
-    display: flex;
-    align-items: center;
     height: 100%;
+    position: relative;
 }
 
 .admin-profile-box .profile-name-text,
 .admin-profile-box .profile-img-icon {
-    position: static !important; /* Відміняємо абсолютне позиціювання з макету */
+    position: absolute !important;
+}
+
+.admin-profile-box {
+    width: 220px;
+}
+
+.admin-profile-box .profile-rectangle {
+    width: 220px;
+    background-color: var(--header-profile-bg);
+}
+
+.admin-profile-box .profile-name-text {
+    left: 32px;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #234360;
+    line-height: 1.1;
+    max-height: 34px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.admin-profile-box .profile-img-icon {
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.admin-profile-arrow {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    width: 12px;
+    height: 8px;
+    transform: translateY(-50%);
+    opacity: 0.6;
+    z-index: 2;
+}
+
+.profile-box.dark.admin-profile-box .profile-name-text {
+    color: var(--header-text);
 }
 
 
@@ -136,7 +229,7 @@ body.dark-theme {
   --header-text: #F5F3F1;
   /* --header-accent: #908684; */
   --header-accent-hover: #ffffff;
-  --header-decorative: #868179;
+  /* --header-decorative: #868179; */
   --header-active-text: #ffffff;
   --header-submenu-bg: #868179;
   --header-profile-bg: #777777;
@@ -171,4 +264,21 @@ body.dark-theme {
 
 .pulse-animation {
   animation: pulse-orange 2s infinite;
+}
+body.dark-theme .mobile-side-menu { background: #33312f !important; color: #f5f3f1 !important; border-left: 1px solid #6e6963; }
+body.dark-theme .mobile-side-menu nav a:not(.text-white), body.dark-theme .mobile-side-menu nav button { color: #f5f3f1 !important; }
+body.dark-theme .mobile-side-menu nav a:hover, body.dark-theme .mobile-side-menu nav button:hover { background: #4c4644 !important; }
+body.dark-theme .mobile-side-menu-submenu { background: #4c4644 !important; border: 1px solid #6e6963; }
+body.dark-theme .mobile-side-menu-submenu a { color: #ddd8d3 !important; border-color: #6e6963 !important; }
+body.dark-theme .mobile-side-menu-profile { background: #3b3938 !important; border-top: 1px solid #6e6963; }
+body.dark-theme .mobile-side-menu-profile .text-\[\#234461\], body.dark-theme .mobile-side-menu-profile a { color: #9fd3ff !important; }
+body.dark-theme .mobile-side-menu .sidebar-divider { border-color: #6e6963 !important; }
+
+
+.dropdown-header {
+    color:#44403E;
+}
+
+.dark-theme .dropdown-header {
+    color: #f5f3f1;
 }

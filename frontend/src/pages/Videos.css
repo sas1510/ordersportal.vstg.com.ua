@@ -44,7 +44,9 @@
 .videos-layout {
   display: flex;
   max-width: 1334px;
-  margin: 10px auto;
+  margin: 0px auto;
+  margin-top: 10px;
+  padding-bottom: 20px;
   gap: 20px;
 }
 
@@ -371,13 +373,9 @@ body.dark-theme .social-widget-no-grid {
 
 body.dark-theme .videos-category-item {
   color: #f5f3f1;
-  border-bottom-color: #6e6963;
 }
 
-body.dark-theme .videos-category-item.active {
-  background: var(--WS--DarkBlue);
-  color: #f5f3f1;
-}
+
 
 body.dark-theme .videos-sidebar-toggle span,
 body.dark-theme .videos-sidebar-mobile-header,
@@ -426,4 +424,51 @@ body.dark-theme .border-round-active {
 
 body.dark-theme .sidebar-overlay-videos {
   background: rgba(0, 0, 0, 0.55);
+}
+
+/* Video category filters use the same palette as order filters. */
+.videos-sidebar {
+  background: #6b98bf;
+  padding: 26px 0;
+}
+
+.videos-sidebar .videos-category-item {
+  color: #fff;
+
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.videos-sidebar .videos-category-item img {
+  filter: brightness(0) invert(1);
+}
+
+.videos-sidebar .videos-category-item.active,
+.videos-sidebar .videos-category-item:hover {
+  background: #fff;
+  color: #44403e;
+}
+
+.videos-sidebar .videos-category-item.active img,
+.videos-sidebar .videos-category-item:hover img {
+  filter: none;
+  opacity: 0.7;
+}
+
+body.dark-theme .videos-sidebar {
+  background: #6b98bf;
+}
+
+/* Visible blue-green ambient glow behind video content. */
+.videos-container {
+  background:
+    radial-gradient(ellipse 42% 34% at 11% 72%, rgba(107, 152, 191, 0.4) 0%, rgba(107, 152, 191, 0.14) 40%, transparent 72%),
+    radial-gradient(ellipse 38% 32% at 91% 78%, rgba(180, 217, 71, 0.34) 0%, rgba(180, 217, 71, 0.1) 44%, transparent 74%),
+    #f3f3f3;
+}
+
+body.dark-theme .videos-container {
+  background:
+    radial-gradient(ellipse 42% 34% at 11% 72%, rgba(137, 179, 216, 0.3) 0%, rgba(107, 152, 191, 0.12) 42%, transparent 72%),
+    radial-gradient(ellipse 38% 32% at 91% 78%, rgba(180, 217, 71, 0.24) 0%, rgba(180, 217, 71, 0.08) 44%, transparent 74%),
+    #333333;
 }

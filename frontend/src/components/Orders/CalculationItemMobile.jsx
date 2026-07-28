@@ -18,7 +18,7 @@ import OrderNumbersListModal from "./OrderNumbersListModal";
 import OrderRefusalModal from "./OrderRefusalModal";
 
 export const CalculationItemMobile = React.memo(
-  ({ calc, onDelete, onEdit, onMarkAsRead, reloadCalculations }) => {
+  ({ calc, onDelete, onEdit, onMarkAsRead, reloadCalculations, onOrderPaymentSuccess }) => {
     //
     const {t, i18n} = useTranslation();
     const locale = i18n.language;
@@ -42,10 +42,7 @@ export const CalculationItemMobile = React.memo(
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
     const deleteIcon  = "/assets/icons/DeleteIcon.png";
-
-
-    const {  role } = useAuthGetRole();
-    const isAdmin = role === "admin";
+    const { isBackoffice } = useAuthGetRole();
 
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
@@ -498,7 +495,7 @@ export const CalculationItemMobile = React.memo(
         >
           <img src={recipientIcon} className={`mr-1 calc-summary-icon ${recipientIconClass}`} alt="" />
           <span className="text-[13px] text-WS---DarkGrey">
-            {isAdmin ? calc.dealer : t("calc.recipient_label")}
+            {isBackoffice ? calc.dealer : t("calc.recipient_label")}
           </span>
         </div>
       )}
@@ -563,6 +560,7 @@ export const CalculationItemMobile = React.memo(
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
                   totalOrderConstructions={totalOrderConstructions}
                   onRefresh={reloadCalculations}
+                  onOrderPaymentSuccess={onOrderPaymentSuccess}
                 />
               ))
             )}
@@ -574,7 +572,7 @@ export const CalculationItemMobile = React.memo(
           onClose={() => setIsCommentsOpen(false)}
           baseTransactionGuid={calc.id}
           transactionTypeId={1}
-          manager={isAdmin ? calc.dealerId : calc.manager}
+          manager={isBackoffice ? calc.dealerId : calc.manager}
         />
 
         <DeleteConfirmModal
@@ -603,7 +601,7 @@ export const CalculationItemMobile = React.memo(
           isOpen={isOrderRefusalOpen}
           onClose={() => setIsOrderRefusalOpen(false)}
           calculationGuid={calc.id}
-          recipientGuid={isAdmin ? calc.dealerId : calc.manager}
+          recipientGuid={isBackoffice ? calc.dealerId : calc.manager}
           orders={refusableOrders}
           onSubmitted={() => {
             reloadCalculations?.();

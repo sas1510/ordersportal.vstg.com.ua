@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 
 import axiosInstance from "../api/axios";
 import { RoleContext } from "./RoleContext";
+import { normalizeRole } from "../utils/roles";
 
 export function RoleProvider({ children }) {
   const location = useLocation();
@@ -26,10 +27,11 @@ export function RoleProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const updateRole = (newRole) => {
-    setRole(newRole);
+    const normalizedRole = normalizeRole(newRole);
+    setRole(normalizedRole);
 
-    if (newRole) {
-      localStorage.setItem("role", newRole);
+    if (normalizedRole) {
+      localStorage.setItem("role", normalizedRole);
     } else {
       localStorage.removeItem("role");
     }
@@ -50,10 +52,10 @@ export function RoleProvider({ children }) {
       );
 
       setUser(res.data);
-      setRole(res.data.role);
+      updateRole(res.data.role);
     } catch {
       setUser(null);
-      setRole(null);
+      updateRole(null);
     } finally {
       setIsLoading(false);
     }
@@ -61,11 +63,9 @@ export function RoleProvider({ children }) {
 
   const loginSuccess = (userData, userRole) => {
     setUser(userData);
-    setRole(userRole);
+    updateRole(userRole);
 
     setIsLoading(false);
-
-    localStorage.setItem("role", userRole);
 
     localStorage.setItem(
       "user",
@@ -85,11 +85,9 @@ export function RoleProvider({ children }) {
 
   const logout = () => {
     setUser(null);
-    setRole(null);
+    updateRole(null);
 
     setIsLoading(false);
-
-    localStorage.removeItem("role");
     localStorage.removeItem("user");
   };
 

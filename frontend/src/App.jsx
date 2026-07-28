@@ -15,9 +15,15 @@ import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 import SupportVideoUploadPage from "./pages/SupportVideoUploadPage";
 
 import PortalLoader from "./components/ui/PortalLoader";
-import { adminRoutes, dealerRoutes } from "./routesConfig";
+import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
 import { useCacheBuster } from "./hooks/useCacheBuster";
 import SupportChatWidget from "./components/SupportChatWidget";
+import {
+  isAdminRole,
+  isBackofficeRole,
+  isDealerRole,
+  normalizeRole,
+} from "./utils/roles";
 
 const routeTitlePatterns = [
   ["/login", "route_titles.login"],
@@ -138,6 +144,7 @@ function AppRoutes() {
   const { role, isLoading } = useContext(RoleContext);
   const location = useLocation();
   const { t } = useTranslation();
+  const normalizedRole = normalizeRole(role);
 
   const routeTitles = useMemo(
     () =>
@@ -189,10 +196,13 @@ function AppRoutes() {
   let LayoutComponent = PublicLayout;
   let routes = [];
 
-  if (role === "admin") {
+  if (isAdminRole(normalizedRole)) {
     LayoutComponent = AdminLayout;
     routes = adminRoutes;
-  } else if (role === "dealer" || role === "customer") {
+  } else if (isBackofficeRole(normalizedRole)) {
+    LayoutComponent = AdminLayout;
+    routes = managerRoutes;
+  } else if (isDealerRole(normalizedRole)) {
     LayoutComponent = DealerLayout;
     routes = dealerRoutes;
   }
@@ -204,7 +214,7 @@ function AppRoutes() {
 return (
   <>
     <Routes>
-      {role ? (
+      {normalizedRole ? (
         <Route path="/" element={<LayoutComponent />}>
           {routes.map(({ path, element }) => (
             <Route key={path} path={path} element={element} />
@@ -219,7 +229,7 @@ return (
       )}
     </Routes>
 
-    {role && <SupportChatWidget />}
+    {isDealerRole(normalizedRole) && <SupportChatWidget />}
   </>
 );
 }

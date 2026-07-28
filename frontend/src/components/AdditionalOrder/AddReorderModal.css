@@ -293,7 +293,7 @@ body.dark-theme .reorder-modal-overlay {
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .reorder-modal-window {
   /* Темний фон вікна */
-  background: #1e1e1e;
+  background: #44403e;
   /* Темна тінь */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -328,7 +328,7 @@ body.dark-theme .reorder-label span {
 body.dark-theme .reorder-input,
 body.dark-theme .reorder-textarea,
 body.dark-theme .reorder-select {
-  background: #333333; /* Темний фон поля */
+  background: #333333 !important; /* Темний фон поля */
   color: #f0f0f0; /* Світлий текст */
   border: 1px solid #555555; /* Темніша рамка */
 }
@@ -349,7 +349,7 @@ body.dark-theme .reorder-label.reorder-row input[type="checkbox"] {
 /* ===== Footer ===== */
 body.dark-theme .reorder-modal-footer {
   /* Темний фон футера */
-  background: #1e1e1e;
+  background: #44403e;
   border-top: 1px solid #555;
 }
 

@@ -700,10 +700,42 @@ def complaints_view(request):  # Знову синхронна для DRF
         return maintenance_response
 
     # Створюємо внутрішню асинхронну функцію, яка виконає всю I/O логіку
+    requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+    requested_contractor_guid = request.GET.get("contractor")
+
+    if requester_role in {"manager", "region_manager"} and requested_contractor_guid:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
+                [request.user.id],
+            )
+            columns = [column[0] for column in cursor.description]
+            contractor_index = columns.index("ContractorID")
+            allowed_guids = {
+                str(
+                    bin_to_guid_1c(row[contractor_index])
+                    if isinstance(row[contractor_index], (bytes, bytearray, memoryview))
+                    else row[contractor_index]
+                ).lower()
+                for row in cursor.fetchall()
+                if row[contractor_index]
+            }
+
+        if requested_contractor_guid.strip().lower() not in allowed_guids:
+            return Response(
+                {"error": "У вас немає доступу до вибраного дилера."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
     async def _async_data_fetch():
         try:
             # Загортаємо resolve_contractor, якщо вона робить синхронні запити в БД
-            contractor_bin, contractor_guid = await sync_to_async(resolve_contractor)(request)
+            contractor_bin, contractor_guid = await sync_to_async(resolve_contractor)(
+                request,
+                allow_admin=True,
+                admin_param="contractor",
+                elevated_roles=("admin", "manager", "region_manager"),
+            )
         except (ValueError, PermissionError) as e:
             return {"error": str(e), "status_code": 403}
 
@@ -1378,11 +1410,26 @@ def api_get_orders(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+    requested_contractor_guid = request.GET.get("contractor_guid")
+
+    if requester_role in {"manager", "region_manager"} and requested_contractor_guid:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s", [request.user.id])
+            columns = [column[0] for column in cursor.description]
+            contractor_index = columns.index("ContractorID")
+            allowed_guids = {str(bin_to_guid_1c(row[contractor_index]) if isinstance(row[contractor_index], (bytes, bytearray, memoryview)) else row[contractor_index]).lower() for row in cursor.fetchall() if row[contractor_index]}
+
+        if requested_contractor_guid.strip().lower() not in allowed_guids:
+            return Response({"error": "У вас немає доступу до вибраного дилера."}, status=status.HTTP_403_FORBIDDEN)
+
+
     try:
         contractor_bin, contractor_guid = resolve_contractor(
             request,
             allow_admin=True,
             admin_param="contractor_guid",
+            elevated_roles=("admin", "manager", "region_manager"),
         )
     except (ValueError, PermissionError) as e:
         logger.warning(
@@ -1605,10 +1652,42 @@ def additional_orders_view(request):  # Синхронна обгортка дл
         return maintenance_response
 
     # Створюємо внутрішню асинхронну функцію для I/O операцій
+    requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+    requested_contractor_guid = request.GET.get("contractor")
+
+    if requester_role in {"manager", "region_manager"} and requested_contractor_guid:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
+                [request.user.id],
+            )
+            columns = [column[0] for column in cursor.description]
+            contractor_index = columns.index("ContractorID")
+            allowed_guids = {
+                str(
+                    bin_to_guid_1c(row[contractor_index])
+                    if isinstance(row[contractor_index], (bytes, bytearray, memoryview))
+                    else row[contractor_index]
+                ).lower()
+                for row in cursor.fetchall()
+                if row[contractor_index]
+            }
+
+        if requested_contractor_guid.strip().lower() not in allowed_guids:
+            return Response(
+                {"error": "У вас немає доступу до вибраного дилера."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
     async def _async_data_fetch():
         try:
             # Загортаємо resolve_contractor на випадок синхронних запитів до БД всередині
-            contractor_bin, contractor_guid = await sync_to_async(resolve_contractor)(request)
+            contractor_bin, contractor_guid = await sync_to_async(resolve_contractor)(
+                request,
+                allow_admin=True,
+                admin_param="contractor",
+                elevated_roles=("admin", "manager", "region_manager"),
+            )
         except (ValueError, PermissionError) as e:
             return {"error": str(e), "status_code": 403}
 
@@ -2102,10 +2181,10 @@ def download_order_file(request, order_guid, file_guid):
     exclude=True
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWT])
+@permission_classes([IsAuthenticated])
 def get_additional_orders_info_all(request):
     """
-    ADMIN ONLY
+    Portal users
     Повертає ВСІ дозакази за місяць
     СТРУКТУРА = additional_orders_view
     """
@@ -2130,12 +2209,12 @@ def get_additional_orders_info_all(request):
         return Response({"error": "Invalid year or month"}, status=400)
     
 
-    logger.info(f"ADMIN: Fetching ALL additional orders for {year}-{month:02d}", extra={
+    logger.info(f"Fetching additional orders by portal role for {year}-{month:02d}", extra={
         'tags': {
-            'action': 'admin_get_all_additional_orders',
+            'action': 'get_additional_orders_by_portal_role',
             'year': year,
             'month': month,
-            'admin_user': request.user.username if request.user else 'unknown'
+            'portal_user': request.user.username if request.user else 'unknown'
         }
     })
 
@@ -2153,11 +2232,12 @@ def get_additional_orders_info_all(request):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers]
+                EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers_2]
+                    @RequesterUserID = %s,
                     @Year = %s,
                     @Month = %s
                 """,
-                [year, month]
+                [request.user.id, year, month]
             )
             columns = [c[0] for c in cursor.description]
             raw_rows = cursor.fetchall()
@@ -2279,7 +2359,7 @@ def get_additional_orders_info_all(request):
       
         logger.info(f"ADMIN: Successfully fetched {len(formatted_orders)} additional orders", extra={
             'tags': {
-                'action': 'admin_get_all_additional_orders',
+                'action': 'get_additional_orders_by_portal_role',
                 'sql_duration': round(sql_duration, 3),
                 'total_duration': round(total_duration, 3),
                 'count': len(formatted_orders)
@@ -2337,11 +2417,18 @@ def get_additional_orders_info_all(request):
 @permission_classes([IsAdminJWT])
 def complaints_view_all_by_month(request):
     """
-    ADMIN ONLY
-    Повертає ВСІ рекламації за МІСЯЦЬ
+    Повертає рекламації за місяць відповідно до ролі користувача.
+
+    admin, director:
+        усі рекламації активних дилерів порталу;
+
+    manager, region_manager:
+        лише рекламації закріплених дилерів.
+
     SQL: GetComplaintsFull_ByMonth
     """
     start_time = time.time()
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -2352,40 +2439,55 @@ def complaints_view_all_by_month(request):
     if not year_str or not month_str:
         return JsonResponse(
             {"error": "year and month are required"},
-            status=400
+            status=400,
         )
 
     try:
         year = int(year_str)
         month = int(month_str)
+
         if not 1 <= month <= 12:
             raise ValueError
-    except ValueError:
+
+    except (TypeError, ValueError):
         return JsonResponse(
             {"error": "Invalid year or month"},
-            status=400
+            status=400,
         )
-    
-    # logger.info(f"ADMIN: Fetching ALL complaints for {year}-{month:02d}", extra={
-    #     'tags': {
-    #         'action': 'admin_get_all_complaints',
-    #         'year': year,
-    #         'month': month,
-    #         'admin_user': request.user.username if request.user else 'unknown'
-    #     }
-    # })
 
+    requester_user_id = request.user.id
+    requester_role = str(
+        getattr(request.user, "role", "") or ""
+    ).strip().lower()
 
+    logger.info(
+        "Fetching complaints by user access",
+        extra={
+            "tags": {
+                "action": "get_complaints_by_month",
+                "user_id": requester_user_id,
+                "username": request.user.username,
+                "role": requester_role,
+                "year": year,
+                "month": month,
+            }
+        },
+    )
 
     try:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC [dbo].[GetComplaintsFull_ByMonth]
+                EXEC [dbo].[GetComplaintsFull_ByMonth_2]
+                    @RequesterUserID = %s,
                     @Year = %s,
                     @Month = %s
                 """,
-                [year, month]
+                [
+                    requester_user_id,
+                    year,
+                    month,
+                ],
             )
 
             columns = [col[0] for col in cursor.description]
@@ -2515,49 +2617,35 @@ def complaints_view_all_by_month(request):
 
 
 
-@extend_schema(
-    summary="Усі замовлення за місяць (ADMIN)",
-    description="Повертає ВСІ замовлення порталу за вказаний місяць",
-    parameters=[
-        OpenApiParameter(
-            name="year",
-            type=OpenApiTypes.INT,
-            location=OpenApiParameter.QUERY,
-            description="Рік (наприклад 2025)",
-            required=True,
-        ),
-        OpenApiParameter(
-            name="month",
-            type=OpenApiTypes.INT,
-            location=OpenApiParameter.QUERY,
-            description="Місяць (1–12)",
-            required=True,
-        ),
-    ],
-    auth=[
-        {"jwtAuth": []},
-    ],
-    exclude=True
-)
 @api_view(["GET"])
 @permission_classes([IsAdminJWT])
 def orders_view_all_by_month(request):
     """
-    ADMIN ONLY.
+    Повертає заявки на прорахунок і пов'язані замовлення
+    відповідно до ролі авторизованого користувача.
 
-    Повертає всі заявки на прорахунок та пов'язані замовлення
-    контрагентів порталу за вказаний період.
+    admin, director:
+        усі активні дилери порталу;
+
+    manager, region_manager:
+        лише закріплені за користувачем дилери.
 
     GET-параметри:
-        year  — рік (наприклад 2025)
-        month — місяць (1–12)
-
-    Структура відповіді ідентична get_orders_by_year_and_contractor.
+        date_from — початок періоду у форматі YYYY-MM-DD;
+        date_to   — завершення періоду у форматі YYYY-MM-DD.
     """
     start_time = time.time()
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
+
+    requester_user_id = request.user.id
+    requester_role = (
+        str(getattr(request.user, "role", "") or "")
+        .strip()
+        .lower()
+    )
 
     date_from_str = request.GET.get("date_from")
     date_to_str = request.GET.get("date_to")
@@ -2598,17 +2686,36 @@ def orders_view_all_by_month(request):
             status=400,
         )
 
+    logger.info(
+        "Fetching orders with role-based contractor filtering",
+        extra={
+            "tags": {
+                "action": "get_orders_info_all",
+                "user_id": requester_user_id,
+                "username": request.user.username,
+                "role": requester_role,
+                "date_from": str(date_from),
+                "date_to": str(date_to),
+            }
+        },
+    )
+
     try:
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC [dbo].[GetOrdersMonthWithCalculations2]
+                EXEC [dbo].[GetOrdersMonthWithCalculations3]
+                    @RequesterUserID = %s,
                     @DateFrom = %s,
                     @DateTo = %s
                 """,
-                [date_from, date_to],
+                [
+                    requester_user_id,
+                    date_from,
+                    date_to,
+                ],
             )
-
+            
             columns = [column[0] for column in cursor.description]
             rows = [
                 dict(zip(columns, row))
@@ -2789,6 +2896,7 @@ def orders_view_all_by_month(request):
                     "managerName": row.get(
                         "ManagerName"
                     ),
+                    "createDate": row.get("CreateDate"),
                     "dateDelay": row.get(
                         "DateDelays"
                     ),
@@ -3714,6 +3822,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             logger.warning(f"Access denied for create calculation: {str(e)}", extra={
@@ -3836,7 +3945,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
     tags=["order"]
 )
 class UpdateCalculationView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOr1CApiKey]
 
     def post(self, request, calculation_guid):
         serializer = CalculationUpdateSerializer(data=request.data)
@@ -3861,6 +3970,7 @@ class UpdateCalculationView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             return Response(
@@ -4050,7 +4160,7 @@ def get_dealer_addresses(request):
         " Дані отримуються з процедури **dbo.GetWDSCodes_ByContractor**.\n\n"
         " **Доступ:**\n"
         "- JWT:\n"
-        "  - admin → може передати contractor\n"
+        "  - admin / manager / region_manager / director → можуть передати contractor\n"
         "  - dealer / customer → тільки свій контрагент\n"
         "- 1C API Key → автоматично по UserId1C\n\n"
         " Можна обмежити вибірку датами (`date_from`, `date_to`).\n"
@@ -4061,7 +4171,7 @@ def get_dealer_addresses(request):
             name="contractor",
             type=OpenApiTypes.UUID,
             location=OpenApiParameter.QUERY,
-            description="GUID контрагента (обовʼязковий ТІЛЬКИ для admin)",
+            description="GUID контрагента (для admin / manager / region_manager / director можна передати явно)",
             required=False,
         ),
         OpenApiParameter(
@@ -4096,7 +4206,10 @@ def wds_codes_by_contractor(request):
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
 
-    contractor_bin, contractor_guid = resolve_contractor(request)
+    contractor_bin, contractor_guid = resolve_contractor(
+        request,
+        elevated_roles=("admin", "manager", "region_manager", "director"),
+    )
 
     raw_from = request.GET.get("date_from")
     raw_to = request.GET.get("date_to")
@@ -4462,6 +4575,398 @@ def confirm_order(request, order_id):
     
 
 
+import time
+import logging
+
+from django.core.exceptions import ValidationError
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from utils.onec_api import send_to_1c
+
+
+logger = logging.getLogger(__name__)
+
+import logging
+import time
+
+from django.core.exceptions import ValidationError
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from utils.onec_api import send_to_1c
+
+
+logger = logging.getLogger(__name__)
+
+PORTAL_MANAGER_COPY_USER_ID_1C_HEX = "0x810E74867AD9D52511EBDD6B1D812DBA"
+CONFIRM_ORDER_EXTRA_COPY_USER_ID_1C_HEX = "0x9CEB4CD98F08E56D11F17090C0521AFA"
+SKETCH_CONFIRM_OPERATOR_USER_ID_1C_HEX = "0x810E74867AD9D52511EBDD6B1D812DBA"
+
+
+def _binary_hex_to_bytes(value):
+    normalized = str(value or "").strip()
+    if normalized.lower().startswith("0x"):
+        normalized = normalized[2:]
+    if not normalized:
+        return None
+    return bytes.fromhex(normalized)
+
+
+def _send_telegram_text_safely(telegram_chat_id, text):
+    if not telegram_chat_id or not text:
+        return None
+    try:
+        return send_telegram_message(
+            telegram_chat_id=int(telegram_chat_id),
+            text=text,
+        )
+    except Exception:
+        logger.warning(
+            "Telegram notification failed for chat %s",
+            telegram_chat_id,
+            exc_info=True,
+        )
+        return None
+
+
+def _notify_order_confirmation_participants(
+    *,
+    request_user,
+    order_number,
+    linked_order_number="",
+    is_sketch_order=False,
+):
+    if not order_number:
+        return
+
+    linked_order_number = str(linked_order_number or "").strip()
+    main_order_suffix = (
+        f" (до основного замовлення №{linked_order_number})"
+        if linked_order_number
+        else ""
+    )
+
+    message_text = (
+        f"Замовлення №{order_number}{main_order_suffix} підтверджено."
+        if is_sketch_order
+        else f"Замовлення №{order_number} підтверджено."
+    )
+
+    telegram_chat_ids = set()
+
+    contractor_bin = getattr(request_user, "user_id_1C", None)
+    if contractor_bin:
+        try:
+            contractor_guid = bin_to_guid_1c(contractor_bin)
+            manager_guid = get_manager_by_contractor(contractor_guid)
+            manager_telegram_id = (
+                get_telegram_id_by_manager(manager_guid)
+                if manager_guid
+                else None
+            )
+            if manager_telegram_id:
+                telegram_chat_ids.add(int(manager_telegram_id))
+        except Exception:
+            logger.warning(
+                "Could not resolve manager Telegram for confirmed order %s",
+                order_number,
+                exc_info=True,
+            )
+
+    for copy_user_hex, warning_message in [
+        (PORTAL_MANAGER_COPY_USER_ID_1C_HEX, "Could not resolve portal copy Telegram for confirmed order %s"),
+        (CONFIRM_ORDER_EXTRA_COPY_USER_ID_1C_HEX, "Could not resolve extra confirm copy Telegram for confirmed order %s"),
+    ]:
+        copy_guid = _binary_hex_to_bytes(copy_user_hex)
+        if not copy_guid:
+            continue
+        try:
+            copy_telegram_id = get_telegram_id_by_manager(copy_guid)
+            if copy_telegram_id:
+                telegram_chat_ids.add(int(copy_telegram_id))
+        except Exception:
+            logger.warning(
+                warning_message,
+                order_number,
+                exc_info=True,
+            )
+
+    if is_sketch_order:
+        operator_guid = _binary_hex_to_bytes(
+            SKETCH_CONFIRM_OPERATOR_USER_ID_1C_HEX,
+        )
+        if operator_guid:
+            try:
+                operator_telegram_id = get_telegram_id_by_manager(operator_guid)
+                if operator_telegram_id:
+                    telegram_chat_ids.add(int(operator_telegram_id))
+            except Exception:
+                logger.warning(
+                    "Could not resolve operator Telegram for sketch order %s",
+                    order_number,
+                    exc_info=True,
+                )
+
+    for telegram_chat_id in telegram_chat_ids:
+        _send_telegram_text_safely(telegram_chat_id, message_text)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def confirm_order_by_number(request):
+    """
+    Підтверджує звичайне замовлення або ескіз.
+
+    Frontend передає:
+    {
+        "order_id": "79639027-b66b-11f0-9cd6-4cd98f08e56d",
+        "order_number": "34-12345"
+    }
+
+    Backend визначає код:
+    - 34-*     -> 000000017
+    - усі інші -> 000000002
+
+    У 1С викликається Query: SetOrderStatus.
+    """
+
+    start_time = time.time()
+    user = request.user
+
+    order_id = str(
+        request.data.get("order_id") or "",
+    ).strip()
+
+    order_number = str(
+        request.data.get("order_number") or "",
+    ).strip()
+    linked_order_number = str(
+        request.data.get("linked_order_number") or "",
+    ).strip()
+
+    if not order_id:
+        return Response(
+            {
+                "success": False,
+                "error": "Поле order_id є обов'язковим",
+                "code": 400,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not order_number:
+        return Response(
+            {
+                "success": False,
+                "error": "Поле order_number є обов'язковим",
+                "code": 400,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    normalized_order_number = order_number.upper()
+    is_sketch_order = normalized_order_number.startswith("34-")
+
+    status_code = (
+        "000000017"
+        if is_sketch_order
+        else "000000002"
+    )
+
+    payload = {
+        "order_id": order_id,
+        "status_code": status_code,
+    }
+
+    try:
+        result = send_to_1c(
+            "SetOrderStatus",
+            payload,
+        )
+
+        duration = time.time() - start_time
+
+        if not isinstance(result, dict):
+            logger.error(
+                "Invalid SetOrderStatus response for order %s",
+                order_id,
+                extra={
+                    "tags": {
+                        "action": "confirm_order_by_number",
+                        "order_id": order_id,
+                        "order_number": order_number,
+                        "status_code": status_code,
+                        "user": user.username,
+                        "status": "invalid_1c_response",
+                        "duration_sec": round(duration, 3),
+                    },
+                    "1c_response": result,
+                },
+            )
+
+            return Response(
+                {
+                    "success": False,
+                    "error": (
+                        "1С повернула відповідь "
+                        "у неправильному форматі"
+                    ),
+                    "code": 502,
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        if result.get("success") is not True:
+            error_message = (
+                result.get("error")
+                or result.get("detail")
+                or "1С не змінила стан замовлення"
+            )
+
+            try:
+                response_status = int(
+                    result.get("code") or 400,
+                )
+            except (TypeError, ValueError):
+                response_status = 400
+
+            if response_status not in (400, 404, 500):
+                response_status = 400
+
+            logger.warning(
+                "SetOrderStatus rejected for order %s",
+                order_id,
+                extra={
+                    "tags": {
+                        "action": "confirm_order_by_number",
+                        "order_id": order_id,
+                        "order_number": order_number,
+                        "status_code": status_code,
+                        "user": user.username,
+                        "status": "rejected_by_1c",
+                        "duration_sec": round(duration, 3),
+                    },
+                    "1c_response": result,
+                },
+            )
+
+            return Response(
+                {
+                    "success": False,
+                    "error": error_message,
+                    "code": response_status,
+                },
+                status=response_status,
+            )
+
+        logger.info(
+            "Order %s status changed to %s",
+            order_id,
+            status_code,
+            extra={
+                "tags": {
+                    "action": "confirm_order_by_number",
+                    "order_id": order_id,
+                    "order_number": order_number,
+                    "status_code": status_code,
+                    "is_sketch_order": is_sketch_order,
+                    "user": user.username,
+                    "status": "success",
+                    "duration_sec": round(duration, 3),
+                },
+                "1c_response": result,
+            },
+        )
+
+        _notify_order_confirmation_participants(
+            request_user=user,
+            order_number=order_number,
+            linked_order_number=linked_order_number,
+            is_sketch_order=is_sketch_order,
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": (
+                    "Ескіз підтверджено"
+                    if is_sketch_order
+                    else "Замовлення підтверджено"
+                ),
+                "order_id": order_id,
+                "order_number": order_number,
+                "status_code": status_code,
+                "data_from_1c": result,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except ValidationError as error:
+        duration = time.time() - start_time
+
+        logger.error(
+            "SetOrderStatus validation error for order %s: %s",
+            order_id,
+            str(error),
+            extra={
+                "tags": {
+                    "action": "confirm_order_by_number",
+                    "order_id": order_id,
+                    "order_number": order_number,
+                    "status_code": status_code,
+                    "user": user.username,
+                    "status": "validation_error",
+                    "duration_sec": round(duration, 3),
+                },
+            },
+        )
+
+        detail = getattr(error, "detail", None)
+
+        return Response(
+            {
+                "success": False,
+                "error": detail or str(error),
+                "code": 502,
+            },
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    except Exception as error:
+        duration = time.time() - start_time
+
+        logger.error(
+            "Unexpected SetOrderStatus error for order %s: %s",
+            order_id,
+            str(error),
+            exc_info=True,
+            extra={
+                "tags": {
+                    "action": "confirm_order_by_number",
+                    "order_id": order_id,
+                    "order_number": order_number,
+                    "status_code": status_code,
+                    "user": user.username,
+                    "status": "critical_error",
+                    "duration_sec": round(duration, 3),
+                },
+            },
+        )
+
+        return Response(
+            {
+                "success": False,
+                "error": "Внутрішня помилка сервера",
+                "code": 500,
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
 
 class DeleteCalculationView(APIView):
     permission_classes = [IsAuthenticated]
@@ -4562,6 +5067,7 @@ class ProductionStatisticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -4751,6 +5257,7 @@ class ProductionTimelinessByContractorView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as exc:
             return Response({"detail": str(exc)}, status=400)
@@ -4884,6 +5391,7 @@ class ProductionUnifiedAnalyticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as exc:
             return Response({"detail": str(exc)}, status=400)
@@ -5040,6 +5548,7 @@ class DealerDetailedStatisticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -5090,6 +5599,7 @@ class DealerFullAnalyticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -5166,6 +5676,7 @@ class OrdersDealerStatisticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -5326,6 +5837,7 @@ class PartnerDebtsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             logger.warning(f"Unauthorized debt access attempt by {user_name}: {str(e)}")
@@ -6153,6 +6665,21 @@ def send_support_notification_to_telegram(request):
             absolute=True,
         )
 
+    extra_telegram_chat_ids = []
+    if telegram_id:
+        extra_telegram_chat_ids.append(int(telegram_id))
+    portal_copy_guid = _binary_hex_to_bytes(PORTAL_MANAGER_COPY_USER_ID_1C_HEX)
+    if portal_copy_guid:
+        try:
+            portal_copy_telegram_id = get_telegram_id_by_manager(portal_copy_guid)
+            if portal_copy_telegram_id and int(portal_copy_telegram_id) not in extra_telegram_chat_ids:
+                extra_telegram_chat_ids.append(int(portal_copy_telegram_id))
+        except Exception:
+            logger.warning(
+                "Could not resolve portal copy Telegram for support notification",
+                exc_info=True,
+            )
+
     if upload_file_obj:
         upload_file_obj.seek(0)
         tg_response = send_telegram_file(
@@ -6160,11 +6687,31 @@ def send_support_notification_to_telegram(request):
             file_obj=upload_file_obj,
             caption=tg_text
         )
+        for extra_chat_id in extra_telegram_chat_ids:
+            if int(extra_chat_id) == int(telegram_id):
+                continue
+            try:
+                upload_file_obj.seek(0)
+                send_telegram_file(
+                    telegram_chat_id=extra_chat_id,
+                    file_obj=upload_file_obj,
+                    caption=tg_text,
+                )
+            except Exception:
+                logger.warning(
+                    "Could not send support file copy to Telegram chat %s",
+                    extra_chat_id,
+                    exc_info=True,
+                )
     else:
         tg_response = send_telegram_message(
             telegram_chat_id=telegram_id,
             text=tg_text
         )
+        for extra_chat_id in extra_telegram_chat_ids:
+            if int(extra_chat_id) == int(telegram_id):
+                continue
+            _send_telegram_text_safely(extra_chat_id, tg_text)
 
     telegram_chat_id = int(telegram_id)
     telegram_message_id = None
@@ -6222,6 +6769,11 @@ def send_support_notification_to_telegram(request):
                 telegram_chat_id=telegram_id,
                 text=fallback_text,
             )
+
+            for extra_chat_id in extra_telegram_chat_ids:
+                if int(extra_chat_id) == int(telegram_id):
+                    continue
+                _send_telegram_text_safely(extra_chat_id, fallback_text)
 
             if isinstance(fallback_response, dict) and fallback_response.get("ok"):
                 telegram_sent = True

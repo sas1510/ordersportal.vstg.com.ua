@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
 import { AdditionalOrderItem } from "../components/AdditionalOrder/AdditionalOrderItem";
@@ -25,7 +25,7 @@ const AdminAdditionalOrders = () => {
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState({ status: "Всі", month: 0, name: "" });
+  const [filter, setFilter] = useState({ status: "Р’СЃС–", month: 0, name: "" });
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
   );
@@ -53,6 +53,7 @@ const AdminAdditionalOrders = () => {
   const deliveredIcon = "/assets/icons/DeliveredIcon.png";
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
   const filterIcon = "/assets/icons/FiltersIcon.png";
+  const closeIcon = "/assets/icons/CloseButton.png";
 
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
@@ -106,10 +107,10 @@ const AdminAdditionalOrders = () => {
     (statusFilter, monthFilter, nameFilter, data = additionalOrdersData) => {
       let filtered = [...data];
 
-      if (statusFilter && statusFilter !== "Всі") {
+      if (statusFilter && statusFilter !== "Р’СЃС–") {
         filtered = filtered.filter((additionalOrder) => {
           const orders = additionalOrder.orders || [];
-          if (orders.length === 0) return statusFilter === "Новий";
+          if (orders.length === 0) return statusFilter === "РќРѕРІРёР№";
           return orders.some((order) => order.status === statusFilter);
         });
       }
@@ -214,7 +215,7 @@ const AdminAdditionalOrders = () => {
         }
       } catch (error) {
         if (error.name !== "CanceledError") {
-          // console.error("Помилка запиту:", error);
+          // console.error("РџРѕРјРёР»РєР° Р·Р°РїРёС‚Сѓ:", error);
           setAdditionalOrdersData([]);
           setFilteredItems([]);
         }
@@ -377,23 +378,23 @@ const AdminAdditionalOrders = () => {
 
   const statusSummary = useMemo(() => {
     const summary = {
-      Всі: 0,
-      Новий: 0,
-      "В роботі": 0,
-      "Очікуємо оплату": 0,
-      Підтверджений: 0,
-      "Очікуємо підтвердження": 0,
-      "У виробництві": 0,
-      Готовий: 0,
-      Доставлено: 0,
-      Відвантажено: 0,
-      Відмова: 0,
+      "Р’СЃС–": 0,
+      "РќРѕРІРёР№": 0,
+      "Р’ СЂРѕР±РѕС‚С–": 0,
+      "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ": 0,
+      "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№": 0,
+      "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ": 0,
+      "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–": 0,
+      "Р“РѕС‚РѕРІРёР№": 0,
+      "Р”РѕСЃС‚Р°РІР»РµРЅРѕ": 0,
+      "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ": 0,
+      "Р’С–РґРјРѕРІР°": 0,
     };
 
     additionalOrdersData.forEach((item) => {
-      summary["Всі"]++;
+      summary["Р’СЃС–"]++;
       const orders = item.orders || [];
-      if (orders.length === 0) summary["Новий"]++;
+      if (orders.length === 0) summary["РќРѕРІРёР№"]++;
       orders.forEach((o) => {
         if (o.status && Object.hasOwn(summary, o.status)) summary[o.status]++;
       });
@@ -452,7 +453,7 @@ const AdminAdditionalOrders = () => {
 
 
         {/* <div className="year-selector row">
-          <span>Звітний рік:</span>
+          <span>Р—РІС–С‚РЅРёР№ СЂС–Рє:</span>
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select
             value={selectedYear}
@@ -475,8 +476,8 @@ const AdminAdditionalOrders = () => {
           >
                 <img 
                   src={filterIcon} 
-                  alt="Стрілка" 
-                  className="align-center mr-1 min-w-[20px] h-[20px]" 
+                  alt="РЎС‚СЂС–Р»РєР°" 
+                  className="portal-service-icon align-center mr-1 min-w-[20px] h-[20px]" 
        
                 />
           </div>
@@ -485,8 +486,8 @@ const AdminAdditionalOrders = () => {
            <div className="year-inline-selector row">
               <img 
                   src={yearIcon} 
-                  alt="Стрілка" 
-                  className="align-center mr-2 w-[26px] h-[25px]" 
+                  alt="РЎС‚СЂС–Р»РєР°" 
+                  className="portal-service-icon align-center mr-2 w-[26px] h-[25px]" 
            
                 />
                 <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
@@ -525,18 +526,18 @@ const AdminAdditionalOrders = () => {
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
               // const labels = [
-              //   "Січ.",
-              //   "Лют.",
-              //   "Бер.",
-              //   "Квіт.",
-              //   "Трав.",
-              //   "Черв.",
-              //   "Лип.",
-              //   "Сер.",
-              //   "Вер.",
-              //   "Жов.",
-              //   "Лис.",
-              //   "Груд.",
+              //   "РЎС–С‡.",
+              //   "Р›СЋС‚.",
+              //   "Р‘РµСЂ.",
+              //   "РљРІС–С‚.",
+              //   "РўСЂР°РІ.",
+              //   "Р§РµСЂРІ.",
+              //   "Р›РёРї.",
+              //   "РЎРµСЂ.",
+              //   "Р’РµСЂ.",
+              //   "Р–РѕРІ.",
+              //   "Р›РёСЃ.",
+              //   "Р“СЂСѓРґ.",
               // ];
 
               const labels = t("portal_calc.months.short", { returnObjects: true });
@@ -576,18 +577,18 @@ const AdminAdditionalOrders = () => {
             {Array.from({ length: 12 }, (_, i) => {
               const num = i + 1;
               // const labels = [
-              //   "Січень",
-              //   "Лютий",
-              //   "Березень",
-              //   "Квітень",
-              //   "Травень",
-              //   "Червень",
-              //   "Липень",
-              //   "Серпень",
-              //   "Вересень",
-              //   "Жовтень",
-              //   "Листопад",
-              //   "Грудень",
+              //   "РЎС–С‡РµРЅСЊ",
+              //   "Р›СЋС‚РёР№",
+              //   "Р‘РµСЂРµР·РµРЅСЊ",
+              //   "РљРІС–С‚РµРЅСЊ",
+              //   "РўСЂР°РІРµРЅСЊ",
+              //   "Р§РµСЂРІРµРЅСЊ",
+              //   "Р›РёРїРµРЅСЊ",
+              //   "РЎРµСЂРїРµРЅСЊ",
+              //   "Р’РµСЂРµСЃРµРЅСЊ",
+              //   "Р–РѕРІС‚РµРЅСЊ",
+              //   "Р›РёСЃС‚РѕРїР°Рґ",
+              //   "Р“СЂСѓРґРµРЅСЊ",
               // ];
               const labels = t("portal_calc.months.full", { returnObjects: true });
 
@@ -622,17 +623,20 @@ const AdminAdditionalOrders = () => {
         <div
           className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
         >
-          {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between">
+          {isSidebarOpen && <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
             {isSidebarOpen && <span>{t("portal_calc.ui.filters")}</span>}
             {isSidebarOpen && (
-              <span
-                className="icon icon-cross"
+              <button
+                type="button"
                 onClick={() => setIsSidebarOpen(false)}
-              ></span>
+                className="hover:opacity-70 transition-opacity"
+              >
+                <img src={closeIcon} alt="" />
+              </button>
             )}
           </div> }
 
-          <div className="search-wrapper">
+          <div className="search-wrapper relative">
             <input
               type="text"
               className="search-orders w-full pl-10 pr-4 py-2 border rounded-md" 
@@ -643,7 +647,7 @@ const AdminAdditionalOrders = () => {
             <img 
               src={searchIcon} 
               alt="" 
-              className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
+              className="portal-service-icon absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
             />
           </div>
 
@@ -669,42 +673,38 @@ const AdminAdditionalOrders = () => {
                <img 
                   src={plusIcon} 
                   alt="+" 
-                  className="align-center mr-2 " 
+                  className="portal-service-icon align-center mr-2 " 
                  
                 />
-              <div className="text-center text-WS---DarkGrey text-[14px] font-bold font-['Inter'] uppercase">Нове дод. замовлення</div>{" "}
+              <div className="text-center text-WS---DarkGrey text-[14px] font-bold font-['Inter'] uppercase">РќРѕРІРµ РґРѕРґ. Р·Р°РјРѕРІР»РµРЅРЅСЏ</div>{" "}
             </li>
           </ul> */}
 
-          <ul className="filter column align-center">
+          <ul className="filter column align-center h-full overflow-hidden">
 
-             <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
-              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
-              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]  min-[1260px]:h-full
-              
-              /* Скидання для малих екранів (менше 1260px) */
-              max-[1260px]:bg-transparent 
-              max-[1260px]:shadow-none 
-              max-[1260px]:py-0 
-              max-[1260px]:w-full 
-              max-[1260px]:overflow-visible">
+             <div className="w-full h-full min-h-full bg-[#6B98BF] py-[26px] rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] overflow-y-auto overflow-x-hidden">
             {/* <li className="delimiter1"></li> */}
             {[
-              { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Всі" },
-              { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "Новий" },
-              { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "В роботі" },
-              { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "Очікуємо оплату" },
-              { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "Очікуємо підтвердження" },
-              { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "Підтверджений" },
-              { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "У виробництві" },
-              { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Готовий" },
-              { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Відвантажено" },
-              { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Відмова" },
+              { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Р’СЃС–" },
+              { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "РќРѕРІРёР№" },
+              { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "Р’ СЂРѕР±РѕС‚С–" },
+              { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ" },
+              { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ" },
+              { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№" },
+              { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–" },
+              { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Р“РѕС‚РѕРІРёР№" },
+              { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ" },
+              { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Р’С–РґРјРѕРІР°" },
             ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
-                className={`filter-item text-[#fff] ${filter.status === statusKey ? "active" : ""}`}
-                onClick={() => handleFilterClick(statusKey)}
+                className={`filter-item text-[#fff] row ${filter.status === statusKey ? "active" : ""}`}
+                onClick={() => {
+                  handleFilterClick(statusKey);
+                  if (isSidebarOpen) {
+                    setIsSidebarOpen(false);
+                  }
+                }}
               >
                 {/* <span className={`icon ${icon} font-size-24`}></span> */}
 
@@ -717,10 +717,8 @@ const AdminAdditionalOrders = () => {
                         : "brightness-0 invert"
                     }`} 
                   />
-                <span className="w-100">{label}</span>
-                <span
-                  className={statusSummary[statusKey] === 0 ? "disabled" : ""}
-                >
+                <span className="w-100 additional-order-filter-label">{label}</span>
+                <span className="additional-order-filter-badge">
                   {statusSummary[statusKey]}
                 </span>
               </li>
@@ -771,7 +769,7 @@ const AdminAdditionalOrders = () => {
             )}
           </div>
 
-          {/* Load more (твій стиль) */}
+          {/* Load more (С‚РІС–Р№ СЃС‚РёР»СЊ) */}
           {showLoadMoreButton && (
             <div
               className="row w-100"
@@ -831,3 +829,5 @@ const AdminAdditionalOrders = () => {
 };
 
 export default AdminAdditionalOrders;
+
+

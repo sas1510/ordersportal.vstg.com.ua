@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../api/axios";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
 const API_URL =
   (import.meta.env.VITE_API_URL || "https://localhost:7019") + "/api";
@@ -8,14 +9,21 @@ const API_URL =
 export default function AddOrEditFilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuthGetRole();
 
   const [title, setTitle] = useState("");
   const [file, setFile] = useState(null);
   const [existingFileUrl, setExistingFileUrl] = useState(null);
 
   useEffect(() => {
-    if (id) fetchDocument();
-  }, [id]);
+    if (!isAdmin) {
+      navigate("/files", { replace: true });
+    }
+  }, [isAdmin, navigate]);
+
+  useEffect(() => {
+    if (isAdmin && id) fetchDocument();
+  }, [id, isAdmin]);
 
   const fetchDocument = async () => {
     try {

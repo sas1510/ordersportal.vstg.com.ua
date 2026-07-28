@@ -14,8 +14,8 @@
 
 /* Змінні для темної теми */
 .dark-theme {
-  --chat-bg: #232323;
-  --modal-bg: #2d2d2d;
+  --chat-bg: #44403e;
+  --modal-bg: #44403e;
   --text-main: #e0e0e0;
   --text-muted: #888888;
   --border-color: #404040;

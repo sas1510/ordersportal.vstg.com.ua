@@ -62,8 +62,8 @@ const NewCalculationModal = ({
   // 📸 Стейт для зберігання масиву обраних фотографій
   const [photos, setPhotos] = useState([]);
 
-  const { role } = useAuthGetRole();
-  const isManager = ["manager", "region_manager", "admin"].includes(role);
+  const { isBackoffice } = useAuthGetRole();
+  const isManager = isBackoffice;
   const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
     .split("-")[0];

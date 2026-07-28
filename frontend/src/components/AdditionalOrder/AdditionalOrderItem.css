@@ -7,3 +7,108 @@
 .dark-theme .comments-text-wrapper-last {
   color: #ccc; /* Світло-сірий або білий текст */
 }
+
+/* Status colors in dark theme match the orders palette. */
+body.dark-theme .additional-order-item .text-WS---DarkBlue,
+body.dark-theme .additional-order-item .text-WS---DarkBlueProfile { color: #89b3d8 !important; }
+body.dark-theme .additional-order-item .text-WS---DarkPurple { color: #cdbef5 !important; }
+body.dark-theme .additional-order-item .text-WS---Orange { color: #e6b66f !important; }
+body.dark-theme .additional-order-item .text-WS---DarkGrey { color: #ddd8d3 !important; }
+body.dark-theme .additional-order-item .text-WS---MiddleGrey { color: #b8b0aa !important; }
+body.dark-theme .additional-order-item .text-WS---DarkGreen { color: #b4d947 !important; }
+body.dark-theme .additional-order-item .text-WS---DarkRed { color: #ff7a5c !important; }
+
+/* Light beige service icons in dark theme, matching order cards. */
+body.dark-theme .additional-order-item img[src$="ListCalcIcon.png"],
+body.dark-theme .additional-order-item img[src$="WindowsIconCalc.png"],
+body.dark-theme .additional-order-item img[src$="FileIcon.png"],
+body.dark-theme .additional-order-item img[src$="ProfileReclamation.png"],
+body.dark-theme .additional-order-item img[src$="HistoryOfMessageIcon.png"],
+body.dark-theme .additional-order-item img[src$="RecipientIcon.png"],
+body.dark-theme .additional-order-item img[src$="OpenDetailsOrdersIcon.png"] {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+body.dark-theme .additional-order-item img[src$="MoneyCalcIcon.png"] {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+@media (max-width: 768px) {
+  body.dark-theme .calc-item.column .text-WS---DarkBlue,
+  body.dark-theme .calc-item.column .text-WS---DarkBlueProfile,
+  body.dark-theme .reclamation-item .text-WS---DarkBlue,
+  body.dark-theme .reclamation-item .text-WS---DarkBlueProfile,
+  body.dark-theme .additional-order-item .text-WS---DarkBlue,
+  body.dark-theme .additional-order-item .text-WS---DarkBlueProfile { color: #9fd3ff !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkPurple,
+  body.dark-theme .reclamation-item .text-WS---DarkPurple,
+  body.dark-theme .additional-order-item .text-WS---DarkPurple { color: #d9cff7 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---Orange,
+  body.dark-theme .reclamation-item .text-WS---Orange,
+  body.dark-theme .additional-order-item .text-WS---Orange { color: #f2c27e !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkGreen,
+  body.dark-theme .calc-item.column .text-success,
+  body.dark-theme .reclamation-item .text-WS---DarkGreen,
+  body.dark-theme .reclamation-item .text-success,
+  body.dark-theme .additional-order-item .text-WS---DarkGreen,
+  body.dark-theme .additional-order-item .text-success { color: #b4d947 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkRed,
+  body.dark-theme .calc-item.column .text-danger,
+  body.dark-theme .reclamation-item .text-WS---DarkRed,
+  body.dark-theme .reclamation-item .text-danger,
+  body.dark-theme .additional-order-item .text-WS---DarkRed,
+  body.dark-theme .additional-order-item .text-danger { color: #ff9a86 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkGrey,
+  body.dark-theme .reclamation-item .text-WS---DarkGrey,
+  body.dark-theme .additional-order-item .text-WS---DarkGrey { color: #f5f3f1 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---MiddleGrey,
+  body.dark-theme .reclamation-item .text-WS---MiddleGrey,
+  body.dark-theme .additional-order-item .text-WS---MiddleGrey { color: #d4cec8 !important; }
+}
+
+@media (max-width: 768px) {
+  body.dark-theme .calc-item.column .text-WS---DarkBlue,
+  body.dark-theme .calc-item.column .text-WS---DarkBlueProfile,
+  body.dark-theme .reclamation-item .text-WS---DarkBlue,
+  body.dark-theme .reclamation-item .text-WS---DarkBlueProfile,
+  body.dark-theme .additional-order-item .text-WS---DarkBlue,
+  body.dark-theme .additional-order-item .text-WS---DarkBlueProfile { color: #89b3d8 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkPurple,
+  body.dark-theme .reclamation-item .text-WS---DarkPurple,
+  body.dark-theme .additional-order-item .text-WS---DarkPurple { color: #cdbef5 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---Orange,
+  body.dark-theme .reclamation-item .text-WS---Orange,
+  body.dark-theme .additional-order-item .text-WS---Orange { color: #e6b66f !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkGreen,
+  body.dark-theme .reclamation-item .text-WS---DarkGreen,
+  body.dark-theme .additional-order-item .text-WS---DarkGreen { color: #b4d947 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkRed,
+  body.dark-theme .reclamation-item .text-WS---DarkRed,
+  body.dark-theme .additional-order-item .text-WS---DarkRed { color: #ff7a5c !important; }
+
+  body.dark-theme .calc-item.column .text-WS---DarkGrey,
+  body.dark-theme .reclamation-item .text-WS---DarkGrey,
+  body.dark-theme .additional-order-item .text-WS---DarkGrey { color: #ddd8d3 !important; }
+
+  body.dark-theme .calc-item.column .text-WS---MiddleGrey,
+  body.dark-theme .reclamation-item .text-WS---MiddleGrey,
+  body.dark-theme .additional-order-item .text-WS---MiddleGrey { color: #b8b0aa !important; }
+
+  body.dark-theme .calc-item.column .text-success,
+  body.dark-theme .reclamation-item .text-success,
+  body.dark-theme .additional-order-item .text-success { color: #22c55e !important; }
+
+  body.dark-theme .calc-item.column .text-danger,
+  body.dark-theme .reclamation-item .text-danger,
+  body.dark-theme .additional-order-item .text-danger { color: #ef4444 !important; }
+}

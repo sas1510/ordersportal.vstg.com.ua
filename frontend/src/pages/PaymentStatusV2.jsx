@@ -1467,6 +1467,7 @@ import { useDealerContext } from "../hooks/useDealerContext";
 import DealerSelect from "./DealerSelect";
 import { useNotification } from "../hooks/useNotification";
 import { formatPercent } from "../utils/formatMoney";
+import { AppIcon } from "../components/Icons/AppIcon";
 // Імпортуємо хук перекладу
 import { useTranslation } from "react-i18next";
 import AutoTranslatedText from "../components/AutoTranslatedText";
@@ -1667,37 +1668,41 @@ const DocumentRow = React.memo(
         </tr>
         {isExpanded && cursorShow && (
           <tr className="sub-row">
-            <td colSpan={11} className="sub-wrapper indent-subcard">
+            <td colSpan={10} className="sub-wrapper indent-subcard">
               <div className="sub-orders-container minimal">
                 {docGroup.items.map((item, idx) => {
                   const itemCurrency = item.Currency_2 || "грн";
                   return (
                     <div key={`${docKey}-${idx}`} className="mini-card clickable-subcard">
                       <div className="order-mini-header">
-                        {t('payments.order_no')} {item.OrderNumber}
+                        {t('payments.order_no')} {item.OrderNumber} {t('payments.from')} {formatDateHuman(item.OrderDate, i18n.language)}
                       </div>
                       <div className="mini-grid">
                         <div>
                           <span className="mini-label">{t('payments.amount')}</span>
                           <span className="mini-value">
+                            <AppIcon name="money" className="cashflow-mini-icon text-white" />
                             {formatCurrency(item.OrderAmount, itemCurrency, i18n)}
                           </span>
                         </div>
                         <div>
                           <span className="mini-label">{t('payments.paid_before')}</span>
                           <span className="mini-value text-grey">
+                            <AppIcon name="money" className="cashflow-mini-icon text-white" />
                             {formatCurrency(item.PaidBefore, itemCurrency, i18n)}
                           </span>
                         </div>
                         <div>
                           <span className="mini-label">{t('payments.payment')}</span>
                           <span className={item.FlowDirection === "Прихід" ? "text-green mini-green" : "text-red mini-red"}>
+                            <AppIcon name="moneyGreen" className="cashflow-mini-icon" />
                             {formatCurrency(Math.abs(Number(item.PaymentApplied || 0)), itemCurrency, i18n)}
                           </span>
                         </div>
                         <div>
                           <span className="mini-label">{t('payments.balance')}</span>
                           <span className="mini-red">
+                            <AppIcon name="moneyRed" className="cashflow-mini-icon" />
                             {formatCurrency(item.OrderBalance, itemCurrency, i18n)}
                           </span>
                         </div>
@@ -1707,7 +1712,16 @@ const DocumentRow = React.memo(
                             {item.PaymentStatus !== null ? `${formatPercent(item.PaymentStatus)} %` : "—"}
                           </span>
                         </div>
-                        <div>
+                         <div>
+                          <span className="mini-label">
+                            {t('payments.contract')}
+                          </span>
+
+                          <span className="mini-value">
+                            {item.FinalDogovorName || "—"}
+                          </span>
+                        </div>
+                        {/* <div>
                           <span className="mini-label">Реалізовано за день</span>
                           <span className="mini-value">
                             {item.RealizedPerDay != null
@@ -1728,7 +1742,7 @@ const DocumentRow = React.memo(
                           <span className="mini-value">
                             {item.CarNumber || "—"}
                           </span>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   );
@@ -1755,9 +1769,9 @@ const PaymentGroup = React.memo(
     return (
       <>
         <tr className="date-row">
-          <td colSpan={11}>
+          <td colSpan={10}>
             <div className="date-header">
-              <span className="td-date">📅 {formatDateHuman(group.date, i18n.language)}</span>
+              <span className="td-date">{formatDateHuman(group.date, i18n.language)}</span>
               <span className="contracts-text">
                 {Object.values(group.initialContracts).map((c, idx) => (
                   <span key={idx} className="contract-badge">
@@ -1782,7 +1796,7 @@ const PaymentGroup = React.memo(
           />
         ))}
         <tr className="total-row total-row-separator">
-          <td colSpan={4}>📊 {t('payments.total_for')} {formatDateHuman(group.date, i18n.language)}:</td>
+          <td colSpan={4}> {t('payments.total_for')} {formatDateHuman(group.date, i18n.language)}:</td>
           <td colSpan={6}>
             <div className="contract-totals">
               {Object.entries(group.contractSummary).map(([name, c], idx) => (
@@ -2001,7 +2015,7 @@ const PaymentStatusV2 = () => {
   if (error)
     return (
       <div className={`payments-body ${theme}`}>
-        <div className="max-w-[1334px] mx-auto">
+        <div className="max-w-[1334px] mx-auto mb-2 pb-2">
           <div className={`cashflow-error-state ${error.tone === "warning" ? "is-warning" : "is-danger"}`}>
             <div className="cashflow-error-state__icon">
               <i
@@ -2024,7 +2038,7 @@ const PaymentStatusV2 = () => {
 
   return (
     <div className={`payments-body ${theme}`}>
-      <div className="max-w-[1334px] mx-auto ">
+      <div className="max-w-[1334px] mx-auto mb-2 pb-2">
         {!isMobile ? (
           <>
             <div className="filters-container">
@@ -2052,15 +2066,16 @@ const PaymentStatusV2 = () => {
                   <DealerSelect value={filters.contractor} onChange={(id) => setDealerGuid(id)} />
                 </label>
               )}
-              <button className="btn btn-primary" onClick={fetchData} disabled={loading}>
-                <i className="fa-solid fa-magnifying-glass" style={{ marginRight: 8 }} />{" "}
+              <button className="btn btn-primary uppercase" onClick={fetchData} disabled={loading}>
+                <AppIcon name="SearchIcon2" className='w-[20px] h-[20px] ' />
                 {t('common.search')}
               </button>
-              <button className="btn btn-refresh" onClick={fetchData} disabled={loading}>
-                <i className="fa-solid fa-rotate-right" style={{ marginRight: 8 }} />{" "}
+              <button className="btn btn-refresh uppercase" onClick={fetchData} disabled={loading}>
+                <AppIcon name="RefreshIcon" className='w-[20px] h-[20px] ' />
                 {t('common.refresh')}
               </button>
-              <button className="btn btn-excel" onClick={downloadExcel} disabled={excelLoading}>
+              <button className="btn btn-excel uppercase" onClick={downloadExcel} disabled={excelLoading}>
+                <AppIcon name="ExcelIcon" className='w-[20px] h-[20px] ' />
                 {excelLoading ? t('common.generating') : "Excel"}
               </button>
             </div>

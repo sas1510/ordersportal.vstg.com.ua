@@ -231,7 +231,7 @@ export default function EmergencyCallLogsPage() {
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan={7} className="emergency-log-empty">
+                <td colSpan={8} className="emergency-log-empty">
                   Немає записів
                 </td>
               </tr>

@@ -83,10 +83,13 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
   const productionStatus = useMemo(() => {
     const factDate = order.factProductionMax;
     const planDate = order.planProductionMax;
-    const status = getDateStatus(planDate, factDate);
-    const isPending = !factDate && !planDate; 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) <= today;
+    const status = getDateStatus(planDate, factDateHasArrived ? factDate : null);
+    const isPending = !factDateHasArrived && !planDate; 
 
-    const displayDate = factDate ? (
+    const displayDate = factDateHasArrived ? (
       formatDateHuman_ln(factDate, locale)
     ) : planDate ? (
       <div className="plan-block">

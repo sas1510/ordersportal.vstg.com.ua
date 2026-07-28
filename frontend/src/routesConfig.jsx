@@ -38,9 +38,11 @@ import AdminReclamationPortal from "./pages/AdminReclamationPortal";
 import WDSCodesTable from "./pages/WDSCodesTable";
 import InvalidLinkPage from "./pages/InvalidLinkPage";
 import ProductionStatisticsPage from "./pages/ProductionStatisticsPage";
+import OrdersReportDashboardPage from "./pages/OrdersReportDashboardPage";
 import DashboardPage from "./pages/DashboardPage";
 import NotificationPage from "./pages/NotificationPage";
 import ManagerQrDropdown from "./pages/ManagerQrDropdown";
+import BonusPage from "./pages/BonusPage";
 
 
 export const adminRoutes = [
@@ -78,14 +80,30 @@ export const adminRoutes = [
   { path: "admin-order", element: <AdminPortalOriginal /> },
   { path: "admin-reclamation", element: <AdminReclamationPortal /> },
   { path: "promo-wds-codes", element: <WDSCodesTable /> },
+  { path: "bonus", element: <BonusPage /> },
 
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
   { path: "/statistics", element: <ProductionStatisticsPage /> },
+  { path: "orders-report", element: <OrdersReportDashboardPage /> },
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "notifications", element: <NotificationPage /> },
   { path: "manager-qr", element: <ManagerQrDropdown /> },
   //  { path: "/ai", element: <AiChatPage /> },
 ];
+
+const managerBlockedRoutePaths = new Set([
+  "files/add",
+  "files/edit/:id",
+  "videos/add",
+  "videos/edit/:id",
+  "users-list",
+  "manager-qr",
+  "urgentLogs",
+]);
+
+export const managerRoutes = adminRoutes.filter(
+  ({ path }) => !managerBlockedRoutePaths.has(path),
+);
 
 export const dealerRoutes = [
   { path: "home", element: <HomePage /> },
@@ -107,6 +125,7 @@ export const dealerRoutes = [
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
   { path: "promo-wds-codes", element: <WDSCodesTable /> },
+  { path: "bonus", element: <BonusPage /> },
   // { path: "edit-addresses", element: <DealerAddressesPage /> },
   { path: "file-preview/invalid", element: <InvalidLinkPage /> },
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },

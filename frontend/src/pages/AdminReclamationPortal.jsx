@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+﻿import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 import axiosInstance from "../api/axios";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
@@ -20,6 +20,7 @@ const RECLAMATIONS_API_URL = "/complaints/get_reclamation_info/";
 const RECLAMATIONS_API_ALL_URL = "/complaints/get_reclamation_info_all/";
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
+const compensationAmountFormatter = new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 0 });
 
 function normalizePortalDate(value) {
   if (!value) return null;
@@ -98,6 +99,10 @@ function formatApiData(data) {
   });
 }
 
+function isComplaintCompensated(item) {
+  return Boolean(item?.debtCorrectionDate);
+}
+
 
 const AdminReclamationPortal = () => {
   const { register, cancelAll } = useCancelAllRequests();
@@ -115,6 +120,7 @@ const AdminReclamationPortal = () => {
     status: "Всі",
     month: 0,
     name: "",
+    compensation: "all",
   });
 
   const [selectedYear, setSelectedYear] = useState(
@@ -177,7 +183,7 @@ const AdminReclamationPortal = () => {
 
 
   const getFilteredItems = useCallback(
-    (status, month, name, data = reclamationsData) => {
+    (status, month, name, compensation = "all", data = reclamationsData) => {
       let result = [...data];
 
       if (status !== "Всі") {
@@ -200,6 +206,14 @@ const AdminReclamationPortal = () => {
             (r.dealer || r.organization || "").toLowerCase().includes(q) ||
             (r.manager || "").toLowerCase().includes(q),
         );
+      }
+
+      if (compensation === "compensated") {
+        result = result.filter((item) => isComplaintCompensated(item));
+      }
+
+      if (compensation === "uncompensated") {
+        result = result.filter((item) => !isComplaintCompensated(item));
       }
 
       return result;
@@ -254,7 +268,13 @@ const AdminReclamationPortal = () => {
         const raw = formatApiData(res.data?.data || []);
         setReclamationsData(raw);
         setFilteredItems(
-          getFilteredItems(filter.status, filter.month, filter.name, raw),
+          getFilteredItems(
+            filter.status,
+            filter.month,
+            filter.name,
+            filter.compensation,
+            raw,
+          ),
         );
       } catch (err) {
         if (err.name !== "CanceledError") {
@@ -311,10 +331,39 @@ const AdminReclamationPortal = () => {
     return m;
   }, [reclamationsData]);
 
+  const compensationSummary = useMemo(() => {
+    const summary = {
+      all: reclamationsData.length,
+      compensated: 0,
+      uncompensated: 0,
+      compensatedAmount: 0,
+    };
+
+    reclamationsData.forEach((item) => {
+      if (isComplaintCompensated(item)) {
+        summary.compensated += 1;
+        summary.compensatedAmount += Number(
+          item.compensationAmount ?? item.debtCorrectionAmount ?? 0,
+        );
+      } else {
+        summary.uncompensated += 1;
+      }
+    });
+
+    return summary;
+  }, [reclamationsData]);
+
 
   const handleStatusClick = (status) => {
     setFilter((prev) => ({ ...prev, status }));
-    setFilteredItems(getFilteredItems(status, filter.month, filter.name));
+    setFilteredItems(
+      getFilteredItems(
+        status,
+        filter.month,
+        filter.name,
+        filter.compensation,
+      ),
+    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
     if (isMobile) setIsSidebarOpen(false); 
   };
@@ -332,7 +381,14 @@ const AdminReclamationPortal = () => {
     setFilter((prev) => ({ ...prev, month: newMonth }));
 
     if (dealerGuid !== ALL_DEALERS_VALUE) {
-      setFilteredItems(getFilteredItems(filter.status, newMonth, filter.name));
+      setFilteredItems(
+        getFilteredItems(
+          filter.status,
+          newMonth,
+          filter.name,
+          filter.compensation,
+        ),
+      );
     }
 
     setVisibleItemsCount(ITEMS_PER_LOAD);
@@ -341,14 +397,44 @@ const AdminReclamationPortal = () => {
   const handleSearchChange = (e) => {
     const name = e.target.value;
     setFilter((prev) => ({ ...prev, name }));
-    setFilteredItems(getFilteredItems(filter.status, filter.month, name));
+    setFilteredItems(
+      getFilteredItems(
+        filter.status,
+        filter.month,
+        name,
+        filter.compensation,
+      ),
+    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
   };
 
   const handleClearSearch = () => {
     setFilter((prev) => ({ ...prev, name: "" }));
-    setFilteredItems(getFilteredItems(filter.status, filter.month, ""));
+    setFilteredItems(
+      getFilteredItems(
+        filter.status,
+        filter.month,
+        "",
+        filter.compensation,
+      ),
+    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
+  };
+
+  const handleCompensationFilterClick = (compensation) => {
+    setFilter((prev) => ({ ...prev, compensation }));
+    setFilteredItems(
+      getFilteredItems(
+        filter.status,
+        filter.month,
+        filter.name,
+        compensation,
+      ),
+    );
+    setVisibleItemsCount(ITEMS_PER_LOAD);
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
   };
 
 
@@ -646,17 +732,23 @@ const AdminReclamationPortal = () => {
           )}
 
 
-          <ul className="filter column align-center">
-             <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
-              min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
-              min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px]  min-[1260px]:h-full
-              
-              /* Скидання для малих екранів (менше 1260px) */
-              max-[1260px]:bg-transparent 
-              max-[1260px]:shadow-none 
-              max-[1260px]:py-0 
-              max-[1260px]:w-full 
-              max-[1260px]:overflow-visible">
+          <ul className="filter column align-center h-full overflow-hidden">
+                              <div
+                                    className="
+                                    w-full
+                                    h-full
+                                    min-h-full
+                                    bg-[#6B98BF]
+                                    shadow-sm
+                                    py-[26px]
+                                    rounded-tl-[5px]
+                                    rounded-tr-[20px]
+                                    rounded-bl-[5px]
+                                    rounded-br-[20px]
+                                    overflow-y-auto
+                                    overflow-x-hidden
+                                    "
+                                >
 
             {[
                 { label: t('reclamation.statuses.all'), statusKey: "Всі", icon: allCalcIcon },
@@ -669,7 +761,7 @@ const AdminReclamationPortal = () => {
             ].map(({ label, statusKey, icon }) => (
               <li
                 key={statusKey}
-                className={`filter-item text-[#fff] ${filter.status === statusKey ? "active" : ""}`}
+                className={`filter-item text-[#fff] row ${filter.status === statusKey ? "active" : ""}`}
                 onClick={() => handleStatusClick(statusKey)}
               >
                  <img 
@@ -689,6 +781,37 @@ const AdminReclamationPortal = () => {
                 </span>
               </li>
             ))}
+
+
+            <div className="filter-section-title">
+              {t("reclamation.compensation_filter.title")}
+            </div>
+
+            <div className="filter-subsection">
+              {[
+                {
+                  label: t("reclamation.compensation_filter.all"),
+                  key: "all",
+                },
+                {
+                  label: `${t("reclamation.compensation_filter.compensated")} (${compensationAmountFormatter.format(compensationSummary.compensatedAmount)} грн)`,
+                  key: "compensated",
+                },
+                {
+                  label: t("reclamation.compensation_filter.uncompensated"),
+                  key: "uncompensated",
+                },
+              ].map(({ label, key }) => (
+                <li
+                  key={key}
+                  className={`filter-item text-[#fff] row ${filter.compensation === key ? "active" : ""}`}
+                  onClick={() => handleCompensationFilterClick(key)}
+                >
+                  <span className="w-100">{label}</span>
+                  <span>{compensationSummary[key]}</span>
+                </li>
+              ))}
+            </div>
 
             </div>
           </ul>

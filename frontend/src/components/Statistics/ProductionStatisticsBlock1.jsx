@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import axiosInstance from "../../api/axios";
 import { widgetRegistry } from "../../widgets/widgetRegistry";
 import "./ProductionStatisticsBlock.css";
+import { isBackofficeRole } from "../../utils/roles";
 
 export default function ProductionStatisticsBlock({ selectedYear }) {
-  const isAdmin = localStorage.getItem("role") === "admin";
+  const isAdmin = isBackofficeRole(localStorage.getItem("role"));
 
   const [data, setData] = useState(null);
   const [dealerGuid, _setDealerGuid] = useState("");

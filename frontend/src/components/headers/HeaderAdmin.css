@@ -522,8 +522,9 @@
   background: none;
   border: none;
   cursor: pointer;
+  width: 28px;
   color: #fff; /* Колір іконки на темному хедері */
-  padding: 0 14px; /* Забезпечуємо відступ */
+  padding: 0 4px; /* Забезпечуємо відступ */
   height: 100%;
   display: flex;
   align-items: center;
@@ -533,6 +534,7 @@
 
 .theme-toggle-btn .icon {
   font-size: 24px; /* Розмір іконки */
+  color: #c9c9c0;
 }
 
 .theme-toggle-btn:hover {
@@ -862,3 +864,10 @@ body.dark-theme .theme-toggle-btn:hover .icon {
 }
 
 
+body.dark-theme .mobile-side-menu { background: #33312f !important; color: #f5f3f1 !important; border-left: 1px solid #6e6963; }
+body.dark-theme .mobile-side-menu nav a:not(.text-white), body.dark-theme .mobile-side-menu nav button { color: #f5f3f1 !important; }
+body.dark-theme .mobile-side-menu nav a:hover, body.dark-theme .mobile-side-menu nav button:hover { background: #4c4644 !important; }
+body.dark-theme .mobile-side-menu-submenu { background: #4c4644 !important; border: 1px solid #6e6963; }
+body.dark-theme .mobile-side-menu-submenu a { color: #ddd8d3 !important; border-color: #6e6963 !important; }
+body.dark-theme .mobile-side-menu-profile { background: #3b3938 !important; border-top: 1px solid #6e6963; }
+body.dark-theme .mobile-side-menu-profile .text-\[\#234461\], body.dark-theme .mobile-side-menu-profile a { color: #9fd3ff !important; }

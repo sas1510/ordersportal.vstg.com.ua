@@ -233,6 +233,7 @@ from django.conf import settings
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+PORTAL_MANAGER_COPY_USER_ID_1C_HEX = "0x810E74867AD9D52511EBDD6B1D812DBA"
 
 
 @shared_task(name='send_webpush_notification')
@@ -296,9 +297,13 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
 
   
         with connection.cursor() as cursor:
-            cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [recipient_bin])
+            cursor.execute(
+                "EXEC [dbo].[GetTelegramID] @UserGUID=%s",
+                [recipient_bin],
+            )
             row = cursor.fetchone()
-            if row: 
+
+            if row:
                 telegram_id = row[1]
 
         token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
@@ -324,17 +329,36 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
                     f"{link_html}"
                 )
 
-            requests.post(
-                f"https://api.telegram.org/bot{token}/sendMessage", 
-                json={
-                    "chat_id": telegram_id, 
-                    "text": text, 
-                    "parse_mode": "HTML",
-                    "disable_web_page_preview": True 
-                },
-                timeout=10
-            )
-            return f"Sent to TG {telegram_id} (Dealer: {is_dealer})"
+            target_chat_ids = [int(telegram_id)]
+
+            try:
+                portal_copy_bin = bytes.fromhex(PORTAL_MANAGER_COPY_USER_ID_1C_HEX[2:])
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "EXEC [dbo].[GetTelegramID] @UserGUID=%s",
+                        [portal_copy_bin],
+                    )
+                    portal_copy_row = cursor.fetchone()
+                portal_copy_telegram_id = None
+                if portal_copy_row:
+                    portal_copy_telegram_id = portal_copy_row[1] if len(portal_copy_row) > 1 else portal_copy_row[0]
+                if portal_copy_telegram_id and int(portal_copy_telegram_id) not in target_chat_ids:
+                    target_chat_ids.append(int(portal_copy_telegram_id))
+            except Exception:
+                logger.warning("Could not resolve portal copy Telegram in check_and_send_telegram_notification", exc_info=True)
+
+            for chat_id in target_chat_ids:
+                requests.post(
+                    f"https://api.telegram.org/bot{token}/sendMessage",
+                    json={
+                        "chat_id": chat_id,
+                        "text": text,
+                        "parse_mode": "HTML",
+                        "disable_web_page_preview": True
+                    },
+                    timeout=10
+                )
+            return f"Sent to TG {telegram_id} (+copy by UserId1C {PORTAL_MANAGER_COPY_USER_ID_1C_HEX}) (Dealer: {is_dealer})"
             
         return "No telegram_id or token found"
 

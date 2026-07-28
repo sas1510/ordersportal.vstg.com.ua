@@ -149,3 +149,8 @@
 .pulse-animation {
   animation: pulse-orange 2s infinite;
 }
+
+.dark-theme .text-red-600 {
+  color: #ff7a5c;
+  
+}

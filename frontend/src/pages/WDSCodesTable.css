@@ -139,7 +139,7 @@ body.dark-theme .wds-card {
 
 body.dark-theme .wds-filter {
   background: #352a2a;
-  border-color: #634343;
+  /* border-color: #634343; */
 }
 
 /* ===== RESPONSIVE ===== */
@@ -200,10 +200,7 @@ body.dark-theme .page-title {
 
 /* ===== FILTER ===== */
 
-body.dark-theme .wds-filter {
-  background: linear-gradient(180deg, #2b2424 0%, #241e1e 100%);
-  border: 1px dashed #5a3b3b;
-}
+
 
 body.dark-theme .filter-item-bill label {
   color: var(--wds-text-muted);

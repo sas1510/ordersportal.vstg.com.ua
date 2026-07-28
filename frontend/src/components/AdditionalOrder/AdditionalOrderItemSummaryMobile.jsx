@@ -55,6 +55,8 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
     return state;
   }, []);
 
+  const debtColorClass = Number(order?.paid || order.paid || 0) > 0 ? "text-WS---Orange" : "text-WS---DarkRed";
+
   const buttonState = useMemo(() => {
     const state = getButtonState(order.status);
     if (debtAmount <= 0) state.pay = false;
@@ -223,7 +225,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
             {/* Тут використовуємо червону іконку монет, якщо вона є, або ту саму */}
             <img src={moneyRed} className="mr-1" alt="" /> 
             <div className="flex flex-col">
-              <div className="text-WS---DarkRed  text-[14px] font-bold leading-tight">
+              <div className={debtColorClass + " text-[14px] font-bold leading-tight"}>
                 {formatMoney2(debtAmount, order.currency)}
               </div>
               <div className="text-grey text-[8px]">{t("order_mobile.labels.debt_amount")}</div>
@@ -256,7 +258,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
                 disabled={!buttonState.pay}
                 onClick={() => setIsPaymentOpen(true)}
               >
-                 {t("order_mobile.buttons.pay")}
+                 {debtAmount <= 0 ? t("order_status.paid", { defaultValue: "Сплачено" }) : t("order_mobile.buttons.pay")}
               </button>
             </>
           )}

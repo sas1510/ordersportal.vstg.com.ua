@@ -37,8 +37,7 @@ export const AdditionalOrderItem = ({
   // const windowWidth = useWindowWidth();
   // const isMobile = windowWidth < 1024;
 
-  const { role } = useAuthGetRole();
-  const isAdmin = role === "admin";
+  const { isBackoffice } = useAuthGetRole();
 
   const hasMainOrder = !!additionalOrder.mainOrderNumber;
 
@@ -135,7 +134,7 @@ export const AdditionalOrderItem = ({
 
   return (
     <div
-      className="calc-item column"
+      className="calc-item additional-order-item column"
       style={{
         borderLeft: additionalOrder.numberWEB
           ? "7px solid #BA523B"
@@ -361,7 +360,7 @@ export const AdditionalOrderItem = ({
         // activePersonId={additionalOrder.dealerId}
 
         manager={
-          isAdmin ? additionalOrder.dealerId : additionalOrder.managerLink
+          isBackoffice ? additionalOrder.dealerId : additionalOrder.managerLink
         }
 
         // 🔑 ID типу "Рекламація"

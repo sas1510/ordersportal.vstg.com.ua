@@ -278,6 +278,7 @@ import DeleteConfirmModal from "../Orders/DeleteConfirmModal";
 import { ComplaintItemDetailView } from "./ComplaintItemSummaryDesktop";
 import { useTranslation } from "react-i18next";
 import { formatDateHumanShorter_full } from "../../utils/formatters";
+import { AppIcon } from "../Icons/AppIcon";
 
 export const ReclamationItemMobile = ({
   reclamation,
@@ -359,10 +360,10 @@ export const ReclamationItemMobile = ({
     switch (status) {
           case "Новий":
 
-            return "text-WS---DarkRed";
+            return "text-WS---DarkBlue";
 
           case "В роботі":
-            return "text-WS---DarkBlue";
+            return "text-WS---MiddleGrey";
             
           case "Виробництво":
             return "text-WS---DarkBlueProfile"
@@ -452,11 +453,7 @@ export const ReclamationItemMobile = ({
 
   <div className="flex items-center gap-1 pt-0.5 text-WS---DarkGrey w-full ">
 
-      <img 
-        src={profileReclamation} 
-        alt="Історія" 
-        className={`mr-1`} 
-      />
+    <AppIcon name="ProfileReclamation" className="w-4 h-4 shrink-0 mr-1" />
     <span className="text-[13px]  text-WS---DarkGrey truncate leading-tight">
       {reclamation.dealer || "-"}
     </span>

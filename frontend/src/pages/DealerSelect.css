@@ -87,9 +87,6 @@ body.dark-theme .dealer-select__control {
   color: #e0e0e0;
 }
 
-body.dark-theme .dealer-select__control .placeholder {
-  color: #888;
-}
 
 body.dark-theme .dealer-select__control .arrow {
   color: #aaa;
@@ -110,7 +107,7 @@ body.dark-theme .dealer-select__search {
 }
 
 body.dark-theme .dealer-select__search::placeholder {
-  color: #888;
+  color: #e0e0e0 !important;
 }
 
 /* List */

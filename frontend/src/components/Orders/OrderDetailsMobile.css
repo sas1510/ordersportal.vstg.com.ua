@@ -146,3 +146,17 @@ body.dark-theme .order-item-details-mobile .timeline-mobile ul li .icon.text-WS-
 body.dark-theme .order-item-details-mobile .timeline-mobile ul li .icon.text-WS---DarkRed {
   color: #ff7a5c !important;
 }
+
+body.dark-theme .order-item-details-mobile .timeline-mobile ul li .icon svg path,
+body.dark-theme .order-item-details-mobile .timeline-mobile ul li .icon svg rect {
+  fill: currentColor !important;
+}
+
+body.dark-theme .order-item-details-mobile .timeline-mobile ul li .icon svg {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+/* Статусні іконки етапів мають зберігати колір свого статусу. */
+body.dark-theme .order-item-details-mobile .timeline-mobile ul li .icon svg {
+  filter: none !important;
+}

@@ -1,3 +1,5 @@
+import { isAdminRole, isBackofficeRole, normalizeRole } from "./roles";
+
 export const getCurrentUser = () => {
   try {
     return JSON.parse(localStorage.getItem("user") || "{}");
@@ -8,5 +10,10 @@ export const getCurrentUser = () => {
 
 export const isAdmin = () => {
   const user = getCurrentUser();
-  return user.role === "admin";
+  return isAdminRole(normalizeRole(user.role));
+};
+
+export const isBackoffice = () => {
+  const user = getCurrentUser();
+  return isBackofficeRole(normalizeRole(user.role));
 };

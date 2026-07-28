@@ -1,4 +1,4 @@
-import React, { 
+﻿import React, { 
     useState, 
     useEffect, 
     useMemo, 
@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 
 const RECLAMATIONS_API_URL = '/complaints/get_reclamation_info/';
 const ITEMS_PER_LOAD = 100;
+const compensationAmountFormatter = new Intl.NumberFormat("uk-UA", { maximumFractionDigits: 0 });
 
 function normalizePortalDate(value) {
     if (!value) return null;
@@ -67,7 +68,7 @@ function formatApiData(data) {
             returnDate: normalizePortalDate(item.ReturnDate),
 
             status: statusKey,
-            problem: item.ComplaintReasonName || item.IssueName,
+            problem:  item.IssueName,
             complaintReasonName: item.ComplaintReasonName || item.IssueName || null,
             resolution: item.SolutionName || null,
             description: item.ParsedDescription,
@@ -96,6 +97,10 @@ function formatApiData(data) {
     });
 }
 
+function isComplaintCompensated(item) {
+    return Boolean(item?.debtCorrectionDate);
+}
+
 
 const ReclamationPortal = () => {
 
@@ -108,7 +113,7 @@ const ReclamationPortal = () => {
     const [isNewReclamationModalOpen, setIsNewReclamationModalOpen] = useState(false);
     const [reclamationsData, setReclamationsData] = useState([]);
 
-    const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '' });
+    const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '', compensation: 'all' });
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
     const [loading, setLoading] = useState(true);
@@ -313,7 +318,7 @@ const ReclamationPortal = () => {
     /* --------------------------------------------------------
      *  Filtering logic
      * -------------------------------------------------------- */
-    const { sortedItems, statusSummary, monthSummary } = useMemo(() => {
+    const { sortedItems, statusSummary, monthSummary, compensationSummary } = useMemo(() => {
 
         const getStatusSummary = (data) => {
             const summary = {
@@ -345,6 +350,26 @@ const ReclamationPortal = () => {
             return summary;
         };
 
+        const getCompensationSummary = (data) => {
+            const summary = {
+                all: data.length,
+                compensated: 0,
+                uncompensated: 0,
+                compensatedAmount: 0,
+            };
+
+            data.forEach(r => {
+                if (isComplaintCompensated(r)) {
+                    summary.compensated++;
+                    summary.compensatedAmount += Number(r.compensationAmount ?? r.debtCorrectionAmount ?? 0);
+                } else {
+                    summary.uncompensated++;
+                }
+            });
+
+            return summary;
+        };
+
         const filterData = (data) => {
             let out = [...data];
 
@@ -370,13 +395,22 @@ const ReclamationPortal = () => {
                 );
             }
 
+            if (filter.compensation === 'compensated') {
+                out = out.filter(r => isComplaintCompensated(r));
+            }
+
+            if (filter.compensation === 'uncompensated') {
+                out = out.filter(r => !isComplaintCompensated(r));
+            }
+
             return out.sort((a, b) => new Date(b.dateRaw) - new Date(a.dateRaw));
         };
 
         return {
             sortedItems: filterData(reclamationsData),
             statusSummary: getStatusSummary(reclamationsData),
-            monthSummary: getMonthSummary(reclamationsData)
+            monthSummary: getMonthSummary(reclamationsData),
+            compensationSummary: getCompensationSummary(reclamationsData)
         };
 
     }, [reclamationsData, filter, selectedYear]);
@@ -673,8 +707,12 @@ const ReclamationPortal = () => {
                         ].map(item => (
                             <li
                                 key={item.statusKey}
-                                className={`filter-item  text-[#fff] font-['Inter'] ${filter.status === item.statusKey ? 'active' : ''}`}
-                                onClick={() => setFilter(prev => ({ ...prev, status: item.statusKey }))}
+                                className={`filter-item text-[#fff] row font-['Inter'] ${filter.status === item.statusKey ? 'active' : ''}`}
+                                onClick={() => {
+                                    setFilter(prev => ({ ...prev, status: item.statusKey }));
+                                    setVisibleItemsCount(ITEMS_PER_LOAD);
+                                    if (isMobile) setIsSidebarOpen(false);
+                                }}
                             >
                                 <img 
                                     src={item.icon}
@@ -691,6 +729,40 @@ const ReclamationPortal = () => {
                                 </span>
                             </li>
                         ))}
+
+                        <div className="filter-section-title">
+                            {t('reclamation.compensation_filter.title')}
+                        </div>
+
+                        <div className="filter-subsection">
+                            {[
+                                {
+                                    label: t('reclamation.compensation_filter.all'),
+                                    key: 'all',
+                                },
+                                {
+                                    label: `${t('reclamation.compensation_filter.compensated')} (${compensationAmountFormatter.format(compensationSummary.compensatedAmount)} грн)`,
+                                    key: 'compensated',
+                                },
+                                {
+                                    label: t('reclamation.compensation_filter.uncompensated'),
+                                    key: 'uncompensated',
+                                },
+                            ].map(item => (
+                                <li
+                                    key={item.key}
+                                    className={`filter-item text-[#fff] row font-['Inter'] ${filter.compensation === item.key ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setFilter(prev => ({ ...prev, compensation: item.key }));
+                                        setVisibleItemsCount(ITEMS_PER_LOAD);
+                                        if (isMobile) setIsSidebarOpen(false);
+                                    }}
+                                >
+                                    <span className="w-100">{item.label}</span>
+                                    <span>{compensationSummary[item.key]}</span>
+                                </li>
+                            ))}
+                        </div>
                         </div>
                     </ul>
                 </div>

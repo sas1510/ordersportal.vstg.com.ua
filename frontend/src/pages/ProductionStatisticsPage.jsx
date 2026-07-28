@@ -285,6 +285,10 @@ export default function ProductionStatisticsPage() {
   const summary = dashboardData?.summary || [];
   const orders = dashboardData?.orders || [];
   const meta = dashboardData?.meta || {};
+  const completedTopOrdersCount = Number(meta.in_time_count || 0) + Number(meta.delayed_count || 0);
+  const topInTimePercent = completedTopOrdersCount > 0 ? (Number(meta.in_time_count || 0) / completedTopOrdersCount) * 100 : 0;
+  const topDelayedPercent = completedTopOrdersCount > 0 ? (Number(meta.delayed_count || 0) / completedTopOrdersCount) * 100 : 0;
+
   const profileSystems = unifiedData?.profile_systems || [];
   const furniture = unifiedData?.furniture || [];
   const profileColors = unifiedData?.profile_colors || [];
@@ -650,14 +654,14 @@ export default function ProductionStatisticsPage() {
                 </div>
                 <div className="production-average-card__footer">
                   <span>За період {formatDate(searchParams.from)} - {formatDate(searchParams.to)}</span>
-                  <strong>{formatNumber(meta.orders_count)} замовлень</strong>
+                  <strong>{formatNumber(meta.orders_count)} замовлень • {formatNumber(meta.total_constructions)} конструкцій</strong>
                 </div>
               </div>
 
               <KpiCard
                 icon={<FaCheckCircle />}
                 label="Вчасно"
-                value={formatPercent(meta.in_time_percent)}
+                value={formatPercent(topInTimePercent)}
                 hint={
                   inTimeProductionDays.overallAverage !== null
                     ? `${formatNumber(meta.in_time_count)} замовлень • сер. ${formatDays(inTimeProductionDays.overallAverage)} дн.`
@@ -667,13 +671,13 @@ export default function ProductionStatisticsPage() {
               <KpiCard
                 icon={<FaClock />}
                 label="Запізнення"
-                value={formatPercent(meta.delayed_percent)}
+                value={formatPercent(topDelayedPercent)}
                 hint={`${formatNumber(meta.delayed_count)} замовлень`}
               />
               <KpiCard
                 icon={<FaHourglassHalf />}
                 label="Не виготовлено"
-                value={formatPercent(meta.not_finished_percent)}
+                value={formatNumber(meta.not_finished_count)}
                 hint={`${formatNumber(meta.not_finished_count)} замовлень`}
               />
               <KpiCard

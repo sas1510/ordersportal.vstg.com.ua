@@ -591,7 +591,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
   };
 
   return (
-    <div className="w-full font-['Inter',_sans-serif] text-WS---DarkGrey bg-white ">
+    <div className="w-full font-['Inter',_sans-serif] text-WS---DarkGrey ">
       <div className="flex flex-col gap-4">
         
         {/* Main Info */}
@@ -657,7 +657,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
         )}
 
         {/* Manager */}
-        <section className="border-t-[2px] border-gray-800 pt-3">
+        <section className="border-t-[2px]  pt-3" style={{ borderColor: "rgb(68, 64, 62)" }}>
           <div className="flex items-center gap-2 mb-1">
             <img src={icons.manager} className="mr-1" alt="" />
             <h3 className="font-bold text-[16px]">{t("complaints.detail.manager")}</h3>
@@ -669,7 +669,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
         </section>
 
         {/* Description */}
-        <section className="border-t-[2px] border-gray-800 pt-3">
+        <section className="border-t-[2px]  pt-3"  style={{ borderColor: "rgb(68, 64, 62)" }}>
           <h3 className="font-bold text-[16px] mb-1">{t("complaints.detail.description_title")}</h3>
           {/* ВИПРАВЛЕНО: додано переклад */}
           <p className="text-[14px] leading-relaxed text-gray-700 pl-2">

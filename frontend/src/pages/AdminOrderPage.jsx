@@ -22,6 +22,7 @@ import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
@@ -75,6 +76,7 @@ const AdminPortalOriginal = () => {
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
   const { register, cancelAll } = useCancelAllRequests();
   const { t } = useTranslation();
+  const location = useLocation();
 
   const [calculationsData, setCalculationsData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -140,6 +142,7 @@ const AdminPortalOriginal = () => {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
 
+  useEffect(() => { const params = new URLSearchParams(location.search); const search = params.get("search") || ""; const from = params.get("date_from"); const to = params.get("date_to"); if (!search && !from && !to) return; setFilter((previous) => ({ ...previous, name: search, month: 0 })); if (isValidDateRange(from, to)) { setDateFrom(from); setDateTo(to); setAppliedDateFrom(from); setAppliedDateTo(to); setAllDealersDateMode("period"); } }, [location.search]);
   const currentMonth = useMemo(
     () => new Date().getMonth() + 1,
     [],
@@ -165,6 +168,7 @@ const AdminPortalOriginal = () => {
   const deliveredIcon = "/assets/icons/DeliveredIcon.png";
   const canceledCalcIcon = "/assets/icons/CancelCalc.png";
   const filterIcon = "/assets/icons/FiltersIcon.png";
+  const closeIcon = "/assets/icons/CloseButton.png";
 
   const isAllDealers =
     isAdmin && dealerGuid === ALL_DEALERS_VALUE;
@@ -1226,27 +1230,39 @@ const AdminPortalOriginal = () => {
 
       <div className="content-wrapper row w-100 h-100">
         <div className="row h-100 max-w-[1334px] w-100">
+          {isSidebarOpen && (
+            <div
+              className="fixed inset-0 !z-[10001] min-[1260px]:hidden transition-opacity"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--header-profile-bg), transparent 60%)",
+              }}
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
           <div
             className={`content-filter column ${
               isSidebarOpen ? "open" : "closed"
             }`}
           >
             {isSidebarOpen && (
-              <div className="sidebar-header row ai-center jc-space-between">
+              <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
                 <span>
                   {t("portal_calc.ui.filters")}
                 </span>
 
-                <span
-                  className="icon icon-cross"
-                  onClick={() =>
-                    setIsSidebarOpen(false)
-                  }
-                />
+                <button
+                  type="button"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  <img src={closeIcon} alt="" />
+                </button>
               </div>
             )}
 
-            <div className="search-wrapper text-base">
+            <div className="search-wrapper relative text-base">
               <input
                 type="text"
                 className="search-orders w-full pl-10 pr-4 py-2 border rounded-md"
@@ -1296,7 +1312,7 @@ const AdminPortalOriginal = () => {
                   className="align-center mr-2"
                 />
 
-                <div className="text-center text-WS---DarkGrey text-[18px] font-bold font-['Inter'] uppercase">
+                <div className="text-center text-[#44403F] text-[18px] font-bold font-['Inter'] uppercase">
                   {t(
                     "portal_calc.ui.new_calculation",
                   )}
@@ -1304,23 +1320,20 @@ const AdminPortalOriginal = () => {
               </li>
             </ul>
 
-            <ul className="filter column align-center">
+            <ul className="filter column align-center h-full overflow-hidden">
               <div
                 className="
-                  min-[1260px]:w-72
-                  min-[1260px]:bg-[#6B98BF]
-                  min-[1260px]:shadow-sm
-                  min-[1260px]:py-[26px]
-                  min-[1260px]:rounded-tl-[5px]
-                  min-[1260px]:rounded-tr-[20px]
-                  min-[1260px]:rounded-bl-[5px]
-                  min-[1260px]:rounded-br-[20px]
-                  min-[1260px]:h-full
-                  max-[1260px]:bg-transparent
-                  max-[1260px]:shadow-none
-                  max-[1260px]:py-0
-                  max-[1260px]:w-full
-                  max-[1260px]:overflow-visible
+                  w-full
+                  h-full
+                  min-h-full
+                  bg-[#6B98BF]
+                  py-[26px]
+                  rounded-tl-[5px]
+                  rounded-tr-[20px]
+                  rounded-bl-[5px]
+                  rounded-br-[20px]
+                  overflow-y-auto
+                  overflow-x-hidden
                 "
               >
                 {[
@@ -1406,17 +1419,18 @@ const AdminPortalOriginal = () => {
                   }) => (
                     <li
                       key={id}
-                      className={`filter-item text-[#fff] ${
+                      className={`filter-item text-[#fff] row ${
                         filter.status ===
                         statusKey
                           ? "active"
                           : ""
                       }`}
-                      onClick={() =>
-                        handleStatusClick(
-                          statusKey,
-                        )
-                      }
+                      onClick={() => {
+                        handleStatusClick(statusKey);
+                        if (isSidebarOpen) {
+                          setIsSidebarOpen(false);
+                        }
+                      }}
                     >
                       <img
                         src={icon}

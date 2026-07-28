@@ -434,7 +434,7 @@ overflow-y: scroll;
 
 .portal-body .content-filter .filter li span:last-child {
   padding: 3px 7px;
-  background-color: #fff ;
+  background-color: #ffffff ;
   color: var(--WS--DarkBlue) !important ;
   font-size: 12px;
   font-weight: bold;
@@ -506,6 +506,28 @@ overflow-y: scroll;
   opacity: inherit;
 }
 
+/* .portal-body .content-filter .filter .filter-section-divider {
+  width: calc(100% - 20px);
+  margin: 14px 10px 10px;
+  border-top: 1px dotted rgba(255, 255, 255, 0.45);
+} */
+
+.portal-body .content-filter .filter .filter-section-title {
+  width: 100%;
+  padding: 10px 14px 10px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background-color: #868179 ;
+}
+
+.portal-body .content-filter .filter .filter-subsection {
+  width: 100%;
+  /* padding: 0 6px 2px; */
+}
+
 
 
 .delimiter1 {
@@ -556,6 +578,21 @@ overflow-y: scroll;
   color: var(--WS---DarkGrey);
   text-decoration: none;
   transition: all 0.3s ease;
+}
+
+.dark-theme .btn-reclamation-rules {
+  background-color:  var(--WS--DarkBlue);
+}
+
+@media (max-width: 1260px) {
+
+  .btn-reclamation-rules {
+  margin-left: 20px;
+  margin-right: 20px;
+  width: calc(100% - 40px);
+  background-color: var(--info-color);;
+  }
+  
 }
 
 .btn-reclamation-rules:hover {
@@ -1345,9 +1382,6 @@ body.dark-theme .text-WS-Green-Status {
   color: var(--brown-color) !important;
 }
 
-.text-success {
-  color: var(--success-color) !important;
-}
 
 .text-warning {
   color: var(--warning-color) !important;
@@ -2014,7 +2048,7 @@ html {
 
 
 .timeline ul li .badge {
-    width: 100px;
+    width: 110px;
     border: 1px solid var(--WS---DarkGrey);
     background-color: #fff;
     color: var(--grey-text-color);
@@ -2879,7 +2913,7 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 
 
 .dark-theme .order-item .order-item-details {
-  background-color: #5c5a57;
+  background-color: #34312f;
   color: var(--grey-text-color);
 
 }
@@ -2893,7 +2927,7 @@ body.dark-theme *::-webkit-scrollbar-thumb {
   border-right-color: #908684;
 }
 .dark-theme .timeline ul li .icon {
-  background: #5c5a57;
+  background: #34312f;
   border-color: #908684;
 }
 .dark-theme .timeline ul li .badge {
@@ -2904,12 +2938,12 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 
 /* Утиліти */
 .dark-theme .background-white {
-  background-color: #5c5a57 !important;
+  background-color: #34312f !important;
 }
 
 /* Модальне вікно (якщо стилізовано через css) */
 .dark-theme .modal-css-content {
-  background-color: #5c5a57;
+  background-color: #34312f;
   color: var(--text-color);
 }
 
@@ -2987,7 +3021,7 @@ body.dark-theme .content-filter .clear-search {
 body.dark-theme .content-filter .buttons .btn-add-calc,
 body.dark-theme .content-filter .buttons .btn-select-dealer {
   /* Зберігаємо яскраві фони, але текст/іконки мають бути білими */
-  color: #f5f3f1 !important;
+  color: #44403e !important;
 }
 body.dark-theme .content-filter .buttons .btn-add-calc .icon,
 body.dark-theme .content-filter .buttons .btn-select-dealer .icon {
@@ -3852,11 +3886,11 @@ body.dark-theme {
   --info-bg-color: #868179;
   --success-bg-color: #868179;
   --warning-bg-color: #432424;
-  --danger-bg-color: #432424;
+  /* --danger-bg-color: #432424;
   --info-color: #908684;
   --success-color: #908684;
-  --warning-color: #432424;
-  --danger-color: #432424;
+  --warning-color: #432424; */
+  /* --danger-color: #432424; */
 }
 
 body.dark-theme,
@@ -3884,7 +3918,7 @@ body.dark-theme .content-summary .by-month-pagination-wrapper,
 body.dark-theme .modal-css-content,
 body.dark-theme .background-white {
   /* background-color: #53514d !important; */
-   background-color: #5c5a57 !important;
+   background-color: #34312f !important;
   color: var(--text-color) !important;
 }
 
@@ -3974,8 +4008,7 @@ body.dark-theme .btn-select-dealer:hover .icon {
 }
 
 body.dark-theme .order-files-icon,
-body.dark-theme .date-filter-search-icon img,
-body.dark-theme img.icon-calc-delete {
+body.dark-theme .date-filter-search-icon img {
   filter: none;
   opacity: 1;
 }
@@ -3984,4 +4017,121 @@ body.dark-theme .order-files-icon:hover,
 body.dark-theme img.icon-calc-delete:hover {
   filter: none;
   opacity: 1;
+}
+
+body.dark-theme .calc-summary-icon {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+
+
+body.dark-theme .sidebar-header .portal-service-icon,
+body.dark-theme .search-wrapper .portal-service-icon {
+  opacity: 0.7;
+}
+
+body.dark-theme .btn-add-calc .portal-service-icon,
+body.dark-theme .mobile-sidebar-toggle .portal-service-icon,
+body.dark-theme .year-inline-selector .portal-service-icon {
+  opacity: 0.92;
+}
+
+body.dark-theme .mobile-sidebar-toggle:hover .portal-service-icon,
+body.dark-theme .btn-add-calc:hover .portal-service-icon,
+body.dark-theme .sidebar-header button:hover .portal-service-icon {
+  opacity: 1;
+}
+
+
+.portal-body .content-filter .filter li.additional-order-filter-item {
+  background: transparent;
+}
+
+.portal-body .content-filter .filter li.additional-order-filter-item.active {
+  background-color: #6b98bf;
+}
+
+.portal-body .content-filter .filter li.additional-order-filter-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.portal-body .content-filter .filter li.additional-order-filter-item.active:hover {
+  background-color: #6b98bf;
+}
+
+.portal-body .content-filter .filter li.additional-order-filter-item .additional-order-filter-label {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.portal-body .content-filter .filter li.additional-order-filter-item.active .additional-order-filter-label {
+  font-weight: 700;
+}
+
+.portal-body .content-filter .filter li .additional-order-filter-badge {
+  min-width: 17px;
+  height: 18px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  /* background-color: #6b98bf !important;
+  color: #fff !important; */
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.portal-body .content-filter .filter li.active .additional-order-filter-badge {
+  background-color: #fff !important;
+  color: #6b98bf !important;
+  font-weight: 700;
+}
+
+.portal-body .content-filter .filter li:hover .additional-order-filter-badge {
+  background-color: #6b98bf !important;
+  color: #fff !important;
+}
+
+.portal-body .content-filter .filter li.active:hover .additional-order-filter-badge {
+  background-color: #fff !important;
+  color: #6b98bf !important;
+}
+
+/* Keep labels on the green create buttons dark in both themes. */
+body.dark-theme .btn-add-calc .text-WS---DarkGrey {
+  color: #44403e !important;
+}
+
+body.dark-theme .btn-add-calc img {
+  filter: brightness(0) saturate(100%) invert(24%) sepia(8%) saturate(936%) hue-rotate(340deg) brightness(95%) contrast(87%) !important;
+}
+
+/* Give the order number and date column a little more room on desktop. */
+.order-item .summary-item.order-summary-date-block {
+  min-width: 118px;
+  padding-left: 9px;
+  padding-right: 9px;
+}
+
+
+body.dark-theme .text-gray-600 {
+  color: #f5f3f1 !important;
+}
+
+body.dark-theme .text-gray-700 {
+  color: #f5f3f1 !important;
+}
+
+.dark-theme .header-theme-icon {
+  color: #f5f3f1 !important;
+  filter: brightness(0) saturate(100%) invert(88%) sepia(15%) saturate(189%) hue-rotate(341deg) brightness(93%) contrast(89%);
+}
+
+.dark-theme .bg-gray-200,
+.dark-theme .hover\:bg-gray-200:hover {
+  background-color: #44403e;
 }

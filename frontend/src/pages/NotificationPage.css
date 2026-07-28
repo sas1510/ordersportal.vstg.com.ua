@@ -335,7 +335,6 @@
 }
 
 .btn-mark-read:hover:not(:disabled) {
-  background: var(--input-bg);
   color: #76b448; /* Колір бренду при наведенні */
 }
 
@@ -348,7 +347,7 @@
 
 /* В темній темі disabled має бути ще менш контрастним */
 .dark-theme .btn-mark-read:disabled {
-  color: #555;
+  color: #a6a6a6;
   border-color: #333;
 }
 

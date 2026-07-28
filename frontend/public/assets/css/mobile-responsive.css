@@ -665,7 +665,7 @@ body.dark-theme .bg-yellow-50 {
 /* Межі та роздільники */
 body.dark-theme .border-gray-200,
 body.dark-theme .border {
-  border-color: #55585c !important; /* Slate 700 */
+  border-color: #55585c; /* Slate 700 */
 }
 
 /* Таймлайн */

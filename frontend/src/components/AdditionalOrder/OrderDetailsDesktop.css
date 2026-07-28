@@ -48,3 +48,48 @@ body.dark-theme .badge-content.background-warning-light {
 body.dark-theme .badge-content.background-danger-light {
   color: #ffcdd2 !important;
 }
+
+body.dark-theme .order-item-details .timeline ul li .icon {
+  background: #797e86;
+  border-color: #868179;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkGrey,
+body.dark-theme .order-item-details .timeline ul li .icon.text-grey,
+body.dark-theme .order-item-details .timeline ul li .icon.text-gray-500,
+body.dark-theme .order-item-details .timeline ul li .icon.text-gray-600 {
+  color: #ddd8d3 !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-success {
+  color: #b4d947 !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-danger {
+  color: #ff7a5c !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-warning {
+  color: #f59e0b !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkBlue {
+  color: #4da3ff !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkGreen {
+  color: #b4d947 !important;
+}
+
+body.dark-theme .order-item-details .timeline ul li .icon.text-WS---DarkRed {
+  color: #ff7a5c !important;
+}
+
+/* Keep the route continuous when delivery is already recorded. */
+.timeline.timeline--delivery-complete li.is-pending {
+  border-top: 1px solid var(--WS---DarkGrey);
+}
+.timeline.timeline--delivery-complete li.is-pending::before,
+.timeline.timeline--delivery-complete li.is-pending::after {
+  display: none;
+}

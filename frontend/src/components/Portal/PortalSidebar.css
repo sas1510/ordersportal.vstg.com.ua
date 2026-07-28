@@ -106,12 +106,7 @@
   margin-left: auto;
 }
 
-.content-filter-payment .filter li:hover,
-.content-filter-payment .filter li.active {
-  background-color: var(--WS--DarkBlue);
-  color: #fff;
-  /* border: 1px dashed var(--grey-border-color); */
-}
+
 
 .content-filter-payment .filter li.disabled {
   opacity: 0.4;
@@ -159,6 +154,10 @@
     background-color: #fff;
   }
 
+  .dark-theme .content-filter-payment.open {
+    background-color: #44403e;
+  }
+
   .content-filter-payment.closed {
     left: -100%;
   }
@@ -184,10 +183,7 @@
    DARK THEME — SIDEBAR
 ====================================================== */
 
-body.dark-theme .content-filter-payment {
-  background-color: #1a1a1a !important;
-  color: #f0f0f0;
-}
+
 
 body.dark-theme .content-filter-payment .search-orders {
   background-color: #383838;

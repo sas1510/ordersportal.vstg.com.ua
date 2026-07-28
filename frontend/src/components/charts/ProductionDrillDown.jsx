@@ -7,6 +7,7 @@ import MonthlyTrendChart from "../charts/MonthlyTrendChart";
 import TopProductsChart from "../charts/TopProductsChart";
 import DealerSelect from "../../pages/DealerSelect";
 import "./ProductionStatisticsBlock.css";
+import { isBackofficeRole } from "../../utils/roles";
 
 // Мапінг для групування сирих категорій у великі групи
 const CATEGORY_MAPPING = {
@@ -26,7 +27,7 @@ const CATEGORY_MAPPING = {
 };
 
 export default function ProductionStatisticsBlock({ selectedYear }) {
-  const isAdmin = localStorage.getItem("role") === "admin";
+  const isAdmin = isBackofficeRole(localStorage.getItem("role"));
   const drillDownRef = useRef(null);
 
   const [data, setData] = useState(null);

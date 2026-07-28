@@ -1,22 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../api/axios";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://localhost:7019";
 
 export default function VideoFormPage() {
   const { id } = useParams(); // якщо id є — редагування
   const navigate = useNavigate();
+  const { isAdmin } = useAuthGetRole();
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    if (id) {
+    if (!isAdmin) {
+      navigate("/videos", { replace: true });
+    }
+  }, [isAdmin, navigate]);
+
+  useEffect(() => {
+    if (isAdmin && id) {
       setIsEditMode(true);
       fetchVideo(id);
     }
-  }, [id]);
+  }, [id, isAdmin]);
 
   const fetchVideo = async (videoId) => {
     try {

@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios";
 import { useTheme } from "../../hooks/useTheme";
 import "./HeaderDealerProfile.css"; 
+import { AppIcon } from "../Icons/AppIcon";
 
 export default function HeaderUserProfile() {
   const { theme } = useTheme();
   const [fullName, setFullName] = useState("Завантаження...");
-  
 
   const profileIcon = "/assets/icons/profile-icon.png";
 
@@ -26,25 +26,24 @@ export default function HeaderUserProfile() {
 
   return (
     <div className={`profile-box ${theme} admin-profile-box`}>
-      <div className="profile-menu-container" style={{ justifyContent: 'center', gap: '15px' }}>
+      <div className="profile-menu-container">
+        <div className="profile-rectangle" />
 
-        <div className="profile-name-text" style={{ position: 'static', marginRight: '0' }}>
+        <div className="profile-name-text admin-profile-name-text" title={fullName}>
           {fullName}
         </div>
-        
+{/* 
+        <img
+          className="profile-img-icon"
+          alt="Profile"
+          src={profileIcon}
+        /> */}
+        <AppIcon name="ProfileUserHeader" className="profile-img-icon  "/>
 
-        <img 
-          className="profile-img-icon" 
-          alt="Profile" 
-          src={profileIcon} 
-          style={{ position: 'static' }} 
-        />
-        
-  
-        <img 
-          src="/assets/icons/PolygonOpenProfileSubmenu.png" 
-          alt="arrow" 
-          className="w-3 h-2 opacity-60" 
+        <img
+          src="/assets/icons/PolygonOpenProfileSubmenu.png"
+          alt="arrow"
+          className="admin-profile-arrow"
         />
       </div>
     </div>

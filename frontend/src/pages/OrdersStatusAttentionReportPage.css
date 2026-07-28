@@ -1,0 +1,9 @@
+.orders-report__attention-list { display: grid; gap: 28px; }
+.orders-report__status-section { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0, 2fr); gap: 18px; }
+.orders-report__table-wrap { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 14px; }
+.orders-report__table-wrap table { width: 100%; border-collapse: collapse; color: #334155; }
+.orders-report__table-wrap th, .orders-report__table-wrap td { padding: 13px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+.orders-report__table-wrap th { color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; background: #f8fafc; }
+.orders-report__table-wrap tr:last-child td { border-bottom: 0; }
+.orders-report__age { color: #b45309; font-weight: 700; white-space: nowrap; }
+@media (max-width: 900px) { .orders-report__status-section { grid-template-columns: 1fr; } }

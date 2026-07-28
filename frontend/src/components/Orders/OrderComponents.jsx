@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 
 export const CalculationItem = React.memo(
-  ({ calc, onDelete, onEdit, onMarkAsRead , reloadCalculations}) => {
+  ({ calc, onDelete, onEdit, onMarkAsRead , reloadCalculations, onOrderPaymentSuccess}) => {
     const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -40,10 +40,7 @@ export const CalculationItem = React.memo(
     const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
-
-
-    const {  role } = useAuthGetRole();
-    const isAdmin = role === "admin";
+    const { isBackoffice } = useAuthGetRole();
 
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
@@ -463,7 +460,7 @@ const iconColorClass = getStatusClass(mainStatus);
               {calc.dealer && (
                 <div className="text-WS---DarkGrey  row align-start gap-1">
 
-                  {isAdmin ? (
+                  {isBackoffice ? (
                       <span></span>
                     ) : (
                        <img 
@@ -484,7 +481,7 @@ const iconColorClass = getStatusClass(mainStatus);
                       setIsCounterpartyOpen(true);
                     }}
                   >
-                    {isAdmin ? (
+                    {isBackoffice ? (
                       <span>{calc.dealer}</span>
                     ) : (
                       <span>{t('calc.recipient_label')}</span>
@@ -549,6 +546,7 @@ const iconColorClass = getStatusClass(mainStatus);
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
                   totalOrderConstructions={totalOrderConstructions}
                   onRefresh={reloadCalculations}
+                  onOrderPaymentSuccess={onOrderPaymentSuccess}
                 />
               ))
             )}
@@ -560,7 +558,7 @@ const iconColorClass = getStatusClass(mainStatus);
           onClose={() => setIsCommentsOpen(false)}
           baseTransactionGuid={calc.id}
           transactionTypeId={1}
-          manager={isAdmin ? calc.dealerId : calc.manager}
+          manager={isBackoffice ? calc.dealerId : calc.manager}
         />
         <OrderFilesPreviewModal
           isOpen={isFilesModalOpen}
@@ -578,7 +576,7 @@ const iconColorClass = getStatusClass(mainStatus);
         isOpen={isOrderRefusalOpen}
         onClose={() => setIsOrderRefusalOpen(false)}
         calculationGuid={calc.id}
-        recipientGuid={isAdmin ? calc.dealerId : calc.manager}
+        recipientGuid={isBackoffice ? calc.dealerId : calc.manager}
         orders={refusableOrders}
         onSubmitted={() => {
           reloadCalculations?.();

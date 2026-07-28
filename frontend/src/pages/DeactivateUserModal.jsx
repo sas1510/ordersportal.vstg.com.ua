@@ -1,9 +1,9 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import axiosInstance from "../api/axios";
 import { useNotification } from "../hooks/useNotification";
 import { UserX, X, ShieldAlert, Loader2 } from "lucide-react";
 
-import "../pages/DeactivateUserModal.css"; // 👈 CSS ПІДКЛЮЧЕНО
+import "../pages/DeactivateUserModal.css";
 
 export default function DeactivateUserModal({ user, onClose, onUpdated }) {
   const [saving, setSaving] = useState(false);
@@ -13,26 +13,24 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
     setSaving(true);
 
     try {
-      await axiosInstance.put(`/users/${user.id}/deactivate/`);
-
-      addNotification(
-        `Користувача ${user.username} успішно деактивовано`,
-        "success",
-      );
+      await axiosInstance.put(`/users/${user.id}/deactivate/`, {});
+      addNotification(`Користувача ${user.username} успішно деактивовано`, "success");
 
       setTimeout(() => {
         onUpdated();
         onClose();
-      }, 700);
-    } catch (e) {
-
+      }, 500);
+    } catch (error) {
       if (process.env.NODE_ENV === "development") {
-        console.error("Error deactivating user:", e);
+        console.error("Error deactivating user:", error);
       }
-      addNotification("Помилка деактивації користувача", "error");
+      addNotification(
+        error?.response?.data?.detail || "Помилка деактивації користувача",
+        "error",
+      );
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   return (
@@ -44,7 +42,6 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
         className="deactivate-modal w-[420px] shadow-2xl rounded-xl overflow-hidden animate-in zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* HEADER */}
         <div className="deactivate-header px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <UserX size={26} />
@@ -56,7 +53,6 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
           </button>
         </div>
 
-        {/* BODY */}
         <div className="p-6 space-y-4 deactivate-body-text">
           <div className="flex items-center gap-3 deactivate-warning-text font-semibold">
             <ShieldAlert size={22} />
@@ -72,12 +68,11 @@ export default function DeactivateUserModal({ user, onClose, onUpdated }) {
           </p>
 
           <p>
-            Після деактивації користувач <strong>не зможе увійти</strong> в
-            портал, доки його не активують знову.
+            Після деактивації користувач <strong>не зможе увійти</strong> в портал,
+            доки його не активують знову.
           </p>
         </div>
 
-        {/* FOOTER */}
         <div className="deactivate-footer px-6 py-4 flex justify-end gap-3">
           <button
             className="deactivate-btn-cancel px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition shadow-sm"

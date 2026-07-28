@@ -1,4 +1,3 @@
-// ================= OrderItemSummaryMobile.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo } from "react";
 
 import ConfirmModal from "./ConfirmModal";
@@ -26,6 +25,7 @@ export default React.memo(function OrderItemSummaryMobile({
   calculationConstructionsCount,
   totalOrderConstructions,
   onRefresh,
+  onOrderPaymentSuccess,
 }) {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
@@ -56,10 +56,16 @@ export default React.memo(function OrderItemSummaryMobile({
 
   // ------------------------------------
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
-  const { user, role } = useAuthGetRole();
-  const _isAdmin = role === "admin";
+  const { isBackoffice } = useAuthGetRole();
 
-  const toggleExpand = useCallback(() => setIsExpanded((prev) => !prev), []);
+  const orderNumber = String(order?.number || "").trim();
+  const isSketchOrder = orderNumber.startsWith("34-");
+  const isSketchConfirmed = order?.status === "Ескіз підтверджено";
+
+  const toggleExpand = useCallback(() => {
+    if (isSketchOrder) return;
+    setIsExpanded((prev) => !prev);
+  }, [isSketchOrder]);
 
 
   const dateDiffStatus = useMemo(() => {
@@ -130,16 +136,33 @@ export default React.memo(function OrderItemSummaryMobile({
   }, [order.amount, order.paid]);
 
 
-  const buttonState = useMemo(() => {
-    const state = getButtonState(order.status);
+  const debtColorClass = Number(order?.paid || order.paid || 0) > 0 ? "text-WS---Orange" : "text-WS---DarkRed";
 
-  
+  const buttonState = useMemo(() => {
+    const state = getButtonState(order?.status);
+
     if (debtAmount <= 0) {
       state.pay = false;
     }
 
+    // Для замовлень 34-* залишаємо тільки підтвердження ескізу.
+    if (isSketchOrder) {
+      return {
+        confirm: !isSketchConfirmed,
+        pay: false,
+        reorder: false,
+        claim: false,
+      };
+    }
+
     return state;
-  }, [order.status, debtAmount, getButtonState]);
+  }, [
+    order?.status,
+    debtAmount,
+    getButtonState,
+    isSketchOrder,
+    isSketchConfirmed,
+  ]);
 
 
   const getStatusClass = useCallback((status) => {
@@ -194,13 +217,20 @@ export default React.memo(function OrderItemSummaryMobile({
         amount: Number(amount),
       });
 
-     addNotification(
+      addNotification(
         t("order_mobile.notifications.payment_success"),
         "success",
       );
       setIsPaymentOpen(false);
 
-      if (onRefresh) onRefresh();
+      onOrderPaymentSuccess?.({
+        orderIdGuid: order?.idGuid,
+        amount: Number(amount),
+      });
+
+      if (onRefresh) {
+        void onRefresh({ silent: true });
+      }
     } catch (error) {
       console.error(error);
       addNotification(t("errors.paymentError"), "error");
@@ -217,23 +247,36 @@ export default React.memo(function OrderItemSummaryMobile({
     setIsReorderModalOpen(true);
   }, []);
 
-  const openConfirmModal = useCallback((e) => {
-    e.stopPropagation();
+  const openConfirmModal = useCallback(
+    (e) => {
+      e.stopPropagation();
 
-    const calculationCount = Number(calculationConstructionsCount);
-    const ordersTotal = Number(totalOrderConstructions);
-    const hasComparableCounts =
-      Number.isFinite(calculationCount) &&
-      Number.isFinite(ordersTotal) &&
-      calculationCount > 0;
+      // Для 34-* одразу відкриваємо підтвердження ескізу.
+      if (isSketchOrder) {
+        setIsConfirmModalOpen(true);
+        return;
+      }
 
-    if (hasComparableCounts && ordersTotal !== calculationCount) {
-      setIsConstructionWarningModalOpen(true);
-      return;
-    }
+      const calculationCount = Number(calculationConstructionsCount);
+      const ordersTotal = Number(totalOrderConstructions);
+      const hasComparableCounts =
+        Number.isFinite(calculationCount) &&
+        Number.isFinite(ordersTotal) &&
+        calculationCount > 0;
 
-    setIsConfirmModalOpen(true);
-  }, [calculationConstructionsCount, totalOrderConstructions]);
+      if (hasComparableCounts && ordersTotal !== calculationCount) {
+        setIsConstructionWarningModalOpen(true);
+        return;
+      }
+
+      setIsConfirmModalOpen(true);
+    },
+    [
+      isSketchOrder,
+      calculationConstructionsCount,
+      totalOrderConstructions,
+    ],
+  );
 
   const handleConstructionWarningConfirm = useCallback(() => {
     setIsConstructionWarningModalOpen(false);
@@ -257,34 +300,55 @@ export default React.memo(function OrderItemSummaryMobile({
 
 
   const handleConfirmOrder = useCallback(async () => {
-  
-
     try {
-     
       const response = await axiosInstance.post(
-        `/orders/${order.idGuid}/confirm/`,
+        "/orders/confirm-order-by-number/",
+        {
+          order_id: String(order?.idGuid || ""),
+          order_number: orderNumber,
+          linked_order_number: String(order?.linkedOrderNumber || "").trim(),
+        },
       );
 
-      if (response.status === 200 || response.status === 204) {
-        addNotification(
-          t("order_mobile.notifications.order_confirmed", {
-            number: order.number,
-          }),
-          "success",
-        );
-
-        if (onRefresh) onRefresh();
-     
-      } else {
-        addNotification(
-          `⚠️ Не вдалося підтвердити замовлення: ${response.data.error || response.statusText}`,
-          "error",
+      if (response.data?.success !== true) {
+        throw new Error(
+          response.data?.error || "Не вдалося змінити стан замовлення",
         );
       }
+
+      setIsConfirmModalOpen(false);
+
+      addNotification(
+        response.data?.message ||
+          (isSketchOrder
+            ? "Ескіз підтверджено"
+            : t("order_mobile.notifications.order_confirmed", {
+                number: orderNumber,
+              })),
+        "success",
+      );
+
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error) {
-      addNotification(`Помилка підтвердження: ${error.message}`, "error");
+      addNotification(
+        error.response?.data?.error ||
+          error.response?.data?.detail ||
+          error.message ||
+          t("errors.error"),
+        "error",
+      );
     }
-  }, [order.idGuid, order.number]);
+  }, [
+    order?.idGuid,
+    order?.linkedOrderNumber,
+    orderNumber,
+    isSketchOrder,
+    onRefresh,
+    addNotification,
+    t,
+  ]);
 
 
   return (
@@ -360,7 +424,7 @@ export default React.memo(function OrderItemSummaryMobile({
     {/* Тут використовуємо червону іконку монет, якщо вона є, або ту саму */}
     <img src={moneyRed} className="mr-1 calc-summary-icon--money-red" alt="" /> 
     <div className="flex flex-col">
-      <div className="text-WS---DarkRed order-summary-debt-text text-[14px] font-bold leading-tight">
+      <div className={debtColorClass + " order-summary-debt-text text-[14px] font-bold leading-tight"}>
         {formatMoney2(debtAmount, order.currency)}
       </div>
       <div className="text-grey text-[8px]">{t("order_mobile.labels.debt_amount")}</div>
@@ -406,98 +470,126 @@ export default React.memo(function OrderItemSummaryMobile({
   className="flex items-center gap-3 " 
   onClick={(e) => e.stopPropagation()}
 >
-  {/* Ліва частина: Сітка кнопок 2х2 */}
-  <div className="grid grid-cols-2-btn gap-8 flex-grow">
-    {user?.role !== "admin" ? (
-      <>
-        {/* Підтвердити */}
+  {/* Ліва частина: кнопки дій */}
+  <div
+    className={
+      isSketchOrder
+        ? "flex-grow"
+        : "grid grid-cols-2-btn gap-8 flex-grow"
+    }
+  >
+    {isSketchOrder ? (
+      !isBackoffice && (
         <button
-          className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
+          type="button"
+          className="w-full h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
           disabled={!buttonState.confirm}
           onClick={openConfirmModal}
         >
-          {t("order_mobile.buttons.confirm")}
+          Підтвердити ескіз
+        </button>
+      )
+    ) : (
+      <>
+        {!isBackoffice ? (
+          <>
+            <button
+              type="button"
+              className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
+              disabled={!buttonState.confirm}
+              onClick={openConfirmModal}
+            >
+              {t("order_mobile.buttons.confirm")}
+            </button>
+
+            <button
+              type="button"
+              className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--pay"
+              disabled={!buttonState.pay}
+              onClick={openPaymentModal}
+            >
+              {debtAmount <= 0
+                ? t("order_status.paid", { defaultValue: "Сплачено" })
+                : t("order_mobile.buttons.pay")}
+            </button>
+          </>
+        ) : (
+          <div className="col-span-2" />
+        )}
+
+        <button
+          type="button"
+          className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkBlue text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--reorder"
+          disabled={!buttonState.reorder}
+          onClick={(e) => {
+            e.stopPropagation();
+            openReorderModal();
+          }}
+        >
+          {t("order_mobile.buttons.reorder")}
         </button>
 
-        {/* Сплатити */}
         <button
-          className="h-[31px] flex items-center font-['Inter']  justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--pay"
-          disabled={!buttonState.pay}
-          onClick={openPaymentModal}
+          type="button"
+          className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkRed text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--claim"
+          disabled={!buttonState.claim}
+          onClick={(e) => {
+            e.stopPropagation();
+            openClaimModal();
+          }}
         >
-          {t("order_mobile.buttons.pay")}
+          {t("order_mobile.buttons.claim")}
         </button>
       </>
-    ) : (
-      <div className="col-span-2"></div> // Заглушка для адміна, щоб зберегти сітку
     )}
-
-    {/* Дозамовлення */}
-    <button
-      className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkBlue text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--reorder"
-      disabled={!buttonState.reorder}
-      onClick={(e) => {
-        e.stopPropagation();
-        openReorderModal();
-      }}
-    >
-      {t("order_mobile.buttons.reorder")}
-    </button>
-
-    {/* Рекламація */}
-    <button
-      className="h-[31px] flex items-center font-['Inter']  justify-center  px-2 bg-WS---DarkRed text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--claim"
-      disabled={!buttonState.claim}
-      onClick={(e) => {
-        e.stopPropagation();
-        openClaimModal();
-      }}
-    >
-      {t("order_mobile.buttons.claim")}
-    </button>
   </div>
 
-  {/* Права частина: Швидке оформлення */}
-<div 
-    className="flex flex-col items-center justify-center min-w-[40px] text-center gap-1 cursor-help"
-    title={
-      dateDiffStatus
-        ? t("order_mobile.fast_order.fast")
-    : t("order_mobile.fast_order.slow")
-    }
-  >
-    {dateDiffStatus === null ? null : (
-      <div className="order-fast-icon-wrap bg-white p-1 rounded-sm overflow-hidden flex items-center justify-center">
-        <img 
-          src={speedIcon} 
-          alt="Іконка швидкості"
-          className={`block order-fast-icon ${dateDiffStatus ? "order-fast-icon--positive" : "order-fast-icon--negative"}`}
-        />
-      </div>
-    )}
-    <span className="order-fast-label text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
-      <>
+  {!isSketchOrder && (
+    <div
+      className="flex flex-col items-center justify-center min-w-[40px] text-center gap-1 cursor-help"
+      title={
+        dateDiffStatus
+          ? t("order_mobile.fast_order.fast")
+          : t("order_mobile.fast_order.slow")
+      }
+    >
+      {dateDiffStatus === null ? null : (
+        <div className="order-fast-icon-wrap p-1 rounded-sm overflow-hidden flex items-center justify-center">
+          <img
+            src={speedIcon}
+            alt="Іконка швидкості"
+            className={`block order-fast-icon ${
+              dateDiffStatus
+                ? "order-fast-icon--positive"
+                : "order-fast-icon--negative"
+            }`}
+          />
+        </div>
+      )}
+      <span className="order-fast-label text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
         {t("order_mobile.fast_order.title_1")}
         <br />
         {t("order_mobile.fast_order.title_2")}
-      </>
-    </span>
+      </span>
+    </div>
+  )}
+</div>
+
+{!isSketchOrder && (
+  <div className="flex justify-center mt-4 cursor-pointer">
+    <img
+      src={openDetails}
+      alt="Деталі"
+      className={`block transition-transform duration-300 ${
+        isExpanded ? "rotate-180" : "rotate-0"
+      }`}
+    />
   </div>
-</div>
-        
-
-<div className="flex justify-center mt-4 cursor-pointer" >
-  <img 
-    src={openDetails} 
-    alt="Деталі"
-    className={`block transition-transform duration-300 ${isExpanded ? "rotate-180" : "rotate-0"}`}
-
-  />
-</div>
+)}
       </div>
 
 
-      {isExpanded && (
+      {!isSketchOrder && isExpanded && (
                 <div className="separator-border w-full mt-2">
         <div className="mt-2 pt-2 flex w-full ">
           <OrderDetailsMobile order={order} />
@@ -536,11 +628,23 @@ export default React.memo(function OrderItemSummaryMobile({
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmOrder}
-        title={t("order_mobile.confirm_modal.title")}
-        message={t("order_mobile.confirm_modal.message", {
-          number: order.number,
-        })}
-        confirmText={t("order_mobile.confirm_modal.confirm")}
+        title={
+          isSketchOrder
+            ? "Підтвердження ескізу"
+            : t("order_mobile.confirm_modal.title")
+        }
+        message={
+          isSketchOrder
+            ? `Підтвердити ескіз замовлення №${orderNumber}?`
+            : t("order_mobile.confirm_modal.message", {
+                number: orderNumber,
+              })
+        }
+        confirmText={
+          isSketchOrder
+            ? "Підтвердити ескіз"
+            : t("order_mobile.confirm_modal.confirm")
+        }
         type="success"
       />
 
@@ -560,7 +664,7 @@ export default React.memo(function OrderItemSummaryMobile({
         onSave={handleReorderSave}
       />
 
-      {isPaymentOpen && (
+      {isPaymentOpen && !isSketchOrder && (
         <PaymentModal
           order={{
             OrderNumber: order.number,

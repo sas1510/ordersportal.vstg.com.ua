@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import axiosInstance from "../api/axios";
 import { useNotification } from "../hooks/useNotification";
-import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import "./AiChat.css"; // Нижче наведено базові стилі, якщо захочете кастомізувати
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
@@ -12,8 +11,6 @@ const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 const AiChatPage = () => {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
-  const { role } = useAuthGetRole();
-  const isAdmin = role === "admin";
 
   const [messages, setMessages] = useState([]); // Зберігає історію чату [{"role": "user"/"assistant", "content": ...}]
   const [input, setInput] = useState("");

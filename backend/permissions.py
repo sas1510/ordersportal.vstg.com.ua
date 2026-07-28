@@ -173,13 +173,21 @@ from rest_framework.permissions import BasePermission
 
 
 class IsAdminJWT(BasePermission):
-    """
-    Доступ ТІЛЬКИ для JWT admin
-    """
+    message = "Доступ дозволено лише адміністраторам і менеджерам."
+
+    allowed_roles = {
+        "admin",
+        "director",
+        "manager",
+        "region_manager",
+    }
 
     def has_permission(self, request, view):
-        return (
-            request.user
-            and request.user.is_authenticated
-            and request.user.role == "admin"
-        )
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        role = str(getattr(user, "role", "") or "").strip().lower()
+
+        return role in self.allowed_roles

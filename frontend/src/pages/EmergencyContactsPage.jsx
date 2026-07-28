@@ -12,14 +12,11 @@ import "./EmergencyContactsPage.css";
 const EmergencyContactsPage = () => {
   const { t } = useTranslation(); // Використовуємо t()
   const [contacts, setContacts] = useState([]);
-  const { user, role } = useAuthGetRole();
+  const { user, isBackoffice } = useAuthGetRole();
   const { addNotification } = useNotification();
   const [telegramContact, setTelegramContact] = useState(null);
 
   
-
-  const isAdmin = role === "admin";
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
   const [newContact, setNewContact] = useState({
@@ -208,7 +205,7 @@ const EmergencyContactsPage = () => {
                   {t("emergency.actions.call")}
                 </button>
 
-                {isAdmin && (
+                {isBackoffice && (
                   <>
                     <button onClick={() => openEditModal(contact)} className="emerg-btn-save">
                       {t("common.edit")}

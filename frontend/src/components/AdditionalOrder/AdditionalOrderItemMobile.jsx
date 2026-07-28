@@ -100,7 +100,7 @@ export const AdditionalOrderItemMobile = ({
 
   return (
     <div
-      className="calc-item font-['Inter'] column"
+      className="calc-item additional-order-item font-['Inter'] column"
       style={{
         borderTop: calc.numberWEB ? "7px solid #BA523B" : "7px solid #6B98BF",
 

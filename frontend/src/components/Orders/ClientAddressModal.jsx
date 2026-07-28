@@ -78,6 +78,12 @@ const reverseGeocode = async (lat, lon, language = "uk") => {
 const buildAddressFromForm = (f) =>
   [f.region, f.district, f.city, f.street, f.house].filter(Boolean).join(", ");
 
+const ENGLISH_ADDRESS_FIELDS = { city: "City", street: "Street", house: "Building" };
+const isLatinAddress = (address) => {
+  const value = [address.city, address.street, address.house].filter(Boolean).join(" ");
+  return /[A-Za-z]/.test(value) && !/[\u0400-\u052F]/.test(value);
+};
+
 
 const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const { addNotification } = useNotification();
@@ -99,6 +105,11 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     note: initialValue?.note || "",
   });
 
+
+  const addressLanguage = useMemo(
+    () => (isLatinAddress(formAddr) ? "en" : currentLang),
+    [formAddr, currentLang],
+  );
 
   const [clientContact, setClientContact] = useState({
     fullName: initialValue?.fullName || "",
@@ -143,12 +154,12 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
         q: query,
         format: "json",
         limit: 5,
-        countrycodes: "ua",
+        ...(addressLanguage === "en" ? {} : { countrycodes: "ua" }),
       });
 
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?${params}`,
-        { headers: { "Accept-Language": currentLang } },
+        { headers: { "Accept-Language": addressLanguage } },
       );
       setSuggestions(await res.json());
     }, 400);
@@ -178,7 +189,7 @@ const handleFindOnMap = () => {
   const handleMarkerDrag = async (e) => {
     const { lat, lng } = e.target.getLatLng();
     setSelectedCoords([lat, lng]);
-    const address = await reverseGeocode(lat, lng, currentLang);
+    const address = await reverseGeocode(lat, lng, addressLanguage);
     onAddressUpdateFromMap(address);
   };
 
@@ -293,7 +304,7 @@ const handleSave = () => {
               {Object.keys(formAddr).map((k) => (
                 <input
                   key={k}
-                  placeholder={t(`clientAddressModal.fields.${k}`)}
+                  placeholder={ENGLISH_ADDRESS_FIELDS[k] && addressLanguage === "en" ? ENGLISH_ADDRESS_FIELDS[k] : t("clientAddressModal.fields." + k)}
                   value={formAddr[k]}
                   onChange={(e) => setFormAddr((prev) => ({ ...prev, [k]: e.target.value }))}
                 />
@@ -352,7 +363,7 @@ const handleSave = () => {
               <ClickHandler
                 onSelect={setSelectedCoords}
                 onAddressFound={onAddressUpdateFromMap}
-                language={currentLang}
+                language={addressLanguage}
               />
               {selectedCoords && (
                 <Marker

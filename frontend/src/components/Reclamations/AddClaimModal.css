@@ -378,7 +378,7 @@ body.dark-theme .claim-modal-overlay {
 /* ===== Вікно (Основний контейнер) ===== */
 body.dark-theme .claim-modal-window {
   /* Темний фон вікна */
-  background: #1e1e1e;
+  background: #44403e;
   /* Світла, але не яскрава тінь */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -409,7 +409,7 @@ body.dark-theme .photo-label-text {
 body.dark-theme .claim-input,
 body.dark-theme .claim-textarea,
 body.dark-theme .claim-select {
-  background: #333333; /* Темний фон поля */
+  background: #333333 !important; /* Темний фон поля */
   color: #f0f0f0; /* Світлий текст */
   border: 1px solid #555555; /* Темніша рамка */
 }
@@ -440,7 +440,7 @@ body.dark-theme .photo-thumb {
 /* ===== Footer ===== */
 body.dark-theme .claim-modal-footer {
   /* Темний фон футера */
-  background: #1e1e1e;
+  background: #44403e;
   border-top: 1px solid #555;
 }
 

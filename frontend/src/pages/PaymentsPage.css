@@ -176,7 +176,7 @@
 
 .dark-theme .pp-order-card {
   background: #2c2c2c;
-  border-color: var(--grey-border-color);
+
 }
 
 .pp-row {
@@ -303,7 +303,7 @@
 }
 
 .dark-theme .pp-orders-wrapper {
-  background: #1e1e1e;
+  background: #4C4644;
   border-color: #333;
 }
 
@@ -1294,8 +1294,8 @@ body.dark-theme .modal-content {
   color: #ddd8d3;
 }
 
-body.dark-theme .pp-order-card,
-body.dark-theme .pp-orders-wrapper,
+
+
 body.dark-theme .analytics-container,
 body.dark-theme .analytics-card,
 body.dark-theme .analytics-table-container,
@@ -1306,12 +1306,11 @@ body.dark-theme .pp-modal-content,
 body.dark-theme .modal-content,
 body.dark-theme .detail-row-card {
   background: #868179;
-  border-color: #6e6963;
+  /* border-color: #6e6963; */
   color: #f5f3f1;
 }
 
 body.dark-theme .pp-order-card,
-body.dark-theme .analytics-card,
 body.dark-theme .analytics-table-container,
 body.dark-theme .debt-summary-section,
 body.dark-theme .pp-modal-content {
@@ -1322,7 +1321,7 @@ body.dark-theme .pp-order-col .pp-num,
 body.dark-theme .pp-info strong,
 body.dark-theme .bold-text,
 body.dark-theme .order-sum,
-body.dark-theme .analytics-card .value,
+
 body.dark-theme .analytics-table td,
 body.dark-theme .minimal-detail-table td,
 body.dark-theme .detail-num,
@@ -1612,7 +1611,7 @@ body.dark-theme .pp-empty {
 
 /* Додавання вертикальних пунктирних ліній МІЖ секціями */
 .pp-section:not(:last-child) {
-  border-right: 1px dotted var(--WS---DarkGrey);
+  border-right: #666666;
 }
 
 /* 1. Блок номеру та дати */
@@ -1684,6 +1683,7 @@ body.dark-theme .pp-empty {
 .order-sum { color: #333333; }
 
 .order-sum-payment { color: #333333; text-align: center; padding-top: 4px;}
+.dark-theme .order-sum-payment { color: #f5f3f1; text-align: center; padding-top: 4px;}
 .pp-green { color: #4b721d; } /* Темно-зелений для цифр */
 .pp-green-payment { color: #4b721d; text-align: center; padding-top: 4px;} /* Темно-зелений для цифр */
 .pp-red { color: #b43c28; }   /* Червоний для залишку */
@@ -1791,6 +1791,11 @@ body.dark-theme .pp-empty {
   
 
 
+}
+
+.dark-theme .analytics-mobile-grid {
+  background: #333333;
+  /* border-color: #444; */
 }
 
 /* Перші 3 картки займають по 2 частини (разом 6) -> стають в один рядок */
@@ -1933,6 +1938,16 @@ body.dark-theme .mobile-vert-divider {
   border-right: 1px dotted var(--WS---DarkGrey);
 }
 
+.dark-theme .cell-sum, .dark-theme .cell-debt {
+  border-right-color: #666666; /* М'якший колір для темної теми */
+}
+
+.dark-theme .mobile-label-payment {
+  border-bottom-color: #666666; /* М'якший колір для темної теми */
+}
+
+
+
 .cell-paid {
   margin-right: 16px;
   padding-left: 4px;
@@ -1965,6 +1980,10 @@ body.dark-theme .mobile-vert-divider {
 /* Горизонтальний роздільник між рядками сітки */
 .cell-debt, .cell-action {
   border-top: 1px dotted var(--WS---DarkGrey);
+}
+
+.dark-theme .cell-debt, .dark-theme .cell-action {
+  border-top-color: #666666; /* М'якший колір для темної теми */
 }
 
 /* Повне розтягування та вирівнювання кнопки оплати всередині комірки */
@@ -2019,6 +2038,11 @@ body.dark-theme .mobile-vert-divider {
   border-bottom: 1px dotted var(--WS---DarkGrey);
 }
 
+.dark-theme .border-bottom-custom-payment {
+  border-bottom-color: #666666; /* М'якший колір для темної теми */
+}
+
+
 /* Додаємо лінію для блоку з номером та датою */
 .order-meta {
   display: flex;
@@ -2031,4 +2055,170 @@ body.dark-theme .mobile-vert-divider {
   /* Відступи, щоб текст не притискався до лінії */
   padding-right: 8px; 
   margin-right: 8px;
+}
+
+.dark-theme .order-meta {
+  border-right-color: #666666; /* М'якший колір для темної теми */
+}
+.dark-theme .pp-num {
+  border-bottom-color: #666666; /* М'якший колір для темної теми */
+}
+
+/* Payment filters use the same colors as additional-order filters. */
+.content-filter-payment .filters-scroll > div:has(> .filter) {
+  background: #6b98bf !important;
+  border-radius: 5px 20px 5px 20px;
+  box-shadow: none !important;
+  padding: 18px 0 !important;
+}
+
+.content-filter-payment .payment-type-headers-name {
+  color: #fff !important;
+}
+
+.content-filter-payment .filter-item {
+  color: #fff;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.content-filter-payment .filter-item img {
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
+.content-filter-payment .filter-item.active,
+.content-filter-payment .filter-item:hover {
+  background: #fff;
+  color: #44403e !important;
+}
+
+.content-filter-payment .filter-item.active img,
+.content-filter-payment .filter-item:hover img {
+  filter: none;
+  opacity: 0.7;
+}
+
+.content-filter-payment .filter-item > span:last-child {
+  min-width: 22px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #5c8eb7 !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
+.content-filter-payment .filter-item.active > span:last-child,
+.content-filter-payment .filter-item:hover > span:last-child {
+  background: #6b98bf !important;
+  color: #fff !important;
+}
+
+body.dark-theme .content-filter-payment .filters-scroll > div:has(> .filter) {
+  background: #6b98bf !important;
+}
+
+/* Payment cards: calm, high-contrast dark palette. */
+body.dark-theme .analytics-container,
+body.dark-theme .analytics-card,
+body.dark-theme .pp-order-card,
+body.dark-theme .detail-row-card {
+  background: #333333;
+  /* border-color: #575757; */
+  color: #f5f3f1;
+}
+
+body.dark-theme .card-title,
+body.dark-theme .analytics-card .label,
+body.dark-theme .pp-info span,
+body.dark-theme .pp-order-col .pp-date,
+body.dark-theme .detail-date {
+  color: #cfcac4;
+  border-color: #69645e;
+}
+
+body.dark-theme .card-value,
+body.dark-theme .analytics-card .value,
+body.dark-theme .pp-order-col .pp-num,
+body.dark-theme .pp-info strong,
+body.dark-theme .bold-text,
+body.dark-theme .order-sum,
+body.dark-theme .detail-num,
+body.dark-theme .detail-sum {
+  color: #f5f3f1;
+}
+
+body.dark-theme .analytics-row-top .analytics-card:not(:last-child),
+body.dark-theme .analytics-row-bottom .analytics-card:not(:last-child) {
+  border-right-color: #69645e;
+}
+
+/* Brighter typography in payment order cards. */
+body.dark-theme .pp-order-card,
+body.dark-theme .pp-order-card .pp-order-col,
+body.dark-theme .pp-order-card .pp-info,
+body.dark-theme .pp-order-card .pp-info span,
+body.dark-theme .pp-order-card .pp-order-col .pp-date {
+  color: #eeeae5;
+}
+
+body.dark-theme .pp-order-card .pp-order-col .pp-num,
+body.dark-theme .pp-order-card .pp-info strong,
+body.dark-theme .pp-order-card .bold-text,
+body.dark-theme .pp-order-card .order-sum {
+  color: #ffffff;
+}
+
+/* Keep payment order number and date fully white in dark theme. */
+body.dark-theme .pp-order-card .pp-order-col .pp-num,
+body.dark-theme .pp-order-card .pp-order-col .pp-date {
+  color: #ffffff;
+}
+
+/* High-contrast amounts in payment order cards. */
+body.dark-theme .pp-order-card .order-sum { color: #ffffff; }
+body.dark-theme .pp-order-card .pp-green { color: #d5f58c; }
+body.dark-theme .pp-order-card .pp-red { color: #ffb0a0; }
+body.dark-theme .pp-order-card .pp-currency { color: inherit; }
+
+/* Exact payment-card typography selectors. */
+body.dark-theme .pp-order-card .pp-num,
+body.dark-theme .pp-order-card .pp-date {
+  color: #ffffff !important;
+}
+
+body.dark-theme .pp-order-card .pp-label {
+  color: #d8d4ce !important;
+}
+
+body.dark-theme .pp-order-card .order-sum,
+body.dark-theme .pp-order-card .order-sum .pp-currency {
+  color: #ffffff !important;
+}
+
+body.dark-theme .pp-order-card .pp-green,
+body.dark-theme .pp-order-card .pp-green .pp-currency {
+  color: #b4d947 !important;
+}
+
+body.dark-theme .pp-order-card .pp-red,
+body.dark-theme .pp-order-card .pp-red .pp-currency {
+  color: #ff7a5c !important;
+}
+
+/* Match payment-card money icons to their amount colors. */
+body.dark-theme .pp-order-card .pp-info-block:nth-child(3) svg,
+body.dark-theme .pp-order-card .pp-info-block:nth-child(3) img {
+  color: #ffffff !important;
+  filter: brightness(0) invert(1) !important;
+}
+
+body.dark-theme .pp-order-card .pp-info-block:nth-child(4) svg,
+body.dark-theme .pp-order-card .pp-info-block:nth-child(4) img {
+  color: #d5f58c !important;
+  filter: brightness(0) saturate(100%) invert(90%) sepia(34%) saturate(741%) hue-rotate(34deg) brightness(102%) contrast(92%) !important;
+}
+
+body.dark-theme .pp-order-card .pp-info-block:nth-child(5) svg,
+body.dark-theme .pp-order-card .pp-info-block:nth-child(5) img {
+  color: #ff7a5c !important;
 }

@@ -918,7 +918,7 @@ export default function HeaderDealer() {
         <li key={item.to}>
           <Link
             to={item.to}
-            className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+            className="block px-4 py-3 text-[14px] font-medium dropdown-header hover:bg-[#6B98BF] hover:text-white transition-colors"
             onClick={() => setShowFinanceMenu(false)}
           >
             
@@ -934,7 +934,7 @@ export default function HeaderDealer() {
 
             <div className="ml-auto flex items-center h-full flex-shrink-0">
               <div 
-                className="h-full flex flex-col justify-center border-l border-r border-gray-200 relative" 
+                className=" flex flex-col justify-center border-l border-r border-gray-200 relative" 
                 style={{ backgroundColor: 'var(--header-profile-bg)' }}
                 ref={profileRef}
               >
@@ -953,11 +953,11 @@ export default function HeaderDealer() {
                 </button>
 
                 {profileOpen && (
-                  <ul className="absolute top-full w-full right-0 bg-white shadow-xl border-t border-gray-100 py-2 z-[1001]">
+                  <ul className="absolute top-full right-0 bg-white dropdown-header shadow-xl border-t border-gray-100 py-2 z-[1001]">
                     <li>
                       <Link
                         to="/change-password"
-                        className="block px-4 py-3 text-[14px] font-medium text-[#44403E] hover:bg-[#6B98BF] hover:text-white transition-colors"
+                        className="block px-4 py-3 text-[14px] font-medium   dropdown-header  hover:bg-[#6B98BF] hover:text-white transition-colors"
                         onClick={() => setProfileOpen(false)}
                       >
                         {t('nav.change_password')}

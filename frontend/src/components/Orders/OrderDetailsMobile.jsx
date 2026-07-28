@@ -78,13 +78,18 @@ export default React.memo(function OrderDetailsMobile({ order }) {
 
   // --- 4. Статуси етапів ---
   const productionStatus = useMemo(() => {
-    const status = getDateStatus(order.planProductionMax, order.factProductionMax);
-    const isPending = !order.factProductionMax && !order.planProductionMax;
-    const displayDate = order.factProductionMax 
+    const factDate = order.factProductionMax;
+    const planDate = order.planProductionMax;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) <= today;
+    const status = getDateStatus(planDate, factDateHasArrived ? factDate : null);
+    const isPending = !factDateHasArrived && !planDate;
+    const displayDate = factDateHasArrived 
 
-      ? formatDateHumanShorter(order.factProductionMax, locale) 
-      : order.planProductionMax 
-        ? `${t("order_mobile.statuses.plan")}: ${formatDateHumanShorter(order.planProductionMax, locale)}` 
+      ? formatDateHumanShorter(factDate, locale) 
+      : planDate 
+        ? `${t("order_mobile.statuses.plan")}: ${formatDateHumanShorter(planDate, locale)}` 
         : t("order_mobile.statuses.no_data");
     return { status, displayDate, isPending };
   }, [order.factProductionMax, order.planProductionMax, getDateStatus]);

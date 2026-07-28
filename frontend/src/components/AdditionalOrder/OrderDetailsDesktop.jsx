@@ -126,7 +126,7 @@
 
 //               const status = getDateStatus(planDate, factDate || factReady); // Використовуємо факт готовності для статусу, якщо немає факту старту
 
-//               const displayDate = factDate ? (
+//               const displayDate = factDateHasArrived ? (
 //                 formatDateHumanShorter(factDate) // ✅ Є факт початку
 //               ) : factReady ? ( // 🆕 Якщо немає факту початку, але є факт готовності
 //                 <div
@@ -306,10 +306,13 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
   const productionStatus = useMemo(() => {
     const factDate = order.factProductionMax;
     const planDate = order.planProductionMax;
-    const status = getDateStatus(planDate, factDate);
-    const isPending = !factDate && !planDate; 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) <= today;
+    const status = getDateStatus(planDate, factDateHasArrived ? factDate : null);
+    const isPending = !factDateHasArrived && !planDate; 
 
-    const displayDate = factDate ? (
+    const displayDate = factDateHasArrived ? (
       formatDateHuman_ln(factDate, locale)
     ) : planDate ? (
       <div className="plan-block">
@@ -371,7 +374,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
 
   return (
     <div className="order-item-details flex flex-col gap-3 w-full">
-      <div className="timeline w-full">
+      <div className={"timeline w-full " + (order.realizationDate ? "timeline--delivery-complete" : "")}>
         <ul className="timeline-list font-['Inter']">
           {/* Замовлення */}
           <li>

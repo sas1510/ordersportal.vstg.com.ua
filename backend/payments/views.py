@@ -243,6 +243,7 @@ def get_payment_status_view(request):
         request,
         allow_admin=True,
         admin_param="contractor",
+        elevated_roles=("admin", "manager", "region_manager"),
     )
 
     # logger.info(
@@ -357,6 +358,7 @@ def get_dealer_payment_page_data_view(request):  # Синхронна для с�
                 request,
                 allow_admin=True,
                 admin_param="contractor",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except Exception as e:
             logger.error(f"Contractor resolution failed in payment page: {str(e)}", extra={
@@ -473,6 +475,7 @@ def get_dealer_advance_balance(request):
             request,
             allow_admin=True,
             admin_param="contractor_guid",
+            elevated_roles=("admin", "manager", "region_manager"),
         )
     except Exception as e:
         logger.error(f"Contractor resolution failed in payment page: {str(e)}")
@@ -766,8 +769,12 @@ def dealer_bills_add_info(contractor_guid: str, is_branch: bool = False):
                 
                 organizations = [
                     org for org in all_organizations
-                    if org[bank_key].strip() in target_banks
+                    if str(org.get(bank_key, "")).strip() in target_banks
                 ]
+
+                # Fallback: if bank labels changed in 1C, do not hide all organizations.
+                if not organizations:
+                    organizations = all_organizations
 
                 
         duration = time.time() - start_time
@@ -932,6 +939,7 @@ def customer_bills_view(request):
         request,
         allow_admin=True,
         admin_param="contractor",
+        elevated_roles=("admin", "manager", "region_manager"),
     )
 
     # logger.info(f"Fetching customer bills for {contractor_guid}", extra={
@@ -1238,6 +1246,7 @@ class GetBillPDF(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
             )
         except (ValueError, PermissionError) as e:
             logger.warning(f"Unauthorized PDF access by {user_name}: {str(e)}")
@@ -1332,6 +1341,7 @@ def get_partner_full_data_view(request):
             request,
             allow_admin=True,
             admin_param="contractor",
+            elevated_roles=("admin", "manager", "region_manager"),
         )
     except (ValueError, PermissionError) as e:
         return JsonResponse({"detail": str(e)}, status=400)

@@ -1,0 +1,235 @@
+.portal-dashboard-page {
+  min-height: calc(100vh - 80px);
+  padding: 96px 24px 40px;
+  background:
+    radial-gradient(circle at top left, rgba(180, 217, 71, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(107, 152, 191, 0.22), transparent 32%),
+    linear-gradient(180deg, #3f3a37 0%, #2d2927 46%, #262220 100%);
+  color: #f7f1e8;
+}
+
+.portal-dashboard-page__hero,
+.portal-dashboard-page__panel {
+  position: relative;
+  max-width: 1320px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(215, 206, 188, 0.18);
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(72, 66, 63, 0.94), rgba(45, 41, 39, 0.98));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+}
+
+.portal-dashboard-page__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
+  gap: 28px;
+  padding: 36px;
+  margin-bottom: 28px;
+}
+
+.portal-dashboard-page__hero-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.portal-dashboard-page__hero-glow--left {
+  width: 240px;
+  height: 240px;
+  left: -80px;
+  bottom: -120px;
+  background: rgba(180, 217, 71, 0.18);
+}
+
+.portal-dashboard-page__hero-glow--right {
+  width: 280px;
+  height: 280px;
+  right: -90px;
+  top: -120px;
+  background: rgba(107, 152, 191, 0.2);
+}
+
+.portal-dashboard-page__eyebrow,
+.portal-dashboard-page__toolbar-label {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #b4d947;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.portal-dashboard-page__hero-copy h1,
+.portal-dashboard-page__toolbar h2 {
+  margin: 0;
+  color: #ffffff;
+}
+
+.portal-dashboard-page__hero-copy h1 {
+  max-width: 620px;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1;
+  font-weight: 900;
+}
+
+.portal-dashboard-page__hero-copy p {
+  max-width: 640px;
+  margin: 18px 0 0;
+  color: rgba(247, 241, 232, 0.82);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.portal-dashboard-page__hero-stats {
+  display: grid;
+  gap: 14px;
+  align-content: center;
+}
+
+.portal-dashboard-page__hero-stat {
+  padding: 18px 20px;
+  border: 1px solid rgba(215, 206, 188, 0.16);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(8px);
+}
+
+.portal-dashboard-page__hero-stat strong {
+  display: block;
+  color: #ffffff;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.portal-dashboard-page__hero-stat span {
+  display: block;
+  margin-top: 10px;
+  color: rgba(247, 241, 232, 0.74);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.portal-dashboard-page__panel {
+  padding: 28px;
+}
+
+.portal-dashboard-page__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.portal-dashboard-page__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.portal-dashboard-page__select-wrap {
+  display: grid;
+  gap: 8px;
+  min-width: 240px;
+  color: rgba(247, 241, 232, 0.84);
+  font-size: 13px;
+}
+
+.portal-dashboard-page__select-wrap select,
+.portal-dashboard-page__toggle {
+  min-height: 46px;
+  border: 1px solid rgba(180, 217, 71, 0.42);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.portal-dashboard-page__select-wrap select {
+  padding: 0 14px;
+}
+
+.portal-dashboard-page__toggle {
+  padding: 0 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 14px 28px rgba(180, 217, 71, 0.12);
+}
+
+.portal-dashboard-page__toggle:hover {
+  transform: translateY(-1px);
+  background: rgba(180, 217, 71, 0.14);
+}
+
+.portal-dashboard-page .dashboard-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.portal-dashboard-page .widget-card {
+  border: 1px solid rgba(215, 206, 188, 0.14);
+  border-radius: 22px;
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  color: #f7f1e8;
+}
+
+.portal-dashboard-page .widget-header {
+  margin-bottom: 18px;
+}
+
+.portal-dashboard-page .widget-header h4 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.portal-dashboard-page .widget-header button,
+.portal-dashboard-page .widget-remove-btn {
+  border: 0;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+
+.portal-dashboard-page .widget-body {
+  color: rgba(247, 241, 232, 0.86);
+}
+
+@media (max-width: 900px) {
+  .portal-dashboard-page {
+    padding: 84px 16px 28px;
+  }
+
+  .portal-dashboard-page__hero {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+
+  .portal-dashboard-page__panel {
+    padding: 20px;
+  }
+
+  .portal-dashboard-page__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .portal-dashboard-page__toolbar-actions {
+    justify-content: stretch;
+  }
+
+  .portal-dashboard-page__select-wrap,
+  .portal-dashboard-page__toggle {
+    width: 100%;
+  }
+}

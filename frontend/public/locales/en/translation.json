@@ -950,6 +950,12 @@
       "resolved": "Resolved",
       "rejected": "Rejected"
     },
+    "compensation_filter": {
+      "title": "Compensation",
+      "all": "All",
+      "compensated": "With compensation",
+      "uncompensated": "Without compensation"
+    },
     "months": {
       "jan": "Jan.",
       "feb": "Feb.",
@@ -1112,6 +1118,8 @@
   },
   "payments": {
     "title": "Cash flow",
+    "from": "from",
+    "to": "to",
     "when": "When",
     "date": "Date",
     "show_orders_mobile": "Distributed on request",

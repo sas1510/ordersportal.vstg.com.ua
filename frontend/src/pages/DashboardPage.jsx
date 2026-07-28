@@ -1,62 +1,105 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import DashboardGrid from "../widgets/DashboardGrid";
 import { widgetRegistry } from "../widgets/widgetRegistry";
-import { useTranslation } from 'react-i18next';
+import "./DashboardPage.css";
+
+const DASHBOARD_ACCENTS = [
+  { value: "2", label: "активні віджети" },
+  { value: "Portal", label: "стиль оформлення" },
+  { value: "Live", label: "робоча панель" },
+];
 
 export default function DashboardPage() {
   const [editMode, setEditMode] = useState(false);
-  const { t } = useTranslation();
-
-
-
   const [widgets, setWidgets] = useState([
     { id: "1", type: "efficiency" },
     { id: "2", type: "volume" },
   ]);
 
-  const [layout, setLayout] = useState([
-    { i: "1", x: 0, y: 0, w: 6, h: 3 },
-    { i: "2", x: 6, y: 0, w: 6, h: 3 },
-  ]);
+  const availableWidgets = useMemo(() => Object.entries(widgetRegistry), []);
 
   const addWidget = (type) => {
     if (!type) return;
 
     const id = Date.now().toString();
-
     setWidgets((prev) => [...prev, { id, type }]);
-    setLayout((prev) => [...prev, { i: id, x: 0, y: Infinity, w: 6, h: 3 }]);
+  };
+
+  const removeWidget = (id) => {
+    setWidgets((prev) => prev.filter((widget) => widget.id !== id));
   };
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-toolbar">
-        <h2>Аналітичний Dashboard</h2>
+    <main className="portal-dashboard-page">
+      <section className="portal-dashboard-page__hero">
+        <div className="portal-dashboard-page__hero-glow portal-dashboard-page__hero-glow--left" />
+        <div className="portal-dashboard-page__hero-glow portal-dashboard-page__hero-glow--right" />
 
-        <button onClick={() => setEditMode(!editMode)}>
-          {editMode ? "Готово" : "Редагувати"}
-        </button>
+        <div className="portal-dashboard-page__hero-copy">
+          <span className="portal-dashboard-page__eyebrow">Аналітична панель</span>
+          <h1>Dashboard у стилі порталу</h1>
+          <p>
+            Керуйте віджетами в одному просторі з тією ж візуальною мовою, що і на
+            головній сторінці: темна атмосфера, м&apos;які панелі та живі акценти.
+          </p>
+        </div>
 
-        {editMode && (
-          <select onChange={(e) => addWidget(e.target.value)}>
-            <option value="">Додати віджет...</option>
-            {Object.keys(widgetRegistry).map((key) => (
-              <option key={key} value={key}>
-                {widgetRegistry[key].title}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
+        <div className="portal-dashboard-page__hero-stats">
+          {DASHBOARD_ACCENTS.map((item) => (
+            <div key={item.label} className="portal-dashboard-page__hero-stat">
+              <strong>{item.value}</strong>
+              <span>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <DashboardGrid
-        widgets={widgets}
-        setWidgets={setWidgets}
-        layout={layout}
-        setLayout={setLayout}
-        editMode={editMode}
-        dataResolver={() => null} // поки без API
-      />
-    </div>
+      <section className="portal-dashboard-page__panel">
+        <div className="portal-dashboard-page__toolbar">
+          <div>
+            <span className="portal-dashboard-page__toolbar-label">Робочий простір</span>
+            <h2>Налаштування віджетів</h2>
+          </div>
+
+          <div className="portal-dashboard-page__toolbar-actions">
+            {editMode && (
+              <label className="portal-dashboard-page__select-wrap">
+                <span>Додати віджет</span>
+                <select
+                  defaultValue=""
+                  onChange={(e) => {
+                    addWidget(e.target.value);
+                    e.target.value = "";
+                  }}
+                >
+                  <option value="" disabled>
+                    Оберіть віджет...
+                  </option>
+                  {availableWidgets.map(([key, config]) => (
+                    <option key={key} value={key}>
+                      {config.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            <button
+              type="button"
+              className="portal-dashboard-page__toggle"
+              onClick={() => setEditMode((prev) => !prev)}
+            >
+              {editMode ? "Готово" : "Редагувати"}
+            </button>
+          </div>
+        </div>
+
+        <DashboardGrid
+          widgets={widgets}
+          removeWidget={editMode ? removeWidget : undefined}
+          dataResolver={() => null}
+        />
+      </section>
+    </main>
   );
 }

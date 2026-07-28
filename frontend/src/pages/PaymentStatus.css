@@ -1,8 +1,3 @@
-/*
- * ========================================
- * СТИЛІ ДЛЯ КОМПОНЕНТА PaymentStatus
- * ========================================
- */
 
 /* Використовуються CSS-змінні з PortalOriginal.css:
 --portal-bg-color-start
@@ -32,7 +27,7 @@
   );
   height: 100vh;
   width: 100%;
-  padding-top: 100px;
+  padding-top: 80px;
   padding-bottom: 60px;
     /* display: flex;
   flex-direction: column; */
@@ -167,7 +162,7 @@ label {
   overflow-x: auto;
   border-radius: 5px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border: 1px dashed var(--grey-border-color);
+  border: 2px dashed var(--grey-border-color);
 }
 
 .payments-table {
@@ -235,15 +230,12 @@ label {
 }
 
 .total-row td {
-  padding: 10px 12px;
+  padding: 10px 12px !important;
   color: var(--text-color);
 }
 
 /* --- КОЛЬОРИ ТА ТЕКСТ --- */
-.text-green {
-  color: var(--success-color) !important;
-  font-weight: 600;
-}
+
 
 .text-red {
   color: var(--danger-color) !important;
@@ -521,7 +513,7 @@ label {
   overflow-x: auto;
   /* --- ВАЖЛИВО: ОПТИМІЗАЦІЯ ДЛЯ ПЛАВНОСТІ --- */
   max-height: calc(
-    100vh - 220px
+    100vh - 210px
   ); /* Встановлюємо максимальну висоту для прокрутки */
   overflow-y: auto; /* Активуємо вертикальну прокрутку */
   will-change: scroll-position; /* Підказуємо браузеру, що ця область буде прокручуватися */
@@ -580,7 +572,7 @@ label {
   font-weight: 700;
   font-size: 14px;
   margin-bottom: 6px;
-  color: var(--info-color);
+  color: #9FD3FF;
 }
 
 .mini-grid {
@@ -606,7 +598,7 @@ label {
 .mini-green {
   font-weight: 700;
   font-size: 14px;
-  color: var(--success-color);
+  color: #b4d947;
 }
 
 .mini-red {
@@ -616,6 +608,10 @@ label {
   /* color: var(--text-danger); */
 }
 
+
+.dark-theme .analytics-divider {
+  background-color: #69645e;
+}
 /* ====== ПОВЕРТАЄМО ВІДСТУПИ ДЛЯ ВСІЄЇ ТАБЛИЦІ ====== */
 .payments-table td,
 .payments-table th {
@@ -631,7 +627,7 @@ label {
 
 /* Дата у верхньому синьому рядку */
 .date-row td span {
-  padding-left: 10px;
+
   display: inline-block;
 }
 
@@ -708,7 +704,7 @@ span.td-date {
 /* ЧАС — трохи правіше (30px) */
 
 .payments-table td.td-time {
-  padding-left: 80px !important;
+  padding-left: 50px !important;
 }
 
 /* ДЕТАЛІ — ще правіше (60px) */
@@ -738,6 +734,7 @@ span.td-date {
 }
 
 .contract-totals {
+  padding-right: 16px;
   margin-top: 6px;
   font-size: 13px;
   line-height: 1.4;
@@ -914,7 +911,7 @@ span.td-date {
 
 @media (max-width: 1354px) { 
   .payments-body {
-      padding-top: 100px;
+      /* padding-top: 100px; */
     padding-left: 10px;
     padding-right: 10px ;
   }
@@ -926,7 +923,7 @@ span.td-date {
 @media (max-width: 1050px) {
   /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
   .payments-body {
-    padding-top: 100px;
+    /* padding-top: 100px; */
     padding-bottom: 40px;
     padding-left: 8px !important;
     padding-right: 8px !important;
@@ -1090,5 +1087,730 @@ span.td-date {
   .payments-body {
     padding-bottom: 25px !important;
     padding-top: 60px !important;
+  }
+}
+
+/* Cash flow+�u���T Figma-aligned dark dashboard. */
+.cashflow-page-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  color: #44403e;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.cashflow-page-title::before,
+.cashflow-page-title::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: currentColor;
+  opacity: .45;
+}
+body.dark-theme .payments-body {
+  background:
+    radial-gradient(circle at 8% 86%, rgba(137,179,216,.13), transparent 26%),
+    radial-gradient(circle at 92% 18%, rgba(180,217,71,.1), transparent 24%),
+    #4c4644;
+  color: #f5f3f1;
+}
+body.dark-theme .cashflow-page-title { color: #f5f3f1; }
+body.dark-theme .filters-container {
+  background: #333333;
+  border: 1px solid #706963;
+  box-shadow: none;
+  padding: 10px 14px;
+  gap: 10px;
+}
+body.dark-theme .filters-container label { color: #f5f3f1; font-size: 13px; }
+body.dark-theme .filters-container .input-date {
+  background: #f5f3f1; color: #44403e; border: 0; border-radius: 4px; padding: 3px 8px;
+}
+body.dark-theme .filters-container .dealer-select__control {
+  background: #f5f3f1; color: #44403e; border-color: #f5f3f1;
+}
+body.dark-theme .filters-container .btn,
+body.dark-theme .mobile-filter-actions .mobile-btn { border-radius: 4px; box-shadow: none; padding: 4px 8px; }
+body.dark-theme .filters-container .btn-primary,
+body.dark-theme .mobile-btn-primary { background: #6b98bf; color: #fff; }
+body.dark-theme .filters-container .btn-refresh,
+body.dark-theme .mobile-btn-refresh { background: #b4d947; color: #44403e; }
+body.dark-theme .filters-container .btn-excel,
+body.dark-theme .mobile-btn-excel { background: #789b15; color: #fff; }
+body.dark-theme .table-wrapper { border: 1px solid #706963; border-radius: 5px; background: #333333; box-shadow: none; }
+body.dark-theme .payments-table { background: #4c4644; }
+body.dark-theme .payments-table thead th {
+  background: #b4d947; color: #44403e; font-weight: 800; text-transform: none; letter-spacing: 0;
+}
+body.dark-theme .date-row { background: #65615f; }
+body.dark-theme .date-row td { color: #f5f3f1; border-top-color: #65615f; padding-top: 8px !important; padding-bottom: 8px !important; }
+body.dark-theme .data-row { background: #4c4644; border-bottom-color: #706963; }
+body.dark-theme .data-row:hover,
+body.dark-theme .doc-main-row.has-sub:hover { background: #464340; }
+body.dark-theme .data-row td { color: #f5f3f1; }
+body.dark-theme .data-row .td-operation { color: #eeeae5; }
+body.dark-theme .payments-table .text-bold { color: #ffffff; }
+body.dark-theme .payments-table .text-green { color: #b4d947 !important; }
+body.dark-theme .payments-table .text-red,
+body.dark-theme .payments-table .mini-red { color: #ED8B33 !important; }
+body.dark-theme .contract-badge { background: #6b98bf; border-color: #89b3d8; border-radius: 4px; color: #fff; }
+body.dark-theme .channel-badge { background: #333333; border: 1px solid #b9b3ad; color: #f5f3f1; }
+body.dark-theme .channel-badge.cash { border-color: #b4d947; color: #b4d947; }
+body.dark-theme .channel-badge.bank,
+body.dark-theme .expand-btn { color: #89b3d8; font-weight: 700;border-color: #89b3d8;  }
+body.dark-theme .sub-wrapper { background: #3b3938; }
+body.dark-theme .mini-card { background: #65615f; border-left-color: #6b98bf;  box-shadow: none; margin-bottom: 10px; }
+body.dark-theme .mini-card .mini-label { color: #ddd8d3; }
+body.dark-theme .mini-card .mini-value { color: #f5f3f1; }
+body.dark-theme .doc-main-row.expanded-with-orders,
+body.dark-theme .doc-main-row.expanded-with-orders:hover { background: #3b3938; border-left-color: #89b3d8; }
+
+@media (min-width: 1051px) {
+  .payments-body .filters-container {
+    position: relative;
+    margin-top: 52px;
+  }
+
+  .payments-body .filters-container::before {
+    content: "\0420\0423\0425 \041A\041E\0428\0422\0406\0412";
+    position: absolute;
+    top: -37px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #44403e;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+
+  body.dark-theme .payments-body .filters-container::before {
+    color: #f5f3f1;
+    text-shadow: -1px 0 #4c4644, 0 1px #4c4644, 1px 0 #4c4644, 0 -1px #4c4644;
+  }
+}
+
+/* Cash-flow direction palette and separators from the Figma layout. */
+body.dark-theme .payments-table .arrow-in,
+body.dark-theme .mobile-arrow.arrow-in {
+  color: #b4d947;
+}
+
+body.dark-theme .payments-table .arrow-out,
+body.dark-theme .mobile-arrow.arrow-out {
+  color: #ED8B33;
+}
+
+body.dark-theme .payments-table .arrow-none,
+body.dark-theme .mobile-arrow.arrow-none {
+  color: #b9b3ad;
+}
+
+body.dark-theme .payments-table .data-row td {
+  border-bottom: 1px dotted #706963;
+}
+
+body.dark-theme .payments-table .doc-main-row:has(.arrow-in) {
+  box-shadow: inset 4px 0 0 #b4d947;
+}
+
+body.dark-theme .payments-table .doc-main-row:has(.arrow-out) {
+  box-shadow: inset 4px 0 0 #ED8B33;
+}
+
+body.dark-theme .payments-table .doc-main-row:has(.arrow-none) {
+  box-shadow: inset 4px 0 0 #b9b3ad;
+}
+
+body.dark-theme .payments-table .date-row + .doc-main-row td {
+  border-top: 1px dotted #706963;
+}
+
+body.dark-theme .mobile-doc-card {
+  border-bottom-color: #706963;
+}
+
+/* Keep cash-flow rows clean: no colored left rail. */
+body.dark-theme .payments-table .doc-main-row:has(.arrow-in),
+body.dark-theme .payments-table .doc-main-row:has(.arrow-out),
+body.dark-theme .payments-table .doc-main-row:has(.arrow-none) {
+  box-shadow: none;
+}
+
+/* Hide unused order details in cash-flow cards. */
+
+.payments-table .mini-grid > div:nth-child(7),
+.payments-table .mini-grid > div:nth-child(8),
+.mobile-suborders .order-mini-grid > .order-mini-col:nth-child(7),
+.mobile-suborders .order-mini-grid > .order-mini-col:nth-child(8) {
+  display: none;
+}
+
+/* Keep the date and contract badges in one horizontal cash-flow header row. */
+.payments-table .date-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 1334px;
+  min-width: max-content;
+}
+
+.payments-table .date-header .td-date {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.payments-table .date-header .contracts-text {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.payments-table .date-header .contract-badge {
+  margin-right: 0;
+  white-space: nowrap;
+}
+
+/* Exact Figma typography for the cash-flow page title. */
+@media (min-width: 1051px) {
+  body.dark-theme .payments-body .filters-container::before {
+    height: 29px;
+    top: -40px;
+    color: #ffffff;
+    font-family: Inter, sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    background:
+      linear-gradient(#ffffff, #ffffff) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#ffffff, #ffffff) right center / calc(50% - 143px) 1px no-repeat;
+    text-shadow: none;
+  }
+
+  body:not(.dark-theme) .payments-body .filters-container::before {
+    height: 29px;
+    top: -40px;
+    color: #44403e;
+    font-family: Inter, sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    background:
+      linear-gradient(#44403e, #44403e) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#44403e, #44403e) right center / calc(50% - 143px) 1px no-repeat;
+  }
+}
+
+/* Keep long cash-flow operation names within one readable table column. */
+.payments-table td.td-operation {
+  width: 350px;
+  max-width: 350px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Keep the cash-flow table within the approved desktop width. */
+.payments-table {
+  width: 100%;
+  max-width: 1334px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Enforce the cash-flow table width even with long cell content. */
+@media (min-width: 1051px) {
+  .payments-body .table-wrapper {
+    width: min(100%, 1334px);
+    max-width: 1334px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .payments-body .payments-table {
+    width: 100%;
+    max-width: 1334px;
+    table-layout: fixed;
+  }
+
+  .payments-body .payments-table th,
+  .payments-body .payments-table td {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Preserve natural column sizing while keeping the cash-flow table 1334px wide. */
+@media (min-width: 1051px) {
+  .payments-body .table-wrapper {
+    width: 100%;
+    max-width: 1334px;
+    overflow-x: hidden;
+  }
+
+  .payments-body .payments-table {
+    width: 1334px;
+    min-width: 1334px;
+    max-width: none;
+    table-layout: auto;
+  }
+
+  .payments-body .payments-table th,
+  .payments-body .payments-table td {
+    overflow-wrap: normal;
+  }
+
+}
+
+/* Fix title spacing and keep long contract badges inside the date row. */
+@media (min-width: 1051px) {
+  .payments-body .filters-container::before {
+    content: "\0420\0423\0425\0020\041A\041E\0428\0422\0406\0412";
+  }
+
+  .payments-table .date-header {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .payments-table .date-header .contracts-text {
+    min-width: 0;
+    max-width: calc(100% - 150px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  .payments-table .date-header .contracts-text::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .payments-table .date-header .contracts-text::-webkit-scrollbar-thumb {
+    background: #6b98bf;
+    border-radius: 3px;
+  }
+}
+
+
+/* Wrap contract badges to the next line when the date header is full. */
+@media (min-width: 1051px) {
+  .payments-table .date-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .payments-table .date-header .contracts-text {
+    flex: 1 1 600px;
+    max-width: none;
+    min-width: 0;
+    flex-wrap: wrap;
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
+/* Cash-flow subrow cards follow the supplied Figma layout. */
+@media (min-width: 1051px) {
+  .payments-table .sub-wrapper {
+    padding: 10px 0 10px 62px !important;
+  }
+
+  .payments-table .sub-orders-container.minimal {
+    width: 95%;
+  }
+
+  .payments-table .mini-card {
+
+    margin: 0 10px 0 0;
+    padding: 10px 14px;
+    background: #585858;
+    border: 0;
+    border-left: 7px solid #6b98bf;
+    border-radius: 0 5px 5px 0;
+    box-shadow: none;
+  }
+
+  .payments-table .order-mini-header {
+    margin-bottom: 6px;
+    color: #9fd3ff;
+    font-family: Inter, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 19px;
+  }
+
+  .payments-table .mini-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(220px, 1.35fr);
+    gap: 0;
+  }
+
+  .payments-table .mini-grid > div {
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .payments-table .mini-grid > div:first-child {
+    padding-left: 0;
+  }
+
+  .payments-table .mini-grid > div:last-child {
+    padding-right: 0;
+  }
+
+  .payments-table .mini-grid > div:not(:last-child) {
+    border-right: 1px dashed rgba(255, 255, 255, .72);
+  }
+
+  .payments-table .mini-grid > div:last-child .mini-value {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+
+  .payments-table .mini-label {
+    color: #aeaeae;
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .payments-table .mini-value {
+    color: #ffffff;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 17px;
+  }
+
+  .payments-table .mini-green { color: #b4d947 !important; }
+  .payments-table .mini-red { color: #ed8b33 !important; }
+}
+
+body.dark-theme .payments-table .sub-wrapper {
+  background: #3b3938;
+}
+
+body.dark-theme .payments-table .mini-card {
+  background: #585858;
+  border-left-color: #6b98bf;
+}
+
+/* AppIcon alignment inside cash-flow subrow amounts. */
+.payments-table .mini-value,
+.payments-table .mini-green,
+.payments-table .mini-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.payments-table .cashflow-mini-icon {
+  width: 20px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+/* Figma border tone for the dark cash-flow header lines. */
+@media (min-width: 1051px) {
+  body.dark-theme .payments-body .filters-container::before {
+    background:
+      linear-gradient(#aeaeae, #aeaeae) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#aeaeae, #aeaeae) right center / calc(50% - 143px) 1px no-repeat;
+  }
+}
+
+
+@media (min-width: 1051px) and (max-width: 1334px) {
+
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .payments-table {
+    min-width: 1180px;
+  }
+
+  .payments-table thead th {
+    padding: 9px 10px !important;
+    font-size: 12px;
+  }
+
+  .date-row td {
+    padding: 9px 10px !important;
+    font-size: 14px;
+  }
+
+  .data-row td,
+  .payments-table td,
+  .payments-table td.sub-row {
+    padding: 7px 10px !important;
+    font-size: 13px;
+  }
+
+  .payments-table .date-header {
+    gap: 8px;
+  }
+
+  .contract-badge,
+  .channel-badge {
+    transform: scale(0.96);
+    transform-origin: left center;
+  }
+  .payments-table td.td-operation {
+
+    max-width: 350px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 200px !important;
+  }
+}
+
+@media (min-width: 1051px) and (max-width: 1280px) {
+
+
+  .payments-table {
+    min-width: 1100px;
+  }
+
+  .payments-table td.td-time {
+    width: 110px;
+    min-width: 110px;
+  }
+
+  .payments-table thead th {
+    padding: 8px 8px;
+    font-size: 11px;
+  }
+
+  .date-row td {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  .data-row td,
+  .payments-table td,
+  .payments-table td.sub-row {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .td-date,
+  .td-time,
+  .td-operation,
+  .contract-badge .name,
+  .contract-badge .value {
+    font-size: 12px;
+  }
+
+  .payments-table .date-header {
+    gap: 6px;
+  }
+
+  .payments-table td.td-operation {
+
+    max-width: 350px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 200px !important;
+  }
+}
+
+
+
+@media (min-width: 1281px) and (max-width: 1354px) {
+  .total-row td {
+    padding: 9px 10px !important;
+  }
+
+  .contract-totals {
+    max-width: 520px;
+    margin-left: auto;
+    padding-right: 8px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .contract-total-line {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1354px) {
+  .payments-table thead th {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .payments-table td {
+    padding: 7px 8px !important;
+    font-size: 12px;
+  }
+
+  .date-row td {
+    padding: 8px 8px !important;
+  }
+
+  .payments-table .date-header {
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .payments-table .contract-badge {
+    padding: 3px 8px;
+    margin-right: 4px;
+    font-size: 12px;
+  }
+
+  .payments-table .contract-badge .value {
+    font-size: 12px;
+  }
+
+  .payments-table td.td-time,
+  .payments-table th:nth-child(1) {
+    width: 110px;
+    min-width: 110px;
+  }
+
+  .payments-table td:nth-child(7),
+  .payments-table th:nth-child(7) {
+    width: 92px;
+    min-width: 92px;
+    text-align: center;
+  }
+
+  .payments-table td.td-details,
+  .payments-table th:nth-child(8) {
+    min-width: 190px;
+  }
+
+  .payments-table td.td-operation {
+    max-width: 180px !important;
+  }
+
+  .payments-table .contract-totals {
+    max-width: 480px;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1354px) {
+  .payments-table th:nth-child(3),
+  .payments-table td:nth-child(3),
+  .payments-table th:nth-child(4),
+  .payments-table td:nth-child(4),
+  .payments-table th:nth-child(5),
+  .payments-table td:nth-child(5),
+  .payments-table th:nth-child(6),
+  .payments-table td:nth-child(6) {
+    max-width: 110px;
+    white-space: nowrap;
+  }
+
+  .payments-table th:nth-child(2),
+  .payments-table td.td-operation {
+    max-width: 155px !important;
+  }
+
+  .payments-table td.td-details,
+  .payments-table th:nth-child(8) {
+    min-width: 220px;
+  }
+
+  .payments-table td,
+  .payments-table thead th {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+}
+
+/* =========================================================
+   CASH FLOW TABLE — RESPONSIVE DESKTOP FIX
+   Keeps expanded order cards inside the visible table.
+   This block must remain at the end of the file so it
+   overrides the older conflicting 1334px/min-width rules.
+   ========================================================= */
+@media (min-width: 1051px) and (max-width: 1334px) {
+  .payments-body .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .payments-body .payments-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+  }
+
+  .payments-table .sub-wrapper {
+    padding: 10px 8px 10px 62px !important;
+    overflow: hidden;
+  }
+
+  .payments-table .sub-orders-container.minimal {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .payments-table .mini-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .payments-table .mini-grid {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .payments-table .mini-grid > div {
+    min-width: 0;
+    padding-right: 7px;
+    padding-left: 7px;
+    box-sizing: border-box;
+  }
+
+  .payments-table .mini-label,
+  .payments-table .mini-value,
+  .payments-table .mini-green,
+  .payments-table .mini-red {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .payments-table .cashflow-mini-icon {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 17px;
   }
 }

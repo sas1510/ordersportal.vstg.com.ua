@@ -740,3 +740,20 @@ body.dark-theme .edit-modal .file-form,
 body.dark-theme .edit-modal .file-modal-footer {
   background: #868179;
 }
+
+/* Visible blue-green ambient glow behind the files content. */
+.file-body.column.gap-14.items-center,
+.file-body {
+  background:
+    radial-gradient(ellipse 42% 34% at 11% 72%, rgba(107, 152, 191, 0.42) 0%, rgba(107, 152, 191, 0.16) 38%, transparent 72%),
+    radial-gradient(ellipse 38% 32% at 91% 78%, rgba(180, 217, 71, 0.38) 0%, rgba(180, 217, 71, 0.12) 43%, transparent 74%),
+    radial-gradient(circle, var(--portal-bg-color-end) 45%, var(--portal-bg-color-start));
+}
+
+body.dark-theme .file-body.column.gap-14.items-center,
+body.dark-theme .file-body {
+  background:
+    radial-gradient(ellipse 42% 34% at 11% 72%, rgba(137, 179, 216, 0.3) 0%, rgba(107, 152, 191, 0.12) 42%, transparent 72%),
+    radial-gradient(ellipse 38% 32% at 91% 78%, rgba(180, 217, 71, 0.24) 0%, rgba(180, 217, 71, 0.08) 44%, transparent 74%),
+    #333333;
+}
