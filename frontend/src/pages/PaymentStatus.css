@@ -1814,3 +1814,277 @@ body.dark-theme .payments-table .mini-card {
     height: 17px;
   }
 }
+
+/* =========================================================
+   CASH FLOW ? FORCED LIGHT THEME
+   Keeps the dark-theme layout and spacing, but swaps in
+   a light palette only for the cash-flow page.
+   ========================================================= */
+body.cashflow-light-theme .payments-body {
+  background:
+    radial-gradient(circle at 8% 86%, rgba(107,152,191,.12), transparent 26%),
+    radial-gradient(circle at 92% 18%, rgba(180,217,71,.14), transparent 24%),
+    #f3efe9;
+  color: #44403e;
+}
+
+body.cashflow-light-theme .cashflow-page-title {
+  color: #44403e;
+}
+
+body.cashflow-light-theme .filters-container {
+  background: #ffffff;
+  border: 1px solid #d6cec7;
+  box-shadow: none;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
+body.cashflow-light-theme .filters-container label {
+  color: #44403e;
+  font-size: 13px;
+}
+
+body.cashflow-light-theme .filters-container .input-date {
+  background: #f8f5f1;
+  color: #44403e;
+  border: 1px solid #d6cec7;
+  border-radius: 4px;
+  padding: 3px 8px;
+  box-shadow: none;
+}
+
+body.cashflow-light-theme .filters-container .dealer-select__control {
+  background: #f8f5f1;
+  color: #44403e;
+  border-color: #d6cec7;
+}
+
+body.cashflow-light-theme .filters-container .btn,
+body.cashflow-light-theme .mobile-filter-actions .mobile-btn {
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 4px 8px;
+}
+
+body.cashflow-light-theme .filters-container .btn-primary,
+body.cashflow-light-theme .mobile-btn-primary {
+  background: #6b98bf;
+  color: #fff;
+}
+
+body.cashflow-light-theme .filters-container .btn-refresh,
+body.cashflow-light-theme .mobile-btn-refresh {
+  background: #b4d947;
+  color: #44403e;
+}
+
+body.cashflow-light-theme .filters-container .btn-excel,
+body.cashflow-light-theme .mobile-btn-excel {
+  background: #789b15;
+  color: #fff;
+}
+
+body.cashflow-light-theme .table-wrapper {
+  border: 1px solid #d6cec7;
+  border-radius: 5px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+body.cashflow-light-theme .payments-table {
+  background: #f8f5f1;
+}
+
+body.cashflow-light-theme .payments-table thead th {
+  background: #b4d947;
+  color: #44403e;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+body.cashflow-light-theme .date-row {
+  background: #ece6de;
+}
+
+body.cashflow-light-theme .date-row td {
+  color: #44403e;
+  border-top-color: #d6cec7;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+body.cashflow-light-theme .data-row {
+  background: #f8f5f1;
+  border-bottom-color: #d6cec7;
+}
+
+body.cashflow-light-theme .data-row:hover,
+body.cashflow-light-theme .doc-main-row.has-sub:hover {
+  background: #f1ece6;
+}
+
+body.cashflow-light-theme .data-row td {
+  color: #44403e;
+}
+
+body.cashflow-light-theme .data-row .td-operation {
+  color: #5b5652;
+}
+
+body.cashflow-light-theme .payments-table .text-bold {
+  color: #2f2b28;
+}
+
+body.cashflow-light-theme .payments-table .text-green {
+  color: #7aa60f !important;
+}
+
+body.cashflow-light-theme .payments-table .text-red,
+body.cashflow-light-theme .payments-table .mini-red {
+  color: #d9771f !important;
+}
+
+body.cashflow-light-theme .contract-badge {
+  background: #6b98bf;
+  border-color: #89b3d8;
+  border-radius: 4px;
+  color: #fff;
+}
+
+body.cashflow-light-theme .channel-badge {
+  background: #fff;
+  border: 1px solid #c8c0ba;
+  color: #44403e;
+}
+
+body.cashflow-light-theme .channel-badge.cash {
+  border-color: #9bbd31;
+  color: #789b15;
+}
+
+body.cashflow-light-theme .channel-badge.bank,
+body.cashflow-light-theme .expand-btn {
+  color: #6b98bf;
+  font-weight: 700;
+  border-color: #6b98bf;
+}
+
+body.cashflow-light-theme .sub-wrapper {
+  background: #efe9e2;
+}
+
+body.cashflow-light-theme .mini-card {
+  background: #ffffff;
+  border-left-color: #6b98bf;
+  box-shadow: none;
+  margin-bottom: 10px;
+}
+
+body.cashflow-light-theme .mini-card .mini-label {
+  color: #7d746d;
+}
+
+body.cashflow-light-theme .mini-card .mini-value {
+  color: #44403e;
+}
+
+body.cashflow-light-theme .doc-main-row.expanded-with-orders,
+body.cashflow-light-theme .doc-main-row.expanded-with-orders:hover {
+  background: #efe9e2;
+  border-left-color: #89b3d8;
+}
+
+body.cashflow-light-theme .payments-table .sub-wrapper {
+  background: #efe9e2;
+}
+
+body.cashflow-light-theme .payments-table .mini-card {
+  background: #ffffff;
+  border-left-color: #6b98bf;
+}
+
+body.cashflow-light-theme .payments-table .mini-grid > div:not(:last-child) {
+  border-right: 1px dashed rgba(107, 105, 99, .45);
+}
+
+body.cashflow-light-theme .payments-table .mini-label {
+  color: #7d746d;
+}
+
+body.cashflow-light-theme .payments-table .mini-value {
+  color: #44403e;
+}
+
+body.cashflow-light-theme .payments-table .mini-green {
+  color: #7aa60f !important;
+}
+
+body.cashflow-light-theme .payments-table .mini-red {
+  color: #d9771f !important;
+}
+
+body.cashflow-light-theme .total-row {
+  background: #ece6de;
+  border-top: 2px solid #b4d947;
+  border-bottom: 3px solid #b4d947;
+}
+
+body.cashflow-light-theme .total-row td {
+  color: #44403e;
+}
+
+body.cashflow-light-theme .contract-amount {
+  color: #44403e;
+}
+
+body.cashflow-light-theme .contract-total-line {
+  color: #5b5652;
+}
+
+body.cashflow-light-theme .contract-name-bold {
+  color: #2f2b28;
+  font-weight: 700;
+}
+
+body.cashflow-light-theme .table-wrapper::-webkit-scrollbar-track {
+  background: #ece6de;
+}
+
+body.cashflow-light-theme .payments-table .arrow-in,
+body.cashflow-light-theme .mobile-arrow.arrow-in {
+  color: #8cab22;
+}
+
+body.cashflow-light-theme .payments-table .arrow-out,
+body.cashflow-light-theme .mobile-arrow.arrow-out {
+  color: #d9771f;
+}
+
+body.cashflow-light-theme .payments-table .arrow-none,
+body.cashflow-light-theme .mobile-arrow.arrow-none {
+  color: #9f958e;
+}
+
+body.cashflow-light-theme .payments-table .data-row td {
+  border-bottom: 1px dotted #d6cec7;
+}
+
+body.cashflow-light-theme .payments-table .date-row + .doc-main-row td {
+  border-top: 1px dotted #d6cec7;
+}
+
+body.cashflow-light-theme .mobile-doc-card {
+  border-bottom-color: #d6cec7;
+}
+
+@media (min-width: 1051px) {
+  body.cashflow-light-theme .payments-body .filters-container::before {
+    color: #44403e;
+    text-shadow: none;
+    background:
+      linear-gradient(#aeaeae, #aeaeae) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#aeaeae, #aeaeae) right center / calc(50% - 143px) 1px no-repeat;
+  }
+}
