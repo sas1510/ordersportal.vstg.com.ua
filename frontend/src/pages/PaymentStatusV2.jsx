@@ -654,7 +654,7 @@
 
 // //   if (loading)
 // //     return (
-// //       <div className={`page-container ${FORCED_THEME_CLASS}`}>
+// //       <div className={`page-container ${theme}`}>
 // //         <div className="loading-spinner-wrapper">
 // //           <div className="loading-spinner"></div>
 // //           <div className="loading-text">Завантаження...</div>
@@ -688,7 +688,7 @@
 
 // //   return (
 
-// //     <div className={`payments-body ${FORCED_THEME_CLASS}`}>
+// //     <div className={`payments-body ${theme}`}>
 // //       {/* FILTERS */}
 
 // //       {isMobile ? (
@@ -1305,7 +1305,7 @@
 
 //   if (loading)
 //     return (
-//       <div className={`page-container ${FORCED_THEME_CLASS}`}>
+//       <div className={`page-container ${theme}`}>
 //         <div className="loading-spinner-wrapper">
 //           <div className="loading-spinner"></div>
 //           <div className="loading-text">Завантаження...</div>
@@ -1331,7 +1331,7 @@
 //     );
 
 //   return (
-//     <div className={`payments-body ${FORCED_THEME_CLASS}`}>
+//     <div className={`payments-body ${theme}`}>
 
 //     <div className="max-w-[1334px] mx-auto ">
 
@@ -1823,11 +1823,9 @@ const PaymentGroup = React.memo(
   },
 );
 
-const FORCED_THEME_CLASS = "cashflow-light-theme";
-
 const PaymentStatusV2 = () => {
   const { t, i18n } = useTranslation();
-  useTheme();
+  const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { isAdmin, dealerGuid, setDealerGuid } = useDealerContext();
   const { dateFrom: df, dateTo: dt } = getCurrentMonthDates();
@@ -1880,45 +1878,6 @@ const PaymentStatusV2 = () => {
     if (!isAdmin) fetchData();
   }, []);
 
-  useEffect(() => {
-    const body = document.body;
-    const root = document.documentElement;
-    const hadBodyForcedTheme = body.classList.contains(FORCED_THEME_CLASS);
-    const hadRootForcedTheme = root.classList.contains(FORCED_THEME_CLASS);
-    const hadBodyDarkTheme = body.classList.contains("dark-theme");
-    const hadRootDarkTheme = root.classList.contains("dark-theme");
-    const prevDataTheme = root.getAttribute("data-theme");
-    const prevColorScheme = root.style.colorScheme;
-
-    body.classList.add(FORCED_THEME_CLASS);
-    root.classList.add(FORCED_THEME_CLASS);
-    body.classList.remove("dark-theme");
-    root.classList.remove("dark-theme");
-    root.setAttribute("data-theme", "light");
-    root.style.colorScheme = "light";
-
-    return () => {
-      if (!hadBodyForcedTheme) {
-        body.classList.remove(FORCED_THEME_CLASS);
-      }
-      if (!hadRootForcedTheme) {
-        root.classList.remove(FORCED_THEME_CLASS);
-      }
-      if (hadBodyDarkTheme) {
-        body.classList.add("dark-theme");
-      }
-      if (hadRootDarkTheme) {
-        root.classList.add("dark-theme");
-      }
-      if (prevDataTheme === null) {
-        root.removeAttribute("data-theme");
-      } else {
-        root.setAttribute("data-theme", prevDataTheme);
-      }
-      root.style.colorScheme = prevColorScheme;
-    };
-  }, []);
-  
   useEffect(() => {
     if (dealerGuid) setFilters((p) => ({ ...p, contractor: dealerGuid }));
   }, [dealerGuid]);
@@ -2045,7 +2004,7 @@ const PaymentStatusV2 = () => {
 
   if (loading)
     return (
-      <div className={`page-container ${FORCED_THEME_CLASS}`}>
+      <div className={`page-container ${theme}`}>
         <div className="loading-spinner-wrapper">
           <div className="loading-spinner"></div>
           <div className="loading-text">{t('common.loading')}...</div>
@@ -2055,7 +2014,7 @@ const PaymentStatusV2 = () => {
 
   if (error)
     return (
-      <div className={`payments-body ${FORCED_THEME_CLASS}`}>
+      <div className={`payments-body ${theme}`}>
         <div className="max-w-[1334px] mx-auto mb-2 pb-2">
           <div className={`cashflow-error-state ${error.tone === "warning" ? "is-warning" : "is-danger"}`}>
             <div className="cashflow-error-state__icon">
@@ -2078,7 +2037,7 @@ const PaymentStatusV2 = () => {
     );
 
   return (
-    <div className={`payments-body ${FORCED_THEME_CLASS}`}>
+    <div className={`payments-body ${theme}`}>
       <div className="max-w-[1334px] mx-auto mb-2 pb-2">
         {!isMobile ? (
           <>
