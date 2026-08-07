@@ -1,9 +1,111 @@
-.orders-dashboard { min-height: calc(100vh - 80px); padding: 100px 24px 28px; background: #202b34; color: #f8fafc; }
-.orders-dashboard__panel { max-width: 1320px; margin: 0 auto; border: 1px solid #506272; background: #293741; }
-.orders-dashboard__header { display: flex; justify-content: space-between; gap: 24px; padding: 28px; border-bottom: 1px solid #506272; }
-.orders-dashboard h1, .orders-dashboard h2 { margin: 0; color: #fff; }.orders-dashboard h1 { font-size: 28px; }.orders-dashboard h2 { font-size: 18px; }
-.orders-dashboard p { margin: 8px 0 0; color: #c3d0d9; }.orders-dashboard__total { min-width: 150px; padding: 12px 16px; border: 1px solid #5a92af; color: #aee0fa; }.orders-dashboard__total span { display: block; font-size: 13px; }.orders-dashboard__total strong { font-size: 32px; }
-.orders-dashboard__filters, .orders-dashboard__cards { display: flex; flex-wrap: wrap; gap: 14px; padding: 20px 28px; border-bottom: 1px solid #506272; }.orders-dashboard__filters { align-items: end; }.orders-dashboard__filters label { display: grid; gap: 6px; color: #c3d0d9; font-size: 13px; }.orders-dashboard__filters input { padding: 9px 11px; border: 1px solid #637786; border-radius: 0; background: #1f2a33; color: #fff; }.orders-dashboard__filters button { padding: 8px 16px; border: 1px solid #74b1ce; border-radius: 0; background: #427d99; color: #fff; font-weight: 700; cursor: pointer; }.orders-dashboard__filters button:disabled { opacity: .7; cursor: wait; }
-.orders-dashboard__cards { padding-top: 0; }.orders-dashboard__card { flex: 1; min-width: 190px; padding: 20px; border: 1px solid currentColor; }.orders-dashboard__card span { display: block; font-size: 14px; }.orders-dashboard__card strong { display: block; margin-top: 10px; font-size: 42px; }.orders-dashboard__card.is-new { color: #7cc8ef; }.orders-dashboard__card.is-confirmation { color: #f6bf6a; }.orders-dashboard__card.is-payment { color: #ef9691; }
-.orders-dashboard__summary, .orders-dashboard__details { padding: 22px 28px; border-top: 1px solid #506272; }.orders-dashboard__table-wrap { margin-top: 14px; overflow-x: auto; border: 1px solid #506272; }.orders-dashboard table { width: 100%; border-collapse: collapse; }.orders-dashboard th, .orders-dashboard td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #42525e; }.orders-dashboard th { color: #aabcc8; font-size: 12px; text-transform: uppercase; background: #23303a; }.orders-dashboard tr:last-child td { border-bottom: 0; }.orders-dashboard td { color: #eef4f7; }.orders-dashboard td a { color: #90d8fb; font-weight: 700; text-decoration: underline; }.orders-dashboard__age { color: #f6bf6a !important; font-weight: 700; white-space: nowrap; }.orders-dashboard__error { padding: 0 28px; color: #ffaaa4; }
-@media (max-width: 720px) { .orders-dashboard { padding: 0; }.orders-dashboard__header { flex-direction: column; }.orders-dashboard__filters label, .orders-dashboard__filters input, .orders-dashboard__filters button { width: 100%; } }
+.orders-dashboard { min-height: calc(100vh - 80px); padding: 100px 24px 28px; background: linear-gradient(180deg, #f4f1ea 0%, #eef3ef 100%); color: #243426; }
+.orders-dashboard__panel { max-width: 1320px; margin: 0 auto; border: 1px solid rgba(70, 92, 77, 0.14); background: rgba(255,255,255,0.9); }
+.orders-dashboard__header { display: flex; justify-content: space-between; gap: 24px; padding: 28px; border-bottom: 1px solid rgba(70, 92, 77, 0.12); }
+.orders-dashboard h1, .orders-dashboard h2 { margin: 0; color: #243426; }
+.orders-dashboard h1 { font-size: 28px; }
+.orders-dashboard h2 { font-size: 18px; }
+.orders-dashboard p { margin: 8px 0 0; color: #667565; }
+.orders-dashboard__total { min-width: 150px; padding: 12px 16px; border: 1px solid #6b98bf; color: #2f5d52; background: rgba(107, 152, 191, 0.08); }
+.orders-dashboard__total span { display: block; font-size: 13px; }
+.orders-dashboard__total strong { font-size: 32px; }
+.orders-dashboard__filters, .orders-dashboard__cards { display: flex; flex-wrap: wrap; gap: 14px; padding: 20px 28px; border-bottom: 1px solid rgba(70, 92, 77, 0.12); }
+.orders-dashboard__filters { align-items: end; }
+.orders-dashboard__filters label { display: grid; gap: 6px; color: #5f6f60; font-size: 13px; }
+.orders-dashboard__filters input, .orders-dashboard__filters select { padding: 9px 11px; border: 1px solid rgba(70, 92, 77, 0.16); border-radius: 0; background: #fff; color: #243426; }
+.orders-dashboard__filters button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px; border: 1px solid #74b1ce; border-radius: 0; background: #427d99; color: #fff; font-weight: 700; cursor: pointer; }
+.orders-dashboard__filters button:disabled { opacity: 0.7; cursor: wait; }
+.orders-dashboard__view-switcher { display: inline-flex; border: 1px solid rgba(70, 92, 77, 0.2); }
+.orders-dashboard__view-switcher button { border: none; border-right: 1px solid rgba(70, 92, 77, 0.2); background: #f1f5f2; color: #35514a; }
+.orders-dashboard__view-switcher button:last-child { border-right: none; }
+.orders-dashboard__view-switcher button.is-active { background: #95c11f !important; color: #182127 !important; }
+.orders-dashboard__cards { padding-top: 0; }
+.orders-dashboard__card { flex: 1; min-width: 190px; padding: 20px; border: 1px solid currentColor; background: rgba(255,255,255,0.7); }
+.orders-dashboard__card span { display: block; font-size: 14px; }
+.orders-dashboard__card strong { display: block; margin-top: 10px; font-size: 42px; }
+.orders-dashboard__card.is-new { color: #4d93b6; }
+.orders-dashboard__card.is-confirmation { color: #c88a2f; }
+.orders-dashboard__card.is-payment { color: #cc6e67; }
+.orders-dashboard__summary, .orders-dashboard__details { padding: 22px 28px; border-top: 1px solid rgba(70, 92, 77, 0.12); }
+.orders-dashboard__table-wrap { margin-top: 14px; overflow-x: auto; border: 1px solid rgba(70, 92, 77, 0.14); background: rgba(255,255,255,0.72); }
+.orders-dashboard table { width: 100%; border-collapse: collapse; }
+.orders-dashboard th, .orders-dashboard td { padding: 12px 14px; text-align: left; border-bottom: 1px solid rgba(70, 92, 77, 0.1); }
+.orders-dashboard th { color: #607060; font-size: 12px; text-transform: uppercase; background: #f4f7ef; }
+.orders-dashboard tr:last-child td { border-bottom: 0; }
+.orders-dashboard td { color: #2f4033; }
+.orders-dashboard td a { color: #3f7ea5; font-weight: 700; text-decoration: underline; }
+.orders-dashboard__age { color: #c88a2f !important; font-weight: 700; white-space: nowrap; }
+.orders-dashboard__error { padding: 0 28px; color: #b94f42; }
+.orders-dashboard__dealer-cards { border-bottom: none; }
+.orders-dashboard__charts-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, .9fr); gap: 18px; padding: 0 28px 22px; }
+.orders-dashboard__chart-panel { overflow: hidden; }
+.orders-dashboard__chart-wrap { height: 320px; padding: 16px 12px 8px; }
+.orders-dashboard__chart-empty { height: 320px; display: flex; align-items: center; justify-content: center; color: #667565; font-size: 14px; }
+.orders-dashboard__chart-tooltip { padding: 10px 12px; border: 1px solid rgba(70, 92, 77, 0.14); background: rgba(255,255,255,0.96); color: #243426; }
+.orders-dashboard__chart-tooltip strong { display: block; margin-bottom: 6px; }
+.orders-dashboard__chart-legend { display: grid; gap: 8px; padding: 0 18px 18px; }
+.orders-dashboard__legend-item { display: flex; align-items: center; gap: 8px; color: #5f6f60; font-size: 13px; }
+.orders-dashboard__legend-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+.orders-dashboard--reports-mixed .dealer-reports-grid { margin: 0; padding: 0 28px 22px; }
+.orders-dashboard--reports-mixed .dealer-reports-grid.is-manager { grid-template-columns: 1fr; }
+.orders-dashboard--reports-mixed .dealer-reports-grid.is-admin { grid-template-columns: minmax(0, 1.45fr) minmax(320px, .95fr); }
+.orders-dashboard--reports-mixed .dealer-reports-panel--full { margin: 0 28px 28px; }
+.orders-dashboard--reports-mixed .dealer-reports-state { margin: 18px 28px 0; }
+.orders-dashboard__all-dealers-panel { margin-top: 0 !important; }
+
+.orders-dashboard__status-card { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; text-align: left; }
+.orders-dashboard__status-card:hover { transform: translateY(-2px); }
+.orders-dashboard__status-card.is-active { box-shadow: 0 18px 34px rgba(29, 68, 97, 0.16); background: rgba(255,255,255,0.92); }
+.orders-dashboard__charts-grid--statuses { align-items: start; }
+.orders-dashboard__details--single { margin: 0; border-top: none; padding: 0; }
+.orders-dashboard__chart-legend--buttons { grid-template-columns: 1fr; }
+.orders-dashboard__legend-button { width: 100%; border: 1px solid rgba(70, 92, 77, 0.14); background: rgba(255,255,255,0.74); padding: 10px 12px; justify-content: space-between; cursor: pointer; }
+.orders-dashboard__legend-button strong { margin-left: auto; color: #243426; }
+.orders-dashboard__legend-button.is-active { border-color: #6b98bf; background: rgba(107, 152, 191, 0.12); }
+body.dark-theme .orders-dashboard__status-card.is-active { box-shadow: 0 18px 34px rgba(0, 0, 0, 0.24); background: rgba(255,255,255,0.04); }
+body.dark-theme .orders-dashboard__legend-button { border-color: #506272; background: rgba(255,255,255,0.03); color: #d0d7d1; }
+body.dark-theme .orders-dashboard__legend-button strong { color: #f6f3ed; }
+body.dark-theme .orders-dashboard__legend-button.is-active { border-color: #74b1ce; background: rgba(116, 177, 206, 0.14); }
+
+body.dark-theme .orders-dashboard { background: #4C4644; color: #f8fafc; }
+body.dark-theme .orders-dashboard__panel { border-color: #506272; background: #34312f; }
+body.dark-theme .orders-dashboard__header { border-bottom-color: #506272; }
+body.dark-theme .orders-dashboard h1,
+body.dark-theme .orders-dashboard h2 { color: #fff; }
+body.dark-theme .orders-dashboard p { color: #c3d0d9; }
+body.dark-theme .orders-dashboard__total { border-color: #5a92af; color: #aee0fa; background: transparent; }
+body.dark-theme .orders-dashboard__filters,
+body.dark-theme .orders-dashboard__cards { border-bottom-color: #506272; }
+body.dark-theme .orders-dashboard__filters label { color: #c3d0d9; }
+body.dark-theme .orders-dashboard__filters input,
+body.dark-theme .orders-dashboard__filters select { border-color: #637786; background: #1f2a33; color: #fff; }
+body.dark-theme .orders-dashboard__view-switcher { border-color: #5c7383; }
+body.dark-theme .orders-dashboard__view-switcher button { border-right-color: #5c7383; background: #24303a; color: #cfe4ef; }
+body.dark-theme .orders-dashboard__card { background: transparent; }
+body.dark-theme .orders-dashboard__summary,
+body.dark-theme .orders-dashboard__details { border-top-color: #506272; }
+body.dark-theme .orders-dashboard__table-wrap { border-color: #506272; background: transparent; }
+body.dark-theme .orders-dashboard th,
+body.dark-theme .orders-dashboard td { border-bottom-color: #42525e; }
+body.dark-theme .orders-dashboard th { color: #aabcc8; background: #23303a; }
+body.dark-theme .orders-dashboard td { color: #eef4f7; }
+body.dark-theme .orders-dashboard td a { color: #90d8fb; }
+body.dark-theme .orders-dashboard__error { color: #ffaaa4; }
+body.dark-theme .orders-dashboard__chart-empty { color: #c3d0d9; }
+body.dark-theme .orders-dashboard__chart-tooltip { border-color: rgba(255,255,255,0.12); background: rgba(35, 48, 58, 0.96); color: #eef4f7; }
+body.dark-theme .orders-dashboard__legend-item { color: #d0d7d1; }
+
+@media (max-width: 1100px) {
+  .orders-dashboard__charts-grid,
+  .orders-dashboard--reports-mixed .dealer-reports-grid.is-admin { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .orders-dashboard { padding: 0; }
+  .orders-dashboard__header { flex-direction: column; }
+  .orders-dashboard__filters label, .orders-dashboard__filters input, .orders-dashboard__filters select, .orders-dashboard__filters button { width: 100%; }
+  .orders-dashboard__view-switcher { width: 100%; }
+  .orders-dashboard__view-switcher button { flex: 1; }
+  .orders-dashboard__charts-grid,
+  .orders-dashboard--reports-mixed .dealer-reports-grid,
+  .orders-dashboard--reports-mixed .dealer-reports-panel--full { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
+  .orders-dashboard--reports-mixed .dealer-reports-state { margin-left: 16px; margin-right: 16px; }
+}

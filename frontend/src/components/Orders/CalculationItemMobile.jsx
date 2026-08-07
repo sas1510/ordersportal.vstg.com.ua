@@ -1,5 +1,5 @@
 // ================= CalculationItemMobile.jsx (Final Optimization) =================
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import OrderItemSummaryMobile from "./OrderItemSummaryMobile";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
@@ -18,7 +18,7 @@ import OrderNumbersListModal from "./OrderNumbersListModal";
 import OrderRefusalModal from "./OrderRefusalModal";
 
 export const CalculationItemMobile = React.memo(
-  ({ calc, onDelete, onEdit, onMarkAsRead, reloadCalculations, onOrderPaymentSuccess }) => {
+  ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead, reloadCalculations, onOrderPaymentSuccess }) => {
     //
     const {t, i18n} = useTranslation();
     const locale = i18n.language;
@@ -56,7 +56,14 @@ export const CalculationItemMobile = React.memo(
       ? "text-success" // дилер = отримувач
       : "text-warning"; // менеджер / інший отримувач
 
-    const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
+    const toggleExpanded = useCallback(() => {
+      if (onToggle) {
+        onToggle(calc.id);
+        return;
+      }
+
+      setExpanded((prev) => !prev);
+    }, [calc.id, onToggle]);
 
     const hasOrders = useMemo(
       () =>
@@ -162,6 +169,12 @@ export const CalculationItemMobile = React.memo(
     const hiddenOrderNumbersCount = useMemo(() => {
       return Math.max(0, orderNumbers.length - visibleOrderNumbers.length);
     }, [orderNumbers.length, visibleOrderNumbers.length]);
+
+    useEffect(() => {
+      if (typeof isExpanded === "boolean") {
+        setExpanded(isExpanded);
+      }
+    }, [isExpanded]);
 
     const statusEntries = useMemo(() => {
       const entries =
@@ -556,9 +569,12 @@ export const CalculationItemMobile = React.memo(
                 <OrderItemSummaryMobile
                   key={order.number}
                   order={order}
+                  contractorGuid={calc.dealerId}
                   calculationDate={calc.date}
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
                   totalOrderConstructions={totalOrderConstructions}
+                  isExpanded={expandedOrderId === (order.idGuid || order.number)}
+                  onToggle={onOrderToggle}
                   onRefresh={reloadCalculations}
                   onOrderPaymentSuccess={onOrderPaymentSuccess}
                 />

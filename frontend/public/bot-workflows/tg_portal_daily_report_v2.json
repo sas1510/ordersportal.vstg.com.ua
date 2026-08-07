@@ -1,0 +1,192 @@
+{
+  "name": "TG portal daily orders report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 18 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-schedule-v2",
+      "name": "???????? ???? ? 18:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/daily-recipients/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-report-recipients",
+      "name": "Get report recipients",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        220,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "recipients",
+        "options": {}
+      },
+      "id": "split-recipients-v2",
+      "name": "Split recipients",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        450,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/daily-report/?chat_id=' + $json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-recipient-report",
+      "name": "Get recipient report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        670,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r=$json.report??{}; const sum=new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(r.turnover||0)); return [{json:{chat_id:$('Split recipients').item.json.chat_id,text:`<b>?? ???????? ???? ?? ${r.date}</b>\\n\\n?????????: <b>${r.orders_count ?? 0}</b>\\n???????????: <b>${r.constructions_count ?? 0}</b>\\n??????: <b>${sum} ${r.currency ?? '???'}</b>`}}];"
+      },
+      "id": "format-scheduled-v2",
+      "name": "Format scheduled report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "send-scheduled-v2",
+      "name": "Send daily report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1130,
+        100
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "SELECT_IN_N8N",
+          "name": "SELECT_YOUR_TELEGRAM_CREDENTIAL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "???????? ???? ? 18:30": {
+      "main": [
+        [
+          {
+            "node": "Get report recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get report recipients": {
+      "main": [
+        [
+          {
+            "node": "Split recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split recipients": {
+      "main": [
+        [
+          {
+            "node": "Get recipient report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get recipient report": {
+      "main": [
+        [
+          {
+            "node": "Format scheduled report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format scheduled report": {
+      "main": [
+        [
+          {
+            "node": "Send daily report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Kyiv"
+  },
+  "active": false,
+  "versionId": "tg-daily-v2",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

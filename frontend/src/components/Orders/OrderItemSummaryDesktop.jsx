@@ -1,11 +1,11 @@
 // ================= OrderItemSummary.jsx =================
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
 import axiosInstance from "../../api/axios";
-import { formatDateHumanShorter_full } from "../../utils/formatters";
+import { formatDateHumanShorter_full, formatDateTimeShort_2 } from "../../utils/formatters";
 import { AppIcon } from "../Icons/AppIcon";
 import { useTranslation } from "react-i18next";
 import { useNotification } from "../../hooks/useNotification";
@@ -16,9 +16,12 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 export default React.memo(function OrderItemSummaryDesktop({
   order,
+  contractorGuid,
   calculationDate,
   calculationConstructionsCount,
   totalOrderConstructions,
+  isExpanded: externalExpanded,
+  onToggle,
   onRefresh,
   onOrderPaymentSuccess,
 }) {
@@ -54,8 +57,13 @@ export default React.memo(function OrderItemSummaryDesktop({
       return;
     }
 
+    if (onToggle) {
+      onToggle(order.idGuid || order.number);
+      return;
+    }
+
     setIsExpanded((prev) => !prev);
-  }, [isSketchOrder]);
+  }, [isSketchOrder, onToggle, order.idGuid, order.number]);
 
   const getButtonState = useCallback((status) => {
     const state = {
@@ -118,6 +126,12 @@ export default React.memo(function OrderItemSummaryDesktop({
   }, [order?.amount, order?.paid]);
 
   const debtColorClass = Number(order?.paid || order.paid || 0) > 0 ? "text-WS---Orange" : "text-WS---DarkRed";
+
+  useEffect(() => {
+    if (typeof externalExpanded === "boolean") {
+      setIsExpanded(externalExpanded);
+    }
+  }, [externalExpanded]);
 
   const buttonState = useMemo(() => {
     const state = getButtonState(order?.status);
@@ -469,7 +483,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             </div>
 
             <div className="text-start text-[11px] pt-1">
-              {formatDateHumanShorter_full(
+              {formatDateTimeShort_2(
                 order?.date,
                 locale,
               )}
@@ -784,12 +798,14 @@ export default React.memo(function OrderItemSummaryDesktop({
         onClose={() => setIsClaimModalOpen(false)}
         initialOrderNumber={claimOrderNumber}
         initialOrderGUID={claimOrderGuid}
+        initialContractorGuid={contractorGuid}
       />
 
       <AddReorderModal
         isOpen={isReorderModalOpen}
         onClose={() => setIsReorderModalOpen(false)}
         initialOrderNumber={orderNumber}
+        initialContractorGuid={contractorGuid}
         onSave={handleSaveAdditionalOrder}
       />
 

@@ -346,6 +346,7 @@
 
 
 import json
+import uuid
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from records.models import ChatMessage
@@ -366,34 +367,64 @@ from celery import current_app
 import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
 from django.conf import settings
 
-HARDCODED_DUPLICATE_MANAGER_BIN = bytes.fromhex(
-    "810E74867AD9D52511EBDD6B1D812DBA"
-)
-HARDCODED_DUPLICATE_MANAGER_GUID = '1d812dba-dd6b-11eb-810e-74867ad9d525'
-
-
 class ChatConsumer(AsyncWebsocketConsumer):
 
+
+    def _guid_for_log(self, value):
+        if value is None:
+            return None
+        try:
+            if isinstance(value, memoryview):
+                value = value.tobytes()
+            if isinstance(value, (bytes, bytearray)):
+                raw = bytes(value)
+                if len(raw) == 16:
+                    try:
+                        return str(uuid.UUID(bytes_le=raw)).lower()
+                    except Exception:
+                        return raw.hex()
+                return raw.hex()
+            return str(value).strip()
+        except Exception:
+            return repr(value)
 
     @database_sync_to_async
     def check_document_ownership(self, base_guid, t_type, user_contractor_bin):
         from django.db import connection
         try:
             with connection.cursor() as cursor:
-                # Зверніть увагу на назви параметрів: @Guid та @TransactionType
                 cursor.execute("EXEC dbo.GetDocumentOwner @DocumentId=%s, @TransactionType=%s", [base_guid, t_type])
                 row = cursor.fetchone()
-                
+
+                self.last_document_guid = self._guid_for_log(base_guid)
+                self.last_user_contractor_guid = self._guid_for_log(user_contractor_bin)
+                self.last_document_owner_guid = None
+
                 if row:
                     doc_owner_bin = row[0]
-      
-                    return doc_owner_bin == user_contractor_bin
+                    owner_guid = self._guid_for_log(doc_owner_bin)
+                    user_guid = self._guid_for_log(user_contractor_bin)
+                    self.last_document_owner_guid = owner_guid
+                    is_match = bool(owner_guid and user_guid and owner_guid == user_guid)
+                    logger.warning(
+                        f"WS ownership check result: chat_id={getattr(self, 'chat_id', None)} doc={self.last_document_guid} owner={owner_guid} user={user_guid} match={is_match} user_name={getattr(self.user, 'username', None)} role={getattr(self.user, 'role', None)}",
+                        extra={
+                            'tags': {'action': 'check_document_ownership'},
+                        }
+                    )
+                    return is_match
+
+                logger.warning(
+                    f"WS ownership check returned no owner: chat_id={getattr(self, 'chat_id', None)} doc={self.last_document_guid} user={self.last_user_contractor_guid} user_name={getattr(self.user, 'username', None)}",
+                    extra={
+                        'tags': {'action': 'check_document_ownership'},
+                    }
+                )
             return False
         except Exception as e:
             logger.error(f"Ownership Check Error: {str(e)}", exc_info=True, extra={
             'tags': {
                 'action': 'check_document_ownership'
-            
             }
         })
             return False
@@ -417,6 +448,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             from backend.utils.contractor_ws import resolve_contractor_ws 
             self.contractor_bin, self.contractor_guid = resolve_contractor_ws(self.scope)
+            logger.info(
+                "WS contractor resolved",
+                extra={
+                    'tags': {'action': 'connect_socket'},
+                    'username': getattr(self.user, 'username', None),
+                    'role': getattr(self.user, 'role', None),
+                    'user_model_id_1c': self._guid_for_log(getattr(self.user, 'user_id_1C', None)),
+                    'contractor_bin_guid': self._guid_for_log(self.contractor_bin),
+                    'contractor_guid': self._guid_for_log(self.contractor_guid),
+                }
+            )
         except Exception as e:
             logger.error(f"Contractor resolution failed for {self.user}: {str(e)}", extra={
             'tags': {
@@ -494,6 +536,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             message_text = data.get('message')
 
             recipient_id_1c = data.get('recipient_guid')
+            logger.info(
+                "WS receive payload",
+                extra={
+                    'tags': {'action': 'receive_socket'},
+                    'chat_id': getattr(self, 'chat_id', None),
+                    'username': getattr(self.user, 'username', None),
+                    'role': getattr(self.user, 'role', None),
+                    'user_model_id_1c': self._guid_for_log(getattr(self.user, 'user_id_1C', None)),
+                    'contractor_bin_guid': self._guid_for_log(getattr(self, 'contractor_bin', None)),
+                    'recipient_guid': recipient_id_1c,
+                    'message_length': len(message_text.strip()) if isinstance(message_text, str) else 0,
+                }
+            )
 
             if isinstance(recipient_id_1c, str):
                 recipient_id_1c = recipient_id_1c.strip()
@@ -526,13 +581,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             if getattr(self.user, 'role', '') == 'customer':
                 is_owner = await self.check_document_ownership(base_guid, t_type, self.contractor_bin)
+                logger.info(
+                    "WS customer ownership gate",
+                    extra={
+                        'tags': {'action': 'receive_socket'},
+                        'chat_id': self.chat_id,
+                        'document_guid': self._guid_for_log(base_guid),
+                        'transaction_type': t_type,
+                        'username': getattr(self.user, 'username', None),
+                        'user_model_id_1c': self._guid_for_log(getattr(self.user, 'user_id_1C', None)),
+                        'contractor_bin_guid': self._guid_for_log(self.contractor_bin),
+                        'is_owner': is_owner,
+                    }
+                )
                 if not is_owner:
-                    logger.critical(f"SECURITY ALERT: User {self.user.username} tried to post to chat {self.chat_id} belonging to another contractor!", extra={
-                        'tags': {
-                            'action': 'receive_socket'
-                        
+                    logger.critical(
+                        f"SECURITY ALERT: User {self.user.username} tried to post to chat {self.chat_id} belonging to another contractor! document={getattr(self, 'last_document_guid', None)} owner={getattr(self, 'last_document_owner_guid', None)} user_contractor={getattr(self, 'last_user_contractor_guid', None)}",
+                        extra={
+                            'tags': {
+                                'action': 'receive_socket'
+                            }
                         }
-                    })
+                    )
                     await self.send_error("Доступ заборонено: Ви не є власником цього документа")
                     return 
 
@@ -553,6 +623,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             saved_msg = await self.save_main_message(
                 message_text, base_guid, recipient_bin, t_type, author_bin
+            )
+            logger.info(
+                "WS message save attempt finished",
+                extra={
+                    'tags': {'action': 'receive_socket'},
+                    'chat_id': self.chat_id,
+                    'document_guid': self._guid_for_log(base_guid),
+                    'transaction_type': t_type,
+                    'author_guid': self._guid_for_log(author_bin),
+                    'recipient_guid': self._guid_for_log(recipient_bin),
+                    'saved_message_id': getattr(saved_msg, 'id', None),
+                }
             )
 
             if not saved_msg:
@@ -635,9 +717,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     # recipient_role = recipient_user.role if recipient_user else 'unknown'
 
                     from backend.utils.tasks import check_and_send_telegram_notification
-                    check_and_send_telegram_notification.apply_async(
-                        args=[saved_msg.id, recipient_id_1c, t_type, doc_number, is_dealer, author_name],
-                        countdown=0
+                    logger.info(
+                        f"Queueing immediate TG notification: recipient={recipient_id_1c}, msg_id={saved_msg.id}, chat_id={self.chat_id}",
+                        extra={
+                            'tags': {'action': 'receive_socket'}
+                        }
+                    )
+                    check_and_send_telegram_notification.delay(
+                        saved_msg.id, recipient_id_1c, t_type, doc_number, is_dealer, author_name
                     )
 
                     if is_dealer:
@@ -794,7 +881,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_main_message(self, text, base_guid, recipient_bin, t_type, author_bin):
         try:
-            return ChatMessage.objects.create(
+            chat_message = ChatMessage.objects.create(
                 chat_id=self.chat_id,
                 author=author_bin,
                 recipient=recipient_bin,
@@ -803,6 +890,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 transaction_type_id=t_type,
                 is_notification=False
             )
+            logger.info(
+                "WS message saved in DB",
+                extra={
+                    'tags': {'action': 'save_main_message_socket'},
+                    'chat_id': self.chat_id,
+                    'message_id': chat_message.id,
+                    'transaction_type': t_type,
+                    'document_guid': self._guid_for_log(base_guid),
+                    'author_guid': self._guid_for_log(author_bin),
+                    'recipient_guid': self._guid_for_log(recipient_bin),
+                }
+            )
+            return chat_message
         except Exception as e:
             logger.error(f"DB Error saving message: {str(e)}",  extra={
                     'tags': {

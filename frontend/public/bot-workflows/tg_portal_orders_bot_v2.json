@@ -1,0 +1,746 @@
+{
+  "name": "TG portal orders bot v2 (interactive + daily report)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "id": "tg-trigger-v2",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "SELECT_IN_N8N",
+          "name": "SELECT_YOUR_TELEGRAM_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const update = $input.first().json;\nconst message = update.message ?? update.callback_query?.message;\nconst callbackData = update.callback_query?.data ?? '';\nconst text = (update.message?.text ?? '').trim();\nconst chatId = message?.chat?.id;\nif (!chatId) throw new Error('Telegram chat id is missing');\nconst statusByText = {'?? ????':'new','? ???????? ?????????????':'awaiting_confirmation','?? ???????? ??????':'awaiting_payment','?? ? ???????????':'production','?? ??????????':'delayed','? ??????':'ready'};\nlet action = 'help', userGuid = '', status = statusByText[text] ?? 'all', orderId = '', orderNumber = '', linkedOrderNumber = '';\nif (text.startsWith('/start')) { action = 'start'; userGuid = text.replace('/start','').trim(); }\nelse if (callbackData.startsWith('confirm|')) { action = 'confirm'; [,orderId,orderNumber,linkedOrderNumber=''] = callbackData.split('|'); }\nelse if (text === '?? ???? ?? ????????') action = 'daily';\nelse if (text === '?? ??? ??????????' || status !== 'all') action = 'orders';\nelse if (text === '?? ??????? ????' || text === '/menu') action = 'menu';\nreturn [{json:{action,chat_id:chatId,user_guid:userGuid,status,order_id:orderId,order_number:orderNumber,linked_order_number:linkedOrderNumber}}];"
+      },
+      "id": "parse-v2",
+      "name": "Parse portal command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "orders",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "daily",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "confirm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "route-v2",
+      "name": "Route action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/link/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {chat_id: $('Parse portal command').item.json.chat_id, user_guid: $('Parse portal command').item.json.user_guid} }}"
+      },
+      "id": "link-portal-user",
+      "name": "Link portal user",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/menu/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "load-portal-menu",
+      "name": "Load portal menu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        150
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/orders/?chat_id=' + $('Parse portal command').item.json.chat_id + '&status=' + $('Parse portal command').item.json.status }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "load-portal-orders",
+      "name": "Load portal orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/daily-report/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "load-daily-report",
+      "name": "Load daily report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/orders/confirm/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {chat_id: $('Parse portal command').item.json.chat_id, order_id: $('Parse portal command').item.json.order_id, order_number: $('Parse portal command').item.json.order_number, linked_order_number: $('Parse portal command').item.json.linked_order_number} }}"
+      },
+      "id": "confirm-portal-order",
+      "name": "Confirm portal order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json.data ?? {};\nreturn [{json:{chat_id:$('Parse portal command').item.json.chat_id,text:`? ???????, <b>${data.user?.name ?? '???????????'}</b>!\\n\\n??????? ??? ??? ?????? ?????????.`,reply_markup:{keyboard:data.reply_keyboard ?? [],resize_keyboard:true}}}];"
+      },
+      "id": "format-menu-v2",
+      "name": "Format menu",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders = $json.orders ?? [];\nconst labels = {new:'????',awaiting_confirmation:'???????? ?????????????',awaiting_payment:'???????? ??????',production:'? ???????????',delayed:'??????????',ready:'??????'};\nconst money = value => new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(value || 0));\nconst rows = orders.slice(0,20).map((o,i)=>`${i+1}. <b>?${o.number}</b>${o.linked_order_number ? ` (${o.linked_order_number})` : ''}\\n${o.status} ? ${money(o.amount)} ${o.currency} ? ${o.count} ?????????.`);\nconst inline = orders.filter(o => !/(????????????|????????????)/i.test(o.status)).slice(0,12).map(o=>[{text:`? ??????????? ?${o.number}`,callback_data:`confirm|${o.id}|${o.number}|${o.linked_order_number ?? ''}`}]);\nreturn [{json:{chat_id:$('Parse portal command').item.json.chat_id,text:`<b>${labels[$json.status] ?? '??? ??????????'}</b>\\n${rows.length ? rows.join('\\n\\n') : '?? ??????? ???????? ????????? ?????.'}`,reply_markup:inline.length ? {inline_keyboard:inline} : undefined}}];"
+      },
+      "id": "format-orders-v2",
+      "name": "Format orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $json.report ?? {}; const labels={new:'????',awaiting_confirmation:'???????? ?????????????',awaiting_payment:'???????? ??????',production:'? ???????????',delayed:'??????????',ready:'??????'}; const details=Object.entries(r.statuses ?? {}).map(([k,v])=>`? ${labels[k] ?? k}: <b>${v}</b>`).join('\\n') || '? ????????? ?????'; const sum=new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(r.turnover||0)); return [{json:{chat_id:$('Parse portal command').item.json.chat_id,text:`<b>?? ???? ?? ${r.date}</b>\\n\\n?????????: <b>${r.orders_count ?? 0}</b>\\n???????????: <b>${r.constructions_count ?? 0}</b>\\n??????: <b>${sum} ${r.currency ?? '???'}</b>\\n\\n${details}`}}];"
+      },
+      "id": "format-daily-v2",
+      "name": "Format daily report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{chat_id:$('Parse portal command').item.json.chat_id,text:$json.success ? `? <b>${$json.message}</b>` : `? ${$json.error ?? '?? ??????? ??????????? ??????????.'}`}}];"
+      },
+      "id": "format-confirm-v2",
+      "name": "Format confirmation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{chat_id:$json.chat_id,text:'<b>?????????? ??????????? ????</b>\\n\\n?? ??? ??????????\\n?? ???? ?? ????????\\n??????? ?????????\\n? ????????????? ?????????? ??????? ??? ???????\\n\\n??? ??????? ????? ????????????? ?????????? /start ? ???????.'}}];"
+      },
+      "id": "format-help-v2",
+      "name": "Format help",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "replyMarkup": "={{ $json.reply_markup ? JSON.stringify($json.reply_markup) : undefined }}"
+        }
+      },
+      "id": "send-v2",
+      "name": "Send Telegram message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1260,
+        320
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "SELECT_IN_N8N",
+          "name": "SELECT_YOUR_TELEGRAM_CREDENTIAL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 18 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-schedule-v2",
+      "name": "???????? ???? ? 18:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/daily-recipients/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-report-recipients",
+      "name": "Get report recipients",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        220,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "recipients",
+        "options": {}
+      },
+      "id": "split-recipients-v2",
+      "name": "Split recipients",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        450,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.PORTAL_API_URL + '/api/telegram-bot/daily-report/?chat_id=' + $json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $env.PORTAL_BOT_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-recipient-report",
+      "name": "Get recipient report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        670,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r=$json.report??{}; const sum=new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(r.turnover||0)); return [{json:{chat_id:$('Split recipients').item.json.chat_id,text:`<b>?? ???????? ???? ?? ${r.date}</b>\\n\\n?????????: <b>${r.orders_count ?? 0}</b>\\n???????????: <b>${r.constructions_count ?? 0}</b>\\n??????: <b>${sum} ${r.currency ?? '???'}</b>`}}];"
+      },
+      "id": "format-scheduled-v2",
+      "name": "Format scheduled report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "send-scheduled-v2",
+      "name": "Send daily report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1130,
+        1000
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "SELECT_IN_N8N",
+          "name": "SELECT_YOUR_TELEGRAM_CREDENTIAL"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse portal command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse portal command": {
+      "main": [
+        [
+          {
+            "node": "Route action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route action": {
+      "main": [
+        [
+          {
+            "node": "Link portal user",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal menu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load daily report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Confirm portal order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format help",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link portal user": {
+      "main": [
+        [
+          {
+            "node": "Load portal menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal menu": {
+      "main": [
+        [
+          {
+            "node": "Format menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal orders": {
+      "main": [
+        [
+          {
+            "node": "Format orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load daily report": {
+      "main": [
+        [
+          {
+            "node": "Format daily report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm portal order": {
+      "main": [
+        [
+          {
+            "node": "Format confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format menu": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format orders": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format daily report": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format confirmation": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format help": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "???????? ???? ? 18:30": {
+      "main": [
+        [
+          {
+            "node": "Get report recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get report recipients": {
+      "main": [
+        [
+          {
+            "node": "Split recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split recipients": {
+      "main": [
+        [
+          {
+            "node": "Get recipient report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get recipient report": {
+      "main": [
+        [
+          {
+            "node": "Format scheduled report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format scheduled report": {
+      "main": [
+        [
+          {
+            "node": "Send daily report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Kyiv"
+  },
+  "active": false,
+  "versionId": "tg-portal-v2",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

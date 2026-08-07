@@ -1622,12 +1622,50 @@ body.dark-theme .pp-empty {
   font-weight: 700;
   font-size: 16px;
   color: #333333;
-  margin-bottom: 4px;
-  border-bottom: 1px dotted var(--WS---DarkGrey) ;
+
 }
 .pp-date {
   font-size: 13px;
   color: #666666;
+}
+.pp-num-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pp-num-trigger {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.pp-num-trigger:hover .pp-num,
+.pp-num-trigger:hover .pp-base-doc-num {
+  color: var(--WS--DarkBlue);
+}
+
+.dark-theme .pp-num-trigger:hover .pp-num,
+.dark-theme .pp-num-trigger:hover .pp-base-doc-num {
+  color: #9fd3ff !important;
+}
+
+.pp-base-doc-num {
+  font-size: 11px;
+  width: 100%;
+  line-height: 1.2;
+  color: #7a7a7a;
+  text-align: start;
+  font-weight: 500;
+  margin-bottom: 4px;
+  border-bottom: 1px dotted var(--WS---DarkGrey) ;
+}
+
+.dark-theme .pp-base-doc-num {
+  border-bottom: 1px dotted  #666666;
 }
 
 /* 2. Блок статусу (Відвантажений тощо) */
@@ -2060,9 +2098,7 @@ body.dark-theme .mobile-vert-divider {
 .dark-theme .order-meta {
   border-right-color: #666666; /* М'якший колір для темної теми */
 }
-.dark-theme .pp-num {
-  border-bottom-color: #666666; /* М'якший колір для темної теми */
-}
+
 
 /* Payment filters use the same colors as additional-order filters. */
 .content-filter-payment .filters-scroll > div:has(> .filter) {
@@ -2184,6 +2220,10 @@ body.dark-theme .pp-order-card .pp-currency { color: inherit; }
 body.dark-theme .pp-order-card .pp-num,
 body.dark-theme .pp-order-card .pp-date {
   color: #ffffff !important;
+}
+
+body.dark-theme .pp-order-card .pp-base-doc-num {
+  color: #c8c2bc !important;
 }
 
 body.dark-theme .pp-order-card .pp-label {

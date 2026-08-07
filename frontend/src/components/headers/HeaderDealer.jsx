@@ -691,9 +691,10 @@ export default function HeaderDealer() {
     }
   })();
 
-  const [balance, setBalance] = useState(cached?.sum ?? 0);
-  const [fullName, setFullName] = useState(cached?.full_name ?? "Завантаження...");
+  const [balance, setBalance] = useState(cached?.sum ?? cached?.my_wallet ?? 0);
+  const [fullName, setFullName] = useState(cached?.full_name ?? cached?.my_name ?? "Завантаження...");
   const [currency, setCurrency] = useState(cached?.currency ?? "грн");
+  const [debtAmount, setDebtAmount] = useState(cached?.debt_sum ?? 0);
 
   // 2. Фонове оновлення через API
   useEffect(() => {
@@ -706,15 +707,24 @@ export default function HeaderDealer() {
 
         if (!isMounted) return;
 
-        setBalance(data.sum);
-        setFullName(data.full_name || "Дилер Ім'я");
-        setCurrency(data.currency || "грн");
+        const walletAmount = Number(data.my_wallet ?? data.sum ?? 0);
+        const debtValue = Number(data.debt_sum ?? data.DebrSum ?? 0);
+        const resolvedName = data.my_name || data.full_name || "Дилер Ім'я";
+        const resolvedCurrency = data.currency || data.Currency || "грн";
+
+        setBalance(walletAmount);
+        setDebtAmount(debtValue);
+        setFullName(resolvedName);
+        setCurrency(resolvedCurrency);
         localStorage.setItem(
           BALANCE_CACHE_KEY,
           JSON.stringify({
-            sum: data.sum,
-            full_name: data.full_name,
-            currency: data.currency,
+            sum: walletAmount,
+            my_wallet: walletAmount,
+            debt_sum: debtValue,
+            full_name: resolvedName,
+            my_name: resolvedName,
+            currency: resolvedCurrency,
             updatedAt: Date.now(),
           })
         );
@@ -853,7 +863,7 @@ export default function HeaderDealer() {
 
   return (
     // <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
-    <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
+    <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] ml-[8px] mr-[10px]">
       {/* <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} /> */}
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
@@ -953,6 +963,7 @@ export default function HeaderDealer() {
                 >
                   <HeaderDealerProfile 
                     balance={balance} 
+                    debtAmount={debtAmount}
                     currency={currency} 
                     fullName={fullName} 
                   />

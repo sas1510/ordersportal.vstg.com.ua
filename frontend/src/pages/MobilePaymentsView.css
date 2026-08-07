@@ -786,7 +786,7 @@
 .order-mini-header {
   font-size: 14px;
   font-weight: 700;
-  color: #9FD3FF;
+  color: #5e83bf;
   margin-bottom: 8px;
 }
 
@@ -1171,6 +1171,9 @@ body.dark-theme .order-mini-value, body.dark-theme .order-mini-green, body.dark-
 body.dark-theme .order-mini-money-icon { width: 19px; height: 17px; flex: 0 0 auto; }
 body.dark-theme .order-mini-value .order-mini-money-icon { color: #ffffff; }
 body.dark-theme .order-mini-value.text-grey .order-mini-money-icon { color: #aeaeae; }
+
+.order-mini-money-icon { width: 19px; height: 17px; flex: 0 0 auto; }
+
 
 
 .mobile-dates-row {

@@ -1,0 +1,41 @@
+
+#spinner {
+    font-size: 14px;
+    font-weight: normal;
+    color: #666;
+    margin: 10px;
+    padding: 10px;
+    z-index: 999999;
+}
+
+#spinner:not([hidden]) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /*    z-index: 999999;*/
+}
+
+#spinner::after {
+    content: "";
+    width: 50px;
+    height: 50px;
+    border: 5px dotted #2980b9;
+    border-top: 5px dotted #ebb61e;
+    border-radius: 100%;
+    will-change: transform;
+    animation: spin 1s infinite linear
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -43,6 +43,7 @@ import DashboardPage from "./pages/DashboardPage";
 import NotificationPage from "./pages/NotificationPage";
 import ManagerQrDropdown from "./pages/ManagerQrDropdown";
 import BonusPage from "./pages/BonusPage";
+import DealerReportsPage from "./pages/DealerReportsPage";
 
 
 export const adminRoutes = [
@@ -84,6 +85,7 @@ export const adminRoutes = [
 
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
   { path: "/statistics", element: <ProductionStatisticsPage /> },
+  { path: "/statistics/reports", element: <DealerReportsPage /> },
   { path: "orders-report", element: <OrdersReportDashboardPage /> },
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "notifications", element: <NotificationPage /> },
@@ -131,6 +133,7 @@ export const dealerRoutes = [
   { path: "file-preview/:errorType", element: <FilePreviewErrorPage /> },
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "/statistics", element: <ProductionStatisticsPage /> },
+  { path: "/statistics/reports", element: <DealerReportsPage /> },
   { path: "/notifications", element: <NotificationPage /> },
   // { path: "/ai", element: <AiChatPage /> },
 ];

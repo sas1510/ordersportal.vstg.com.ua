@@ -264,3 +264,48 @@ class ChatLargeVideoUploadToken(models.Model):
 
     def __str__(self):
         return f"{self.chat_id}:{self.message_id}:{self.token[:10]}"
+
+class TelegramPortalLink(models.Model):
+    """Secure binding between a Telegram chat and one portal account."""
+
+    id = models.BigAutoField(primary_key=True, db_column='ID')
+    telegram_chat_id = models.BigIntegerField(unique=True, db_column='TelegramChatId')
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='telegram_portal_links',
+        db_column='UserID',
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_column='CreatedAt')
+    updated_at = models.DateTimeField(auto_now=True, db_column='UpdatedAt')
+
+    class Meta:
+        db_table = 'TelegramPortalLink'
+
+    def __str__(self):
+        return f'{self.telegram_chat_id} -> {self.user_id}'
+
+class TelegramBotApiKey(models.Model):
+    """Hashed service key used by the n8n Telegram workflow."""
+
+    id = models.BigAutoField(primary_key=True, db_column='ID')
+    key_hash = models.CharField(max_length=64, unique=True, db_column='KeyHash')
+    key_prefix = models.CharField(max_length=16, db_column='KeyPrefix')
+    is_active = models.BooleanField(default=True, db_column='IsActive')
+    created_at = models.DateTimeField(auto_now_add=True, db_column='CreatedAt')
+    last_used_at = models.DateTimeField(null=True, blank=True, db_column='LastUsedAt')
+    created_by = models.ForeignKey(
+        CustomUser,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='created_telegram_bot_keys',
+        db_column='CreatedByUserID',
+    )
+
+    class Meta:
+        db_table = 'TelegramBotApiKeys'
+
+    def __str__(self):
+        return f'{self.key_prefix}... ({"active" if self.is_active else "inactive"})'
+

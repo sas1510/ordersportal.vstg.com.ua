@@ -20,6 +20,7 @@ DEBUG=False
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
+TELEGRAM_BOT_API_KEY = config('TELEGRAM_BOT_API_KEY', default='')
 
 AUTH_USER_MODEL = 'users.CustomUser'
 

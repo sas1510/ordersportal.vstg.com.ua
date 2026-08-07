@@ -1,5 +1,5 @@
 // ================= CalculationItem.jsx (Final Optimization) =================
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { formatMoney, formatMoney2} from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import CounterpartyInfoModal from "./CounterpartyInfoModal";
@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 
 export const CalculationItem = React.memo(
-  ({ calc, onDelete, onEdit, onMarkAsRead , reloadCalculations, onOrderPaymentSuccess}) => {
+  ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead , reloadCalculations, onOrderPaymentSuccess}) => {
     const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -59,7 +59,14 @@ export const CalculationItem = React.memo(
     //   : calc.dealer || "Контрагент";
 
 
-    const toggleExpanded = useCallback(() => setExpanded((prev) => !prev), []);
+    const toggleExpanded = useCallback(() => {
+      if (onToggle) {
+        onToggle(calc.id);
+        return;
+      }
+
+      setExpanded((prev) => !prev);
+    }, [calc.id, onToggle]);
     const handleEdit = useCallback(
       (updatedCalc) => {
         if (onEdit) onEdit(updatedCalc);
@@ -152,6 +159,12 @@ export const CalculationItem = React.memo(
     const hiddenOrderNumbersCount = useMemo(() => {
       return Math.max(0, orderNumbers.length - visibleOrderNumbers.length);
     }, [orderNumbers.length, visibleOrderNumbers.length]);
+
+    useEffect(() => {
+      if (typeof isExpanded === "boolean") {
+        setExpanded(isExpanded);
+      }
+    }, [isExpanded]);
 
     const statusEntries = useMemo(() => {
         const entries =
@@ -542,9 +555,12 @@ const iconColorClass = getStatusClass(mainStatus);
                 <OrderItemSummaryDesktop
                   key={order.number}
                   order={order}
+                  contractorGuid={calc.dealerId}
                   calculationDate={calc.date}
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
                   totalOrderConstructions={totalOrderConstructions}
+                  isExpanded={expandedOrderId === (order.idGuid || order.number)}
+                  onToggle={onOrderToggle}
                   onRefresh={reloadCalculations}
                   onOrderPaymentSuccess={onOrderPaymentSuccess}
                 />

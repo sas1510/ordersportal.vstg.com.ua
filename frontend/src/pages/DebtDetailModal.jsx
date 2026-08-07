@@ -72,7 +72,14 @@ export default function DebtDetailModal({
               ) : (
                 orders.map((o, idx) => (
                   <tr key={idx} className="ddm-tr-row">
-                    <td className="ddm-td-num">{o.ZakazNum}</td>
+                    <td className="ddm-td-num">
+                      <div className="ddm-num-block">
+                        <div className="ddm-num-main">{String(o.ZakazNum || "").trim()}</div>
+                        {String(o.BaseDocumentNumber || "").trim() && (
+                          <div className="ddm-num-base">№ {String(o.BaseDocumentNumber || "").trim()}</div>
+                        )}
+                      </div>
+                    </td>
                     <td className="ddm-td-date mobile-none">
                       {formatDateHumanShorter(o.ZakazDate?.slice(0, 10), i18n.language)}
                     </td>

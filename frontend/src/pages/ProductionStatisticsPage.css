@@ -1,1178 +1,3389 @@
-.production-page-shell {
-  max-width: 1334px;
+.production-design {
+  --surface: #33312f;
+  --surface-muted: #44403e;
+  --line: #aeaeae;
+  --text: #ffffff;
+  --muted: #aeaeae;
+  --lime: #b4d947;
+  --blue: #9fd3ff;
+  --orange: #ed8b33;
+  width: min(1329px, calc(100% - 40px));
   margin: 0 auto;
-  /* padding: 28px 20px 48px; */
-  color: #273128;
+  padding: 100px 0 64px;
+
+  color: var(--text);
+  font-family: Inter, sans-serif;
 }
 
-.production-page-hero {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 24px;
-  align-items: end;
-  padding: 32px;
-  border-radius: 5px;
-  background:
-    radial-gradient(circle at top left, rgba(233, 199, 122, 0.4), transparent 32%),
-    radial-gradient(circle at bottom right, rgba(88, 141, 123, 0.35), transparent 26%),
-    linear-gradient(135deg, #f7f2df 0%, #edf2e7 46%, #e4ece4 100%);
-  box-shadow: 0 18px 45px rgba(52, 73, 60, 0.12);
-  margin-top: 20px;
+.production-design.is-light {
+  --surface: #ffffff;
+  --surface-muted: #eef3f8;
+  --line: #d7dee8;
+  --text: #263445;
+  --muted: #6a788a;
+  --lime: #9cc63b;
+  --blue: #6b98bf;
+  --orange: #ed8b33;
+  color: var(--text);
 }
 
-.production-page-eyebrow,
-.production-panel__eyebrow,
-.production-average-card__eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #7b6741;
+.production-design *, .production-design *::before, .production-design *::after { box-sizing: border-box; }
+.production-design button, .production-design input { font: inherit; }
+
+.production-design__hero,
+.production-design__panel,
+.production-design__average-card,
+.production-ring-card,
+.production-design__summary-stack article,
+.production-design__dealer-comparison,
+.production-design__state {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
 }
 
-.production-page-title {
-  margin: 10px 0 12px;
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1.02;
-  color: #243426;
+.production-design.is-light .production-design__hero,
+.production-design.is-light .production-design__panel,
+.production-design.is-light .production-design__average-card,
+.production-design.is-light .production-ring-card,
+.production-design.is-light .production-design__summary-stack article,
+.production-design.is-light .production-design__dealer-comparison,
+.production-design.is-light .production-design__state {
+  box-shadow: 0 14px 40px rgba(48, 66, 88, 0.08);
 }
 
-.production-page-subtitle {
-  max-width: 700px;
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #546354;
-}
-
-.production-page-filters {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(150px, 1fr));
-  gap: 14px;
-}
-
-.production-filter {
+.production-design__hero {
+  position: relative;
+  min-height: 167px;
+  overflow: hidden;
+  padding: 27px 32px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 28px;
+}
+.production-design__hero::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  width: 800px;
+  height: 533px;
+  right: -18px;
+  top: -27px;
+  background: url("/analytics.png") no-repeat 0 0 / 800px 190px;
+  transform: scaleX(1);
+  opacity: .9;
+  pointer-events: none;
+}
+.production-design.is-light .production-design__hero {
+  background:
+    radial-gradient(circle at top right, rgba(159, 211, 255, 0.28), transparent 35%),
+    linear-gradient(135deg, #ffffff 0%, #f3f8fc 100%);
+}
+.production-design__hero > * { position: relative; z-index: 1; }
+.production-design__eyebrow { color: var(--muted); font-size: 14px; font-weight: 700; line-height: 17px; text-transform: uppercase; }
+.production-design__hero h1 { margin: 9px 0 8px; color: #fff; font-size: 32px; font-weight: 700; line-height: 39px; text-transform: uppercase; }
+.production-design__hero p { width: 492px; max-width: 100%; margin: 0; color: #fff; font-size: 14px; line-height: 17px; }
+.production-design.is-light .production-design__hero::after {
+  opacity: 0.22;
+  filter: saturate(0.55);
+}
+.production-design.is-light .production-design__hero h1,
+.production-design.is-light .production-design__hero p,
+.production-design.is-light .production-design__filters label {
+  color: var(--text);
+}
+.production-design__filters { display: flex; align-items: center; align-self: center; gap: 16px; padding-top: 3px; }
+.production-design__filters label { display: flex; align-items: center; gap: 11px; color: #fff; font-size: 16px; font-weight: 700; text-transform: uppercase; }
+.production-design__filters input { width: 139px; height: 32px; padding: 0 8px; border: 0; border-radius: 5px; background: #fff; color: #44403e; font-size: 16px; text-align: center; }
+.production-design.is-light .production-design__filters input,
+.production-design.is-light .production-design__dealer .dealer-select__control {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--text);
+}
+.production-design__filters button,
+.production-design__state button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 5px; background: var(--lime); color: #44403e; font-size: 16px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+.production-design__filters button:disabled { opacity: .6; cursor: not-allowed; }
+.production-design__filters button svg { width: 20px; height: 20px; }
+.production-design__dealer { width: 240px; display: grid; gap: 5px; }
+.production-design__dealer > span { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.production-design__dealer .dealer-select__control { min-height: 32px; border-radius: 5px; }
+
+.production-design__state { min-height: 280px; margin-top: 16px; padding: 34px; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; }
+.production-design__state > svg { width: 46px; height: 46px; color: var(--orange); }
+.production-design__state h2 { margin: 0; font-size: 24px; }
+.production-design__state p { max-width: 660px; margin: 0; color: var(--muted); }
+.production-design.is-light .production-design__state h2,
+.production-design.is-light .production-design__period span,
+.production-design.is-light .production-design__count-item small,
+.production-design.is-light .production-design__summary-stack article > span,
+.production-design.is-light .production-design__panel-heading h2,
+.production-design.is-light .production-design__analytics-head h2,
+.production-design.is-light .production-design__abc-card > header > span,
+.production-design.is-light .production-design__abc-volume strong,
+.production-design.is-light .production-design__abc-volume small,
+.production-design.is-light .production-design__abc-card footer b,
+.production-design.is-light .production-design__fastest-card b,
+.production-design.is-light .production-design__analytics-row b,
+.production-design.is-light .production-design__analytics-row span,
+.production-design.is-light .production-design__analytics-scale,
+.production-design.is-light .production-design__analytics-axis-label,
+.production-design.is-light .production-design__dealer-head-title h2,
+.production-design.is-light .production-design__dealer-turnover-row b,
+.production-design.is-light .production-design__dealer-growth-card strong,
+.production-design.is-light .production-design__dealer-growth-card span,
+.production-design.is-light .production-design__orders td,
+.production-design.is-light .production-design__order-card-grid strong,
+.production-design.is-light .production-design__order-card-head strong {
+  color: var(--text);
+}
+.production-design.is-light .production-design__summary-stack article:nth-child(2) > strong {
+  color: var(--text);
+}
+.production-design.is-light .production-design__average-card > strong svg,
+.production-design.is-light .production-design__average-value .color-\[\#B4D947\] {
+  color: var(--lime);
+}
+.production-design.is-light .production-design__period svg {
+  color: var(--blue);
+}
+.production-design.is-light .production-design__average-card > strong {
+  color: var(--lime);
+}
+.production-design.is-light .production-design__count-value svg {
+  color: var(--blue);
+}
+.production-design.is-light .production-design__count-value {
+  color: var(--blue);
+}
+.production-design.is-light .production-design__summary-stack article:first-child > strong svg {
+  color: var(--blue);
+}
+.production-design.is-light .production-design__summary-stack article:first-child > strong {
+  color: var(--blue);
+}
+.production-design.is-light .production-design__summary-stack article:nth-child(2) > strong svg {
+  color: var(--orange);
+}
+.production-design.is-light .production-design__summary-stack article:nth-child(2) > strong {
+  color: var(--orange);
+}
+.production-design.is-light .production-design__analytics-tabs button svg,
+.production-design.is-light .production-design__analytics-metrics button svg {
+  color: currentColor;
+}
+.production-design.is-light .production-design__dealer-ranks strong svg,
+.production-design.is-light .production-design__dealer-gauge-icon,
+.production-design.is-light .production-design__dealer-overall-center .production-design__dealer-gauge-icon {
+  color: currentColor;
+}
+.production-design.is-light .production-design__order-card-head .production-design__abc-pill,
+.production-design.is-light .production-design__orders td .production-design__abc-pill {
+  color: #ffffff;
 }
 
-.production-filter span {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #637062;
+.production-design__kpi {
+  display: grid;
+  grid-template-columns: 326px 650px 326px;
+  gap: 14px;
+  margin-top: 15px;
+}
+.production-design__average-card { position: relative; min-height: 297px; padding: 27px 31px; }
+.production-design__average-card > strong { display: block; margin-top: 11px; color: var(--lime); font-size: 32px; line-height: 39px; }
+.production-design__period { display: flex; align-items: center; gap: 12px; margin-top: 32px; }
+.production-design__period svg { width: 30px; height: 30px; }
+.production-design__period span { display: grid; gap: 3px; color: #fff; font-size: 14px; line-height: 17px; }
+.production-design__period b { font-weight: 700; }
+.production-design__counts { position: absolute; right: 26px; bottom: 19px; left: 31px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.production-design__counts span { display: grid; column-gap: 7px; align-items: end; color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase; }
+.production-design__counts svg { grid-row: span 2; width: 26px; height: 30px; }
+.production-design__counts b { color: var(--blue); font-size: 32px; line-height: 34px; }
+
+.production-ring-card { position: relative; min-height: 297px; overflow: hidden; }
+.production-ring-card__chart { position: absolute; left: 201px; top: 21px; width: 178px; height: 178px; border-radius: 50%; }
+.production-ring-card__inner { position: absolute; inset: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 5px solid var(--surface); border-radius: 50%; background: #eee; color: #44403e; text-align: center; }
+.production-ring-card__center-label, .production-ring-card__center-caption { font-size: 12px; line-height: 15px; }
+.production-ring-card__center-value { display: flex; align-items: center; gap: 4px; font-size: 32px; font-weight: 700; line-height: 39px; }
+.production-ring-card__center-value svg { width: 22px; height: 27px; }
+.production-ring-card__legend { position: absolute; display: flex; flex-direction: column; }
+.production-ring-card__legend > span { color: var(--muted); font-size: 14px; font-weight: 700; line-height: 17px; text-transform: uppercase; }
+.production-ring-card__legend strong { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 32px; line-height: 39px; }
+.production-ring-card__legend strong svg { width: 30px; height: 30px; }
+.production-ring-card__legend small { margin-top: 2px; color: #fff; font-size: 14px; line-height: 17px; }
+.production-ring-card__legend--in-time { top: 103px; left: 22px; width: 153px; align-items: flex-end; text-align: right; }
+.production-ring-card__legend--in-time strong { color: var(--lime); }
+.production-ring-card__legend--delayed { top: 41px; right: 30px; width: 134px; }
+.production-ring-card__legend--delayed strong { color: var(--orange); }
+.production-ring-card__legend--not-finished { right: 29px; bottom: 24px; width: 137px; }
+.production-ring-card__legend--not-finished strong { color: var(--muted); }
+
+.production-design__summary-stack { display: grid; grid-template-rows: 141px 141px; gap: 15px; }
+.production-design__summary-stack article { padding: 25px 30px 18px; }
+.production-design__summary-stack article > strong { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: var(--blue); font-size: 32px; line-height: 39px; }
+.production-design__summary-stack article > strong svg { width: 30px; height: 30px; }
+.production-design__summary-stack article:nth-child(2) > strong { color: #fff; }
+.production-design__summary-stack article > span { display: block; margin-top: 9px; color: #fff; font-size: 14px; }
+
+.production-design__dashboard-grid {
+  display: grid;
+  grid-template-columns: 476px 350px 476px;
+  gap: 14px;
+  margin-top: 10px;
+}
+.production-design__panel { padding: 28px 32px; }
+.production-design__panel-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+.production-design__panel-heading h2 { margin: 7px 0 0; color: #fff; font-size: 26px; line-height: 31px; white-space: nowrap; }
+.production-design__panel-heading > span { color: var(--lime); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.production-design__panel--profile-donut,
+.production-design__panel--timeliness { min-height: 600px; }
+.production-design__panel--profile-donut { padding: 28px 32px 12px; }
+.production-design__empty { min-height: 240px; display: grid; place-items: center; color: var(--muted); }
+.production-design__panel--timeliness { padding: 28px 28px 17px; }
+.production-design__panel--timeliness p { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+.production-design__timeliness-chart-shell {
+  width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+  overflow: hidden;
 }
 
-.production-filter input,
-.production-filter--dealer .dealer-select__control {
-  min-height: 48px;
-  border: 1px solid rgba(69, 88, 72, 0.14);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+.production-design__timeliness-chart-shell .recharts-wrapper {
+  max-width: 100%;
+}
+.production-design.is-light .production-design__timeliness-chart-shell {
+  background: linear-gradient(180deg, rgba(239, 244, 249, 0.66), rgba(255, 255, 255, 0));
+  border-radius: 8px;
+}
+.production-design__abc-column { display: grid; grid-template-rows: repeat(3, 208px); gap: 15px; }
+.production-design__abc-card { min-height: 208px; padding: 18px 20px; border: 1px solid var(--line); border-left: 4px solid var(--abc); border-radius: 7px; background: var(--surface); }
+.production-design.is-light .production-design__abc-card {
+  box-shadow: 0 10px 24px rgba(53, 73, 95, 0.06);
+}
+.production-design__abc-card > div:first-child { display: flex; align-items: start; justify-content: space-between; gap: 6px; }
+.production-design__abc-card > div:first-child b { color: var(--abc); font-size: 14px; text-transform: uppercase; }
+.production-design__abc-card > div:first-child span { color: #fff; font-size: 23px; font-weight: 700; }
+.production-design__abc-card > p { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+.production-design__abc-card > strong { display: block; margin-top: 9px; color: #fff; font-size: 32px; line-height: 34px; }
+.production-design__abc-card > small, .production-design__abc-card footer { color: var(--muted); font-size: 11px; line-height: 16px; }
+.production-design__progress { height: 6px; margin: 8px 0; border-radius: 5px; overflow: hidden; background: var(--surface-muted); }
+.production-design__progress i { display: block; height: 100%; border-radius: inherit; background: var(--abc); }
+
+.production-design__fastest { min-height: 246px; margin-top: 20px; }
+.production-design__fastest-grid {
+  display: grid;
+  grid-template-columns: 395px 427px 395px;
+  gap: 16px;
+  margin-top: 26px;
 }
 
-.production-filter input {
-  padding: 0 14px;
-  color: #2e3a2f;
-  outline: none;
+.production-design__fastest-col {
+  display: grid;
+  gap: 12px;
+  align-content: start;
 }
 
-.production-filter input:focus {
-  border-color: #7b8d61;
-}
-
-.production-filter--dealer {
-  grid-column: 1 / -1;
-}
-
-.production-filter-button {
-  min-height: 50px;
-  border: none;
-  border-radius: 5px;
-  background: linear-gradient(135deg, #2f5d52 0%, #1f4037 100%);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
+.production-design__fastest-badge {
+  width: 77px;
+  height: 31px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  justify-self: end;
-  width: fit-content;
-  min-width: 190px;
-  gap: 10px;
-  cursor: pointer;
-  box-shadow: 0 14px 30px rgba(31, 64, 55, 0.26);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  border: 1px solid var(--fastest-color);
+  border-radius: 5px;
+  color: var(--fastest-color);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
 }
 
-.production-page-filters > .production-filter-button {
-  grid-column: 2 / 3;
-  justify-self: stretch;
+.production-design__fastest-card {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 13px;
+  border: 1px solid #aeaeae;
+  border-radius: 5px;
+  background: transparent;
+}
+.production-design.is-light .production-design__fastest-card {
+  background: #f9fbfd;
+}
+
+.production-design__fastest-card b {
+  display: block;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 17px;
+}
+
+.production-design__fastest-card small {
+  display: block;
+  margin-top: 1px;
+  color: #aeaeae;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 17px;
+}
+
+.production-design__fastest-card strong {
+  flex: 0 0 auto;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+  text-align: right;
+}
+
+.production-design__analytics-switcher {
+ 
+  margin-top: 20px;
+  padding: 28px 32px 26px;
+}
+
+.production-design__analytics-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.production-design__analytics-head h2 {
+  margin: 7px 0 0;
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 39px;
+  text-transform: uppercase;
+}
+
+.production-design__analytics-head > span {
+  color: #fff;
+  font-size: 16px;
+  line-height: 38px;
+  white-space: nowrap;
+}
+
+.production-design__analytics-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.production-design__analytics-tabs button,
+.production-design__analytics-metrics button {
+  /* border: 1px solid #aeaeae; */
+  border-radius: 5px;
+  background: #6B98BF;
+  color: #fff;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+
+
+
+
+.production-design__analytics-tabs button {
+  min-height: 34px;
+  padding: 7px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 17px;
+  text-transform: uppercase;
+}
+
+.production-design__analytics-tabs button svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.production-design__analytics-tabs button.is-active {
+  border-color: #b4d947;
+  background:#b4d947;
+  color: #44403e;
+}
+
+.production-design__analytics-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(174, 174, 174, 0.3);
+}
+
+.production-design__analytics-metrics button {
+  min-width: 206px;
+  min-height: 32px;
+  padding: 6px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 19px;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.production-design__analytics-metrics button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.production-design__analytics-metrics button.is-active {
+  border-color: #b4d947;
+  background: #b4d947;
+  color: #44403e;
+}
+
+.production-design__analytics-chart {
+  position: relative;
+  margin-top: 26px;
+  padding: 12px 0 0px;
+}
+
+.production-design__analytics-scale {
+  margin-left: 276px;
+  margin-right: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 38px;
+  padding-top: 12px;
+  text-align: center;
+}
+
+.production-design__analytics-rows {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+.production-design__analytics-rows::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 140px;
+  bottom: 16px;
+  left: 276px;
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(147, 149, 152, 0.55) 0,
+      rgba(147, 149, 152, 0.55) 1px,
+      transparent 1px,
+      transparent 20%
+    );
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: left top;
+  pointer-events: none;
+}
+
+.production-design__analytics-rows::after {
+  content: "";
+  position: absolute;
+  right: 140px;
+  bottom: 10px;
+  left: 276px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.88);
+  pointer-events: none;
+}
+
+.production-design__analytics-row {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr) 128px;
+  align-items: center;
+  gap: 12px;
+  min-height: 28px;
+}
+
+.production-design__analytics-row b {
+  overflow: hidden;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 38px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.production-design__analytics-row-track {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+}
+.production-design.is-light .production-design__analytics-metrics {
+  border-top-color: rgba(106, 120, 138, 0.22);
+}
+.production-design.is-light .production-design__analytics-rows::before {
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(160, 173, 189, 0.8) 0,
+      rgba(160, 173, 189, 0.8) 1px,
+      transparent 1px,
+      transparent 20%
+    );
+}
+.production-design.is-light .production-design__analytics-rows::after {
+  background: rgba(106, 120, 138, 0.45);
+}
+.production-design.is-light .production-design__analytics-row-track {
+  background: rgba(107, 152, 191, 0.12);
+}
+
+.production-design__analytics-row-track i {
+  display: block;
+  height: 100%;
+  min-width: 8px;
+  border-radius: 0;
+  background: #b4d947;
+}
+
+.production-design__analytics-row span {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 38px;
+}
+
+.production-design__analytics-axis-label {
+  margin-top: 2px;
+  color: #fff;
+  font-size: 16px;
+  line-height: 38px;
+  text-align: right;
+}
+
+.production-design__return-button {
+  position: fixed;
+  right: 100px;
+  bottom: 35px;
+  z-index: 30;
+  width: 46px;
+  height: 46px;
+  border: 1px solid #b4d947;
+  border-radius: 50%;
+  background: rgba(51, 49, 47, 0.92);
+  color: #b4d947;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  transition: transform .18s ease, background .18s ease, color .18s ease;
+}
+.production-design.is-light .production-design__return-button {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 28px rgba(53, 73, 95, 0.16);
+}
+
+.production-design__return-button:hover {
+  transform: translateY(-2px);
+  background: #b4d947;
+  color: #33312f;
+}
+
+.production-design__return-button span {
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+}
+.production-design__details, .production-design__orders { position: relative; margin-top: 14px; }
+.production-design__details > button, .production-design__orders > button { position: absolute; z-index: 1; top: 20px; right: 22px; width: 30px; height: 30px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-muted); color: #fff; font-size: 24px; line-height: 1; cursor: pointer; }
+.production-design__orders { overflow-x: auto; }
+.production-design__orders table { width: 100%; min-width: 760px; margin-top: 20px; border-collapse: collapse; }
+.production-design__orders th { padding: 10px 9px; color: var(--muted); font-size: 12px; text-align: left; text-transform: uppercase; }
+.production-design__orders td { padding: 12px 9px; border-top: 1px solid var(--surface-muted); color: #fff; font-size: 13px; }
+.production-design__abc-pill { display: inline-grid; min-width: 28px; height: 28px; place-items: center; border-radius: 4px; background: var(--lime); color: #44403e; }
+.production-design.is-light .production-design__details > button,
+.production-design.is-light .production-design__orders > button {
+  color: var(--text);
+}
+.production-stats-tooltip { padding: 12px; border: 1px solid var(--line); border-radius: 5px; background: #262422; color: #fff; }
+.production-stats-tooltip.is-light {
+  background: #ffffff;
+  color: #263445;
+  box-shadow: 0 14px 30px rgba(53, 73, 95, 0.12);
+}
+.production-stats-tooltip__title { margin-bottom: 6px; font-weight: 700; }
+.production-stats-tooltip__row { display: flex; justify-content: space-between; gap: 16px; color: var(--muted); }
+
+@media (max-width: 1180px) {
+  .production-design__kpi { grid-template-columns: 317px minmax(0, 1fr); }
+  .production-design__summary-stack { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; grid-template-rows: 141px; }
+  .production-design__hero { min-height: 205px; }
+  .production-design__filters { position: absolute; left: 32px; bottom: 24px; }
+  .production-design__hero::after { opacity: .4; }
+}
+@media (max-width: 900px) {
+  .production-design__dashboard-grid { grid-template-columns: 1fr; }
+  .production-design__abc-column { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto; }
+  .production-design__fastest-grid { grid-template-columns: 1fr; }
+  .production-design__hero { min-height: 285px; }
+  .production-design__filters { flex-wrap: wrap; }
+  .production-design__dealer { width: 100%; }
+  .production-design__abc-column { grid-template-columns: 1fr; }
+  .production-design__dealer-regions { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .production-design { width: min(100% - 24px, 1329px); padding-top: 20px; }
+  .production-design__hero { min-height: 390px; padding: 24px; }
+  .production-design__hero h1 { font-size: 25px; line-height: 31px; }
+  .production-design__filters { right: 24px; left: 24px; bottom: 22px; gap: 10px; }
+  .production-design__filters label { width: 100%; justify-content: space-between; }
+  .production-design__filters input { flex: 1; }
+  .production-design__filters button { width: 100%; }
+  .production-design__kpi, .production-design__summary-stack, .production-design__potential { grid-template-columns: 1fr; }
+  .production-design__summary-stack { grid-column: auto; grid-template-rows: 141px 141px; }
+  .production-ring-card__chart { left: 50%; transform: translateX(-50%); }
+  .production-ring-card__legend--in-time { left: 17px; }
+  .production-ring-card__legend--delayed, .production-ring-card__legend--not-finished { right: 17px; }
+  .production-design__analytics-head {
+    flex-direction: column;
+  }
+
+  .production-design__analytics-scale {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .production-design__analytics-rows::before {
+    left: 0;
+  }
+
+  .production-design__analytics-rows::after {
+    left: 0;
+    right: 0;
+  }
+
+  .production-design__analytics-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .production-design__analytics-row b,
+  .production-design__analytics-row span,
+  .production-design__analytics-axis-label {
+    text-align: left;
+  }
+
+  .production-design__analytics-metrics button {
+    min-width: 0;
+    flex: 1 1 220px;
+  }
+}
+
+
+/* Interactive production ring and the order-detail frame mirror the Figma 1313px card. */
+.production-ring-card__chart { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+/* .production-ring-card__chart:hover { transform: scale(1.025); box-shadow: 0 0 0 5px rgba(180, 217, 71, .12); } */
+.production-ring-card__chart:focus-visible { outline: 3px solid var(--lime); outline-offset: 4px; }
+
+.production-design__orders {
+  min-height: 962px;
+  margin-top: 20px;
+  padding: 25px 31px 34px;
+  overflow-x: auto;
+  scroll-margin-top: 24px;
+}
+.production-design__orders > button {
+  top: 59px;
+  right: auto;
+  left: min(37%, 488px);
+  border: 0;
+  background: var(--lime);
+  color: #44403e;
+}
+.production-design__orders .production-design__panel-heading { padding-right: 50px; }
+.production-design__orders .production-design__eyebrow { color: var(--muted); }
+.production-design__orders .production-design__panel-heading h2 { margin-top: 11px; font-size: 32px; line-height: 39px; text-transform: uppercase; }
+.production-design__orders-caption { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 38px; }
+.production-design__order-filters { display: grid; gap: 10px; margin-top: 4px; }
+.production-design__order-filters > div { display: flex; flex-wrap: wrap; gap: 10px; }
+.production-design__order-filters button {
+  min-height: 32px;
+  padding: 6px 13px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--muted);
+  color: #44403e;
+  font: 700 16px/19px Inter, sans-serif;
+  cursor: pointer;
+}
+.production-design__order-filters button.is-active { background: var(--lime); }
+.production-design__orders table { min-width: 1120px; margin-top: 43px; }
+.production-design__orders th { height: 38px; padding: 0 9px 15px; color: var(--muted); font-size: 14px; font-weight: 700; line-height: 17px; }
+.production-design__orders td { height: 82px; padding: 14px 9px; border-top-color: var(--line); color: #fff; font-size: 14px; line-height: 17px; vertical-align: middle; }
+.production-design__orders td strong { display: block; font-size: 14px; font-weight: 700; }
+.production-design__orders td small { display: block; margin-top: 7px; color: #fff; font-size: 12px; line-height: 15px; }
+.production-design__abc-pill { min-width: 25px; width: 25px; height: 25px; border-radius: 5px; background: var(--blue); color: #44403e; font-size: 14px; }
+.production-design__status-stack { display: inline-grid; gap: 5px; }
+.production-design__status { display: inline-grid; min-height: 25px; place-items: center; padding: 4px 12px; border-radius: 5px; color: #44403e; font-size: 14px; font-weight: 700; line-height: 17px; white-space: nowrap; }
+.production-design__status--good { background: var(--lime); }
+.production-design__status--late { background: var(--orange); }
+.production-design__status--idle { background: var(--blue); color: #44403e; }
+.production-design__status-caption { margin-top: 0 !important; color: #adadad; font-size: 11px; line-height: 14px; }
+.production-design__orders-empty { height: 150px; color: var(--muted) !important; text-align: center; }
+.production-design__orders-mobile-list { display: none; }
+.production-design__order-card {
+  padding: 14px 12px;
+  border: 1px solid rgba(174, 174, 174, 0.4);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.production-design__order-card + .production-design__order-card {
+  margin-top: 10px;
+}
+
+.production-design__order-card-head {
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: start;
+}
+
+.production-design__order-card-head .production-design__status-stack {
+  grid-column: 1 / -1;
+}
+
+.production-design__order-card-head strong {
+  display: block;
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.production-design__order-card-head small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.production-design__order-card-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.production-design__order-card-grid div {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.production-design__order-card-grid div.is-wide {
+  grid-column: 1 / -1;
+}
+
+.production-design__order-card-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 13px;
+  text-transform: uppercase;
+}
+
+.production-design__order-card-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.production-design__orders-empty--mobile {
+  display: grid;
+  place-items: center;
+  height: auto;
+  min-height: 90px;
+  padding: 18px 12px;
+  border: 1px dashed rgba(174, 174, 174, 0.4);
+  border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+  .production-design__orders { min-height: 0; padding: 22px 18px 28px; }
+  .production-design__orders > button { top: 22px; right: 18px; left: auto; }
+  .production-design__orders .production-design__panel-heading h2 { font-size: 25px; line-height: 31px; }
+  .production-design__orders-caption { line-height: 19px; }
+  .production-design__orders table { margin-top: 28px; }
+}
+
+.production-design__panel--profile-donut .production-design__panel-heading > span { color: var(--blue); cursor: default; }
+.production-design__panel--profile-donut .donut-wrapper, .production-design__panel--profile-donut .donut-wrapper canvas { cursor: pointer; }
+
+
+.production-ring-card__connector { position: absolute; z-index: 0; height: 1px; transform-origin: left center; background: var(--muted); opacity: .9; pointer-events: none; }
+.production-ring-card__connector::after { position: absolute; top: -2px; right: -1px; width: 5px; height: 5px; border-radius: 50%; background: inherit; content: ""; }
+.production-ring-card__connector--in-time { top: 132px; left: 177px; width: 39px; transform: rotate(164deg); }
+.production-ring-card__connector--delayed { top: 73px; left: 373px; width: 98px; transform: rotate(-10deg); }
+.production-ring-card__connector--not-finished { top: 163px; left: 367px; width: 104px; transform: rotate(13deg); }
+.production-ring-card__legend { z-index: 1; padding: 0; border: 0; background: transparent; font-family: inherit; cursor: pointer; transition: transform .18s ease, filter .18s ease; }
+.production-ring-card__legend:hover { transform: translateY(-2px); filter: brightness(1.12); }
+.production-ring-card__legend:focus-visible { outline: 2px solid var(--lime); outline-offset: 5px; border-radius: 4px; }
+
+
+/* Fixed 427 x 208 ABC statistic card layout from the production dashboard design. */
+.production-design__abc-card { position: relative; display: block; min-height: 208px; height: 208px; padding: 21px 30px 18px; border: 1px solid var(--line); border-left: 1px solid var(--line); border-radius: 7px; background: var(--surface); box-sizing: border-box; }
+.production-design__abc-card > header { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; align-items: start; gap: 15px; }
+.production-design__abc-card > header > b { display: grid; min-height: 31px; place-items: center; border: 1px solid var(--abc); border-radius: 5px; color: var(--abc); font-size: 16px; line-height: 19px; white-space: nowrap; }
+.production-design__abc-card > header > p { margin: 1px 0 0; color: var(--muted); font-size: 12px; font-weight: 400; line-height: 15px; }
+.production-design__abc-card > header > span { padding-top: 4px; color: #fff; font-size: 16px; font-weight: 700; line-height: 19px; text-align: right; }
+.production-design__abc-volume { display: flex; align-items: center; gap: 11px; margin-top: 16px; }
+.production-design__abc-volume strong { color: #fff; font-size: 32px; font-weight: 700; line-height: 39px; }
+.production-design__abc-volume small { color: #fff; font-size: 14px; font-weight: 400; line-height: 17px; }
+.production-design__abc-card .production-design__progress { height: 10px; margin: 12px 4px 0; border-radius: 5px; background: #696969; }
+.production-design__abc-card .production-design__progress i { border-radius: 5px 0 0 5px; background: var(--abc); }
+.production-design__abc-card footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+.production-design__abc-card footer div { min-width: 0; display: grid; gap: 4px; }
+.production-design__abc-card footer span { color: var(--muted); font-size: 14px; font-weight: 400; line-height: 17px; white-space: nowrap; }
+.production-design__abc-card footer b { color: #fff; font-size: 14px; font-weight: 700; line-height: 17px; white-space: nowrap; }
+@media (max-width: 900px) { .production-design__abc-card { width: 100%; } }
+@media (max-width: 430px) { .production-design__abc-card { height: auto; min-height: 230px; padding: 18px; } .production-design__abc-card > header { grid-template-columns: 76px 1fr; } .production-design__abc-card > header > span { grid-column: 2; grid-row: 2; } .production-design__abc-card footer { grid-template-columns: 1fr 1fr; } }
+
+
+/* Each SVG slice is an independent interactive section with a real gap. */
+.production-ring-card__chart { background: transparent !important; }
+.production-ring-card__svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.production-ring-card__segment { cursor: pointer; stroke: var(--surface); stroke-width: 3px; transform-box: fill-box; transform-origin: center; transition: transform .18s ease, filter .18s ease; }
+.production-ring-card__segment:hover, .production-ring-card__segment.is-hovered { transform: scale(1.075); filter: brightness(1.08); }
+.production-ring-card__segment:focus-visible { stroke: #fff; stroke-width: 4px; outline: none; }
+.production-ring-card__inner { z-index: 2; pointer-events: none; }
+.production-ring-card__connectors { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.production-ring-card__connectors line { stroke: var(--muted); stroke-width: 1px; transition: stroke .18s ease, stroke-width .18s ease; }
+.production-ring-card__connectors circle { fill: var(--muted); transition: fill .18s ease, r .18s ease; }
+.production-ring-card__connectors g.is-hovered line { stroke: #fff; stroke-width: 1.5px; }
+.production-ring-card__connectors g.is-hovered circle { fill: var(--lime); }
+.production-ring-card__legend.is-hovered { transform: translateY(-2px); filter: brightness(1.14); }
+
+
+/* Match the category donut's ECharts "expansion" entrance animation. */
+.production-ring-card__segment {
+  animation: production-ring-segment-expand 1s cubic-bezier(.2, .75, .25, 1) both;
+}
+.production-ring-card__segment:nth-child(2) { animation-delay: 45ms; }
+.production-ring-card__segment:nth-child(3) { animation-delay: 90ms; }
+@keyframes production-ring-segment-expand {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .production-ring-card__segment { animation: none; }
+}
+
+
+/* Draw connector lines outward from each related ring section. */
+.production-ring-card__connectors g line {
+  stroke: #aeaeae;
+  stroke-dasharray: 230;
+  stroke-dashoffset: 230;
+  animation: production-ring-connector-draw .72s cubic-bezier(.2, .75, .25, 1) forwards;
+}
+.production-ring-card__connectors g circle {
+  opacity: 0;
+  animation: production-ring-connector-dot .18s ease forwards;
+  animation-delay: .64s;
+}
+.production-ring-card__connectors g:nth-child(2) line { animation-delay: 70ms; }
+.production-ring-card__connectors g:nth-child(2) circle { animation-delay: .71s; }
+.production-ring-card__connectors g:nth-child(3) line { animation-delay: 140ms; }
+.production-ring-card__connectors g:nth-child(3) circle { animation-delay: .78s; }
+@keyframes production-ring-connector-draw { to { stroke-dashoffset: 0; } }
+@keyframes production-ring-connector-dot { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .production-ring-card__connectors g line { animation: none; stroke-dashoffset: 0; }
+  .production-ring-card__connectors g circle { animation: none; opacity: 1; }
+}
+
+
+/* The status ring deliberately uses the exact ECharts donut presentation of construction categories. */
+.production-ring-card--echarts { min-height: 297px; overflow: visible; }
+.production-ring-card--echarts .donut-wrapper { height: 260px !important; margin-top: 9px; }
+.production-ring-card--echarts .donut-center-badge { top: 42%; width: 92px; height: 92px; border: 5px solid var(--surface); background: #eee; color: #44403e; box-shadow: none; }
+.production-ring-card--echarts .badge-label, .production-ring-card--echarts .badge-unit, .production-ring-card--echarts .badge-value { color: #44403e; }
+
+
+.production-ring-card--echarts .production-ring-card__label-icon { position: absolute; z-index: 3; width: 30px; height: 31px; pointer-events: none; }
+.production-ring-card--echarts .production-ring-card__label-icon svg { display: block; width: 100%; height: 100%; }
+.production-ring-card--echarts .production-ring-card__label-icon--delayed { top: 47px; right: 153px; }
+.production-ring-card--echarts .production-ring-card__label-icon--in-time { top: 145px; left: 78px; }
+.production-ring-card--echarts .production-ring-card__completed-total { position: absolute; bottom: 7px; left: 50%; color: var(--muted); font-size: 12px; transform: translateX(-50%); white-space: nowrap; }
+
+
+/* Status glyphs sit directly before the ECharts label headings. */
+.production-ring-card--echarts .production-ring-card__label-icon--delayed { top: 25px; right: 282px; }
+.production-ring-card--echarts .production-ring-card__label-icon--in-time { top: 166px; left: 175px; }
+.production-ring-card--echarts .production-ring-card__not-finished { position: absolute; z-index: 3; right: 29px; bottom: 28px; display: grid; justify-items: start; gap: 2px; padding: 0; border: 0; background: transparent; color: #fff; font-family: inherit; text-align: left; cursor: pointer; }
+.production-ring-card--echarts .production-ring-card__not-finished > span { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; font-weight: 700; line-height: 17px; text-transform: uppercase; }
+.production-ring-card--echarts .production-ring-card__not-finished svg { width: 30px; height: 31px; }
+.production-ring-card--echarts .production-ring-card__not-finished strong { color: var(--muted); font-size: 32px; line-height: 34px; }
+.production-ring-card--echarts .production-ring-card__not-finished small { color: #fff; font-size: 14px; font-weight: 700; line-height: 17px; }
+.production-ring-card--echarts .production-ring-card__not-finished:hover { filter: brightness(1.2); transform: translateY(-2px); }
+.production-ring-card--echarts .production-ring-card__not-finished:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; border-radius: 4px; }
+
+
+
+.production-ring-card.production-ring-card--echarts {
+  position: relative;
+  box-sizing: border-box;
+  width: 650px;
+  min-width: 650px;
+  max-width: 650px;
+  height: 297px;
+  overflow: hidden;
+  background: #33312f;
+  border: 1px solid #aeaeae;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  justify-self: start;
+}
+
+.production-ring-card__chart {
+  position: absolute;
+  top: 35px;
+  left: 214px;
+  width: 370px;
+  height: 370px;
+  transform: none;
+  z-index: 2;
+}
+
+.production-ring-card__chart > div,
+.production-ring-card__chart canvas,
+.production-ring-card__chart svg {
+  width: 370px !important;
+  height: 370px !important;
+}
+
+/* Спільні стилі підписів */
+
+.production-ring-card__metric,
+.production-ring-card__not-finished {
+  position: absolute;
+  z-index: 5;
+  margin: 0;
+  padding: 0;
+  font-family: Inter, sans-serif;
+  color: #fff;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease;
+}
+
+.production-ring-card__metric-title,
+.production-ring-card__not-finished-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 14px;
+  line-height: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  white-space: nowrap;
+}
+
+.production-ring-card__metric-title::after,
+.production-ring-card__not-finished-title::after {
+  content: "";
+  flex: 1 1 auto;
+  min-width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.production-ring-card__metric strong,
+.production-ring-card__not-finished strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.production-ring-card__metric small,
+.production-ring-card__not-finished small {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 17px;
+  font-weight: 400;
+  color: #fff;
+}
+
+.production-ring-card__metric--in-time {
+  top: 99px;
+  left: 20px;
+  width: 172px;
+  min-height: 106px;
+  padding: 14px 14px 12px;
+  text-align: right;
+  background: linear-gradient(180deg, rgba(180, 217, 71, 0.16) 0%, rgba(180, 217, 71, 0.06) 100%);
+  border: 1px solid rgba(180, 217, 71, 0.34);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.production-ring-card__metric--in-time .production-ring-card__metric-title {
+  justify-content: flex-end;
+  color: #b4d947;
+}
+
+.production-ring-card__metric--in-time strong {
+  color: #b4d947;
+}
+
+.production-ring-card__metric--in-time small {
+  text-align: right;
+  font-weight: 500;
+}
+
+.production-ring-card__metric--delayed {
+  top: 24px;
+  right: 24px;
+  width: 146px;
+  min-height: 88px;
+  padding: 12px 14px 10px;
+  background: rgba(237, 139, 51, 0.06);
+  border: 1px solid rgba(237, 139, 51, 0.26);
+  border-radius: 9px;
+}
+
+.production-ring-card__metric--delayed .production-ring-card__metric-title {
+  color: #ed8b33;
+}
+
+.production-ring-card__metric--delayed strong {
+  color: #ed8b33;
+}
+
+.production-ring-card__metric--delayed small {
+  font-weight: 500;
+}
+
+.production-ring-card__not-finished {
+  top: 112px;
+  right: 26px;
+  width: 268px;
+  min-height: 153px;
+  padding: 28px 20px 18px 116px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.production-ring-card__not-finished-title {
+  color: #aeaeae;
+  justify-content: flex-end;
+}
+
+.production-ring-card__not-finished strong {
+  color: #aeaeae;
+  justify-content: flex-end;
+}
+
+.production-ring-card__not-finished small {
+  font-weight: 700;
+  text-align: right;
+}
+
+.production-ring-card__not-finished-ghost {
+  position: absolute;
+  left: 0;
+  bottom: -18px;
+  width: 182px;
+  height: 182px;
+  color: rgba(174, 174, 174, 0.18);
+  pointer-events: none;
+}
+
+.production-ring-card__not-finished-ghost svg {
+  display: block;
   width: 100%;
+  height: 100%;
+}
+
+.production-ring-card__line {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  pointer-events: none;
+  border-top: 1px solid #aeaeae;
+  opacity: 0.9;
+}
+
+.production-ring-card__line--left {
+  top: 134px;
+  left: 192px;
+  width: 49px;
+}
+
+.production-ring-card__line--right-top {
+  top: 67px;
+  right: 170px;
+  width: 38px;
+}
+
+.production-ring-card__line--right-bottom {
+  top: 159px;
+  right: -1px;
+  width: 112px;
+}
+
+.production-ring-card__metric:hover,
+.production-ring-card__not-finished:hover {
+  opacity: 1;
+  transform: scale(1.02);
+  filter: brightness(1.04);
+}
+
+.production-ring-card__metric.is-selected,
+.production-ring-card__not-finished.is-selected {
+  transform: scale(1.025);
+  transform-origin: center;
+  filter: brightness(1.08);
+}
+
+.production-ring-card__metric:focus-visible,
+.production-ring-card__not-finished:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+/* Production donut remains fixed while ECharts highlights a sector. */
+/* .production-ring-card--echarts .production-ring-card__chart:hover { */
+  /* Keep the chart centered; the shared hover rule otherwise replaces translateX. */
+  /* transform: translateX(-50%);
+  box-shadow: none;
+} */
+
+.production-ring-card--echarts .production-ring-card__chart canvas,
+.production-ring-card--echarts .production-ring-card__chart svg {
+  transform: none !important;
+}
+
+.production-ring-card--echarts .production-ring-card__chart > div {
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Keep the donut thick and put each status glyph beside its primary value. */
+.production-ring-card--echarts .production-ring-card__metric strong,
+.production-ring-card--echarts .production-ring-card__not-finished strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 0;
+}
+
+.production-ring-card--echarts .production-ring-card__metric--in-time strong {
+  justify-content: flex-end;
+}
+
+.production-ring-card--echarts .production-ring-card__percent-icon {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+}
+
+.production-ring-card--echarts .production-ring-card__percent-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.production-ring-card--echarts .donut-wrapper {
+  height: 370px !important;
+}
+
+.production-ring-card--echarts .donut-center-badge {
+  top: 42.5%;
+  width: 106px;
+  height: 106px;
+  border: 4px solid #33312f;
+  background: #efefef;
+  box-shadow: 0 0 0 1px #4a4744 inset, 0 2px 10px rgba(0, 0, 0, 0.16);
+}
+
+.production-ring-card--echarts .badge-icon {
+  width: 22px;
+  height: 30px;
+  margin-bottom: 2px;
+  color: #55514d;
+}
+
+.production-ring-card--echarts .badge-label {
+  font-size: 12px;
+  line-height: 1.1;
+  color: #696562;
+}
+
+.production-ring-card--echarts .badge-value {
+  font-size: 20px;
+  line-height: 1.05;
+  color: #33312f;
+}
+
+.production-ring-card--echarts .badge-unit {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.1;
+  color: #696562;
+}
+
+
+
+/* =========================================================
+   PRODUCTION RING — FIGMA NODE 1:798
+   Exact desktop size: 650 × 297
+   ========================================================= */
+
+.production-ring-card.production-ring-card--figma {
+  position: relative;
+  width: 650px;
+  min-width: 650px;
+  max-width: 650px;
+  height: 297px;
+  min-height: 297px;
+  padding: 0;
+  overflow: visible;
+
+  border: 1px solid #aeaeae;
+  border-radius: 7px;
+  background: #33312f;
+}
+
+/* =========================================================
+   DONUT
+   Figma:
+   left 201px
+   top 27px
+   width 243px
+   height 243px
+   ========================================================= */
+
+.production-ring-card--figma .production-ring-card__figma-chart {
+  position: absolute;
+  z-index: 2;
+  left: 130px;
+
+  width: 370px;
+  height: 370px;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-chart
+  .donut-wrapper {
+  width: 370px !important;
+  height: 370px !important;
+  margin: 0 !important;
+  overflow: visible;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-chart
+  > div,
+.production-ring-card--figma
+  .production-ring-card__figma-chart
+  canvas,
+.production-ring-card--figma
+  .production-ring-card__figma-chart
+  svg {
+  width: 370px !important;
+  height: 370px !important;
+}
+
+/* Сектор збільшується так samo, як у
+   "Конструкції за категоріями" */
+
+.production-ring-card--figma
+  .production-ring-card__figma-chart
+  canvas {
+  cursor: pointer;
+}
+
+/* =========================================================
+   CENTER BADGE
+   Figma inner circle approximately 142 × 142
+   ========================================================= */
+
+.production-ring-card--figma .donut-center-badge {
+  top: 50%;
+  left: 50%;
+
+  width: 142px;
+  height: 142px;
+
+  border: 5px solid #33312f;
+  border-radius: 50%;
+  background: #eeeeee;
+  box-shadow: none;
+
+  color: #44403e;
+
+  transform: translate(-50%, -50%);
+}
+
+.production-ring-card--figma .badge-label {
+  color: #44403e;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+}
+
+.production-ring-card--figma .badge-value {
+  color: #44403e;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 39px;
+}
+
+.production-ring-card--figma .badge-unit {
+  margin-top: 0;
+
+  color: #44403e;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+}
+
+.production-ring-card--figma .badge-icon {
+  width: 26px;
+  height: 35px;
+  margin: 0 3px 0 0;
+
+  color: #44403e;
+}
+
+.production-ring-card--figma .badge-icon svg,
+.production-ring-card--figma .badge-icon img {
+  width: 100%;
+  height: 100%;
+}
+
+/* Якщо у ComplexityDonut цифра та іконка не стоять в один ряд */
+
+.production-ring-card--figma .donut-center-badge__value,
+.production-ring-card--figma .badge-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* =========================================================
+   COMMON METRIC BUTTON
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric {
+  position: absolute;
+  z-index: 5;
+
+  display: block;
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+
+  font-family: Inter, sans-serif;
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+}
+
+
+
+
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric:focus-visible {
+  outline: 2px solid #b4d947;
+  outline-offset: 5px;
+}
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-title {
+  display: block;
+
+  color: #aeaeae;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 17px;
+
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   VALUE
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-value {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin: 4px 0 0;
+
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 39px;
+
+  white-space: nowrap;
+}
+
+/* Іконка безпосередньо біля цифри */
+
+.production-ring-card--figma
+  .production-ring-card__figma-icon {
+  display: inline-flex;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 31px;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-icon svg,
+.production-ring-card--figma
+  .production-ring-card__figma-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric small {
+  display: block;
+  margin-top: 2px;
+
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 17px;
+}
+
+/* =========================================================
+   IN TIME
+   Figma coordinates relative to card:
+   title x 112, y 105
+   icon x 40, y 132
+   percent x 78, y 127
+   description y 176
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--in-time {
+  top: 105px;
+  left: 40px;
+
+  width: 135px;
+  min-height: 100px;
+
+  color: #b4d947;
+  text-align: right;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--in-time
+  .production-ring-card__figma-title {
+  text-align: right;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--in-time
+  .production-ring-card__figma-value {
+  justify-content: flex-end;
+  color: #b4d947;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--in-time
+  small {
+  text-align: right;
+}
+
+/* =========================================================
+   DELAYED
+   Figma coordinates relative to card:
+   title x 487, y 42
+   icon x 487, y 67
+   percent x 526, y 63
+   description y 109
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--delayed {
+  top: 42px;
+  left: 487px;
+
+  width: 150px;
+  min-height: 95px;
+
+  color: #ed8b33;
+  text-align: left;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--delayed
+  .production-ring-card__figma-value {
+  color: #ed8b33;
+}
+
+/* =========================================================
+   NOT FINISHED
+   Figma coordinates relative to card:
+   title x 487, y 187
+   icon x 487, y 213
+   number x 529, y 209
+   description y 250
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--not-finished {
+  top: 187px;
+  left: 487px;
+
+  width: 151px;
+  min-height: 82px;
+
+  color: #aeaeae;
+  text-align: left;
+}
+
+.production-ring-card--figma
+  .production-ring-card__figma-metric--not-finished
+  .production-ring-card__figma-value {
+  color: #aeaeae;
+}
+
+/* =========================================================
+   CONNECTOR LINES
+   ========================================================= */
+
+.production-ring-card--figma
+  .production-ring-card__figma-line {
+  position: absolute;
+  z-index: 3;
+
+  display: block;
+  height: 1px;
+
+  background: #aeaeae;
+  pointer-events: none;
+}
+
+/* Ліва горизонтальна лінія */
+
+.production-ring-card--figma
+  .production-ring-card__figma-line--left {
+  top: 123px;
+  left: 112px;
+
+  width: 95px;
+}
+
+/* Похила лінія від помаранчевого сектора */
+
+.production-ring-card--figma
+  .production-ring-card__figma-line--delay-diagonal {
+  top: 94px;
+  left: 412px;
+
+  width: 64px;
+
+  transform: rotate(-22deg);
+  transform-origin: left center;
+}
+
+/* Горизонтальна лінія до заголовка Запізнення */
+
+.production-ring-card--figma
+  .production-ring-card__figma-line--delay-horizontal {
+  top: 70px;
+  left: 471px;
+
+  width: 118px;
+}
+
+.production-design__average-value {
+  display: flex !important;
+  flex-direction: row;
+  width: 100%;
+  text-align: center;
+}
+
+/* =========================================================
+   HOVER LINE REACTION
+   ========================================================= */
+
+.production-ring-card--figma:has(
+  .production-ring-card__figma-metric--in-time:hover
+)
+.production-ring-card__figma-line--left {
+  height: 2px;
+  background: #b4d947;
+}
+
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+
+
+.production-design__average-card .production-design__eyebrow {
+    width: 100%;
+}
+
+.production-design__average-value {
+    text-align: center;
+}
+
+.production-design__counts {
+  position: absolute;
+  right: 26px;
+  bottom: 19px;
+  left: 31px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.production-design__count-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.production-design__count-item small {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.production-design__count-value {
+  display: flex;
+  gap: 8px;
+}
+
+.production-design__count-value svg {
+  width: 26px;
+  height: 26px;
+}
+
+.production-design__count-value b {
+  color: var(--blue);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+
+/* Dealer comparison block */
+
+.production-design__dealer-comparison {
+  margin-top: 20px;
+  padding: 0;
+  border-color: var(--line);
+  border-radius: 8px;
+  background: #33312f;
+}
+
+.production-design__dealer-shell {
+  padding: 10px;
+}
+
+.production-design__dealer-head,
+.production-design__dealer-panel,
+.production-design__dealer-growth {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #33312f;
+}
+
+.production-design__dealer-head {
+  min-height: 70px;
+  padding: 10px 18px 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  background: #3c3937;
+}
+
+.production-design__dealer-head-copy {
   min-width: 0;
 }
 
-.production-filter-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(31, 64, 55, 0.3);
-}
-
-.production-filter-button:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.production-state-card,
-.production-panel,
-.production-summary-card,
-.production-kpi-card,
-.production-average-card {
-  border-radius: 5px;
-  background: #ffffff;
-  box-shadow: 0 16px 38px rgba(44, 61, 47, 0.09);
-}
-
-.production-state-card {
-  margin-top: 22px;
-  min-height: 260px;
-  padding: 28px;
+.production-design__dealer-head-title {
+  margin-top: 6px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 10px;
+  align-items: baseline;
+  gap: 16px;
 }
 
-.production-state-card h3 {
+.production-design__dealer-head-title h2 {
   margin: 0;
-  font-size: 28px;
-  color: #263326;
+  color: #fff;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 28px;
 }
 
-.production-state-card p {
-  max-width: 500px;
-  margin: 0;
-  color: #627162;
+.production-design__dealer-head-title span {
+  color: #adadad;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 27px;
 }
 
-.production-state-card__icon {
-  font-size: 54px;
-  color: #73826e;
-}
-
-.production-state-card__icon.is-error {
-  color: #b14c34;
-}
-
-.production-kpi-grid {
-  margin-top: 24px;
+.production-design__dealer-ranks {
   display: grid;
-  grid-template-columns: 1.2fr repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(116px, auto));
+  gap: 30px;
+  align-items: center;
 }
 
-.production-average-card {
-  grid-row: span 2;
-  padding: 26px;
-  background:
-    radial-gradient(circle at top right, rgba(222, 184, 96, 0.34), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(89, 132, 117, 0.2), transparent 35%),
-    linear-gradient(150deg, #263d34 0%, #325244 52%, #f1e7bf 180%);
-  color: #fffdf6;
-  position: relative;
-  overflow: hidden;
+.production-design__dealer-ranks div {
+  display: grid;
+  justify-items: center;
 }
 
-.production-average-card::after {
-  content: "";
-  position: absolute;
-  inset: auto -40px -70px auto;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  filter: blur(4px);
-}
-
-.production-average-card__eyebrow {
-  color: rgba(255, 243, 214, 0.8);
-}
-
-.production-average-card__value {
-  margin-top: 22px;
-  font-size: clamp(34px, 4vw, 52px);
-  line-height: 1;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-}
-
-.production-average-card__footer {
-  margin-top: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: rgba(255, 248, 232, 0.82);
-}
-
-.production-kpi-card {
-  min-height: 158px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border: 1px solid rgba(70, 92, 77, 0.08);
-}
-
-.production-kpi-card__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 5px;
+.production-design__dealer-ranks strong {
+  color: var(--lime);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 36px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  background: #eef3e8;
-  color: #315b4a;
+  gap: 8px;
 }
 
-.production-kpi-card__label {
-  font-size: 14px;
-  color: #6d7a6d;
+.production-design__dealer-ranks strong.is-blue {
+  color: #6b99bf;
+  font-size: 26px;
+  line-height: 31px;
 }
 
-.production-kpi-card__value {
-  font-size: 30px;
-  line-height: 1.1;
-  font-weight: 800;
-  color: #273128;
+.production-design__dealer-ranks strong svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
 }
 
-.production-kpi-card__hint {
-  margin-top: auto;
-  color: #788679;
-  font-size: 13px;
+.production-design__dealer-ranks small {
+  color: #adadad;
+  font-size: 11px;
+  line-height: 13px;
+  text-align: center;
 }
 
-.production-summary-grid {
-  margin-top: 20px;
+.production-design__dealer-main {
+  margin-top: 14px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 247px;
+  gap: 12px;
 }
 
-.production-accent-grid {
-  margin-top: 20px;
+.production-design__dealer-panel {
+  padding: 12px 14px;
+}
+
+.production-design__dealer-panel--metrics,
+.production-design__dealer-panel--overall {
+  min-height: 291px;
+}
+
+.production-design__dealer-panel--overall {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 18px;
+  justify-items: center;
+  align-content: start;
+  gap: 10px;
+  padding-top: 10px;
 }
 
-.production-summary-card {
-  padding: 22px;
-  border: 1px solid rgba(69, 88, 72, 0.08);
-}
-
-.production-summary-card__header {
+.production-design__dealer-panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.production-summary-card__badge {
+.production-design__dealer-panel-head h3,
+.production-design__dealer-panel--checks h3,
+.production-design__dealer-growth > h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+  text-transform: uppercase;
+}
+
+.production-design__dealer-panel-head span {
+  color: #adadad;
+  font-size: 11px;
+  line-height: 13px;
+  text-align: right;
+}
+
+.production-design__dealer-gauges {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.production-design__dealer-gauge {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+}
+
+.production-design__dealer-gauge-label {
+  color: #adadad;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 15px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.production-design__dealer-gauge-ring,
+.production-design__dealer-overall-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #33312f 0 43%, transparent 44% 100%),
+    conic-gradient(
+      var(--dealer-gauge-color, #b4d947) 0 var(--dealer-gauge-value, 0%),
+      #4a4745 var(--dealer-gauge-value, 0%) 100%
+    );
+}
+
+.production-design__dealer-gauge-ring {
+  width: 144px;
+  height: 144px;
+  margin-top: 12px;
+}
+
+.production-design__dealer-gauge-center {
+  color: var(--dealer-gauge-color, #b4d947);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 82px;
-  min-height: 34px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: var(--abc-soft-color);
-  color: var(--abc-color);
-  font-weight: 700;
+  gap: 6px;
 }
 
-.production-summary-card__percent {
-  font-size: 18px;
-  font-weight: 800;
-  color: #283429;
-}
-
-.production-summary-card__body {
-  margin-top: 18px;
-}
-
-.production-summary-card__main {
-  font-size: 34px;
-  font-weight: 800;
-  color: #243325;
-}
-
-.production-summary-card__label {
-  color: #6b786b;
-}
-
-.production-summary-card__progress {
-  margin-top: 18px;
-  height: 10px;
-  border-radius: 999px;
-  background: #ecf1e8;
-  overflow: hidden;
-}
-
-.production-summary-card__progress span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--abc-color) 0%, var(--abc-soft-color) 100%);
-}
-
-.production-summary-card__stats {
-  margin-top: 14px;
-  display: grid;
-  gap: 8px;
-  color: #607060;
-  font-size: 13px;
-}
-
-.production-content-grid {
-  margin-top: 20px;
-  display: grid;
-  grid-template-columns: 1.25fr 0.85fr;
-  gap: 18px;
-}
-
-.production-panel {
-  padding: 24px;
-}
-
-.production-panel--soft {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 248, 242, 0.98));
-}
-
-.production-panel--table {
-  margin-top: 20px;
-}
-
-.production-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.production-panel__header--stacked {
-  align-items: start;
-  flex-direction: column;
-}
-
-.production-panel__header h3 {
-  margin: 6px 0 0;
-  font-size: 26px;
-  color: #253326;
-}
-
-.production-panel__badge {
+.production-design__dealer-gauge-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--dealer-gauge-color, #b4d947);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: 5px;
-  background: #eef3eb;
-  color: #42634f;
-  font-size: 13px;
-  font-weight: 700;
+  justify-content: center;
 }
 
-.production-chart-wrap {
-  margin-top: 18px;
+.production-design__dealer-gauge-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
-.production-chart-hint {
+.production-design__dealer-gauge strong {
   margin-top: 12px;
-  color: #6c7a6c;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.production-profile-spotlight,
-.production-status-cloud {
-  margin-top: 18px;
-}
-
-.production-profile-spotlight {
-  display: block;
-}
-
-.production-profile-card,
-.production-status-cloud__item,
-.production-details-placeholder {
-  border-radius: 5px;
-  border: 1px solid rgba(69, 88, 72, 0.08);
-  background: #fbfcf9;
-}
-
-.production-profile-card {
-  padding: 18px;
-  background: #fbfcf9;
-}
-
-.production-panel--systems {
-  grid-column: 1 / -1;
-}
-
-.production-profile-list {
-  border: 1px solid rgba(69, 88, 72, 0.08);
-  border-radius: 5px;
-  overflow: hidden;
-  background: #fbfcf9;
-}
-
-.production-profile-list__head,
-.production-profile-row {
-  display: grid;
-  grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(110px, 1fr));
-  gap: 8px;
-  align-items: center;
-  padding: 12px 10px;
-}
-
-.production-profile-list__head {
-  background: #f4f8f2;
-  color: #728172;
+  color: #fff;
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+}
+
+.production-design__dealer-gauge small {
+  margin-top: 4px;
+  color: #adadad;
+  font-size: 12px;
+  line-height: 12px;
+  text-align: center;
+}
+
+.production-design__dealer-overall-label {
+  color: #adadad;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 15px;
   text-transform: uppercase;
 }
 
-.production-profile-row {
-  border-top: 1px solid rgba(69, 88, 72, 0.06);
-  color: #314031;
-}
-
-.production-profile-row__name {
-  font-weight: 700;
-  color: #243325;
-}
-
-.production-panel--category {
-  margin-top: 20px;
-}
-
-.production-category-donut {
-  margin-top: 18px;
-}
-
-.production-panel--category-detail {
-  margin-top: 20px;
-  border: 2px solid #2b98dc;
-}
-
-.production-detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.production-detail-title {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 800;
-  color: #2d2f33;
-  text-transform: uppercase;
-}
-
-.production-detail-title span {
-  color: #2b98dc;
-}
-
-.production-detail-close {
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 5px;
-  background: #eef7fc;
-  color: #2b6cb0;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.production-detail-caption {
-  margin-top: 16px;
-  color: #4f5f6f;
-  font-size: 14px;
-}
-
-.production-detail-treemap {
+.production-design__dealer-overall-ring {
+  --dealer-gauge-color: #b4d947;
+  --dealer-gauge-value: var(--dealer-overall-value, 0%);
+  width: 145px;
+  height: 145px;
   margin-top: 6px;
 }
 
-.production-delays-list {
-  margin-top: 18px;
-  display: grid;
-  gap: 12px;
-}
-
-.production-fastest-groups {
-  margin-top: 18px;
-  display: grid;
-  gap: 14px;
-}
-
-.production-fastest-group {
-  padding: 16px;
-  border-radius: 5px;
-  border: 1px solid rgba(69, 88, 72, 0.08);
-  background: linear-gradient(145deg, #fbfcf9 0%, #f6faf6 100%);
-}
-
-.production-fastest-group__badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 14px;
-  border-radius: 5px;
-  background: var(--abc-soft-color);
-  color: var(--abc-color);
-  font-weight: 800;
-}
-
-.production-fastest-group__list {
-  margin-top: 14px;
-  display: grid;
-  gap: 10px;
-}
-
-.production-fastest-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: 5px;
-  background: #fff;
-  border: 1px solid rgba(69, 88, 72, 0.06);
-}
-
-.production-fastest-item__value {
-  text-align: right;
-  white-space: nowrap;
-  font-size: 15px;
-  font-weight: 800;
-  color: #2f5d52;
-}
-
-.production-delay-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 5px;
-  background: linear-gradient(135deg, #f8f1e2 0%, #fffefb 100%);
-  border: 1px solid rgba(190, 122, 71, 0.12);
-}
-
-.production-delay-item__title,
-.production-table__title {
+.production-design__dealer-overall-center {
+  color: #b4d947;
+  font-size: 24px;
   font-weight: 700;
-  color: #273128;
-}
-
-.production-delay-item__meta,
-.production-table__subtitle,
-.production-empty-inline {
-  color: #6f7d6f;
-  font-size: 13px;
-}
-
-.production-delay-item__value {
-  white-space: nowrap;
-  font-size: 22px;
-  font-weight: 800;
-  color: #b25430;
-}
-
-.production-chip-groups {
-  width: 100%;
-  display: grid;
-  gap: 14px;
-}
-
-.production-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.production-chip {
-  min-height: 38px;
-  padding: 0 16px;
-  border-radius: 5px;
-  border: 1px solid rgba(69, 88, 72, 0.12);
-  background: #f6f8f3;
-  color: #526052;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.production-chip:hover {
-  transform: translateY(-1px);
-}
-
-.production-chip.is-active {
-  background: #2f5d52;
-  color: #fff;
-  border-color: #2f5d52;
-}
-
-.production-table-scroll {
-  margin-top: 18px;
-  overflow-x: auto;
-}
-
-.production-details-placeholder {
-  margin-top: 18px;
-  padding: 22px;
-  color: #627162;
-  line-height: 1.6;
-}
-
-.production-table {
-  width: 100%;
-  min-width: 900px;
-  border-collapse: collapse;
-}
-
-.production-table thead th {
-  padding: 0 12px 14px;
-  text-align: left;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #778478;
-}
-
-.production-table tbody tr {
-  border-top: 1px solid #edf2eb;
-}
-
-.production-table tbody td {
-  padding: 16px 12px;
-  vertical-align: top;
-  color: #2d392d;
-}
-
-.production-abc-pill,
-.production-status-pill {
+  line-height: 39px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 5px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #fff;
-}
-
-.production-status-pill.is-good {
-  background: #356a5d;
-}
-
-.production-status-pill.is-bad {
-  background: #c75d2c;
-}
-
-.production-status-pill.is-neutral {
-  background: #b89c6d;
-}
-
-.production-stats-tooltip {
-  min-width: 170px;
-  padding: 14px;
-  border-radius: 5px;
-  background: rgba(35, 51, 37, 0.95);
-  color: #fff;
-  box-shadow: 0 18px 36px rgba(18, 30, 21, 0.28);
-}
-
-.production-stats-tooltip__title {
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.production-stats-tooltip__row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.production-content-grid--profiles {
-  margin-top: 18px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.production-panel--wide {
-  margin-top: 18px;
-}
-
-.production-profile-chart {
-  margin-top: 16px;
-}
-
-.production-furniture-list {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-.production-furniture-item {
-  padding: 12px 14px;
-  border-radius: 5px;
-  border: 1px solid rgba(69, 88, 72, 0.08);
-  background:
-    radial-gradient(circle at top left, rgba(223, 195, 131, 0.12), transparent 35%),
-    linear-gradient(145deg, #fbfcf9 0%, #f7f4ea 100%);
-}
-
-.production-furniture-item__top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.production-furniture-item__rank {
-  min-width: 34px;
-  min-height: 22px;
-  border-radius: 5px;
-  background: #355e53;
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.production-furniture-item__title {
-  font-weight: 700;
-  color: #253326;
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.production-furniture-item__meta {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: #677567;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.production-furniture-item__meta strong {
-  color: #9a5f24;
-}
-
-.production-mini-kpis {
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.production-mini-kpi {
-  padding: 16px;
-  border-radius: 5px;
-  border: 1px solid rgba(69, 88, 72, 0.08);
-  background: #f8fbf7;
-  display: grid;
   gap: 6px;
 }
 
-.production-mini-kpi span {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #728172;
+.production-design__dealer-panel--overall p {
+  margin: 0;
+  color: #adadad;
+  font-size: 11px;
+  line-height: 13px;
+  text-align: center;
 }
 
-.production-mini-kpi strong {
-  font-size: 22px;
-  color: #27463d;
-}
-
-.production-mini-kpi small {
-  color: #6c7a6c;
-  line-height: 1.45;
-}
-
-.production-status-cloud {
+.production-design__dealer-profit-card {
+  width: 100%;
+  min-height: 53px;
+  padding: 8px 12px;
+  border: 1px solid #b4d947;
+  border-radius: 8px;
+  background: #1f291f;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: center;
+  align-content: center;
+}
+
+.production-design__dealer-profit-card span {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 12px;
+  text-transform: uppercase;
+}
+
+.production-design__dealer-profit-card strong {
+  color: #b4d947;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 29px;
+  text-align: center;
+}
+
+.production-design__dealer-profit-card small {
+  color: #adadad;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+  text-align: start;
+}
+
+.production-design__dealer-charts {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 446px;
   gap: 12px;
 }
 
-.production-status-cloud__item {
-  padding: 16px;
-  background:
-    radial-gradient(circle at top left, rgba(93, 131, 191, 0.12), transparent 40%),
-    linear-gradient(145deg, #fbfcf9 0%, #f4f8fb 100%);
+.production-design__dealer-panel--regions,
+.production-design__dealer-panel--checks {
+  min-height: 252px;
 }
 
-.production-status-cloud__value {
-  margin-top: 10px;
-  font-size: 22px;
-  font-weight: 800;
-  color: #2d4669;
+.production-design__dealer-panel-head--inline h3 {
+  font-size: 18px;
+  line-height: 19px;
 }
 
-.production-status-cloud__sub {
-  margin-top: 4px;
-  color: #718198;
+.production-design__dealer-turnover-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 18px;
+}
+
+.production-design__dealer-turnover-row {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.production-design__dealer-turnover-row b {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 27px;
+}
+
+.production-design__dealer-turnover-row div {
+  height: 38px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #4a4745;
+}
+
+.production-design__dealer-turnover-row i {
+  display: block;
+  height: 100%;
+  border-radius: 8px;
+}
+
+.production-design__dealer-turnover-row span {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: right;
+}
+
+.production-design__dealer-check-bars {
+  height: 184px;
+  margin-top: 18px;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 28px;
+}
+
+.production-design__dealer-check-bar {
+  width: 92px;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: 10px;
+}
+
+.production-design__dealer-check-bar strong {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 24px;
+  text-align: center;
+}
+
+.production-design__dealer-check-bar div {
+  height: 120px;
+  display: flex;
+  align-items: end;
+}
+
+.production-design__dealer-check-bar i {
+  display: block;
+  width: 46px;
+  min-height: 24px;
+  border-radius: 5px;
+}
+
+.production-design__dealer-check-bar span {
+  color: #adadad;
   font-size: 13px;
+  line-height: 18px;
+  text-align: center;
+  white-space: nowrap;
 }
 
-.loading-spinner {
-  width: 52px;
-  height: 52px;
+.production-design__dealer-growth {
+  margin-top: 12px;
+  padding: 12px 14px 14px;
+}
+
+.production-design__dealer-growth > h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.production-design__dealer-growth-layout {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 278px;
+  gap: 16px;
+  align-items: start;
+}
+
+.production-design__dealer-growth-main {
+  display: grid;
+  gap: 8px;
+}
+
+.production-design__dealer-growth-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.production-design__dealer-growth-card {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-height: 100px;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.02) 100%),
+    #33312f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.production-design__dealer-growth-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--growth-color);
   border-radius: 50%;
-  border: 4px solid rgba(47, 93, 82, 0.16);
-  border-top-color: #2f5d52;
-  animation: production-spin 0.9s linear infinite;
+  color: var(--growth-color);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-@keyframes production-spin {
-  to {
-    transform: rotate(360deg);
+.production-design__dealer-growth-card div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+}
+
+.production-design__dealer-growth-card small {
+  grid-column: 1 / -1;
+  color: #adadad;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 12px;
+  text-transform: uppercase;
+}
+
+.production-design__dealer-growth-card strong {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.production-design__dealer-growth-card span {
+  color: #d5d5d5;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: right;
+}
+
+.production-design__dealer-growth-track {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #4a4745;
+}
+
+.production-design__dealer-growth-track i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  box-shadow: 0 0 14px rgba(180, 217, 71, 0.18);
+}
+
+.production-design__dealer-profit-card--wide {
+  min-height: 100%;
+  padding: 16px 16px 14px;
+  align-content: start;
+  justify-items: start;
+  gap: 8px;
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--growth-color, #b4d947) 20%, transparent) 0%, transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%),
+    #242725;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.production-design__dealer-profit-card--wide span {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.production-design__dealer-profit-card--wide strong {
+  text-align: left;
+  line-height: 1.1;
+}
+
+.production-design__dealer-profit-card--wide small {
+  text-align: left;
+  line-height: 1.1;
+}
+
+.production-design__dealer-growth-main > p {
+  margin: 0;
+  color: #adadad;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.production-design.is-light .production-ring-card.production-ring-card--figma {
+  background:
+    radial-gradient(circle at top right, rgba(159, 211, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+  box-shadow: 0 14px 36px rgba(53, 73, 95, 0.08);
+}
+
+.production-design.is-light .production-ring-card--figma .production-ring-card__figma-title,
+.production-design.is-light .production-ring-card--figma .production-ring-card__figma-metric small {
+  color: #607086;
+}
+
+.production-design.is-light .production-ring-card--figma .production-ring-card__figma-line {
+  background: #c8d3df;
+}
+
+.production-design.is-light .production-ring-card--figma .donut-center-badge {
+  border-color: #e5ebf2;
+  box-shadow: 0 10px 20px rgba(53, 73, 95, 0.08);
+}
+
+.production-design.is-light .production-ring-card--figma .badge-label,
+.production-design.is-light .production-ring-card--figma .badge-value,
+.production-design.is-light .production-ring-card--figma .badge-unit,
+.production-design.is-light .production-ring-card--figma .badge-icon {
+  color: #2a3948;
+}
+
+.production-design.is-light .production-design__dealer-comparison {
+  background: linear-gradient(180deg, #f8fbfd 0%, #f2f6fa 100%);
+}
+
+.production-design.is-light .production-design__dealer-head,
+.production-design.is-light .production-design__dealer-panel,
+.production-design.is-light .production-design__dealer-growth {
+  background: rgba(255, 255, 255, 0.86);
+  border-color: #d7dee8;
+}
+
+.production-design.is-light .production-design__dealer-head {
+  background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+}
+
+.production-design.is-light .production-design__dealer-head-title span,
+.production-design.is-light .production-design__dealer-ranks small,
+.production-design.is-light .production-design__dealer-panel-head span,
+.production-design.is-light .production-design__dealer-gauge-label,
+.production-design.is-light .production-design__dealer-gauge small,
+.production-design.is-light .production-design__dealer-overall-label,
+.production-design.is-light .production-design__dealer-panel--overall p,
+.production-design.is-light .production-design__dealer-check-bar span,
+.production-design.is-light .production-design__dealer-growth-card small,
+.production-design.is-light .production-design__dealer-growth-main > p,
+.production-design.is-light .production-design__dealer-profit-card small {
+  color: #6a788a;
+}
+
+.production-design.is-light .production-design__dealer-gauge-ring,
+.production-design.is-light .production-design__dealer-overall-ring {
+  background:
+    radial-gradient(circle, #ffffff 0 43%, transparent 44% 100%),
+    conic-gradient(
+      var(--dealer-gauge-color, #b4d947) 0 var(--dealer-gauge-value, 0%),
+      #e5ebf1 var(--dealer-gauge-value, 0%) 100%
+    );
+}
+
+.production-design.is-light .production-design__dealer-profit-card {
+  background: linear-gradient(180deg, #f7fbef 0%, #eff7de 100%);
+}
+
+.production-design.is-light .production-design__dealer-turnover-row div,
+.production-design.is-light .production-design__dealer-growth-track {
+  background: #e9eef4;
+}
+
+.production-design.is-light .production-design__dealer-check-bar div {
+  background: linear-gradient(180deg, rgba(107, 152, 191, 0.08), rgba(107, 152, 191, 0));
+}
+
+.production-design.is-light .production-design__dealer-growth-card {
+  background:
+    linear-gradient(180deg, rgba(107, 152, 191, 0.06) 0%, rgba(107, 152, 191, 0.02) 100%),
+    #ffffff;
+  box-shadow: 0 8px 20px rgba(53, 73, 95, 0.05);
+}
+
+.production-design.is-light .production-design__dealer-profit-card--wide {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--growth-color, #b4d947) 14%, transparent) 0%, transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 248, 252, 0.98) 100%);
+}
+
+.production-design.is-light .production-design__order-card,
+.production-design.is-light .production-design__order-card-grid div {
+  background: #f8fbfd;
+}
+
+@media (max-width: 1334px) {
+  .production-design {
+    width: min(100% - 24px, 1329px);
+    padding-top: 100px;
+  }
+
+  .production-design__hero {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .production-design__hero p {
+    width: min(100%, 640px);
+  }
+
+  .production-design__filters {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .production-design__kpi {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .production-design__kpi > * {
+    min-width: 0;
+  }
+
+  .production-design__average-card {
+    flex: 1 1 320px;
+  }
+
+  .production-ring-card.production-ring-card--figma,
+  .production-ring-card.production-ring-card--echarts {
+    flex: 0 1 650px;
+  }
+
+  .production-design__summary-stack {
+    flex: 1 1 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+
+  .production-design__dashboard-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  .production-design__dashboard-grid > * {
+    min-width: 0;
+  }
+
+  .production-design__panel--profile-donut {
+    flex: 1 1 560px;
+  }
+
+  .production-design__abc-column {
+    flex: 1 1 330px;
+    min-width: min(330px, 100%);
+  }
+
+  .production-design__panel--timeliness {
+    flex: 1 1 100%;
+    min-height: auto;
+  }
+
+  .production-design__fastest-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .production-design__fastest-col {
+    flex: 1 1 300px;
+    min-width: 0;
+  }
+
+  .production-design__analytics-head {
+    flex-wrap: wrap;
+  }
+
+  .production-design__analytics-metrics {
+    gap: 12px;
+  }
+
+  .production-design__analytics-metrics button {
+    flex: 1 1 180px;
+    min-width: 0;
+  }
+
+  .production-design__analytics-scale {
+    margin-left: 224px;
+    margin-right: 118px;
+  }
+
+  .production-design__analytics-rows::before,
+  .production-design__analytics-rows::after {
+    left: 224px;
+    right: 118px;
+  }
+
+  .production-design__analytics-row {
+    grid-template-columns: 212px minmax(0, 1fr) 106px;
+    gap: 10px;
+  }
+
+  .production-design__analytics-row b {
+    font-size: 15px;
+  }
+
+  .production-design__analytics-row span,
+  .production-design__analytics-axis-label,
+  .production-design__analytics-scale {
+    font-size: 15px;
+  }
+
+  .production-design__dealer-head-title {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .production-design__dealer-ranks {
+    gap: 18px;
+  }
+
+  .production-design__dealer-main {
+    grid-template-columns: minmax(0, 1fr) 220px;
+  }
+
+  .production-design__dealer-charts {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+
+  .production-design__dealer-turnover-row {
+    grid-template-columns: 122px minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .production-design__dealer-check-bars {
+    gap: 18px;
+  }
+
+  .production-design__dealer-check-bar {
+    width: 82px;
   }
 }
 
 @media (max-width: 1100px) {
-  .production-page-hero,
-  .production-content-grid,
-  .production-kpi-grid,
-  .production-accent-grid {
+  .production-design__dealer-main,
+  .production-design__dealer-charts,
+  .production-design__dealer-growth-layout,
+  .production-design__dealer-growth-grid {
     grid-template-columns: 1fr;
   }
 
-  .production-average-card {
-    grid-row: auto;
+  .production-design__dealer-gauges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .production-profile-spotlight,
-  .production-status-cloud,
-  .production-mini-kpis,
-  .production-furniture-list {
+  .production-design__dealer-ranks {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .production-design__dealer-profit-card--wide {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 720px) {
+
+
+  .production-design__dealer-head {
     grid-template-columns: 1fr;
   }
 
-  .production-profile-list__head {
-    display: none;
-  }
-
-  .production-profile-row {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .production-profile-row__name {
-    grid-column: 1 / -1;
-  }
-
-  .production-fastest-item {
-    align-items: start;
+  .production-design__dealer-head-title {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 
-  .production-fastest-item__value {
+  .production-design__dealer-head-title span {
+    font-size: 17px;
+    line-height: 21px;
+  }
+
+  .production-design__dealer-panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .production-design__dealer-panel-head span {
     text-align: left;
   }
 
-  .production-detail-header {
-    align-items: start;
-  }
-}
-
-@media (max-width: 768px) {
-  .production-page-shell {
-    padding: 18px 14px 36px;
-  }
-
-  .production-page-hero,
-  .production-panel,
-  .production-average-card,
-  .production-summary-card,
-  .production-kpi-card,
-  .production-state-card {
-    border-radius: 5px;
-  }
-
-  .production-page-hero {
-    padding: 22px;
-  }
-
-  .production-page-filters {
+  .production-design__dealer-gauges {
     grid-template-columns: 1fr;
   }
 
-  .production-page-filters > .production-filter-button {
-    grid-column: auto;
-    justify-self: stretch;
+  .production-design__dealer-turnover-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .production-design__dealer-turnover-row span {
+    text-align: left;
+  }
+
+  .production-design__dealer-check-bars {
+    height: auto;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 720px) {
+  .production-design {
+    width: min(100% - 20px, 1329px);
+    padding: 18px 0 44px;
+    padding-top: 100px;
+  }
+
+  .production-design__hero,
+  .production-design__panel,
+  .production-design__average-card,
+  .production-ring-card,
+  .production-design__summary-stack article,
+  .production-design__dealer-comparison,
+  .production-design__state {
+    border-radius: 6px;
+  }
+
+  .production-design__hero {
+    min-height: auto;
+    padding: 18px 16px 16px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .production-design__hero::after {
+    right: -160px;
+    top: -74px;
+    opacity: 0.16;
+    background-size: 620px 148px;
+  }
+
+  .production-design__hero h1 {
+    margin: 6px 0 8px;
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .production-design__hero p {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .production-design__filters {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    padding-top: 0;
+  }
+
+  .production-design__dealer,
+  .production-design__filters button {
+    grid-column: 1 / -1;
+  }
+
+  .production-design__filters label {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .production-design__filters input,
+  .production-design__filters button,
+  .production-design__dealer .dealer-select__control {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .production-design__kpi,
+  .production-design__dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .production-design__kpi {
+    margin-top: 12px;
+  }
+
+  .production-design__average-card,
+  .production-design__panel,
+  .production-design__orders {
+    padding: 18px 16px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .production-design__average-card {
+    min-height: auto;
+  }
+
+  .production-design__average-card > strong,
+  .production-design__average-value {
+    font-size: 28px;
+    line-height: 1.15;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .production-design__period {
+    margin-top: 20px;
+    align-items: flex-start;
+  }
+
+  .production-design__period span {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .production-design__counts {
+    position: static;
+    margin-top: 22px;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    gap: 12px;
+  }
+
+  .production-design__count-item {
+    padding: 12px 10px;
+    border: 1px solid rgba(174, 174, 174, 0.24);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .production-ring-card.production-ring-card--figma,
+  .production-ring-card.production-ring-card--echarts {
     width: 100%;
     min-width: 0;
+    max-width: none;
+    justify-self: stretch;
   }
 
-  .production-page-title {
-    font-size: 32px;
+
+
+  .production-ring-card--figma .production-ring-card__figma-chart {
+    left: 50%;
+    width: 280px;
+    height: 280px;
+    transform: translateX(-50%);
   }
 
-  .production-panel__header h3,
-  .production-state-card h3 {
-    font-size: 22px;
+  .production-ring-card--figma .production-ring-card__figma-chart .donut-wrapper,
+  .production-ring-card--figma .production-ring-card__figma-chart > div,
+  .production-ring-card--figma .production-ring-card__figma-chart canvas,
+  .production-ring-card--figma .production-ring-card__figma-chart svg {
+    width: 280px !important;
+    height: 280px !important;
   }
 
-  .production-average-card__value,
-  .production-summary-card__main,
-  .production-kpi-card__value {
+  .production-ring-card--figma .donut-center-badge {
+    width: 116px;
+    height: 116px;
+  }
+
+  .production-ring-card--figma .badge-value {
     font-size: 28px;
+    line-height: 1;
+  }
+
+  .production-ring-card--figma .badge-icon {
+    width: 22px;
+    height: 30px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric {
+    width: 128px;
+    min-height: auto;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-title {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-value {
+    margin-top: 3px;
+    font-size: 24px;
+    line-height: 1.1;
+    gap: 6px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-icon {
+    width: 22px;
+    height: 24px;
+    flex-basis: 22px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric small {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--in-time {
+    top: 24px;
+    left: 16px;
+    text-align: left;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--in-time .production-ring-card__figma-title,
+  .production-ring-card--figma .production-ring-card__figma-metric--in-time .production-ring-card__figma-value,
+  .production-ring-card--figma .production-ring-card__figma-metric--in-time small {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--delayed {
+    top: 24px;
+    right: 16px;
+    left: auto;
+    text-align: right;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--delayed .production-ring-card__figma-value {
+    justify-content: flex-end;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--delayed small {
+    text-align: right;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--not-finished {
+    right: 16px;
+    bottom: 22px;
+    left: auto;
+    top: auto;
+    width: 142px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-line {
+    display: block;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-line--left {
+    top: 56px;
+    left: 144px;
+    width: 44px;
+  }
+
+
+
+  .production-ring-card--figma .production-ring-card__figma-line--delay-horizontal {
+    top: 66px;
+    left: auto;
+    right: 122px;
+    width: 44px;
+  }
+
+  .production-design__summary-stack {
+    grid-template-rows: none;
+    gap: 12px;
+  }
+
+  .production-design__summary-stack article {
+    min-height: auto;
+    padding: 18px 16px;
+  }
+
+  .production-design__summary-stack article > strong {
+    font-size: 28px;
+    line-height: 1.15;
+    flex-wrap: wrap;
+  }
+
+  .production-design__panel-heading,
+  .production-design__analytics-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .production-design__panel-heading h2,
+  .production-design__analytics-head h2 {
+    margin-top: 2px;
+    font-size: 24px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+
+  .production-design__panel-heading > span,
+  .production-design__analytics-head > span {
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+
+  .production-design__panel--profile-donut,
+  .production-design__panel--timeliness {
+    min-height: auto;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .production-design__panel--profile-donut .donut-wrapper,
+  .production-design__panel--profile-donut .donut-wrapper canvas,
+  .production-design__panel--profile-donut .donut-wrapper svg {
+    height: 360px !important;
+    max-width: 100% !important;
+  }
+
+  .production-design__abc-column {
+    gap: 12px;
+  }
+
+  .production-design__abc-card {
+    height: auto;
+    min-height: 0;
+    padding: 18px 16px;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .production-design__abc-card > header {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .production-design__abc-card > header > span,
+  .production-design__abc-card > header > p {
+    text-align: left;
+  }
+
+  .production-design__abc-card footer {
+    /* grid-template-columns: 1fr; */
+    gap: 8px;
+  }
+
+  .production-design__abc-card footer span,
+  .production-design__abc-card footer b {
+    white-space: normal;
+  }
+
+  .production-design__panel--timeliness .recharts-responsive-container {
+    height: 340px !important;
+    min-height: 340px;
+    width: 100% !important;
+  }
+
+  .production-design__panel--timeliness p {
+    line-height: 1.45;
+  }
+
+  .production-design__panel--timeliness .recharts-wrapper,
+  .production-design__panel--timeliness .recharts-surface {
+    max-width: 100%;
+  }
+
+  .production-design__fastest {
+    min-height: auto;
+  }
+
+  .production-design__fastest-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .production-design__fastest-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .production-design__fastest-card strong {
+    text-align: left;
+  }
+
+  .production-design__dealer-shell {
+    padding: 8px;
+  }
+
+  .production-design__dealer-head,
+  .production-design__dealer-panel,
+  .production-design__dealer-growth {
+    border-radius: 6px;
+  }
+
+  .production-design__dealer-head {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .production-design__dealer-head-title h2 {
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .production-design__dealer-head-title span {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .production-design__dealer-ranks {
+    width: 100%;
+    gap: 10px;
+  }
+
+  .production-design__dealer-ranks strong {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  .production-design__dealer-panel {
+    padding: 14px 12px;
+  }
+
+  .production-design__dealer-gauges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 10px;
+  }
+
+  .production-design__dealer-gauge-ring {
+    width: 110px;
+    height: 110px;
+  }
+
+  .production-design__dealer-gauge-center {
+    font-size: 17px;
+    line-height: 1;
+  }
+
+  .production-design__dealer-gauge strong,
+  .production-design__dealer-gauge small,
+  .production-design__dealer-gauge-label {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .production-design__dealer-overall-ring {
+    width: 128px;
+    height: 128px;
+  }
+
+  .production-design__dealer-overall-center {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .production-design__dealer-profit-card strong {
+    font-size: 20px;
+    line-height: 1.15;
+  }
+
+  .production-design__dealer-charts {
+    gap: 10px;
+  }
+
+  .production-design__dealer-turnover-list {
+    gap: 14px;
+  }
+
+  .production-design__dealer-turnover-row div {
+    height: 18px;
+    border-radius: 999px;
+  }
+
+  .production-design__dealer-turnover-row i {
+    border-radius: 999px;
+  }
+
+  .production-design__dealer-check-bars {
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .production-design__dealer-check-bar {
+    width: calc(33.333% - 8px);
+    min-width: 88px;
+    gap: 8px;
+  }
+
+  .production-design__dealer-check-bar strong {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .production-design__dealer-check-bar div {
+    height: 96px;
+  }
+
+  .production-design__dealer-check-bar i {
+    width: 34px;
+  }
+
+  .production-design__dealer-check-bar span {
+    white-space: normal;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .production-design__dealer-growth {
+    padding: 14px 12px;
+  }
+
+  .production-design__dealer-growth > h3 {
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .production-design__dealer-growth-layout,
+  .production-design__dealer-growth-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .production-design__dealer-growth-card {
+    min-height: auto;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .production-design__dealer-growth-card span {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .production-design__dealer-growth-main > p {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .production-design__analytics-switcher {
+    padding: 18px 16px;
+  }
+
+  .production-design__analytics-tabs,
+  .production-design__analytics-metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .production-design__analytics-tabs button,
+  .production-design__analytics-metrics button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.25;
+  }
+
+  .production-design__analytics-chart {
+    margin-top: 18px;
+    padding-top: 0;
+  }
+
+  .production-design__analytics-scale,
+  .production-design__analytics-rows::before,
+  .production-design__analytics-rows::after {
+    display: none;
+  }
+
+  .production-design__analytics-rows {
+    gap: 12px;
+    padding-bottom: 0;
+  }
+
+  .production-design__analytics-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "label label"
+      "track value";
+    gap: 8px 10px;
+    align-items: center;
+  }
+
+  .production-design__analytics-row b {
+    grid-area: label;
+    font-size: 14px;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .production-design__analytics-row-track {
+    grid-area: track;
+    height: 18px;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .production-design__analytics-row-track i {
+    border-radius: 999px;
+  }
+
+  .production-design__analytics-row span {
+    grid-area: value;
+    font-size: 14px;
+    line-height: 1.2;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .production-design__analytics-axis-label {
+    margin-top: 12px;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+  }
+
+  .production-design__orders {
+    margin-top: 12px;
+    scroll-margin-top: 12px;
+  }
+
+  .production-design__orders > button,
+  .production-design__details > button {
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 20px;
+  }
+
+  .production-design__orders .production-design__panel-heading {
+    padding-right: 36px;
+  }
+
+  .production-design__orders .production-design__panel-heading h2 {
+    font-size: 24px;
+    line-height: 1.15;
+  }
+
+  .production-design__orders-caption {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .production-design__order-filters button {
+    min-height: 36px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+
+
+  .production-design__orders table {
+    display: none;
+  }
+
+  .production-design__orders-mobile-list {
+    display: block;
+    margin-top: 22px;
   }
 }
 
-body.dark-theme .production-page-shell {
-  color: #f5f3f1;
+@media (max-width: 420px) {
+  .production-design__filters {
+    grid-template-columns: 1fr;
+  }
+
+
+  .production-ring-card--figma .production-ring-card__figma-chart {
+    top: 40px;
+    width: 224px;
+    height: 224px;
+    left: 45%;
+  }
+
+  .production-design__return-button {
+    right: 86px;
+    bottom: 24px;
+  }
+
+  
+
+  .production-ring-card--figma .production-ring-card__figma-chart .donut-wrapper,
+  .production-ring-card--figma .production-ring-card__figma-chart > div,
+  .production-ring-card--figma .production-ring-card__figma-chart canvas,
+  .production-ring-card--figma .production-ring-card__figma-chart svg {
+    width: 264px !important;
+    height: 264px !important;
+  }
+
+  .production-design__return-button {
+    right: 85px;
+    bottom: 24px;
+
+  }
+
+  .production-ring-card--figma .donut-center-badge {
+    width: 96px;
+    height: 96px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric {
+    width: 102px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-title {
+    font-size: 11px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-value {
+    font-size: 21px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--in-time {
+    left: 12px;
+    top: 20px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--delayed {
+    right: 12px;
+    top: 20px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-metric--not-finished {
+    right: 12px;
+    bottom: 16px;
+    width: 118px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-line--left {
+    top: 50px;
+    left: 118px;
+    width: 30px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-line--delay-diagonal {
+    top: 76px;
+    right: 104px;
+    width: 30px;
+  }
+
+  .production-ring-card--figma .production-ring-card__figma-line--delay-horizontal {
+    top: 56px;
+    right: 94px;
+    width: 28px;
+  }
+
+  .production-design__dealer-gauges,
+  .production-design__analytics-tabs,
+  .production-design__analytics-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .production-design__panel,
+  .production-design__average-card,
+  .production-design__orders {
+    padding: 16px 12px;
+  }
+
+  .production-design__panel--profile-donut .donut-wrapper,
+  .production-design__panel--profile-donut .donut-wrapper canvas,
+  .production-design__panel--profile-donut .donut-wrapper svg {
+    height: 320px !important;
+  }
+
+  .production-design__panel--timeliness .recharts-responsive-container {
+    height: 300px !important;
+    min-height: 300px;
+  }
+
+  .production-design__abc-card {
+    padding: 16px 12px;
+  }
+
+  .production-design__dealer-check-bar {
+    width: calc(33.333% - 8px);
+    min-width: 72px;
+  }
+
+  .production-design__dealer-profit-card strong,
+  .production-design__dealer-profit-card--wide strong {
+    font-size: 18px;
+  }
+
+  .production-design__order-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .production-design__order-card-grid div.is-wide {
+    grid-column: auto;
+  }
 }
 
-body.dark-theme .production-page-hero {
-  background:
-    radial-gradient(circle at top left, rgba(144, 134, 132, 0.22), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(121, 126, 134, 0.22), transparent 28%),
-    linear-gradient(135deg, #4c4644 0%, #5f5c56 48%, #797e86 100%);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.16);
-}
-
-body.dark-theme .production-page-eyebrow,
-body.dark-theme .production-panel__eyebrow,
-body.dark-theme .production-average-card__eyebrow,
-body.dark-theme .production-filter span,
-body.dark-theme .production-kpi-card__label,
-body.dark-theme .production-kpi-card__hint,
-body.dark-theme .production-summary-card__label,
-body.dark-theme .production-summary-card__stats,
-body.dark-theme .production-chart-hint,
-body.dark-theme .production-delay-item__meta,
-body.dark-theme .production-table__subtitle,
-body.dark-theme .production-empty-inline,
-body.dark-theme .production-detail-caption {
-  color: #ddd8d3;
-}
-
-body.dark-theme .production-page-title,
-body.dark-theme .production-state-card h3,
-body.dark-theme .production-kpi-card__value,
-body.dark-theme .production-summary-card__main,
-body.dark-theme .production-summary-card__percent,
-body.dark-theme .production-panel__header h3,
-body.dark-theme .production-profile-row,
-body.dark-theme .production-profile-row__name,
-body.dark-theme .production-delay-item__title,
-body.dark-theme .production-table__title,
-body.dark-theme .production-detail-title {
-  color: #f5f3f1;
-}
-
-body.dark-theme .production-page-subtitle,
-body.dark-theme .production-state-card p,
-body.dark-theme .production-details-placeholder,
-body.dark-theme .production-table tbody td {
-  color: #ddd8d3;
-}
-
-body.dark-theme .production-state-card,
-body.dark-theme .production-panel,
-body.dark-theme .production-summary-card,
-body.dark-theme .production-kpi-card,
-body.dark-theme .production-profile-card,
-body.dark-theme .production-profile-list,
-body.dark-theme .production-fastest-group,
-body.dark-theme .production-fastest-item,
-body.dark-theme .production-delay-item,
-body.dark-theme .production-details-placeholder {
-  background: #333333;
-  border-color: #6e6963;
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.16);
-}
-
-body.dark-theme .production-panel--soft {
-  background: linear-gradient(180deg, #333333, rgba(121, 126, 134, 0.96));
-}
-
-body.dark-theme .production-average-card {
-  background:
-    radial-gradient(circle at top right, rgba(144, 134, 132, 0.36), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(121, 126, 134, 0.28), transparent 36%),
-    linear-gradient(150deg, #4c4644 0%, #5f5c56 55%, #797e86 120%);
-  color: #f5f3f1;
-}
-
-body.dark-theme .production-average-card__footer {
-  color: #ddd8d3;
-}
-
-body.dark-theme .production-kpi-card__icon,
-body.dark-theme .production-panel__badge,
-body.dark-theme .production-detail-close {
-  background: #797e86;
-  color: #f5f3f1;
-  border-color: #6e6963;
-}
-
-body.dark-theme .production-filter input,
-body.dark-theme .production-filter--dealer .dealer-select__control,
-body.dark-theme .production-chip {
-  background: #797e86;
-  border-color: #6e6963;
-  color: #f5f3f1;
-}
-
-body.dark-theme .production-filter input:focus,
-body.dark-theme .production-chip.is-active,
-body.dark-theme .production-filter-button {
-  border-color: var(--WS--DarkBlue);
-}
-
-body.dark-theme .production-filter-button,
-body.dark-theme .production-chip.is-active {
-  color: #f5f3f1;
-}
-
-body.dark-theme .production-filter-button {
-  background: linear-gradient(135deg, #2f5d52 0%, #1f4037 100%);
-  color: #f5f3f1;
-  box-shadow: 0 12px 24px rgba(31, 64, 55, 0.2);
-}
-
-body.dark-theme .production-chip.is-active {
-  background: var(--WS--DarkBlue);
-  box-shadow: none;
-}
-
-body.dark-theme .production-chip:hover {
-  background: rgba(43, 108, 176, 0.18);
-  color: #f5f3f1;
-  transform: none;
-}
-
-body.dark-theme .production-profile-list__head {
-  background: #797e86;
-  color: #f5f3f1;
-}
-
-body.dark-theme .production-profile-row,
-body.dark-theme .production-table tbody tr {
-  border-top-color: #6e6963;
-}
-
-body.dark-theme .production-summary-card__progress {
-  background: rgba(245, 243, 241, 0.16);
-}
-
-body.dark-theme .production-table thead th {
-  color: #ddd8d3;
-}
-
-body.dark-theme .production-stats-tooltip {
-  background: rgba(76, 70, 68, 0.94);
-  color: #f5f3f1;
-}
-
-body.dark-theme .production-stats-tooltip__row {
-  color: #ddd8d3;
-}
-
-body.dark-theme .production-page-shell .recharts-cartesian-axis-tick-value,
-body.dark-theme .production-page-shell .recharts-legend-item-text,
-body.dark-theme .production-page-shell .recharts-label,
-body.dark-theme .production-page-shell .recharts-text {
-  fill: #f5f3f1 !important;
-}
-
-/* Accent colors for analytics in the dark theme. */
-body.dark-theme .production-page-hero {
-  background:
-    radial-gradient(circle at top left, rgba(137, 179, 216, 0.3), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(205, 190, 245, 0.24), transparent 30%),
-    linear-gradient(135deg, #303b49 0%, #404653 48%, #4c4644 100%);
-}
-
-body.dark-theme .production-kpi-card {
-  background: linear-gradient(145deg, #454b54, #3d424a);
-  border-top: 4px solid #89b3d8;
-}
-
-body.dark-theme .production-kpi-card:nth-child(3) { border-top-color: #b4d947; }
-body.dark-theme .production-kpi-card:nth-child(4) { border-top-color: #e6b66f; }
-body.dark-theme .production-kpi-card:nth-child(5) { border-top-color: #ff7a5c; }
-
-body.dark-theme .production-summary-card {
-  background: linear-gradient(145deg, #444a53, var(--abc-soft-color));
-  border-color: var(--abc-color);
-}
-
-body.dark-theme .production-summary-card__badge,
-body.dark-theme .production-fastest-group__badge {
-  background: var(--abc-soft-color);
-  color: var(--abc-color);
-  border: 1px solid var(--abc-color);
-}
-
-body.dark-theme .production-panel--systems { border-top: 4px solid #89b3d8; }
-body.dark-theme .production-panel--category,
-body.dark-theme .production-panel--category-detail { border-top: 4px solid #cdbef5; }
-body.dark-theme .production-panel--table { border-top: 4px solid #e6b66f; }
-body.dark-theme .production-delay-item { border-left: 4px solid #ff7a5c; }
-
-/* The average-check card is deliberately green, not neutral gray. */
-body.dark-theme .production-average-card {
-  background:
-    radial-gradient(circle at top right, rgba(180, 217, 71, 0.2), transparent 30%),
-    radial-gradient(circle at bottom left, rgba(90, 160, 120, 0.2), transparent 38%),
-    linear-gradient(150deg, #17362e 0%, #205042 52%, #2c6651 120%);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
-}
-
-body.dark-theme .production-average-card::after { background: rgba(180, 217, 71, 0.1); }
-
-/* Separate cards and text in the "Fastest orders" groups. */
-body.dark-theme .production-fastest-group {
-  background: linear-gradient(145deg, #34443d 0%, #2b3933 100%);
-  border-color: #527060;
-  box-shadow: none;
-}
-
-body.dark-theme .production-fastest-item {
-  background: #1f2d27;
-  border-color: #496355;
-  box-shadow: none;
-}
-
-body.dark-theme .production-fastest-item .production-delay-item__title { color: #f5f3f1; }
-body.dark-theme .production-fastest-item .production-delay-item__meta { color: #c4d4c7; }
-body.dark-theme .production-fastest-item__value { color: #b4d947; font-size: 17px; }
-body.dark-theme .production-fastest-group__badge {
-  background-color: #202d28;
-  box-shadow: inset 0 0 0 1px var(--abc-color);
+@media (max-width: 530px) {
+  .production-design__summary-stack {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+  }
 }

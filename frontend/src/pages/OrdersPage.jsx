@@ -155,18 +155,52 @@ const PortalOriginal = () => {
     setLimit(ITEMS_PER_LOAD);
   }, []);
 
-  const handleDateFilterModeChange = useCallback((mode) => {
-    setDateFilterMode(mode);
+  const handleDateFilterModeChange = useCallback(
+    (mode) => {
+      setDateFilterMode((previousMode) => {
+        if (previousMode === mode) {
+          return previousMode;
+        }
 
-    if (mode === "period") {
-      setFilter((previous) => ({
-        ...previous,
-        month: 0,
-      }));
+        if (mode === "period") {
+          setFilter((previous) => ({
+            ...previous,
+            month: 0,
+          }));
 
-      setLimit(ITEMS_PER_LOAD);
-    }
-  }, []);
+          setLimit(ITEMS_PER_LOAD);
+          return mode;
+        }
+
+        if (previousMode === "period" && mode === "year") {
+          setAppliedDateFilter((previous) => {
+            const nextFilter = {
+              mode: "year",
+              year: selectedYear,
+              dateFrom: `${selectedYear}-01-01`,
+              dateTo: `${selectedYear}-12-31`,
+            };
+
+            const isSameFilter =
+              previous.mode === nextFilter.mode &&
+              previous.year === nextFilter.year &&
+              previous.dateFrom === nextFilter.dateFrom &&
+              previous.dateTo === nextFilter.dateTo;
+
+            return isSameFilter ? previous : nextFilter;
+          });
+
+          setExpandedCalc(null);
+          setExpandedOrder(null);
+          resetLocalMonthFilter();
+          setError(null);
+        }
+
+        return mode;
+      });
+    },
+    [resetLocalMonthFilter, selectedYear],
+  );
 
   const handleYearChange = useCallback((event) => {
     setSelectedYear(event.target.value);
@@ -581,7 +615,14 @@ const PortalOriginal = () => {
       return;
     }
 
+    const matchedOrder = (foundCalculation.orders || []).find((order) =>
+      String(order.number || "")
+        .toLowerCase()
+        .includes(normalizedSearch),
+    );
+
     setExpandedCalc(foundCalculation.id);
+    setExpandedOrder(matchedOrder?.idGuid || matchedOrder?.number || null);
 
     navigate(location.pathname, {
       replace: true,
@@ -767,6 +808,46 @@ const PortalOriginal = () => {
     () => fullFiltered.slice(0, limit),
     [fullFiltered, limit],
   );
+
+  useEffect(() => {
+    const normalizedSearch = filter.name?.toLowerCase().trim();
+
+    if (!normalizedSearch) {
+      return;
+    }
+
+    const matchedCalculation = fullFiltered.find((calc) =>
+      Array.isArray(calc.orders) &&
+      calc.orders.some((order) =>
+        String(order.number || "")
+          .toLowerCase()
+          .includes(normalizedSearch),
+      ),
+    );
+
+    if (!matchedCalculation) {
+      return;
+    }
+
+    const matchedOrder = (matchedCalculation.orders || []).find((order) =>
+      String(order.number || "")
+        .toLowerCase()
+        .includes(normalizedSearch),
+    );
+
+    const orderKey = matchedOrder?.idGuid || matchedOrder?.number || null;
+
+    setExpandedCalc((previous) =>
+      previous === matchedCalculation.id ? previous : matchedCalculation.id,
+    );
+
+    if (orderKey) {
+      setExpandedOrder((previous) =>
+        previous === orderKey ? previous : orderKey,
+      );
+    }
+  }, [filter.name, fullFiltered]);
+
 
   const hasMore = limit < totalFilteredCount;
 

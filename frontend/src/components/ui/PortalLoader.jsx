@@ -13,7 +13,7 @@ export default function PortalLoader() {
 
       {/* === CONTENT === */}
       <motion.div
-        className=" column align-center gap-7"
+        className="portal-loader-content column align-center gap-7"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.25 }}

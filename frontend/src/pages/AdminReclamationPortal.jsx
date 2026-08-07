@@ -872,6 +872,7 @@ const AdminReclamationPortal = () => {
         isOpen={isNewReclamationModalOpen}
         onClose={() => setIsNewReclamationModalOpen(false)}
         onSave={() => setIsNewReclamationModalOpen(false)}
+        initialContractorGuid={dealerGuid !== ALL_DEALERS_VALUE ? dealerGuid : ""}
       />
       </div>
     </div>

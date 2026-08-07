@@ -1,20 +1,345 @@
-.orders-report { min-height: calc(100vh - 90px); padding: 32px 24px; background: #f4f7fa; }
-.orders-report__panel { max-width: 1180px; margin: 0 auto; padding: 32px; border-radius: 20px; background: #fff; box-shadow: 0 10px 35px rgba(29, 68, 97, .1); }
-.orders-report__heading, .orders-report__filters, .orders-report__cards { display: flex; }
-.orders-report__heading { justify-content: space-between; gap: 24px; align-items: flex-start; }
-.orders-report h1 { margin: 0; color: #1c496a; font-size: 30px; }
-.orders-report p { color: #64748b; }
-.orders-report__total { min-width: 150px; padding: 14px 18px; text-align: right; border-radius: 12px; background: #eaf3f9; color: #376984; }
-.orders-report__total span, .orders-report__card span { display: block; font-size: 14px; font-weight: 600; }
-.orders-report__total strong { font-size: 32px; }
-.orders-report__filters { flex-wrap: wrap; align-items: end; gap: 16px; margin: 32px 0; padding: 20px; border-radius: 12px; background: #f8fafc; }
-.orders-report__filters label { display: grid; gap: 6px; color: #475569; font-size: 14px; font-weight: 600; }
-.orders-report__filters input { padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; color: #1e293b; }
-.orders-report__filters button { padding: 11px 18px; border: 0; border-radius: 8px; background: #2d789e; color: #fff; font-weight: 700; cursor: pointer; }
-.orders-report__filters button:disabled { cursor: wait; opacity: .7; }
-.orders-report__cards { gap: 18px; }
-.orders-report__card { flex: 1; min-height: 190px; padding: 24px; border-radius: 16px; color: #fff; }
-.orders-report__card strong { display: block; margin: 18px 0 10px; font-size: 48px; line-height: 1; }
-.orders-report__card p { margin: 0; color: inherit; opacity: .9; }
-.orders-report__card--new { background: #3c8ab2; }.orders-report__card--confirmation { background: #d48b2a; }.orders-report__card--payment { background: #b55b58; }.orders-report__error { color: #b42318; font-weight: 600; }
-@media (max-width: 720px) { .orders-report { padding: 16px; }.orders-report__panel { padding: 22px; }.orders-report__heading, .orders-report__cards { flex-direction: column; }.orders-report__total { width: 100%; text-align: left; }.orders-report__filters label, .orders-report__filters input, .orders-report__filters button { width: 100%; } }
+.orders-report {
+  min-height: calc(100vh - 90px);
+  padding: 32px 24px;
+  background: #f4f7fa;
+}
+
+.orders-report__panel {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 35px rgba(29, 68, 97, 0.1);
+}
+
+.orders-report__heading,
+.orders-report__filters,
+.orders-report__cards {
+  display: flex;
+}
+
+.orders-report__heading {
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.orders-report h1 {
+  margin: 0;
+  color: #1c496a;
+  font-size: 30px;
+}
+
+.orders-report p {
+  color: #64748b;
+}
+
+.orders-report__total {
+  min-width: 150px;
+  padding: 14px 18px;
+  text-align: right;
+  border-radius: 12px;
+  background: #eaf3f9;
+  color: #376984;
+}
+
+.orders-report__total span,
+.orders-report__card span {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.orders-report__total strong {
+  font-size: 32px;
+}
+
+.orders-report__filters {
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin: 32px 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.orders-report__filters label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.orders-report__filters input {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #1e293b;
+}
+
+.orders-report__filters button {
+  padding: 11px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #2d789e;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.orders-report__filters button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.orders-report__cards {
+  gap: 18px;
+}
+
+.orders-report__card {
+  flex: 1;
+  min-height: 190px;
+  padding: 24px;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, outline-color 0.2s ease;
+}
+
+.orders-report__card:hover {
+  transform: translateY(-2px);
+}
+
+.orders-report__card.is-active {
+  outline: 3px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 18px 34px rgba(29, 68, 97, 0.18);
+}
+
+.orders-report__card strong {
+  display: block;
+  margin: 18px 0 10px;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.orders-report__card p {
+  margin: 0;
+  color: inherit;
+  opacity: 0.9;
+}
+
+.orders-report__card--new {
+  background: #3c8ab2;
+}
+
+.orders-report__card--confirmation {
+  background: #d48b2a;
+}
+
+.orders-report__card--payment {
+  background: #b55b58;
+}
+
+.orders-report__error {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.orders-report__visuals {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 22px;
+  margin-top: 28px;
+}
+
+.orders-report__chart-panel,
+.orders-report__details-panel {
+  padding: 24px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid #dbe7f0;
+}
+
+.orders-report__chart-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.orders-report__chart-heading h2 {
+  margin: 0;
+  color: #1c496a;
+  font-size: 22px;
+}
+
+.orders-report__chart-heading p {
+  margin: 8px 0 0;
+}
+
+.orders-report__chart-wrap {
+  height: 320px;
+}
+
+.orders-report__legend {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.orders-report__legend-item {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dbe7f0;
+  border-radius: 12px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.orders-report__legend-item:hover {
+  transform: translateY(-1px);
+}
+
+.orders-report__legend-item.is-active {
+  border-color: #2d789e;
+  background: #eef7fc;
+}
+
+.orders-report__legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+}
+
+.orders-report__legend-item span,
+.orders-report__legend-item strong {
+  color: #1e293b;
+}
+
+.orders-report__details-total {
+  min-width: 120px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #dbe7f0;
+  text-align: right;
+}
+
+.orders-report__details-total span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.orders-report__details-total strong {
+  display: block;
+  margin-top: 4px;
+  color: #1c496a;
+  font-size: 28px;
+}
+
+.orders-report__table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #dbe7f0;
+}
+
+.orders-report__table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-report__table-wrap th,
+.orders-report__table-wrap td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e6edf3;
+  text-align: left;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.orders-report__table-wrap th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.orders-report__table-wrap tr:last-child td {
+  border-bottom: 0;
+}
+
+.orders-report__table-wrap a {
+  color: #2d789e;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.orders-report__table-wrap a:hover {
+  text-decoration: underline;
+}
+
+.orders-report__age {
+  white-space: nowrap;
+  color: #b55b58;
+  font-weight: 700;
+}
+
+@media (max-width: 960px) {
+  .orders-report__visuals {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .orders-report {
+    padding: 16px;
+  }
+
+  .orders-report__panel {
+    padding: 22px;
+  }
+
+  .orders-report__heading,
+  .orders-report__cards,
+  .orders-report__chart-heading {
+    flex-direction: column;
+  }
+
+  .orders-report__total,
+  .orders-report__details-total {
+    width: 100%;
+    text-align: left;
+  }
+
+  .orders-report__filters label,
+  .orders-report__filters input,
+  .orders-report__filters button {
+    width: 100%;
+  }
+
+  .orders-report__card {
+    min-height: auto;
+  }
+
+  .orders-report__card strong {
+    font-size: 40px;
+  }
+}

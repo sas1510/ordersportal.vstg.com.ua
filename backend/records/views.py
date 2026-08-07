@@ -5,6 +5,7 @@ import base64
 import time
 import collections
 import mimetypes
+from django.urls import path
 import requests
 import smbclient
 from datetime import datetime, timezone
@@ -36,6 +37,7 @@ from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiTypes, 
     inline_serializer, OpenApiResponse, OpenApiExample
 )
+
 
 from users.models import CustomUser
 from .models import ChatMessage, TransactionType
@@ -5248,6 +5250,320 @@ def _normalize_construction_portfolio_row(row):
     }
 
 
+def _portal_row_value(row, *keys):
+    for key in keys:
+        if key in row and row.get(key) is not None:
+            return row.get(key)
+    return None
+
+
+def _normalize_portal_contractor_guid(value):
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            return str(bin_to_guid_1c(bytes(value))).lower()
+        except Exception:
+            return None
+    return _normalize_guid_text(value)
+
+
+def _portal_value_or_none(value):
+    if value in (None, "", 0, 0.0):
+        return None
+    return value
+
+
+def _drop_empty_portal_metrics(payload):
+    return {
+        key: value
+        for key, value in payload.items()
+        if value not in (None, "", 0, 0.0)
+    }
+
+
+def _normalize_portal_region_name(value):
+    region_name = str(value or "").strip()
+    if not region_name:
+        return "Не визначено"
+
+    normalized_name = region_name.upper()
+    if "РУТА МАГАЗИН" in normalized_name:
+        return "Чернівецька область"
+
+    return region_name
+
+
+def _normalize_portal_comparison_metric_row(row):
+    base_payload = {
+        "contractor_guid": _normalize_portal_contractor_guid(_portal_row_value(row, "ContractorGuid")),
+        "dealer_name": row.get("DealerName") or None,
+        "region_name": _normalize_portal_region_name(row.get("RegionName")),
+        "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(row, "OrdersCount"))),
+        "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(row, "TotalTurnover", "TurnoverAmount"))),
+        "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck"))),
+        "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(row, "TotalConstructions"))),
+        "turnover_rank": _safe_int(_portal_row_value(row, "TurnoverRank")),
+        "avg_check_rank": _portal_value_or_none(_safe_int(_portal_row_value(row, "AvgCheckRank", "AverageCheckRank"))),
+        "region_turnover_rank": _portal_value_or_none(_safe_int(_portal_row_value(row, "RegionTurnoverRank"))),
+        "dealers_total": _portal_value_or_none(_safe_int(_portal_row_value(row, "DealersTotal"))),
+        "region_dealers_total": _portal_value_or_none(_safe_int(_portal_row_value(row, "RegionDealersTotal"))),
+        "potential_turnover_global": _portal_value_or_none(_safe_float(_portal_row_value(row, "PotentialTurnoverGlobal", "PotentialToTopTurnover"))),
+        "potential_gain_global": _portal_value_or_none(_safe_float(row.get("PotentialGainGlobal"))),
+        "potential_turnover_region": _portal_value_or_none(_safe_float(_portal_row_value(row, "PotentialTurnoverRegion", "PotentialToRegionTopTurnover"))),
+        "potential_gain_region": _portal_value_or_none(_safe_float(row.get("PotentialGainRegion"))),
+    }
+    return _drop_empty_portal_metrics(base_payload)
+
+
+def _normalize_portal_comparison_region_row(row):
+    base_payload = {
+        "region_name": _normalize_portal_region_name(row.get("RegionName")),
+        "dealers_count": _portal_value_or_none(_safe_int(_portal_row_value(row, "DealersCount"))),
+        "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(row, "OrdersCount"))),
+        "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(row, "TotalConstructions"))),
+        "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(row, "TotalTurnover", "TurnoverAmount"))),
+        "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck"))),
+    }
+    return _drop_empty_portal_metrics(base_payload)
+
+
+def _recalculate_selected_portal_ranks(selected_row, leaderboard_rows):
+    if not selected_row:
+        return {}
+
+    selected_guid = _normalize_portal_contractor_guid(_portal_row_value(selected_row, "ContractorGuid"))
+    selected_region = _normalize_portal_region_name(selected_row.get("RegionName")) if selected_row.get("RegionName") else ""
+    if not selected_guid:
+        return {}
+
+    ranked_rows = []
+    for row in leaderboard_rows or []:
+        contractor_guid = _normalize_portal_contractor_guid(_portal_row_value(row, "ContractorGuid"))
+        turnover = _safe_float(_portal_row_value(row, "TotalTurnover", "TurnoverAmount"))
+        if not contractor_guid or turnover <= 0:
+            continue
+        ranked_rows.append({
+            "contractor_guid": contractor_guid,
+            "region_name": _normalize_portal_region_name(row.get("RegionName")) if row.get("RegionName") else "",
+            "turnover": turnover,
+        })
+
+    ranked_rows.sort(key=lambda item: (-item["turnover"], item["contractor_guid"]))
+
+    turnover_rank = None
+    dealers_total = len(ranked_rows)
+    for index, item in enumerate(ranked_rows, start=1):
+        if item["contractor_guid"] == selected_guid:
+            turnover_rank = index
+            break
+
+    region_rows = [
+        item for item in ranked_rows
+        if selected_region and item["region_name"] == selected_region
+    ]
+    region_turnover_rank = None
+    region_dealers_total = len(region_rows)
+    for index, item in enumerate(region_rows, start=1):
+        if item["contractor_guid"] == selected_guid:
+            region_turnover_rank = index
+            break
+
+    return _drop_empty_portal_metrics({
+        "turnover_rank": turnover_rank,
+        "dealers_total": dealers_total,
+        "region_turnover_rank": region_turnover_rank,
+        "region_dealers_total": region_dealers_total,
+    })
+
+
+def _normalize_portal_user_guid(value):
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        try:
+            return str(bin_to_guid_1c(bytes(value))).lower()
+        except Exception:
+            return None
+    return _normalize_guid_text(value)
+
+
+def _fetch_accessible_portal_dealers(requester_user_id):
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            EXEC dbo.GetDealerPortalUsers_2
+                @RequesterUserID = %s
+            """,
+            [requester_user_id],
+        )
+        rows = _dictfetchall(cursor)
+
+    normalized = []
+    for row in rows:
+        contractor_guid = _normalize_portal_user_guid(row.get("ContractorID"))
+        if not contractor_guid:
+            continue
+        normalized.append({
+            "contractor_guid": contractor_guid,
+            "dealer_name": row.get("ContractorName") or row.get("DealerName") or "Без назви",
+            "main_manager_guid": _normalize_portal_user_guid(row.get("MainManagerID")),
+            "main_manager_name": row.get("MainManagerName") or row.get("ManagerName") or None,
+        })
+    return normalized
+
+
+def _fetch_portal_comparison_result(date_from, date_to, contractor_bin):
+    with connections["default"].cursor() as cursor:
+        cursor.execute(
+            """
+            SET ANSI_WARNINGS OFF;
+            EXEC [dbo].[GetPortalDealerComparisonAnalytics]
+                @StartDate = %s,
+                @EndDate = %s,
+                @Contractor_ID = %s
+            """,
+            [date_from, date_to, contractor_bin],
+        )
+        totals_rows = _dictfetchall(cursor)
+        selected_rows = _dictfetchall(cursor) if cursor.nextset() else []
+        leaderboard_rows = _dictfetchall(cursor) if cursor.nextset() else []
+        region_rows = _dictfetchall(cursor) if cursor.nextset() else []
+    return totals_rows, selected_rows, leaderboard_rows, region_rows
+
+
+def _fetch_accessible_portal_reports_result(requester_user_id, date_from, date_to):
+    with connections["default"].cursor() as cursor:
+        cursor.execute(
+            """
+            SET ANSI_WARNINGS OFF;
+            EXEC [dbo].[GetPortalAccessibleDealerReports]
+                @RequesterUserID = %s,
+                @StartDate = %s,
+                @EndDate = %s
+            """,
+            [requester_user_id, date_from, date_to],
+        )
+        totals_rows = _dictfetchall(cursor)
+        dealer_rows = _dictfetchall(cursor) if cursor.nextset() else []
+        region_rows = _dictfetchall(cursor) if cursor.nextset() else []
+    return totals_rows, dealer_rows, region_rows
+
+
+def _build_accessible_dealer_reports(requester_user_id, date_from, date_to):
+    totals_rows, dealer_source_rows, region_source_rows = _fetch_accessible_portal_reports_result(
+        requester_user_id,
+        date_from,
+        date_to,
+    )
+
+    totals_row = totals_rows[0] if totals_rows else {}
+    dealers = []
+    for row in dealer_source_rows:
+        normalized = _normalize_portal_comparison_metric_row(row)
+        normalized["main_manager_guid"] = _normalize_portal_user_guid(row.get("MainManagerID"))
+        normalized["main_manager_name"] = row.get("MainManagerName") or row.get("ManagerName") or None
+        if normalized.get("contractor_guid"):
+            dealers.append(normalized)
+
+    dealers.sort(
+        key=lambda item: (
+            _safe_int(item.get("turnover_rank")) or 10**9,
+            -_safe_float(item.get("total_turnover")),
+            item.get("dealer_name") or "",
+        )
+    )
+
+    regions = [
+        item
+        for item in (_normalize_portal_comparison_region_row(row) for row in region_source_rows)
+        if item.get("region_name")
+    ]
+    regions.sort(
+        key=lambda item: (
+            -_safe_float(item.get("total_turnover")),
+            -_safe_int(item.get("orders_count")),
+            item.get("region_name") or "",
+        )
+    )
+
+    totals = _drop_empty_portal_metrics({
+        "dealers_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "DealersCount", "dealers_count"))),
+        "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "OrdersCount", "orders_count"))),
+        "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "TotalConstructions", "total_constructions"))),
+        "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TurnoverAmount", "TotalTurnover", "turnover_amount"))),
+        "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "AverageCheck", "AvgCheck", "average_check"))),
+        "top_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TopTurnover", "top_turnover"))),
+        "top_average_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TopAverageCheck", "top_average_check"))),
+    })
+
+    top_dealers = dealers[:10]
+    top_regions = regions[:10]
+    insights = {
+        "top_region_name": top_regions[0].get("region_name") if top_regions else None,
+        "top_region_turnover": top_regions[0].get("total_turnover") if top_regions else None,
+        "top_region_avg_check": top_regions[0].get("avg_check") if top_regions else None,
+    }
+
+    return {
+        "totals": totals,
+        "dealers": dealers,
+        "top_dealers": top_dealers,
+        "regions": top_regions,
+        "insights": insights,
+    }
+
+
+def _build_portal_comparison_insights(selected_row, leaderboard_rows, region_rows):
+    selected_turnover = _safe_float(_portal_row_value((selected_row or {}), "TotalTurnover", "TurnoverAmount"))
+    selected_region = _normalize_portal_region_name((selected_row or {}).get("RegionName")) if (selected_row or {}).get("RegionName") else None
+    selected_name = (selected_row or {}).get("DealerName") or None
+
+    dealer_rows = [row for row in leaderboard_rows if _safe_float(_portal_row_value(row, "TotalTurnover", "TurnoverAmount")) > 0]
+    dealer_avg_rows = [row for row in leaderboard_rows if _safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck")) > 0]
+    region_turnover_rows = [row for row in region_rows if _safe_float(_portal_row_value(row, "TotalTurnover", "TurnoverAmount")) > 0]
+    region_avg_rows = [row for row in region_rows if _safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck")) > 0]
+    dealer_order_rows = [row for row in leaderboard_rows if _safe_int(row.get("OrdersCount")) > 0]
+    region_order_rows = [row for row in region_rows if _safe_int(row.get("OrdersCount")) > 0]
+
+    top_turnover_dealer = dealer_rows[0] if dealer_rows else None
+    top_avg_dealer = max(dealer_avg_rows, key=lambda row: _safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck")), default=None)
+    top_turnover_region = region_turnover_rows[0] if region_turnover_rows else None
+    top_avg_region = max(region_avg_rows, key=lambda row: _safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck")), default=None)
+    top_orders_dealer = max(dealer_order_rows, key=lambda row: _safe_int(row.get("OrdersCount")), default=None)
+    top_orders_region = max(region_order_rows, key=lambda row: _safe_int(row.get("OrdersCount")), default=None)
+
+    top_turnover_value = _safe_float(_portal_row_value((top_turnover_dealer or {}), "TotalTurnover", "TurnoverAmount"))
+    extra_profit_vs_top = round(max(top_turnover_value - selected_turnover, 0) * 0.2, 2) if top_turnover_value > 0 else None
+
+    region_top_row = next(
+        (row for row in region_turnover_rows if (_normalize_portal_region_name(row.get("RegionName")) if row.get("RegionName") else None) == selected_region),
+        None,
+    )
+    region_top_value = _safe_float(_portal_row_value((region_top_row or {}), "TotalTurnover", "TurnoverAmount"))
+    extra_profit_vs_region = round(max(region_top_value - selected_turnover, 0) * 0.2, 2) if region_top_value > 0 else None
+
+    return {
+        "selected_dealer_name": selected_name,
+        "selected_region_name": selected_region,
+        "turnover_data_available": bool(dealer_rows or region_turnover_rows),
+        "avg_check_data_available": bool(dealer_avg_rows or region_avg_rows),
+        "top_turnover_dealer_name": (top_turnover_dealer or {}).get("DealerName") or None,
+        "top_turnover_dealer_region": _normalize_portal_region_name((top_turnover_dealer or {}).get("RegionName")) if (top_turnover_dealer or {}).get("RegionName") else None,
+        "top_turnover_dealer_value": _portal_value_or_none(top_turnover_value),
+        "top_avg_check_dealer_name": (top_avg_dealer or {}).get("DealerName") or None,
+        "top_avg_check_dealer_region": _normalize_portal_region_name((top_avg_dealer or {}).get("RegionName")) if (top_avg_dealer or {}).get("RegionName") else None,
+        "top_avg_check_value": _portal_value_or_none(_safe_float(_portal_row_value((top_avg_dealer or {}), "AvgCheck", "AverageCheck"))),
+        "top_turnover_region_name": _normalize_portal_region_name((top_turnover_region or {}).get("RegionName")) if (top_turnover_region or {}).get("RegionName") else None,
+        "top_turnover_region_value": _portal_value_or_none(_safe_float(_portal_row_value((top_turnover_region or {}), "TotalTurnover", "TurnoverAmount"))),
+        "top_avg_check_region_name": _normalize_portal_region_name((top_avg_region or {}).get("RegionName")) if (top_avg_region or {}).get("RegionName") else None,
+        "top_avg_check_region_value": _portal_value_or_none(_safe_float(_portal_row_value((top_avg_region or {}), "AvgCheck", "AverageCheck"))),
+        "top_orders_dealer_name": (top_orders_dealer or {}).get("DealerName") or None,
+        "top_orders_dealer_region": _normalize_portal_region_name((top_orders_dealer or {}).get("RegionName")) if (top_orders_dealer or {}).get("RegionName") else None,
+        "top_orders_dealer_count": _portal_value_or_none(_safe_int((top_orders_dealer or {}).get("OrdersCount"))),
+        "top_orders_region_name": _normalize_portal_region_name((top_orders_region or {}).get("RegionName")) if (top_orders_region or {}).get("RegionName") else None,
+        "top_orders_region_count": _portal_value_or_none(_safe_int((top_orders_region or {}).get("OrdersCount"))),
+        "extra_profit_vs_top_20": _portal_value_or_none(extra_profit_vs_top),
+        "extra_profit_vs_region_20": _portal_value_or_none(extra_profit_vs_region),
+    }
+
+
 class ProductionTimelinessByContractorView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -5534,6 +5850,179 @@ class ProductionUnifiedAnalyticsView(APIView):
                         else None
                     ),
                 },
+            }
+        )
+
+
+class PortalDealerComparisonAnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            contractor_bin, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager"),
+            )
+        except (ValueError, PermissionError) as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        date_from_raw = request.GET.get("date_from")
+        date_to_raw = request.GET.get("date_to")
+
+        if not date_from_raw or not date_to_raw:
+            return Response(
+                {"detail": "date_from and date_to are required"},
+                status=400,
+            )
+
+        try:
+            date_from = parse_date(date_from_raw, "date_from")
+            date_to = parse_date(date_to_raw, "date_to")
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        if date_from > date_to:
+            return Response(
+                {"detail": "date_from must be less than or equal to date_to"},
+                status=400,
+            )
+
+        try:
+            with connections["default"].cursor() as cursor:
+                cursor.execute(
+                    """
+                    SET ANSI_WARNINGS OFF;
+                    EXEC [dbo].[GetPortalDealerComparisonAnalytics]
+                        @StartDate = %s,
+                        @EndDate = %s,
+                        @Contractor_ID = %s
+                    """,
+                    [date_from, date_to, contractor_bin],
+                )
+                totals_rows = _dictfetchall(cursor)
+                selected_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                leaderboard_rows = _dictfetchall(cursor) if cursor.nextset() else []
+                region_rows = _dictfetchall(cursor) if cursor.nextset() else []
+        except DatabaseError as exc:
+            error_msg = str(exc)
+            if "927" in error_msg or "процессе восстановления" in error_msg.lower():
+                return Response(
+                    {
+                        "error": "database_recovery",
+                        "detail": "База даних оновлюється. Спробуйте через 3 хвилини.",
+                    },
+                    status=503,
+                )
+
+            return Response(
+                {
+                    "detail": "Помилка при зверненні до бази даних. Спробуйте пізніше.",
+                },
+                status=500,
+            )
+
+        totals_row = totals_rows[0] if totals_rows else {}
+        totals = _drop_empty_portal_metrics(
+            {
+                "dealers_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "DealersCount", "dealers_count"))),
+                "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "OrdersCount", "orders_count"))),
+                "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "TotalConstructions"))),
+                "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TotalTurnover", "TurnoverAmount"))),
+            }
+        )
+
+        selected_source_row = selected_rows[0] if selected_rows else None
+        selected_dealer = (
+            _normalize_portal_comparison_metric_row(selected_source_row)
+            if selected_source_row
+            else None
+        )
+        if selected_dealer and selected_source_row:
+            selected_dealer.update(
+                _recalculate_selected_portal_ranks(selected_source_row, leaderboard_rows)
+            )
+        leaderboard = [
+            item
+            for item in (
+                _normalize_portal_comparison_metric_row(row)
+                for row in leaderboard_rows
+            )
+            if item.get("total_turnover") or item.get("avg_check") or item.get("orders_count")
+        ]
+        regions = [
+            item
+            for item in (
+                _normalize_portal_comparison_region_row(row)
+                for row in region_rows
+            )
+            if item.get("total_turnover") or item.get("avg_check") or item.get("orders_count")
+        ]
+        insights = _build_portal_comparison_insights(
+            selected_source_row,
+            leaderboard_rows,
+            region_rows,
+        )
+
+        return Response(
+            {
+                "contractor_guid": contractor_guid,
+                "period": {
+                    "from": date_from.isoformat(),
+                    "to": date_to.isoformat(),
+                },
+                "totals": totals,
+                "selected_dealer": selected_dealer,
+                "leaderboard": leaderboard,
+                "regions": regions,
+                "insights": insights,
+            }
+        )
+
+
+class PortalAccessibleDealerReportsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        role = getattr(request.user, "role", "")
+        if role not in ("admin", "director", "manager", "region_manager"):
+            return Response({"detail": "Недостатньо прав для перегляду звітів."}, status=403)
+
+        date_from_raw = request.GET.get("date_from")
+        date_to_raw = request.GET.get("date_to")
+
+        if not date_from_raw or not date_to_raw:
+            return Response({"detail": "date_from and date_to are required"}, status=400)
+
+        try:
+            date_from = parse_date(date_from_raw, "date_from")
+            date_to = parse_date(date_to_raw, "date_to")
+        except ValueError as exc:
+            return Response({"detail": str(exc)}, status=400)
+
+        if date_from > date_to:
+            return Response({"detail": "date_from must be less than or equal to date_to"}, status=400)
+
+        try:
+            payload = _build_accessible_dealer_reports(request.user.id, date_from, date_to)
+        except DatabaseError as exc:
+            error_msg = str(exc)
+            if "927" in error_msg or "процессе восстановления" in error_msg.lower():
+                return Response(
+                    {
+                        "error": "database_recovery",
+                        "detail": "База даних оновлюється. Спробуйте через 3 хвилини.",
+                    },
+                    status=503,
+                )
+            return Response({"detail": "Помилка при зверненні до бази даних. Спробуйте пізніше."}, status=500)
+
+        return Response(
+            {
+                "period": {"from": date_from.isoformat(), "to": date_to.isoformat()},
+                "scope_role": role,
+                **payload,
             }
         )
 
@@ -7430,3 +7919,48 @@ def mark_support_chat_as_read(request):
         "chatId": chat_id,
         "updatedCount": updated_count,
     })
+
+
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+
+
+
+@api_view(["GET"])
+def get_all_manager_list(request):
+    try:
+        managers = list(
+            CustomUser.objects.filter(
+                is_active=True,
+                role__in=["manager", "region_manager"],
+            ).values(
+                "id",
+                "username",
+                "full_name",
+                "email",
+                "phone_number",
+                "role",
+            )
+        )
+
+        return Response(
+            {
+                "success": True,
+                "managers": managers,
+            },
+            status=200,
+        )
+
+    except Exception:
+        logger.exception("Error in get_all_manager_list")
+
+        return Response(
+            {
+                "success": False,
+                "error": "Внутрішня помилка сервера",
+            },
+            status=500,
+        )

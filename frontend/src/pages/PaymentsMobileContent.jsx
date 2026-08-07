@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 export default function PaymentsMobileContent({
   filteredOrders,
   openPaymentModal,
+  openFilesModal,
   formatCurrency,
   normalizeStatus,
   translateStatus,
@@ -33,7 +34,16 @@ export default function PaymentsMobileContent({
               {/* Блок 1: Хедер (Номер, Дата та Статус) */}
               <div className="mobile-card-section info-section">
                 <div className="order-meta">
-                  <div className="pp-num">№ {o.OrderNumber}</div>
+                  <button
+                    type="button"
+                    className="pp-num-block pp-num-trigger"
+                    onClick={(event) => openFilesModal(o, event)}
+                  >
+                    <div className="pp-num">No. {String(o.OrderNumber || "").trim()}</div>
+                    {String(o.BaseDocumentNumber || "").trim() && (
+                      <div className="pp-base-doc-num">Base: {String(o.BaseDocumentNumber || "").trim()}</div>
+                    )}
+                  </button>
                   <div className="pp-date">
                     {o.OrderDate ? formatDateHuman(o.OrderDate.slice(0, 10), i18n.language) : "—"}
                   </div>

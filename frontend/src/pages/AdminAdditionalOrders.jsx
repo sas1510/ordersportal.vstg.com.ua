@@ -822,6 +822,7 @@ const AdminAdditionalOrders = () => {
         isOpen={isNewOrderModalOpen}
         onClose={() => setIsNewOrderModalOpen(false)}
         onSave={handleSaveAdditionalOrder}
+        initialContractorGuid={dealerGuid !== ALL_DEALERS_VALUE ? dealerGuid : ""}
       />
       </div>
     </div>

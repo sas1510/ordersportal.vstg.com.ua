@@ -2,12 +2,16 @@
 
 from django.urls import path
 from . import views  # Переконайтеся, що імпорт коректний
-from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number
-from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number, get_all_manager_list
+from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView, PortalDealerComparisonAnalyticsView, PortalAccessibleDealerReportsView
 
 
 from django.urls import path
 from .views import PortalManagerReportView
+from .telegram_bot_views import (
+    telegram_bot_link, telegram_bot_menu, telegram_bot_orders,
+    telegram_bot_daily_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key,
+)
 
 
 create_calculation = CreateCalculationViewSet.as_view({
@@ -16,6 +20,13 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 
 urlpatterns = [
+    path('telegram-bot/admin/key/', telegram_bot_admin_key, name='telegram_bot_admin_key'),
+    path('telegram-bot/link/', telegram_bot_link, name='telegram_bot_link'),
+    path('telegram-bot/menu/', telegram_bot_menu, name='telegram_bot_menu'),
+    path('telegram-bot/orders/', telegram_bot_orders, name='telegram_bot_orders'),
+    path('telegram-bot/daily-report/', telegram_bot_daily_report, name='telegram_bot_daily_report'),
+    path('telegram-bot/daily-recipients/', telegram_bot_daily_recipients, name='telegram_bot_daily_recipients'),
+    path('telegram-bot/orders/confirm/', telegram_bot_confirm_order, name='telegram_bot_confirm_order'),
     # Визначаємо URL для виклику функції complaints_view
     path('complaints/get_reclamation_info/', views.complaints_view, name='reclamation_data'),
     path('order/get_orders_info/', views.api_get_orders, name='get_order_info'),
@@ -36,6 +47,8 @@ urlpatterns = [
     path("production-statistics/", ProductionStatisticsView.as_view()), #without log
     path("production-timeliness/", ProductionTimelinessByContractorView.as_view()),
     path("production-unified-analytics/", ProductionUnifiedAnalyticsView.as_view()),
+    path("dealer-portal-comparison/", PortalDealerComparisonAnalyticsView.as_view()),
+    path("dealer-portal-reports/", PortalAccessibleDealerReportsView.as_view()),
     path("kpi-statistics/", DealerDetailedStatisticsView.as_view()),#without log
     path("full-statistics/", DealerFullAnalyticsView.as_view()),#without log
     path("order-statistics/", OrdersDealerStatisticsView.as_view()),#without log
@@ -82,5 +95,10 @@ urlpatterns = [
         "support/chat/mark-read/",
         mark_support_chat_as_read,
         name="mark_support_chat_as_read"
+    ),
+    path(
+        "managers/",
+        get_all_manager_list,
+        name="get_all_manager_list"
     ),
 ]

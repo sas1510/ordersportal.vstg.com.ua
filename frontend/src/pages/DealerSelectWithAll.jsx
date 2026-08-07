@@ -1,13 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
+import { FaChevronDown } from "react-icons/fa";
 import axiosInstance from "../api/axios";
 import "./DealerSelect.css";
 import { useTranslation } from "react-i18next";
 
-
-
 const ALL_DEALERS_VALUE = "__ALL__";
 
-const DealerSelectWithAll = ({ value, onChange }) => {
+const DealerSelectWithAll = ({
+  value,
+  onChange,
+  allowAll = true,
+  placeholder,
+  allLabel,
+}) => {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -15,10 +20,9 @@ const DealerSelectWithAll = ({ value, onChange }) => {
   const [error, setError] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
-  const wrapperRef = useRef(null); 
+  const wrapperRef = useRef(null);
   const searchRef = useRef(null);
-  const {t} = useTranslation();
-
+  const { t } = useTranslation();
 
   useEffect(() => {
     const loadDealers = async () => {
@@ -28,7 +32,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
       } catch (e) {
         if (process.env.NODE_ENV === "development") {
           console.error("Error fetching dealers:", e);
-        } 
+        }
         setError(t("dealer_select.error_load"));
       } finally {
         setLoading(false);
@@ -36,8 +40,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     };
 
     loadDealers();
-  }, []);
-
+  }, [t]);
 
   useEffect(() => {
     if (!open) return;
@@ -56,7 +59,6 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     };
   }, [open]);
 
-
   useEffect(() => {
     if (open) {
       setHighlightedIndex(-1);
@@ -64,22 +66,22 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     }
   }, [open]);
 
+  const resolvedAllLabel = allLabel || t("dealer_select.all_dealers");
+  const resolvedPlaceholder = placeholder || t("dealer_select.placeholder");
 
   const selectedLabel =
-    value === ALL_DEALERS_VALUE
-      ? t("dealer_select.all_dealers")
+    allowAll && value === ALL_DEALERS_VALUE
+      ? resolvedAllLabel
       : dealers.find((d) => d.ContractorID === value)?.ContractorName;
-
 
   const filteredDealers = dealers.filter((d) =>
     d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
 
-
   const handleKeyDown = (e) => {
     if (!open) return;
 
-    const totalItems = filteredDealers.length + 1; 
+    const totalItems = filteredDealers.length + (allowAll ? 1 : 0);
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -94,10 +96,10 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     if (e.key === "Enter" && highlightedIndex >= 0) {
       e.preventDefault();
 
-      if (highlightedIndex === 0) {
+      if (allowAll && highlightedIndex === 0) {
         onChange(ALL_DEALERS_VALUE);
       } else {
-        const dealer = filteredDealers[highlightedIndex - 1];
+        const dealer = filteredDealers[highlightedIndex - (allowAll ? 1 : 0)];
         if (dealer) onChange(dealer.ContractorID);
       }
 
@@ -113,20 +115,17 @@ const DealerSelectWithAll = ({ value, onChange }) => {
     }
   };
 
-
   return (
     <div className="dealer-select" ref={wrapperRef}>
-
       <div
         className="dealer-select__control"
         onClick={() => setOpen((o) => !o)}
       >
         <span className={selectedLabel ? "" : "placeholder"}>
-          {selectedLabel || t("dealer_select.placeholder")}
+          {selectedLabel || resolvedPlaceholder}
         </span>
-        <span className="arrow">▾</span>
+        <FaChevronDown className="arrow" size={12} />
       </div>
-
 
       {open && (
         <div className="dealer-select__dropdown" onKeyDown={handleKeyDown}>
@@ -137,7 +136,7 @@ const DealerSelectWithAll = ({ value, onChange }) => {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setHighlightedIndex(0);
+              setHighlightedIndex(allowAll ? 0 : -1);
             }}
             className="dealer-select__search"
           />
@@ -153,22 +152,22 @@ const DealerSelectWithAll = ({ value, onChange }) => {
 
             {!loading && !error && (
               <>
-
-                <div
-                  className={`dealer-select__option all-dealers ${
-                    highlightedIndex === 0 ? "active" : ""
-                  }`}
-                  onMouseEnter={() => setHighlightedIndex(0)}
-                  onClick={() => {
-                    onChange(ALL_DEALERS_VALUE);
-                    setOpen(false);
-                    setSearch("");
-                    setHighlightedIndex(-1);
-                  }}
-                >
-                  <strong>{t("dealer_select.all_dealers")}</strong>
-                </div>
-
+                {allowAll && (
+                  <div
+                    className={`dealer-select__option all-dealers ${
+                      highlightedIndex === 0 ? "active" : ""
+                    }`}
+                    onMouseEnter={() => setHighlightedIndex(0)}
+                    onClick={() => {
+                      onChange(ALL_DEALERS_VALUE);
+                      setOpen(false);
+                      setSearch("");
+                      setHighlightedIndex(-1);
+                    }}
+                  >
+                    <strong>{resolvedAllLabel}</strong>
+                  </div>
+                )}
 
                 {filteredDealers.length === 0 ? (
                   <div className="dealer-select__empty">{t("dealer_select.empty")}</div>
@@ -177,9 +176,9 @@ const DealerSelectWithAll = ({ value, onChange }) => {
                     <div
                       key={d.ContractorID}
                       className={`dealer-select__option ${
-                        highlightedIndex === idx + 1 ? "active" : ""
+                        highlightedIndex === idx + (allowAll ? 1 : 0) ? "active" : ""
                       }`}
-                      onMouseEnter={() => setHighlightedIndex(idx + 1)}
+                      onMouseEnter={() => setHighlightedIndex(idx + (allowAll ? 1 : 0))}
                       onClick={() => {
                         onChange(d.ContractorID);
                         setOpen(false);

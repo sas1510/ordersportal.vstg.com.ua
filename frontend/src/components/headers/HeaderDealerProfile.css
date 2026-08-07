@@ -1,13 +1,13 @@
 /* Основний контейнер, який вставляється в Header */
 .profile-box {
     height: 70px;
-    width: 165px;
+    width: 200px;
     position: relative;
 }
 
 .profile-menu-inner {
     height: 70px;
-    width: 165px;
+    width: 230px;
     position: relative;
 }
 
@@ -18,7 +18,7 @@
     left: 0;
     position: absolute;
     top: 0;
-    width: 165px;
+    width: 200px;
     border-left: 1px solid #e2e8f0;
     border-right: 1px solid #e2e8f0;
     z-index: 1;
@@ -28,12 +28,15 @@
 .profile-name-text {
     color: #234360;
     font-family: "Inter", sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     left: 31px;
+    /* right: 10px; */
     position: absolute;
-    top: 9px;
+    top: 6px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     z-index: 2;
 }
 
@@ -43,7 +46,7 @@
     height: 20px;
     left: 5px;
     position: absolute;
-    top: 9px;
+    top: 6px;
   
     color: #234360;
     width: 18px;
@@ -85,8 +88,8 @@
     border-top: 1px dashed #D1D5DB;
     left: 6px;
     position: absolute;
-    top: 35px;
-    width: 151px;
+    top: 31px;
+    width: 190px;
     z-index: 2;
 
 }
@@ -95,13 +98,28 @@
 .profile-balance-text {
     color: #506B00;
     font-family: "Inter", sans-serif;
-    font-size: 16px;
-    font-weight: 400; /* Як у твоєму класі .div */
+    font-size: 15px;
     left: 31px;
+    right: 10px;
     position: absolute;
-    top: 43px;
+    top: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.05;
     white-space: nowrap;
     z-index: 2;
+}
+
+.profile-wallet-amount {
+    color: inherit;
+}
+
+.profile-debt-amount {
+    color: #ff7a5c;
+    margin-top: 1px;
+    font-size: 12px;
+  
 }
 
 /* Іконка грошей */
@@ -109,11 +127,12 @@
     height: 20px;
     left: 5px;
     position: absolute;
-    top: 42px;
+    top: 38px;
     width: 22px;
     object-fit: cover;
     z-index: 2;
     color: #506B00;
+    
 }
 
 .dark-theme .profile-money-img-icon {
@@ -240,14 +259,16 @@ body.dark-theme {
 .profile-balance-text {
   display: flex;
   align-items: baseline; /* Щоб текст валюти вирівнювався по нижній лінії цифр */
-  gap: 4px; /* Відступ між сумою та валютою */
+  margin-left: 1px;
+  margin-top: 1px;
+
 }
 
 .profile-currency-label {
   font-size: 0.75em; /* Робить валюту меншою (приблизно 75% від основного розміру) */
-  font-weight: 600;  /* Можна зробити тоншою за цифри */
+
   color: inherit;    /* Використовує колір основного тексту балансу */
-  opacity: 0.8;      /* Трохи приглушуємо колір для візуального акценту на цифрах */
+  margin-left: 1px;
 }
 
 @keyframes pulse-orange {

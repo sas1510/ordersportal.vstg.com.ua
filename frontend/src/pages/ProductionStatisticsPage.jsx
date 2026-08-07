@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axiosInstance from "../api/axios";
 import {
-  FaBoxes,
+  FaBox,  FaCalendarAlt,
   FaCheckCircle,
+  FaBoxes,
+  FaChartLine,
+  FaClipboardList,
   FaClock,
   FaCogs,
   FaCubes,
@@ -11,15 +15,19 @@ import {
   FaHourglassHalf,
   FaMoneyBillWave,
   FaPalette,
+  FaUsers,
   FaSearch,
+  FaSyncAlt,
   FaShippingFast,
   FaSlidersH,
+  FaTrophy,
+  FaMedal,
 } from "react-icons/fa";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  ResponsiveContainer,
+  Legend,
   Tooltip,
   XAxis,
   YAxis,
@@ -27,17 +35,25 @@ import {
 import "./ProductionStatisticsPage.css";
 import DealerSelect from "./DealerSelect";
 import { useDealerContext } from "../hooks/useDealerContext";
-import ProfileSystemChart from "../components/charts/ProfileSystemChart";
-import ProfileColorChart from "../components/charts/ProfileColorChart";
 import ComplexityDonut from "../components/charts/ComplexityDonut";
 import ComplexityTreemap from "../components/charts/ComplexityTreeMap";
+import { AppIcon } from "../components/Icons/AppIcon";
 
 const ABC_COLORS = {
-  A: "#c75d2c",
-  B: "#d99b35",
-  C: "#356a5d",
+  A: "#B4D947",
+  B: "#6B98BF",
+  C: "#ED8B33",
   Other: "#7f8c8d",
 };
+
+const ABC_PRODUCTION_HINTS = {
+  A: "\u0412\u0438\u0433\u043e\u0442\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u0440\u043e\u0442\u044f\u0433\u043e\u043c 5-10 \u0440\u043e\u0431\u043e\u0447\u0438\u0445 \u0434\u043d\u0456\u0432",
+  B: "\u0412\u0438\u0433\u043e\u0442\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u0440\u043e\u0442\u044f\u0433\u043e\u043c 11-20 \u0440\u043e\u0431\u043e\u0447\u0438\u0445 \u0434\u043d\u0456\u0432",
+  C: "\u0412\u0438\u0433\u043e\u0442\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u043e\u043d\u0430\u0434 20 \u0440\u043e\u0431\u043e\u0447\u0438\u0445 \u0434\u043d\u0456\u0432",
+  Other: "\u0412\u0438\u0440\u043e\u0431\u043d\u0438\u0447\u0438\u0439 \u0433\u0440\u0430\u0444\u0456\u043a",
+};
+
+const ABC_CARD_ORDER = ["A", "B", "C"];
 
 const CATEGORY_MAPPING = {
   "Вікна безшовне зварювання": "Вікна",
@@ -61,7 +77,7 @@ const STATUS_LABELS = {
   all: "Усі",
   "Вчасно": "Вчасно",
   "Запізнення": "Запізнення",
-  "Не виготовлено": "Не виготовлено",
+  "У виробництві": "У виробництві",
 };
 
 const currencyFormatter = new Intl.NumberFormat("uk-UA", {
@@ -98,6 +114,10 @@ function formatPercent(value) {
   return `${percentFormatter.format(Number(value || 0))}%`;
 }
 
+function formatRoundedPercent(value) {
+  return `${Math.round(Number(value || 0))}%`;
+}
+
 function formatDays(value) {
   return daysFormatter.format(Number(value || 0));
 }
@@ -113,6 +133,23 @@ function formatDate(value) {
   }
 
   return dateFormatter.format(parsed);
+}
+
+function normalizeRegionName(value) {
+  const regionName = String(value || "").trim();
+  if (!regionName) {
+    return "Не визначено";
+  }
+
+  if (regionName.toUpperCase().includes("РУТА МАГАЗИН")) {
+    return "Чернівецька область";
+  }
+
+  return regionName;
+}
+
+function shortRegionName(value) {
+  return normalizeRegionName(value).replace(/\s+область$/i, "");
 }
 
 function calculateDaysBetween(startValue, endValue) {
@@ -165,13 +202,45 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function TimelinessTooltip({ active, payload, label }) {
+function formatCurrencyPlain(value) {
+  return `${formatNumber(Math.round(Number(value || 0)))} грн`;
+}
+
+function formatCompactThousands(value) {
+  const amount = Number(value || 0);
+  if (!amount) {
+    return "0 тис.";
+  }
+
+  return `${formatNumber(Math.round(amount / 1000))} тис.`;
+}
+
+function calculateComparisonPercent(currentValue, leaderValue) {
+  const current = Number(currentValue || 0);
+  const leader = Number(leaderValue || 0);
+
+  if (leader <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min((current / leader) * 100, 100));
+}
+
+function formatAnalyticsMetricValue(metricKey, value) {
+  if (metricKey === "total_sum" || metricKey === "avg_check") {
+    return formatCurrency(value);
+  }
+
+  return formatNumber(value);
+}
+
+function TimelinessTooltip({ active, payload, label, isDark = true }) {
   if (!active || !payload?.length) {
     return null;
   }
 
   return (
-    <div className="production-stats-tooltip">
+    <div className={`production-stats-tooltip ${isDark ? "is-dark" : "is-light"}`}>
       <div className="production-stats-tooltip__title">Клас {label}</div>
       {payload.map((item) => (
         <div key={item.dataKey} className="production-stats-tooltip__row">
@@ -183,46 +252,334 @@ function TimelinessTooltip({ active, payload, label }) {
   );
 }
 
-function KpiCard({ icon, label, value, hint }) {
+function TopMetricCard({ icon, label, value, hint, tone = "default" }) {
   return (
-    <div className="production-kpi-card">
-      <div className="production-kpi-card__icon">{icon}</div>
-      <div className="production-kpi-card__label">{label}</div>
-      <div className="production-kpi-card__value">{value}</div>
-      {hint ? <div className="production-kpi-card__hint">{hint}</div> : null}
+    <div className={`production-top-metric production-top-metric--${tone}`}>
+      <div className="production-top-metric__icon">{icon}</div>
+      <div className="production-top-metric__label">{label}</div>
+      <div className="production-top-metric__value">{value}</div>
+      {hint ? <div className="production-top-metric__hint">{hint}</div> : null}
+    </div>
+  );
+}
+
+function ComparisonGauge({
+  label,
+  percent,
+  valueLabel,
+  leaderLabel,
+  color,
+  iconName,
+}) {
+  const safePercent = Math.max(0, Math.min(Number(percent || 0), 100));
+
+  return (
+    <article
+      className="production-design__dealer-gauge"
+      style={{
+        "--dealer-gauge-color": color,
+        "--dealer-gauge-value": `${safePercent}%`,
+      }}
+    >
+      <span className="production-design__dealer-gauge-label">{label}</span>
+      <div className="production-design__dealer-gauge-ring">
+        <div className="production-design__dealer-gauge-center">
+          {iconName ? (
+            <span className="production-design__dealer-gauge-icon">
+              <AppIcon name={iconName} />
+            </span>
+          ) : null}
+          {formatRoundedPercent(safePercent)}
+        </div>
+      </div>
+      <strong>{valueLabel}</strong>
+      <small>лідер: {leaderLabel}</small>
+    </article>
+  );
+}
+
+function ProductionRingCard({
+  inTimePercent,
+  inTimeCount,
+  averageProductionDays,
+  delayedPercent,
+  delayedCount,
+  notFinishedCount,
+  totalOrders,
+  onSelectStatus,
+}) {
+  const [selectedSection, setSelectedSection] = useState(null);
+
+  const STATUS = {
+    inTime: "Вчасно",
+    delayed: "Запізнення",
+    notFinished: "У виробництві",
+  };
+
+  const inTimeValue = Number(inTimeCount || 0);
+  const delayedValue = Number(delayedCount || 0);
+  const notFinishedValue = Number(notFinishedCount || 0);
+
+  const completedOrders = inTimeValue + delayedValue;
+
+  const statusData = [
+    {
+      name: STATUS.delayed,
+      value: delayedValue,
+      color: "#ED8B33",
+    },
+    {
+      name: STATUS.inTime,
+      value: inTimeValue,
+      color: "#B4D947",
+    },
+  ].filter((item) => item.value > 0);
+
+  const statusColors = statusData.map((item) => item.color);
+
+  const displayedTotal =
+    Number(totalOrders || 0) ||
+    completedOrders + notFinishedValue;
+
+  const selectSection = (sectionName) => {
+    setSelectedSection(sectionName);
+    onSelectStatus?.(sectionName);
+  };
+
+  return (
+    <div className="production-ring-card production-ring-card--figma">
+
+      {/* Вчасно */}
+
+      <button
+        type="button"
+        className={`production-ring-card__figma-metric production-ring-card__figma-metric--in-time ${
+          selectedSection === STATUS.inTime ? "is-selected" : ""
+        }`}
+        onClick={() => selectSection(STATUS.inTime)}
+      >
+        <span className="production-ring-card__figma-title">
+          {STATUS.inTime}
+        </span>
+
+        <strong className="production-ring-card__figma-value">
+          <span className="production-ring-card__figma-icon">
+            <AppIcon name="FactorySuccessGreenIcon" />
+          </span>
+
+          {formatPercent(inTimePercent)}
+        </strong>
+
+        <small>
+          {formatNumber(inTimeCount)} замовлень
+          <br />
+          сер. {formatDays(averageProductionDays)} дн.
+        </small>
+      </button>
+
+      {/* Лінія від Вчасно */}
+
+      <span
+        className="production-ring-card__figma-line production-ring-card__figma-line--left"
+        aria-hidden="true"
+      />
+
+      {/* Діаграма */}
+
+      <div className="production-ring-card__figma-chart">
+        <ComplexityDonut
+          data={statusData}
+          colors={statusColors}
+          centerLabel="Всього"
+          centerUnit="замовлення"
+          centerValue={displayedTotal}
+          centerIconName="listCalc"
+          showLegend={false}
+          showLabels={false}
+          showTooltip={false}
+          selectedName={selectedSection}
+          onSectorClick={selectSection}
+          height="320px"
+          hoverScale
+          startAngle={90}
+        />
+      </div>
+
+      {/* Лінія від помаранчевого сектора */}
+
+      {delayedValue > 0 ? (
+        <span
+          className="production-ring-card__figma-line production-ring-card__figma-line--delay-diagonal"
+          aria-hidden="true"
+        />
+      ) : null}
+
+      {delayedValue > 0 ? (
+        <span
+          className="production-ring-card__figma-line production-ring-card__figma-line--delay-horizontal"
+          aria-hidden="true"
+        />
+      ) : null}
+
+      {/* Запізнення */}
+
+      <button
+        type="button"
+        className={`production-ring-card__figma-metric production-ring-card__figma-metric--delayed ${
+          selectedSection === STATUS.delayed ? "is-selected" : ""
+        }`}
+        onClick={() => selectSection(STATUS.delayed)}
+      >
+        <span className="production-ring-card__figma-title">
+          {STATUS.delayed}
+        </span>
+
+        <strong className="production-ring-card__figma-value">
+          <span className="production-ring-card__figma-icon">
+            <AppIcon name="FactorySuccessIcon" />
+          </span>
+
+          {formatPercent(delayedPercent)}
+        </strong>
+
+        <small>{formatNumber(delayedCount)} замовлень</small>
+      </button>
+
+      {/* У виробництві */}
+
+      <button
+        type="button"
+        className={`production-ring-card__figma-metric production-ring-card__figma-metric--not-finished ${
+          selectedSection === STATUS.notFinished ? "is-selected" : ""
+        }`}
+        onClick={() => selectSection(STATUS.notFinished)}
+      >
+        <span className="production-ring-card__figma-title">
+          {STATUS.notFinished}
+        </span>
+
+        <strong className="production-ring-card__figma-value">
+          <span className="production-ring-card__figma-icon">
+            <AppIcon name="InFactoryIcon" />
+          </span>
+
+          {formatNumber(notFinishedCount)}
+        </strong>
+
+        <small>{formatNumber(notFinishedCount)} замовлень</small>
+      </button>
     </div>
   );
 }
 
 export default function ProductionStatisticsPage() {
+  const [queryParams] = useSearchParams();
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
   const { dealerGuid, setDealerGuid, isAdmin, isLoading: dealerContextLoading } =
     useDealerContext();
+  const initialFrom = queryParams.get("date_from") || monthStart.toISOString().slice(0, 10);
+  const initialTo = queryParams.get("date_to") || monthEnd.toISOString().slice(0, 10);
+  const requestedDealerGuid = queryParams.get("contractor_guid") || "";
+  const pageRootRef = useRef(null);
   const orderDetailsRef = useRef(null);
   const constructionDetailsRef = useRef(null);
+  const returnScrollPositionRef = useRef(null);
+  const returnScrollContainerRef = useRef(null);
+  const timelinessChartRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [unifiedData, setUnifiedData] = useState(null);
+  const [comparisonData, setComparisonData] = useState(null);
   const [selectedAbc, setSelectedAbc] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [activeConstructionCategory, setActiveConstructionCategory] = useState(null);
   const [activeConstructionSubCategory, setActiveConstructionSubCategory] =
     useState(null);
+  const [activeAnalyticsSection, setActiveAnalyticsSection] = useState("systems");
+  const [activeAnalyticsMetric, setActiveAnalyticsMetric] = useState("total_constructions");
+  const [returnScrollPosition, setReturnScrollPosition] = useState(null);
+  const [timelinessChartWidth, setTimelinessChartWidth] = useState(0);
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    if (typeof document === "undefined") {
+      return true;
+    }
+
+    return document.body.classList.contains("dark-theme");
+  });
 
   const [dateInputs, setDateInputs] = useState({
-    from: monthStart.toISOString().slice(0, 10),
-    to: monthEnd.toISOString().slice(0, 10),
+    from: initialFrom,
+    to: initialTo,
   });
   const [searchParams, setSearchParams] = useState({
-    from: monthStart.toISOString().slice(0, 10),
-    to: monthEnd.toISOString().slice(0, 10),
+    from: initialFrom,
+    to: initialTo,
   });
+
+  useEffect(() => {
+    if (!dealerContextLoading && isAdmin && requestedDealerGuid && requestedDealerGuid !== dealerGuid) {
+      setDealerGuid(requestedDealerGuid);
+    }
+  }, [dealerContextLoading, dealerGuid, isAdmin, requestedDealerGuid, setDealerGuid]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+
+    const syncTheme = () => {
+      setIsDarkTheme(document.body.classList.contains("dark-theme"));
+    };
+
+    syncTheme();
+
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const element = timelinessChartRef.current;
+
+    if (!element) {
+      return undefined;
+    }
+
+    const updateWidth = () => {
+      setTimelinessChartWidth(Math.max(Math.floor(element.clientWidth || 0), 0));
+    };
+
+    updateWidth();
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        updateWidth();
+      });
+      observer.observe(element);
+    }
+
+    window.addEventListener("resize", updateWidth);
+    const frameId = requestAnimationFrame(updateWidth);
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+      window.removeEventListener("resize", updateWidth);
+      cancelAnimationFrame(frameId);
+    };
+  }, [dashboardData]);
 
   useEffect(() => {
     if (dealerContextLoading) {
@@ -231,6 +588,8 @@ export default function ProductionStatisticsPage() {
 
     if (isAdmin && !dealerGuid) {
       setDashboardData(null);
+      setUnifiedData(null);
+      setComparisonData(null);
       setLoading(false);
       return;
     }
@@ -247,14 +606,16 @@ export default function ProductionStatisticsPage() {
           date_to: searchParams.to,
           contractor_guid: dealerGuid,
         };
-        const [timelinessResponse, unifiedResponse] = await Promise.all([
+        const [timelinessResponse, unifiedResponse, comparisonResponse] = await Promise.all([
           axiosInstance.get("/production-timeliness/", { params }),
           axiosInstance.get("/production-unified-analytics/", { params }),
+          axiosInstance.get("/dealer-portal-comparison/", { params }),
         ]);
 
         if (!isCancelled) {
           setDashboardData(timelinessResponse.data);
           setUnifiedData(unifiedResponse.data);
+          setComparisonData(comparisonResponse.data);
         }
       } catch (err) {
         if (isCancelled) {
@@ -268,6 +629,7 @@ export default function ProductionStatisticsPage() {
         setError(message);
         setDashboardData(null);
         setUnifiedData(null);
+        setComparisonData(null);
       } finally {
         if (!isCancelled) {
           setLoading(false);
@@ -296,6 +658,10 @@ export default function ProductionStatisticsPage() {
   const efficiencyDynamics = unifiedData?.efficiency_dynamics || [];
   const constructionPortfolio = unifiedData?.construction_portfolio || [];
 
+  const isMobile = window.innerWidth < 720;
+  const maxBarHeight = isMobile ? 100 : 120;
+
+
   const abcTabs = useMemo(() => {
     const present = Array.from(new Set(summary.map((item) => item.abc).filter(Boolean)));
     return ["all", ...present];
@@ -318,9 +684,37 @@ export default function ProductionStatisticsPage() {
       abc: item.abc,
       "Вчасно": item.in_time_count,
       "Запізнення": item.delayed_count,
-      "Не виготовлено": item.not_finished_count,
+      "У виробництві": item.not_finished_count,
     }));
   }, [summary]);
+
+  const timelinessChartHeight = useMemo(() => {
+    if (timelinessChartWidth <= 420) {
+      return 430;
+    }
+    if (timelinessChartWidth <= 720) {
+      return 500;
+    }
+    return 560;
+  }, [timelinessChartWidth]);
+
+  const timelinessTheme = useMemo(() => {
+    if (isDarkTheme) {
+      return {
+        grid: "#585450",
+        axis: "#aeaeae",
+        ticks: "#ffffff",
+        legend: "#aeaeae",
+      };
+    }
+
+    return {
+      grid: "#d8dee7",
+      axis: "#8a97a8",
+      ticks: "#314154",
+      legend: "#5f6d7e",
+    };
+  }, [isDarkTheme]);
 
   const completedOrders = useMemo(() => {
     return [...orders]
@@ -354,6 +748,16 @@ export default function ProductionStatisticsPage() {
           .slice(0, 1),
       }));
   }, [completedOrders]);
+
+  const fastestCards = useMemo(() => {
+    return ["A", "B", "C"].map((abcKey) => {
+      const group = fastestByAbc.find((item) => item.abc === abcKey);
+      return {
+        abc: abcKey,
+        order: group?.items?.[0] || null,
+      };
+    });
+  }, [fastestByAbc]);
 
   const inTimeProductionDays = useMemo(() => {
     const stats = completedOrders
@@ -391,6 +795,24 @@ export default function ProductionStatisticsPage() {
     return { overallAverage, averageByAbc };
   }, [completedOrders]);
 
+  const abcSummaryCards = useMemo(() => {
+    const summaryMap = new Map(summary.map((item) => [item.abc, item]));
+
+    return ABC_CARD_ORDER.map((abcKey) => {
+      const existing = summaryMap.get(abcKey);
+      return (
+        existing || {
+          abc: abcKey,
+          in_time_percent: 0,
+          orders_count: 0,
+          in_time_count: 0,
+          delayed_count: 0,
+          not_finished_count: 0,
+        }
+      );
+    });
+  }, [summary]);
+
   const profileSystemsForChart = useMemo(
     () =>
       profileSystems.map((item) => ({
@@ -413,6 +835,130 @@ export default function ProductionStatisticsPage() {
     () => [...profileSystems].sort((a, b) => b.total_constructions - a.total_constructions),
     [profileSystems],
   );
+
+  const analyticsSections = useMemo(
+    () => [
+      {
+        key: "systems",
+        label: "Профільні системи",
+        icon: "windows",
+        iconKind: "app",
+        eyebrow: "Profile systems",
+        count: profileSystems.length,
+        countLabel: "систем",
+        items: profileSystemsSorted.map((item) => ({
+          label: item.profile_system,
+          total_constructions: Number(item.total_constructions || 0),
+          orders_count: Number(item.orders_count || 0),
+          total_sum: Number(item.total_sum || 0),
+          avg_check: Number(item.avg_check || 0),
+        })),
+        metrics: [
+          { key: "total_constructions", label: "Конструкції", icon: "windows", accent: "#B4D947" },
+          { key: "orders_count", label: "Замовлення", icon: "listCalc", accent: "#6B98BF" },
+          { key: "avg_check", label: "Середній чек", icon: "moneyGreen", accent: "#6B98BF" },
+          { key: "total_sum", label: "Оборот", icon: "money", accent: "#6B98BF" },
+        ],
+      },
+      {
+        key: "colors",
+        label: "Кольори профілю",
+        icon: "filters",
+        iconKind: "app",
+        eyebrow: "Profile colors",
+        count: profileColors.length,
+        countLabel: "кольорів",
+        items: profileColors.map((item) => ({
+          label: item.name,
+          total_constructions: Number(item.total_constructions || 0),
+          orders_count: Number(item.orders_count || 0),
+          total_sum: Number(item.total_sum || 0),
+        })),
+        metrics: [
+          { key: "total_constructions", label: "Конструкції", icon: "windows", accent: "#B4D947" },
+          { key: "orders_count", label: "Замовлення", icon: "listCalc", accent: "#6B98BF" },
+          { key: "total_sum", label: "Оборот", icon: "money", accent: "#6B98BF" },
+        ],
+      },
+      {
+        key: "hardware",
+        label: "Фурнітура",
+        iconKind: "fa",
+        eyebrow: "Hardware and extras",
+        count: furniture.length,
+        countLabel: "позицій",
+        items: furniture.map((item) => ({
+          label: item.name,
+          total_constructions: Number(item.total_constructions || 0),
+          orders_count: Number(item.orders_count || 0),
+          total_sum: Number(item.total_sum || 0),
+        })),
+        metrics: [
+          { key: "total_constructions", label: "Конструкції", icon: "windows", accent: "#B4D947" },
+          { key: "orders_count", label: "Замовлення", icon: "listCalc", accent: "#6B98BF" },
+          { key: "total_sum", label: "Оборот", icon: "money", accent: "#6B98BF" },
+        ],
+      },
+    ],
+    [furniture, profileColors, profileSystems.length, profileSystemsSorted],
+  );
+
+  const activeAnalyticsConfig = useMemo(() => {
+    return (
+      analyticsSections.find((item) => item.key === activeAnalyticsSection) ||
+      analyticsSections[0] ||
+      null
+    );
+  }, [activeAnalyticsSection, analyticsSections]);
+
+  useEffect(() => {
+    if (!activeAnalyticsConfig) {
+      return;
+    }
+
+    const hasMetric = activeAnalyticsConfig.metrics.some(
+      (metric) => metric.key === activeAnalyticsMetric,
+    );
+
+    if (!hasMetric) {
+      setActiveAnalyticsMetric(activeAnalyticsConfig.metrics[0]?.key || "total_constructions");
+    }
+  }, [activeAnalyticsConfig, activeAnalyticsMetric]);
+
+  const activeAnalyticsMetricConfig = useMemo(() => {
+    return (
+      activeAnalyticsConfig?.metrics.find((item) => item.key === activeAnalyticsMetric) ||
+      activeAnalyticsConfig?.metrics[0] ||
+      null
+    );
+  }, [activeAnalyticsConfig, activeAnalyticsMetric]);
+
+  const analyticsDisplayItems = useMemo(() => {
+    if (!activeAnalyticsConfig || !activeAnalyticsMetricConfig) {
+      return [];
+    }
+
+    return [...activeAnalyticsConfig.items]
+      .sort(
+        (left, right) =>
+          Number(right[activeAnalyticsMetricConfig.key] || 0) -
+          Number(left[activeAnalyticsMetricConfig.key] || 0),
+      )
+      .slice(0, 17);
+  }, [activeAnalyticsConfig, activeAnalyticsMetricConfig]);
+
+  const analyticsMaxValue = useMemo(() => {
+    return Math.max(
+      ...analyticsDisplayItems.map((item) => Number(item[activeAnalyticsMetric] || 0)),
+      1,
+    );
+  }, [activeAnalyticsMetric, analyticsDisplayItems]);
+
+  const analyticsScaleValues = useMemo(() => {
+    return Array.from({ length: 6 }, (_, index) =>
+      Math.round((analyticsMaxValue / 5) * index),
+    );
+  }, [analyticsMaxValue]);
 
   const groupedConstructionPortfolio = useMemo(() => {
     const groups = {};
@@ -508,13 +1054,300 @@ export default function ProductionStatisticsPage() {
     [efficiencyDynamics],
   );
 
+  const comparisonSelectedDealer = comparisonData?.selected_dealer || null;
+  const comparisonTotals = comparisonData?.totals || {};
+  const comparisonInsights = comparisonData?.insights || {};
+  const comparisonLeaderboard = useMemo(() => {
+    return Array.isArray(comparisonData?.leaderboard)
+      ? comparisonData.leaderboard
+      : [];
+  }, [comparisonData]);
+
+  const comparisonRegions = useMemo(() => {
+    return Array.isArray(comparisonData?.regions) ? comparisonData.regions : [];
+  }, [comparisonData]);
+
+  const comparisonRegionLabel = normalizeRegionName(
+    comparisonInsights.selected_region_name || comparisonSelectedDealer?.region_name || "",
+  );
+
+  const comparisonLeader = useMemo(() => {
+    if (!comparisonLeaderboard.length) {
+      return null;
+    }
+
+    return [...comparisonLeaderboard].sort((left, right) => {
+      const leftRank = Number(left.turnover_rank || Number.MAX_SAFE_INTEGER);
+      const rightRank = Number(right.turnover_rank || Number.MAX_SAFE_INTEGER);
+
+      if (leftRank !== rightRank) {
+        return leftRank - rightRank;
+      }
+
+      return Number(right.total_turnover || 0) - Number(left.total_turnover || 0);
+    })[0];
+  }, [comparisonLeaderboard]);
+
+  const comparisonMetricCards = useMemo(() => {
+    if (!comparisonSelectedDealer) {
+      return [];
+    }
+
+    return [
+      {
+        key: "turnover",
+        label: "Оборот",
+        color: "#5CCCBD",
+        iconName: "money",
+        percent: calculateComparisonPercent(
+          comparisonSelectedDealer.total_turnover,
+          comparisonLeader?.total_turnover,
+        ),
+        valueLabel: formatCurrencyPlain(comparisonSelectedDealer.total_turnover),
+        leaderLabel: formatCurrencyPlain(comparisonLeader?.total_turnover),
+      },
+      {
+        key: "orders",
+        label: "Замовлення",
+        color: "#F28A29",
+        iconName: "listCalc",
+        percent: calculateComparisonPercent(
+          comparisonSelectedDealer.orders_count,
+          comparisonLeader?.orders_count,
+        ),
+        valueLabel: `${formatNumber(comparisonSelectedDealer.orders_count)} замовлень`,
+        leaderLabel: formatNumber(comparisonLeader?.orders_count),
+      },
+      {
+        key: "constructions",
+        label: "Конструкції",
+        color: "#6B99BF",
+        iconName: "windows",
+        percent: calculateComparisonPercent(
+          comparisonSelectedDealer.total_constructions,
+          comparisonLeader?.total_constructions,
+        ),
+        valueLabel: `${formatNumber(comparisonSelectedDealer.total_constructions)} конструкцій`,
+        leaderLabel: formatNumber(comparisonLeader?.total_constructions),
+      },
+      {
+        key: "avg-check",
+        label: "Середній чек",
+        color: "#944FD1",
+        iconName: "moneyGreen",
+        percent: calculateComparisonPercent(
+          comparisonSelectedDealer.avg_check,
+          comparisonLeader?.avg_check,
+        ),
+        valueLabel: formatCurrencyPlain(comparisonSelectedDealer.avg_check),
+        leaderLabel: formatCurrencyPlain(comparisonLeader?.avg_check),
+      },
+    ];
+  }, [comparisonLeader, comparisonSelectedDealer]);
+
+  const comparisonOverallPercent = useMemo(() => {
+    if (!comparisonMetricCards.length) {
+      return 0;
+    }
+
+    const totalPercent = comparisonMetricCards.reduce(
+      (sum, item) => sum + Number(item.percent || 0),
+      0,
+    );
+
+    return totalPercent / comparisonMetricCards.length;
+  }, [comparisonMetricCards]);
+
+  const comparisonRegionCards = useMemo(() => {
+    const turnoverColors = ["#B4D947", "#6B99BF", "#F28A29"];
+    const avgCheckColors = ["#5CCCBD", "#6B99BF", "#B4D947"];
+
+    return [...comparisonRegions]
+      .sort(
+        (left, right) =>
+          Number(right.total_turnover || 0) - Number(left.total_turnover || 0),
+      )
+      .slice(0, 3)
+      .map((item, index) => ({
+        ...item,
+        turnoverColor: turnoverColors[index] || "#B4D947",
+        avgCheckColor: avgCheckColors[index] || "#6B99BF",
+      }));
+  }, [comparisonRegions]);
+
+  const comparisonMaxRegionTurnover = useMemo(() => {
+    return Math.max(
+      ...comparisonRegionCards.map((item) => Number(item.total_turnover || 0)),
+      1,
+    );
+  }, [comparisonRegionCards]);
+
+  const comparisonMaxRegionCheck = useMemo(() => {
+    return Math.max(
+      ...comparisonRegionCards.map((item) => Number(item.avg_check || 0)),
+      1,
+    );
+  }, [comparisonRegionCards]);
+
+  const comparisonPotentialCards = useMemo(() => {
+    if (!comparisonSelectedDealer) {
+      return [];
+    }
+
+    const turnoverPercent = calculateComparisonPercent(
+      comparisonSelectedDealer.total_turnover,
+      comparisonLeader?.total_turnover,
+    );
+    const ordersPercent = calculateComparisonPercent(
+      comparisonSelectedDealer.orders_count,
+      comparisonLeader?.orders_count,
+    );
+    const avgCheckPercent = calculateComparisonPercent(
+      comparisonSelectedDealer.avg_check,
+      comparisonLeader?.avg_check,
+    );
+
+    return [
+      {
+        key: "turnover",
+        label: "Оборот",
+        icon: "₴",
+        color: "#B4D947",
+        title: "До рівня лідера за оборотом",
+        value: `+${formatCurrencyPlain(
+          Math.max(
+            Number(comparisonLeader?.total_turnover || 0) -
+              Number(comparisonSelectedDealer.total_turnover || 0),
+            0,
+          ),
+        )}`,
+        remaining: `ще ${formatRoundedPercent(100 - turnoverPercent)}`,
+        progress: turnoverPercent,
+      },
+      {
+        key: "orders",
+        label: "Замовлення",
+        icon: "↗",
+        color: "#F28A29",
+        title: "До рівня лідера за замовленнями",
+        value: `+${formatNumber(
+          Math.max(
+            Number(comparisonLeader?.orders_count || 0) -
+              Number(comparisonSelectedDealer.orders_count || 0),
+            0,
+          ),
+        )} замовлень`,
+        remaining: `ще ${formatRoundedPercent(100 - ordersPercent)}`,
+        progress: ordersPercent,
+      },
+      {
+        key: "avg-check",
+        label: "Середній чек",
+        icon: "⌁",
+        color: "#944FD1",
+        title: "До рівня лідера за середнім чеком",
+        value: `+${formatCurrencyPlain(
+          Math.max(
+            Number(comparisonLeader?.avg_check || 0) -
+              Number(comparisonSelectedDealer.avg_check || 0),
+            0,
+          ),
+        )}`,
+        remaining: `ще ${formatRoundedPercent(100 - avgCheckPercent)}`,
+        progress: avgCheckPercent,
+      },
+    ];
+  }, [comparisonLeader, comparisonSelectedDealer]);
+
+  const mainGrowthOpportunity = useMemo(() => {
+    if (!comparisonPotentialCards.length) {
+      return null;
+    }
+
+    const opportunities = comparisonPotentialCards
+      .map((item) => ({
+        ...item,
+        gapPercent: Math.max(
+          0,
+          100 - Math.max(0, Math.min(Number(item.progress || 0), 100)),
+        ),
+      }))
+      .filter((item) => item.gapPercent > 0);
+
+    if (!opportunities.length) {
+      return null;
+    }
+
+    return opportunities.reduce((largestGap, item) =>
+      item.gapPercent > largestGap.gapPercent ? item : largestGap,
+    );
+  }, [comparisonPotentialCards]);
+
   const handleSearch = () => {
     setSelectedAbc("all");
     setSelectedStatus("all");
     setShowOrderDetails(false);
     setActiveConstructionCategory(null);
     setActiveConstructionSubCategory(null);
+    setReturnScrollPosition(null);
+    returnScrollPositionRef.current = null;
     setSearchParams({ ...dateInputs });
+  };
+
+  const getScrollContainer = () => {
+    if (returnScrollContainerRef.current) {
+      return returnScrollContainerRef.current;
+    }
+
+    let current = pageRootRef.current?.parentElement || null;
+
+    while (current) {
+      const styles = window.getComputedStyle(current);
+      const overflowY = styles.overflowY;
+      const isScrollable =
+        (overflowY === "auto" || overflowY === "scroll") &&
+        current.scrollHeight > current.clientHeight;
+
+      if (isScrollable) {
+        returnScrollContainerRef.current = current;
+        return current;
+      }
+
+      current = current.parentElement;
+    }
+
+    const fallback =
+      document.scrollingElement || document.documentElement || document.body;
+    returnScrollContainerRef.current = fallback;
+    return fallback;
+  };
+
+  const rememberScrollPosition = () => {
+    const scrollContainer = getScrollContainer();
+    const currentPosition =
+      scrollContainer?.scrollTop ??
+      window.scrollY ??
+      window.pageYOffset ??
+      document.documentElement.scrollTop ??
+      0;
+
+    returnScrollContainerRef.current = scrollContainer;
+    returnScrollPositionRef.current = currentPosition;
+    setReturnScrollPosition(currentPosition);
+  };
+
+  const handleRingStatusClick = (statusLabel) => {
+    rememberScrollPosition();
+    setSelectedAbc("all");
+    setSelectedStatus(statusLabel);
+    setShowOrderDetails(true);
+
+    requestAnimationFrame(() => {
+      orderDetailsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   };
 
   const handleTimelinessBarClick = (entry, statusLabel) => {
@@ -523,6 +1356,7 @@ export default function ProductionStatisticsPage() {
       return;
     }
 
+    rememberScrollPosition();
     setSelectedAbc(abc);
     setSelectedStatus(statusLabel);
     setShowOrderDetails(true);
@@ -538,6 +1372,7 @@ export default function ProductionStatisticsPage() {
   const hasData = summary.length > 0 || orders.length > 0;
 
   const handleConstructionCategorySelect = (categoryName) => {
+    rememberScrollPosition();
     setActiveConstructionCategory(categoryName);
     setActiveConstructionSubCategory(null);
   };
@@ -555,652 +1390,504 @@ export default function ProductionStatisticsPage() {
     });
   }, [activeConstructionCategory]);
 
+  const handleReturnToPreviousPosition = () => {
+    const targetPosition = returnScrollPositionRef.current ?? returnScrollPosition;
+
+    if (targetPosition === null || targetPosition === undefined) {
+      return;
+    }
+
+    const nextTop = Math.max(targetPosition - 16, 0);
+    const scrollingElement =
+      returnScrollContainerRef.current ||
+      getScrollContainer() ||
+      document.scrollingElement ||
+      document.documentElement ||
+      document.body;
+
+    if (scrollingElement && typeof scrollingElement.scrollTo === "function") {
+      scrollingElement.scrollTo({
+        top: nextTop,
+        behavior: "smooth",
+      });
+    } else if (scrollingElement) {
+      scrollingElement.scrollTop = nextTop;
+    }
+  };
+
+  const showReturnToPreviousButton =
+    returnScrollPosition !== null &&
+    (showOrderDetails || Boolean(activeConstructionGroup));
+
   return (
-    <div className="portal-body">
-      <div className="production-page-shell">
-        <section className="production-page-hero">
-          <div>
-            <div className="production-page-eyebrow">ABC production timeline</div>
-            <h1 className="production-page-title">Статистика виробництва</h1>
-            <p className="production-page-subtitle">
-              Контроль своєчасності виготовлення по класах ABC, відсотку виконання
-              та замовленнях із найбільшим відхиленням.
-            </p>
-          </div>
+    <main ref={pageRootRef} className={`production-design ${isDarkTheme ? "is-dark" : "is-light"}`}>
+      <section className="production-design__hero">
+        <div>
+          <div className="production-design__eyebrow">ABC production timeline</div>
+          <h1>Статистика виробництва</h1>
+          <p>Контроль своєчасності виготовлення по класах ABC, відсотку виконання та замовленнях із найбільшим відхиленням.</p>
+        </div>
+        <div className="production-design__filters">
+          {isAdmin ? <div className="production-design__dealer"><span>Дилер</span><DealerSelect value={dealerGuid} onChange={setDealerGuid} /></div> : null}
+          <label><span>з:</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
+          <label><span>по:</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>
+          <button type="button" onClick={handleSearch} disabled={loading || (isAdmin && !dealerGuid)}><AppIcon name="AnalyticsSearchIcon" className="w-[20px] h-[20px]" />{loading ? "Формуємо..." : "Сформувати"}</button>
+        </div>
+      </section>
 
-          <div className="production-page-filters">
-            <label className="production-filter">
-              <span>Від</span>
-              <input
-                type="date"
-                value={dateInputs.from}
-                onChange={(e) =>
-                  setDateInputs((prev) => ({ ...prev, from: e.target.value }))
-                }
-              />
-            </label>
+      {error ? <section className="production-design__state"><FaExclamationTriangle /><h2>Дані тимчасово недоступні</h2><p>{error}</p><button type="button" onClick={handleSearch}>Повторити запит</button></section> : null}
+      {!error && loading ? <section className="production-design__state"><div className="loading-spinner" /><h2>Формуємо статистику</h2></section> : null}
+      {!error && isAdmin && !dealerGuid && !loading ? <section className="production-design__state"><FaFilter /><h2>Оберіть дилера</h2><p>Для побудови звіту оберіть контрагента.</p></section> : null}
 
-            <label className="production-filter">
-              <span>До</span>
-              <input
-                type="date"
-                value={dateInputs.to}
-                onChange={(e) =>
-                  setDateInputs((prev) => ({ ...prev, to: e.target.value }))
-                }
-              />
-            </label>
+      {!error && !loading && hasData ? <>
+        <section className="production-design__kpi">
+          <article className="production-design__average-card">
+            <div className="production-design__eyebrow">Середній чек</div>
+            <strong className="production-design__average-value">
+              <AppIcon name="money" className="w-[30px] h-[27px] color-[#B4D947] mt-1.5 mr-2" />
+              {formatCurrency(meta.avg_check)}
+            </strong>
+            <div className="production-design__period"><AppIcon name="CalendarIcon" className="w-[30px] h-[27px]" /><span>За період<b>{formatDate(searchParams.from)} - {formatDate(searchParams.to)}</b></span></div>
+            <div className="production-design__counts">
+  <span className="production-design__count-item">
+    <small>Замовлень</small>
 
-            {isAdmin ? (
-              <div className="production-filter production-filter--dealer">
-                <span>Дилер</span>
-                <DealerSelect value={dealerGuid} onChange={setDealerGuid} />
-              </div>
-            ) : null}
+    <div className="production-design__count-value">
+      <AppIcon
+        name="listCalc"
+        className="w-[20px] h-[20px]"
+      />
+      <b>{formatNumber(meta.orders_count)}</b>
+    </div>
+  </span>
 
-            <button
-              className="production-filter-button"
-              onClick={handleSearch}
-              disabled={loading || (isAdmin && !dealerGuid)}
-            >
-              <FaSearch />
-              <span>{loading ? "Завантаження..." : "Сформувати"}</span>
-            </button>
+  <span className="production-design__count-item">
+    <small>Конструкцій</small>
+
+    <div className="production-design__count-value">
+      <AppIcon
+        name="windows"
+        className="w-[20px] h-[20px]"
+      />
+      <b>{formatNumber(meta.total_constructions)}</b>
+    </div>
+  </span>
+</div>
+          </article>
+          <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} onSelectStatus={handleRingStatusClick} />
+          <div className="production-design__summary-stack">
+            <article><div className="production-design__eyebrow">Оборот</div><strong><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" />{formatCurrency(meta.total_sum)}</strong><span>Сума замовлень за період</span></article>
+            <article><div className="production-design__eyebrow">Середня затримка</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>Макс. затримка: {formatDays(meta.max_delay_days)} дн.</span></article>
           </div>
         </section>
 
-        {error ? (
-          <div className="production-state-card">
-            <FaExclamationTriangle className="production-state-card__icon is-error" />
-            <h3>Дані тимчасово недоступні</h3>
-            <p>{error}</p>
-            <button className="production-filter-button" onClick={handleSearch}>
-              Повторити запит
-            </button>
+        <section className="production-design__dashboard-grid">
+          <article className="production-design__panel production-design__panel--profile-donut">
+            <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Portfolio by category</div><h2 className="uppercase font-bold">Категорії виробів</h2></div></div>
+            {constructionDonutData.length ? <ComplexityDonut data={constructionDonutData}
+    colors={[
+        "#B4D947",
+        "#ED8B33",
+        "#9FD3FF",
+        "#A8A8A8",
+        "#D7C53B",
+        "#7EBAF2",
+    ]}
+   onSectorClick={handleConstructionCategorySelect} height="560px" /> : <div className="production-design__empty">Немає даних.</div>}
+          </article>
+          <div className="production-design__abc-column">
+            {abcSummaryCards.map((item) => <article key={item.abc} className="production-design__abc-card" style={{ "--abc": ABC_COLORS[item.abc] || ABC_COLORS.Other }}>
+              <header>
+                <b>Клас {item.abc}</b>
+                <p>{ABC_PRODUCTION_HINTS[item.abc] || ABC_PRODUCTION_HINTS.Other}</p>
+                <span>{formatPercent(item.in_time_percent)}</span>
+              </header>
+              <div className="production-design__abc-volume"><strong>{formatNumber(item.orders_count)}</strong><small>замовлень<br />в роботі</small></div>
+              <div className="production-design__progress"><i style={{ width: Math.min(Number(item.in_time_percent || 0), 100) + "%" }} /></div>
+              <footer>
+                <div><span>Вчасно:</span><b>{formatNumber(item.in_time_count)}{inTimeProductionDays.averageByAbc[item.abc] !== null && inTimeProductionDays.averageByAbc[item.abc] !== undefined ? ` • ${formatDays(inTimeProductionDays.averageByAbc[item.abc])} дн.` : ""}</b></div>
+                <div><span>Запізнення:</span><b>{formatNumber(item.delayed_count)}</b></div>
+                <div><span>У виробництві:</span><b>{formatNumber(item.not_finished_count)}</b></div>
+              </footer>
+            </article>)}
           </div>
-        ) : null}
+          <article className="production-design__panel production-design__panel--timeliness">
+            <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Timeliness mix</div><h2 className="uppercase font-bold mb-3">Своєчасність по ABC</h2></div></div>
+            <div ref={timelinessChartRef} className="production-design__timeliness-chart-shell">
+              {timelinessChartWidth > 0 ? (
+                <BarChart width={timelinessChartWidth} height={timelinessChartHeight} data={chartData} barCategoryGap="32%" barSize={timelinessChartWidth <= 420 ? 34 : timelinessChartWidth <= 720 ? 44 : 64}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={timelinessTheme.grid} vertical={false} />
+                  <XAxis dataKey="abc" tickLine={false} axisLine={{ stroke: timelinessTheme.axis }} stroke={timelinessTheme.ticks} />
+                  <YAxis tickLine={false} axisLine={{ stroke: timelinessTheme.axis }} stroke={timelinessTheme.axis} allowDecimals={false} />
+                  <Tooltip content={<TimelinessTooltip isDark={isDarkTheme} />} />
+                  <Legend verticalAlign="bottom" iconType="square" iconSize={10} wrapperStyle={{ paddingTop: 12, color: timelinessTheme.legend, fontSize: 12 }} />
+                  <Bar dataKey="Вчасно" stackId="production-status" fill="#b4d947" onClick={(entry) => handleTimelinessBarClick(entry, "Вчасно")} cursor="pointer" />
+                  <Bar dataKey="Запізнення" stackId="production-status" fill="#ed8b33" onClick={(entry) => handleTimelinessBarClick(entry, "Запізнення")} cursor="pointer" />
+                  <Bar dataKey="У виробництві" stackId="production-status" fill="#6b98bf" radius={[4, 4, 0, 0]} onClick={(entry) => handleTimelinessBarClick(entry, "У виробництві")} cursor="pointer" />
+                </BarChart>
+              ) : null}
+            </div>
+            <p>Натисніть на будь-який стовпець, щоб відкрити деталізацію по відповідному ABC-класу та статусу.</p>
+          </article>
+        </section>
 
-        {!error && isAdmin && !dealerGuid && !loading ? (
-          <div className="production-state-card">
-            <FaFilter className="production-state-card__icon" />
-            <h3>Оберіть дилера</h3>
-            <p>Для побудови статистики адміністратору потрібно вибрати контрагента.</p>
+               <section className="production-design__panel production-design__fastest">
+          <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Fastest orders</div><h2 className="uppercase font-bold">Найшвидші по категоріях ABC</h2></div></div>
+          <div className="production-design__fastest-grid">
+            {fastestCards.map(({ abc, order }) => (
+              <div key={abc} className="production-design__fastest-col">
+                <span
+                  className="production-design__fastest-badge"
+                  style={{ "--fastest-color": ABC_COLORS[abc] || ABC_COLORS.Other }}
+                >
+                  Клас {abc}
+                </span>
+                <article className="production-design__fastest-card">
+                  <div>
+                    <b>{order?.order_number || "—"}</b>
+                    <small>
+                      {order
+                        ? `замовлення ${formatDate(order.order_date)} • готово ${formatDate(order.ready_production_max)}`
+                        : "Немає замовлень"}
+                    </small>
+                  </div>
+                  <strong style={{ color: "#B4D947" }}>
+                    {order ? `${formatDays(order.production_days)} дн.` : "—"}
+                  </strong>
+                </article>
+              </div>
+            ))}
           </div>
-        ) : null}
+        </section>
 
-        {!error && loading ? (
-          <div className="production-state-card">
-            <div className="loading-spinner"></div>
-            <h3>Формуємо статистику</h3>
-            <p>Підтягуємо ABC-дані, виробництво та деталізацію замовлень.</p>
-          </div>
-        ) : null}
+ 
 
-        {!error && !loading && !hasData && (!isAdmin || dealerGuid) ? (
-          <div className="production-state-card">
-            <FaHourglassHalf className="production-state-card__icon" />
-            <h3>За цей період немає даних</h3>
-            <p>Спробуйте розширити діапазон дат або вибрати іншого дилера.</p>
-          </div>
-        ) : null}
-
-        {!error && !loading && hasData ? (
-          <>
-            <section className="production-kpi-grid">
-              <div className="production-average-card">
-                <div className="production-average-card__eyebrow">Середній чек</div>
-                <div className="production-average-card__value">
-                  {formatCurrency(meta.avg_check)}
-                </div>
-                <div className="production-average-card__footer">
-                  <span>За період {formatDate(searchParams.from)} - {formatDate(searchParams.to)}</span>
-                  <strong>{formatNumber(meta.orders_count)} замовлень • {formatNumber(meta.total_constructions)} конструкцій</strong>
+        {comparisonSelectedDealer ? <section className="production-design__dealer-comparison">
+          <div className="production-design__dealer-shell">
+            <header className="production-design__dealer-head">
+              <div className="production-design__dealer-head-copy">
+                <div className="production-design__eyebrow">Порівняння дилера</div>
+                <div className="production-design__dealer-head-title">
+                  <h2>{comparisonSelectedDealer.dealer_name}</h2>
+                  <span>{comparisonRegionLabel}</span>
                 </div>
               </div>
-
-              <KpiCard
-                icon={<FaCheckCircle />}
-                label="Вчасно"
-                value={formatPercent(topInTimePercent)}
-                hint={
-                  inTimeProductionDays.overallAverage !== null
-                    ? `${formatNumber(meta.in_time_count)} замовлень • сер. ${formatDays(inTimeProductionDays.overallAverage)} дн.`
-                    : `${formatNumber(meta.in_time_count)} замовлень`
-                }
-              />
-              <KpiCard
-                icon={<FaClock />}
-                label="Запізнення"
-                value={formatPercent(topDelayedPercent)}
-                hint={`${formatNumber(meta.delayed_count)} замовлень`}
-              />
-              <KpiCard
-                icon={<FaHourglassHalf />}
-                label="Не виготовлено"
-                value={formatNumber(meta.not_finished_count)}
-                hint={`${formatNumber(meta.not_finished_count)} замовлень`}
-              />
-              <KpiCard
-                icon={<FaMoneyBillWave />}
-                label="Оборот"
-                value={formatCurrency(meta.total_sum)}
-                hint="Сума замовлень за період"
-              />
-              <KpiCard
-                icon={<FaBoxes />}
-                label="Конструкції"
-                value={formatNumber(meta.total_constructions)}
-                hint={`Виготовлено: ${formatNumber(meta.produced_total)}`}
-              />
-              <KpiCard
-                icon={<FaShippingFast />}
-                label="Сер. затримка"
-                value={`${formatNumber(meta.avg_delay_days)} дн.`}
-                hint={`Макс. затримка: ${formatNumber(meta.max_delay_days)} дн.`}
-              />
-            </section>
-
-            <section className="production-accent-grid">
-              <article className="production-panel production-panel--soft production-panel--systems">
-                <div className="production-panel__header">
-                  <div>
-                    <div className="production-panel__eyebrow">Profile systems</div>
-                    <h3>Профільні системи</h3>
-                  </div>
-                  <div className="production-panel__badge">
-                    <FaSlidersH />
-                    <span>{profileSystems.length} систем</span>
-                  </div>
+              <div className="production-design__dealer-ranks">
+                <div>
+                  <strong>
+                    <FaTrophy />
+                    {formatNumber(comparisonSelectedDealer.turnover_rank)}
+                  </strong>
+                  <small>у загальному рейтингу</small>
                 </div>
+                <div>
+                  <strong className="is-blue">
+                    <FaMedal />
+                    {formatNumber(comparisonSelectedDealer.region_turnover_rank)}
+                  </strong>
+                  <small>у регіоні</small>
+                </div>
+              </div>
+            </header>
 
-                <div className="production-profile-spotlight">
-                  {profileSystemsSorted.length ? (
-                    <div className="production-profile-list">
-                      <div className="production-profile-list__head">
-                        <span>Система</span>
-                        <span>Конструкції</span>
-                        <span>Замовлення</span>
-                        <span>Сер. чек</span>
-                        <span>Оборот</span>
-                      </div>
-
-                      {profileSystemsSorted.map((item) => (
-                        <div key={item.profile_system} className="production-profile-row">
-                          <div className="production-profile-row__name">
-                            {item.profile_system}
-                          </div>
-                          <div>{formatNumber(item.total_constructions)}</div>
-                          <div>{formatNumber(item.orders_count)}</div>
-                          <div>{formatCurrency(item.avg_check)}</div>
-                          <div>{formatCurrency(item.total_sum)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="production-empty-inline">
-                      Профільні системи за цей період не знайдено.
-                    </div>
-                  )}
+            <div className="production-design__dealer-main">
+              <article className="production-design__dealer-panel production-design__dealer-panel--metrics">
+                <div className="production-design__dealer-panel-head">
+                  <h3>Порівняння з топ-1</h3>
+                  <span>Усі ваші показники — у відсотках до рівня лідера</span>
+                </div>
+                <div className="production-design__dealer-gauges">
+                  {comparisonMetricCards.map((item) => (
+                    <ComparisonGauge
+                      key={item.key}
+                      label={item.label}
+                      percent={item.percent}
+                      valueLabel={item.valueLabel}
+                      leaderLabel={item.leaderLabel}
+                      color={item.color}
+                      iconName={item.iconName}
+                    />
+                  ))}
                 </div>
               </article>
-            </section>
 
-            <section className="production-panel production-panel--category">
-              <div className="production-panel__header">
-                <div>
-                  <div className="production-panel__eyebrow">Portfolio by category</div>
-                  <h3>Категорії виробів</h3>
+              <aside className="production-design__dealer-panel production-design__dealer-panel--overall">
+                <span className="production-design__dealer-overall-label">
+                  Загальний рівень
+                </span>
+                <div
+                  className="production-design__dealer-overall-ring"
+                  style={{ "--dealer-overall-value": `${comparisonOverallPercent}%` }}
+                >
+                  <div className="production-design__dealer-overall-center">
+                    <span className="production-design__dealer-gauge-icon">
+                      <FaMedal />
+                    </span>
+                    {formatRoundedPercent(comparisonOverallPercent)}
+                  </div>
                 </div>
-                <div className="production-panel__badge">
-                  <FaBoxes />
-                  <span>{groupedConstructionPortfolio.length} категорії</span>
+                <p>середній рівень відносно лідера</p>
+                <div className="production-design__dealer-profit-card">
+                  <span>Зверніть увагу</span>
+                  <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_top_20 || 0)}</strong>
+                 <small>За умови досягнення рівня найкращого дилера та націнки 20%</small>
                 </div>
-              </div>
+              </aside>
+            </div>
 
-              <div className="production-category-donut">
-                {constructionDonutData.length ? (
-                  <ComplexityDonut
-                    data={constructionDonutData}
-                    onSectorClick={handleConstructionCategorySelect}
-                    height="420px"
-                  />
+            <div className="production-design__dealer-charts">
+              <article className="production-design__dealer-panel production-design__dealer-panel--regions">
+                <div className="production-design__dealer-panel-head production-design__dealer-panel-head--inline">
+                  <h3>Оборот по регіонам</h3>
+                  <span>Оборот</span>
+                </div>
+                <div className="production-design__dealer-turnover-list">
+                  {comparisonRegionCards.map((region) => (
+                    <article key={region.region_name} className="production-design__dealer-turnover-row">
+                      <b>{shortRegionName(region.region_name)}</b>
+                      <div>
+                        <i
+                          style={{
+                            width: `${(Number(region.total_turnover || 0) / comparisonMaxRegionTurnover) * 100}%`,
+                            background: region.turnoverColor,
+                          }}
+                        />
+                      </div>
+                      <span style={{ color: region.turnoverColor }}>
+                        {formatCurrencyPlain(region.total_turnover)}
+                      </span>
+                    </article>
+                  ))}
+                </div>
+              </article>
+
+              <article className="production-design__dealer-panel production-design__dealer-panel--checks">
+                <h3>Середній чек по регіонах</h3>
+                <div className="production-design__dealer-check-bars">
+                  {comparisonRegionCards.map((region) => (
+                    <article key={region.region_name} className="production-design__dealer-check-bar">
+                      <strong style={{ color: region.avgCheckColor }}>
+                        {formatCompactThousands(region.avg_check)}
+                      </strong>
+                      <div>
+                        <i
+                          style={{
+                            height: `${Math.max(
+                              (Number(region.avg_check || 0) / comparisonMaxRegionCheck) * maxBarHeight,
+                              24
+                            )}px`,
+                            background: region.avgCheckColor,
+                          }}
+                        />
+                      </div>
+                      <span>{shortRegionName(region.region_name)}</span>
+                    </article>
+                  ))}
+                </div>
+              </article>
+            </div>
+
+            <div className="production-design__dealer-growth">
+              <h3>Напрямок розвитку</h3>
+              <div className="production-design__dealer-growth-layout">
+                <div className="production-design__dealer-growth-main">
+                  <div className="production-design__dealer-growth-grid">
+                    {comparisonPotentialCards.map((item) => (
+                      <article key={item.key} className="production-design__dealer-growth-card">
+                        <span
+                          className="production-design__dealer-growth-icon"
+                          style={{ "--growth-color": item.color }}
+                        >
+                          {item.icon}
+                        </span>
+                        <div>
+                          <small>{item.title}</small>
+                          <strong>{item.value}</strong>
+                          <span>{item.remaining}</span>
+                          <div className="production-design__dealer-growth-track">
+                            <i
+                              style={{
+                                width: `${Math.max(0, Math.min(Number(item.progress || 0), 100))}%`,
+                                background: item.color,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                  <p>
+                    Якби ви замовляли на рівні нашого найкращого дилера, то за базової
+                    націнки 20% могли б отримати на {formatCurrencyPlain(comparisonInsights.extra_profit_vs_top_20 || 0)} більше прибутку.
+                  </p>
+                </div>
+
+                {mainGrowthOpportunity ? (
+                  <div
+                    className="production-design__dealer-profit-card production-design__dealer-profit-card--wide"
+                    style={{
+                      "--growth-color": mainGrowthOpportunity.color,
+                      borderColor: mainGrowthOpportunity.color,
+                    }}
+                  >
+                    <span>Підсумок</span>
+
+                    <small
+                      style={{
+                        // color: mainGrowthOpportunity.color,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {mainGrowthOpportunity.icon} {mainGrowthOpportunity.label}
+                    </small>
+
+                    <strong>{mainGrowthOpportunity.value}</strong>
+
+                    <small>
+                      ще {formatRoundedPercent(mainGrowthOpportunity.gapPercent)} до рівня лідера
+                    </small>
+
+                    <small>
+                      Саме цей показник має найбільший потенціал для зростання.
+                    </small>
+                  </div>
                 ) : (
-                  <div className="production-empty-inline">
-                    Дані по категоріях відсутні.
+                  <div className="production-design__dealer-profit-card production-design__dealer-profit-card--wide">
+                    <span>Головна можливість</span>
+                    <strong>100%</strong>
+                    <small>За ключовими показниками ви вже на рівні лідера</small>
                   </div>
                 )}
               </div>
-            </section>
+            </div>
+          </div>
+        </section> : null}
 
-            {activeConstructionGroup ? (
-              <section
-                ref={constructionDetailsRef}
-                className="production-panel production-panel--category-detail"
-              >
-                <div className="production-detail-header">
-                  <h3 className="production-detail-title">
-                    Деталізація:{" "}
-                    <span>{activeConstructionGroup.name}</span>
-                  </h3>
-                  <button
-                    className="production-detail-close"
-                    onClick={() => {
-                      setActiveConstructionCategory(null);
-                      setActiveConstructionSubCategory(null);
-                    }}
-                  >
-                    ×
-                  </button>
-                </div>
-
-                <div className="production-chips">
-                  <button
-                    className={`production-chip ${!activeConstructionSubCategory ? "is-active" : ""}`}
-                    onClick={() => setActiveConstructionSubCategory(null)}
-                  >
-                    Всі типи
-                  </button>
-                  {constructionSubCategories.map((subCategory) => (
-                    <button
-                      key={subCategory}
-                      className={`production-chip ${activeConstructionSubCategory === subCategory ? "is-active" : ""}`}
-                      onClick={() =>
-                        setActiveConstructionSubCategory(subCategory)
-                      }
-                    >
-                      {subCategory}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="production-detail-caption">
-                  Розподіл за складністю виготовлення (шт)
-                </div>
-
-                <div className="production-detail-treemap">
-                  <ComplexityTreemap
-                    data={constructionTreemapData}
-                    activeGroup={activeConstructionGroup.name}
-                    height="520px"
-                  />
-                </div>
-              </section>
-            ) : null}
-
-            <section className="production-summary-grid">
-              {summary.map((item) => {
-                const abcColor = ABC_COLORS[item.abc] || ABC_COLORS.Other;
-                const inTimeAverageDays = inTimeProductionDays.averageByAbc[item.abc];
-                return (
-                  <article
-                    key={item.abc}
-                    className="production-summary-card"
-                    style={{
-                      "--abc-color": abcColor,
-                      "--abc-soft-color": hexToRgba(abcColor, 0.14),
-                    }}
-                  >
-                    <div className="production-summary-card__header">
-                      <div className="production-summary-card__badge">
-                        Клас {item.abc}
-                      </div>
-                      <div className="production-summary-card__percent">
-                        {formatPercent(item.in_time_percent)}
-                      </div>
-                    </div>
-
-                    <div className="production-summary-card__body">
-                      <div>
-                        <div className="production-summary-card__main">
-                          {formatNumber(item.orders_count)}
-                        </div>
-                        <div className="production-summary-card__label">
-                          замовлень у роботі
-                        </div>
-                      </div>
-
-                      <div className="production-summary-card__progress">
-                        <span style={{ width: `${Math.min(item.in_time_percent, 100)}%` }} />
-                      </div>
-
-                      <div className="production-summary-card__stats">
-                        <span>
-                          Вчасно: {formatNumber(item.in_time_count)}
-                          {inTimeAverageDays !== null && inTimeAverageDays !== undefined
-                            ? ` • ${formatDays(inTimeAverageDays)} дн.`
-                            : ""}
-                        </span>
-                        <span>Запізнення: {formatNumber(item.delayed_count)}</span>
-                        <span>Не завершено: {formatNumber(item.not_finished_count)}</span>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </section>
-
-            <section className="production-content-grid">
-              <article className="production-panel">
-                <div className="production-panel__header">
-                  <div>
-                    <div className="production-panel__eyebrow">Timeliness mix</div>
-                    <h3>Своєчасність по ABC</h3>
-                  </div>
-                </div>
-
-                <div className="production-chart-wrap">
-                  <ResponsiveContainer width="100%" height={320}>
-                    <BarChart data={chartData} barGap={10}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#d8dfd1" vertical={false} />
-                      <XAxis dataKey="abc" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} />
-                      <Tooltip content={<TimelinessTooltip />} />
-                      <Bar
-                        dataKey="Вчасно"
-                        fill="#356a5d"
-                        radius={[8, 8, 0, 0]}
-                        onClick={(entry) => handleTimelinessBarClick(entry, "Вчасно")}
-                        cursor="pointer"
-                      />
-                      <Bar
-                        dataKey="Запізнення"
-                        fill="#c75d2c"
-                        radius={[8, 8, 0, 0]}
-                        onClick={(entry) => handleTimelinessBarClick(entry, "Запізнення")}
-                        cursor="pointer"
-                      />
-                      <Bar
-                        dataKey="Не виготовлено"
-                        fill="#d3b27f"
-                        radius={[8, 8, 0, 0]}
-                        onClick={(entry) => handleTimelinessBarClick(entry, "Не виготовлено")}
-                        cursor="pointer"
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="production-chart-hint">
-                  Натисніть на будь-який стовпець, щоб відкрити деталізацію по
-                  відповідному ABC-класу та статусу.
-                </div>
-              </article>
-
-              <article className="production-panel">
-                <div className="production-panel__header">
-                  <div>
-                    <div className="production-panel__eyebrow">Fastest orders</div>
-                    <h3>Найшвидші по категоріях ABC</h3>
-                  </div>
-                </div>
-
-                <div className="production-fastest-groups">
-                  {fastestByAbc.length ? (
-                    fastestByAbc.map((group) => (
-                      <div key={group.abc} className="production-fastest-group">
-                        <div
-                          className="production-fastest-group__badge"
-                          style={{
-                            "--abc-color": ABC_COLORS[group.abc] || ABC_COLORS.Other,
-                            "--abc-soft-color": hexToRgba(
-                              ABC_COLORS[group.abc] || ABC_COLORS.Other,
-                              0.14,
-                            ),
-                          }}
-                        >
-                          Клас {group.abc}
-                        </div>
-
-                        <div className="production-fastest-group__list">
-                          {group.items.map((order) => (
-                            <div
-                              key={order.order_id || order.order_number}
-                              className="production-fastest-item"
-                            >
-                              <div>
-                                <div className="production-delay-item__title">
-                                  {order.order_number || "Без номера"}
-                                </div>
-                                <div className="production-delay-item__meta">
-                                  замовлення {formatDate(order.order_date)} • готово{" "}
-                                  {formatDate(order.ready_production_max)}
-                                </div>
-                              </div>
-                              <div className="production-fastest-item__value">
-                                {formatNumber(order.production_days)} дн.
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="production-empty-inline">
-                      Немає готових замовлень для побудови рейтингу швидкості.
-                    </div>
-                  )}
-                </div>
-              </article>
-            </section>
-
-            <section className="production-content-grid production-content-grid--profiles">
-              <article className="production-panel">
-                <div className="production-panel__header">
-                  <div>
-                    <div className="production-panel__eyebrow">Profile distribution</div>
-                    <h3>Розподіл по профільних системах</h3>
-                  </div>
-                  <div className="production-panel__badge">
-                    <FaCubes />
-                    <span>Топ за замовленнями</span>
-                  </div>
-                </div>
-
-                <div className="production-profile-chart">
-                  {profileSystemsForChart.length ? (
-                    <ProfileSystemChart data={profileSystemsForChart} height="360px" />
-                  ) : (
-                    <div className="production-empty-inline">
-                      Немає даних для побудови графіка систем.
-                    </div>
-                  )}
-                </div>
-              </article>
-
-              <article className="production-panel">
-                <div className="production-panel__header">
-                  <div>
-                    <div className="production-panel__eyebrow">Profile colors</div>
-                    <h3>Кольори профілю</h3>
-                  </div>
-                  <div className="production-panel__badge">
-                    <FaPalette />
-                    <span>{profileColors.length} кольорів</span>
-                  </div>
-                </div>
-
-                <div className="production-profile-chart">
-                  {profileColorsForChart.length ? (
-                    <ProfileColorChart data={profileColorsForChart} height="360px" />
-                  ) : (
-                    <div className="production-empty-inline">
-                      Немає даних по кольорах профілю.
-                    </div>
-                  )}
-                </div>
-              </article>
-            </section>
-
-            <section className="production-panel production-panel--wide">
-              <div>
-                <div className="production-panel__header">
-                  <div>
-                    <div className="production-panel__eyebrow">Furniture and extras</div>
-                    <h3>Фурнітура</h3>
-                  </div>
-                  <div className="production-panel__badge">
-                    <FaCogs />
-                    <span>{furniture.length} позицій</span>
-                  </div>
-                </div>
-
-                <div className="production-furniture-list">
-                  {furniture.length ? (
-                    furniture.map((item, index) => (
-                      <div key={`${item.name}-${index}`} className="production-furniture-item">
-                        <div className="production-furniture-item__top">
-                          <span className="production-furniture-item__rank">
-                            #{index + 1}
-                          </span>
-                          <span className="production-furniture-item__title">
-                            {item.name}
-                          </span>
-                        </div>
-                        <div className="production-furniture-item__meta">
-                          <span>{formatNumber(item.orders_count)} замовлень</span>
-                          <span>{formatNumber(item.total_constructions)} конструкцій</span>
-                          <strong>{formatCurrency(item.total_sum)}</strong>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="production-empty-inline">
-                      Немає даних по фурнітурі.
-                    </div>
-                  )}
-                </div>
-
+        <section className="production-design__panel production-design__analytics-switcher">
+          <div className="production-design__analytics-head">
+            <div>
+              <div className="production-design__eyebrow">
+                {activeAnalyticsConfig?.eyebrow || "Profile systems"}
               </div>
-            </section>
+              <h2>{activeAnalyticsConfig?.label || "Профільні системи"}</h2>
+            </div>
+            <span>
+              {formatNumber(activeAnalyticsConfig?.count || 0)} {activeAnalyticsConfig?.countLabel || ""}
+            </span>
+          </div>
 
-            {showOrderDetails ? (
-              <section
-                className="production-panel production-panel--table"
-                ref={orderDetailsRef}
+          <div className="production-design__analytics-tabs">
+            {analyticsSections.map((section) => (
+              <button
+                key={section.key}
+                type="button"
+                className={section.key === activeAnalyticsSection ? "is-active" : ""}
+                onClick={() => setActiveAnalyticsSection(section.key)}
               >
-                <div className="production-panel__header production-panel__header--stacked">
-                  <div className="production-detail-header">
-                    <div>
-                      <div className="production-panel__eyebrow">Order details</div>
-                      <h3>Деталізація замовлень</h3>
-                    </div>
-                    <button
-                      type="button"
-                      className="production-detail-close"
-                      onClick={() => setShowOrderDetails(false)}
-                      aria-label="Закрити деталізацію замовлень"
-                    >
-                      ×
-                    </button>
-                  </div>
+                {section.iconKind === "app" ? (
+                  <AppIcon name={section.icon} />
+                ) : (
+                  <FaCogs />
+                )}
+                {section.label}
+              </button>
+            ))}
+          </div>
 
-                  <div className="production-chart-hint">
-                    Відкрито для {selectedAbc === "all" ? "усіх ABC" : `класу ${selectedAbc}`} і
-                    {" "}
-                    {STATUS_LABELS[selectedStatus]?.toLowerCase() || "усіх статусів"}.
-                  </div>
+          {analyticsDisplayItems.length ? (
+            <div className="production-design__analytics-chart">
+              <div className="production-design__analytics-rows">
+                {analyticsDisplayItems.map((item) => {
+                  const metricValue = Number(item[activeAnalyticsMetric] || 0);
+                  return (
+                    <article key={`${activeAnalyticsSection}-${item.label}`} className="production-design__analytics-row">
+                      <b title={item.label}>{item.label}</b>
+                      <div className="production-design__analytics-row-track">
+                        <i
+                          style={{
+                            width: `${(metricValue / analyticsMaxValue) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <span>{formatAnalyticsMetricValue(activeAnalyticsMetric, metricValue)}</span>
+                    </article>
+                  );
+                })}
+              </div>
 
-                  <div className="production-chip-groups">
-                    <div className="production-chips">
-                      {abcTabs.map((tab) => (
-                        <button
-                          key={tab}
-                          className={`production-chip ${selectedAbc === tab ? "is-active" : ""}`}
-                          onClick={() => setSelectedAbc(tab)}
-                        >
-                          {tab === "all" ? "Усі ABC" : `Клас ${tab}`}
-                        </button>
-                      ))}
-                    </div>
+              <div className="production-design__analytics-scale">
+                {analyticsScaleValues.map((value, index) => (
+                  <span key={`${value}-${index}`}>
+                    {formatNumber(value)}
+                  </span>
+                ))}
+              </div>
 
-                    <div className="production-chips">
-                      {Object.entries(STATUS_LABELS).map(([statusKey, label]) => (
-                        <button
-                          key={statusKey}
-                          className={`production-chip ${selectedStatus === statusKey ? "is-active" : ""}`}
-                          onClick={() => setSelectedStatus(statusKey)}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+              <div className="production-design__analytics-axis-label">
+                {activeAnalyticsMetric === "avg_check"
+                  ? "Середній чек"
+                  : activeAnalyticsMetric === "total_sum"
+                    ? "Оборот, грн"
+                    : activeAnalyticsMetric === "orders_count"
+                      ? "Замовлення, шт"
+                      : "Конструкції, шт"}
+              </div>
+            </div>
+          ) : (
+            <div className="production-design__empty">Немає даних.</div>
+          )}
+
+          <div className="production-design__analytics-metrics">
+            {(activeAnalyticsConfig?.metrics || []).map((metric) => (
+              <button
+                key={metric.key}
+                type="button"
+                className={metric.key === activeAnalyticsMetric ? "is-active" : ""}
+                onClick={() => setActiveAnalyticsMetric(metric.key)}
+              >
+                <AppIcon name={metric.icon} />
+                {metric.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {activeConstructionGroup ? <section ref={constructionDetailsRef} className="production-design__panel production-design__details"><button type="button" onClick={() => { setActiveConstructionCategory(null); setActiveConstructionSubCategory(null); }}>×</button><div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Construction details</div><h2>Деталізація: {activeConstructionGroup.name}</h2></div></div><ComplexityTreemap data={constructionTreemapData} activeGroup={activeConstructionGroup.name} height="520px" /></section> : null}
+
+        {showOrderDetails ? <section ref={orderDetailsRef} className="production-design__panel production-design__orders">
+          <button type="button" onClick={() => setShowOrderDetails(false)} aria-label="Закрити деталізацію">×</button>
+          <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Order details</div><h2>Деталізація замовлень</h2><p className="production-design__orders-caption">Відкрито для {selectedAbc === "all" ? "усіх класів" : `класу ${selectedAbc}`} і {STATUS_LABELS[selectedStatus]?.toLowerCase() || "усіх статусів"}.</p></div></div>
+          <div className="production-design__order-filters">
+            <div>{abcTabs.map((tab) => <button key={tab} type="button" className={selectedAbc === tab ? "is-active" : ""} onClick={() => setSelectedAbc(tab)}>{tab === "all" ? "Усі ABC" : `Клас ${tab}`}</button>)}</div>
+            <div>{Object.entries(STATUS_LABELS).map(([key, label]) => <button key={key} type="button" className={selectedStatus === key ? "is-active" : ""} onClick={() => setSelectedStatus(key)}>{label}</button>)}</div>
+          </div>
+          <table><thead><tr><th>ABC</th><th>Замовлення</th><th>Дата</th><th>План</th><th>Факт</th><th>Статус</th><th>Затримка</th><th>Сума</th></tr></thead><tbody>{filteredOrders.length ? filteredOrders.map((order) => <tr key={order.order_id || order.order_number}><td><b className="production-design__abc-pill">{order.abc}</b></td><td><strong>{order.order_number}</strong><small>{order.client_order_number || ""}</small></td><td>{formatDate(order.order_date)}</td><td>{formatDate(order.planned_production_date)}</td><td>{formatDate(order.ready_production_max)}</td><td><div className="production-design__status-stack"><span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{order.production_status}</span>{order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">Виготовлено за {formatDays(order.production_days)} дн.</small> : null}</div></td><td>{order.delay_bucket || "—"}</td><td>{formatCurrency(order.order_sum)}</td></tr>) : <tr><td colSpan="8" className="production-design__orders-empty">За поточними фільтрами замовлень немає.</td></tr>}</tbody></table>
+          <div className="production-design__orders-mobile-list">
+            {filteredOrders.length ? filteredOrders.map((order) => <article key={`mobile-${order.order_id || order.order_number}`} className="production-design__order-card">
+              <div className="production-design__order-card-head">
+                <b className="production-design__abc-pill">{order.abc}</b>
+                <div>
+                  <strong>{order.order_number}</strong>
+                  {order.client_order_number ? <small>{order.client_order_number}</small> : null}
                 </div>
-
-                <div className="production-table-scroll">
-                  <table className="production-table">
-                    <thead>
-                      <tr>
-                        <th>ABC</th>
-                        <th>Замовлення</th>
-                        <th>Дата</th>
-                        <th>План</th>
-                        <th>Факт</th>
-                        <th>Статус</th>
-                        <th>Затримка</th>
-                        <th>Сума</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredOrders.length ? (
-                        filteredOrders.map((order) => (
-                          <tr key={order.order_id || `${order.order_number}-${order.calc_period}`}>
-                            <td>
-                              <span
-                                className="production-abc-pill"
-                                style={{
-                                  backgroundColor:
-                                    ABC_COLORS[order.abc] || ABC_COLORS.Other,
-                                }}
-                              >
-                                {order.abc}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="production-table__title">
-                                {order.order_number || "Без номера"}
-                              </div>
-                              <div className="production-table__subtitle">
-                                {order.client_order_number || "Клієнтський номер відсутній"}
-                              </div>
-                            </td>
-                            <td>{formatDate(order.order_date)}</td>
-                            <td>{formatDate(order.planned_production_date)}</td>
-                            <td>{formatDate(order.ready_production_max)}</td>
-                            <td>
-                              <span
-                                className={`production-status-pill ${order.production_status === "Вчасно" ? "is-good" : ""} ${order.production_status === "Запізнення" ? "is-bad" : ""} ${order.production_status === "Не виготовлено" ? "is-neutral" : ""}`}
-                              >
-                                {order.production_status || "—"}
-                              </span>
-                              {order.production_status === "Вчасно" &&
-                              order.production_days !== null ? (
-                                <div className="production-table__subtitle">
-                                  виготовлено за {formatNumber(order.production_days)} дн.
-                                </div>
-                              ) : null}
-                            </td>
-                            <td>{order.delay_bucket || "—"}</td>
-                            <td>{formatCurrency(order.order_sum)}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="8">
-                            <div className="production-empty-inline">
-                              Немає замовлень для поточних фільтрів.
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                <div className="production-design__status-stack">
+                  <span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{order.production_status}</span>
+                  {order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">Виготовлено за {formatDays(order.production_days)} дн.</small> : null}
                 </div>
-              </section>
-            ) : null}
-          </>
-        ) : null}
-      </div>
-    </div>
+              </div>
+              <div className="production-design__order-card-grid">
+                <div><span>Дата</span><strong>{formatDate(order.order_date)}</strong></div>
+                <div><span>План</span><strong>{formatDate(order.planned_production_date)}</strong></div>
+                <div><span>Факт</span><strong>{formatDate(order.ready_production_max)}</strong></div>
+                <div><span>Затримка</span><strong>{order.delay_bucket || "—"}</strong></div>
+                <div className="is-wide"><span>Сума</span><strong>{formatCurrency(order.order_sum)}</strong></div>
+              </div>
+            </article>) : <div className="production-design__orders-empty production-design__orders-empty--mobile">За поточними фільтрами замовлень немає.</div>}
+          </div>
+        </section> : null}
+        {showReturnToPreviousButton ? <button type="button" className="production-design__return-button" onClick={handleReturnToPreviousPosition} aria-label="Повернутися вгору"><span>↑</span></button> : null}
+      </> : null}
+    </main>
   );
 }

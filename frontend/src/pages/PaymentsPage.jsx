@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import { useTheme } from "../hooks/useTheme";
 import PaymentModal from "../components/Orders/PaymentModal";
+import OrderFilesModal from "../components/Orders/OrderFilesModal";
 import DebtDetailModal from "./DebtDetailModal"; // 👈 Імпортуємо нову модалку
 import { formatDateHuman } from "../utils/formatters";
 import PaymentsMobileContent from "./PaymentsMobileContent.jsx";
@@ -93,6 +94,8 @@ export default function PaymentsPage() {
   // Модалка основної оплати
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+  const [selectedFilesOrder, setSelectedFilesOrder] = useState(null);
 
   const STATUS_COLORS = {
     "Очікуємо оплату": "status-wait-payment",
@@ -352,6 +355,17 @@ export default function PaymentsPage() {
     setSelectedOrder(order);
     setModalOpen(true);
   };
+
+  const openFilesModal = useCallback((order, event) => {
+    event?.stopPropagation();
+
+    if (!order?.OrderID_GUID) {
+      return;
+    }
+
+    setSelectedFilesOrder(order);
+    setIsFilesModalOpen(true);
+  }, []);
   const closeModal = () => {
     setModalOpen(false);
     setSelectedOrder(null);
@@ -722,6 +736,7 @@ export default function PaymentsPage() {
               <PaymentsMobileContent
                 filteredOrders={filteredOrders}
                 openPaymentModal={openPaymentModal}
+                openFilesModal={openFilesModal}
                 formatCurrency={formatCurrency}
                 normalizeStatus={normalizeStatus}
                 translateStatus={translateStatus}
@@ -736,7 +751,16 @@ export default function PaymentsPage() {
                   filteredOrders.map((o, i) => (
                     <div className="pp-order-card" key={i}>
                       <div className="pp-section pp-order-meta">
-                        <div className="pp-num">№ {o.OrderNumber}</div>
+                        <button
+                          type="button"
+                          className="pp-num-block pp-num-trigger"
+                          onClick={(event) => openFilesModal(o, event)}
+                        >
+                          <div className="pp-num">№ {String(o.OrderNumber || "").trim()}</div>
+                          {String(o.BaseDocumentNumber || "").trim() && (
+                            <div className="pp-base-doc-num">№ {String(o.BaseDocumentNumber || "").trim()}</div>
+                          )}
+                        </button>
                         <div className="pp-date">
                           {o.OrderDate ? formatDateHuman(o.OrderDate.slice(0, 10), i18n.language) : "—"}
                         </div>
@@ -817,6 +841,19 @@ export default function PaymentsPage() {
           onClose={() => setDetailModalOpen(false)}
           onPay={handlePayFromDetails}
         />
+
+        {isFilesModalOpen && selectedFilesOrder && (
+          <OrderFilesModal
+            orderGuid={selectedFilesOrder.OrderID_GUID}
+            orderNumber={String(selectedFilesOrder.OrderNumber || "").trim()}
+            hideZkzFiles
+            entityType="order"
+            onClose={() => {
+              setIsFilesModalOpen(false);
+              setSelectedFilesOrder(null);
+            }}
+          />
+        )}
 
         {/* PAYMENT MODAL */}
         {modalOpen && selectedOrder && (

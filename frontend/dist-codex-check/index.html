@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/header_logo_small.svg" />
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+
+    <meta property="og:title" content="Portal ViknaStyle" />
+    <meta property="og:description" content="Система керування замовленнями" />
+    <meta property="og:image" content="/og-image.jpg" /> 
+    <meta property="og:url" content="https://ordersportal.vstg.com.ua" />
+    <meta property="og:type" content="website" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <meta name="referrer" content="no-referrer-when-downgrade">
+
+    <meta name="twitter:card" content="summary_large_image" />
+  
+
+    <meta name="twitter:image" content="/og-image.jpg" />
+
+    <link rel="manifest" href="/manifest.json" />
+
+      <meta name="apple-mobile-web-app-title" content="ViknaStyle">
+
+      <meta name="mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+
+      <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+      <link rel="apple-touch-icon" href="/logo192_1.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/logo152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/logo180.png">
+
+
+      
+
+    <title>Vikna Style</title>
+
+
+
+    
+
+
+    <!-- <link rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/font/material-icons.min.css" 
+      integrity="sha512-976p69fN3pUkwmO68Z4uE5T1hS4P5pL+9U/vQkP56R04M5O5M1pL+0987654321..." 
+      crossorigin="anonymous"> -->
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
+
+    
+    <!-- <link rel="stylesheet" 
+          href="https://cdn.jsdelivr.net/npm/izimodal@1.6.1/css/iziModal.min.css" 
+          integrity="sha256-As9vHeK0YpZ9S6K7eM1+7eC+50u7L9A2q6f6T8f5/8I=" 
+          crossorigin="anonymous"> -->
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
+            crossorigin="anonymous" 
+            defer></script>
+            
+
+    <script>
+      // Перевірка версії застосунку
+      (function() {
+        fetch('/version.json?t=' + Date.now())
+          .then(res => res.ok ? res.json() : Promise.reject())
+          .then(data => {
+            const currentVersion = localStorage.getItem('app_version');
+            if (data.version && currentVersion && data.version !== currentVersion) {
+              localStorage.setItem('app_version', data.version);
+              // Жорстке перезавантаження для оновлення кешу
+              window.location.reload(true); 
+            } else if (data.version) {
+              localStorage.setItem('app_version', data.version);
+            }
+          })
+          .catch(err => console.error('Version check failed:', err));
+      })();
+    </script>
+    
+
+    
+    <script type="module" crossorigin src="/assets/index-C1YZ4Dhk.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CbsQBXmk.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    
+    <script async src="https://www.tiktok.com/embed.js"></script>
+
+    <div id="fb-root"></div>
+    <script async defer crossorigin="anonymous" 
+            src="https://connect.facebook.net/uk_UA/sdk.js#xfbml=1&version=v25.0&appId=2817254248621410">
+    </script>
+  </body>
+</html>

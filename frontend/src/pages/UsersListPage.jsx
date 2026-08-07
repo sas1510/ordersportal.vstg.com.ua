@@ -1,6 +1,6 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../api/axios";
-import { Loader2, Plus } from "lucide-react";
+import { KeyRound, Loader2, Plus } from "lucide-react";
 
 import ChangeUserPasswordModal from "../pages/ChangeUserPasswordModal";
 import EditUserModal from "../pages/EditUserModal";
@@ -8,6 +8,7 @@ import DeactivateUserModal from "../pages/DeactivateUserModal";
 import DeleteUserModal from "../pages/DeleteUserModal";
 import UserApiKeysModal from "../pages/UserApiKeysModal";
 import CreateUserInvitationModal from "./CreateUserInvitationModal";
+import TelegramBotKeyModal from "./TelegramBotKeyModal";
 import { normalizeRole } from "../utils/roles";
 
 import "../pages/UsersListPage.css";
@@ -68,6 +69,7 @@ export default function UsersListPage() {
   const [apiKeyUser, setApiKeyUser] = useState(null);
   const [deleteUser, setDeleteUser] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showTelegramBotKeyModal, setShowTelegramBotKeyModal] = useState(false);
 
   const loadUsers = async () => {
     setLoading(true);
@@ -115,13 +117,23 @@ export default function UsersListPage() {
       <div className="max-w-[1334px] mx-auto">
         <div className="flex max-w-[1334px] justify-between items-center mb-6 mt-2 border-b pb-4">
           <h1 className="ulp-title text-3xl font-extrabold m-0">Усі користувачі</h1>
-          <button
-            onClick={() => setShowInviteModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
-          >
-            <Plus size={18} />
-            <span>Створити користувача</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowTelegramBotKeyModal(true)}
+              className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
+            >
+              <KeyRound size={18} />
+              <span>{"\u041a\u043b\u044e\u0447 Telegram-\u0431\u043e\u0442\u0430"}</span>
+            </button>
+            <button
+              onClick={() => setShowInviteModal(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
+            >
+              <Plus size={18} />
+              <span>???????? ???????????</span>
+            </button>
+          </div>
         </div>
 
         <div className="ulp-filter mb-6 max-w-[1334px] flex gap-3 items-center">
@@ -267,6 +279,10 @@ export default function UsersListPage() {
               </tbody>
             </table>
           </div>
+        )}
+
+        {showTelegramBotKeyModal && (
+          <TelegramBotKeyModal onClose={() => setShowTelegramBotKeyModal(false)} />
         )}
 
         {showInviteModal && (

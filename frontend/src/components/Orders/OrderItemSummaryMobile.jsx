@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
@@ -21,9 +21,12 @@ import { useTranslation } from "react-i18next";
 
 export default React.memo(function OrderItemSummaryMobile({
   order,
+  contractorGuid,
   calculationDate,
   calculationConstructionsCount,
   totalOrderConstructions,
+  isExpanded: externalExpanded,
+  onToggle,
   onRefresh,
   onOrderPaymentSuccess,
 }) {
@@ -64,8 +67,14 @@ export default React.memo(function OrderItemSummaryMobile({
 
   const toggleExpand = useCallback(() => {
     if (isSketchOrder) return;
+
+    if (onToggle) {
+      onToggle(order.idGuid || order.number);
+      return;
+    }
+
     setIsExpanded((prev) => !prev);
-  }, [isSketchOrder]);
+  }, [isSketchOrder, onToggle, order.idGuid, order.number]);
 
 
   const dateDiffStatus = useMemo(() => {
@@ -110,6 +119,12 @@ export default React.memo(function OrderItemSummaryMobile({
 
     return state;
   }, []);
+
+  useEffect(() => {
+    if (typeof externalExpanded === "boolean") {
+      setIsExpanded(externalExpanded);
+    }
+  }, [externalExpanded]);
 
   const translatedStatus = useMemo(() => {
   const statusMap = {
@@ -655,12 +670,15 @@ export default React.memo(function OrderItemSummaryMobile({
 
         }}
         initialOrderNumber={claimOrderNumber}
+        initialContractorGuid={contractorGuid}
       />
 
 
       <AddReorderModal
         isOpen={isReorderModalOpen}
         onClose={() => setIsReorderModalOpen(false)}
+        initialOrderNumber={orderNumber}
+        initialContractorGuid={contractorGuid}
         onSave={handleReorderSave}
       />
 

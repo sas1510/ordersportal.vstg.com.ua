@@ -120,6 +120,23 @@
   font-style: italic;
 }
 
+.ddm-num-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ddm-num-main {
+  font-weight: 600;
+  color: inherit;
+}
+
+.ddm-num-base {
+  font-size: 11px;
+  line-height: 1.2;
+  color: #7a7a7a;
+}
+
 /* Кнопка "Знайти" в таблиці */
 .ddm-btn-search {
   display: inline-flex;
@@ -203,6 +220,10 @@
 
 .dark-theme .ddm-table td {
   border-color: #333333;
+}
+
+.dark-theme .ddm-num-base {
+  color: #b9b3ad;
 }
 
 .dark-theme .ddm-btn-close {

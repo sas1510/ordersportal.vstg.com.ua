@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import ReactECharts from "echarts-for-react";
 
-const ProfileSystemChart = ({ data, height = "500px" }) => {
+const ProfileSystemChart = ({ data, height = "500px", onItemClick = null }) => {
   const chartRef = useRef(null);
   const [isDark, setIsDark] = useState(
     document.body.classList.contains("dark-theme"),
@@ -82,12 +82,19 @@ const ProfileSystemChart = ({ data, height = "500px" }) => {
     [sortedData, isDark],
   );
 
+  const onEvents = {
+    click: (params) => {
+      if (onItemClick) onItemClick(params.name);
+    },
+  };
+
   return (
     <ReactECharts
       ref={chartRef}
       option={option}
       style={{ height: height, width: "100%" }}
       opts={{ renderer: "svg" }}
+      onEvents={onEvents}
       notMerge={true}
     />
   );

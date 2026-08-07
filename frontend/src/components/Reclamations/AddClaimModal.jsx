@@ -186,7 +186,7 @@
 //     setSeriesOptions([]);
 //     setSelectedSeries([]);
 //     setOrderNotFound(false);
-//     setDealerId("");
+//     setDealerId(initialContractorGuid || "");
 //     setFetchErrors({ reasons: null, solutions: null, series: null });
 //   };
 
@@ -498,6 +498,7 @@ export default function AddClaimModal({
   onSave,
   initialOrderNumber = "",
   initialOrderGUID = "",
+  initialContractorGuid = "",
 }) {
   const { t, i18n } = useTranslation(); // 🔥 Хук перекладу
   const { addNotification } = useNotification();
@@ -545,8 +546,11 @@ export default function AddClaimModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen) setOrderNumber(initialOrderNumber);
-  }, [isOpen, initialOrderNumber]);
+    if (isOpen) {
+      setOrderNumber(initialOrderNumber);
+      setDealerId(initialContractorGuid || "");
+    }
+  }, [isOpen, initialOrderNumber, initialContractorGuid]);
 
   const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
@@ -671,7 +675,7 @@ export default function AddClaimModal({
     setSeriesOptions([]);
     setSelectedSeries([]);
     setOrderNotFound(false);
-    setDealerId("");
+    setDealerId(initialContractorGuid || "");
     setFetchErrors({ reasons: null, solutions: null, series: null });
   };
 

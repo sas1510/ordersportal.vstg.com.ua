@@ -29,7 +29,7 @@ def get_manager_by_contractor(contractor_guid_hex: str):
 
 
 def get_manager_telegram_id(manager_guid_bytes: bytes):
-    with connections["testportal_unified"].cursor() as cursor:
+    with connections["portal_db"].cursor() as cursor:
         cursor.execute(
             "EXEC dbo.GetTelegramID @UserGUID=%s",
             [manager_guid_bytes]

@@ -2880,7 +2880,7 @@ body.dark-theme *::-webkit-scrollbar-thumb {
 
 .dark-theme .content-summary .by-month-pagination-wrapper ul li {
   color: var(--text-color);
-  border-right: 1px dotted var(--grey-border-color);
+  /* border-right: 1px dotted var(--grey-border-color); */
 }
 
 .dark-theme .content-summary .by-month-pagination-wrapper ul li:hover,

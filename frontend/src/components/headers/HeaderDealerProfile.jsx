@@ -3,12 +3,9 @@ import "./HeaderDealerProfile.css";
 import { AppIcon } from "../Icons/AppIcon";
 
 // Приймаємо дані через props
-export default function HeaderDealerProfile({ balance, currency, fullName }) {
+export default function HeaderDealerProfile({ balance, debtAmount, currency, fullName }) {
   const { theme } = useTheme();
   
-  const moneyIcon = "/assets/icons/money-icon.png";
-  const profileIcon = "/assets/icons/profile-icon.png";
-
   const formatName = (name) => {
     if (!name || name === "Завантаження...") return name;
     let cleanName = name.split('(')[0].trim();
@@ -21,6 +18,11 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(balance ?? 0);
+
+  const formattedDebtAmount = new Intl.NumberFormat("uk-UA", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(debtAmount ?? 0);
 
   return (
     <div className={`profile-box ${theme}`}>
@@ -39,12 +41,19 @@ export default function HeaderDealerProfile({ balance, currency, fullName }) {
         <div className="profile-separator-line" />
 
         <div className="profile-balance-text">
-          {formattedAmount}
-          <span className="profile-currency-label">
-             {currency || "грн"}
+          <span className="profile-wallet-amount">
+            {formattedAmount}
+            <span className="profile-currency-label">
+              {currency || "грн"}
+            </span>
+          </span>
+          <span className="profile-debt-amount">
+            {formattedDebtAmount}  
+            <span className="profile-currency-label">
+              {currency || "грн"}
+            </span>
           </span>
         </div>
-        {/* <img className="profile-money-img-icon" alt="Money" src={moneyIcon} /> */}
 
         <AppIcon name="money" className="profile-money-img-icon" />
       </div>

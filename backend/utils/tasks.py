@@ -219,7 +219,7 @@ import os
 import requests
 import logging
 from datetime import datetime, timedelta
-from django.db import connection
+from django.db import connection, close_old_connections, OperationalError
 from django.contrib.auth import get_user_model
 from celery import shared_task
 from asgiref.sync import async_to_sync
@@ -230,10 +230,14 @@ from django.utils import timezone
 from .BinToGuid1C import bin_to_guid_1c
 from .GuidToBin1C import guid_to_1c_bin
 from django.conf import settings
+from utils.onec_api import send_to_1c
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
-PORTAL_MANAGER_COPY_USER_ID_1C_HEX = "0x810E74867AD9D52511EBDD6B1D812DBA"
+TELEGRAM_COPY_USER_IDS_1C_HEX = [
+    "0x9CEB4CD98F08E56D11F17090C0521AFA",
+    "0x810E74867AD9D52511EBDD6B1D812DBA",
+]
 
 
 @shared_task(name='send_webpush_notification')
@@ -257,57 +261,83 @@ def send_webpush_notification(recipient_id_1c, title, message):
 
 
 
-@shared_task(name='check_and_send_telegram_notification')
-def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type, doc_number, is_dealer, author_name):
+@shared_task(name='check_and_send_telegram_notification', bind=True, autoretry_for=(OperationalError,), retry_backoff=True, retry_jitter=True, retry_kwargs={'max_retries': 3})
+def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t_type, doc_number, is_dealer, author_name):
     from records.models import ChatMessage
     from django.conf import settings
     import os
     import requests
-    
+
+    close_old_connections()
+    logger.info(
+        "TG notification task started",
+        extra={
+            'tags': {'action': 'check_and_send_telegram_notification'},
+            'task_id': getattr(self.request, 'id', None),
+            'message_id': message_id,
+            'recipient_guid': recipient_guid_str,
+            'transaction_type': t_type,
+            'doc_number': doc_number,
+            'is_dealer': is_dealer,
+            'author_name': author_name,
+        }
+    )
     try:
         msg = ChatMessage.objects.get(id=message_id)
-        # Якщо повідомлення вже прочитане — нічого не шлемо
+        logger.info(
+            "TG notification message loaded",
+            extra={
+                'tags': {'action': 'check_and_send_telegram_notification'},
+                'task_id': getattr(self.request, 'id', None),
+                'message_id': message_id,
+                'chat_id': msg.chat_id,
+                'is_read': msg.is_read,
+                'related_object_id': str(msg.related_object_id) if msg.related_object_id else None,
+            }
+        )
         if msg.is_read:
             return "Already read"
 
         recipient_bin = guid_to_1c_bin(recipient_guid_str)
         telegram_id = None
 
-        # 1. Визначаємо назву типу документа для тексту
         document_names = {
             1: "прорахунку",
             2: "рекламації",
-            3: "дозамовленні" 
+            3: "дозамовленні",
         }
         document_type = document_names.get(t_type, "замовленні")
-        
-        # 2. Логіка формування посилання (ТІЛЬКИ для дилера)
+
         link_html = ""
         if is_dealer:
             pages_map = {
                 1: "orders",
                 2: "complaints",
-                3: "additional-orders" 
+                3: "additional-orders",
             }
             page = pages_map.get(t_type, "orders")
             doc_year = msg.timestamp.year
-      
             direct_link = f"{settings.FRONTEND_URL}{page}?search={doc_number}&year={doc_year}"
             link_html = f"\n\n🔗 <a href='{direct_link}'>Перейти до документа</a>"
 
-  
         with connection.cursor() as cursor:
-            cursor.execute(
-                "EXEC [dbo].[GetTelegramID] @UserGUID=%s",
-                [recipient_bin],
-            )
+            cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [recipient_bin])
             row = cursor.fetchone()
-
             if row:
-                telegram_id = row[1]
+                telegram_id = row[1] if len(row) > 1 else row[0]
+        logger.info(
+            "TG notification recipient resolved",
+            extra={
+                'tags': {'action': 'check_and_send_telegram_notification'},
+                'task_id': getattr(self.request, 'id', None),
+                'message_id': message_id,
+                'recipient_guid': recipient_guid_str,
+                'telegram_id_found': bool(telegram_id),
+                'telegram_id': telegram_id,
+            }
+        )
 
         token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
-        
         if telegram_id and token:
             message_text = (msg.text or "").strip()
             is_refusal_request = message_text.startswith("Відмова. Номери:")
@@ -332,40 +362,58 @@ def check_and_send_telegram_notification(message_id, recipient_guid_str, t_type,
             target_chat_ids = [int(telegram_id)]
 
             try:
-                portal_copy_bin = bytes.fromhex(PORTAL_MANAGER_COPY_USER_ID_1C_HEX[2:])
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "EXEC [dbo].[GetTelegramID] @UserGUID=%s",
-                        [portal_copy_bin],
-                    )
-                    portal_copy_row = cursor.fetchone()
-                portal_copy_telegram_id = None
-                if portal_copy_row:
-                    portal_copy_telegram_id = portal_copy_row[1] if len(portal_copy_row) > 1 else portal_copy_row[0]
-                if portal_copy_telegram_id and int(portal_copy_telegram_id) not in target_chat_ids:
-                    target_chat_ids.append(int(portal_copy_telegram_id))
+                for copy_user_id_1c_hex in TELEGRAM_COPY_USER_IDS_1C_HEX:
+                    copy_bin = bytes.fromhex(copy_user_id_1c_hex[2:])
+                    with connection.cursor() as cursor:
+                        cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [copy_bin])
+                        copy_row = cursor.fetchone()
+                    copy_telegram_id = None
+                    if copy_row:
+                        copy_telegram_id = copy_row[1] if len(copy_row) > 1 else copy_row[0]
+                    if copy_telegram_id and int(copy_telegram_id) not in target_chat_ids:
+                        target_chat_ids.append(int(copy_telegram_id))
+            except OperationalError:
+                raise
             except Exception:
-                logger.warning("Could not resolve portal copy Telegram in check_and_send_telegram_notification", exc_info=True)
+                logger.warning("Could not resolve Telegram copy recipients in check_and_send_telegram_notification", exc_info=True)
 
             for chat_id in target_chat_ids:
-                requests.post(
+                logger.info(
+                    "TG notification sending",
+                    extra={
+                        'tags': {'action': 'check_and_send_telegram_notification'},
+                        'task_id': getattr(self.request, 'id', None),
+                        'message_id': message_id,
+                        'chat_id': chat_id,
+                        'document_type': document_type,
+                        'doc_number': doc_number,
+                    }
+                )
+                response = requests.post(
                     f"https://api.telegram.org/bot{token}/sendMessage",
                     json={
                         "chat_id": chat_id,
                         "text": text,
                         "parse_mode": "HTML",
-                        "disable_web_page_preview": True
+                        "disable_web_page_preview": True,
                     },
-                    timeout=10
+                    timeout=10,
                 )
-            return f"Sent to TG {telegram_id} (+copy by UserId1C {PORTAL_MANAGER_COPY_USER_ID_1C_HEX}) (Dealer: {is_dealer})"
-            
-        return "No telegram_id or token found"
+                response.raise_for_status()
 
+            return f"Sent to TG {target_chat_ids} (Dealer: {is_dealer})"
+
+        return "No telegram_id or token found"
     except ChatMessage.DoesNotExist:
         return "Message not found"
-    except Exception as e:
-        return str(e)
+    except OperationalError:
+        logger.exception("Database error in check_and_send_telegram_notification; retry scheduled")
+        raise
+    except Exception:
+        logger.exception("Unhandled error in check_and_send_telegram_notification")
+        raise
+    finally:
+        close_old_connections()
 
 
 
@@ -652,36 +700,49 @@ def run_order_reminder_cron():
     return f"Processed {created_count} reminders"
 
 
-
-
-from celery import shared_task
-from utils.onec_api import send_to_1c
-import logging
-
-logger = logging.getLogger(__name__)
-@shared_task(name="tasks.send_chat_notification_to_1c")
-def send_chat_notification_to_1c(t_type, base_guid_str, manager_guid_str, message_text, message_id):
+@shared_task(name="tasks.send_chat_notification_to_1c", bind=True, autoretry_for=(OperationalError,), retry_backoff=True, retry_jitter=True, retry_kwargs={'max_retries': 3})
+def send_chat_notification_to_1c(self, t_type, base_guid_str, manager_guid_str, message_text, message_id):
     """
     Виконується через 10 хв після відправки повідомлення.
     Перевіряє, чи було воно прочитане.
     """
     from records.models import ChatMessage
 
+    close_old_connections()
+    logger.info(
+        "1C notification task started",
+        extra={
+            'tags': {'action': 'send_chat_notification_to_1c'},
+            'task_id': getattr(self.request, 'id', None),
+            'message_id': message_id,
+            'transaction_type': t_type,
+            'base_guid': base_guid_str,
+            'manager_guid': manager_guid_str,
+            'message_length': len(message_text or ''),
+        }
+    )
     try:
-        # Шукаємо наше повідомлення
         msg = ChatMessage.objects.filter(id=message_id).first()
-        
-        # Якщо повідомлення вже прочитане (is_read=True), скасовуємо сповіщення
+        logger.info(
+            "1C notification message lookup",
+            extra={
+                'tags': {'action': 'send_chat_notification_to_1c'},
+                'task_id': getattr(self.request, 'id', None),
+                'message_id': message_id,
+                'message_found': bool(msg),
+                'is_read': getattr(msg, 'is_read', None),
+                'chat_id': getattr(msg, 'chat_id', None),
+            }
+        )
         if not msg or msg.is_read:
             logger.info(f"Message {message_id} already read. Skipping 1C notification.")
             return {"status": "skipped", "reason": "read"}
 
-        # Формуємо payload
         payload = {
             "managerGuid": manager_guid_str,
-            "messageText": message_text
+            "messageText": message_text,
         }
-        
+
         if t_type == 1:
             payload["calculationGuid"] = base_guid_str
         elif t_type == 2:
@@ -691,10 +752,33 @@ def send_chat_notification_to_1c(t_type, base_guid_str, manager_guid_str, messag
         else:
             payload["documentGuid"] = base_guid_str
 
-        # Відправляємо в 1С
+        logger.info(
+            "1C notification payload prepared",
+            extra={
+                'tags': {'action': 'send_chat_notification_to_1c'},
+                'task_id': getattr(self.request, 'id', None),
+                'message_id': message_id,
+                'payload_keys': sorted(payload.keys()),
+                'manager_guid': manager_guid_str,
+                'base_guid': base_guid_str,
+            }
+        )
         result = send_to_1c("NotifyChatMessage", payload)
+        logger.info(
+            "1C notification task finished",
+            extra={
+                'tags': {'action': 'send_chat_notification_to_1c'},
+                'task_id': getattr(self.request, 'id', None),
+                'message_id': message_id,
+                'result': result,
+            }
+        )
         return result
-
-    except Exception as e:
-        logger.error(f"Error in delayed 1C notification: {str(e)}")
-        return {"success": False, "error": str(e)}
+    except OperationalError:
+        logger.exception("Database error in send_chat_notification_to_1c; retry scheduled")
+        raise
+    except Exception:
+        logger.exception("Error in delayed 1C notification")
+        raise
+    finally:
+        close_old_connections()

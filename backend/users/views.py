@@ -828,7 +828,7 @@ def get_customers(request):
 @sync_to_async
 def execute_balance_procedure(user_id_1c):
     with connection.cursor() as cursor:
-        cursor.execute("EXEC dbo.GetDealerAdvanceBalance @Контрагент=%s", [user_id_1c])
+        cursor.execute("EXEC dbo.GetDealerAdvanceBalance_2 @Контрагент=%s", [user_id_1c])
         return cursor.fetchone()
 
 
@@ -869,13 +869,30 @@ def get_balance_view(request):  # Синхронна для DRF
             
             if not row:
                 logger.info(f"Balance empty for user {user.username}")
-                return {"data": {"sum": 0, "full_name": "", "currency": ""}}
+                return {
+                    "data": {
+                        "sum": 0,
+                        "my_wallet": 0,
+                        "debt_sum": 0,
+                        "full_name": "",
+                        "my_name": "",
+                        "currency": "",
+                    }
+                }
+
+            debt_sum = row[0] if len(row) > 0 else 0
+            my_wallet = row[1] if len(row) > 1 else 0
+            my_name = row[2] if len(row) > 2 else ""
+            currency = row[3] if len(row) > 3 else ""
 
             return {
                 "data": {
-                    "sum": row[0],
-                    "full_name": row[1],
-                    "currency": row[2],
+                    "sum": my_wallet,
+                    "my_wallet": my_wallet,
+                    "debt_sum": debt_sum,
+                    "full_name": my_name,
+                    "my_name": my_name,
+                    "currency": currency,
                 }
             }
         except Exception as e:

@@ -37,9 +37,10 @@ urlpatterns = [
     path("system/maintenance/1c/", one_c_maintenance_mode_view),
     path("save_dealer_address_coords/", save_dealer_address_coords),
     path(
-        "admin/api-keys/<int:key_id>/de activate/",
-        deactivate_api_key
-        ),
+        "admin/api-keys/<int:key_id>/deactivate/",
+        deactivate_api_key,
+        name="deactivate_api_key",
+    ),
 
     path('user/telegram-link/', get_telegram_link, name='get_telegram_link'),
 

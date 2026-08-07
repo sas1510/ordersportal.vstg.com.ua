@@ -698,30 +698,46 @@ const NewCalculationModal = ({
               )}
 
      
-              <div className="new-calc-file-upload">
-                <label htmlFor="new-calc-file" className="new-calc-upload-label">
-                  <FaUpload size={20} />
-                  <span>{t("orders.newOrderModal.downloadZKZ")}</span>
+              <div className="new-calc-top-upload-row">
+                <div className="new-calc-file-upload new-calc-file-upload--compact">
+                  <label htmlFor="new-calc-file" className="new-calc-upload-label">
+                    <FaUpload size={20} />
+                    <span>{t("orders.newOrderModal.downloadZKZ")}</span>
+                    <input
+                      type="file"
+                      id="new-calc-file"
+                      // accept=".zkz"
+                      onChange={handleFileChange}
+                      hidden
+                    />
+                  </label>
+                  <div className="new-calc-file-name">
+                    <span>{fileName}</span>
+                    {file && (
+                      <button type="button" className="new-calc-clear-file" onClick={handleClearFile}>
+                        <FaTrash size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <label className="new-calc-label-row new-calc-label-row--compact new-calc-count-card">
+                  <span>{t("orders.newOrderModal.numberOfConstruction")}</span>
                   <input
-                    type="file"
-                    id="new-calc-file"
-                    // accept=".zkz"
-                    onChange={handleFileChange}
-                    hidden
+                    type="number"
+                    min="1"
+                    value={itemsCount}
+                    onChange={(e) => {
+                      setItemsCount(e.target.value);
+                      setItemsCountTouched(true);
+                    }}
+                    className="new-calc-input-number"
                   />
                 </label>
-                <div className="new-calc-file-name">
-                  <span>{fileName}</span>
-                  {file && (
-                    <button type="button" className="new-calc-clear-file" onClick={handleClearFile}>
-                      <FaTrash size={14} />
-                    </button>
-                  )}
-                </div>
               </div>
 
               {/* 📸 2. НОВИЙ БЛОК: Завантаження додаткових фотографій */}
-              <div className="new-calc-file-upload" style={{ marginTop: "15px" }}>
+              <div className="new-calc-file-upload new-calc-photos-compact">
                 <label htmlFor="new-calc-photos" className="new-calc-upload-label" style={{ backgroundColor: "#76b448" }}>
                   <FaCamera className="text-white" size={20} />
                   <span className="text-white">{t("orders.newOrderModal.addImages")}</span>
@@ -736,7 +752,7 @@ const NewCalculationModal = ({
                 </label>
                 
                 {/* Список обраних зображень */}
-                <div className="new-calc-photos-list" style={{ marginTop: "10px", width: "100%" }}>
+                <div className="new-calc-photos-list" style={{  width: "100%" }}>
                   {photos.map((photo, index) => (
                     <div 
                       key={index} 
@@ -766,21 +782,6 @@ const NewCalculationModal = ({
                   ))}
                 </div>
               </div>
-
-              <label className="new-calc-label-row">
-                <span>{t("orders.newOrderModal.numberOfConstruction")}</span>
-                <input
-                  type="number"
-                  min="1"
-                  value={itemsCount}
-                  onChange={(e) => {
-                    setItemsCount(e.target.value);
-                    setItemsCountTouched(true);
-                  }}
-                  className="new-calc-input-number"
-                />
-              </label>
-
               <label className="new-calc-label">
                 <span>{t("orders.newOrderModal.comment")}</span>
                 <textarea
