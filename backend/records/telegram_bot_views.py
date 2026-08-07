@@ -49,14 +49,15 @@ class HasTelegramBotApiKey(BasePermission):
 
 
 STATUS_DEFINITIONS = (
-    ("new", "\u041d\u043e\u0432\u0456", "#6B98BF"),
-    ("awaiting_confirmation", "\u041e\u0447\u0456\u043a\u0443\u044e\u0442\u044c \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043d\u044f", "#ED8B33"),
-    ("awaiting_payment", "\u041e\u0447\u0456\u043a\u0443\u044e\u0442\u044c \u043e\u043f\u043b\u0430\u0442\u0443", "#D75C54"),
-    ("production", "\u0423 \u0432\u0438\u0440\u043e\u0431\u043d\u0438\u0446\u0442\u0432\u0456", "#B4D947"),
-    ("delayed", "\u0417\u0430\u043f\u0456\u0437\u043d\u0435\u043d\u043d\u044f", "#ED8B33"),
-    ("ready", "\u0413\u043e\u0442\u043e\u0432\u0456", "#70A58A"),
+    ("new", "Нові", "#6B98BF"),
+    ("awaiting_confirmation", "Очікують підтвердження", "#ED8B33"),
+    ("awaiting_payment", "Очікують оплату", "#D75C54"),
+    ("confirmed", "Підтверджені", "#70A58A"),
+    ("production", "У виробництві", "#B4D947"),
+    ("delayed", "Запізнення", "#ED8B33"),
+    ("ready", "Готові", "#70A58A"),
+    ("rejected", "Відмови", "#AEAEAE"),
 )
-
 
 def _clean(value):
     return " ".join(str(value or "").split())
@@ -64,18 +65,23 @@ def _clean(value):
 
 def _status_key(value):
     normalized = _clean(value).lower()
-    if any(part in normalized for part in ("\u0437\u0430\u043f\u0456\u0437", "\u043f\u0440\u043e\u0441\u0440\u043e\u0447", "\u0437\u0430\u0442\u0440\u0438\u043c")):
+    if any(part in normalized for part in ("відмова", "отказ")):
+        return "rejected"
+    if "підтверджен" in normalized or "подтвержден" in normalized:
+        return "confirmed"
+    if any(part in normalized for part in ("запіз", "просроч", "затрим")):
         return "delayed"
-    if any(part in normalized for part in ("\u043e\u0447\u0456\u043a\u0443\u0454\u043c\u043e \u043e\u043f\u043b\u0430\u0442", "\u043e\u0436\u0438\u0434\u0430\u0435\u043c \u043e\u043f\u043b\u0430\u0442")):
+    if any(part in normalized for part in ("очікуємо оплат", "очикуємо оплат", "ожидаем оплат")):
         return "awaiting_payment"
-    if any(part in normalized for part in ("\u043e\u0447\u0456\u043a\u0443", "\u043e\u0436\u0438\u0434\u0430", "\u0435\u0441\u043a\u0456\u0437", "\u044d\u0441\u043a\u0438\u0437")):
+    if any(part in normalized for part in ("очікуємо підтвердж", "очикуємо підтвердж", "ожидаем подтверж", "ескіз", "эскиз")):
         return "awaiting_confirmation"
-    if any(part in normalized for part in ("\u0432\u0438\u0440\u043e\u0431\u043d\u0438\u0446", "\u043f\u0440\u043e\u0438\u0437\u0432\u043e\u0434\u0441\u0442\u0432", "\u0432 \u0440\u043e\u0431\u043e\u0442")):
+    if any(part in normalized for part in ("виробниц", "производств", "в робот")):
         return "production"
-    if any(part in normalized for part in ("\u0433\u043e\u0442\u043e\u0432", "\u0432\u0456\u0434\u0432\u0430\u043d\u0442\u0430\u0436", "\u0434\u043e\u0441\u0442\u0430\u0432", "\u0440\u0435\u0430\u043b\u0456\u0437")):
+    if any(part in normalized for part in ("готов", "відвантаж", "достав", "реаліз")):
         return "ready"
-    return "new"
-
+    if any(part in normalized for part in ("новий", "новое", "новый", "в обробці", "в обработке")):
+        return "new"
+    return "other"
 
 def _serialise_order(order, calculation):
     return {
