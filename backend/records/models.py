@@ -309,3 +309,19 @@ class TelegramBotApiKey(models.Model):
     def __str__(self):
         return f'{self.key_prefix}... ({"active" if self.is_active else "inactive"})'
 
+class CalculationIdempotencyRecord(models.Model):
+    """Durable result/uncertainty record for API calculation creation."""
+
+    idempotency_key = models.UUIDField(db_column="IdempotencyKey", unique=True)
+    payload_hash = models.CharField(db_column="PayloadHash", max_length=64)
+    status = models.CharField(db_column="Status", max_length=30, default="sending")
+    calculation_guid = models.UUIDField(
+        db_column="CalculationGuid", null=True, blank=True
+    )
+    response_body = models.JSONField(db_column="ResponseBody", null=True, blank=True)
+    last_error = models.TextField(db_column="LastError", null=True, blank=True)
+    created_at = models.DateTimeField(db_column="CreatedAt", auto_now_add=True)
+    updated_at = models.DateTimeField(db_column="UpdatedAt", auto_now=True)
+
+    class Meta:
+        db_table = "CalculationIdempotencyRecords"
