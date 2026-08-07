@@ -1,0 +1,1835 @@
+﻿{
+    "name":  "ViknaStyle TG Portal Bot - Dealer Orders v7",
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "portal-url",
+                                                                                     "name":  "portal_url",
+                                                                                     "value":  "https://ordersportal.vstg.com.ua",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "portal-key",
+                                                                                     "name":  "portal_api_key",
+                                                                                     "value":  "={{ $env.PORTAL_BOT_API_KEY }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "relay-key",
+                                                                                     "name":  "relay_api_key",
+                                                                                     "value":  "",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "timezone",
+                                                                                     "name":  "timezone",
+                                                                                     "value":  "Europe/Kyiv",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "company",
+                                                                                     "name":  "company_name",
+                                                                                     "value":  "Вікна Стиль",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "telegram-token",
+                                                                                     "name":  "telegram_token",
+                                                                                     "value":  "={{ $env.TELEGRAM_BOT_TOKEN }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "e90529cb-7fe5-41d9-9831-c6bf0ff299f9",
+                      "name":  "Config",
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       27296,
+                                       15808
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "960bebcf-0953-46d9-b581-80c1c31e6810",
+                                                                                     "name":  "manager_guid",
+                                                                                     "value":  "={{($json.text.split(\u0027 \u0027)[1] || $json.text.slice(7)).replace(/\\s/g, \u0027\u0027) || \u0027none\u0027}}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "5d81f115-44aa-42cd-b5b5-8814068680ed",
+                                                                                     "name":  "tg_user_id",
+                                                                                     "value":  "={{ $json.message.from.id }}",
+                                                                                     "type":  "number"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       27968,
+                                       15712
+                                   ],
+                      "id":  "94938880-f271-4b03-a61e-03c4667bfc24",
+                      "name":  "Edit Fields"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "runOnceForEachItem",
+                                         "jsCode":  "\nconst guidStr = $input.item.json.manager_guid || \"\";\nconst tgUserId = $input.item.json.tg_user_id;\n\n\nconst hexStr = guidStr.replace(/-/g, \"\").toLowerCase();\n\nif (hexStr.length !== 32) {\n    return { error: \"Invalid GUID length\" };\n}\n\n\nconst A = hexStr.substring(0, 8);\nconst B = hexStr.substring(8, 12);\nconst C = hexStr.substring(12, 16);\nconst D = hexStr.substring(16, 20);\nconst E = hexStr.substring(20, 32);\n\n\nconst resultHex = D + E + C + B + A;\n\nreturn {\n    manager_guid_bin: resultHex,\n    manager_guid_formatted: `${D}-${E}-${C}-${B}-${A}`,\n    tg_user_id: tgUserId\n};"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       28416,
+                                       15808
+                                   ],
+                      "id":  "6ae7f433-c915-4c4f-96e1-275047aa8e9b",
+                      "name":  "Code in JavaScript"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- 1. РЎС‚РІРѕСЂСЋС”РјРѕ Р±С–РЅР°СЂРЅСѓ Р·РјС–РЅРЅСѓ РґР»СЏ 1РЎ\nDECLARE @bin binary(16);\n\n-- 2. РљРѕРЅРІРµСЂС‚СѓС”РјРѕ Hex-СЂСЏРґРѕРє, СЏРєРёР№ РїСЂРёР№С€РѕРІ Р· n8n (РїР°СЂР°РјРµС‚СЂ 2 = Р±РµР· 0x)\nSET @bin = CONVERT(binary(16), \u0027{{ $json.manager_guid_bin }}\u0027, 2);\n\n-- 3. Р’РёРєР»РёРєР°С”РјРѕ РїСЂРѕС†РµРґСѓСЂСѓ, С‰РѕР± РѕС‚СЂРёРјР°С‚Рё С–Рј\u0027СЏ\nEXEC [dbo].[GetAuthorByWriterID] @WriterID = @bin; "
+                                     },
+                      "type":  "n8n-nodes-base.microsoftSql",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       28640,
+                                       15808
+                                   ],
+                      "id":  "28b1191a-1908-4850-aca5-f70245cbe9bc",
+                      "name":  "Microsoft SQL",
+                      "credentials":  {
+                                          "microsoftSql":  {
+                                                               "id":  "uV5K0uvR4op0nlSb",
+                                                               "name":  "testportal_connection"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "efbb6b9e-2ce2-4154-ab61-57e47c40f7f5",
+                                                                                   "leftValue":  "={{ $json.manager_guid}}",
+                                                                                   "rightValue":  "none",
+                                                                                   "operator":  {
+                                                                                                    "type":  "string",
+                                                                                                    "operation":  "equals",
+                                                                                                    "name":  "filter.operator.equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       28192,
+                                       15712
+                                   ],
+                      "id":  "fb3b97db-4485-497c-b767-8e0b1989916d",
+                      "name":  "If"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ \u0027https://api.telegram.org/bot\u0027 + $env.TELEGRAM_BOT_TOKEN + \u0027/sendMessage\u0027 }}",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"chat_id\": {{ $node[\"Telegram Trigger\"].json.message.chat.id }},\n  \"text\": \"вќЊ \u003cb\u003eРџРѕРјРёР»РєР° С–РґРµРЅС‚РёС„С–РєР°С†С–С—\u003c/b\u003e\\n\\nРљРѕРґ РЅРµ Р·РЅР°Р№РґРµРЅРѕ. РЎРїСЂРѕР±СѓР№С‚Рµ С‰Рµ СЂР°Р· РїРµСЂРµР№С‚Рё Р·Р° РїРѕСЃРёР»Р°РЅРЅСЏРј Р· РїРѕСЂС‚Р°Р»Сѓ.\",\n  \"parse_mode\": \"HTML\"\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       28416,
+                                       15600
+                                   ],
+                      "id":  "803fa3e0-a8a2-4da3-8c4c-250ba813dcc8",
+                      "name":  "Without Guid"
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "bed6d371-23bb-41e5-bbbc-4a8f8475cbf9",
+                                                                                   "leftValue":  "={{ $json.data.parseJson().results[0].success }}",
+                                                                                   "rightValue":  "",
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               },
+                                                                               {
+                                                                                   "id":  "a4846035-0b56-4537-a4a8-842ae8c83f8f",
+                                                                                   "leftValue":  "={{ $json.error.status }}",
+                                                                                   "rightValue":  404,
+                                                                                   "operator":  {
+                                                                                                    "type":  "number",
+                                                                                                    "operation":  "notEquals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "or"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       29088,
+                                       15808
+                                   ],
+                      "id":  "310a3675-2d0e-491c-bc0f-b0fbb6a5ad42",
+                      "name":  "If1",
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://192.168.1.10/oknastyle/hs/gp-obmen/",
+                                         "authentication":  "genericCredentialType",
+                                         "genericAuthType":  "httpBasicAuth",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Query",
+                                                                                         "value":  "SaveTelegramId"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\"user_guid\":\"{{ $(\u0027If\u0027).item.json.manager_guid }}\",\"telegram_id\":\"{{ $(\u0027If\u0027).item.json.tg_user_id }}\"} ",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       28864,
+                                       15808
+                                   ],
+                      "id":  "1d4d2b81-2ee7-48d7-9048-bf2913f81d96",
+                      "name":  "SaveTgID",
+                      "alwaysOutputData":  true,
+                      "retryOnFail":  false,
+                      "credentials":  {
+                                          "httpBasicAuth":  {
+                                                                "id":  "pEPsDs1WDs5m5QLg",
+                                                                "name":  "Base1CConnect"
+                                                            }
+                                      },
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ \u0027https://api.telegram.org/bot\u0027 + $env.TELEGRAM_BOT_TOKEN + \u0027/sendMessage\u0027 }}",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"chat_id\": {{ $node[\"Telegram Trigger\"].json.message.chat.id }},\n  \"text\": \"вќЊ \u003cb\u003eРџРѕРјРёР»РєР° С–РґРµРЅС‚РёС„С–РєР°С†С–С—\u003c/b\u003e\\n\\nРљРѕРґ РЅРµ Р·РЅР°Р№РґРµРЅРѕ. РЎРїСЂРѕР±СѓР№С‚Рµ С‰Рµ СЂР°Р· РїРµСЂРµР№С‚Рё Р·Р° РїРѕСЃРёР»Р°РЅРЅСЏРј Р· РїРѕСЂС‚Р°Р»Сѓ.\",\n  \"parse_mode\": \"HTML\"\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       15904
+                                   ],
+                      "id":  "1cf618c3-7433-45c8-b370-1c3f1af413cf",
+                      "name":  "Without Guid Answer"
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "0bd88eaf-b717-426f-a638-7e719c39e059",
+                                                                                     "name":  "contact_id",
+                                                                                     "value":  "={{ ($json.text.split(\u0027 \u0027)[1] || \u0027\u0027).replace(/^reg?/, \u0027\u0027).replace(/\\s/g, \u0027\u0027) || \u0027none\u0027 }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       27968,
+                                       16096
+                                   ],
+                      "id":  "d497efe9-f371-40b5-9da6-e031f3a79317",
+                      "name":  "GetContactId"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "UPDATE [testportal_unified].[dbo].[HelpServiceContact]\nSET [TelegramId] = \u0027{{ $node[\"Telegram Trigger\"].json[\"message\"][\"from\"][\"id\"] }}\u0027\nWHERE [ID] = {{ $json.contact_id }};"
+                                     },
+                      "type":  "n8n-nodes-base.microsoftSql",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       28192,
+                                       16096
+                                   ],
+                      "id":  "b02793b7-d9f0-4f1b-9171-a283a6eea282",
+                      "name":  "Microsoft SQL1",
+                      "credentials":  {
+                                          "microsoftSql":  {
+                                                               "id":  "uV5K0uvR4op0nlSb",
+                                                               "name":  "testportal_connection"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ \u0027https://api.telegram.org/bot\u0027 + $env.TELEGRAM_BOT_TOKEN + \u0027/sendMessage\u0027 }}",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={\n  \"chat_id\": {{ $node[\"Telegram Trigger\"].json.message.chat.id }},\n  \"text\": \"Р”СЏРєСѓС”РјРѕ, РІР°С€ TelegramID СѓСЃРїС–С€РЅРѕ Р·Р±РµСЂРµР¶РµРЅРёР№!\",\n  \"parse_mode\": \"HTML\"\n}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       28416,
+                                       16096
+                                   ],
+                      "id":  "4a2f0187-0c43-4fe1-81d5-457027beb952",
+                      "name":  "SavedTgID"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://192.168.200.178/relay_tg_portal_20260626.php",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-API-KEY",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.relay_api_key }}"
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ $json }}",
+                                         "options":  {
+                                                         "allowUnauthorizedCerts":  true,
+                                                         "redirect":  {
+                                                                          "redirect":  {
+
+                                                                                       }
+                                                                      }
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       27968,
+                                       15904
+                                   ],
+                      "id":  "7432b6c1-2295-49b9-9859-c693208f9f06",
+                      "name":  "HTTP Request"
+                  },
+                  {
+                      "parameters":  {
+                                         "rule":  {
+                                                      "interval":  [
+                                                                       {
+                                                                           "field":  "cronExpression",
+                                                                           "expression":  "0 9 1 * *"
+                                                                       }
+                                                                   ]
+                                                  }
+                                     },
+                      "id":  "5cf87b67-0fb9-4880-8e7e-b36e4f08c99d",
+                      "name":  "Monthly Shipped Report",
+                      "type":  "n8n-nodes-base.scheduleTrigger",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       27072,
+                                       16320
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const parts = new Intl.DateTimeFormat(\u0027en-CA\u0027, {\n  timeZone: \u0027Europe/Kyiv\u0027,\n  year: \u0027numeric\u0027,\n  month: \u00272-digit\u0027,\n}).formatToParts(new Date());\n\nconst year = Number(parts.find(part =\u003e part.type === \u0027year\u0027).value);\nconst month = Number(parts.find(part =\u003e part.type === \u0027month\u0027).value);\n\nconst dateFrom = new Date(Date.UTC(year, month - 2, 1))\n  .toISOString()\n  .slice(0, 10);\nconst dateTo = new Date(Date.UTC(year, month - 1, 0))\n  .toISOString()\n  .slice(0, 10);\n\nreturn [{\n  json: {\n    date_from: dateFrom,\n    date_to: dateTo,\n    contractor_id: \u0027AC0A002590633BB311E18A2D1E1714D8\u0027,\n    chat_id: 716230412,\n    test_mode: true,\n  },\n}];"
+                                     },
+                      "id":  "49f2611f-935c-4664-97bc-fc1e695882c8",
+                      "name":  "Previous Month Period",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       27296,
+                                       16416
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "DECLARE @DateFrom DATE =\n    CONVERT(DATE, \u0027{{ $json.date_from }}\u0027, 23);\nDECLARE @DateTo DATE =\n    CONVERT(DATE, \u0027{{ $json.date_to }}\u0027, 23);\nDECLARE @ContractorID BINARY(16) =\n    CONVERT(BINARY(16), \u0027{{ $json.contractor_id }}\u0027, 2);\n\nEXEC [dbo].[GetShippedOrdersAnalytics]\n    @DateFrom = @DateFrom,\n    @DateTo = @DateTo,\n    @ContractorID = @ContractorID;"
+                                     },
+                      "id":  "007b89da-c284-4066-a251-a03f499d91e8",
+                      "name":  "Get Shipped Analytics",
+                      "type":  "n8n-nodes-base.microsoftSql",
+                      "typeVersion":  1.1,
+                      "position":  [
+                                       27520,
+                                       16416
+                                   ],
+                      "credentials":  {
+                                          "microsoftSql":  {
+                                                               "id":  "uV5K0uvR4op0nlSb",
+                                                               "name":  "testportal_connection"
+                                                           }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "/*\n * n8n Code node.\n * Input: one item containing ReportJson from dbo.GetShippedOrdersAnalytics.\n * Output:\n *   - json.html       HTML as text (for upload/publishing)\n *   - binary.report  ready report.html (for Telegram Send Document)\n */\n\nconst source = $json.ReportJson ?? $json.reportJson ?? $json.data ?? $json;\n\nfunction parseDeep(value) {\n  let current = value;\n  for (let i = 0; i \u003c 3 \u0026\u0026 typeof current === \u0027string\u0027; i++) {\n    current = JSON.parse(current);\n  }\n  return current;\n}\n\nconst report = parseDeep(source);\nconst summary = report.Summary ?? {};\nconst reportVersion = \u002714\u0027;\nconst generatedAt = new Date();\nconst buildStamp = generatedAt.toISOString().replace(/[-:]/g, \u0027\u0027).replace(/\\.\\d{3}Z$/, \u0027Z\u0027);\nconst outputFileName = `shipped-report_${report.DateFrom}_${report.DateTo}_${buildStamp}.html`;\nconst logoDataUri = \u0027data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQyIiBoZWlnaHQ9IjQ2IiB2aWV3Qm94PSIwIDAgMjQyIDQ2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzc1XzIxKSI+DQo8cGF0aCBkPSJNNjIuMzY5NyAwQzY0LjMzOTcgMCA2NS4yNDk3IDAuMDcgNjYuNjI5NyAwLjQ0QzY4LjAwOTcgMC44IDY4LjgwOTcgMS40MyA2OS42ODk3IDIuMDlDNzAuNTU5NyAyLjc1IDcxLjE5OTcgMy41NiA3MS41OTk3IDQuNTFDNzEuOTk5NyA1LjQ2IDcyLjE5OTcgNi41MiA3Mi4xOTk3IDcuN0M3Mi4xOTk3IDguMzQgNzIuMTA5NyA4Ljk1IDcxLjkyOTcgOS41NUM3MS43NDk3IDEwLjE0IDcxLjQ1OTcgMTAuNyA3MS4wNjk3IDExLjIxQzcwLjY3OTcgMTEuNzMgNzAuMTc5NyAxMi4yIDY5LjU1OTcgMTIuNjNDNjguOTQ5NyAxMy4wNiA2OC4yMDk3IDEzLjQzIDY3LjM0OTcgMTMuNzRDNjkuMjI5NyAxNC4yIDcwLjYwOTcgMTQuOTMgNzEuNTA5NyAxNS45NUM3Mi40MDk3IDE2Ljk3IDcyLjg1OTcgMTguMjggNzIuODU5NyAxOS45QzcyLjg1OTcgMjEuMTEgNzIuNjI5NyAyMi4yNCA3Mi4xNTk3IDIzLjI4QzcxLjY4OTcgMjQuMzIgNzAuOTk5NyAyNS4yMyA3MC4wOTk3IDI2LjAxQzY5LjE4OTcgMjYuNzggNjguMzk5NyAyNy41IDY3LjA2OTcgMjcuOTRDNjUuNzM5NyAyOC4zOCA2NC45Nzk3IDI4LjQ5IDYzLjI3OTcgMjguNDlINTIuOTg5N1YwSDYyLjM3OTdINjIuMzY5N1pNNTguNDk5NyA0Ljk0VjExLjk4SDYxLjkzOTdDNjIuNjY5NyAxMS45OCA2My4zMjk3IDExLjkzIDYzLjkwOTcgMTEuODJDNjQuNDg5NyAxMS43MSA2NC45ODk3IDExLjUzIDY1LjM5OTcgMTEuMjdDNjUuODA5NyAxMS4wMSA2Ni4xMTk3IDEwLjY1IDY2LjMzOTcgMTAuMkM2Ni41NTk3IDkuNzQgNjYuNjU5NyA5LjE3IDY2LjY1OTcgOC40OEM2Ni42NTk3IDcuNzkgNjYuNTY5NyA3LjI0IDY2LjQwOTcgNi43OUM2Ni4yNDk3IDYuMzQgNjUuOTc5NyA1Ljk4IDY1LjYyOTcgNS43MUM2NS4yNzk3IDUuNDQgNjQuODI5NyA1LjI0IDY0LjI4OTcgNS4xMkM2My43NDk3IDUgNjMuMTA5NyA0Ljk0IDYyLjM2OTcgNC45NEg1OC40OTk3Wk02My4xNDk3IDIzLjQ5QzY0LjAxOTcgMjMuNDkgNjQuNzI5NyAyMy4zOCA2NS4yODk3IDIzLjE2QzY1Ljg0OTcgMjIuOTQgNjYuMjc5NyAyMi42NSA2Ni41ODk3IDIyLjNDNjYuODk5NyAyMS45NSA2Ny4xMTk3IDIxLjU1IDY3LjIzOTcgMjEuMTFDNjcuMzU5NyAyMC42NyA2Ny40MTk3IDIwLjIyIDY3LjQxOTcgMTkuNzZDNjcuNDE5NyAxOS4yNCA2Ny4zNDk3IDE4Ljc3IDY3LjIxOTcgMTguMzVDNjcuMDc5NyAxNy45MyA2Ni44NDk3IDE3LjU4IDY2LjUxOTcgMTcuMjlDNjYuMTg5NyAxNyA2NS43NDk3IDE2Ljc4IDY1LjE5OTcgMTYuNjNDNjQuNjQ5NyAxNi40NyA2My45NTk3IDE2LjQgNjMuMTI5NyAxNi40SDU4LjUxOTdWMjMuNDlINjMuMTY5N0g2My4xNDk3WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik04MC40NTk2IDI4LjQ4SDc1LjgyOTZWOC42NDk5OUg4MC40NTk2VjI4LjQ3VjI4LjQ4WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xMDIuMDQgMjguNDhIOTcuODM5NkM5Ny40Mjk2IDI4LjQ4IDk3LjA4OTYgMjguMzcgOTYuODA5NiAyOC4xNUM5Ni41Mjk2IDI3LjkzIDk2LjI2OTYgMjcuNjIgOTYuMDI5NiAyNy4yMUw5Mi43Mzk2IDIxLjAyQzkyLjUxOTYgMjAuNjIgOTIuMjc5NiAyMC4zNiA5Mi4wMDk2IDIwLjIzQzkxLjczOTYgMjAuMSA5MS4zODk2IDIwLjA0IDkwLjk3OTYgMjAuMDRIODguOTA5NlYyOC40OEg4NC4zMDk2VjguNjQ5OTlIODguOTA5NlYxNi42OEg5MC41OTk2QzkwLjk0OTYgMTYuNjggOTEuMjM5NiAxNi42MiA5MS40ODk2IDE2LjQ5QzkxLjczOTYgMTYuMzYgOTEuOTY5NiAxNi4xMyA5Mi4xNzk2IDE1LjhMOTUuNzY5NiA5LjgyOTk5Qzk1Ljk3OTYgOS40ODk5OSA5Ni4yMjk2IDkuMTk5OTkgOTYuNTI5NiA4Ljk4OTk5Qzk2LjgyOTYgOC43Njk5OSA5Ny4xODk2IDguNjU5OTkgOTcuNjE5NiA4LjY1OTk5SDEwMS41N0w5Ni43Mzk2IDE2LjQ2Qzk2LjUwOTYgMTYuODIgOTYuMjM5NiAxNy4xMiA5NS45MTk2IDE3LjM2Qzk1LjU5OTYgMTcuNiA5NS4yNDk2IDE3Ljc5IDk0Ljg2OTYgMTcuOTVDOTUuNDc5NiAxOC4xMSA5NS45ODk2IDE4LjM4IDk2LjQxOTYgMTguNzZDOTYuODQ5NiAxOS4xNCA5Ny4yMzk2IDE5LjY2IDk3LjYxOTYgMjAuMzJMMTAyLjA2IDI4LjVMMTAyLjA0IDI4LjQ4WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xMjEuMTcgOC42NDk5OVYyOC40N0gxMTYuNTRWMjAuMDlIMTA4LjQ5VjI4LjQ3SDEwMy44NlY4LjY0OTk5SDEwOC40OVYxNi45NEgxMTYuNTRWOC42NDk5OUgxMjEuMTdaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTE0Mi43MyAyOC40OEgxMzkuMTdDMTM4Ljc3IDI4LjQ4IDEzOC40NSAyOC4zOSAxMzguMiAyOC4yQzEzNy45NSAyOC4wMSAxMzcuNzcgMjcuNzggMTM3LjY0IDI3LjQ5TDEzNi40NyAyNC4wM0gxMjguOTNMMTI3Ljc2IDI3LjQ5QzEyNy42NiAyNy43NCAxMjcuNDggMjcuOTcgMTI3LjIyIDI4LjE4QzEyNi45NiAyOC4zOCAxMjYuNjQgMjguNDkgMTI2LjI2IDI4LjQ5SDEyMi42N0wxMzAuMzQgOC42NzAwMUgxMzUuMDVMMTQyLjcyIDI4LjQ5TDE0Mi43MyAyOC40OFpNMTM1LjQyIDIwLjlMMTMzLjU4IDE1LjQ3QzEzMy40NCAxNS4xMyAxMzMuMyAxNC43MiAxMzMuMTQgMTQuMjVDMTMyLjk4IDEzLjc4IDEzMi44MyAxMy4yOCAxMzIuNjggMTIuNzNDMTMyLjU0IDEzLjI4IDEzMi40IDEzLjggMTMyLjI0IDE0LjI3QzEzMi4wOSAxNC43NCAxMzEuOTQgMTUuMTUgMTMxLjgxIDE1LjQ5TDEyOS45OSAyMC44OUgxMzUuNDJWMjAuOVoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNMTYzLjg4IDIzLjM1QzE2My45OSAyMy4zNSAxNjQuMSAyMy4zNyAxNjQuMjEgMjMuNDFDMTY0LjMyIDIzLjQ1IDE2NC40MiAyMy41MiAxNjQuNTIgMjMuNjJMMTY2LjM0IDI1LjU0QzE2NS41NCAyNi41OCAxNjQuNTQgMjcuMzcgMTYzLjM0IDI3LjlDMTYyLjE0IDI4LjQzIDE2MC43MiAyOC43IDE1OS4wNyAyOC43QzE1Ny41NiAyOC43IDE1Ni4yMiAyOC40NCAxNTUuMDIgMjcuOTNDMTUzLjgzIDI3LjQyIDE1Mi44MiAyNi43MSAxNTEuOTkgMjUuODFDMTUxLjE2IDI0LjkxIDE1MC41MiAyMy44NCAxNTAuMDggMjIuNkMxNDkuNjQgMjEuMzYgMTQ5LjQxIDIwLjAyIDE0OS40MSAxOC41N0MxNDkuNDEgMTcuMTIgMTQ5LjY1IDE1LjczIDE1MC4xMyAxNC40OUMxNTAuNjEgMTMuMjUgMTUxLjI5IDEyLjE4IDE1Mi4xNiAxMS4yOUMxNTMuMDMgMTAuMzkgMTU0LjA3IDkuNjkgMTU1LjI5IDkuMTlDMTU2LjUgOC42OSAxNTcuODQgOC40NCAxNTkuMyA4LjQ0QzE2MC4wNCA4LjQ0IDE2MC43NCA4LjUxIDE2MS40IDguNjRDMTYyLjA2IDguNzcgMTYyLjY3IDguOTUgMTYzLjI0IDkuMThDMTYzLjgxIDkuNDEgMTY0LjM0IDkuNjkgMTY0LjgyIDEwLjAyQzE2NS4zIDEwLjM1IDE2NS43MyAxMC43IDE2Ni4xIDExLjA4TDE2NC41NSAxMy4xNkMxNjQuNDUgMTMuMjkgMTY0LjMzIDEzLjQgMTY0LjIgMTMuNTFDMTY0LjA2IDEzLjYxIDE2My44NyAxMy42NyAxNjMuNjMgMTMuNjdDMTYzLjQ3IDEzLjY3IDE2My4zMSAxMy42MyAxNjMuMTcgMTMuNTZDMTYzLjAyIDEzLjQ5IDE2Mi44NyAxMy40IDE2Mi43MSAxMy4yOUMxNjIuNTUgMTMuMTkgMTYyLjM3IDEzLjA3IDE2Mi4xNyAxMi45NUMxNjEuOTcgMTIuODMgMTYxLjc0IDEyLjcxIDE2MS40OCAxMi42MUMxNjEuMjIgMTIuNTEgMTYwLjkgMTIuNDIgMTYwLjU0IDEyLjM0QzE2MC4xOCAxMi4yNyAxNTkuNzYgMTIuMjMgMTU5LjI4IDEyLjIzQzE1OC41MiAxMi4yMyAxNTcuODIgMTIuMzcgMTU3LjE5IDEyLjY1QzE1Ni41NiAxMi45MyAxNTYuMDIgMTMuMzQgMTU1LjU2IDEzLjg4QzE1NS4xIDE0LjQyIDE1NC43NSAxNS4wOCAxNTQuNSAxNS44N0MxNTQuMjUgMTYuNjUgMTU0LjEzIDE3LjU1IDE1NC4xMyAxOC41NkMxNTQuMTMgMTkuNTcgMTU0LjI3IDIwLjQ4IDE1NC41NCAyMS4yN0MxNTQuODEgMjIuMDYgMTU1LjE5IDIyLjcyIDE1NS42NyAyMy4yNkMxNTYuMTUgMjMuOCAxNTYuNyAyNC4yMSAxNTcuMzQgMjQuNDlDMTU3Ljk3IDI0Ljc3IDE1OC42NSAyNC45MSAxNTkuMzggMjQuOTFDMTU5LjggMjQuOTEgMTYwLjE4IDI0Ljg5IDE2MC41MiAyNC44NUMxNjAuODYgMjQuODEgMTYxLjE5IDI0Ljc0IDE2MS40OSAyNC42NUMxNjEuNzkgMjQuNTUgMTYyLjA3IDI0LjQzIDE2Mi4zMyAyNC4yN0MxNjIuNTkgMjQuMTEgMTYyLjg2IDIzLjkxIDE2My4xMyAyMy42NkMxNjMuMjQgMjMuNTcgMTYzLjM2IDIzLjQ5IDE2My40OCAyMy40NEMxNjMuNjEgMjMuMzggMTYzLjc0IDIzLjM1IDE2My44NyAyMy4zNUgxNjMuODhaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTE4Mi42IDEyLjNIMTc3LjAyVjI4LjQ4SDE3Mi40MlYxMi4zSDE2Ni44NFY4LjY0OTk5SDE4Mi41OVYxMi4zSDE4Mi42WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0yMDIuMjQgOC42NDk5OVYyOC40N0gxOTcuNjFWMTcuMzdDMTk3LjYxIDE2Ljg1IDE5Ny42MyAxNi4zMSAxOTcuNjYgMTUuNzNDMTk3LjY5IDE1LjE1IDE5Ny43NSAxNC41NCAxOTcuODQgMTMuODlDMTk3LjYzIDE0LjQ3IDE5Ny40IDE1LjAxIDE5Ny4xNiAxNS41QzE5Ni45MiAxNS45OSAxOTYuNjcgMTYuNDMgMTk2LjQ0IDE2LjhMMTkwLjQxIDI3LjFDMTkwLjMxIDI3LjI2IDE5MC4xOSAyNy40MyAxOTAuMDUgMjcuNTlDMTg5LjkxIDI3Ljc1IDE4OS43NSAyNy45IDE4OS41OCAyOC4wM0MxODkuNDEgMjguMTYgMTg5LjIyIDI4LjI3IDE4OS4wMiAyOC4zNUMxODguODIgMjguNDMgMTg4LjYxIDI4LjQ3IDE4OC4zOSAyOC40N0gxODQuOTJWOC42NDk5OUgxODkuNTVWMTkuNzRDMTg5LjU1IDIwLjI2IDE4OS41NCAyMC44IDE4OS41MSAyMS4zOEMxODkuNDggMjEuOTYgMTg5LjQyIDIyLjU3IDE4OS4zMiAyMy4yMkMxODkuNTMgMjIuNjUgMTg5Ljc2IDIyLjEyIDE5MCAyMS42MkMxOTAuMjUgMjEuMTMgMTkwLjQ5IDIwLjY5IDE5MC43MiAyMC4zMkwxOTYuNzUgMTAuMDJDMTk2Ljg1IDkuODU5OTkgMTk2Ljk3IDkuNjg5OTkgMTk3LjExIDkuNTI5OTlDMTk3LjI1IDkuMzY5OTkgMTk3LjQxIDkuMjE5OTkgMTk3LjU4IDkuMDg5OTlDMTk3Ljc1IDguOTU5OTkgMTk3Ljk0IDguODQ5OTkgMTk4LjE0IDguNzY5OTlDMTk4LjM0IDguNjg5OTkgMTk4LjU1IDguNjQ5OTkgMTk4Ljc2IDguNjQ5OTlIMjAyLjIzSDIwMi4yNFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNMjIyLjkzIDI4LjQ4SDIxOC4zVjEyLjA3SDIxMy45MkMyMTMuNzggMTQuNSAyMTMuNTkgMTYuNiAyMTMuMzUgMTguMzZDMjEzLjEgMjAuMTIgMjEyLjgxIDIxLjYyIDIxMi40NyAyMi44NkMyMTIuMTIgMjQuMDkgMjExLjc0IDI1LjA5IDIxMS4zIDI1Ljg1QzIxMC44NiAyNi42MSAyMTAuMzkgMjcuMiAyMDkuODcgMjcuNjNDMjA5LjM1IDI4LjA2IDIwOC44IDI4LjM0IDIwOC4yIDI4LjQ4QzIwNy42IDI4LjYyIDIwNi45OCAyOC43IDIwNi4zMyAyOC43QzIwNS41MyAyOC43IDIwNC45NyAyOC42MyAyMDQuNjMgMjguNDlDMjA0LjI5IDI4LjM1IDIwNC4xMyAyOC4xNCAyMDQuMTMgMjcuODdWMjUuMDhIMjA1LjI3QzIwNS40NyAyNS4wOCAyMDUuNjggMjUuMDYgMjA1Ljg5IDI1LjAzQzIwNi4xMSAyNC45OSAyMDYuMzMgMjQuOSAyMDYuNTYgMjQuNzRDMjA2Ljc5IDI0LjU5IDIwNy4wMSAyNC4zNiAyMDcuMjMgMjQuMDZDMjA3LjQ1IDIzLjc2IDIwNy42NyAyMy4zNCAyMDcuODcgMjIuODFDMjA4LjA3IDIyLjI4IDIwOC4yNyAyMS42MSAyMDguNDUgMjAuODFDMjA4LjYzIDIwLjAxIDIwOC44IDE5LjA0IDIwOC45NSAxNy45MUMyMDkuMSAxNi43OCAyMDkuMjMgMTUuNDQgMjA5LjM0IDEzLjkyQzIwOS40NSAxMi40IDIwOS41MiAxMC42NSAyMDkuNTcgOC42NzAwMUgyMjIuOTJWMjguNDlMMjIyLjkzIDI4LjQ4WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0yMzQuMDMgMTYuNTlDMjM1LjQgMTYuNTkgMjM2LjU2IDE2Ljc0IDIzNy41MiAxNy4wNEMyMzguNDggMTcuMzQgMjM5LjI1IDE3Ljc0IDIzOS44NSAxOC4yNEMyNDAuNDUgMTguNzQgMjQwLjg4IDE5LjMzIDI0MS4xNiAxOS45OUMyNDEuNDMgMjAuNjYgMjQxLjU3IDIxLjM2IDI0MS41NyAyMi4wOUMyNDEuNTcgMjMuMDQgMjQxLjQgMjMuOTEgMjQxLjA2IDI0LjdDMjQwLjcyIDI1LjQ5IDI0MC4yMyAyNi4xNiAyMzkuNTggMjYuNzFDMjM4Ljk0IDI3LjI3IDIzOC4xNSAyNy43IDIzNy4yMSAyOC4wMUMyMzYuMjcgMjguMzIgMjM1LjIxIDI4LjQ3IDIzNC4wMyAyOC40N0gyMjYuNzdWOC42NDk5OUgyMzEuMzdWMTYuNThIMjM0LjA0TDIzNC4wMyAxNi41OVpNMjM0LjAzIDI1LjAxQzIzNC42NCAyNS4wMSAyMzUuMTQgMjQuOTQgMjM1LjUzIDI0LjgxQzIzNS45MiAyNC42OCAyMzYuMjMgMjQuNDkgMjM2LjQ1IDI0LjI2QzIzNi42NyAyNC4wMyAyMzYuODIgMjMuNzcgMjM2LjkxIDIzLjQ4QzIzNi45OSAyMy4xOSAyMzcuMDMgMjIuODkgMjM3LjAzIDIyLjU3QzIzNy4wMyAyMi4yMSAyMzYuOTkgMjEuODcgMjM2LjkxIDIxLjU2QzIzNi44MyAyMS4yNSAyMzYuNjggMjAuOTkgMjM2LjQ1IDIwLjc2QzIzNi4yMiAyMC41MyAyMzUuOTIgMjAuMzcgMjM1LjUzIDIwLjI0QzIzNS4xNCAyMC4xMiAyMzQuNjQgMjAuMDYgMjM0LjAzIDIwLjA2SDIzMS4zNlYyNS4wMUgyMzQuMDNaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTc2LjEwOTkgNi41NkM3Ny40Mzk5IDQuODYgNzkuNjg5OSAyLjU3IDgyLjkzOTkgMS4wOUM4MS4xMzk5IDIuMiA4MC43Nzk5IDIuNzEgNzkuMzI5OSAzLjk4Qzc4LjU4OTkgNC42MyA3Ny4zNjk5IDUuODcgNzYuMzU5OSA2LjkzQzc3LjcyOTkgNi44NSA4My40NDk5IDYuMTIgODQuMjg5OSAwQzc3LjYxOTkgMC41OSA3Ni4zMzk5IDUuMiA3Ni4xMDk5IDYuNTZaIiBmaWxsPSIjRDREOTQ3Ii8+DQo8cGF0aCBkPSJNNTQuODggMzcuNDRINTIuNTNDNTIuMzEgMzcuNDQgNTIuMjEgMzcuMzQgNTIuMjEgMzcuMTRDNTIuMjEgMzcuMDMgNTIuMjQgMzYuOTMgNTIuMyAzNi44NUg1OC4wOUM1OC4zMSAzNi44NSA1OC40MSAzNi45NSA1OC40MSAzNy4xNUM1OC40MSAzNy4yNiA1OC4zOCAzNy4zNiA1OC4zMiAzNy40NEg1NS41N1Y0My41Nkg1NC44OFYzNy40NFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNNzguNTk5OCAzNy4yNEM3OC41OTk4IDM3LjAyIDc4LjcyOTggMzYuODkgNzguOTg5OCAzNi44NUM3OS4xMTk4IDM2LjgzIDc5LjI3OTkgMzYuODEgNzkuNDc5OSAzNi44Qzc5LjY3OTkgMzYuNzkgNzkuODc5OCAzNi43NyA4MC4wOTk4IDM2Ljc3QzgwLjMxOTggMzYuNzcgODAuNTE5OCAzNi43NyA4MC43MDk4IDM2Ljc3QzgxLjcxOTggMzYuNzcgODIuNDk5OCAzNi45NSA4My4wMjk4IDM3LjMyQzgzLjU1OTggMzcuNjkgODMuODI5OCAzOC4yMiA4My44Mjk4IDM4LjkyQzgzLjgyOTggMzkuNjIgODMuNTY5OSA0MC4xOCA4My4wNDk5IDQwLjU1QzgyLjUyOTkgNDAuOTIgODEuNzY5OCA0MS4xMSA4MC43ODk4IDQxLjExQzgwLjY2OTggNDEuMTEgODAuNDk5OCA0MS4xMSA4MC4yODk4IDQxLjA5QzgwLjA3OTggNDEuMDcgNzkuODc5OCA0MS4wNiA3OS42Nzk4IDQxLjA0Qzc5LjQ3OTggNDEuMDIgNzkuMzM5OCA0MSA3OS4yNTk4IDQwLjk4VjQzLjU5SDc4LjU4OThWMzcuMjZMNzguNTk5OCAzNy4yNFpNODIuNTY5OCA0MC4xMkM4Mi45NDk4IDM5Ljg2IDgzLjEzOTggMzkuNDUgODMuMTM5OCAzOC45QzgzLjEzOTggMzcuODUgODIuMzE5OCAzNy4zMiA4MC42Njk4IDM3LjMyQzgwLjQwOTggMzcuMzIgODAuMTM5OSAzNy4zMiA3OS44Njk5IDM3LjM0Qzc5LjU5OTkgMzcuMzYgNzkuMzk5OCAzNy4zNyA3OS4yNjk4IDM3LjM5VjQwLjM2Qzc5LjM1OTggNDAuMzggNzkuNDk5OCA0MC40IDc5LjY4OTggNDAuNDJDNzkuODc5OCA0MC40NCA4MC4wNzk4IDQwLjQ2IDgwLjI4OTggNDAuNDhDODAuNDk5OCA0MC41IDgwLjY3OTggNDAuNSA4MC44Mjk4IDQwLjVDODEuNjA5OCA0MC41IDgyLjE5OTggNDAuMzcgODIuNTY5OCA0MC4xVjQwLjEyWiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xMDQuNDIgMzcuMjRDMTA0LjQyIDM2Ljk4IDEwNC41NyAzNi44NSAxMDQuODYgMzYuODVIMTA5LjA1QzEwOS4yNyAzNi44NSAxMDkuMzcgMzYuOTUgMTA5LjM3IDM3LjE1QzEwOS4zNyAzNy4yNiAxMDkuMzQgMzcuMzYgMTA5LjI4IDM3LjQ0SDEwNS4xM1YzOS43OEgxMDguODlDMTA5LjExIDM5Ljc4IDEwOS4yMSAzOS44OCAxMDkuMjEgNDAuMDhDMTA5LjIxIDQwLjE5IDEwOS4xOCA0MC4yOSAxMDkuMTIgNDAuMzdIMTA1LjEyVjQyLjk2SDEwOS4yOVY0My41NkgxMDQuNFYzNy4yM0wxMDQuNDIgMzcuMjRaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTEzNS41IDQzLjU2SDEzNC44MlYzNy42N0wxMzAuNjMgNDMuNTZIMTI5Ljg0VjM3LjJDMTI5Ljg0IDM2Ljk2IDEyOS45NiAzNi44NCAxMzAuMTkgMzYuODRDMTMwLjMyIDM2Ljg0IDEzMC40MyAzNi44NyAxMzAuNTEgMzYuOTJWNDIuNjVMMTM0LjQ2IDM3LjE1QzEzNC41NCAzNy4wNCAxMzQuNjQgMzYuOTYgMTM0LjczIDM2LjkxQzEzNC44MiAzNi44NiAxMzQuOTMgMzYuODQgMTM1LjAzIDM2Ljg0QzEzNS4xNSAzNi44NCAxMzUuMjUgMzYuODQgMTM1LjMzIDM2Ljg3QzEzNS40MSAzNi44OSAxMzUuNDcgMzYuOTEgMTM1LjQ5IDM2LjkzVjQzLjU2SDEzNS41Wk0xMzIuNjggMzUuN0MxMzMuMjkgMzUuNyAxMzMuNjcgMzUuNDMgMTMzLjggMzQuOUwxMzQuMzUgMzQuOTZDMTM0LjM1IDM1LjIyIDEzNC4yNyAzNS40NSAxMzQuMTIgMzUuNjZDMTMzLjk3IDM1Ljg3IDEzMy43NyAzNi4wMyAxMzMuNTMgMzYuMTVDMTMzLjI5IDM2LjI3IDEzMy4wMSAzNi4zMyAxMzIuNjkgMzYuMzNDMTMyLjM3IDM2LjMzIDEzMi4xIDM2LjI3IDEzMS44NSAzNi4xNUMxMzEuNiAzNi4wMyAxMzEuNCAzNS44NyAxMzEuMjUgMzUuNjZDMTMxLjEgMzUuNDUgMTMxLjAyIDM1LjIyIDEzMS4wMSAzNC45NkwxMzEuNTYgMzQuOUMxMzEuNjkgMzUuNDQgMTMyLjA3IDM1LjcgMTMyLjcgMzUuN0gxMzIuNjhaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTE2MS44NyA0Mi45N0gxNjIuMDlDMTYyLjM4IDQyLjk3IDE2Mi41MyA0My4xIDE2Mi41MyA0My4zNlY0NS4zM0gxNjEuODVWNDMuNTdIMTU2LjQ2VjQ1LjMzSDE1NS43OFY0My4zNkMxNTUuNzggNDMuMSAxNTUuOTMgNDIuOTcgMTU2LjIyIDQyLjk3SDE1Ni41TDE1Ny40IDM5LjA5QzE1Ny41OSAzOC4yNyAxNTcuOTEgMzcuNjggMTU4LjM2IDM3LjMxQzE1OC44MSAzNi45NCAxNTkuNDUgMzYuNzUgMTYwLjI2IDM2Ljc1QzE2MC40NSAzNi43NSAxNjAuNjUgMzYuNzUgMTYwLjg3IDM2Ljc3QzE2MS4wOSAzNi43OSAxNjEuMjggMzYuODEgMTYxLjQ1IDM2Ljg0QzE2MS43MiAzNi44OCAxNjEuODUgMzcuMDEgMTYxLjg1IDM3LjIzVjQyLjk2TDE2MS44NyA0Mi45N1pNMTYwLjczIDM3LjM0QzE2MC41NyAzNy4zMyAxNjAuNDEgMzcuMzIgMTYwLjI2IDM3LjMyQzE1OS44NSAzNy4zMiAxNTkuNSAzNy4zOCAxNTkuMjMgMzcuNUMxNTguOTUgMzcuNjIgMTU4LjczIDM3LjgxIDE1OC41NSAzOC4wOUMxNTguMzcgMzguMzcgMTU4LjIzIDM4LjczIDE1OC4xMiAzOS4yTDE1Ny4yNCA0Mi45N0gxNjEuMlYzNy40MkMxNjEuMDYgMzcuMzkgMTYwLjkgMzcuMzYgMTYwLjc0IDM3LjM1TDE2MC43MyAzNy4zNFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNMTg4LjU1IDQzLjU2SDE4Ny44N1YzNy42N0wxODMuNjggNDMuNTZIMTgyLjg5VjM3LjJDMTgyLjg5IDM2Ljk2IDE4My4wMSAzNi44NCAxODMuMjQgMzYuODRDMTgzLjM3IDM2Ljg0IDE4My40OCAzNi44NyAxODMuNTYgMzYuOTJWNDIuNjVMMTg3LjUxIDM3LjE1QzE4Ny41OSAzNy4wNCAxODcuNjkgMzYuOTYgMTg3Ljc4IDM2LjkxQzE4Ny44NyAzNi44NiAxODcuOTggMzYuODQgMTg4LjA4IDM2Ljg0QzE4OC4yIDM2Ljg0IDE4OC4zIDM2Ljg0IDE4OC4zOCAzNi44N0MxODguNDYgMzYuODkgMTg4LjUyIDM2LjkxIDE4OC41NCAzNi45M1Y0My41NkgxODguNTVaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTIxNS4xMiA0My41NkgyMTQuNDRWNDAuMzZIMjEwLjEzVjQzLjU2SDIwOS40NVYzNy4yQzIwOS40NSAzNi45NiAyMDkuNTcgMzYuODQgMjA5LjggMzYuODRDMjA5LjkzIDM2Ljg0IDIxMC4wNCAzNi44NyAyMTAuMTIgMzYuOTJWMzkuNzdIMjE0LjQzVjM3LjJDMjE0LjQzIDM2Ljk2IDIxNC41NSAzNi44NCAyMTQuNzggMzYuODRDMjE0LjkxIDM2Ljg0IDIxNS4wMiAzNi44NyAyMTUuMSAzNi45MlY0My41NkgyMTUuMTJaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTIzNS45NSAzNy4yNEMyMzUuOTUgMzcuMTIgMjM1Ljk5IDM3LjAzIDIzNi4wNiAzNi45NkMyMzYuMTMgMzYuODkgMjM2LjI0IDM2Ljg1IDIzNi4zOSAzNi44NUgyNDAuNThDMjQwLjggMzYuODUgMjQwLjkgMzYuOTUgMjQwLjkgMzcuMTVDMjQwLjkgMzcuMjYgMjQwLjg3IDM3LjM2IDI0MC44MSAzNy40NEgyMzYuNjNWNDMuNTZIMjM1Ljk0VjM3LjIzTDIzNS45NSAzNy4yNFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAgMjguODRWNDIuN0gxMy44NkMxNy4yMyA0Mi43IDE5Ljk2IDM5Ljk3IDE5Ljk2IDM2LjZWMjIuNzRINi4xQzIuNzMgMjIuNzQgMCAyNS40NyAwIDI4Ljg0WiIgZmlsbD0iIzZCOThCRiIvPg0KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy44NSAwSDBWMTMuODVDMCAxNy4yMyAyLjc0IDE5Ljk2IDYuMTEgMTkuOTZIMTkuOTZWNi4xMUMxOS45NiAyLjc0IDE3LjIzIDAgMTMuODUgMFoiIGZpbGw9IiM2Qjk4QkYiLz4NCjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMzYuMjU5OSAyMi41NkgyMi40NVYzNi4zN0MyMi40NSAzOS43NyAyNS4yMSA0Mi41MyAyOC42MSA0Mi41M0g0Mi40MTk5VjI4LjcyQzQyLjQxOTkgMjUuMzIgMzkuNjU5OSAyMi41NiAzNi4yNTk5IDIyLjU2WiIgZmlsbD0iIzZCOThCRiIvPg0KPHBhdGggZD0iTTMyLjcgMTkuOTZDMzguMjExOCAxOS45NiA0Mi42OCAxNS40OTE4IDQyLjY4IDkuOThDNDIuNjggNC40NjgyIDM4LjIxMTggMCAzMi43IDBDMjcuMTg4MiAwIDIyLjcyIDQuNDY4MiAyMi43MiA5Ljk4QzIyLjcyIDE1LjQ5MTggMjcuMTg4MiAxOS45NiAzMi43IDE5Ljk2WiIgZmlsbD0iI0Q0RDk0NyIvPg0KPC9nPg0KPGRlZnM+DQo8Y2xpcFBhdGggaWQ9ImNsaXAwXzc1XzIxIj4NCjxyZWN0IHdpZHRoPSIyNDEuNTciIGhlaWdodD0iNDUuMzMiIGZpbGw9IndoaXRlIi8+DQo8L2NsaXBQYXRoPg0KPC9kZWZzPg0KPC9zdmc+DQo=\u0027;\n\nconst rows = value =\u003e Array.isArray(value) ? value : [];\nconst money = value =\u003e new Intl.NumberFormat(\u0027uk-UA\u0027, {\n  maximumFractionDigits: 0,\n}).format(Number(value || 0));\nconst number = value =\u003e new Intl.NumberFormat(\u0027uk-UA\u0027, {\n  maximumFractionDigits: 1,\n}).format(Number(value || 0));\nconst date = value =\u003e {\n  if (!value) return \u0027вЂ”\u0027;\n  const [year, month, day] = String(value).slice(0, 10).split(\u0027-\u0027);\n  return `${day}.${month}.${year}`;\n};\nconst escapeHtml = value =\u003e String(value ?? \u0027вЂ”\u0027)\n  .replaceAll(\u0027\u0026\u0027, \u0027\u0026amp;\u0027)\n  .replaceAll(\u0027\u003c\u0027, \u0027\u0026lt;\u0027)\n  .replaceAll(\u0027\u003e\u0027, \u0027\u0026gt;\u0027)\n  .replaceAll(\u0027\"\u0027, \u0027\u0026quot;\u0027)\n  .replaceAll(\"\u0027\", \u0027\u0026#039;\u0027);\n\nconst pct = (value, total) =\u003e total \u003e 0 ? (Number(value || 0) * 100 / total) : 0;\nconst maxOf = (items, key) =\u003e Math.max(1, ...items.map(item =\u003e Number(item[key] || 0)));\nconst growth = value =\u003e {\n  if (value === null || value === undefined || !Number.isFinite(Number(value))) {\n    return \u0027\u003cspan class=\"growth neutral\"\u003eРЅРµРјР°С” Р±Р°Р·Рё\u003c/span\u003e\u0027;\n  }\n  const numeric = Number(value);\n  const cls = numeric \u003e 0 ? \u0027positive\u0027 : numeric \u003c 0 ? \u0027negative\u0027 : \u0027neutral\u0027;\n  const arrow = numeric \u003e 0 ? \u0027в–І\u0027 : numeric \u003c 0 ? \u0027в–ј\u0027 : \u0027вЂў\u0027;\n  return `\u003cspan class=\"growth ${cls}\"\u003e${arrow} ${numeric \u003e 0 ? \u0027+\u0027 : \u0027\u0027}${number(numeric)}%\u003c/span\u003e`;\n};\n\nfunction metric(label, value, note = \u0027\u0027) {\n  return `\u003carticle class=\"metric\"\u003e\n    \u003cdiv class=\"metric-label\"\u003e${escapeHtml(label)}\u003c/div\u003e\n    \u003cdiv class=\"metric-value\"\u003e${value}\u003c/div\u003e\n    ${note ? `\u003cdiv class=\"metric-note\"\u003e${note}\u003c/div\u003e` : \u0027\u0027}\n  \u003c/article\u003e`;\n}\n\nfunction bars(items, valueKey, suffix = \u0027\u0027) {\n  const max = maxOf(items, valueKey);\n  return items.map((item, index) =\u003e {\n    const value = Number(item[valueKey] || 0);\n    return `\u003cdiv class=\"bar-row\"\u003e\n      \u003cdiv class=\"bar-label\" title=\"${escapeHtml(item.Name ?? item.ABC ?? item.Bucket ?? item.Date)}\"\u003e\n        ${escapeHtml(item.Name ?? item.ABC ?? item.Bucket ?? date(item.Date))}\n      \u003c/div\u003e\n      \u003cdiv class=\"bar-track\"\u003e\u003cdiv class=\"bar-fill c${index % 5}\" style=\"width:${Math.max(2, value * 100 / max)}%\"\u003e\u003c/div\u003e\u003c/div\u003e\n      \u003cdiv class=\"bar-value\"\u003e${money(value)}${suffix}\u003c/div\u003e\n    \u003c/div\u003e`;\n  }).join(\u0027\u0027);\n}\n\nfunction accordion(title, subtitle, body, open = false, id = \u0027\u0027) {\n  return `\u003cdetails ${id ? `id=\"${escapeHtml(id)}\"` : \u0027\u0027} ${open ? \u0027open\u0027 : \u0027\u0027}\u003e\n    \u003csummary\u003e\n      \u003cspan\u003e${escapeHtml(title)}\u003c/span\u003e\n      \u003csmall\u003e${escapeHtml(subtitle)}\u003c/small\u003e\n      \u003ci\u003eвЂє\u003c/i\u003e\n    \u003c/summary\u003e\n    \u003cdiv class=\"detail-body\"\u003e${body}\u003c/div\u003e\n  \u003c/details\u003e`;\n}\n\nfunction growthChart(items) {\n  const points = items.filter(item =\u003e Number.isFinite(Number(item.GrowthPercent)));\n  if (!points.length) return \u0027\u003cdiv class=\"empty\"\u003eРќРµРґРѕСЃС‚Р°С‚РЅСЊРѕ РґР°РЅРёС… РґР»СЏ СЂРѕР·СЂР°С…СѓРЅРєСѓ РїСЂРёСЂРѕСЃС‚Сѓ\u003c/div\u003e\u0027;\n\n  const width = 680;\n  const height = 250;\n  const padding = { top: 28, right: 18, bottom: 42, left: 46 };\n  const plotWidth = width - padding.left - padding.right;\n  const plotHeight = height - padding.top - padding.bottom;\n  const maxAbs = Math.max(10, ...points.map(item =\u003e Math.abs(Number(item.GrowthPercent))));\n  const zeroY = padding.top + plotHeight / 2;\n  const scaleY = value =\u003e zeroY - (Number(value) / maxAbs) * (plotHeight / 2);\n  const slot = plotWidth / points.length;\n  const barWidth = Math.min(38, slot * 0.58);\n  const scaleX = index =\u003e padding.left + index * slot + slot / 2;\n  const gridValues = [maxAbs, maxAbs / 2, 0, -maxAbs / 2, -maxAbs];\n  const grid = gridValues.map(value =\u003e {\n    const y = scaleY(value);\n    return `\u003cline x1=\"${padding.left}\" y1=\"${y}\" x2=\"${width - padding.right}\" y2=\"${y}\" class=\"chart-grid ${value === 0 ? \u0027zero\u0027 : \u0027\u0027}\"/\u003e\n      \u003ctext x=\"${padding.left - 7}\" y=\"${y + 3}\" class=\"chart-axis\" text-anchor=\"end\"\u003e${number(value)}%\u003c/text\u003e`;\n  }).join(\u0027\u0027);\n  const coordinates = points.map((item, index) =\u003e ({\n    item,\n    value: Number(item.GrowthPercent),\n    x: scaleX(index),\n    y: scaleY(Number(item.GrowthPercent)),\n  }));\n  const linePoints = coordinates.map(point =\u003e `${point.x},${point.y}`).join(\u0027 \u0027);\n  const trendSvg = coordinates.map(({ item, value, x, y }) =\u003e {\n    const labelY = value \u003e= 0 ? y - 11 : y + 19;\n    const month = monthLabel(item.Month).split(\u0027 \u0027)[0];\n    const barY = Math.min(zeroY, y);\n    const barHeight = Math.max(2, Math.abs(zeroY - y));\n    return `\u003cg\u003e\n      \u003crect x=\"${x - barWidth / 2}\" y=\"${barY}\" width=\"${barWidth}\" height=\"${barHeight}\" rx=\"5\" class=\"chart-bar ${value \u003e= 0 ? \u0027up\u0027 : \u0027down\u0027}\"/\u003e\n      \u003ctext x=\"${x}\" y=\"${labelY}\" class=\"chart-value ${value \u003e= 0 ? \u0027up-text\u0027 : \u0027down-text\u0027}\" text-anchor=\"middle\"\u003e${value \u003e 0 ? \u0027+\u0027 : \u0027\u0027}${number(value)}%\u003c/text\u003e\n      \u003ctext x=\"${x}\" y=\"${height - 15}\" class=\"chart-month\" text-anchor=\"middle\"\u003e${month}\u003c/text\u003e\n    \u003c/g\u003e`;\n  }).join(\u0027\u0027);\n\n  return `\u003cdiv class=\"growth-chart\"\u003e\u003csvg viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"Р“СЂР°С„С–Рє С‚СЂРµРЅРґР° РїСЂРёСЂРѕСЃС‚Сѓ С‚Р° РїР°РґС–РЅРЅСЏ СЃСѓРјРё РІС–РґРІР°РЅС‚Р°Р¶РµРЅСЊ Р·Р° РјС–СЃСЏС†СЏРјРё\"\u003e\n      ${grid}\n      ${trendSvg}\n      ${points.length \u003e 1 ? `\u003cpolyline points=\"${linePoints}\" class=\"chart-trend-line\"/\u003e` : \u0027\u0027}\n      ${coordinates.map(({ value, x, y }) =\u003e `\u003ccircle cx=\"${x}\" cy=\"${y}\" r=\"6\" class=\"chart-point ${value \u003e= 0 ? \u0027up\u0027 : \u0027down\u0027}\"/\u003e\u003ccircle cx=\"${x}\" cy=\"${y}\" r=\"2.4\" class=\"chart-point-core\"/\u003e`).join(\u0027\u0027)}\n    \u003c/svg\u003e\n    \u003cdiv class=\"chart-legend\"\u003e\u003cspan\u003e\u003ci class=\"legend-up\"\u003e\u003c/i\u003eРџСЂРёСЂС–СЃС‚\u003c/span\u003e\u003cspan\u003e\u003ci class=\"legend-down\"\u003e\u003c/i\u003eРџР°РґС–РЅРЅСЏ\u003c/span\u003e\u003c/div\u003e\n  \u003c/div\u003e`;\n}\n\nconst trends = rows(report.DailyTrend);\nconst types = rows(report.ConstructionTypes);\nconst profiles = rows(report.ProfileSystems);\nconst furniture = rows(report.Furniture);\nconst colors = rows(report.Colors);\nconst abc = rows(report.ABC);\nconst timeliness = rows(report.ProductionTimeliness);\nconst contractors = rows(report.Contractors);\nconst orders = rows(report.Orders);\nconst years = rows(report.YearComparison);\nconst months = rows(report.MonthlyComparison);\nconst categoryMonths = rows(report.CategoryMonthlyComparison);\nconst contractorName = String(\n  report.ContractorName\n  ?? contractors[0]?.ContractorName\n  ?? orders[0]?.ContractorName\n  ?? \u0027РљРѕРЅС‚СЂР°РіРµРЅС‚ РЅРµ Р·РЅР°Р№РґРµРЅРёР№\u0027\n).trim();\n\nconst monthLabel = value =\u003e {\n  if (!value) return \u0027вЂ”\u0027;\n  const [year, month] = String(value).split(\u0027-\u0027);\n  const labels = [\u0027РЎС–С‡\u0027, \u0027Р›СЋС‚\u0027, \u0027Р‘РµСЂ\u0027, \u0027РљРІС–С‚\u0027, \u0027РўСЂР°РІ\u0027, \u0027Р§РµСЂРІ\u0027, \u0027Р›РёРї\u0027, \u0027РЎРµСЂРї\u0027, \u0027Р’РµСЂ\u0027, \u0027Р–РѕРІС‚\u0027, \u0027Р›РёСЃС‚\u0027, \u0027Р“СЂСѓРґ\u0027];\n  return `${labels[Number(month) - 1]} ${year}`;\n};\n\nconst reportYear = Number(String(report.DateTo).slice(0, 4));\nconst currentYearMonths = months.filter(item =\u003e Number(String(item.Month).slice(0, 4)) === reportYear);\nconst onTimeOrders = timeliness\n  .filter(item =\u003e item.Bucket === \u0027Р’С‡Р°СЃРЅРѕ\u0027)\n  .reduce((sum, item) =\u003e sum + Number(item.OrdersCount || 0), 0);\nconst lateOrders = timeliness\n  .filter(item =\u003e [\u0027+1 РґРµРЅСЊ\u0027, \u0027+2вЂ“3 РґРЅС–\u0027, \u0027+4вЂ“7 РґРЅС–РІ\u0027, \u0027РџРѕРЅР°Рґ 7 РґРЅС–РІ\u0027].includes(item.Bucket))\n  .reduce((sum, item) =\u003e sum + Number(item.OrdersCount || 0), 0);\nconst noProductionDateOrders = timeliness\n  .filter(item =\u003e [\u0027РќРµРјР°С” РґР°С‚Рё РіРѕС‚РѕРІРЅРѕСЃС‚С–\u0027, \u0027РќРµРјР°С” РїР»Р°РЅРѕРІРѕС— РґР°С‚Рё\u0027].includes(item.Bucket))\n  .reduce((sum, item) =\u003e sum + Number(item.OrdersCount || 0), 0);\nconst productionMeasured = onTimeOrders + lateOrders;\nconst onTimePercent = pct(onTimeOrders, productionMeasured);\nconst latePercent = pct(lateOrders, productionMeasured);\nconst productionCircle = 2 * Math.PI * 54;\nconst onTimeDash = productionMeasured ? productionCircle * onTimePercent / 100 : 0;\nconst lateDash = productionMeasured ? productionCircle * latePercent / 100 : 0;\nconst productionHero = `\u003csection class=\"production-hero\"\u003e\n  \u003cdiv class=\"production-title\"\u003e\u003cspan\u003eР”РѕС‚СЂРёРјР°РЅРЅСЏ СЃС‚СЂРѕРєС–РІ РІРёСЂРѕР±РЅРёС†С‚РІР°\u003c/span\u003e\u003csmall\u003eР·Р° Р·Р°РјРѕРІР»РµРЅРЅСЏРјРё Р· РІС–РґРѕРјРёРјРё РїР»Р°РЅРѕРІРѕСЋ С‚Р° С„Р°РєС‚РёС‡РЅРѕСЋ РґР°С‚Р°РјРё\u003c/small\u003e\u003c/div\u003e\n  \u003cdiv class=\"production-chart\"\u003e\n    \u003csvg viewBox=\"0 0 140 140\" role=\"img\" aria-label=\"Р’С‡Р°СЃРЅРѕ ${number(onTimePercent)} РІС–РґСЃРѕС‚РєР°, РЅРµРІС‡Р°СЃРЅРѕ ${number(latePercent)} РІС–РґСЃРѕС‚РєР°\"\u003e\n      \u003ccircle class=\"production-ring-bg\" cx=\"70\" cy=\"70\" r=\"54\"/\u003e\n      \u003ca href=\"#shipped-orders\" onclick=\"document.getElementById(\u0027shipped-orders\u0027).open=true\"\u003e\n        \u003ccircle class=\"production-ring on-time clickable\" cx=\"70\" cy=\"70\" r=\"54\" stroke-dasharray=\"${onTimeDash} ${productionCircle - onTimeDash}\"/\u003e\n      \u003c/a\u003e\n      \u003ca href=\"#shipped-orders\" onclick=\"document.getElementById(\u0027shipped-orders\u0027).open=true\"\u003e\n        \u003ccircle class=\"production-ring late clickable\" cx=\"70\" cy=\"70\" r=\"54\" stroke-dasharray=\"${lateDash} ${productionCircle - lateDash}\" stroke-dashoffset=\"${-onTimeDash}\"/\u003e\n      \u003c/a\u003e\n      \u003ctext x=\"70\" y=\"65\" text-anchor=\"middle\" class=\"production-total\"\u003e${money(productionMeasured)}\u003c/text\u003e\n      \u003ctext x=\"70\" y=\"81\" text-anchor=\"middle\" class=\"production-total-label\"\u003eР·Р°РјРѕРІР»РµРЅСЊ\u003c/text\u003e\n    \u003c/svg\u003e\n  \u003c/div\u003e\n  \u003cdiv class=\"production-stats\"\u003e\n    \u003ca class=\"production-stat on-time\" href=\"#shipped-orders\" onclick=\"document.getElementById(\u0027shipped-orders\u0027).open=true\"\u003e\u003ci\u003e\u003c/i\u003e\u003cdiv\u003e\u003cspan\u003eР’С‡Р°СЃРЅРѕ\u003c/span\u003e\u003cstrong\u003e${money(onTimeOrders)}\u003c/strong\u003e\u003csmall\u003e${number(onTimePercent)}%\u003c/small\u003e\u003c/div\u003e\u003c/a\u003e\n    \u003ca class=\"production-stat late\" href=\"#shipped-orders\" onclick=\"document.getElementById(\u0027shipped-orders\u0027).open=true\"\u003e\u003ci\u003e\u003c/i\u003e\u003cdiv\u003e\u003cspan\u003eРќРµРІС‡Р°СЃРЅРѕ\u003c/span\u003e\u003cstrong\u003e${money(lateOrders)}\u003c/strong\u003e\u003csmall\u003e${number(latePercent)}%\u003c/small\u003e\u003c/div\u003e\u003c/a\u003e\n  \u003c/div\u003e\n  ${noProductionDateOrders ? `\u003cdiv class=\"production-missing\"\u003eР‘РµР· РїРѕРІРЅРёС… РґР°РЅРёС… РїСЂРѕ СЃС‚СЂРѕРєРё: \u003cb\u003e${money(noProductionDateOrders)}\u003c/b\u003e\u003c/div\u003e` : \u0027\u0027}\n\u003c/section\u003e`;\n\nconst yearCards = years.map((item, index) =\u003e `\u003carticle class=\"year-card ${index === years.length - 1 ? \u0027active\u0027 : \u0027\u0027}\"\u003e\n  \u003cdiv class=\"year-label\"\u003e${escapeHtml(item.Year)} YTD\u003c/div\u003e\n  \u003cstrong\u003e${money(item.TotalAmount)} в‚ґ\u003c/strong\u003e\n  \u003csmall\u003e${money(item.OrdersCount)} Р·Р°Рј. В· ${money(item.ShippedQuantity)} РєРѕРЅСЃС‚СЂ.\u003c/small\u003e\n  ${growth(item.GrowthPercent)}\n\u003c/article\u003e`).join(\u0027\u0027);\n\nconst monthRows = months.map(item =\u003e `\u003ctr\u003e\n  \u003ctd\u003e\u003cb\u003e${monthLabel(item.Month)}\u003c/b\u003e\u003c/td\u003e\n  \u003ctd class=\"num\"\u003e${money(item.TotalAmount)} в‚ґ\u003c/td\u003e\n  \u003ctd class=\"num\"\u003e${money(item.OrdersCount)}\u003c/td\u003e\n  \u003ctd class=\"num\"\u003e${money(item.ShippedQuantity)}\u003c/td\u003e\n  \u003ctd class=\"num\"\u003e${growth(item.GrowthPercent)}\u003c/td\u003e\n\u003c/tr\u003e`).join(\u0027\u0027);\n\nconst lastReportMonth = months.at(-1)?.Month ?? String(report.DateTo).slice(0, 7);\nconst [categoryYear, lastMonthNumber] = String(lastReportMonth).split(\u0027-\u0027).map(Number);\nconst categoryMonthKeys = Array.from(\n  { length: lastMonthNumber },\n  (_, index) =\u003e `${categoryYear}-${String(index + 1).padStart(2, \u00270\u0027)}`\n);\nconst categoryYearRows = categoryMonths.filter(\n  item =\u003e String(item.Month).startsWith(`${categoryYear}-`)\n);\nconst categoryNames = [...new Set(categoryYearRows.map(item =\u003e item.Name))];\nconst categoryComparison = categoryNames.map(name =\u003e {\n  const sourceValues = categoryYearRows.filter(item =\u003e item.Name === name);\n  const sourceByMonth = new Map(sourceValues.map(item =\u003e [item.Month, item]));\n  const values = categoryMonthKeys.map((month, index) =\u003e {\n    const item = sourceByMonth.get(month) ?? {\n      Name: name,\n      Month: month,\n      TotalAmount: 0,\n      Quantity: 0,\n      OrdersCount: 0,\n    };\n    const previous = index \u003e 0\n      ? Number(sourceByMonth.get(categoryMonthKeys[index - 1])?.TotalAmount || 0)\n      : null;\n    const currentAmount = Number(item.TotalAmount || 0);\n    return {\n      ...item,\n      GrowthPercent: previous === null || previous === 0\n        ? null\n        : (currentAmount - previous) * 100 / previous,\n    };\n  });\n  const current = values.at(-1) ?? {};\n  const historyRows = values.map(item =\u003e `\u003cdiv class=\"category-month\"\u003e\n    \u003cdiv class=\"category-month-name\"\u003e${monthLabel(item.Month)}\u003c/div\u003e\n    \u003cdiv class=\"category-month-amount\"\u003e${money(item.TotalAmount)} в‚ґ\u003c/div\u003e\n    \u003cdiv class=\"category-month-meta\"\u003e\n      \u003cspan\u003e${money(item.Quantity)} С€С‚.\u003c/span\u003e\n      ${growth(item.GrowthPercent)}\n    \u003c/div\u003e\n  \u003c/div\u003e`).join(\u0027\u0027);\n  return `\u003cdetails class=\"nested\"\u003e\n    \u003csummary\u003e\u003cspan\u003e${escapeHtml(name)}\u003c/span\u003e\u003csmall\u003e${money(current.TotalAmount)} в‚ґ В· ${growth(current.GrowthPercent)}\u003c/small\u003e\u003ci\u003eвЂє\u003c/i\u003e\u003c/summary\u003e\n    \u003cdiv class=\"category-history\"\u003e${historyRows}\u003c/div\u003e\n  \u003c/details\u003e`;\n}).join(\u0027\u0027);\n\nconst totalTypeQty = types.reduce((sum, item) =\u003e sum + Number(item.Quantity || 0), 0);\nconst typeCards = types.map((item, index) =\u003e {\n  const percent = pct(item.Quantity, totalTypeQty);\n  return `\u003cdiv class=\"mix-card\"\u003e\n    \u003cdiv class=\"mix-top\"\u003e\u003cspan class=\"dot c${index % 5}\"\u003e\u003c/span\u003e\u003cb\u003e${escapeHtml(item.Name)}\u003c/b\u003e\u003c/div\u003e\n    \u003cstrong\u003e${money(item.Quantity)}\u003c/strong\u003e\n    \u003cspan\u003e${percent.toFixed(1)}% В· ${money(item.OrdersCount)} Р·Р°Рј.\u003c/span\u003e\n    \u003cdiv class=\"mix-line\"\u003e\u003ci class=\"c${index % 5}\" style=\"width:${percent}%\"\u003e\u003c/i\u003e\u003c/div\u003e\n  \u003c/div\u003e`;\n}).join(\u0027\u0027);\n\nconst orderRows = orders.map(item =\u003e `\u003ctr\u003e\n  \u003ctd\u003e\u003cb\u003e${escapeHtml(item.OrderNumber)}\u003c/b\u003e\u003csmall\u003e${escapeHtml(item.ClientOrderNumber)}\u003c/small\u003e\u003c/td\u003e\n  \u003ctd\u003e${escapeHtml(item.ContractorName)}\u003c/td\u003e\n  \u003ctd\u003e${date(item.LastShipmentDate)}\u003c/td\u003e\n  \u003ctd class=\"num\"\u003e${money(item.ConstructionsCount)}\u003c/td\u003e\n  \u003ctd class=\"num\"\u003e${money(item.TotalAmount)} в‚ґ\u003c/td\u003e\n  \u003ctd\u003e\u003cspan class=\"badge ${item.ShipmentCompleteness === \u0027РџРѕРІРЅС–СЃС‚СЋ\u0027 ? \u0027ok\u0027 : \u0027warn\u0027}\"\u003e${escapeHtml(item.ShipmentCompleteness)}\u003c/span\u003e\u003c/td\u003e\n\u003c/tr\u003e`).join(\u0027\u0027);\n\nconst html = `\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"uk\"\u003e\n\u003chead\u003e\n\u003cmeta charset=\"UTF-8\"\u003e\n\u003cmeta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=3\"\u003e\n\u003cmeta http-equiv=\"Cache-Control\" content=\"no-store, no-cache, must-revalidate, max-age=0\"\u003e\n\u003cmeta http-equiv=\"Pragma\" content=\"no-cache\"\u003e\n\u003cmeta http-equiv=\"Expires\" content=\"0\"\u003e\n\u003ctitle\u003eР’С–РєРЅР° РЎС‚РёР»СЊ вЂ” РІС–РґРІР°РЅС‚Р°Р¶РµРЅРЅСЏ\u003c/title\u003e\n\u003cstyle\u003e\n*{box-sizing:border-box}html{scroll-behavior:smooth}:root{--ink:#292625;--brown:#4c4644;--sand:#eee9df;--paper:#fff;--muted:#857f79;--line:#e5e0d9;--red:#9d292f;--green:#477645;--gold:#c89b45}\nbody{margin:0;background:#efede9;color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif;font-variant-numeric:tabular-nums}\n.report{width:min(100%,720px);margin:auto;padding:10px 8px 36px}.hero{position:relative;overflow:hidden;padding:20px;border-radius:18px;background:linear-gradient(135deg,#3f3a38,#625a56);color:#fff;box-shadow:0 12px 30px #4c464426}\n.hero:after{content:\"\";position:absolute;right:-45px;top:-65px;width:210px;height:210px;border:1px solid #ffffff0b;border-radius:50%}.hero-logo{display:block;position:relative;z-index:1;width:min(242px,70%);height:auto;margin-bottom:20px}.brand{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#e9d6ad}.hero h1{position:relative;z-index:1;margin:7px 0 5px;font-size:25px}.client{position:relative;z-index:1;margin:0 0 7px;font-size:15px;font-weight:650;color:#fff}.period{font-size:11px;color:#ffffffa8}\n.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.metric{min-width:0;padding:15px 13px;background:var(--paper);border:1px solid var(--line);border-radius:14px}.metric-label{min-height:26px;font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}.metric-value{overflow:hidden;font-size:20px;font-weight:750;color:var(--brown);white-space:nowrap}.metric-note{margin-top:4px;font-size:9px;color:var(--muted)}\n.growth{display:inline-block;margin-top:5px;font-size:9px;font-weight:750}.growth.positive{color:var(--green)}.growth.negative{color:var(--red)}.growth.neutral{color:var(--muted)}\n.production-hero{display:grid;grid-template-columns:minmax(160px,.8fr) minmax(170px,1fr);grid-template-areas:\"title title\" \"chart stats\" \"missing missing\";align-items:center;gap:8px 24px;margin:8px 0;padding:17px 20px;background:var(--paper);border:1px solid var(--line);border-radius:16px}.production-title{grid-area:title}.production-title span,.production-title small{display:block}.production-title span{font-size:15px;font-weight:750;color:var(--brown)}.production-title small{margin-top:3px;font-size:9px;color:var(--muted)}.production-chart{grid-area:chart;justify-self:center;width:min(190px,100%)}.production-chart svg{display:block;width:100%;height:auto;transform:rotate(-90deg)}.production-ring-bg,.production-ring{fill:none;stroke-width:17}.production-ring-bg{stroke:#ece8e2}.production-ring{stroke-linecap:butt}.production-ring.clickable{cursor:pointer;transition:stroke-width .18s}.production-ring.clickable:hover{stroke-width:21}.production-ring.on-time{stroke:#5f8b5d}.production-ring.late{stroke:#a83f45}.production-total,.production-total-label{transform:rotate(90deg);transform-origin:70px 70px;font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif;fill:var(--brown)}.production-total{font-size:25px;font-weight:800}.production-total-label{font-size:9px;fill:var(--muted)}.production-stats{grid-area:stats;display:grid;gap:9px}.production-stat{display:grid;grid-template-columns:11px 1fr;gap:9px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:11px;color:inherit;text-decoration:none;transition:transform .18s,box-shadow .18s}.production-stat:hover{transform:translateY(-1px);box-shadow:0 5px 14px #4c46441a}.production-stat\u003ei{width:11px;height:42px;border-radius:8px}.production-stat.on-time\u003ei{background:#5f8b5d}.production-stat.late\u003ei{background:#a83f45}.production-stat span,.production-stat small{display:block}.production-stat span{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}.production-stat strong{display:inline-block;margin-top:2px;font-size:25px;color:var(--brown)}.production-stat small{float:right;margin-top:9px;font-size:13px;font-weight:750}.production-stat.on-time small{color:var(--green)}.production-stat.late small{color:var(--red)}.production-missing{grid-area:missing;padding-top:2px;font-size:9px;color:var(--muted);text-align:right}\n.years{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.year-card{padding:13px;background:#fff;border:1px solid var(--line);border-radius:13px}.year-card.active{background:var(--brown);color:#fff;border-color:var(--brown)}.year-label{font-size:9px;letter-spacing:.7px;color:var(--muted)}.year-card.active .year-label,.year-card.active small{color:#ffffff9c}.year-card strong{display:block;margin:7px 0 4px;font-size:17px}.year-card small{display:block;font-size:8px;color:var(--muted)}\n.growth-chart{padding-top:8px}.growth-chart svg{display:block;width:100%;height:auto;overflow:visible}.chart-grid{stroke:#e8e3dd;stroke-width:1}.chart-grid.zero{stroke:#aaa19a;stroke-width:1.4}.chart-axis,.chart-month,.chart-value{font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.chart-axis{fill:var(--muted);font-size:9px}.chart-month{fill:var(--muted);font-size:10px}.chart-value{font-size:9px;font-weight:750}.up-text{fill:var(--green)}.down-text{fill:var(--red)}.chart-bar.up{fill:#5f8b5d;fill-opacity:.82}.chart-bar.down{fill:#a83f45;fill-opacity:.82}.chart-trend-line{fill:none;stroke:#3f3a38;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.chart-point{stroke:#fff;stroke-width:2}.chart-point.up{fill:#5f8b5d}.chart-point.down{fill:#a83f45}.chart-point-core{fill:#fff}.chart-legend{display:flex;justify-content:center;gap:18px;margin-top:-4px;font-size:9px;color:var(--muted)}.chart-legend span{display:flex;align-items:center;gap:5px}.chart-legend i{width:8px;height:8px;border-radius:50%}.legend-up{background:#5f8b5d}.legend-down{background:#a83f45}.empty{padding:24px;text-align:center;color:var(--muted);font-size:11px}\ndetails{margin:8px 0;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;scroll-margin-top:10px}details:target{border-color:#a89a8f;box-shadow:0 0 0 3px #786c6518}summary{display:flex;align-items:center;gap:8px;padding:14px 15px;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}summary span{font-weight:700;color:var(--brown)}summary small{margin-left:auto;color:var(--muted)}summary i{font-size:20px;font-style:normal;transition:.2s}details[open] summary i{transform:rotate(90deg)}.detail-body{padding:2px 15px 15px;border-top:1px solid var(--line)}\n.nested{margin:7px 0;border-radius:10px}.nested summary{padding:10px 11px;min-width:0}.nested summary\u003espan{min-width:0;overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.nested summary small{display:flex;flex-shrink:0;align-items:center;gap:4px;font-size:9px}.nested .growth{margin:0}.category-history{padding:0 10px 8px;border-top:1px solid var(--line)}.category-month{display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 1px;border-bottom:1px solid #eeeae5}.category-month:last-child{border-bottom:0}.category-month-name{font-size:10px;color:var(--muted)}.category-month-amount{overflow:hidden;font-size:12px;font-weight:700;color:var(--brown);text-align:right;text-overflow:ellipsis;white-space:nowrap}.category-month-meta{display:flex;min-width:58px;flex-direction:column;align-items:flex-end;font-size:8px;color:var(--muted)}.category-month-meta .growth{font-size:8px}\n.bar-row{display:grid;grid-template-columns:minmax(90px,1.2fr) 2fr auto;gap:8px;align-items:center;margin-top:11px}.bar-label{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:8px;background:#eeeae5;border-radius:9px;overflow:hidden}.bar-fill{height:100%;border-radius:9px}.bar-value{font-size:11px;font-weight:700}.c0{background:#786c65}.c1{background:#ba755b}.c2{background:#c8a04f}.c3{background:#72906d}.c4{background:#6d839a}\n.mix{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:12px}.mix-card{padding:12px;border:1px solid var(--line);border-radius:11px}.mix-top{display:flex;align-items:center;gap:6px;font-size:11px}.dot{width:8px;height:8px;border-radius:50%}.mix-card strong{display:block;margin-top:9px;font-size:19px;color:var(--brown)}.mix-card\u003espan{font-size:9px;color:var(--muted)}.mix-line{height:3px;margin-top:8px;background:#eee}.mix-line i{display:block;height:100%}\n.table-wrap{margin:0 -15px -15px;overflow:auto}table{width:100%;min-width:660px;border-collapse:collapse}th,td{padding:9px 10px;border-top:1px solid #eeeae5;font-size:10px;text-align:left}th{font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);background:#f8f6f3}td small{display:block;color:var(--muted);margin-top:2px}.num{text-align:right;white-space:nowrap}.badge{display:inline-block;padding:3px 6px;border-radius:10px;font-size:8px;font-weight:700}.badge.ok{background:#e7f0e4;color:var(--green)}.badge.warn{background:#fff0d9;color:#8c5a11}\n.foot{padding:13px 4px;text-align:center;font-size:9px;color:var(--muted)}\n@media(max-width:560px){.production-hero{grid-template-columns:125px minmax(0,1fr);gap:7px 10px;padding:14px 12px}.production-chart{width:125px}.production-stat{padding:8px}.production-stat\u003ei{height:35px}.production-stat strong{font-size:21px}.production-stat small{font-size:11px}.metrics{grid-template-columns:repeat(2,1fr)}.metric-value{font-size:17px}.mix{grid-template-columns:1fr}.hero h1{font-size:22px}.bar-row{grid-template-columns:100px 1fr auto}.years{grid-template-columns:1fr}.year-card{display:grid;grid-template-columns:65px 1fr auto;align-items:center;gap:6px}.year-card strong{margin:0}.year-card small{display:none}.detail-body{padding-left:9px;padding-right:9px}.nested summary{padding:9px}.nested summary small{font-size:8px}.category-month{grid-template-columns:66px minmax(0,1fr) 60px;gap:5px}.category-month-amount{font-size:11px}}\n\u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\u003cmain class=\"report\"\u003e\n  \u003cheader class=\"hero\"\u003e\n    \u003cimg class=\"hero-logo\" src=\"${logoDataUri}\" alt=\"Р’С–РєРЅР° РЎС‚РёР»СЊ\"\u003e\n    \u003cdiv class=\"brand\"\u003eРџРµСЂСЃРѕРЅР°Р»СЊРЅР° Р°РЅР°Р»С–С‚РёРєР° РІС–РґРІР°РЅС‚Р°Р¶РµРЅСЊ\u003c/div\u003e\n    \u003ch1\u003eР¤Р°РєС‚РёС‡РЅС– РІС–РґРІР°РЅС‚Р°Р¶РµРЅРЅСЏ\u003c/h1\u003e\n    \u003cdiv class=\"client\"\u003e${escapeHtml(contractorName)}\u003c/div\u003e\n    \u003cdiv class=\"period\"\u003e${date(report.DateFrom)} вЂ” ${date(report.DateTo)}\u003c/div\u003e\n  \u003c/header\u003e\n\n  ${productionHero}\n\n  \u003csection class=\"metrics\"\u003e\n    ${metric(\u0027РЎСѓРјР° РІС–РґРІР°РЅС‚Р°Р¶РµРЅСЊ\u0027, `${money(summary.TotalAmount)} в‚ґ`, `РґРѕ РїРѕРїРµСЂ. РјС–СЃСЏС†СЏ ${growth(summary.GrowthVsPreviousMonth)}`)}\n    ${metric(\u0027Р—Р°РјРѕРІР»РµРЅРЅСЏ\u0027, money(summary.OrdersCount), `РґРѕ РїРѕРїРµСЂ. РјС–СЃСЏС†СЏ ${growth(summary.OrdersGrowthVsPreviousMonth)}`)}\n    ${metric(\u0027РљРѕРЅСЃС‚СЂСѓРєС†С–С—\u0027, money(summary.ConstructionsCount), `РґРѕ РїРѕРїРµСЂ. РјС–СЃСЏС†СЏ ${growth(summary.ConstructionsGrowthVsPreviousMonth)}`)}\n    ${metric(\u0027РЎРµСЂРµРґРЅС–Р№ С‡РµРє\u0027, `${money(summary.AverageOrderAmount)} в‚ґ`, `РґРѕ РїРѕРїРµСЂ. РјС–СЃСЏС†СЏ ${growth(summary.AverageCheckGrowthVsPreviousMonth)}`)}\n    ${metric(\u0027РЎРµСЂРµРґРЅСЏ С†С–РЅР° РєРѕРЅСЃС‚СЂСѓРєС†С–С—\u0027, `${money(summary.AverageConstructionAmount)} в‚ґ`, `РґРѕ РїРѕРїРµСЂ. РјС–СЃСЏС†СЏ ${growth(summary.AverageConstructionGrowthVsPreviousMonth)}`)}\n  \u003c/section\u003e\n\n  \u003csection class=\"years\"\u003e${yearCards}\u003c/section\u003e\n  ${accordion(`РўСЂРµРЅРґ РїСЂРёСЂРѕСЃС‚Сѓ / РїР°РґС–РЅРЅСЏ Р·Р° ${reportYear} СЂС–Рє`, `${currentYearMonths.length} РјС–СЃСЏС†С–РІ`, growthChart(currentYearMonths), true)}\n  ${accordion(\u0027РџРѕСЂС–РІРЅСЏРЅРЅСЏ РјС–СЃСЏС†С–РІ\u0027, `${months.length} РјС–СЃСЏС†С–РІ`, `\u003cdiv class=\"table-wrap\"\u003e\u003ctable\u003e\n    \u003cthead\u003e\u003ctr\u003e\u003cth\u003eРњС–СЃСЏС†СЊ\u003c/th\u003e\u003cth class=\"num\"\u003eРЎСѓРјР°\u003c/th\u003e\u003cth class=\"num\"\u003eР—Р°Рј.\u003c/th\u003e\u003cth class=\"num\"\u003eРљРѕРЅСЃС‚СЂ.\u003c/th\u003e\u003cth class=\"num\"\u003eРџСЂРёСЂС–СЃС‚\u003c/th\u003e\u003c/tr\u003e\u003c/thead\u003e\n    \u003ctbody\u003e${monthRows}\u003c/tbody\u003e\n  \u003c/table\u003e\u003c/div\u003e`, true)}\n  ${accordion(\u0027РљР°С‚РµРіРѕСЂС–С— Р·Р° РјС–СЃСЏС†СЏРјРё\u0027, `${categoryNames.length} РєР°С‚РµРіРѕСЂС–Р№`, categoryComparison, true)}\n  ${accordion(\u0027Р”РёРЅР°РјС–РєР° РІС–РґРІР°РЅС‚Р°Р¶РµРЅСЊ\u0027, `${trends.length} РґРЅС–РІ`, bars(trends, \u0027TotalAmount\u0027, \u0027 в‚ґ\u0027), true)}\n  ${accordion(\u0027РЎС‚СЂСѓРєС‚СѓСЂР° РїСЂРѕРґСѓРєС†С–С—\u0027, `${money(totalTypeQty)} РѕРґ.`, `\u003cdiv class=\"mix\"\u003e${typeCards || \u0027\u003cp\u003eРќРµРјР°С” РґР°РЅРёС…\u003c/p\u003e\u0027}\u003c/div\u003e`, true)}\n  ${accordion(\u0027Р’РёРєРѕРЅР°РЅРЅСЏ РІРёСЂРѕР±РЅРёС‡РёС… СЃС‚СЂРѕРєС–РІ\u0027, `${money(summary.OrdersCount)} Р·Р°Рј.`, bars(timeliness, \u0027OrdersCount\u0027))}\n  ${accordion(\u0027ABC-СЃС‚СЂСѓРєС‚СѓСЂР°\u0027, `${abc.length} РєР°С‚РµРіРѕСЂС–С—`, bars(abc, \u0027TotalAmount\u0027, \u0027 в‚ґ\u0027))}\n  ${accordion(\u0027РџСЂРѕС„С–Р»СЊРЅС– СЃРёСЃС‚РµРјРё\u0027, `${profiles.length} РїРѕР·РёС†С–Р№`, bars(profiles, \u0027ConstructionsCount\u0027))}\n  ${accordion(\u0027Р¤СѓСЂРЅС–С‚СѓСЂР°\u0027, `${furniture.length} РїРѕР·РёС†С–Р№`, bars(furniture, \u0027ConstructionsCount\u0027))}\n  ${accordion(\u0027РљРѕР»СЊРѕСЂРё РїСЂРѕС„С–Р»СЋ\u0027, `${colors.length} РїРѕР·РёС†С–Р№`, bars(colors, \u0027ConstructionsCount\u0027))}\n  ${accordion(\u0027Р’С–РґРІР°РЅС‚Р°Р¶РµРЅС– Р·Р°РјРѕРІР»РµРЅРЅСЏ\u0027, `${orders.length} Р·Р°РјРѕРІР»РµРЅСЊ`, `\u003cdiv class=\"table-wrap\"\u003e\u003ctable\u003e\n    \u003cthead\u003e\u003ctr\u003e\u003cth\u003eР—Р°РјРѕРІР»РµРЅРЅСЏ\u003c/th\u003e\u003cth\u003eРљРѕРЅС‚СЂР°РіРµРЅС‚\u003c/th\u003e\u003cth\u003eР’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ\u003c/th\u003e\u003cth class=\"num\"\u003eРљРѕРЅСЃС‚СЂ.\u003c/th\u003e\u003cth class=\"num\"\u003eРЎСѓРјР°\u003c/th\u003e\u003cth\u003eРЎС‚Р°РЅ\u003c/th\u003e\u003c/tr\u003e\u003c/thead\u003e\n    \u003ctbody\u003e${orderRows}\u003c/tbody\u003e\n  \u003c/table\u003e\u003c/div\u003e`, false, \u0027shipped-orders\u0027)}\n  \u003cfooter class=\"foot\"\u003eРўРћР’ В«Р’С–РєРЅР° РЎС‚РёР»СЊВ» В· СЃС„РѕСЂРјРѕРІР°РЅРѕ Р°РІС‚РѕРјР°С‚РёС‡РЅРѕ В· РІРµСЂСЃС–СЏ ${reportVersion}\u003c/footer\u003e\n\u003c/main\u003e\u003c/body\u003e\u003c/html\u003e`;\n\nreturn [{\n  json: {\n    ...$json,\n    chat_id: 716230412,\n    html,\n    fileName: outputFileName,\n    reportVersion,\n    caption: `рџ“Љ Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРЅСЏ\\n${date(report.DateFrom)} вЂ” ${date(report.DateTo)}\\n${money(summary.TotalAmount)} РіСЂРЅ В· ${money(summary.OrdersCount)} Р·Р°РјРѕРІР»РµРЅСЊ`,\n  },\n  binary: {\n    report: {\n      data: Buffer.from(html, \u0027utf8\u0027).toString(\u0027base64\u0027),\n      mimeType: \u0027text/html\u0027,\n      fileName: outputFileName,\n      fileExtension: \u0027html\u0027,\n    },\n  },\n}];\n"
+                                     },
+                      "id":  "bb59e3f8-c4b4-4253-a43d-ea0e49bc4d2f",
+                      "name":  "Build Shipped HTML",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       27744,
+                                       16416
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "sendDocument",
+                                         "chatId":  "={{ $json.chat_id }}",
+                                         "binaryData":  true,
+                                         "binaryPropertyName":  "report",
+                                         "additionalFields":  {
+                                                                  "caption":  "={{ $json.caption }}"
+                                                              }
+                                     },
+                      "id":  "a8a4fce3-fd11-4cc1-b8bd-07189d1fef2b",
+                      "name":  "Send Monthly Report Test",
+                      "type":  "n8n-nodes-base.telegram",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       27968,
+                                       16416
+                                   ],
+                      "webhookId":  "ec6cd2a7-b25f-4496-8cdb-6b07bb03e7bc",
+                      "credentials":  {
+                                          "telegramApi":  {
+                                                              "id":  "L6xepo4yH787moxu",
+                                                              "name":  "NotificationPortalBot"
+                                                          }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+
+                                     },
+                      "id":  "d3007311-3368-4715-bdd9-18a25345121d",
+                      "name":  "Send Report Today",
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       27072,
+                                       16512
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const update = $(\u0027Telegram TestSalesBot\u0027).first().json;\n\nconst text = (update.message?.text ?? \u0027\u0027).trim();\nconst callbackData = update.callback_query?.data ?? \u0027\u0027;\n\nconst chatId =\n  update.message?.chat?.id ??\n  update.callback_query?.message?.chat?.id;\n\nif (!chatId) {\n  throw new Error(\u0027Telegram chat id is missing\u0027);\n}\n\nlet route = \u0027portal\u0027;\n\n// Р‘РЈР”Р¬-РЇРљРР™ /start -\u003e СЂРµС”СЃС‚СЂР°С†С–СЏ\nif (/^\\/start(?:\\s+.*)?$/i.test(text)) {\n  route = \u0027manager_registration\u0027;\n} else if (update.message?.reply_to_message) {\n  route = \u0027reply\u0027;\n} else {\n  route = \u0027portal\u0027;\n}\n\nreturn [{\n  json: {\n    ...update,\n    route,\n    chat_id: chatId,\n    text,\n    callback_data: callbackData\n  }\n}];"
+                                     },
+                      "id":  "a374e301-a814-4e84-938e-b34adf7ce3d7",
+                      "name":  "Universal Router",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       27520,
+                                       15808
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.route }}",
+                                                                                                                    "rightValue":  "manager_registration",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "b2212a98-ca67-49b2-818d-3f3a6b39fdb1"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.route }}",
+                                                                                                                    "rightValue":  "contact_registration",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "537dbbe6-d829-4bbe-ac88-a7dff356a400"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.route }}",
+                                                                                                                    "rightValue":  "reply",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "417ccd0a-b316-4ce1-b06f-f3a997cda0a1"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.route }}",
+                                                                                                                    "rightValue":  "portal",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "ca5a63a5-3f88-413b-b76d-be5679813469"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+                                                         "fallbackOutput":  "extra"
+                                                     }
+                                     },
+                      "id":  "6c752f3b-93ee-4f35-abe5-9d9d192a55a2",
+                      "name":  "Route Universal Action",
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       27744,
+                                       15760
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const update = $input.first().json;\nconst callbackData = update.callback_query?.data ?? \u0027\u0027;\nconst text = (update.message?.text ?? \u0027\u0027).trim();\nconst chatId = update.message?.chat?.id ?? update.callback_query?.message?.chat?.id ?? update.chat_id;\nif (!chatId) throw new Error(\u0027Telegram chat id is missing\u0027);\nconst statusByText = {\u0027🆕 Нові\u0027:\u0027new\u0027,\u0027⏳ Очікують підтвердження\u0027:\u0027awaiting_confirmation\u0027,\u0027💳 Очікують оплати\u0027:\u0027awaiting_payment\u0027,\u0027🏭 У виробництві\u0027:\u0027production\u0027,\u0027🟠 Запізнення\u0027:\u0027delayed\u0027,\u0027✅ Готові\u0027:\u0027ready\u0027};\nlet action = \u0027help\u0027, userGuid = \u0027\u0027, status = statusByText[text] ?? \u0027all\u0027, period = \u0027\u0027, orderId = \u0027\u0027, orderNumber = \u0027\u0027, linkedOrderNumber = \u0027\u0027;\nif (callbackData.startsWith(\u0027details|\u0027)) { action = \u0027details\u0027; [, orderId, orderNumber] = callbackData.split(\u0027|\u0027); }\nelse if (callbackData.startsWith(\u0027confirm|\u0027)) { action = \u0027confirm\u0027; [, orderId, orderNumber, linkedOrderNumber = \u0027\u0027] = callbackData.split(\u0027|\u0027); }\nelse if (text === \u0027📦 Переглянути мої замовлення\u0027) { action = \u0027filters\u0027; }\nelse if (text === \u0027📅 Усі за місяць\u0027) { action = \u0027orders\u0027; period = \u0027month\u0027; }\nelse if (text === \u0027📊 Звіт за сьогодні\u0027) { action = \u0027daily\u0027; }\nelse if (status !== \u0027all\u0027) { action = \u0027orders\u0027; }\nelse if (text.startsWith(\u0027/start\u0027)) { action = \u0027start\u0027; userGuid = text.replace(\u0027/start\u0027, \u0027\u0027).trim(); }\nelse if (text === \u0027⬅️ Назад\u0027 || text === \u0027🔄 Оновити меню\u0027 || text === \u0027/menu\u0027) { action = \u0027menu\u0027; }\nreturn [{json:{action,chat_id:chatId,user_guid:userGuid,status,period,order_id:orderId,order_number:orderNumber,linked_order_number:linkedOrderNumber}}];"
+                                     },
+                      "id":  "bf1ed344-e887-4de7-b141-133420ecb32c",
+                      "name":  "Parse portal command",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       28640,
+                                       15040
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "start",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "menu",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "orders",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "daily",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "confirm",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "filters",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  true,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.action }}",
+                                                                                                                    "rightValue":  "details",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+                                                         "fallbackOutput":  "extra"
+                                                     }
+                                     },
+                      "id":  "e523a881-76f0-45ce-8070-57d9f398990c",
+                      "name":  "Route action",
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       28864,
+                                       14976
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/link/\u0027 }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ {chat_id: $(\u0027Parse portal command\u0027).item.json.chat_id, user_guid: $(\u0027Parse portal command\u0027).item.json.user_guid} }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "65ad4203-26fb-42c3-bb73-ae20281bbecd",
+                      "name":  "Link portal user",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29088,
+                                       14656
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/menu/?chat_id=\u0027 + $(\u0027Parse portal command\u0027).item.json.chat_id }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "5a2db8da-9707-4004-941a-fbcbbd56f3aa",
+                      "name":  "Load portal menu",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       14736
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/orders/?chat_id=\u0027 + $(\u0027Parse portal command\u0027).item.json.chat_id + \u0027\u0026status=\u0027 + $(\u0027Parse portal command\u0027).item.json.status + \u0027\u0026period=\u0027 + $(\u0027Parse portal command\u0027).item.json.period }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "52bcc770-39b2-47ba-9faa-06cf16710797",
+                      "name":  "Load portal orders",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       14944
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/daily-report/?chat_id=\u0027 + $(\u0027Parse portal command\u0027).item.json.chat_id }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c85af62a-ee85-4837-ba92-2d65b796909e",
+                      "name":  "Load daily report",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       15136
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/orders/confirm/\u0027 }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ {chat_id: $(\u0027Parse portal command\u0027).item.json.chat_id, order_id: $(\u0027Parse portal command\u0027).item.json.order_id, order_number: $(\u0027Parse portal command\u0027).item.json.order_number, linked_order_number: $(\u0027Parse portal command\u0027).item.json.linked_order_number} }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "7c0b0664-df92-4c80-82ac-d91f29bd9209",
+                      "name":  "Confirm portal order",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       15328
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const data = $json.data ?? {};\nreturn [{json:{chat_id:$(\u0027Parse portal command\u0027).first().json.chat_id,text:`👋 Вітаємо, \u003cb\u003e${data.user?.name ?? \u0027дилере\u0027}\u003c/b\u003e!\\n\\nТут можна переглянути замовлення вашого контрагента.`,reply_markup:{keyboard:[[\u0027📦 Переглянути мої замовлення\u0027]],resize_keyboard:true,is_persistent:true}}}];"
+                                     },
+                      "id":  "03cfd3bd-938d-46d9-856c-7968ad7b2724",
+                      "name":  "Format menu",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       14736
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const orders = Array.isArray($json.orders) ? $json.orders : [];\nconst labels={new:\u0027Нові\u0027,awaiting_confirmation:\u0027Очікують підтвердження\u0027,awaiting_payment:\u0027Очікують оплати\u0027,production:\u0027У виробництві\u0027,delayed:\u0027Запізнення\u0027,ready:\u0027Готові\u0027,all:\u0027Усі замовлення\u0027};\nconst money=value=\u003enew Intl.NumberFormat(\u0027uk-UA\u0027,{maximumFractionDigits:2}).format(Number(value||0));\nconst rows=orders.slice(0,12).map((o,index)=\u003e`${index+1}. \u003cb\u003e№${o.number}\u003c/b\u003e\\n${o.status} • ${money(o.amount)} ${o.currency??\u0027грн\u0027} • ${o.count??0} конструкцій`);\nconst inline=orders.slice(0,12).map(o=\u003e[{text:`ℹ️ Деталі №${o.number}`,callback_data:`details|${o.id}|${o.number}`}]);\nconst period=$json.period===\u0027month\u0027 ? \u0027за поточний місяць\u0027 : \u0027\u0027;\nreturn [{json:{chat_id:$(\u0027Parse portal command\u0027).first().json.chat_id,text:`\u003cb\u003e${labels[$json.status]??labels.all} ${period}\u003c/b\u003e\\n\\n${rows.length?rows.join(\u0027\\n\\n\u0027):\u0027За обраним фільтром замовлень немає.\u0027}`,reply_markup:inline.length?{inline_keyboard:inline}:undefined}}];"
+                                     },
+                      "id":  "39e13494-9904-46e6-aaf6-bc7dad37a5d2",
+                      "name":  "Format orders",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       14944
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const r = $json.report ?? {};\nconst labels={new:\u0027Нові\u0027,awaiting_confirmation:\u0027Очікують підтвердження\u0027,awaiting_payment:\u0027Очікують оплати\u0027,production:\u0027У виробництві\u0027,delayed:\u0027Запізнення\u0027,ready:\u0027Готові\u0027};\nconst details=Object.entries(r.statuses ?? {}).map(([key,value]) =\u003e `• ${labels[key] ?? key}: \u003cb\u003e${value}\u003c/b\u003e`).join(\u0027\\n\u0027) || \u0027• Даних немає\u0027;\nconst sum=new Intl.NumberFormat(\u0027uk-UA\u0027,{maximumFractionDigits:2}).format(Number(r.turnover||0));\nreturn [{json:{chat_id:$(\u0027Parse portal command\u0027).first().json.chat_id,text:`\u003cb\u003e📊 Звіт за ${r.date ?? \u0027сьогодні\u0027}\u003c/b\u003e\\n\\nЗамовлення: \u003cb\u003e${r.orders_count ?? 0}\u003c/b\u003e\\nКонструкції: \u003cb\u003e${r.constructions_count ?? 0}\u003c/b\u003e\\nСума: \u003cb\u003e${sum} ${r.currency ?? \u0027грн\u0027}\u003c/b\u003e\\n\\n${details}`}}];"
+                                     },
+                      "id":  "d4b06b0c-890f-4172-8dfa-0e7b983095e7",
+                      "name":  "Format daily report",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       15136
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "return [{json:{chat_id:$(\u0027Parse portal command\u0027).first().json.chat_id,text:$json.success ? `✅ \u003cb\u003e${$json.message}\u003c/b\u003e` : `❌ ${$json.error ?? \u0027Не вдалося підтвердити замовлення.\u0027}`}}];"
+                                     },
+                      "id":  "e6571241-fa4e-42a0-8ea0-5476dc3ac0a8",
+                      "name":  "Format confirmation",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       15328
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "return [{json:{chat_id:$json.chat_id,text:\u0027\u003cb\u003eКоманди бота\u003c/b\u003e\\n\\n📦 Мої замовлення\\n📊 Звіт за сьогодні\\n🔄 Оновити меню\\n✅ Підтвердження замовлень через кнопки\\n\\nЩоб відкрити меню повторно, використайте /menu.\u0027}}];"
+                                     },
+                      "id":  "cad58816-1591-4c24-a65b-2a6a06fc94f1",
+                      "name":  "Format help",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       15520
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ \u0027https://api.telegram.org/bot\u0027 + $(\u0027Config\u0027).first().json.telegram_token + \u0027/sendMessage\u0027 }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "Content-Type",
+                                                                                         "value":  "application/json"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{\n{\n  chat_id: $json.chat_id,\n  text: $json.text ?? \u0027\u0027,\n  parse_mode: \u0027HTML\u0027,\n  ...($json.reply_markup ? { reply_markup: $json.reply_markup } : {})\n}\n}}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "133c3d3c-6e48-45f3-84b6-2b70652cf020",
+                      "name":  "Send Telegram message",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29760,
+                                       15232
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "rule":  {
+                                                      "interval":  [
+                                                                       {
+                                                                           "field":  "cronExpression",
+                                                                           "expression":  "30 18 * * *"
+                                                                       }
+                                                                   ]
+                                                  }
+                                     },
+                      "id":  "6f5c2833-42c0-49bf-9dad-662d9bfe5023",
+                      "name":  "Daily Portal Report 18:30",
+                      "type":  "n8n-nodes-base.scheduleTrigger",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       27072,
+                                       14432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/daily-recipients/\u0027 }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "983e0b1c-6533-449b-a9d6-6c38f9f62c0c",
+                      "name":  "Get report recipients",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       27296,
+                                       14432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "fieldToSplitOut":  "recipients",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "b4395314-13ad-4b7f-939a-d4820e0a830f",
+                      "name":  "Split recipients",
+                      "type":  "n8n-nodes-base.splitOut",
+                      "typeVersion":  1,
+                      "position":  [
+                                       27520,
+                                       14432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/daily-report/?chat_id=\u0027 + $json.chat_id }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "c405b837-79e5-44e7-becb-e04dd8151c1b",
+                      "name":  "Get recipient report",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       27744,
+                                       14432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const r=$json.report??{};\nconst sum=new Intl.NumberFormat(\u0027uk-UA\u0027,{maximumFractionDigits:2}).format(Number(r.turnover||0));\nreturn [{json:{chat_id:$(\u0027Split recipients\u0027).item.json.chat_id,text:`\u003cb\u003e📊 Щоденний звіт за ${r.date ?? \u0027сьогодні\u0027}\u003c/b\u003e\\n\\nЗамовлення: \u003cb\u003e${r.orders_count ?? 0}\u003c/b\u003e\\nКонструкції: \u003cb\u003e${r.constructions_count ?? 0}\u003c/b\u003e\\nСума: \u003cb\u003e${sum} ${r.currency ?? \u0027грн\u0027}\u003c/b\u003e`}}];"
+                                     },
+                      "id":  "99eb7f38-8b06-476b-b82c-751fb1d0c57d",
+                      "name":  "Format scheduled report",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       27968,
+                                       14432
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "chatId":  "={{ $json.chat_id }}",
+                                         "text":  "={{ $json.text }}",
+                                         "additionalFields":  {
+                                                                  "parse_mode":  "HTML"
+                                                              }
+                                     },
+                      "id":  "0f526922-d855-4514-aec4-75900c2df293",
+                      "name":  "Send daily report",
+                      "type":  "n8n-nodes-base.telegram",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       28192,
+                                       14432
+                                   ],
+                      "webhookId":  "5129efc4-195d-4629-a8aa-c38a5ca22298",
+                      "credentials":  {
+                                          "telegramApi":  {
+                                                              "id":  "L6xepo4yH787moxu",
+                                                              "name":  "NotificationPortalBot"
+                                                          }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/link/\u0027 }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ {chat_id: $(\u0027Universal Router\u0027).item.json.chat_id, user_guid: $(\u0027Universal Router\u0027).item.json.text.replace(\u0027/start\u0027,\u0027\u0027).trim()} }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "1520cd84-b1c2-412b-ad0a-129b04c68047",
+                      "name":  "Link Dealer To Portal",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       15712
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const data = $json.data ?? $json ?? {};\nconst keyboard = Array.isArray(data.reply_keyboard) ? data.reply_keyboard : [];\nconst dealerName = data.user?.name ?? \u0027дилере\u0027;\nreturn [{ json: {\n  chat_id: $(\u0027Universal Router\u0027).first().json.chat_id,\n  text: `✅ Вітаємо, \u003cb\u003e${dealerName}\u003c/b\u003e!\\n\\nПрофіль дилера прив’язано. У меню доступні лише замовлення вашого контрагента.`,\n  reply_markup: { keyboard, resize_keyboard: true, one_time_keyboard: false, is_persistent: true }\n}}];"
+                                     },
+                      "id":  "b9dd134f-4f52-4213-931e-f56434272c21",
+                      "name":  "Format Dealer Menu",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29760,
+                                       15712
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "updates":  [
+                                                         "message",
+                                                         "callback_query"
+                                                     ],
+                                         "additionalFields":  {
+
+                                                              }
+                                     },
+                      "type":  "n8n-nodes-base.telegramTrigger",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       26912,
+                                       15792
+                                   ],
+                      "id":  "8cb7e8d8-8adf-47c5-92dc-7b1691c38a20",
+                      "name":  "Telegram TestSalesBot",
+                      "webhookId":  "779d53ca-0831-4ec4-825a-2f4db01d5bcf",
+                      "credentials":  {
+                                          "telegramApi":  {
+                                                              "id":  "vv6WXcNXC9Ou1RY5",
+                                                              "name":  "TestSalesBot"
+                                                          }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).first().json.portal_url + \u0027/api/telegram-bot/menu/?chat_id=\u0027 + $(\u0027Universal Router\u0027).first().json.chat_id }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).first().json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "6e45e7d7-5ba6-45fd-938f-fd7ce191fcd6",
+                      "name":  "Load Dealer Menu",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29536,
+                                       15712
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "return [{json:{chat_id:$(\u0027Parse portal command\u0027).first().json.chat_id,text:\u0027\u003cb\u003eМої замовлення\u003c/b\u003e\\n\\nОберіть статус або перегляньте всі замовлення за поточний місяць.\u0027,reply_markup:{keyboard:[[\u0027📅 Усі за місяць\u0027],[\u0027🆕 Нові\u0027,\u0027⏳ Очікують підтвердження\u0027],[\u0027💳 Очікують оплати\u0027,\u0027🏭 У виробництві\u0027],[\u0027🟠 Запізнення\u0027,\u0027✅ Готові\u0027],[\u0027⬅️ Назад\u0027]],resize_keyboard:true,is_persistent:true}}}];"
+                                     },
+                      "id":  "060fa7e7-e886-4f20-ad0a-35da84fbdb17",
+                      "name":  "Format order filters",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       15616
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "url":  "={{ $(\u0027Config\u0027).item.json.portal_url + \u0027/api/telegram-bot/orders/details/?chat_id=\u0027 + $(\u0027Parse portal command\u0027).item.json.chat_id + \u0027\u0026order_id=\u0027 + encodeURIComponent($(\u0027Parse portal command\u0027).item.json.order_id) + \u0027\u0026order_number=\u0027 + encodeURIComponent($(\u0027Parse portal command\u0027).item.json.order_number) }}",
+                                         "sendHeaders":  true,
+                                         "headerParameters":  {
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "X-Portal-Bot-Key",
+                                                                                         "value":  "={{ $(\u0027Config\u0027).item.json.portal_api_key }}"
+                                                                                     }
+                                                                                 ]
+                                                              },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "8e068c58-d9a6-4acc-bdef-3a2d1dd74c72",
+                      "name":  "Load portal order details",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       29312,
+                                       15104
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const o=$json.order??{};\nconst money=value=\u003enew Intl.NumberFormat(\u0027uk-UA\u0027,{maximumFractionDigits:2}).format(Number(value||0));\nconst date=value=\u003evalue?new Intl.DateTimeFormat(\u0027uk-UA\u0027).format(new Date(value)):\u0027—\u0027;\nconst line=(label,value)=\u003e`${label}: \u003cb\u003e${value||\u0027—\u0027}\u003c/b\u003e`;\nreturn [{json:{chat_id:$(\u0027Parse portal command\u0027).first().json.chat_id,text:`\u003cb\u003eЗамовлення №${o.number??\u0027—\u0027}\u003c/b\u003e\\n\\n${line(\u0027Статус\u0027,o.status)}\\n${line(\u0027Дата замовлення\u0027,date(o.date))}\\n${line(\u0027Прорахунок\u0027,o.calculation_number)}\\n${line(\u0027Конструкції\u0027,o.count)}\\n\\n\u003cb\u003eОплата\u003c/b\u003e\\nСума: \u003cb\u003e${money(o.amount)} ${o.currency??\u0027грн\u0027}\u003c/b\u003e\\nОплачено: \u003cb\u003e${money(o.paid)} ${o.currency??\u0027грн\u0027}\u003c/b\u003e\\nБорг: \u003cb\u003e${money(o.debt)} ${o.currency??\u0027грн\u0027}\u003c/b\u003e\\n\\n\u003cb\u003eВиконання\u003c/b\u003e\\n${line(\u0027План виробництва\u0027,date(o.planned_production_from))}\\n${line(\u0027Готовність\u0027,date(o.actual_ready_from))}\\n${line(\u0027План доставки\u0027,date(o.planned_delivery))}\\n${line(\u0027Адреса доставки\u0027,o.delivery_address)}\\n${line(\u0027Отримувач\u0027,o.recipient)}`}}];"
+                                     },
+                      "id":  "bf924009-daea-4066-9b08-9d788b94a1f1",
+                      "name":  "Format order details",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       29536,
+                                       15104
+                                   ]
+                  }
+              ],
+    "pinData":  {
+
+                },
+    "connections":  {
+                        "Edit Fields":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "If",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Code in JavaScript":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Microsoft SQL",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Microsoft SQL":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "SaveTgID",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               }
+                                                           ]
+                                                       ]
+                                          },
+                        "If":  {
+                                   "main":  [
+                                                [
+                                                    {
+                                                        "node":  "Without Guid",
+                                                        "type":  "main",
+                                                        "index":  0
+                                                    }
+                                                ],
+                                                [
+                                                    {
+                                                        "node":  "Code in JavaScript",
+                                                        "type":  "main",
+                                                        "index":  0
+                                                    }
+                                                ]
+                                            ]
+                               },
+                        "SaveTgID":  {
+                                         "main":  [
+                                                      [
+                                                          {
+                                                              "node":  "If1",
+                                                              "type":  "main",
+                                                              "index":  0
+                                                          }
+                                                      ]
+                                                  ]
+                                     },
+                        "If1":  {
+                                    "main":  [
+                                                 [
+                                                     {
+                                                         "node":  "Link Dealer To Portal",
+                                                         "type":  "main",
+                                                         "index":  0
+                                                     }
+                                                 ],
+                                                 [
+                                                     {
+                                                         "node":  "Without Guid Answer",
+                                                         "type":  "main",
+                                                         "index":  0
+                                                     }
+                                                 ]
+                                             ]
+                                },
+                        "GetContactId":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Microsoft SQL1",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "Microsoft SQL1":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "SavedTgID",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Monthly Shipped Report":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "Previous Month Period",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "Previous Month Period":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Get Shipped Analytics",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "Get Shipped Analytics":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Build Shipped HTML",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "Build Shipped HTML":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Send Monthly Report Test",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Send Report Today":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Previous Month Period",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Universal Router":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Route Universal Action",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Route Universal Action":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "Edit Fields",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ],
+                                                                    [
+                                                                        {
+                                                                            "node":  "GetContactId",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ],
+                                                                    [
+                                                                        {
+                                                                            "node":  "HTTP Request",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ],
+                                                                    [
+                                                                        {
+                                                                            "node":  "Parse portal command",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ],
+                                                                    [
+                                                                        {
+                                                                            "node":  "Parse portal command",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "Parse portal command":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Route action",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Route action":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Link portal user",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Load portal menu",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Load portal orders",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Load daily report",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Confirm portal order",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Format order filters",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Load portal order details",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ],
+                                                          [
+                                                              {
+                                                                  "node":  "Format help",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "Link portal user":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Load portal menu",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Load portal menu":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Format menu",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Load portal orders":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Format orders",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Load daily report":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "node":  "Format daily report",
+                                                                       "type":  "main",
+                                                                       "index":  0
+                                                                   }
+                                                               ]
+                                                           ]
+                                              },
+                        "Confirm portal order":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Format confirmation",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Format menu":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Send Telegram message",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Format orders":  {
+                                              "main":  [
+                                                           [
+                                                               {
+                                                                   "node":  "Send Telegram message",
+                                                                   "type":  "main",
+                                                                   "index":  0
+                                                               }
+                                                           ]
+                                                       ]
+                                          },
+                        "Format daily report":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Send Telegram message",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Format confirmation":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Send Telegram message",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Format help":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Send Telegram message",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Daily Portal Report 18:30":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "Get report recipients",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "Get report recipients":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Split recipients",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "Split recipients":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Get recipient report",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Get recipient report":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Format scheduled report",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Format scheduled report":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Send daily report",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    },
+                        "Link Dealer To Portal":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Load Dealer Menu",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "Format Dealer Menu":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Send Telegram message",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Config":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "Universal Router",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ]
+                                                ]
+                                   },
+                        "Telegram TestSalesBot":  {
+                                                      "main":  [
+                                                                   [
+                                                                       {
+                                                                           "node":  "Config",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                               ]
+                                                  },
+                        "Load Dealer Menu":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Format Dealer Menu",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Format order filters":  {
+                                                     "main":  [
+                                                                  {
+                                                                      "node":  "Send Telegram message",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                 },
+                        "Load portal order details":  {
+                                                          "main":  [
+                                                                       {
+                                                                           "node":  "Format order details",
+                                                                           "type":  "main",
+                                                                           "index":  0
+                                                                       }
+                                                                   ]
+                                                      },
+                        "Format order details":  {
+                                                     "main":  [
+                                                                  {
+                                                                      "node":  "Send Telegram message",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                 }
+                    },
+    "active":  true,
+    "settings":  {
+                     "executionOrder":  "v1"
+                 },
+    "versionId":  "6f40c1c4-85bf-487c-85c8-a66eed5f5c74",
+    "meta":  {
+                 "templateCredsSetupCompleted":  true,
+                 "instanceId":  "f34bf51fdecae2ad7da0075612c88e12e0580232d9e623bd64606810a594d741"
+             },
+    "id":  "wShmeGkCipWsq8w4",
+    "tags":  [
+
+             ]
+}

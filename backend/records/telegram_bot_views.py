@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import secrets
 from collections import Counter
 from datetime import timedelta
@@ -91,6 +91,34 @@ def _serialise_order(order, calculation):
         "currency": _clean(order.get("currency") or calculation.get("currency")) or "\u0433\u0440\u043d",
     }
 
+
+
+def _iso_value(value):
+    return value.isoformat() if getattr(value, "isoformat", None) else value
+
+
+def _serialise_order_details(order, calculation):
+    """Return portal details for an order already scoped to the linked dealer."""
+    item = _serialise_order(order, calculation)
+    amount = item["amount"]
+    paid = item["paid"]
+    item.update({
+        "calculation_number": _clean(calculation.get("number")) or None,
+        "calculation_date": _iso_value(calculation.get("dateRaw")),
+        "dealer": _clean(calculation.get("dealer")) or None,
+        "recipient": _clean(calculation.get("recipient")) or None,
+        "delivery_address": _clean(order.get("deliveryAddress") or calculation.get("deliveryAddresses")) or None,
+        "organization_name": _clean(order.get("organizationName")) or None,
+        "debt": round(max(amount - paid, 0), 2),
+        "planned_production_from": _iso_value(order.get("planProductionMin")),
+        "planned_production_to": _iso_value(order.get("planProductionMax")),
+        "actual_production_from": _iso_value(order.get("factProductionMin")),
+        "actual_ready_from": _iso_value(order.get("factReadyMin")),
+        "planned_delivery": _iso_value(order.get("planDelivery")),
+        "planned_departure": _iso_value(order.get("planDeparture")),
+        "realization_date": _iso_value(order.get("realizationDate")),
+    })
+    return item
 
 def _linked_user(chat_id):
     try:
@@ -207,15 +235,59 @@ def telegram_bot_orders(request):
     if not user:
         return Response({"success": False, "error": "Telegram \u043d\u0435 \u043f\u0440\u0438\u0432'\u044f\u0437\u0430\u043d\u0438\u0439 \u0434\u043e \u043a\u043e\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447\u0430 \u043f\u043e\u0440\u0442\u0430\u043b\u0443."}, status=status.HTTP_403_FORBIDDEN)
     status_filter = _clean(request.query_params.get("status")).lower()
+    period = _clean(request.query_params.get("period")).lower()
     try:
-        orders = _orders_for_user(user)
+        if period == "month":
+            today = timezone.localdate()
+            calculations = get_orders_by_period_and_contractor(
+                today.replace(day=1), today, user.user_id_1C,
+            )
+            orders = [
+                _serialise_order(order, calculation)
+                for calculation in calculations
+                for order in (calculation.get("orders") or [])
+                if order.get("idGuid") and order.get("number")
+            ]
+        else:
+            orders = _orders_for_user(user)
     except DatabaseError:
         logger.exception("Telegram bot orders database error for %s", user.username)
         return Response({"success": False, "error": "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438 \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u0437 1\u0421."}, status=status.HTTP_502_BAD_GATEWAY)
     if status_filter and status_filter != "all":
         orders = [order for order in orders if order["status_key"] == status_filter]
-    return Response({"success": True, "orders": orders, "total": len(orders), "status": status_filter or "all"})
+    return Response({"success": True, "orders": orders, "total": len(orders), "status": status_filter or "all", "period": period or "recent"})
 
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_order_details(request):
+    user = _linked_user(_request_chat_id(request))
+    if not user:
+        return Response({"success": False, "error": "Telegram is not linked to a portal user."}, status=status.HTTP_403_FORBIDDEN)
+
+    order_id = _clean(request.query_params.get("order_id"))
+    order_number = _clean(request.query_params.get("order_number"))
+    if not order_id and not order_number:
+        return Response({"success": False, "error": "Provide order_id or order_number."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        calculations = get_orders_by_period_and_contractor(
+            timezone.localdate() - timedelta(days=180),
+            timezone.localdate(),
+            user.user_id_1C,
+        )
+        for calculation in calculations:
+            for order in calculation.get("orders") or []:
+                same_id = order_id and _clean(order.get("idGuid")).lower() == order_id.lower()
+                same_number = order_number and _clean(order.get("number")) == order_number
+                if same_id or same_number:
+                    return Response({"success": True, "order": _serialise_order_details(order, calculation)})
+    except DatabaseError:
+        logger.exception("Telegram bot order details database error for %s", user.username)
+        return Response({"success": False, "error": "Could not load order details from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
+
+    return Response({"success": False, "error": "Order not found or not available for this dealer."}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])

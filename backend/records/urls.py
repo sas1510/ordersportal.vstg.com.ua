@@ -1,7 +1,7 @@
-# api/urls.py
+﻿# api/urls.py
 
 from django.urls import path
-from . import views  # Переконайтеся, що імпорт коректний
+from . import views  # РџРµСЂРµРєРѕРЅР°Р№С‚РµСЃСЏ, С‰Рѕ С–РјРїРѕСЂС‚ РєРѕСЂРµРєС‚РЅРёР№
 from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number, get_all_manager_list
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView, PortalDealerComparisonAnalyticsView, PortalAccessibleDealerReportsView
 
@@ -9,7 +9,7 @@ from .views import ProductionStatisticsView, DealerDetailedStatisticsView, Deale
 from django.urls import path
 from .views import PortalManagerReportView
 from .telegram_bot_views import (
-    telegram_bot_link, telegram_bot_menu, telegram_bot_orders,
+    telegram_bot_link, telegram_bot_menu, telegram_bot_orders, telegram_bot_order_details,
     telegram_bot_daily_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key,
 )
 
@@ -24,22 +24,23 @@ urlpatterns = [
     path('telegram-bot/link/', telegram_bot_link, name='telegram_bot_link'),
     path('telegram-bot/menu/', telegram_bot_menu, name='telegram_bot_menu'),
     path('telegram-bot/orders/', telegram_bot_orders, name='telegram_bot_orders'),
+    path('telegram-bot/orders/details/', telegram_bot_order_details, name='telegram_bot_order_details'),
     path('telegram-bot/daily-report/', telegram_bot_daily_report, name='telegram_bot_daily_report'),
     path('telegram-bot/daily-recipients/', telegram_bot_daily_recipients, name='telegram_bot_daily_recipients'),
     path('telegram-bot/orders/confirm/', telegram_bot_confirm_order, name='telegram_bot_confirm_order'),
-    # Визначаємо URL для виклику функції complaints_view
+    # Р’РёР·РЅР°С‡Р°С”РјРѕ URL РґР»СЏ РІРёРєР»РёРєСѓ С„СѓРЅРєС†С–С— complaints_view
     path('complaints/get_reclamation_info/', views.complaints_view, name='reclamation_data'),
     path('order/get_orders_info/', views.api_get_orders, name='get_order_info'),
     path('additional_orders/get_additional_orders_info/', views.additional_orders_view, name='get_additional_orders_info'),
     path('additional_orders/get_additional_orders_info_all/', views.get_additional_orders_info_all, name='get_additional_orders_info_all'),
     path('complaints/get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
-    path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'), 
-    path("order/<str:order_guid>/files/", order_files_view), 
+    path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
+    path("order/<str:order_guid>/files/", order_files_view),
     path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"), #log stopped here
     path("calculations/create/", create_calculation),
     path("calculations/<uuid:calculation_guid>/update/", UpdateCalculationView.as_view(), name="update_calculation"),
-    path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"), 
-    path("get_wds_codes/", wds_codes_by_contractor, name="get_wds_codes"), 
+    path("dealer-addresses/", get_dealer_addresses, name="get_dealer_addresses"),
+    path("get_wds_codes/", wds_codes_by_contractor, name="get_wds_codes"),
     path("messages/", get_messages, name="get-messages"),
     path("calculations/<str:calc_guid>/files/<str:file_guid>/download/", download_calculation_file, name="download_calculation_file"),
     path('orders/<uuid:order_id>/confirm/', confirm_order, name='confirm-order'),  # +- log
