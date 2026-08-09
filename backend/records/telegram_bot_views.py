@@ -4,6 +4,7 @@ from collections import Counter
 from datetime import timedelta
 
 from django.conf import settings
+from asgiref.sync import async_to_sync
 from django.db import DatabaseError, transaction
 from django.utils import timezone
 from rest_framework import status
@@ -17,7 +18,10 @@ from backend.utils.logging_setup import logger
 from backend.permissions import IsAdminJWT
 from users.models import CustomUser
 from .models import TelegramBotApiKey, TelegramPortalLink
-from .views import get_orders_by_period_and_contractor, _notify_order_confirmation_participants
+from .views import (
+    get_orders_by_period_and_contractor, _notify_order_confirmation_participants,
+    execute_stored_procedure, execute_additional_orders_procedure,
+)
 
 
 class HasTelegramBotApiKey(BasePermission):
@@ -56,6 +60,7 @@ STATUS_DEFINITIONS = (
     ("production", "У виробництві", "#B4D947"),
     ("delayed", "Запізнення", "#ED8B33"),
     ("ready", "Готові", "#70A58A"),
+    ("shipped", "Відвантажені", "#6B98BF"),
     ("rejected", "Відмови", "#AEAEAE"),
 )
 
@@ -77,12 +82,13 @@ def _status_key(value):
         return "awaiting_confirmation"
     if any(part in normalized for part in ("виробниц", "производств", "в робот")):
         return "production"
-    if any(part in normalized for part in ("готов", "відвантаж", "достав", "реаліз")):
+    if any(part in normalized for part in ("відвантаж", "достав", "реаліз")):
+        return "shipped"
+    if "готов" in normalized:
         return "ready"
     if any(part in normalized for part in ("новий", "новое", "новый", "в обробці", "в обработке")):
         return "new"
     return "other"
-
 def _serialise_order(order, calculation):
     return {
         "id": str(order.get("idGuid") or ""),
@@ -264,6 +270,53 @@ def telegram_bot_orders(request):
     return Response({"success": True, "orders": orders, "total": len(orders), "status": status_filter or "all", "period": period or "recent"})
 
 
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_reclamations(request):
+    user = _linked_user(_request_chat_id(request))
+    if not user or not user.user_id_1C:
+        return Response({"success": False, "error": "Telegram is not linked to a dealer profile."}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        rows = async_to_sync(execute_stored_procedure)(user.user_id_1C, timezone.localdate().year)
+        complaints = [{
+            "id": str(row.get("ComplaintGuid") or ""),
+            "number": _clean(row.get("ComplaintNumber") or row.get("Number") or row.get("ClaimNumber")),
+            "status": _clean(row.get("StatusName") or row.get("Status") or "—"),
+            "date": _iso_value(row.get("ComplaintDate") or row.get("Date")),
+            "order_number": _clean(row.get("OrderNumber") or row.get("ClientOrderNumber")),
+            "description": _clean(row.get("AdditionalInformation") or row.get("Description")),
+        } for row in rows]
+        return Response({"success": True, "reclamations": complaints, "total": len(complaints)})
+    except DatabaseError:
+        logger.exception("Telegram bot reclamations database error for %s", user.username)
+        return Response({"success": False, "error": "Could not load reclamations from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_additional_orders(request):
+    user = _linked_user(_request_chat_id(request))
+    if not user or not user.user_id_1C:
+        return Response({"success": False, "error": "Telegram is not linked to a dealer profile."}, status=status.HTTP_403_FORBIDDEN)
+    try:
+        rows = execute_additional_orders_procedure(user.user_id_1C, timezone.localdate().year)
+        additional_orders = [{
+            "id": str(row.get("AdditionalOrderGuid") or ""),
+            "number": _clean(row.get("AdditionalOrderNumber") or row.get("Number")),
+            "status": _clean(row.get("StatusName") or row.get("Status") or "—"),
+            "date": _iso_value(row.get("AdditionalOrderDate") or row.get("Date")),
+            "order_number": _clean(row.get("OrderNumber") or row.get("ClaimOrderNumber")),
+            "amount": round(float(row.get("DocumentAmount") or 0), 2),
+            "paid": round(float(row.get("TotalPayments") or 0), 2),
+            "count": int(row.get("ConstructionsQTY") or 0),
+            "currency": _clean(row.get("Currency")) or "грн",
+        } for row in rows]
+        return Response({"success": True, "additional_orders": additional_orders, "total": len(additional_orders)})
+    except DatabaseError:
+        logger.exception("Telegram bot additional orders database error for %s", user.username)
+        return Response({"success": False, "error": "Could not load additional orders from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
 
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])
