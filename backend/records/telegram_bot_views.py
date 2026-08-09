@@ -288,7 +288,17 @@ def telegram_bot_reclamations(request):
             "order_number": _clean(row.get("OrderNumber") or row.get("ClientOrderNumber")),
             "description": _clean(row.get("AdditionalInformation") or row.get("Description")),
         } for row in rows]
-        return Response({"success": True, "reclamations": complaints, "total": len(complaints)})
+        status_filter = _clean(request.query_params.get("status")).lower()
+        status_counts = dict(Counter(item["status"] for item in complaints if item["status"] and item["status"] != "—"))
+        if status_filter:
+            complaints = [item for item in complaints if item["status"].lower() == status_filter]
+        return Response({
+            "success": True,
+            "reclamations": complaints,
+            "total": len(complaints),
+            "status": status_filter or "all",
+            "status_counts": status_counts,
+        })
     except DatabaseError:
         logger.exception("Telegram bot reclamations database error for %s", user.username)
         return Response({"success": False, "error": "Could not load reclamations from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
