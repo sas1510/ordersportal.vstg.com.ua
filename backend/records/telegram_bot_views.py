@@ -21,7 +21,7 @@ from users.models import CustomUser
 from .models import TelegramBotApiKey, TelegramPortalLink
 from .views import (
     get_orders_by_period_and_contractor, _notify_order_confirmation_participants,
-    execute_stored_procedure, execute_additional_orders_procedure, download_order_file,
+    execute_stored_procedure, execute_additional_orders_procedure, _download_order_file_content,
 )
 
 
@@ -423,7 +423,7 @@ def telegram_bot_order_file_download(request):
         query["filename"] = file_item["name"]
         request._request.GET = query
         try:
-            return download_order_file(request._request, order_id, file_id)
+            return _download_order_file_content(request._request, order_id, file_id)
         finally:
             request._request.GET = original_query
     except Exception:

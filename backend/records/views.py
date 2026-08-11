@@ -2027,9 +2027,7 @@ def order_files_view(request, order_guid):
     },
     tags=["order"],
 )
-@api_view(["GET"])
-@permission_classes([IsAuthenticatedOr1CApiKey])
-def download_order_file(request, order_guid, file_guid):
+def _download_order_file_content(request, order_guid, file_guid):
     """
     Завантажує файл замовлення з SMB (1С) без створення важких системних процесів.
     """
@@ -3112,6 +3110,11 @@ def orders_view_all_by_month(request):
             status=500,
         )
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def download_order_file(request, order_guid, file_guid):
+    return _download_order_file_content(request, order_guid, file_guid)
 
 def safe_float(v):
     try:
