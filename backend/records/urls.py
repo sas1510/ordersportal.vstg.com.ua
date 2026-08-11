@@ -10,7 +10,7 @@ from django.urls import path
 from .views import PortalManagerReportView
 from .telegram_bot_views import (
     telegram_bot_link, telegram_bot_menu, telegram_bot_orders, telegram_bot_order_details, telegram_bot_order_files, telegram_bot_order_file_download, telegram_bot_reclamations, telegram_bot_additional_orders,
-    telegram_bot_daily_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key,
+    telegram_bot_daily_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key, telegram_bot_cash_flow, telegram_bot_additional_order_files,
 )
 
 
@@ -29,7 +29,9 @@ urlpatterns = [
     path('telegram-bot/order-files/download/', telegram_bot_order_file_download, name='telegram_bot_order_file_download'),
     path('telegram-bot/reclamations/', telegram_bot_reclamations, name='telegram_bot_reclamations'),
     path('telegram-bot/additional-orders/', telegram_bot_additional_orders, name='telegram_bot_additional_orders'),
+    path('telegram-bot/additional-order-files/', telegram_bot_additional_order_files, name='telegram_bot_additional_order_files'),
     path('telegram-bot/daily-report/', telegram_bot_daily_report, name='telegram_bot_daily_report'),
+    path('telegram-bot/cash-flow/', telegram_bot_cash_flow, name='telegram_bot_cash_flow'),
     path('telegram-bot/daily-recipients/', telegram_bot_daily_recipients, name='telegram_bot_daily_recipients'),
     path('telegram-bot/orders/confirm/', telegram_bot_confirm_order, name='telegram_bot_confirm_order'),
     # Р’РёР·РЅР°С‡Р°С”РјРѕ URL РґР»СЏ РІРёРєР»РёРєСѓ С„СѓРЅРєС†С–С— complaints_view

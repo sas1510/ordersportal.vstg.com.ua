@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { useNotification } from "../hooks/useNotification";
@@ -6,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import "./SupportChatWidget.css";
 import {
   FaComments,
+  FaQuestionCircle,
   FaPaperclip,
   FaMicrophone,
   FaStop,
@@ -18,13 +20,16 @@ const SupportChatWidget = () => {
   const { user } = useAuthGetRole();
   const { addNotification } = useNotification();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const widgetRef = useRef(null);
+  const launcherRef = useRef(null);
   const buttonRef = useRef(null);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isLauncherMenuOpen, setIsLauncherMenuOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [file, setFile] = useState(null);
@@ -136,16 +141,17 @@ const SupportChatWidget = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!isOpen) return;
+      if (!isOpen && !isLauncherMenuOpen) return;
 
       if (
         widgetRef.current?.contains(event.target) ||
-        buttonRef.current?.contains(event.target)
+        launcherRef.current?.contains(event.target)
       ) {
         return;
       }
 
       setIsOpen(false);
+      setIsLauncherMenuOpen(false);
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -155,7 +161,18 @@ const SupportChatWidget = () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isLauncherMenuOpen, isOpen]);
+
+  const openChat = useCallback(() => {
+    setIsLauncherMenuOpen(false);
+    setIsOpen(true);
+  }, []);
+
+  const openPopularFaq = useCallback(() => {
+    setIsLauncherMenuOpen(false);
+    setIsOpen(false);
+    navigate("/faq?section=popular");
+  }, [navigate]);
 
   const startVoiceRecording = async () => {
     try {
@@ -444,20 +461,52 @@ const SupportChatWidget = () => {
         </>
       )}
 
-      <button
-        ref={buttonRef}
-        type="button"
-        className="support-floating-button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        title={t("support_chat.title")}
-        aria-label={t("support_chat.title")}
-      >
-        <FaComments size={26} />
+      <div ref={launcherRef} className="support-floating-launcher">
+        {isLauncherMenuOpen && !isOpen ? (
+          <div className="support-floating-menu">
+            <button type="button" onClick={openChat}>
+              <span className="support-floating-menu__icon">
+                <FaComments />
+              </span>
+              <span className="support-floating-menu__copy">
+                <strong>{t("support_chat.title")}</strong>
+                <small>Швидкий зв'язок з менеджером</small>
+              </span>
+            </button>
+            <button type="button" onClick={openPopularFaq}>
+              <span className="support-floating-menu__icon">
+                <FaQuestionCircle />
+              </span>
+              <span className="support-floating-menu__copy">
+                <strong>{t("faq.popular.title", { defaultValue: "Популярні питання" })}</strong>
+                <small>Швидкі відповіді без чату</small>
+              </span>
+            </button>
+          </div>
+        ) : null}
 
-        {unreadCount > 0 && (
-          <span className="support-unread-badge">{unreadCount}</span>
-        )}
-      </button>
+        <button
+          ref={buttonRef}
+          type="button"
+          className="support-floating-button"
+          onClick={() => {
+            if (isOpen) {
+              setIsOpen(false);
+              return;
+            }
+
+            setIsLauncherMenuOpen((prev) => !prev);
+          }}
+          title={t("support_chat.title")}
+          aria-label={t("support_chat.title")}
+        >
+          <FaComments size={26} />
+
+          {unreadCount > 0 && (
+            <span className="support-unread-badge">{unreadCount}</span>
+          )}
+        </button>
+      </div>
     </>
   );
 };

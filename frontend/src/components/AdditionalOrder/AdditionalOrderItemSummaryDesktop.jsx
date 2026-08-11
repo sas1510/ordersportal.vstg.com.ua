@@ -214,7 +214,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             <img 
                   src={moneyGreen} 
                   // alt="Вікно" 
-                  className="align-center mr-0.5" 
+                  className="align-center mr-0.5 text-WS---DarkGreen" 
                 
                 />
           <div className="flex flex-col flex-1 ml-2">

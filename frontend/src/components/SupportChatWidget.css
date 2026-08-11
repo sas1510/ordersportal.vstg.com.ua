@@ -1,8 +1,103 @@
-.support-floating-button {
+.support-floating-launcher {
   position: fixed;
   right: 28px;
   bottom: 28px;
   z-index: 10000;
+}
+
+.support-floating-menu {
+  position: absolute;
+  right: 0;
+  bottom: 76px;
+  min-width: 264px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px 22px 10px 22px;
+  background:
+    radial-gradient(circle at top right, rgba(180, 217, 71, 0.16), transparent 34%),
+    rgba(51, 49, 47, 0.98);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.28);
+  display: grid;
+  gap: 8px;
+}
+
+.support-floating-menu::after {
+  content: "";
+  position: absolute;
+  right: 20px;
+  bottom: -10px;
+  width: 20px;
+  height: 20px;
+  background: rgba(51, 49, 47, 0.98);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  transform: rotate(45deg);
+}
+
+.support-floating-menu button {
+  min-height: 62px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px 16px 8px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #ffffff;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.support-floating-menu button:hover {
+  background: rgba(180, 217, 71, 0.12);
+  color: #b4d947;
+  transform: translateX(-2px);
+}
+
+.support-floating-menu__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: rgba(107, 152, 191, 0.16);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9fd3ff;
+}
+
+.support-floating-menu__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.support-floating-menu__copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.support-floating-menu__copy strong {
+  color: currentColor;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.support-floating-menu__copy small {
+  color: #b8b0aa;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.support-floating-button {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: 1;
 
   width: 64px;
   height: 64px;
@@ -532,7 +627,18 @@
 }
 
 @media (max-width: 640px) {
-  .support-widget {
+  .support-floating-launcher {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .support-floating-menu {
+    right: 0;
+    bottom: 70px;
+    min-width: 232px;
+  }
+
+.support-widget {
     right: 12px;
     left: 12px;
     bottom: 84px;
@@ -562,9 +668,6 @@
 .support-floating-button {
   width: 58px;
   height: 58px;
-
-  right: 16px;
-  bottom: 16px;
 
   display: flex;
   align-items: center;
@@ -620,4 +723,3 @@
     opacity: 1;
   }
 }
-

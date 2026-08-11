@@ -1,7 +1,7 @@
 ﻿import hashlib
 import secrets
 from collections import Counter
-from datetime import timedelta
+from datetime import date as date_type, timedelta
 
 from django.conf import settings
 from asgiref.sync import async_to_sync
@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.onec_api import send_to_1c
+from reclamations.views import get_claim_files
 from backend.utils.logging_setup import logger
 from backend.permissions import IsAdminJWT
 from users.models import CustomUser
@@ -126,7 +127,10 @@ def _serialise_order_details(order, calculation):
         "planned_production_from": _iso_value(order.get("planProductionMin")),
         "planned_production_to": _iso_value(order.get("planProductionMax")),
         "actual_production_from": _iso_value(order.get("factProductionMin")),
+        "actual_production_to": _iso_value(order.get("factProductionMax")),
         "actual_ready_from": _iso_value(order.get("factReadyMin")),
+        "actual_ready_to": _iso_value(order.get("factReadyMax")),
+        "delay_date": _iso_value(order.get("dateDelay")),
         "planned_delivery": _iso_value(order.get("planDelivery")),
         "planned_departure": _iso_value(order.get("planDeparture")),
         "realization_date": _iso_value(order.get("realizationDate")),
@@ -430,6 +434,24 @@ def telegram_bot_order_file_download(request):
         logger.exception("Telegram bot order file download error for %s", user.username)
         return Response({"success": False, "error": "Could not download file from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
 
+
+def _telegram_user_additional_order(user, item_id):
+    rows=async_to_sync(execute_additional_orders_procedure)(user.user_id_1C, timezone.localdate().year)
+    return any(_clean(r.get("AdditionalOrderGuid")).lower()==item_id.lower() for r in rows)
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_additional_order_files(request):
+    user=_linked_user(_request_chat_id(request)); item_id=_clean(request.query_params.get("additional_order_id"))
+    if not user or not item_id: return Response({"success":False,"error":"Missing parameters."},status=status.HTTP_400_BAD_REQUEST)
+    try:
+        if not _telegram_user_additional_order(user,item_id): return Response({"success":False,"error":"Access denied."},status=status.HTTP_403_FORBIDDEN)
+        files=_telegram_order_files(item_id)
+        return Response({"success":True,"additional_order_id":item_id,"files":files,"total":len(files)})
+    except Exception:
+        logger.exception("Telegram additional order files error")
+        return Response({"success":False,"error":"Could not load files."},status=status.HTTP_502_BAD_GATEWAY)
+
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])
 def telegram_bot_order_details(request):
@@ -519,3 +541,35 @@ def telegram_bot_confirm_order(request):
     _notify_order_confirmation_participants(request_user=user, order_number=order_number, linked_order_number=linked_order_number or owned_order.get("linked_order_number") or "", is_sketch_order=is_sketch)
     logger.info("Telegram bot confirmed order %s for user %s", order_number, user.username)
     return Response({"success": True, "message": "\u0415\u0441\u043a\u0456\u0437 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043e." if is_sketch else "\u0417\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043e."})
+
+
+def _telegram_date_parameter(value, default):
+    if not value: return default
+    try: return date_type.fromisoformat(str(value)[:10])
+    except (TypeError, ValueError): return None
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_cash_flow(request):
+    user = _linked_user(_request_chat_id(request))
+    if not user or not user.user_id_1C:
+        return Response({"success": False, "error": "Telegram user is not linked to a dealer."}, status=status.HTTP_403_FORBIDDEN)
+    today = timezone.localdate()
+    date_from = _telegram_date_parameter(request.query_params.get("date_from"), today - timedelta(days=2))
+    date_to = _telegram_date_parameter(request.query_params.get("date_to"), today)
+    if not date_from or not date_to or date_from > date_to or (date_to - date_from).days > 366:
+        return Response({"success": False, "error": "Provide a valid period of up to 366 days."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetDealerFullLedger_3 %s, %s, %s", [user.user_id_1C, date_from, date_to])
+            columns = [column[0] for column in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        def serialise(value):
+            if isinstance(value, (bytes, bytearray, memoryview)): return bytes(value).hex().upper()
+            if getattr(value, "isoformat", None): return value.isoformat()
+            if isinstance(value, (str, int, float, bool)) or value is None: return value
+            return str(value)
+        return Response({"success": True, "date_from": date_from.isoformat(), "date_to": date_to.isoformat(), "cash_flow": [{key: serialise(value) for key, value in row.items()} for row in rows]})
+    except DatabaseError:
+        logger.exception("Telegram bot cash-flow database error for %s", user.username)
+        return Response({"success": False, "error": "Could not load cash flow from 1C."}, status=status.HTTP_502_BAD_GATEWAY)

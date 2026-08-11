@@ -22,6 +22,7 @@ import ConfirmModal from "../components/Orders/ConfirmModal";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { useNotification } from "../hooks/useNotification";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import "./FAQ.css";
 
 const EMPTY_FORM = {
@@ -317,6 +318,7 @@ export default function FAQ() {
   const { t, i18n } = useTranslation();
   const { isAdmin, user } = useAuthGetRole();
   const { addNotification } = useNotification();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [videos, setVideos] = useState([]);
   const [faqCategories, setFaqCategories] = useState([]);
@@ -337,6 +339,7 @@ export default function FAQ() {
   const [isExpertSending, setIsExpertSending] = useState(false);
   const featuredRef = useRef(null);
   const playlistListRef = useRef(null);
+  const popularSectionRef = useRef(null);
   const [featuredHeight, setFeaturedHeight] = useState(null);
   const [sidebarPageSize, setSidebarPageSize] = useState(1);
 
@@ -571,11 +574,9 @@ export default function FAQ() {
   const activeVideoDetailTitle = activeVideoContent.detailTitle
     || t("faq.featured.details_label", { defaultValue: "Деталізація" });
   const activeVideoDetailPoints = activeVideoContent.details.slice(0, 5);
-  const activeVideoDetailText = activeVideoDetailPoints.length
-    ? ""
-    : t("faq.featured.details_fallback", {
-      defaultValue: "Деталізація доступна у самому відео.",
-    });
+  const activeVideoDetailText = "";
+  const hasActiveVideoDetails =
+    Boolean(activeVideoContent.detailTitle?.trim()) || activeVideoDetailPoints.length > 0;
   const currentUserName = user?.full_name || user?.username || t("faq.expert.default_user", {
     defaultValue: "Користувач порталу",
   });
@@ -587,6 +588,25 @@ export default function FAQ() {
     () => (showAllPopular ? popularSourceVideos : popularSourceVideos.slice(0, 4)),
     [popularSourceVideos, showAllPopular],
   );
+
+  useEffect(() => {
+    if (searchParams.get("section") !== "popular") {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      popularSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("section");
+    setSearchParams(nextParams, { replace: true });
+
+    return () => cancelAnimationFrame(frame);
+  }, [searchParams, setSearchParams]);
 
   const scrollToMainLayout = useCallback(() => {
     const target = document.querySelector(".faq-page__layout");
@@ -939,25 +959,30 @@ export default function FAQ() {
                 <p className="faq-page__featured-summary-text">{activeVideoSummary}</p>
               </div>
 
-              <div className="faq-page__featured-body">
-                <span className="faq-page__question-label">
-                  {activeVideoDetailTitle}
-                </span>
+              {hasActiveVideoDetails || isAdmin ? (
+                <div className="faq-page__featured-body">
+                  {hasActiveVideoDetails ? (
+                    <>
+                      <span className="faq-page__question-label">
+                        {activeVideoDetailTitle}
+                      </span>
 
-                {activeVideoDetailPoints.length ? (
-                  <div className="faq-page__featured-points">
-                    {activeVideoDetailPoints.map((point) => (
-                      <div key={point} className="faq-page__featured-point">
-                        <FaCircle />
-                        <span>{point}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="faq-page__featured-description">{activeVideoDetailText}</p>
-                )}
+                      {activeVideoDetailPoints.length ? (
+                        <div className="faq-page__featured-points">
+                          {activeVideoDetailPoints.map((point) => (
+                            <div key={point} className="faq-page__featured-point">
+                              <FaCircle />
+                              <span>{point}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : activeVideoDetailText ? (
+                        <p className="faq-page__featured-description">{activeVideoDetailText}</p>
+                      ) : null}
+                    </>
+                  ) : null}
 
-                <div className="faq-page__featured-actions">
+                  <div className="faq-page__featured-actions">
                   {/* <a
                     href={extractMediaUrl(getLocalizedValue(activeVideo.urls, i18n.language))}
                     target="_blank"
@@ -967,35 +992,36 @@ export default function FAQ() {
                     {t("faq.actions.watch", { defaultValue: "Відкрити на YouTube" })}
                   </a> */}
 
-                  {isAdmin ? (
-                    <div className="faq-page__admin-actions">
-                      <button type="button" onClick={() => openEditModal(activeVideo)}>
-                        <FaEdit />
-                        {t("common.edit", { defaultValue: "Редагувати" })}
-                      </button>
-                      <button
-                        type="button"
-                        className="is-danger"
-                        onClick={() => {
-                          setSelectedVideo(activeVideo);
-                          setDeleteModalOpen(true);
-                        }}
-                      >
-                        <FaTrash />
-                        {t("common.delete", { defaultValue: "Видалити" })}
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
+                    {isAdmin ? (
+                      <div className="faq-page__admin-actions">
+                        <button type="button" onClick={() => openEditModal(activeVideo)}>
+                          <FaEdit />
+                          {t("common.edit", { defaultValue: "Редагувати" })}
+                        </button>
+                        <button
+                          type="button"
+                          className="is-danger"
+                          onClick={() => {
+                            setSelectedVideo(activeVideo);
+                            setDeleteModalOpen(true);
+                          }}
+                        >
+                          <FaTrash />
+                          {t("common.delete", { defaultValue: "Видалити" })}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
 
-                {/* <div className="faq-page__featured-meta">
+                  {/* <div className="faq-page__featured-meta">
                   <span className="faq-page__chip">{activeVideo.category_name || selectedCategoryLabel}</span>
                   <span className="faq-page__date">
                     <FaRegClock />
                     {formatDate(activeVideo.created_at, i18n.language)}
                   </span>
                 </div> */}
-              </div>
+                </div>
+              ) : null}
             </>
           ) : (
             <div className="faq-page__state faq-page__state--empty">
@@ -1012,7 +1038,7 @@ export default function FAQ() {
       </section>
 
       {popularSourceVideos.length ? (
-        <section className="faq-page__popular">
+        <section ref={popularSectionRef} className="faq-page__popular">
         <div className="faq-page__popular-head">
           <h2>{t("faq.popular.title", { defaultValue: "Популярні питання" })}</h2>
         </div>
