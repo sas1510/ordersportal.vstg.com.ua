@@ -2,14 +2,14 @@
 
 from django.urls import path
 from . import views  # РџРµСЂРµРєРѕРЅР°Р№С‚РµСЃСЏ, С‰Рѕ С–РјРїРѕСЂС‚ РєРѕСЂРµРєС‚РЅРёР№
-from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number, get_all_manager_list
+from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, send_faq_expert_request, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number, get_all_manager_list
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView, PortalDealerComparisonAnalyticsView, PortalAccessibleDealerReportsView
 
 
 from django.urls import path
 from .views import PortalManagerReportView
 from .telegram_bot_views import (
-    telegram_bot_link, telegram_bot_menu, telegram_bot_orders, telegram_bot_order_details, telegram_bot_reclamations, telegram_bot_additional_orders,
+    telegram_bot_link, telegram_bot_menu, telegram_bot_orders, telegram_bot_order_details, telegram_bot_order_files, telegram_bot_order_file_download, telegram_bot_reclamations, telegram_bot_additional_orders,
     telegram_bot_daily_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key,
 )
 
@@ -25,6 +25,8 @@ urlpatterns = [
     path('telegram-bot/menu/', telegram_bot_menu, name='telegram_bot_menu'),
     path('telegram-bot/orders/', telegram_bot_orders, name='telegram_bot_orders'),
     path('telegram-bot/orders/details/', telegram_bot_order_details, name='telegram_bot_order_details'),
+    path('telegram-bot/order-files/', telegram_bot_order_files, name='telegram_bot_order_files'),
+    path('telegram-bot/order-files/download/', telegram_bot_order_file_download, name='telegram_bot_order_file_download'),
     path('telegram-bot/reclamations/', telegram_bot_reclamations, name='telegram_bot_reclamations'),
     path('telegram-bot/additional-orders/', telegram_bot_additional_orders, name='telegram_bot_additional_orders'),
     path('telegram-bot/daily-report/', telegram_bot_daily_report, name='telegram_bot_daily_report'),
@@ -72,6 +74,11 @@ urlpatterns = [
         "support/telegram/send/",
         send_support_notification_to_telegram,
         name="send_support_notification_to_telegram"
+    ),
+    path(
+        "support/faq-expert/send/",
+        send_faq_expert_request,
+        name="send_faq_expert_request",
     ),
     path("telegram/webhook/", telegram_webhook),
       path(

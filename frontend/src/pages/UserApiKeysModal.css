@@ -250,6 +250,7 @@
 
 .dark-theme .api-keys-table td {
   border-bottom-color: #333;
+  background: #323232;
 }
 
 .dark-theme .api-keys-table tr:hover {

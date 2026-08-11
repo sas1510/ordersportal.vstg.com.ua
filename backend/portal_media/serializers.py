@@ -17,7 +17,7 @@ class MediaResourceSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'titles', 'category', 'category_name', 'descriptions', 
             'created_at', 'author', 'resource_type', 'resource_type_display',
-            'urls', 'file_base64', 'file_extension', 'image_url'
+            'urls', 'file_base64', 'file_extension', 'image_url', 'duration', 'is_popular'
         ]
         read_only_fields = [
             'id', 'created_at', 'resource_type_display', 'category_name'
@@ -87,6 +87,7 @@ class MediaResourceSerializer(serializers.ModelSerializer):
         # 2. Логіка залежно від типу ресурсу
         if resource_type in [
             MediaResource.ResourceType.YOUTUBE, 
+            MediaResource.ResourceType.FAQ,
             MediaResource.ResourceType.TIKTOK, 
             MediaResource.ResourceType.INSTA, 
             MediaResource.ResourceType.FB
@@ -120,16 +121,21 @@ class MediaResourceSerializer(serializers.ModelSerializer):
     # CREATE / UPDATE
     # =========================================================
     def create(self, validated_data):
-        if validated_data.get('resource_type') == MediaResource.ResourceType.FILE:
+        resource_type = validated_data.get('resource_type')
+        if resource_type == MediaResource.ResourceType.FILE:
             validated_data = self._decode_file(validated_data)
+        else:
+            validated_data.pop('file_base64', None)
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         if validated_data.get('file_base64'):
             validated_data = self._decode_file(validated_data)
+        else:
+            validated_data.pop('file_base64', None)
         return super().update(instance, validated_data)
 
 class MediaCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MediaCategory
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'description', 'icon_name', 'usage_scope', 'sort_order']

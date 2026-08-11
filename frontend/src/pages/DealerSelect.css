@@ -4,6 +4,7 @@
 
 .dealer-select {
   position: relative;
+  z-index: 120;
 }
 
 .dealer-select {
@@ -40,7 +41,7 @@
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 6px;
-  z-index: 1000;
+  z-index: 4000;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
@@ -99,6 +100,10 @@ body.dark-theme .dealer-select__dropdown {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
 }
 
+
+.dealer-select__search {
+  width: 100%;
+}
 /* Search input */
 body.dark-theme .dealer-select__search {
   background: #1f1f1f;

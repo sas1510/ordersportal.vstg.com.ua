@@ -609,6 +609,7 @@ import {
   AlertTriangle, 
   PlusCircle, 
   FolderOpen, 
+  CircleHelp,
   Video, 
   CreditCard,
   Wallet,
@@ -636,6 +637,7 @@ export default function HeaderDealer() {
     { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle },
     { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files", icon: FolderOpen },
     { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos", icon: Video },
+    // { title: t('nav.faq_short'), mobileTitle: t('nav.faq'), to: "/faq", icon: CircleHelp },
     { title: t('nav.finance_analytics_short'), mobileTitle: t('nav.finance_analytics'), to: "/statistics", icon: BarChart3  },
     { title: t('nav.payment_short'), mobileTitle: t('nav.payment'), to: "/payment", icon: CreditCard },
   ], [t]);

@@ -3964,11 +3964,10 @@ body.dark-theme .year-select-minimal,
 body.dark-theme .input-date,
 body.dark-theme .mobile-input-date,
 body.dark-theme input,
-body.dark-theme select,
-body.dark-theme textarea {
-  background-color: #868179 !important;
-  color: var(--color-primary) !important;
-  border-color: #6e6963 !important;
+body.dark-theme select {
+  background-color: #3a3734 !important;
+  color: #ffffff !important;
+  border-color: #66605b !important;
 }
 
 body.dark-theme .content-filter .search-orders:focus,

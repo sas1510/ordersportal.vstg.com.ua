@@ -4,6 +4,7 @@ import AddOrEditFilePage from "./pages/AddOrEditFilePage";
 
 import VideosPage from "./pages/VideosPage";
 import VideoFormPage from "./pages/VideoFormPage";
+import FAQ from "./pages/FAQ";
 
 import PortalOriginal from "./pages/OrdersPage";
 
@@ -56,6 +57,7 @@ export const adminRoutes = [
   { path: "videos", element: <VideosPage /> },
   { path: "videos/add", element: <VideoFormPage /> },
   { path: "videos/edit/:id", element: <VideoFormPage /> },
+  { path: "faq", element: <FAQ /> },
 
   // { path: "orders", element: <PortalOriginal /> },
   // { path: "complaints", element: <ReclamationPortal /> },
@@ -112,6 +114,7 @@ export const dealerRoutes = [
   { path: "dashboard", element: <Dashboard /> },
   { path: "files", element: <FilesPage /> },
   { path: "videos", element: <VideosPage /> },
+  { path: "faq", element: <FAQ /> },
   { path: "emergency-contacts", element: <EmergencyContactsPage /> },
   { path: "orders", element: <PortalOriginal /> },
 

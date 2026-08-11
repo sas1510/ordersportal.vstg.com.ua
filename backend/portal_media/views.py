@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import MediaResource
-from .serializers import MediaResourceSerializer
+from .models import MediaCategory, MediaResource
+from .serializers import MediaCategorySerializer, MediaResourceSerializer
 from .permissions import IsAdminOrReadOnly
 from drf_spectacular.utils import (
     extend_schema_view,
@@ -9,12 +9,86 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiTypes,
 )
+from urllib.parse import urlparse, parse_qs
+import re
+import requests
 
 # import logging
 import time
 # logger = logging.getLogger(__name__)
 
 from backend.utils.logging_setup import logger
+
+
+def extract_youtube_video_id(raw_url):
+    if not raw_url or not isinstance(raw_url, str):
+        return ""
+
+    try:
+        parsed = urlparse(raw_url.strip())
+    except Exception:
+        return ""
+
+    hostname = (parsed.hostname or "").lower()
+    path = parsed.path or ""
+
+    if hostname == "youtu.be":
+        return path.lstrip("/").split("/")[0]
+
+    if "youtube.com" in hostname:
+        if "/shorts/" in path:
+            return path.split("/shorts/")[1].split("/")[0]
+
+        query_video_id = parse_qs(parsed.query).get("v", [""])[0]
+        if query_video_id:
+            return query_video_id
+
+    return ""
+
+
+def format_video_duration(total_seconds):
+    total_seconds = int(total_seconds or 0)
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes}:{seconds:02d}"
+
+
+def resolve_youtube_duration(raw_url):
+    video_id = extract_youtube_video_id(raw_url)
+    if not video_id:
+        return None
+
+    watch_url = f"https://www.youtube.com/watch?v={video_id}"
+
+    try:
+        response = requests.get(
+            watch_url,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+                ),
+            },
+            timeout=8,
+        )
+        response.raise_for_status()
+    except Exception:
+        return None
+
+    html = response.text or ""
+
+    length_match = re.search(r'"lengthSeconds":"(\d+)"', html)
+    if length_match:
+        return format_video_duration(length_match.group(1))
+
+    duration_ms_match = re.search(r'"approxDurationMs":"(\d+)"', html)
+    if duration_ms_match:
+        return format_video_duration(int(duration_ms_match.group(1)) // 1000)
+
+    return None
 
 
 @extend_schema_view(
@@ -91,6 +165,32 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
 
         return data
 
+    def _maybe_populate_duration(self, data, instance=None):
+        resource_type = data.get("resource_type") or getattr(instance, "resource_type", None)
+
+        if resource_type not in [MediaResource.ResourceType.YOUTUBE, MediaResource.ResourceType.FAQ]:
+            return data
+
+        if data.get("duration") not in (None, ""):
+            return data
+
+        urls = data.get("urls")
+        if not isinstance(urls, dict) and instance is not None:
+            urls = getattr(instance, "urls", None)
+
+        if not isinstance(urls, dict):
+            return data
+
+        primary_url = urls.get("ua") or next((value for value in urls.values() if value), "")
+        duration = resolve_youtube_duration(primary_url)
+
+        if duration:
+            data["duration"] = duration
+        elif instance is not None and getattr(instance, "duration", None):
+            data["duration"] = instance.duration
+
+        return data
+
     def create(self, request, *args, **kwargs):
 
         start_time = time.time()
@@ -103,6 +203,7 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
      
         data = request.data.copy()
         data = self._pack_localized_data(data)
+        data = self._maybe_populate_duration(data)
         
         serializer = self.get_serializer(data=data)
 
@@ -144,6 +245,7 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
         
         data = request.data.copy()
         data = self._pack_localized_data(data, instance=instance)
+        data = self._maybe_populate_duration(data, instance=instance)
         
         serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
@@ -174,3 +276,29 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
                 "detail": "Доступ заборонено. Тільки адміністратори можуть редагувати файли."
             }
         return response
+
+
+@extend_schema_view(
+    list=extend_schema(
+        summary="Отримати список категорій медіа",
+        tags=["media-categories"],
+        parameters=[
+            OpenApiParameter(
+                name="usage_scope",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Фільтр за сферою використання категорії: general, video, faq",
+            ),
+        ],
+    )
+)
+class MediaCategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = MediaCategorySerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        queryset = MediaCategory.objects.all().order_by('sort_order', 'name')
+        usage_scope = self.request.query_params.get('usage_scope')
+        if usage_scope:
+            queryset = queryset.filter(usage_scope=usage_scope)
+        return queryset

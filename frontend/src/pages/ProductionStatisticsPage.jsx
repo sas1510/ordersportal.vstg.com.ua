@@ -73,6 +73,74 @@ const CATEGORY_MAPPING = {
   Інше: "Додатки",
 };
 
+const PROFILE_SYSTEM_GROUPS = [
+  {
+    key: "windows-60",
+    label: "Вікна 60 мм",
+    matchers: [/^Olimpia$/i, /^WDS 5-S "GOST"$/i, /^WDS 5-S "PLUS\+"$/i, /^SL60$/i],
+  },
+  {
+    key: "doors-60",
+    label: "Двері 60 мм",
+    matchers: [/^WDS 60mm \(door\)$/i, /^Proline Дверi \(60мм\)$/i],
+  },
+  {
+    key: "windows-70",
+    label: "Вікна 70 мм",
+    matchers: [
+      /^WDS\(70mm\) ДСТУ$/i,
+      /^WDS\(70mm\) PLUS$/i,
+      /^WDS 6-S "GOST"$/i,
+      /^WDS 6-S "PLUS\+"$/i,
+      /^Proline ECO$/i,
+      /^Proline ЕСО$/i,
+    ],
+  },
+  {
+    key: "doors-70",
+    label: "Двері 70 мм",
+    matchers: [/^WDS 70mm \(door\)$/i, /^Proline Дверi \(70мм\)$/i],
+  },
+  {
+    key: "windows-76",
+    label: "Вікна 76 мм",
+    matchers: [
+      /^WDS 76 AD Pro$/i,
+      /^WDS 76 AD Standart$/i,
+      /^Вікна 76 AD Pro БЕЗШОВКА$/i,
+      /^Вікна 76 AD Standart БЕЗШОВКА$/i,
+      /^WDS 76 MD Pro$/i,
+      /^WDS 76 MD Pro БЕЗШОВКА$/i,
+      /^WDS SL 76$/i,
+    ],
+  },
+  {
+    key: "doors-76",
+    label: "Двері 76 мм",
+    matchers: [
+      /^WDS AD 76 door STANDART$/i,
+      /^Двері AD STANDART БЕЗШОВКА$/i,
+      /^Двері AD PREMIUM БЕЗШОВКА$/i,
+      /^WDS AD 76 door PREMIUM$/i,
+    ],
+  },
+  {
+    key: "windows-74",
+    label: "Вікна 74 мм",
+    matchers: [/^Gealan 8000 Вікна$/i],
+  },
+  {
+    key: "doors-panel-78",
+    label: "Двері / панель 78 мм",
+    matchers: [/^PE78N Panel$/i],
+  },
+  {
+    key: "other",
+    label: "Інше",
+    matchers: [/^Рама під склопакет$/i, /^Без конструкций$/i],
+  },
+];
+
 const STATUS_LABELS = {
   all: "Усі",
   "Вчасно": "Вчасно",
@@ -232,6 +300,16 @@ function formatAnalyticsMetricValue(metricKey, value) {
   }
 
   return formatNumber(value);
+}
+
+function resolveProfileSystemGroup(profileSystemName) {
+  const normalizedName = String(profileSystemName || "").trim();
+
+  const matchedGroup = PROFILE_SYSTEM_GROUPS.find((group) =>
+    group.matchers.some((matcher) => matcher.test(normalizedName)),
+  );
+
+  return matchedGroup?.label || "Інше";
 }
 
 function TimelinessTooltip({ active, payload, label, isDark = true }) {
@@ -836,6 +914,51 @@ export default function ProductionStatisticsPage() {
     [profileSystems],
   );
 
+  const groupedProfileSystems = useMemo(() => {
+    const groupsMap = new Map(
+      PROFILE_SYSTEM_GROUPS.map((group) => [
+        group.label,
+        {
+          key: group.key,
+          label: group.label,
+          items: [],
+        },
+      ]),
+    );
+
+    profileSystemsSorted.forEach((item) => {
+      const groupLabel = resolveProfileSystemGroup(item.profile_system);
+      const targetGroup = groupsMap.get(groupLabel) || groupsMap.get("Інше");
+
+      if (!targetGroup) {
+        return;
+      }
+
+      targetGroup.items.push({
+        label: item.profile_system,
+        total_constructions: Number(item.total_constructions || 0),
+        orders_count: Number(item.orders_count || 0),
+        total_sum: Number(item.total_sum || 0),
+        avg_check: Number(item.avg_check || 0),
+      });
+    });
+
+    return Array.from(groupsMap.values())
+      .map((group) => ({
+        ...group,
+        displayLabel:
+          group.label === "Інше"
+            ? `Інше (${Array.from(
+                new Set(group.items.map((item) => item.label).filter(Boolean)),
+              ).join(", ")})`
+            : group.label,
+        items: [...group.items].sort(
+          (left, right) => Number(right.total_constructions || 0) - Number(left.total_constructions || 0),
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [profileSystemsSorted]);
+
   const analyticsSections = useMemo(
     () => [
       {
@@ -846,6 +969,7 @@ export default function ProductionStatisticsPage() {
         eyebrow: "Profile systems",
         count: profileSystems.length,
         countLabel: "систем",
+        groupedItems: groupedProfileSystems,
         items: profileSystemsSorted.map((item) => ({
           label: item.profile_system,
           total_constructions: Number(item.total_constructions || 0),
@@ -900,7 +1024,7 @@ export default function ProductionStatisticsPage() {
         ],
       },
     ],
-    [furniture, profileColors, profileSystems.length, profileSystemsSorted],
+    [furniture, groupedProfileSystems, profileColors, profileSystems.length, profileSystemsSorted],
   );
 
   const activeAnalyticsConfig = useMemo(() => {
@@ -947,12 +1071,48 @@ export default function ProductionStatisticsPage() {
       .slice(0, 17);
   }, [activeAnalyticsConfig, activeAnalyticsMetricConfig]);
 
+  const analyticsGroupedDisplayItems = useMemo(() => {
+    if (activeAnalyticsSection !== "systems" || !activeAnalyticsConfig?.groupedItems?.length) {
+      return [];
+    }
+
+    return activeAnalyticsConfig.groupedItems.map((group) => ({
+      ...group,
+      total_constructions: group.items.reduce(
+        (sum, item) => sum + Number(item.total_constructions || 0),
+        0,
+      ),
+      orders_count: group.items.reduce(
+        (sum, item) => sum + Number(item.orders_count || 0),
+        0,
+      ),
+      total_sum: group.items.reduce(
+        (sum, item) => sum + Number(item.total_sum || 0),
+        0,
+      ),
+      avg_check: group.items.length
+        ? group.items.reduce((sum, item) => sum + Number(item.avg_check || 0), 0) /
+          group.items.length
+        : 0,
+    }));
+  }, [activeAnalyticsConfig, activeAnalyticsMetric, activeAnalyticsSection]);
+
   const analyticsMaxValue = useMemo(() => {
+    const sourceItems =
+      activeAnalyticsSection === "systems" && analyticsGroupedDisplayItems.length
+        ? analyticsGroupedDisplayItems
+        : analyticsDisplayItems;
+
     return Math.max(
-      ...analyticsDisplayItems.map((item) => Number(item[activeAnalyticsMetric] || 0)),
+      ...sourceItems.map((item) => Number(item[activeAnalyticsMetric] || 0)),
       1,
     );
-  }, [activeAnalyticsMetric, analyticsDisplayItems]);
+  }, [
+    activeAnalyticsMetric,
+    activeAnalyticsSection,
+    analyticsDisplayItems,
+    analyticsGroupedDisplayItems,
+  ]);
 
   const analyticsScaleValues = useMemo(() => {
     return Array.from({ length: 6 }, (_, index) =>
@@ -1428,9 +1588,13 @@ export default function ProductionStatisticsPage() {
           <p>Контроль своєчасності виготовлення по класах ABC, відсотку виконання та замовленнях із найбільшим відхиленням.</p>
         </div>
         <div className="production-design__filters">
-          {isAdmin ? <div className="production-design__dealer"><span>Дилер</span><DealerSelect value={dealerGuid} onChange={setDealerGuid} /></div> : null}
-          <label><span>з:</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
-          <label><span>по:</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>
+          <div className="production-design__filters-stack">
+            {isAdmin ? <div className="production-design__dealer"><span>Дилер</span><DealerSelect value={dealerGuid} onChange={setDealerGuid} /></div> : null}
+            <div className="production-design__date-range">
+              <label><span>з:</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
+              <label><span>по:</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>
+            </div>
+          </div>
           <button type="button" onClick={handleSearch} disabled={loading || (isAdmin && !dealerGuid)}><AppIcon name="AnalyticsSearchIcon" className="w-[20px] h-[20px]" />{loading ? "Формуємо..." : "Сформувати"}</button>
         </div>
       </section>
@@ -1795,7 +1959,51 @@ export default function ProductionStatisticsPage() {
             ))}
           </div>
 
-          {analyticsDisplayItems.length ? (
+          {activeAnalyticsSection === "systems" && analyticsGroupedDisplayItems.length ? (
+            <div className="production-design__analytics-chart">
+              <div className="production-design__analytics-rows">
+                {[...analyticsGroupedDisplayItems]
+                  .sort(
+                    (left, right) =>
+                      Number(right[activeAnalyticsMetric] || 0) -
+                      Number(left[activeAnalyticsMetric] || 0),
+                  )
+                  .map((group) => {
+                    const metricValue = Number(group[activeAnalyticsMetric] || 0);
+                    return (
+                      <article
+                        key={`${activeAnalyticsSection}-${group.label}`}
+                        className="production-design__analytics-row"
+                      >
+                        <b title={group.displayLabel || group.label}>{group.displayLabel || group.label}</b>
+                        <div className="production-design__analytics-row-track">
+                          <i
+                            style={{
+                              width: `${(metricValue / analyticsMaxValue) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <span>{formatAnalyticsMetricValue(activeAnalyticsMetric, metricValue)}</span>
+                      </article>
+                    );
+                  })}
+              </div>
+
+              <div className="production-design__analytics-scale">
+                {analyticsScaleValues.map((value, index) => (
+                  <span key={`${value}-${index}`}>
+                    {activeAnalyticsMetric === "avg_check"
+                      ? formatCurrency(value)
+                      : activeAnalyticsMetric === "total_sum"
+                        ? formatCurrency(value)
+                        : activeAnalyticsMetric === "orders_count"
+                          ? `${formatNumber(value)} зам.`
+                          : `${formatNumber(value)} шт`}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : analyticsDisplayItems.length ? (
             <div className="production-design__analytics-chart">
               <div className="production-design__analytics-rows">
                 {analyticsDisplayItems.map((item) => {

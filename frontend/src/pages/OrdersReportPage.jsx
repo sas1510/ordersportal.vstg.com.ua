@@ -5,21 +5,21 @@ import "./OrdersReportPage.css";
 
 const STATUS_CARDS = [
   {
-    status: "?????",
-    title: "????",
-    description: "?????? ??? ?????????? ?????????? ?? ?????????? ?? ???????? ???????.",
+    status: "Новий",
+    title: "Нові",
+    description: "Нові заявки без сформованих замовлень за вибраний період.",
     className: "orders-report__card--new",
   },
   {
-    status: "???????? ?????????????",
-    title: "???????? ?????????????",
-    description: "??????????, ??? ???????? ?????????????.",
+    status: "Очікуємо підтвердження",
+    title: "Очікуємо підтвердження",
+    description: "Замовлення, які очікують підтвердження.",
     className: "orders-report__card--confirmation",
   },
   {
-    status: "???????? ??????",
-    title: "???????? ??????",
-    description: "??????????, ?? ????? ?????????? ??????.",
+    status: "Очікуємо оплату",
+    title: "Очікуємо оплату",
+    description: "Замовлення, за якими очікується оплата.",
     className: "orders-report__card--payment",
   },
 ];
@@ -35,15 +35,15 @@ const getMonthStart = () => {
 function getAge(value) {
   const date = value ? new Date(value) : null;
   if (!date || Number.isNaN(date.getTime())) {
-    return { text: "???? ????????", date: null };
+    return { text: "Немає дати", date: null };
   }
 
   const minutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
   const days = Math.floor(minutes / 1440);
   const hours = Math.floor((minutes % 1440) / 60);
   const text = days
-    ? `${days} ??. ${hours} ???.`
-    : `${hours} ???. ${minutes % 60} ??.`;
+    ? `${days} дн. ${hours} год.`
+    : `${hours} год. ${minutes % 60} хв.`;
 
   return { text, date };
 }
@@ -58,7 +58,7 @@ export default function OrdersReportPage() {
 
   const loadReport = useCallback(async () => {
     if (!dateFrom || !dateTo || dateFrom > dateTo) {
-      setError("??????? ????????? ?????? ?????????.");
+      setError("Вкажіть коректний період звіту.");
       return;
     }
     setLoading(true);
@@ -68,14 +68,14 @@ export default function OrdersReportPage() {
         params: { date_from: dateFrom, date_to: dateTo },
       });
       if (response.data?.status !== "success") {
-        throw new Error("?? ??????? ??????????? ????.");
+        throw new Error("Не вдалося завантажити дані.");
       }
       setCalculations(response.data?.data?.calculation || []);
     } catch (requestError) {
       setCalculations([]);
       setError(
         requestError.response?.data?.error ||
-          "?? ??????? ??????????? ???? ?????. ????????? ?? ???.",
+          "Не вдалося завантажити дані звіту. Спробуйте ще раз.",
       );
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ export default function OrdersReportPage() {
     calculations.forEach((calculation) => {
       const orders = Array.isArray(calculation.orders) ? calculation.orders : [];
       if (orders.length === 0) {
-        counts["?????"] += 1;
+        counts["Новий"] += 1;
         return;
       }
       orders.forEach((order) => {
@@ -109,9 +109,9 @@ export default function OrdersReportPage() {
     calculations.forEach((calculation) => {
       const orders = Array.isArray(calculation.orders) ? calculation.orders : [];
       if (orders.length === 0) {
-        result["?????"].push({
-          number: calculation.number || "??? ??????",
-          dealer: calculation.dealer || "?? ???????",
+        result["Новий"].push({
+          number: calculation.number || "Без номера",
+          dealer: calculation.dealer || "Не вказано",
           dateValue: calculation.dateRaw,
         });
         return;
@@ -120,8 +120,8 @@ export default function OrdersReportPage() {
       orders.forEach((order) => {
         if (Object.hasOwn(result, order.status)) {
           result[order.status].push({
-            number: order.number || "??? ??????",
-            dealer: calculation.dealer || "?? ???????",
+            number: order.number || "Без номера",
+            dealer: calculation.dealer || "Не вказано",
             dateValue: order.createDate || order.dateRaw || calculation.dateRaw,
           });
         }
@@ -175,11 +175,11 @@ export default function OrdersReportPage() {
       <section className="orders-report__panel">
         <div className="orders-report__heading">
           <div>
-            <h1>????? ?? ????????????</h1>
-            <p>????????? ????????? ? ???????????? ???????? ?? ???????? ??????.</p>
+            <h1>Звіт по замовленнях</h1>
+            <p>Контроль замовлень із проблемними статусами за вибраний період.</p>
           </div>
           <div className="orders-report__total">
-            <span>?????? ? ?????</span>
+            <span>Всього у звіті</span>
             <strong>{total}</strong>
           </div>
         </div>
@@ -194,7 +194,7 @@ export default function OrdersReportPage() {
             <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(event) => setDateTo(event.target.value)} />
           </label>
           <button type="button" onClick={loadReport} disabled={loading}>
-            {loading ? "??????????" : "??????? ????"}
+            {loading ? "Завантаження..." : "Оновити звіт"}
           </button>
         </div>
 
@@ -209,7 +209,7 @@ export default function OrdersReportPage() {
               onClick={() => setActiveStatus(status)}
             >
               <span>{title}</span>
-              <strong>{loading ? "?" : summary[status]}</strong>
+              <strong>{loading ? "…" : summary[status]}</strong>
               <p>{description}</p>
             </button>
           ))}
@@ -219,8 +219,8 @@ export default function OrdersReportPage() {
           <section className="orders-report__chart-panel">
             <div className="orders-report__chart-heading">
               <div>
-                <h2>??????? ???????? ?? ????????</h2>
-                <p>????????? ?? ?????? ??? ??????, ??? ???????? ???????????.</p>
+                <h2>Розподіл замовлень за статусами</h2>
+                <p>Натисніть на сектор або картку, щоб переглянути замовлення.</p>
               </div>
             </div>
 
@@ -245,7 +245,7 @@ export default function OrdersReportPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value) => [value, "?????????"]}
+                    formatter={(value) => [value, "Замовлень"]}
                     contentStyle={{ borderRadius: 12, border: "1px solid #d8e3ec" }}
                   />
                 </PieChart>
@@ -262,7 +262,7 @@ export default function OrdersReportPage() {
                 >
                   <span className="orders-report__legend-dot" style={{ backgroundColor: item.fill }}></span>
                   <span>{item.title}</span>
-                  <strong>{loading ? "?" : item.value}</strong>
+                  <strong>{loading ? "…" : item.value}</strong>
                 </button>
               ))}
             </div>
@@ -275,8 +275,8 @@ export default function OrdersReportPage() {
                 <p>{activeStatusMeta.description}</p>
               </div>
               <div className="orders-report__details-total">
-                <span>?????????</span>
-                <strong>{loading ? "?" : summary[activeStatusMeta.status]}</strong>
+                <span>Замовлень</span>
+                <strong>{loading ? "…" : summary[activeStatusMeta.status]}</strong>
               </div>
             </div>
 
@@ -284,16 +284,16 @@ export default function OrdersReportPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>??????????</th>
-                    <th>?????</th>
-                    <th>????????</th>
-                    <th>? ???????</th>
+                    <th>Замовлення</th>
+                    <th>Дилер</th>
+                    <th>Створено</th>
+                    <th>У статусі</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="4">???????????? ????????????</td>
+                      <td colSpan="4">Завантаження замовлень...</td>
                     </tr>
                   ) : activeOrders.length ? (
                     activeOrders.map((order, index) => {
@@ -302,14 +302,14 @@ export default function OrdersReportPage() {
                         <tr key={`${order.number}-${index}`}>
                           <td><a href={openOrder(order.number)}>{order.number}</a></td>
                           <td>{order.dealer}</td>
-                          <td>{age.date ? age.date.toLocaleString("uk-UA") : "?"}</td>
+                          <td>{age.date ? age.date.toLocaleString("uk-UA") : "—"}</td>
                           <td className="orders-report__age">{age.text}</td>
                         </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="4">????? ????????? ? ????? ???????.</td>
+                      <td colSpan="4">Немає замовлень у цьому статусі.</td>
                     </tr>
                   )}
                 </tbody>

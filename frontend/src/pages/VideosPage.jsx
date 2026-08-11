@@ -838,53 +838,125 @@ const VideosPage = () => {
         <div className="file-modal-overlay" onClick={() => setIsModalOpen(false)}>
           <div
             className="file-modal-window"
-            style={{ width: "min(1040px, 92vw)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="file-modal-header">
-              <h3>{selectedVideo ? t('videos.modals.edit_title') : t('videos.modals.add_title')}</h3>
-              <button className="videos-modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
+              <div className="file-modal-header-copy">
+                <span className="file-modal-eyebrow">
+                  {selectedVideo ? "Редагування відео" : "Нове відео"}
+                </span>
+                <h3>{selectedVideo ? t('videos.modals.edit_title') : t('videos.modals.add_title')}</h3>
+                <p className="file-modal-subtitle">
+                  Заповніть основні дані, мовні версії назв і посилання на джерело відео.
+                </p>
+              </div>
+              <button type="button" className="videos-modal-close" onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
-            <form onSubmit={handleSaveVideo} className="claim-form p-4 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
-              {/* Поля Назв */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_ua")} value={videoForm.title_ua} onChange={(e) => setVideoForm({...videoForm, title_ua: e.target.value})} required />
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_en")} value={videoForm.title_en} onChange={(e) => setVideoForm({...videoForm, title_en: e.target.value})} />
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_it")} value={videoForm.title_it} onChange={(e) => setVideoForm({...videoForm, title_it: e.target.value})} />
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.title_de")} value={videoForm.title_de} onChange={(e) => setVideoForm({...videoForm, title_de: e.target.value})} />
+            <form onSubmit={handleSaveVideo} className="file-modal-form">
+              <div className="file-modal-body">
+                <section className="file-modal-section">
+                  <div className="file-modal-section-head">
+                    <h4>Загальні параметри</h4>
+                    <p>Оберіть категорію та платформу, для якої додається ролик.</p>
+                  </div>
+                  <div className="file-modal-grid file-modal-grid--compact">
+                    <label className="file-modal-field">
+                      <span>Категорія</span>
+                      <select className="file-input" value={videoForm.category} onChange={(e) => setVideoForm({...videoForm, category: e.target.value})}>
+                        <option value="2">{t("videos.categories.tech")}</option>
+                        <option value="3">{t("videos.categories.media")}</option>
+                        <option value="4">{t("videos.categories.factory")}</option>
+                        <option value="5">{t("videos.categories.install")}</option>
+                        <option value="6">{t("videos.categories.social")}</option>
+                      </select>
+                    </label>
+
+                    <label className="file-modal-field">
+                      <span>Платформа</span>
+                      <select className="file-input" value={videoForm.resource_type} onChange={(e) => setVideoForm({...videoForm, resource_type: e.target.value})}>
+                        <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
+                      </select>
+                    </label>
+                  </div>
+                </section>
+
+                <section className="file-modal-section">
+                  <div className="file-modal-section-head">
+                    <h4>Назви відео</h4>
+                    <p>Українська назва обов’язкова, інші мови можна додати за потреби.</p>
+                  </div>
+                  <div className="file-modal-grid">
+                    <label className="file-modal-field">
+                      <span>Назва UA</span>
+                      <input className="file-input" placeholder={t("videos.form.title_ua")} value={videoForm.title_ua} onChange={(e) => setVideoForm({...videoForm, title_ua: e.target.value})} required />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>Назва EN</span>
+                      <input className="file-input" placeholder={t("videos.form.title_en")} value={videoForm.title_en} onChange={(e) => setVideoForm({...videoForm, title_en: e.target.value})} />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>Назва IT</span>
+                      <input className="file-input" placeholder={t("videos.form.title_it")} value={videoForm.title_it} onChange={(e) => setVideoForm({...videoForm, title_it: e.target.value})} />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>Назва DE</span>
+                      <input className="file-input" placeholder={t("videos.form.title_de")} value={videoForm.title_de} onChange={(e) => setVideoForm({...videoForm, title_de: e.target.value})} />
+                    </label>
+                  </div>
+                </section>
+
+                <section className="file-modal-section">
+                  <div className="file-modal-section-head">
+                    <h4>Посилання на відео</h4>
+                    <p>Основне посилання для UA обов’язкове. Решту можна використовувати для локалізованих джерел.</p>
+                  </div>
+                  <div className="file-modal-grid">
+                    <label className="file-modal-field">
+                      <span>URL UA</span>
+                      <input className="file-input" placeholder={t("videos.form.url_ua")} value={videoForm.url_ua} onChange={(e) => setVideoForm({...videoForm, url_ua: e.target.value})} required />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>URL EN</span>
+                      <input className="file-input" placeholder={t("videos.form.url_en")} value={videoForm.url_en} onChange={(e) => setVideoForm({...videoForm, url_en: e.target.value})} />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>URL IT</span>
+                      <input className="file-input" placeholder={t("videos.form.url_it")} value={videoForm.url_it} onChange={(e) => setVideoForm({...videoForm, url_it: e.target.value})} />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>URL DE</span>
+                      <input className="file-input" placeholder={t("videos.form.url_de")} value={videoForm.url_de} onChange={(e) => setVideoForm({...videoForm, url_de: e.target.value})} />
+                    </label>
+                  </div>
+                </section>
+
+                <section className="file-modal-section">
+                  <div className="file-modal-section-head">
+                    <h4>Опис</h4>
+                    <p>Короткий супровідний текст для картки або деталізації відео.</p>
+                  </div>
+                  <div className="file-modal-grid">
+                    <label className="file-modal-field">
+                      <span>Опис UA</span>
+                      <textarea className="file-input file-input--textarea" placeholder={t("videos.form.description_ua")} value={videoForm.description_ua} onChange={(e) => setVideoForm({...videoForm, description_ua: e.target.value})} />
+                    </label>
+                    <label className="file-modal-field">
+                      <span>Опис DE</span>
+                      <textarea className="file-input file-input--textarea" placeholder={t("videos.form.description_de")} value={videoForm.description_de} onChange={(e) => setVideoForm({...videoForm, description_de: e.target.value})} />
+                    </label>
+                  </div>
+                </section>
               </div>
 
-              {/* Поля URL */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_ua")} value={videoForm.url_ua} onChange={(e) => setVideoForm({...videoForm, url_ua: e.target.value})} required />
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_en")} value={videoForm.url_en} onChange={(e) => setVideoForm({...videoForm, url_en: e.target.value})} />
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_it")} value={videoForm.url_it} onChange={(e) => setVideoForm({...videoForm, url_it: e.target.value})} />
-                <input className="file-input border p-2 rounded" placeholder={t("videos.form.url_de")} value={videoForm.url_de} onChange={(e) => setVideoForm({...videoForm, url_de: e.target.value})} />
+              <div className="file-modal-footer">
+                <button type="button" className="file-btn-secondary" onClick={() => setIsModalOpen(false)}>
+                  Скасувати
+                </button>
+                <button type="submit" className="file-btn-save" disabled={loadingSave}>
+                  {loadingSave ? t('videos.buttons.saving') : t('videos.buttons.save')}
+                </button>
               </div>
-              
-              {/* Описи */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <textarea className="file-input border p-2 rounded h-20" placeholder={t("videos.form.description_ua")} value={videoForm.description_ua} onChange={(e) => setVideoForm({...videoForm, description_ua: e.target.value})} />
-                <textarea className="file-input border p-2 rounded h-20" placeholder={t("videos.form.description_de")} value={videoForm.description_de} onChange={(e) => setVideoForm({...videoForm, description_de: e.target.value})} />
-              </div>
-              
-              <div className="flex gap-4">
-                <select className="file-input border p-2 rounded flex-1" value={videoForm.category} onChange={(e) => setVideoForm({...videoForm, category: e.target.value})}>
-                  <option value="2">{t("videos.categories.tech")}</option>
-                  <option value="3">{t("videos.categories.media")}</option>
-                  <option value="4">{t("videos.categories.factory")}</option>
-                  <option value="5">{t("videos.categories.install")}</option>
-                  <option value="6">{t("videos.categories.social")}</option>
-                </select>
-                <select className="file-input border p-2 rounded flex-1" value={videoForm.resource_type} onChange={(e) => setVideoForm({...videoForm, resource_type: e.target.value})}>
-                  <option value="youtube">YouTube</option>
-                  <option value="tiktok">TikTok</option>
-                </select>
-              </div>
-
-              <button type="submit" className="file-btn-save max-w-[200px] bg-custom-green py-2 rounded font-bold" disabled={loadingSave}>
-                {loadingSave ? t('videos.buttons.saving') : t('videos.buttons.save')}
-              </button>
             </form>
           </div>
         </div>

@@ -3127,19 +3127,30 @@ def build_address_name(addr: dict | None) -> str:
 
     parts = []
 
-    def add(prefix, key, suffix=""):
+    def is_latin_text(value):
+        if not isinstance(value, str):
+            return False
+        return bool(re.search(r"[A-Za-z]", value)) and not bool(
+            re.search(r"[А-Яа-яІіЇїЄєҐґ]", value)
+        )
+
+    def add(prefix, key, suffix="", en_prefix=None, en_suffix=""):
         val = addr.get(key)
         if isinstance(val, str) and val.strip():
-            parts.append(f"{prefix}{val.strip()}{suffix}")
+            clean_value = val.strip()
+            use_english = is_latin_text(clean_value)
+            actual_prefix = en_prefix if use_english and en_prefix is not None else prefix
+            actual_suffix = en_suffix if use_english else suffix
+            parts.append(f"{actual_prefix}{clean_value}{actual_suffix}")
 
     add("", "region")
-    add("", "district", " район")
-    add("м. ", "city")
-    add("вул. ", "street")
-    add("буд. ", "house")
-    add("кв. ", "apartment")
-    add("під'їзд ", "entrance")
-    add("поверх ", "floor")
+    add("", "district", " район", en_suffix=" district")
+    add("м. ", "city", en_prefix="city ")
+    add("вул. ", "street", en_prefix="st. ")
+    add("буд. ", "house", en_prefix="bld. ")
+    add("кв. ", "apartment", en_prefix="apt. ")
+    add("під'їзд ", "entrance", en_prefix="entr. ")
+    add("поверх ", "floor", en_prefix="floor ")
 
     return ", ".join(parts)
 
@@ -7298,6 +7309,92 @@ def send_support_notification_to_telegram(request):
         "telegramError": telegram_error,
         "videoCompressed": video_was_compressed,
     })
+
+
+@api_view(["POST"])
+def send_faq_expert_request(request):
+    from django.conf import settings
+    from django.core.mail import EmailMessage
+    from django.utils.html import escape
+
+    telegram_chat_id = 716230412
+    recipient_email = "tania.flyora@gmail.com"
+
+    text = str(request.data.get("text") or "").strip()
+    context_title = str(request.data.get("contextTitle") or "").strip()
+
+    if not text:
+        return Response({"success": False, "error": "text is required"}, status=400)
+
+    user = getattr(request, "user", None)
+    full_name = getattr(user, "full_name", None) or getattr(user, "username", None) or "Невідомий користувач"
+    phone_number = getattr(user, "phone_number", None) or "Не вказано"
+    email = getattr(user, "email", None) or "Не вказано"
+    role = getattr(user, "role", None) or "Не вказано"
+
+    telegram_text = (
+        "<b>Нове звернення з FAQ: Запитати в експерта</b>\n\n"
+        f"<b>Користувач:</b> {escape(str(full_name))}\n"
+        f"<b>Роль:</b> {escape(str(role))}\n"
+        f"<b>Телефон:</b> {escape(str(phone_number))}\n"
+        f"<b>Email:</b> {escape(str(email))}\n"
+        f"<b>Тема FAQ:</b> {escape(context_title or 'Загальне питання')}\n\n"
+        f"<b>Повідомлення:</b>\n{escape(text)}"
+    )
+
+    email_body = (
+        "Нове звернення з FAQ: Запитати в експерта\n\n"
+        f"Користувач: {full_name}\n"
+        f"Роль: {role}\n"
+        f"Телефон: {phone_number}\n"
+        f"Email: {email}\n"
+        f"Тема FAQ: {context_title or 'Загальне питання'}\n\n"
+        f"Повідомлення:\n{text}"
+    )
+
+    telegram_sent = False
+    email_sent = False
+    errors = []
+
+    try:
+        tg_response = send_telegram_message(
+            telegram_chat_id=telegram_chat_id,
+            text=telegram_text,
+        )
+        telegram_sent = bool(isinstance(tg_response, dict) and tg_response.get("ok"))
+        if not telegram_sent:
+            errors.append(
+                tg_response.get("description")
+                or tg_response.get("error")
+                or "Не вдалося надіслати повідомлення в Telegram"
+            )
+    except Exception as exc:
+        errors.append(f"Telegram error: {exc}")
+
+    try:
+        mail = EmailMessage(
+            subject="Нове звернення з FAQ: Запитати в експерта",
+            body=email_body,
+            from_email=settings.EMAIL_HOST_USER,
+            to=[recipient_email],
+            reply_to=[email] if email and email != "Не вказано" else None,
+        )
+        mail.send(fail_silently=False)
+        email_sent = True
+    except Exception as exc:
+        errors.append(f"Email error: {exc}")
+
+    success = telegram_sent or email_sent
+
+    return Response(
+        {
+            "success": success,
+            "telegramSent": telegram_sent,
+            "emailSent": email_sent,
+            "errors": errors,
+        },
+        status=200 if success else 502,
+    )
 
 
 

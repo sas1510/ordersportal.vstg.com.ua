@@ -574,7 +574,7 @@ export default function ComplexityDonut({
 
           color: #44403e;
           font-family: Inter, sans-serif;
-          font-size: 32px;
+          font-size: 27px;
           font-weight: 700;
           line-height: 39px;
           white-space: nowrap;

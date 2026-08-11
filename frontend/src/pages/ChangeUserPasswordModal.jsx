@@ -59,7 +59,7 @@ export default function ChangeUserPasswordModal({ user, onClose }) {
         </div>
 
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 bg-white dark:bg-[#323232]">
           <div className="change-pass-label text-base">
             Встановити новий пароль для:
             <span className="font-semibold ml-1 text-blue-700 dark:text-blue-200">

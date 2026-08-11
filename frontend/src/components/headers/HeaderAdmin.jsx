@@ -359,6 +359,7 @@ export default function HeaderAdmin() {
     { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/admin-additional-order" },
     { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files" },
     { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos" },
+    { title: t('nav.faq_short'), mobileTitle: t('nav.faq'), to: "/faq" },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [

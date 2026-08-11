@@ -35,6 +35,7 @@ const routeTitlePatterns = [
   ["/files/add", "route_titles.files_add"],
   ["/files/edit/:id", "route_titles.files_edit"],
   ["/videos", "route_titles.videos"],
+  ["/faq", "route_titles.faq"],
   ["/addUser", "route_titles.user_add"],
   ["/organizations", "route_titles.organizations"],
   ["/regions", "route_titles.regions"],

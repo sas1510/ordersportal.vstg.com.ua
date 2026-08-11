@@ -4,6 +4,11 @@ from users.models import CustomUser
 
 class MediaCategory(models.Model):
     """Модель для категорій медіа-ресурсів"""
+    class UsageScope(models.TextChoices):
+        GENERAL = 'general', 'Загальна'
+        VIDEO = 'video', 'Відео'
+        FAQ = 'faq', 'FAQ'
+
     id = models.BigAutoField(primary_key=True, db_column='ID')
     name = models.CharField(
         max_length=100, 
@@ -16,6 +21,25 @@ class MediaCategory(models.Model):
         null=True, 
         verbose_name="Опис", 
         db_column='Description'
+    )
+    icon_name = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name="Іконка",
+        db_column='IconName'
+    )
+    usage_scope = models.CharField(
+        max_length=20,
+        choices=UsageScope.choices,
+        default=UsageScope.GENERAL,
+        verbose_name="Сфера використання",
+        db_column='UsageScope'
+    )
+    sort_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Порядок сортування",
+        db_column='SortOrder'
     )
 
     def __str__(self):
@@ -31,6 +55,7 @@ class MediaResource(models.Model):
     # Поле, яке визначає, що це - відео чи файл
     class ResourceType(models.TextChoices):
         YOUTUBE = 'youtube', 'YouTube'
+        FAQ     = 'faq',     'FAQ Video'
         TIKTOK  = 'tiktok',  'TikTok'
         INSTA   = 'instagram','Instagram'
         FB      = 'facebook', 'Facebook'
@@ -128,6 +153,20 @@ class MediaResource(models.Model):
         db_column='ImageUrl'
     )
 
+    duration = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name="Тривалість відео",
+        db_column='Duration'
+    )
+
+    is_popular = models.BooleanField(
+        default=False,
+        verbose_name="Популярне питання",
+        db_column='IsPopular'
+    )
+
     def __str__(self):
         # Правильний варіант для JSONField
         name = self.titles.get('ua', 'Resource') if isinstance(self.titles, dict) else "Resource"
@@ -136,7 +175,7 @@ class MediaResource(models.Model):
     def clean(self):
         super().clean()
         # Валідація для відео: перевіряємо чи є хоча б одне посилання у JSON
-        if self.resource_type in ['youtube', 'tiktok', 'instagram', 'facebook']:
+        if self.resource_type in ['youtube', 'faq', 'tiktok', 'instagram', 'facebook']:
             if not self.urls or not any(self.urls.values()):
                 raise ValidationError("Для відео-ресурсів потрібно додати хоча б одне посилання.")
 

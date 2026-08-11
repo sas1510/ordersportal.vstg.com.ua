@@ -131,7 +131,7 @@ export default function UsersListPage() {
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
             >
               <Plus size={18} />
-              <span>???????? ???????????</span>
+              <span>Створити користувача</span>
             </button>
           </div>
         </div>

@@ -211,7 +211,7 @@ body.dark-theme .analytics-table th,
 body.dark-theme .minimal-detail-table th,
 body.dark-theme .wds-table th,
 body.dark-theme .api-keys-table th {
-  background: var(--table-header-bg);
+  background:#323232;
   color: var(--text-color);
 }
 

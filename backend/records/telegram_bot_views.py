@@ -5,7 +5,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from asgiref.sync import async_to_sync
-from django.db import DatabaseError, transaction
+from django.db import DatabaseError, transaction, connection
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -13,6 +13,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 
 from backend.utils.GuidToBin1C import guid_to_1c_bin
+from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.onec_api import send_to_1c
 from backend.utils.logging_setup import logger
 from backend.permissions import IsAdminJWT
@@ -20,7 +21,7 @@ from users.models import CustomUser
 from .models import TelegramBotApiKey, TelegramPortalLink
 from .views import (
     get_orders_by_period_and_contractor, _notify_order_confirmation_participants,
-    execute_stored_procedure, execute_additional_orders_procedure,
+    execute_stored_procedure, execute_additional_orders_procedure, download_order_file,
 )
 
 
@@ -311,22 +312,123 @@ def telegram_bot_additional_orders(request):
     if not user or not user.user_id_1C:
         return Response({"success": False, "error": "Telegram is not linked to a dealer profile."}, status=status.HTTP_403_FORBIDDEN)
     try:
-        rows = execute_additional_orders_procedure(user.user_id_1C, timezone.localdate().year)
-        additional_orders = [{
-            "id": str(row.get("AdditionalOrderGuid") or ""),
-            "number": _clean(row.get("AdditionalOrderNumber") or row.get("Number")),
-            "status": _clean(row.get("StatusName") or row.get("Status") or "—"),
-            "date": _iso_value(row.get("AdditionalOrderDate") or row.get("Date")),
-            "order_number": _clean(row.get("OrderNumber") or row.get("ClaimOrderNumber")),
-            "amount": round(float(row.get("DocumentAmount") or 0), 2),
-            "paid": round(float(row.get("TotalPayments") or 0), 2),
-            "count": int(row.get("ConstructionsQTY") or 0),
-            "currency": _clean(row.get("Currency")) or "грн",
-        } for row in rows]
+        rows = async_to_sync(execute_additional_orders_procedure)(user.user_id_1C, timezone.localdate().year)
+        additional_orders = []
+        for row in rows:
+            try:
+                additional_orders.append({
+                    "id": str(row.get("AdditionalOrderGuid") or ""),
+                    "number": _clean(row.get("AdditionalOrderNumber") or row.get("Number")),
+                    "status": _clean(row.get("StatusName") or row.get("Status") or "—"),
+                    "date": _iso_value(row.get("AdditionalOrderDate") or row.get("Date")),
+                    "order_number": _clean(row.get("OrderNumber") or row.get("ClaimOrderNumber")),
+                    "amount": round(float(row.get("DocumentAmount") or 0), 2),
+                    "paid": round(float(row.get("TotalPayments") or 0), 2),
+                    "count": int(float(row.get("ConstructionsQTY") or 0)),
+                    "currency": _clean(row.get("Currency")) or "грн",
+                })
+            except (TypeError, ValueError):
+                logger.warning("Telegram bot skipped malformed additional order for %s", user.username, exc_info=True)
         return Response({"success": True, "additional_orders": additional_orders, "total": len(additional_orders)})
-    except DatabaseError:
-        logger.exception("Telegram bot additional orders database error for %s", user.username)
+    except Exception:
+        logger.exception("Telegram bot additional orders error for %s", user.username)
         return Response({"success": False, "error": "Could not load additional orders from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+
+def _telegram_user_order(user, order_id, order_number=""):
+    for calculation in get_orders_by_period_and_contractor(
+        timezone.localdate() - timedelta(days=180), timezone.localdate(), user.user_id_1C,
+    ):
+        for order in calculation.get("orders") or []:
+            same_id = order_id and _clean(order.get("idGuid")).lower() == order_id.lower()
+            same_number = order_number and _clean(order.get("number")) == order_number
+            if same_id or same_number:
+                return order
+    return None
+
+
+def _telegram_order_files(order_id):
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetOrdersFiles @OrderLinkGUID=%s", [order_id])
+        columns = [column[0] for column in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    files = []
+    for row in rows:
+        file_id = row.get("File_GUID")
+        if isinstance(file_id, (bytes, bytearray, memoryview)):
+            file_id = bin_to_guid_1c(file_id)
+        if not file_id:
+            continue
+        files.append({
+            "id": str(file_id),
+            "name": _clean(row.get("File_FileName")) or f"file_{str(file_id)[:8]}",
+            "type": _clean(row.get("File_DataType_Name")) or "Файл",
+            "date": _iso_value(row.get("File_Date")),
+        })
+    return files
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_order_files(request):
+    user = _linked_user(_request_chat_id(request))
+    order_id = _clean(request.query_params.get("order_id"))
+    order_number = _clean(request.query_params.get("order_number"))
+    if not user or not order_id:
+        return Response({"success": False, "error": "Telegram is not linked or order_id is missing."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        if not _telegram_user_order(user, order_id, order_number):
+            return Response({"success": False, "error": "Order is not available for this dealer."}, status=status.HTTP_403_FORBIDDEN)
+        files = _telegram_order_files(order_id)
+        return Response({"success": True, "order_id": order_id, "files": files, "total": len(files)})
+    except Exception:
+        logger.exception("Telegram bot order files error for %s", user.username)
+        return Response({"success": False, "error": "Could not load order files from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_order_file_download(request):
+    user = _linked_user(_request_chat_id(request))
+    order_id = _clean(request.query_params.get("order_id"))
+    order_number = _clean(request.query_params.get("order_number"))
+    file_id = _clean(request.query_params.get("file_id"))
+    if not user or not file_id:
+        return Response({"success": False, "error": "Missing file parameters."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        file_item = None
+        if order_id:
+            if not _telegram_user_order(user, order_id, order_number):
+                return Response({"success": False, "error": "Order is not available for this dealer."}, status=status.HTTP_403_FORBIDDEN)
+            file_item = next((item for item in _telegram_order_files(order_id) if item["id"].lower() == file_id.lower()), None)
+        else:
+            for calculation in get_orders_by_period_and_contractor(
+                timezone.localdate() - timedelta(days=180), timezone.localdate(), user.user_id_1C,
+            ):
+                for order in calculation.get("orders") or []:
+                    candidate_order_id = _clean(order.get("idGuid"))
+                    if not candidate_order_id:
+                        continue
+                    candidate = next((item for item in _telegram_order_files(candidate_order_id) if item["id"].lower() == file_id.lower()), None)
+                    if candidate:
+                        order_id, file_item = candidate_order_id, candidate
+                        break
+                if file_item:
+                    break
+        if not file_item:
+            return Response({"success": False, "error": "File is not available for this dealer."}, status=status.HTTP_404_NOT_FOUND)
+        original_query = request._request.GET
+        query = original_query.copy()
+        query["filename"] = file_item["name"]
+        request._request.GET = query
+        try:
+            return download_order_file(request._request, order_id, file_id)
+        finally:
+            request._request.GET = original_query
+    except Exception:
+        logger.exception("Telegram bot order file download error for %s", user.username)
+        return Response({"success": False, "error": "Could not download file from 1C."}, status=status.HTTP_502_BAD_GATEWAY)
 
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])
