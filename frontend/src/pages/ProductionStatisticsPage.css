@@ -1890,9 +1890,10 @@
 
 .production-design__dealer-ranks {
   display: grid;
-  grid-template-columns: repeat(2, minmax(116px, auto));
+  grid-template-columns: minmax(116px, auto);
   gap: 30px;
   align-items: center;
+  justify-content: end;
 }
 
 .production-design__dealer-ranks div {

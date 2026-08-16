@@ -806,6 +806,7 @@ export default function InviteRegisterForm() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const shouldShowTelegramAfterRegistration = !["manager", "region_manager"].includes(info.role);
 
   /* ================= HELPERS ================= */
   
@@ -898,8 +899,9 @@ const passwordStrength = useMemo(() => {
     }
 
     try {
-      setSuccess(true);      await axiosInstance.post(`/register/${code}/`, formData);
-
+      const response = await axiosInstance.post(`/register/${code}/`, formData);
+      setTgLink(response.data?.tg_link || "");
+      setSuccess(true);
     } catch (err) {
       addNotification(err.response?.data?.error || t("invite.errors.reg_fail"), "error");
     }
@@ -917,7 +919,7 @@ const passwordStrength = useMemo(() => {
             <span className="text-bold">{t("invite.success_message")}</span>
           </div>
 
-          {tgLink && (
+          {shouldShowTelegramAfterRegistration && tgLink && (
             <div className="qr-section column align-center gap-5 mt-5">
               <h3 className="font-size-18 uppercase text-info text-bold m-0">{t("invite.tg.title")}</h3>
               <div className="qr-image-wrapper" style={{ background: "white", padding: "15px", borderRadius: "3px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", marginTop: "10px" }}>

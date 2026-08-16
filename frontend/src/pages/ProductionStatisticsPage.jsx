@@ -216,10 +216,6 @@ function normalizeRegionName(value) {
   return regionName;
 }
 
-function shortRegionName(value) {
-  return normalizeRegionName(value).replace(/\s+область$/i, "");
-}
-
 function calculateDaysBetween(startValue, endValue) {
   if (!startValue || !endValue) {
     return null;
@@ -345,7 +341,6 @@ function ComparisonGauge({
   label,
   percent,
   valueLabel,
-  leaderLabel,
   color,
   iconName,
 }) {
@@ -371,7 +366,6 @@ function ComparisonGauge({
         </div>
       </div>
       <strong>{valueLabel}</strong>
-      <small>лідер: {leaderLabel}</small>
     </article>
   );
 }
@@ -735,10 +729,6 @@ export default function ProductionStatisticsPage() {
   const volumeDynamics = unifiedData?.volume_dynamics || [];
   const efficiencyDynamics = unifiedData?.efficiency_dynamics || [];
   const constructionPortfolio = unifiedData?.construction_portfolio || [];
-
-  const isMobile = window.innerWidth < 720;
-  const maxBarHeight = isMobile ? 100 : 120;
-
 
   const abcTabs = useMemo(() => {
     const present = Array.from(new Set(summary.map((item) => item.abc).filter(Boolean)));
@@ -1223,20 +1213,24 @@ export default function ProductionStatisticsPage() {
       : [];
   }, [comparisonData]);
 
-  const comparisonRegions = useMemo(() => {
-    return Array.isArray(comparisonData?.regions) ? comparisonData.regions : [];
-  }, [comparisonData]);
-
-  const comparisonRegionLabel = normalizeRegionName(
-    comparisonInsights.selected_region_name || comparisonSelectedDealer?.region_name || "",
-  );
-
   const comparisonLeader = useMemo(() => {
-    if (!comparisonLeaderboard.length) {
+    if (!comparisonLeaderboard.length || !comparisonSelectedDealer) {
       return null;
     }
 
-    return [...comparisonLeaderboard].sort((left, right) => {
+    const selectedRegion = normalizeRegionName(comparisonSelectedDealer.region_name || "");
+    const regionalLeaderboard = comparisonLeaderboard.filter((item) => {
+      return normalizeRegionName(item.region_name || "") === selectedRegion;
+    });
+    const source = regionalLeaderboard.length ? regionalLeaderboard : comparisonLeaderboard;
+
+    return [...source].sort((left, right) => {
+      const leftRegionalRank = Number(left.region_turnover_rank || Number.MAX_SAFE_INTEGER);
+      const rightRegionalRank = Number(right.region_turnover_rank || Number.MAX_SAFE_INTEGER);
+      if (regionalLeaderboard.length && leftRegionalRank !== rightRegionalRank) {
+        return leftRegionalRank - rightRegionalRank;
+      }
+
       const leftRank = Number(left.turnover_rank || Number.MAX_SAFE_INTEGER);
       const rightRank = Number(right.turnover_rank || Number.MAX_SAFE_INTEGER);
 
@@ -1246,7 +1240,7 @@ export default function ProductionStatisticsPage() {
 
       return Number(right.total_turnover || 0) - Number(left.total_turnover || 0);
     })[0];
-  }, [comparisonLeaderboard]);
+  }, [comparisonLeaderboard, comparisonSelectedDealer]);
 
   const comparisonMetricCards = useMemo(() => {
     if (!comparisonSelectedDealer) {
@@ -1264,7 +1258,6 @@ export default function ProductionStatisticsPage() {
           comparisonLeader?.total_turnover,
         ),
         valueLabel: formatCurrencyPlain(comparisonSelectedDealer.total_turnover),
-        leaderLabel: formatCurrencyPlain(comparisonLeader?.total_turnover),
       },
       {
         key: "orders",
@@ -1276,7 +1269,6 @@ export default function ProductionStatisticsPage() {
           comparisonLeader?.orders_count,
         ),
         valueLabel: `${formatNumber(comparisonSelectedDealer.orders_count)} замовлень`,
-        leaderLabel: formatNumber(comparisonLeader?.orders_count),
       },
       {
         key: "constructions",
@@ -1288,7 +1280,6 @@ export default function ProductionStatisticsPage() {
           comparisonLeader?.total_constructions,
         ),
         valueLabel: `${formatNumber(comparisonSelectedDealer.total_constructions)} конструкцій`,
-        leaderLabel: formatNumber(comparisonLeader?.total_constructions),
       },
       {
         key: "avg-check",
@@ -1300,7 +1291,6 @@ export default function ProductionStatisticsPage() {
           comparisonLeader?.avg_check,
         ),
         valueLabel: formatCurrencyPlain(comparisonSelectedDealer.avg_check),
-        leaderLabel: formatCurrencyPlain(comparisonLeader?.avg_check),
       },
     ];
   }, [comparisonLeader, comparisonSelectedDealer]);
@@ -1317,131 +1307,6 @@ export default function ProductionStatisticsPage() {
 
     return totalPercent / comparisonMetricCards.length;
   }, [comparisonMetricCards]);
-
-  const comparisonRegionCards = useMemo(() => {
-    const turnoverColors = ["#B4D947", "#6B99BF", "#F28A29"];
-    const avgCheckColors = ["#5CCCBD", "#6B99BF", "#B4D947"];
-
-    return [...comparisonRegions]
-      .sort(
-        (left, right) =>
-          Number(right.total_turnover || 0) - Number(left.total_turnover || 0),
-      )
-      .slice(0, 3)
-      .map((item, index) => ({
-        ...item,
-        turnoverColor: turnoverColors[index] || "#B4D947",
-        avgCheckColor: avgCheckColors[index] || "#6B99BF",
-      }));
-  }, [comparisonRegions]);
-
-  const comparisonMaxRegionTurnover = useMemo(() => {
-    return Math.max(
-      ...comparisonRegionCards.map((item) => Number(item.total_turnover || 0)),
-      1,
-    );
-  }, [comparisonRegionCards]);
-
-  const comparisonMaxRegionCheck = useMemo(() => {
-    return Math.max(
-      ...comparisonRegionCards.map((item) => Number(item.avg_check || 0)),
-      1,
-    );
-  }, [comparisonRegionCards]);
-
-  const comparisonPotentialCards = useMemo(() => {
-    if (!comparisonSelectedDealer) {
-      return [];
-    }
-
-    const turnoverPercent = calculateComparisonPercent(
-      comparisonSelectedDealer.total_turnover,
-      comparisonLeader?.total_turnover,
-    );
-    const ordersPercent = calculateComparisonPercent(
-      comparisonSelectedDealer.orders_count,
-      comparisonLeader?.orders_count,
-    );
-    const avgCheckPercent = calculateComparisonPercent(
-      comparisonSelectedDealer.avg_check,
-      comparisonLeader?.avg_check,
-    );
-
-    return [
-      {
-        key: "turnover",
-        label: "Оборот",
-        icon: "₴",
-        color: "#B4D947",
-        title: "До рівня лідера за оборотом",
-        value: `+${formatCurrencyPlain(
-          Math.max(
-            Number(comparisonLeader?.total_turnover || 0) -
-              Number(comparisonSelectedDealer.total_turnover || 0),
-            0,
-          ),
-        )}`,
-        remaining: `ще ${formatRoundedPercent(100 - turnoverPercent)}`,
-        progress: turnoverPercent,
-      },
-      {
-        key: "orders",
-        label: "Замовлення",
-        icon: "↗",
-        color: "#F28A29",
-        title: "До рівня лідера за замовленнями",
-        value: `+${formatNumber(
-          Math.max(
-            Number(comparisonLeader?.orders_count || 0) -
-              Number(comparisonSelectedDealer.orders_count || 0),
-            0,
-          ),
-        )} замовлень`,
-        remaining: `ще ${formatRoundedPercent(100 - ordersPercent)}`,
-        progress: ordersPercent,
-      },
-      {
-        key: "avg-check",
-        label: "Середній чек",
-        icon: "⌁",
-        color: "#944FD1",
-        title: "До рівня лідера за середнім чеком",
-        value: `+${formatCurrencyPlain(
-          Math.max(
-            Number(comparisonLeader?.avg_check || 0) -
-              Number(comparisonSelectedDealer.avg_check || 0),
-            0,
-          ),
-        )}`,
-        remaining: `ще ${formatRoundedPercent(100 - avgCheckPercent)}`,
-        progress: avgCheckPercent,
-      },
-    ];
-  }, [comparisonLeader, comparisonSelectedDealer]);
-
-  const mainGrowthOpportunity = useMemo(() => {
-    if (!comparisonPotentialCards.length) {
-      return null;
-    }
-
-    const opportunities = comparisonPotentialCards
-      .map((item) => ({
-        ...item,
-        gapPercent: Math.max(
-          0,
-          100 - Math.max(0, Math.min(Number(item.progress || 0), 100)),
-        ),
-      }))
-      .filter((item) => item.gapPercent > 0);
-
-    if (!opportunities.length) {
-      return null;
-    }
-
-    return opportunities.reduce((largestGap, item) =>
-      item.gapPercent > largestGap.gapPercent ? item : largestGap,
-    );
-  }, [comparisonPotentialCards]);
 
   const handleSearch = () => {
     setSelectedAbc("all");
@@ -1733,20 +1598,13 @@ export default function ProductionStatisticsPage() {
                 <div className="production-design__eyebrow">Порівняння дилера</div>
                 <div className="production-design__dealer-head-title">
                   <h2>{comparisonSelectedDealer.dealer_name}</h2>
-                  <span>{comparisonRegionLabel}</span>
+                  <span>Порівняння з топ-1 в регіоні</span>
                 </div>
               </div>
               <div className="production-design__dealer-ranks">
                 <div>
                   <strong>
                     <FaTrophy />
-                    {formatNumber(comparisonSelectedDealer.turnover_rank)}
-                  </strong>
-                  <small>у загальному рейтингу</small>
-                </div>
-                <div>
-                  <strong className="is-blue">
-                    <FaMedal />
                     {formatNumber(comparisonSelectedDealer.region_turnover_rank)}
                   </strong>
                   <small>у регіоні</small>
@@ -1757,8 +1615,8 @@ export default function ProductionStatisticsPage() {
             <div className="production-design__dealer-main">
               <article className="production-design__dealer-panel production-design__dealer-panel--metrics">
                 <div className="production-design__dealer-panel-head">
-                  <h3>Порівняння з топ-1</h3>
-                  <span>Усі ваші показники — у відсотках до рівня лідера</span>
+                  <h3>Порівняння з топ-1 в регіоні</h3>
+                  <span>Усі ваші показники — у відсотках до рівня локального лідера</span>
                 </div>
                 <div className="production-design__dealer-gauges">
                   {comparisonMetricCards.map((item) => (
@@ -1767,7 +1625,6 @@ export default function ProductionStatisticsPage() {
                       label={item.label}
                       percent={item.percent}
                       valueLabel={item.valueLabel}
-                      leaderLabel={item.leaderLabel}
                       color={item.color}
                       iconName={item.iconName}
                     />
@@ -1792,139 +1649,13 @@ export default function ProductionStatisticsPage() {
                 </div>
                 <p>середній рівень відносно лідера</p>
                 <div className="production-design__dealer-profit-card">
-                  <span>Зверніть увагу</span>
-                  <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_top_20 || 0)}</strong>
-                 <small>За умови досягнення рівня найкращого дилера та націнки 20%</small>
+                  <span>Очікуваний прибуток</span>
+                  <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_region_20 || 0)}</strong>
+                 <small>За умови досягнення рівня топ-1 в регіоні та націнки 20%</small>
                 </div>
               </aside>
             </div>
 
-            <div className="production-design__dealer-charts">
-              <article className="production-design__dealer-panel production-design__dealer-panel--regions">
-                <div className="production-design__dealer-panel-head production-design__dealer-panel-head--inline">
-                  <h3>Оборот по регіонам</h3>
-                  <span>Оборот</span>
-                </div>
-                <div className="production-design__dealer-turnover-list">
-                  {comparisonRegionCards.map((region) => (
-                    <article key={region.region_name} className="production-design__dealer-turnover-row">
-                      <b>{shortRegionName(region.region_name)}</b>
-                      <div>
-                        <i
-                          style={{
-                            width: `${(Number(region.total_turnover || 0) / comparisonMaxRegionTurnover) * 100}%`,
-                            background: region.turnoverColor,
-                          }}
-                        />
-                      </div>
-                      <span style={{ color: region.turnoverColor }}>
-                        {formatCurrencyPlain(region.total_turnover)}
-                      </span>
-                    </article>
-                  ))}
-                </div>
-              </article>
-
-              <article className="production-design__dealer-panel production-design__dealer-panel--checks">
-                <h3>Середній чек по регіонах</h3>
-                <div className="production-design__dealer-check-bars">
-                  {comparisonRegionCards.map((region) => (
-                    <article key={region.region_name} className="production-design__dealer-check-bar">
-                      <strong style={{ color: region.avgCheckColor }}>
-                        {formatCompactThousands(region.avg_check)}
-                      </strong>
-                      <div>
-                        <i
-                          style={{
-                            height: `${Math.max(
-                              (Number(region.avg_check || 0) / comparisonMaxRegionCheck) * maxBarHeight,
-                              24
-                            )}px`,
-                            background: region.avgCheckColor,
-                          }}
-                        />
-                      </div>
-                      <span>{shortRegionName(region.region_name)}</span>
-                    </article>
-                  ))}
-                </div>
-              </article>
-            </div>
-
-            <div className="production-design__dealer-growth">
-              <h3>Напрямок розвитку</h3>
-              <div className="production-design__dealer-growth-layout">
-                <div className="production-design__dealer-growth-main">
-                  <div className="production-design__dealer-growth-grid">
-                    {comparisonPotentialCards.map((item) => (
-                      <article key={item.key} className="production-design__dealer-growth-card">
-                        <span
-                          className="production-design__dealer-growth-icon"
-                          style={{ "--growth-color": item.color }}
-                        >
-                          {item.icon}
-                        </span>
-                        <div>
-                          <small>{item.title}</small>
-                          <strong>{item.value}</strong>
-                          <span>{item.remaining}</span>
-                          <div className="production-design__dealer-growth-track">
-                            <i
-                              style={{
-                                width: `${Math.max(0, Math.min(Number(item.progress || 0), 100))}%`,
-                                background: item.color,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                  <p>
-                    Якби ви замовляли на рівні нашого найкращого дилера, то за базової
-                    націнки 20% могли б отримати на {formatCurrencyPlain(comparisonInsights.extra_profit_vs_top_20 || 0)} більше прибутку.
-                  </p>
-                </div>
-
-                {mainGrowthOpportunity ? (
-                  <div
-                    className="production-design__dealer-profit-card production-design__dealer-profit-card--wide"
-                    style={{
-                      "--growth-color": mainGrowthOpportunity.color,
-                      borderColor: mainGrowthOpportunity.color,
-                    }}
-                  >
-                    <span>Підсумок</span>
-
-                    <small
-                      style={{
-                        // color: mainGrowthOpportunity.color,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {mainGrowthOpportunity.icon} {mainGrowthOpportunity.label}
-                    </small>
-
-                    <strong>{mainGrowthOpportunity.value}</strong>
-
-                    <small>
-                      ще {formatRoundedPercent(mainGrowthOpportunity.gapPercent)} до рівня лідера
-                    </small>
-
-                    <small>
-                      Саме цей показник має найбільший потенціал для зростання.
-                    </small>
-                  </div>
-                ) : (
-                  <div className="production-design__dealer-profit-card production-design__dealer-profit-card--wide">
-                    <span>Головна можливість</span>
-                    <strong>100%</strong>
-                    <small>За ключовими показниками ви вже на рівні лідера</small>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </section> : null}
 

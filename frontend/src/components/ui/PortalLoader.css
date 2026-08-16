@@ -55,8 +55,8 @@
 body.dark-theme .portal-loader {
   background: radial-gradient(
     circle,
-    var(--portal-bg-color-end) 45%,
-    var(--portal-bg-color-start)
+    #2f2d2b 45%,
+    #1f1e1c
   );
 }
 

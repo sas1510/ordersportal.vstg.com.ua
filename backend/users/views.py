@@ -742,13 +742,14 @@ def register_with_invite(request, code):
     user_guid_str = bin_to_guid_1c(user.user_id_1C)
     bot_username = settings.TELEGRAM_BOT_USERNAME
     tg_link = f"https://t.me/{bot_username}?start={user_guid_str}"
+    should_offer_telegram_after_registration = user.role not in {"manager", "region_manager"}
 
     # ---------- GET ----------
     if request.method == "GET":
         serializer = CompleteRegistrationSerializer(user)
 
         data = serializer.data
-        data["tg_link"] = tg_link
+        data["tg_link"] = tg_link if should_offer_telegram_after_registration else ""
         return Response(data, status=status.HTTP_200_OK)
 
 
@@ -777,12 +778,12 @@ def register_with_invite(request, code):
             }
         })
 
-
-        send_registration_success_email(user, tg_link)
+        if user.role not in {"manager", "region_manager"}:
+            send_registration_success_email(user, tg_link)
 
     
         data = serializer.data
-        data["tg_link"] = tg_link
+        data["tg_link"] = tg_link if should_offer_telegram_after_registration else ""
 
         return Response(data, status=status.HTTP_200_OK)
     

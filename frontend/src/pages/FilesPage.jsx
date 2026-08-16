@@ -1,7 +1,6 @@
 import React, { useState, useEffect , useCallback} from "react";
 import axiosInstance from "../api/axios";
 import {
-  FaFileAlt,
   FaFilePdf,
   FaFileWord,
   FaFileExcel,
@@ -14,7 +13,7 @@ import {
 } from "react-icons/fa";
 import ConfirmModal from "../components/Orders/ConfirmModal";
 import { useTranslation } from 'react-i18next';
-
+import {AppIcon} from "../components/Icons/AppIcon";
 
 
 import { useNotification } from "../hooks/useNotification";
@@ -55,7 +54,6 @@ const FilesPage = () => {
   const plusIcon = "/assets/icons/PlusIcon.png";
   const downloadIcon = "/assets/icons/DownloadIcon.png";
   const profileIcon = "/assets/icons/ProfileFilesIcon.png";
-  const fileIcon = "/assets/icons/FileIconFilePage.png";
 
 
   const [titles, setTitles] = useState({ ua: "", en: "", it: "", de: "" });
@@ -275,15 +273,15 @@ const FilesPage = () => {
     const ext = file.file_extension?.toLowerCase();
     switch (ext) {
       case "pdf":
-        return <FaFilePdf className="text-red-600" />;
+         return <AppIcon name="FilePageIcon" className="ml-3 text-WS---DarkBlue " />;
       case "doc":
       case "docx":
-        return <FaFileWord className="text-blue-600" />;
+         return <AppIcon name="FilePageIcon" className="ml-3 text-WS---DarkBlue " />;
       case "xls":
       case "xlsx":
-        return <FaFileExcel className="text-green-600" />;
+        return <AppIcon name="FilePageIcon" className="ml-3 text-WS---DarkBlue " />;
       default:
-        return <FaFileAlt className="text-grey" />;
+        return <AppIcon name="FilePageIcon" className="ml-3 text-WS---DarkBlue " />;
     }
   };
 
@@ -461,7 +459,7 @@ const FilesPage = () => {
           </div>
         </div>
       ) : (
-        <div className="column gap-10 max-w-[1334px] items-center justify-center  w-[calc(100%-20px)] ">
+        <div className="column gap-4 max-w-[1334px] items-center justify-center  w-[calc(100%-20px)] ">
           {filteredFiles.map((file) => (
             <div
               key={file.id}
@@ -476,12 +474,11 @@ const FilesPage = () => {
                 transition: "all 0.2s",
               }}
             >
-              <div className="flex !items-start md:!items-center min-h-[70px] flex-1 border-r border-dotted pt-1 pb-1 mr-2">
-              
-
-                <img src={fileIcon}  className="pl-[8px] pr-[8px] md:pl-[17px] md:pr-[17px] h-[25px] md:h-[40px] mt-[6px] md:mt-0"/>
+              <div className="flex !items-start md:!items-center min-h-[70px] flex-1 border-r border-dotted border-[#d1d5db] pt-1 pb-1 mr-2">
+                <div className="mr-3 flex h-[50px] w-[40px] shrink-0 items-center justify-center">
+                  {getFileIcon(file)}
+                </div>
                 <div className="column gap-2">
-                
                   <div
                     className="text-WS---DarkGrey font-bold"
                     style={{
@@ -501,7 +498,7 @@ const FilesPage = () => {
                     }}
                   >
 
-                    <img src={profileIcon} className="pr-[8px]" />
+                    {/* <img src={profileIcon} className="pr-[8px]" /> */}
                    
                     <span>{t('files.adminRole')}</span> 
                     <div className="w-[8px] h-[8px] bg-custom-green rounded-[50%]" />
@@ -515,7 +512,7 @@ const FilesPage = () => {
                   className="button bg-custom-green h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
                   onClick={() => handleDownload(file)}
                 >
-                  <img src={downloadIcon} />  <div className="text-[16px] uppercase !hidden md:!block">{t('files.buttons.download')}</div>
+                  <img src={downloadIcon} />  <div className="text-[16px] uppercase text-[#44430e] !hidden md:!block">{t('files.buttons.download')}</div>
                 </button>
 
                 {isAdmin && (
