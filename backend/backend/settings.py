@@ -425,6 +425,16 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
 
 
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Apache proxy currently does not forward X-Forwarded-Proto,
+    # so forced SSL redirects create a loop for /api/* requests.
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

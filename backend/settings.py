@@ -421,7 +421,11 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-    SECURE_SSL_REDIRECT = True
+    # Apache proxy currently does not forward X-Forwarded-Proto,
+    # so forced SSL redirects create a loop for /api/* requests.
+    # Keep secure cookies/HSTS enabled and disable app-level redirect
+    # until the proxy header is configured on the web server.
+    SECURE_SSL_REDIRECT = False
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
     SECURE_HSTS_SECONDS = 31536000
