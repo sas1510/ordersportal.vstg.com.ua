@@ -70,7 +70,16 @@
 
 import axios from "axios";
 
-const API_URL = (import.meta.env.VITE_API_URL || "") + "/api";
+const resolveApiOrigin = () => {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+
+  return import.meta.env.VITE_API_URL || "";
+};
+
+export const API_ORIGIN = resolveApiOrigin();
+export const API_URL = `${API_ORIGIN}/api`;
 const MAINTENANCE_NOTIFICATION_COOLDOWN_MS = 10000;
 
 let logoutHandler = null;

@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axiosInstance from "../api/axios";
+import axiosInstance, { API_ORIGIN } from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
-
-const API_URL =
-  (import.meta.env.VITE_API_URL || "https://localhost:7019") + "/api";
 
 export default function AddOrEditFilePage() {
   const { id } = useParams();
@@ -30,7 +27,7 @@ export default function AddOrEditFilePage() {
       const res = await axiosInstance.get(`documents/${id}/`);
       setTitle(res.data.title);
       setExistingFileUrl(
-        `${API_URL.replace("/api", "")}/documents/${res.data.filePath}`,
+        `${API_ORIGIN}/documents/${res.data.filePath}`,
       );
     } catch (err) {
       // console.error("Помилка завантаження документа:", err);

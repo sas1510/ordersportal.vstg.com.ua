@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axiosInstance from "../api/axios";
+import axiosInstance, { API_URL } from "../api/axios";
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
-
-const API_URL = import.meta.env.VITE_API_URL || "https://localhost:7019";
 
 export default function VideoFormPage() {
   const { id } = useParams(); // якщо id є — редагування
@@ -28,7 +26,7 @@ export default function VideoFormPage() {
 
   const fetchVideo = async (videoId) => {
     try {
-      const res = await axiosInstance.get(`${API_URL}/api/videos/${videoId}/`);
+      const res = await axiosInstance.get(`${API_URL}/videos/${videoId}/`);
       setTitle(res.data.title);
       setUrl(res.data.youtubeUrl);
     } catch (error) {
@@ -44,9 +42,9 @@ export default function VideoFormPage() {
 
     try {
       if (isEditMode) {
-        await axiosInstance.put(`${API_URL}/api/videos/${id}/`, payload);
+        await axiosInstance.put(`${API_URL}/videos/${id}/`, payload);
       } else {
-        await axiosInstance.post(`${API_URL}/api/videos/`, payload);
+        await axiosInstance.post(`${API_URL}/videos/`, payload);
       }
       navigate("/videos");
     } catch (error) {
