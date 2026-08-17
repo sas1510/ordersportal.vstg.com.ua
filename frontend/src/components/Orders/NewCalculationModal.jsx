@@ -17,6 +17,8 @@ import {
 import ClientAddressModal from "./ClientAddressModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
+const CALCULATION_NUMBER_MAX_LENGTH = 14;
+
 const NewCalculationModal = ({
   isOpen,
   onClose,
@@ -72,9 +74,11 @@ const NewCalculationModal = ({
     if (!isOpen) return;
 
     setOrderNumber(
-      initialCalculation?.webNumber ||
-        initialCalculation?.number ||
-        "",
+      String(
+        initialCalculation?.webNumber ||
+          initialCalculation?.number ||
+          "",
+      ).slice(0, CALCULATION_NUMBER_MAX_LENGTH),
     );
     setFile(null);
     setFileName(
@@ -407,12 +411,17 @@ const NewCalculationModal = ({
         })
       );
 
+      const normalizedOrderNumber = String(orderNumber || "").slice(
+        0,
+        CALCULATION_NUMBER_MAX_LENGTH,
+      );
+
       // 3. Формуємо фінальний JSON payload
       const payload = isEditMode
         ? {
             ...(isManager && dealerId && { contractor_guid: dealerId }),
             ...(orderNumberTouched && {
-              order_number: orderNumber,
+              order_number: normalizedOrderNumber,
             }),
             ...(itemsCountTouched && {
               items_count: Number(itemsCount),
@@ -454,7 +463,7 @@ const NewCalculationModal = ({
           }
         : {
             ...(isManager && dealerId && { contractor_guid: dealerId }),
-            order_number: orderNumber,
+            order_number: normalizedOrderNumber,
             items_count: Number(itemsCount),
             comment,
             photos: convertedPhotos,
@@ -588,9 +597,12 @@ const NewCalculationModal = ({
     type="text"
     value={orderNumber}
     onChange={(e) => {
-      setOrderNumber(e.target.value);
+      setOrderNumber(
+        e.target.value.slice(0, CALCULATION_NUMBER_MAX_LENGTH),
+      );
       setOrderNumberTouched(true);
     }}
+    maxLength={CALCULATION_NUMBER_MAX_LENGTH}
     className="new-calc-input"
     placeholder={t("orders.newOrderModal.order_number_placeholder")}
   />
