@@ -247,7 +247,7 @@ def send_webpush_notification(recipient_id_1c, title, message):
         if not user:
             return f"User {recipient_id_1c} not found"
 
-        base_url = "https://ordersportal.vstg.com.ua"
+        base_url = "https://portal.vstg.com.ua"
         payload = {
             "head": title,
             "body": message,
@@ -646,7 +646,7 @@ def run_order_reminder_cron():
     for user_bin, items in user_notifications.items():
         if not items: continue
 
-        base_url = "https://ordersportal.vstg.com.ua"
+        base_url = "https://portal.vstg.com.ua"
         current_year = timezone.now().year
         
         # Формуємо красивий список для Telegram

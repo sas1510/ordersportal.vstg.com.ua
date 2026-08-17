@@ -248,7 +248,7 @@ SPECTACULAR_SETTINGS = {
 
 
 # SESSION_COOKIE_AGE = 60 * 60 * 8   
-FRONTEND_URL = "https://ordersportal.vstg.com.ua/"
+FRONTEND_URL = "https://portal.vstg.com.ua/"
 
 
 ONE_C_URL = config('ONE_C_URL')
@@ -308,6 +308,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 CORS_ALLOWED_ORIGINS = [
+    "https://portal.vstg.com.ua",
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -334,6 +335,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://172.17.19.107',
     'http://localhost',
     'http://127.0.0.1',
+    'https://portal.vstg.com.ua',
     'https://ordersportal.vstg.com.ua'
 ]
 
@@ -342,7 +344,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # settings.py
 
-ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'ordersportal.vstg.com.ua', 'www.ordersportal.vstg.com.ua', 'backend']
+ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'portal.vstg.com.ua', 'www.portal.vstg.com.ua', 'ordersportal.vstg.com.ua', 'www.ordersportal.vstg.com.ua', 'backend']
 
 
 # SILKY_PYTHON_PROFILER = True  
@@ -385,7 +387,9 @@ CSP_FONT_SRC = (
 # З'єднання: ОБОВ'ЯЗКОВО додаємо wss:// для чату/сповіщень
 CSP_CONNECT_SRC = (
     "'self'", 
-    "wss://ordersportal.vstg.com.ua", 
+    "wss://portal.vstg.com.ua", 
+    "https://portal.vstg.com.ua",
+    "wss://ordersportal.vstg.com.ua",
     "https://ordersportal.vstg.com.ua",
     "http://172.17.19.107",
 )

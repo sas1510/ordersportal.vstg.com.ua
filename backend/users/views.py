@@ -2395,7 +2395,7 @@ class CreateInvitationView(APIView):
                             # "message": "active_invite_exists",
                             "info": "Діюче запрошення знайдено. Нове можна створити через 24 години після попереднього.",
                             "username": user.username,
-                            "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{last_invite.code}",
+                            "inviteLink": f"https://portal.vstg.com.ua/invite/{last_invite.code}",
                             "code": last_invite.code,
                             "created_at": created_at_kyiv,      # Поверне напр. "09:42 02.02.2026"
                             "can_refresh_at": can_refresh_at_kyiv # Поверне напр. "09:42 03.02.2026"
@@ -2450,7 +2450,7 @@ class CreateInvitationView(APIView):
 
             return Response({
                 "message": "success",
-                "inviteLink": f"https://ordersportal.vstg.com.ua/invite/{invite_code}",
+                "inviteLink": f"https://portal.vstg.com.ua/invite/{invite_code}",
                 "code": invite_code
             }, status=status.HTTP_201_CREATED)
 
