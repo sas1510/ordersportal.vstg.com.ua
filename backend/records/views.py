@@ -4756,7 +4756,7 @@ def confirm_order_by_number(request):
 
     Backend визначає код:
     - 34-*     -> 000000017
-    - усі інші -> 000000002
+    - усі інші -> 000000004
 
     У 1С викликається Query: SetOrderStatus.
     """
@@ -4801,7 +4801,7 @@ def confirm_order_by_number(request):
     status_code = (
         "000000017"
         if is_sketch_order
-        else "000000002"
+        else "000000004"
     )
 
     payload = {
