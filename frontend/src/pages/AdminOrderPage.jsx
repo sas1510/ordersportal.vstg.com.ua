@@ -26,6 +26,21 @@ import { useLocation } from "react-router-dom";
 
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
+const DEALER_GROUP_VALUES = {
+  dealers: "__GROUP__DEALERS",
+  ourCompany: "__GROUP__OUR_COMPANY",
+  export: "__GROUP__EXPORT",
+};
+const DEALER_GROUP_TO_SQL_VALUE = {
+  [DEALER_GROUP_VALUES.dealers]: "Дилера",
+  [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
+  [DEALER_GROUP_VALUES.export]: "Експорт",
+};
+const DEALER_GROUP_OPTIONS = [
+  { value: DEALER_GROUP_VALUES.dealers, label: "Дилера" },
+  { value: DEALER_GROUP_VALUES.ourCompany, label: "Наша фірма" },
+  { value: DEALER_GROUP_VALUES.export, label: "Експорт" },
+];
 
 const getLocalDateString = (dateValue = new Date()) => {
   const year = dateValue.getFullYear();
@@ -73,7 +88,7 @@ const isValidDateRange = (dateFrom, dateTo) => {
 };
 
 const AdminPortalOriginal = () => {
-  const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
+  const { dealerGuid, setDealerGuid, isAdmin, role } = useDealerContext();
   const { register, cancelAll } = useCancelAllRequests();
   const { t } = useTranslation();
   const location = useLocation();
@@ -171,7 +186,32 @@ const AdminPortalOriginal = () => {
   const closeIcon = "/assets/icons/CloseButton.png";
 
   const isAllDealers =
-    isAdmin && dealerGuid === ALL_DEALERS_VALUE;
+    isAdmin &&
+    (
+      dealerGuid === ALL_DEALERS_VALUE ||
+      Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid)
+    );
+
+  const canUseDealerGroups =
+    role === "admin" || role === "director";
+
+  const appliedDealerGroup = useMemo(
+    () => (
+      canUseDealerGroups
+        ? DEALER_GROUP_TO_SQL_VALUE[dealerGuid] || undefined
+        : undefined
+    ),
+    [canUseDealerGroups, dealerGuid],
+  );
+
+  useEffect(() => {
+    if (
+      !canUseDealerGroups &&
+      Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid)
+    ) {
+      setDealerGuid(ALL_DEALERS_VALUE);
+    }
+  }, [canUseDealerGroups, dealerGuid, setDealerGuid]);
 
   const availableYears = useMemo(() => {
     const startYear = 2024;
@@ -376,9 +416,13 @@ const AdminPortalOriginal = () => {
     const previousDealerGuid = previousDealerGuidRef.current;
 
     const switchedFromAllToSingle =
-      previousDealerGuid === ALL_DEALERS_VALUE &&
+      (
+        previousDealerGuid === ALL_DEALERS_VALUE ||
+        Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, previousDealerGuid)
+      ) &&
       dealerGuid &&
-      dealerGuid !== ALL_DEALERS_VALUE;
+      dealerGuid !== ALL_DEALERS_VALUE &&
+      !Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid);
 
     if (switchedFromAllToSingle) {
       setSingleDealerDateMode("year");
@@ -499,11 +543,18 @@ const AdminPortalOriginal = () => {
               params: {
                 date_from: appliedDateFrom,
                 date_to: appliedDateTo,
+                ...(appliedDealerGroup
+                  ? { dealer_group: appliedDealerGroup }
+                  : {}),
               },
               signal,
             },
           );
-        } else if (dealerGuid) {
+        } else if (
+          dealerGuid &&
+          dealerGuid !== ALL_DEALERS_VALUE &&
+          !Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid)
+        ) {
           const params =
             appliedSingleDealerMode === "period"
               ? {
@@ -580,6 +631,7 @@ const AdminPortalOriginal = () => {
     dealerGuid,
     isAdmin,
     isAllDealers,
+    appliedDealerGroup,
     appliedDateFrom,
     appliedDateTo,
     appliedSingleDealerMode,
@@ -1295,6 +1347,11 @@ const AdminPortalOriginal = () => {
                     <DealerSelectWithAll
                       value={dealerGuid}
                       onChange={setDealerGuid}
+                      extraOptions={
+                        canUseDealerGroups
+                          ? DEALER_GROUP_OPTIONS
+                          : []
+                      }
                     />
                   </div>
                 </li>

@@ -2646,6 +2646,13 @@ def orders_view_all_by_month(request):
         .strip()
         .lower()
     )
+    dealer_group = request.GET.get("dealer_group")
+    dealer_group = dealer_group.strip() if isinstance(dealer_group, str) else None
+    if dealer_group == "":
+        dealer_group = None
+
+    if requester_role not in {"admin", "director"}:
+        dealer_group = None
 
     date_from_str = request.GET.get("date_from")
     date_to_str = request.GET.get("date_to")
@@ -2696,6 +2703,7 @@ def orders_view_all_by_month(request):
                 "role": requester_role,
                 "date_from": str(date_from),
                 "date_to": str(date_to),
+                "dealer_group": dealer_group,
             }
         },
     )
@@ -2704,15 +2712,17 @@ def orders_view_all_by_month(request):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC [dbo].[GetOrdersMonthWithCalculations3]
+                EXEC [dbo].[GetOrdersMonthWithCalculations4]
                     @RequesterUserID = %s,
                     @DateFrom = %s,
-                    @DateTo = %s
+                    @DateTo = %s,
+                    @DealerGroup = %s
                 """,
                 [
                     requester_user_id,
                     date_from,
                     date_to,
+                    dealer_group,
                 ],
             )
             

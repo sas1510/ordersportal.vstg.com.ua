@@ -12,6 +12,7 @@ const DealerSelectWithAll = ({
   allowAll = true,
   placeholder,
   allLabel,
+  extraOptions = [],
 }) => {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,8 +73,12 @@ const DealerSelectWithAll = ({
   const selectedLabel =
     allowAll && value === ALL_DEALERS_VALUE
       ? resolvedAllLabel
-      : dealers.find((d) => d.ContractorID === value)?.ContractorName;
+      : extraOptions.find((option) => option.value === value)?.label ||
+        dealers.find((d) => d.ContractorID === value)?.ContractorName;
 
+  const filteredExtraOptions = extraOptions.filter((option) =>
+    option.label?.toLowerCase().includes(search.toLowerCase()),
+  );
   const filteredDealers = dealers.filter((d) =>
     d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
@@ -81,7 +86,10 @@ const DealerSelectWithAll = ({
   const handleKeyDown = (e) => {
     if (!open) return;
 
-    const totalItems = filteredDealers.length + (allowAll ? 1 : 0);
+    const totalItems =
+      filteredExtraOptions.length +
+      filteredDealers.length +
+      (allowAll ? 1 : 0);
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -98,8 +106,22 @@ const DealerSelectWithAll = ({
 
       if (allowAll && highlightedIndex === 0) {
         onChange(ALL_DEALERS_VALUE);
+      } else if (
+        filteredExtraOptions[
+          highlightedIndex - (allowAll ? 1 : 0)
+        ]
+      ) {
+        onChange(
+          filteredExtraOptions[
+            highlightedIndex - (allowAll ? 1 : 0)
+          ].value,
+        );
       } else {
-        const dealer = filteredDealers[highlightedIndex - (allowAll ? 1 : 0)];
+        const dealerIndex =
+          highlightedIndex -
+          (allowAll ? 1 : 0) -
+          filteredExtraOptions.length;
+        const dealer = filteredDealers[dealerIndex];
         if (dealer) onChange(dealer.ContractorID);
       }
 
@@ -169,16 +191,50 @@ const DealerSelectWithAll = ({
                   </div>
                 )}
 
-                {filteredDealers.length === 0 ? (
+                {filteredExtraOptions.map((option, idx) => (
+                  <div
+                    key={option.value}
+                    className={`dealer-select__option ${
+                      highlightedIndex === idx + (allowAll ? 1 : 0)
+                        ? "active"
+                        : ""
+                    }`}
+                    onMouseEnter={() =>
+                      setHighlightedIndex(idx + (allowAll ? 1 : 0))
+                    }
+                    onClick={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                      setSearch("");
+                      setHighlightedIndex(-1);
+                    }}
+                  >
+                    <strong>{option.label}</strong>
+                  </div>
+                ))}
+
+                {filteredExtraOptions.length === 0 &&
+                filteredDealers.length === 0 ? (
                   <div className="dealer-select__empty">{t("dealer_select.empty")}</div>
                 ) : (
                   filteredDealers.map((d, idx) => (
                     <div
                       key={d.ContractorID}
                       className={`dealer-select__option ${
-                        highlightedIndex === idx + (allowAll ? 1 : 0) ? "active" : ""
+                        highlightedIndex ===
+                        idx +
+                          (allowAll ? 1 : 0) +
+                          filteredExtraOptions.length
+                          ? "active"
+                          : ""
                       }`}
-                      onMouseEnter={() => setHighlightedIndex(idx + (allowAll ? 1 : 0))}
+                      onMouseEnter={() =>
+                        setHighlightedIndex(
+                          idx +
+                            (allowAll ? 1 : 0) +
+                            filteredExtraOptions.length,
+                        )
+                      }
                       onClick={() => {
                         onChange(d.ContractorID);
                         setOpen(false);

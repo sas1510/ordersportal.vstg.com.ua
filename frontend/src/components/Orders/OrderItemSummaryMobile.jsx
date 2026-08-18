@@ -390,7 +390,7 @@ export default React.memo(function OrderItemSummaryMobile({
                   → {order.linkedOrderNumber}
                 </div>
               )}
-              <div className="text-[11px] text-WS---DarkGrey">
+              <div className="text-[10px] text-WS---DarkGrey">
                  {formatDateHumanShorter_full(order.date, locale)}
               </div>
             </div>

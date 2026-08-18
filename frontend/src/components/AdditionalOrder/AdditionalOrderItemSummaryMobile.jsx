@@ -161,7 +161,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
                       <div className="text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight">
                         № {order.number}
                       </div>
-                      <div className="text-[11px] text-WS---DarkGrey">
+                      <div className="text-[10px] text-WS---DarkGrey">
                           {formatDateHumanShorter_full(order.dateRaw, locale)}
                       </div>
                     </div>

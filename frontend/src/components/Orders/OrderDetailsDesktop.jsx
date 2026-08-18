@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from "react"; // Імпортуємо useCallback та useMemo
-import { formatDateHuman, formatDateHuman_ln} from "../../utils/formatters";
 import { formatDateHumanShorter } from "../../utils/formatters";
 // import { formatDate } from "../../utils/formatters";
 import "./OrderDetailsDesktop.css";
@@ -90,7 +89,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
     const isPending = !factDateHasArrived && !planDate; 
 
     const displayDate = factDateHasArrived ? (
-      formatDateHuman_ln(factDate, locale)
+      formatDateHumanShorter(factDate, locale)
     ) : planDate ? (
       <div className="plan-block">
         <div className="plan-name">{t("order_mobile.statuses.plan")}:</div>
@@ -352,7 +351,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
               <div className="badge-title">{t("order_mobile.steps.delivery")}</div>
               <div className={`badge-content ${deliveryStatus.bg}`}>
                 {order.realizationDate
-                  ? formatDateHuman(order.realizationDate, locale)
+                  ? formatDateHumanShorter(order.realizationDate, locale)
                   : estimatedDeliveryDisplay || t("order_mobile.statuses.not_delivered")}
               </div>
             </div>

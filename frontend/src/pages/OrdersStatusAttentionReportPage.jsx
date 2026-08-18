@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import axiosInstance from "../api/axios";
 import "./OrdersReportPage.css";
 import "./OrdersStatusAttentionReportPage.css";
+import { useDealerContext } from "../hooks/useDealerContext";
 
 const STATUSES = [
   { status: "Новий", title: "Нові", className: "orders-report__card--new" },
@@ -15,6 +16,12 @@ const getMonthStart = () => {
   const date = new Date();
   return toDateInput(new Date(date.getFullYear(), date.getMonth(), 1));
 };
+const DEALER_GROUP_OPTIONS = [
+  { value: "", label: "Всі типи" },
+  { value: "Дилера", label: "Дилера" },
+  { value: 'ТОВ "Наша фірма"', label: "Наша фірма" },
+  { value: "Експорт", label: "Експорт" },
+];
 
 function getAge(dateValue) {
   const date = dateValue ? new Date(dateValue) : null;
@@ -29,11 +36,15 @@ function getAge(dateValue) {
 }
 
 export default function OrdersStatusAttentionReportPage() {
+  const { role } = useDealerContext();
   const [dateFrom, setDateFrom] = useState(getMonthStart);
   const [dateTo, setDateTo] = useState(getToday);
+  const [dealerGroup, setDealerGroup] = useState("");
   const [calculations, setCalculations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const canUseDealerGroups =
+    role === "admin" || role === "director";
 
   const loadReport = useCallback(async () => {
     if (!dateFrom || !dateTo || dateFrom > dateTo) {
@@ -44,7 +55,13 @@ export default function OrdersStatusAttentionReportPage() {
     setError("");
     try {
       const response = await axiosInstance.get("/order/get_orders_info_all/", {
-        params: { date_from: dateFrom, date_to: dateTo },
+        params: {
+          date_from: dateFrom,
+          date_to: dateTo,
+          ...(canUseDealerGroups && dealerGroup
+            ? { dealer_group: dealerGroup }
+            : {}),
+        },
       });
       if (response.data?.status !== "success") throw new Error();
       setCalculations(response.data?.data?.calculation || []);
@@ -54,7 +71,7 @@ export default function OrdersStatusAttentionReportPage() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo]);
+  }, [canUseDealerGroups, dateFrom, dateTo, dealerGroup]);
 
   useEffect(() => { loadReport(); }, [loadReport]);
 
@@ -95,6 +112,21 @@ export default function OrdersStatusAttentionReportPage() {
         <div className="orders-report__filters">
           <label>Від<input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => setDateFrom(event.target.value)} /></label>
           <label>До<input type="date" value={dateTo} min={dateFrom || undefined} onChange={(event) => setDateTo(event.target.value)} /></label>
+          {canUseDealerGroups && (
+            <label>
+              Тип
+              <select
+                value={dealerGroup}
+                onChange={(event) => setDealerGroup(event.target.value)}
+              >
+                {DEALER_GROUP_OPTIONS.map((option) => (
+                  <option key={option.value || "__all"} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <button type="button" onClick={loadReport} disabled={loading}>{loading ? "Оновлення…" : "Оновити звіт"}</button>
         </div>
         {error && <p className="orders-report__error">{error}</p>}

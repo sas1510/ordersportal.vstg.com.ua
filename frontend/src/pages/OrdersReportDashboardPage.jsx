@@ -42,6 +42,22 @@ const numberFormatter = new Intl.NumberFormat("uk-UA", {
 const dateInput = (date) => date.toISOString().slice(0, 10);
 const ALL_MANAGERS_VALUE = "__ALL_MANAGERS__";
 const ALL_REGIONS_VALUE = "__ALL_REGIONS__";
+const ALL_DEALERS_VALUE = "__ALL__";
+const DEALER_GROUP_VALUES = {
+  dealers: "__GROUP__DEALERS",
+  ourCompany: "__GROUP__OUR_COMPANY",
+  export: "__GROUP__EXPORT",
+};
+const DEALER_GROUP_TO_SQL_VALUE = {
+  [DEALER_GROUP_VALUES.dealers]: "Дилера",
+  [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
+  [DEALER_GROUP_VALUES.export]: "Експорт",
+};
+const DEALER_GROUP_OPTIONS = [
+  { value: DEALER_GROUP_VALUES.dealers, label: "Дилера" },
+  { value: DEALER_GROUP_VALUES.ourCompany, label: "Наша фірма" },
+  { value: DEALER_GROUP_VALUES.export, label: "Експорт" },
+];
 
 const currentMonthStart = () => {
   const date = new Date();
@@ -176,6 +192,7 @@ export default function OrdersReportDashboardPage() {
     setDealerGuid,
     isAdmin,
     isSuperAdmin,
+    role,
     isLoading: dealerContextLoading,
   } = useDealerContext();
 
@@ -193,6 +210,16 @@ export default function OrdersReportDashboardPage() {
   const [selectedManagerGuid, setSelectedManagerGuid] = useState(ALL_MANAGERS_VALUE);
   const [selectedRegionName, setSelectedRegionName] = useState(ALL_REGIONS_VALUE);
   const [activeStatus, setActiveStatus] = useState(STATUSES[0].status);
+  const canUseDealerGroups =
+    role === "admin" || role === "director";
+  const appliedDealerGroup = useMemo(
+    function () {
+      return canUseDealerGroups
+        ? DEALER_GROUP_TO_SQL_VALUE[dealerGuid] || undefined
+        : undefined;
+    },
+    [canUseDealerGroups, dealerGuid],
+  );
 
   const loadStatusReport = useCallback(async () => {
     if (!dateFrom || !dateTo || dateFrom > dateTo) {
@@ -205,7 +232,13 @@ export default function OrdersReportDashboardPage() {
 
     try {
       const response = await axiosInstance.get("/order/get_orders_info_all/", {
-        params: { date_from: dateFrom, date_to: dateTo },
+        params: {
+          date_from: dateFrom,
+          date_to: dateTo,
+          ...(appliedDealerGroup
+            ? { dealer_group: appliedDealerGroup }
+            : {}),
+        },
       });
       if (response.data?.status !== "success") {
         throw new Error();
@@ -217,7 +250,7 @@ export default function OrdersReportDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo]);
+  }, [appliedDealerGroup, dateFrom, dateTo]);
 
   const loadDealerReports = useCallback(async () => {
     if (!isAdmin || dealerContextLoading) {
@@ -257,7 +290,11 @@ export default function OrdersReportDashboardPage() {
 
 
   const visibleCalculations = useMemo(() => {
-    if (!dealerGuid || dealerGuid === "__ALL__") {
+    if (
+      !dealerGuid ||
+      dealerGuid === ALL_DEALERS_VALUE ||
+      Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid)
+    ) {
       return calculations;
     }
 
@@ -265,6 +302,18 @@ export default function OrdersReportDashboardPage() {
       return String(calculation.dealerId || "").toLowerCase() === String(dealerGuid).toLowerCase();
     });
   }, [calculations, dealerGuid]);
+
+  useEffect(
+    function () {
+      if (
+        !canUseDealerGroups &&
+        Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid)
+      ) {
+        setDealerGuid(ALL_DEALERS_VALUE);
+      }
+    },
+    [canUseDealerGroups, dealerGuid, setDealerGuid],
+  );
   const grouped = useMemo(() => {
     const result = Object.fromEntries(STATUSES.map(function (item) {
       return [item.status, []];
@@ -575,7 +624,15 @@ export default function OrdersReportDashboardPage() {
           {viewMode === "statuses" && isAdmin ? (
             <label>
               Дилер
-              <DealerSelectWithAll value={dealerGuid || "__ALL__"} onChange={setDealerGuid} />
+              <DealerSelectWithAll
+                value={dealerGuid || ALL_DEALERS_VALUE}
+                onChange={setDealerGuid}
+                extraOptions={
+                  canUseDealerGroups
+                    ? DEALER_GROUP_OPTIONS
+                    : []
+                }
+              />
             </label>
           ) : null}
 

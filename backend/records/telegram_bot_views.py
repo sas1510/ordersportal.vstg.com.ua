@@ -531,7 +531,7 @@ def telegram_bot_confirm_order(request):
         return Response({"success": False, "error": "\u0426\u0435 \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u0432\u0436\u0435 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u0435."}, status=status.HTTP_409_CONFLICT)
     is_sketch = order_number.upper().startswith("34-")
     try:
-        result = send_to_1c("SetOrderStatus", {"order_id": order_id, "status_code": "000000017" if is_sketch else "000000002"})
+        result = send_to_1c("SetOrderStatus", {"order_id": order_id, "status_code": "000000017" if is_sketch else "000000004"})
     except Exception:
         logger.exception("Telegram bot could not confirm order %s", order_id)
         return Response({"success": False, "error": "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043d\u0430\u0434\u0456\u0441\u043b\u0430\u0442\u0438 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043d\u044f \u0432 1\u0421."}, status=status.HTTP_502_BAD_GATEWAY)

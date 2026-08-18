@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import { formatDateHuman, formatDateHuman_ln, formatDateHumanShorter } from "../../utils/formatters";
+import { formatDateHumanShorter } from "../../utils/formatters";
 import "./OrderDetailsMobile.css";
 import { useTranslation } from "react-i18next";
 
@@ -292,7 +292,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
               <div className="badge-title">{t("order_mobile.steps.delivery")}</div>
               <div className={`badge-content ${deliveryStatus.bg}`}>
                 {order.realizationDate
-                  ? formatDateHuman_ln(order.realizationDate, locale)
+                  ? formatDateHumanShorter(order.realizationDate, locale)
                   : estimatedDeliveryDisplay || t("order_mobile.statuses.not_delivered")}
               </div>
             </div>
