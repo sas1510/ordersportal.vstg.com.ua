@@ -367,6 +367,24 @@ from celery import current_app
 import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
 from django.conf import settings
 
+HARDCODED_DUPLICATE_MANAGER_GUID = "1d812dba-dd6b-11eb-810e-74867ad9d525"
+
+
+def _hex_1c_user_to_guid(value):
+    normalized = str(value or "").strip()
+    if normalized.lower().startswith("0x"):
+        normalized = normalized[2:]
+    if not normalized:
+        return None
+    try:
+        return str(uuid.UUID(bytes_le=bytes.fromhex(normalized))).lower()
+    except Exception:
+        return None
+
+
+HARDCODED_DUPLICATE_MANAGER_BIN = guid_to_1c_bin(HARDCODED_DUPLICATE_MANAGER_GUID)
+
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
 
