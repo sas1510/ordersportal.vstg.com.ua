@@ -18,6 +18,7 @@ import ClientAddressModal from "./ClientAddressModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 const CALCULATION_NUMBER_MAX_LENGTH = 14;
+const PHOTO_UPLOAD_QUALITY = 0.92;
 
 const NewCalculationModal = ({
   isOpen,
@@ -370,6 +371,77 @@ const NewCalculationModal = ({
     });
   };
 
+  const sanitizeUploadBaseName = (rawName, fallback = "photo") => {
+    const baseName = String(rawName || "")
+      .replace(/\.[^.]+$/, "")
+      .normalize("NFKD")
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/[\s-]+/g, "_");
+
+    return baseName || fallback;
+  };
+
+  const imageFileToJpegBase64 = (fileObject) => {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(fileObject);
+      const img = new Image();
+
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            throw new Error("Canvas 2D context unavailable");
+          }
+
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL("image/jpeg", PHOTO_UPLOAD_QUALITY);
+          URL.revokeObjectURL(objectUrl);
+          resolve(dataUrl.split(",")[1]);
+        } catch (error) {
+          URL.revokeObjectURL(objectUrl);
+          reject(error);
+        }
+      };
+
+      img.onerror = (error) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      };
+
+      img.src = objectUrl;
+    });
+  };
+
+  const normalizePhotoForUpload = async (photoFile, index) => {
+    const safeBaseName = sanitizeUploadBaseName(
+      photoFile?.name,
+      `photo_${Date.now()}_${index + 1}`,
+    );
+
+    try {
+      const fileDataB64 = await imageFileToJpegBase64(photoFile);
+      return {
+        fileName: `${safeBaseName}.jpg`,
+        fileDataB64,
+      };
+    } catch (error) {
+      console.warn("Photo normalization failed, using original file", error);
+      const fileDataB64 = await fileToBase64(photoFile);
+      const originalExt =
+        photoFile?.name?.split(".").pop()?.trim().toLowerCase() || "jpg";
+
+      return {
+        fileName: `${safeBaseName}.${originalExt}`,
+        fileDataB64,
+      };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
@@ -402,13 +474,7 @@ const NewCalculationModal = ({
 
       // 2. Асинхронно конвертуємо весь масив фотографій у формат [{ fileName, fileDataB64 }, ...]
       const convertedPhotos = await Promise.all(
-        photos.map(async (photoFile) => {
-          const b64Data = await fileToBase64(photoFile);
-          return {
-            fileName: photoFile.name,
-            fileDataB64: b64Data,
-          };
-        })
+        photos.map((photoFile, index) => normalizePhotoForUpload(photoFile, index))
       );
 
       const normalizedOrderNumber = String(orderNumber || "").slice(
@@ -711,8 +777,27 @@ const NewCalculationModal = ({
 
      
               <div className="new-calc-top-upload-row">
-                <div className="new-calc-file-upload new-calc-file-upload--compact">
-                  <label htmlFor="new-calc-file" className="new-calc-upload-label">
+                <div
+                  className="new-calc-file-upload new-calc-file-upload--compact"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(event) => {
+                    if (!event.target.closest(".new-calc-clear-file")) {
+                      document.getElementById("new-calc-file")?.click();
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      document.getElementById("new-calc-file")?.click();
+                    }
+                  }}
+                >
+                  <label
+                    htmlFor="new-calc-file"
+                    className="new-calc-upload-label"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                     <FaUpload size={20} />
                     <span>{t("orders.newOrderModal.downloadZKZ")}</span>
                     <input
@@ -726,7 +811,14 @@ const NewCalculationModal = ({
                   <div className="new-calc-file-name">
                     <span>{fileName}</span>
                     {file && (
-                      <button type="button" className="new-calc-clear-file" onClick={handleClearFile}>
+                      <button
+                        type="button"
+                        className="new-calc-clear-file"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleClearFile();
+                        }}
+                      >
                         <FaTrash size={14} />
                       </button>
                     )}
@@ -756,7 +848,7 @@ const NewCalculationModal = ({
                   <input
                     type="file"
                     id="new-calc-photos"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     multiple // дозволяє виділити кілька файлів одночасно
                     onChange={handlePhotosChange}
                     hidden
@@ -764,28 +856,18 @@ const NewCalculationModal = ({
                 </label>
                 
                 {/* Список обраних зображень */}
-                <div className="new-calc-photos-list" style={{  width: "100%" }}>
+                <div className="new-calc-photos-list">
                   {photos.map((photo, index) => (
                     <div 
                       key={index} 
-                      className="new-calc-file-name" 
-                      style={{ 
-                        display: "flex", 
-                        justifyContent: "space-between", 
-                        alignItems: "center",
-                        padding: "6px 10px",
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: "4px",
-                        marginBottom: "5px"
-                      }}
+                      className="new-calc-file-name new-calc-file-name--photo"
                     >
-                      <span style={{ fontSize: "13px", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: "85%" }}>
+                      <span className="new-calc-file-name-text">
                         {photo.name} ({(photo.size / 1024).toFixed(1)} KB)
                       </span>
                       <button
                         type="button"
                         className="new-calc-clear-file"
-                        style={{ color: "#d32f2f", background: "none", border: "none", cursor: "pointer" }}
                         onClick={() => handleRemovePhoto(index)}
                       >
                         <FaTrash size={13} />

@@ -1,3 +1,4 @@
+import os
 from django.db import connections
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
@@ -119,32 +120,21 @@ def trim_pdf(data: bytes) -> bytes:
     return data
 
 
-def extract_1c_binary(raw_blob):
-    if not raw_blob:
-        return None
+ZKZ_SIGNATURE = b"ADGRASKONZKZ"
 
-    raw_blob = bytes(raw_blob)
 
-    # PDF ставимо ПЕРШИМ
-    signatures = [
-        b"%PDF",
-        b"PK\x03\x04",
-        b"\x89PNG\r\n\x1a\n",
-        b"\xff\xd8\xff",
-        b"GIF8",
-        b"RIFF",
-    ]
+KNOWN_FILE_SIGNATURES = [
+    b"%PDF",
+    b"PK\x03\x04",
+    b"\x89PNG\r\n\x1a\n",
+    b"\xff\xd8\xff",
+    b"GIF8",
+    b"RIFF",
+    b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1",
+]
 
-    # 1. Спочатку шукаємо готовий файл у raw_blob
-    for sig in signatures:
-        pos = raw_blob.find(sig)
-        if pos != -1:
-            data = raw_blob[pos:]
-            if sig == b"%PDF":
-                data = trim_pdf(data)
-            return data
 
-    # 2. Якщо не знайшли — пробуємо zlib
+def _decompress_1c_blob(raw_blob):
     for offset in range(0, 256):
         for wbits in (zlib.MAX_WBITS, -15):
             try:
@@ -152,15 +142,81 @@ def extract_1c_binary(raw_blob):
             except zlib.error:
                 continue
 
-            for sig in signatures:
-                pos = decoded.find(sig)
-                if pos != -1:
-                    data = decoded[pos:]
-                    if sig == b"%PDF":
-                        data = trim_pdf(data)
-                    return data
+            if decoded:
+                return decoded
 
     return None
+
+
+def _extract_by_signatures(blob_bytes, signatures=None):
+    signatures = signatures or KNOWN_FILE_SIGNATURES
+
+    for sig in signatures:
+        pos = blob_bytes.find(sig)
+        if pos != -1:
+            data = blob_bytes[pos:]
+            if sig == b"%PDF":
+                data = trim_pdf(data)
+            return data
+
+    return None
+
+
+def extract_1c_binary(raw_blob):
+    if not raw_blob:
+        return None
+
+    raw_blob = bytes(raw_blob)
+    direct_data = _extract_by_signatures(raw_blob)
+    if direct_data:
+        return direct_data
+
+    decoded = _decompress_1c_blob(raw_blob)
+    if not decoded:
+        return None
+
+    return _extract_by_signatures(decoded)
+
+
+def extract_1c_download_binary(raw_blob, filename=""):
+    """
+    Повертає бінарник для download-сценаріїв без агресивного обрізання.
+    Для ZKZ/ZIP намагається віддати цілий архів, а не лише "впізнаний" фрагмент.
+    """
+    if not raw_blob:
+        return None
+
+    raw_blob = bytes(raw_blob)
+    decoded = _decompress_1c_blob(raw_blob)
+    ext = os.path.splitext((filename or "").lower())[1]
+
+    if ext == ".zkz":
+        for candidate in (raw_blob, decoded):
+            if not candidate:
+                continue
+
+            zkz_pos = candidate.find(ZKZ_SIGNATURE)
+            if zkz_pos != -1:
+                return candidate[zkz_pos:]
+
+        return decoded or raw_blob
+
+    if ext == ".zip":
+        for candidate in (decoded, raw_blob):
+            if not candidate:
+                continue
+
+            archive_pos = candidate.find(b"PK\x03\x04")
+            if archive_pos != -1:
+                return candidate[archive_pos:]
+
+        return decoded or raw_blob
+
+    extracted = extract_1c_binary(raw_blob)
+    if extracted:
+        return extracted
+
+    return decoded or raw_blob
 
 
 

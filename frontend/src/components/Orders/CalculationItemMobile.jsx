@@ -223,6 +223,31 @@ export const CalculationItemMobile = React.memo(
         }
       }, []); 
 
+    const mainStatus = statusEntries[0][0];
+    const statusPanelClass = (() => {
+      switch (mainStatus) {
+        case "Новий":
+          return "calc-status-panel--new";
+        case "Очікуємо підтвердження":
+          return "calc-status-panel--waiting-confirmation";
+        case "Очікуємо оплату":
+          return "calc-status-panel--waiting-payment";
+        case "Підтверджений":
+        case "Підтверджено":
+          return "calc-status-panel--confirmed";
+        case "У виробництві":
+          return "calc-status-panel--production";
+        case "Готовий":
+          return "calc-status-panel--ready";
+        case "Відвантажений":
+          return "calc-status-panel--shipped";
+        case "Відмова":
+        case "В обробці":
+        default:
+          return "calc-status-panel--grey";
+      }
+    })();
+
     return (
       <div
         className="calc-item column"
@@ -274,14 +299,12 @@ export const CalculationItemMobile = React.memo(
 </div>
 
 
-<div className="basis-2/5 flex items-center min-w-0 border-right px-1">
+<div className={`basis-2/5 flex items-center min-w-0 border-right px-1 calc-status-panel calc-status-panel--mobile ${statusPanelClass}`}>
   {statusEntries.length > 0 && (
-    <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+    <div className="calc-status-list flex flex-wrap items-center gap-x-1 gap-y-0.5">
       {statusEntries.map(([status, count]) => {
-        const statusClass = getStatusClass(status); 
-        
         return (
-          <div key={status} className={`flex items-center gap-1 ${statusClass}`}>
+          <div key={status} className="flex items-center gap-1 calc-status">
 
             <span className="icon-info-with-circle text-[20px] shrink-0 mr-1"></span>
             

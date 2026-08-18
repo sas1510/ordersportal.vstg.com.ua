@@ -283,6 +283,77 @@ body.dark-theme .calc-item-soft .order-status-text.text-WS---MiddleGrey {
   color: #b8b0aa !important;
 }
 
+.calc-status-panel {
+  align-self: stretch;
+  padding: 8px !important;
+  border-right: 0 !important;
+
+  color: #ffffff;
+}
+
+.calc-status-panel--new {
+  background: #3478b6;
+}
+
+.calc-status-panel--waiting-confirmation {
+  background: #e2ac24;
+}
+
+.calc-status-panel--waiting-payment {
+  background: #d77b22;
+}
+
+.calc-status-panel--confirmed {
+  background: #95602d;
+}
+
+.calc-status-panel--production {
+  background: #ba523b;
+}
+
+.calc-status-panel--ready {
+  background: #9acb55;
+}
+
+.calc-status-panel--shipped {
+  background: #3f7d31;
+}
+
+.calc-status-panel--grey {
+  background: #777777;
+}
+
+.calc-status-panel .calc-status-icon,
+.calc-status-panel .calc-status,
+.calc-status-panel .calc-status *,
+.calc-status-panel .calc-status-icon::before,
+.calc-status-panel .calc-status .icon-info-with-circle::before {
+  color: #ffffff !important;
+}
+
+.calc-status-panel--mobile {
+  padding: 4px !important;
+}
+
+.calc-status-panel .calc-status-list {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  gap: 2px !important;
+}
+
+.calc-status-panel .calc-status-list .calc-status {
+  width: 100%;
+  min-width: 0;
+}
+
+.calc-status-panel .calc-status-list .calc-status span:last-child {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+
 body.dark-theme .calc-item-soft .order-action-button {
   color: #f5f3f1 !important;
 }

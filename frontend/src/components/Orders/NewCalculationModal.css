@@ -13,7 +13,7 @@
   width: 550px;
   max-width: 96%;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 4px;
   position: relative;
 
   padding: 25px;
@@ -101,7 +101,7 @@
   flex-direction: column;
   gap: 10px;
   border: 2px dashed #ccc;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 16px;
   background: #fafafa;
   transition: all 0.3s;
@@ -132,9 +132,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid #e0e0e0;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border: 1px solid #e6e1da;
+  border-radius: 4px;
+  background: #fffdf9;
+  box-shadow: none;
   font-size: 14px;
+}
+
+.new-calc-file-name-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #45403e;
+}
+
+.new-calc-file-name--photo {
+  margin-top: 0;
+  margin-bottom: 6px;
+  padding: 8px 10px;
 }
 
 .new-calc-clear-file {
@@ -201,12 +221,6 @@
   min-width: 0;
 }
 
-.new-calc-file-upload--compact .new-calc-file-name span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .new-calc-label-row--compact {
   justify-content: center;
   align-items: center;
@@ -217,7 +231,7 @@
 
 .new-calc-count-card {
   border: 2px dashed #ccc;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 12px 14px;
   background: #fafafa;
   min-height: 100%;
@@ -262,6 +276,10 @@
 
 .new-calc-photos-compact .new-calc-upload-label svg {
   font-size: 15px;
+}
+
+.new-calc-photos-list {
+  width: 100%;
 }
 
 @media (max-width: 640px) {
@@ -464,7 +482,13 @@ body.dark-theme .new-calc-upload-label:hover {
 
 /* Відображення імені файлу */
 body.dark-theme .new-calc-file-name {
-  border-top: 1px solid #333333;
+  border-color: #6e6963;
+  background: #403b39;
+  box-shadow: none;
+}
+
+body.dark-theme .new-calc-file-name-text {
+  color: #f5f3f1;
 }
 
 /* Кнопка очищення файлу */
@@ -522,7 +546,7 @@ body.dark-theme .new-calc-btn-save:disabled {
 .address-dropdown-selected {
   padding: 8px 10px;
   border: 1px solid var(--grey-border-color, #ccc);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--input-bg, #fff);
   min-height: 38px;
   display: flex;
@@ -542,7 +566,7 @@ body.dark-theme .new-calc-btn-save:disabled {
   overflow-y: auto;
   background: var(--input-bg, #fff);
   border: 1px solid var(--grey-border-color, #ccc);
-  border-radius: 6px;
+  border-radius: 4px;
   z-index: 50; /* всередині модалки */
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }

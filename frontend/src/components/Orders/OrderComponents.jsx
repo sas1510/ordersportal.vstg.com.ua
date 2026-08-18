@@ -250,7 +250,29 @@ export const CalculationItem = React.memo(
   
 
 const mainStatus = statusEntries[0][0];
-const iconColorClass = getStatusClass(mainStatus);
+const statusPanelClass = (() => {
+  switch (mainStatus) {
+    case "Новий":
+      return "calc-status-panel--new";
+    case "Очікуємо підтвердження":
+      return "calc-status-panel--waiting-confirmation";
+    case "Очікуємо оплату":
+      return "calc-status-panel--waiting-payment";
+    case "Підтверджений":
+    case "Підтверджено":
+      return "calc-status-panel--confirmed";
+    case "У виробництві":
+      return "calc-status-panel--production";
+    case "Готовий":
+      return "calc-status-panel--ready";
+    case "Відвантажений":
+      return "calc-status-panel--shipped";
+    case "Відмова":
+    case "В обробці":
+    default:
+      return "calc-status-panel--grey";
+  }
+})();
 
     return (
       <div
@@ -505,10 +527,10 @@ const iconColorClass = getStatusClass(mainStatus);
             </div>
           </div>
 
-         <div className="summary-item row w-16 ">
+         <div className={`summary-item row w-16 calc-status-panel ${statusPanelClass}`}>
           <div className="row gap-2 align-center">
 
-            <div className={`icon-info-with-circle font-size-24 calc-status-icon ${iconColorClass}`}></div>
+            <div className="icon-info-with-circle font-size-24 calc-status-icon"></div>
 
             <div className="column gap-3 text-[13px] flex-wrap scroll-y">
               {statusEntries.length > 0 ? (

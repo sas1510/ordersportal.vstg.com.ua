@@ -71,6 +71,7 @@ from backend.maintenance_mode import build_maintenance_payload, get_maintenance_
 
 from .utils import (
     extract_1c_binary,
+    extract_1c_download_binary,
     guess_extension_from_bytes
 )
 
@@ -2094,7 +2095,7 @@ def _download_order_file_content(request, order_guid, file_guid):
             raw_db_blob = row[0]
             db_filename = row[1] or filename
 
-        file_bytes = extract_1c_binary(raw_db_blob)
+        file_bytes = extract_1c_download_binary(raw_db_blob, filename=filename)
         if not file_bytes:
             logger.error(f"1C Binary extraction failed (corrupted blob) for calculation file: {file_guid}")
             return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
@@ -6899,7 +6900,7 @@ def download_calc(request, order_guid, file_guid):
         raw_db_blob = row[0]
         db_filename = row[1] or filename
 
-        file_bytes = extract_1c_binary(raw_db_blob)
+        file_bytes = extract_1c_download_binary(raw_db_blob, filename=filename)
 
         if not file_bytes:
             return redirect(f"{settings.FRONTEND_URL}file-preview/corrupted?filename={quote(filename)}")
@@ -7080,7 +7081,7 @@ def detect_message_type(file_obj):
     return "file"
 
 
-def get_file_extension(filename):
+def get_attachment_file_extension(filename):
     if not filename:
         return None
 
@@ -7150,7 +7151,7 @@ def send_support_notification_to_telegram(request):
             FileName=upload_file_obj.name,
             OriginalFileName=upload_file_obj.name,
             MimeType=upload_file_obj.content_type,
-            FileExtension=get_file_extension(upload_file_obj.name),
+            FileExtension=get_attachment_file_extension(upload_file_obj.name),
             FileSize=upload_file_obj.size,
             FileData=file_bytes,
         )
@@ -7961,7 +7962,7 @@ def support_large_video_upload(request):
 
     upload_message = token_record.message
     content_type = file_obj.content_type or ""
-    file_extension = get_file_extension(file_obj.name) or ""
+    file_extension = get_attachment_file_extension(file_obj.name) or ""
     is_video = content_type.startswith("video/") or file_extension in TELEGRAM_VIDEO_DOCUMENT_EXTENSIONS
 
     if not is_video:
@@ -7981,7 +7982,7 @@ def support_large_video_upload(request):
         FileName=prepared_upload.name,
         OriginalFileName=prepared_upload.name,
         MimeType=prepared_upload.content_type or content_type or "video/mp4",
-        FileExtension=get_file_extension(prepared_upload.name),
+        FileExtension=get_attachment_file_extension(prepared_upload.name),
         FileSize=getattr(prepared_upload, "size", len(file_bytes)),
         FileData=file_bytes,
     )
