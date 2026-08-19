@@ -4706,7 +4706,6 @@ def _notify_order_confirmation_participants(
             )
 
     for copy_user_hex, warning_message in [
-        (PORTAL_MANAGER_COPY_USER_ID_1C_HEX, "Could not resolve portal copy Telegram for confirmed order %s"),
         (CONFIRM_ORDER_EXTRA_COPY_USER_ID_1C_HEX, "Could not resolve extra confirm copy Telegram for confirmed order %s"),
     ]:
         copy_guid = _binary_hex_to_bytes(copy_user_hex)
