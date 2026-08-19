@@ -631,11 +631,13 @@ const ReclamationPortal = () => {
                             alt="" 
                             className="absolute left-3 top-1/2 -translate-y-1/2  opacity-50"
                         />
-                        {/* <span
-                            className="icon icon-cancel2 clear-search"
-                            title="Очистити"
-                            onClick={() => setFilter(prev => ({ ...prev, name: '' }))}
-                        ></span> */}
+                        {!!filter.name && (
+                            <span
+                                className="icon icon-cancel2 clear-search"
+                                title="Очистити пошук"
+                                onClick={() => setFilter(prev => ({ ...prev, name: '' }))}
+                            />
+                        )}
                     </div>
 
 

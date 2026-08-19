@@ -285,7 +285,7 @@ body.dark-theme .calc-item-soft .order-status-text.text-WS---MiddleGrey {
 
 .calc-status-panel {
   align-self: stretch;
-  padding: 8px !important;
+  padding: 2px !important;
   border-right: 0 !important;
 
   color: #ffffff;

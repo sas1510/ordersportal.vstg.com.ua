@@ -650,11 +650,13 @@ const AdditionalOrders = () => {
               alt="" 
               className="portal-service-icon absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
             />
-            {/* <span
-              className="icon icon-cancel2 clear-search"
-              title="РћС‡РёСЃС‚РёС‚Рё РїРѕС€СѓРє"
-              onClick={handleClearSearch}
-            ></span> */}
+            {!!filter.name && (
+              <span
+                className="icon icon-cancel2 clear-search"
+                title="Очистити пошук"
+                onClick={handleClearSearch}
+              />
+            )}
           </div>
 
 

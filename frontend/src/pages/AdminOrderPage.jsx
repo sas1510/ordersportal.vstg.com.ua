@@ -148,6 +148,10 @@ const AdminPortalOriginal = () => {
   const [expandedCalc, setExpandedCalc] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
 
+  const toggleOrder = useCallback((id) => {
+    setExpandedOrder((previous) => (previous === id ? null : id));
+  }, []);
+
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [editingCalculation, setEditingCalculation] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -1562,9 +1566,7 @@ const AdminPortalOriginal = () => {
                       expandedOrderId={
                         expandedOrder
                       }
-                      onOrderToggle={
-                        setExpandedOrder
-                      }
+                      onOrderToggle={toggleOrder}
                       onDelete={
                         handleDeleteSuccess
                       }
@@ -1588,9 +1590,7 @@ const AdminPortalOriginal = () => {
                       expandedOrderId={
                         expandedOrder
                       }
-                      onOrderToggle={
-                        setExpandedOrder
-                      }
+                      onOrderToggle={toggleOrder}
                       onDelete={
                         handleDeleteSuccess
                       }

@@ -80,19 +80,27 @@ export default React.memo(function OrderDetailsMobile({ order }) {
   const productionStatus = useMemo(() => {
     const factDate = order.factProductionMax;
     const planDate = order.planProductionMax;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) <= today;
-    const status = getDateStatus(planDate, factDateHasArrived ? factDate : null);
-    const isPending = !factDateHasArrived && !planDate;
-    const displayDate = factDateHasArrived 
-
-      ? formatDateHumanShorter(factDate, locale) 
-      : planDate 
-        ? `${t("order_mobile.statuses.plan")}: ${formatDateHumanShorter(planDate, locale)}` 
+    const isReady = Boolean(order.factReadyMax);
+    const productionPlanDate = factDate || planDate;
+    const status = getDateStatus(
+      productionPlanDate,
+      isReady && factDate ? factDate : null,
+    );
+    const isPending = !productionPlanDate;
+    const displayDate = isReady && factDate
+      ? formatDateHumanShorter(factDate, locale)
+      : productionPlanDate
+        ? [t("order_mobile.statuses.plan"), formatDateHumanShorter(productionPlanDate, locale)].join(": ")
         : t("order_mobile.statuses.no_data");
     return { status, displayDate, isPending };
-  }, [order.factProductionMax, order.planProductionMax, getDateStatus]);
+  }, [
+    order.factProductionMax,
+    order.factReadyMax,
+    order.planProductionMax,
+    getDateStatus,
+    locale,
+    t,
+  ]);
 
   const readyStatus = useMemo(() => {
     if (!order.factReadyMax && order.dateDelay) {

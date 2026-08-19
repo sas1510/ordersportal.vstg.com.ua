@@ -155,6 +155,22 @@ body.dark-theme .faq-page__search input {
   color: #aeaeae;
 }
 
+.faq-page__search-clear {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8a8a8a;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.faq-page__search-clear:hover {
+  color: #c34a3a;
+}
+
 .faq-page__search-button {
   width: 111px;
   height: 32px;

@@ -409,6 +409,13 @@ export default function PaymentsPage() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <img src={searchIcon} alt={t("payments_page.filters.search")} className="relative right-[-2%] top-[-60%] cursor-pointer text-[18px] text-[var(--text-color)] leading-none" />
+        {!!search && (
+          <span
+            className="icon icon-cancel2 clear-search-payment"
+            title="Очистити пошук"
+            onClick={() => setSearch("")}
+          />
+        )}
       </div>
 
       <div className="filters-scroll">

@@ -911,7 +911,7 @@
 .content-filter-payment .search-wrapper-payment .clear-search-payment {
   position: relative;
   right: -90%;
-  top: -50%;
+  top: -100%;
   transform: translateY(50%);
   cursor: pointer;
   font-size: 18px;

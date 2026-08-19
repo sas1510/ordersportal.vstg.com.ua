@@ -82,14 +82,23 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
   const productionStatus = useMemo(() => {
     const factDate = order.factProductionMax;
     const planDate = order.planProductionMax;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) <= today;
-    const status = getDateStatus(planDate, factDateHasArrived ? factDate : null);
-    const isPending = !factDateHasArrived && !planDate; 
+    const isReady = Boolean(order.factReadyMax);
+    const productionPlanDate = factDate || planDate;
+    const status = getDateStatus(
+      productionPlanDate,
+      isReady && factDate ? factDate : null,
+    );
+    const isPending = !productionPlanDate;
 
-    const displayDate = factDateHasArrived ? (
+    const displayDate = isReady && factDate ? (
       formatDateHumanShorter(factDate, locale)
+    ) : factDate ? (
+      <div className="plan-block">
+        <div className="plan-name">{t("order_mobile.statuses.plan")}:</div>
+        <div className="plan-dates">
+          {formatDateHumanShorter(factDate, locale)}
+        </div>
+      </div>
     ) : planDate ? (
       <div className="plan-block">
         <div className="plan-name">{t("order_mobile.statuses.plan")}:</div>
@@ -97,16 +106,17 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
         <div className="plan-dates">{t("order_mobile.statuses.to")} {formatDateHumanShorter(planDate, locale)}</div>
       </div>
     ) : (
-      
-
       t("order_mobile.statuses.no_data")
     );
     return { status, displayDate, isPending };
   }, [
     order.factProductionMax,
+    order.factReadyMax,
     order.planProductionMax,
     order.planProductionMin,
     getDateStatus,
+    locale,
+    t,
   ]);
 
   // Готовність

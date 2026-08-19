@@ -2220,10 +2220,12 @@ html {
     min-height: 60px !important;
   }
   .calc-item .summary-item {
-    padding: 2px 4px !important;
+    padding: 2px 2px !important;
     font-size: 12px !important;
     height: 70px !important;
   }
+
+  
   .portal-body .content-filter {
     width: 285px !important;
   }
@@ -2540,7 +2542,7 @@ html {
 
   .timeline ul li .badge .badge-content {
     color: var(--WS---DarkGrey);
-    padding: 2px 5px;
+    padding: 2px 3px;
     text-align: center;
     font-size: 10px;
   }

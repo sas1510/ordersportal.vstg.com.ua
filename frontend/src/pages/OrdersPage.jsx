@@ -1418,6 +1418,14 @@ const PortalOriginal = () => {
                 }
               />
 
+              {!!filter.name && (
+                <span
+                  className="icon icon-cancel2 clear-search"
+                  title="Очистити пошук"
+                  onClick={() => handleFilterChange("name", "")}
+                />
+              )}
+
               <img
                 src={searchIcon}
                 alt=""

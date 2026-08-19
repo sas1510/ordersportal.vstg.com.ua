@@ -786,6 +786,17 @@ export default function FAQ() {
                   defaultValue: "Пошук по питанням",
                 })}
               />
+              {!!searchQuery && (
+                <button
+                  type="button"
+                  className="faq-page__search-clear"
+                  aria-label="Очистити пошук"
+                  title="Очистити пошук"
+                  onClick={() => setSearchQuery("")}
+                >
+                  ×
+                </button>
+              )}
             </label>
             <button type="button" className="faq-page__search-button">
               <FaSearch />
