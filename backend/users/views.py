@@ -778,7 +778,7 @@ def register_with_invite(request, code):
             }
         })
 
-        if user.role not in {"manager", "region_manager"}:
+        if user.role not in {"manager", "region_manager"} and user.email:
             send_registration_success_email(user, tg_link)
 
     

@@ -101,6 +101,7 @@ class CompleteRegistrationSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'password': {'write_only': True},
+            'email': {'required': False, 'allow_blank': True, 'allow_null': True},
             'role': {'read_only': True},
             'expire_date': {'read_only': True},
             'username' : {'read_only': True}

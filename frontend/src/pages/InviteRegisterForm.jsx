@@ -993,13 +993,12 @@ const passwordStrength = useMemo(() => {
                 </div>
 
                 <div className="invite-input-group">
-                  <label className="invite-required">{t("invite.label_email")}</label>
+                  <label>{t("invite.label_email")}</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
-                    required
                   />
                 </div>
 
