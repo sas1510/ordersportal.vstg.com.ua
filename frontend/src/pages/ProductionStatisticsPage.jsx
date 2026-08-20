@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axiosInstance from "../api/axios";
 import {
   FaBox,  FaCalendarAlt,
@@ -190,7 +191,7 @@ function formatDays(value) {
   return daysFormatter.format(Number(value || 0));
 }
 
-function formatDate(value) {
+function formatDate(value, locale = "uk-UA") {
   if (!value) {
     return "—";
   }
@@ -200,7 +201,7 @@ function formatDate(value) {
     return value;
   }
 
-  return dateFormatter.format(parsed);
+  return new Intl.DateTimeFormat(locale).format(parsed);
 }
 
 function normalizeRegionName(value) {
@@ -380,6 +381,7 @@ function ProductionRingCard({
   totalOrders,
   onSelectStatus,
 }) {
+  const { t, i18n } = useTranslation();
   const [selectedSection, setSelectedSection] = useState(null);
 
   const STATUS = {
@@ -431,7 +433,7 @@ function ProductionRingCard({
         onClick={() => selectSection(STATUS.inTime)}
       >
         <span className="production-ring-card__figma-title">
-          {STATUS.inTime}
+          {t("production_statistics.in_time")}
         </span>
 
         <strong className="production-ring-card__figma-value">
@@ -443,9 +445,9 @@ function ProductionRingCard({
         </strong>
 
         <small>
-          {formatNumber(inTimeCount)} замовлень
+          {formatNumber(inTimeCount)} {t("production_statistics.order")}
           <br />
-          сер. {formatDays(averageProductionDays)} дн.
+          {t("production_statistics.average")} {formatDays(averageProductionDays)} {t("production_statistics.units_pieces")}.
         </small>
       </button>
 
@@ -462,8 +464,8 @@ function ProductionRingCard({
         <ComplexityDonut
           data={statusData}
           colors={statusColors}
-          centerLabel="Всього"
-          centerUnit="замовлення"
+          centerLabel={t("production_statistics.total")}
+          centerUnit={t("production_statistics.order")}
           centerValue={displayedTotal}
           centerIconName="listCalc"
           showLegend={false}
@@ -503,7 +505,7 @@ function ProductionRingCard({
         onClick={() => selectSection(STATUS.delayed)}
       >
         <span className="production-ring-card__figma-title">
-          {STATUS.delayed}
+          {t("production_statistics.delayed")}
         </span>
 
         <strong className="production-ring-card__figma-value">
@@ -514,7 +516,7 @@ function ProductionRingCard({
           {formatPercent(delayedPercent)}
         </strong>
 
-        <small>{formatNumber(delayedCount)} замовлень</small>
+        <small>{formatNumber(delayedCount)} {t("production_statistics.order")}</small>
       </button>
 
       {/* У виробництві */}
@@ -527,7 +529,7 @@ function ProductionRingCard({
         onClick={() => selectSection(STATUS.notFinished)}
       >
         <span className="production-ring-card__figma-title">
-          {STATUS.notFinished}
+          {t("production_statistics.in_production")}
         </span>
 
         <strong className="production-ring-card__figma-value">
@@ -538,13 +540,23 @@ function ProductionRingCard({
           {formatNumber(notFinishedCount)}
         </strong>
 
-        <small>{formatNumber(notFinishedCount)} замовлень</small>
+        <small>{formatNumber(notFinishedCount)} {t("production_statistics.order")}</small>
       </button>
     </div>
   );
 }
 
 export default function ProductionStatisticsPage() {
+  const { t, i18n } = useTranslation();
+  const getProductionStatusLabel = (status) => {
+    const key = {
+      "Вчасно": "in_time",
+      "Запізнення": "delayed",
+      "У виробництві": "in_production",
+      all: "all_abc",
+    }[status];
+    return key ? t(`production_statistics.${key}`) : status;
+  };
   const [queryParams] = useSearchParams();
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -697,7 +709,7 @@ export default function ProductionStatisticsPage() {
         const message =
           err?.response?.data?.detail ||
           err?.response?.data?.error ||
-          "Не вдалося завантажити статистику виробництва";
+          t("production_statistics.load_error");
         setError(message);
         setDashboardData(null);
         setUnifiedData(null);
@@ -714,7 +726,7 @@ export default function ProductionStatisticsPage() {
     return () => {
       isCancelled = true;
     };
-  }, [dealerContextLoading, dealerGuid, isAdmin, searchParams]);
+  }, [dealerContextLoading, dealerGuid, isAdmin, searchParams, t]);
 
   const summary = dashboardData?.summary || [];
   const orders = dashboardData?.orders || [];
@@ -953,12 +965,12 @@ export default function ProductionStatisticsPage() {
     () => [
       {
         key: "systems",
-        label: "Профільні системи",
+        label: t("production_statistics.profile_systems"),
         icon: "windows",
         iconKind: "app",
         eyebrow: "Profile systems",
         count: profileSystems.length,
-        countLabel: "систем",
+        countLabel: t("production_statistics.systems"),
         groupedItems: groupedProfileSystems,
         items: profileSystemsSorted.map((item) => ({
           label: item.profile_system,
@@ -968,20 +980,20 @@ export default function ProductionStatisticsPage() {
           avg_check: Number(item.avg_check || 0),
         })),
         metrics: [
-          { key: "total_constructions", label: "Конструкції", icon: "windows", accent: "#B4D947" },
-          { key: "orders_count", label: "Замовлення", icon: "listCalc", accent: "#6B98BF" },
-          { key: "avg_check", label: "Середній чек", icon: "moneyGreen", accent: "#6B98BF" },
-          { key: "total_sum", label: "Оборот", icon: "money", accent: "#6B98BF" },
+          { key: "total_constructions", label: t("production_statistics.constructions"), icon: "windows", accent: "#B4D947" },
+          { key: "orders_count", label: t("production_statistics.orders"), icon: "listCalc", accent: "#6B98BF" },
+          { key: "avg_check", label: t("production_statistics.average_check"), icon: "moneyGreen", accent: "#6B98BF" },
+          { key: "total_sum", label: t("production_statistics.turnover"), icon: "money", accent: "#6B98BF" },
         ],
       },
       {
         key: "colors",
-        label: "Кольори профілю",
+        label: t("production_statistics.profile_colors"),
         icon: "filters",
         iconKind: "app",
         eyebrow: "Profile colors",
         count: profileColors.length,
-        countLabel: "кольорів",
+        countLabel: t("production_statistics.colors"),
         items: profileColors.map((item) => ({
           label: item.name,
           total_constructions: Number(item.total_constructions || 0),
@@ -989,18 +1001,18 @@ export default function ProductionStatisticsPage() {
           total_sum: Number(item.total_sum || 0),
         })),
         metrics: [
-          { key: "total_constructions", label: "Конструкції", icon: "windows", accent: "#B4D947" },
-          { key: "orders_count", label: "Замовлення", icon: "listCalc", accent: "#6B98BF" },
-          { key: "total_sum", label: "Оборот", icon: "money", accent: "#6B98BF" },
+          { key: "total_constructions", label: t("production_statistics.constructions"), icon: "windows", accent: "#B4D947" },
+          { key: "orders_count", label: t("production_statistics.orders"), icon: "listCalc", accent: "#6B98BF" },
+          { key: "total_sum", label: t("production_statistics.turnover"), icon: "money", accent: "#6B98BF" },
         ],
       },
       {
         key: "hardware",
-        label: "Фурнітура",
+        label: t("production_statistics.hardware"),
         iconKind: "fa",
         eyebrow: "Hardware and extras",
         count: furniture.length,
-        countLabel: "позицій",
+        countLabel: t("production_statistics.positions"),
         items: furniture.map((item) => ({
           label: item.name,
           total_constructions: Number(item.total_constructions || 0),
@@ -1008,13 +1020,13 @@ export default function ProductionStatisticsPage() {
           total_sum: Number(item.total_sum || 0),
         })),
         metrics: [
-          { key: "total_constructions", label: "Конструкції", icon: "windows", accent: "#B4D947" },
-          { key: "orders_count", label: "Замовлення", icon: "listCalc", accent: "#6B98BF" },
-          { key: "total_sum", label: "Оборот", icon: "money", accent: "#6B98BF" },
+          { key: "total_constructions", label: t("production_statistics.constructions"), icon: "windows", accent: "#B4D947" },
+          { key: "orders_count", label: t("production_statistics.orders"), icon: "listCalc", accent: "#6B98BF" },
+          { key: "total_sum", label: t("production_statistics.turnover"), icon: "money", accent: "#6B98BF" },
         ],
       },
     ],
-    [furniture, groupedProfileSystems, profileColors, profileSystems.length, profileSystemsSorted],
+    [furniture, groupedProfileSystems, profileColors, profileSystems.length, profileSystemsSorted, t],
   );
 
   const activeAnalyticsConfig = useMemo(() => {
@@ -1250,7 +1262,7 @@ export default function ProductionStatisticsPage() {
     return [
       {
         key: "turnover",
-        label: "Оборот",
+        label: t("production_statistics.turnover"),
         color: "#5CCCBD",
         iconName: "money",
         percent: calculateComparisonPercent(
@@ -1261,29 +1273,29 @@ export default function ProductionStatisticsPage() {
       },
       {
         key: "orders",
-        label: "Замовлення",
+        label: t("production_statistics.orders"),
         color: "#F28A29",
         iconName: "listCalc",
         percent: calculateComparisonPercent(
           comparisonSelectedDealer.orders_count,
           comparisonLeader?.orders_count,
         ),
-        valueLabel: `${formatNumber(comparisonSelectedDealer.orders_count)} замовлень`,
+        valueLabel: `${formatNumber(comparisonSelectedDealer.orders_count)} ${t("production_statistics.orders")}`,
       },
       {
         key: "constructions",
-        label: "Конструкції",
+        label: t("production_statistics.constructions"),
         color: "#6B99BF",
         iconName: "windows",
         percent: calculateComparisonPercent(
           comparisonSelectedDealer.total_constructions,
           comparisonLeader?.total_constructions,
         ),
-        valueLabel: `${formatNumber(comparisonSelectedDealer.total_constructions)} конструкцій`,
+        valueLabel: `${formatNumber(comparisonSelectedDealer.total_constructions)} ${t("production_statistics.constructions")}`,
       },
       {
         key: "avg-check",
-        label: "Середній чек",
+        label: t("production_statistics.average_check"),
         color: "#944FD1",
         iconName: "moneyGreen",
         percent: calculateComparisonPercent(
@@ -1293,7 +1305,7 @@ export default function ProductionStatisticsPage() {
         valueLabel: formatCurrencyPlain(comparisonSelectedDealer.avg_check),
       },
     ];
-  }, [comparisonLeader, comparisonSelectedDealer]);
+  }, [comparisonLeader, comparisonSelectedDealer, t]);
 
   const comparisonOverallPercent = useMemo(() => {
     if (!comparisonMetricCards.length) {
@@ -1449,37 +1461,37 @@ export default function ProductionStatisticsPage() {
       <section className="production-design__hero">
         <div>
           <div className="production-design__eyebrow">ABC production timeline</div>
-          <h1>Статистика виробництва</h1>
-          <p>Контроль своєчасності виготовлення по класах ABC, відсотку виконання та замовленнях із найбільшим відхиленням.</p>
+          <h1>{t("production_statistics.title")}</h1>
+          <p>{t("production_statistics.subtitle")}</p>
         </div>
         <div className="production-design__filters">
           <div className="production-design__filters-stack">
-            {isAdmin ? <div className="production-design__dealer"><span>Дилер</span><DealerSelect value={dealerGuid} onChange={setDealerGuid} /></div> : null}
+            {isAdmin ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelect value={dealerGuid} onChange={setDealerGuid} /></div> : null}
             <div className="production-design__date-range">
-              <label><span>з:</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
-              <label><span>по:</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>
+              <label><span>{t("production_statistics.from")}</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
+              <label><span>{t("production_statistics.to")}</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>
             </div>
           </div>
-          <button type="button" onClick={handleSearch} disabled={loading || (isAdmin && !dealerGuid)}><AppIcon name="AnalyticsSearchIcon" className="w-[20px] h-[20px]" />{loading ? "Формуємо..." : "Сформувати"}</button>
+          <button type="button" onClick={handleSearch} disabled={loading || (isAdmin && !dealerGuid)}><AppIcon name="AnalyticsSearchIcon" className="w-[20px] h-[20px]" />{loading ? t("production_statistics.generating") : t("production_statistics.generate")}</button>
         </div>
       </section>
 
-      {error ? <section className="production-design__state"><FaExclamationTriangle /><h2>Дані тимчасово недоступні</h2><p>{error}</p><button type="button" onClick={handleSearch}>Повторити запит</button></section> : null}
-      {!error && loading ? <section className="production-design__state"><div className="loading-spinner" /><h2>Формуємо статистику</h2></section> : null}
-      {!error && isAdmin && !dealerGuid && !loading ? <section className="production-design__state"><FaFilter /><h2>Оберіть дилера</h2><p>Для побудови звіту оберіть контрагента.</p></section> : null}
+      {error ? <section className="production-design__state"><FaExclamationTriangle /><h2>{t("production_statistics.data_unavailable")}</h2><p>{error}</p><button type="button" onClick={handleSearch}>{t("production_statistics.retry")}</button></section> : null}
+      {!error && loading ? <section className="production-design__state"><div className="loading-spinner" /><h2>{t("production_statistics.generating_statistics")}</h2></section> : null}
+      {!error && isAdmin && !dealerGuid && !loading ? <section className="production-design__state"><FaFilter /><h2>{t("production_statistics.select_dealer")}</h2><p>{t("production_statistics.select_dealer_hint")}</p></section> : null}
 
       {!error && !loading && hasData ? <>
         <section className="production-design__kpi">
           <article className="production-design__average-card">
-            <div className="production-design__eyebrow">Середній чек</div>
+            <div className="production-design__eyebrow">{t("production_statistics.average_check")}</div>
             <strong className="production-design__average-value">
               <AppIcon name="money" className="w-[30px] h-[27px] color-[#B4D947] mt-1.5 mr-2" />
               {formatCurrency(meta.avg_check)}
             </strong>
-            <div className="production-design__period"><AppIcon name="CalendarIcon" className="w-[30px] h-[27px]" /><span>За період<b>{formatDate(searchParams.from)} - {formatDate(searchParams.to)}</b></span></div>
+            <div className="production-design__period"><AppIcon name="CalendarIcon" className="w-[30px] h-[27px]" /><span>{t("production_statistics.for_period")}<b>{formatDate(searchParams.from, i18n.language)} - {formatDate(searchParams.to, i18n.language)}</b></span></div>
             <div className="production-design__counts">
   <span className="production-design__count-item">
-    <small>Замовлень</small>
+    <small>{t("production_statistics.orders")}</small>
 
     <div className="production-design__count-value">
       <AppIcon
@@ -1491,7 +1503,7 @@ export default function ProductionStatisticsPage() {
   </span>
 
   <span className="production-design__count-item">
-    <small>Конструкцій</small>
+    <small>{t("production_statistics.constructions")}</small>
 
     <div className="production-design__count-value">
       <AppIcon
@@ -1505,14 +1517,14 @@ export default function ProductionStatisticsPage() {
           </article>
           <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} onSelectStatus={handleRingStatusClick} />
           <div className="production-design__summary-stack">
-            <article><div className="production-design__eyebrow">Оборот</div><strong><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" />{formatCurrency(meta.total_sum)}</strong><span>Сума замовлень за період</span></article>
-            <article><div className="production-design__eyebrow">Середня затримка</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>Макс. затримка: {formatDays(meta.max_delay_days)} дн.</span></article>
+            <article><div className="production-design__eyebrow">{t("production_statistics.turnover")}</div><strong><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" />{formatCurrency(meta.total_sum)}</strong><span>{t("production_statistics.turnover_hint")}</span></article>
+            <article><div className="production-design__eyebrow">{t("production_statistics.average_delay")}</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>{t("production_statistics.max_delay", { days: formatDays(meta.max_delay_days) })}</span></article>
           </div>
         </section>
 
         <section className="production-design__dashboard-grid">
           <article className="production-design__panel production-design__panel--profile-donut">
-            <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Portfolio by category</div><h2 className="uppercase font-bold">Категорії виробів</h2></div></div>
+            <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Portfolio by category</div><h2 className="uppercase font-bold">{t("production_statistics.categories")}</h2></div></div>
             {constructionDonutData.length ? <ComplexityDonut data={constructionDonutData}
     colors={[
         "#B4D947",
@@ -1522,26 +1534,26 @@ export default function ProductionStatisticsPage() {
         "#D7C53B",
         "#7EBAF2",
     ]}
-   onSectorClick={handleConstructionCategorySelect} height="560px" /> : <div className="production-design__empty">Немає даних.</div>}
+   onSectorClick={handleConstructionCategorySelect} height="560px" /> : <div className="production-design__empty">{t("production_statistics.no_data")}</div>}
           </article>
           <div className="production-design__abc-column">
             {abcSummaryCards.map((item) => <article key={item.abc} className="production-design__abc-card" style={{ "--abc": ABC_COLORS[item.abc] || ABC_COLORS.Other }}>
               <header>
-                <b>Клас {item.abc}</b>
+                <b>{t("production_statistics.class", { value: item.abc })}</b>
                 <p>{ABC_PRODUCTION_HINTS[item.abc] || ABC_PRODUCTION_HINTS.Other}</p>
                 <span>{formatPercent(item.in_time_percent)}</span>
               </header>
-              <div className="production-design__abc-volume"><strong>{formatNumber(item.orders_count)}</strong><small>замовлень<br />в роботі</small></div>
+              <div className="production-design__abc-volume"><strong>{formatNumber(item.orders_count)}</strong><small>{t("production_statistics.orders_in_progress").split("\n").map((line, index) => <span key={index}>{line}{index === 0 ? <br /> : null}</span>)}</small></div>
               <div className="production-design__progress"><i style={{ width: Math.min(Number(item.in_time_percent || 0), 100) + "%" }} /></div>
               <footer>
-                <div><span>Вчасно:</span><b>{formatNumber(item.in_time_count)}{inTimeProductionDays.averageByAbc[item.abc] !== null && inTimeProductionDays.averageByAbc[item.abc] !== undefined ? ` • ${formatDays(inTimeProductionDays.averageByAbc[item.abc])} дн.` : ""}</b></div>
-                <div><span>Запізнення:</span><b>{formatNumber(item.delayed_count)}</b></div>
-                <div><span>У виробництві:</span><b>{formatNumber(item.not_finished_count)}</b></div>
+                <div><span>{t("production_statistics.in_time")}:</span><b>{formatNumber(item.in_time_count)}{inTimeProductionDays.averageByAbc[item.abc] !== null && inTimeProductionDays.averageByAbc[item.abc] !== undefined ? ` • ${formatDays(inTimeProductionDays.averageByAbc[item.abc])} дн.` : ""}</b></div>
+                <div><span>{t("production_statistics.delayed")}:</span><b>{formatNumber(item.delayed_count)}</b></div>
+                <div><span>{t("production_statistics.in_production")}:</span><b>{formatNumber(item.not_finished_count)}</b></div>
               </footer>
             </article>)}
           </div>
           <article className="production-design__panel production-design__panel--timeliness">
-            <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Timeliness mix</div><h2 className="uppercase font-bold mb-3">Своєчасність по ABC</h2></div></div>
+            <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Timeliness mix</div><h2 className="uppercase font-bold mb-3">{t("production_statistics.timeliness_abc")}</h2></div></div>
             <div ref={timelinessChartRef} className="production-design__timeliness-chart-shell">
               {timelinessChartWidth > 0 ? (
                 <BarChart width={timelinessChartWidth} height={timelinessChartHeight} data={chartData} barCategoryGap="32%" barSize={timelinessChartWidth <= 420 ? 34 : timelinessChartWidth <= 720 ? 44 : 64}>
@@ -1549,19 +1561,19 @@ export default function ProductionStatisticsPage() {
                   <XAxis dataKey="abc" tickLine={false} axisLine={{ stroke: timelinessTheme.axis }} stroke={timelinessTheme.ticks} />
                   <YAxis tickLine={false} axisLine={{ stroke: timelinessTheme.axis }} stroke={timelinessTheme.axis} allowDecimals={false} />
                   <Tooltip content={<TimelinessTooltip isDark={isDarkTheme} />} />
-                  <Legend verticalAlign="bottom" iconType="square" iconSize={10} wrapperStyle={{ paddingTop: 12, color: timelinessTheme.legend, fontSize: 12 }} />
+                  <Legend verticalAlign="bottom" iconType="square" iconSize={10} formatter={(value) => getProductionStatusLabel(value)} wrapperStyle={{ paddingTop: 12, color: timelinessTheme.legend, fontSize: 12 }} />
                   <Bar dataKey="Вчасно" stackId="production-status" fill="#b4d947" onClick={(entry) => handleTimelinessBarClick(entry, "Вчасно")} cursor="pointer" />
                   <Bar dataKey="Запізнення" stackId="production-status" fill="#ed8b33" onClick={(entry) => handleTimelinessBarClick(entry, "Запізнення")} cursor="pointer" />
                   <Bar dataKey="У виробництві" stackId="production-status" fill="#6b98bf" radius={[4, 4, 0, 0]} onClick={(entry) => handleTimelinessBarClick(entry, "У виробництві")} cursor="pointer" />
                 </BarChart>
               ) : null}
             </div>
-            <p>Натисніть на будь-який стовпець, щоб відкрити деталізацію по відповідному ABC-класу та статусу.</p>
+            <p>{t("production_statistics.timeliness_hint")}</p>
           </article>
         </section>
 
                <section className="production-design__panel production-design__fastest">
-          <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Fastest orders</div><h2 className="uppercase font-bold">Найшвидші по категоріях ABC</h2></div></div>
+          <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Fastest orders</div><h2 className="uppercase font-bold">{t("production_statistics.fastest_abc")}</h2></div></div>
           <div className="production-design__fastest-grid">
             {fastestCards.map(({ abc, order }) => (
               <div key={abc} className="production-design__fastest-col">
@@ -1576,8 +1588,8 @@ export default function ProductionStatisticsPage() {
                     <b>{order?.order_number || "—"}</b>
                     <small>
                       {order
-                        ? `замовлення ${formatDate(order.order_date)} • готово ${formatDate(order.ready_production_max)}`
-                        : "Немає замовлень"}
+                        ? t("production_statistics.order_ready", { orderDate: formatDate(order.order_date, i18n.language), readyDate: formatDate(order.ready_production_max, i18n.language) })
+                        : t("production_statistics.no_orders")}
                     </small>
                   </div>
                   <strong style={{ color: "#B4D947" }}>
@@ -1595,10 +1607,10 @@ export default function ProductionStatisticsPage() {
           <div className="production-design__dealer-shell">
             <header className="production-design__dealer-head">
               <div className="production-design__dealer-head-copy">
-                <div className="production-design__eyebrow">Порівняння дилера</div>
+                <div className="production-design__eyebrow">{t("production_statistics.dealer_comparison")}</div>
                 <div className="production-design__dealer-head-title">
                   <h2>{comparisonSelectedDealer.dealer_name}</h2>
-                  <span>Порівняння з топ-1 в регіоні</span>
+                  <span>{t("production_statistics.comparison_top")}</span>
                 </div>
               </div>
               <div className="production-design__dealer-ranks">
@@ -1607,7 +1619,7 @@ export default function ProductionStatisticsPage() {
                     <FaTrophy />
                     {formatNumber(comparisonSelectedDealer.region_turnover_rank)}
                   </strong>
-                  <small>у регіоні</small>
+                  <small>{t("production_statistics.in_region")}</small>
                 </div>
               </div>
             </header>
@@ -1615,8 +1627,8 @@ export default function ProductionStatisticsPage() {
             <div className="production-design__dealer-main">
               <article className="production-design__dealer-panel production-design__dealer-panel--metrics">
                 <div className="production-design__dealer-panel-head">
-                  <h3>Порівняння з топ-1 в регіоні</h3>
-                  <span>Усі ваші показники — у відсотках до рівня локального лідера</span>
+                  <h3>{t("production_statistics.comparison_top")}</h3>
+                  <span>{t("production_statistics.comparison_hint")}</span>
                 </div>
                 <div className="production-design__dealer-gauges">
                   {comparisonMetricCards.map((item) => (
@@ -1634,7 +1646,7 @@ export default function ProductionStatisticsPage() {
 
               <aside className="production-design__dealer-panel production-design__dealer-panel--overall">
                 <span className="production-design__dealer-overall-label">
-                  Загальний рівень
+                  {t("production_statistics.overall_level")}
                 </span>
                 <div
                   className="production-design__dealer-overall-ring"
@@ -1647,11 +1659,11 @@ export default function ProductionStatisticsPage() {
                     {formatRoundedPercent(comparisonOverallPercent)}
                   </div>
                 </div>
-                <p>середній рівень відносно лідера</p>
+                <p>{t("production_statistics.average_vs_leader")}</p>
                 <div className="production-design__dealer-profit-card">
-                  <span>Очікуваний прибуток</span>
+                  <span>{t("production_statistics.expected_profit")}</span>
                   <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_region_20 || 0)}</strong>
-                 <small>За умови досягнення рівня топ-1 в регіоні та націнки 20%</small>
+                 <small>{t("production_statistics.profit_hint")}</small>
                 </div>
               </aside>
             </div>
@@ -1665,7 +1677,7 @@ export default function ProductionStatisticsPage() {
               <div className="production-design__eyebrow">
                 {activeAnalyticsConfig?.eyebrow || "Profile systems"}
               </div>
-              <h2>{activeAnalyticsConfig?.label || "Профільні системи"}</h2>
+              <h2>{activeAnalyticsConfig?.label || t("production_statistics.profile_systems")}</h2>
             </div>
             <span>
               {formatNumber(activeAnalyticsConfig?.count || 0)} {activeAnalyticsConfig?.countLabel || ""}
@@ -1728,8 +1740,8 @@ export default function ProductionStatisticsPage() {
                       : activeAnalyticsMetric === "total_sum"
                         ? formatCurrency(value)
                         : activeAnalyticsMetric === "orders_count"
-                          ? `${formatNumber(value)} зам.`
-                          : `${formatNumber(value)} шт`}
+                          ? `${formatNumber(value)} ${t("production_statistics.units_orders")}`
+                          : `${formatNumber(value)} ${t("production_statistics.units_pieces")}`}
                   </span>
                 ))}
               </div>
@@ -1765,16 +1777,16 @@ export default function ProductionStatisticsPage() {
 
               <div className="production-design__analytics-axis-label">
                 {activeAnalyticsMetric === "avg_check"
-                  ? "Середній чек"
+                  ? t("production_statistics.average_check")
                   : activeAnalyticsMetric === "total_sum"
-                    ? "Оборот, грн"
+                    ? `${t("production_statistics.turnover")}, грн`
                     : activeAnalyticsMetric === "orders_count"
-                      ? "Замовлення, шт"
-                      : "Конструкції, шт"}
+                      ? `${t("production_statistics.orders")}, ${t("production_statistics.units_pieces")}`
+                      : `${t("production_statistics.constructions")}, ${t("production_statistics.units_pieces")}`}
               </div>
             </div>
           ) : (
-            <div className="production-design__empty">Немає даних.</div>
+            <div className="production-design__empty">{t("production_statistics.no_data")}</div>
           )}
 
           <div className="production-design__analytics-metrics">
@@ -1792,16 +1804,16 @@ export default function ProductionStatisticsPage() {
           </div>
         </section>
 
-        {activeConstructionGroup ? <section ref={constructionDetailsRef} className="production-design__panel production-design__details"><button type="button" onClick={() => { setActiveConstructionCategory(null); setActiveConstructionSubCategory(null); }}>×</button><div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Construction details</div><h2>Деталізація: {activeConstructionGroup.name}</h2></div></div><ComplexityTreemap data={constructionTreemapData} activeGroup={activeConstructionGroup.name} height="520px" /></section> : null}
+        {activeConstructionGroup ? <section ref={constructionDetailsRef} className="production-design__panel production-design__details"><button type="button" onClick={() => { setActiveConstructionCategory(null); setActiveConstructionSubCategory(null); }}>×</button><div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Construction details</div><h2>{t("production_statistics.order_details")}: {activeConstructionGroup.name}</h2></div></div><ComplexityTreemap data={constructionTreemapData} activeGroup={activeConstructionGroup.name} height="520px" /></section> : null}
 
         {showOrderDetails ? <section ref={orderDetailsRef} className="production-design__panel production-design__orders">
-          <button type="button" onClick={() => setShowOrderDetails(false)} aria-label="Закрити деталізацію">×</button>
-          <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Order details</div><h2>Деталізація замовлень</h2><p className="production-design__orders-caption">Відкрито для {selectedAbc === "all" ? "усіх класів" : `класу ${selectedAbc}`} і {STATUS_LABELS[selectedStatus]?.toLowerCase() || "усіх статусів"}.</p></div></div>
+          <button type="button" onClick={() => setShowOrderDetails(false)} aria-label={t("production_statistics.close_details")}>×</button>
+          <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Order details</div><h2>{t("production_statistics.order_details")}</h2><p className="production-design__orders-caption">{t("production_statistics.opened_for", { scope: selectedAbc === "all" ? t("production_statistics.all_classes") : t("production_statistics.class_scope", { value: selectedAbc }), status: selectedStatus === "all" ? t("production_statistics.all_statuses") : getProductionStatusLabel(selectedStatus).toLowerCase() })}</p></div></div>
           <div className="production-design__order-filters">
-            <div>{abcTabs.map((tab) => <button key={tab} type="button" className={selectedAbc === tab ? "is-active" : ""} onClick={() => setSelectedAbc(tab)}>{tab === "all" ? "Усі ABC" : `Клас ${tab}`}</button>)}</div>
-            <div>{Object.entries(STATUS_LABELS).map(([key, label]) => <button key={key} type="button" className={selectedStatus === key ? "is-active" : ""} onClick={() => setSelectedStatus(key)}>{label}</button>)}</div>
+            <div>{abcTabs.map((tab) => <button key={tab} type="button" className={selectedAbc === tab ? "is-active" : ""} onClick={() => setSelectedAbc(tab)}>{tab === "all" ? t("production_statistics.all_abc") : t("production_statistics.class", { value: tab })}</button>)}</div>
+            <div>{Object.entries(STATUS_LABELS).map(([key, label]) => <button key={key} type="button" className={selectedStatus === key ? "is-active" : ""} onClick={() => setSelectedStatus(key)}>{getProductionStatusLabel(label)}</button>)}</div>
           </div>
-          <table><thead><tr><th>ABC</th><th>Замовлення</th><th>Дата</th><th>План</th><th>Факт</th><th>Статус</th><th>Затримка</th><th>Сума</th></tr></thead><tbody>{filteredOrders.length ? filteredOrders.map((order) => <tr key={order.order_id || order.order_number}><td><b className="production-design__abc-pill">{order.abc}</b></td><td><strong>{order.order_number}</strong><small>{order.client_order_number || ""}</small></td><td>{formatDate(order.order_date)}</td><td>{formatDate(order.planned_production_date)}</td><td>{formatDate(order.ready_production_max)}</td><td><div className="production-design__status-stack"><span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{order.production_status}</span>{order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">Виготовлено за {formatDays(order.production_days)} дн.</small> : null}</div></td><td>{order.delay_bucket || "—"}</td><td>{formatCurrency(order.order_sum)}</td></tr>) : <tr><td colSpan="8" className="production-design__orders-empty">За поточними фільтрами замовлень немає.</td></tr>}</tbody></table>
+          <table><thead><tr><th>ABC</th><th>{t("production_statistics.orders")}</th><th>{t("production_statistics.date")}</th><th>{t("production_statistics.plan")}</th><th>{t("production_statistics.fact")}</th><th>{t("production_statistics.status")}</th><th>{t("production_statistics.delay")}</th><th>{t("production_statistics.sum")}</th></tr></thead><tbody>{filteredOrders.length ? filteredOrders.map((order) => <tr key={order.order_id || order.order_number}><td><b className="production-design__abc-pill">{order.abc}</b></td><td><strong>{order.order_number}</strong><small>{order.client_order_number || ""}</small></td><td>{formatDate(order.order_date, i18n.language)}</td><td>{formatDate(order.planned_production_date, i18n.language)}</td><td>{formatDate(order.ready_production_max, i18n.language)}</td><td><div className="production-design__status-stack"><span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{getProductionStatusLabel(order.production_status)}</span>{order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">{t("production_statistics.made_in", { days: formatDays(order.production_days) })}</small> : null}</div></td><td>{order.delay_bucket || "—"}</td><td>{formatCurrency(order.order_sum)}</td></tr>) : <tr><td colSpan="8" className="production-design__orders-empty">{t("production_statistics.orders_empty")}</td></tr>}</tbody></table>
           <div className="production-design__orders-mobile-list">
             {filteredOrders.length ? filteredOrders.map((order) => <article key={`mobile-${order.order_id || order.order_number}`} className="production-design__order-card">
               <div className="production-design__order-card-head">
@@ -1811,21 +1823,21 @@ export default function ProductionStatisticsPage() {
                   {order.client_order_number ? <small>{order.client_order_number}</small> : null}
                 </div>
                 <div className="production-design__status-stack">
-                  <span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{order.production_status}</span>
-                  {order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">Виготовлено за {formatDays(order.production_days)} дн.</small> : null}
+                  <span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{getProductionStatusLabel(order.production_status)}</span>
+                  {order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">{t("production_statistics.made_in", { days: formatDays(order.production_days) })}</small> : null}
                 </div>
               </div>
               <div className="production-design__order-card-grid">
-                <div><span>Дата</span><strong>{formatDate(order.order_date)}</strong></div>
-                <div><span>План</span><strong>{formatDate(order.planned_production_date)}</strong></div>
-                <div><span>Факт</span><strong>{formatDate(order.ready_production_max)}</strong></div>
-                <div><span>Затримка</span><strong>{order.delay_bucket || "—"}</strong></div>
-                <div className="is-wide"><span>Сума</span><strong>{formatCurrency(order.order_sum)}</strong></div>
+                <div><span>{t("production_statistics.date")}</span><strong>{formatDate(order.order_date, i18n.language)}</strong></div>
+                <div><span>{t("production_statistics.plan")}</span><strong>{formatDate(order.planned_production_date, i18n.language)}</strong></div>
+                <div><span>{t("production_statistics.fact")}</span><strong>{formatDate(order.ready_production_max, i18n.language)}</strong></div>
+                <div><span>{t("production_statistics.delay")}</span><strong>{order.delay_bucket || "—"}</strong></div>
+                <div className="is-wide"><span>{t("production_statistics.sum")}</span><strong>{formatCurrency(order.order_sum)}</strong></div>
               </div>
-            </article>) : <div className="production-design__orders-empty production-design__orders-empty--mobile">За поточними фільтрами замовлень немає.</div>}
+            </article>) : <div className="production-design__orders-empty production-design__orders-empty--mobile">{t("production_statistics.orders_empty")}</div>}
           </div>
         </section> : null}
-        {showReturnToPreviousButton ? <button type="button" className="production-design__return-button" onClick={handleReturnToPreviousPosition} aria-label="Повернутися вгору"><span>↑</span></button> : null}
+        {showReturnToPreviousButton ? <button type="button" className="production-design__return-button" onClick={handleReturnToPreviousPosition} aria-label={t("production_statistics.return_up")}><span>↑</span></button> : null}
       </> : null}
     </main>
   );

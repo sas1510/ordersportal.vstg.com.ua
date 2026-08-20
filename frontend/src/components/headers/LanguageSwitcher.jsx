@@ -13,6 +13,8 @@ export default function LanguageSwitcher() {
     { code: "uk", label: "UA" },
     { code: "en", label: "EN" },
     { code: "de", label: "DE" },
+    { code: "ro", label: "RO" },
+    { code: "hu", label: "HU" },
   ];
 
   const currentLabel =

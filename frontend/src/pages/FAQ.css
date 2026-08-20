@@ -238,24 +238,8 @@ body.dark-theme .faq-page__search input {
   flex: 0 0 auto;
 }
 
-.faq-page__filters button:nth-child(1) {
-  width: 145px;
-}
-
-.faq-page__filters button:nth-child(2) {
-  width: 113px;
-}
-
-.faq-page__filters button:nth-child(3) {
-  width: 108px;
-}
-
-.faq-page__filters button:nth-child(4) {
-  width: 101px;
-}
-
-.faq-page__filters button:nth-child(5) {
-  width: 112px;
+.faq-page__filters button {
+  width: fit-content;
 }
 
 .faq-page__filters button.is-active {

@@ -76,7 +76,7 @@ from .utils import (
 )
 
 
-SUPPORTED_PORTAL_TRANSLATION_LANGS = {"uk", "en", "de"}
+SUPPORTED_PORTAL_TRANSLATION_LANGS = {"uk", "en", "de", "ro", "hu"}
 ORDERSPORTAL_AI_TRANSLATE_URL = (
     os.getenv("ORDERSPORTAL_AI_TRANSLATE_URL")
     or os.getenv("ORDERSPORTAL_AI_WEBHOOK_URL")
@@ -3141,30 +3141,19 @@ def build_address_name(addr: dict | None) -> str:
 
     parts = []
 
-    def is_latin_text(value):
-        if not isinstance(value, str):
-            return False
-        return bool(re.search(r"[A-Za-z]", value)) and not bool(
-            re.search(r"[А-Яа-яІіЇїЄєҐґ]", value)
-        )
-
-    def add(prefix, key, suffix="", en_prefix=None, en_suffix=""):
+    def add(prefix, key, suffix=""):
         val = addr.get(key)
         if isinstance(val, str) and val.strip():
-            clean_value = val.strip()
-            use_english = is_latin_text(clean_value)
-            actual_prefix = en_prefix if use_english and en_prefix is not None else prefix
-            actual_suffix = en_suffix if use_english else suffix
-            parts.append(f"{actual_prefix}{clean_value}{actual_suffix}")
+            parts.append(f"{prefix}{val.strip()}{suffix}")
 
     add("", "region")
-    add("", "district", " район", en_suffix=" district")
-    add("м. ", "city", en_prefix="city ")
-    add("вул. ", "street", en_prefix="st. ")
-    add("буд. ", "house", en_prefix="bld. ")
-    add("кв. ", "apartment", en_prefix="apt. ")
-    add("під'їзд ", "entrance", en_prefix="entr. ")
-    add("поверх ", "floor", en_prefix="floor ")
+    add("", "district", " район")
+    add("м. ", "city")
+    add("вул. ", "street")
+    add("буд. ", "house")
+    add("кв. ", "apartment")
+    add("під'їзд ", "entrance")
+    add("поверх ", "floor")
 
     return ", ".join(parts)
 

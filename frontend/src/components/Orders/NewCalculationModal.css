@@ -206,6 +206,15 @@
 }
 
 
+.client-address-manager-note {
+  display: block;
+  margin: 8px 0 0;
+  color: #ccc;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+}
+
 .new-calc-top-upload-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 180px;

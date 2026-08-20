@@ -26,8 +26,7 @@
 //   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
 //   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
-//   const [deliveryDate, setDeliveryDate] = useState("");
-//   const [claimDate, setClaimDate] = useState("");
+// //   const [claimDate, setClaimDate] = useState("");
 //   const [reasonLink, setReasonLink] = useState("");
 //   const [solutionLink, setSolutionLink] = useState("");
 //   const [description, setDescription] = useState("");
@@ -177,8 +176,7 @@
 
 //   const resetForm = () => {
 //     setOrderNumber("");
-//     setDeliveryDate("");
-//     setClaimDate("");
+// //     setClaimDate("");
 //     setReasonLink("");
 //     setSolutionLink("");
 //     setDescription("");
@@ -231,8 +229,7 @@
 //         order_number: orderNumber.trim(),
 //         order_GUID: initialOrderGUID,
 
-//         order_deliver_date: deliveryDate,
-//         order_define_date: claimDate,
+// //         order_define_date: claimDate,
 //         complaint_date: new Date().toISOString(),
 
 //         issue: reasonLink,
@@ -791,10 +788,6 @@ export default function AddClaimModal({
           )}
 
           <div className="claim-row">
-            <label className="claim-label">
-              <span>{t("add_claim.delivery_date")}</span>
-              <input type="date" className="claim-input" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
-            </label>
             <label className="claim-label">
               <span>{t("add_claim.claim_date")}</span>
               <input type="date" className="claim-input" value={claimDate} onChange={(e) => setClaimDate(e.target.value)} required />

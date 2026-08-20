@@ -1,0 +1,1408 @@
+{
+  "hero": {
+    "welcome": "Bun venit pe portalul de comenzi",
+    "title_line1": "Sisteme profesionale de ferestre",
+    "title_line2": "pentru piata europeana"
+  },
+  "stats": {
+    "experience": "ani de experiență",
+    "employees": "angajati",
+    "area": "zona plantelor",
+    "windows_monthly": "ferestre și uși pe lună"
+  },
+  "production": {
+    "title": "Puterile de productie",
+    "cycle_title": "Ciclul Tehnologic",
+    "cycle_title_br": "Ciclul Tehnologic",
+    "pvc_windows": "Ferestre PVC pe luna",
+    "pvc_doors": "Usi PVC pe luna",
+    "innovations": "Inovații"
+  },
+  "info": {
+    "factory_location": "Fabrica cu o suprafață de 25.000 m² este situată în satul Velikiy Kuchuriv (5 km de Cernăuți).",
+    "export_geography": "Geografie de export: Germania, Italia, România, Canada și SUA."
+  },
+  "values": {
+    "aesthetics": {
+      "title": "Estetica",
+      "desc": "Design modern"
+    },
+    "quality": {
+      "title": "Calitate",
+      "desc": "standardele europene"
+    },
+    "price": {
+      "title": "Cel mai bun serviciu",
+      "desc": "Rezolvarea instantanee a oricăror probleme"
+    },
+    "safety": {
+      "title": "Securitate",
+      "desc": "Protecție de încredere"
+    }
+  },
+  "media": {
+    "title": "Revista media"
+  },
+  "partnership": {
+    "title_line1": "Ușa care deschide lumea",
+    "title_line2": "parteneriat de succes",
+    "desc_line1": "Deveniți parte a rețelei de dealeri de încredere „Vikna Stil”.",
+    "desc_line2": "21 de ani de experiență și standarde europene de calitate pentru afacerea dvs."
+  },
+  "nav": {
+    "promo_wds": "Acțiuni WDS",
+    "promo_wds_short": "Acțiuni WDS",
+    "orders": "Comanda",
+    "orders_short": "Comanda",
+    "complaints": "Plângeri",
+    "complaints_short": "Plângeri",
+    "additional_orders": "Precomandă",
+    "additional_orders_short": "Precomandă",
+    "files": "Fișiere",
+    "tech_file": "Materiale tehnice",
+    "tech_file_short": "Materiale tehnice",
+    "faq": "Întrebări frecvente",
+    "faq_short": "Întrebări frecvente",
+    "videos": "Video",
+    "videos_short": "Video",
+    "payment": "Plata",
+    "payment_short": "Plata",
+    "finance": "Finanțe",
+    "finance_short": "Finanțe",
+    "finance_cash_flow": "Mișcarea fondurilor",
+    "finance_analytics": "Analytics",
+    "finance_analytics_short": "Analytics",
+    "finance_bills": "Conturi",
+    "change_password": "Schimbați parola",
+    "emergency_line": "Linia fierbinte",
+    "logout": "ieșire",
+    "menu": "Meniu",
+    "default_dealer": "Dealer",
+    "settings_short": "Configurare",
+    "settings": "Setări",
+    "settings_users": "Utilizatori",
+    "settings_tg_manager": "managerul TG",
+    "settings_sos_stats": "Statistici SOS",
+    "profile": "Profil",
+    "settings_emergency_contacts": "Contacte urgente",
+    "notifications": "Notificare"
+  },
+  "common": {
+    "loading": "Se încarcă...",
+    "currency_uah": "UAH",
+    "close": "aproape",
+    "logo_alt": "Stilul Windows",
+    "date_from": "Data de",
+    "date_to": "Data de",
+    "dealer": "Dealer",
+    "show": "arată",
+    "no_results": "Nu s-a găsit nimic",
+    "loadingFiles": "Se descarcă fișiere...",
+    "noDate": "Este necunoscut",
+    "downloading": "Se încarcă...",
+    "view": "Vedeți",
+    "download": "Descărcați",
+    "search": "Caută",
+    "back": "Înapoi",
+    "next": "În continuare",
+    "edit": "Editați",
+    "delete": "Ștergeți",
+    "cancel": "anulați",
+    "add": "Adăugați",
+    "update": "Actualizare",
+    "saving": "păstrez...",
+    "deleting": "Se șterge...",
+    "refresh": "Actualizare",
+    "generating": "Generație",
+    "no_data": "Nu s-au găsit date",
+    "try_again": "Încercați din nou",
+    "save": "Salvați"
+  },
+  "maintenance": {
+    "default_message": "Baza noastră de date este în curs de actualizare, vă rugăm să așteptați câteva minute.",
+    "admin": {
+      "enable": "Activați modul de actualizare 1C",
+      "disable": "Dezactivați modul de actualizare 1C",
+      "enable_short": "1C pauză",
+      "disable_short": "1C pornit",
+      "active": "Actualizarea 1C este activată",
+      "inactive": "Actualizarea 1C este dezactivată",
+      "loading": "1C...",
+      "enabled_success": "Modul de actualizare 1C este activat.",
+      "disabled_success": "Modul de actualizare 1C este dezactivat.",
+      "toggle_error": "Nu a fost posibil să se schimbe modul de actualizare 1C."
+    }
+  },
+  "route_titles": {
+    "default": "Portal de comenzi",
+    "login": "Autentificare — Portal de comandă",
+    "home": "Portal de comenzi",
+    "dashboard": "Principal",
+    "users": "Utilizatori",
+    "files": "Fișiere",
+    "files_add": "Adăugați fișiere",
+    "files_edit": "Editarea fișierelor",
+    "faq": "Întrebări frecvente",
+    "videos": "Video",
+    "user_add": "Adăugați utilizator",
+    "organizations": "Organizații",
+    "regions": "Regiunile",
+    "contacts": "Contacte SOS",
+    "orders": "Comanda",
+    "complaints": "Plângeri",
+    "additional_orders": "Lista comenzilor",
+    "finance": "Finanțe",
+    "change_password": "Schimbarea parolei",
+    "user_edit": "Editarea unui utilizator",
+    "settlements": "Așezări reciproce",
+    "cash_flow": "Mișcarea fondurilor",
+    "contacts_add": "Adăugarea contactelor SOS",
+    "sos_requests": "Apel SOS",
+    "contacts_edit": "Editați contactele SOS",
+    "emergency_contacts": "SOS",
+    "promo_wds": "Acțiune WDS",
+    "payment": "Plata",
+    "customer_bills": "Conturi",
+    "analytics": "Analytics",
+    "edit_addresses": "Editarea adreselor",
+    "support_video_upload": "Descărcați videoclipul"
+  },
+  "notifications": {
+    "title": "Notificare",
+    "new_message": "Mesaj nou",
+    "downloadError": "Fișierul nu a putut fi deschis sau descărcat.",
+    "mark_all_read": "Marcați totul ca citit",
+    "empty_all": "Nu ai notificări",
+    "empty_filter": "Nu s-a găsit nimic",
+    "filters": {
+      "all": "Toate",
+      "messages": "Mesaj",
+      "reminders": "Memento"
+    },
+    "types": {
+      "reminder": "Memento",
+      "system": "Sistemică"
+    },
+    "push": {
+      "btn_enable": "Activați",
+      "btn_disable": "Opriți",
+      "enable_title": "Activați notificările desktop",
+      "disable_title": "Dezactivați notificările pe acest dispozitiv",
+      "blocked_title": "Accesul este blocat în browser",
+      "activated": "Notificările din browser sunt activate!",
+      "disabled": "Notificările sunt dezactivate",
+      "error_enable": "Nu s-au activat notificările.",
+      "error_disable": "Eroare la dezactivarea notificărilor"
+    },
+    "tg": {
+      "bot_title": "Botul Telegram",
+      "qr_text": "Scanați pentru a vă conecta",
+      "open_chat": "Deschide un chat"
+    },
+    "errors": {
+      "tg_link": "Nu s-a putut obține linkul Telegram"
+    },
+    "excel_success": "Excel descărcat cu succes",
+    "excel_error": "Nu s-a putut încărca Excel",
+    "transaction_types": {
+      "Прорахунок": "Calcul greșit",
+      "Рекламація": "Plângere",
+      "Доп. замовлення": "Comanda suplimentara"
+    }
+  },
+  "login": {
+    "welcome_title": "Felicitari din nou!",
+    "welcome_subtitle": "Conectați-vă la portalul de analize și comenzi",
+    "form_title": "Conectați-vă la sistem",
+    "form_subtitle": "Introduceți acreditările pentru a accesa",
+    "username_label": "Nume de utilizator",
+    "username_placeholder": "Introduceți datele dvs. de conectare",
+    "password_label": "Parolă",
+    "password_placeholder": "Introduceți parola",
+    "remember_me": "aminteste-ma",
+    "button_submit": "Conectați-vă",
+    "button_loading": "Intrarea...",
+    "error_invalid_credentials": "Autentificare sau parolă nevalidă",
+    "error_auth": "Eroare de autorizare",
+    "error_server_unavailable": "Serverul este indisponibil. Verificați conexiunea.",
+    "error_general": "A apărut o eroare"
+  },
+  "wds": {
+    "title": "Coduri promoționale WDS",
+    "loading_text": "Cauta oferte speciale...",
+    "no_data": "Nu au fost găsite coduri promoționale pentru perioada specificată",
+    "error_select_dealer": "Alegeți un dealer",
+    "error_load": "Eroare la încărcarea codurilor WDS",
+    "table_date": "Data",
+    "table_code": "Cod WDS",
+    "table_code_short": "WDS",
+    "table_order_no": "Comanda nr",
+    "table_order_short": "Comanda",
+    "table_series": "Seria de profil",
+    "table_series_short": "Seria",
+    "default_series": "Standard"
+  },
+  "dealer_select": {
+    "placeholder": "— Alegeți un dealer —",
+    "search_placeholder": "Caut un dealer...",
+    "error_load": "Eroare la încărcarea dealerilor",
+    "empty": "Nu s-a găsit nimic",
+    "all_dealers": "Toți dealerii"
+  },
+  "files": {
+    "header": {
+      "title": "Fișiere",
+      "subtitle_1": "Materiale utile pentru descărcare:",
+      "subtitle_2": "certificate, rapoarte de testare etc."
+    },
+    "searchPlaceholder": "Caută",
+    "choose_file": "Selectați un fișier",
+    "noResults": "Nu s-au găsit fișiere",
+    "empty": "Nu există încă fișiere",
+    "adminRole": "Administrator",
+    "unknownDate": "Este necunoscut",
+    "buttons": {
+      "add": "Adăugați fișier",
+      "download": "Descărcați",
+      "edit": "Editați",
+      "delete": "Ștergeți",
+      "cancel": "anulați",
+      "upload": "Descărcați",
+      "save": "Salvați modificările",
+      "uploading": "Se încarcă...",
+      "saving": "Se salvează..."
+    },
+    "labels": {
+      "title_ua": "Nume (UA) *",
+      "title_en": "Titlu (RO)",
+      "title_de": "Titlu (DE)",
+      "change_file_optional": "Schimbați fișierul (opțional)"
+    },
+    "hero_bg_alt": "Fișiere de fundal",
+    "search_alt": "Caută",
+    "errors": {
+      "download": "Eroare la încărcarea fișierelor",
+      "error": "Eroare:",
+      "delete": "Eroare la ștergere",
+      "no_file_data": "Nu există date din fișier",
+      "required_ua_title": "Numele ucrainean este obligatoriu",
+      "error_change_file": "Nu s-a putut modifica fișierul",
+      "error_add_file": "Nu s-a putut adăuga fișierul"
+    },
+    "feedback": {
+      "success": "Fișier adăugat cu succes!",
+      "edit": "Fișierul a fost schimbat cu succes!",
+      "deleted": "Fișierul a fost șters",
+      "confirmDeleteMessage": "Sigur doriți să ștergeți fișierul?",
+      "deleteFile": "Ștergerea unui fișier"
+    }
+  },
+  "videos": {
+    "header": {
+      "title": "Video",
+      "subtitle": "Materiale video utile care ajută la lucru"
+    },
+    "hero_bg_alt": "Fundal video",
+    "menu_alt": "Meniul video",
+    "search_alt": "Căutare video",
+    "close_alt": "aproape",
+    "add_alt": "Adăugați un videoclip",
+    "iframe_title": "Video",
+    "sidebar": {
+      "categories": "Categorii"
+    },
+    "categories": {
+      "tech": "Pregătire tehnică",
+      "media": "Recenzii media",
+      "factory": "Video de producție",
+      "install": "Video de instalare",
+      "social": "Rețelele sociale"
+    },
+    "buttons": {
+      "add": "Adăugați un videoclip",
+      "save": "salva",
+      "saving": "Se salvează...",
+      "edit": "Editați",
+      "delete": "Ștergeți"
+    },
+    "feedback": {
+      "added": "Videoclip adăugat cu succes",
+      "updated": "Videoclipul a fost actualizat cu succes",
+      "deleted": "Videoclipul a fost șters"
+    },
+    "social_headers": {
+      "tiktok": "Feed TikTok",
+      "facebook": "Pagina Facebook",
+      "instagram": "Profil Instagram"
+    },
+    "form": {
+      "title_ua": "Nume (UA) *",
+      "title_en": "Titlu (RO)",
+      "title_it": "Titolo (IT)",
+      "title_de": "Titlu (DE)",
+      "url_ua": "URL (UA) *",
+      "url_en": "URL",
+      "url_it": "URL (IT)",
+      "url_de": "URL (DE)",
+      "description_ua": "Descriere (UA)",
+      "description_de": "Beschreibung (DE)"
+    },
+    "modals": {
+      "add_title": "Adăugați un videoclip nou",
+      "edit_title": "Editați videoclipul",
+      "delete_confirm": "Șterge videoclipul",
+      "delete_message": "Sigur doriți să ștergeți videoclipul?"
+    },
+    "search_placeholder": "Căutați videoclipul...",
+    "all_videos": "Toate videoclipurile",
+    "errors": {
+      "load": "Eroare la încărcarea videoclipului",
+      "save": "Eroare la salvare",
+      "delete": "Eroare la ștergere"
+    }
+  },
+  "orders": {
+    "newOrderModal": {
+      "coord_message_1": "Atentie! Coordonatele geografice nu sunt setate.",
+      "coord_message_2": "Pentru calcularea corectă a logisticii, este necesar să indicați un punct pe hartă.",
+      "coord_message_3": "Vă rugăm să contactați managerul pentru a vă actualiza detaliile adresei",
+      "error_message_1": "Nu s-au încărcat adresele:",
+      "error_message_2": "Niciun fișier selectat",
+      "error_message_3": "Completați toate câmpurile",
+      "error_message_4": "Alegeți o adresă de livrare",
+      "error_message_5": "Alegeți o adresă de client",
+      "error_message_6": "Eroare de creare:",
+      "error_message_8": "Eroare de actualizare:",
+      "error_message_7": "Adresa nu este selectată",
+      "order_created": "Calcul greșit #{{orderNumber}} a fost creat ✅",
+      "order_updated": "Calculul greșit #{{orderNumber}} a fost actualizat ✅",
+      "order_create": "Creați un nou calcul",
+      "order_edit": "Editați calculul greșit",
+      "order_number_label": "Număr de comandă",
+      "order_number_placeholder": "PO-2026-154 (opțional)",
+      "order_number_hint": "Completați dacă utilizați propria dvs. numerotare.",
+      "dealer": "Dealer:",
+      "myAddress": "Adresa mea",
+      "clientAddress": "Adresa clientului",
+      "address": "Adresa de livrare:",
+      "loadingOfAddress": "Se încarcă adresele...",
+      "choose": "Selectați",
+      "downloadZKZ": "Descărcați fișierul (.zkz)",
+      "addImages": "Adăugați o imagine",
+      "numberOfConstruction": "Numar de modele:",
+      "comment": "Comentariu:",
+      "cancel": "Anulează",
+      "creating": "Noi creăm...",
+      "updating": "Se actualizează...",
+      "save": "salva",
+      "repeat": "REPEȚI",
+      "client_address_manager_note": "Adresa finală este convenită cu managerul."
+    },
+    "modalFilesTitle": "Comandă fișiere",
+    "modalCalcFilesTitle": "Fișiere de calcul",
+    "modalFilesSubtitle": "Documentatie si fotografii",
+    "sectionProjects": "Fișiere",
+    "sectionPhotos": "Fotografii ale obiectului",
+    "sectionOthers": "Altele",
+    "totalFiles": "În total",
+    "downloadFileError": "A apărut o eroare la încărcarea fișierului",
+    "noFilesFound": "Nu s-au găsit fișiere pentru această comandă."
+  },
+  "clientAddressModal": {
+    "title": "🏠 Adresa clientului",
+    "contactSection": "Contactele clienților",
+    "addressSection": "Adresa de livrare",
+    "findOnMap": "Găsiți pe hartă",
+    "searchPlaceholder": "Căutați o adresă pe hartă...",
+    "dragHint": "Trageți marcatorul pentru a rafina punctul",
+    "cancel": "anulați",
+    "save": "salva",
+    "fields": {
+      "fullName": "Numele clientului (nume și prenume) *",
+      "phone": "Telefon (+380...) *",
+      "extraInfo": "Informații suplimentare",
+      "region": "Regiune *",
+      "district": "District *",
+      "city": "Oraș *",
+      "street": "Strada *",
+      "house": "Casa *",
+      "apartment": "Apartament",
+      "entrance": "Intrarea",
+      "floor": "La etaj",
+      "note": "Notă"
+    },
+    "errors": {
+      "requiredField": "Completați câmpul obligatoriu: {{field}}",
+      "fillRequired": "Completați câmpurile de adresă obligatorii",
+      "invalidName": "Introduceți numele complet al clientului (numele și prenumele)",
+      "invalidPhone": "Format de telefon incorect (+380XXXXXXXXX)",
+      "selectOnMap": "Selectați un punct de pe hartă",
+      "preciseLocation": "Rafinați punctul: trageți marcatorul sau faceți clic mai precis"
+    },
+    "success": "Datele adresei clientului au fost salvate cu succes ✅"
+  },
+  "commentsModal": {
+    "title": "Chat",
+    "noMessages": "Nu există încă mesaje",
+    "placeholder": "Mesajul tau...",
+    "errors": {
+      "fetchProfile": "Eroare de profil",
+      "fetchHistory": "Istoricul nu a putut fi încărcat",
+      "authFailed": "Autorizarea nu a reușit, reconectați-vă în 5 secunde...",
+      "wsClosed": "Conexiunea este închisă (cod: {{code}}). Reconectați...",
+      "wsError": "Eroare WS",
+      "connectionLost": "Conexiunea pierdută. Încercați să reîmprospătați pagina."
+    }
+  },
+  "counterpartyModal": {
+    "dealer": "Dealer",
+    "recipient": "Destinatar:",
+    "phone": "Telefon:",
+    "additional": "În plus:",
+    "deliveryAddress": "Adresa de livrare:",
+    "pickup": "Ridicare",
+    "close": "aproape"
+  },
+  "delete_modal": {
+    "title": "Ștergeți confirmarea",
+    "warning": "Sigur doriți să ștergeți {{type}} „{{name}}”?",
+    "description": "Această acțiune este ireversibilă. Toate datele asociate vor fi, de asemenea, șterse.",
+    "cancel": "anulați",
+    "delete": "Ștergeți",
+    "deleting": "Se șterge...",
+    "success": "{{type}} „{{name}}” a fost șters cu succes ✅",
+    "error_unknown": "Tip de element necunoscut ❌",
+    "types": {
+      "order": "Comanda",
+      "calculation": "Calcul greșit",
+      "client": "Clientul",
+      "product": "Produs",
+      "reclamation": "Plângere",
+      "additionalOrder": "Precomandă",
+      "record": "înregistrarea"
+    }
+  },
+  "reorder_modal": {
+    "title": "Precomandă",
+    "order_number": "Număr comandă:",
+    "order_placeholder": "Introduceți numărul...",
+    "no_order": "Fără comandă",
+    "item_label": "Articol pe comandă:",
+    "loading": "Se încarcă...",
+    "select_placeholder": "-- Selectați un articol --",
+    "quantity": "Cantitate:",
+    "comment_label": "Comentariul contrapartidei:",
+    "comment_placeholder": "Comentariul tau...",
+    "btn_cancel": "Anulează",
+    "btn_save": "Adăugați",
+    "success_create": "Precomanda a fost creată cu succes!"
+  },
+  "add_claim": {
+    "title": "Adăugați o reclamație",
+    "order_number": "Număr comandă:",
+    "order_not_found": "Comanda nu a fost găsită",
+    "retry": "Repetați",
+    "dealer": "Dealer:",
+    "select_dealer": "Alegeți un dealer",
+    "select_series": "Alege o serie:",
+    "delivery_date": "Data livrării:",
+    "claim_date": "Data revendicarii:",
+    "reason_label": "Motivul reclamației:",
+    "solution_label": "Opțiune de soluție:",
+    "description_label": "Descriere:",
+    "photos_label": "Revendicare fotografie:",
+    "add_photo": "Adăugați o fotografie",
+    "btn_cancel": "Anulează",
+    "btn_save": "Adăugați o reclamație",
+    "loading": "Se încarcă...",
+    "success_msg": "Revendicare adăugată cu succes",
+    "error_default": "A apărut o eroare la crearea unei revendicări",
+    "errors": {
+      "reasons": "Eroare la încărcarea motivelor reclamației",
+      "solutions": "Eroare la încărcarea soluțiilor",
+      "series": "Nu s-au putut obține date despre serii de modele"
+    }
+  },
+  "select": {
+    "default_placeholder": "-- Selectați --",
+    "no_options": "Nu există opțiuni"
+  },
+  "reasons": {
+    "Переробити конструкцію на виробництві за рахунок виробника": "Reluați designul pe cheltuiala producătorului",
+    "Переробити конструкцію на виробництві за рахунок замовника": "Relucrați designul în producție pe cheltuiala clientului",
+    "Замінити фурнітуру за рахунок виробника": "Înlocuiți accesoriile pe cheltuiala producătorului",
+    "Замінити склопакет за рахунок виробника": "Înlocuiți unitatea de sticlă pe cheltuiala producătorului",
+    "Замінити склопакет за рахунок замовника": "Înlocuiți geamul termopan pe cheltuiala clientului",
+    "Замінити пошкодженні матеріали за рахунок виробника": "Înlocuiți materialele deteriorate pe cheltuiala producătorului",
+    "Замінити пошкодженні матеріали за рахунок замовника": "Înlocuiți materialele deteriorate pe cheltuiala clientului",
+    "Замінити браковані матеріали за рахунок виробника": "Înlocuiți materialele defecte pe cheltuiala producătorului",
+    "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "Despăgubiți (compensați) costul elementelor deteriorate ale comenzii, lucrărilor, serviciilor pe cheltuiala producătorului",
+    "Доукомплектувати замовлення за рахунок виробника": "Finalizați comanda pe cheltuiala producătorului",
+    "Доукомплектувати замовлення за рахунок замовника": "Finalizați comanda pe cheltuiala clientului",
+    "Дозамовлення за рахунок замовника": "Precomandă pe cheltuiala clientului",
+    "Повернути конструкцію на виробництво (неліквід)": "Readuceți designul în producție (nelichide)"
+  },
+  "payment_modal": {
+    "title": "Plata pentru comanda # {{number}}",
+    "loading": "Se încarcă...",
+    "error_no_currency": "Nu aveți contracte în avans în moneda {{currency}}.",
+    "error_no_contracts": "Nu aveți contracte în avans.",
+    "error_load_failed": "Nu s-au putut încărca datele de echilibru.",
+    "order_currency": "Moneda comenzii:",
+    "amount_to_pay": "Suma de platit:",
+    "advance_contract": "Contract în avans ({{currency}}):",
+    "select_contract": "Selectați un contract",
+    "available": "Disponibil:",
+    "payment_amount": "Suma platii:",
+    "error_min_amount": "Suma trebuie să fie mai mare decât 0",
+    "error_max_amount": "Suma maximă este {{amount}}",
+    "btn_cancel": "anulați",
+    "btn_pay": "a plăti",
+    "btn_processing": "Plata...",
+    "topup_invoice": "Creați un cont pentru completarea contractului de avans"
+  },
+  "payments_page": {
+    "title": "Finanțe",
+    "actions": {
+      "refresh": "Actualizați datele",
+      "pay": "a plăti"
+    },
+    "filters": {
+      "title": "Filtre",
+      "search": "Caută",
+      "search_placeholder": "numărul de comandă",
+      "statuses": "Statuturi",
+      "contracts": "Acorduri",
+      "all_contracts": "Toate contractele"
+    },
+    "status_filters": {
+      "all": "Toate comenzile",
+      "waiting_confirmation": "Asteptam confirmarea",
+      "waiting_payment": "Asteptam plata",
+      "confirmed": "Confirmat",
+      "production": "În producție",
+      "ready": "gata",
+      "shipped": "Expediat",
+      "non_liquid": "Nelichid"
+    },
+    "statuses": {
+      "reserved": "Rezervare"
+    },
+    "labels": {
+      "amount": "Suma",
+      "paid": "plătit",
+      "balance_due": "Restul"
+    },
+    "sections": {
+      "advances": "Avansurile tale pe contracte",
+      "orders_to_pay": "Comanda in asteptarea platii"
+    },
+    "empty": {
+      "no_advances": "Nu există avansuri",
+      "no_orders_filtered": "Nu există comenzi pentru filtrele selectate"
+    },
+    "errors": {
+      "load_data": "Eroare la încărcarea datelor financiare"
+    },
+    "notifications": {
+      "payment_success": "Plata finalizată!",
+      "payment_error": "Eroare de plată"
+    },
+    "analytics": {
+      "debt_limit": "Limita datoriei",
+      "overlimit": "Supralimitarea datoriilor",
+      "limit_usage": "Folosind limita",
+      "no_prepayment": "Fără plată în avans",
+      "underfunded": "Subdezvoltat",
+      "post_sale_debt": "Datorie după realizare",
+      "route_debt": "Datorie după finalizarea traseului",
+      "in_routes": "În trasee",
+      "money_in_transit": "Banii sunt pe drum",
+      "debt_over_ten_days": "Datorii > 10 zile",
+      "debt_over_ten_days_short": "Datorii > 10 zile",
+      "no_prepayment_orders": "Comanda fara plata in avans",
+      "critical_orders": "Comenzi restante > 10 zile",
+      "underfunded_orders": "Comenzi neavansate",
+      "in_route_orders": "Datorii pe rute (pe drum)",
+      "money_in_transit_orders": "Banii sunt pe drum"
+    },
+    "detail": {
+      "date": "Data",
+      "amount": "Suma",
+      "action": "acțiune",
+      "empty": "Nu există date",
+      "find": "a găsi",
+      "find_in_list": "Găsiți în listă"
+    },
+    "common": {
+      "no_data_short": "—"
+    }
+  },
+  "confirm_modal": {
+    "default_title": "Confirmarea acțiunii",
+    "default_message": "Sigur doriți să efectuați această acțiune?",
+    "confirm": "Confirmați",
+    "cancel": "anulați"
+  },
+  "order_mobile": {
+    "labels": {
+      "constructions": "Constructii",
+      "files": "Fișiere",
+      "order_amount": "Suma comenzii",
+      "debt_amount": "Suma datoriei",
+      "order_number": "Număr de comandă"
+    },
+    "buttons": {
+      "confirm": "Confirmați",
+      "pay": "a plăti",
+      "reorder": "Precomandă",
+      "claim": "Plângere"
+    },
+    "fast_order": {
+      "fast": "Procesare rapidă (mai puțin de o zi)",
+      "slow": "Comanda a fost plasată mai târziu de o zi mai târziu",
+      "title_1": "Rapid",
+      "title_2": "proiectare"
+    },
+    "confirm_modal": {
+      "title": "Confirmarea comenzii",
+      "message": "Sigur doriți să confirmați comanda {{number}}?",
+      "confirm": "Confirmați"
+    },
+    "notifications": {
+      "payment_success": "Plata a fost finalizată cu succes!",
+      "order_confirmed": "Comanda {{number}} a fost confirmată cu succes!"
+    },
+    "steps": {
+      "order": "Comanda",
+      "payment": "Plata",
+      "confirmation": "Confirmare",
+      "production": "Productie",
+      "readiness": "Pregătire",
+      "delivery": "Livrare",
+      "delay": "întârziere"
+    },
+    "statuses": {
+      "no_date": "Nu există o dată",
+      "paid": "plătit",
+      "debt": "Datorii",
+      "not_confirmed": "Neconfirmat",
+      "no_data": "Nu există date disponibile",
+      "plan": "Planifică",
+      "not_ready": "Nu este gata",
+      "not_delivered": "Nu este livrat",
+      "from": "cu",
+      "to": "de către"
+    }
+  },
+  "order_status": {
+    "new": "Nou",
+    "processing": "În procesare",
+    "waiting_payment": "Asteptam plata",
+    "waiting_confirmation": "Asteptam confirmarea",
+    "rejected": "Refuz",
+    "ready": "gata",
+    "shipped": "Expediat",
+    "confirmed": "Confirmat",
+    "in_work": "La serviciu",
+    "production": "În producție"
+  },
+  "errors": {
+    "serverError": "Serverul a returnat o eroare.",
+    "errorSendData": "Trimiterea datelor a eșuat:",
+    "errorSendData_2": "Trimiterea datelor a eșuat.",
+    "error": "Eroare:",
+    "unknownError": "Eroare necunoscută",
+    "fetchFilesFailed": "Nu s-au putut obține fișiere.",
+    "paymentError": "Eroare de plată",
+    "fetch_failed": "Eroare la încărcarea datelor"
+  },
+  "calc": {
+    "constructions_qty": "Numărul de structuri",
+    "orders_qty": "Numărul de comenzi",
+    "no_comments": "Fara comentarii",
+    "comment_history": "Istoricul comentariilor",
+    "no_file": "Nici un fișier",
+    "recipient_dealer": "Destinatarul este un dealer",
+    "recipient_other": "Destinatarul este o altă contrapartidă",
+    "recipient_label": "Adresa de livrare",
+    "no_orders_yet": "Este în curs de procesare",
+    "error_download": "Nu s-a putut descărca fișierul. Este posibil să nu fie disponibil pe server."
+  },
+  "statuses": {
+    "Новий": "Nou",
+    "Очікуємо підтвердження": "Asteptam confirmarea",
+    "Очікуємо оплату": "Asteptam plata",
+    "Підтверджений": "Confirmat",
+    "У виробництві": "În producție",
+    "В обробці": "În procesare",
+    "Відмова": "Refuz",
+    "Готовий": "gata",
+    "Відвантажений": "Expediat",
+    "Відвантажено": "Expediat",
+    "В роботі": "La serviciu"
+  },
+  "portal_calc": {
+    "ui": {
+      "loading": "Se încarcă...",
+      "reloading": "Se actualizează datele...",
+      "report_year": "Anul de raportare",
+      "filters": "Filtre",
+      "search_placeholder": "numarul facturii, comanda",
+      "new_calculation": "o nouă greșeală de calcul",
+      "error_title": "Hopa! Nu s-au încărcat datele",
+      "error_title_2": "A apărut o problemă la conectarea la server.",
+      "error_title_3": "Verificați internetul și încercați din nou.",
+      "try_again": "Încercați din nou",
+      "no_calculations": "Nu există calcule de afișat",
+      "load_more_all": "Descărcați mai multe ({{count}})",
+      "load_more": "Descărcați mai multe ({100 de la {{total}})",
+      "load_more_admin": "Descărcați mai multe ({{next}} de la {{total}})",
+      "all_loaded": "Toate calculele sunt încărcate ({{count}}).",
+      "delete_calc_allowed": "Eliminați calculul greșit",
+      "edit_calc_allowed": "Editați calculul greșit",
+      "edit_calc_disallowed": "Editarea este disponibilă numai înainte de crearea comenzilor",
+      "delete_calc_disallowed": "Nu se poate șterge: există o comandă",
+      "delete_cal_disallowed": "Nu se poate șterge: există o comandă",
+      "request_order_refusal": "Solicitați respingerea comenzilor",
+      "order_refusal_unavailable": "Nu există comenzi disponibile pentru anulare",
+      "constructions": "Constructii",
+      "orders": "Comanda",
+      "hide_orders": "Ascunde ordinea",
+      "show_orders": "Afișați comanda ({{count}})",
+      "calculation_number": "Numărul contului",
+      "more_short": "încă",
+      "order_numbers": "Numere de comandă",
+      "close_order_numbers": "Închideți lista de numere de comandă"
+    },
+    "months": {
+      "all_year": "Tot anul",
+      "short": [
+        "ianuarie",
+        "februarie",
+        "Ber.",
+        "aprilie",
+        "Trav.",
+        "iunie",
+        "iulie",
+        "Ser.",
+        "Sept.",
+        "oct.",
+        "Vulpea",
+        "decembrie"
+      ],
+      "full": [
+        "ianuarie",
+        "februarie",
+        "martie",
+        "aprilie",
+        "mai",
+        "iunie",
+        "iulie",
+        "august",
+        "septembrie",
+        "octombrie",
+        "noiembrie",
+        "decembrie"
+      ]
+    },
+    "filter_labels": {
+      "all": "Toate calculele greșite",
+      "new": "Noi calcule",
+      "waiting_confirm": "Se așteaptă confirmarea",
+      "waiting_payment": "În așteptarea plății",
+      "confirmed": "Confirmat",
+      "production": "În producție",
+      "ready": "Comenzi gata",
+      "delivered": "Expediat",
+      "rejected": "Refuz"
+    },
+    "errors": {
+      "server_error": "Serverul a returnat o eroare la actualizarea datelor.",
+      "connection_error": "Nu s-au putut actualiza datele. Verificați conexiunea."
+    },
+    "daily_reminder": {
+      "title": "Memento zilnic",
+      "subtitle": "Aveți comenzi care necesită atenție astăzi.",
+      "count_line": "Comenzi în această stare: {{count}}",
+      "show_tomorrow": "Afișați acest memento mâine?",
+      "waiting_confirm": {
+        "title": "Se așteaptă confirmarea",
+        "description": "Verificați comenzile care mai trebuie confirmate."
+      },
+      "waiting_payment": {
+        "title": "În așteptarea plății",
+        "description": "Vedeți comenzile pentru care plata este încă în așteptare."
+      },
+      "actions": {
+        "open": "a deschide",
+        "close": "aproape",
+        "yes": "Da",
+        "no": "Nu"
+      }
+    },
+    "order_refusal": {
+      "title": "Anularea comenzilor",
+      "subtitle": "Selectați comenzile pentru care doriți să trimiteți o cerere de respingere managerului.",
+      "close": "aproape",
+      "no_eligible_orders": "Nu există comenzi cu stările Nou, În așteptarea confirmării sau În așteptarea plății în acest calcul.",
+      "select_all": "Selectați toate",
+      "unselect_all": "Deselectați",
+      "selected_count": "Selectat: {{count}}",
+      "cancel": "anulați",
+      "submit": "Trimite o respingere",
+      "sending": "Se trimite...",
+      "success": "Solicitarea de respingere a fost trimisă managerului.",
+      "errors": {
+        "select_one": "Alegeți cel puțin o comandă.",
+        "manager_missing": "Nu a putut fi determinat un manager pentru acest calcul.",
+        "send_failed": "Nu se poate trimite cererea de renunțare."
+      }
+    }
+  },
+  "complaints": {
+    "detail": {
+      "not_specified": "Nu este specificat",
+      "main_info": "Informații de bază",
+      "complaint_meta": "compensare",
+      "number": "Numarul reclamatiei",
+      "act_number": "Numărul actului",
+      "order_number": "Număr de comandă",
+      "organization": "Organizare",
+      "complaint_reason": "Motivul reclamației",
+      "document_amount": "Suma documentului",
+      "compensation_amount": "Suma compensației",
+      "compensation_requested": "A solicitat despăgubiri",
+      "compensated": "Compensat",
+      "debt_correction_amount": "Ajustarea datoriilor",
+      "refund_amount": "Rambursări",
+      "series": "Serii de structuri",
+      "dates": "a da",
+      "date_complaint": "Data reclamației",
+      "date_delivery": "Data livrării",
+      "date_detection": "Data descoperirii",
+      "date_produced": "Făcut",
+      "date_shipped": "Expediat",
+      "date_received_production": "Data primirii pentru producție",
+      "border_return_date": "Termenul limită de returnare",
+      "debt_correction_date": "Data ajustării datoriei",
+      "refund_date": "Data rambursării",
+      "from_date": "din",
+      "manager": "Manager responsabil:",
+      "description_title": "Descrierea reclamației",
+      "problem_title": "Problema",
+      "resolution_title": "Solutia",
+      "photo": "Fotografie",
+      "video": "Video",
+      "errors": {
+        "load_media_fail": "Nu s-au încărcat fișierele media de revendicare.",
+        "try_again": "Încercați din nou",
+        "open_photo_fail": "Nu se poate deschide fotografia pentru vizualizare",
+        "general_error": "A apărut o eroare la încărcarea imaginilor"
+      }
+    }
+  },
+  "reclamation": {
+    "no_comments": "Fara comentarii",
+    "no-data": "Nu au fost găsite reclamații",
+    "load_more": "Descărcați mai multe",
+    "comment_history": "Istoricul comentariilor",
+    "delete": "Ștergeți",
+    "delete_forbidden": "Nu este disponibil pentru ștergere",
+    "delete_forbidden_manager": "Nu se poate șterge: a fost desemnat un manager",
+    "status": {
+      "new": "Nou",
+      "in_work": "La serviciu",
+      "production": "Productie",
+      "in_stock": "În stoc",
+      "shipped": "Expediat",
+      "confirmed": "Confirmat",
+      "resolved": "S-a rezolvat",
+      "rejected": "Refuz"
+    },
+    "common": {
+      "hide": "ascunde",
+      "details": "Detalii",
+      "loading_data": "Se încarcă datele despre revendicări...",
+      "updating_list": "Se actualizează lista de reclamații...",
+      "report_year": "Anul de raportare",
+      "all_year": "Tot anul",
+      "search_placeholder": "numarul reclamatiei",
+      "new_reclamation": "Noua reclamatie",
+      "all_reclamations": "Toate revendicările",
+      "load_more": "Descărcați mai multe ({{count}})",
+      "load_more_full": "Descărcați mai multe (100 de la {{remaining}})",
+      "all_loaded": "Toate reclamațiile au fost descărcate ({{total}})",
+      "not_found": "Nu au fost găsite reclamații",
+      "error_title": "Hopa! Nu s-au încărcat datele",
+      "error_desc": "A apărut o problemă la conectarea la server. Verificați internetul și încercați din nou.",
+      "try_again": "Încercați din nou",
+      "edit": "Editați",
+      "delete": "Ștergeți",
+      "cancel": "anulați",
+      "add": "Adăugați",
+      "update": "Actualizare",
+      "saving": "păstrez...",
+      "deleting": "Se șterge..."
+    },
+    "statuses": {
+      "all": "Toate revendicările",
+      "new": "Nou",
+      "in_progress": "La serviciu",
+      "production": "Productie",
+      "in_stock": "În stoc",
+      "resolved": "S-a rezolvat",
+      "rejected": "Refuz"
+    },
+    "compensation_filter": {
+      "title": "compensare",
+      "all": "Toate",
+      "compensated": "Cu despăgubiri",
+      "uncompensated": "Nicio compensație"
+    },
+    "months": {
+      "jan": "ianuarie",
+      "feb": "februarie",
+      "mar": "Ber.",
+      "apr": "aprilie",
+      "may": "Trav.",
+      "jun": "iunie",
+      "jul": "iulie",
+      "aug": "Ser.",
+      "sep": "Sept.",
+      "oct": "oct.",
+      "nov": "Vulpea",
+      "dec": "decembrie"
+    }
+  },
+  "additional_order": {
+    "no_main_order": "Fără comandă principală",
+    "no_description": "Fără descriere/comentarii",
+    "history_button": "Istoricul comentariilor",
+    "no_dealer": "Fără un dealer",
+    "no_sub_orders": "Este în curs de procesare",
+    "delete_sub_orders": "Ștergeți comanda suplimentară",
+    "cannot_delete_manager": "Nu se poate șterge: manager alocat ({{name}})",
+    "search_placeholder": "addn. ordinea numerelor",
+    "new_order_btn": "Noua comanda suplimentara",
+    "statuses": {
+      "all": "Toate comenzile suplimentare",
+      "new": "Nou",
+      "waiting_confirm": "Asteptam confirmarea",
+      "waiting_pay": "Asteptam plata",
+      "confirmed": "Confirmat",
+      "in_production": "În producție",
+      "in_processing": "În procesare",
+      "in_work": "La serviciu",
+      "rejected": "Refuz",
+      "ready": "gata",
+      "shipped": "Expediat"
+    },
+    "errors": {
+      "server_error": "Eroare la încărcarea datelor de pe server.",
+      "connect_error": "Nu s-au încărcat datele. Verificați conexiunea."
+    },
+    "states": {
+      "error_title": "Hopa! Nu s-au încărcat datele",
+      "error_text": "A apărut o problemă la conectarea la server. Verificați internetul și încercați din nou.",
+      "try_again": "Încercați din nou",
+      "no_data": "Nu există comenzi suplimentare de afișat",
+      "load_more": "Descărcați mai multe ({{count}} de la {{total}})",
+      "all_loaded": "Toate comenzile suplimentare au fost încărcate ({{total}})."
+    }
+  },
+  "bills": {
+    "title": "Conturi",
+    "add_bill": "Adăugați un cont",
+    "date": "Data",
+    "bill_number": "contul nr",
+    "amount": "Suma",
+    "file": "Fișier",
+    "no_bills_found": "Nu au fost găsite facturi pentru perioada specificată.",
+    "file_downloaded": "Fișierul a fost descărcat",
+    "error_loading": "Nu s-a putut încărca lista",
+    "error_invalid_id": "Eroare: ID de cont nevalid",
+    "error_downloading": "Eroare la încărcarea PDF-ului"
+  },
+  "create_bill": {
+    "title": "Creați un cont",
+    "steps": {
+      "details": "Selectarea recuzitei",
+      "items": "Adăugarea produselor",
+      "confirm": "Confirmare"
+    },
+    "fields": {
+      "iban": "IBAN",
+      "address": "Adresa",
+      "product": "Produs",
+      "quantity": "dl",
+      "price": "Preț",
+      "width": "Latime (mm)",
+      "height": "Înălțime (mm)",
+      "total": "Suma contului",
+      "payment_date": "Data plății",
+      "delivery_date": "Data expedierii",
+      "comment": "Comentariu"
+    },
+    "placeholders": {
+      "iban": "— selectați IBAN —",
+      "address": "— alegeți o adresă —",
+      "product": "— selectați un produs —"
+    },
+    "actions": {
+      "add_item": "Adăugați poziția",
+      "remove_item": "Ștergeți poziția",
+      "submit": "Creați un cont",
+      "creating": "Noi creăm..."
+    },
+    "notifications": {
+      "profile_error": "Eroare la încărcarea profilului, încercați să deschideți din nou formularul",
+      "success": "Cont creat cu succes!",
+      "submit_error": "Nu s-a putut crea contul. Încearcă din nou."
+    },
+    "validation": {
+      "step1": "Vă rugăm să selectați un IBAN și o adresă de expediere",
+      "step2": "Verificați produsele: trebuie completate numele, cantitatea și prețul"
+    }
+  },
+  "change_password": {
+    "header": "Schimbarea parolei",
+    "logged_in_as": "Sunteți autentificat ca:",
+    "old_password_label": "Parola curentă",
+    "new_password_label": "Parolă nouă",
+    "confirm_password_label": "Confirmați noua parolă",
+    "btn_submit": "Schimbați parola",
+    "btn_loading": "Ne schimbam...",
+    "info_changing": "Se schimbă parola...",
+    "success_message": "Parola a fost schimbată cu succes!",
+    "error_mismatch": "Parola nouă și confirmarea nu se potrivesc.",
+    "error_length": "Parola trebuie să conțină cel puțin 6 caractere.",
+    "error_general": "Eroare. Verificați parola curentă.",
+    "error_wrong_old": "Parola curentă este incorectă.",
+    "error_fields_required": "Ambele câmpuri sunt obligatorii."
+  },
+  "emergency": {
+    "page_title": "Contacte pentru un apel urgent",
+    "no_contacts": "Nu s-au găsit persoane de contact.",
+    "unknown_user": "Utilizator necunoscut",
+    "actions": {
+      "call": "Sunați urgent",
+      "connect_telegram": "Conectați Telegram"
+    },
+    "modal": {
+      "add_title": "Adăugați contact",
+      "edit_title": "Editarea unui contact",
+      "placeholder_name": "nume",
+      "placeholder_phone": "Telefon",
+      "placeholder_dept": "Departamentul",
+      "delete_confirm_title": "Ștergeți confirmarea",
+      "delete_confirm_text": "Sigur doriți să ștergeți contactul?"
+    },
+    "telegram": {
+      "title": "Conexiune Telegram",
+      "scan_qr": "Scanați codul QR sau faceți clic pe butonul de mai jos"
+    },
+    "notifications": {
+      "fetch_error": "Nu s-a putut obține lista de contacte",
+      "fill_required": "Completați toate câmpurile obligatorii",
+      "updated": "Contactul a fost actualizat",
+      "added": "Contact a fost adăugat",
+      "save_error": "Nu s-a salvat contactul",
+      "deleted": "Contact șters",
+      "delete_error": "Nu s-a șters persoana de contact",
+      "sending_call": "Se trimite mesajul...",
+      "call_sent": "Mesaj trimis",
+      "call_error": "Trimiterea mesajului a eșuat"
+    }
+  },
+  "filters": {
+    "from": "Z",
+    "to": "După",
+    "dealer": "Dealer"
+  },
+  "payments": {
+    "title": "Mișcarea fondurilor",
+    "from": "din",
+    "to": "la",
+    "when": "când",
+    "date": "Data",
+    "show_orders_mobile": "Distribuit la comandă",
+    "hide_orders_mobile": "Ascunde ordinea",
+    "operation": "Operațiunea",
+    "start_balance": "Sala până la început",
+    "start_short": "Începutul",
+    "income": "sosire",
+    "expense": "Descarcare",
+    "balance": "Restul",
+    "channel": "Din cauza a ce",
+    "details_contract": "Detalii / Acord",
+    "total_for": "Împreună pentru",
+    "correction": "Ajustare",
+    "order_no": "Ordinul nr",
+    "amount": "Suma",
+    "debt": "Datorii",
+    "paid_before": "Plătit la",
+    "contract": "Contractul",
+    "payment": "Plata",
+    "percent": "Procent",
+    "no_contract": "Fără contract",
+    "unknown_date": "Data necunoscută",
+    "show_orders": "Răspândit pe {{count}} comenzi",
+    "hide_orders": "Ascunde {{count}} comenzi",
+    "channels": {
+      "bank": "BANCA",
+      "cash": "CASIERĂ",
+      "order_short": "COMANDA"
+    },
+    "docTypes": {
+      "ППВход": "Ordin de plata",
+      "ПКО": "Comandă în numerar",
+      "ВозвратОтПокупателя": "Retururi de la cumpărător",
+      "КорректировкаДолга": "Ajustarea datoriilor"
+    }
+  },
+  "roles": {
+    "admin": "Administrator",
+    "manager": "Manager",
+    "operator": "Operator",
+    "director": "director",
+    "region_manager": "Manager regional",
+    "complaint_manager": "Manager de reclamații",
+    "customer": "Dealer"
+  },
+  "invite": {
+    "header": "Finalizarea înscrierii",
+    "admin_params": "Opțiuni de acces de la administrator:",
+    "label_login": "Conectarea dvs. la sistem",
+    "label_role": "Tip de cont",
+    "label_expire": "Contul este activ până la:",
+    "unlimited": "La infinit",
+    "personal_data": "Date personale",
+    "warning_edit": "Verificați și, dacă este necesar, editați detaliile de contact și setați o parolă.",
+    "warning_save": "Important: salvați numele și parola!",
+    "label_fullname": "Nume complet",
+    "label_email": "E-mail",
+    "label_phone": "Telefon",
+    "label_password": "Parolă nouă",
+    "btn_submit": "Creați un profil",
+    "success_message": "Înregistrarea a fost finalizată cu succes! Acum vă puteți autentifica.",
+    "back_to_login": "Întoarce-te la intrare",
+    "password_rules": {
+      "min_length": "Minim 6 caractere",
+      "lowercase": "Trebuie să conțină o literă mică",
+      "uppercase": "Trebuie să conțină o literă mare",
+      "number": "Trebuie să conțină un număr",
+      "special": "Trebuie să conțină un caracter special"
+    },
+    "strength": {
+      "weak": "Parolă slabă",
+      "medium": "Parola medie",
+      "strong": "Parolă puternică"
+    },
+    "tg": {
+      "title": "Conectați botul Telegram",
+      "description": "Scanează codul QR pentru a primi notificări de comandă",
+      "button": "Accesați Telegram"
+    },
+    "errors": {
+      "load_fail": "Nu s-au încărcat datele",
+      "invalid_password": "Parola nu îndeplinește cerințele de securitate",
+      "invalid_phone": "Format incorect al telefonului. Folosiți +380XXXXXXXXX",
+      "reg_fail": "Eroare de înregistrare",
+      "invite_used": "Acest link este deja folosit",
+      "invite_expired": "Acest link nu mai este activ",
+      "invalid_code": "Cod de invitație nevalid"
+    }
+  },
+  "support_chat": {
+    "title": "sprijin",
+    "page_title": "Chat de asistență",
+    "manager_support": "Suport manager",
+    "default_client_name": "Clientul",
+    "loading": "Se încarcă...",
+    "empty_history": "Nu există încă o poveste",
+    "file_added": "Fișier adăugat:",
+    "remove_file": "Curățați",
+    "welcome_title": "Felicitări!",
+    "welcome_text": "Scrieți-ne dacă aveți întrebări despre comandă, plată, livrare sau reclamație.",
+    "recording_active": "Înregistrarea vocală este în curs...",
+    "recording_placeholder": "Înregistrarea este în curs...",
+    "message_placeholder": "Scrie un mesaj...",
+    "sending": "Se trimite...",
+    "actions": {
+      "attach_file": "Adăugați fișier",
+      "record_voice": "Înregistrați vocea",
+      "stop_recording": "Opriți înregistrarea",
+      "send": "Trimite"
+    },
+    "attachment": {
+      "image_alt": "imagine",
+      "file_fallback": "Fișier"
+    },
+    "large_video_upload": {
+      "title": "Descărcarea unui videoclip mare",
+      "description": "Încărcați videoclipul pe portal, astfel încât să apară în chatul de asistență.",
+      "download_button": "Descărcați",
+      "select_file": "Selectați un fișier video",
+      "submit": "Descărcați videoclipul",
+      "success": "Videoclipul a fost încărcat cu succes pe portal.",
+      "file_label": "Fișier așteptat",
+      "expires_label": "Link-ul este valabil până la",
+      "expires_soon": "Se va termina în curând",
+      "back_home": "Reveniți la portal",
+      "used": "Link-ul este deja folosit.",
+      "expired": "Link-ul a expirat.",
+      "invalid": "Link nevalid.",
+      "video_unavailable": "Videoclipul nu mai este disponibil."
+    },
+    "success": {
+      "sent": "Mesajul a fost trimis"
+    },
+    "errors": {
+      "load_history": "Istoricul chatului nu a putut fi încărcat",
+      "mark_read": "Nu s-a marcat chatul ca citit",
+      "recording_start": "Nu s-a pornit înregistrarea vocală",
+      "empty_message": "Scrieți un mesaj sau atașați un fișier",
+      "contractor_not_found": "Utilizatorul ContractorId nu a fost găsit",
+      "send_message": "Trimiterea mesajului a eșuat"
+    },
+    "launcher": {
+      "manager_contact": "Contact rapid cu un manager",
+      "faq_hint": "Răspunsuri rapide fără chat"
+    }
+  },
+  "faq": {
+    "popular": {
+      "title": "Întrebări frecvente"
+    },
+    "no_description": "Fără descriere",
+    "actions": {
+      "show_more": "Arată mai mult",
+      "add": "Adăugați răspuns",
+      "watch": "Deschideți pe YouTube"
+    },
+    "empty": {
+      "title": "Nu s-a găsit nimic",
+      "description": "Încercați să modificați filtrul sau adăugați primul răspuns FAQ."
+    },
+    "hero": {
+      "title_prefix": "Întrebări —",
+      "title_accent": "Răspunsuri",
+      "subtitle": "Aici găsiți răspunsuri la cele mai frecvente întrebări, în format video de la experții noștri"
+    },
+    "search_placeholder": "Căutați întrebări",
+    "clear_search": "Ștergeți căutarea",
+    "categories": {
+      "all": "Toate categoriile",
+      "sales": "Vânzări",
+      "installation": "Montaj",
+      "payment": "Plată",
+      "warranty": "Garanție"
+    },
+    "expert": {
+      "title": "Nu ați găsit răspunsul la întrebare?",
+      "subtitle": "Expertul nostru este gata să vă răspundă personal",
+      "cta": "Întrebați expertul",
+      "modal_eyebrow": "Solicitare către expert",
+      "modal_title": "Puneți o întrebare",
+      "modal_subtitle": "Mesajul va fi trimis expertului prin Telegram și e-mail.",
+      "from_label": "Cine se adresează",
+      "from_hint": "Numele și contactele dvs. vor fi adăugate automat la solicitare.",
+      "topic_label": "Subiect",
+      "topic_placeholder": "De exemplu: Montaj corect",
+      "message_label": "Întrebarea dvs.",
+      "message_placeholder": "Descrieți întrebarea sau situația pentru care aveți nevoie de ajutor.",
+      "sending": "Se trimite...",
+      "send": "Trimiteți expertului"
+    },
+    "modal": {
+      "eyebrow": "Administrare FAQ",
+      "edit_title": "Editați răspunsul",
+      "add_title": "Răspuns FAQ nou",
+      "category": "Categorie",
+      "type": "Tip resursă",
+      "delete_title": "Ștergeți răspunsul FAQ",
+      "question_title": "Întrebare / titlu video",
+      "question_title_hint": "Se afișează ca titlu principal deasupra videoclipului.",
+      "url_hint": "Acest videoclip va fi afișat în playerul principal.",
+      "summary_label": "Descriere scurtă",
+      "summary_hint": "Se afișează sub videoclip ca introducere scurtă.",
+      "detail_title_label": "Titlul detaliilor",
+      "detail_title_hint": "Se afișează ca titlu al blocului inferior.",
+      "details_label": "Detalii",
+      "details_hint": "Fiecare linie nouă este un punct separat.",
+      "popular_label": "Întrebare populară",
+      "popular_hint": "Când este activată, întrebarea poate apărea în secțiunea de întrebări populare."
+    }
+  },
+  "production_statistics": {
+    "title": "Statistici de producție",
+    "subtitle": "Monitorizarea termenelor de producție pe clase ABC, procentul de finalizare și comenzile cu cea mai mare abatere.",
+    "dealer": "Dealer",
+    "from": "de la:",
+    "to": "până la:",
+    "generating": "Se generează...",
+    "generate": "Generează",
+    "data_unavailable": "Datele sunt temporar indisponibile",
+    "retry": "Încearcă din nou",
+    "generating_statistics": "Se generează statisticile",
+    "select_dealer": "Selectați dealerul",
+    "select_dealer_hint": "Selectați un contractant pentru a genera raportul.",
+    "average_check": "Valoarea medie a comenzii",
+    "for_period": "Pentru perioada",
+    "orders": "Comenzi",
+    "constructions": "Construcții",
+    "turnover": "Cifră de afaceri",
+    "turnover_hint": "Suma comenzilor pentru perioadă",
+    "average_delay": "Întârziere medie",
+    "max_delay": "Întârziere max.: {{days}} zile",
+    "categories": "Categorii de produse",
+    "no_data": "Nu există date.",
+    "class": "Clasa {{value}}",
+    "orders_in_progress": "comenzi\nîn lucru",
+    "in_time": "La timp",
+    "delayed": "Întârziat",
+    "in_production": "În producție",
+    "timeliness_abc": "Respectarea termenelor pe ABC",
+    "timeliness_hint": "Faceți clic pe orice coloană pentru a deschide detaliile clasei ABC și stării corespunzătoare.",
+    "fastest_abc": "Cele mai rapide pe categorii ABC",
+    "order_ready": "comanda {{orderDate}} • gata {{readyDate}}",
+    "no_orders": "Nu există comenzi",
+    "dealer_comparison": "Comparație dealer",
+    "comparison_top": "Comparație cu liderul regional",
+    "in_region": "în regiune",
+    "comparison_hint": "Toți indicatorii dvs. sunt un procent din nivelul liderului local",
+    "overall_level": "Nivel general",
+    "average_vs_leader": "nivel mediu față de lider",
+    "expected_profit": "Profit estimat",
+    "profit_hint": "La atingerea nivelului liderului regional și a unui adaos de 20%",
+    "profile_systems": "Sisteme de profile",
+    "profile_colors": "Culori de profile",
+    "hardware": "Feronerie",
+    "systems": "sisteme",
+    "colors": "culori",
+    "positions": "poziții",
+    "units_orders": "com.",
+    "units_pieces": "buc.",
+    "order_details": "Detalii comenzi",
+    "all_abc": "Toate ABC",
+    "date": "Data",
+    "plan": "Plan",
+    "fact": "Real",
+    "status": "Stare",
+    "delay": "Întârziere",
+    "sum": "Sumă",
+    "close_details": "Închideți detaliile",
+    "return_up": "Înapoi sus",
+    "orders_empty": "Nu există comenzi pentru filtrele curente.",
+    "made_in": "Produs în {{days}} zile",
+    "total": "Total",
+    "order": "comenzi",
+    "average": "med.",
+    "load_error": "Nu s-au putut încărca statisticile de producție",
+    "opened_for": "Deschis pentru {{scope}} și {{status}}.",
+    "all_classes": "toate clasele",
+    "class_scope": "clasa {{value}}",
+    "all_statuses": "toate stările"
+  }
+}

@@ -771,6 +771,9 @@ const NewCalculationModal = ({
                         {t("orders.newOrderModal.choose")}
                       </button>
                     </div>
+                    <span className="client-address-manager-note">
+                      {t("orders.newOrderModal.client_address_manager_note")}
+                    </span>
                   </label>
                 </div>
               )}

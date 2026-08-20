@@ -223,7 +223,7 @@ const ComplaintItemDetailView = ({ complaint }) => {
     {
       key: "borderReturnDate",
       label: t("complaints.detail.border_return_date"),
-      value: complaint.readyDate ? formatDate(complaint.readyDate) : null,
+      value: complaint.readyDate ? formatDate(complaint.readyDate, locale) : null,
       highlight: true,
     },
     {
@@ -248,27 +248,27 @@ const ComplaintItemDetailView = ({ complaint }) => {
     {
       key: "dateComplaint",
       label: t("complaints.detail.date_complaint"),
-      value: complaint.date ? formatDate(complaint.date) : null,
+      value: complaint.date ? formatDate(complaint.date, locale) : null,
     },
     {
       key: "dateDelivery",
       label: t("complaints.detail.date_delivery"),
-      value: complaint.deliveryDate ? formatDate(complaint.deliveryDate) : null,
+      value: complaint.deliveryDate ? formatDate(complaint.deliveryDate, locale) : null,
     },
     {
       key: "dateDetection",
       label: t("complaints.detail.date_detection"),
-      value: complaint.determinationDate ? formatDate(complaint.determinationDate) : null,
+      value: complaint.determinationDate ? formatDate(complaint.determinationDate, locale) : null,
     },
     {
       key: "dateProduced",
       label: t("complaints.detail.date_produced"),
-      value: complaint.producedDate ? formatDate(complaint.producedDate) : null,
+      value: complaint.producedDate ? formatDate(complaint.producedDate, locale) : null,
     },
     {
       key: "dateShipped",
       label: t("complaints.detail.date_shipped"),
-      value: complaint.soldDate ? formatDate(complaint.soldDate) : null,
+      value: complaint.soldDate ? formatDate(complaint.soldDate, locale) : null,
     },
   ].filter((item) => item.value);
 

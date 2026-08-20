@@ -797,6 +797,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     
                         print(f"User {recipient_id_1c} is in chat. Notification skipped.")
 
+                # For calculation messages from a customer, create the same 1C task
+                # for the second manager. Telegram copies are already handled by the
+                # primary route, so no second Telegram task is queued here.
                 should_duplicate_to_hardcoded_manager = (
                     getattr(self.user, 'role', '') == 'customer'
                     and t_type == 1
@@ -812,14 +815,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     )
 
                     if not is_duplicate_active:
-                        from backend.utils.tasks import (
-                            send_chat_notification_to_1c,
-                            check_and_send_telegram_notification,
-                        )
-                        from users.models import CustomUser
+                        from backend.utils.tasks import send_chat_notification_to_1c
 
                         base_guid_str = str(bin_to_guid_1c(base_guid))
-
+                        logger.info(
+                            "Queueing second 1C chat notification: recipient=%s, msg_id=%s, document=%s",
+                            duplicate_recipient_id_1c,
+                            saved_msg.id,
+                            base_guid_str,
+                        )
                         send_chat_notification_to_1c.apply_async(
                             args=[
                                 t_type,
@@ -831,38 +835,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             countdown=6,
                         )
 
-                        duplicate_user = await database_sync_to_async(
-                            lambda: CustomUser.objects.filter(
-                                user_id_1C=HARDCODED_DUPLICATE_MANAGER_BIN
-                            ).first()
-                        )()
-                        duplicate_is_dealer = (
-                            duplicate_user and duplicate_user.role == "customer"
-                        )
-
-                        check_and_send_telegram_notification.apply_async(
-                            args=[
-                                saved_msg.id,
-                                duplicate_recipient_id_1c,
-                                t_type,
-                                doc_number,
-                                duplicate_is_dealer,
-                                author_name,
-                            ],
-                            countdown=0,
-                        )
-
-                        logger.info(
-                            "Duplicated order chat notification to hardcoded 1C user",
-                            extra={
-                                "tags": {
-                                    "action": "receive_socket",
-                                    "duplicate_recipient": duplicate_recipient_id_1c,
-                                    "message_id": saved_msg.id,
-                                    "chat_id": self.chat_id,
-                                }
-                            },
-                        )
 
             # 5. Broadcast у поточному вікні чату
             await self.channel_layer.group_send(

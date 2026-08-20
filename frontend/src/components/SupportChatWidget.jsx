@@ -470,7 +470,7 @@ const SupportChatWidget = () => {
               </span>
               <span className="support-floating-menu__copy">
                 <strong>{t("support_chat.title")}</strong>
-                <small>Швидкий зв'язок з менеджером</small>
+                <small>{t("support_chat.launcher.manager_contact")}</small>
               </span>
             </button>
             <button type="button" onClick={openPopularFaq}>
@@ -479,7 +479,7 @@ const SupportChatWidget = () => {
               </span>
               <span className="support-floating-menu__copy">
                 <strong>{t("faq.popular.title", { defaultValue: "Популярні питання" })}</strong>
-                <small>Швидкі відповіді без чату</small>
+                <small>{t("support_chat.launcher.faq_hint")}</small>
               </span>
             </button>
           </div>

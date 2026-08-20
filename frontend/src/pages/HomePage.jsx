@@ -694,7 +694,7 @@ const statsData = [
           className="flex items-start gap-4"
         >
           <img src={item.icon} alt="" className="w-10 h-10 mr-2 shrink-0 object-contain" />
-          <p className="homepage-production-copy font-['Inter'] text-[16px] text-[#44403E] leading-tight">{item.text}</p>
+          <p className="homepage-production-copy font-['Inter'] text-[16px] text-[#44403F] leading-tight">{item.text}</p>
         </motion.div>
       ))}
     </div>

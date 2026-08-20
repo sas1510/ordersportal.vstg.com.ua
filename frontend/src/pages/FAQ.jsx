@@ -30,14 +30,20 @@ const EMPTY_FORM = {
   title_en: "",
   title_it: "",
   title_de: "",
+  title_ro: "",
+  title_hu: "",
   url_ua: "",
   url_en: "",
   url_it: "",
   url_de: "",
+  url_ro: "",
+  url_hu: "",
   description_ua: "",
   description_en: "",
   description_it: "",
   description_de: "",
+  description_ro: "",
+  description_hu: "",
   summary_ua: "",
   detail_title_ua: "",
   details_ua: "",
@@ -330,6 +336,17 @@ export default function FAQ() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const getCategoryLabel = useCallback((category) => {
+    const normalized = String(category?.name || "").toLowerCase();
+    const key = category?.id === "all" ? "all"
+      : String(category?.id || "").includes("sales") || normalized.includes("продаж") ? "sales"
+      : String(category?.id || "").includes("installation") || normalized.includes("монтаж") ? "installation"
+      : String(category?.id || "").includes("payment") || normalized.includes("оплат") ? "payment"
+      : String(category?.id || "").includes("warranty") || normalized.includes("гарант") ? "warranty"
+      : null;
+    return key ? t(`faq.categories.${key}`) : category?.name || "";
+  }, [t]);
+
   const [videoForm, setVideoForm] = useState(EMPTY_FORM);
   const [sidebarPage, setSidebarPage] = useState(1);
   const [showAllPopular, setShowAllPopular] = useState(false);
@@ -397,16 +414,16 @@ export default function FAQ() {
 
   const faqFilterButtons = useMemo(() => {
     return [
-      FAQ_ALL_CATEGORY,
+      { ...FAQ_ALL_CATEGORY, name: getCategoryLabel(FAQ_ALL_CATEGORY) },
       ...faqCategories.map((category) => ({
         id: String(category.id),
-        name: category.name,
+        name: getCategoryLabel(category),
         // Для FAQ іконку визначаємо по самій категорії.
         // Так icon_name з API не може підмінити її неправильною іконкою.
         icon_name: getFallbackCategoryIcon(category.name),
       })),
     ];
-  }, [faqCategories]);
+  }, [faqCategories, getCategoryLabel]);
 
   const selectedCategoryMeta = useMemo(
     () => faqFilterButtons.find((category) => category.id === selectedCategory) || FAQ_ALL_CATEGORY,
@@ -423,7 +440,7 @@ export default function FAQ() {
     }
 
     return String(video.category || "") === String(categoryId);
-  }, [selectedCategoryMeta]);
+  }, [selectedCategoryMeta, t]);
 
   const filteredVideos = useMemo(() => {
     return videos.filter((video) => {
@@ -490,7 +507,7 @@ export default function FAQ() {
   }, [sidebarPage, sidebarPageCount]);
 
   const selectedCategoryLabel = useMemo(() => {
-    return selectedCategoryMeta.name || "Всі категорії";
+    return selectedCategoryMeta.name || t("faq.categories.all");
   }, [selectedCategoryMeta]);
 
   const changeSidebarPage = useCallback(
@@ -634,14 +651,20 @@ export default function FAQ() {
       title_en: video.titles?.en || "",
       title_it: video.titles?.it || "",
       title_de: video.titles?.de || "",
+      title_ro: video.titles?.ro || "",
+      title_hu: video.titles?.hu || "",
       url_ua: video.urls?.ua || "",
       url_en: video.urls?.en || "",
       url_it: video.urls?.it || "",
       url_de: video.urls?.de || "",
+      url_ro: video.urls?.ro || "",
+      url_hu: video.urls?.hu || "",
       description_ua: video.descriptions?.ua || "",
       description_en: video.descriptions?.en || "",
       description_it: video.descriptions?.it || "",
       description_de: video.descriptions?.de || "",
+      description_ro: video.descriptions?.ro || "",
+      description_hu: video.descriptions?.hu || "",
       summary_ua: descriptionContent.summary || "",
       detail_title_ua: descriptionContent.detailTitle || "",
       details_ua: descriptionContent.details.join("\n"),
@@ -767,7 +790,7 @@ export default function FAQ() {
         <div className="faq-page__hero-copy">
  
           <h1>
-            Питання — <span className="faq-page__hero-title-accent">Відповіді</span>
+            {t("faq.hero.title_prefix")} <span className="faq-page__hero-title-accent">{t("faq.hero.title_accent")}</span>
           </h1>
           <p>
             {t("faq.hero.subtitle", {
@@ -790,8 +813,8 @@ export default function FAQ() {
                 <button
                   type="button"
                   className="faq-page__search-clear"
-                  aria-label="Очистити пошук"
-                  title="Очистити пошук"
+                  aria-label={t("faq.clear_search")}
+                  title={t("faq.clear_search")}
                   onClick={() => setSearchQuery("")}
                 >
                   ×
@@ -1225,7 +1248,7 @@ export default function FAQ() {
 
             <form className="faq-page__form" onSubmit={handleSaveVideo}>
               <label>
-                <span>Питання / назва відео</span>
+                <span>{t("faq.modal.question_title")}</span>
                 <input
                   value={videoForm.title_ua}
                   onChange={(event) =>
@@ -1237,7 +1260,7 @@ export default function FAQ() {
                   required
                 />
                 <small className="faq-page__field-hint">
-                  Виводиться великим заголовком над відео.
+                  {t("faq.modal.question_title_hint")}
                 </small>
               </label>
 
@@ -1253,12 +1276,12 @@ export default function FAQ() {
                   required
                 />
                 <small className="faq-page__field-hint">
-                  Це саме відео буде показане у великому плеєрі.
+                  {t("faq.modal.url_hint")}
                 </small>
               </label>
 
               <label>
-                <span>Короткий підпис</span>
+                <span>{t("faq.modal.summary_label")}</span>
                 <textarea
                   value={videoForm.summary_ua}
                   onChange={(event) =>
@@ -1272,12 +1295,12 @@ export default function FAQ() {
                   })}
                 />
                 <small className="faq-page__field-hint">
-                  Виводиться одразу під відео як короткий вступ.
+                  {t("faq.modal.summary_hint")}
                 </small>
               </label>
 
               <label>
-                <span>Назва деталізації</span>
+                <span>{t("faq.modal.detail_title_label")}</span>
                 <input
                   value={videoForm.detail_title_ua}
                   onChange={(event) =>
@@ -1291,12 +1314,12 @@ export default function FAQ() {
                   })}
                 />
                 <small className="faq-page__field-hint">
-                  Виводиться заголовком нижнього блоку з пунктами.
+                  {t("faq.modal.detail_title_hint")}
                 </small>
               </label>
 
               <label>
-                <span>Деталізація</span>
+                <span>{t("faq.modal.details_label")}</span>
                 <textarea
                   value={videoForm.details_ua}
                   onChange={(event) =>
@@ -1310,7 +1333,7 @@ export default function FAQ() {
                   })}
                 />
                 <small className="faq-page__field-hint">
-                  Виводиться в нижньому блоці списком. Один рядок = один пункт.
+                  {t("faq.modal.details_hint")}
                 </small>
               </label>
 
@@ -1326,7 +1349,7 @@ export default function FAQ() {
                     {faqCategories
                       .map((category) => (
                         <option key={category.id} value={String(category.id)}>
-                          {category.name}
+                          {getCategoryLabel(category)}
                         </option>
                       ))}
                   </select>
@@ -1350,9 +1373,9 @@ export default function FAQ() {
                   }
                 />
                 <div className="faq-page__checkbox-copy">
-                  <span>Популярне питання</span>
+                  <span>{t("faq.modal.popular_label")}</span>
                   <small className="faq-page__field-hint">
-                    Якщо увімкнено, це питання зможе потрапити в блок «Популярні питання».
+                    {t("faq.modal.popular_hint")}
                   </small>
                 </div>
               </label>

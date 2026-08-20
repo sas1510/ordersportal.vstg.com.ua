@@ -763,6 +763,12 @@ def send_chat_notification_to_1c(self, t_type, base_guid_str, manager_guid_str, 
                 'base_guid': base_guid_str,
             }
         )
+        logger.info(
+            "Sending 1C chat notification: message_id=%s manager_guid=%s document_guid=%s",
+            message_id,
+            manager_guid_str,
+            base_guid_str,
+        )
         result = send_to_1c("NotifyChatMessage", payload)
         logger.info(
             "1C notification task finished",

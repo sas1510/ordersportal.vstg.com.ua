@@ -1,0 +1,1408 @@
+{
+  "hero": {
+    "welcome": "Üdvözöljük a rendelési portálon",
+    "title_line1": "Professzionális ablakrendszerek",
+    "title_line2": "az európai piac számára"
+  },
+  "stats": {
+    "experience": "éves tapasztalattal",
+    "employees": "alkalmazottak",
+    "area": "növényi terület",
+    "windows_monthly": "ablakok és ajtók havonta"
+  },
+  "production": {
+    "title": "Termelési hatáskörök",
+    "cycle_title": "Technológiai ciklus",
+    "cycle_title_br": "Technológiai ciklus",
+    "pvc_windows": "PVC ablakok havonta",
+    "pvc_doors": "PVC ajtók havonta",
+    "innovations": "Innovációk"
+  },
+  "info": {
+    "factory_location": "A 25 000 m²-es üzem Velikij Kuchuriv faluban található (Csernyivcitől 5 km-re).",
+    "export_geography": "Exportföldrajz: Németország, Olaszország, Románia, Kanada és az USA."
+  },
+  "values": {
+    "aesthetics": {
+      "title": "Esztétika",
+      "desc": "Modern design"
+    },
+    "quality": {
+      "title": "Minőség",
+      "desc": "európai szabványok"
+    },
+    "price": {
+      "title": "A legjobb szolgáltatás",
+      "desc": "Bármilyen probléma azonnali megoldása"
+    },
+    "safety": {
+      "title": "Biztonság",
+      "desc": "Megbízható védelem"
+    }
+  },
+  "media": {
+    "title": "Médiaszemle"
+  },
+  "partnership": {
+    "title_line1": "Az ajtó, amely megnyitja a világot",
+    "title_line2": "sikeres partnerség",
+    "desc_line1": "Legyen része a megbízható \"Vikna Stil\" márkakereskedői hálózatnak.",
+    "desc_line2": "21 éves tapasztalat és európai minőségi szabványok az Ön vállalkozása számára."
+  },
+  "nav": {
+    "promo_wds": "WDS részvények",
+    "promo_wds_short": "WDS részvények",
+    "orders": "Rendeljen",
+    "orders_short": "Rendeljen",
+    "complaints": "Panaszok",
+    "complaints_short": "Panaszok",
+    "additional_orders": "Előrendelés",
+    "additional_orders_short": "Előrendelés",
+    "files": "Fájlok",
+    "tech_file": "Műszaki anyagok",
+    "tech_file_short": "Műszaki anyagok",
+    "faq": "GYIK",
+    "faq_short": "GYIK",
+    "videos": "Videó",
+    "videos_short": "Videó",
+    "payment": "Fizetés",
+    "payment_short": "Fizetés",
+    "finance": "Pénzügyek",
+    "finance_short": "Pénzügyek",
+    "finance_cash_flow": "Pénzeszközök mozgása",
+    "finance_analytics": "Analytics",
+    "finance_analytics_short": "Analytics",
+    "finance_bills": "Fiókok",
+    "change_password": "Jelszó módosítása",
+    "emergency_line": "Forródrót",
+    "logout": "kilépés",
+    "menu": "Menü",
+    "default_dealer": "Kereskedő",
+    "settings_short": "Beállítás",
+    "settings": "Beállítások elemre",
+    "settings_users": "Felhasználók",
+    "settings_tg_manager": "TG menedzser",
+    "settings_sos_stats": "SOS statisztikák",
+    "profile": "Profil",
+    "settings_emergency_contacts": "Sürgős kapcsolatfelvétel",
+    "notifications": "Értesítés"
+  },
+  "common": {
+    "loading": "Betöltés...",
+    "currency_uah": "UAH",
+    "close": "bezárni",
+    "logo_alt": "Windows stílus",
+    "date_from": "dátuma",
+    "date_to": "dátuma",
+    "dealer": "Kereskedő",
+    "show": "show",
+    "no_results": "Semmi sem található",
+    "loadingFiles": "Fájlok letöltése…",
+    "noDate": "Ismeretlen",
+    "downloading": "Betöltés...",
+    "view": "Megtekintés",
+    "download": "Letöltés",
+    "search": "Keresés",
+    "back": "Vissza",
+    "next": "Következő",
+    "edit": "Szerkesztés",
+    "delete": "Törölje",
+    "cancel": "törölni",
+    "add": "Hozzáadás",
+    "update": "Frissítés",
+    "saving": "tartom...",
+    "deleting": "Törlés...",
+    "refresh": "Frissítés",
+    "generating": "Generáció",
+    "no_data": "Nem található adat",
+    "try_again": "Próbáld újra",
+    "save": "Mentés"
+  },
+  "maintenance": {
+    "default_message": "Adatbázisunk jelenleg frissítés alatt áll, kérjük, várjon néhány percet.",
+    "admin": {
+      "enable": "Kapcsolja be az 1C frissítési módot",
+      "disable": "Kapcsolja ki az 1C frissítési módot",
+      "enable_short": "1C szünet",
+      "disable_short": "1C bekapcsolva",
+      "active": "Az 1C frissítés engedélyezve van",
+      "inactive": "Az 1C frissítés le van tiltva",
+      "loading": "1C...",
+      "enabled_success": "Az 1C frissítési mód engedélyezve van.",
+      "disabled_success": "Az 1C frissítési mód le van tiltva.",
+      "toggle_error": "Az 1C frissítési módot nem lehetett megváltoztatni."
+    }
+  },
+  "route_titles": {
+    "default": "Rendelési portál",
+    "login": "Bejelentkezés — Rendelési portál",
+    "home": "Rendelési portál",
+    "dashboard": "Fő",
+    "users": "Felhasználók",
+    "files": "Fájlok",
+    "files_add": "Fájlok hozzáadása",
+    "files_edit": "Fájlok szerkesztése",
+    "faq": "GYIK",
+    "videos": "Videó",
+    "user_add": "Felhasználó hozzáadása",
+    "organizations": "Szervezetek",
+    "regions": "Régiók",
+    "contacts": "SOS kapcsolatok",
+    "orders": "Rendeljen",
+    "complaints": "Panaszok",
+    "additional_orders": "Megrendelések listája",
+    "finance": "Pénzügyek",
+    "change_password": "Jelszóváltás",
+    "user_edit": "Felhasználó szerkesztése",
+    "settlements": "Kölcsönös elszámolások",
+    "cash_flow": "Pénzeszközök mozgása",
+    "contacts_add": "SOS névjegyek hozzáadása",
+    "sos_requests": "SOS fellebbezés",
+    "contacts_edit": "SOS névjegyek szerkesztése",
+    "emergency_contacts": "SOS",
+    "promo_wds": "WDS akció",
+    "payment": "Fizetés",
+    "customer_bills": "Fiókok",
+    "analytics": "Analytics",
+    "edit_addresses": "Címek szerkesztése",
+    "support_video_upload": "Videó letöltése"
+  },
+  "notifications": {
+    "title": "Értesítés",
+    "new_message": "Új üzenet",
+    "downloadError": "A fájlt nem lehetett megnyitni vagy letölteni.",
+    "mark_all_read": "Az összes megjelölése olvasottként",
+    "empty_all": "Nincsenek értesítései",
+    "empty_filter": "Semmi sem található",
+    "filters": {
+      "all": "Mindegyiket",
+      "messages": "Üzenet",
+      "reminders": "Emlékeztető"
+    },
+    "types": {
+      "reminder": "Emlékeztető",
+      "system": "Szisztémás"
+    },
+    "push": {
+      "btn_enable": "Engedélyezés",
+      "btn_disable": "Kapcsolja ki",
+      "enable_title": "Az asztali értesítések engedélyezése",
+      "disable_title": "Kapcsolja ki az értesítéseket ezen az eszközön",
+      "blocked_title": "A hozzáférés le van tiltva a böngészőben",
+      "activated": "A böngésző értesítései aktiválva vannak!",
+      "disabled": "Az értesítések ki vannak kapcsolva",
+      "error_enable": "Nem sikerült engedélyezni az értesítéseket.",
+      "error_disable": "Hiba az értesítések letiltásakor"
+    },
+    "tg": {
+      "bot_title": "Telegram bot",
+      "qr_text": "Beolvasás a csatlakozáshoz",
+      "open_chat": "Nyisson meg egy csevegést"
+    },
+    "errors": {
+      "tg_link": "Nem sikerült lekérni a Telegram-linket"
+    },
+    "excel_success": "Az Excel letöltése sikeres volt",
+    "excel_error": "Nem sikerült betölteni az Excelt",
+    "transaction_types": {
+      "Прорахунок": "Tévedés",
+      "Рекламація": "Panasz",
+      "Доп. замовлення": "Kiegészítő rendelés"
+    }
+  },
+  "login": {
+    "welcome_title": "Még egyszer gratulálunk!",
+    "welcome_subtitle": "Jelentkezzen be az analitikai és rendelési portálra",
+    "form_title": "Jelentkezzen be a rendszerbe",
+    "form_subtitle": "A hozzáféréshez adja meg hitelesítő adatait",
+    "username_label": "Felhasználónév",
+    "username_placeholder": "Adja meg bejelentkezési adatait",
+    "password_label": "Jelszó",
+    "password_placeholder": "Adja meg jelszavát",
+    "remember_me": "emlékezz rám",
+    "button_submit": "Jelentkezzen be",
+    "button_loading": "Bejárat...",
+    "error_invalid_credentials": "Érvénytelen bejelentkezési név vagy jelszó",
+    "error_auth": "Engedélyezési hiba",
+    "error_server_unavailable": "A szerver nem elérhető. Ellenőrizze a kapcsolatot.",
+    "error_general": "Hiba történt"
+  },
+  "wds": {
+    "title": "Promóciós WDS kódok",
+    "loading_text": "Különleges ajánlatok keresése...",
+    "no_data": "Nem található promóciós kód a megadott időszakban",
+    "error_select_dealer": "Válasszon kereskedőt",
+    "error_load": "Hiba a WDS-kódok betöltésekor",
+    "table_date": "Dátum",
+    "table_code": "WDS kód",
+    "table_code_short": "WDS",
+    "table_order_no": "Rendelési szám",
+    "table_order_short": "Rendeljen",
+    "table_series": "Profil sorozat",
+    "table_series_short": "sorozat",
+    "default_series": "Szabványos"
+  },
+  "dealer_select": {
+    "placeholder": "— Válasszon kereskedőt —",
+    "search_placeholder": "Kereskedőt keresek...",
+    "error_load": "Hiba a kereskedők betöltésekor",
+    "empty": "Semmi sem található",
+    "all_dealers": "Minden kereskedő"
+  },
+  "files": {
+    "header": {
+      "title": "Fájlok",
+      "subtitle_1": "Letölthető hasznos anyagok:",
+      "subtitle_2": "tanúsítványok, vizsgálati jegyzőkönyvek stb."
+    },
+    "searchPlaceholder": "Keresés",
+    "choose_file": "Válasszon ki egy fájlt",
+    "noResults": "Nem található fájl",
+    "empty": "Még nincsenek fájlok",
+    "adminRole": "Rendszergazda",
+    "unknownDate": "Ismeretlen",
+    "buttons": {
+      "add": "Fájl hozzáadása",
+      "download": "Letöltés",
+      "edit": "Szerkesztés",
+      "delete": "Törölje",
+      "cancel": "törölni",
+      "upload": "Letöltés",
+      "save": "Módosítások mentése",
+      "uploading": "Betöltés...",
+      "saving": "Mentés..."
+    },
+    "labels": {
+      "title_ua": "Név (UA) *",
+      "title_en": "Cím (EN)",
+      "title_de": "Cím (DE)",
+      "change_file_optional": "Fájl módosítása (opcionális)"
+    },
+    "hero_bg_alt": "Háttér fájlok",
+    "search_alt": "Keresés",
+    "errors": {
+      "download": "Hiba a fájlok betöltésekor",
+      "error": "Hiba:",
+      "delete": "Hiba a törléskor",
+      "no_file_data": "Nincs fájl adat",
+      "required_ua_title": "Az ukrán név kötelező",
+      "error_change_file": "Nem sikerült módosítani a fájlt",
+      "error_add_file": "Nem sikerült hozzáadni a fájlt"
+    },
+    "feedback": {
+      "success": "A fájl sikeresen hozzáadva!",
+      "edit": "A fájl sikeresen módosítva!",
+      "deleted": "A fájl törölve lett",
+      "confirmDeleteMessage": "Biztosan törli a fájlt?",
+      "deleteFile": "Fájl törlése"
+    }
+  },
+  "videos": {
+    "header": {
+      "title": "Videó",
+      "subtitle": "Hasznos videó anyagok, amelyek segítik a munkát"
+    },
+    "hero_bg_alt": "Videó háttér",
+    "menu_alt": "Videó menü",
+    "search_alt": "Videó keresés",
+    "close_alt": "bezárni",
+    "add_alt": "Videó hozzáadása",
+    "iframe_title": "Videó",
+    "sidebar": {
+      "categories": "Kategóriák"
+    },
+    "categories": {
+      "tech": "Műszaki képzés",
+      "media": "Médiakritika",
+      "factory": "Produkciós videó",
+      "install": "Telepítési videó",
+      "social": "Közösségi hálózatok"
+    },
+    "buttons": {
+      "add": "Videó hozzáadása",
+      "save": "menteni",
+      "saving": "Mentés...",
+      "edit": "Szerkesztés",
+      "delete": "Törölje"
+    },
+    "feedback": {
+      "added": "A videó sikeresen hozzáadva",
+      "updated": "A videó sikeresen frissítve",
+      "deleted": "A videót törölték"
+    },
+    "social_headers": {
+      "tiktok": "TikTok hírfolyam",
+      "facebook": "Facebook oldal",
+      "instagram": "Instagram profil"
+    },
+    "form": {
+      "title_ua": "Név (UA) *",
+      "title_en": "Cím (EN)",
+      "title_it": "Titolo (IT)",
+      "title_de": "Cím (DE)",
+      "url_ua": "URL (UA) *",
+      "url_en": "URL",
+      "url_it": "URL (IT)",
+      "url_de": "URL (DE)",
+      "description_ua": "Leírás (UA)",
+      "description_de": "Beschreibung (DE)"
+    },
+    "modals": {
+      "add_title": "Új videó hozzáadása",
+      "edit_title": "Videó szerkesztése",
+      "delete_confirm": "Videó törlése",
+      "delete_message": "Biztosan törlöd a videót?"
+    },
+    "search_placeholder": "Videó keresése...",
+    "all_videos": "Minden videó",
+    "errors": {
+      "load": "Hiba a videó betöltésekor",
+      "save": "Hiba a mentéskor",
+      "delete": "Hiba a törlés során"
+    }
+  },
+  "orders": {
+    "newOrderModal": {
+      "coord_message_1": "Figyelem! A földrajzi koordináták nincsenek beállítva.",
+      "coord_message_2": "A logisztika helyes kiszámításához meg kell jelölni egy pontot a térképen.",
+      "coord_message_3": "Kérjük, forduljon menedzseréhez, hogy frissítse címét",
+      "error_message_1": "Nem sikerült betölteni a címeket:",
+      "error_message_2": "Nincs kiválasztva fájl",
+      "error_message_3": "Töltse ki az összes mezőt",
+      "error_message_4": "Válasszon szállítási címet",
+      "error_message_5": "Válasszon egy ügyfél címet",
+      "error_message_6": "Létrehozási hiba:",
+      "error_message_8": "Frissítési hiba:",
+      "error_message_7": "A cím nincs kiválasztva",
+      "order_created": "A #{{orderNumber}} téves számítás létrejött ✅",
+      "order_updated": "A #{{orderNumber}} téves számítás frissült ✅",
+      "order_create": "Hozzon létre egy új számítást",
+      "order_edit": "Hibás számítás szerkesztése",
+      "order_number_label": "Rendelési szám",
+      "order_number_placeholder": "PO-2026-154 (opcionális)",
+      "order_number_hint": "Töltse ki, ha saját számozást használ.",
+      "dealer": "Kereskedő:",
+      "myAddress": "a címem",
+      "clientAddress": "Ügyfél címe",
+      "address": "Szállítási cím:",
+      "loadingOfAddress": "Címek betöltése...",
+      "choose": "Válassza ki",
+      "downloadZKZ": "Fájl letöltése (.zkz)",
+      "addImages": "Kép hozzáadása",
+      "numberOfConstruction": "Tervek száma:",
+      "comment": "Megjegyzés:",
+      "cancel": "Mégse",
+      "creating": "Mi alkotunk...",
+      "updating": "Frissítés...",
+      "save": "menteni",
+      "repeat": "ISMÉTLÉS",
+      "client_address_manager_note": "A végső címet a vezetővel egyeztetjük."
+    },
+    "modalFilesTitle": "Rendeljen fájlokat",
+    "modalCalcFilesTitle": "Számítási fájlok",
+    "modalFilesSubtitle": "Dokumentáció és fotók",
+    "sectionProjects": "Fájlok",
+    "sectionPhotos": "Fotók a tárgyról",
+    "sectionOthers": "Egyéb",
+    "totalFiles": "Összesen",
+    "downloadFileError": "Hiba történt a fájl feltöltése közben",
+    "noFilesFound": "Nem találhatók fájlok ehhez a rendeléshez."
+  },
+  "clientAddressModal": {
+    "title": "🏠 Ügyfél címe",
+    "contactSection": "Ügyfélkapcsolatok",
+    "addressSection": "Szállítási cím",
+    "findOnMap": "Keresse meg a térképen",
+    "searchPlaceholder": "Cím keresése a térképen...",
+    "dragHint": "Húzza a jelölőt a pont finomításához",
+    "cancel": "törölni",
+    "save": "menteni",
+    "fields": {
+      "fullName": "Az ügyfél neve (vezeték- és keresztnév) *",
+      "phone": "Telefon (+380...) *",
+      "extraInfo": "További információk",
+      "region": "Régió *",
+      "district": "kerület *",
+      "city": "város*",
+      "street": "utca *",
+      "house": "ház*",
+      "apartment": "Apartman",
+      "entrance": "Bejárat",
+      "floor": "Az emeleten",
+      "note": "Megjegyzés"
+    },
+    "errors": {
+      "requiredField": "Töltse ki a kötelező mezőt: {{field}}",
+      "fillRequired": "Töltse ki a kötelező címmezőket",
+      "invalidName": "Adja meg az ügyfél teljes nevét (vezeték- és keresztnév)",
+      "invalidPhone": "Helytelen telefonformátum (+380XXXXXXXXX)",
+      "selectOnMap": "Válasszon ki egy pontot a térképen",
+      "preciseLocation": "Finomítsa a pontot: húzza el a jelölőt, vagy kattintson pontosabban"
+    },
+    "success": "Az ügyfél címadatai sikeresen elmentésre kerültek ✅"
+  },
+  "commentsModal": {
+    "title": "Chat",
+    "noMessages": "Még nincsenek üzenetek",
+    "placeholder": "Az üzeneted...",
+    "errors": {
+      "fetchProfile": "Profilhiba",
+      "fetchHistory": "Nem sikerült betölteni az előzményeket",
+      "authFailed": "Az engedélyezés nem sikerült, csatlakozzon újra 5 másodpercen belül...",
+      "wsClosed": "A kapcsolat megszakadt (kód: {{code}}). Csatlakozás újra...",
+      "wsError": "WS hiba",
+      "connectionLost": "Megszakadt a kapcsolat. Próbálja meg frissíteni az oldalt."
+    }
+  },
+  "counterpartyModal": {
+    "dealer": "Kereskedő",
+    "recipient": "Címzett:",
+    "phone": "Telefon:",
+    "additional": "Ezen kívül:",
+    "deliveryAddress": "Szállítási cím:",
+    "pickup": "Pickup",
+    "close": "bezárni"
+  },
+  "delete_modal": {
+    "title": "Megerősítés törlése",
+    "warning": "Biztosan törli a következőt: {{type}} \"{{name}}\"?",
+    "description": "Ez a művelet visszafordíthatatlan. Az összes kapcsolódó adat is törlődik.",
+    "cancel": "törölni",
+    "delete": "Törölje",
+    "deleting": "Törlés...",
+    "success": "{{type}} \"{{name}}\" sikeresen törölve ✅",
+    "error_unknown": "Ismeretlen elemtípus ❌",
+    "types": {
+      "order": "Rendeljen",
+      "calculation": "Tévedés",
+      "client": "Az ügyfél",
+      "product": "Termék",
+      "reclamation": "Panasz",
+      "additionalOrder": "Előrendelés",
+      "record": "felvétel"
+    }
+  },
+  "reorder_modal": {
+    "title": "Előrendelés",
+    "order_number": "Rendelési szám:",
+    "order_placeholder": "Írja be a számot...",
+    "no_order": "Nincs rendelés",
+    "item_label": "Rendelhető tétel:",
+    "loading": "Betöltés...",
+    "select_placeholder": "-- Válasszon ki egy elemet --",
+    "quantity": "Mennyiség:",
+    "comment_label": "A partner megjegyzése:",
+    "comment_placeholder": "A hozzászólásod...",
+    "btn_cancel": "Mégse",
+    "btn_save": "Hozzáadás",
+    "success_create": "Az előrendelés sikeresen létrejött!"
+  },
+  "add_claim": {
+    "title": "Panasz hozzáadása",
+    "order_number": "Rendelési szám:",
+    "order_not_found": "A rendelés nem található",
+    "retry": "Ismételje meg",
+    "dealer": "Kereskedő:",
+    "select_dealer": "Válasszon kereskedőt",
+    "select_series": "Válassz egy sorozatot:",
+    "delivery_date": "Szállítási dátum:",
+    "claim_date": "Igénylés dátuma:",
+    "reason_label": "A panasz oka:",
+    "solution_label": "Megoldási lehetőség:",
+    "description_label": "Leírás:",
+    "photos_label": "Igénylési fotó:",
+    "add_photo": "Fénykép hozzáadása",
+    "btn_cancel": "Mégse",
+    "btn_save": "Panasz hozzáadása",
+    "loading": "Betöltés...",
+    "success_msg": "A követelés sikeresen hozzáadva",
+    "error_default": "Hiba történt a követelés létrehozásakor",
+    "errors": {
+      "reasons": "Hiba a panaszok okainak betöltésekor",
+      "solutions": "Hiba a megoldások betöltésekor",
+      "series": "Nem sikerült adatokat szerezni a tervek sorozatáról"
+    }
+  },
+  "select": {
+    "default_placeholder": "-- Válasszon --",
+    "no_options": "Nincsenek lehetőségek"
+  },
+  "reasons": {
+    "Переробити конструкцію на виробництві за рахунок виробника": "A gyártó költségére dolgozza át a tervet",
+    "Переробити конструкцію на виробництві за рахунок замовника": "A gyártás során dolgozza át a tervezést a megrendelő költségére",
+    "Замінити фурнітуру за рахунок виробника": "A tartozékokat a gyártó költségére cserélje ki",
+    "Замінити склопакет за рахунок виробника": "Cserélje ki az üveglapot a gyártó költségére",
+    "Замінити склопакет за рахунок замовника": "A kettős üvegezésű ablak cseréje a megrendelő költségére történik",
+    "Замінити пошкодженні матеріали за рахунок виробника": "A sérült anyagokat a gyártó költségére cserélje ki",
+    "Замінити пошкодженні матеріали за рахунок замовника": "A sérült anyagokat a vevő költségére cserélje ki",
+    "Замінити браковані матеріали за рахунок виробника": "A hibás anyagokat a gyártó költségére cserélje ki",
+    "Відшкодувати (компенсувати) вартість пошкоджених елементів замовлення, робіт, послуг за рахунок виробника": "A megrendelés, munkák, szolgáltatások megsérült elemeinek költségének megtérítése (megtérítése) a gyártó költségére",
+    "Доукомплектувати замовлення за рахунок виробника": "A megrendelést a gyártó költségére teljesítse",
+    "Доукомплектувати замовлення за рахунок замовника": "A megrendelés teljesítése a vevő költségére",
+    "Дозамовлення за рахунок замовника": "Előrendelés a vásárló költségére",
+    "Повернути конструкцію на виробництво (неліквід)": "A tervezés visszaállítása a gyártásba (illikvid)"
+  },
+  "payment_modal": {
+    "title": "Fizetés a {{number}} számú rendelésért",
+    "loading": "Betöltés...",
+    "error_no_currency": "Nincsenek előlegszerződései {{currency}} pénznemben.",
+    "error_no_contracts": "Nincs előzetes szerződése.",
+    "error_load_failed": "Nem sikerült betölteni az egyenlegadatokat.",
+    "order_currency": "Megrendelés pénzneme:",
+    "amount_to_pay": "Fizetendő összeg:",
+    "advance_contract": "Előzetes szerződés ({{currency}}):",
+    "select_contract": "Válasszon szerződést",
+    "available": "Elérhető:",
+    "payment_amount": "Fizetés összege:",
+    "error_min_amount": "Az összegnek nagyobbnak kell lennie 0-nál",
+    "error_max_amount": "A maximális összeg {{amount}}",
+    "btn_cancel": "törölni",
+    "btn_pay": "fizetni",
+    "btn_processing": "Fizetés...",
+    "topup_invoice": "Hozzon létre egy fiókot az előlegszerződés feltöltéséhez"
+  },
+  "payments_page": {
+    "title": "Pénzügyek",
+    "actions": {
+      "refresh": "Frissítse az adatokat",
+      "pay": "fizetni"
+    },
+    "filters": {
+      "title": "Szűrők",
+      "search": "Keresés",
+      "search_placeholder": "rendelési szám",
+      "statuses": "Állapotok",
+      "contracts": "megállapodások",
+      "all_contracts": "Minden szerződés"
+    },
+    "status_filters": {
+      "all": "Minden rendelés",
+      "waiting_confirmation": "Várjuk a megerősítést",
+      "waiting_payment": "Fizetésre várunk",
+      "confirmed": "Megerősítve",
+      "production": "Gyártásban",
+      "ready": "kész",
+      "shipped": "Elküldve",
+      "non_liquid": "Illikvid"
+    },
+    "statuses": {
+      "reserved": "Foglalás"
+    },
+    "labels": {
+      "amount": "Összeg",
+      "paid": "fizetett",
+      "balance_due": "Maradék"
+    },
+    "sections": {
+      "advances": "A szerződésekre vonatkozó előlegeid",
+      "orders_to_pay": "Megrendelés fizetésre vár"
+    },
+    "empty": {
+      "no_advances": "Nincsenek előlegek",
+      "no_orders_filtered": "A kiválasztott szűrőkre nincs rendelés"
+    },
+    "errors": {
+      "load_data": "Hiba a pénzügyi adatok betöltésekor"
+    },
+    "notifications": {
+      "payment_success": "Fizetés teljesítve!",
+      "payment_error": "Fizetési hiba"
+    },
+    "analytics": {
+      "debt_limit": "Adóssághatár",
+      "overlimit": "Tartozás túllépése",
+      "limit_usage": "A limit használata",
+      "no_prepayment": "Nincs előleg",
+      "underfunded": "Fejletlen",
+      "post_sale_debt": "Adósság a realizálás után",
+      "route_debt": "Adósság az útvonal teljesítése után",
+      "in_routes": "Az útvonalakban",
+      "money_in_transit": "A pénz úton van",
+      "debt_over_ten_days": "Tartozás > 10 nap",
+      "debt_over_ten_days_short": "Tartozás > 10 nap",
+      "no_prepayment_orders": "Rendelés előre utalás nélkül",
+      "critical_orders": "A lejárt rendelések > 10 nap",
+      "underfunded_orders": "Nem előre megrendelés",
+      "in_route_orders": "Adósság az útvonalakban (útközben)",
+      "money_in_transit_orders": "A pénz úton van"
+    },
+    "detail": {
+      "date": "Dátum",
+      "amount": "Összeg",
+      "action": "akció",
+      "empty": "Nincsenek adatok",
+      "find": "megtalálni",
+      "find_in_list": "Keresse meg a listában"
+    },
+    "common": {
+      "no_data_short": "—"
+    }
+  },
+  "confirm_modal": {
+    "default_title": "Művelet megerősítése",
+    "default_message": "Biztosan végrehajtja ezt a műveletet?",
+    "confirm": "Erősítse meg",
+    "cancel": "törölni"
+  },
+  "order_mobile": {
+    "labels": {
+      "constructions": "Építmények",
+      "files": "Fájlok",
+      "order_amount": "Rendelési összeg",
+      "debt_amount": "Az adósság összege",
+      "order_number": "Rendelési szám"
+    },
+    "buttons": {
+      "confirm": "Erősítse meg",
+      "pay": "fizetni",
+      "reorder": "Előrendelés",
+      "claim": "Panasz"
+    },
+    "fast_order": {
+      "fast": "Gyors feldolgozás (kevesebb, mint egy nap)",
+      "slow": "A rendelés egy nappal később történt",
+      "title_1": "Gyors",
+      "title_2": "tervezés"
+    },
+    "confirm_modal": {
+      "title": "Megrendelés visszaigazolása",
+      "message": "Biztosan megerősíti a {{number}} megrendelést?",
+      "confirm": "Erősítse meg"
+    },
+    "notifications": {
+      "payment_success": "A fizetés sikeresen megtörtént!",
+      "order_confirmed": "A {{number}} rendelés sikeresen visszaigazolva!"
+    },
+    "steps": {
+      "order": "Rendeljen",
+      "payment": "Fizetés",
+      "confirmation": "Megerősítés",
+      "production": "Termelés",
+      "readiness": "Készenlét",
+      "delivery": "Szállítás",
+      "delay": "késleltetés"
+    },
+    "statuses": {
+      "no_date": "Nincs dátum",
+      "paid": "fizetett",
+      "debt": "Adósság",
+      "not_confirmed": "Nincs megerősítve",
+      "no_data": "Nincs adat",
+      "plan": "Terv",
+      "not_ready": "Nincs kész",
+      "not_delivered": "Nincs kézbesítve",
+      "from": "-val",
+      "to": "által"
+    }
+  },
+  "order_status": {
+    "new": "Új",
+    "processing": "Feldolgozásban",
+    "waiting_payment": "Fizetésre várunk",
+    "waiting_confirmation": "Várjuk a megerősítést",
+    "rejected": "Elutasítás",
+    "ready": "kész",
+    "shipped": "Elküldve",
+    "confirmed": "Megerősítve",
+    "in_work": "A munkahelyen",
+    "production": "Gyártásban"
+  },
+  "errors": {
+    "serverError": "A szerver hibát adott vissza.",
+    "errorSendData": "Nem sikerült elküldeni az adatokat:",
+    "errorSendData_2": "Nem sikerült elküldeni az adatokat.",
+    "error": "Hiba:",
+    "unknownError": "Ismeretlen hiba",
+    "fetchFilesFailed": "Nem sikerült letölteni a fájlokat.",
+    "paymentError": "Fizetési hiba",
+    "fetch_failed": "Hiba az adatok betöltésekor"
+  },
+  "calc": {
+    "constructions_qty": "A szerkezetek száma",
+    "orders_qty": "Megrendelések száma",
+    "no_comments": "Nincs hozzászólás",
+    "comment_history": "Megjegyzések előzményei",
+    "no_file": "Nincs fájl",
+    "recipient_dealer": "A címzett egy kereskedő",
+    "recipient_other": "A címzett egy másik szerződő fél",
+    "recipient_label": "Szállítási cím",
+    "no_orders_yet": "Feldolgozás alatt áll",
+    "error_download": "Nem sikerült letölteni a fájlt. Lehet, hogy nem érhető el a szerveren."
+  },
+  "statuses": {
+    "Новий": "Új",
+    "Очікуємо підтвердження": "Várjuk a megerősítést",
+    "Очікуємо оплату": "Fizetésre várunk",
+    "Підтверджений": "Megerősítve",
+    "У виробництві": "Gyártásban",
+    "В обробці": "Feldolgozásban",
+    "Відмова": "Elutasítás",
+    "Готовий": "kész",
+    "Відвантажений": "Elküldve",
+    "Відвантажено": "Elküldve",
+    "В роботі": "A munkahelyen"
+  },
+  "portal_calc": {
+    "ui": {
+      "loading": "Betöltés...",
+      "reloading": "Adatok frissítése...",
+      "report_year": "Beszámolási év",
+      "filters": "Szűrők",
+      "search_placeholder": "számlaszám, rendelés",
+      "new_calculation": "új számítási hiba",
+      "error_title": "Hoppá! Nem sikerült betölteni az adatokat",
+      "error_title_2": "Hiba történt a szerverhez való csatlakozáskor.",
+      "error_title_3": "Ellenőrizze az internetet, és próbálja újra.",
+      "try_again": "Próbáld újra",
+      "no_calculations": "Nincsenek megjelenítendő számítások",
+      "load_more_all": "További letöltések ({{count}})",
+      "load_more": "További letöltések ({100 innen: {{total}})",
+      "load_more_admin": "További letöltések ({{next}} innen: {{total}})",
+      "all_loaded": "Minden számítás betöltődik ({{count}}).",
+      "delete_calc_allowed": "Távolítsa el a téves számítást",
+      "edit_calc_allowed": "Hibás számítás szerkesztése",
+      "edit_calc_disallowed": "A szerkesztés csak a rendelések létrehozása előtt lehetséges",
+      "delete_calc_disallowed": "Nem törölhető: Megrendelés van",
+      "delete_cal_disallowed": "Nem törölhető: Megrendelés van",
+      "request_order_refusal": "Kérje a megrendelések elutasítását",
+      "order_refusal_unavailable": "Nincsenek lemondható rendelések",
+      "constructions": "Építmények",
+      "orders": "Rendeljen",
+      "hide_orders": "Rend elrejtése",
+      "show_orders": "Megrendelés megjelenítése ({{count}})",
+      "calculation_number": "Számlaszám",
+      "more_short": "mégis",
+      "order_numbers": "Rendelési számok",
+      "close_order_numbers": "Zárja be a rendelési számok listáját"
+    },
+    "months": {
+      "all_year": "Egész évben",
+      "short": [
+        "január",
+        "február",
+        "Ber.",
+        "április",
+        "Trav.",
+        "június",
+        "július",
+        "Ser.",
+        "szept.",
+        "okt.",
+        "Fox",
+        "december"
+      ],
+      "full": [
+        "január",
+        "február",
+        "március",
+        "április",
+        "május",
+        "június",
+        "július",
+        "augusztus",
+        "szeptember",
+        "október",
+        "november",
+        "december"
+      ]
+    },
+    "filter_labels": {
+      "all": "Minden téves számítás",
+      "new": "Új számítások",
+      "waiting_confirm": "Megerősítésre vár",
+      "waiting_payment": "Fizetésre vár",
+      "confirmed": "Megerősítve",
+      "production": "Gyártásban",
+      "ready": "Kész rendelések",
+      "delivered": "Szállítva",
+      "rejected": "Elutasítás"
+    },
+    "errors": {
+      "server_error": "A szerver hibát adott vissza az adatok frissítésekor.",
+      "connection_error": "Nem sikerült frissíteni az adatokat. Ellenőrizze a kapcsolatot."
+    },
+    "daily_reminder": {
+      "title": "Napi emlékeztető",
+      "subtitle": "Ma olyan rendelései vannak, amelyekre figyelmet kell fordítani.",
+      "count_line": "Rendelések ebben az állapotban: {{count}}",
+      "show_tomorrow": "Megjeleníti ezt az emlékeztetőt holnap?",
+      "waiting_confirm": {
+        "title": "Megerősítésre vár",
+        "description": "Ellenőrizze azokat a rendeléseket, amelyeket még meg kell erősíteni."
+      },
+      "waiting_payment": {
+        "title": "Fizetésre vár",
+        "description": "Tekintse meg azokat a rendeléseket, amelyek kifizetése még függőben van."
+      },
+      "actions": {
+        "open": "kinyitni",
+        "close": "bezárni",
+        "yes": "Igen",
+        "no": "Nem"
+      }
+    },
+    "order_refusal": {
+      "title": "Megrendelések törlése",
+      "subtitle": "Válassza ki azokat a rendeléseket, amelyekre vonatkozóan elutasítási kérelmet szeretne küldeni a vezetőnek.",
+      "close": "bezárni",
+      "no_eligible_orders": "Ebben a számításban nincsenek olyan rendelések, amelyek állapota Új, Megerősítésre vár vagy Fizetésre vár.",
+      "select_all": "Válassza ki az összeset",
+      "unselect_all": "Törölje a kijelölést",
+      "selected_count": "Kiválasztva: {{count}}",
+      "cancel": "törölni",
+      "submit": "Elutasítás küldése",
+      "sending": "Küldés...",
+      "success": "Az elutasítási kérelmet elküldtük a vezetőnek.",
+      "errors": {
+        "select_one": "Válasszon legalább egy rendelést.",
+        "manager_missing": "Ehhez a számításhoz nem lehetett vezetőt meghatározni.",
+        "send_failed": "Nem sikerült elküldeni a leiratkozási kérelmet."
+      }
+    }
+  },
+  "complaints": {
+    "detail": {
+      "not_specified": "Nincs megadva",
+      "main_info": "Alapvető információk",
+      "complaint_meta": "kompenzáció",
+      "number": "Panaszszám",
+      "act_number": "törvényszám",
+      "order_number": "Rendelési szám",
+      "organization": "Szervezet",
+      "complaint_reason": "A panasz oka",
+      "document_amount": "A dokumentum mennyisége",
+      "compensation_amount": "Kártérítés összege",
+      "compensation_requested": "Kártérítési kérelmet nyújtottak be",
+      "compensated": "Kompenzálva",
+      "debt_correction_amount": "Adósságrendezés",
+      "refund_amount": "Visszatérítések",
+      "series": "Szerkezetek sorozata",
+      "dates": "adni",
+      "date_complaint": "A panasz dátuma",
+      "date_delivery": "Szállítási dátum",
+      "date_detection": "Felfedezés dátuma",
+      "date_produced": "Készült",
+      "date_shipped": "Szállítva",
+      "date_received_production": "Gyártásra érkezés dátuma",
+      "border_return_date": "Visszaküldési határidő",
+      "debt_correction_date": "Adósságkorrekció dátuma",
+      "refund_date": "Visszatérítés dátuma",
+      "from_date": "től",
+      "manager": "Felelős vezető:",
+      "description_title": "A panasz leírása",
+      "problem_title": "A probléma",
+      "resolution_title": "A megoldás",
+      "photo": "Fotó",
+      "video": "Videó",
+      "errors": {
+        "load_media_fail": "Nem sikerült betölteni a követelés médiafájlokat.",
+        "try_again": "Próbáld újra",
+        "open_photo_fail": "Nem lehet megnyitni a fényképet megtekintésre",
+        "general_error": "Hiba történt a képek betöltése közben"
+      }
+    }
+  },
+  "reclamation": {
+    "no_comments": "Nincs hozzászólás",
+    "no-data": "Nem található panasz",
+    "load_more": "További letöltések",
+    "comment_history": "Megjegyzések előzményei",
+    "delete": "Törölje",
+    "delete_forbidden": "Nem törölhető",
+    "delete_forbidden_manager": "Nem lehet törölni: kezelő lett hozzárendelve",
+    "status": {
+      "new": "Új",
+      "in_work": "A munkahelyen",
+      "production": "Termelés",
+      "in_stock": "Raktáron",
+      "shipped": "Elküldve",
+      "confirmed": "Megerősítve",
+      "resolved": "Megoldódott",
+      "rejected": "Elutasítás"
+    },
+    "common": {
+      "hide": "elrejteni",
+      "details": "Részletek",
+      "loading_data": "A követelések adatainak betöltése...",
+      "updating_list": "A panaszok listájának frissítése...",
+      "report_year": "Beszámolási év",
+      "all_year": "Egész évben",
+      "search_placeholder": "panaszszám",
+      "new_reclamation": "Új panasz",
+      "all_reclamations": "Minden állítás",
+      "load_more": "További letöltések ({{count}})",
+      "load_more_full": "További letöltések (100 innen: {{remaining}})",
+      "all_loaded": "Minden panasz letöltve ({{total}})",
+      "not_found": "Nem található panasz",
+      "error_title": "Hoppá! Nem sikerült betölteni az adatokat",
+      "error_desc": "Hiba történt a szerverhez való csatlakozáskor. Ellenőrizze az internetet, és próbálja újra.",
+      "try_again": "Próbáld újra",
+      "edit": "Szerkesztés",
+      "delete": "Törölje",
+      "cancel": "törölni",
+      "add": "Hozzáadás",
+      "update": "Frissítés",
+      "saving": "tartom...",
+      "deleting": "Törlés..."
+    },
+    "statuses": {
+      "all": "Minden állítás",
+      "new": "Új",
+      "in_progress": "A munkahelyen",
+      "production": "Termelés",
+      "in_stock": "Raktáron",
+      "resolved": "Megoldódott",
+      "rejected": "Elutasítás"
+    },
+    "compensation_filter": {
+      "title": "kompenzáció",
+      "all": "Mindegyiket",
+      "compensated": "Kompenzációval",
+      "uncompensated": "Nincs kompenzáció"
+    },
+    "months": {
+      "jan": "január",
+      "feb": "február",
+      "mar": "Ber.",
+      "apr": "április",
+      "may": "Trav.",
+      "jun": "június",
+      "jul": "július",
+      "aug": "Ser.",
+      "sep": "szept.",
+      "oct": "okt.",
+      "nov": "Fox",
+      "dec": "december"
+    }
+  },
+  "additional_order": {
+    "no_main_order": "Nincs főrendelés",
+    "no_description": "Nincs leírás / megjegyzés",
+    "history_button": "Megjegyzések előzményei",
+    "no_dealer": "Kereskedő nélkül",
+    "no_sub_orders": "Feldolgozás alatt áll",
+    "delete_sub_orders": "További rendelés törlése",
+    "cannot_delete_manager": "Nem törölhető: hozzárendelt kezelő ({{name}})",
+    "search_placeholder": "addn. számsorrend",
+    "new_order_btn": "Új kiegészítő rendelés",
+    "statuses": {
+      "all": "Minden további megrendelés",
+      "new": "Új",
+      "waiting_confirm": "Várjuk a megerősítést",
+      "waiting_pay": "Fizetésre várunk",
+      "confirmed": "Megerősítve",
+      "in_production": "Gyártásban",
+      "in_processing": "Feldolgozásban",
+      "in_work": "A munkahelyen",
+      "rejected": "Elutasítás",
+      "ready": "kész",
+      "shipped": "Szállítva"
+    },
+    "errors": {
+      "server_error": "Hiba az adatok betöltésekor a szerverről.",
+      "connect_error": "Nem sikerült betölteni az adatokat. Ellenőrizze a kapcsolatot."
+    },
+    "states": {
+      "error_title": "Hoppá! Nem sikerült betölteni az adatokat",
+      "error_text": "Hiba történt a szerverhez való csatlakozáskor. Ellenőrizze az internetet, és próbálja újra.",
+      "try_again": "Próbáld újra",
+      "no_data": "Nincsenek további megjeleníthető rendelések",
+      "load_more": "További letöltések ({{count}} innen: {{total}})",
+      "all_loaded": "Minden további rendelés betöltve ({{total}})."
+    }
+  },
+  "bills": {
+    "title": "Fiókok",
+    "add_bill": "Adjon hozzá egy fiókot",
+    "date": "Dátum",
+    "bill_number": "számla sz",
+    "amount": "Összeg",
+    "file": "Fájl",
+    "no_bills_found": "A megadott időszakra vonatkozóan nem található számla.",
+    "file_downloaded": "A fájl letöltése megtörtént",
+    "error_loading": "Nem sikerült betölteni a listát",
+    "error_invalid_id": "Hiba: Érvénytelen fiókazonosító",
+    "error_downloading": "Hiba a PDF betöltésekor"
+  },
+  "create_bill": {
+    "title": "Hozzon létre egy fiókot",
+    "steps": {
+      "details": "Kellékek kiválasztása",
+      "items": "Termékek hozzáadása",
+      "confirm": "Megerősítés"
+    },
+    "fields": {
+      "iban": "IBAN",
+      "address": "Cím",
+      "product": "Termék",
+      "quantity": "Mr",
+      "price": "Ár",
+      "width": "szélesség (mm)",
+      "height": "Magasság (mm)",
+      "total": "Számla összege",
+      "payment_date": "Fizetés dátuma",
+      "delivery_date": "Szállítás dátuma",
+      "comment": "Megjegyzés"
+    },
+    "placeholders": {
+      "iban": "— válassza ki az IBAN-t —",
+      "address": "- válassz egy címet -",
+      "product": "- válassz egy terméket -"
+    },
+    "actions": {
+      "add_item": "Pozíció hozzáadása",
+      "remove_item": "Pozíció törlése",
+      "submit": "Hozzon létre egy fiókot",
+      "creating": "Mi alkotunk..."
+    },
+    "notifications": {
+      "profile_error": "Hiba történt a profil betöltésekor. Kérjük, próbálja meg újra megnyitni az űrlapot",
+      "success": "Fiók sikeresen létrehozva!",
+      "submit_error": "Nem sikerült létrehozni a fiókot. Próbáld újra."
+    },
+    "validation": {
+      "step1": "Kérjük, válasszon IBAN-t és szállítási címet",
+      "step2": "Termékek ellenőrzése: a nevet, a mennyiséget és az árat kell kitölteni"
+    }
+  },
+  "change_password": {
+    "header": "Jelszóváltás",
+    "logged_in_as": "A következőként vagy bejelentkezve:",
+    "old_password_label": "Jelenlegi jelszó",
+    "new_password_label": "Új jelszó",
+    "confirm_password_label": "Erősítse meg az új jelszót",
+    "btn_submit": "Jelszó módosítása",
+    "btn_loading": "Változunk...",
+    "info_changing": "Jelszó módosítása...",
+    "success_message": "A jelszó sikeresen megváltozott!",
+    "error_mismatch": "Az új jelszó és a megerősítés nem egyezik.",
+    "error_length": "A jelszónak legalább 6 karakterből kell állnia.",
+    "error_general": "Hiba. Ellenőrizze jelenlegi jelszavát.",
+    "error_wrong_old": "A jelenlegi jelszó helytelen.",
+    "error_fields_required": "Mindkét mező kitöltése kötelező."
+  },
+  "emergency": {
+    "page_title": "Elérhetőségek sürgős híváshoz",
+    "no_contacts": "Nem találhatók névjegyek.",
+    "unknown_user": "Ismeretlen felhasználó",
+    "actions": {
+      "call": "Hívjon sürgősen",
+      "connect_telegram": "Csatlakoztassa a Telegramot"
+    },
+    "modal": {
+      "add_title": "Névjegy hozzáadása",
+      "edit_title": "Névjegy szerkesztése",
+      "placeholder_name": "nevet",
+      "placeholder_phone": "Telefon",
+      "placeholder_dept": "osztály",
+      "delete_confirm_title": "Megerősítés törlése",
+      "delete_confirm_text": "Biztosan törli a névjegyet?"
+    },
+    "telegram": {
+      "title": "Távirat kapcsolat",
+      "scan_qr": "Olvassa be a QR-kódot, vagy kattintson az alábbi gombra"
+    },
+    "notifications": {
+      "fetch_error": "Nem sikerült lekérni a névjegyzéket",
+      "fill_required": "Töltse ki az összes kötelező mezőt",
+      "updated": "A kapcsolattartó frissítve lett",
+      "added": "Kapcsolat hozzáadva",
+      "save_error": "Nem sikerült menteni a névjegyet",
+      "deleted": "Kapcsolat törölve",
+      "delete_error": "Nem sikerült törölni a névjegyet",
+      "sending_call": "Üzenet küldése folyamatban...",
+      "call_sent": "Üzenet elküldve",
+      "call_error": "Nem sikerült elküldeni az üzenetet"
+    }
+  },
+  "filters": {
+    "from": "Z",
+    "to": "Utána",
+    "dealer": "Kereskedő"
+  },
+  "payments": {
+    "title": "Pénzeszközök mozgása",
+    "from": "től",
+    "to": "hogy",
+    "when": "mikor",
+    "date": "Dátum",
+    "show_orders_mobile": "Megrendelésre terjesztve",
+    "hide_orders_mobile": "Rend elrejtése",
+    "operation": "Működés",
+    "start_balance": "Hall az elejére",
+    "start_short": "A kezdet",
+    "income": "érkezés",
+    "expense": "Kisülés",
+    "balance": "Maradék",
+    "channel": "Mi miatt",
+    "details_contract": "Részletek / Megállapodás",
+    "total_for": "Együtt azért",
+    "correction": "Beállítás",
+    "order_no": "Rendelési sz",
+    "amount": "Összeg",
+    "debt": "Adósság",
+    "paid_before": "Fizetve",
+    "contract": "A szerződés",
+    "payment": "Fizetés",
+    "percent": "Százalék",
+    "no_contract": "Nincs szerződés",
+    "unknown_date": "Ismeretlen dátum",
+    "show_orders": "Spread {{count}} rendelésekre",
+    "hide_orders": "{{count}} rendelések elrejtése",
+    "channels": {
+      "bank": "BANK",
+      "cash": "PÉNZTÁR",
+      "order_short": "MEGRENDELÉS"
+    },
+    "docTypes": {
+      "ППВход": "Fizetési megbízás",
+      "ПКО": "Készpénzes megbízás",
+      "ВозвратОтПокупателя": "Vissza a vevőtől",
+      "КорректировкаДолга": "Adósságrendezés"
+    }
+  },
+  "roles": {
+    "admin": "Rendszergazda",
+    "manager": "Menedzser",
+    "operator": "Üzemeltető",
+    "director": "igazgató",
+    "region_manager": "Regionális vezető",
+    "complaint_manager": "Panaszkezelő",
+    "customer": "Kereskedő"
+  },
+  "invite": {
+    "header": "A regisztráció befejezése",
+    "admin_params": "Hozzáférési lehetőségek a rendszergazdától:",
+    "label_login": "Bejelentkezés a rendszerbe",
+    "label_role": "Számla típusa",
+    "label_expire": "A fiók aktív:",
+    "unlimited": "Határozatlan ideig",
+    "personal_data": "Személyes adatok",
+    "warning_edit": "Ellenőrizze és szükség esetén szerkessze a kapcsolati adatokat, és állítson be jelszót.",
+    "warning_save": "Fontos: mentse el bejelentkezési nevét és jelszavát!",
+    "label_fullname": "Teljes név",
+    "label_email": "E-mail",
+    "label_phone": "Telefon",
+    "label_password": "Új jelszó",
+    "btn_submit": "Hozzon létre egy profilt",
+    "success_message": "A regisztráció sikeresen befejeződött! Most már bejelentkezhet.",
+    "back_to_login": "Vissza a bejárathoz",
+    "password_rules": {
+      "min_length": "Minimum 6 karakter",
+      "lowercase": "Kisbetűt kell tartalmaznia",
+      "uppercase": "Nagybetűt kell tartalmaznia",
+      "number": "Tartalmaznia kell egy számot",
+      "special": "Tartalmaznia kell egy speciális karaktert"
+    },
+    "strength": {
+      "weak": "Gyenge jelszó",
+      "medium": "Átlagos jelszó",
+      "strong": "Erős jelszó"
+    },
+    "tg": {
+      "title": "Csatlakoztassa a Telegram botot",
+      "description": "Olvassa be a QR-kódot a rendelési értesítések fogadásához",
+      "button": "Lépjen a Telegram oldalra"
+    },
+    "errors": {
+      "load_fail": "Nem sikerült betölteni az adatokat",
+      "invalid_password": "A jelszó nem felel meg a biztonsági követelményeknek",
+      "invalid_phone": "Helytelen telefonformátum. Használja a +380XXXXXXXXX telefonszámot",
+      "reg_fail": "Regisztrációs hiba",
+      "invite_used": "Ez a link már használatban van",
+      "invite_expired": "Ez a link már nem aktív",
+      "invalid_code": "Érvénytelen meghívókód"
+    }
+  },
+  "support_chat": {
+    "title": "támogatást",
+    "page_title": "Támogatás chat",
+    "manager_support": "Menedzser támogatás",
+    "default_client_name": "Az ügyfél",
+    "loading": "Betöltés...",
+    "empty_history": "Még nincs történet",
+    "file_added": "Hozzáadott fájl:",
+    "remove_file": "Takarítani",
+    "welcome_title": "Gratulálunk!",
+    "welcome_text": "Írjon nekünk, ha bármilyen kérdése van a rendeléssel, fizetéssel, szállítással vagy reklamációval kapcsolatban.",
+    "recording_active": "Hangfelvétel folyamatban...",
+    "recording_placeholder": "Felvétel folyamatban...",
+    "message_placeholder": "Írj üzenetet...",
+    "sending": "Küldés...",
+    "actions": {
+      "attach_file": "Fájl hozzáadása",
+      "record_voice": "Hang rögzítése",
+      "stop_recording": "Állítsa le a felvételt",
+      "send": "Küldés"
+    },
+    "attachment": {
+      "image_alt": "kép",
+      "file_fallback": "Fájl"
+    },
+    "large_video_upload": {
+      "title": "Nagyméretű videó letöltése",
+      "description": "Töltse fel a videót a portálra, hogy az megjelenjen a támogatási csevegésben.",
+      "download_button": "Letöltés",
+      "select_file": "Válasszon ki egy videofájlt",
+      "submit": "Videó letöltése",
+      "success": "A videó sikeresen felkerült a portálra.",
+      "file_label": "Várt fájl",
+      "expires_label": "A link ig érvényes",
+      "expires_soon": "Hamarosan véget ér",
+      "back_home": "Vissza a portálra",
+      "used": "A link már használatban van.",
+      "expired": "A link lejárt.",
+      "invalid": "Érvénytelen link.",
+      "video_unavailable": "A videó már nem elérhető."
+    },
+    "success": {
+      "sent": "Az üzenet elküldve"
+    },
+    "errors": {
+      "load_history": "Nem sikerült betölteni a csevegési előzményeket",
+      "mark_read": "Nem sikerült olvasottként megjelölni a csevegést",
+      "recording_start": "Nem sikerült elindítani a hangfelvételt",
+      "empty_message": "Írjon üzenetet vagy csatoljon fájlt",
+      "contractor_not_found": "Felhasználó ContractorId nem található",
+      "send_message": "Nem sikerült elküldeni az üzenetet"
+    },
+    "launcher": {
+      "manager_contact": "Gyors kapcsolat egy menedzserrel",
+      "faq_hint": "Gyors válaszok chat nélkül"
+    }
+  },
+  "faq": {
+    "popular": {
+      "title": "Gyakori kérdések"
+    },
+    "no_description": "Nincs leírás",
+    "actions": {
+      "show_more": "Több megjelenítése",
+      "add": "Válasz hozzáadása",
+      "watch": "Megnyitás YouTube-on"
+    },
+    "empty": {
+      "title": "Nincs találat",
+      "description": "Próbálja meg módosítani a szűrőt, vagy adja hozzá az első GYIK-választ."
+    },
+    "hero": {
+      "title_prefix": "Kérdések —",
+      "title_accent": "Válaszok",
+      "subtitle": "Itt a leggyakoribb kérdésekre talál videós válaszokat szakértőinktől"
+    },
+    "search_placeholder": "Kérdések keresése",
+    "clear_search": "Keresés törlése",
+    "categories": {
+      "all": "Minden kategória",
+      "sales": "Értékesítés",
+      "installation": "Szerelés",
+      "payment": "Fizetés",
+      "warranty": "Garancia"
+    },
+    "expert": {
+      "title": "Nem találta meg a választ a kérdésére?",
+      "subtitle": "Szakértőnk kész személyesen válaszolni Önnek",
+      "cta": "Kérdezze a szakértőt",
+      "modal_eyebrow": "Üzenet szakértőnek",
+      "modal_title": "Tegyen fel kérdést",
+      "modal_subtitle": "Az üzenetet Telegramon és e-mailben küldjük a szakértőnek.",
+      "from_label": "Ki kérdez",
+      "from_hint": "Nevét és elérhetőségeit automatikusan hozzáadjuk a kéréshez.",
+      "topic_label": "Téma",
+      "topic_placeholder": "Például: Helyes szerelés",
+      "message_label": "Az Ön kérdése",
+      "message_placeholder": "Írja le azt a kérdést vagy helyzetet, amelyben segítségre van szüksége.",
+      "sending": "Küldés...",
+      "send": "Küldés szakértőnek"
+    },
+    "modal": {
+      "eyebrow": "GYIK kezelése",
+      "edit_title": "Válasz szerkesztése",
+      "add_title": "Új GYIK-válasz",
+      "category": "Kategória",
+      "type": "Erőforrás típusa",
+      "delete_title": "GYIK-válasz törlése",
+      "question_title": "Kérdés / videó címe",
+      "question_title_hint": "Nagy címként jelenik meg a videó felett.",
+      "url_hint": "Ez a videó jelenik meg a fő lejátszóban.",
+      "summary_label": "Rövid leírás",
+      "summary_hint": "Közvetlenül a videó alatt jelenik meg rövid bevezetőként.",
+      "detail_title_label": "Részletek címe",
+      "detail_title_hint": "Az alsó blokk címeként jelenik meg.",
+      "details_label": "Részletek",
+      "details_hint": "Minden új sor külön pont a részletekben.",
+      "popular_label": "Népszerű kérdés",
+      "popular_hint": "Bekapcsolva a kérdés megjelenhet a népszerű kérdések között."
+    }
+  },
+  "production_statistics": {
+    "title": "Gyártási statisztikák",
+    "subtitle": "A gyártási határidők figyelése ABC-osztályok szerint, teljesítési aránnyal és a legnagyobb eltérést mutató rendelésekkel.",
+    "dealer": "Kereskedő",
+    "from": "ettől:",
+    "to": "eddig:",
+    "generating": "Készül...",
+    "generate": "Létrehozás",
+    "data_unavailable": "Az adatok átmenetileg nem érhetők el",
+    "retry": "Próbálja újra",
+    "generating_statistics": "Statisztika készítése",
+    "select_dealer": "Válasszon kereskedőt",
+    "select_dealer_hint": "A jelentés elkészítéséhez válasszon szerződő partnert.",
+    "average_check": "Átlagos rendelési érték",
+    "for_period": "Időszak",
+    "orders": "Rendelések",
+    "constructions": "Szerkezetek",
+    "turnover": "Forgalom",
+    "turnover_hint": "Rendelések összege az időszakban",
+    "average_delay": "Átlagos késés",
+    "max_delay": "Max. késés: {{days}} nap",
+    "categories": "Termékkategóriák",
+    "no_data": "Nincs adat.",
+    "class": "{{value}} osztály",
+    "orders_in_progress": "rendelés\nfolyamatban",
+    "in_time": "Időben",
+    "delayed": "Késés",
+    "in_production": "Gyártásban",
+    "timeliness_abc": "Határidő-tartás ABC szerint",
+    "timeliness_hint": "Kattintson bármely oszlopra az adott ABC-osztály és állapot részleteinek megnyitásához.",
+    "fastest_abc": "Leggyorsabbak ABC-kategória szerint",
+    "order_ready": "rendelés {{orderDate}} • kész {{readyDate}}",
+    "no_orders": "Nincsenek rendelések",
+    "dealer_comparison": "Kereskedő összehasonlítása",
+    "comparison_top": "Összehasonlítás a régió vezetőjével",
+    "in_region": "a régióban",
+    "comparison_hint": "Minden mutatója a helyi vezető szintjének százalékában értendő",
+    "overall_level": "Általános szint",
+    "average_vs_leader": "átlagos szint a vezetőhöz képest",
+    "expected_profit": "Várható nyereség",
+    "profit_hint": "A régióvezető szintjének elérése és 20% árrés esetén",
+    "profile_systems": "Profilrendszerek",
+    "profile_colors": "Profil színek",
+    "hardware": "Vasalatok",
+    "systems": "rendszer",
+    "colors": "szín",
+    "positions": "tétel",
+    "units_orders": "rend.",
+    "units_pieces": "db",
+    "order_details": "Rendelés részletei",
+    "all_abc": "Minden ABC",
+    "date": "Dátum",
+    "plan": "Terv",
+    "fact": "Tény",
+    "status": "Állapot",
+    "delay": "Késés",
+    "sum": "Összeg",
+    "close_details": "Részletek bezárása",
+    "return_up": "Vissza a tetejére",
+    "orders_empty": "Nincsenek rendelések a jelenlegi szűrőkkel.",
+    "made_in": "{{days}} nap alatt készült",
+    "total": "Összesen",
+    "order": "rendelések",
+    "average": "átl.",
+    "load_error": "A gyártási statisztikák nem tölthetők be",
+    "opened_for": "Megnyitva: {{scope}} és {{status}}.",
+    "all_classes": "minden osztály",
+    "class_scope": "{{value}} osztály",
+    "all_statuses": "minden állapot"
+  }
+}

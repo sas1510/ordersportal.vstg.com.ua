@@ -16,6 +16,8 @@ const resolveDateLocale = (lng = "uk") => {
 
   if (normalizedLng.startsWith("de")) return "de-DE";
   if (normalizedLng.startsWith("en")) return "en-GB";
+  if (normalizedLng.startsWith("ro")) return "ro-RO";
+  if (normalizedLng.startsWith("hu")) return "hu-HU";
 
   return "uk-UA";
 };
@@ -25,24 +27,30 @@ const getCurrentLanguage = (lng) => {
   return i18n.resolvedLanguage || i18n.language || "uk";
 };
 
-export const formatDate = (input) => {
+export const formatDate = (input, lng) => {
   if (!input || input === "Не вказано") return "Не вказано";
 
   try {
-    // Якщо це формат типу "24.09.2025 00:00:00"
-    if (/^\d{2}\.\d{2}\.\d{4}/.test(input)) {
-      return input.split(" ")[0]; 
+    let date;
+    const dottedDate = String(input).match(/^(\d{2})\.(\d{2})\.(\d{4})/);
+
+    if (dottedDate) {
+      date = new Date(
+        Number(dottedDate[3]),
+        Number(dottedDate[2]) - 1,
+        Number(dottedDate[1]),
+      );
+    } else {
+      date = new Date(input);
     }
 
-    // Якщо це формат ISO ("2025-09-24T00:00:00")
-    const date = new Date(input);
     if (!isNaN(date)) {
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}.${month}.${year}`;
+      return date.toLocaleDateString(resolveDateLocale(getCurrentLanguage(lng)), {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
     }
-
 
     return "Не вказано";
   } catch {

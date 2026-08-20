@@ -104,7 +104,7 @@ class MediaResourceViewSet(viewsets.ModelViewSet):
     """
     serializer_class = MediaResourceSerializer
     permission_classes = [IsAdminOrReadOnly]
-    localized_languages = ("ua", "en", "it", "de")
+    localized_languages = ("ua", "en", "it", "de", "ro", "hu")
 
     def get_queryset(self):
         queryset = MediaResource.objects.select_related('category', 'author').all().order_by('-created_at')
