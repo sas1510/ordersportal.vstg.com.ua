@@ -373,6 +373,7 @@ export default function HeaderAdmin() {
       ? [
           { title: t('nav.settings_users'), to: "/users-list" },
           { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
+          { title: "Розсилки", to: "/announcements" },
           { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
         ]
       : []

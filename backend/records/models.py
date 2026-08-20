@@ -325,3 +325,45 @@ class CalculationIdempotencyRecord(models.Model):
 
     class Meta:
         db_table = "CalculationIdempotencyRecords"
+
+
+class PortalAnnouncement(models.Model):
+    STYLE_CHOICES = [("info", "Інформація"), ("success", "Успіх"), ("warning", "Попередження"), ("critical", "Критично"), ("update", "Оновлення")]
+    STATUS_CHOICES = [("draft", "Чернетка"), ("scheduled", "Заплановано"), ("active", "Активне"), ("finished", "Завершено"), ("cancelled", "Скасовано")]
+    AUDIENCE_CHOICES = [("all", "Усі"), ("roles", "Ролі"), ("users", "Користувачі")]
+    id = models.BigAutoField(primary_key=True, db_column="ID")
+    title = models.CharField(max_length=255, db_column="Title")
+    body = models.TextField(db_column="Body")
+    style = models.CharField(max_length=16, choices=STYLE_CHOICES, default="info", db_column="Style")
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default="draft", db_column="Status", db_index=True)
+    audience_mode = models.CharField(max_length=16, choices=AUDIENCE_CHOICES, default="all", db_column="AudienceMode")
+    audience_roles = models.JSONField(default=list, blank=True, db_column="AudienceRoles")
+    audience_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="targeted_announcements", db_table="PortalAnnouncementAudience")
+    scheduled_at = models.DateTimeField(null=True, blank=True, db_column="ScheduledAt", db_index=True)
+    published_at = models.DateTimeField(null=True, blank=True, db_column="PublishedAt")
+    expires_at = models.DateTimeField(null=True, blank=True, db_column="ExpiresAt", db_index=True)
+    require_acknowledgement = models.BooleanField(default=False, db_column="RequireAcknowledgement")
+    show_every_login = models.BooleanField(default=False, db_column="ShowEveryLogin")
+    action_label = models.CharField(max_length=80, blank=True, default="", db_column="ActionLabel")
+    action_url = models.URLField(blank=True, default="", db_column="ActionUrl")
+    attachment = models.FileField(upload_to="announcements/%Y/%m/", null=True, blank=True, db_column="Attachment")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="created_announcements", db_column="CreatedBy")
+    created_at = models.DateTimeField(auto_now_add=True, db_column="CreatedAt")
+    updated_at = models.DateTimeField(auto_now=True, db_column="UpdatedAt")
+    class Meta:
+        db_table = "PortalAnnouncement"
+        ordering = ["-created_at"]
+
+class PortalAnnouncementReceipt(models.Model):
+    id = models.BigAutoField(primary_key=True, db_column="ID")
+    announcement = models.ForeignKey(PortalAnnouncement, on_delete=models.CASCADE, related_name="receipts", db_column="AnnouncementID")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="announcement_receipts", db_column="UserID")
+    first_shown_at = models.DateTimeField(null=True, blank=True, db_column="FirstShownAt")
+    last_shown_at = models.DateTimeField(null=True, blank=True, db_column="LastShownAt")
+    shown_count = models.PositiveIntegerField(default=0, db_column="ShownCount")
+    acknowledged_at = models.DateTimeField(null=True, blank=True, db_column="AcknowledgedAt")
+    dismissed_at = models.DateTimeField(null=True, blank=True, db_column="DismissedAt")
+    class Meta:
+        db_table = "PortalAnnouncementReceipt"
+        constraints = [models.UniqueConstraint(fields=["announcement", "user"], name="unique_announcement_receipt")]
+        indexes = [models.Index(fields=["user", "acknowledged_at"]), models.Index(fields=["announcement", "acknowledged_at"])]

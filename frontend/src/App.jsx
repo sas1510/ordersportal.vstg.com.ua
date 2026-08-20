@@ -18,6 +18,7 @@ import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
 import { useCacheBuster } from "./hooks/useCacheBuster";
 import SupportChatWidget from "./components/SupportChatWidget";
+import PortalAnnouncementModal from "./components/PortalAnnouncementModal";
 import {
   isAdminRole,
   isBackofficeRole,
@@ -230,6 +231,7 @@ return (
       )}
     </Routes>
 
+    {normalizedRole && <PortalAnnouncementModal />}
     {isDealerRole(normalizedRole) && <SupportChatWidget />}
   </>
 );

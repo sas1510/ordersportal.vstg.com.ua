@@ -8,6 +8,7 @@ from .views import ProductionStatisticsView, DealerDetailedStatisticsView, Deale
 
 from django.urls import path
 from .views import PortalManagerReportView
+from .announcement_views import announcements, announcement_detail, active_announcements, announcement_receipt, announcement_receipts
 from .telegram_bot_views import (
     telegram_bot_link, telegram_bot_menu, telegram_bot_orders, telegram_bot_order_details, telegram_bot_order_files, telegram_bot_order_file_download, telegram_bot_reclamations, telegram_bot_additional_orders,
     telegram_bot_daily_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key, telegram_bot_cash_flow, telegram_bot_additional_order_files,
@@ -20,6 +21,11 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 
 urlpatterns = [
+    path("announcements/", announcements, name="announcements"),
+    path("announcements/active/", active_announcements, name="active-announcements"),
+    path("announcements/<int:pk>/", announcement_detail, name="announcement-detail"),
+    path("announcements/<int:pk>/receipt/", announcement_receipt, name="announcement-receipt"),
+    path("announcements/<int:pk>/receipts/", announcement_receipts, name="announcement-receipts"),
     path('telegram-bot/admin/key/', telegram_bot_admin_key, name='telegram_bot_admin_key'),
     path('telegram-bot/link/', telegram_bot_link, name='telegram_bot_link'),
     path('telegram-bot/menu/', telegram_bot_menu, name='telegram_bot_menu'),

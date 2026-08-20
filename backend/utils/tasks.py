@@ -234,6 +234,13 @@ from utils.onec_api import send_to_1c
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+@shared_task(name='publish_due_portal_announcements')
+def publish_due_portal_announcements():
+    from records.announcement_views import _publish_due
+    _publish_due()
+    return 'Portal announcements checked'
+
 TELEGRAM_COPY_USER_IDS_1C_HEX = [
     "0x9CEB4CD98F08E56D11F17090C0521AFA",
     "0x810E74867AD9D52511EBDD6B1D812DBA",

@@ -45,6 +45,7 @@ import NotificationPage from "./pages/NotificationPage";
 import ManagerQrDropdown from "./pages/ManagerQrDropdown";
 import BonusPage from "./pages/BonusPage";
 import DealerReportsPage from "./pages/DealerReportsPage";
+import AnnouncementsPage from "./pages/AnnouncementsPage";
 
 
 export const adminRoutes = [
@@ -92,6 +93,7 @@ export const adminRoutes = [
   { path: "dashboardpage", element: <DashboardPage /> },
   { path: "notifications", element: <NotificationPage /> },
   { path: "manager-qr", element: <ManagerQrDropdown /> },
+  { path: "announcements", element: <AnnouncementsPage /> },
   //  { path: "/ai", element: <AiChatPage /> },
 ];
 
@@ -103,6 +105,7 @@ const managerBlockedRoutePaths = new Set([
   "users-list",
   "manager-qr",
   "urgentLogs",
+  "announcements",
 ]);
 
 export const managerRoutes = adminRoutes.filter(
