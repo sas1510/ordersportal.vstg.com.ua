@@ -4118,7 +4118,8 @@ def get_dealer_addresses(request):
     contractor_bin, contractor_guid = resolve_contractor(
         request,
         allow_admin=True,
-        admin_param="contractor"
+        admin_param="contractor",
+        elevated_roles=("admin", "manager", "region_manager"),
     )
 
     # logger.info(f"Fetching addresses for contractor", extra={
