@@ -1,6 +1,8 @@
 import os
 import re
 import json
+import hashlib
+import uuid
 import base64
 import time
 import collections
@@ -15,7 +17,7 @@ from zoneinfo import ZoneInfo
 from urllib.parse import unquote
 from asgiref.sync import sync_to_async
 from django.conf import settings
-from django.db import connection, connections, transaction, DatabaseError
+from django.db import connection, connections, transaction, DatabaseError, IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse, StreamingHttpResponse, Http404
 from django.shortcuts import render
@@ -40,7 +42,7 @@ from drf_spectacular.utils import (
 
 
 from users.models import CustomUser
-from .models import ChatMessage, TransactionType
+from .models import ChatMessage, TransactionType, CalculationIdempotencyRecord
 from .serializers import (
     ChatMessageSerializer,
     CalculationCreateSerializer,
@@ -517,6 +519,22 @@ def translate_portal_message_for_view(
 
     return response_payload
 
+
+
+def _idempotency_payload_hash(payload):
+    return hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+def _idempotency_response(record):
+    result={"idempotency_key":str(record.idempotency_key),"status":record.status}
+    if record.calculation_guid: result["calculation_guid"]=str(record.calculation_guid)
+    if record.response_body: result.update(record.response_body)
+    if record.last_error and record.status in ("uncertain","failed_manual"): result["detail"]=record.last_error
+    return result
+class CalculationIdempotencyStatusView(APIView):
+    permission_classes=[IsAuthenticatedOr1CApiKey]
+    def get(self,request,idempotency_key):
+        try: record=CalculationIdempotencyRecord.objects.get(idempotency_key=idempotency_key)
+        except CalculationIdempotencyRecord.DoesNotExist: return Response({"detail":"Operation not found"},status=status.HTTP_404_NOT_FOUND)
+        return Response(_idempotency_response(record),status=status.HTTP_200_OK if record.status=="confirmed" else status.HTTP_202_ACCEPTED)
 
 
 
@@ -3881,7 +3899,13 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         )
 
 
-        result = self._send_to_1c(payload)
+        try:
+            result=self._send_to_1c(payload)
+        except Exception as exc:
+            if idempotency_record:
+                idempotency_record.status="uncertain"; idempotency_record.last_error=str(exc)[:4000]; idempotency_record.save(update_fields=["status","last_error","updated_at"])
+                return Response(_idempotency_response(idempotency_record),status=status.HTTP_202_ACCEPTED)
+            raise
 
         if not result.get("success", True):
             logger.error("1C returned error", extra={
@@ -3905,6 +3929,9 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             })
 
       
+        if idempotency_record:
+            idempotency_record.status="confirmed"; idempotency_record.calculation_guid=calculation_guid; idempotency_record.response_body={"success":True,"calculation_guid":str(calculation_guid),"payload_sent_to_1c":payload,"result_1c":result}; idempotency_record.save(update_fields=["status","calculation_guid","response_body","updated_at"])
+
         try:
             calculation_bin = guid_to_1c_bin(str(calculation_guid))
             main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
@@ -3978,6 +4005,19 @@ class UpdateCalculationView(APIView):
         serializer = CalculationUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+
+        idempotency_record=None
+        raw_idempotency_key=request.headers.get("Idempotency-Key")
+        if raw_idempotency_key:
+            try: idempotency_key=uuid.UUID(raw_idempotency_key)
+            except (TypeError,ValueError): return Response({"detail":"Idempotency-Key must be a UUID"},status=status.HTTP_400_BAD_REQUEST)
+            payload_hash=_idempotency_payload_hash(request.data)
+            try:
+                with transaction.atomic(): idempotency_record=CalculationIdempotencyRecord.objects.create(idempotency_key=idempotency_key,payload_hash=payload_hash,status="sending")
+            except IntegrityError:
+                idempotency_record=CalculationIdempotencyRecord.objects.get(idempotency_key=idempotency_key)
+                if idempotency_record.payload_hash != payload_hash: return Response({"detail":"Idempotency-Key was already used with another payload"},status=status.HTTP_409_CONFLICT)
+                return Response(_idempotency_response(idempotency_record),status=status.HTTP_200_OK if idempotency_record.status=="confirmed" else status.HTTP_202_ACCEPTED)
         raw_data = request.data
 
         include_order_number = "order_number" in raw_data
