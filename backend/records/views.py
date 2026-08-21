@@ -61,7 +61,7 @@ from backend.utils.db_1c_lookups import (
     get_document_number_by_guid, 
     get_document_year_by_guid
 )
-from backend.utils.contractor import resolve_contractor
+from backend.utils.contractor import ensure_order_action_access, resolve_contractor
 from backend.utils.onec_api import send_to_1c
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
@@ -4537,6 +4537,11 @@ def confirm_order(request, order_id):
     # })
 
     try:
+        try:
+            ensure_order_action_access(request, order_id)
+        except (PermissionError, ValueError) as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+
         query_name = "ConfirmOrder"
         payload = {
             "order_id": str(order_id),
@@ -4793,6 +4798,11 @@ def confirm_order_by_number(request):
         if is_sketch_order
         else "000000004"
     )
+
+    try:
+        ensure_order_action_access(request, order_id)
+    except (PermissionError, ValueError) as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
 
     payload = {
         "order_id": order_id,

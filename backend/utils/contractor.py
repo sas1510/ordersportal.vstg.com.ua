@@ -88,3 +88,54 @@ def resolve_contractor(
         raise PermissionError("User has no contractor assigned")
 
     return contractor_bin, bin_to_guid_1c(contractor_bin)
+
+
+def ensure_order_action_access(request, order_guid):
+    """Ensure the authenticated user may act on the specified order."""
+    user = request.user
+    role = (getattr(user, "role", "") or "").strip().lower()
+
+    if role in {"admin", "director"}:
+        return
+
+    try:
+        order_bin = guid_to_1c_bin(str(order_guid))
+    except Exception as exc:
+        raise ValueError("Invalid order GUID") from exc
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT TOP (1) ZP.Контрагент
+            FROM [WST\WST].[oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] ZP WITH (NOLOCK)
+            WHERE ZP.Ссылка = %s
+            """,
+            [order_bin],
+        )
+        row = cursor.fetchone()
+
+        if not row or not row[0]:
+            raise PermissionError("Замовлення не знайдено або доступ до нього відсутній.")
+
+        order_contractor = bytes(row[0])
+
+        if role in {"manager", "region_manager"}:
+            cursor.execute(
+                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
+                [user.id],
+            )
+            columns = [column[0] for column in cursor.description]
+            contractor_index = columns.index("ContractorID")
+            allowed_contractors = {
+                bytes(row[contractor_index])
+                for row in cursor.fetchall()
+                if row[contractor_index]
+            }
+
+            if order_contractor not in allowed_contractors:
+                raise PermissionError("У вас немає доступу до дилера цього замовлення.")
+            return
+
+    user_contractor = getattr(user, "user_id_1C", None)
+    if not user_contractor or bytes(user_contractor) != order_contractor:
+        raise PermissionError("У вас немає доступу до цього замовлення.")

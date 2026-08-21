@@ -17,7 +17,7 @@
 
 # from rest_framework import serializers
 
-# from backend.utils.contractor import resolve_contractor
+# from backend.utils.contractor import ensure_order_action_access, resolve_contractor
 
 # from backend.utils.api_helpers import safe_view
 # from backend.utils.dates import parse_date, clean_date
@@ -164,7 +164,7 @@ from openpyxl.styles import Font
 
 # Внутрішні утиліти проекту
 from backend.permissions import IsAuthenticatedOr1CApiKey
-from backend.utils.contractor import resolve_contractor
+from backend.utils.contractor import ensure_order_action_access, resolve_contractor
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
 from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
@@ -1169,6 +1169,10 @@ def make_payment_from_advance(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    try:
+        ensure_order_action_access(request, order_id)
+    except (PermissionError, ValueError) as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
     payload_1c = {
         "amount": amount,
         "contract": contract,

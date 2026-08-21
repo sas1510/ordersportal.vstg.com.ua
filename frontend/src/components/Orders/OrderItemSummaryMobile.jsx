@@ -59,7 +59,9 @@ export default React.memo(function OrderItemSummaryMobile({
 
   // ------------------------------------
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
-  const { isBackoffice } = useAuthGetRole();
+  const { isAdmin, isBackoffice, isManager } = useAuthGetRole();
+  const canConfirmOrder = !isBackoffice || isManager || isAdmin;
+  const canPayOrder = !isBackoffice || isManager || isAdmin;
 
   const orderNumber = String(order?.number || "").trim();
   const isSketchOrder = orderNumber.startsWith("34-");
@@ -494,7 +496,7 @@ export default React.memo(function OrderItemSummaryMobile({
     }
   >
     {isSketchOrder ? (
-      !isBackoffice && (
+      canConfirmOrder && (
         <button
           type="button"
           className="w-full h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
@@ -506,7 +508,7 @@ export default React.memo(function OrderItemSummaryMobile({
       )
     ) : (
       <>
-        {!isBackoffice ? (
+        {canConfirmOrder ? (
           <>
             <button
               type="button"
@@ -690,6 +692,7 @@ export default React.memo(function OrderItemSummaryMobile({
             OrderID: order.idGuid,
             CurrencyName: order.currency,
           }}
+          contractorGuid={contractorGuid}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}
           formatCurrency={formatMoney}

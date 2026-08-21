@@ -491,7 +491,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
       label: t("complaints.detail.complaint_reason"),
       value: complaint.complaintReasonName,
     },
-    {
+    Number(complaint.documentAmount) !== 0 && {
       key: "documentAmount",
       label: t("complaints.detail.document_amount"),
       value: formatAmountValue(complaint.documentAmount),
@@ -519,17 +519,12 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
         ? formatDateTimeShort(complaint.returnDate, locale)
         : null,
     },
-  ].filter((item) => item.value);
+  ].filter((item) => item?.value);
   const dateRows = [
     {
       key: "dateComplaint",
       label: t("complaints.detail.date_complaint"),
       value: complaint.date ? formatDate(complaint.date, locale) : null,
-    },
-    {
-      key: "dateDelivery",
-      label: t("complaints.detail.date_delivery"),
-      value: complaint.deliveryDate ? formatDate(complaint.deliveryDate, locale) : null,
     },
     {
       key: "dateDetection",
@@ -546,7 +541,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
       label: t("complaints.detail.date_shipped"),
       value: complaint.soldDate ? formatDate(complaint.soldDate, locale) : null,
     },
-  ].filter((item) => item.value);
+  ].filter((item) => item?.value);
 
   const loadFiles = useCallback(async () => {
     if (!complaint?.guid) return;

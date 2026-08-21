@@ -593,6 +593,7 @@ import { Link } from "react-router-dom";
 
 export default function PaymentModal({
   order,
+  contractorGuid,
   onClose,
   onConfirm,
   formatCurrency,
@@ -671,7 +672,9 @@ export default function PaymentModal({
     setLoading(true);
     setLoadError("");
     try {
-      const res = await axiosInstance.get(`/payments/get_dealer_advance_balance/`);
+      const res = await axiosInstance.get(`/payments/get_dealer_advance_balance/`, {
+        params: contractorGuid ? { contractor_guid: contractorGuid } : undefined,
+      });
       const allData = res.data || [];
       
       const filteredData = allData.filter(c => 
@@ -703,8 +706,7 @@ export default function PaymentModal({
 
   useEffect(() => {
     loadContracts();
-  }, [normalizedOrderCurrency, normalizeCurrency, orderCurrency, t]); 
-
+  }, [contractorGuid, normalizedOrderCurrency, normalizeCurrency, orderCurrency, t]);
   useEffect(() => {
     const handleEsc = (e) => { if (e.key === "Escape" && !isSubmitting) onClose(); };
     window.addEventListener("keydown", handleEsc);

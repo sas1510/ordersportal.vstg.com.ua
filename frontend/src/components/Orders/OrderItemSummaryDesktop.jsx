@@ -28,7 +28,9 @@ export default React.memo(function OrderItemSummaryDesktop({
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { addNotification } = useNotification();
-  const { isBackoffice } = useAuthGetRole();
+  const { isAdmin, isBackoffice, isManager } = useAuthGetRole();
+  const canConfirmOrder = !isBackoffice || isManager || isAdmin;
+  const canPayOrder = !isBackoffice || isManager || isAdmin;
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -618,7 +620,7 @@ export default React.memo(function OrderItemSummaryDesktop({
           onClick={(event) => event.stopPropagation()}
         >
           {isSketchOrder ? (
-            !isBackoffice && (
+            canConfirmOrder && (
               <button
                 type="button"
                 className={`column align-center button bg-WS---DarkGrey order-action-button order-action-button--confirm ${
@@ -634,7 +636,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             )
           ) : (
             <>
-              {!isBackoffice && (
+              {canConfirmOrder && (
                 <>
                   <button
                     type="button"
@@ -818,6 +820,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             OrderID_GUID: order?.idGuid,
             CurrencyName: order?.currency,
           }}
+          contractorGuid={contractorGuid}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}
           formatCurrency={formatMoney}

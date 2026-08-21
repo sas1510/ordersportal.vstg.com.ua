@@ -304,15 +304,17 @@ body.dark-theme .calc-item-soft .order-status-text.text-WS---MiddleGrey {
 }
 
 .calc-status-panel--confirmed {
-  background: #95602d;
+  background: #875524;
 }
 
 .calc-status-panel--production {
-  background: #ba523b;
+  /* background: #ba523b; */
+  background: #d35539;
 }
 
 .calc-status-panel--ready {
-  background: #9acb55;
+  background: #dad05b;
+  /* background: #9acb55; */
 }
 
 .calc-status-panel--shipped {

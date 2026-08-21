@@ -127,6 +127,7 @@ const AdminPortalOriginal = () => {
     useState(String(new Date().getFullYear()));
 
   const previousDealerGuidRef = useRef(dealerGuid);
+  const silentOrdersRefreshRef = useRef(false);
 
   const defaultDateRange = useMemo(() => getDefaultDateRange(), []);
 
@@ -144,6 +145,7 @@ const AdminPortalOriginal = () => {
 
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
+  const [ordersRefreshVersion, setOrdersRefreshVersion] = useState(0);
 
   const [expandedCalc, setExpandedCalc] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
@@ -523,9 +525,13 @@ const AdminPortalOriginal = () => {
 
     const controller = register();
     const { signal } = controller;
+    const isSilentRefresh = silentOrdersRefreshRef.current;
+    silentOrdersRefreshRef.current = false;
 
     const fetchData = async () => {
-      setLoading(true);
+      if (!isSilentRefresh) {
+        setLoading(true);
+      }
 
       try {
         let response;
@@ -612,7 +618,9 @@ const AdminPortalOriginal = () => {
         }
       } finally {
         if (!signal.aborted) {
-          setLoading(false);
+          if (!isSilentRefresh) {
+            setLoading(false);
+          }
           setDisplayLimit(ITEMS_PER_LOAD);
         }
       }
@@ -642,6 +650,7 @@ const AdminPortalOriginal = () => {
     appliedSingleDealerYear,
     appliedSingleDealerDateFrom,
     appliedSingleDealerDateTo,
+    ordersRefreshVersion,
   ]);
 
   useEffect(() => {
@@ -1673,10 +1682,11 @@ const AdminPortalOriginal = () => {
           setEditingCalculation(null);
           setIsCalcModalOpen(false);
         }}
-        onSave={async () => {
+        onSave={() => {
           setEditingCalculation(null);
           setIsCalcModalOpen(false);
-          await reloadCalculations();
+          silentOrdersRefreshRef.current = true;
+          setOrdersRefreshVersion((version) => version + 1);
         }}
         initialCalculation={editingCalculation}
       />

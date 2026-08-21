@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 import axiosInstance from "../api/axios";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
