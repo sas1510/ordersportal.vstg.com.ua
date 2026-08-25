@@ -4,6 +4,8 @@ import json
 import base64
 import time
 import collections
+import hashlib
+import uuid
 import mimetypes
 from django.urls import path
 import requests
@@ -40,7 +42,7 @@ from drf_spectacular.utils import (
 
 
 from users.models import CustomUser
-from .models import ChatMessage, TransactionType
+from .models import CalculationIdempotencyRecord, ChatMessage, TransactionType
 from .serializers import (
     ChatMessageSerializer,
     CalculationCreateSerializer,
@@ -3764,6 +3766,20 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
     def _send_to_1c(self, payload: dict) -> dict:
         start_time = time.time()
+        calculation = (payload.get("calculations") or [{}])[0]
+        files = calculation.get("file") or []
+        logger.info("CreateCalculation sending request to 1C", extra={
+            "tags": {
+                "action": "create_calculation",
+                "stage": "send_to_1c",
+                "order_number": calculation.get("calculationNumber"),
+                "contractor_guid": calculation.get("kontragentGUID"),
+                "items_count": calculation.get("itemsCount"),
+                "photos_count": sum(1 for item in files if item.get("fileDataType") == "Photo"),
+                "has_client_address": bool(calculation.get("recipient")),
+                "has_delivery_address_guid": bool((calculation.get("address") or {}).get("addressGUID")),
+            }
+        })
         try:
             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
@@ -3782,11 +3798,14 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             )
 
             duration = time.time() - start_time
-            logger.info("1C Response received", extra={
+            logger.info("CreateCalculation response received from 1C", extra={
                 'tags': {
-                    'service': '1c-api', 
-                    'duration_sec': duration,
-                    'status_code': response.status_code
+                    'action': 'create_calculation',
+                    'stage': 'response_from_1c',
+                    'service': '1c-api',
+                    'duration_sec': round(duration, 4),
+                    'status_code': response.status_code,
+                    'order_number': calculation.get("calculationNumber"),
                 }
             })
 
@@ -3870,7 +3889,85 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         )
 
 
-        result = self._send_to_1c(payload)
+        idempotency_record = None
+        idempotency_key = request.headers.get("Idempotency-Key")
+        logger.info("CreateCalculation request validated", extra={
+            "tags": {
+                "action": "create_calculation",
+                "stage": "validated",
+                "user": getattr(request.user, "username", "api_key_user"),
+                "order_number": data.get("order_number", ""),
+                "contractor_guid": str(contractor_guid),
+                "items_count": data["items_count"],
+                "photos_count": len(photos),
+                "has_idempotency_key": bool(idempotency_key),
+            }
+        })
+        if idempotency_key:
+            try:
+                parsed_key = uuid.UUID(idempotency_key)
+            except (TypeError, ValueError):
+                logger.warning("CreateCalculation received invalid idempotency key", extra={
+                    "tags": {"action": "create_calculation", "stage": "idempotency_check", "status": "invalid_key"}
+                })
+                return Response(
+                    {"error": "Invalid Idempotency-Key"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            payload_hash = hashlib.sha256(
+                json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            idempotency_record, created = CalculationIdempotencyRecord.objects.get_or_create(
+                idempotency_key=parsed_key,
+                defaults={"payload_hash": payload_hash, "status": "sending"},
+            )
+            if created:
+                logger.info("CreateCalculation idempotency record created", extra={
+                    "tags": {
+                        "action": "create_calculation", "stage": "idempotency_check", "status": "new",
+                        "idempotency_key": str(parsed_key), "order_number": data.get("order_number", ""),
+                    }
+                })
+            else:
+                logger.info("CreateCalculation duplicate idempotency key received", extra={
+                    "tags": {
+                        "action": "create_calculation", "stage": "idempotency_check", "status": idempotency_record.status,
+                        "idempotency_key": str(parsed_key), "order_number": data.get("order_number", ""),
+                    }
+                })
+                if idempotency_record.payload_hash != payload_hash:
+                    logger.warning("CreateCalculation idempotency key reused with different payload", extra={
+                        "tags": {"action": "create_calculation", "stage": "idempotency_check", "status": "payload_conflict", "idempotency_key": str(parsed_key)}
+                    })
+                    return Response(
+                        {"error": "Idempotency-Key is already used for another request"},
+                        status=status.HTTP_409_CONFLICT,
+                    )
+                if idempotency_record.status == "succeeded" and idempotency_record.response_body:
+                    logger.info("CreateCalculation returning saved idempotent response", extra={
+                        "tags": {"action": "create_calculation", "stage": "idempotency_replay", "idempotency_key": str(parsed_key), "calculation_guid": str(idempotency_record.calculation_guid)}
+                    })
+                    return Response(idempotency_record.response_body, status=status.HTTP_201_CREATED)
+                logger.warning("CreateCalculation duplicate request blocked because final result is unknown", extra={
+                    "tags": {"action": "create_calculation", "stage": "idempotency_replay", "status": idempotency_record.status, "idempotency_key": str(parsed_key)}
+                })
+                return Response(
+                    {"error": "This calculation request is already being processed"},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+        try:
+            result = self._send_to_1c(payload)
+        except Exception as exc:
+            if idempotency_record:
+                idempotency_record.status = "uncertain"
+                idempotency_record.last_error = str(exc)[:1000]
+                idempotency_record.save(update_fields=["status", "last_error", "updated_at"])
+            logger.error("CreateCalculation 1C request failed", exc_info=True, extra={
+                "tags": {"action": "create_calculation", "stage": "send_to_1c", "status": "error", "order_number": data.get("order_number", "")}
+            })
+            raise
 
         if not result.get("success", True):
             logger.error("1C returned error", extra={
@@ -3928,15 +4025,23 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             }
         })
 
-        return Response(
-            {
-                "success": True,
-                "calculation_guid": result.get("calculationGUID"),
-                "payload_sent_to_1c": payload,
-                "result_1c": result,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        response_data = {
+            "success": True,
+            "calculation_guid": result.get("calculationGUID"),
+            "payload_sent_to_1c": payload,
+            "result_1c": result,
+        }
+        if idempotency_record:
+            idempotency_record.status = "succeeded"
+            idempotency_record.calculation_guid = calculation_guid
+            idempotency_record.response_body = response_data
+            idempotency_record.save(
+                update_fields=["status", "calculation_guid", "response_body", "updated_at"]
+            )
+            logger.info("CreateCalculation idempotency record completed", extra={
+                "tags": {"action": "create_calculation", "stage": "completed", "idempotency_key": str(idempotency_record.idempotency_key), "calculation_guid": str(calculation_guid)}
+            })
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(

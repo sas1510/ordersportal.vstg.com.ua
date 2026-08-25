@@ -425,8 +425,8 @@
       "region": "Region/State *",
       "district": "District/County *",
       "city": "City/Town *",
-      "street": "Street *",
-      "house": "House/Building No. *",
+      "street": "Street",
+      "house": "House/Building No.",
       "apartment": "Apartment",
       "entrance": "Entrance",
       "floor": "Floor",
@@ -507,6 +507,10 @@
     "select_dealer": "Select dealer",
     "select_series": "Select series:",
     "delivery_date": "Delivery Date:",
+    "delivery_address": "Delivery Address:",
+    "use_order_delivery_address": "Use main order address",
+    "enter_delivery_address": "Enter another address manually",
+    "select_delivery_address": "Enter a delivery address",
     "claim_date": "Claim Date:",
     "reason_label": "Claim Reason:",
     "solution_label": "Solution Option:",
@@ -521,7 +525,8 @@
     "errors": {
       "reasons": "Error loading claim reasons",
       "solutions": "Error loading solution options",
-      "series": "Failed to get design series data"
+      "series": "Failed to get design series data",
+      "address": "Failed to get the delivery address"
     }
   },
   "select": {

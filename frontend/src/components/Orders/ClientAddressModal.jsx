@@ -137,7 +137,7 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const debounceRef = useRef(null);
 
   const requiredFields = useMemo(
-    () => ["region", "district", "city", "street", "house"],
+    () => ["region", "district", "city"],
     [],
   );
 
@@ -206,7 +206,7 @@ const handleSave = () => {
       }
     }
 
-    if (!clientContact.fullName.trim() || clientContact.fullName.trim().split(" ").length < 2) {
+    if (!clientContact.fullName.trim()) {
       addNotification(t("clientAddressModal.errors.invalidName"), "error");
       return;
     }
@@ -216,20 +216,10 @@ const handleSave = () => {
       return;
     }
 
-    if (!selectedCoords) {
-      addNotification(t("clientAddressModal.errors.selectOnMap"), "error");
-      return;
-    }
-
-    if (!isPreciseLocation) {
-      addNotification(t("clientAddressModal.errors.preciseLocation"), "error");
-      return;
-    }
-
     onSave({
       text: mapDisplayName || buildAddressFromForm(formAddr),
-      lat: selectedCoords[0],
-      lng: selectedCoords[1],
+      lat: selectedCoords?.[0] ?? null,
+      lng: selectedCoords?.[1] ?? null,
       ...formAddr,
       fullName: clientContact.fullName.trim(),
       phone: clientContact.phone.trim(),

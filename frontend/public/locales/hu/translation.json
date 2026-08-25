@@ -424,8 +424,8 @@
       "region": "Régió *",
       "district": "kerület *",
       "city": "város*",
-      "street": "utca *",
-      "house": "ház*",
+      "street": "utca",
+      "house": "ház",
       "apartment": "Apartman",
       "entrance": "Bejárat",
       "floor": "Az emeleten",
@@ -506,6 +506,10 @@
     "select_dealer": "Válasszon kereskedőt",
     "select_series": "Válassz egy sorozatot:",
     "delivery_date": "Szállítási dátum:",
+    "delivery_address": "Szállítási cím:",
+    "use_order_delivery_address": "A fő rendelés címének használata",
+    "enter_delivery_address": "Másik cím kézi megadása",
+    "select_delivery_address": "Adjon meg szállítási címet",
     "claim_date": "Igénylés dátuma:",
     "reason_label": "A panasz oka:",
     "solution_label": "Megoldási lehetőség:",
@@ -520,7 +524,8 @@
     "errors": {
       "reasons": "Hiba a panaszok okainak betöltésekor",
       "solutions": "Hiba a megoldások betöltésekor",
-      "series": "Nem sikerült adatokat szerezni a tervek sorozatáról"
+      "series": "Nem sikerült adatokat szerezni a tervek sorozatáról",
+      "address": "Nem sikerült lekérni a szállítási címet"
     }
   },
   "select": {

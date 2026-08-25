@@ -41,13 +41,21 @@ def _targets(announcement):
         return announcement.audience_users.filter(is_active=True)
     return qs
 
+def _ensure_receipts(announcement):
+    """Create any missing recipient records in a SQL Server-compatible way."""
+    for user in _targets(announcement):
+        PortalAnnouncementReceipt.objects.get_or_create(
+            announcement=announcement,
+            user=user,
+        )
+
 def _publish_due():
     now = timezone.now()
     due = PortalAnnouncement.objects.filter(status="scheduled", scheduled_at__lte=now)
     for item in due:
         item.status, item.published_at = "active", now
         item.save(update_fields=["status", "published_at", "updated_at"])
-        PortalAnnouncementReceipt.objects.bulk_create([PortalAnnouncementReceipt(announcement=item, user=user) for user in _targets(item)], ignore_conflicts=True)
+        _ensure_receipts(item)
     PortalAnnouncement.objects.filter(status="active", expires_at__isnull=False, expires_at__lte=now).update(status="finished")
 
 def _save(request, instance=None):
@@ -67,10 +75,15 @@ def _save(request, instance=None):
     roles = data.get("audience_roles", [])
     if isinstance(roles, str): roles = [x for x in roles.split(",") if x]
     item.audience_roles = roles
-    requested_status = data.get("status", item.status)
-    if requested_status in {"draft", "cancelled"}: item.status = requested_status
-    elif item.scheduled_at and item.scheduled_at > timezone.now(): item.status = "scheduled"
-    else: item.status, item.published_at = "active", item.published_at or timezone.now()
+    requested_status = data.get("status")
+    if requested_status in {"draft", "cancelled"}:
+        item.status = requested_status
+    elif item.scheduled_at and item.scheduled_at > timezone.now():
+        item.status = "scheduled"
+    elif instance and item.status == "draft":
+        item.status = "draft"
+    else:
+        item.status, item.published_at = "active", item.published_at or timezone.now()
     if request.FILES.get("attachment"): item.attachment = request.FILES["attachment"]
     item.save()
     ids = data.get("audience_user_ids", [])
@@ -78,7 +91,7 @@ def _save(request, instance=None):
     if item.audience_mode == "users": item.audience_users.set(CustomUser.objects.filter(id__in=ids))
     else: item.audience_users.clear()
     if item.status == "active":
-        PortalAnnouncementReceipt.objects.bulk_create([PortalAnnouncementReceipt(announcement=item, user=user) for user in _targets(item)], ignore_conflicts=True)
+        _ensure_receipts(item)
     return item
 
 @api_view(["GET", "POST"])
@@ -97,10 +110,38 @@ def announcement_detail(request, pk):
     if request.method == "DELETE": item.delete(); return Response(status=204)
     return Response(_serialize(_save(request, item), include_stats=True))
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def cancel_scheduled_announcement(request, pk):
+    """Cancel a pending announcement without affecting published announcements."""
+    if not _admin(request):
+        return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        item = PortalAnnouncement.objects.get(pk=pk)
+    except PortalAnnouncement.DoesNotExist:
+        return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if item.status != "scheduled":
+        return Response(
+            {"detail": "Only scheduled announcements can be cancelled"},
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    item.status = "cancelled"
+    item.save(update_fields=["status", "updated_at"])
+    return Response(_serialize(item, include_stats=True))
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def active_announcements(request):
     _publish_due(); now = timezone.now()
+    active_items = PortalAnnouncement.objects.filter(status="active").filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+    )
+    for item in active_items:
+        _ensure_receipts(item)
     receipts = PortalAnnouncementReceipt.objects.select_related("announcement").filter(user=request.user, announcement__status="active").filter(Q(announcement__expires_at__isnull=True)|Q(announcement__expires_at__gt=now)).filter(acknowledged_at__isnull=True).filter(Q(announcement__show_every_login=True)|Q(dismissed_at__isnull=True)).order_by("announcement__published_at")
     result=[]
     for receipt in receipts:

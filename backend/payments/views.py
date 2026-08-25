@@ -1162,6 +1162,9 @@ def make_payment_from_advance(request):
     order_id = data.get("order_id")
 
     if not amount or not contract or not order_id:
+        logger.warning("Advance payment validation failed", extra={
+            "tags": {"action": "advance_payment", "stage": "validation", "status": "invalid_request", "user": user_name, "has_amount": bool(amount), "has_contract": bool(contract), "has_order_id": bool(order_id)}
+        })
         return Response(
             {
                 "error": "Поля amount, contract, order_id є обовʼязковими"
@@ -1172,7 +1175,14 @@ def make_payment_from_advance(request):
     try:
         ensure_order_action_access(request, order_id)
     except (PermissionError, ValueError) as exc:
+        logger.warning("Advance payment access denied", extra={
+            "tags": {"action": "advance_payment", "stage": "authorization", "status": "forbidden", "user": user_name, "order_id": str(order_id), "contract": str(contract)}
+        })
         return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+
+    logger.info("Advance payment allocation requested", extra={
+        "tags": {"action": "advance_payment", "stage": "requested", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount)}
+    })
     payload_1c = {
         "amount": amount,
         "contract": contract,
@@ -1180,10 +1190,12 @@ def make_payment_from_advance(request):
     }
 
     try:
+        logger.info("Advance payment allocation sending to 1C", extra={
+            "tags": {"action": "advance_payment", "stage": "send_to_1c", "order_id": str(order_id), "contract": str(contract), "amount": str(amount)}
+        })
         response_1c = send_to_1c(
             payload=payload_1c,
             query="PaymentForOrders",
-
         )
 
         results = response_1c.get("results", []) if isinstance(response_1c, dict) else []
@@ -1193,7 +1205,7 @@ def make_payment_from_advance(request):
         if not results or any(not item.get("success", False) for item in results):
 
             logger.warning(f"1C rejected advance payment for order {order_id}", extra={
-                'tags': {'action': 'advance_payment', 'status': 'rejected'},
+                'tags': {"action": "advance_payment", "stage": "response_from_1c", "status": "rejected", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount), "results_count": len(results), "duration_sec": round(duration, 4)},
                 'response': response_1c
             })
             return Response(
@@ -1205,8 +1217,8 @@ def make_payment_from_advance(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        logger.info(f"Advance payment successful", extra={
-            'tags': {'action': 'advance_payment', 'status': 'success', 'duration_sec': round(duration, 4)}
+        logger.info("Advance payment allocation completed", extra={
+            "tags": {"action": "advance_payment", "stage": "completed", "status": "success", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount), "results_count": len(results), "duration_sec": round(duration, 4)}
         })
 
     
@@ -1219,7 +1231,9 @@ def make_payment_from_advance(request):
             status=status.HTTP_200_OK,
         )
     except Exception as e:
-        logger.error(f"Advance payment critical error: {str(e)}", exc_info=True)
+        logger.error("Advance payment allocation failed", exc_info=True, extra={
+            "tags": {"action": "advance_payment", "stage": "send_to_1c", "status": "error", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount), "duration_sec": round(time.time() - start_time, 4)}
+        })
         return Response({"success": False, "error": "Internal error"}, status=500)
 
 

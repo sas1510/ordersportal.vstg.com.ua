@@ -373,14 +373,17 @@ export default function PaymentsPage() {
 
   const makePayment = async (contractID, amount) => {
     try {
-      await axiosInstance.post("/payments/make_payment_from_advance/", {
+      const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractID,
         order_id: selectedOrder.OrderID_GUID,
         amount: Number(amount),
       });
-      addNotification(t("payments_page.notifications.payment_success"), "success");
+      if (response?.data?.success !== true) {
+        throw new Error("Payment was not confirmed by 1C");
+      }
+      await loadData();
       closeModal();
-      loadData();
+      addNotification(t("payments_page.notifications.payment_success"), "success");
     } catch {
       addNotification(t("payments_page.notifications.payment_error"), "warning");
     }

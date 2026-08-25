@@ -139,16 +139,17 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
 
   const handlePaymentConfirm = async (contractID, amount) => {
     try {
-      await axiosInstance.post("/payments/make_payment_from_advance/", {
+      const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractID,
         order_id: order.guid,
         amount: Number(amount),
       });
-      addNotification(t("order_mobile.notifications.payment_success"), "success");
-      
+      if (response?.data?.success !== true) {
+        throw new Error("Payment was not confirmed by 1C");
+      }
+      if (onRefresh) await onRefresh();
       setIsPaymentOpen(false);
-
-      if (onRefresh) onRefresh();
+      addNotification(t("order_mobile.notifications.payment_success"), "success");
     } catch (error) {
       console.error(error);
       addNotification(t("errors.paymentError"), "error");

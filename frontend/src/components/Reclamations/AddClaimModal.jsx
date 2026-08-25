@@ -526,6 +526,7 @@ export default function AddClaimModal({
     reasons: null,
     solutions: null,
     series: null,
+    address: null,
   });
 
   const fileInputRef = useRef(null);
@@ -673,7 +674,7 @@ export default function AddClaimModal({
     setSelectedSeries([]);
     setOrderNotFound(false);
     setDealerId(initialContractorGuid || "");
-    setFetchErrors({ reasons: null, solutions: null, series: null });
+    setFetchErrors({ reasons: null, solutions: null, series: null, address: null });
   };
 
   const handleCloseWithReset = () => {

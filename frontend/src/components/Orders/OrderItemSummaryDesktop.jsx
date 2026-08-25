@@ -307,7 +307,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   const handlePaymentConfirm = useCallback(
     async (contractID, amount) => {
       try {
-        await axiosInstance.post(
+        const response = await axiosInstance.post(
           "/payments/make_payment_from_advance/",
           {
             contract: contractID,
@@ -315,22 +315,22 @@ export default React.memo(function OrderItemSummaryDesktop({
             amount: Number(amount),
           },
         );
+        if (response?.data?.success !== true) {
+          throw new Error("Payment was not confirmed by 1C");
+        }
 
-        addNotification(
-          t("order_mobile.notifications.payment_success"),
-          "success",
-        );
-
-        setIsPaymentOpen(false);
-
+        if (onRefresh) {
+          await onRefresh({ silent: true });
+        }
         onOrderPaymentSuccess?.({
           orderIdGuid: order?.idGuid,
           amount: Number(amount),
         });
-
-        if (onRefresh) {
-          void onRefresh({ silent: true });
-        }
+        setIsPaymentOpen(false);
+        addNotification(
+          t("order_mobile.notifications.payment_success"),
+          "success",
+        );
       } catch (error) {
         console.error(error);
         addNotification(

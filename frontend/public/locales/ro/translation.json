@@ -424,8 +424,8 @@
       "region": "Regiune *",
       "district": "District *",
       "city": "Oraș *",
-      "street": "Strada *",
-      "house": "Casa *",
+      "street": "Strada",
+      "house": "Casa",
       "apartment": "Apartament",
       "entrance": "Intrarea",
       "floor": "La etaj",
@@ -506,6 +506,10 @@
     "select_dealer": "Alegeți un dealer",
     "select_series": "Alege o serie:",
     "delivery_date": "Data livrării:",
+    "delivery_address": "Adresa de livrare:",
+    "use_order_delivery_address": "Utilizați adresa comenzii principale",
+    "enter_delivery_address": "Introduceți manual o altă adresă",
+    "select_delivery_address": "Introduceți o adresă de livrare",
     "claim_date": "Data revendicarii:",
     "reason_label": "Motivul reclamației:",
     "solution_label": "Opțiune de soluție:",
@@ -520,7 +524,8 @@
     "errors": {
       "reasons": "Eroare la încărcarea motivelor reclamației",
       "solutions": "Eroare la încărcarea soluțiilor",
-      "series": "Nu s-au putut obține date despre serii de modele"
+      "series": "Nu s-au putut obține date despre serii de modele",
+      "address": "Adresa de livrare nu a putut fi încărcată"
     }
   },
   "select": {

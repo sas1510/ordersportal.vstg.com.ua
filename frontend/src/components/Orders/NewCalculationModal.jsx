@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axiosInstance from "../../api/axios.js";
 import { useNotification } from "../../hooks/useNotification";
 import "./NewCalculationModal.css";
@@ -42,6 +42,8 @@ const NewCalculationModal = ({
   const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const submitInFlightRef = useRef(false);
+  const idempotencyKeyRef = useRef(null);
 
   const [addressMode, setAddressMode] = useState("dealer"); // dealer | client
 
@@ -443,7 +445,8 @@ const NewCalculationModal = ({
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
+    if (submitInFlightRef.current) return;
     setSubmitError(null);
 
     if ((!file && !isEditMode) || !itemsCount) {
@@ -456,14 +459,12 @@ const NewCalculationModal = ({
       return;
     }
 
-    if (
-      addressMode === "client" &&
-      (!customAddress.text || !customAddress.lat || !customAddress.lng)
-    ) {
+    if (addressMode === "client" && !customAddress.text) {
       addNotification(t("orders.newOrderModal.error_message_5"), "error");
       return;
     }
 
+    submitInFlightRef.current = true;
     setLoading(true);
 
     try {
@@ -573,7 +574,14 @@ const NewCalculationModal = ({
         ? `/calculations/${initialCalculation.id}/update/`
         : "/calculations/create/";
 
-      const response = await axiosInstance.post(endpoint, payload);
+      if (!isEditMode && !idempotencyKeyRef.current) {
+        idempotencyKeyRef.current = window.crypto?.randomUUID?.() || (Date.now().toString() + "-" + Math.random().toString());
+      }
+      const response = await axiosInstance.post(
+        endpoint,
+        payload,
+        !isEditMode ? { headers: { "Idempotency-Key": idempotencyKeyRef.current } } : undefined,
+      );
 
       if (response.data?.success === false) {
         throw new Error(
@@ -629,6 +637,7 @@ const NewCalculationModal = ({
         10000,
       );
     } finally {
+      submitInFlightRef.current = false;
       setLoading(false);
     }
   };
@@ -898,7 +907,7 @@ const NewCalculationModal = ({
             <button className="new-calc-btn-cancel" onClick={handleCloseWithReset}>
               <FaTimes /> {t("orders.newOrderModal.cancel")}
             </button>
-            <button className="new-calc-btn-save" onClick={handleSubmit} disabled={loading}>
+            <button type="button" className="new-calc-btn-save" onClick={handleSubmit} disabled={loading}>
               <FaSave /> {loading
                 ? isEditMode
                   ? t("orders.newOrderModal.updating")

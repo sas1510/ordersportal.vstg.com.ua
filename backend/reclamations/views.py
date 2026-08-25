@@ -504,6 +504,77 @@ def get_complaint_series_by_order(request, order_number):
         return Response({"error": "Internal Server Error"}, status=500)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def get_order_delivery_address(request, order_number):
+    """Return the delivery address of the main order for a reclamation."""
+    user = request.user
+    role = (getattr(user, "role", "") or "").lower()
+    is_1c = request.auth == "1C_API_KEY"
+
+    try:
+        contractor_bin = None
+        if is_1c or role in ("dealer", "customer"):
+            contractor_bin = getattr(user, "user_id_1C", None)
+            if not contractor_bin:
+                raise PermissionError("User has no contractor assigned")
+        elif role in ("admin", "manager", "region_manager"):
+            contractor_guid = request.GET.get("contractor")
+            if contractor_guid:
+                contractor_bin = guid_to_1c_bin(contractor_guid)
+        else:
+            raise PermissionError("Access denied")
+
+        if contractor_bin:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    EXEC dbo.GetComplaintSeriesByOrder
+                        @OrderNumber = %s,
+                        @Контрагент = %s
+                    """,
+                    [order_number, contractor_bin],
+                )
+                if not cursor.fetchone():
+                    return Response({"error": "Order not found"}, status=404)
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetOrderDeliveryAddress2 @OrderNumber = %s",
+                [order_number],
+            )
+            columns = [column[0] for column in cursor.description]
+            row = cursor.fetchone()
+
+        if not row:
+            return Response({"address": ""})
+
+        row_data = dict(zip(columns, row))
+        preferred_fields = {
+            "address", "addressvalue", "deliveryaddress", "orderaddress",
+            "orderdeliveryaddress",
+        }
+        address = next(
+            (
+                value for key, value in row_data.items()
+                if value and key.lower() in preferred_fields
+            ),
+            next(
+                (
+                    value for value in row_data.values()
+                    if isinstance(value, str) and value.strip()
+                ),
+                "",
+            ),
+        )
+        return Response({"address": str(address or "")})
+    except (PermissionError, ValueError) as error:
+        return Response({"error": str(error)}, status=400)
+    except Exception as error:
+        logger.error("Unable to get order delivery address: %s", error, exc_info=True)
+        return Response({"error": "Unable to get delivery address"}, status=500)
+
 class ReclamationViewSet(viewsets.ViewSet):
     """
     Приймає JSON з фронту

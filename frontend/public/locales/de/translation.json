@@ -425,8 +425,8 @@
       "region": "Region/Bundesland *",
       "district": "Bezirk/Landkreis *",
       "city": "Stadt/Ort *",
-      "street": "Straße *",
-      "house": "Haus-/Gebäude-Nr. *",
+      "street": "Straße",
+      "house": "Haus-/Gebäude-Nr.",
       "apartment": "Wohnung",
       "entrance": "Eingang",
       "floor": "Boden",
@@ -507,6 +507,10 @@
     "select_dealer": "Händler auswählen",
     "select_series": "Serie auswählen:",
     "delivery_date": "Liefertermin:",
+    "delivery_address": "Lieferadresse:",
+    "use_order_delivery_address": "Adresse der Hauptbestellung verwenden",
+    "enter_delivery_address": "Andere Adresse manuell eingeben",
+    "select_delivery_address": "Lieferadresse angeben",
     "claim_date": "Anspruchsdatum:",
     "reason_label": "Anspruchsgrund:",
     "solution_label": "Lösungsoption:",
@@ -521,7 +525,8 @@
     "errors": {
       "reasons": "Fehler beim Laden der Anspruchsgründe",
       "solutions": "Fehler beim Laden der Lösungsoptionen",
-      "series": "Daten zur Designserie konnten nicht abgerufen werden"
+      "series": "Daten zur Designserie konnten nicht abgerufen werden",
+      "address": "Lieferadresse konnte nicht abgerufen werden"
     }
   },
   "select": {
