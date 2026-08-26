@@ -354,7 +354,7 @@ def _telegram_user_order(user, order_id, order_number=""):
 
 def _telegram_order_files(order_id):
     with connection.cursor() as cursor:
-        cursor.execute("EXEC dbo.GetOrdersFiles @OrderLinkGUID=%s", [order_id])
+        cursor.execute("EXEC dbo.GetOrdersFiles1 @OrderLinkGUID=%s", [order_id])
         columns = [column[0] for column in cursor.description]
         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
     files = []

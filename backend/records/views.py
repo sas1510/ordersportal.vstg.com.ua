@@ -78,6 +78,15 @@ from .utils import (
 )
 
 
+def _ensure_smb_session():
+    """Register credentials in each worker before accessing the 1C SMB share."""
+    smbclient.register_session(
+        settings.SMB_SERVER,
+        username=settings.SMB_USERNAME,
+        password=settings.SMB_PASSWORD,
+    )
+
+
 SUPPORTED_PORTAL_TRANSLATION_LANGS = {"uk", "en", "de", "ro", "hu"}
 ORDERSPORTAL_AI_TRANSLATE_URL = (
     os.getenv("ORDERSPORTAL_AI_TRANSLATE_URL")
@@ -1909,7 +1918,7 @@ def order_files_view(request, order_guid):
     try:
         with connection.cursor() as cursor:
             cursor.execute(
-                "EXEC dbo.GetOrdersFiles @OrderLinkGUID=%s",
+                "EXEC dbo.GetOrdersFiles1 @OrderLinkGUID=%s",
                 [order_guid]
             )
 
@@ -1918,15 +1927,26 @@ def order_files_view(request, order_guid):
 
         sql_duration = time.time() - start_time
 
-        files = [
-            {
-                "fileGuid": row_dict["File_GUID"],
-                "fileName": row_dict["File_FileName"],
-                "type": row_dict["File_DataType_Name"],
-                "date": row_dict["File_Date"],
-            }
-            for row_dict in (dict(zip(columns, row)) for row in rows)
-        ]
+        files = []
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            file_guid = row_dict.get("File_GUID")
+            file_name = str(row_dict.get("File_FileName") or "").strip()
+            file_type = str(row_dict.get("File_DataType_Name") or "Файл").strip()
+
+            # Some 1C storage records contain a BLOB but have no saved file name.
+            # The GUID is the download key; give the UI a stable display name without
+            # inventing an extension, so the download endpoint can detect it from bytes.
+            if not file_name:
+                short_guid = str(file_guid).replace("-", "")[:8] if file_guid else "unknown"
+                file_name = f"file_{short_guid}"
+
+            files.append({
+                "fileGuid": file_guid,
+                "fileName": file_name,
+                "type": file_type,
+                "date": row_dict.get("File_Date"),
+            })
 
         total_duration = time.time() - start_time
 
@@ -2061,6 +2081,7 @@ def _download_order_file_content(request, order_guid, file_guid):
     # 🚀 СТРАТЕГІЯ 1: Спроба прочитати з SMB
     # ==========================================
     try:
+        _ensure_smb_session()
         stat = smbclient.stat(remote_path)
         file_handle = smbclient.open_file(remote_path, mode="rb")
         
@@ -6972,6 +6993,7 @@ def download_calc(request, order_guid, file_guid):
     )
 
     try:
+        _ensure_smb_session()
         stat = smbclient.stat(remote_path)
         file_handle = smbclient.open_file(remote_path, mode="rb")
 
@@ -7107,27 +7129,24 @@ def get_calc_files(request, order_guid):
             row_dict = dict(zip(columns, row))
             
             f_guid = row_dict.get("File_GUID")
-            f_name = row_dict.get("File_FileName")
-            f_type = row_dict.get("File_DataType_Name") or "Файл"
+            f_name = str(row_dict.get("File_FileName") or "").strip()
+            f_type = str(row_dict.get("File_DataType_Name") or "Файл").strip()
             f_date = row_dict.get("File_Date")
+            normalized_type = f_type.lower()
+            can_preview = "фото" in normalized_type
 
-            # 1. ОБРОБКА ВІДСУТНЬОЇ НАЗВИ
+            # 1C can store a BLOB without a file name. Keep a neutral name with no
+            # guessed extension: the download endpoint determines the real format
+            # from file bytes. Preview permission is taken from File_DataType_Name.
             if not f_name:
                 short_id = str(f_guid)[:8] if f_guid else "unknown"
-                f_name = f"{f_type.replace(' ', '_')}_{short_id}"
-
-            # 2. ВІРТУАЛЬНЕ РОЗШИРЕННЯ ДЛЯ ФРОНТЕНДУ (щоб працювали іконки)
-            name_only, ext = os.path.splitext(f_name)
-            if not ext:
-                if "фото" in f_type.lower():
-                    f_name = f"{name_only}.jpg"
-                elif "просчет" in f_type.lower() or "заявка" in f_type.lower():
-                    f_name = f"{name_only}.zkz"
+                f_name = f"file_{short_id}"
 
             files.append({
                 "fileGuid": f_guid,
                 "fileName": f_name,
                 "type": f_type,
+                "canPreview": can_preview,
                 "date": f_date,
             })
 

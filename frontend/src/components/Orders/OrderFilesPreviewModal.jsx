@@ -110,9 +110,10 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
     return <FaFileAlt className="file-icon icon-doc" />;
   };
 
-  const canOpenInNewWindow = (fileName = "") => {
-    const ext = fileName.toLowerCase().split(".").pop();
-    return ext !== "zkz";
+  const canOpenInNewWindow = (file) => {
+    if (file?.canPreview === true) return true;
+    const ext = String(file?.fileName || "").toLowerCase().split(".").pop();
+    return ["pdf", "jpg", "jpeg", "png", "webp", "svg", "txt"].includes(ext);
   };
 
   // Закриття по нажаттю на клавішу Escape
@@ -176,7 +177,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                           </div>
                         </div>
                         <div className="file-card-actions">
-                          {canOpenInNewWindow(file.fileName) && (
+                          {canOpenInNewWindow(file) && (
                             <button
                               className="file-action-btn"
                               onClick={() => handleOpenFileInNewWindow(file)}
@@ -212,7 +213,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                           </div>
                         </div>
                         <div className="file-card-actions">
-                          {canOpenInNewWindow(file.fileName) && (
+                          {canOpenInNewWindow(file) && (
                             <button
                               className="file-action-btn"
                               onClick={() => handleOpenFileInNewWindow(file)}
@@ -248,7 +249,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                           </div>
                         </div>
                         <div className="file-card-actions">
-                          {canOpenInNewWindow(file.fileName) && (
+                          {canOpenInNewWindow(file) && (
                             <button
                               className="file-action-btn"
                               onClick={() => handleOpenFileInNewWindow(file)}
