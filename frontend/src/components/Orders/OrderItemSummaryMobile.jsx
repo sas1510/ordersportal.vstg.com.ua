@@ -29,6 +29,7 @@ export default React.memo(function OrderItemSummaryMobile({
   onToggle,
   onRefresh,
   onOrderPaymentSuccess,
+  onOrderConfirmationSuccess,
 }) {
   const { t, i18n } = useTranslation();
   const { addNotification } = useNotification();
@@ -335,6 +336,10 @@ export default React.memo(function OrderItemSummaryMobile({
       }
 
       setIsConfirmModalOpen(false);
+      onOrderConfirmationSuccess?.({
+        orderIdGuid: order?.idGuid,
+        status: isSketchOrder ? String.fromCharCode(1045, 1089, 1082, 1110, 1079, 32, 1087, 1110, 1076, 1090, 1074, 1077, 1088, 1076, 1078, 1077, 1085, 1086) : String.fromCharCode(1055, 1110, 1076, 1090, 1074, 1077, 1088, 1076, 1078, 1077, 1085, 1080, 1081),
+      });
 
       addNotification(
         response.data?.message ||
@@ -346,9 +351,6 @@ export default React.memo(function OrderItemSummaryMobile({
         "success",
       );
 
-      if (onRefresh) {
-        await onRefresh();
-      }
     } catch (error) {
       addNotification(
         error.response?.data?.error ||
@@ -364,10 +366,44 @@ export default React.memo(function OrderItemSummaryMobile({
     orderNumber,
     isSketchOrder,
     onRefresh,
+    onOrderConfirmationSuccess,
     addNotification,
     t,
   ]);
 
+
+  const readyDeliveryTimeDisplay = useMemo(() => {
+    const status = order?.status;
+    const isReady = status === "\u0413\u043e\u0442\u043e\u0432\u0438\u0439";
+    const isShipped = status === "\u0412\u0456\u0434\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u0438\u0439";
+    if (!isReady && !isShipped) return null;
+
+    const rawDate = order?.plannedDeliveryDateTime || order?.PlannedDeliveryDateTime;
+    if (!rawDate) return null;
+
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime()) || (date.getHours() === 0 && date.getMinutes() === 0)) return null;
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const dateText = day + "." + month + "." + year;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const plannedDay = new Date(date);
+    plannedDay.setHours(0, 0, 0, 0);
+
+    // After the planned day, a shipped order retains the date but no longer
+    // presents the delivery hour as upcoming.
+    if (isShipped && today > plannedDay) {
+      return dateText;
+    }
+
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return dateText + " \u043e " + hours + ":" + minutes;
+  }, [order?.status, order?.plannedDeliveryDateTime, order?.PlannedDeliveryDateTime]);
 
   return (
     <div className="order-item flex flex-col w-full gap-0 !border-0">
@@ -449,13 +485,16 @@ export default React.memo(function OrderItemSummaryMobile({
     </div>
   </div>
 
-  {/* 3. Статус */}
-<div className="flex items-center gap-2 pl-3 flex-1">
-  <span className={`icon-info-with-circle font-size-24 mr-2 shrink-0 order-status-icon ${getStatusClass(order.status)}`}></span>
-  <div className={`font-size-14 leading-tight order-status-text ${getStatusClass(order.status)}`}>
-    {translatedStatus}
+  {/* 3. Status */}
+  <div className="flex items-center gap-2 pl-3 flex-1">
+    <span className={"icon-info-with-circle font-size-24 mr-2 shrink-0 order-status-icon " + getStatusClass(order.status)}></span>
+    <div className="flex flex-col">
+      <div className={"font-size-14 leading-tight order-status-text " + getStatusClass(order.status)}>{translatedStatus}</div>
+      {readyDeliveryTimeDisplay && (
+        <div className="text-[9px] text-grey leading-tight mt-0.5">{readyDeliveryTimeDisplay}</div>
+      )}
+    </div>
   </div>
-</div>
 
 </div>
         {/* Header - Номер і статус (без змін) */}

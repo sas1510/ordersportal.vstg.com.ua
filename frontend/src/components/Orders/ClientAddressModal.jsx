@@ -78,7 +78,17 @@ const reverseGeocode = async (lat, lon, language = "uk") => {
 const buildAddressFromForm = (f) =>
   [f.region, f.district, f.city, f.street, f.house].filter(Boolean).join(", ");
 
-const ENGLISH_ADDRESS_FIELDS = { city: "City", street: "Street", house: "Building" };
+const ENGLISH_ADDRESS_FIELDS = {
+  region: "Region",
+  district: "District",
+  city: "City",
+  street: "Street",
+  house: "Building",
+  apartment: "Apartment",
+  entrance: "Entrance",
+  floor: "Floor",
+  note: "Note",
+};
 const isLatinAddress = (address) => {
   const value = [address.city, address.street, address.house].filter(Boolean).join(" ");
   return /[A-Za-z]/.test(value) && !/[\u0400-\u052F]/.test(value);

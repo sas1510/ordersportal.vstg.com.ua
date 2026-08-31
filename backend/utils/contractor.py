@@ -107,7 +107,7 @@ def ensure_order_action_access(request, order_guid):
         cursor.execute(
             """
             SELECT TOP (1) ZP.Контрагент
-            FROM [WST\WST].[oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] ZP WITH (NOLOCK)
+            FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] ZP WITH (NOLOCK)
             WHERE ZP.Ссылка = %s
             """,
             [order_bin],

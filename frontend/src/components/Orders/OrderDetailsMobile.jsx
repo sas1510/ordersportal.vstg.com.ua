@@ -109,9 +109,42 @@ export default React.memo(function OrderDetailsMobile({ order }) {
     return getDateStatus(order.planReadyMax, order.factReadyMax);
   }, [order.planReadyMax, order.factReadyMax, order.dateDelay, getDateStatus]);
 
+  const plannedDelivery = order.plannedDeliveryDateTime || order.planDelivery;
+
   const deliveryStatus = useMemo(() => {
-    return getDateStatus(order.planDelivery, order.realizationDate);
-  }, [order.planDelivery, order.realizationDate, getDateStatus]);
+    return getDateStatus(plannedDelivery, order.realizationDate);
+  }, [plannedDelivery, order.realizationDate, getDateStatus]);
+
+  const plannedDeliveryDateTimeDisplay = useMemo(() => {
+    const isShipped = order.status === "\u0412\u0456\u0434\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u0438\u0439";
+    if (!order.plannedDeliveryDateTime || (order.realizationDate && !isShipped)) return null;
+
+    const plannedDate = parseDate(order.plannedDeliveryDateTime);
+    if (!plannedDate) return null;
+
+    const hasSpecifiedTime =
+      plannedDate.getHours() !== 0 || plannedDate.getMinutes() !== 0;
+    if (!hasSpecifiedTime) {
+      return formatDateHumanShorter(plannedDate, locale);
+    }
+
+    const dateText = formatDateHumanShorter(plannedDate, locale);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const plannedDay = new Date(plannedDate);
+    plannedDay.setHours(0, 0, 0, 0);
+
+    if (isShipped && today > plannedDay) {
+      return dateText;
+    }
+
+    const time = plannedDate.toLocaleTimeString("uk-UA", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return dateText + " \u043e\u0440\u0456\u0454\u043d\u0442\u043e\u0432\u043d\u043e \u043e " + time;
+  }, [order.plannedDeliveryDateTime, order.realizationDate, parseDate, locale]);
 
   const estimatedDeliveryDisplay = useMemo(() => {
     if (!order.planDelivery || order.realizationDate) return null;
@@ -299,9 +332,11 @@ export default React.memo(function OrderDetailsMobile({ order }) {
             <div className="badge">
               <div className="badge-title">{t("order_mobile.steps.delivery")}</div>
               <div className={`badge-content ${deliveryStatus.bg}`}>
-                {order.realizationDate
-                  ? formatDateHumanShorter(order.realizationDate, locale)
-                  : estimatedDeliveryDisplay || t("order_mobile.statuses.not_delivered")}
+                {order.status === "\u0412\u0456\u0434\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u0438\u0439" && plannedDeliveryDateTimeDisplay
+                  ? plannedDeliveryDateTimeDisplay
+                  : order.realizationDate
+                    ? formatDateHumanShorter(order.realizationDate, locale)
+                    : plannedDeliveryDateTimeDisplay || estimatedDeliveryDisplay || t("order_mobile.statuses.not_delivered")}
               </div>
             </div>
           </li>

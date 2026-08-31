@@ -611,7 +611,30 @@
     },
     "notifications": {
       "payment_success": "Оплату виконано!",
-      "payment_error": "Помилка при оплаті"
+      "payment_error": "Помилка при оплаті",
+      "batch_limit_exceeded": "Сума перевищує доступний залишок. Встановлено максимально можливу суму.",
+      "batch_contract_required": "Оберіть авансовий договір.",
+      "batch_orders_required": "Оберіть хоча б одне замовлення до оплати.",
+      "batch_payment_success": "Оплату вибраних замовлень виконано!",
+      "batch_payment_error": "Не вдалося виконати оплату вибраних замовлень."
+    },
+    "batch": {
+      "open": "Оплатити декілька замовлень",
+      "cancel_selection": "Скасувати вибір",
+      "advance_contract": "Авансовий договір",
+      "choose_contract": "Оберіть договір",
+      "available": "Доступно",
+      "selected_total": "Обрано на суму",
+      "remaining": "Залишок авансу",
+      "selected_count": "Обрані на оплату",
+      "pay_selected": "Оплатити всі",
+      "processing": "Оплата...",
+      "select_short": "Обрано",
+      "amount_short": "Сума",
+      "amount_placeholder": "поле",
+      "choose_contract_hint": "Спочатку відмітьте замовлення одного основного договору, потім оберіть авансовий договір для списання.",
+      "single_contract_hint": "Авансовий договір є лише джерелом списання. За один раз можна оплачувати замовлення лише одного основного договору.",
+      "other_contract": "Інший основний договір"
     },
     "analytics": {
       "debt_limit": "Ліміт боргів",

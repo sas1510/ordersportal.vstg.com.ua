@@ -612,7 +612,30 @@
     },
     "notifications": {
       "payment_success": "Zahlung ausgeführt!",
-      "payment_error": "Fehler bei der Zahlung"
+      "payment_error": "Fehler bei der Zahlung",
+      "batch_limit_exceeded": "Der Betrag überschreitet den verfügbaren Restbetrag. Der maximal mögliche Betrag wurde gesetzt.",
+      "batch_contract_required": "Wählen Sie einen Vorauszahlungsvertrag.",
+      "batch_orders_required": "Wählen Sie mindestens eine Bestellung zur Zahlung aus.",
+      "batch_payment_success": "Die ausgewählten Bestellungen wurden bezahlt!",
+      "batch_payment_error": "Die Zahlung der ausgewählten Bestellungen ist fehlgeschlagen."
+    },
+    "batch": {
+      "open": "Mehrere Bestellungen bezahlen",
+      "cancel_selection": "Auswahl aufheben",
+      "advance_contract": "Vorauszahlungsvertrag",
+      "choose_contract": "Vertrag auswählen",
+      "available": "Verfügbar",
+      "selected_total": "Ausgewählter Betrag",
+      "remaining": "Vorschussrest",
+      "selected_count": "Ausgewählt",
+      "pay_selected": "Alle bezahlen",
+      "processing": "Wird bezahlt...",
+      "select_short": "Ausgewählt",
+      "amount_short": "Betrag",
+      "amount_placeholder": "Feld",
+      "choose_contract_hint": "Markieren Sie zuerst Bestellungen eines Hauptvertrags und wählen Sie dann den Vorauszahlungsvertrag für die Abbuchung.",
+      "single_contract_hint": "Der Vorauszahlungsvertrag ist nur die Quelle der Mittel. Auf einmal können nur Bestellungen eines Hauptvertrags bezahlt werden.",
+      "other_contract": "Anderer Hauptvertrag"
     },
     "analytics": {
       "debt_limit": "Schuldenlimit",

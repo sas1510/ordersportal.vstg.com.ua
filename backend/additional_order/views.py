@@ -172,6 +172,59 @@ from rest_framework.permissions import IsAuthenticated
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 from backend.utils.onec_api import send_to_1c
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_default_delivery_address(request):
+    """Resolve the default delivery address for an additional order."""
+    user = request.user
+    role = (getattr(user, "role", "") or "").lower()
+    requested_contractor = str(request.query_params.get("contractor_guid") or "").strip()
+    is_backoffice = role in ("admin", "manager", "region_manager")
+
+    try:
+        contractor_guid = requested_contractor if is_backoffice and requested_contractor else bin_to_guid_1c(getattr(user, "user_id_1C", None))
+        if not contractor_guid:
+            return Response({"error": "Contractor is required"}, status=400)
+
+        order_number = str(request.query_params.get("order_number") or "").strip()
+        with connection.cursor() as cursor:
+            if order_number:
+                cursor.execute("EXEC dbo.GetOrderDeliveryAddress2 @OrderNumber = %s", [order_number])
+            else:
+                cursor.execute("EXEC dbo.GetDealerAddresses @ContractorLink = %s", [guid_to_1c_bin(contractor_guid)])
+            columns = [column[0] for column in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        if not rows:
+            return Response({"address": "", "source": "order" if order_number else "dealer"})
+
+        def get_address(row):
+            for key in ("AddressValue", "Address", "DeliveryAddress", "Name", "Description"):
+                value = row.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+            return ""
+
+        if order_number:
+            row = rows[0]
+            address = next(
+                (value for key, value in row.items() if value and key.lower() in {"address", "addressvalue", "deliveryaddress", "orderaddress", "orderdeliveryaddress"}),
+                get_address(row),
+            )
+            return Response({"address": str(address or ""), "source": "order"})
+
+        def is_main_warehouse(row):
+            details = " ".join(str(value or "") for value in row.values()).lower()
+            return any(marker in details for marker in ("\u043e\u0441\u043d\u043e\u0432", "\u0433\u043e\u043b\u043e\u0432\u043d", "\u0441\u043a\u043b\u0430\u0434", "main", "warehouse"))
+
+        selected = next((row for row in rows if is_main_warehouse(row) and get_address(row)), None)
+        selected = selected or next((row for row in rows if get_address(row)), {})
+        return Response({"address": get_address(selected), "source": "dealer"})
+    except Exception:
+        logger.exception("Unable to resolve additional order delivery address")
+        return Response({"error": "Unable to get delivery address"}, status=500)
+
+
 class AdditionalOrderViewSet(viewsets.ViewSet):
     """
     ViewSet для роботи з Дозамовленнями.
@@ -232,6 +285,7 @@ class AdditionalOrderViewSet(viewsets.ViewSet):
                 "kontragentGUID": contractor_guid,
                 # "authorGUID": author_guid,
                 "orderNumber": request.data.get("orderNumber"),     
+                "orderDeliveryAddress": request.data.get("order_delivery_address") or "",
                 # "noOrder": bool(request.data.get("noOrder", False)), 
                 "nomenclatureLink": request.data.get("nomenclatureLink"), 
                 "nomenclatureQuantity": request.data.get("quantity") ,

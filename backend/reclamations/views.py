@@ -687,8 +687,7 @@ class ReclamationViewSet(viewsets.ViewSet):
                 "authorGUID": author_guid, 
                 "complaintDate": request.data.get("complaint_date"),
                 "orderNumber": request.data.get("order_number"),
-                # 1C requires a delivery date. It is no longer requested in the portal form.
-                "orderDeliverDate": "2001-01-01",
+                "orderDeliveryAddress": request.data.get("order_delivery_address") or "",
                 "orderDefineDate": request.data.get("order_define_date"),
                 "description": request.data.get("description"),
                 # "urgent": bool(request.data.get("urgent", False)),

@@ -22,7 +22,7 @@ import { useTranslation } from "react-i18next";
 
 
 export const CalculationItem = React.memo(
-  ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead , reloadCalculations, onOrderPaymentSuccess}) => {
+  ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead , reloadCalculations, onOrderPaymentSuccess, onOrderConfirmationSuccess}) => {
     const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -585,6 +585,7 @@ const statusPanelClass = (() => {
                   onToggle={onOrderToggle}
                   onRefresh={reloadCalculations}
                   onOrderPaymentSuccess={onOrderPaymentSuccess}
+                  onOrderConfirmationSuccess={onOrderConfirmationSuccess}
                 />
               ))
             )}

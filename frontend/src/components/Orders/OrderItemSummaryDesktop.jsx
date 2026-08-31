@@ -24,6 +24,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   onToggle,
   onRefresh,
   onOrderPaymentSuccess,
+  onOrderConfirmationSuccess,
 }) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
@@ -367,6 +368,10 @@ export default React.memo(function OrderItemSummaryDesktop({
       }
 
       setIsConfirmModalOpen(false);
+      onOrderConfirmationSuccess?.({
+        orderIdGuid: order?.idGuid,
+        status: isSketchOrder ? String.fromCharCode(1045, 1089, 1082, 1110, 1079, 32, 1087, 1110, 1076, 1090, 1074, 1077, 1088, 1076, 1078, 1077, 1085, 1086) : String.fromCharCode(1055, 1110, 1076, 1090, 1074, 1077, 1088, 1076, 1078, 1077, 1085, 1080, 1081),
+      });
 
       addNotification(
         response.data?.message ||
@@ -381,9 +386,6 @@ export default React.memo(function OrderItemSummaryDesktop({
         "success",
       );
 
-      if (onRefresh) {
-        await onRefresh();
-      }
     } catch (error) {
       addNotification(
         error.response?.data?.error ||
@@ -398,6 +400,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     orderNumber,
     isSketchOrder,
     onRefresh,
+    onOrderConfirmationSuccess,
     addNotification,
     t,
   ]);
@@ -437,6 +440,39 @@ export default React.memo(function OrderItemSummaryDesktop({
 
     return statusMap[order?.status] || order?.status;
   }, [order?.status, t]);
+
+  const readyDeliveryTimeDisplay = useMemo(() => {
+    const status = order?.status;
+    const isReady = status === "\u0413\u043e\u0442\u043e\u0432\u0438\u0439";
+    const isShipped = status === "\u0412\u0456\u0434\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u0438\u0439";
+    if (!isReady && !isShipped) return null;
+
+    const rawDate = order?.plannedDeliveryDateTime || order?.PlannedDeliveryDateTime;
+    if (!rawDate) return null;
+
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime()) || (date.getHours() === 0 && date.getMinutes() === 0)) return null;
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const dateText = day + "." + month + "." + year;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const plannedDay = new Date(date);
+    plannedDay.setHours(0, 0, 0, 0);
+
+    // After the planned day, a shipped order retains the date but no longer
+    // presents the delivery hour as upcoming.
+    if (isShipped && today > plannedDay) {
+      return dateText;
+    }
+
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return dateText + " \u043e " + hours + ":" + minutes;
+  }, [order?.status, order?.plannedDeliveryDateTime, order?.PlannedDeliveryDateTime]);
 
   return (
     <div className="order-item !border-b-0 flex flex-col w-full gap-0" style={{
@@ -588,29 +624,24 @@ export default React.memo(function OrderItemSummaryDesktop({
     </div>
   </div>
 )}
-        {/* STATUS */}
-        {/* STATUS */}
-<div
-  className={`summary-item row justify-start `} style={{
-    cursor: isSketchOrder ? "default" : "pointer",
-  }}
->
-  <div className="row gap-1 align-center">
-    <span
-      className={`icon-info-with-circle font-size-20 order-status-icon ${getStatusClass(
-        order?.status,
-      )}`}
-    />
 
-    <div
-      className={`text-[12px] order-status-text ${getStatusClass(
-        order?.status,
-      )}`}
-    >
-      {translatedStatus}
-    </div>
-  </div>
-</div>
+        {/* STATUS */}
+        <div
+          className="summary-item row justify-start"
+          style={{ cursor: isSketchOrder ? "default" : "pointer" }}
+        >
+          <div className="row gap-1 align-center">
+            <span
+              className={"icon-info-with-circle font-size-20 order-status-icon " + getStatusClass(order?.status)}
+            />
+            <div className="flex flex-col">
+              <div className={"text-[12px] order-status-text " + getStatusClass(order?.status)}>{translatedStatus}</div>
+              {readyDeliveryTimeDisplay && (
+                <div className="text-[9px] text-grey leading-tight mt-0.5">{readyDeliveryTimeDisplay}</div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* ACTIONS */}
         <div
@@ -660,7 +691,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                         ? "disabled opacity-50"
                         : ""
                     }`}
-                    disabled={!buttonState.pay}
+                    // disabled={!buttonState.pay}
                     onClick={openPaymentModal}
                   >
                     <div className="text-[12px] font-bold font-['Inter'] mx-1">

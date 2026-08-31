@@ -30,6 +30,9 @@ export default function AddReorderModal({
   const [quantity, setQuantity] = useState(1);
   const [comment, setComment] = useState("");
   const [contractorGuid, setContractorGuid] = useState("");
+  const [orderDeliveryAddress, setOrderDeliveryAddress] = useState("");
+  const [manualDeliveryAddress, setManualDeliveryAddress] = useState("");
+  const [deliveryAddressMode, setDeliveryAddressMode] = useState("order");
   const [loading, setLoading] = useState(false);
   const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
@@ -61,6 +64,9 @@ export default function AddReorderModal({
     if (isOpen) {
       setOrderNumber(initialOrderNumber || "");
       setContractorGuid(resolvedInitialContractorGuid || "");
+    setOrderDeliveryAddress("");
+    setManualDeliveryAddress("");
+    setDeliveryAddressMode("order");
       fetchDropdownData();
     }
   }, [isOpen, initialOrderNumber, resolvedInitialContractorGuid, resolvedLanguage]);
@@ -152,6 +158,26 @@ export default function AddReorderModal({
     }
   };
 
+  const fetchDeliveryAddress = useCallback(async () => {
+    if (!isOpen) return;
+
+    try {
+      const response = await axiosInstance.get("/additional_orders/delivery-address/", {
+        params: {
+          order_number: noOrder ? "" : orderNumber.trim(),
+          contractor_guid: contractorGuid || resolvedInitialContractorGuid || "",
+        },
+      });
+      setOrderDeliveryAddress(response.data?.address || "");
+    } catch {
+      setOrderDeliveryAddress("");
+    }
+  }, [isOpen, noOrder, orderNumber, contractorGuid, resolvedInitialContractorGuid]);
+
+  useEffect(() => {
+    fetchDeliveryAddress();
+  }, [fetchDeliveryAddress]);
+
   const resetForm = () => {
     setOrderNumber("");
     setNoOrder(false);
@@ -175,6 +201,7 @@ export default function AddReorderModal({
       nomenclatureLink: selectedItem,
       quantity: Number(quantity),
       comment,
+      order_delivery_address: (deliveryAddressMode === "order" ? orderDeliveryAddress : manualDeliveryAddress).trim(),
       ...(isBackoffice && contractorGuid ? { contractor_guid: contractorGuid } : {}),
     };
     onSave?.(formData);
@@ -229,6 +256,37 @@ export default function AddReorderModal({
             />
             <span>{t("reorder_modal.no_order")}</span>
           </label>
+
+          <div className="reorder-label">
+            <span>{t("add_claim.delivery_address")}</span>
+            <label className="reorder-row">
+              <input
+                type="radio"
+                name="additional-order-delivery-address"
+                checked={deliveryAddressMode === "order"}
+                onChange={() => setDeliveryAddressMode("order")}
+              />
+              <span>{orderDeliveryAddress || t("add_claim.use_order_delivery_address")}</span>
+            </label>
+            <label className="reorder-row">
+              <input
+                type="radio"
+                name="additional-order-delivery-address"
+                checked={deliveryAddressMode === "manual"}
+                onChange={() => setDeliveryAddressMode("manual")}
+              />
+              <span>{t("add_claim.enter_delivery_address")}</span>
+            </label>
+            {deliveryAddressMode === "manual" && (
+              <textarea
+                className="reorder-input"
+                value={manualDeliveryAddress}
+                onChange={(event) => setManualDeliveryAddress(event.target.value)}
+                placeholder={t("add_claim.select_delivery_address")}
+                rows={2}
+              />
+            )}
+          </div>
 
           <CustomSelect
             label={t("reorder_modal.item_label")}

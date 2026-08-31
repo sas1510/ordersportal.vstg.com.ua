@@ -1153,89 +1153,79 @@ def make_payment_from_advance(request):
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
+
     start_time = time.time()
     data = request.data
     user_name = request.user.username
-
-    amount = data.get("amount")
     contract = data.get("contract")
-    order_id = data.get("order_id")
+    raw_payments = data.get("payments")
 
-    if not amount or not contract or not order_id:
-        logger.warning("Advance payment validation failed", extra={
-            "tags": {"action": "advance_payment", "stage": "validation", "status": "invalid_request", "user": user_name, "has_amount": bool(amount), "has_contract": bool(contract), "has_order_id": bool(order_id)}
-        })
+    # Keep the legacy single-order request working while the portal uses
+    # the new batch structure below.
+    if raw_payments is None:
+        raw_payments = [{
+            "order_id": data.get("order_id"),
+            "amount": data.get("amount"),
+        }]
+
+    if not contract or not isinstance(raw_payments, list) or not raw_payments:
         return Response(
-            {
-                "error": "Поля amount, contract, order_id є обовʼязковими"
-            },
+            {"error": "\u041f\u043e\u0442\u0440\u0456\u0431\u043d\u0456 contract \u0456 \u043d\u0435\u043f\u043e\u0440\u043e\u0436\u043d\u0456\u0439 \u0441\u043f\u0438\u0441\u043e\u043a payments"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    payments = []
+    for item in raw_payments:
+        if not isinstance(item, dict):
+            return Response({"error": "\u041a\u043e\u0436\u0435\u043d \u0435\u043b\u0435\u043c\u0435\u043d\u0442 payments \u043c\u0430\u0454 \u0431\u0443\u0442\u0438 \u043e\u0431\u02bc\u0454\u043a\u0442\u043e\u043c"}, status=status.HTTP_400_BAD_REQUEST)
+        order_id = item.get("order_id")
+        try:
+            amount = float(item.get("amount"))
+        except (TypeError, ValueError):
+            amount = 0
+        if not order_id or amount <= 0:
+            return Response({"error": "\u0414\u043b\u044f \u043a\u043e\u0436\u043d\u043e\u0433\u043e \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u043e\u0442\u0440\u0456\u0431\u043d\u0456 order_id \u0456 \u0434\u043e\u0434\u0430\u0442\u043d\u044f amount"}, status=status.HTTP_400_BAD_REQUEST)
+        payments.append({"order_id": str(order_id), "amount": amount})
+
     try:
-        ensure_order_action_access(request, order_id)
+        for payment in payments:
+            ensure_order_action_access(request, payment["order_id"])
     except (PermissionError, ValueError) as exc:
         logger.warning("Advance payment access denied", extra={
-            "tags": {"action": "advance_payment", "stage": "authorization", "status": "forbidden", "user": user_name, "order_id": str(order_id), "contract": str(contract)}
+            "tags": {"action": "advance_payment", "stage": "authorization", "status": "forbidden", "user": user_name, "contract": str(contract), "orders_count": len(payments)}
         })
         return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
 
+    total_amount = sum(payment["amount"] for payment in payments)
+    payload_1c = {"contract": contract, "payments": payments}
     logger.info("Advance payment allocation requested", extra={
-        "tags": {"action": "advance_payment", "stage": "requested", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount)}
+        "tags": {"action": "advance_payment", "stage": "requested", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount)}
     })
-    payload_1c = {
-        "amount": amount,
-        "contract": contract,
-        "order_id": order_id,
-    }
 
     try:
         logger.info("Advance payment allocation sending to 1C", extra={
-            "tags": {"action": "advance_payment", "stage": "send_to_1c", "order_id": str(order_id), "contract": str(contract), "amount": str(amount)}
+            "tags": {"action": "advance_payment", "stage": "send_to_1c", "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount)}
         })
-        response_1c = send_to_1c(
-            payload=payload_1c,
-            query="PaymentForOrders",
-        )
-
+        response_1c = send_to_1c(payload=payload_1c, query="PaymentForOrders")
         results = response_1c.get("results", []) if isinstance(response_1c, dict) else []
-
         duration = time.time() - start_time
 
         if not results or any(not item.get("success", False) for item in results):
-
-            logger.warning(f"1C rejected advance payment for order {order_id}", extra={
-                'tags': {"action": "advance_payment", "stage": "response_from_1c", "status": "rejected", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount), "results_count": len(results), "duration_sec": round(duration, 4)},
-                'response': response_1c
+            logger.error("1C rejected advance payment allocation", extra={
+                "tags": {"action": "advance_payment", "stage": "response_from_1c", "status": "rejected", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "results_count": len(results), "duration_sec": round(duration, 4)},
+                "response": response_1c,
             })
-            return Response(
-                {
-                    "success": False,
-                    "error": "1С відхилила запит або повернула помилку",
-                    "details_from_1c": response_1c
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"success": False, "error": "\u0031\u0421 \u0432\u0456\u0434\u0445\u0438\u043b\u0438\u043b\u0430 \u0437\u0430\u043f\u0438\u0442 \u0430\u0431\u043e \u043f\u043e\u0432\u0435\u0440\u043d\u0443\u043b\u0430 \u043f\u043e\u043c\u0438\u043b\u043a\u0443", "details_from_1c": response_1c}, status=status.HTTP_400_BAD_REQUEST)
 
         logger.info("Advance payment allocation completed", extra={
-            "tags": {"action": "advance_payment", "stage": "completed", "status": "success", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount), "results_count": len(results), "duration_sec": round(duration, 4)}
+            "tags": {"action": "advance_payment", "stage": "completed", "status": "success", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "results_count": len(results), "duration_sec": round(duration, 4)}
         })
-
-    
-        return Response(
-            {
-                "success": True,
-                "sent_to_1c": payload_1c,
-                "response_1c": response_1c,
-            },
-            status=status.HTTP_200_OK,
-        )
-    except Exception as e:
+        return Response({"success": True, "sent_to_1c": payload_1c, "response_1c": response_1c}, status=status.HTTP_200_OK)
+    except Exception:
         logger.error("Advance payment allocation failed", exc_info=True, extra={
-            "tags": {"action": "advance_payment", "stage": "send_to_1c", "status": "error", "user": user_name, "order_id": str(order_id), "contract": str(contract), "amount": str(amount), "duration_sec": round(time.time() - start_time, 4)}
+            "tags": {"action": "advance_payment", "stage": "send_to_1c", "status": "error", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "duration_sec": round(time.time() - start_time, 4)}
         })
         return Response({"success": False, "error": "Internal error"}, status=500)
-
 
 
 

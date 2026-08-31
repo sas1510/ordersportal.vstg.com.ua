@@ -305,7 +305,7 @@
 //             )}
 //           </div>
 
-//           {isManager && (
+// //           {isManager && (
 //             <div className="claim-row">
 //               <span className="label-text flex items-center gap-2">
 //                 <FaUserAlt /> Дилер:
@@ -504,7 +504,9 @@ export default function AddClaimModal({
   const isManager = isBackoffice;
 
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
-  const [deliveryDate, setDeliveryDate] = useState("");
+  const [orderDeliveryAddress, setOrderDeliveryAddress] = useState("");
+  const [manualDeliveryAddress, setManualDeliveryAddress] = useState("");
+  const [deliveryAddressMode, setDeliveryAddressMode] = useState("order");
   const [claimDate, setClaimDate] = useState("");
   const [reasonLink, setReasonLink] = useState("");
   const [solutionLink, setSolutionLink] = useState("");
@@ -652,6 +654,33 @@ export default function AddClaimModal({
     fetchSeries();
   }, [fetchSeries]);
 
+  const fetchDeliveryAddress = useCallback(async () => {
+    const normalizedOrderNumber = orderNumber.trim();
+    if (!normalizedOrderNumber) {
+      setOrderDeliveryAddress("");
+      setFetchErrors((previous) => ({ ...previous, address: null }));
+      return;
+    }
+
+    setFetchErrors((previous) => ({ ...previous, address: null }));
+    try {
+      const response = await axiosInstance.get(
+        `/complaints/delivery-address/${encodeURIComponent(normalizedOrderNumber)}/`,
+      );
+      setOrderDeliveryAddress(response.data?.address || "");
+    } catch {
+      setOrderDeliveryAddress("");
+      setFetchErrors((previous) => ({
+        ...previous,
+        address: t("add_claim.errors.address"),
+      }));
+    }
+  }, [orderNumber, t]);
+
+  useEffect(() => {
+    fetchDeliveryAddress();
+  }, [fetchDeliveryAddress]);
+
   const handleAddPhotos = (e) => {
     const files = Array.from(e.target.files);
     if (files.length) setPhotos((p) => [...p, ...files]);
@@ -664,7 +693,9 @@ export default function AddClaimModal({
 
   const resetForm = () => {
     setOrderNumber("");
-    setDeliveryDate("");
+    setOrderDeliveryAddress("");
+    setManualDeliveryAddress("");
+    setDeliveryAddressMode("order");
     setClaimDate("");
     setReasonLink("");
     setSolutionLink("");
@@ -704,7 +735,7 @@ export default function AddClaimModal({
         ...(isManager && dealerId && { contractor_guid: dealerId }),
         order_number: orderNumber.trim(),
         order_GUID: initialOrderGUID,
-        order_deliver_date: deliveryDate,
+        order_delivery_address: (deliveryAddressMode === "order" ? orderDeliveryAddress : manualDeliveryAddress).trim(),
         order_define_date: claimDate,
         complaint_date: new Date().toISOString(),
         issue: reasonLink,
@@ -786,7 +817,49 @@ export default function AddClaimModal({
                 ))}
               </div>
             </div>
+
+
           )}
+
+          <div className="claim-row column">
+            <span className="label-text">{t("add_claim.delivery_address")}</span>
+            <label className="series-item">
+              <input
+                type="radio"
+                name="claim-delivery-address"
+                checked={deliveryAddressMode === "order"}
+                onChange={() => setDeliveryAddressMode("order")}
+              />
+              <span>{orderDeliveryAddress || t("add_claim.use_order_delivery_address")}</span>
+            </label>
+            <label className="series-item">
+              <input
+                type="radio"
+                name="claim-delivery-address"
+                checked={deliveryAddressMode === "manual"}
+                onChange={() => setDeliveryAddressMode("manual")}
+              />
+              <span>{t("add_claim.enter_delivery_address")}</span>
+            </label>
+            {deliveryAddressMode === "manual" && (
+              <textarea
+                className="claim-input"
+                value={manualDeliveryAddress}
+                onChange={(event) => setManualDeliveryAddress(event.target.value)}
+                placeholder={t("add_claim.select_delivery_address")}
+                rows={2}
+              />
+            )}
+            {fetchErrors.address && (
+              <div className="error-inline-retry">
+                <span>{fetchErrors.address}</span>
+                <button type="button" onClick={fetchDeliveryAddress}>
+                  {t("add_claim.retry")}
+                </button>
+              </div>
+            )}
+          </div>
+
 
           <div className="claim-row">
             <label className="claim-label">

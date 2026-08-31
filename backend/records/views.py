@@ -881,7 +881,7 @@ def get_orders_by_period_and_contractor(
 ):
     """
     Викликає SQL-процедуру
-    [dbo].[GetCalculationsWithOrdersByYearAndContractor3]
+    [dbo].[GetCalculationsWithOrdersByYearAndContractor7]
     за довільний період.
 
     date_from і date_to включаються у вибірку.
@@ -915,7 +915,7 @@ def get_orders_by_period_and_contractor(
         raise RuntimeError("ONEC_MAINTENANCE_ACTIVE")
 
     query = """
-        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor3]
+        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor7]
             @DateFrom = %s,
             @DateTo = %s,
             @Contractor_ID = %s
@@ -1077,6 +1077,9 @@ def get_orders_by_period_and_contractor(
             "planDelivery": row.get(
                 "PlannedDeliveryDate"
             ),
+            "plannedDeliveryDateTime": row.get(
+                "PlannedDeliveryDateTime"
+            ),
             "planDeparture": row.get(
                 "PlannedDepartureDate"
             ),
@@ -1176,7 +1179,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         return []
 
     query = """
-        EXEC [GetCalculationsWithOrdersByYearAndContractor] @Year=%s, @Contractor_ID=%s
+        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor7] @Year=%s, @Contractor_ID=%s
     """
 
     with connection.cursor() as cursor:
@@ -1247,6 +1250,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "quantityRealized": float(row.get("SoldQuantity") or 0),
             "deliveryAddress": row.get("DeliveryAddress") or "",
             "planDelivery": row.get("PlannedDeliveryDate"),
+            "plannedDeliveryDateTime": row.get("PlannedDeliveryDateTime"),
             "planDeparture": row.get("PlannedDepartureDate"),
             "goodsInDelivery": int(row.get("ItemsInDeliveryCount") or 0),
             "arrivalTime": row.get("ArrivalTime"),
@@ -2736,7 +2740,7 @@ def orders_view_all_by_month(request):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC [dbo].[GetOrdersMonthWithCalculations4]
+                EXEC [dbo].[GetOrdersMonthWithCalculations7]
                     @RequesterUserID = %s,
                     @DateFrom = %s,
                     @DateTo = %s,
@@ -2911,6 +2915,9 @@ def orders_view_all_by_month(request):
                     ),
                     "planDelivery": row.get(
                         "PlannedDeliveryDate"
+                    ),
+                    "plannedDeliveryDateTime": row.get(
+                        "PlannedDeliveryDateTime"
                     ),
                     "planDeparture": row.get(
                         "PlannedDepartureDate"
@@ -3159,114 +3166,49 @@ def safe_float(v):
 
 
 def build_address_name(addr: dict | None) -> str:
+    """Build the delivery address sent to 1C in the address's own script."""
     if not isinstance(addr, dict):
         return ""
 
+    values = " ".join(
+        str(addr.get(key) or "")
+        for key in ("region", "district", "city", "street", "house", "apartment", "entrance", "floor")
+    )
+    is_latin_address = (
+        any(("A" <= ch <= "Z") or ("a" <= ch <= "z") for ch in values)
+        and not any("\u0400" <= ch <= "\u052F" for ch in values)
+    )
+
+    if is_latin_address:
+        fields = (
+            ("Region ", "region", ""),
+            ("District ", "district", ""),
+            ("City ", "city", ""),
+            ("Street ", "street", ""),
+            ("Building ", "house", ""),
+            ("Apartment ", "apartment", ""),
+            ("Entrance ", "entrance", ""),
+            ("Floor ", "floor", ""),
+        )
+    else:
+        fields = (
+            ("", "region", ""),
+            ("", "district", " \u0440\u0430\u0439\u043e\u043d"),
+            ("\u043c. ", "city", ""),
+            ("\u0432\u0443\u043b. ", "street", ""),
+            ("\u0431\u0443\u0434. ", "house", ""),
+            ("\u043a\u0432. ", "apartment", ""),
+            ("\u043f\u0456\u0434'\u0457\u0437\u0434 ", "entrance", ""),
+            ("\u043f\u043e\u0432\u0435\u0440\u0445 ", "floor", ""),
+        )
+
     parts = []
-
-    def add(prefix, key, suffix=""):
-        val = addr.get(key)
-        if isinstance(val, str) and val.strip():
-            parts.append(f"{prefix}{val.strip()}{suffix}")
-
-    add("", "region")
-    add("", "district", " район")
-    add("м. ", "city")
-    add("вул. ", "street")
-    add("буд. ", "house")
-    add("кв. ", "apartment")
-    add("під'їзд ", "entrance")
-    add("поверх ", "floor")
+    for prefix, key, suffix in fields:
+        value = addr.get(key)
+        if isinstance(value, str) and value.strip():
+            parts.append(f"{prefix}{value.strip()}{suffix}")
 
     return ", ".join(parts)
-
-# def build_1c_payload(
-#     *,
-#     order_number,
-#     items_count,
-#     comment,
-#     contractor_guid,
-#     delivery_address_guid=None,
-#     delivery_address_coordinates=None,
-#     client_address: dict | None = None,
-#     file_name=None,
-#     file_b64=None,
-# ):
-#     payload = {
-#         "calculations": [
-#             {
-#                 # "createdAt": now().strftime("%Y-%m-%d %H:%M:%S"),
-#                 "createdAt": get_current_time_kyiv(),
-            
-#                 "calculationNumber": order_number,
-#                 "itemsCount": int(items_count),
-#                 "comment": comment or "",
-
-#                 "kontragentGUID": str(contractor_guid),
-#                 "authorGUID": str(contractor_guid),
-
-#                 "file": [
-#                     {
-#                         "fileName": file_name,
-#                         "fileDataB64": file_b64,
-#                         "fileExtension": "ZKZ",
-#                     }
-#                 ],
-
-#                 "orders": [],
-#             }
-#         ]
-#     }
-
-#     calc = payload["calculations"][0]
-
-  
-#     if delivery_address_guid:
-
-#         coords = delivery_address_coordinates or {} 
-        
-#         calc["address"] = {
-#             "addressGUID": str(delivery_address_guid),
-#             "addressName": None,
-#             "addressCoordinates": {
-#                 "lat": coords.get("lat"),
-#                 "lng": coords.get("lng"),
-#             },
-#             "addressAdditionalInfo": None,
-#         }
-#         return payload
-
-
-#     if not isinstance(client_address, dict):
-#         raise ValidationError("client_address is required for client delivery")
-
-#     address_name = build_address_name(client_address)
-
-#     calc["address"] = {
-#         "addressGUID": None,
-#         "addressName": address_name,
-#         "addressCoordinates": {
-#             "lat": safe_float(client_address.get("lat")),
-#             "lng": safe_float(client_address.get("lng")),
-#         },
-#         "addressAdditionalInfo": client_address.get("note", ""),
-#     }
-
-#     calc["recipient"] = {
-#         "recipientName": client_address.get("full_name"),
-#         "recipientPhone": client_address.get("phone"),
-#         "recipientAddionalInformation":
-#             client_address.get("extra_info", "") or "",
-#     }
-
-#     return payload
-
-
-import os
-
-
-import os
-
 
 def get_file_extension(file_name: str | None, default_ext: str = "BIN") -> str:
     if not file_name:

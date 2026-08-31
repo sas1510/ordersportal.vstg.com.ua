@@ -18,6 +18,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class Branch(models.Model):
+    """A portal branch linked to a dealer folder in 1C."""
+
+    id = models.BigAutoField(primary_key=True, db_column="ID")
+    name = models.CharField(max_length=150, unique=True, db_column="Name")
+    code = models.CharField(max_length=32, unique=True, db_column="Code")
+    folder_guid_1c = models.UUIDField(null=True, blank=True, unique=True, db_column="FolderGuid1C")
+    is_active = models.BooleanField(default=True, db_column="IsActive")
+
+    class Meta:
+        db_table = "Branch"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class CustomUser(AbstractUser):
 
     id = models.BigAutoField(primary_key=True, db_column='ID')
@@ -60,11 +77,13 @@ class CustomUser(AbstractUser):
         ("operator", "Оператор"),
         ("director", "Директор"),
         ("region_manager", "Регіональний менеджер"),
+        ("branch_manager", "Менеджер філіалу"),
         ("complaint_manager", "Менеджер скарг"),
         ("customer", "Клієнт"),
     ]
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default="customer", db_column='Role')
 
+    branch = models.ForeignKey(Branch, null=True, blank=True, on_delete=models.SET_NULL, related_name="users", db_column="BranchID")
     user_id_1C = models.BinaryField(max_length=255, null=True, blank=True, db_column='UserId1C')
     permit_finance_info = models.BooleanField(default=False, db_column='PermitFinanceInfo')
     is_branch = models.BooleanField(default=False, db_column='IsBranch')

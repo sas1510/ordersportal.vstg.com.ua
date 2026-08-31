@@ -475,6 +475,23 @@ const PortalOriginal = () => {
     t,
   ]);
 
+  const handleOrderConfirmationSuccess = useCallback(({ orderIdGuid, status }) => {
+    if (!orderIdGuid) {
+      return;
+    }
+
+    setCalculationsData((previous) =>
+      previous.map((calculation) => ({
+        ...calculation,
+        orders: (Array.isArray(calculation.orders) ? calculation.orders : []).map((order) =>
+          order?.idGuid === orderIdGuid
+            ? { ...order, status: status || order.status }
+            : order,
+        ),
+      })),
+    );
+  }, []);
+
   const handleOrderPaymentSuccess = useCallback(
     ({ orderIdGuid, amount }) => {
       const paidDelta = Number(amount || 0);
@@ -1596,6 +1613,7 @@ const PortalOriginal = () => {
                         reloadCalculations
                       }
                       onOrderPaymentSuccess={handleOrderPaymentSuccess}
+                      onOrderConfirmationSuccess={handleOrderConfirmationSuccess}
                     />
                   ) : (
                     <CalculationItem
@@ -1618,6 +1636,7 @@ const PortalOriginal = () => {
                         reloadCalculations
                       }
                       onOrderPaymentSuccess={handleOrderPaymentSuccess}
+                      onOrderConfirmationSuccess={handleOrderConfirmationSuccess}
                     />
                   ),
                 )

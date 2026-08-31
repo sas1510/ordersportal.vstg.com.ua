@@ -532,7 +532,7 @@ body.dark-theme .claim-clear-file {
 
 .claim-row {
   display: flex;
-  align-items: center;
+  /* align-items: center; */
   gap: 6px; /* Було 12px */
   margin-bottom: 8px; /* Було 12px */
 }

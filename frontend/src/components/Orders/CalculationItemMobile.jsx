@@ -18,7 +18,7 @@ import OrderNumbersListModal from "./OrderNumbersListModal";
 import OrderRefusalModal from "./OrderRefusalModal";
 
 export const CalculationItemMobile = React.memo(
-  ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead, reloadCalculations, onOrderPaymentSuccess }) => {
+  ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead, reloadCalculations, onOrderPaymentSuccess, onOrderConfirmationSuccess }) => {
     //
     const {t, i18n} = useTranslation();
     const locale = i18n.language;
@@ -600,6 +600,7 @@ export const CalculationItemMobile = React.memo(
                   onToggle={onOrderToggle}
                   onRefresh={reloadCalculations}
                   onOrderPaymentSuccess={onOrderPaymentSuccess}
+                  onOrderConfirmationSuccess={onOrderConfirmationSuccess}
                 />
               ))
             )}

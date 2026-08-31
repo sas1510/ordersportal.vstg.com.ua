@@ -485,3 +485,55 @@ body.dark-theme .pay-close-btn:hover {
 .pay-topup-link:hover {
   color: #004499;
 }
+
+.batch-payment-modal { width: min(760px, 94vw); }
+.batch-payment-close { border: 0; background: transparent; color: #fff; font-size: 30px; line-height: 1; cursor: pointer; }
+.batch-payment-percentages { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+.batch-payment-percentages button { border: 1px solid #1da8df; border-radius: 16px; background: #fff; color: #1479a1; padding: 5px 12px; font-weight: 700; cursor: pointer; }
+.batch-payment-percentages button:disabled { opacity: .45; cursor: not-allowed; }
+.batch-payment-hint { color: #64748b; font-size: 12px; margin: 4px 0 12px; }
+.batch-payment-orders { max-height: 42vh; overflow: auto; border: 1px solid #e5e7eb; border-radius: 8px; }
+.batch-payment-order { display: grid; grid-template-columns: 24px auto 1fr 125px; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #edf0f2; cursor: pointer; }
+.batch-payment-order:last-child { border-bottom: 0; }
+.batch-payment-order-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.batch-payment-order span { min-width: 0; }
+.batch-payment-order small { color: #64748b; }
+.batch-payment-order-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.batch-payment-order-meta .is-selected { color: #177245; font-weight: 700; }
+.batch-payment-order-check { width: 20px; height: 20px; border-radius: 999px; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: transparent; background: #fff; }
+.batch-payment-order-check.is-selected { border-color: #76b448; background: #76b448; color: #fff; }
+.batch-payment-order > input[type=number] { width: 100%; padding: 7px; border: 1px solid #cbd5e1; border-radius: 5px; }
+.batch-payment-order.is-disabled { opacity: .48; cursor: not-allowed; background: #f8fafc; }
+.batch-payment-total { display: flex; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 11px 12px; background: #eaf7fc; border-radius: 7px; }
+.batch-payment-total.is-over-limit { background: #fff0f0; color: #b42318; }
+@media (max-width: 560px) {
+  .batch-payment-order { grid-template-columns: 24px auto 1fr; }
+  .batch-payment-order > input[type=number] { grid-column: 3; }
+  .batch-payment-total { flex-direction: column; gap: 4px; }
+}
+
+
+.batch-payment-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, .18);
+  overflow: hidden;
+}
+.batch-payment-panel-header {
+  background: linear-gradient(90deg, #1da8df, #22c1e8);
+  color: #fff;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.batch-payment-panel-header h2 { margin: 0; font-size: 19px; font-weight: 700; }
+.batch-payment-panel-header p { margin: 4px 0 0; opacity: .9; font-size: 13px; }
+.batch-payment-panel-header .pay-btn-cancel { white-space: nowrap; background: rgba(255,255,255,.18); }
+.batch-payment-panel .pay-modal-body { padding: 20px; }
+.batch-payment-footer { justify-content: flex-end; }
+body.dark-theme .batch-payment-panel { background: #263746; }
+@media (max-width: 560px) {
+  .batch-payment-panel-header { align-items: flex-start; flex-direction: column; }
+}

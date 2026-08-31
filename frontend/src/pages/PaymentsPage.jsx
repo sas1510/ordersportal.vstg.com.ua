@@ -42,6 +42,57 @@ const useIsMobile_2 = () => {
   return isMobile;
 };
 
+const normalizeCompareValue = (value) => String(value || "").trim().toLowerCase();
+const parseFlexibleAmount = (value) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  const normalized = String(value || "")
+    .replace(/\s+/g, "")
+    .replace(",", ".")
+    .replace(/[^0-9.]/g, "");
+
+  if (!normalized) return 0;
+
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const areBatchSelectionsEqual = (left, right) => {
+  const leftKeys = Object.keys(left || {});
+  const rightKeys = Object.keys(right || {});
+
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+
+  return leftKeys.every((key) => {
+    const leftValue = Number(left[key] || 0);
+    const rightValue = Number(right[key] || 0);
+    return Math.abs(leftValue - rightValue) <= 0.005;
+  });
+};
+
+const getContractOptionValue = (contract, index) => {
+  const rawId =
+    contract?.Dogovor_ID ??
+    contract?.Dogovor_GUID ??
+    contract?.DogovorId ??
+    contract?.DogovorGuid;
+
+  if (rawId !== undefined && rawId !== null && String(rawId).trim() !== "") {
+    return String(rawId).trim();
+  }
+
+  return [
+    String(contract?.DogovorName || "").trim(),
+    String(contract?.CurrencyName || "").trim(),
+    String(contract?.DogovorBalance ?? contract?.DogovorSum ?? ""),
+    String(index),
+  ].join("__");
+};
+
 export default function PaymentsPage() {
   const { isDark } = useTheme();
   const { t, i18n } = useTranslation();
@@ -94,6 +145,11 @@ export default function PaymentsPage() {
   // Модалка основної оплати
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [batchPaymentOpen, setBatchPaymentOpen] = useState(false);
+  const [batchContractId, setBatchContractId] = useState("");
+  const [batchSelection, setBatchSelection] = useState({});
+  const [batchAmountDrafts, setBatchAmountDrafts] = useState({});
+  const [batchSubmitting, setBatchSubmitting] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [selectedFilesOrder, setSelectedFilesOrder] = useState(null);
 
@@ -223,6 +279,220 @@ export default function PaymentsPage() {
     });
   }, [orders, statusFilter, contractFilter, search]);
 
+  const batchContract = useMemo(
+    () =>
+      contracts.find(
+        (item, index) =>
+          getContractOptionValue(item, index) === String(batchContractId).trim(),
+      ),
+    [contracts, batchContractId],
+  );
+  const batchAvailableAmount = parseFlexibleAmount(
+    batchContract?.DogovorBalance ?? batchContract?.DogovorSum ?? 0,
+  );
+
+  const batchSelectedOrders = useMemo(
+    () =>
+      orders
+        .filter((order) => Number(batchSelection[order.OrderID_GUID] || 0) > 0)
+        .map((order) => ({
+          order,
+          amount: Number(batchSelection[order.OrderID_GUID] || 0),
+        })),
+    [batchSelection, orders],
+  );
+  const batchPrimaryContractKey = useMemo(() => {
+    const firstSelectedOrder = batchSelectedOrders[0]?.order;
+    return (
+      normalizeCompareValue(firstSelectedOrder?.Dogovor_GUID) ||
+      normalizeCompareValue(firstSelectedOrder?.Dogovor_ID) ||
+      ""
+    );
+  }, [batchSelectedOrders]);
+  const isBatchOrderEligible = useCallback(
+    (order) => {
+      const orderContractKeys = [
+        normalizeCompareValue(order?.Dogovor_GUID),
+        normalizeCompareValue(order?.Dogovor_ID),
+      ].filter(Boolean);
+
+      if (Number(order?.DebtAmount || 0) <= 0) {
+        return false;
+      }
+
+      if (!batchPrimaryContractKey) {
+        return true;
+      }
+
+      return orderContractKeys.includes(batchPrimaryContractKey);
+    },
+    [batchPrimaryContractKey],
+  );
+
+  const batchSelectedTotal = useMemo(
+    () => batchSelectedOrders.reduce((sum, item) => sum + item.amount, 0),
+    [batchSelectedOrders],
+  );
+
+  const batchRemainingAmount = Math.max(0, batchAvailableAmount - batchSelectedTotal);
+  const batchHasOverLimit = batchSelectedTotal > batchAvailableAmount + 0.005;
+  const clampBatchSelection = useCallback((selection) => {
+    const source = selection || {};
+    const next = {};
+
+    if (!batchContract) {
+      Object.entries(source).forEach(([orderId, amount]) => {
+        const parsedAmount = parseFlexibleAmount(amount);
+        if (parsedAmount > 0) {
+          next[orderId] = Number(parsedAmount.toFixed(2));
+        }
+      });
+      return next;
+    }
+
+    let remaining = parseFlexibleAmount(batchAvailableAmount);
+
+    orders.forEach((order) => {
+      const orderId = order?.OrderID_GUID;
+      const currentAmount = parseFlexibleAmount(source[orderId]);
+
+      if (!orderId || currentAmount <= 0) {
+        return;
+      }
+
+      if (!isBatchOrderEligible(order)) {
+        return;
+      }
+
+      const debt = parseFlexibleAmount(order?.DebtAmount);
+      const maxAllowed = Math.min(debt, Math.max(0, remaining));
+      const clampedAmount = Math.min(currentAmount, maxAllowed);
+
+      if (clampedAmount > 0) {
+        next[orderId] = Number(clampedAmount.toFixed(2));
+        remaining -= clampedAmount;
+      }
+    });
+
+    return next;
+  }, [batchAvailableAmount, batchContract, isBatchOrderEligible, orders]);
+  const getBatchMaxForOrder = useCallback((order) => {
+    const debt = parseFlexibleAmount(order?.DebtAmount);
+    const currentAmount = parseFlexibleAmount(batchSelection[order?.OrderID_GUID]);
+
+    if (!batchContract) {
+      return debt;
+    }
+
+    const availableForThisOrder = Math.max(
+      0,
+      batchAvailableAmount - (batchSelectedTotal - currentAmount),
+    );
+
+    return Math.min(debt, availableForThisOrder);
+  }, [batchAvailableAmount, batchContract, batchSelectedTotal, batchSelection]);
+
+  const setBatchOrderAmount = useCallback((order, amount, options = {}) => {
+    if (!isBatchOrderEligible(order)) {
+      return;
+    }
+
+    const { notifyOnClamp = false } = options;
+    const maxAllowed = getBatchMaxForOrder(order);
+    const requestedValue = parseFlexibleAmount(amount);
+    const value = Math.max(0, Math.min(requestedValue, maxAllowed));
+
+    if (notifyOnClamp && requestedValue > maxAllowed + 0.005) {
+      addNotification(
+        t(
+          "payments_page.notifications.batch_limit_exceeded",
+          "Сума перевищує доступний залишок. Встановлено максимально можливу суму.",
+        ),
+        "warning",
+      );
+    }
+
+    setBatchSelection((previous) => {
+      const next = { ...previous };
+      if (value > 0) {
+        next[order.OrderID_GUID] = Number(value.toFixed(2));
+      } else {
+        delete next[order.OrderID_GUID];
+      }
+      return next;
+    });
+
+    setBatchAmountDrafts((previous) => {
+      const next = { ...previous };
+      if (value > 0) {
+        const rawAmount = String(amount ?? "").trim();
+        const wasClamped = requestedValue > maxAllowed + 0.005;
+        const shouldShowClampedValue = wasClamped || typeof amount === "number";
+
+        next[order.OrderID_GUID] = shouldShowClampedValue
+          ? String(value.toFixed(2)).replace(".", ",")
+          : (rawAmount ? rawAmount.replace(".", ",") : String(value.toFixed(2)).replace(".", ","));
+      } else {
+        delete next[order.OrderID_GUID];
+      }
+      return next;
+    });
+  }, [
+    addNotification,
+    getBatchMaxForOrder,
+    isBatchOrderEligible,
+    t,
+  ]);
+
+  useEffect(() => {
+    setBatchSelection((previous) => {
+      const next = {};
+      Object.entries(previous).forEach(([orderId, amount]) => {
+        const order = orders.find((item) => item.OrderID_GUID === orderId);
+        if (order && isBatchOrderEligible(order) && Number(amount || 0) > 0) {
+          next[orderId] = Number(amount);
+        }
+      });
+      return next;
+    });
+  }, [batchContractId, contracts, orders, isBatchOrderEligible]);
+
+  useEffect(() => {
+    if (!batchContract) {
+      return;
+    }
+
+    setBatchSelection((previous) => {
+      const next = clampBatchSelection(previous);
+      if (areBatchSelectionsEqual(previous, next)) {
+        return previous;
+      }
+      return next;
+    });
+  }, [batchContract, clampBatchSelection]);
+
+  useEffect(() => {
+    setBatchAmountDrafts((previous) => {
+      const next = {};
+      Object.entries(batchSelection).forEach(([orderId, amount]) => {
+        if (Number(amount || 0) <= 0) return;
+        // Preserve incomplete manual input such as "5,".
+        next[orderId] = previous[orderId] ?? String(Number(amount)).replace(".", ",");
+      });
+
+      if (areBatchSelectionsEqual(previous, next)) {
+        return previous;
+      }
+      return next;
+    });
+  }, [batchSelection]);
+
+  useEffect(() => {
+    if (!batchPaymentOpen) {
+      setBatchSelection({});
+      setBatchAmountDrafts({});
+    }
+  }, [batchPaymentOpen]);
 
   const debtAnalytics = useMemo(() => {
   const routeDebtOrders = debtItems.filter(
@@ -371,6 +641,67 @@ export default function PaymentsPage() {
     setSelectedOrder(null);
   };
 
+  const submitBatchPayments = useCallback(async () => {
+    if (batchSubmitting) return;
+
+    if (!batchContract) {
+      addNotification(
+        t("payments_page.notifications.batch_contract_required", "Оберіть авансовий договір."),
+        "warning",
+      );
+      return;
+    }
+
+    if (!batchSelectedOrders.length) {
+      addNotification(
+        t("payments_page.notifications.batch_orders_required", "Оберіть хоча б одне замовлення до оплати."),
+        "warning",
+      );
+      return;
+    }
+
+    setBatchSubmitting(true);
+
+    try {
+      const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
+        contract: batchContractId,
+        payments: batchSelectedOrders.map(({ order, amount }) => ({
+          order_id: order.OrderID_GUID,
+          amount: Number(amount.toFixed(2)),
+        })),
+      });
+
+      if (response?.data?.success !== true) {
+        throw new Error("Batch payment was not confirmed by 1C");
+      }
+
+      await new Promise((resolve) => window.setTimeout(resolve, 5000));
+      await loadData();
+      setBatchSelection({});
+      setBatchAmountDrafts({});
+      setBatchPaymentOpen(false);
+      addNotification(
+        t("payments_page.notifications.batch_payment_success", "Оплату вибраних замовлень виконано!"),
+        "success",
+      );
+    } catch {
+      addNotification(
+        t("payments_page.notifications.batch_payment_error", "Не вдалося виконати оплату вибраних замовлень."),
+        "warning",
+      );
+    } finally {
+      setBatchSubmitting(false);
+    }
+  }, [
+    addNotification,
+    batchContract,
+    batchContractId,
+    batchSelectedOrders,
+    batchSubmitting,
+    loadData,
+    t,
+  ]);
+
   const makePayment = async (contractID, amount) => {
     try {
       const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
@@ -381,6 +712,7 @@ export default function PaymentsPage() {
       if (response?.data?.success !== true) {
         throw new Error("Payment was not confirmed by 1C");
       }
+      await new Promise((resolve) => window.setTimeout(resolve, 5000));
       await loadData();
       closeModal();
       addNotification(t("payments_page.notifications.payment_success"), "success");
@@ -519,7 +851,7 @@ export default function PaymentsPage() {
         <div className="row h-100 max-w-[1334px] w-100">
           {Sidebar}
 
-          <div className="content scroll-bar-custom " id="content">
+          <div className="content scroll-bar-custom " id="content" style={{ paddingTop: '0px' }}>
             <div className="pp-header">
               <div className="pp-title-header row ai-center gap-7">
                 {isMobileLarger && (
@@ -739,9 +1071,84 @@ export default function PaymentsPage() {
             </div>
 
             {/* СПИСОК ЗАМОВЛЕНЬ */}
-            <h2 className="pp-title" style={{ marginTop: 24 }}>
-              {t("payments_page.sections.orders_to_pay")}
-            </h2>
+            <div className={batchPaymentOpen ? "batch-payment-sticky-anchor" : ""}>
+            <div className="flex items-center justify-between gap-3" style={{ marginTop: 4, marginBottom: 8 }}>
+              <h2 className="pp-title" style={{ marginTop: 0 }}>
+                {t("payments_page.sections.orders_to_pay")}
+              </h2>
+              <div className="flex items-center gap-3">
+                {batchPaymentOpen && (
+                  <button
+                    className="pp-pay-btn"
+                    type="button"
+                    disabled={!batchContract || !batchSelectedOrders.length || batchHasOverLimit || batchSubmitting}
+                    onClick={submitBatchPayments}
+                  >
+                    {batchSubmitting
+                      ? t("payments_page.batch.processing", "Оплата...")
+                      : t("payments_page.batch.pay_selected", "Оплатити всі")}
+                  </button>
+                )}
+                <button className="pp-pay-btn" type="button" onClick={() => setBatchPaymentOpen((value) => !value)}>
+                  {batchPaymentOpen
+                    ? t("payments_page.batch.cancel_selection", "Скасувати вибір")
+                    : t("payments_page.batch.open", "Оплатити декілька замовлень")}
+                </button>
+              </div>
+            </div>
+            {batchPaymentOpen && (
+              <div className="batch-payment-inline">
+                <label>{t("payments_page.batch.advance_contract", "Авансовий договір")}
+                  <select
+                    value={batchContractId}
+                    onChange={(event) => {
+                      setBatchContractId(event.target.value);
+                      setBatchSelection({});
+                      setBatchAmountDrafts({});
+                    }}
+                  >
+                    <option value="">{t("payments_page.batch.choose_contract", "Оберіть договір")}</option>
+                    {contracts.map((item, index) => (
+                      <option
+                        key={getContractOptionValue(item, index)}
+                        value={getContractOptionValue(item, index)}
+                      >
+                        {item.DogovorName} — {formatCurrency(item.DogovorBalance)} {item.CurrencyName}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="batch-payment-summary-row">
+                  {batchContract && (
+                    <>
+                      <strong>
+                        {t("payments_page.batch.available", "Доступно")}: {formatCurrency(batchAvailableAmount)} {batchContract.CurrencyName}
+                      </strong>
+                      <strong>
+                        {t("payments_page.batch.selected_total", "Обрано на суму")}: {formatCurrency(batchSelectedTotal)} {batchContract.CurrencyName}
+                      </strong>
+                      <strong className={batchHasOverLimit ? "batch-payment-limit-error" : ""}>
+                        {t("payments_page.batch.remaining", "Залишок авансу")}: {formatCurrency(batchRemainingAmount)} {batchContract.CurrencyName}
+                      </strong>
+                    </>
+                  )}
+                  <strong>
+                    {t("payments_page.batch.selected_count", "Обрані на оплату")}: {batchSelectedOrders.length}
+                  </strong>
+                </div>
+                {!batchContract && (
+                  <div className="batch-payment-hint-inline">
+                    {t("payments_page.batch.choose_contract_hint", "Спочатку відмітьте замовлення одного основного договору, потім оберіть авансовий договір для списання.")}
+                  </div>
+                )}
+                {batchContract && (
+                  <div className="batch-payment-hint-inline">
+                    {t("payments_page.batch.single_contract_hint", "Авансовий договір є лише джерелом списання. За один раз можна оплачувати замовлення лише одного основного договору.")}
+                  </div>
+                )}
+              </div>
+            )}
+            </div>
             {isMobile ? (
               <PaymentsMobileContent
                 filteredOrders={filteredOrders}
@@ -759,7 +1166,16 @@ export default function PaymentsPage() {
                   <div className="pp-empty">{t("payments_page.empty.no_orders_filtered")}</div>
                 ) : (
                   filteredOrders.map((o, i) => (
-                    <div className="pp-order-card" key={i}>
+                    <div
+                      className={
+                        "pp-order-card" +
+                        (batchPaymentOpen ? " batch-payment-active" : "") +
+                        (batchPaymentOpen && batchContract && !isBatchOrderEligible(o)
+                          ? " batch-payment-disabled"
+                          : "")
+                      }
+                      key={i}
+                    >
                       <div className="pp-section pp-order-meta">
                         <button
                           type="button"
@@ -825,14 +1241,88 @@ export default function PaymentsPage() {
                         </div>
                       </div>
 
-                      <div className="pp-section pp-pay-btn-wrapper">
-                        <button className="pp-pay-btn" onClick={() => openPaymentModal(o)}>
-                          <span className="pp-pay-icon">
-                            <AppIcon name="pay" className="w-[20px] h-[20px]" />
-                          </span>
-                          {t("payments_page.actions.pay")}
-                        </button>
-                      </div>
+                      {!batchPaymentOpen ? (
+                        <div className="pp-section pp-pay-btn-wrapper">
+                          <button className="pp-pay-btn" onClick={() => openPaymentModal(o)}>
+                            <span className="pp-pay-icon">
+                              <AppIcon name="pay" className="w-[20px] h-[20px]" />
+                            </span>
+                            {t("payments_page.actions.pay")}
+                          </button>
+                        </div>
+                      ) : null}
+
+                      {batchPaymentOpen ? (
+                        <div className="batch-payment-card-actions-row">
+                          <label className="batch-payment-inline-check">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(batchSelection[o.OrderID_GUID])}
+                              disabled={!batchContract || !isBatchOrderEligible(o)}
+                              onChange={(event) =>
+                                setBatchOrderAmount(
+                                  o,
+                                  event.target.checked ? Number(o.DebtAmount || 0) : 0,
+                                  { notifyOnClamp: true },
+                                )
+                              }
+                            />
+                          </label>
+                          <div className="batch-payment-amount-field">
+                            <input
+                              type="text"
+                              min="0"
+                              max={getBatchMaxForOrder(o)}
+                              step="0.01"
+                              placeholder={t("payments_page.batch.amount_short", "Сума")}
+                              inputMode="decimal"
+                              value={batchAmountDrafts[o.OrderID_GUID] ?? (batchSelection[o.OrderID_GUID] ? String(batchSelection[o.OrderID_GUID]).replace(".", ",") : "")}
+                              disabled={!batchContract || !isBatchOrderEligible(o)}
+                              onChange={(event) => {
+                                const draftValue = event.target.value;
+                                setBatchAmountDrafts((previous) => ({
+                                  ...previous,
+                                  [o.OrderID_GUID]: draftValue,
+                                }));
+
+                                if (draftValue === "") {
+                                  setBatchOrderAmount(o, 0);
+                                  return;
+                                }
+
+                                setBatchOrderAmount(o, draftValue, { notifyOnClamp: true });
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            disabled={!batchContract || !isBatchOrderEligible(o)}
+                            onClick={() =>
+                              setBatchOrderAmount(o, Number(o.DebtAmount || 0) * 0.5, {
+                                notifyOnClamp: true,
+                              })
+                            }
+                          >
+                            50%
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!batchContract || !isBatchOrderEligible(o)}
+                            onClick={() =>
+                              setBatchOrderAmount(o, Number(o.DebtAmount || 0), {
+                                notifyOnClamp: true,
+                              })
+                            }
+                          >
+                            100%
+                          </button>
+                          {batchContract && !isBatchOrderEligible(o) ? (
+                            <span className="batch-payment-row-hint">
+                              {t("payments_page.batch.other_contract", "Інший основний договір")}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   ))
                 )}

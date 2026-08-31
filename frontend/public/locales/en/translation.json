@@ -612,7 +612,30 @@
     },
     "notifications": {
       "payment_success": "Payment completed!",
-      "payment_error": "Payment error"
+      "payment_error": "Payment error",
+      "batch_limit_exceeded": "The amount exceeds the available balance. The maximum possible amount has been set.",
+      "batch_contract_required": "Choose an advance contract.",
+      "batch_orders_required": "Choose at least one order to pay.",
+      "batch_payment_success": "Selected orders have been paid!",
+      "batch_payment_error": "Failed to pay the selected orders."
+    },
+    "batch": {
+      "open": "Pay several orders",
+      "cancel_selection": "Cancel selection",
+      "advance_contract": "Advance contract",
+      "choose_contract": "Choose a contract",
+      "available": "Available",
+      "selected_total": "Selected amount",
+      "remaining": "Advance balance",
+      "selected_count": "Selected",
+      "pay_selected": "Pay all",
+      "processing": "Paying...",
+      "select_short": "Selected",
+      "amount_short": "Amount",
+      "amount_placeholder": "field",
+      "choose_contract_hint": "First select orders of one main contract, then choose the advance contract for debiting.",
+      "single_contract_hint": "The advance contract is only the source of funds. In one payment, you can pay orders of only one main contract.",
+      "other_contract": "Other main contract"
     },
     "analytics": {
       "debt_limit": "Debt limit",
