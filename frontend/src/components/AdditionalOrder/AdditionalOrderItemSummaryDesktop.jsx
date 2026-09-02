@@ -12,6 +12,7 @@ import OrderFilesModal from "../Orders/OrderFilesModal"; // Переконайс
 // Якщо ви створили файл useNotification.js у папці hooks:
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { hasFinanceAccess } from "../../utils/financeAccess";
 import { useTranslation } from "react-i18next";
 import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 
@@ -35,6 +36,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
   const windowsIcon = "/assets/icons/WindowsIconCalc.png";
 
   const { user } = useAuthGetRole();
+  const canViewFinance = hasFinanceAccess(user);
   // const isAdmin = role === "admin";
 
   const debtAmount = useMemo(() => {
@@ -276,7 +278,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         className={`flex-1 min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkGreen transition-all active:scale-95 ${
           !buttonState.pay ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
         }`}
-        disabled={!buttonState.pay}
+        disabled={!buttonState.pay || !canViewFinance}
         onClick={() => setIsPaymentOpen(true)}
       >
         <div className="text-[12px] font-bold text-center">{debtAmount <= 0 ? t("order_status.paid", { defaultValue: "Сплачено" }) : t("order_mobile.buttons.pay")}</div>
@@ -344,7 +346,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         type="success"
       />
 
-      {isPaymentOpen && (
+      {canViewFinance && isPaymentOpen && (
         <PaymentModal
           order={{
             OrderNumber: order.number,

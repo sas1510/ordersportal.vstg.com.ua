@@ -281,6 +281,9 @@ const AdminPortalOriginal = () => {
             )
               .toLowerCase()
               .includes(query) ||
+            String(calc.firstMessage || calc.sourceComment || "")
+              .toLowerCase()
+              .includes(query) ||
             (calc.orders || []).some((order) =>
               String(order.number || "")
                 .toLowerCase()

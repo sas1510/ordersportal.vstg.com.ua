@@ -13,6 +13,7 @@ import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import PaymentModal from "./PaymentModal";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { hasFinanceAccess } from "../../utils/financeAccess";
 
 export default React.memo(function OrderItemSummaryDesktop({
   order,
@@ -30,6 +31,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   const locale = i18n.language;
   const { addNotification } = useNotification();
   const { isAdmin, isBackoffice, isManager } = useAuthGetRole();
+  const canViewFinance = hasFinanceAccess();
   const canConfirmOrder = !isBackoffice || isManager || isAdmin;
   const canPayOrder = !isBackoffice || isManager || isAdmin;
 
@@ -684,20 +686,22 @@ export default React.memo(function OrderItemSummaryDesktop({
                     </div>
                   </button>
 
-                  <button
+                  {canViewFinance && (
+              <button
                     type="button"
                     className={`column align-center button bg-WS---DarkGreen order-action-button order-action-button--pay ${
-                      !buttonState.pay
+                      !buttonState.pay || !canViewFinance
                         ? "disabled opacity-50"
                         : ""
                     }`}
-                    // disabled={!buttonState.pay}
-                    onClick={openPaymentModal}
+                    disabled={!buttonState.pay || !canViewFinance}
+                    onClick={canViewFinance ? openPaymentModal : undefined}
                   >
                     <div className="text-[12px] font-bold font-['Inter'] mx-1">
                       {debtAmount <= 0 ? t("order_status.paid", { defaultValue: "Сплачено" }) : t("order_mobile.buttons.pay")}
                     </div>
                   </button>
+              )}
                 </>
               )}
 
@@ -842,7 +846,7 @@ export default React.memo(function OrderItemSummaryDesktop({
         onSave={handleSaveAdditionalOrder}
       />
 
-      {isPaymentOpen && !isSketchOrder && (
+      {canViewFinance && isPaymentOpen && !isSketchOrder && (
         <PaymentModal
           order={{
             OrderNumber: orderNumber,

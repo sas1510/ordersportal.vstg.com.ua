@@ -3,7 +3,7 @@ import "./HeaderDealerProfile.css";
 import { AppIcon } from "../Icons/AppIcon";
 
 // Приймаємо дані через props
-export default function HeaderDealerProfile({ balance, debtAmount, currency, fullName }) {
+export default function HeaderDealerProfile({ balance, debtAmount, currency, fullName, showFinanceInfo = true }) {
   const { theme } = useTheme();
   
   const formatName = (name) => {
@@ -40,22 +40,26 @@ export default function HeaderDealerProfile({ balance, debtAmount, currency, ful
 
         <div className="profile-separator-line" />
 
-        <div className="profile-balance-text">
-          <span className="profile-wallet-amount">
-            {formattedAmount}
-            <span className="profile-currency-label">
-              {currency || "грн"}
-            </span>
-          </span>
-          <span className="profile-debt-amount">
-            {formattedDebtAmount}  
-            <span className="profile-currency-label">
-              {currency || "грн"}
-            </span>
-          </span>
-        </div>
+        {showFinanceInfo && (
+          <>
+            <div className="profile-balance-text">
+              <span className="profile-wallet-amount">
+                {formattedAmount}
+                <span className="profile-currency-label">
+                  {currency || "грн"}
+                </span>
+              </span>
+              <span className="profile-debt-amount">
+                {formattedDebtAmount}
+                <span className="profile-currency-label">
+                  {currency || "грн"}
+                </span>
+              </span>
+            </div>
 
-        <AppIcon name="money" className="profile-money-img-icon" />
+            <AppIcon name="money" className="profile-money-img-icon" />
+          </>
+        )}
       </div>
     </div>
   );

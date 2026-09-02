@@ -52,6 +52,7 @@ export function RoleProvider({ children }) {
       );
 
       setUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
       updateRole(res.data.role);
     } catch {
       setUser(null);

@@ -1544,6 +1544,7 @@ def api_get_orders(request):
         )
 
     latest_messages_map = {}
+    first_messages_map = {}
     for message in all_messages:
         object_id = message["related_object_id"]
         if isinstance(object_id, (bytes, bytearray)):
@@ -1554,6 +1555,9 @@ def api_get_orders(request):
         lookup_key = str(guid_str).lower().strip()
         if lookup_key not in latest_messages_map:
             latest_messages_map[lookup_key] = message["text"]
+        # Messages are ordered from newest to oldest, so the last value saved
+        # for a calculation is its first (oldest) comment.
+        first_messages_map[lookup_key] = message["text"]
 
     for calc in data:
         calc_id = calc.get("id")
@@ -1581,7 +1585,7 @@ def api_get_orders(request):
         if latest_message and str(latest_message).strip():
             calc["message"] = latest_message
 
-        calc["firstMessage"] = latest_message
+        calc["firstMessage"] = first_messages_map.get(lookup_key)
 
     duration = time.time() - start_time
 
@@ -2984,6 +2988,7 @@ def orders_view_all_by_month(request):
                 )
 
         latest_messages_map = {}
+        first_messages_map = {}
 
         if calc_bins:
             all_messages = (
@@ -3018,6 +3023,7 @@ def orders_view_all_by_month(request):
                     latest_messages_map[lookup_key] = (
                         message["text"]
                     )
+                first_messages_map[lookup_key] = message["text"]
 
         formatted_calcs = []
 
@@ -3093,7 +3099,7 @@ def orders_view_all_by_month(request):
             ):
                 calc["message"] = db_latest_message
 
-            calc["firstMessage"] = db_latest_message
+            calc["firstMessage"] = first_messages_map.get(lookup_key)
 
             formatted_calcs.append(calc)
 

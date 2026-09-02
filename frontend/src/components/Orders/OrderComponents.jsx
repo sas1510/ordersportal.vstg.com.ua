@@ -448,7 +448,7 @@ const statusPanelClass = (() => {
           >
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
               <div className="comments-text-wrapper-last ">
-               {calc.message || calc.firstMessage || t('calc.no_comments')}
+               {calc.message || t('calc.no_comments')}
               </div>
             </div>
           </div>

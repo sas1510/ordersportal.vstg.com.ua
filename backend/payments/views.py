@@ -171,6 +171,7 @@ from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
 from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
 from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
+from backend.utils.finance_access import finance_access_denied_response
 
 # import logging
 import time
@@ -224,6 +225,10 @@ def get_maintenance_json_response():
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_payment_status_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -344,6 +349,10 @@ def execute_payment_page_procedure(contractor_binary):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_dealer_payment_page_data_view(request):  # Синхронна для сумісності з DRF
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -466,6 +475,10 @@ def get_dealer_payment_page_data_view(request):  # Синхронна для с�
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def get_dealer_advance_balance(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
 
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "api_key_user"
@@ -590,6 +603,10 @@ def get_dealer_advance_balance(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def export_payment_status_excel(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
 
     start_time = time.time()
 
@@ -842,6 +859,10 @@ def dealer_bills_add_info(contractor_guid: str, is_branch: bool = False):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def dealer_bills_add_info_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -922,6 +943,10 @@ def dealer_bills_add_info_view(request):
 @permission_classes([IsAuthenticatedOr1CApiKey])
 @safe_view
 def customer_bills_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -1070,6 +1095,10 @@ def get_contractor_guid_from_db(user):
 @api_view(["POST"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def create_invoice(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -1150,6 +1179,10 @@ def create_invoice(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def make_payment_from_advance(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
     maintenance_response = get_maintenance_json_response()
     if maintenance_response is not None:
         return maintenance_response
@@ -1237,6 +1270,10 @@ class GetBillPDF(APIView):
 
 
     def post(self, request, bill_guid):
+        finance_denied = finance_access_denied_response(request)
+        if finance_denied is not None:
+            return finance_denied
+
         start_time = time.time()
         user_name = request.user.username
         
@@ -1339,6 +1376,10 @@ from rest_framework import serializers
 @permission_classes([IsAuthenticated]) 
 @safe_view 
 def get_partner_full_data_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
 
     start_time = time.time()
     user_name = request.user.username if request.user.is_authenticated else "unknown"

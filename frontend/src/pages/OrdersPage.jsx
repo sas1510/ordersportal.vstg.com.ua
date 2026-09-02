@@ -615,6 +615,10 @@ const PortalOriginal = () => {
         calc.dealer || calc.organizationName || "",
       ).toLowerCase();
 
+      const firstComment = String(
+        calc.firstMessage || calc.sourceComment || "",
+      ).toLowerCase();
+
       const hasMatchingOrder = (calc.orders || []).some((order) =>
         String(order.number || "")
           .toLowerCase()
@@ -624,6 +628,7 @@ const PortalOriginal = () => {
       return (
         calculationNumber.includes(normalizedSearch) ||
         dealerName.includes(normalizedSearch) ||
+        firstComment.includes(normalizedSearch) ||
         hasMatchingOrder
       );
     });
@@ -778,6 +783,10 @@ const PortalOriginal = () => {
             calc.dealer || calc.organizationName || "",
           ).toLowerCase();
 
+          const firstComment = String(
+            calc.firstMessage || calc.sourceComment || "",
+          ).toLowerCase();
+
           const orders = Array.isArray(calc.orders)
             ? calc.orders
             : [];
@@ -785,6 +794,7 @@ const PortalOriginal = () => {
           return (
             calculationNumber.includes(normalizedName) ||
             dealerName.includes(normalizedName) ||
+            firstComment.includes(normalizedName) ||
             orders.some((order) =>
               String(order.number || "")
                 .toLowerCase()
@@ -833,13 +843,19 @@ const PortalOriginal = () => {
       return;
     }
 
-    const matchedCalculation = fullFiltered.find((calc) =>
-      Array.isArray(calc.orders) &&
-      calc.orders.some((order) =>
-        String(order.number || "")
+    const matchedCalculation = fullFiltered.find(
+      (calc) =>
+        String(calc.firstMessage || calc.sourceComment || "")
           .toLowerCase()
-          .includes(normalizedSearch),
-      ),
+          .includes(normalizedSearch) ||
+        (
+          Array.isArray(calc.orders) &&
+          calc.orders.some((order) =>
+            String(order.number || "")
+              .toLowerCase()
+              .includes(normalizedSearch),
+          )
+        ),
     );
 
     if (!matchedCalculation) {

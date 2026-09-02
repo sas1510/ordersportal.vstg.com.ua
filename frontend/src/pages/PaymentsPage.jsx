@@ -675,13 +675,14 @@ export default function PaymentsPage() {
         throw new Error("Batch payment was not confirmed by 1C");
       }
 
-      await new Promise((resolve) => window.setTimeout(resolve, 5000));
-      await loadData();
       setBatchSelection({});
       setBatchAmountDrafts({});
       setBatchPaymentOpen(false);
       addNotification(
-        t("payments_page.notifications.batch_payment_success", "Оплату вибраних замовлень виконано!"),
+        t(
+          "payments_page.notifications.batch_payment_pending_refresh",
+          "Рознесення авансу успішно виконано. Будь ласка, зачекайте 2–3 хвилини на оновлення даних щодо коштів.",
+        ),
         "success",
       );
     } catch {
@@ -698,7 +699,6 @@ export default function PaymentsPage() {
     batchContractId,
     batchSelectedOrders,
     batchSubmitting,
-    loadData,
     t,
   ]);
 
@@ -712,10 +712,14 @@ export default function PaymentsPage() {
       if (response?.data?.success !== true) {
         throw new Error("Payment was not confirmed by 1C");
       }
-      await new Promise((resolve) => window.setTimeout(resolve, 5000));
-      await loadData();
       closeModal();
-      addNotification(t("payments_page.notifications.payment_success"), "success");
+      addNotification(
+        t(
+          "payments_page.notifications.payment_pending_refresh",
+          "Рознесення авансу успішно виконано. Будь ласка, зачекайте 2–3 хвилини на оновлення даних щодо коштів.",
+        ),
+        "success",
+      );
     } catch {
       addNotification(t("payments_page.notifications.payment_error"), "warning");
     }

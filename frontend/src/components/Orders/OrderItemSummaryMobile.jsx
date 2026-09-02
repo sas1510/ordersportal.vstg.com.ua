@@ -15,6 +15,7 @@ import PaymentModal from "./PaymentModal";
 
 import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
+import { hasFinanceAccess } from "../../utils/financeAccess";
 
 import { useTranslation } from "react-i18next";
 
@@ -61,6 +62,7 @@ export default React.memo(function OrderItemSummaryMobile({
   // ------------------------------------
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const { isAdmin, isBackoffice, isManager } = useAuthGetRole();
+  const canViewFinance = hasFinanceAccess();
   const canConfirmOrder = !isBackoffice || isManager || isAdmin;
   const canPayOrder = !isBackoffice || isManager || isAdmin;
 
@@ -559,16 +561,18 @@ export default React.memo(function OrderItemSummaryMobile({
               {t("order_mobile.buttons.confirm")}
             </button>
 
-            <button
+            {canViewFinance && (
+              <button
               type="button"
               className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--pay"
-              disabled={!buttonState.pay}
-              onClick={openPaymentModal}
+              disabled={!buttonState.pay || !canViewFinance}
+              onClick={canViewFinance ? openPaymentModal : undefined}
             >
               {debtAmount <= 0
                 ? t("order_status.paid", { defaultValue: "Сплачено" })
                 : t("order_mobile.buttons.pay")}
             </button>
+              )}
           </>
         ) : (
           <div className="col-span-2" />
@@ -724,7 +728,7 @@ export default React.memo(function OrderItemSummaryMobile({
         onSave={handleReorderSave}
       />
 
-      {isPaymentOpen && !isSketchOrder && (
+      {canViewFinance && isPaymentOpen && !isSketchOrder && (
         <PaymentModal
           order={{
             OrderNumber: order.number,

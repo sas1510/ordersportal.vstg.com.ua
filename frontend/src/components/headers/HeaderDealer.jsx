@@ -36,6 +36,8 @@
 //   const navigate = useNavigate();
 //   const location = useLocation();
 //   const { logout } = useContext(AuthContext);
+//   const { user } = useContext(RoleContext);
+//   const canViewFinance = hasFinanceAccess(user);
 //   const { theme, toggleTheme } = useTheme();
 //   const { addNotification } = useNotification();
 
@@ -113,7 +115,19 @@
 //   const [fullName, setFullName] = useState(cached?.full_name ?? "Завантаження...");
 //   const [currency, setCurrency] = useState(cached?.currency ?? "грн");
 
-//   // 2. Фонове оновлення через API
+//   useEffect(() => {
+//     if (user?.full_name || user?.username) {
+//       setFullName(user.full_name || user.username);
+//     }
+//   }, [user?.full_name, user?.username]);
+
+//   useEffect(() => {
+//     if (user?.full_name || user?.username) {
+//       setFullName(user.full_name || user.username);
+//     }
+//   }, [user?.full_name, user?.username]);
+
+  // 2. Фонове оновлення через API
 //   useEffect(() => {
 //     let isMounted = true;
 
@@ -603,6 +617,8 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from "./LanguageSwitcher";
 import { createPortal } from "react-dom";
 import { AppIcon } from "../Icons/AppIcon";
+import { RoleContext } from "../../context/RoleContext";
+import { hasFinanceAccess } from "../../utils/financeAccess";
 import { 
   Ticket, 
   ShoppingBag, 
@@ -624,6 +640,8 @@ export default function HeaderDealer() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useContext(AuthContext);
+  const { user } = useContext(RoleContext);
+  const canViewFinance = hasFinanceAccess(user);
   const { addNotification } = useNotification();
   const { theme, toggleTheme } = useTheme();
   const currentLogo = theme === "dark" ? logoDark : logo;
@@ -639,13 +657,17 @@ export default function HeaderDealer() {
     { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos", icon: Video },
     // { title: t('nav.faq_short'), mobileTitle: t('nav.faq'), to: "/faq", icon: CircleHelp },
     { title: t('nav.finance_analytics_short'), mobileTitle: t('nav.finance_analytics'), to: "/statistics", icon: BarChart3  },
-    { title: t('nav.payment_short'), mobileTitle: t('nav.payment'), to: "/payment", icon: CreditCard },
-  ], [t]);
+    canViewFinance && { title: t('nav.payment_short'), mobileTitle: t('nav.payment'), to: "/payment", icon: CreditCard },
+  ].filter(Boolean), [t, canViewFinance]);
 
-  const FINANCE_SUBMENU = useMemo(() => [
-    { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
-    { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
-  ], [t]);
+  const FINANCE_SUBMENU = useMemo(() => (
+    canViewFinance
+      ? [
+          { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
+          { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
+        ]
+      : []
+  ), [t, canViewFinance]);
 
   // --- СТАН ДАНИХ ---
   const [unreadCount, setUnreadCount] = useState(0);
@@ -694,12 +716,31 @@ export default function HeaderDealer() {
   })();
 
   const [balance, setBalance] = useState(cached?.sum ?? cached?.my_wallet ?? 0);
-  const [fullName, setFullName] = useState(cached?.full_name ?? cached?.my_name ?? "Завантаження...");
+  const [fullName, setFullName] = useState(user?.full_name || cached?.full_name || cached?.my_name || "Завантаження...");
   const [currency, setCurrency] = useState(cached?.currency ?? "грн");
   const [debtAmount, setDebtAmount] = useState(cached?.debt_sum ?? 0);
 
+  useEffect(() => {
+    if (user?.full_name || user?.username) {
+      setFullName(user.full_name || user.username);
+    }
+  }, [user?.full_name, user?.username]);
+
+  useEffect(() => {
+    if (user?.full_name || user?.username) {
+      setFullName(user.full_name || user.username);
+    }
+  }, [user?.full_name, user?.username]);
+
   // 2. Фонове оновлення через API
   useEffect(() => {
+    if (!canViewFinance) {
+      localStorage.removeItem(BALANCE_CACHE_KEY);
+      setBalance(0);
+      setDebtAmount(0);
+      return undefined;
+    }
+
     let isMounted = true;
 
     async function fetchBalance() {
@@ -737,7 +778,7 @@ export default function HeaderDealer() {
 
     fetchBalance();
     return () => { isMounted = false; };
-  }, []);
+  }, [canViewFinance]);
 
   useEffect(() => {
     fetchInitialData();
@@ -908,7 +949,7 @@ export default function HeaderDealer() {
                     </li>
                   ))}
                 
-                <li 
+                {canViewFinance && <li 
   className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" 
   ref={financeRef}
 >
@@ -946,7 +987,7 @@ export default function HeaderDealer() {
       ))}
     </ul>
   )}
-</li>
+</li>}
               </ul>
             </nav>
 
@@ -967,7 +1008,8 @@ export default function HeaderDealer() {
                     balance={balance} 
                     debtAmount={debtAmount}
                     currency={currency} 
-                    fullName={fullName} 
+                    fullName={fullName}
+                    showFinanceInfo={canViewFinance} 
                   />
                 </button>
 
@@ -1102,7 +1144,7 @@ export default function HeaderDealer() {
               );
             })}
 
-            <div className="relative flex flex-col w-full">
+            {canViewFinance && <div className="relative flex flex-col w-full">
               <button
                 onClick={() => setShowFinanceMenu(!showFinanceMenu)}
                 className={`w-full py-3 px-[15%] flex items-center group ${
@@ -1143,7 +1185,7 @@ export default function HeaderDealer() {
                   })}
                 </div>
               )}
-            </div>
+            </div>}
           </nav>
 
           <div className="mobile-side-menu-profile bg-[#EEEEEE] relative shrink-0 w-full flex flex-col transition-all mt-2 duration-300">

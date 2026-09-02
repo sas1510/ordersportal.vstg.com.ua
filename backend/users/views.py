@@ -857,6 +857,10 @@ def get_balance_view(request):  # Синхронна для DRF
     start_time = time.time()
     user = request.user
 
+    if not bool(getattr(user, "permit_finance_info", False)):
+        logger.warning(f"Balance access denied by PermitFinanceInfo for {user.username}")
+        return JsonResponse({"detail": "Доступ до фінансової інформації вимкнено."}, status=403)
+
     # Швидка синхронна перевірка прав, не заходячи в асинхронний контекст
     if getattr(user, 'role', None) not in ['customer']:
         logger.warning(f"Balance access denied for role {getattr(user, 'role', 'None')}: {user.username}")
@@ -1236,6 +1240,7 @@ def get_all_users_view(request):
                 "email": u.email,
                 "role": u.role,
                 "is_active": u.is_active,
+                "permit_finance_info": bool(u.permit_finance_info),
                 "phone_number": u.phone_number,
                 "expire_date": u.expire_date,
                 "is_invited": invites_map.get(u.user_id_1C) is not None,
@@ -1669,6 +1674,7 @@ def get_current_user(request):
         "username": user.username,
         "full_name": user.full_name,
         "role": user.role,
+        "permit_finance_info": bool(user.permit_finance_info),
 
         "user_id_1c": user_guid_1c,
 

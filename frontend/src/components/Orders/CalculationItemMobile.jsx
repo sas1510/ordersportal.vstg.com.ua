@@ -493,7 +493,7 @@ export const CalculationItemMobile = React.memo(
 
     <div className="flex flex-col h-full justify-between">
       <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
-        {calc.message || calc.firstMessage ||  t("calc.no_comments")}
+        {calc.message ||  t("calc.no_comments")}
       </div>
     </div>
   </div>

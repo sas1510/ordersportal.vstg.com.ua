@@ -16,6 +16,7 @@ import SupportVideoUploadPage from "./pages/SupportVideoUploadPage";
 
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
+import { hasFinanceAccess } from "./utils/financeAccess";
 import { useCacheBuster } from "./hooks/useCacheBuster";
 import SupportChatWidget from "./components/SupportChatWidget";
 import PortalAnnouncementModal from "./components/PortalAnnouncementModal";
@@ -69,7 +70,7 @@ const pathToRegExp = (pattern) =>
   new RegExp(`^${pattern.replace(/:[^/]+/g, "[^/]+")}$`);
 
 // function AppRoutes() {
-//   const { role, isLoading } = useContext(RoleContext);
+//   const { role, user, isLoading } = useContext(RoleContext);
 //   const location = useLocation();
 
 //   // 1. Поки вантажиться роль - СТОЇМО НА МІСЦІ (показуємо лоадер)
@@ -143,7 +144,7 @@ const pathToRegExp = (pattern) =>
 
 function AppRoutes() {
   useCacheBuster();
-  const { role, isLoading } = useContext(RoleContext);
+  const { role, user, isLoading } = useContext(RoleContext);
   const location = useLocation();
   const { t } = useTranslation();
   const normalizedRole = normalizeRole(role);
@@ -207,6 +208,14 @@ function AppRoutes() {
   } else if (isDealerRole(normalizedRole)) {
     LayoutComponent = DealerLayout;
     routes = dealerRoutes;
+  }
+  if (isDealerRole(normalizedRole) && !hasFinanceAccess(user)) {
+    const financePaths = new Set([
+      "/payment",
+      "/finance/cash-flow",
+      "/finance/customer-bills",
+    ]);
+    routes = routes.filter(({ path }) => !financePaths.has("/" + path));
   }
   // } else if (["manager", "director", "regionalManager"].includes(role)) {
   //   LayoutComponent = AdminLayout;
