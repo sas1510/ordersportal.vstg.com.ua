@@ -4,6 +4,7 @@ import json
 import base64
 import time
 import collections
+import copy
 import hashlib
 import uuid
 import mimetypes
@@ -103,6 +104,23 @@ try:
     )
 except (TypeError, ValueError):
     ORDERSPORTAL_AI_TRANSLATE_TIMEOUT = 8.0
+
+
+def calculation_idempotency_payload_hash(payload: dict) -> str:
+    """Hash only the semantic create payload; createdAt changes on retries."""
+    normalized_payload = copy.deepcopy(payload)
+    for calculation in normalized_payload.get("calculations", []):
+        if isinstance(calculation, dict):
+            calculation.pop("createdAt", None)
+
+    return hashlib.sha256(
+        json.dumps(
+            normalized_payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 def get_maintenance_json_response():
@@ -3242,6 +3260,7 @@ def build_1c_payload(
     contractor_guid,
     delivery_address_guid=None,
     delivery_address_coordinates=None,
+    delivery_is_pickup=False,
     client_address: dict | None = None,
     file_name=None,
     file_b64=None,
@@ -3291,7 +3310,14 @@ def build_1c_payload(
 
     calc = payload["calculations"][0]
 
-    if delivery_address_guid:
+    if delivery_is_pickup:
+        calc["address"] = {
+            "addressGUID": None,
+            "addressName": "Самовивіз",
+            "addressCoordinates": {"lat": None, "lng": None},
+            "addressAdditionalInfo": "",
+        }
+    elif delivery_address_guid:
         coords = delivery_address_coordinates or {}
 
         calc["address"] = {
@@ -3332,6 +3358,7 @@ def build_1c_update_payload(
     comment=None,
     delivery_address_guid=None,
     delivery_address_coordinates=None,
+    delivery_is_pickup=False,
     client_address: dict | None = None,
     file_name=None,
     file_b64=None,
@@ -3389,7 +3416,14 @@ def build_1c_update_payload(
     if all_files:
         calc["file"] = all_files
 
-    if include_address and delivery_address_guid:
+    if include_address and delivery_is_pickup:
+        calc["address"] = {
+            "addressGUID": None,
+            "addressName": "Самовивіз",
+            "addressCoordinates": {"lat": None, "lng": None},
+            "addressAdditionalInfo": "",
+        }
+    elif include_address and delivery_address_guid:
         coords = delivery_address_coordinates or {}
 
         calc["address"] = {
@@ -3531,205 +3565,10 @@ def extract_calculation_guid(result) -> str | None:
 #             return response.json()
 
 #         except Exception as e:
-
-#             logger.error(f"1C Integration Failed", exc_info=True, extra={
-#                 'tags': {'service': '1c-api', 'action': 'create_calculation'}
-#             })
+#             logger.error("1C Integration Failed", exc_info=True)
 #             raise
-
-
-
-
-#     def create(self, request):
-#         # logger.info("CreateCalculation START", extra={
-#         #     "tags": {
-#         #         "action": "create_calculation",
-#         #         "stage": "start"
-#         #     }
-#         # })
-
-#         serializer = CalculationCreateSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         data = serializer.validated_data
-
-#         contractor_bin, contractor_guid = resolve_contractor(
-#             request,
-#             allow_admin=True,
-#             admin_param="contractor_guid",
-#         )
-
-#     #     logger.info("Contractor resolved", extra={
-#     #     "tags": {
-#     #         "contractor_guid": str(contractor_guid),
-#     #     }
-#     # })
-
-#         file = data["file"]
-
-#         payload = build_1c_payload(
-#             order_number=data["order_number"],
-#             items_count=data["items_count"],
-#             comment=data.get("comment", ""),
-#             contractor_guid=contractor_guid,
-#             delivery_address_guid=data.get("delivery_address_guid"),
-#             delivery_address_coordinates=data.get("delivery_address_coordinates"),
-#             client_address=data.get("client_address"),
-#             file_name=file["fileName"],
-#             file_b64=file["fileDataB64"],
-#         )
-
-#         # logger.info("Payload built for 1C", extra={
-#         #     "tags": {
-#         #         "action": "create_calculation",
-#         #         "stage": "payload_ready",
-#         #         "order_number": data.get("order_number"),
-#         #     }
-#         # })
-
-#         # # ---------- 1C CALL ----------
-#         # logger.info("Sending request to 1C", extra={
-#         #     "tags": {
-#         #         "service": "1c",
-#         #         "action": "request_send"
-#         #     }
-#         # })
-
-#         result = self._send_to_1c(payload)
-
-
-#         # logger.info("1C response received", extra={
-#         #     "tags": {
-#         #         "service": "1c",
-#         #         "stage": "response_received",
-#         #         "success": result.get("success", True),
-#         #     }
-#         # })
-
-
-#         if not result.get("success", True):
-#             logger.error("1C returned error", extra={
-#                 "tags": {
-#                     "service": "1c",
-#                     "status": "error",
-#                 }
-#             })
-#             raise ValidationError(
-#                 {
-#                     "detail": "1С повернула помилку",
-#                     "1c_response": result,
-#                     "payload_sent_to_1c": payload,
-#                 }
-#             )
-        
-#         calculation_guid = extract_calculation_guid(result)
-
-#         if not calculation_guid:
-#             logger.error("Missing calculation GUID from 1C response", extra={
-#                 "tags": {
-#                     "service": "1c",
-#                     "error": "missing_guid"
-#                 }
-#             })
-
-#             raise ValidationError({
-#                 "detail": "1С не повернула calculationGUID",
-#                 "1c_response": result,
-#             })
-
-     
-#         # writer_guid = None
-#         # if request.user and request.user.is_authenticated:
-#         #     writer_guid = request.user.user_id_1C
-
-#         # save_calculation_comment(
-#         #     calculation_bin=guid_to_1c_bin(calculation_guid),
-#         #     comment=data.get("comment", ""),
-#         #     writer_guid=writer_guid,
-#         # )
-#         try:
-           
-#             calculation_bin = guid_to_1c_bin(str(calculation_guid))
-#             main_manager_bin = get_contractor_main_manager_bin(contractor_bin)
-          
-#             final_recipient = main_manager_bin if main_manager_bin else contractor_bin
-            
-#             # writer_bin = None
-#             # if request.user and request.user.is_authenticated:
-#             #     # Отримуємо значення
-#             #     raw_writer_id = getattr(request.user, 'user_id_1C', None)
-                
-#                 # if raw_writer_id:
-#                     # ВИПРАВЛЕННЯ: якщо raw_writer_id це bytes, декодуємо в str, 
-#                     # якщо це str, функція guid_to_1c_bin має його обробити.
-#                     # Але судячи з помилки, функція хоче bytes для методу replace? 
-#                     # Це дивно для GUID. Спробуємо примусово привести до str:
-#                     # writer_bin = guid_to_1c_bin(str(raw_writer_id))
-
-#             # logger.info("Creating ChatMessage", extra={
-#             #     "tags": {
-#             #         "chat": "create",
-#             #         "calculation_guid": str(calculation_guid)
-#             #     }
-#             # })
-
-
-#             ChatMessage.objects.create(
-#                 chat_id=f"1_{calculation_guid}", 
-#                 related_object_id=calculation_bin,
-#                 author=contractor_bin,                      
-#                 recipient=final_recipient,               
-#                 text=data.get("comment"), 
-#                 is_read=False,
-#                 is_sent_vtg=True,
-#                 is_notification=False,
-#                 # event_type="CalculationCreated", # Додав, бо в моделі воно обов'язкове
-#                 transaction_type_id=1 
-#             )
-
-#             # logger.info("ChatMessage created successfully", extra={
-#             #     "tags": {
-#             #         "chat": "success",
-#             #         "calculation_guid": str(calculation_guid)
-#             #     }
-#             # })
-
-#         except Exception as e:
-#             import traceback
-#             logger.error(f"Помилка створення ChatMessage для GUID {calculation_guid}: {str(e)}")
-#             logger.error(traceback.format_exc())
-
-#         # save_message(
-#         #     transaction_type_id=serializer.validated_data["transaction_type_id"],
-#         #     base_transaction_guid=serializer.validated_data.get("base_transaction_guid"),
-#         #     message_text=serializer.validated_data["comment"],
-#         #     writer_guid=writer_guid,
-#         # )
-
-#         logger.info(f"CreateCalculation END", extra={
-#             "tags": {
-#                 "action": "create_calculation",
-#                 "stage": "end",
-#                 "calculation_guid": str(calculation_guid),
-#                 "contractor_guid": str(contractor_guid)
-#             }
-#         })
-
-
-
-#         return Response(
-#             {
-#                 "success": True,
-#                 "calculation_guid": result.get("calculationGUID"),
-
-#                 "payload_sent_to_1c": payload,
-
-      
-#                 "result_1c": result,
-#             },
-#             status=201,
-#         )
-
-
+#
+#
 class CreateCalculationViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOr1CApiKey]
 
@@ -3752,7 +3591,6 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         try:
             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
-
             response = requests.post(
                 settings.ONE_C_URL,
                 json=payload,
@@ -3760,32 +3598,69 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                     "Content-Type": "application/json; charset=utf-8",
                     "Accept": "application/json",
                     "Authorization": f"Basic {auth_b64}",
-                    "Query": "CreateCalculation"
+                    "Query": "CreateCalculation",
                 },
                 timeout=30,
                 verify=settings.ONE_C_VERIFY_SSL,
             )
 
             duration = time.time() - start_time
+            response_text = (response.text or "")[:2000]
             logger.info("CreateCalculation response received from 1C", extra={
-                'tags': {
-                    'action': 'create_calculation',
-                    'stage': 'response_from_1c',
-                    'service': '1c-api',
-                    'duration_sec': round(duration, 4),
-                    'status_code': response.status_code,
-                    'order_number': calculation.get("calculationNumber"),
+                "tags": {
+                    "action": "create_calculation",
+                    "stage": "response_from_1c",
+                    "service": "1c-api",
+                    "duration_sec": round(duration, 4),
+                    "status_code": response.status_code,
+                    "order_number": calculation.get("calculationNumber"),
                 }
             })
-
-            response.raise_for_status()
+            if not response.ok:
+                logger.error("CreateCalculation 1C request rejected", extra={
+                    "tags": {
+                        "service": "1c-api",
+                        "action": "create_calculation",
+                        "http_status": response.status_code,
+                        "response_text": response_text,
+                        "order_number": calculation.get("calculationNumber"),
+                        "has_client_address": bool(calculation.get("recipient")),
+                    }
+                })
+                raise ValidationError({
+                    "detail": "Відповідь 1С містить помилку",
+                    "query": "CreateCalculation",
+                    "status_code": response.status_code,
+                    "response_text": response_text,
+                })
             return response.json()
 
-        except Exception as e:
-            logger.error("1C Integration Failed", exc_info=True, extra={
-                'tags': {'service': '1c-api', 'action': 'create_calculation'}
-            })
+        except ValidationError:
             raise
+        except requests.exceptions.RequestException as exc:
+            one_c_response = getattr(exc, "response", None)
+            response_status = getattr(one_c_response, "status_code", None)
+            response_text = (getattr(one_c_response, "text", "") or "")[:2000]
+            logger.error("CreateCalculation 1C connection failed", exc_info=True, extra={
+                "tags": {
+                    "service": "1c-api",
+                    "action": "create_calculation",
+                    "http_status": response_status,
+                    "response_text": response_text,
+                }
+            })
+            raise ValidationError({
+                "detail": "Помилка з’єднання з 1С",
+                "query": "CreateCalculation",
+                "status_code": response_status,
+                "response_text": response_text,
+            })
+        except ValueError as exc:
+            logger.error("CreateCalculation 1C returned invalid JSON", exc_info=True)
+            raise ValidationError({
+                "detail": "1С повернула некоректну відповідь",
+                "query": "CreateCalculation",
+            })
 
     @extend_schema(
         summary="Створення прорахунку та відправка в 1С",
@@ -3851,6 +3726,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             contractor_guid=contractor_guid,
             delivery_address_guid=data.get("delivery_address_guid"),
             delivery_address_coordinates=data.get("delivery_address_coordinates"),
+            delivery_is_pickup=data.get("delivery_is_pickup", False),
             client_address=data.get("client_address"),
             file_name=file["fileName"],
             file_b64=file["fileDataB64"],
@@ -3884,9 +3760,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            payload_hash = hashlib.sha256(
-                json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-            ).hexdigest()
+            payload_hash = calculation_idempotency_payload_hash(payload)
             idempotency_record, created = CalculationIdempotencyRecord.objects.get_or_create(
                 idempotency_key=parsed_key,
                 defaults={"payload_hash": payload_hash, "status": "sending"},
@@ -3905,29 +3779,58 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                         "idempotency_key": str(parsed_key), "order_number": data.get("order_number", ""),
                     }
                 })
-                if idempotency_record.payload_hash != payload_hash:
-                    logger.warning("CreateCalculation idempotency key reused with different payload", extra={
-                        "tags": {"action": "create_calculation", "stage": "idempotency_check", "status": "payload_conflict", "idempotency_key": str(parsed_key)}
-                    })
-                    return Response(
-                        {"error": "Idempotency-Key is already used for another request"},
-                        status=status.HTTP_409_CONFLICT,
-                    )
                 if idempotency_record.status == "succeeded" and idempotency_record.response_body:
+                    if idempotency_record.payload_hash != payload_hash:
+                        logger.warning("CreateCalculation idempotency key reused after success with different payload", extra={
+                            "tags": {"action": "create_calculation", "stage": "idempotency_check", "status": "payload_conflict", "idempotency_key": str(parsed_key)}
+                        })
+                        return Response(
+                            {"error": "Idempotency-Key is already used for another request"},
+                            status=status.HTTP_409_CONFLICT,
+                        )
                     logger.info("CreateCalculation returning saved idempotent response", extra={
                         "tags": {"action": "create_calculation", "stage": "idempotency_replay", "idempotency_key": str(parsed_key), "calculation_guid": str(idempotency_record.calculation_guid)}
                     })
                     return Response(idempotency_record.response_body, status=status.HTTP_201_CREATED)
-                logger.warning("CreateCalculation duplicate request blocked because final result is unknown", extra={
-                    "tags": {"action": "create_calculation", "stage": "idempotency_replay", "status": idempotency_record.status, "idempotency_key": str(parsed_key)}
-                })
-                return Response(
-                    {"error": "This calculation request is already being processed"},
-                    status=status.HTTP_409_CONFLICT,
-                )
+
+                if idempotency_record.status in {"uncertain", "failed"}:
+                    # A failed 1C attempt is safe to submit again with the
+                    # same key. The new request may have a refreshed createdAt.
+                    idempotency_record.payload_hash = payload_hash
+                    idempotency_record.status = "sending"
+                    idempotency_record.last_error = ""
+                    idempotency_record.save(
+                        update_fields=["payload_hash", "status", "last_error", "updated_at"]
+                    )
+                    logger.info("CreateCalculation retrying failed idempotent request", extra={
+                        "tags": {"action": "create_calculation", "stage": "idempotency_replay", "status": "retry", "idempotency_key": str(parsed_key)}
+                    })
+                else:
+                    logger.warning("CreateCalculation duplicate request blocked because it is still sending", extra={
+                        "tags": {"action": "create_calculation", "stage": "idempotency_replay", "status": idempotency_record.status, "idempotency_key": str(parsed_key)}
+                    })
+                    return Response(
+                        {"error": "This calculation request is already being processed"},
+                        status=status.HTTP_409_CONFLICT,
+                    )
 
         try:
             result = self._send_to_1c(payload)
+        except ValidationError as exc:
+            if idempotency_record:
+                idempotency_record.status = "uncertain"
+                idempotency_record.last_error = str(exc)[:1000]
+                idempotency_record.save(update_fields=["status", "last_error", "updated_at"])
+            logger.error("CreateCalculation 1C request failed", exc_info=True, extra={
+                "tags": {"action": "create_calculation", "stage": "send_to_1c", "status": "error", "order_number": data.get("order_number", "")}
+            })
+            return Response(
+                {
+                    "error": "Не вдалося створити прорахунок в 1С. Спробуйте повторити запит.",
+                    "details_from_1c": getattr(exc, "message_dict", None) or getattr(exc, "messages", None) or str(exc),
+                },
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
         except Exception as exc:
             if idempotency_record:
                 idempotency_record.status = "uncertain"
@@ -3939,6 +3842,10 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             raise
 
         if not result.get("success", True):
+            if idempotency_record:
+                idempotency_record.status = "failed"
+                idempotency_record.last_error = str(result)[:1000]
+                idempotency_record.save(update_fields=["status", "last_error", "updated_at"])
             logger.error("1C returned error", extra={
                 "tags": {"service": "1c", "status": "error"}
             })
@@ -4050,6 +3957,7 @@ class UpdateCalculationView(APIView):
             "delivery_address_guid" in raw_data
             or "delivery_address_coordinates" in raw_data
             or "client_address" in raw_data
+            or "delivery_is_pickup" in raw_data
         )
         include_recipient = "client_address" in raw_data
         include_file = "file" in raw_data
@@ -4078,6 +3986,7 @@ class UpdateCalculationView(APIView):
             comment=data.get("comment"),
             delivery_address_guid=data.get("delivery_address_guid"),
             delivery_address_coordinates=data.get("delivery_address_coordinates"),
+            delivery_is_pickup=data.get("delivery_is_pickup", False),
             client_address=data.get("client_address"),
             file_name=file_data.get("fileName"),
             file_b64=file_data.get("fileDataB64"),

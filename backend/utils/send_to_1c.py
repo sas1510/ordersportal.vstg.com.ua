@@ -1,7 +1,12 @@
 import base64
+import logging
+
 import requests
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
+
+
+logger = logging.getLogger(__name__)
 
 
 def send_to_1c(
@@ -52,11 +57,27 @@ def send_to_1c(
         response.raise_for_status()
 
     except requests.exceptions.RequestException as e:
+        one_c_response = getattr(e, "response", None)
+        response_status = getattr(one_c_response, "status_code", None)
+        response_text = (getattr(one_c_response, "text", "") or "")[:2000]
+
+        logger.error(
+            "1C request failed",
+            exc_info=True,
+            extra={
+                "tags": {
+                    "component": "1c",
+                    "query": query,
+                    "http_status": response_status,
+                    "response_text": response_text,
+                }
+            },
+        )
         raise ValidationError({
-            "detail": "Помилка зʼєднання з 1С",
-            "error": str(e),
+            "detail": "Відповідь 1С містить помилку",
             "query": query,
-            "payload_sent_to_1c": payload,
+            "status_code": response_status,
+            "response_text": response_text,
         })
 
     try:

@@ -73,6 +73,7 @@ class CalculationCreateSerializer(serializers.Serializer):
     comment = serializers.CharField(required=False, allow_blank=True, default="")
     
     delivery_address_guid = serializers.UUIDField(required=False, allow_null=True)
+    delivery_is_pickup = serializers.BooleanField(required=False, default=False)
     
     # Використовуємо DictField, якщо фронтенд передає об'єкт виду {"lat": 50.45, "lng": 30.52}
     delivery_address_coordinates = serializers.DictField(
@@ -102,6 +103,7 @@ class CalculationUpdateSerializer(serializers.Serializer):
     comment = serializers.CharField(required=False, allow_blank=True)
 
     delivery_address_guid = serializers.UUIDField(required=False, allow_null=True)
+    delivery_is_pickup = serializers.BooleanField(required=False, default=False)
     delivery_address_coordinates = serializers.DictField(
         required=False, allow_null=True
     )

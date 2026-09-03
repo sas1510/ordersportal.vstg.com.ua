@@ -45,7 +45,7 @@ const NewCalculationModal = ({
   const submitInFlightRef = useRef(false);
   const idempotencyKeyRef = useRef(null);
 
-  const [addressMode, setAddressMode] = useState("dealer"); // dealer | client
+  const [addressMode, setAddressMode] = useState("dealer"); // dealer | client | pickup
 
   const [dealerCoords, setDealerCoords] = useState(null); // { lat, lng }
 
@@ -75,6 +75,10 @@ const NewCalculationModal = ({
 
   useEffect(() => {
     if (!isOpen) return;
+
+    // A newly opened form is a new create operation. Retries within the
+    // same open form continue using this key until a definite conflict.
+    idempotencyKeyRef.current = null;
 
     setOrderNumber(
       String(
@@ -507,7 +511,48 @@ const NewCalculationModal = ({
                       delivery_address_coordinates: dealerCoords,
                     }),
                   }
-                : {
+                : addressMode === "pickup"
+                  ? { delivery_is_pickup: true }
+                  : addressMode === "client"
+                    ? {
+                      client_address: {
+                        text: customAddress.text,
+                        lat: customAddress.lat,
+                        lng: customAddress.lng,
+                        region: customAddress.region,
+                        district: customAddress.district,
+                        city: customAddress.city,
+                        street: customAddress.street,
+                        house: customAddress.house,
+                        apartment: customAddress.apartment,
+                        entrance: customAddress.entrance,
+                        floor: customAddress.floor,
+                        note: customAddress.note,
+                        full_name: customAddress.fullName,
+                        phone: customAddress.phone,
+                        extra_info: customAddress.extraInfo,
+                        contractor_guid: customAddress.contractor_guid || dealerId || null,
+                      },
+                    }
+                    : {})),
+          }
+        : {
+            ...(isManager && dealerId && { contractor_guid: dealerId }),
+            order_number: normalizedOrderNumber,
+            items_count: Number(itemsCount),
+            comment,
+            photos: convertedPhotos,
+            ...(addressMode === "dealer"
+              ? {
+                  delivery_address_guid: addressGuid,
+                  ...(dealerCoords && {
+                    delivery_address_coordinates: dealerCoords,
+                  }),
+                }
+              : addressMode === "pickup"
+                ? { delivery_is_pickup: true }
+                : addressMode === "client"
+                  ? {
                     client_address: {
                       text: customAddress.text,
                       lat: customAddress.lat,
@@ -526,41 +571,8 @@ const NewCalculationModal = ({
                       extra_info: customAddress.extraInfo,
                       contractor_guid: customAddress.contractor_guid || dealerId || null,
                     },
-                  })),
-          }
-        : {
-            ...(isManager && dealerId && { contractor_guid: dealerId }),
-            order_number: normalizedOrderNumber,
-            items_count: Number(itemsCount),
-            comment,
-            photos: convertedPhotos,
-            ...(addressMode === "dealer"
-              ? {
-                  delivery_address_guid: addressGuid,
-                  ...(dealerCoords && {
-                    delivery_address_coordinates: dealerCoords,
-                  }),
-                }
-              : {
-                  client_address: {
-                    text: customAddress.text,
-                    lat: customAddress.lat,
-                    lng: customAddress.lng,
-                    region: customAddress.region,
-                    district: customAddress.district,
-                    city: customAddress.city,
-                    street: customAddress.street,
-                    house: customAddress.house,
-                    apartment: customAddress.apartment,
-                    entrance: customAddress.entrance,
-                    floor: customAddress.floor,
-                    note: customAddress.note,
-                    full_name: customAddress.fullName,
-                    phone: customAddress.phone,
-                    extra_info: customAddress.extraInfo,
-                    contractor_guid: customAddress.contractor_guid || dealerId || null,
-                  },
-                }),
+                  }
+                  : {}),
           };
 
       if (file && mainFileBase64) {
@@ -601,6 +613,7 @@ const NewCalculationModal = ({
       onClose();
     } catch (error) {
       console.error(error);
+
       addNotification(
         <div className="flex ai-center jc-space-between gap-5" style={{ minWidth: "250px" }}>
           <div className="column">
@@ -720,6 +733,17 @@ const NewCalculationModal = ({
                     }}
                   />
                   {t("orders.newOrderModal.clientAddress")}
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    checked={addressMode === "pickup"}
+                    onChange={() => {
+                      setAddressMode("pickup");
+                      setAddressTouched(true);
+                    }}
+                  />
+                  {t("orders.newOrderModal.pickup", "Самовивіз")}
                 </label>
               </div>
 
