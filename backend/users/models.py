@@ -86,6 +86,7 @@ class CustomUser(AbstractUser):
     branch = models.ForeignKey(Branch, null=True, blank=True, on_delete=models.SET_NULL, related_name="users", db_column="BranchID")
     user_id_1C = models.BinaryField(max_length=255, null=True, blank=True, db_column='UserId1C')
     permit_finance_info = models.BooleanField(default=False, db_column='PermitFinanceInfo')
+    load_all_contractor_addresses = models.BooleanField(default=False, db_column='LoadAllContractorAddresses')
     is_branch = models.BooleanField(default=False, db_column='IsBranch')
     update_time = models.DateTimeField(auto_now=True, db_column='UpdateTime')
     old_portal_id = models.CharField(max_length=450, null=True, blank=True, db_index=True, db_column='OldPortalId')

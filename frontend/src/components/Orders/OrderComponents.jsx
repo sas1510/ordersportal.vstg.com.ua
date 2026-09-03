@@ -501,7 +501,7 @@ const statusPanelClass = (() => {
                        <img 
                     src={recipientIcon} 
                     alt="" 
-                    className={`mr-0.5 object-contain inline-block align-middle calc-summary-icon ${recipientIconClass}`} 
+                    className={`w-[20px] h-[20px] mr-0.5 object-contain inline-block align-middle calc-summary-icon ${recipientIconClass}`} 
                     title={
                       isDealerRecipient
                         ? t('calc.recipient_dealer') : t('calc.recipient_other')}

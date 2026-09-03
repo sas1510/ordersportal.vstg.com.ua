@@ -4126,16 +4126,38 @@ def get_dealer_addresses(request):
     # })
 
     try:
+        load_all_contractor_addresses = CustomUser.objects.filter(
+            user_id_1C=contractor_bin,
+            load_all_contractor_addresses=True,
+        ).exists()
 
         with connection.cursor() as cursor:
             cursor.execute(
-                "EXEC dbo.GetDealerAddresses @ContractorLink=%s",
+                "EXEC dbo.GetDealerAddressesV1 @ContractorLink=%s",
                 [contractor_bin]
             )
             columns = [c[0] for c in cursor.description]
-            rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+            all_rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
 
+        def is_default_address(value):
+            if isinstance(value, (bytes, bytearray, memoryview)):
+                return bytes(value) not in (b"", b"\x00")
+            if isinstance(value, str):
+                return value.strip().lower() in {"1", "true", "yes"}
+            return bool(value)
 
+        rows = (
+            all_rows
+            if load_all_contractor_addresses
+            else [
+                row
+                for row in all_rows
+                if is_default_address(row.get("IsDefault"))
+            ]
+        )
+
+        for row in rows:
+            row["IsDefault"] = is_default_address(row.get("IsDefault"))
         duration = time.time() - start_time
 
         # logger.info(f"Successfully retrieved {len(rows)} addresses", extra={
@@ -4148,7 +4170,11 @@ def get_dealer_addresses(request):
         #     }
         # })
 
-        return Response({"success": True, "addresses": rows})
+        return Response({
+            "success": True,
+            "load_all_contractor_addresses": load_all_contractor_addresses,
+            "addresses": rows,
+        })
 
     except Exception as e:
        
@@ -4363,7 +4389,11 @@ def get_messages(request):
 
     messages_qs = ChatMessage.objects.filter(
         related_object_id=base_transaction_bin,
-        transaction_type_id=transaction_type_id,
+        transaction_type_id__in=(
+            [transaction_type_id, 3]
+            if str(transaction_type_id) == "2"
+            else [transaction_type_id]
+        ),
         is_notification=False
     ).order_by("timestamp")
 
@@ -4420,6 +4450,7 @@ def get_messages(request):
 
         result.append({
             "id": m.id,
+            "transaction_type_id": m.transaction_type_id,
             "message": translated["message"],
             "original_message": translated["original_message"],
             "message_language": translated["message_language"],
@@ -4443,6 +4474,7 @@ def get_messages(request):
     #     }
     # })
 
+    logger.info("Chat history loaded", extra={"tags": {"action": "get_messages", "transaction_id": base_transaction_guid, "transaction_type_id": str(transaction_type_id), "user": request.user.username if request.user.is_authenticated else "api_key_user", "auth_type": auth_method, "messages_count": len(result), "duration_sec": round(duration, 4)}})
     return Response(result)
 
 

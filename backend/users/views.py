@@ -1241,6 +1241,7 @@ def get_all_users_view(request):
                 "role": u.role,
                 "is_active": u.is_active,
                 "permit_finance_info": bool(u.permit_finance_info),
+                "load_all_contractor_addresses": bool(u.load_all_contractor_addresses),
                 "phone_number": u.phone_number,
                 "expire_date": u.expire_date,
                 "is_invited": invites_map.get(u.user_id_1C) is not None,
@@ -1313,6 +1314,7 @@ from django.utils.timezone import make_aware, get_current_timezone
             ),
             "is_active": serializers.BooleanField(required=False),
             "permit_finance_info": serializers.BooleanField(required=False),
+            "load_all_contractor_addresses": serializers.BooleanField(required=False),
             "old_portal_id": serializers.CharField(required=False, allow_blank=True),
         },
     ),
@@ -1333,6 +1335,7 @@ from django.utils.timezone import make_aware, get_current_timezone
                         "expire_date": serializers.DateTimeField(allow_null=True),
                         "is_active": serializers.BooleanField(),
                         "permit_finance_info": serializers.BooleanField(),
+                        "load_all_contractor_addresses": serializers.BooleanField(),
                         "old_portal_id": serializers.CharField(allow_null=True),
                     },
                 ),
@@ -1379,13 +1382,13 @@ def admin_edit_user_view(request, user_id):
 
     allowed_fields = [
         "username", "full_name", "email", "phone_number", "role",
-        "expire_date", "is_active", "permit_finance_info", "old_portal_id"
+        "expire_date", "is_active", "permit_finance_info", "load_all_contractor_addresses", "old_portal_id"
     ]
 
     incoming = request.data.copy()
 
     # Checkboxes → bool
-    bool_fields = ["is_active", "permit_finance_info"]
+    bool_fields = ["is_active", "permit_finance_info", "load_all_contractor_addresses"]
     for field in bool_fields:
         if field in incoming:
             incoming[field] = incoming[field] in ["true", "True", True, "1", 1]
@@ -1438,6 +1441,7 @@ def admin_edit_user_view(request, user_id):
             "expire_date": user.expire_date,
             "is_active": user.is_active,
             "permit_finance_info": user.permit_finance_info,
+            "load_all_contractor_addresses": user.load_all_contractor_addresses,
             "old_portal_id": user.old_portal_id,
         }
     })
@@ -1675,6 +1679,7 @@ def get_current_user(request):
         "full_name": user.full_name,
         "role": user.role,
         "permit_finance_info": bool(user.permit_finance_info),
+        "load_all_contractor_addresses": bool(user.load_all_contractor_addresses),
 
         "user_id_1c": user_guid_1c,
 
@@ -2414,6 +2419,7 @@ class CreateInvitationView(APIView):
                 user.phone_number = data.get("phoneNumber")
                 user.expire_date = data["expireDate"]
                 user.role = normalized_role  # Зберігаємо завжди малими
+                user.load_all_contractor_addresses = False
                 user.save()
             else:
                 # --- Створення нового користувача ---
@@ -2429,6 +2435,7 @@ class CreateInvitationView(APIView):
                     is_active=False,
                     email_confirmed=False,
                     permit_finance_info=True,
+                    load_all_contractor_addresses=False,
                     date_joined=now,
                 )
 

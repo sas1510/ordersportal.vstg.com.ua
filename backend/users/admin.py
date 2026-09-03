@@ -14,7 +14,7 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Особиста інформація', {'fields': ('full_name', 'email', 'phone_number', 'role')}),
-        ('1С Інтеграція', {'fields': ('user_id_1C', 'permit_finance_info', 'old_portal_id')}),
+        ('1С Інтеграція', {'fields': ('user_id_1C', 'permit_finance_info', 'load_all_contractor_addresses', 'old_portal_id')}),
         ('Безпека та терміни', {'fields': ('is_active', 'is_staff', 'is_superuser', 'expire_date', 'email_confirmed')}),
         ('Групи та права', {'fields': ('groups', 'user_permissions')}),
         ('Важливі дати', {'fields': ('last_login', 'date_joined')}),

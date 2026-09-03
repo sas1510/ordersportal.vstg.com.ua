@@ -16,6 +16,7 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
     expire_date: user.expire_date?.slice(0, 10) ?? "",
     is_active: user.is_active,
     permit_finance_info: user.permit_finance_info,
+    load_all_contractor_addresses: user.load_all_contractor_addresses ?? false,
     old_portal_id: user.old_portal_id,
   };
 
@@ -177,6 +178,16 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
                 onChange={handleChange}
               />
               <span>Доступ до фінансів</span>
+            </label>
+
+            <label className="portal-user-edit-label portal-user-edit-checkbox-row">
+              <input
+                type="checkbox"
+                name="load_all_contractor_addresses"
+                checked={form.load_all_contractor_addresses}
+                onChange={handleChange}
+              />
+              <span>Завантажувати всі адреси контрагента</span>
             </label>
           </div>
         </div>
