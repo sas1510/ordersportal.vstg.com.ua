@@ -302,6 +302,8 @@ const NewCalculationModal = ({
     setAddressTouched(true);
   };
 
+  const isDealerAddressDefault = (guid) => addresses.find((address) => address.AddressKindGUID === guid)?.IsDefault !== false;
+
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     setFile(selected);
@@ -507,6 +509,7 @@ const NewCalculationModal = ({
               (addressMode === "dealer"
                 ? {
                     delivery_address_guid: addressGuid,
+                    delivery_address_is_default: isDealerAddressDefault(addressGuid),
                     ...(dealerCoords && {
                       delivery_address_coordinates: dealerCoords,
                     }),
@@ -545,6 +548,7 @@ const NewCalculationModal = ({
             ...(addressMode === "dealer"
               ? {
                   delivery_address_guid: addressGuid,
+                    delivery_address_is_default: isDealerAddressDefault(addressGuid),
                   ...(dealerCoords && {
                     delivery_address_coordinates: dealerCoords,
                   }),

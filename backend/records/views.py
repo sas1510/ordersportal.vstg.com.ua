@@ -1,4 +1,4 @@
-import os
+﻿import os
 import re
 import json
 import base64
@@ -3273,6 +3273,7 @@ def build_1c_payload(
     delivery_address_guid=None,
     delivery_address_coordinates=None,
     delivery_is_pickup=False,
+    delivery_address_is_default=None,
     client_address: dict | None = None,
     file_name=None,
     file_b64=None,
@@ -3339,6 +3340,8 @@ def build_1c_payload(
                 "lng": safe_float(coords.get("lng")),
             },
         }
+        if delivery_address_is_default is False:
+            calc["recipient"] = {"recipientName": "", "recipientPhone": "", "recipientAddionalInformation": "⚠️ !!! [ УВАГА ] !!! === ЗМІНЕНО ОСНОВНИЙ СКЛАД ==="}
 
     elif client_address:
         address_name = build_address_name(client_address)
@@ -3371,6 +3374,7 @@ def build_1c_update_payload(
     delivery_address_guid=None,
     delivery_address_coordinates=None,
     delivery_is_pickup=False,
+    delivery_address_is_default=None,
     client_address: dict | None = None,
     file_name=None,
     file_b64=None,
@@ -3445,6 +3449,8 @@ def build_1c_update_payload(
                 "lng": safe_float(coords.get("lng")),
             },
         }
+        if delivery_address_is_default is False:
+            calc["recipient"] = {"recipientName": "", "recipientPhone": "", "recipientAddionalInformation": "⚠️ !!! [ УВАГА ] !!! === ЗМІНЕНО ОСНОВНИЙ СКЛАД === "}
     elif include_address and client_address:
         address_name = build_address_name(client_address)
 
@@ -3739,6 +3745,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             delivery_address_guid=data.get("delivery_address_guid"),
             delivery_address_coordinates=data.get("delivery_address_coordinates"),
             delivery_is_pickup=data.get("delivery_is_pickup", False),
+            delivery_address_is_default=data.get("delivery_address_is_default"),
             client_address=data.get("client_address"),
             file_name=file["fileName"],
             file_b64=file["fileDataB64"],
@@ -3970,6 +3977,7 @@ class UpdateCalculationView(APIView):
             or "delivery_address_coordinates" in raw_data
             or "client_address" in raw_data
             or "delivery_is_pickup" in raw_data
+            or "delivery_address_is_default" in raw_data
         )
         include_recipient = "client_address" in raw_data
         include_file = "file" in raw_data
@@ -3999,6 +4007,7 @@ class UpdateCalculationView(APIView):
             delivery_address_guid=data.get("delivery_address_guid"),
             delivery_address_coordinates=data.get("delivery_address_coordinates"),
             delivery_is_pickup=data.get("delivery_is_pickup", False),
+            delivery_address_is_default=data.get("delivery_address_is_default"),
             client_address=data.get("client_address"),
             file_name=file_data.get("fileName"),
             file_b64=file_data.get("fileDataB64"),
