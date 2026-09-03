@@ -179,6 +179,7 @@ const AdminPortalOriginal = () => {
   const searchIcon = "/assets/icons/SearchIcon.png";
   const allCalcIcon = "/assets/icons/AllCalcIcon.png";
   const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const processingIcon = "/assets/icons/InProcessingIcon.png";
   const waitingForPaymentIcon =
     "/assets/icons/WaitingForPaymentIcon.png";
   const waitingForConfirmIcon =
@@ -239,7 +240,7 @@ const AdminPortalOriginal = () => {
           const orders = calc.orders || [];
 
           if (orders.length === 0) {
-            return status === "Новий";
+            return status === (calc.status || "Новий");
           }
 
           return orders.some(
@@ -695,7 +696,10 @@ const AdminPortalOriginal = () => {
       summary.Всі += orders.length || 1;
 
       if (orders.length === 0) {
-        summary.Новий += 1;
+        const calculationStatus = calc.status || "Новий";
+        if (summary[calculationStatus] !== undefined) {
+          summary[calculationStatus] += 1;
+        }
       }
 
       orders.forEach((order) => {
@@ -1425,6 +1429,12 @@ const AdminPortalOriginal = () => {
                     ),
                     icon: newCalcIcon,
                     statusKey: "Новий",
+                  },
+                  {
+                    id: "processing",
+                    label: t("order_status.processing"),
+                    icon: processingIcon,
+                    statusKey: "В обробці",
                   },
                   {
                     id: "waiting-confirm",

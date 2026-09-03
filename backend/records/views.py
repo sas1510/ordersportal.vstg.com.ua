@@ -1041,6 +1041,7 @@ def get_orders_by_period_and_contractor(
                 "raw_order_dates": (
                     [order_date] if order_date else []
                 ),
+                "status": row.get("OrderStage") or "Новий",
             }
 
         elif order_date:
@@ -1122,6 +1123,9 @@ def get_orders_by_period_and_contractor(
         orders = calc["orders"]
 
         status_counts = {}
+        if not orders:
+            calculation_status = calc.get("status") or "Новий"
+            status_counts[calculation_status] = 1
         total_amount = 0
         total_paid = 0
 
@@ -1238,6 +1242,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "manager": bin_to_guid_1c(row.get("Manager")),
                 "currency": row.get("Currency"),
                 "raw_order_dates": [order_date] if order_date else [], 
+                "status": row.get("OrderStage") or "Новий",
             }
         else:
             calcs_dict[calc_id]["constructionsQTY"] += current_order_count
@@ -1287,6 +1292,9 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     for calc in calcs_dict.values():
         orders = calc["orders"]
         status_counts = {}
+        if not orders:
+            calculation_status = calc.get("status") or "Новий"
+            status_counts[calculation_status] = 1
         total_amount = 0
         total_paid = 0
 
@@ -2872,6 +2880,7 @@ def orders_view_all_by_month(request):
                             else []
                         ),
                         "currency": row.get("Currency") or "",
+                        "status": row.get("OrderStage") or "Новий",
                     }
 
                 elif order_date:
@@ -3049,6 +3058,9 @@ def orders_view_all_by_month(request):
             orders = calc["orders"]
 
             status_counts = {}
+            if not orders:
+                calculation_status = calc.get("status") or "Новий"
+                status_counts[calculation_status] = 1
             total_amount = 0.0
             total_paid = 0.0
 

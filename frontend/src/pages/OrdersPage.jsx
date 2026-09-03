@@ -53,6 +53,7 @@ const PortalOriginal = () => {
   const searchIcon = "/assets/icons/SearchIcon.png";
   const allCalcIcon = "/assets/icons/AllCalcIcon.png";
   const newCalcIcon = "/assets/icons/NewCalcIcon.png";
+  const processingIcon = "/assets/icons/InProcessingIcon.png";
   const waitingForPaymentIcon =
     "/assets/icons/WaitingForPaymentIcon.png";
   const waitingForConfirmIcon =
@@ -679,6 +680,7 @@ const PortalOriginal = () => {
     const summary = {
       Всі: 0,
       Новий: 0,
+      "В обробці": 0,
       "Очікуємо оплату": 0,
       "Очікуємо підтвердження": 0,
       Підтверджений: 0,
@@ -696,7 +698,10 @@ const PortalOriginal = () => {
       summary.Всі += orders.length || 1;
 
       if (orders.length === 0) {
-        summary.Новий += 1;
+        const calculationStatus = calc.status || "Новий";
+        if (summary[calculationStatus] !== undefined) {
+          summary[calculationStatus] += 1;
+        }
       }
 
       orders.forEach((order) => {
@@ -744,7 +749,7 @@ const PortalOriginal = () => {
             : [];
 
           if (orders.length === 0) {
-            return statusValue === "Новий";
+            return statusValue === (calc.status || "Новий");
           }
 
           return orders.some(
@@ -941,6 +946,12 @@ const PortalOriginal = () => {
         label: t("portal_calc.filter_labels.new"),
         icon: newCalcIcon,
         statusKey: "Новий",
+      },
+      {
+        id: "processing",
+        label: t("order_status.processing"),
+        icon: processingIcon,
+        statusKey: "В обробці",
       },
       {
         id: "waiting-confirm",
