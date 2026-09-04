@@ -268,6 +268,35 @@ def send_webpush_notification(recipient_id_1c, title, message):
 
 
 
+def get_calculation_suborder_numbers_for_telegram(calculation_guid_bin):
+    """Return production/suborder numbers linked to one calculation."""
+    if not calculation_guid_bin:
+        return []
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetProductionNumbersByCalcGUID @CalcGUID=%s",
+                [calculation_guid_bin],
+            )
+            columns = [column[0] for column in cursor.description]
+            rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        numbers = []
+        for row in rows:
+            production_number = str(row.get("ProductionNumber") or "").strip()
+            if production_number and production_number not in numbers:
+                numbers.append(production_number)
+        return numbers
+    except Exception:
+        logger.warning(
+            "Unable to load calculation production numbers for Telegram",
+            exc_info=True,
+            extra={"tags": {"action": "telegram_calculation_suborders"}},
+        )
+        return []
+
+
 @shared_task(name='check_and_send_telegram_notification', bind=True, autoretry_for=(OperationalError,), retry_backoff=True, retry_jitter=True, retry_kwargs={'max_retries': 3})
 def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t_type, doc_number, is_dealer, author_name):
     from records.models import ChatMessage
@@ -315,6 +344,19 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
         }
         document_type = document_names.get(t_type, "замовленні")
 
+        suborder_numbers = (
+            get_calculation_suborder_numbers_for_telegram(
+                msg.related_object_id,
+            )
+            if t_type == 1
+            else []
+        )
+        suborders_html = (
+            "\n<b>" + "".join(chr(code) for code in (1055, 1110, 1076, 1079, 1072, 1084, 1086, 1074, 1083, 1077, 1085, 1085, 1103)) + ":</b> " + ", ".join(suborder_numbers)
+            if suborder_numbers
+            else ""
+        )
+
         link_html = ""
         if is_dealer:
             pages_map = {
@@ -355,7 +397,7 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
                     f"У {document_type} <b>№{doc_number}</b>.\n\n"
                     f"<b>{message_text}</b>\n"
                     f"<i>Від {author_name}.</i>"
-                    f"{link_html}"
+                    f"{suborders_html}{link_html}"
                 )
             else:
                 text = (
@@ -363,7 +405,7 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
                     f"У {document_type} <b>№{doc_number}</b>.\n\n"
                     f"<i>\"{message_text}...\"</i>\n"
                     f"<i>Від {author_name}.</i>"
-                    f"{link_html}"
+                    f"{suborders_html}{link_html}"
                 )
 
             target_chat_ids = [int(telegram_id)]
