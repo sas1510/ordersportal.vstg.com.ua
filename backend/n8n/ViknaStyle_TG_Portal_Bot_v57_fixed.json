@@ -1,0 +1,3119 @@
+{
+  "name": "ViknaStyle TG Portal Bot v57 - stable responses",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "portal-url",
+              "name": "portal_url",
+              "value": "https://ordersportal.vstg.com.ua",
+              "type": "string"
+            },
+            {
+              "id": "portal-key",
+              "name": "portal_api_key",
+              "value": "=tgb_5T4Ky_iekQoqFzkVpvnlp804S-cTHJHtrc0ZTDxdSus",
+              "type": "string"
+            },
+            {
+              "id": "relay-key",
+              "name": "relay_api_key",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "timezone",
+              "name": "timezone",
+              "value": "Europe/Kyiv",
+              "type": "string"
+            },
+            {
+              "id": "company",
+              "name": "company_name",
+              "value": "Вікна Стиль",
+              "type": "string"
+            },
+            {
+              "id": "telegram-token",
+              "name": "telegram_token",
+              "value": "=8961658072:AAEGlsf3JniF4OqsxuNfAqSf2Vgtv7788aU",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9cc144e2-64e1-4229-b75a-5c38d53710f7",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        350032,
+        -105568
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "960bebcf-0953-46d9-b581-80c1c31e6810",
+              "name": "manager_guid",
+              "value": "={{($json.text.split(' ')[1] || $json.text.slice(7)).replace(/\\s/g, '') || 'none'}}",
+              "type": "string"
+            },
+            {
+              "id": "5d81f115-44aa-42cd-b5b5-8814068680ed",
+              "name": "tg_user_id",
+              "value": "={{ $json.message.from.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        350704,
+        -104368
+      ],
+      "id": "389d7337-85d2-4244-b36f-15e34d1cf2fc",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst guidStr = $input.item.json.manager_guid || \"\";\nconst tgUserId = $input.item.json.tg_user_id;\n\n\nconst hexStr = guidStr.replace(/-/g, \"\").toLowerCase();\n\nif (hexStr.length !== 32) {\n    return { error: \"Invalid GUID length\" };\n}\n\n\nconst A = hexStr.substring(0, 8);\nconst B = hexStr.substring(8, 12);\nconst C = hexStr.substring(12, 16);\nconst D = hexStr.substring(16, 20);\nconst E = hexStr.substring(20, 32);\n\n\nconst resultHex = D + E + C + B + A;\n\nreturn {\n    manager_guid_bin: resultHex,\n    manager_guid_formatted: `${D}-${E}-${C}-${B}-${A}`,\n    tg_user_id: tgUserId\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        351152,
+        -104176
+      ],
+      "id": "ac82e1b2-36ee-47ac-8479-a49dd2650e5f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- 1. Створюємо бінарну змінну для 1С\nDECLARE @bin binary(16);\n\n-- 2. Конвертуємо Hex-рядок, який прийшов з n8n (параметр 2 = без 0x)\nSET @bin = CONVERT(binary(16), '{{ $json.manager_guid_bin }}', 2);\n\n-- 3. Викликаємо процедуру, щоб отримати ім'я\nEXEC [dbo].[GetAuthorByWriterID] @WriterID = @bin; "
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        351376,
+        -104176
+      ],
+      "id": "d994de5a-9137-4ca7-bda4-9bc0e7693195",
+      "name": "Microsoft SQL",
+      "credentials": {
+        "microsoftSql": {
+          "id": "uV5K0uvR4op0nlSb",
+          "name": "testportal_connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "efbb6b9e-2ce2-4154-ab61-57e47c40f7f5",
+              "leftValue": "={{ $json.manager_guid}}",
+              "rightValue": "none",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        350928,
+        -104368
+      ],
+      "id": "0b32e342-41ed-4fc7-b236-afed0bb5ac3c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": {{ $node[\"Telegram Trigger\"].json.message.chat.id }},\n  \"text\": \"❌ <b>Помилка ідентифікації</b>\\n\\nКод не знайдено. Спробуйте ще раз перейти за посиланням з порталу.\",\n  \"parse_mode\": \"HTML\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        351152,
+        -104464
+      ],
+      "id": "4339ec85-8f98-4108-9b82-52c01437a6dd",
+      "name": "Without Guid"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "bed6d371-23bb-41e5-bbbc-4a8f8475cbf9",
+              "leftValue": "={{ $json.data.parseJson().results[0].success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a4846035-0b56-4537-a4a8-842ae8c83f8f",
+              "leftValue": "={{ $json.error.status }}",
+              "rightValue": 404,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        351824,
+        -104176
+      ],
+      "id": "28feddb3-b915-470e-a372-11247e87be14",
+      "name": "If1",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.10/oknastyle/hs/gp-obmen/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Query",
+              "value": "SaveTelegramId"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"user_guid\":\"{{ $('If').item.json.manager_guid }}\",\"telegram_id\":\"{{ $('If').item.json.tg_user_id }}\"} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        351600,
+        -104176
+      ],
+      "id": "a9910368-7a8d-4e36-9d23-b6436476f517",
+      "name": "SaveTgID",
+      "alwaysOutputData": true,
+      "retryOnFail": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "pEPsDs1WDs5m5QLg",
+          "name": "Base1CConnect"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": {{ $node[\"Telegram Trigger\"].json.message.chat.id }},\n  \"text\": \"❌ <b>Помилка ідентифікації</b>\\n\\nКод не знайдено. Спробуйте ще раз перейти за посиланням з порталу.\",\n  \"parse_mode\": \"HTML\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352048,
+        -104080
+      ],
+      "id": "2c77ff4b-8059-4b9b-bba0-9635934593bf",
+      "name": "Without Guid Answer"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0bd88eaf-b717-426f-a638-7e719c39e059",
+              "name": "contact_id",
+              "value": "={{ ($json.text.split(' ')[1] || '').replace(/^reg?/, '').replace(/\\s/g, '') || 'none' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        350704,
+        -103984
+      ],
+      "id": "ac315964-aa7a-4558-b4a1-afc33a1eb046",
+      "name": "GetContactId"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE [testportal_unified].[dbo].[HelpServiceContact]\nSET [TelegramId] = '{{ $node[\"Telegram Trigger\"].json[\"message\"][\"from\"][\"id\"] }}'\nWHERE [ID] = {{ $json.contact_id }};"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        350928,
+        -103984
+      ],
+      "id": "4401827a-a703-4d1a-a559-bd5a657459ad",
+      "name": "Microsoft SQL1",
+      "credentials": {
+        "microsoftSql": {
+          "id": "uV5K0uvR4op0nlSb",
+          "name": "testportal_connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $env.TELEGRAM_BOT_TOKEN + '/sendMessage' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"chat_id\": {{ $node[\"Telegram Trigger\"].json.message.chat.id }},\n  \"text\": \"Дякуємо, ваш TelegramID успішно збережений!\",\n  \"parse_mode\": \"HTML\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        351152,
+        -103984
+      ],
+      "id": "5d20f54d-a037-4092-aff9-3a0008269ff5",
+      "name": "SavedTgID"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.200.178/relay_tg_portal_20260626.php",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "={{ $('Config').item.json.relay_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        350704,
+        -104176
+      ],
+      "id": "1ad9d847-72a9-4ab8-88b6-260ff95aa53c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "2a32daa8-c884-4b58-9e55-dd9ca205943c",
+      "name": "Monthly Shipped Report",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        349808,
+        -103072
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const parts = new Intl.DateTimeFormat('en-CA', {\n  timeZone: 'Europe/Kyiv',\n  year: 'numeric',\n  month: '2-digit',\n}).formatToParts(new Date());\n\nconst year = Number(parts.find(part => part.type === 'year').value);\nconst month = Number(parts.find(part => part.type === 'month').value);\n\nconst dateFrom = new Date(Date.UTC(year, month - 2, 1))\n  .toISOString()\n  .slice(0, 10);\nconst dateTo = new Date(Date.UTC(year, month - 1, 0))\n  .toISOString()\n  .slice(0, 10);\n\nreturn [{\n  json: {\n    date_from: dateFrom,\n    date_to: dateTo,\n    contractor_id: 'AC0A002590633BB311E18A2D1E1714D8',\n    chat_id: 716230412,\n    test_mode: true,\n  },\n}];"
+      },
+      "id": "429f3cb2-9040-4bea-b6ec-9df00a2e09e0",
+      "name": "Previous Month Period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        350032,
+        -102976
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DECLARE @DateFrom DATE =\n    CONVERT(DATE, '{{ $json.date_from }}', 23);\nDECLARE @DateTo DATE =\n    CONVERT(DATE, '{{ $json.date_to }}', 23);\nDECLARE @ContractorID BINARY(16) =\n    CONVERT(BINARY(16), '{{ $json.contractor_id }}', 2);\n\nEXEC [dbo].[GetShippedOrdersAnalytics]\n    @DateFrom = @DateFrom,\n    @DateTo = @DateTo,\n    @ContractorID = @ContractorID;"
+      },
+      "id": "611e968d-36c9-4a6a-a79f-afd1b47c6239",
+      "name": "Get Shipped Analytics",
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        350256,
+        -102976
+      ],
+      "credentials": {
+        "microsoftSql": {
+          "id": "uV5K0uvR4op0nlSb",
+          "name": "testportal_connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "/*\n * n8n Code node.\n * Input: one item containing ReportJson from dbo.GetShippedOrdersAnalytics.\n * Output:\n *   - json.html       HTML as text (for upload/publishing)\n *   - binary.report  ready report.html (for Telegram Send Document)\n */\n\nconst source = $json.ReportJson ?? $json.reportJson ?? $json.data ?? $json;\n\nfunction parseDeep(value) {\n  let current = value;\n  for (let i = 0; i < 3 && typeof current === 'string'; i++) {\n    current = JSON.parse(current);\n  }\n  return current;\n}\n\nconst report = parseDeep(source);\nconst summary = report.Summary ?? {};\nconst reportVersion = '14';\nconst generatedAt = new Date();\nconst buildStamp = generatedAt.toISOString().replace(/[-:]/g, '').replace(/\\.\\d{3}Z$/, 'Z');\nconst outputFileName = `shipped-report_${report.DateFrom}_${report.DateTo}_${buildStamp}.html`;\nconst logoDataUri = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQyIiBoZWlnaHQ9IjQ2IiB2aWV3Qm94PSIwIDAgMjQyIDQ2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPg0KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzc1XzIxKSI+DQo8cGF0aCBkPSJNNjIuMzY5NyAwQzY0LjMzOTcgMCA2NS4yNDk3IDAuMDcgNjYuNjI5NyAwLjQ0QzY4LjAwOTcgMC44IDY4LjgwOTcgMS40MyA2OS42ODk3IDIuMDlDNzAuNTU5NyAyLjc1IDcxLjE5OTcgMy41NiA3MS41OTk3IDQuNTFDNzEuOTk5NyA1LjQ2IDcyLjE5OTcgNi41MiA3Mi4xOTk3IDcuN0M3Mi4xOTk3IDguMzQgNzIuMTA5NyA4Ljk1IDcxLjkyOTcgOS41NUM3MS43NDk3IDEwLjE0IDcxLjQ1OTcgMTAuNyA3MS4wNjk3IDExLjIxQzcwLjY3OTcgMTEuNzMgNzAuMTc5NyAxMi4yIDY5LjU1OTcgMTIuNjNDNjguOTQ5NyAxMy4wNiA2OC4yMDk3IDEzLjQzIDY3LjM0OTcgMTMuNzRDNjkuMjI5NyAxNC4yIDcwLjYwOTcgMTQuOTMgNzEuNTA5NyAxNS45NUM3Mi40MDk3IDE2Ljk3IDcyLjg1OTcgMTguMjggNzIuODU5NyAxOS45QzcyLjg1OTcgMjEuMTEgNzIuNjI5NyAyMi4yNCA3Mi4xNTk3IDIzLjI4QzcxLjY4OTcgMjQuMzIgNzAuOTk5NyAyNS4yMyA3MC4wOTk3IDI2LjAxQzY5LjE4OTcgMjYuNzggNjguMzk5NyAyNy41IDY3LjA2OTcgMjcuOTRDNjUuNzM5NyAyOC4zOCA2NC45Nzk3IDI4LjQ5IDYzLjI3OTcgMjguNDlINTIuOTg5N1YwSDYyLjM3OTdINjIuMzY5N1pNNTguNDk5NyA0Ljk0VjExLjk4SDYxLjkzOTdDNjIuNjY5NyAxMS45OCA2My4zMjk3IDExLjkzIDYzLjkwOTcgMTEuODJDNjQuNDg5NyAxMS43MSA2NC45ODk3IDExLjUzIDY1LjM5OTcgMTEuMjdDNjUuODA5NyAxMS4wMSA2Ni4xMTk3IDEwLjY1IDY2LjMzOTcgMTAuMkM2Ni41NTk3IDkuNzQgNjYuNjU5NyA5LjE3IDY2LjY1OTcgOC40OEM2Ni42NTk3IDcuNzkgNjYuNTY5NyA3LjI0IDY2LjQwOTcgNi43OUM2Ni4yNDk3IDYuMzQgNjUuOTc5NyA1Ljk4IDY1LjYyOTcgNS43MUM2NS4yNzk3IDUuNDQgNjQuODI5NyA1LjI0IDY0LjI4OTcgNS4xMkM2My43NDk3IDUgNjMuMTA5NyA0Ljk0IDYyLjM2OTcgNC45NEg1OC40OTk3Wk02My4xNDk3IDIzLjQ5QzY0LjAxOTcgMjMuNDkgNjQuNzI5NyAyMy4zOCA2NS4yODk3IDIzLjE2QzY1Ljg0OTcgMjIuOTQgNjYuMjc5NyAyMi42NSA2Ni41ODk3IDIyLjNDNjYuODk5NyAyMS45NSA2Ny4xMTk3IDIxLjU1IDY3LjIzOTcgMjEuMTFDNjcuMzU5NyAyMC42NyA2Ny40MTk3IDIwLjIyIDY3LjQxOTcgMTkuNzZDNjcuNDE5NyAxOS4yNCA2Ny4zNDk3IDE4Ljc3IDY3LjIxOTcgMTguMzVDNjcuMDc5NyAxNy45MyA2Ni44NDk3IDE3LjU4IDY2LjUxOTcgMTcuMjlDNjYuMTg5NyAxNyA2NS43NDk3IDE2Ljc4IDY1LjE5OTcgMTYuNjNDNjQuNjQ5NyAxNi40NyA2My45NTk3IDE2LjQgNjMuMTI5NyAxNi40SDU4LjUxOTdWMjMuNDlINjMuMTY5N0g2My4xNDk3WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik04MC40NTk2IDI4LjQ4SDc1LjgyOTZWOC42NDk5OUg4MC40NTk2VjI4LjQ3VjI4LjQ4WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xMDIuMDQgMjguNDhIOTcuODM5NkM5Ny40Mjk2IDI4LjQ4IDk3LjA4OTYgMjguMzcgOTYuODA5NiAyOC4xNUM5Ni41Mjk2IDI3LjkzIDk2LjI2OTYgMjcuNjIgOTYuMDI5NiAyNy4yMUw5Mi43Mzk2IDIxLjAyQzkyLjUxOTYgMjAuNjIgOTIuMjc5NiAyMC4zNiA5Mi4wMDk2IDIwLjIzQzkxLjczOTYgMjAuMSA5MS4zODk2IDIwLjA0IDkwLjk3OTYgMjAuMDRIODguOTA5NlYyOC40OEg4NC4zMDk2VjguNjQ5OTlIODguOTA5NlYxNi42OEg5MC41OTk2QzkwLjk0OTYgMTYuNjggOTEuMjM5NiAxNi42MiA5MS40ODk2IDE2LjQ5QzkxLjczOTYgMTYuMzYgOTEuOTY5NiAxNi4xMyA5Mi4xNzk2IDE1LjhMOTUuNzY5NiA5LjgyOTk5Qzk1Ljk3OTYgOS40ODk5OSA5Ni4yMjk2IDkuMTk5OTkgOTYuNTI5NiA4Ljk4OTk5Qzk2LjgyOTYgOC43Njk5OSA5Ny4xODk2IDguNjU5OTkgOTcuNjE5NiA4LjY1OTk5SDEwMS41N0w5Ni43Mzk2IDE2LjQ2Qzk2LjUwOTYgMTYuODIgOTYuMjM5NiAxNy4xMiA5NS45MTk2IDE3LjM2Qzk1LjU5OTYgMTcuNiA5NS4yNDk2IDE3Ljc5IDk0Ljg2OTYgMTcuOTVDOTUuNDc5NiAxOC4xMSA5NS45ODk2IDE4LjM4IDk2LjQxOTYgMTguNzZDOTYuODQ5NiAxOS4xNCA5Ny4yMzk2IDE5LjY2IDk3LjYxOTYgMjAuMzJMMTAyLjA2IDI4LjVMMTAyLjA0IDI4LjQ4WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xMjEuMTcgOC42NDk5OVYyOC40N0gxMTYuNTRWMjAuMDlIMTA4LjQ5VjI4LjQ3SDEwMy44NlY4LjY0OTk5SDEwOC40OVYxNi45NEgxMTYuNTRWOC42NDk5OUgxMjEuMTdaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTE0Mi43MyAyOC40OEgxMzkuMTdDMTM4Ljc3IDI4LjQ4IDEzOC40NSAyOC4zOSAxMzguMiAyOC4yQzEzNy45NSAyOC4wMSAxMzcuNzcgMjcuNzggMTM3LjY0IDI3LjQ5TDEzNi40NyAyNC4wM0gxMjguOTNMMTI3Ljc2IDI3LjQ5QzEyNy42NiAyNy43NCAxMjcuNDggMjcuOTcgMTI3LjIyIDI4LjE4QzEyNi45NiAyOC4zOCAxMjYuNjQgMjguNDkgMTI2LjI2IDI4LjQ5SDEyMi42N0wxMzAuMzQgOC42NzAwMUgxMzUuMDVMMTQyLjcyIDI4LjQ5TDE0Mi43MyAyOC40OFpNMTM1LjQyIDIwLjlMMTMzLjU4IDE1LjQ3QzEzMy40NCAxNS4xMyAxMzMuMyAxNC43MiAxMzMuMTQgMTQuMjVDMTMyLjk4IDEzLjc4IDEzMi44MyAxMy4yOCAxMzIuNjggMTIuNzNDMTMyLjU0IDEzLjI4IDEzMi40IDEzLjggMTMyLjI0IDE0LjI3QzEzMi4wOSAxNC43NCAxMzEuOTQgMTUuMTUgMTMxLjgxIDE1LjQ5TDEyOS45OSAyMC44OUgxMzUuNDJWMjAuOVoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNMTYzLjg4IDIzLjM1QzE2My45OSAyMy4zNSAxNjQuMSAyMy4zNyAxNjQuMjEgMjMuNDFDMTY0LjMyIDIzLjQ1IDE2NC40MiAyMy41MiAxNjQuNTIgMjMuNjJMMTY2LjM0IDI1LjU0QzE2NS41NCAyNi41OCAxNjQuNTQgMjcuMzcgMTYzLjM0IDI3LjlDMTYyLjE0IDI4LjQzIDE2MC43MiAyOC43IDE1OS4wNyAyOC43QzE1Ny41NiAyOC43IDE1Ni4yMiAyOC40NCAxNTUuMDIgMjcuOTNDMTUzLjgzIDI3LjQyIDE1Mi44MiAyNi43MSAxNTEuOTkgMjUuODFDMTUxLjE2IDI0LjkxIDE1MC41MiAyMy44NCAxNTAuMDggMjIuNkMxNDkuNjQgMjEuMzYgMTQ5LjQxIDIwLjAyIDE0OS40MSAxOC41N0MxNDkuNDEgMTcuMTIgMTQ5LjY1IDE1LjczIDE1MC4xMyAxNC40OUMxNTAuNjEgMTMuMjUgMTUxLjI5IDEyLjE4IDE1Mi4xNiAxMS4yOUMxNTMuMDMgMTAuMzkgMTU0LjA3IDkuNjkgMTU1LjI5IDkuMTlDMTU2LjUgOC42OSAxNTcuODQgOC40NCAxNTkuMyA4LjQ0QzE2MC4wNCA4LjQ0IDE2MC43NCA4LjUxIDE2MS40IDguNjRDMTYyLjA2IDguNzcgMTYyLjY3IDguOTUgMTYzLjI0IDkuMThDMTYzLjgxIDkuNDEgMTY0LjM0IDkuNjkgMTY0LjgyIDEwLjAyQzE2NS4zIDEwLjM1IDE2NS43MyAxMC43IDE2Ni4xIDExLjA4TDE2NC41NSAxMy4xNkMxNjQuNDUgMTMuMjkgMTY0LjMzIDEzLjQgMTY0LjIgMTMuNTFDMTY0LjA2IDEzLjYxIDE2My44NyAxMy42NyAxNjMuNjMgMTMuNjdDMTYzLjQ3IDEzLjY3IDE2My4zMSAxMy42MyAxNjMuMTcgMTMuNTZDMTYzLjAyIDEzLjQ5IDE2Mi44NyAxMy40IDE2Mi43MSAxMy4yOUMxNjIuNTUgMTMuMTkgMTYyLjM3IDEzLjA3IDE2Mi4xNyAxMi45NUMxNjEuOTcgMTIuODMgMTYxLjc0IDEyLjcxIDE2MS40OCAxMi42MUMxNjEuMjIgMTIuNTEgMTYwLjkgMTIuNDIgMTYwLjU0IDEyLjM0QzE2MC4xOCAxMi4yNyAxNTkuNzYgMTIuMjMgMTU5LjI4IDEyLjIzQzE1OC41MiAxMi4yMyAxNTcuODIgMTIuMzcgMTU3LjE5IDEyLjY1QzE1Ni41NiAxMi45MyAxNTYuMDIgMTMuMzQgMTU1LjU2IDEzLjg4QzE1NS4xIDE0LjQyIDE1NC43NSAxNS4wOCAxNTQuNSAxNS44N0MxNTQuMjUgMTYuNjUgMTU0LjEzIDE3LjU1IDE1NC4xMyAxOC41NkMxNTQuMTMgMTkuNTcgMTU0LjI3IDIwLjQ4IDE1NC41NCAyMS4yN0MxNTQuODEgMjIuMDYgMTU1LjE5IDIyLjcyIDE1NS42NyAyMy4yNkMxNTYuMTUgMjMuOCAxNTYuNyAyNC4yMSAxNTcuMzQgMjQuNDlDMTU3Ljk3IDI0Ljc3IDE1OC42NSAyNC45MSAxNTkuMzggMjQuOTFDMTU5LjggMjQuOTEgMTYwLjE4IDI0Ljg5IDE2MC41MiAyNC44NUMxNjAuODYgMjQuODEgMTYxLjE5IDI0Ljc0IDE2MS40OSAyNC42NUMxNjEuNzkgMjQuNTUgMTYyLjA3IDI0LjQzIDE2Mi4zMyAyNC4yN0MxNjIuNTkgMjQuMTEgMTYyLjg2IDIzLjkxIDE2My4xMyAyMy42NkMxNjMuMjQgMjMuNTcgMTYzLjM2IDIzLjQ5IDE2My40OCAyMy40NEMxNjMuNjEgMjMuMzggMTYzLjc0IDIzLjM1IDE2My44NyAyMy4zNUgxNjMuODhaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTE4Mi42IDEyLjNIMTc3LjAyVjI4LjQ4SDE3Mi40MlYxMi4zSDE2Ni44NFY4LjY0OTk5SDE4Mi41OVYxMi4zSDE4Mi42WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0yMDIuMjQgOC42NDk5OVYyOC40N0gxOTcuNjFWMTcuMzdDMTk3LjYxIDE2Ljg1IDE5Ny42MyAxNi4zMSAxOTcuNjYgMTUuNzNDMTk3LjY5IDE1LjE1IDE5Ny43NSAxNC41NCAxOTcuODQgMTMuODlDMTk3LjYzIDE0LjQ3IDE5Ny40IDE1LjAxIDE5Ny4xNiAxNS41QzE5Ni45MiAxNS45OSAxOTYuNjcgMTYuNDMgMTk2LjQ0IDE2LjhMMTkwLjQxIDI3LjFDMTkwLjMxIDI3LjI2IDE5MC4xOSAyNy40MyAxOTAuMDUgMjcuNTlDMTg5LjkxIDI3Ljc1IDE4OS43NSAyNy45IDE4OS41OCAyOC4wM0MxODkuNDEgMjguMTYgMTg5LjIyIDI4LjI3IDE4OS4wMiAyOC4zNUMxODguODIgMjguNDMgMTg4LjYxIDI4LjQ3IDE4OC4zOSAyOC40N0gxODQuOTJWOC42NDk5OUgxODkuNTVWMTkuNzRDMTg5LjU1IDIwLjI2IDE4OS41NCAyMC44IDE4OS41MSAyMS4zOEMxODkuNDggMjEuOTYgMTg5LjQyIDIyLjU3IDE4OS4zMiAyMy4yMkMxODkuNTMgMjIuNjUgMTg5Ljc2IDIyLjEyIDE5MCAyMS42MkMxOTAuMjUgMjEuMTMgMTkwLjQ5IDIwLjY5IDE5MC43MiAyMC4zMkwxOTYuNzUgMTAuMDJDMTk2Ljg1IDkuODU5OTkgMTk2Ljk3IDkuNjg5OTkgMTk3LjExIDkuNTI5OTlDMTk3LjI1IDkuMzY5OTkgMTk3LjQxIDkuMjE5OTkgMTk3LjU4IDkuMDg5OTlDMTk3Ljc1IDguOTU5OTkgMTk3Ljk0IDguODQ5OTkgMTk4LjE0IDguNzY5OTlDMTk4LjM0IDguNjg5OTkgMTk4LjU1IDguNjQ5OTkgMTk4Ljc2IDguNjQ5OTlIMjAyLjIzSDIwMi4yNFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNMjIyLjkzIDI4LjQ4SDIxOC4zVjEyLjA3SDIxMy45MkMyMTMuNzggMTQuNSAyMTMuNTkgMTYuNiAyMTMuMzUgMTguMzZDMjEzLjEgMjAuMTIgMjEyLjgxIDIxLjYyIDIxMi40NyAyMi44NkMyMTIuMTIgMjQuMDkgMjExLjc0IDI1LjA5IDIxMS4zIDI1Ljg1QzIxMC44NiAyNi42MSAyMTAuMzkgMjcuMiAyMDkuODcgMjcuNjNDMjA5LjM1IDI4LjA2IDIwOC44IDI4LjM0IDIwOC4yIDI4LjQ4QzIwNy42IDI4LjYyIDIwNi45OCAyOC43IDIwNi4zMyAyOC43QzIwNS41MyAyOC43IDIwNC45NyAyOC42MyAyMDQuNjMgMjguNDlDMjA0LjI5IDI4LjM1IDIwNC4xMyAyOC4xNCAyMDQuMTMgMjcuODdWMjUuMDhIMjA1LjI3QzIwNS40NyAyNS4wOCAyMDUuNjggMjUuMDYgMjA1Ljg5IDI1LjAzQzIwNi4xMSAyNC45OSAyMDYuMzMgMjQuOSAyMDYuNTYgMjQuNzRDMjA2Ljc5IDI0LjU5IDIwNy4wMSAyNC4zNiAyMDcuMjMgMjQuMDZDMjA3LjQ1IDIzLjc2IDIwNy42NyAyMy4zNCAyMDcuODcgMjIuODFDMjA4LjA3IDIyLjI4IDIwOC4yNyAyMS42MSAyMDguNDUgMjAuODFDMjA4LjYzIDIwLjAxIDIwOC44IDE5LjA0IDIwOC45NSAxNy45MUMyMDkuMSAxNi43OCAyMDkuMjMgMTUuNDQgMjA5LjM0IDEzLjkyQzIwOS40NSAxMi40IDIwOS41MiAxMC42NSAyMDkuNTcgOC42NzAwMUgyMjIuOTJWMjguNDlMMjIyLjkzIDI4LjQ4WiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0yMzQuMDMgMTYuNTlDMjM1LjQgMTYuNTkgMjM2LjU2IDE2Ljc0IDIzNy41MiAxNy4wNEMyMzguNDggMTcuMzQgMjM5LjI1IDE3Ljc0IDIzOS44NSAxOC4yNEMyNDAuNDUgMTguNzQgMjQwLjg4IDE5LjMzIDI0MS4xNiAxOS45OUMyNDEuNDMgMjAuNjYgMjQxLjU3IDIxLjM2IDI0MS41NyAyMi4wOUMyNDEuNTcgMjMuMDQgMjQxLjQgMjMuOTEgMjQxLjA2IDI0LjdDMjQwLjcyIDI1LjQ5IDI0MC4yMyAyNi4xNiAyMzkuNTggMjYuNzFDMjM4Ljk0IDI3LjI3IDIzOC4xNSAyNy43IDIzNy4yMSAyOC4wMUMyMzYuMjcgMjguMzIgMjM1LjIxIDI4LjQ3IDIzNC4wMyAyOC40N0gyMjYuNzdWOC42NDk5OUgyMzEuMzdWMTYuNThIMjM0LjA0TDIzNC4wMyAxNi41OVpNMjM0LjAzIDI1LjAxQzIzNC42NCAyNS4wMSAyMzUuMTQgMjQuOTQgMjM1LjUzIDI0LjgxQzIzNS45MiAyNC42OCAyMzYuMjMgMjQuNDkgMjM2LjQ1IDI0LjI2QzIzNi42NyAyNC4wMyAyMzYuODIgMjMuNzcgMjM2LjkxIDIzLjQ4QzIzNi45OSAyMy4xOSAyMzcuMDMgMjIuODkgMjM3LjAzIDIyLjU3QzIzNy4wMyAyMi4yMSAyMzYuOTkgMjEuODcgMjM2LjkxIDIxLjU2QzIzNi44MyAyMS4yNSAyMzYuNjggMjAuOTkgMjM2LjQ1IDIwLjc2QzIzNi4yMiAyMC41MyAyMzUuOTIgMjAuMzcgMjM1LjUzIDIwLjI0QzIzNS4xNCAyMC4xMiAyMzQuNjQgMjAuMDYgMjM0LjAzIDIwLjA2SDIzMS4zNlYyNS4wMUgyMzQuMDNaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTc2LjEwOTkgNi41NkM3Ny40Mzk5IDQuODYgNzkuNjg5OSAyLjU3IDgyLjkzOTkgMS4wOUM4MS4xMzk5IDIuMiA4MC43Nzk5IDIuNzEgNzkuMzI5OSAzLjk4Qzc4LjU4OTkgNC42MyA3Ny4zNjk5IDUuODcgNzYuMzU5OSA2LjkzQzc3LjcyOTkgNi44NSA4My40NDk5IDYuMTIgODQuMjg5OSAwQzc3LjYxOTkgMC41OSA3Ni4zMzk5IDUuMiA3Ni4xMDk5IDYuNTZaIiBmaWxsPSIjRDREOTQ3Ii8+DQo8cGF0aCBkPSJNNTQuODggMzcuNDRINTIuNTNDNTIuMzEgMzcuNDQgNTIuMjEgMzcuMzQgNTIuMjEgMzcuMTRDNTIuMjEgMzcuMDMgNTIuMjQgMzYuOTMgNTIuMyAzNi44NUg1OC4wOUM1OC4zMSAzNi44NSA1OC40MSAzNi45NSA1OC40MSAzNy4xNUM1OC40MSAzNy4yNiA1OC4zOCAzNy4zNiA1OC4zMiAzNy40NEg1NS41N1Y0My41Nkg1NC44OFYzNy40NFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNNzguNTk5OCAzNy4yNEM3OC41OTk4IDM3LjAyIDc4LjcyOTggMzYuODkgNzguOTg5OCAzNi44NUM3OS4xMTk4IDM2LjgzIDc5LjI3OTkgMzYuODEgNzkuNDc5OSAzNi44Qzc5LjY3OTkgMzYuNzkgNzkuODc5OCAzNi43NyA4MC4wOTk4IDM2Ljc3QzgwLjMxOTggMzYuNzcgODAuNTE5OCAzNi43NyA4MC43MDk4IDM2Ljc3QzgxLjcxOTggMzYuNzcgODIuNDk5OCAzNi45NSA4My4wMjk4IDM3LjMyQzgzLjU1OTggMzcuNjkgODMuODI5OCAzOC4yMiA4My44Mjk4IDM4LjkyQzgzLjgyOTggMzkuNjIgODMuNTY5OSA0MC4xOCA4My4wNDk5IDQwLjU1QzgyLjUyOTkgNDAuOTIgODEuNzY5OCA0MS4xMSA4MC43ODk4IDQxLjExQzgwLjY2OTggNDEuMTEgODAuNDk5OCA0MS4xMSA4MC4yODk4IDQxLjA5QzgwLjA3OTggNDEuMDcgNzkuODc5OCA0MS4wNiA3OS42Nzk4IDQxLjA0Qzc5LjQ3OTggNDEuMDIgNzkuMzM5OCA0MSA3OS4yNTk4IDQwLjk4VjQzLjU5SDc4LjU4OThWMzcuMjZMNzguNTk5OCAzNy4yNFpNODIuNTY5OCA0MC4xMkM4Mi45NDk4IDM5Ljg2IDgzLjEzOTggMzkuNDUgODMuMTM5OCAzOC45QzgzLjEzOTggMzcuODUgODIuMzE5OCAzNy4zMiA4MC42Njk4IDM3LjMyQzgwLjQwOTggMzcuMzIgODAuMTM5OSAzNy4zMiA3OS44Njk5IDM3LjM0Qzc5LjU5OTkgMzcuMzYgNzkuMzk5OCAzNy4zNyA3OS4yNjk4IDM3LjM5VjQwLjM2Qzc5LjM1OTggNDAuMzggNzkuNDk5OCA0MC40IDc5LjY4OTggNDAuNDJDNzkuODc5OCA0MC40NCA4MC4wNzk4IDQwLjQ2IDgwLjI4OTggNDAuNDhDODAuNDk5OCA0MC41IDgwLjY3OTggNDAuNSA4MC44Mjk4IDQwLjVDODEuNjA5OCA0MC41IDgyLjE5OTggNDAuMzcgODIuNTY5OCA0MC4xVjQwLjEyWiIgZmlsbD0id2hpdGUiLz4NCjxwYXRoIGQ9Ik0xMDQuNDIgMzcuMjRDMTA0LjQyIDM2Ljk4IDEwNC41NyAzNi44NSAxMDQuODYgMzYuODVIMTA5LjA1QzEwOS4yNyAzNi44NSAxMDkuMzcgMzYuOTUgMTA5LjM3IDM3LjE1QzEwOS4zNyAzNy4yNiAxMDkuMzQgMzcuMzYgMTA5LjI4IDM3LjQ0SDEwNS4xM1YzOS43OEgxMDguODlDMTA5LjExIDM5Ljc4IDEwOS4yMSAzOS44OCAxMDkuMjEgNDAuMDhDMTA5LjIxIDQwLjE5IDEwOS4xOCA0MC4yOSAxMDkuMTIgNDAuMzdIMTA1LjEyVjQyLjk2SDEwOS4yOVY0My41NkgxMDQuNFYzNy4yM0wxMDQuNDIgMzcuMjRaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTEzNS41IDQzLjU2SDEzNC44MlYzNy42N0wxMzAuNjMgNDMuNTZIMTI5Ljg0VjM3LjJDMTI5Ljg0IDM2Ljk2IDEyOS45NiAzNi44NCAxMzAuMTkgMzYuODRDMTMwLjMyIDM2Ljg0IDEzMC40MyAzNi44NyAxMzAuNTEgMzYuOTJWNDIuNjVMMTM0LjQ2IDM3LjE1QzEzNC41NCAzNy4wNCAxMzQuNjQgMzYuOTYgMTM0LjczIDM2LjkxQzEzNC44MiAzNi44NiAxMzQuOTMgMzYuODQgMTM1LjAzIDM2Ljg0QzEzNS4xNSAzNi44NCAxMzUuMjUgMzYuODQgMTM1LjMzIDM2Ljg3QzEzNS40MSAzNi44OSAxMzUuNDcgMzYuOTEgMTM1LjQ5IDM2LjkzVjQzLjU2SDEzNS41Wk0xMzIuNjggMzUuN0MxMzMuMjkgMzUuNyAxMzMuNjcgMzUuNDMgMTMzLjggMzQuOUwxMzQuMzUgMzQuOTZDMTM0LjM1IDM1LjIyIDEzNC4yNyAzNS40NSAxMzQuMTIgMzUuNjZDMTMzLjk3IDM1Ljg3IDEzMy43NyAzNi4wMyAxMzMuNTMgMzYuMTVDMTMzLjI5IDM2LjI3IDEzMy4wMSAzNi4zMyAxMzIuNjkgMzYuMzNDMTMyLjM3IDM2LjMzIDEzMi4xIDM2LjI3IDEzMS44NSAzNi4xNUMxMzEuNiAzNi4wMyAxMzEuNCAzNS44NyAxMzEuMjUgMzUuNjZDMTMxLjEgMzUuNDUgMTMxLjAyIDM1LjIyIDEzMS4wMSAzNC45NkwxMzEuNTYgMzQuOUMxMzEuNjkgMzUuNDQgMTMyLjA3IDM1LjcgMTMyLjcgMzUuN0gxMzIuNjhaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTE2MS44NyA0Mi45N0gxNjIuMDlDMTYyLjM4IDQyLjk3IDE2Mi41MyA0My4xIDE2Mi41MyA0My4zNlY0NS4zM0gxNjEuODVWNDMuNTdIMTU2LjQ2VjQ1LjMzSDE1NS43OFY0My4zNkMxNTUuNzggNDMuMSAxNTUuOTMgNDIuOTcgMTU2LjIyIDQyLjk3SDE1Ni41TDE1Ny40IDM5LjA5QzE1Ny41OSAzOC4yNyAxNTcuOTEgMzcuNjggMTU4LjM2IDM3LjMxQzE1OC44MSAzNi45NCAxNTkuNDUgMzYuNzUgMTYwLjI2IDM2Ljc1QzE2MC40NSAzNi43NSAxNjAuNjUgMzYuNzUgMTYwLjg3IDM2Ljc3QzE2MS4wOSAzNi43OSAxNjEuMjggMzYuODEgMTYxLjQ1IDM2Ljg0QzE2MS43MiAzNi44OCAxNjEuODUgMzcuMDEgMTYxLjg1IDM3LjIzVjQyLjk2TDE2MS44NyA0Mi45N1pNMTYwLjczIDM3LjM0QzE2MC41NyAzNy4zMyAxNjAuNDEgMzcuMzIgMTYwLjI2IDM3LjMyQzE1OS44NSAzNy4zMiAxNTkuNSAzNy4zOCAxNTkuMjMgMzcuNUMxNTguOTUgMzcuNjIgMTU4LjczIDM3LjgxIDE1OC41NSAzOC4wOUMxNTguMzcgMzguMzcgMTU4LjIzIDM4LjczIDE1OC4xMiAzOS4yTDE1Ny4yNCA0Mi45N0gxNjEuMlYzNy40MkMxNjEuMDYgMzcuMzkgMTYwLjkgMzcuMzYgMTYwLjc0IDM3LjM1TDE2MC43MyAzNy4zNFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBkPSJNMTg4LjU1IDQzLjU2SDE4Ny44N1YzNy42N0wxODMuNjggNDMuNTZIMTgyLjg5VjM3LjJDMTgyLjg5IDM2Ljk2IDE4My4wMSAzNi44NCAxODMuMjQgMzYuODRDMTgzLjM3IDM2Ljg0IDE4My40OCAzNi44NyAxODMuNTYgMzYuOTJWNDIuNjVMMTg3LjUxIDM3LjE1QzE4Ny41OSAzNy4wNCAxODcuNjkgMzYuOTYgMTg3Ljc4IDM2LjkxQzE4Ny44NyAzNi44NiAxODcuOTggMzYuODQgMTg4LjA4IDM2Ljg0QzE4OC4yIDM2Ljg0IDE4OC4zIDM2Ljg0IDE4OC4zOCAzNi44N0MxODguNDYgMzYuODkgMTg4LjUyIDM2LjkxIDE4OC41NCAzNi45M1Y0My41NkgxODguNTVaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTIxNS4xMiA0My41NkgyMTQuNDRWNDAuMzZIMjEwLjEzVjQzLjU2SDIwOS40NVYzNy4yQzIwOS40NSAzNi45NiAyMDkuNTcgMzYuODQgMjA5LjggMzYuODRDMjA5LjkzIDM2Ljg0IDIxMC4wNCAzNi44NyAyMTAuMTIgMzYuOTJWMzkuNzdIMjE0LjQzVjM3LjJDMjE0LjQzIDM2Ljk2IDIxNC41NSAzNi44NCAyMTQuNzggMzYuODRDMjE0LjkxIDM2Ljg0IDIxNS4wMiAzNi44NyAyMTUuMSAzNi45MlY0My41NkgyMTUuMTJaIiBmaWxsPSJ3aGl0ZSIvPg0KPHBhdGggZD0iTTIzNS45NSAzNy4yNEMyMzUuOTUgMzcuMTIgMjM1Ljk5IDM3LjAzIDIzNi4wNiAzNi45NkMyMzYuMTMgMzYuODkgMjM2LjI0IDM2Ljg1IDIzNi4zOSAzNi44NUgyNDAuNThDMjQwLjggMzYuODUgMjQwLjkgMzYuOTUgMjQwLjkgMzcuMTVDMjQwLjkgMzcuMjYgMjQwLjg3IDM3LjM2IDI0MC44MSAzNy40NEgyMzYuNjNWNDMuNTZIMjM1Ljk0VjM3LjIzTDIzNS45NSAzNy4yNFoiIGZpbGw9IndoaXRlIi8+DQo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTAgMjguODRWNDIuN0gxMy44NkMxNy4yMyA0Mi43IDE5Ljk2IDM5Ljk3IDE5Ljk2IDM2LjZWMjIuNzRINi4xQzIuNzMgMjIuNzQgMCAyNS40NyAwIDI4Ljg0WiIgZmlsbD0iIzZCOThCRiIvPg0KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy44NSAwSDBWMTMuODVDMCAxNy4yMyAyLjc0IDE5Ljk2IDYuMTEgMTkuOTZIMTkuOTZWNi4xMUMxOS45NiAyLjc0IDE3LjIzIDAgMTMuODUgMFoiIGZpbGw9IiM2Qjk4QkYiLz4NCjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMzYuMjU5OSAyMi41NkgyMi40NVYzNi4zN0MyMi40NSAzOS43NyAyNS4yMSA0Mi41MyAyOC42MSA0Mi41M0g0Mi40MTk5VjI4LjcyQzQyLjQxOTkgMjUuMzIgMzkuNjU5OSAyMi41NiAzNi4yNTk5IDIyLjU2WiIgZmlsbD0iIzZCOThCRiIvPg0KPHBhdGggZD0iTTMyLjcgMTkuOTZDMzguMjExOCAxOS45NiA0Mi42OCAxNS40OTE4IDQyLjY4IDkuOThDNDIuNjggNC40NjgyIDM4LjIxMTggMCAzMi43IDBDMjcuMTg4MiAwIDIyLjcyIDQuNDY4MiAyMi43MiA5Ljk4QzIyLjcyIDE1LjQ5MTggMjcuMTg4MiAxOS45NiAzMi43IDE5Ljk2WiIgZmlsbD0iI0Q0RDk0NyIvPg0KPC9nPg0KPGRlZnM+DQo8Y2xpcFBhdGggaWQ9ImNsaXAwXzc1XzIxIj4NCjxyZWN0IHdpZHRoPSIyNDEuNTciIGhlaWdodD0iNDUuMzMiIGZpbGw9IndoaXRlIi8+DQo8L2NsaXBQYXRoPg0KPC9kZWZzPg0KPC9zdmc+DQo=';\n\nconst rows = value => Array.isArray(value) ? value : [];\nconst money = value => new Intl.NumberFormat('uk-UA', {\n  maximumFractionDigits: 0,\n}).format(Number(value || 0));\nconst number = value => new Intl.NumberFormat('uk-UA', {\n  maximumFractionDigits: 1,\n}).format(Number(value || 0));\nconst date = value => {\n  if (!value) return '—';\n  const [year, month, day] = String(value).slice(0, 10).split('-');\n  return `${day}.${month}.${year}`;\n};\nconst escapeHtml = value => String(value ?? '—')\n  .replaceAll('&', '&amp;')\n  .replaceAll('<', '&lt;')\n  .replaceAll('>', '&gt;')\n  .replaceAll('\"', '&quot;')\n  .replaceAll(\"'\", '&#039;');\n\nconst pct = (value, total) => total > 0 ? (Number(value || 0) * 100 / total) : 0;\nconst maxOf = (items, key) => Math.max(1, ...items.map(item => Number(item[key] || 0)));\nconst growth = value => {\n  if (value === null || value === undefined || !Number.isFinite(Number(value))) {\n    return '<span class=\"growth neutral\">немає бази</span>';\n  }\n  const numeric = Number(value);\n  const cls = numeric > 0 ? 'positive' : numeric < 0 ? 'negative' : 'neutral';\n  const arrow = numeric > 0 ? '▲' : numeric < 0 ? '▼' : '•';\n  return `<span class=\"growth ${cls}\">${arrow} ${numeric > 0 ? '+' : ''}${number(numeric)}%</span>`;\n};\n\nfunction metric(label, value, note = '') {\n  return `<article class=\"metric\">\n    <div class=\"metric-label\">${escapeHtml(label)}</div>\n    <div class=\"metric-value\">${value}</div>\n    ${note ? `<div class=\"metric-note\">${note}</div>` : ''}\n  </article>`;\n}\n\nfunction bars(items, valueKey, suffix = '') {\n  const max = maxOf(items, valueKey);\n  return items.map((item, index) => {\n    const value = Number(item[valueKey] || 0);\n    return `<div class=\"bar-row\">\n      <div class=\"bar-label\" title=\"${escapeHtml(item.Name ?? item.ABC ?? item.Bucket ?? item.Date)}\">\n        ${escapeHtml(item.Name ?? item.ABC ?? item.Bucket ?? date(item.Date))}\n      </div>\n      <div class=\"bar-track\"><div class=\"bar-fill c${index % 5}\" style=\"width:${Math.max(2, value * 100 / max)}%\"></div></div>\n      <div class=\"bar-value\">${money(value)}${suffix}</div>\n    </div>`;\n  }).join('');\n}\n\nfunction accordion(title, subtitle, body, open = false, id = '') {\n  return `<details ${id ? `id=\"${escapeHtml(id)}\"` : ''} ${open ? 'open' : ''}>\n    <summary>\n      <span>${escapeHtml(title)}</span>\n      <small>${escapeHtml(subtitle)}</small>\n      <i>›</i>\n    </summary>\n    <div class=\"detail-body\">${body}</div>\n  </details>`;\n}\n\nfunction growthChart(items) {\n  const points = items.filter(item => Number.isFinite(Number(item.GrowthPercent)));\n  if (!points.length) return '<div class=\"empty\">Недостатньо даних для розрахунку приросту</div>';\n\n  const width = 680;\n  const height = 250;\n  const padding = { top: 28, right: 18, bottom: 42, left: 46 };\n  const plotWidth = width - padding.left - padding.right;\n  const plotHeight = height - padding.top - padding.bottom;\n  const maxAbs = Math.max(10, ...points.map(item => Math.abs(Number(item.GrowthPercent))));\n  const zeroY = padding.top + plotHeight / 2;\n  const scaleY = value => zeroY - (Number(value) / maxAbs) * (plotHeight / 2);\n  const slot = plotWidth / points.length;\n  const barWidth = Math.min(38, slot * 0.58);\n  const scaleX = index => padding.left + index * slot + slot / 2;\n  const gridValues = [maxAbs, maxAbs / 2, 0, -maxAbs / 2, -maxAbs];\n  const grid = gridValues.map(value => {\n    const y = scaleY(value);\n    return `<line x1=\"${padding.left}\" y1=\"${y}\" x2=\"${width - padding.right}\" y2=\"${y}\" class=\"chart-grid ${value === 0 ? 'zero' : ''}\"/>\n      <text x=\"${padding.left - 7}\" y=\"${y + 3}\" class=\"chart-axis\" text-anchor=\"end\">${number(value)}%</text>`;\n  }).join('');\n  const coordinates = points.map((item, index) => ({\n    item,\n    value: Number(item.GrowthPercent),\n    x: scaleX(index),\n    y: scaleY(Number(item.GrowthPercent)),\n  }));\n  const linePoints = coordinates.map(point => `${point.x},${point.y}`).join(' ');\n  const trendSvg = coordinates.map(({ item, value, x, y }) => {\n    const labelY = value >= 0 ? y - 11 : y + 19;\n    const month = monthLabel(item.Month).split(' ')[0];\n    const barY = Math.min(zeroY, y);\n    const barHeight = Math.max(2, Math.abs(zeroY - y));\n    return `<g>\n      <rect x=\"${x - barWidth / 2}\" y=\"${barY}\" width=\"${barWidth}\" height=\"${barHeight}\" rx=\"5\" class=\"chart-bar ${value >= 0 ? 'up' : 'down'}\"/>\n      <text x=\"${x}\" y=\"${labelY}\" class=\"chart-value ${value >= 0 ? 'up-text' : 'down-text'}\" text-anchor=\"middle\">${value > 0 ? '+' : ''}${number(value)}%</text>\n      <text x=\"${x}\" y=\"${height - 15}\" class=\"chart-month\" text-anchor=\"middle\">${month}</text>\n    </g>`;\n  }).join('');\n\n  return `<div class=\"growth-chart\"><svg viewBox=\"0 0 ${width} ${height}\" role=\"img\" aria-label=\"Графік тренда приросту та падіння суми відвантажень за місяцями\">\n      ${grid}\n      ${trendSvg}\n      ${points.length > 1 ? `<polyline points=\"${linePoints}\" class=\"chart-trend-line\"/>` : ''}\n      ${coordinates.map(({ value, x, y }) => `<circle cx=\"${x}\" cy=\"${y}\" r=\"6\" class=\"chart-point ${value >= 0 ? 'up' : 'down'}\"/><circle cx=\"${x}\" cy=\"${y}\" r=\"2.4\" class=\"chart-point-core\"/>`).join('')}\n    </svg>\n    <div class=\"chart-legend\"><span><i class=\"legend-up\"></i>Приріст</span><span><i class=\"legend-down\"></i>Падіння</span></div>\n  </div>`;\n}\n\nconst trends = rows(report.DailyTrend);\nconst types = rows(report.ConstructionTypes);\nconst profiles = rows(report.ProfileSystems);\nconst furniture = rows(report.Furniture);\nconst colors = rows(report.Colors);\nconst abc = rows(report.ABC);\nconst timeliness = rows(report.ProductionTimeliness);\nconst contractors = rows(report.Contractors);\nconst orders = rows(report.Orders);\nconst years = rows(report.YearComparison);\nconst months = rows(report.MonthlyComparison);\nconst categoryMonths = rows(report.CategoryMonthlyComparison);\nconst contractorName = String(\n  report.ContractorName\n  ?? contractors[0]?.ContractorName\n  ?? orders[0]?.ContractorName\n  ?? 'Контрагент не знайдений'\n).trim();\n\nconst monthLabel = value => {\n  if (!value) return '—';\n  const [year, month] = String(value).split('-');\n  const labels = ['Січ', 'Лют', 'Бер', 'Квіт', 'Трав', 'Черв', 'Лип', 'Серп', 'Вер', 'Жовт', 'Лист', 'Груд'];\n  return `${labels[Number(month) - 1]} ${year}`;\n};\n\nconst reportYear = Number(String(report.DateTo).slice(0, 4));\nconst currentYearMonths = months.filter(item => Number(String(item.Month).slice(0, 4)) === reportYear);\nconst onTimeOrders = timeliness\n  .filter(item => item.Bucket === 'Вчасно')\n  .reduce((sum, item) => sum + Number(item.OrdersCount || 0), 0);\nconst lateOrders = timeliness\n  .filter(item => ['+1 день', '+2–3 дні', '+4–7 днів', 'Понад 7 днів'].includes(item.Bucket))\n  .reduce((sum, item) => sum + Number(item.OrdersCount || 0), 0);\nconst noProductionDateOrders = timeliness\n  .filter(item => ['Немає дати готовності', 'Немає планової дати'].includes(item.Bucket))\n  .reduce((sum, item) => sum + Number(item.OrdersCount || 0), 0);\nconst productionMeasured = onTimeOrders + lateOrders;\nconst onTimePercent = pct(onTimeOrders, productionMeasured);\nconst latePercent = pct(lateOrders, productionMeasured);\nconst productionCircle = 2 * Math.PI * 54;\nconst onTimeDash = productionMeasured ? productionCircle * onTimePercent / 100 : 0;\nconst lateDash = productionMeasured ? productionCircle * latePercent / 100 : 0;\nconst productionHero = `<section class=\"production-hero\">\n  <div class=\"production-title\"><span>Дотримання строків виробництва</span><small>за замовленнями з відомими плановою та фактичною датами</small></div>\n  <div class=\"production-chart\">\n    <svg viewBox=\"0 0 140 140\" role=\"img\" aria-label=\"Вчасно ${number(onTimePercent)} відсотка, невчасно ${number(latePercent)} відсотка\">\n      <circle class=\"production-ring-bg\" cx=\"70\" cy=\"70\" r=\"54\"/>\n      <a href=\"#shipped-orders\" onclick=\"document.getElementById('shipped-orders').open=true\">\n        <circle class=\"production-ring on-time clickable\" cx=\"70\" cy=\"70\" r=\"54\" stroke-dasharray=\"${onTimeDash} ${productionCircle - onTimeDash}\"/>\n      </a>\n      <a href=\"#shipped-orders\" onclick=\"document.getElementById('shipped-orders').open=true\">\n        <circle class=\"production-ring late clickable\" cx=\"70\" cy=\"70\" r=\"54\" stroke-dasharray=\"${lateDash} ${productionCircle - lateDash}\" stroke-dashoffset=\"${-onTimeDash}\"/>\n      </a>\n      <text x=\"70\" y=\"65\" text-anchor=\"middle\" class=\"production-total\">${money(productionMeasured)}</text>\n      <text x=\"70\" y=\"81\" text-anchor=\"middle\" class=\"production-total-label\">замовлень</text>\n    </svg>\n  </div>\n  <div class=\"production-stats\">\n    <a class=\"production-stat on-time\" href=\"#shipped-orders\" onclick=\"document.getElementById('shipped-orders').open=true\"><i></i><div><span>Вчасно</span><strong>${money(onTimeOrders)}</strong><small>${number(onTimePercent)}%</small></div></a>\n    <a class=\"production-stat late\" href=\"#shipped-orders\" onclick=\"document.getElementById('shipped-orders').open=true\"><i></i><div><span>Невчасно</span><strong>${money(lateOrders)}</strong><small>${number(latePercent)}%</small></div></a>\n  </div>\n  ${noProductionDateOrders ? `<div class=\"production-missing\">Без повних даних про строки: <b>${money(noProductionDateOrders)}</b></div>` : ''}\n</section>`;\n\nconst yearCards = years.map((item, index) => `<article class=\"year-card ${index === years.length - 1 ? 'active' : ''}\">\n  <div class=\"year-label\">${escapeHtml(item.Year)} YTD</div>\n  <strong>${money(item.TotalAmount)} ₴</strong>\n  <small>${money(item.OrdersCount)} зам. · ${money(item.ShippedQuantity)} констр.</small>\n  ${growth(item.GrowthPercent)}\n</article>`).join('');\n\nconst monthRows = months.map(item => `<tr>\n  <td><b>${monthLabel(item.Month)}</b></td>\n  <td class=\"num\">${money(item.TotalAmount)} ₴</td>\n  <td class=\"num\">${money(item.OrdersCount)}</td>\n  <td class=\"num\">${money(item.ShippedQuantity)}</td>\n  <td class=\"num\">${growth(item.GrowthPercent)}</td>\n</tr>`).join('');\n\nconst lastReportMonth = months.at(-1)?.Month ?? String(report.DateTo).slice(0, 7);\nconst [categoryYear, lastMonthNumber] = String(lastReportMonth).split('-').map(Number);\nconst categoryMonthKeys = Array.from(\n  { length: lastMonthNumber },\n  (_, index) => `${categoryYear}-${String(index + 1).padStart(2, '0')}`\n);\nconst categoryYearRows = categoryMonths.filter(\n  item => String(item.Month).startsWith(`${categoryYear}-`)\n);\nconst categoryNames = [...new Set(categoryYearRows.map(item => item.Name))];\nconst categoryComparison = categoryNames.map(name => {\n  const sourceValues = categoryYearRows.filter(item => item.Name === name);\n  const sourceByMonth = new Map(sourceValues.map(item => [item.Month, item]));\n  const values = categoryMonthKeys.map((month, index) => {\n    const item = sourceByMonth.get(month) ?? {\n      Name: name,\n      Month: month,\n      TotalAmount: 0,\n      Quantity: 0,\n      OrdersCount: 0,\n    };\n    const previous = index > 0\n      ? Number(sourceByMonth.get(categoryMonthKeys[index - 1])?.TotalAmount || 0)\n      : null;\n    const currentAmount = Number(item.TotalAmount || 0);\n    return {\n      ...item,\n      GrowthPercent: previous === null || previous === 0\n        ? null\n        : (currentAmount - previous) * 100 / previous,\n    };\n  });\n  const current = values.at(-1) ?? {};\n  const historyRows = values.map(item => `<div class=\"category-month\">\n    <div class=\"category-month-name\">${monthLabel(item.Month)}</div>\n    <div class=\"category-month-amount\">${money(item.TotalAmount)} ₴</div>\n    <div class=\"category-month-meta\">\n      <span>${money(item.Quantity)} шт.</span>\n      ${growth(item.GrowthPercent)}\n    </div>\n  </div>`).join('');\n  return `<details class=\"nested\">\n    <summary><span>${escapeHtml(name)}</span><small>${money(current.TotalAmount)} ₴ · ${growth(current.GrowthPercent)}</small><i>›</i></summary>\n    <div class=\"category-history\">${historyRows}</div>\n  </details>`;\n}).join('');\n\nconst totalTypeQty = types.reduce((sum, item) => sum + Number(item.Quantity || 0), 0);\nconst typeCards = types.map((item, index) => {\n  const percent = pct(item.Quantity, totalTypeQty);\n  return `<div class=\"mix-card\">\n    <div class=\"mix-top\"><span class=\"dot c${index % 5}\"></span><b>${escapeHtml(item.Name)}</b></div>\n    <strong>${money(item.Quantity)}</strong>\n    <span>${percent.toFixed(1)}% · ${money(item.OrdersCount)} зам.</span>\n    <div class=\"mix-line\"><i class=\"c${index % 5}\" style=\"width:${percent}%\"></i></div>\n  </div>`;\n}).join('');\n\nconst orderRows = orders.map(item => `<tr>\n  <td><b>${escapeHtml(item.OrderNumber)}</b><small>${escapeHtml(item.ClientOrderNumber)}</small></td>\n  <td>${escapeHtml(item.ContractorName)}</td>\n  <td>${date(item.LastShipmentDate)}</td>\n  <td class=\"num\">${money(item.ConstructionsCount)}</td>\n  <td class=\"num\">${money(item.TotalAmount)} ₴</td>\n  <td><span class=\"badge ${item.ShipmentCompleteness === 'Повністю' ? 'ok' : 'warn'}\">${escapeHtml(item.ShipmentCompleteness)}</span></td>\n</tr>`).join('');\n\nconst html = `<!DOCTYPE html>\n<html lang=\"uk\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=3\">\n<meta http-equiv=\"Cache-Control\" content=\"no-store, no-cache, must-revalidate, max-age=0\">\n<meta http-equiv=\"Pragma\" content=\"no-cache\">\n<meta http-equiv=\"Expires\" content=\"0\">\n<title>Вікна Стиль — відвантаження</title>\n<style>\n*{box-sizing:border-box}html{scroll-behavior:smooth}:root{--ink:#292625;--brown:#4c4644;--sand:#eee9df;--paper:#fff;--muted:#857f79;--line:#e5e0d9;--red:#9d292f;--green:#477645;--gold:#c89b45}\nbody{margin:0;background:#efede9;color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif;font-variant-numeric:tabular-nums}\n.report{width:min(100%,720px);margin:auto;padding:10px 8px 36px}.hero{position:relative;overflow:hidden;padding:20px;border-radius:18px;background:linear-gradient(135deg,#3f3a38,#625a56);color:#fff;box-shadow:0 12px 30px #4c464426}\n.hero:after{content:\"\";position:absolute;right:-45px;top:-65px;width:210px;height:210px;border:1px solid #ffffff0b;border-radius:50%}.hero-logo{display:block;position:relative;z-index:1;width:min(242px,70%);height:auto;margin-bottom:20px}.brand{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#e9d6ad}.hero h1{position:relative;z-index:1;margin:7px 0 5px;font-size:25px}.client{position:relative;z-index:1;margin:0 0 7px;font-size:15px;font-weight:650;color:#fff}.period{font-size:11px;color:#ffffffa8}\n.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.metric{min-width:0;padding:15px 13px;background:var(--paper);border:1px solid var(--line);border-radius:14px}.metric-label{min-height:26px;font-size:9px;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}.metric-value{overflow:hidden;font-size:20px;font-weight:750;color:var(--brown);white-space:nowrap}.metric-note{margin-top:4px;font-size:9px;color:var(--muted)}\n.growth{display:inline-block;margin-top:5px;font-size:9px;font-weight:750}.growth.positive{color:var(--green)}.growth.negative{color:var(--red)}.growth.neutral{color:var(--muted)}\n.production-hero{display:grid;grid-template-columns:minmax(160px,.8fr) minmax(170px,1fr);grid-template-areas:\"title title\" \"chart stats\" \"missing missing\";align-items:center;gap:8px 24px;margin:8px 0;padding:17px 20px;background:var(--paper);border:1px solid var(--line);border-radius:16px}.production-title{grid-area:title}.production-title span,.production-title small{display:block}.production-title span{font-size:15px;font-weight:750;color:var(--brown)}.production-title small{margin-top:3px;font-size:9px;color:var(--muted)}.production-chart{grid-area:chart;justify-self:center;width:min(190px,100%)}.production-chart svg{display:block;width:100%;height:auto;transform:rotate(-90deg)}.production-ring-bg,.production-ring{fill:none;stroke-width:17}.production-ring-bg{stroke:#ece8e2}.production-ring{stroke-linecap:butt}.production-ring.clickable{cursor:pointer;transition:stroke-width .18s}.production-ring.clickable:hover{stroke-width:21}.production-ring.on-time{stroke:#5f8b5d}.production-ring.late{stroke:#a83f45}.production-total,.production-total-label{transform:rotate(90deg);transform-origin:70px 70px;font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif;fill:var(--brown)}.production-total{font-size:25px;font-weight:800}.production-total-label{font-size:9px;fill:var(--muted)}.production-stats{grid-area:stats;display:grid;gap:9px}.production-stat{display:grid;grid-template-columns:11px 1fr;gap:9px;align-items:center;padding:11px 12px;border:1px solid var(--line);border-radius:11px;color:inherit;text-decoration:none;transition:transform .18s,box-shadow .18s}.production-stat:hover{transform:translateY(-1px);box-shadow:0 5px 14px #4c46441a}.production-stat>i{width:11px;height:42px;border-radius:8px}.production-stat.on-time>i{background:#5f8b5d}.production-stat.late>i{background:#a83f45}.production-stat span,.production-stat small{display:block}.production-stat span{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}.production-stat strong{display:inline-block;margin-top:2px;font-size:25px;color:var(--brown)}.production-stat small{float:right;margin-top:9px;font-size:13px;font-weight:750}.production-stat.on-time small{color:var(--green)}.production-stat.late small{color:var(--red)}.production-missing{grid-area:missing;padding-top:2px;font-size:9px;color:var(--muted);text-align:right}\n.years{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.year-card{padding:13px;background:#fff;border:1px solid var(--line);border-radius:13px}.year-card.active{background:var(--brown);color:#fff;border-color:var(--brown)}.year-label{font-size:9px;letter-spacing:.7px;color:var(--muted)}.year-card.active .year-label,.year-card.active small{color:#ffffff9c}.year-card strong{display:block;margin:7px 0 4px;font-size:17px}.year-card small{display:block;font-size:8px;color:var(--muted)}\n.growth-chart{padding-top:8px}.growth-chart svg{display:block;width:100%;height:auto;overflow:visible}.chart-grid{stroke:#e8e3dd;stroke-width:1}.chart-grid.zero{stroke:#aaa19a;stroke-width:1.4}.chart-axis,.chart-month,.chart-value{font-family:Inter,-apple-system,BlinkMacSystemFont,\"Segoe UI\",Arial,sans-serif}.chart-axis{fill:var(--muted);font-size:9px}.chart-month{fill:var(--muted);font-size:10px}.chart-value{font-size:9px;font-weight:750}.up-text{fill:var(--green)}.down-text{fill:var(--red)}.chart-bar.up{fill:#5f8b5d;fill-opacity:.82}.chart-bar.down{fill:#a83f45;fill-opacity:.82}.chart-trend-line{fill:none;stroke:#3f3a38;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.chart-point{stroke:#fff;stroke-width:2}.chart-point.up{fill:#5f8b5d}.chart-point.down{fill:#a83f45}.chart-point-core{fill:#fff}.chart-legend{display:flex;justify-content:center;gap:18px;margin-top:-4px;font-size:9px;color:var(--muted)}.chart-legend span{display:flex;align-items:center;gap:5px}.chart-legend i{width:8px;height:8px;border-radius:50%}.legend-up{background:#5f8b5d}.legend-down{background:#a83f45}.empty{padding:24px;text-align:center;color:var(--muted);font-size:11px}\ndetails{margin:8px 0;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;scroll-margin-top:10px}details:target{border-color:#a89a8f;box-shadow:0 0 0 3px #786c6518}summary{display:flex;align-items:center;gap:8px;padding:14px 15px;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}summary span{font-weight:700;color:var(--brown)}summary small{margin-left:auto;color:var(--muted)}summary i{font-size:20px;font-style:normal;transition:.2s}details[open] summary i{transform:rotate(90deg)}.detail-body{padding:2px 15px 15px;border-top:1px solid var(--line)}\n.nested{margin:7px 0;border-radius:10px}.nested summary{padding:10px 11px;min-width:0}.nested summary>span{min-width:0;overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.nested summary small{display:flex;flex-shrink:0;align-items:center;gap:4px;font-size:9px}.nested .growth{margin:0}.category-history{padding:0 10px 8px;border-top:1px solid var(--line)}.category-month{display:grid;grid-template-columns:78px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 1px;border-bottom:1px solid #eeeae5}.category-month:last-child{border-bottom:0}.category-month-name{font-size:10px;color:var(--muted)}.category-month-amount{overflow:hidden;font-size:12px;font-weight:700;color:var(--brown);text-align:right;text-overflow:ellipsis;white-space:nowrap}.category-month-meta{display:flex;min-width:58px;flex-direction:column;align-items:flex-end;font-size:8px;color:var(--muted)}.category-month-meta .growth{font-size:8px}\n.bar-row{display:grid;grid-template-columns:minmax(90px,1.2fr) 2fr auto;gap:8px;align-items:center;margin-top:11px}.bar-label{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.bar-track{height:8px;background:#eeeae5;border-radius:9px;overflow:hidden}.bar-fill{height:100%;border-radius:9px}.bar-value{font-size:11px;font-weight:700}.c0{background:#786c65}.c1{background:#ba755b}.c2{background:#c8a04f}.c3{background:#72906d}.c4{background:#6d839a}\n.mix{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:12px}.mix-card{padding:12px;border:1px solid var(--line);border-radius:11px}.mix-top{display:flex;align-items:center;gap:6px;font-size:11px}.dot{width:8px;height:8px;border-radius:50%}.mix-card strong{display:block;margin-top:9px;font-size:19px;color:var(--brown)}.mix-card>span{font-size:9px;color:var(--muted)}.mix-line{height:3px;margin-top:8px;background:#eee}.mix-line i{display:block;height:100%}\n.table-wrap{margin:0 -15px -15px;overflow:auto}table{width:100%;min-width:660px;border-collapse:collapse}th,td{padding:9px 10px;border-top:1px solid #eeeae5;font-size:10px;text-align:left}th{font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);background:#f8f6f3}td small{display:block;color:var(--muted);margin-top:2px}.num{text-align:right;white-space:nowrap}.badge{display:inline-block;padding:3px 6px;border-radius:10px;font-size:8px;font-weight:700}.badge.ok{background:#e7f0e4;color:var(--green)}.badge.warn{background:#fff0d9;color:#8c5a11}\n.foot{padding:13px 4px;text-align:center;font-size:9px;color:var(--muted)}\n@media(max-width:560px){.production-hero{grid-template-columns:125px minmax(0,1fr);gap:7px 10px;padding:14px 12px}.production-chart{width:125px}.production-stat{padding:8px}.production-stat>i{height:35px}.production-stat strong{font-size:21px}.production-stat small{font-size:11px}.metrics{grid-template-columns:repeat(2,1fr)}.metric-value{font-size:17px}.mix{grid-template-columns:1fr}.hero h1{font-size:22px}.bar-row{grid-template-columns:100px 1fr auto}.years{grid-template-columns:1fr}.year-card{display:grid;grid-template-columns:65px 1fr auto;align-items:center;gap:6px}.year-card strong{margin:0}.year-card small{display:none}.detail-body{padding-left:9px;padding-right:9px}.nested summary{padding:9px}.nested summary small{font-size:8px}.category-month{grid-template-columns:66px minmax(0,1fr) 60px;gap:5px}.category-month-amount{font-size:11px}}\n</style>\n</head>\n<body><main class=\"report\">\n  <header class=\"hero\">\n    <img class=\"hero-logo\" src=\"${logoDataUri}\" alt=\"Вікна Стиль\">\n    <div class=\"brand\">Персональна аналітика відвантажень</div>\n    <h1>Фактичні відвантаження</h1>\n    <div class=\"client\">${escapeHtml(contractorName)}</div>\n    <div class=\"period\">${date(report.DateFrom)} — ${date(report.DateTo)}</div>\n  </header>\n\n  ${productionHero}\n\n  <section class=\"metrics\">\n    ${metric('Сума відвантажень', `${money(summary.TotalAmount)} ₴`, `до попер. місяця ${growth(summary.GrowthVsPreviousMonth)}`)}\n    ${metric('Замовлення', money(summary.OrdersCount), `до попер. місяця ${growth(summary.OrdersGrowthVsPreviousMonth)}`)}\n    ${metric('Конструкції', money(summary.ConstructionsCount), `до попер. місяця ${growth(summary.ConstructionsGrowthVsPreviousMonth)}`)}\n    ${metric('Середній чек', `${money(summary.AverageOrderAmount)} ₴`, `до попер. місяця ${growth(summary.AverageCheckGrowthVsPreviousMonth)}`)}\n    ${metric('Середня ціна конструкції', `${money(summary.AverageConstructionAmount)} ₴`, `до попер. місяця ${growth(summary.AverageConstructionGrowthVsPreviousMonth)}`)}\n  </section>\n\n  <section class=\"years\">${yearCards}</section>\n  ${accordion(`Тренд приросту / падіння за ${reportYear} рік`, `${currentYearMonths.length} місяців`, growthChart(currentYearMonths), true)}\n  ${accordion('Порівняння місяців', `${months.length} місяців`, `<div class=\"table-wrap\"><table>\n    <thead><tr><th>Місяць</th><th class=\"num\">Сума</th><th class=\"num\">Зам.</th><th class=\"num\">Констр.</th><th class=\"num\">Приріст</th></tr></thead>\n    <tbody>${monthRows}</tbody>\n  </table></div>`, true)}\n  ${accordion('Категорії за місяцями', `${categoryNames.length} категорій`, categoryComparison, true)}\n  ${accordion('Динаміка відвантажень', `${trends.length} днів`, bars(trends, 'TotalAmount', ' ₴'), true)}\n  ${accordion('Структура продукції', `${money(totalTypeQty)} од.`, `<div class=\"mix\">${typeCards || '<p>Немає даних</p>'}</div>`, true)}\n  ${accordion('Виконання виробничих строків', `${money(summary.OrdersCount)} зам.`, bars(timeliness, 'OrdersCount'))}\n  ${accordion('ABC-структура', `${abc.length} категорії`, bars(abc, 'TotalAmount', ' ₴'))}\n  ${accordion('Профільні системи', `${profiles.length} позицій`, bars(profiles, 'ConstructionsCount'))}\n  ${accordion('Фурнітура', `${furniture.length} позицій`, bars(furniture, 'ConstructionsCount'))}\n  ${accordion('Кольори профілю', `${colors.length} позицій`, bars(colors, 'ConstructionsCount'))}\n  ${accordion('Відвантажені замовлення', `${orders.length} замовлень`, `<div class=\"table-wrap\"><table>\n    <thead><tr><th>Замовлення</th><th>Контрагент</th><th>Відвантажено</th><th class=\"num\">Констр.</th><th class=\"num\">Сума</th><th>Стан</th></tr></thead>\n    <tbody>${orderRows}</tbody>\n  </table></div>`, false, 'shipped-orders')}\n  <footer class=\"foot\">ТОВ «Вікна Стиль» · сформовано автоматично · версія ${reportVersion}</footer>\n</main></body></html>`;\n\nreturn [{\n  json: {\n    ...$json,\n    chat_id: 716230412,\n    html,\n    fileName: outputFileName,\n    reportVersion,\n    caption: `📊 Відвантаження\\n${date(report.DateFrom)} — ${date(report.DateTo)}\\n${money(summary.TotalAmount)} грн · ${money(summary.OrdersCount)} замовлень`,\n  },\n  binary: {\n    report: {\n      data: Buffer.from(html, 'utf8').toString('base64'),\n      mimeType: 'text/html',\n      fileName: outputFileName,\n      fileExtension: 'html',\n    },\n  },\n}];\n"
+      },
+      "id": "d4264e0d-f2f8-450e-8646-b2e80613dba4",
+      "name": "Build Shipped HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        350480,
+        -102976
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $json.chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "report",
+        "additionalFields": {
+          "caption": "={{ $json.caption }}"
+        }
+      },
+      "id": "6394895b-9178-4941-ad52-61a3c9f08651",
+      "name": "Send Monthly Report Test",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        350704,
+        -102976
+      ],
+      "webhookId": "ec6cd2a7-b25f-4496-8cdb-6b07bb03e7bc",
+      "credentials": {
+        "telegramApi": {
+          "id": "L6xepo4yH787moxu",
+          "name": "NotificationPortalBot"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "62aedb63-9d2a-4ca6-ab72-848f02693875",
+      "name": "Send Report Today",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        349808,
+        -102880
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const update = $('Telegram TestSalesBot').first().json;\n\nconst text = (update.message?.text ?? '').trim();\nconst callbackData = update.callback_query?.data ?? '';\n\nconst chatId =\n  update.message?.chat?.id ??\n  update.callback_query?.message?.chat?.id;\n\nif (!chatId) {\n  throw new Error('Telegram chat id is missing');\n}\n\nlet route = 'portal';\n\n// Portal navigation has priority over reply mode.\nconst normalizedText = text.replace(/[\\u2063\\u200b\\ufe0f]/g, '').replace(/\\s+/g, ' ').trim();\nconst isPortalNavigation = (\n  normalizedText === '/menu' ||\n  normalizedText.includes('\\u0413\\u043e\\u043b\\u043e\\u0432\\u043d\\u0435 \\u043c\\u0435\\u043d\\u044e') ||\n  normalizedText === '\\ud83d\\udd04 \\u041e\\u043d\\u043e\\u0432\\u0438\\u0442\\u0438 \\u043c\\u0435\\u043d\\u044e' ||\n  normalizedText === '\\ud83d\\udce6 \\u0417\\u0430\\u043c\\u043e\\u0432\\u043b\\u0435\\u043d\\u043d\\u044f' ||\n  normalizedText === '\\ud83d\\udee0 \\u0420\\u0435\\u043a\\u043b\\u0430\\u043c\\u0430\\u0446\\u0456\\u0457' ||\n  normalizedText === '\\u2795 \\u0414\\u043e\\u0437\\u0430\\u043c\\u043e\\u0432\\u043b\\u0435\\u043d\\u043d\\u044f' ||\n  normalizedText === '🚚 Очікують доставку'\n);\n\nif (/^\\/start\\s+tgb_[A-Za-z0-9_-]+$/i.test(text)) {\n  route = 'portal';\n} else if (/^\\/start(?:\\s+.*)?$/i.test(text)) {\n  route = 'manager_registration';\n} else if (isPortalNavigation || callbackData) {\n  route = 'portal';\n} else if (update.message?.reply_to_message) {\n  route = 'reply';\n} else {\n  route = 'portal';\n}\n\nreturn [{\n  json: {\n    ...update,\n    route,\n    chat_id: chatId,\n    text,\n    callback_data: callbackData\n  }\n}];"
+      },
+      "id": "16c359df-876a-4491-9525-875e7247c8ef",
+      "name": "Universal Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        350256,
+        -105568
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "manager_registration",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b2212a98-ca67-49b2-818d-3f3a6b39fdb1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "contact_registration",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "537dbbe6-d829-4bbe-ac88-a7dff356a400"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "reply",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "417ccd0a-b316-4ce1-b06f-f3a997cda0a1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "rightValue": "portal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ca5a63a5-3f88-413b-b76d-be5679813469"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "566f419f-cf56-4346-ad28-baca3362a889",
+      "name": "Route Universal Action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        350480,
+        -105616
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const update=$input.first().json;\nconst callbackData=update.callback_query?.data??'';\nconst rawText = update.message?.text ?? '';\nconst text = rawText.replace(/[\\u2063\\u200b\\ufe0f]/g, '').replace(/\\s+/g, ' ').trim();\nconst chatId=update.message?.chat?.id??update.callback_query?.message?.chat?.id??update.chat_id;\n\nif(!chatId) throw new Error('Telegram chat id is missing');\n\nconst store=$getWorkflowStaticData('global');\nstore.portalBotState=store.portalBotState||{};\nconst key=String(chatId);\nconst state=store.portalBotState[key]||{\n  period:'',\n  status:'all',\n  page:1,\n  order_id:'',\n  order_number:'',\n  linked_order_number:'',\n  files:{},\n  reclamation_id:'',\n  reclamation_number:'',\n  additional_order_id:'',\n  additional_order_number:'',\n  section:'menu',\n  reclamation_view:'',\n  delivery_pending:false\n};\n\nconst periodByText={\n  '📅 Сьогодні':'today',\n  '📅 7 днів':'last7',\n  '📅 Цей місяць':'month0',\n  '📅 Попередній місяць':'month1',\n  '📅 2 місяці тому':'month2'\n};\n\nconst statusByText={\n  '🆕 Нові':'new',\n  '⏳ Підтвердження':'awaiting_confirmation',\n  '⏳ Очікують підтвердження':'awaiting_confirmation',\n  '💳 Очікують оплату':'awaiting_payment',\n  '🟢 Підтверджені':'confirmed',\n  '🏭 У виробництві':'production',\n  '🟠 Запізнення':'delayed',\n  '✅ Готові':'ready',\n  '🚚 Відвантажені':'shipped',\n  '⚪ Відмови':'rejected'\n};\n\nlet action='help';\nlet userGuid='';\nlet status=state.status||'all';\nlet period=state.period||'';\nlet page=Number(state.page||1);\nlet orderId=state.order_id||'';\nlet orderNumber=state.order_number||'';\nlet linkedOrderNumber=state.linked_order_number||'';\nlet reclamationStatus='';\nlet fileId='';\nlet deliveryPending=false;\n\n// ----- Період -----\nif(periodByText[text]){\n  state.section='orders';\n  period=periodByText[text];\n  status='all';\n  page=1;\n  state.period=period;\n  state.status=status;\n  state.page=page;\n  action='order_statuses';\n}\n// ----- Статуси -----\nelse if(statusByText[text]){\n  state.section='orders';\n  status=statusByText[text];\n  page=1;\n  state.status=status;\n  state.page=page;\n  action='orders';\n}\nelse if(text==='📦 Усі замовлення'){\n  state.section='orders';\n  status='all';\n  page=1;\n  state.status=status;\n  state.page=page;\n  action='orders';\n}\n// ----- Пагінація -----\nelse if(text==='◀️ Попередні 10'){\n  if(state.section==='reclamations'){state.reclamation_page=Math.max(1,Number(state.reclamation_page||1)-1);action='reclamations';}\n  else if(state.section==='additional_orders'){state.additional_order_page=Math.max(1,Number(state.additional_order_page||1)-1);action='additional_orders';}\n  else {page=Math.max(1,page-1);state.page=page;action='orders';}\n}\nelse if(text==='▶️ Наступні 10'){\n  if(state.section==='reclamations'){state.reclamation_page=Number(state.reclamation_page||1)+1;action='reclamations';}\n  else if(state.section==='additional_orders'){state.additional_order_page=Number(state.additional_order_page||1)+1;action='additional_orders';}\n  else {page=page+1;state.page=page;action='orders';}\n}\n// ----- Навігація по замовленнях -----\nelse if(text==='📊 До статусів'||text==='📊 До вибору статусу'||text==='📊 Інший статус'){\n  action='order_statuses';\n}\nelse if(text==='📅 До періодів'||text==='📅 До вибору періоду'||text==='📅 Інший період'){\n  action='order_periods';\n}\nelse if(\n  text==='📦 Замовлення' ||\n  text==='📦 Мої замовлення' ||\n  text==='📦 Переглянути мої замовлення'\n){\n  state.section='orders';\n  action='order_periods';\n}\n\nelse if(text.startsWith('🔎 №')){\n  const btn=text.replace('🔎 ','').trim();\n  const saved=state.order_buttons?.[btn];\n  if(saved){\n    action='details';\n    orderId=String(saved.id??'');\n    orderNumber=String(saved.number??'');\n    state.order_id=orderId;\n    state.order_number=orderNumber;\n  } else {\n    action='order_search';\n  }\n}\n\nelse if(text==='🔎 Знайти за номером'||text==='🔎 Знайти замовлення'){\n  action='order_search';\n}\n// ----- Файли поточного замовлення -----\nelse if(text==='📎 Файли замовлення'){\n  action='files';\n  orderId=state.order_id||'';\n  orderNumber=state.order_number||'';\n}\nelse if(/^📎 Файл \\d+$/.test(text)){\n  const fileKey=text.replace('📎 ','');\n  fileId=state.files?.[fileKey]||'';\n  if(fileId){\n    action='download_file';\n  }else{\n    action='files';\n  }\n}\nelse if(text==='🚚 Очікують доставку'){\n  state.section='orders';\n  status='all';\n  period='';\n  page=1;\n  state.status=status;\n  state.period=period;\n  state.page=page;\n  action='orders';\n  deliveryPending=true;\n}\n// ----- Інші розділи -----\nelse if(text==='🛠 Рекламації'){\n  state.section='reclamations';\n  state.reclamation_view='filters';\n  action='reclamation_filters';\n}\nelse if(text.startsWith('🛠 Статус: ')){\n  state.section='reclamations';\n  state.reclamation_view='results';\n  action='reclamations';\n  reclamationStatus=text.slice('🛠 Статус: '.length);\n}\nelse if(text==='➕ Дозамовлення'){\n  state.section='additional_orders';\n  action='additional_orders';\n}\nelse if(text==='📊 Звіт за сьогодні'){\n  action='daily';\n}\n// ----- Пошук / деталі -----\nelse if(text.startsWith('/order ')){\n  action='details';\n  orderNumber=text.replace('/order ','').trim();\n  state.order_number=orderNumber;\n}\nelse if(/^[0-9]{2}-[0-9]+$/i.test(text)){\n  action='details';\n  orderNumber=text;\n  state.order_number=orderNumber;\n}\nelse if(text.startsWith('/start')){\n  action='start';\n  userGuid=text.replace('/start','').trim();\n}\nelse if(text==='⬅️ Назад'){\n  if(state.section==='reclamations'){\n    if(state.reclamation_view==='results'){\n      state.reclamation_view='filters';\n      action='reclamation_filters';\n    }else{\n      state.section='menu';\n      state.reclamation_view='';\n      action='menu';\n    }\n  }\n  else if(state.section==='additional_orders'){\n    state.section='menu';\n    action='menu';\n  }\n  else if(state.section==='orders'){\n    action=state.period ? 'order_statuses' : 'order_periods';\n  }\n  else{\n    action='menu';\n  }\n}\nelse if(\n  text==='/menu' ||\n  text==='🔄 Оновити меню' ||\n  /^🏠?\\s*Головне меню$/u.test(text) ||\n  text.includes('Головне меню')\n){\n  state.section='menu';\n  state.reclamation_view='';\n  action='menu';\n}\n\n\nelse if(callbackData.startsWith('orders_page|')){\n  const parts=callbackData.split('|');\n  period=parts[1]??state.period??'month0';\n  status=parts[2]??state.status??'all';\n  page=Math.max(1,Number(parts[3]??1));\n  state.period=period;\n  state.status=status;\n  state.page=page;\n  action='orders';\n}\n\nif(callbackData.startsWith('reclamations_page|')){state.section='reclamations';state.reclamation_page=Math.max(1,Number(callbackData.split('|')[1]||1));action='reclamations';}\nelse if(callbackData.startsWith('additional_orders_page|')){state.section='additional_orders';state.additional_order_page=Math.max(1,Number(callbackData.split('|')[1]||1));action='additional_orders';}\n\n// Сумісність зі старими callback, якщо десь ще залишилися\nif(callbackData.startsWith('additional_order_details|')){action='additional_order_details';const key=callbackData.split('|')[1]||'';const selected=state.additional_order_buttons?.[key]||{};state.additional_order_key=key;state.additional_order_item=selected;state.additional_order_id=selected.id||'';state.additional_order_number=selected.number||'';}\nelse if(callbackData.startsWith('additional_order_files|')){action='additional_order_files';const key=callbackData.split('|')[1]||'';const selected=state.additional_order_buttons?.[key]||{};state.additional_order_key=key;state.additional_order_item=selected;state.additional_order_id=selected.id||'';state.additional_order_number=selected.number||'';}\nelse if(callbackData.startsWith('additional_order_file|')){action='download_additional_order_file';const key=callbackData.split('|')[1]||'';fileId=state.additional_order_files?.[key]||'';}\nelse if(callbackData.startsWith('reclamation_details|')){action='reclamation_details';const key=callbackData.split('|')[1]||'';const selected=state.reclamation_buttons?.[key]||{};state.reclamation_key=key;state.reclamation_item=selected;state.reclamation_id=selected.id||'';state.reclamation_number=selected.number||'';}\nelse if(callbackData.startsWith('reclamation_files|')){action='reclamation_files';const key=callbackData.split('|')[1]||'';const selected=state.reclamation_buttons?.[key]||{};state.reclamation_key=key;state.reclamation_item=selected;state.reclamation_id=selected.id||'';state.reclamation_number=selected.number||'';}\nelse if(callbackData.startsWith('reclamation_file|')){action='download_reclamation_file';const key=callbackData.split('|')[1]||'';fileId=state.reclamation_files?.[key]||'';}\nelse if(callbackData.startsWith('files|')){\n  action='files';\n  [,orderId,orderNumber]=callbackData.split('|');\n  state.order_id=orderId||'';\n  state.order_number=orderNumber||'';\n}\nelse if(callbackData.startsWith('file|')){\n  action='download_file';\n  fileId=callbackData.split('|')[1]??'';\n}\nelse if(callbackData.startsWith('details|')){\n  action='details';\n  [,orderId,orderNumber]=callbackData.split('|');\n  state.order_id=orderId||'';\n  state.order_number=orderNumber||'';\n}\nelse if(callbackData.startsWith('confirm|')){\n  action='confirm';\n  [,orderId,orderNumber,linkedOrderNumber='']=callbackData.split('|');\n  state.order_id=orderId||'';\n  state.order_number=orderNumber||'';\n  state.linked_order_number=linkedOrderNumber||'';\n}\n\nstore.portalBotState[key]=state;\n\nreturn [{json:{\n  action,\n  chat_id:chatId,\n  user_guid:userGuid,\n  status,\n  period,\n  page,\n  order_id:orderId,\n  order_number:orderNumber,\n  linked_order_number:linkedOrderNumber,\n  reclamation_status:reclamationStatus,\n  file_id:fileId,\n  delivery_pending:deliveryPending,\n  reclamation_id:state.reclamation_id||'',\n  reclamation_number:state.reclamation_number||'',\n  additional_order_id:state.additional_order_id||'',\n  additional_order_number:state.additional_order_number||'',\n  reclamation_key:state.reclamation_key||'',\n  reclamation_item:state.reclamation_item||{},\n  additional_order_key:state.additional_order_key||'',\n  additional_order_item:state.additional_order_item||{}\n}}];"
+      },
+      "id": "f713b4ed-62e6-4566-ae4b-712dcd6e9d69",
+      "name": "Parse portal command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        351600,
+        -106960
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "orders",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "daily",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "confirm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "filters",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "reclamations",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "additional_orders",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "reclamation_filters",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "order_search",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "files",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "download_file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "order_periods",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "order_statuses",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "reclamation_details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "reclamation_files",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "download_reclamation_file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "additional_order_details",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "additional_order_files",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "download_additional_order_file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "d2d22e6a-7069-4e04-9b38-7d53d5751de3",
+      "name": "Route action",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        351824,
+        -107280
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/link/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {chat_id: $('Parse portal command').item.json.chat_id, user_guid: $('Parse portal command').item.json.user_guid} }}",
+        "options": {}
+      },
+      "id": "7a019847-af77-497e-ba84-c3812989b3f4",
+      "name": "Link portal user",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352048,
+        -106672
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/menu/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4e8f90f2-dbcc-4b03-ad5e-5fa451952b14",
+      "name": "Load portal menu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -106592
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/orders/?chat_id=' + $('Parse portal command').item.json.chat_id + '&status=' + $('Parse portal command').item.json.status + '&period=' + $('Parse portal command').item.json.period + '&delivery_pending=' + ($('Parse portal command').item.json.delivery_pending ? '1' : '0') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "647506b7-ae74-453c-aa3e-ce4393218090",
+      "name": "Load portal orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -105776
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/daily-report/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3465ca45-408f-45dd-9be2-14b2942db4f2",
+      "name": "Load daily report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -105200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/orders/confirm/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {chat_id: $('Parse portal command').item.json.chat_id, order_id: $('Parse portal command').item.json.order_id, order_number: $('Parse portal command').item.json.order_number, linked_order_number: $('Parse portal command').item.json.linked_order_number} }}",
+        "options": {}
+      },
+      "id": "242144cb-5587-46c6-a54f-05b0f86fd752",
+      "name": "Confirm portal order",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -105008
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data=$json.data??{};\nreturn [{json:{chat_id:$('Parse portal command').first().json.chat_id,text:\"👋 Вітаємо, <b>\"+(data.user?.name??\"дилере\")+'!</b>',reply_markup:{keyboard:[[\"📦 Замовлення\", \"🛠 Рекламації\"], [\"🚚 Очікують доставку\"], [\"➕ Дозамовлення\", \"📊 Звіт за сьогодні\"]],resize_keyboard:true,one_time_keyboard:false,is_persistent:true}}}];"
+      },
+      "id": "edc12eee-b005-4b9a-b76f-28bcb0b3245f",
+      "name": "Format menu",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -106192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const all=Array.isArray($json.orders)?$json.orders:[];const p=$('Parse portal command').first().json;const pageSize=10;const page=Math.max(1,Number(p.page||1));const total=all.length;const pages=Math.max(1,Math.ceil(total/pageSize));const current=Math.min(page,pages);const rows=all.slice((current-1)*pageSize,current*pageSize);const date=v=>{const d=new Date(v);return v&&!Number.isNaN(d.getTime())?new Intl.DateTimeFormat('uk-UA').format(d):'—'};const delivery=v=>{const d=new Date(v);return v&&!Number.isNaN(d.getTime())?new Intl.DateTimeFormat('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d).replace(',',' '+String.fromCharCode(0x043e)):''};const money=v=>new Intl.NumberFormat('uk-UA',{maximumFractionDigits:0}).format(Number(v||0));const text=rows.map((o,i)=>`${(current-1)*pageSize+i+1}. <b>№${o.number||'—'}</b> • ${o.status||'—'}\\n📅 ${date(o.date)} • ${money(o.amount)} ${o.currency||'грн'}${p.delivery_pending&&o.planned_delivery_at?`\\n🚚 Доставка: ${delivery(o.planned_delivery_at)}`:''}`).join('\\n\\n');const inline_keyboard=rows.map(o=>[{text:`🔎 Деталі №${o.number||'—'}`,callback_data:`details|${o.id||''}|${o.number||''}`}]);const nav=[];if(current>1)nav.push({text:'◀️ Попередні 10',callback_data:`orders_page|${p.period||'month0'}|${p.status||'all'}|${current-1}`});if(current<pages)nav.push({text:'▶️ Наступні 10',callback_data:`orders_page|${p.period||'month0'}|${p.status||'all'}|${current+1}`});if(nav.length)inline_keyboard.push(nav);return [{json:{chat_id:p.chat_id,text:`<b>📦 Замовлення</b>\\n\\n${text||'За обраним фільтром замовлень немає.'}\\n\\n${total?`Сторінка ${current}/${pages} • Всього: ${total}`:''}`,reply_markup:inline_keyboard.length?{inline_keyboard}:undefined,order_navigation_keyboard:{\n  keyboard:[['◀️ Попередні 10','▶️ Наступні 10'],['📊 До статусів','📅 До періодів'],['🏠 Головне меню']],\n  resize_keyboard:true,\n  one_time_keyboard:false,\n  is_persistent:true,\n  selective:false\n}}}];"
+      },
+      "id": "5833b23e-b227-4fc6-ace5-aefc8e2b764d",
+      "name": "Format orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -105472
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $json.report ?? {};\nconst labels={new:'Нові',awaiting_confirmation:'Очікують підтвердження',awaiting_payment:'Очікують оплати',confirmed:'Підтверджені',production:'У виробництві',delayed:'Запізнення',ready:'Готові',rejected:'Відмови'};\nconst details=Object.entries(r.statuses ?? {}).map(([key,value]) => `• ${labels[key] ?? key}: <b>${value}</b>`).join('\\n') || '• Даних немає';\nconst sum=new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(r.turnover||0));\nreturn [{json:{chat_id:$('Parse portal command').first().json.chat_id,text:`<b>📊 Звіт за ${r.date ?? 'сьогодні'}</b>\\n\\nЗамовлення: <b>${r.orders_count ?? 0}</b>\\nКонструкції: <b>${r.constructions_count ?? 0}</b>\\nСума: <b>${sum} ${r.currency ?? 'грн'}</b>\\n\\n${details}`}}];"
+      },
+      "id": "b57e23dc-b507-47db-ad0f-f895fd881839",
+      "name": "Format daily report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -104896
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json:{\n    chat_id:$('Parse portal command').first().json.chat_id,\n    text:$json.success\n      ? `✅ <b>${$json.message}</b>`\n      : `❌ ${$json.error ?? 'Не вдалося підтвердити замовлення.'}`,\n    reply_markup:{\n      keyboard:[\n        ['📦 Мої замовлення','⬅️ Назад'],\n        ['🏠 Головне меню']\n      ],\n      resize_keyboard:true,\n      one_time_keyboard:false,\n      is_persistent:true\n    }\n  }\n}];"
+      },
+      "id": "9d0be69e-e00d-41a2-bf75-e475e0386769",
+      "name": "Format confirmation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -104704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{chat_id:$json.chat_id,text:'<b>Команди бота</b>\\n\\n📦 Мої замовлення\\n📊 Звіт за сьогодні\\n🔄 Оновити меню\\n✅ Підтвердження замовлень через кнопки\\n\\nЩоб відкрити меню повторно, використайте /menu.'}}];"
+      },
+      "id": "cbe1e36b-b0dc-4de1-bfd8-0d67e9b59a43",
+      "name": "Format help",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -103744
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendMessage' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { chat_id: $json.chat_id, text: $json.text ?? '', parse_mode: 'HTML', ...($json.reply_markup ? { reply_markup: $json.reply_markup } : {}) } }}",
+        "options": {}
+      },
+      "id": "94570ed2-d10b-4b26-b5f9-e7347512f39c",
+      "name": "Send Telegram message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        353392,
+        -104672
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 18 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cf0c6ba8-bbce-408f-b001-9685908f86b0",
+      "name": "Daily Portal Report 18:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        349808,
+        -103520
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/daily-recipients/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2ce8210-6bd7-4ff7-bce1-aa2abb0e2031",
+      "name": "Get report recipients",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        350032,
+        -103520
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "recipients",
+        "options": {}
+      },
+      "id": "52ba6d4a-0b76-418b-b13f-e31ba604fa97",
+      "name": "Split recipients",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        350256,
+        -103520
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/daily-report/?chat_id=' + $json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "20e1a532-d509-46c5-928c-8cce08b1865b",
+      "name": "Get recipient report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        350480,
+        -103520
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r=$json.report??{};\nconst sum=new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(r.turnover||0));\nreturn [{json:{chat_id:$('Split recipients').item.json.chat_id,text:`<b>📊 Щоденний звіт за ${r.date ?? 'сьогодні'}</b>\\n\\nЗамовлення: <b>${r.orders_count ?? 0}</b>\\nКонструкції: <b>${r.constructions_count ?? 0}</b>\\nСума: <b>${sum} ${r.currency ?? 'грн'}</b>`}}];"
+      },
+      "id": "e7283c73-49b8-430d-b9ea-011b2d131026",
+      "name": "Format scheduled report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        350704,
+        -103520
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "b63b102b-2b83-4578-b44c-c12f0a563c1a",
+      "name": "Send daily report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        350928,
+        -103520
+      ],
+      "webhookId": "5129efc4-195d-4629-a8aa-c38a5ca22298",
+      "credentials": {
+        "telegramApi": {
+          "id": "L6xepo4yH787moxu",
+          "name": "NotificationPortalBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/link/' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {chat_id: $('Universal Router').item.json.chat_id, user_guid: $('Universal Router').item.json.text.replace('/start','').trim()} }}",
+        "options": {}
+      },
+      "id": "a9fb6f46-e1b1-4e45-8afc-35e1485aff87",
+      "name": "Link Dealer To Portal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352048,
+        -104336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json.data ?? $json ?? {};\nconst keyboard = Array.isArray(data.reply_keyboard) ? data.reply_keyboard : [];\nconst dealerName = data.user?.name ?? 'дилере';\nreturn [{ json: {\n  chat_id: $('Universal Router').first().json.chat_id,\n  text: `✅ Вітаємо, <b>${dealerName}</b>!\\n\\nПрофіль дилера прив’язано. У меню доступні лише замовлення вашого контрагента.`,\n  reply_markup: { keyboard, resize_keyboard: true, one_time_keyboard: false, is_persistent: true }\n}}];"
+      },
+      "id": "eb1f6503-580a-4714-ad6a-0adba73e7abc",
+      "name": "Format Dealer Menu",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -103936
+      ]
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        349808,
+        -105568
+      ],
+      "id": "02d0a5db-8677-4a1e-919c-3a2dd4b02df8",
+      "name": "Telegram TestSalesBot",
+      "webhookId": "779d53ca-0831-4ec4-825a-2f4db01d5bcf",
+      "credentials": {
+        "telegramApi": {
+          "id": "vv6WXcNXC9Ou1RY5",
+          "name": "TestSalesBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').first().json.portal_url + '/api/telegram-bot/menu/?chat_id=' + $('Universal Router').first().json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').first().json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2baa43e8-cd76-4754-b37d-38dbef39f896",
+      "name": "Load Dealer Menu",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -104336
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders=Array.isArray($json.orders)?$json.orders:[];\nconst apiCounts=($json.status_counts&&typeof $json.status_counts==='object')?$json.status_counts:null;\nconst parsed=$('Parse portal command').first().json;\nconst period=parsed.period||'month0';\n\nconst periodLabels={\n  today:'Сьогодні',\n  last7:'Останні 7 днів',\n  month0:'Цей місяць',\n  month1:'Попередній місяць',\n  month2:'2 місяці тому'\n};\n\nconst meta={\n  new:['🆕','Нові'],\n  awaiting_confirmation:['⏳','Підтвердження'],\n  awaiting_payment:['💳','Очікують оплату'],\n  confirmed:['🟢','Підтверджені'],\n  production:['🏭','У виробництві'],\n  delayed:['🟠','Запізнення'],\n  ready:['✅','Готові'],\n  shipped:['🚚','Відвантажені'],\n  rejected:['⚪','Відмови']\n};\n\nconst order=['new','awaiting_confirmation','awaiting_payment','confirmed','production','delayed','ready','shipped','rejected'];\nconst counts={};\n\nif(apiCounts){\n  for(const [key,value] of Object.entries(apiCounts)){\n    if(Number(value||0)>0) counts[key]=Number(value);\n  }\n}\n\nif(!Object.keys(counts).length){\n  for(const o of orders){\n    if(!o.status_key) continue;\n    counts[o.status_key]=(counts[o.status_key]||0)+1;\n  }\n}\n\nconst buttons=[];\nfor(const key of order){\n  const count=Number(counts[key]||0);\n  if(!count) continue;\n  const [icon,label]=meta[key]||['•',key];\n  buttons.push(`${icon} ${label}`);\n}\n\nconst keyboard=[];\nfor(let i=0;i<buttons.length;i+=2) keyboard.push(buttons.slice(i,i+2));\n\nkeyboard.push(['📦 Усі замовлення','📅 Інший період']);\nkeyboard.push(['🏠 Головне меню']);\n\nconst total=Object.values(counts).reduce((s,v)=>s+Number(v||0),0);\n\nreturn [{\n  json:{\n    chat_id:parsed.chat_id,\n    text:`<b>📊 ${periodLabels[period]??'Замовлення'} — ${total} замовлень</b>\\n\\nОберіть статус:`,\n    reply_markup:{\n      keyboard,\n      resize_keyboard:true,\n      one_time_keyboard:false,\n      is_persistent:true\n    }\n  }\n}];"
+      },
+      "id": "be0dcd3f-c9ef-44ec-95e1-e636b961dc65",
+      "name": "Format order filters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -104128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/orders/details/?chat_id=' + $('Parse portal command').item.json.chat_id + '&order_id=' + encodeURIComponent($('Parse portal command').item.json.order_id) + '&order_number=' + encodeURIComponent($('Parse portal command').item.json.order_number) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7a955d43-c5df-4aa9-a2ae-37df02c9e0ef",
+      "name": "Load portal order details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -105392
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const o=$json.order??$json.data??{};const chat_id=$('Parse portal command').first().json.chat_id;const esc=v=>String(v??'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');const date=v=>{const d=new Date(v);return v&&!Number.isNaN(d.getTime())?new Intl.DateTimeFormat('uk-UA').format(d):'—'};const money=v=>new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(v||0));if(!o.id&&!o.number)return [{json:{chat_id,text:`❌ ${$json.error||'Не вдалося завантажити деталі замовлення.'}`}}];const debt=Number(o.debt??Math.max(Number(o.amount||0)-Number(o.paid||0),0));const text=`<b>📦 Замовлення №${esc(o.number)}</b>\\n${esc(o.status)}\\n\\nДата: <b>${date(o.date)}</b>\\nКонструкцій: <b>${esc(o.count)}</b>\\nКонтрагент: <b>${esc(o.dealer)}</b>\\nОтримувач: <b>${esc(o.recipient)}</b>\\n\\nСума: <b>${money(o.amount)} ${esc(o.currency||'грн')}</b>\\nОплачено: <b>${money(o.paid)} ${esc(o.currency||'грн')}</b>\\nБорг: <b>${money(debt)} ${esc(o.currency||'грн')}</b>${o.delivery_address?`\\nАдреса: <b>${esc(o.delivery_address)}</b>`:''}`;return [{json:{chat_id,text,order_navigation_keyboard:{\n  keyboard:[['◀️ Попередні 10','▶️ Наступні 10'],['📊 До статусів','📅 До періодів'],['🏠 Головне меню']],\n  resize_keyboard:true,\n  one_time_keyboard:false,\n  is_persistent:true,\n  selective:false\n},reply_markup:{inline_keyboard:[[{text:'✅ Підтвердити замовлення',callback_data:`confirm|${o.id||''}|${o.number||''}`}],[{text:'📎 Файли замовлення',callback_data:`files|${o.id||''}|${o.number||''}`}] ]}}}];"
+      },
+      "id": "40a97b6a-b600-4462-9730-3a3f297a360f",
+      "name": "Format order details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -105088
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/reclamations/?chat_id=' + $('Parse portal command').item.json.chat_id + '&status=' + encodeURIComponent($('Parse portal command').item.json.reclamation_status || '') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "19b8be16-92ab-4547-8091-978dd1c8813c",
+      "name": "Load portal reclamations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -105968
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/additional-orders/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3ccb805f-3367-4406-9279-255fb851cb15",
+      "name": "Load portal additional orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -106832
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=Array.isArray($json.reclamations)?$json.reclamations:[];const chat_id=$('Parse portal command').first().json.chat_id;const store=$getWorkflowStaticData('global');store.portalBotState=store.portalBotState||{};const state=store.portalBotState[String(chat_id)]||{};const pageSize=10,pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(Math.max(1,Number(state.reclamation_page||1)),pages),visible=rows.slice((page-1)*pageSize,page*pageSize);state.reclamation_page=page;state.reclamation_buttons={};const date=v=>v?new Intl.DateTimeFormat('uk-UA').format(new Date(v)):'—';const inline_keyboard=visible.filter(item=>item.id).map((item,index)=>{const key=`r${index+1}`;state.reclamation_buttons[key]=item;return [{text:`№${item.number||'—'} (${item.order_number||'—'}) • ${date(item.date)}`,callback_data:`reclamation_details|${key}`}];});store.portalBotState[String(chat_id)]=state;const keyboard=[];const nav=[];if(page>1)nav.push('◀️ Попередні 10');if(page<pages)nav.push('▶️ Наступні 10');if(nav.length)keyboard.push(nav);keyboard.push(['⬅️ Назад','🏠 Головне меню']);return [{json:{chat_id,text:'⁣',reply_markup:inline_keyboard.length?{inline_keyboard}:undefined,order_navigation_keyboard:{keyboard,resize_keyboard:true,one_time_keyboard:false,is_persistent:true,selective:false}}}];"
+      },
+      "id": "8e9045a2-541c-41d2-8999-cc55f23b56f0",
+      "name": "Format reclamations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -105664
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows=Array.isArray($json.additional_orders)?$json.additional_orders:[];const chat_id=$('Parse portal command').first().json.chat_id;const store=$getWorkflowStaticData('global');store.portalBotState=store.portalBotState||{};const state=store.portalBotState[String(chat_id)]||{};const pageSize=10,pages=Math.max(1,Math.ceil(rows.length/pageSize)),page=Math.min(Math.max(1,Number(state.additional_order_page||1)),pages),visible=rows.slice((page-1)*pageSize,page*pageSize);state.additional_order_page=page;state.additional_order_buttons={};const date=v=>v?new Intl.DateTimeFormat('uk-UA').format(new Date(v)):'—';const inline_keyboard=visible.filter(item=>item.id).map((item,index)=>{const key=`a${index+1}`;state.additional_order_buttons[key]=item;return [{text:`№${item.number||'—'} (${item.order_number||'—'}) • ${date(item.date)}`,callback_data:`additional_order_details|${key}`}];});store.portalBotState[String(chat_id)]=state;const keyboard=[];const nav=[];if(page>1)nav.push('◀️ Попередні 10');if(page<pages)nav.push('▶️ Наступні 10');if(nav.length)keyboard.push(nav);keyboard.push(['⬅️ Назад','🏠 Головне меню']);return [{json:{chat_id,text:'⁣',reply_markup:inline_keyboard.length?{inline_keyboard}:undefined,order_navigation_keyboard:{keyboard,resize_keyboard:true,one_time_keyboard:false,is_persistent:true,selective:false}}}];"
+      },
+      "id": "7a41daef-9754-4d88-8338-c19cf18e6a23",
+      "name": "Format additional orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -106384
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/reclamations/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "95a34c7c-6524-435d-a3d0-0b03f0f68cd1",
+      "name": "Load reclamation filters",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -106160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const counts=$json.status_counts??{};\nconst buttons=Object.entries(counts)\n  .sort((a,b)=>a[0].localeCompare(b[0],'uk'))\n  .map(([status,count])=>`🛠 Статус: ${status}`);\n\nconst keyboard=[];\nfor(let i=0;i<buttons.length;i+=2) keyboard.push(buttons.slice(i,i+2));\n\nkeyboard.push(['⬅️ Назад','🏠 Головне меню']);\n\nreturn [{\n  json:{\n    chat_id:$('Parse portal command').first().json.chat_id,\n    text:`<b>🛠 Рекламації (${Object.values(counts).reduce((sum,value)=>sum+Number(value||0),0)})</b>\n\nОберіть статус:`,\n    reply_markup:{\n      keyboard,\n      resize_keyboard:true,\n      one_time_keyboard:false,\n      is_persistent:true,\n      selective:false\n    }\n  }\n}];"
+      },
+      "id": "6e3cfac0-5be3-426d-adb1-3a0c23e1a1e7",
+      "name": "Format reclamation filters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -105856
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json:{\n    chat_id:$('Parse portal command').first().json.chat_id,\n    text:'<b>Пошук замовлення</b>\\n\\nНадішліть номер замовлення, наприклад: <code>01-350435</code>.\\nАбо використайте команду: <code>/order 01-350435</code>.',\n    reply_markup:{\n      keyboard:[\n        ['📦 Мої замовлення','⬅️ Назад']\n      ],\n      resize_keyboard:true,\n      one_time_keyboard:false,\n      is_persistent:true\n    }\n  }\n}];"
+      },
+      "id": "0af952eb-e725-4034-bde5-4f0fdbfab71f",
+      "name": "Format order search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -104512
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/order-files/?chat_id=' + $('Parse portal command').item.json.chat_id + '&order_id=' + encodeURIComponent($('Parse portal command').item.json.order_id) + '&order_number=' + encodeURIComponent($('Parse portal command').item.json.order_number) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eb8efe56-11c6-449d-9c50-eb27f68c62b9",
+      "name": "Load portal order files",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -105584
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const files=Array.isArray($json.files)?$json.files:[];\nconst chatId=$('Parse portal command').first().json.chat_id;\nconst date=value=>value?new Intl.DateTimeFormat('uk-UA').format(new Date(value)):'—';\n\nconst buttons=[];\nconst description=[];\n\nfiles.slice(0,20).forEach((file,index)=>{\n  buttons.push([\n    {\n      text:`📎 ${file.name}`,\n      callback_data:`file|${file.id}`\n    }\n  ]);\n  description.push(`${index+1}. <b>${file.name}</b>\\n${file.type??'Файл'} • ${date(file.date)}`);\n});\n\nreturn [{\n  json:{\n    chat_id:chatId,\n    text:`<b>📎 Файли замовлення (${files.length})</b>\\n\\n${description.join('\\n\\n')||'Файлів немає.'}`,\n    reply_markup:buttons.length ? {inline_keyboard:buttons} : undefined,\n    order_navigation_keyboard:{\n      keyboard:[\n        ['◀️ Попередні 10','▶️ Наступні 10'],\n        ['📊 До статусів','📅 До періодів'],\n        ['🏠 Головне меню']\n      ],\n      resize_keyboard:true,\n      one_time_keyboard:false,\n      is_persistent:true,\n      selective:false\n    },\n    restore_order_navigation:true\n  }\n}];"
+      },
+      "id": "8ad5353a-034a-4a52-9f7c-8c06083a2705",
+      "name": "Format order files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -105280
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/order-files/download/?chat_id=' + $('Parse portal command').item.json.chat_id + '&file_id=' + encodeURIComponent($('Parse portal command').item.json.file_id) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "8e9fca4f-c1f5-4f5d-bb85-368947bfe900",
+      "name": "Download portal order file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352048,
+        -106352
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendDocument' }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('Parse portal command').first().json.chat_id }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "document",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b154bd88-7150-41da-b26d-56741326eaf3",
+      "name": "Send order file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -106352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all();"
+      },
+      "id": "9417625b-031d-4179-a270-0c1ea773e85e",
+      "name": "Prepare Telegram message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352720,
+        -104672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendMessage' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { chat_id: $('Parse portal command').first().json.chat_id, text: '\\u2063', reply_markup: { keyboard: [[\"📦 Замовлення\", \"🛠 Рекламації\"], [\"🚚 Очікують доставку\"], [\"➕ Дозамовлення\", \"📊 Звіт за сьогодні\"]], resize_keyboard: true, one_time_keyboard: false, is_persistent: true } } }}",
+        "options": {}
+      },
+      "id": "6653c2b0-0d1a-4fec-8c17-cc4fa6963d4e",
+      "name": "Restore main keyboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        349808,
+        -103296
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f0993ea4-b7e5-4b74-85dd-c30e759b6cf6",
+              "leftValue": "={{ !!$json.order_navigation_keyboard }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "897e9df6-ceea-4182-b988-2b4de1acea08",
+      "name": "Return main keyboard after status?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        353616,
+        -104672
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/orders/?chat_id=' + $('Parse portal command').item.json.chat_id + '&status=all&period=' + $('Parse portal command').item.json.period }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "828ef96f-8e24-4302-af35-1c1f3ae67ba2",
+      "name": "Load dynamic order statuses",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -104528
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json:{\n    chat_id:$('Parse portal command').first().json.chat_id,\n    text:'<b>📦 Замовлення</b>\\nОберіть період:',\n    reply_markup:{\n      keyboard:[\n        ['📅 Сьогодні','📅 7 днів'],\n        ['📅 Цей місяць','📅 Попередній місяць'],\n        ['📅 2 місяці тому','🔎 Знайти за номером'],\n        ['🏠 Головне меню']\n      ],\n      resize_keyboard:true,\n      one_time_keyboard:false,\n      is_persistent:true\n    }\n  }\n}];"
+      },
+      "id": "59b3b45c-7b80-4813-a776-4d7da673c345",
+      "name": "Format order periods",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -104320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendMessage' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { chat_id: $json.chat_id, text: 'Оберіть наступну дію:', reply_markup: $json.order_navigation_keyboard } }}",
+        "options": {}
+      },
+      "id": "deecd3aa-3aa5-40b3-907f-cfa0292d00fd",
+      "name": "Restore order navigation keyboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        353840,
+        -104672
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendMessage' }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  chat_id: $('Parse portal command').first().json.chat_id,\n  text: 'Файл надіслано.',\n  reply_markup: {\n    keyboard: [\n      ['◀️ Попередні 10', '▶️ Наступні 10'],\n      ['📊 До статусів', '📅 До періодів'],\n      ['🏠 Головне меню']\n    ],\n    resize_keyboard: true,\n    one_time_keyboard: false,\n    is_persistent: true,\n    selective: false\n  }\n} }}",
+        "options": {}
+      },
+      "id": "4c198786-434a-4afc-a385-ade9eb35346d",
+      "name": "Restore navigation after file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352496,
+        -107152
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const command=$('Parse portal command').first().json;\nconst item=command.reclamation_item||{};\nconst date=value=>value?new Intl.DateTimeFormat('uk-UA').format(new Date(value)):'—';\nconst navigation={keyboard:[['⬅️ Назад','🏠 Головне меню']],resize_keyboard:true,one_time_keyboard:false,is_persistent:true,selective:false};\nif(!item.id) return [{json:{chat_id:command.chat_id,text:'Рекламацію не знайдено. Відкрийте список рекламацій ще раз.',order_navigation_keyboard:navigation}}];\nreturn [{json:{chat_id:command.chat_id,text:`<b>🛠 Рекламація №${item.number||'—'}</b>\\n\\nСтатус: <b>${item.status||'—'}</b>\\nДата: ${date(item.date)}${item.order_number?`\\nЗамовлення: №${item.order_number}`:''}${item.description?`\\n\\n${item.description}`:''}`,reply_markup:{inline_keyboard:[[{text:'📎 Файли рекламації',callback_data:`reclamation_files|${command.reclamation_key}`}]]},order_navigation_keyboard:navigation}}];"
+      },
+      "id": "a817d3b3-0abe-48b9-a02c-1a4f502861d9",
+      "name": "Format reclamation details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -107776
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/reclamations/?chat_id=' + $('Parse portal command').item.json.chat_id + '&status=' + encodeURIComponent($('Parse portal command').item.json.reclamation_status || '') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0a9f83ac-6911-41dc-b8ff-9a055feecb84",
+      "name": "Load reclamation details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -104144
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/reclamation-files/?chat_id=' + $('Parse portal command').item.json.chat_id + '&reclamation_id=' + encodeURIComponent($('Parse portal command').item.json.reclamation_id) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "862fb2fb-3bbe-48bc-bd74-098010cecd2b",
+      "name": "Load reclamation files",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -107744
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const files=Array.isArray($json.files)?$json.files:[];const command=$('Parse portal command').first().json;const store=$getWorkflowStaticData('global');store.portalBotState=store.portalBotState||{};const state=store.portalBotState[String(command.chat_id)]||{};state.reclamation_files={};const inline_keyboard=files.slice(0,20).map((file,index)=>{const key=`f${index+1}`;state.reclamation_files[key]=String(file.id||file.File_GUID||'');return [{text:`📎 ${file.name||file.File_FileName||'Файл'}`,callback_data:`reclamation_file|${key}`}];});store.portalBotState[String(command.chat_id)]=state;return [{json:{chat_id:command.chat_id,text:`<b>📎 Файли рекламації (${files.length})</b>`,reply_markup:inline_keyboard.length?{inline_keyboard}:undefined}}];"
+      },
+      "id": "9dce0c71-882e-4bf3-92a3-c8f273dd4507",
+      "name": "Format reclamation files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -107584
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/reclamation-files/download/?chat_id=' + $('Parse portal command').item.json.chat_id + '&reclamation_id=' + encodeURIComponent($('Parse portal command').item.json.reclamation_id) + '&file_id=' + encodeURIComponent($('Parse portal command').item.json.file_id) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "3ef56238-ed64-4a77-a3f4-4956eae55875",
+      "name": "Download reclamation file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352048,
+        -107552
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendDocument' }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('Parse portal command').first().json.chat_id }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "document",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c7a3939c-af63-483e-a021-484390e9e7d7",
+      "name": "Send reclamation file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -107552
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const command=$('Parse portal command').first().json;\nconst item=command.additional_order_item||{};\nconst date=value=>value?new Intl.DateTimeFormat('uk-UA').format(new Date(value)):'—';\nconst money=value=>new Intl.NumberFormat('uk-UA',{maximumFractionDigits:2}).format(Number(value||0));\nconst navigation={keyboard:[['⬅️ Назад','🏠 Головне меню']],resize_keyboard:true,one_time_keyboard:false,is_persistent:true,selective:false};\nif(!item.id) return [{json:{chat_id:command.chat_id,text:'Дозамовлення не знайдено. Відкрийте список дозамовлень ще раз.',order_navigation_keyboard:navigation}}];\nreturn [{json:{chat_id:command.chat_id,text:`<b>➕ Дозамовлення №${item.number||'—'}</b>\\n\\nСтатус: <b>${item.status||'—'}</b>\\nДата: ${date(item.date)}\\nСума: <b>${money(item.amount)} ${item.currency||'грн'}</b>${item.order_number?`\\nОсновне замовлення: №${item.order_number}`:''}`,reply_markup:{inline_keyboard:[[{text:'📎 Файли дозамовлення',callback_data:`additional_order_files|${command.additional_order_key}`}]]},order_navigation_keyboard:navigation}}];"
+      },
+      "id": "95b8c659-8667-437a-a8cf-6d0753ebc83f",
+      "name": "Format additional order details",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -106864
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/additional-orders/?chat_id=' + $('Parse portal command').item.json.chat_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9ae4fa79-1c95-443f-a6c2-4e37e90e4e18",
+      "name": "Load additional order details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -103952
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/additional-order-files/?chat_id=' + $('Parse portal command').item.json.chat_id + '&additional_order_id=' + encodeURIComponent($('Parse portal command').item.json.additional_order_id) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "37bfa645-b8b4-43a6-bc51-b16c5723eee2",
+      "name": "Load additional order files",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -107216
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const files=Array.isArray($json.files)?$json.files:[];const command=$('Parse portal command').first().json;const store=$getWorkflowStaticData('global');store.portalBotState=store.portalBotState||{};const state=store.portalBotState[String(command.chat_id)]||{};state.additional_order_files={};const inline_keyboard=files.slice(0,20).map((file,index)=>{const key=`f${index+1}`;state.additional_order_files[key]=String(file.id||file.File_GUID||'');return [{text:`📎 ${file.name||file.File_FileName||'Файл'}`,callback_data:`additional_order_file|${key}`}];});store.portalBotState[String(command.chat_id)]=state;return [{json:{chat_id:command.chat_id,text:`<b>📎 Файли дозамовлення (${files.length})</b>`,reply_markup:inline_keyboard.length?{inline_keyboard}:undefined}}];"
+      },
+      "id": "89e13f54-2e12-41eb-b67e-f6deb2099fcd",
+      "name": "Format additional order files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352496,
+        -106672
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').item.json.portal_url + '/api/telegram-bot/additional-order-files/download/?chat_id=' + $('Parse portal command').item.json.chat_id + '&additional_order_id=' + encodeURIComponent($('Parse portal command').item.json.additional_order_id) + '&file_id=' + encodeURIComponent($('Parse portal command').item.json.file_id) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Portal-Bot-Key",
+              "value": "={{ $('Config').item.json.portal_api_key }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "id": "348c1c43-87ec-4a2a-851d-cf31f7a91c59",
+      "name": "Download additional order file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352048,
+        -107024
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.telegram.org/bot' + $('Config').first().json.telegram_token + '/sendDocument' }}",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $('Parse portal command').first().json.chat_id }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "document",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "abab6b50-2a71-4a51-882a-fc1477c827fd",
+      "name": "Send additional order file",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        352272,
+        -107024
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Universal Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Microsoft SQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft SQL": {
+      "main": [
+        [
+          {
+            "node": "SaveTgID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Without Guid",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Link Dealer To Portal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Without Guid Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SaveTgID": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetContactId": {
+      "main": [
+        [
+          {
+            "node": "Microsoft SQL1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft SQL1": {
+      "main": [
+        [
+          {
+            "node": "SavedTgID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Monthly Shipped Report": {
+      "main": [
+        [
+          {
+            "node": "Previous Month Period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Previous Month Period": {
+      "main": [
+        [
+          {
+            "node": "Get Shipped Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Shipped Analytics": {
+      "main": [
+        [
+          {
+            "node": "Build Shipped HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Shipped HTML": {
+      "main": [
+        [
+          {
+            "node": "Send Monthly Report Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Report Today": {
+      "main": [
+        [
+          {
+            "node": "Previous Month Period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Universal Router": {
+      "main": [
+        [
+          {
+            "node": "Route Universal Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Universal Action": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GetContactId",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse portal command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse portal command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse portal command": {
+      "main": [
+        [
+          {
+            "node": "Route action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route action": {
+      "main": [
+        [
+          {
+            "node": "Link portal user",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal menu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load daily report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Confirm portal order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format order periods",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal order details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal reclamations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal additional orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load reclamation filters",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format order search",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load portal order files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download portal order file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format order periods",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load dynamic order statuses",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format reclamation details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load reclamation files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download reclamation file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format additional order details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load additional order files",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download additional order file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link portal user": {
+      "main": [
+        [
+          {
+            "node": "Load portal menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal menu": {
+      "main": [
+        [
+          {
+            "node": "Format menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal orders": {
+      "main": [
+        [
+          {
+            "node": "Format orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load daily report": {
+      "main": [
+        [
+          {
+            "node": "Format daily report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm portal order": {
+      "main": [
+        [
+          {
+            "node": "Format confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format menu": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format orders": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format daily report": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format confirmation": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format help": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram message": {
+      "main": [
+        [
+          {
+            "node": "Return main keyboard after status?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Portal Report 18:30": {
+      "main": [
+        [
+          {
+            "node": "Get report recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get report recipients": {
+      "main": [
+        [
+          {
+            "node": "Split recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split recipients": {
+      "main": [
+        [
+          {
+            "node": "Get recipient report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get recipient report": {
+      "main": [
+        [
+          {
+            "node": "Format scheduled report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format scheduled report": {
+      "main": [
+        [
+          {
+            "node": "Send daily report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Link Dealer To Portal": {
+      "main": [
+        [
+          {
+            "node": "Load Dealer Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Dealer Menu": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram TestSalesBot": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Dealer Menu": {
+      "main": [
+        [
+          {
+            "node": "Format Dealer Menu",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format order filters": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal order details": {
+      "main": [
+        [
+          {
+            "node": "Format order details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format order details": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal reclamations": {
+      "main": [
+        [
+          {
+            "node": "Format reclamations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal additional orders": {
+      "main": [
+        [
+          {
+            "node": "Format additional orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format reclamations": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format additional orders": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load reclamation filters": {
+      "main": [
+        [
+          {
+            "node": "Format reclamation filters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format reclamation filters": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format order search": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load portal order files": {
+      "main": [
+        [
+          {
+            "node": "Format order files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format order files": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download portal order file": {
+      "main": [
+        [
+          {
+            "node": "Send order file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send order file": {
+      "main": [
+        [
+          {
+            "node": "Restore navigation after file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Telegram message": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return main keyboard after status?": {
+      "main": [
+        [
+          {
+            "node": "Restore order navigation keyboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load dynamic order statuses": {
+      "main": [
+        [
+          {
+            "node": "Format order filters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format order periods": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load reclamation details": {
+      "main": [
+        [
+          {
+            "node": "Format reclamation details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format reclamation details": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load reclamation files": {
+      "main": [
+        [
+          {
+            "node": "Format reclamation files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format reclamation files": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download reclamation file": {
+      "main": [
+        [
+          {
+            "node": "Send reclamation file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send reclamation file": {
+      "main": [
+        [
+          {
+            "node": "Restore navigation after file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load additional order details": {
+      "main": [
+        [
+          {
+            "node": "Format additional order details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format additional order details": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load additional order files": {
+      "main": [
+        [
+          {
+            "node": "Format additional order files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format additional order files": {
+      "main": [
+        [
+          {
+            "node": "Prepare Telegram message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download additional order file": {
+      "main": [
+        [
+          {
+            "node": "Send additional order file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send additional order file": {
+      "main": [
+        [
+          {
+            "node": "Restore navigation after file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "65b47fd4-b34b-4188-baa1-04d15330d077",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f34bf51fdecae2ad7da0075612c88e12e0580232d9e623bd64606810a594d741",
+    "fixedBy": "v57: direct input Telegram send, fewer API calls, portal activation route"
+  },
+  "id": "wShmeGkCipWsq8w4",
+  "tags": []
+}
