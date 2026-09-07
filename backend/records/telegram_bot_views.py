@@ -74,14 +74,14 @@ def _status_key(value):
     normalized = _clean(value).lower()
     if any(part in normalized for part in ("відмова", "отказ")):
         return "rejected"
+    if any(part in normalized for part in ("очікуємо оплат", "очикуємо оплат", "ожидаем оплат")):
+        return "awaiting_payment"
+    if any(part in normalized for part in ("очікую підтвердж", "очікує підтвердж", "очікуємо підтвердж", "очікують підтвердж", "очикує підтвердж", "очикуємо підтвердж", "очикують підтвердж", "ожидаем подтверж", "ожидают подтверж", "ескіз", "эскиз")):
+        return "awaiting_confirmation"
     if "підтверджен" in normalized or "подтвержден" in normalized:
         return "confirmed"
     if any(part in normalized for part in ("запіз", "просроч", "затрим")):
         return "delayed"
-    if any(part in normalized for part in ("очікуємо оплат", "очикуємо оплат", "ожидаем оплат")):
-        return "awaiting_payment"
-    if any(part in normalized for part in ("очікуємо підтвердж", "очикуємо підтвердж", "ожидаем подтверж", "ескіз", "эскиз")):
-        return "awaiting_confirmation"
     if any(part in normalized for part in ("виробниц", "производств", "в робот")):
         return "production"
     if any(part in normalized for part in ("відвантаж", "достав", "реаліз")):
@@ -265,10 +265,26 @@ def telegram_bot_orders(request):
     period = _clean(request.query_params.get("period")).lower()
     delivery_pending = _clean(request.query_params.get("delivery_pending")).lower() in {"1", "true", "yes"}
     try:
-        if period == "month":
-            today = timezone.localdate()
+        today = timezone.localdate()
+        period_ranges = {
+            "today": (today, today),
+            "last7": (today - timedelta(days=6), today),
+            "month": (today.replace(day=1), today),
+            "month0": (today.replace(day=1), today),
+        }
+        if period in {"month1", "month2"}:
+            month_start = today.replace(day=1)
+            months_back = int(period[-1])
+            for _ in range(months_back):
+                month_start = (month_start - timedelta(days=1)).replace(day=1)
+            period_ranges[period] = (
+                month_start,
+                (month_start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1),
+            )
+        if period in period_ranges:
+            date_from, date_to = period_ranges[period]
             calculations = get_orders_by_period_and_contractor(
-                today.replace(day=1), today, user.user_id_1C,
+                date_from, date_to, user.user_id_1C,
             )
             orders = [
                 _serialise_order(order, calculation)
@@ -556,6 +572,11 @@ def telegram_bot_confirm_order(request):
     if not owned_order:
         logger.warning("Telegram bot denied confirmation of order %s for user %s", order_id, user.username)
         return Response({"success": False, "error": "\u0417\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043d\u0435 \u043d\u0430\u043b\u0435\u0436\u0438\u0442\u044c \u0446\u044c\u043e\u043c\u0443 \u043a\u043e\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447\u0443."}, status=status.HTTP_403_FORBIDDEN)
+    if owned_order.get("status_key") != "awaiting_confirmation":
+        return Response({
+            "success": False,
+            "error": "Підтвердження доступне лише для замовлень, що очікують підтвердження.",
+        }, status=status.HTTP_409_CONFLICT)
     current_status = owned_order["status"].lower()
     if any(value in current_status for value in ("\u0435\u0441\u043a\u0456\u0437 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436", "\u0440\u0438\u0441\u0443\u043d\u043e\u043a - \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d", "\u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043e", "\u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u043e")):
         return Response({"success": False, "error": "\u0426\u0435 \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u0432\u0436\u0435 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u0435."}, status=status.HTTP_409_CONFLICT)
