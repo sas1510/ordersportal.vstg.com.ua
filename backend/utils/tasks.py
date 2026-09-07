@@ -288,11 +288,23 @@ def get_calculation_suborder_numbers_for_telegram(calculation_guid_bin):
             if production_number and production_number not in numbers:
                 numbers.append(production_number)
         return numbers
-    except Exception:
-        logger.warning(
-            "Unable to load calculation production numbers for Telegram",
+    except Exception as exc:
+        calculation_guid_hex = (
+            bytes(calculation_guid_bin).hex()
+            if isinstance(calculation_guid_bin, (bytes, bytearray, memoryview))
+            else str(calculation_guid_bin)
+        )
+        logger.error(
+            "Telegram production numbers lookup failed",
             exc_info=True,
-            extra={"tags": {"action": "telegram_calculation_suborders"}},
+            extra={
+                "tags": {
+                    "action": "telegram_calculation_suborders",
+                    "status": "error",
+                    "error_type": type(exc).__name__,
+                },
+                "calculation_guid": calculation_guid_hex,
+            },
         )
         return []
 
@@ -344,13 +356,39 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
         }
         document_type = document_names.get(t_type, "замовленні")
 
+        try:
+            notification_transaction_type = int(t_type)
+        except (TypeError, ValueError):
+            notification_transaction_type = None
+
+        calculation_guid_bin = (
+            bytes(msg.related_object_id)
+            if isinstance(msg.related_object_id, (bytearray, memoryview))
+            else msg.related_object_id
+        )
         suborder_numbers = (
-            get_calculation_suborder_numbers_for_telegram(
-                msg.related_object_id,
-            )
-            if t_type == 1
+            get_calculation_suborder_numbers_for_telegram(calculation_guid_bin)
+            if notification_transaction_type == 1
             else []
         )
+        log_payload = {
+            "tags": {
+                "action": "telegram_calculation_suborders",
+                "status": "success" if suborder_numbers else "empty",
+            },
+            "message_id": message_id,
+            "transaction_type": notification_transaction_type,
+            "calculation_guid_present": bool(calculation_guid_bin),
+            "production_numbers_count": len(suborder_numbers),
+            "production_numbers": suborder_numbers,
+        }
+        if notification_transaction_type == 1 and calculation_guid_bin and not suborder_numbers:
+            logger.warning(
+                "Telegram production numbers lookup returned no rows",
+                extra=log_payload,
+            )
+        else:
+            logger.info("TG calculation production numbers resolved", extra=log_payload)
         suborders_html = (
             "\n<b>" + "".join(chr(code) for code in (1055, 1110, 1076, 1079, 1072, 1084, 1086, 1074, 1083, 1077, 1085, 1085, 1103)) + ":</b> " + ", ".join(suborder_numbers)
             if suborder_numbers

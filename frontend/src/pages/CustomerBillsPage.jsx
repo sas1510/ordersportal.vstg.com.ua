@@ -45,7 +45,6 @@
 // // // //   const [loading, setLoading] = useState(!isAdmin);
 // // // //   const [_error, setError] = useState("");
 // // // //   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
-
 // // // //   const [pdfDownloadingId, setPdfDownloadingId] = useState(null);
 
 // // // //   const fetchBills = async () => {
@@ -1329,6 +1328,7 @@ const CustomerBillsPage = () => {
   const [loading, setLoading] = useState(!isAdmin);
   const [_error, setError] = useState("");
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
+  const [isCreateBillV2Open, setIsCreateBillV2Open] = useState(false);
 
   const [pdfDownloadingId, setPdfDownloadingId] = useState(null);
   const [activeQrBill, setActiveQrBill] = useState(null);
@@ -1467,12 +1467,22 @@ const CustomerBillsPage = () => {
               <FaSearch /> {t("common.search")}
             </button>
             {USER_ROLE === "customer" && (
-              <button
-                className="btn btn-create-bill"
-                onClick={() => setIsCreateBillOpen(true)}
-              >
-                + {t("bills.add_bill")}
-              </button>
+              <>
+                <button
+                  className="btn btn-create-bill"
+                  onClick={() => setIsCreateBillOpen(true)}
+                >
+                  + {t("bills.add_bill")}
+                </button>
+                {/* Temporarily hidden: new invoice flow.
+                <button
+                  className="btn btn-create-bill"
+                  onClick={() => setIsCreateBillV2Open(true)}
+                  title="New parallel invoice form"
+                >
+                  + Новий рахунок
+                </button> */}
+              </>
             )}
           </div>
         </div>
@@ -1536,6 +1546,13 @@ const CustomerBillsPage = () => {
           onClose={() => setIsCreateBillOpen(false)}
           onSuccess={fetchBills}
         />
+        {/* Temporarily hidden: new invoice flow.
+        <CreateCustomerBillModal
+          isOpen={isCreateBillV2Open}
+          onClose={() => setIsCreateBillV2Open(false)}
+          onSuccess={fetchBills}
+          newFlow
+        /> */}
 
         {/* =========================
             МОДАЛЬНЕ ВІКНО QR-КОДУ ТА ОПЛАТИ

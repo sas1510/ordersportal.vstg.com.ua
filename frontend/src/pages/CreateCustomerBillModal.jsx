@@ -137,7 +137,7 @@
 // // //     };
 
 // // //     try {
-// // //       await axiosInstance.post("/payments/create_invoice/", dto);
+// // //       await axiosInstance.post(newFlow ? "/payments/create_invoice_v2/" : "/payments/create_invoice/", dto);
 // // //       addNotification("Рахунок успішно створено!", "success");
 // // //       onSuccess?.();
 // // //       onClose();
@@ -511,7 +511,9 @@
 // //       }
 // //     };
 // //     fetchProfile();
-// //   }, [isOpen, addNotification, t]);
+// //   }, [isOpen, addNotification, t, newFlow]);
+
+
 
 // //   const handleAddItem = () => {
 // //     setOrderItems((prev) => [
@@ -1230,7 +1232,7 @@
 //               onClick={() => {
 //                 if (step === STEPS.BASE) {
 //                   // Валідація: Організаційний рахунок та Адреса є обов'язковими, IBAN — ні
-//                   if (!selectedOrgAccount || !selectedAddress) {
+//                   if (!selectedOrgAccount || !selectedAddress || (newFlow && (!selectedContractor || !selectedAdvanceContract))) {
 //                     addNotification(t("create_bill.validation.step1"), "info");
 //                     return;
 //                   }
@@ -1290,6 +1292,7 @@ export default function CreateCustomerBillModal({
   isOpen,
   onClose,
   onSuccess,
+  newFlow = false,
 }) {
   const { t } = useTranslation();
   const { addNotification } = useNotification();
@@ -1305,12 +1308,16 @@ export default function CreateCustomerBillModal({
   const [itemsList, setItemsList] = useState([]);
   const [ibans, setIbans] = useState([]);
   const [organisation, setOrganisation] = useState([]);
+  const [contractors, setContractors] = useState([]);
+  const [advanceContracts, setAdvanceContracts] = useState([]);
 
   // Стани для форми
   const [selectedOrgCode, setSelectedOrgCode] = useState("");
   const [selectedOrgAccount, setSelectedOrgAccount] = useState(""); // Тут зберігається LinkReg
   const [selectedIban, setSelectedIban] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [selectedContractor, setSelectedContractor] = useState("");
+  const [selectedAdvanceContract, setSelectedAdvanceContract] = useState("");
 
   const [paymentDate, setPaymentDate] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -1352,6 +1359,9 @@ export default function CreateCustomerBillModal({
     setSelectedOrgAccount("");
     setSelectedIban("");
     setSelectedAddress("");
+    setSelectedContractor("");
+    setSelectedAdvanceContract("");
+    setAdvanceContracts([]);
     setPaymentDate("");
     setDeliveryDate("");
     setInternalComment("");
@@ -1360,12 +1370,18 @@ export default function CreateCustomerBillModal({
     const fetchProfile = async () => {
       setFetchingProfile(true);
       try {
-        const res = await axiosInstance.get(`/payments/dealers/profile/`);
+        const [res, contractorsRes, advanceRes] = await Promise.all([
+          axiosInstance.get("/payments/dealers/profile/"),
+          newFlow ? axiosInstance.get("/payments/invoice-contractors/") : Promise.resolve(null),
+          newFlow ? axiosInstance.get("/payments/invoice-advance-contracts/") : Promise.resolve(null),
+        ]);
         const data = res.data?.data || {};
         setAddresses(data.addresses || []);
         setIbans(data.accounts || []);
         setItemsList(data.nomenclature || []);
         setOrganisation(data.organizations || []);
+        setContractors(contractorsRes?.data?.data || []);
+        setAdvanceContracts(advanceRes?.data?.data || []);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
           console.error("Error fetching profile:", err);
@@ -1377,6 +1393,24 @@ export default function CreateCustomerBillModal({
     };
     fetchProfile();
   }, [isOpen, addNotification, t]);
+
+  useEffect(() => {
+    if (!isOpen || !newFlow || !selectedContractor) return;
+    const loadContractorData = async () => {
+      try {
+        const profileRes = await axiosInstance.get(
+          "/payments/invoice-profile-v2/?contractor_guid=" + selectedContractor
+        );
+        const profile = profileRes.data?.data || {};
+        setAddresses(profile.addresses || []);
+        setSelectedAddress("");
+      } catch (err) {
+        addNotification(t("create_bill.notifications.profile_error"), "error");
+      }
+    };
+    loadContractorData();
+  }, [isOpen, newFlow, selectedContractor, addNotification, t]);
+
 
   // Фільтрація унікальних організацій для першого селекту
   const uniqueOrganizations = useMemo(() => {
@@ -1429,7 +1463,10 @@ const handleSubmit = async () => {
   setLoading(true);
 
   const dto = {
-    IbanGUID: selectedIban?.trim() ? selectedIban : null,
+    ...(newFlow ? {
+      ContractorGUID: selectedContractor,
+      AdvanceContractGUID: selectedAdvanceContract,
+    } : { IbanGUID: selectedIban?.trim() ? selectedIban : null }),
     OrganizationCode: selectedOrgCode?.trim() ? selectedOrgCode : null,
     TaxIdInRegBase: selectedOrgAccount?.trim() ? selectedOrgAccount : null, // Змінено ключ та передається TaxIdInRegBase
     AddressGUID: selectedAddress,
@@ -1551,6 +1588,8 @@ const handleSubmit = async () => {
   />
 </div>
 
+                  {!newFlow && (
+                    <>
                   {/* 3. Поле IBAN */}
                   <div className="bill-field">
                     <span className="bill-field__label">
@@ -1566,6 +1605,44 @@ const handleSubmit = async () => {
                     />
                   </div>
 
+                    </>
+                  )}
+                  {newFlow && (
+                    <>
+                      <div className="bill-field">
+                        <span className="bill-field__label">{"Контрагент"}</span>
+                        <BillSelect value={selectedContractor} options={contractors}
+                          placeholder={"Оберіть контрагента"}
+                          getValue={(dealer) => dealer.ContractorGUID}
+                          getLabel={(dealer) => dealer.Name || dealer["Наименование"] || dealer.ContractorGUID}
+                          onChange={setSelectedContractor} />
+                      </div>
+                      <div className="bill-field">
+                        <span className="bill-field__label">{"Авансовий договір"}</span>
+                        <BillSelect value={selectedAdvanceContract} options={advanceContracts}
+                          placeholder={selectedContractor ? "Оберіть авансовий договір" : "Спочатку оберіть контрагента"}
+                          disabled={!selectedContractor}
+                          getValue={(contract) => contract.Dogovor_ID || contract.ContractGUID || contract.ContractorGUID || contract.GUID || contract.LinkReg}
+                          getLabel={(contract) => String(
+                            contract?.Dogovor_Name ||
+                            contract?.ContractName ||
+                            contract?.Name ||
+                            contract?.Number ||
+                            contract?.Dogovor_ID ||
+                            contract?.ContractGUID ||
+                            contract?.ContractorGUID ||
+                            contract?.GUID ||
+                            contract?.LinkReg ||
+                            ""
+                          ) + (
+                            contract?.DogovorSum != null
+                              ? "  " + Number(contract.DogovorSum).toLocaleString("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + (contract.CurrencyName || "")
+                              : ""
+                          )}
+                          onChange={setSelectedAdvanceContract} />
+                      </div>
+                    </>
+                  )}
                   {/* 4. Адреса */}
                   <div className="bill-field">
                     <span className="bill-field__label">{t("create_bill.fields.address")}</span>

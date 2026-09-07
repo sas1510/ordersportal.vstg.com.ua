@@ -1091,6 +1091,126 @@ def get_contractor_guid_from_db(user):
     return bin_to_guid_1c(user.user_id_1C)
 
 
+def _invoice_related_contractors(request):
+    _, owner_guid = resolve_contractor(request)
+    owner_bin = guid_to_1c_bin_2(owner_guid)
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetMainContractorDealers @MainContractor = %s", [owner_bin])
+        columns = [column[0] for column in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    allowed = {
+        str(row.get("ContractorGUID", "")).lower()
+        for row in rows
+        if row.get("ContractorGUID")
+    }
+    allowed.add(str(owner_guid).lower())
+    return owner_guid, rows, allowed
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_contractors_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    try:
+        _, contractors, _ = _invoice_related_contractors(request)
+        return Response({"data": contractors})
+    except Exception:
+        logger.exception("Unable to load contractors for new invoice")
+        return Response({"error": "Unable to load contractors"}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_profile_v2_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    selected_guid = str(request.query_params.get("contractor_guid") or "").lower()
+    try:
+        _, _, allowed = _invoice_related_contractors(request)
+        if not selected_guid or selected_guid not in allowed:
+            return Response({"error": "Contractor is not available"}, status=status.HTTP_403_FORBIDDEN)
+        data = dealer_bills_add_info(selected_guid, False)
+        return Response({"data": data})
+    except Exception:
+        logger.exception("Unable to load new invoice profile")
+        return Response({"error": "Unable to load invoice profile"}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_advance_contracts_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    try:
+        # The advance contract belongs to the authenticated requester.
+        requester_bin, requester_guid = resolve_contractor(request)
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetDealerAllAdvancedBalanceV1 @\u041a\u043e\u043d\u0442\u0440\u0430\u0433\u0435\u043d\u0442 = %s", [requester_bin])
+            columns = [column[0] for column in cursor.description]
+            result = []
+            for row in cursor.fetchall():
+                item = {}
+                for key, value in zip(columns, row):
+                    item[key] = bin_to_guid_1c(bytes(value)) if isinstance(value, (bytes, bytearray, memoryview)) else value
+                result.append(item)
+        return Response({"data": result})
+    except Exception:
+        logger.exception("Unable to load advance contracts for new invoice")
+        return Response({"error": "Unable to load advance contracts"}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def create_invoice_v2(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
+    data = request.data
+    contractor_guid = str(data.get("ContractorGUID") or "").lower()
+    try:
+        requester_contractor_guid, _, allowed = _invoice_related_contractors(request)
+        if not contractor_guid or contractor_guid not in allowed:
+            return Response({"error": "Contractor is not available"}, status=status.HTTP_403_FORBIDDEN)
+
+        payload_1c = {
+            "requesterContractorGUID": requester_contractor_guid,
+            "contragentGUID": contractor_guid,
+            "addressGUID": data.get("AddressGUID"),
+            "createDate": data.get("OrderCreateDate"),
+            "deliveryDate": data.get("OrderDeliveryDate"),
+            "paymentDate": data.get("OrderPaymentDate"),
+            "comment": data.get("InternalComment", ""),
+            "totalSum": data.get("OrderSuma"),
+            "organizationCode": data.get("OrganizationCode"),
+            "taxIdInRegBase": data.get("TaxIdInRegBase"),
+            "advanceContractGUID": data.get("AdvanceContractGUID"),
+            "items": [
+                {
+                    "itemID": item.get("ItemGUID"),
+                    "count": item.get("Count"),
+                    "price": item.get("Price"),
+                    "width": item.get("Width"),
+                    "height": item.get("Height"),
+                }
+                for item in data.get("OrderItemsLIST", [])
+            ],
+        }
+        result = send_to_1c(payload=payload_1c, query="CreateBill")
+        logger.info("New invoice created for %s", contractor_guid)
+        return Response({"status": "ok", "data": result, "payload": payload_1c}, status=status.HTTP_201_CREATED)
+    except Exception as exc:
+        logger.exception("New invoice creation error")
+        return Response({"error": "1C Connection Error", "details": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticatedOr1CApiKey])

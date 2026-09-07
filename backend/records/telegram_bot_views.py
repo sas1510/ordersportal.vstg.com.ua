@@ -103,6 +103,7 @@ def _serialise_order(order, calculation):
         "paid": round(float(order.get("paid") or 0), 2),
         "count": int(order.get("count") or 0),
         "currency": _clean(order.get("currency") or calculation.get("currency")) or "\u0433\u0440\u043d",
+        "planned_delivery_at": _iso_value(order.get("plannedDeliveryDateTime")),
     }
 
 
@@ -237,12 +238,21 @@ def telegram_bot_link(request):
 def telegram_bot_menu(request):
     user = _linked_user(_request_chat_id(request))
     if not user:
-        return Response({"success": False, "error": "\u0421\u043f\u043e\u0447\u0430\u0442\u043a\u0443 \u0432\u0438\u043a\u043e\u043d\u0430\u0439\u0442\u0435 /start \u0437 \u043a\u043e\u0434\u043e\u043c \u043f\u043e\u0440\u0442\u0430\u043b\u0443."}, status=status.HTTP_403_FORBIDDEN)
-    try:
-        return Response({"success": True, "data": _menu_payload(user, _orders_for_user(user))})
-    except DatabaseError:
-        logger.exception("Telegram bot menu database error for %s", user.username)
-        return Response({"success": False, "error": "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438 \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u0437 1\u0421."}, status=status.HTTP_502_BAD_GATEWAY)
+        return Response(
+            {"success": False, "error": "\u0421\u043f\u043e\u0447\u0430\u0442\u043a\u0443 \u0432\u0438\u043a\u043e\u043d\u0430\u0439\u0442\u0435 /start \u0437 \u043a\u043e\u0434\u043e\u043c \u043f\u043e\u0440\u0442\u0430\u043b\u0443."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Main keyboard is static; loading all orders from 1C here made
+    # the menu route wait for a slow query without using its result.
+    logger.info(
+        "Telegram bot main menu requested",
+        extra={
+            "tags": {"action": "telegram_bot_menu", "status": "success"},
+            "user": user.username,
+        },
+    )
+    return Response({"success": True, "data": _menu_payload(user, [])})
 
 
 @api_view(["GET"])
@@ -253,6 +263,7 @@ def telegram_bot_orders(request):
         return Response({"success": False, "error": "Telegram \u043d\u0435 \u043f\u0440\u0438\u0432'\u044f\u0437\u0430\u043d\u0438\u0439 \u0434\u043e \u043a\u043e\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447\u0430 \u043f\u043e\u0440\u0442\u0430\u043b\u0443."}, status=status.HTTP_403_FORBIDDEN)
     status_filter = _clean(request.query_params.get("status")).lower()
     period = _clean(request.query_params.get("period")).lower()
+    delivery_pending = _clean(request.query_params.get("delivery_pending")).lower() in {"1", "true", "yes"}
     try:
         if period == "month":
             today = timezone.localdate()
@@ -272,6 +283,25 @@ def telegram_bot_orders(request):
         return Response({"success": False, "error": "\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438 \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u0437 1\u0421."}, status=status.HTTP_502_BAD_GATEWAY)
     if status_filter and status_filter != "all":
         orders = [order for order in orders if order["status_key"] == status_filter]
+
+
+    if delivery_pending:
+        today = timezone.localdate()
+
+        def has_current_delivery_time(order):
+            value = order.get("planned_delivery_at")
+            if not value:
+                return False
+            text = str(value).strip()
+            if "T" not in text and " " not in text:
+                return False
+            try:
+                delivery_at = datetime.fromisoformat(text.replace("Z", "+00:00"))
+            except (TypeError, ValueError):
+                return False
+            return delivery_at.time() != time.min and delivery_at.date() >= today
+
+        orders = [order for order in orders if has_current_delivery_time(order)]
     return Response({"success": True, "orders": orders, "total": len(orders), "status": status_filter or "all", "period": period or "recent"})
 
 

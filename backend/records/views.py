@@ -2151,6 +2151,8 @@ def _download_order_file_content(request, order_guid, file_guid):
 
             raw_db_blob = row[0]
             db_filename = row[1] or filename
+        if not os.path.splitext(filename)[1] and db_filename:
+            filename = str(db_filename).strip()
 
         file_bytes = extract_1c_download_binary(raw_db_blob, filename=filename)
         if not file_bytes:
@@ -6935,6 +6937,8 @@ def download_calc(request, order_guid, file_guid):
 
         raw_db_blob = row[0]
         db_filename = row[1] or filename
+        if not os.path.splitext(filename)[1] and db_filename:
+            filename = str(db_filename).strip()
 
         file_bytes = extract_1c_download_binary(raw_db_blob, filename=filename)
 
