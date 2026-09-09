@@ -647,31 +647,120 @@ def telegram_bot_portal_analytics(request):
 
     try:
         with connection.cursor() as cursor:
-            cursor.execute(
-                "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000",
-                [date_from, date_to, user.user_id_1C],
-            )
-            tech_details = dict_rows(cursor)
-            cursor.execute(
-                "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s",
-                [date_from, date_to, user.user_id_1C],
-            )
-            monthly = dict_rows(cursor)
-    except DatabaseError:
-        logger.exception("Telegram portal analytics database error for %s", user.username)
-        return Response(
-            {"success": False, "error": "Could not load portal analytics."},
-            status=status.HTTP_502_BAD_GATEWAY,
-        )
+            try:
+                cursor.execute(
+                    """
+                    SET ANSI_WARNINGS OFF;
+                    EXEC [dbo].[GetContractorUnifiedAnalyticsV2]
+                        @StartDate = %s,
+                        @EndDate = %s,
+                        @Contractor_ID = %s
+                    """,
+                    [date_from, date_to, user.user_id_1C],
+                )
+            except DatabaseError as procedure_error:
+                # Same compatibility fallback as the current portal analytics.
+                if "207" not in str(procedure_error):
+                    raise
+                cursor.execute(
+                    """
+                    SET ANSI_WARNINGS OFF;
+                    EXEC [dbo].[GetContractorUnifiedAnalytics]
+                        @StartDate = %s,
+                        @EndDate = %s,
+                        @Contractor_ID = %s
+                    """,
+                    [date_from, date_to, user.user_id_1C],
+                )
 
+            status_rows = dict_rows(cursor)
+            stage_rows = dict_rows(cursor) if cursor.nextset() else []
+            abc_rows = dict_rows(cursor) if cursor.nextset() else []
+            profile_system_rows = dict_rows(cursor) if cursor.nextset() else []
+            efficiency_rows = dict_rows(cursor) if cursor.nextset() else []
+            volume_rows = dict_rows(cursor) if cursor.nextset() else []
+            furniture_rows = dict_rows(cursor) if cursor.nextset() else []
+            profile_color_rows = dict_rows(cursor) if cursor.nextset() else []
+            abc_portfolio_rows = dict_rows(cursor) if cursor.nextset() else []
+            construction_portfolio_rows = dict_rows(cursor) if cursor.nextset() else []
+
+            # Keep the existing bot report fields while sourcing them from V2.
+            tech_details = status_rows
+            monthly = [
+                {
+                    "MonthName": row.get("PeriodLabel") or "—",
+                    "TotalAmount": float(row.get("TotalTurnover") or 0),
+                    "TotalQuantity": float(row.get("TotalConstructions") or 0),
+                }
+                for row in volume_rows
+            ]
+    except DatabaseError:
+        # The full portal procedures can be temporarily unavailable or too heavy
+        # for the bot request.  Keep the report usable with data from the same
+        # dealer-scoped order source that powers the bot's order list.
+        logger.exception("Telegram portal analytics procedures failed for %s; using order fallback", user.username)
+        try:
+            orders = _orders_for_user(user, days=366)
+        except DatabaseError:
+            logger.exception("Telegram portal analytics fallback failed for %s", user.username)
+            return Response(
+                {"success": False, "error": "Could not load portal analytics."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        month_names = (
+            "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень",
+            "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень",
+        )
+        monthly = []
+        for month in range(1, 13):
+            prefix = f"{year}-{month:02d}"
+            items = [item for item in orders if str(item.get("date") or "").startswith(prefix)]
+            monthly.append({
+                "Month": month,
+                "MonthName": month_names[month - 1],
+                "TotalAmount": round(sum(float(item.get("amount") or 0) for item in items), 2),
+                "OrdersCount": len(items),
+                "TotalQuantity": sum(int(item.get("count") or 0) for item in items),
+            })
+        tech_details = []
+
+    try:
+        report_orders = _orders_for_user(user, days=366)
+    except DatabaseError:
+        logger.exception("Could not add order summary to Telegram portal analytics for %s", user.username)
+        report_orders = []
+
+    year_prefix = f"{year}-"
+    report_orders = [item for item in report_orders if str(item.get("date") or "").startswith(year_prefix)]
+    report_orders.sort(key=lambda item: str(item.get("date") or ""), reverse=True)
     return Response({
         "success": True,
         "analytics": {
             "year": year,
             "user_name": user.full_name or user.username,
-            "total_constructions": sum(float(item.get("TotalQuantity") or 0) for item in tech_details),
+            "total_constructions": sum(
+                float(item.get("TotalConstructions") or item.get("TotalQuantity") or 0)
+                for item in tech_details
+            ),
+            "total_amount": round(sum(float(item.get("amount") or 0) for item in report_orders), 2),
+            "orders_count": len(report_orders),
+            "statuses": dict(Counter(item.get("status_key") or "other" for item in report_orders)),
+            "orders": report_orders[:40],
             "monthly": monthly,
             "tech_details": tech_details,
+            "v2": {
+                "status_summary": status_rows if 'status_rows' in locals() else [],
+                "stage_summary": stage_rows if 'stage_rows' in locals() else [],
+                "abc_summary": abc_rows if 'abc_rows' in locals() else [],
+                "profile_systems": profile_system_rows if 'profile_system_rows' in locals() else [],
+                "efficiency_dynamics": efficiency_rows if 'efficiency_rows' in locals() else [],
+                "volume_dynamics": volume_rows if 'volume_rows' in locals() else [],
+                "furniture": furniture_rows if 'furniture_rows' in locals() else [],
+                "profile_colors": profile_color_rows if 'profile_color_rows' in locals() else [],
+                "abc_portfolio": abc_portfolio_rows if 'abc_portfolio_rows' in locals() else [],
+                "construction_portfolio": construction_portfolio_rows if 'construction_portfolio_rows' in locals() else [],
+            },
         },
     })
 
