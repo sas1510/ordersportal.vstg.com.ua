@@ -11,7 +11,7 @@ from .views import PortalManagerReportView
 from .announcement_views import announcements, announcement_detail, cancel_scheduled_announcement, active_announcements, announcement_receipt, announcement_receipts
 from .telegram_bot_views import (
     telegram_bot_link, telegram_bot_menu, telegram_bot_orders, telegram_bot_order_details, telegram_bot_order_files, telegram_bot_order_file_download, telegram_bot_reclamations, telegram_bot_additional_orders,
-    telegram_bot_daily_report, telegram_bot_period_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key, telegram_bot_cash_flow, telegram_bot_portal_analytics, telegram_bot_additional_order_files,
+    telegram_bot_daily_report, telegram_bot_period_report, telegram_bot_daily_recipients, telegram_bot_confirm_order, telegram_bot_admin_key, telegram_bot_cash_flow, telegram_bot_portal_analytics, telegram_bot_shipped_analytics, telegram_bot_additional_order_files,
 )
 
 
@@ -41,6 +41,7 @@ urlpatterns = [
     path('telegram-bot/period-report/', telegram_bot_period_report, name='telegram_bot_period_report'),
     path('telegram-bot/cash-flow/', telegram_bot_cash_flow, name='telegram_bot_cash_flow'),
     path('telegram-bot/portal-analytics/', telegram_bot_portal_analytics, name='telegram_bot_portal_analytics'),
+    path('telegram-bot/shipped-analytics/', telegram_bot_shipped_analytics, name='telegram_bot_shipped_analytics'),
     path('telegram-bot/daily-recipients/', telegram_bot_daily_recipients, name='telegram_bot_daily_recipients'),
     path('telegram-bot/orders/confirm/', telegram_bot_confirm_order, name='telegram_bot_confirm_order'),
     # Р’РёР·РЅР°С‡Р°С”РјРѕ URL РґР»СЏ РІРёРєР»РёРєСѓ С„СѓРЅРєС†С–С— complaints_view

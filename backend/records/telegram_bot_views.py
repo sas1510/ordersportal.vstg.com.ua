@@ -767,6 +767,50 @@ def telegram_bot_portal_analytics(request):
 
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])
+def telegram_bot_shipped_analytics(request):
+    """Return the portal's established shipped-orders HTML report source."""
+    user = _linked_user(_request_chat_id(request))
+    if not user or not user.user_id_1C:
+        return Response({"success": False, "error": "Telegram is not linked to a portal user."}, status=status.HTTP_403_FORBIDDEN)
+
+    period = _clean(request.query_params.get("period") or "month0").lower()
+    today = timezone.localdate()
+    ranges = {
+        "7d": (today - timedelta(days=6), today),
+        "30d": (today - timedelta(days=29), today),
+        "month0": (today.replace(day=1), today),
+    }
+    if period == "month1":
+        end = today.replace(day=1) - timedelta(days=1)
+        date_from, date_to = end.replace(day=1), end
+    else:
+        date_from, date_to = ranges.get(period, ranges["month0"])
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC [dbo].[GetShippedOrdersAnalytics]
+                    @DateFrom = %s,
+                    @DateTo = %s,
+                    @ContractorID = %s
+                """,
+                [date_from, date_to, user.user_id_1C],
+            )
+            columns = [column[0] for column in (cursor.description or [])]
+            row = cursor.fetchone()
+    except DatabaseError:
+        logger.exception("Telegram shipped analytics error for %s", user.username)
+        return Response({"success": False, "error": "Could not load shipped analytics."}, status=status.HTTP_502_BAD_GATEWAY)
+
+    if not row or not columns:
+        return Response({"success": False, "error": "Shipped analytics returned no report."}, status=status.HTTP_404_NOT_FOUND)
+    result = dict(zip(columns, row))
+    return Response({"success": True, "ReportJson": result.get("ReportJson") or result.get("reportJson") or result})
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
 def telegram_bot_daily_recipients(request):
     links = TelegramPortalLink.objects.select_related("user").filter(user__is_active=True, user__role="customer")
     return Response({"success": True, "recipients": [{"chat_id": link.telegram_chat_id, "user_name": link.user.full_name or link.user.username} for link in links]})
