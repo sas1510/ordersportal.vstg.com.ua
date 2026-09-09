@@ -13,7 +13,20 @@ import { useTranslation } from "react-i18next";
 import { useNotification } from "../hooks/useNotification";
 
 const initialLimit = 100;
-
+const normalizeAdditionalOrderStatus = (value) => {
+  const status = String(value || "").trim().toLocaleLowerCase("uk-UA");
+  if (!status) return "new";
+  if (status.includes("нов")) return "new";
+  if (status.includes("робот") || status.includes("оброб")) return "processing";
+  if (status.includes("оплат")) return "waiting_payment";
+  if (status.includes("очіку") && status.includes("підтвер")) return "waiting_confirmation";
+  if (status.includes("підтвер")) return "confirmed";
+  if (status.includes("виробниц")) return "production";
+  if (status.includes("готов")) return "ready";
+  if (status.includes("відвантаж") || status.includes("достав")) return "shipped";
+  if (status.includes("відмов") || status.includes("отказ")) return "rejected";
+  return status;
+};
 
 
 const AdditionalOrders = () => {
@@ -23,7 +36,7 @@ const AdditionalOrders = () => {
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]); 
   const [_filteredItems, setFilteredItems] = useState([]);
-  const [filter, setFilter] = useState({ status: "Р’СЃС–", month: 0, name: "" });
+  const [filter, setFilter] = useState({ status: "all", month: 0, name: "" });
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
   ); 
@@ -161,12 +174,12 @@ const AdditionalOrders = () => {
     (statusFilter, monthFilter, nameFilter, data = additionalOrdersData) => {
       let filtered = [...data]; 
 
-      if (statusFilter && statusFilter !== "Р’СЃС–") {
+      if (statusFilter && statusFilter !== "all") {
         filtered = filtered.filter((additionalOrder) => {
           if (additionalOrder.orders.length === 0)
-            return statusFilter === "РќРѕРІРёР№";
+            return statusFilter === "new";
           return additionalOrder.orders.some(
-            (order) => order.status === statusFilter,
+            (order) => normalizeAdditionalOrderStatus(order.status) === statusFilter,
           );
         });
       }
@@ -195,6 +208,15 @@ const AdditionalOrders = () => {
     [additionalOrdersData],
   );
 
+  const buildRequestParams = useCallback(() => {
+    const params = { year: selectedYear };
+
+    if (filter.month) {
+      params.month = filter.month;
+    }
+    return params;
+  }, [filter.month, selectedYear]);
+
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
@@ -206,7 +228,7 @@ const AdditionalOrders = () => {
       try {
         const response = await axiosInstance.get(
           "/additional_orders/get_additional_orders_info/",
-          { params: { year: selectedYear }, signal },
+          { params: buildRequestParams(), signal },
         );
 
         if (signal.aborted) return;
@@ -250,7 +272,7 @@ const AdditionalOrders = () => {
 
     fetchData();
     return () => controller.abort();
-  }, [selectedYear, refreshTrigger]); 
+  }, [buildRequestParams, refreshTrigger]); 
 
   const reloadAdditionalOrders = useCallback(async () => {
     cancelAll();
@@ -261,7 +283,7 @@ const AdditionalOrders = () => {
     try {
       const response = await axiosInstance.get(
         "/additional_orders/get_additional_orders_info/",
-        { params: { year: selectedYear }, signal: controller.signal },
+        { params: buildRequestParams(), signal: controller.signal },
       );
 
       if (response.data?.status === "success") {
@@ -292,32 +314,33 @@ const AdditionalOrders = () => {
     } finally {
       setReloading(false);
     }
-  }, [cancelAll, register, selectedYear, filter, getFilteredItems]);
+  }, [buildRequestParams, cancelAll, filter, getFilteredItems, register]);
 
   const getStatusSummary = useMemo(() => {
     return () => {
       const summary = {
-        "Р’СЃС–": 0,
-        "РќРѕРІРёР№": 0,
-        "Р’ СЂРѕР±РѕС‚С–": 0,
-        "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ": 0,
-        "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№": 0,
-        "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ": 0,
-        "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–": 0,
-        "Р“РѕС‚РѕРІРёР№": 0,
-        "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ": 0,
-        "Р’С–РґРјРѕРІР°": 0,
+        all: 0,
+        new: 0,
+        processing: 0,
+        waiting_payment: 0,
+        waiting_confirmation: 0,
+        confirmed: 0,
+        production: 0,
+        ready: 0,
+        shipped: 0,
+        rejected: 0,
       };
 
       additionalOrdersData.forEach((additionalOrder) => {
-        if (additionalOrder.orders.length === 0) summary["РќРѕРІРёР№"] += 1;
+        if (additionalOrder.orders.length === 0) summary.new += 1;
         additionalOrder.orders.forEach((order) => {
-          if (order.status && Object.hasOwn(summary, order.status)) {
-            summary[order.status] += 1;
+          const statusKey = normalizeAdditionalOrderStatus(order.status);
+          if (Object.hasOwn(summary, statusKey)) {
+            summary[statusKey] += 1;
           }
         });
       });
-      summary["Р’СЃС–"] = additionalOrdersData.length;
+      summary.all = additionalOrdersData.length;
       return summary;
     };
   }, [additionalOrdersData]);
@@ -708,16 +731,16 @@ const AdditionalOrders = () => {
     "
   >
             {[
-    { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Р’СЃС–" },
-    { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "РќРѕРІРёР№" },
-    { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "Р’ СЂРѕР±РѕС‚С–" },
-    { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ" },
-    { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ" },
-    { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№" },
-    { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–" },
-    { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Р“РѕС‚РѕРІРёР№" },
-    { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ" },
-    { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Р’С–РґРјРѕРІР°" },
+    { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "all" },
+    { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "new" },
+    { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "processing" },
+    { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "waiting_payment" },
+    { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "waiting_confirmation" },
+    { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "confirmed" },
+    { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "production" },
+    { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "ready" },
+    { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "shipped" },
+    { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "rejected" },
   ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}

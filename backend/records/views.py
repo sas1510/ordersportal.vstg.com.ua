@@ -1660,6 +1660,89 @@ def execute_additional_orders_procedure(contractor_bin, year):
         return [dict(zip(columns, r)) for r in cursor.fetchall()]
 
 
+def _is_all_additional_order_status(value):
+    status_value = str(value or "").strip().lower()
+    return status_value in {"", "all", "всі", "усі", "р’сѓс–"}
+
+
+ADDITIONAL_ORDER_STATUS_ALIASES = {
+    "new": {"Новий", "РќРѕРІРёР№"},
+    "processing": {"В роботі", "В обробці", "Р’ СЂРѕР±РѕС‚С–"},
+    "waiting_payment": {"Очікуємо оплату", "Очікуємо оплати", "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ"},
+    "waiting_confirmation": {"Очікуємо підтвердження", "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ"},
+    "confirmed": {"Підтверджений", "Підтверджено", "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№"},
+    "production": {"У виробництві", "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–"},
+    "ready": {"Готовий", "Готово", "Р“РѕС‚РѕРІРёР№"},
+    "shipped": {"Відвантажено", "Відвантажений", "Відвантажене", "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ"},
+    "rejected": {"Відмова", "Отказ", "Р’С–РґРјРѕРІР°"},
+}
+
+
+def _additional_order_status_candidates(value):
+    raw_status = str(value or "").strip()
+    status_key = raw_status.lower().replace("-", "_")
+    aliases = ADDITIONAL_ORDER_STATUS_ALIASES.get(status_key, {raw_status})
+    return {str(item or "").strip().lower() for item in aliases if str(item or "").strip()}
+
+
+def _additional_order_matches_status(additional_order, status_filter):
+    if _is_all_additional_order_status(status_filter):
+        return True
+
+    target_statuses = _additional_order_status_candidates(status_filter)
+    orders = additional_order.get("orders") or []
+    if not orders:
+        return bool(target_statuses & _additional_order_status_candidates("new"))
+    return any(str(order.get("status") or "").strip().lower() in target_statuses for order in orders)
+
+
+def _additional_order_matches_month(additional_order, month_filter):
+    try:
+        month = int(month_filter or 0)
+    except (TypeError, ValueError):
+        month = 0
+    if month == 0:
+        return True
+
+    date_value = additional_order.get("dateRaw")
+    try:
+        if isinstance(date_value, str) and len(date_value) >= 7:
+            return int(date_value[5:7]) == month
+        if date_value:
+            return date_value.month == month
+    except (TypeError, ValueError, AttributeError):
+        return False
+    return False
+
+
+def _additional_order_matches_search(additional_order, search_filter):
+    query = str(search_filter or "").strip().lower()
+    if not query:
+        return True
+
+    fields = [
+        additional_order.get("number"),
+        additional_order.get("mainOrderNumber"),
+        additional_order.get("dealer"),
+        additional_order.get("organizationName"),
+    ]
+    fields.extend((order or {}).get("number") for order in additional_order.get("orders") or [])
+    return any(query in str(value or "").lower() for value in fields)
+
+
+def _filter_additional_orders_payload(formatted_orders, request):
+    status_filter = request.GET.get("status")
+    month_filter = request.GET.get("month")
+    search_filter = request.GET.get("search") or request.GET.get("name")
+
+    return [
+        item for item in formatted_orders
+        if _additional_order_matches_status(item, status_filter)
+        and _additional_order_matches_month(item, month_filter)
+        and _additional_order_matches_search(item, search_filter)
+    ]
+
+
 
 @extend_schema(
     summary="Повертає дозакази (Additional Orders)",
@@ -1845,6 +1928,8 @@ def additional_orders_view(request):  # Синхронна обгортка дл
             except Exception as e:
                 logger.error(f"Error formatting additional order row: {str(e)}", exc_info=True)
                 continue
+
+        formatted = _filter_additional_orders_payload(formatted, request)
 
         return {
             "data": formatted,
@@ -2414,6 +2499,8 @@ def get_additional_orders_info_all(request):
                 continue
 
         
+        formatted_orders = _filter_additional_orders_payload(formatted_orders, request)
+
         total_duration = time.time() - start_time
         
       
@@ -2706,6 +2793,19 @@ def orders_view_all_by_month(request):
         .strip()
         .lower()
     )
+    scope_user_id = request.GET.get("scope_user_id")
+    if scope_user_id:
+        if requester_role not in {"admin", "director"}:
+            return JsonResponse({"error": "Змінювати область KPI може лише адміністратор."}, status=403)
+        try:
+            scoped_user = CustomUser.objects.get(
+                id=int(scope_user_id),
+                is_active=True,
+                role__in=("manager", "region_manager"),
+            )
+        except (ValueError, CustomUser.DoesNotExist):
+            return JsonResponse({"error": "Активного менеджера не знайдено."}, status=404)
+        requester_user_id = scoped_user.id
     dealer_group = request.GET.get("dealer_group")
     dealer_group = dealer_group.strip() if isinstance(dealer_group, str) else None
     if dealer_group == "":
@@ -5196,6 +5296,14 @@ def _safe_int(value, default=0):
         return default
 
 
+def _analytics_row_currency(row):
+    for key in ("Currency", "CurrencyName", "OrderCurrency", "Currency_2", "Валюта"):
+        value = row.get(key)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return "грн"
+
+
 def _normalize_production_timeliness_summary(row):
     return {
         "abc": row.get("ABC") or "Other",
@@ -5209,6 +5317,7 @@ def _normalize_production_timeliness_summary(row):
         "total_sum": _safe_float(row.get("TotalSum")),
         "total_constructions": _safe_float(row.get("TotalConstructions")),
         "produced_total": _safe_float(row.get("ProducedTotal")),
+        "currency": _analytics_row_currency(row),
     }
 
 
@@ -5237,6 +5346,7 @@ def _normalize_production_timeliness_order(row):
         "order_sum": _safe_float(row.get("OrderSum")),
         "constructions_count": _safe_float(row.get("ConstructionsCount")),
         "produced_total": _safe_float(row.get("ProducedTotal")),
+        "currency": _analytics_row_currency(row),
     }
 
 
@@ -5246,6 +5356,7 @@ def _normalize_unified_summary_row(row, key_name):
         "orders_count": _safe_int(row.get("OrdersCount")),
         "total_constructions": _safe_float(row.get("TotalConstructions")),
         "total_sum": _safe_float(row.get("TotalSum")),
+        "currency": _analytics_row_currency(row),
     }
 
 
@@ -5267,6 +5378,7 @@ def _normalize_profile_system_row(row):
         "orders_count": _safe_int(row.get("OrdersCount")),
         "total_sum": _safe_float(row.get("TotalSum")),
         "avg_check": _safe_float(row.get("AvgCheck")),
+        "currency": _analytics_row_currency(row),
     }
 
 
@@ -5276,6 +5388,7 @@ def _normalize_named_volume_row(row, field_name):
         "orders_count": _safe_int(row.get("OrdersCount")),
         "total_constructions": _safe_float(row.get("TotalConstructions")),
         "total_sum": _safe_float(row.get("TotalSum")),
+        "currency": _analytics_row_currency(row),
     }
 
 
@@ -5283,6 +5396,7 @@ def _normalize_period_metric_row(row, value_fields):
     payload = {
         "period_label": row.get("PeriodLabel"),
         "period_sort": clean_date(row.get("PeriodSort")),
+        "currency": _analytics_row_currency(row),
     }
     for field in value_fields:
         payload[field] = _safe_float(row.get(field))
@@ -5296,6 +5410,7 @@ def _normalize_abc_portfolio_row(row):
         "total_constructions": _safe_float(row.get("TotalConstructions")),
         "total_sum": _safe_float(row.get("TotalSum")),
         "percent_by_orders": _safe_float(row.get("PercentByOrders")),
+        "currency": _analytics_row_currency(row),
     }
 
 
@@ -5354,6 +5469,105 @@ def _normalize_portal_region_name(value):
     return region_name
 
 
+RUTA_CONTRACTOR_GUID = "db8b7114-8eea-11e1-9d1c-002590633bb3"
+RUTA_MAIN_MANAGER_GUID = "f67c4d4c-5a97-11e9-80f6-74867ad9d525"
+
+
+def _portal_user_1c_guid(user):
+    raw_guid = getattr(user, "user_id_1C", None)
+    if isinstance(raw_guid, (bytes, bytearray, memoryview)):
+        return (bin_to_guid_1c(bytes(raw_guid)) or "").lower() or None
+    if raw_guid:
+        return str(raw_guid).strip().lower() or None
+    return None
+
+
+def _should_include_ruta_dealer(scope_user, requester_user_id=None):
+    scope_role = str(getattr(scope_user, "role", "") or "").strip().lower()
+    if scope_role in {"admin", "director"}:
+        return True
+    if scope_role not in {"manager", "region_manager"}:
+        return False
+
+    if _portal_user_1c_guid(scope_user) == RUTA_MAIN_MANAGER_GUID:
+        return True
+
+    if requester_user_id is None:
+        requester_user_id = getattr(scope_user, "id", None)
+    if not requester_user_id:
+        return False
+
+    accessible_dealers = _fetch_accessible_portal_dealers(requester_user_id)
+    return any(
+        str(item.get("contractor_guid") or "").strip().lower() == RUTA_CONTRACTOR_GUID
+        for item in accessible_dealers
+    )
+
+
+def _filter_ruta_for_accessible_reports(dealers, scope_user, requester_user_id=None):
+    if _should_include_ruta_dealer(scope_user, requester_user_id):
+        return dealers
+    return [
+        item for item in dealers
+        if str(item.get("contractor_guid") or "").strip().lower() != RUTA_CONTRACTOR_GUID
+    ]
+
+
+def _build_accessible_report_regions(dealers):
+    grouped = {}
+    for dealer in dealers:
+        region_name = dealer.get("region_name") or "Не визначено"
+        region = grouped.setdefault(region_name, {
+            "region_name": region_name,
+            "dealers_count": 0,
+            "orders_count": 0,
+            "total_constructions": 0,
+            "total_turnover": 0.0,
+            "currency": dealer.get("currency") or "грн",
+        })
+        region["dealers_count"] += 1
+        region["orders_count"] += _safe_int(dealer.get("orders_count"))
+        region["total_constructions"] += _safe_int(dealer.get("total_constructions"))
+        region["total_turnover"] += _safe_float(dealer.get("total_turnover"))
+
+    regions = []
+    for region in grouped.values():
+        region["avg_check"] = (
+            round(region["total_turnover"] / region["orders_count"], 2)
+            if region["orders_count"]
+            else 0
+        )
+        regions.append(_drop_empty_portal_metrics(region))
+
+    regions.sort(
+        key=lambda item: (
+            -_safe_float(item.get("total_turnover")),
+            -_safe_int(item.get("orders_count")),
+            item.get("region_name") or "",
+        )
+    )
+    return regions
+
+
+def _build_accessible_report_totals(dealers, fallback_currency="грн"):
+    orders_count = sum(_safe_int(item.get("orders_count")) for item in dealers)
+    total_turnover = sum(_safe_float(item.get("total_turnover")) for item in dealers)
+    total_constructions = sum(_safe_int(item.get("total_constructions")) for item in dealers)
+    top_turnover = max((_safe_float(item.get("total_turnover")) for item in dealers), default=0)
+    top_average_check = max((_safe_float(item.get("avg_check")) for item in dealers), default=0)
+
+    return _drop_empty_portal_metrics({
+        "dealers_count": _portal_value_or_none(len(dealers)),
+        "orders_count": _portal_value_or_none(orders_count),
+        "total_constructions": _portal_value_or_none(total_constructions),
+        "total_turnover": _portal_value_or_none(round(total_turnover, 2)),
+        "avg_check": _portal_value_or_none(round(total_turnover / orders_count, 2) if orders_count else 0),
+        "top_turnover": _portal_value_or_none(round(top_turnover, 2)),
+        "top_average_check": _portal_value_or_none(round(top_average_check, 2)),
+        "currency": fallback_currency,
+    })
+
+
 def _normalize_portal_comparison_metric_row(row):
     base_payload = {
         "contractor_guid": _normalize_portal_contractor_guid(_portal_row_value(row, "ContractorGuid")),
@@ -5372,6 +5586,7 @@ def _normalize_portal_comparison_metric_row(row):
         "potential_gain_global": _portal_value_or_none(_safe_float(row.get("PotentialGainGlobal"))),
         "potential_turnover_region": _portal_value_or_none(_safe_float(_portal_row_value(row, "PotentialTurnoverRegion", "PotentialToRegionTopTurnover"))),
         "potential_gain_region": _portal_value_or_none(_safe_float(row.get("PotentialGainRegion"))),
+        "currency": _analytics_row_currency(row),
     }
     return _drop_empty_portal_metrics(base_payload)
 
@@ -5384,6 +5599,7 @@ def _normalize_portal_comparison_region_row(row):
         "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(row, "TotalConstructions"))),
         "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(row, "TotalTurnover", "TurnoverAmount"))),
         "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(row, "AvgCheck", "AverageCheck"))),
+        "currency": _analytics_row_currency(row),
     }
     return _drop_empty_portal_metrics(base_payload)
 
@@ -5508,7 +5724,7 @@ def _fetch_accessible_portal_reports_result(requester_user_id, date_from, date_t
     return totals_rows, dealer_rows, region_rows
 
 
-def _build_accessible_dealer_reports(requester_user_id, date_from, date_to):
+def _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scope_user=None):
     totals_rows, dealer_source_rows, region_source_rows = _fetch_accessible_portal_reports_result(
         requester_user_id,
         date_from,
@@ -5532,6 +5748,10 @@ def _build_accessible_dealer_reports(requester_user_id, date_from, date_to):
         )
     )
 
+    original_dealers_count = len(dealers)
+    if scope_user is not None:
+        dealers = _filter_ruta_for_accessible_reports(dealers, scope_user, requester_user_id)
+
     regions = [
         item
         for item in (_normalize_portal_comparison_region_row(row) for row in region_source_rows)
@@ -5545,15 +5765,21 @@ def _build_accessible_dealer_reports(requester_user_id, date_from, date_to):
         )
     )
 
-    totals = _drop_empty_portal_metrics({
-        "dealers_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "DealersCount", "dealers_count"))),
-        "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "OrdersCount", "orders_count"))),
-        "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "TotalConstructions", "total_constructions"))),
-        "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TurnoverAmount", "TotalTurnover", "turnover_amount"))),
-        "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "AverageCheck", "AvgCheck", "average_check"))),
-        "top_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TopTurnover", "top_turnover"))),
-        "top_average_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TopAverageCheck", "top_average_check"))),
-    })
+    if len(dealers) != original_dealers_count:
+        fallback_currency = _analytics_row_currency(totals_row)
+        totals = _build_accessible_report_totals(dealers, fallback_currency)
+        regions = _build_accessible_report_regions(dealers)
+    else:
+        totals = _drop_empty_portal_metrics({
+            "dealers_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "DealersCount", "dealers_count"))),
+            "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "OrdersCount", "orders_count"))),
+            "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "TotalConstructions", "total_constructions"))),
+            "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TurnoverAmount", "TotalTurnover", "turnover_amount"))),
+            "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "AverageCheck", "AvgCheck", "average_check"))),
+            "top_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TopTurnover", "top_turnover"))),
+            "top_average_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TopAverageCheck", "top_average_check"))),
+            "currency": _analytics_row_currency(totals_row),
+        })
 
     top_dealers = dealers[:10]
     top_regions = regions[:10]
@@ -5663,16 +5889,32 @@ class ProductionTimelinessByContractorView(APIView):
 
         try:
             with connections["default"].cursor() as cursor:
-                cursor.execute(
-                    """
-                    SET ANSI_WARNINGS OFF;
-                    EXEC [dbo].[GetABCProductionTimelinessByContractor]
-                        @ContractorID = %s,
-                        @DateFrom = %s,
-                        @DateTo = %s
-                    """,
-                    [contractor_bin, date_from, date_to],
-                )
+                try:
+                    cursor.execute(
+                        """
+                        SET ANSI_WARNINGS OFF;
+                        EXEC [dbo].[GetABCProductionTimelinessByContractorV2]
+                            @ContractorID = %s,
+                            @DateFrom = %s,
+                            @DateTo = %s
+                        """,
+                        [contractor_bin, date_from, date_to],
+                    )
+                except DatabaseError as procedure_error:
+                    procedure_error_message = str(procedure_error)
+                    if "2812" not in procedure_error_message and "207" not in procedure_error_message:
+                        raise
+                    logger.warning("Analytics V2 timeliness procedure is unavailable or invalid; using the stable timeliness procedure")
+                    cursor.execute(
+                        """
+                        SET ANSI_WARNINGS OFF;
+                        EXEC [dbo].[GetABCProductionTimelinessByContractor]
+                            @ContractorID = %s,
+                            @DateFrom = %s,
+                            @DateTo = %s
+                        """,
+                        [contractor_bin, date_from, date_to],
+                    )
                 summary_rows = _dictfetchall(cursor)
 
                 orders_rows = []
@@ -5737,6 +5979,25 @@ class ProductionTimelinessByContractorView(APIView):
             else 0
         )
 
+        currency_totals = {}
+        for item in summary:
+            currency = item.get("currency") or "грн"
+            currency_total = currency_totals.setdefault(
+                currency,
+                {"currency": currency, "total_sum": 0.0, "orders_count": 0},
+            )
+            currency_total["total_sum"] += _safe_float(item.get("total_sum"))
+            currency_total["orders_count"] += _safe_int(item.get("orders_count"))
+
+        totals["currency_totals"] = []
+        for item in currency_totals.values():
+            item["avg_check"] = (
+                round(item["total_sum"] / item["orders_count"], 2)
+                if item["orders_count"]
+                else 0
+            )
+            totals["currency_totals"].append(item)
+
         delayed_items = [
             _safe_float(item.get("late_days"))
             for item in orders
@@ -5797,16 +6058,31 @@ class ProductionUnifiedAnalyticsView(APIView):
 
         try:
             with connections["default"].cursor() as cursor:
-                cursor.execute(
-                    """
-                    SET ANSI_WARNINGS OFF;
-                    EXEC [dbo].[GetContractorUnifiedAnalytics]
-                        @StartDate = %s,
-                        @EndDate = %s,
-                        @Contractor_ID = %s
-                    """,
-                    [date_from, date_to, contractor_bin],
-                )
+                try:
+                    cursor.execute(
+                        """
+                        SET ANSI_WARNINGS OFF;
+                        EXEC [dbo].[GetContractorUnifiedAnalyticsV2]
+                            @StartDate = %s,
+                            @EndDate = %s,
+                            @Contractor_ID = %s
+                        """,
+                        [date_from, date_to, contractor_bin],
+                    )
+                except DatabaseError as procedure_error:
+                    if "207" not in str(procedure_error):
+                        raise
+                    logger.warning("Unified analytics V2 has an invalid currency column; using the stable procedure")
+                    cursor.execute(
+                        """
+                        SET ANSI_WARNINGS OFF;
+                        EXEC [dbo].[GetContractorUnifiedAnalytics]
+                            @StartDate = %s,
+                            @EndDate = %s,
+                            @Contractor_ID = %s
+                        """,
+                        [date_from, date_to, contractor_bin],
+                    )
 
                 status_rows = _dictfetchall(cursor)
                 stage_rows = _dictfetchall(cursor) if cursor.nextset() else []
@@ -5953,16 +6229,31 @@ class PortalDealerComparisonAnalyticsView(APIView):
 
         try:
             with connections["default"].cursor() as cursor:
-                cursor.execute(
-                    """
-                    SET ANSI_WARNINGS OFF;
-                    EXEC [dbo].[GetPortalDealerComparisonAnalytics]
-                        @StartDate = %s,
-                        @EndDate = %s,
-                        @Contractor_ID = %s
-                    """,
-                    [date_from, date_to, contractor_bin],
-                )
+                try:
+                    cursor.execute(
+                        """
+                        SET ANSI_WARNINGS OFF;
+                        EXEC [dbo].[GetPortalDealerComparisonAnalyticsV2]
+                            @StartDate = %s,
+                            @EndDate = %s,
+                            @Contractor_ID = %s
+                        """,
+                        [date_from, date_to, contractor_guid],
+                    )
+                except DatabaseError as procedure_error:
+                    if "207" not in str(procedure_error):
+                        raise
+                    logger.warning("Dealer comparison V2 has an invalid currency column; using the stable procedure")
+                    cursor.execute(
+                        """
+                        SET ANSI_WARNINGS OFF;
+                        EXEC [dbo].[GetPortalDealerComparisonAnalytics]
+                            @StartDate = %s,
+                            @EndDate = %s,
+                            @Contractor_ID = %s
+                        """,
+                        [date_from, date_to, contractor_bin],
+                    )
                 totals_rows = _dictfetchall(cursor)
                 selected_rows = _dictfetchall(cursor) if cursor.nextset() else []
                 leaderboard_rows = _dictfetchall(cursor) if cursor.nextset() else []
@@ -5985,26 +6276,24 @@ class PortalDealerComparisonAnalyticsView(APIView):
                 status=500,
             )
 
-        totals_row = totals_rows[0] if totals_rows else {}
-        totals = _drop_empty_portal_metrics(
-            {
+        totals_by_currency = [
+            _drop_empty_portal_metrics({
                 "dealers_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "DealersCount", "dealers_count"))),
                 "orders_count": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "OrdersCount", "orders_count"))),
                 "total_constructions": _portal_value_or_none(_safe_int(_portal_row_value(totals_row, "TotalConstructions"))),
                 "total_turnover": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "TotalTurnover", "TurnoverAmount"))),
-            }
-        )
+                "avg_check": _portal_value_or_none(_safe_float(_portal_row_value(totals_row, "AverageCheck", "AvgCheck", "average_check"))),
+                "currency": _analytics_row_currency(totals_row),
+            })
+            for totals_row in totals_rows
+        ]
+        totals = totals_by_currency[0] if totals_by_currency else {}
 
+        selected_dealers = [
+            _normalize_portal_comparison_metric_row(row) for row in selected_rows
+        ]
         selected_source_row = selected_rows[0] if selected_rows else None
-        selected_dealer = (
-            _normalize_portal_comparison_metric_row(selected_source_row)
-            if selected_source_row
-            else None
-        )
-        if selected_dealer and selected_source_row:
-            selected_dealer.update(
-                _recalculate_selected_portal_ranks(selected_source_row, leaderboard_rows)
-            )
+        selected_dealer = selected_dealers[0] if selected_dealers else None
         leaderboard = [
             item
             for item in (
@@ -6021,11 +6310,25 @@ class PortalDealerComparisonAnalyticsView(APIView):
             )
             if item.get("total_turnover") or item.get("avg_check") or item.get("orders_count")
         ]
-        insights = _build_portal_comparison_insights(
-            selected_source_row,
-            leaderboard_rows,
-            region_rows,
-        )
+        insights_by_currency = []
+        for selected_row in selected_rows:
+            currency = _analytics_row_currency(selected_row)
+            currency_leaderboard = [
+                row for row in leaderboard_rows
+                if _analytics_row_currency(row) == currency
+            ]
+            currency_regions = [
+                row for row in region_rows
+                if _analytics_row_currency(row) == currency
+            ]
+            currency_insights = _build_portal_comparison_insights(
+                selected_row,
+                currency_leaderboard,
+                currency_regions,
+            )
+            currency_insights["currency"] = currency
+            insights_by_currency.append(currency_insights)
+        insights = insights_by_currency[0] if insights_by_currency else {}
 
         return Response(
             {
@@ -6035,10 +6338,13 @@ class PortalDealerComparisonAnalyticsView(APIView):
                     "to": date_to.isoformat(),
                 },
                 "totals": totals,
+                "totals_by_currency": totals_by_currency,
                 "selected_dealer": selected_dealer,
+                "selected_dealers": selected_dealers,
                 "leaderboard": leaderboard,
                 "regions": regions,
                 "insights": insights,
+                "insights_by_currency": insights_by_currency,
             }
         )
 
@@ -6050,6 +6356,22 @@ class PortalAccessibleDealerReportsView(APIView):
         role = getattr(request.user, "role", "")
         if role not in ("admin", "director", "manager", "region_manager"):
             return Response({"detail": "Недостатньо прав для перегляду звітів."}, status=403)
+
+        requester_user_id = request.user.id
+        scope_user = request.user
+        scope_user_id = request.GET.get("scope_user_id")
+        if scope_user_id:
+            if role not in ("admin", "director"):
+                return Response({"detail": "Змінювати область звіту може лише адміністратор."}, status=403)
+            try:
+                scope_user = CustomUser.objects.get(
+                    id=int(scope_user_id),
+                    is_active=True,
+                    role__in=("manager", "region_manager"),
+                )
+            except (ValueError, CustomUser.DoesNotExist):
+                return Response({"detail": "Активного менеджера не знайдено."}, status=404)
+            requester_user_id = scope_user.id
 
         date_from_raw = request.GET.get("date_from")
         date_to_raw = request.GET.get("date_to")
@@ -6067,7 +6389,7 @@ class PortalAccessibleDealerReportsView(APIView):
             return Response({"detail": "date_from must be less than or equal to date_to"}, status=400)
 
         try:
-            payload = _build_accessible_dealer_reports(request.user.id, date_from, date_to)
+            payload = _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scope_user)
         except DatabaseError as exc:
             error_msg = str(exc)
             if "927" in error_msg or "процессе восстановления" in error_msg.lower():

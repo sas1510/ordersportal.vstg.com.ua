@@ -1,5 +1,5 @@
 .orders-dashboard { min-height: calc(100vh - 80px); padding: 100px 24px 28px; background: linear-gradient(180deg, #f4f1ea 0%, #eef3ef 100%); color: #243426; }
-.orders-dashboard__panel { max-width: 1320px; margin: 0 auto; border: 1px solid rgba(70, 92, 77, 0.14); background: rgba(255,255,255,0.9); }
+.orders-dashboard__panel { max-width: 1320px; margin: 0 auto; padding: 10px; border: 1px solid rgba(70, 92, 77, 0.14); background: rgba(255,255,255,0.9); }
 .orders-dashboard__header { display: flex; justify-content: space-between; gap: 24px; padding: 28px; border-bottom: 1px solid rgba(70, 92, 77, 0.12); }
 .orders-dashboard h1, .orders-dashboard h2 { margin: 0; color: #243426; }
 .orders-dashboard h1 { font-size: 28px; }
@@ -36,7 +36,23 @@
 .orders-dashboard__age { color: #c88a2f !important; font-weight: 700; white-space: nowrap; }
 .orders-dashboard__error { padding: 0 28px; color: #b94f42; }
 .orders-dashboard__dealer-cards { border-bottom: none; }
+.orders-dashboard__kpi-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 22px 28px; border-bottom: 1px solid rgba(70, 92, 77, 0.12); }
+.orders-dashboard__kpi-card { min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; padding: 18px; border: 1px solid rgba(70, 92, 77, 0.16); border-top-width: 4px; background: rgba(255,255,255,0.74); }
+.orders-dashboard__kpi-card.is-processing { border-top-color: #6bb3d6; }
+.orders-dashboard__kpi-card.is-sla { border-top-color: #95c11f; }
+.orders-dashboard__kpi-card.is-backlog { border-top-color: #f6bf6a; }
+.orders-dashboard__kpi-card.is-neuffer { border-top-color: #8e7cc3; }
+.orders-dashboard__kpi-label { color: #536653; font-size: 13px; line-height: 1.35; }
+.orders-dashboard__kpi-value { margin: 16px 0; color: #243426; font-size: 32px; line-height: 1; }
+.orders-dashboard__kpi-hint { color: #718071; font-size: 12px; line-height: 1.35; }
 .orders-dashboard__charts-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, .9fr); gap: 18px; padding: 0 28px 22px; }
+.orders-dashboard__charts-grid--kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-top: 22px; background: linear-gradient(180deg, rgba(107, 152, 191, 0.04), transparent); }
+.orders-dashboard__charts-grid--kpi .orders-dashboard__chart-panel { border-top: 3px solid rgba(107, 179, 214, 0.75); box-shadow: 0 12px 28px rgba(36, 52, 38, 0.06); }
+.orders-dashboard__charts-grid--kpi .dealer-reports-panel__header span { color: #718071; font-size: 12px; }
+.orders-dashboard__dealer-processing { border-top: 1px solid rgba(70, 92, 77, 0.12); }
+.orders-dashboard__processing-table-panel { min-width: 0; overflow: hidden; border-top: 3px solid rgba(142, 124, 195, 0.78); }
+.orders-dashboard__processing-table-panel .orders-dashboard__table-wrap { max-height: 390px; margin: 0 18px 18px; overflow: auto; }
+.orders-dashboard__processing-table-panel td:last-child { color: #4d93b6; font-weight: 700; white-space: nowrap; }
 .orders-dashboard__chart-panel { overflow: hidden; }
 .orders-dashboard__chart-wrap { height: 320px; padding: 16px 12px 8px; }
 .orders-dashboard__chart-empty { height: 320px; display: flex; align-items: center; justify-content: center; color: #667565; font-size: 14px; }
@@ -52,6 +68,81 @@
 .orders-dashboard--reports-mixed .dealer-reports-state { margin: 18px 28px 0; }
 .orders-dashboard__all-dealers-panel { margin-top: 0 !important; }
 
+/* KPI uses the same visual language as the main analytics dashboard. */
+.orders-dashboard--analytics { --analytics-surface: #ffffff; --analytics-muted: #f3f7fa; --analytics-line: #d7dee8; --analytics-text: #263445; --analytics-subtle: #6a788a; --analytics-lime: #9cc63b; --analytics-blue: #6b98bf; --analytics-orange: #ed8b33; background: #eef3f8; }
+.orders-dashboard--analytics .orders-dashboard__panel { border: 0; background: transparent; }
+.orders-dashboard--analytics .orders-dashboard__header { position: relative; min-height: 154px; overflow: hidden; align-items: center; border: 1px solid var(--analytics-line); border-radius: 7px; background: radial-gradient(circle at 84% 15%, rgba(159,211,255,.34), transparent 31%), linear-gradient(135deg, #fff 0%, #f3f8fc 100%); box-shadow: 0 14px 40px rgba(48,66,88,.08); }
+.orders-dashboard--analytics .orders-dashboard__header::after { content: ""; position: absolute; inset: 0 0 auto auto; width: 620px; height: 154px; background: url("/analytics.png") no-repeat right top / 650px 154px; opacity: .16; pointer-events: none; }
+.orders-dashboard--analytics .orders-dashboard__header > * { position: relative; z-index: 1; }
+.orders-dashboard--analytics .orders-dashboard__header h1 { font-size: 30px; letter-spacing: .02em; text-transform: uppercase; }
+.orders-dashboard--analytics .orders-dashboard__total { border: 0; border-radius: 7px; background: rgba(107,152,191,.14); }
+.orders-dashboard--analytics .orders-dashboard__filters { margin-top: 14px; border: 1px solid var(--analytics-line); border-radius: 7px; background: var(--analytics-surface); box-shadow: 0 10px 30px rgba(48,66,88,.06); }
+.orders-dashboard--analytics .orders-dashboard__filters input,
+.orders-dashboard--analytics .orders-dashboard__filters select { min-height: 36px; border-radius: 5px; background: var(--analytics-muted); }
+.orders-dashboard--analytics .orders-dashboard__filters > button { min-height: 36px; border: 0; border-radius: 5px; background: var(--analytics-lime); color: #33402a; text-transform: uppercase; }
+.orders-dashboard--analytics .orders-dashboard__view-switcher,
+.orders-dashboard--analytics .orders-dashboard__view-switcher button { border-radius: 5px; }
+.orders-dashboard--analytics .orders-dashboard__view-switcher button { min-height: 36px; padding: 7px 13px; font-size: 13px; white-space: nowrap; }
+.orders-dashboard--analytics .orders-dashboard__filters > button { padding: 0 13px; font-size: 13px; white-space: nowrap; }
+.orders-dashboard--analytics .orders-dashboard__kpi-cards { margin-top: 14px; padding: 0; border: 0; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card { min-height: 164px; border: 1px solid var(--analytics-line); border-top-width: 4px; border-radius: 7px; background: var(--analytics-surface); box-shadow: 0 14px 40px rgba(48,66,88,.08); }
+.orders-dashboard--analytics .orders-dashboard__kpi-card:nth-child(3n+1) .orders-dashboard__kpi-value { color: var(--analytics-blue); }
+.orders-dashboard--analytics .orders-dashboard__kpi-card:nth-child(3n+2) .orders-dashboard__kpi-value { color: var(--analytics-orange); }
+.orders-dashboard--analytics .orders-dashboard__kpi-card:nth-child(3n) .orders-dashboard__kpi-value { color: var(--analytics-lime); }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-fastest { border-top-color: #4fb286; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-fastest .orders-dashboard__kpi-value { color: #4fb286; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-longest { border-top-color: #cc6e67; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-longest .orders-dashboard__kpi-value { color: #cc6e67; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-clickable { cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-clickable:hover,
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-clickable:focus-visible { transform: translateY(-3px); border-color: var(--analytics-blue); box-shadow: 0 18px 42px rgba(48,66,88,.14); outline: none; }
+.orders-dashboard--analytics .orders-dashboard__kpi-card.is-details-open { border-color: var(--analytics-lime); box-shadow: 0 0 0 3px rgba(156,198,59,.18), 0 18px 42px rgba(48,66,88,.14); }
+.orders-dashboard__currency-values { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.orders-dashboard__currency-values strong { color: inherit; font: inherit; line-height: 1.12; }
+.orders-dashboard__details-trigger { align-self: flex-start; margin-top: 10px; padding: 7px 12px; border: 0; border-radius: 5px; background: var(--analytics-blue); color: #fff; font-size: 12px; font-weight: 800; cursor: pointer; }
+.orders-dashboard__processing-inline { padding-top: 14px; scroll-margin-top: 96px; }
+.orders-dashboard__processing-details { scroll-margin-top: 96px; width: 100%; padding: 24px; border: 1px solid var(--analytics-line); border-radius: 7px; background: var(--analytics-surface); box-shadow: 0 14px 40px rgba(48,66,88,.1); }
+.orders-dashboard__processing-details-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; cursor: pointer; color: var(--analytics-text); font-weight: 800; list-style: none; }
+.orders-dashboard__processing-details-toggle::-webkit-details-marker { display: none; }
+.orders-dashboard__processing-details-toggle::after { content: "+"; display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; background: var(--analytics-muted); color: var(--analytics-blue); font-size: 20px; }
+.orders-dashboard__processing-details[open] > .orders-dashboard__processing-details-toggle { margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--analytics-line); }
+.orders-dashboard__processing-details[open] > .orders-dashboard__processing-details-toggle::after { content: "−"; }
+.orders-dashboard__processing-details-toggle > span { flex: 1; }
+.orders-dashboard__processing-details-toggle > strong { color: var(--analytics-blue); font-size: 12px; }
+.orders-dashboard__processing-details-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.orders-dashboard__processing-details-head span { color: var(--analytics-subtle); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.orders-dashboard__processing-details-head h2 { margin-top: 5px; font-size: 24px; }
+.orders-dashboard__processing-details-head button { padding: 8px 14px; border: 1px solid var(--analytics-line); border-radius: 5px; background: var(--analytics-muted); color: var(--analytics-text); font-weight: 700; cursor: pointer; }
+.orders-dashboard__processing-extremes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.orders-dashboard__processing-extreme { padding: 20px; border: 1px solid var(--analytics-line); border-left: 5px solid; border-radius: 7px; background: var(--analytics-muted); }
+.orders-dashboard__processing-extreme.is-fastest { border-left-color: #4fb286; }
+.orders-dashboard__processing-extreme.is-longest { border-left-color: #cc6e67; }
+.orders-dashboard__processing-extreme > span { color: var(--analytics-subtle); font-size: 13px; }
+.orders-dashboard__processing-extreme > strong { display: block; margin-top: 8px; color: var(--analytics-text); font-size: 30px; }
+.orders-dashboard__processing-extreme > p { margin-top: 7px; color: var(--analytics-text); font-weight: 700; }
+.orders-dashboard__suborder-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 12px; color: var(--analytics-subtle); font-size: 12px; }
+.orders-dashboard__suborder-chips em { padding: 4px 8px; border-radius: 999px; background: rgba(107,152,191,.16); color: var(--analytics-text); font-style: normal; font-weight: 800; }
+.orders-dashboard__processing-details-summary { margin: 20px 0 12px; color: var(--analytics-subtle); }
+.orders-dashboard__processing-details-summary strong { color: var(--analytics-text); font-size: 20px; }
+.orders-dashboard__dealer-order-groups { display: grid; gap: 10px; }
+.orders-dashboard__dealer-order-group { overflow: hidden; border: 1px solid var(--analytics-line); border-radius: 7px; background: var(--analytics-surface); }
+.orders-dashboard__dealer-order-group > summary { display: flex; justify-content: space-between; gap: 16px; padding: 15px 18px; color: var(--analytics-text); font-weight: 800; cursor: pointer; }
+.orders-dashboard__dealer-order-group > summary strong { color: var(--analytics-blue); }
+.orders-dashboard__parent-orders { display: grid; gap: 12px; padding: 0 14px 14px; }
+.orders-dashboard__parent-order { padding: 15px; border-radius: 6px; background: var(--analytics-muted); }
+.orders-dashboard__parent-order > header { display: flex; justify-content: space-between; gap: 16px; }
+.orders-dashboard__parent-order > header div { display: grid; gap: 3px; }
+.orders-dashboard__parent-order > header span { color: var(--analytics-subtle); font-size: 11px; text-transform: uppercase; }
+.orders-dashboard__parent-order > header strong { color: var(--analytics-text); }
+.orders-dashboard__parent-order .orders-dashboard__table-wrap { margin-top: 12px; background: var(--analytics-surface); }
+.orders-dashboard--analytics .orders-dashboard__charts-grid--kpi { margin-top: 14px; padding: 0; border: 0; background: transparent; }
+.orders-dashboard--analytics .orders-dashboard__chart-panel,
+.orders-dashboard--analytics .orders-dashboard__processing-table-panel { border-radius: 7px; background: var(--analytics-surface); box-shadow: 0 14px 40px rgba(48,66,88,.08); }
+.orders-dashboard--analytics .dealer-reports-panel__header { padding: 22px 24px 10px; }
+.orders-dashboard--analytics .dealer-reports-panel__header h3 { color: var(--analytics-text); font-size: 20px; }
+.orders-dashboard--analytics .orders-dashboard__dealer-processing { padding-top: 14px; border-top: 0; }
+.orders-dashboard--analytics .orders-dashboard__table-wrap { border-color: var(--analytics-line); border-radius: 5px; }
+
 .orders-dashboard__status-card { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease; text-align: left; }
 .orders-dashboard__status-card:hover { transform: translateY(-2px); }
 .orders-dashboard__status-card.is-active { box-shadow: 0 18px 34px rgba(29, 68, 97, 0.16); background: rgba(255,255,255,0.92); }
@@ -65,6 +156,18 @@ body.dark-theme .orders-dashboard__status-card.is-active { box-shadow: 0 18px 34
 body.dark-theme .orders-dashboard__legend-button { border-color: #506272; background: rgba(255,255,255,0.03); color: #d0d7d1; }
 body.dark-theme .orders-dashboard__legend-button strong { color: #f6f3ed; }
 body.dark-theme .orders-dashboard__legend-button.is-active { border-color: #74b1ce; background: rgba(116, 177, 206, 0.14); }
+
+body.dark-theme .orders-dashboard--analytics { --analytics-surface: #33312f; --analytics-muted: #44403e; --analytics-line: #5f5b58; --analytics-text: #fff; --analytics-subtle: #aeaeae; --analytics-lime: #b4d947; --analytics-blue: #9fd3ff; --analytics-orange: #ed8b33; background: #4c4644; }
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__header { background: #33312f; box-shadow: none; }
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__header::after { opacity: .55; }
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__filters,
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__kpi-card,
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__chart-panel,
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__processing-table-panel { background: var(--analytics-surface); border-color: var(--analytics-line); box-shadow: none; }
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__filters input,
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__filters select { border-color: var(--analytics-line); background: var(--analytics-muted); }
+body.dark-theme .orders-dashboard--analytics .dealer-reports-panel__header h3 { color: var(--analytics-text); }
+body.dark-theme .orders-dashboard--analytics .orders-dashboard__processing-details { box-shadow: none; }
 
 body.dark-theme .orders-dashboard { background: #4C4644; color: #f8fafc; }
 body.dark-theme .orders-dashboard__panel { border-color: #506272; background: #34312f; }
@@ -93,10 +196,50 @@ body.dark-theme .orders-dashboard__error { color: #ffaaa4; }
 body.dark-theme .orders-dashboard__chart-empty { color: #c3d0d9; }
 body.dark-theme .orders-dashboard__chart-tooltip { border-color: rgba(255,255,255,0.12); background: rgba(35, 48, 58, 0.96); color: #eef4f7; }
 body.dark-theme .orders-dashboard__legend-item { color: #d0d7d1; }
+body.dark-theme .orders-dashboard__kpi-cards { border-bottom-color: #506272; }
+body.dark-theme .orders-dashboard__kpi-card { background: rgba(255,255,255,0.03); border-color: #506272; }
+body.dark-theme .orders-dashboard__kpi-label { color: #d0d7d1; }
+body.dark-theme .orders-dashboard__kpi-value { color: #f6f3ed; }
+body.dark-theme .orders-dashboard__kpi-hint { color: #aabcc8; }
+body.dark-theme .orders-dashboard__charts-grid--kpi { background: linear-gradient(180deg, rgba(107, 179, 214, 0.05), transparent); }
+body.dark-theme .orders-dashboard__charts-grid--kpi .orders-dashboard__chart-panel { box-shadow: 0 14px 30px rgba(0,0,0,0.18); }
+body.dark-theme .orders-dashboard__charts-grid--kpi .dealer-reports-panel__header span { color: #aabcc8; }
+body.dark-theme .orders-dashboard__dealer-processing { border-top-color: #506272; }
+
+.orders-dashboard__scroll-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 50%;
+  background: var(--analytics-lime, #95c11f);
+  color: #1f2a33;
+  box-shadow: 0 10px 26px rgba(0,0,0,.25);
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.orders-dashboard__scroll-top:hover,
+.orders-dashboard__scroll-top:focus-visible { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(0,0,0,.32); outline: 2px solid #fff; outline-offset: 2px; }
+.orders-dashboard__scroll-top svg { width: 18px; height: 18px; }
 
 @media (max-width: 1100px) {
   .orders-dashboard__charts-grid,
   .orders-dashboard--reports-mixed .dealer-reports-grid.is-admin { grid-template-columns: 1fr; }
+  .orders-dashboard__kpi-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1101px) {
+  .orders-dashboard--analytics .orders-dashboard__filters { flex-wrap: nowrap; gap: 10px; padding: 18px 20px; }
+  .orders-dashboard--analytics .orders-dashboard__filters label { min-width: 0; }
+  .orders-dashboard--analytics .orders-dashboard__filters label select,
+  .orders-dashboard--analytics .orders-dashboard__filters label input { max-width: 225px; }
+  .orders-dashboard--analytics .orders-dashboard__filters input[type="date"] { width: 138px; }
+  .orders-dashboard--analytics .orders-dashboard__filters > button { flex: 0 0 auto; min-height: 36px; }
 }
 @media (max-width: 720px) {
   .orders-dashboard { padding: 0; }
@@ -104,8 +247,16 @@ body.dark-theme .orders-dashboard__legend-item { color: #d0d7d1; }
   .orders-dashboard__filters label, .orders-dashboard__filters input, .orders-dashboard__filters select, .orders-dashboard__filters button { width: 100%; }
   .orders-dashboard__view-switcher { width: 100%; }
   .orders-dashboard__view-switcher button { flex: 1; }
+  .orders-dashboard__kpi-cards { grid-template-columns: 1fr; }
   .orders-dashboard__charts-grid,
+  .orders-dashboard__kpi-cards,
   .orders-dashboard--reports-mixed .dealer-reports-grid,
   .orders-dashboard--reports-mixed .dealer-reports-panel--full { padding-left: 16px; padding-right: 16px; margin-left: 0; margin-right: 0; }
   .orders-dashboard--reports-mixed .dealer-reports-state { margin-left: 16px; margin-right: 16px; }
+  .orders-dashboard__processing-inline { padding: 14px 16px 0; }
+  .orders-dashboard__processing-details { padding: 16px; }
+  .orders-dashboard__processing-details-head,
+  .orders-dashboard__parent-order > header { align-items: flex-start; flex-direction: column; }
+  .orders-dashboard__processing-extremes { grid-template-columns: 1fr; }
+  .orders-dashboard__scroll-top { right: 14px; bottom: 14px; width: 42px; height: 42px; }
 }

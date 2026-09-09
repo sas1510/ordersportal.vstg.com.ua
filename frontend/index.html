@@ -74,18 +74,30 @@
       // Перевірка версії застосунку
       (function() {
         fetch('/version.json?t=' + Date.now())
-          .then(res => res.ok ? res.json() : Promise.reject())
+          .then(res => {
+            const contentType = res.headers.get('content-type') || '';
+            return res.ok && contentType.includes('application/json') ? res.json() : null;
+          })
           .then(data => {
+            if (!data) return;
             const currentVersion = localStorage.getItem('app_version');
-            if (data.version && currentVersion && data.version !== currentVersion) {
+            const currentBuildTime = localStorage.getItem('app_build_time');
+            const nextBuildTime = data.buildTime ? String(data.buildTime) : '';
+            if (
+              data.version &&
+              currentVersion &&
+              (data.version !== currentVersion || (nextBuildTime && currentBuildTime && nextBuildTime !== currentBuildTime))
+            ) {
               localStorage.setItem('app_version', data.version);
+              if (nextBuildTime) localStorage.setItem('app_build_time', nextBuildTime);
               // Жорстке перезавантаження для оновлення кешу
               window.location.reload(true); 
             } else if (data.version) {
               localStorage.setItem('app_version', data.version);
+              if (nextBuildTime) localStorage.setItem('app_build_time', nextBuildTime);
             }
           })
-          .catch(err => console.error('Version check failed:', err));
+          .catch(() => {});
       })();
     </script>
     

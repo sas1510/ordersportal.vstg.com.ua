@@ -95,6 +95,10 @@ def _serialise_order(order, calculation):
     return {
         "id": str(order.get("idGuid") or ""),
         "number": _clean(order.get("number")),
+        # ``number`` on the calculation is the label entered in the portal;
+        # the nested order ``number`` remains the 1C order number.
+        "portal_number": _clean(calculation.get("webNumber") or calculation.get("number")) or None,
+        "calculation_number": _clean(calculation.get("number")) or None,
         "linked_order_number": _clean(order.get("linkedOrderNumber")) or None,
         "status": _clean(order.get("status")) or "\u041d\u043e\u0432\u0438\u0439",
         "status_key": _status_key(order.get("status")),
@@ -535,15 +539,141 @@ def telegram_bot_daily_report(request):
     if not user:
         return Response({"success": False, "error": "Telegram \u043d\u0435 \u043f\u0440\u0438\u0432'\u044f\u0437\u0430\u043d\u0438\u0439 \u0434\u043e \u043a\u043e\u0440\u0438\u0441\u0442\u0443\u0432\u0430\u0447\u0430 \u043f\u043e\u0440\u0442\u0430\u043b\u0443."}, status=status.HTTP_403_FORBIDDEN)
     today = timezone.localdate()
-    orders = _orders_for_user(user, days=1)
+    # Load the current month once, then calculate daily metrics in Python.
+    # This keeps the bot report consistent with the order list used elsewhere.
+    orders = _orders_for_user(user, days=max(today.day - 1, 1))
     today_orders = [order for order in orders if str(order.get("date") or "").startswith(today.isoformat())]
+    previous_orders = [
+        order for order in orders
+        if str(order.get("date") or "")[:10] < today.isoformat()
+        and str(order.get("date") or "").startswith(today.strftime("%Y-%m"))
+    ]
+    yesterday = today - timedelta(days=1)
+    yesterday_orders = [order for order in previous_orders if str(order.get("date") or "").startswith(yesterday.isoformat())]
+
+    def metrics(items):
+        return {
+            "orders_count": len(items),
+            "constructions_count": sum(order["count"] for order in items),
+            "turnover": round(sum(order["amount"] for order in items), 2),
+        }
+
+    today_metrics = metrics(today_orders)
+    previous_days = today.day - 1
+    previous_metrics = metrics(previous_orders)
+    month_to_date_metrics = metrics([
+        order for order in orders
+        if str(order.get("date") or "").startswith(today.strftime("%Y-%m"))
+    ])
+    average = {
+        key: round(previous_metrics[key] / previous_days, 2) if previous_days else 0
+        for key in previous_metrics
+    }
     return Response({"success": True, "report": {
         "date": today.isoformat(), "user_name": user.full_name or user.username,
-        "orders_count": len(today_orders), "constructions_count": sum(order["count"] for order in today_orders),
-        "turnover": round(sum(order["amount"] for order in today_orders), 2),
+        **today_metrics,
         "currency": next((order["currency"] for order in today_orders), "\u0433\u0440\u043d"),
         "statuses": dict(Counter(order["status_key"] for order in today_orders)),
+        "comparison": {
+            "previous_days": previous_days,
+            "average": average,
+            "yesterday": metrics(yesterday_orders),
+            "month_to_date": month_to_date_metrics,
+            "turnover_vs_average": round(today_metrics["turnover"] - average["turnover"], 2),
+        },
     }})
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_period_report(request):
+    """Daily order, payment and shipment dynamics for the selected short period."""
+    user = _linked_user(_request_chat_id(request))
+    if not user or not user.user_id_1C:
+        return Response({"success": False, "error": "Telegram is not linked to a dealer profile."}, status=status.HTTP_403_FORBIDDEN)
+    period = _clean(request.query_params.get("period")).lower()
+    days = 7 if period == "week" else 31
+    today = timezone.localdate()
+    date_from = today - timedelta(days=days - 1)
+    try:
+        orders = _orders_for_user(user, days=days)
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetDealerFullLedger_3 %s, %s, %s", [user.user_id_1C, date_from, today])
+            columns = [column[0] for column in cursor.description]
+            payments = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    except DatabaseError:
+        logger.exception("Telegram period report error for %s", user.username)
+        return Response({"success": False, "error": "Could not load period report."}, status=status.HTTP_502_BAD_GATEWAY)
+    data = []
+    for offset in range(days):
+        current = date_from + timedelta(days=offset)
+        date_key = current.isoformat()
+        day_orders = [item for item in orders if str(item.get("date") or "").startswith(date_key)]
+        day_payments = [item for item in payments if str(item.get("Date") or "").startswith(date_key) and float(item.get("DeltaRow") or 0) > 0]
+        data.append({
+            "date": date_key,
+            "orders": len(day_orders),
+            "order_sum": round(sum(float(item.get("amount") or 0) for item in day_orders), 2),
+            "payments": round(sum(float(item.get("DeltaRow") or 0) for item in day_payments), 2),
+            "shipped": sum(1 for item in day_orders if item.get("status_key") == "shipped"),
+        })
+    return Response({"success": True, "report": {"period": period or "month", "date_from": date_from.isoformat(), "date_to": today.isoformat(), "days": data}})
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_portal_analytics(request):
+    """Expose the dealer analytics already used by the portal to the Telegram bot."""
+    user = _linked_user(_request_chat_id(request))
+    if not user or not user.user_id_1C:
+        return Response(
+            {"success": False, "error": "Telegram is not linked to a portal user."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    try:
+        year = int(request.query_params.get("year") or timezone.localdate().year)
+        if not 2020 <= year <= 2100:
+            raise ValueError
+    except (TypeError, ValueError):
+        return Response({"success": False, "error": "Invalid year."}, status=status.HTTP_400_BAD_REQUEST)
+
+    date_from = date_type(year, 1, 1)
+    date_to = date_type(year, 12, 31)
+
+    def dict_rows(cursor):
+        columns = [column[0] for column in (cursor.description or [])]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()] if columns else []
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000",
+                [date_from, date_to, user.user_id_1C],
+            )
+            tech_details = dict_rows(cursor)
+            cursor.execute(
+                "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s",
+                [date_from, date_to, user.user_id_1C],
+            )
+            monthly = dict_rows(cursor)
+    except DatabaseError:
+        logger.exception("Telegram portal analytics database error for %s", user.username)
+        return Response(
+            {"success": False, "error": "Could not load portal analytics."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    return Response({
+        "success": True,
+        "analytics": {
+            "year": year,
+            "user_name": user.full_name or user.username,
+            "total_constructions": sum(float(item.get("TotalQuantity") or 0) for item in tech_details),
+            "monthly": monthly,
+            "tech_details": tech_details,
+        },
+    })
 
 
 @api_view(["GET"])
@@ -615,6 +745,62 @@ def telegram_bot_cash_flow(request):
             cursor.execute("EXEC dbo.GetDealerFullLedger_3 %s, %s, %s", [user.user_id_1C, date_from, date_to])
             columns = [column[0] for column in cursor.description]
             rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        # Enrich ledger rows with the same order payment facts shown on the portal.
+        # The ledger procedure does not always contain an order total or payer name.
+        orders_by_number = {
+            order["number"]: order
+            for order in _orders_for_user(user, days=366)
+            if order.get("number")
+        }
+        payer_fields = ("PayerName", "Payer", "CounterpartyName", "Counterparty", "FromName", "SourceName")
+        recipient_fields = ("RecipientName", "Recipient", "ToName", "DestinationName")
+        for row in rows:
+            direction = _clean(row.get("FlowDirection"))
+            is_income = direction == "Прихід"
+            movement_type = _clean(row.get("DealType")) or "Тип руху не вказаний"
+            channel_fields = (
+                "PaymentChannel", "PaymentMethod", "BankAccountName", "BankName",
+                "CashDeskName", "CashRegisterName", "AccountName", "Account",
+            )
+            channel = next((_clean(row.get(field)) for field in channel_fields if _clean(row.get(field))), "")
+            party = next((_clean(row.get(field)) for field in (payer_fields if is_income else recipient_fields) if _clean(row.get(field))), "")
+            contract = _clean(row.get("FinalDogovorName")) or "Без договору"
+            row["MovementType"] = movement_type
+            row["PaymentChannel"] = channel or "Не передано з 1С"
+            # Preserve the movement type and show the payment channel separately
+            # in the report's existing "Через що" field.
+            row["DealType"] = f"{movement_type} · канал: {row['PaymentChannel']}"
+            row["PaymentSource"] = party or (channel or "Контрагент")
+            row["PaymentDestination"] = contract if is_income else (party or "Отримувач не вказаний")
+            row["FinalDogovorName"] = (
+                f"{contract} · {'від' if is_income else 'до'}: "
+                f"{row['PaymentSource'] if is_income else row['PaymentDestination']}"
+            )
+
+            order_number = _clean(row.get("OrderNumber"))
+            order = orders_by_number.get(order_number)
+            if not order:
+                continue
+            amount = float(row.get("OrderAmount") or order.get("amount") or 0)
+            balance = float(row.get("OrderBalance") or max(amount - float(order.get("paid") or 0), 0))
+            paid = max(amount - balance, 0)
+            paid_percent = round(100 * paid / amount, 1) if amount else 0
+            order_date = _telegram_date_parameter(order.get("date"), None)
+            movement_date = _telegram_date_parameter(row.get("Date"), None)
+            order_date_label = order_date.strftime("%d.%m.%Y") if order_date else "дата не вказана"
+            labels = [
+                f"дата замовлення {order_date_label}",
+                f"сума {amount:,.2f}".replace(",", " ").replace(".", ","),
+                f"оплачено {paid:,.2f}".replace(",", " ").replace(".", ","),
+                f"залишок {balance:,.2f}".replace(",", " ").replace(".", ","),
+                f"сплачено {paid_percent:g}%",
+            ]
+            if movement_date and order_date and movement_date < order_date:
+                labels.append("аванс до замовлення")
+            row["OrderNumber"] = f"{order_number} · {' · '.join(labels)}"
+            row["OrderPaymentPercent"] = paid_percent
+            row["IsAdvancePayment"] = bool(movement_date and order_date and movement_date < order_date)
         def serialise(value):
             if isinstance(value, (bytes, bytearray, memoryview)): return bytes(value).hex().upper()
             if getattr(value, "isoformat", None): return value.isoformat()

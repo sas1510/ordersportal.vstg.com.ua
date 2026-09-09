@@ -1,0 +1,76 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Gill Sans, sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radial-gradient {
+    background: radial-gradient(circle, #525252 15%, #2d2826);
+}
+
+.radial-gradient-light {
+    background: radial-gradient(circle, #ffffff 15%, #f3f2ec);
+}
+
+.login-wrapper {
+
+    margin: 10px;
+    border-radius: 5px;
+    border: 1px dashed #959595;
+    box-shadow: 5px 5px 5px #00000050;
+}
+.login-header {
+    background-color: rgba(45, 40, 38, 0.85);
+    padding: 10px 20px;
+}
+.login-form-wrapper {
+    padding: 20px;
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+}
+
+input {
+    margin: 10px 0;
+    padding: 10px;
+    border: unset;
+    border: 1px dashed #959595;
+    border-bottom: 1px solid #959595;
+    outline: none;
+    border-radius: 5px;
+    background-color : #fff;
+}
+
+::placeholder {
+    color: #959595;
+}
+
+button {
+    margin: 10px 0;
+    padding: 10px;
+    border: unset;
+    cursor: pointer;
+    background-color: #6b98bf;
+    color: #fff;
+    font-weight: bold;
+    transition: all ease-in-out 0.2s;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #d4d947;
+    transition: all ease-in-out 0.2s;
+
+}

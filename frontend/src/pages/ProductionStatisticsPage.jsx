@@ -149,12 +149,6 @@ const STATUS_LABELS = {
   "У виробництві": "У виробництві",
 };
 
-const currencyFormatter = new Intl.NumberFormat("uk-UA", {
-  style: "currency",
-  currency: "UAH",
-  maximumFractionDigits: 0,
-});
-
 const numberFormatter = new Intl.NumberFormat("uk-UA", {
   maximumFractionDigits: 0,
 });
@@ -171,8 +165,13 @@ const daysFormatter = new Intl.NumberFormat("uk-UA", {
 
 const dateFormatter = new Intl.DateTimeFormat("uk-UA");
 
-function formatCurrency(value) {
-  return currencyFormatter.format(Number(value || 0));
+function normalizeAnalyticsCurrency(value) {
+  const currency = String(value || "грн").trim();
+  return currency || "грн";
+}
+
+function formatCurrency(value, currency = "грн") {
+  return `${numberFormatter.format(Number(value || 0))} ${normalizeAnalyticsCurrency(currency)}`;
 }
 
 function formatNumber(value) {
@@ -202,6 +201,13 @@ function formatDate(value, locale = "uk-UA") {
   }
 
   return new Intl.DateTimeFormat(locale).format(parsed);
+}
+
+function formatDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function normalizeRegionName(value) {
@@ -267,8 +273,8 @@ function hexToRgba(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function formatCurrencyPlain(value) {
-  return `${formatNumber(Math.round(Number(value || 0)))} грн`;
+function formatCurrencyPlain(value, currency = "грн") {
+  return `${formatNumber(Math.round(Number(value || 0)))} ${normalizeAnalyticsCurrency(currency)}`;
 }
 
 function formatCompactThousands(value) {
@@ -291,9 +297,9 @@ function calculateComparisonPercent(currentValue, leaderValue) {
   return Math.max(0, Math.min((current / leader) * 100, 100));
 }
 
-function formatAnalyticsMetricValue(metricKey, value) {
+function formatAnalyticsMetricValue(metricKey, value, currency) {
   if (metricKey === "total_sum" || metricKey === "avg_check") {
-    return formatCurrency(value);
+    return formatCurrency(value, currency);
   }
 
   return formatNumber(value);
@@ -564,8 +570,8 @@ export default function ProductionStatisticsPage() {
 
   const { dealerGuid, setDealerGuid, isAdmin, isLoading: dealerContextLoading } =
     useDealerContext();
-  const initialFrom = queryParams.get("date_from") || monthStart.toISOString().slice(0, 10);
-  const initialTo = queryParams.get("date_to") || monthEnd.toISOString().slice(0, 10);
+  const initialFrom = queryParams.get("date_from") || formatDateInput(monthStart);
+  const initialTo = queryParams.get("date_to") || formatDateInput(monthEnd);
   const requestedDealerGuid = queryParams.get("contractor_guid") || "";
   const pageRootRef = useRef(null);
   const orderDetailsRef = useRef(null);
@@ -587,6 +593,7 @@ export default function ProductionStatisticsPage() {
     useState(null);
   const [activeAnalyticsSection, setActiveAnalyticsSection] = useState("systems");
   const [activeAnalyticsMetric, setActiveAnalyticsMetric] = useState("total_constructions");
+  const [selectedAnalyticsCurrency, setSelectedAnalyticsCurrency] = useState("грн");
   const [returnScrollPosition, setReturnScrollPosition] = useState(null);
   const [timelinessChartWidth, setTimelinessChartWidth] = useState(0);
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
@@ -734,6 +741,28 @@ export default function ProductionStatisticsPage() {
   const completedTopOrdersCount = Number(meta.in_time_count || 0) + Number(meta.delayed_count || 0);
   const topInTimePercent = completedTopOrdersCount > 0 ? (Number(meta.in_time_count || 0) / completedTopOrdersCount) * 100 : 0;
   const topDelayedPercent = completedTopOrdersCount > 0 ? (Number(meta.delayed_count || 0) / completedTopOrdersCount) * 100 : 0;
+  const averageCheckCurrencyRows = useMemo(() => {
+    const rows = Array.isArray(meta.currency_totals) && meta.currency_totals.length
+      ? meta.currency_totals
+      : [{ currency: "грн", avg_check: meta.avg_check, total_sum: meta.total_sum, orders_count: meta.orders_count }];
+
+    return rows
+      .map((item) => {
+        const ordersCount = Number(item.orders_count || 0);
+        const avgCheck = item.avg_check !== undefined && item.avg_check !== null
+          ? Number(item.avg_check || 0)
+          : ordersCount
+            ? Number(item.total_sum || 0) / ordersCount
+            : 0;
+
+        return {
+          currency: normalizeAnalyticsCurrency(item.currency),
+          avg_check: avgCheck,
+          orders_count: ordersCount,
+        };
+      })
+      .filter((item) => item.avg_check > 0 || item.orders_count > 0);
+  }, [meta.avg_check, meta.currency_totals, meta.orders_count, meta.total_sum]);
 
   const profileSystems = unifiedData?.profile_systems || [];
   const furniture = unifiedData?.furniture || [];
@@ -741,6 +770,26 @@ export default function ProductionStatisticsPage() {
   const volumeDynamics = unifiedData?.volume_dynamics || [];
   const efficiencyDynamics = unifiedData?.efficiency_dynamics || [];
   const constructionPortfolio = unifiedData?.construction_portfolio || [];
+
+  const analyticsCurrencies = useMemo(() => {
+    const values = [
+      ...(meta.currency_totals || []).map((item) => item.currency),
+      ...orders.map((item) => item.currency),
+      ...profileSystems.map((item) => item.currency),
+      ...furniture.map((item) => item.currency),
+      ...profileColors.map((item) => item.currency),
+      ...(comparisonData?.selected_dealers || []).map((item) => item.currency),
+    ].filter(Boolean).map(normalizeAnalyticsCurrency);
+    return Array.from(new Set(values.length ? values : ["грн"]));
+  }, [comparisonData, furniture, meta.currency_totals, orders, profileColors, profileSystems]);
+
+  useEffect(() => {
+    if (!analyticsCurrencies.includes(selectedAnalyticsCurrency)) {
+      setSelectedAnalyticsCurrency(analyticsCurrencies[0] || "грн");
+    }
+  }, [analyticsCurrencies, selectedAnalyticsCurrency]);
+
+  const isMoneyAnalyticsMetric = activeAnalyticsMetric === "total_sum" || activeAnalyticsMetric === "avg_check";
 
   const abcTabs = useMemo(() => {
     const present = Array.from(new Set(summary.map((item) => item.abc).filter(Boolean)));
@@ -942,6 +991,7 @@ export default function ProductionStatisticsPage() {
         orders_count: Number(item.orders_count || 0),
         total_sum: Number(item.total_sum || 0),
         avg_check: Number(item.avg_check || 0),
+        currency: normalizeAnalyticsCurrency(item.currency),
       });
     });
 
@@ -978,6 +1028,7 @@ export default function ProductionStatisticsPage() {
           orders_count: Number(item.orders_count || 0),
           total_sum: Number(item.total_sum || 0),
           avg_check: Number(item.avg_check || 0),
+          currency: normalizeAnalyticsCurrency(item.currency),
         })),
         metrics: [
           { key: "total_constructions", label: t("production_statistics.constructions"), icon: "windows", accent: "#B4D947" },
@@ -999,6 +1050,7 @@ export default function ProductionStatisticsPage() {
           total_constructions: Number(item.total_constructions || 0),
           orders_count: Number(item.orders_count || 0),
           total_sum: Number(item.total_sum || 0),
+          currency: normalizeAnalyticsCurrency(item.currency),
         })),
         metrics: [
           { key: "total_constructions", label: t("production_statistics.constructions"), icon: "windows", accent: "#B4D947" },
@@ -1018,6 +1070,7 @@ export default function ProductionStatisticsPage() {
           total_constructions: Number(item.total_constructions || 0),
           orders_count: Number(item.orders_count || 0),
           total_sum: Number(item.total_sum || 0),
+          currency: normalizeAnalyticsCurrency(item.currency),
         })),
         metrics: [
           { key: "total_constructions", label: t("production_statistics.constructions"), icon: "windows", accent: "#B4D947" },
@@ -1064,40 +1117,49 @@ export default function ProductionStatisticsPage() {
       return [];
     }
 
-    return [...activeAnalyticsConfig.items]
+    const items = isMoneyAnalyticsMetric
+      ? activeAnalyticsConfig.items.filter((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
+      : activeAnalyticsConfig.items;
+
+    return [...items]
       .sort(
         (left, right) =>
           Number(right[activeAnalyticsMetricConfig.key] || 0) -
           Number(left[activeAnalyticsMetricConfig.key] || 0),
       )
       .slice(0, 17);
-  }, [activeAnalyticsConfig, activeAnalyticsMetricConfig]);
+  }, [activeAnalyticsConfig, activeAnalyticsMetricConfig, isMoneyAnalyticsMetric, selectedAnalyticsCurrency]);
 
   const analyticsGroupedDisplayItems = useMemo(() => {
     if (activeAnalyticsSection !== "systems" || !activeAnalyticsConfig?.groupedItems?.length) {
       return [];
     }
 
-    return activeAnalyticsConfig.groupedItems.map((group) => ({
+    return activeAnalyticsConfig.groupedItems.map((group) => {
+      const items = isMoneyAnalyticsMetric
+        ? group.items.filter((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
+        : group.items;
+      const ordersCount = items.reduce(
+        (sum, item) => sum + Number(item.orders_count || 0),
+        0,
+      );
+      const totalSum = items.reduce(
+        (sum, item) => sum + Number(item.total_sum || 0),
+        0,
+      );
+      return {
       ...group,
-      total_constructions: group.items.reduce(
+      total_constructions: items.reduce(
         (sum, item) => sum + Number(item.total_constructions || 0),
         0,
       ),
-      orders_count: group.items.reduce(
-        (sum, item) => sum + Number(item.orders_count || 0),
-        0,
-      ),
-      total_sum: group.items.reduce(
-        (sum, item) => sum + Number(item.total_sum || 0),
-        0,
-      ),
-      avg_check: group.items.length
-        ? group.items.reduce((sum, item) => sum + Number(item.avg_check || 0), 0) /
-          group.items.length
-        : 0,
-    }));
-  }, [activeAnalyticsConfig, activeAnalyticsMetric, activeAnalyticsSection]);
+      orders_count: ordersCount,
+      total_sum: totalSum,
+      avg_check: ordersCount ? totalSum / ordersCount : 0,
+      currency: selectedAnalyticsCurrency,
+    };
+    }).filter((group) => !isMoneyAnalyticsMetric || Number(group[activeAnalyticsMetric] || 0) > 0);
+  }, [activeAnalyticsConfig, activeAnalyticsMetric, activeAnalyticsSection, isMoneyAnalyticsMetric, selectedAnalyticsCurrency]);
 
   const analyticsMaxValue = useMemo(() => {
     const sourceItems =
@@ -1216,9 +1278,24 @@ export default function ProductionStatisticsPage() {
     [efficiencyDynamics],
   );
 
-  const comparisonSelectedDealer = comparisonData?.selected_dealer || null;
-  const comparisonTotals = comparisonData?.totals || {};
-  const comparisonInsights = comparisonData?.insights || {};
+  const comparisonSelectedDealer = useMemo(() => {
+    const rows = comparisonData?.selected_dealers || [];
+    return rows.find((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
+      || comparisonData?.selected_dealer
+      || null;
+  }, [comparisonData, selectedAnalyticsCurrency]);
+  const comparisonTotals = useMemo(() => {
+    const rows = comparisonData?.totals_by_currency || [];
+    return rows.find((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
+      || comparisonData?.totals
+      || {};
+  }, [comparisonData, selectedAnalyticsCurrency]);
+  const comparisonInsights = useMemo(() => {
+    const rows = comparisonData?.insights_by_currency || [];
+    return rows.find((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
+      || comparisonData?.insights
+      || {};
+  }, [comparisonData, selectedAnalyticsCurrency]);
   const comparisonLeaderboard = useMemo(() => {
     return Array.isArray(comparisonData?.leaderboard)
       ? comparisonData.leaderboard
@@ -1231,10 +1308,13 @@ export default function ProductionStatisticsPage() {
     }
 
     const selectedRegion = normalizeRegionName(comparisonSelectedDealer.region_name || "");
-    const regionalLeaderboard = comparisonLeaderboard.filter((item) => {
+    const currencyLeaderboard = comparisonLeaderboard.filter((item) => {
+      return normalizeAnalyticsCurrency(item.currency) === normalizeAnalyticsCurrency(comparisonSelectedDealer.currency);
+    });
+    const regionalLeaderboard = currencyLeaderboard.filter((item) => {
       return normalizeRegionName(item.region_name || "") === selectedRegion;
     });
-    const source = regionalLeaderboard.length ? regionalLeaderboard : comparisonLeaderboard;
+    const source = regionalLeaderboard.length ? regionalLeaderboard : currencyLeaderboard;
 
     return [...source].sort((left, right) => {
       const leftRegionalRank = Number(left.region_turnover_rank || Number.MAX_SAFE_INTEGER);
@@ -1269,7 +1349,7 @@ export default function ProductionStatisticsPage() {
           comparisonSelectedDealer.total_turnover,
           comparisonLeader?.total_turnover,
         ),
-        valueLabel: formatCurrencyPlain(comparisonSelectedDealer.total_turnover),
+        valueLabel: formatCurrencyPlain(comparisonSelectedDealer.total_turnover, comparisonSelectedDealer.currency),
       },
       {
         key: "orders",
@@ -1302,7 +1382,7 @@ export default function ProductionStatisticsPage() {
           comparisonSelectedDealer.avg_check,
           comparisonLeader?.avg_check,
         ),
-        valueLabel: formatCurrencyPlain(comparisonSelectedDealer.avg_check),
+        valueLabel: formatCurrencyPlain(comparisonSelectedDealer.avg_check, comparisonSelectedDealer.currency),
       },
     ];
   }, [comparisonLeader, comparisonSelectedDealer, t]);
@@ -1484,9 +1564,13 @@ export default function ProductionStatisticsPage() {
         <section className="production-design__kpi">
           <article className="production-design__average-card">
             <div className="production-design__eyebrow">{t("production_statistics.average_check")}</div>
-            <strong className="production-design__average-value">
+            <strong className="production-design__average-value production-design__average-value--currencies">
               <AppIcon name="money" className="w-[30px] h-[27px] color-[#B4D947] mt-1.5 mr-2" />
-              {formatCurrency(meta.avg_check)}
+              <span>
+                {averageCheckCurrencyRows.map((item) => (
+                  <b key={item.currency}>{formatCurrency(item.avg_check, item.currency)}</b>
+                ))}
+              </span>
             </strong>
             <div className="production-design__period"><AppIcon name="CalendarIcon" className="w-[30px] h-[27px]" /><span>{t("production_statistics.for_period")}<b>{formatDate(searchParams.from, i18n.language)} - {formatDate(searchParams.to, i18n.language)}</b></span></div>
             <div className="production-design__counts">
@@ -1517,7 +1601,7 @@ export default function ProductionStatisticsPage() {
           </article>
           <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} onSelectStatus={handleRingStatusClick} />
           <div className="production-design__summary-stack">
-            <article><div className="production-design__eyebrow">{t("production_statistics.turnover")}</div><strong><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" />{formatCurrency(meta.total_sum)}</strong><span>{t("production_statistics.turnover_hint")}</span></article>
+            <article><div className="production-design__eyebrow">{t("production_statistics.turnover")}</div><strong className="production-design__currency-total"><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" /><span>{(meta.currency_totals?.length ? meta.currency_totals : [{ currency: "грн", total_sum: meta.total_sum }]).map((item) => <b key={item.currency}>{formatCurrency(item.total_sum, item.currency)}</b>)}</span></strong><span>{t("production_statistics.turnover_hint")}</span></article>
             <article><div className="production-design__eyebrow">{t("production_statistics.average_delay")}</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>{t("production_statistics.max_delay", { days: formatDays(meta.max_delay_days) })}</span></article>
           </div>
         </section>
@@ -1662,7 +1746,7 @@ export default function ProductionStatisticsPage() {
                 <p>{t("production_statistics.average_vs_leader")}</p>
                 <div className="production-design__dealer-profit-card">
                   <span>{t("production_statistics.expected_profit")}</span>
-                  <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_region_20 || 0)}</strong>
+                  <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_region_20 || 0, comparisonSelectedDealer.currency)}</strong>
                  <small>{t("production_statistics.profit_hint")}</small>
                 </div>
               </aside>
@@ -1726,7 +1810,7 @@ export default function ProductionStatisticsPage() {
                             }}
                           />
                         </div>
-                        <span>{formatAnalyticsMetricValue(activeAnalyticsMetric, metricValue)}</span>
+                        <span>{formatAnalyticsMetricValue(activeAnalyticsMetric, metricValue, group.currency)}</span>
                       </article>
                     );
                   })}
@@ -1736,9 +1820,9 @@ export default function ProductionStatisticsPage() {
                 {analyticsScaleValues.map((value, index) => (
                   <span key={`${value}-${index}`}>
                     {activeAnalyticsMetric === "avg_check"
-                      ? formatCurrency(value)
+                      ? formatCurrency(value, selectedAnalyticsCurrency)
                       : activeAnalyticsMetric === "total_sum"
-                        ? formatCurrency(value)
+                        ? formatCurrency(value, selectedAnalyticsCurrency)
                         : activeAnalyticsMetric === "orders_count"
                           ? `${formatNumber(value)} ${t("production_statistics.units_orders")}`
                           : `${formatNumber(value)} ${t("production_statistics.units_pieces")}`}
@@ -1761,7 +1845,7 @@ export default function ProductionStatisticsPage() {
                           }}
                         />
                       </div>
-                      <span>{formatAnalyticsMetricValue(activeAnalyticsMetric, metricValue)}</span>
+                      <span>{formatAnalyticsMetricValue(activeAnalyticsMetric, metricValue, item.currency)}</span>
                     </article>
                   );
                 })}
@@ -1770,7 +1854,7 @@ export default function ProductionStatisticsPage() {
               <div className="production-design__analytics-scale">
                 {analyticsScaleValues.map((value, index) => (
                   <span key={`${value}-${index}`}>
-                    {formatNumber(value)}
+                    {isMoneyAnalyticsMetric ? formatCurrency(value, selectedAnalyticsCurrency) : formatNumber(value)}
                   </span>
                 ))}
               </div>
@@ -1779,7 +1863,7 @@ export default function ProductionStatisticsPage() {
                 {activeAnalyticsMetric === "avg_check"
                   ? t("production_statistics.average_check")
                   : activeAnalyticsMetric === "total_sum"
-                    ? `${t("production_statistics.turnover")}, грн`
+                    ? `${t("production_statistics.turnover")}, ${selectedAnalyticsCurrency}`
                     : activeAnalyticsMetric === "orders_count"
                       ? `${t("production_statistics.orders")}, ${t("production_statistics.units_pieces")}`
                       : `${t("production_statistics.constructions")}, ${t("production_statistics.units_pieces")}`}
@@ -1801,6 +1885,14 @@ export default function ProductionStatisticsPage() {
                 {metric.label}
               </button>
             ))}
+            {isMoneyAnalyticsMetric && analyticsCurrencies.length > 1 ? (
+              <label className="production-design__analytics-currency">
+                Валюта
+                <select value={selectedAnalyticsCurrency} onChange={(event) => setSelectedAnalyticsCurrency(event.target.value)}>
+                  {analyticsCurrencies.map((currency) => <option key={currency} value={currency}>{currency}</option>)}
+                </select>
+              </label>
+            ) : null}
           </div>
         </section>
 
@@ -1813,7 +1905,7 @@ export default function ProductionStatisticsPage() {
             <div>{abcTabs.map((tab) => <button key={tab} type="button" className={selectedAbc === tab ? "is-active" : ""} onClick={() => setSelectedAbc(tab)}>{tab === "all" ? t("production_statistics.all_abc") : t("production_statistics.class", { value: tab })}</button>)}</div>
             <div>{Object.entries(STATUS_LABELS).map(([key, label]) => <button key={key} type="button" className={selectedStatus === key ? "is-active" : ""} onClick={() => setSelectedStatus(key)}>{getProductionStatusLabel(label)}</button>)}</div>
           </div>
-          <table><thead><tr><th>ABC</th><th>{t("production_statistics.orders")}</th><th>{t("production_statistics.date")}</th><th>{t("production_statistics.plan")}</th><th>{t("production_statistics.fact")}</th><th>{t("production_statistics.status")}</th><th>{t("production_statistics.delay")}</th><th>{t("production_statistics.sum")}</th></tr></thead><tbody>{filteredOrders.length ? filteredOrders.map((order) => <tr key={order.order_id || order.order_number}><td><b className="production-design__abc-pill">{order.abc}</b></td><td><strong>{order.order_number}</strong><small>{order.client_order_number || ""}</small></td><td>{formatDate(order.order_date, i18n.language)}</td><td>{formatDate(order.planned_production_date, i18n.language)}</td><td>{formatDate(order.ready_production_max, i18n.language)}</td><td><div className="production-design__status-stack"><span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{getProductionStatusLabel(order.production_status)}</span>{order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">{t("production_statistics.made_in", { days: formatDays(order.production_days) })}</small> : null}</div></td><td>{order.delay_bucket || "—"}</td><td>{formatCurrency(order.order_sum)}</td></tr>) : <tr><td colSpan="8" className="production-design__orders-empty">{t("production_statistics.orders_empty")}</td></tr>}</tbody></table>
+          <table><thead><tr><th>ABC</th><th>{t("production_statistics.orders")}</th><th>{t("production_statistics.date")}</th><th>{t("production_statistics.plan")}</th><th>{t("production_statistics.fact")}</th><th>{t("production_statistics.status")}</th><th>{t("production_statistics.delay")}</th><th>{t("production_statistics.sum")}</th></tr></thead><tbody>{filteredOrders.length ? filteredOrders.map((order) => <tr key={order.order_id || order.order_number}><td><b className="production-design__abc-pill">{order.abc}</b></td><td><strong>{order.order_number}</strong><small>{order.client_order_number || ""}</small></td><td>{formatDate(order.order_date, i18n.language)}</td><td>{formatDate(order.planned_production_date, i18n.language)}</td><td>{formatDate(order.ready_production_max, i18n.language)}</td><td><div className="production-design__status-stack"><span className={`production-design__status production-design__status--${order.production_status === "Вчасно" ? "good" : order.production_status === "Запізнення" ? "late" : "idle"}`}>{getProductionStatusLabel(order.production_status)}</span>{order.production_status === "Вчасно" && order.production_days !== null ? <small className="production-design__status-caption">{t("production_statistics.made_in", { days: formatDays(order.production_days) })}</small> : null}</div></td><td>{order.delay_bucket || "—"}</td><td>{formatCurrency(order.order_sum, order.currency)}</td></tr>) : <tr><td colSpan="8" className="production-design__orders-empty">{t("production_statistics.orders_empty")}</td></tr>}</tbody></table>
           <div className="production-design__orders-mobile-list">
             {filteredOrders.length ? filteredOrders.map((order) => <article key={`mobile-${order.order_id || order.order_number}`} className="production-design__order-card">
               <div className="production-design__order-card-head">
@@ -1832,7 +1924,7 @@ export default function ProductionStatisticsPage() {
                 <div><span>{t("production_statistics.plan")}</span><strong>{formatDate(order.planned_production_date, i18n.language)}</strong></div>
                 <div><span>{t("production_statistics.fact")}</span><strong>{formatDate(order.ready_production_max, i18n.language)}</strong></div>
                 <div><span>{t("production_statistics.delay")}</span><strong>{order.delay_bucket || "—"}</strong></div>
-                <div className="is-wide"><span>{t("production_statistics.sum")}</span><strong>{formatCurrency(order.order_sum)}</strong></div>
+                <div className="is-wide"><span>{t("production_statistics.sum")}</span><strong>{formatCurrency(order.order_sum, order.currency)}</strong></div>
               </div>
             </article>) : <div className="production-design__orders-empty production-design__orders-empty--mobile">{t("production_statistics.orders_empty")}</div>}
           </div>

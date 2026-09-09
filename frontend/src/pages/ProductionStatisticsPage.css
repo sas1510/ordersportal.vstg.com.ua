@@ -451,6 +451,15 @@
   color: #44403e;
 }
 
+.production-design__analytics-currency { display: inline-flex; align-items: center; gap: 10px; margin-left: auto; color: #aeaeae; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+.production-design__analytics-currency select { min-width: 110px; min-height: 36px; padding: 6px 34px 6px 12px; border: 1px solid rgba(174,174,174,.45); border-radius: 4px; background: #44403e; color: #fff; font-weight: 700; }
+.production-design__currency-total { align-items: flex-start !important; }
+.production-design__currency-total > span { display: flex; flex-direction: column; gap: 2px; }
+.production-design__currency-total b { color: inherit; font: inherit; line-height: 1.1; }
+.production-design__average-value--currencies { align-items: flex-start; text-align: left; }
+.production-design__average-value--currencies > span { display: flex; flex-direction: column; gap: 3px; }
+.production-design__average-value--currencies b { color: inherit; font: inherit; line-height: 1.12; }
+
 .production-design__analytics-chart {
   position: relative;
   margin-top: 26px;

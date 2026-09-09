@@ -1821,6 +1821,119 @@ def get_dealer_portal_users(request):
         )
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def registered_dealers_report(request):
+    """Registered portal dealers, restricted to the requester's allowed portfolio."""
+    role = str(getattr(request.user, "role", "") or "").strip().lower()
+    if role not in {"admin", "director", "manager", "region_manager"}:
+        return Response({"detail": "Недостатньо прав для перегляду звіту."}, status=403)
+
+    def active_manager_options():
+        users = CustomUser.objects.filter(
+            role__in=("manager", "region_manager"),
+            is_active=True,
+        ).values("id", "full_name", "username", "role", "user_id_1C").order_by("full_name", "username")
+        result = []
+        for user in users:
+            raw_guid = user.pop("user_id_1C", None)
+            user["guid"] = (
+                bin_to_guid_1c(bytes(raw_guid)).lower()
+                if isinstance(raw_guid, (bytes, bytearray, memoryview))
+                else None
+            )
+            result.append(user)
+        return result
+
+    if request.GET.get("options_only") in {"1", "true"}:
+        if role not in {"admin", "director"}:
+            return Response({"detail": "Перегляд списку менеджерів доступний лише адміністратору."}, status=403)
+        return Response({"manager_options": active_manager_options()})
+
+    scope_user = request.user
+    scope_user_id = request.GET.get("scope_user_id")
+    if scope_user_id:
+        if role not in {"admin", "director"}:
+            return Response({"detail": "Змінювати область звіту може лише адміністратор."}, status=403)
+        try:
+            scope_user = CustomUser.objects.get(
+                id=int(scope_user_id),
+                role__in=("manager", "region_manager"),
+            )
+        except (ValueError, CustomUser.DoesNotExist):
+            return Response({"detail": "Менеджера не знайдено."}, status=404)
+
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s", [scope_user.id])
+        columns = [column[0] for column in cursor.description]
+        allowed_rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    allowed_dealers = {}
+    for row in allowed_rows:
+        raw_guid = row.get("ContractorID")
+        if not raw_guid:
+            continue
+        contractor_guid = bin_to_guid_1c(bytes(raw_guid)) if isinstance(raw_guid, (bytes, bytearray, memoryview)) else str(raw_guid)
+        allowed_dealers[contractor_guid.lower()] = {
+            "contractor_guid": contractor_guid,
+            "dealer_name": row.get("ContractorName") or row.get("DealerName") or "—",
+            "main_manager_name": row.get("MainManagerName") or row.get("ManagerName") or "—",
+        }
+
+    accounts_by_dealer = {}
+    portal_accounts = CustomUser.objects.filter(
+        role__in=("customer", "dealer"),
+        user_id_1C__isnull=False,
+    ).values("username", "full_name", "user_id_1C", "is_active", "date_joined", "last_login")
+    for account in portal_accounts:
+        raw_guid = account["user_id_1C"]
+        if not raw_guid:
+            continue
+        contractor_guid = bin_to_guid_1c(bytes(raw_guid)).lower()
+        if contractor_guid not in allowed_dealers:
+            continue
+        existing = accounts_by_dealer.get(contractor_guid)
+        if not existing or (
+            account["last_login"] and (
+                not existing["last_login"] or account["last_login"] > existing["last_login"]
+            )
+        ):
+            accounts_by_dealer[contractor_guid] = account
+
+    activity_border = timezone.now() - timedelta(days=30)
+    dealers = []
+    for contractor_guid, dealer in allowed_dealers.items():
+        account = accounts_by_dealer.get(contractor_guid)
+        if not account:
+            continue
+        last_login = account["last_login"]
+        dealers.append({
+            **dealer,
+            "username": account["username"],
+            "full_name": account["full_name"] or account["username"],
+            "registered_at": account["date_joined"],
+            "last_login": last_login,
+            "account_active": account["is_active"],
+            "active_last_30_days": bool(account["is_active"] and last_login and last_login >= activity_border),
+        })
+
+    dealers.sort(key=lambda item: (not item["active_last_30_days"], item["dealer_name"]))
+    manager_options = []
+    if role in {"admin", "director"}:
+        manager_options = active_manager_options()
+
+    return Response({
+        "scope": {"user_id": scope_user.id, "name": scope_user.full_name or scope_user.username, "role": scope_user.role},
+        "summary": {
+            "attached_count": len(allowed_dealers),
+            "registered_count": len(dealers),
+            "active_last_30_days_count": sum(item["active_last_30_days"] for item in dealers),
+            "inactive_count": sum(not item["active_last_30_days"] for item in dealers),
+        },
+        "dealers": dealers,
+        "manager_options": manager_options,
+    })
+
 
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes

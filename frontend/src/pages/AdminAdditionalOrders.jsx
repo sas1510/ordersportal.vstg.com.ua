@@ -14,6 +14,20 @@ import { useDealerContext } from "../hooks/useDealerContext";
 
 const ALL_DEALERS_VALUE = "__ALL__"; 
 const initialLimit = 100;
+const normalizeAdditionalOrderStatus = (value) => {
+  const status = String(value || "").trim().toLocaleLowerCase("uk-UA");
+  if (!status) return "new";
+  if (status.includes("нов")) return "new";
+  if (status.includes("робот") || status.includes("оброб")) return "processing";
+  if (status.includes("оплат")) return "waiting_payment";
+  if (status.includes("очіку") && status.includes("підтвер")) return "waiting_confirmation";
+  if (status.includes("підтвер")) return "confirmed";
+  if (status.includes("виробниц")) return "production";
+  if (status.includes("готов")) return "ready";
+  if (status.includes("відвантаж") || status.includes("достав")) return "shipped";
+  if (status.includes("відмов") || status.includes("отказ")) return "rejected";
+  return status;
+};
 
 const AdminAdditionalOrders = () => {
     const { register, cancelAll } = useCancelAllRequests();
@@ -25,7 +39,7 @@ const AdminAdditionalOrders = () => {
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState({ status: "Р’СЃС–", month: 0, name: "" });
+  const [filter, setFilter] = useState({ status: "all", month: 0, name: "" });
   const [selectedYear, setSelectedYear] = useState(
     String(new Date().getFullYear()),
   );
@@ -107,11 +121,13 @@ const AdminAdditionalOrders = () => {
     (statusFilter, monthFilter, nameFilter, data = additionalOrdersData) => {
       let filtered = [...data];
 
-      if (statusFilter && statusFilter !== "Р’СЃС–") {
+      if (statusFilter && statusFilter !== "all") {
         filtered = filtered.filter((additionalOrder) => {
           const orders = additionalOrder.orders || [];
-          if (orders.length === 0) return statusFilter === "РќРѕРІРёР№";
-          return orders.some((order) => order.status === statusFilter);
+          if (orders.length === 0) return statusFilter === "new";
+          return orders.some(
+            (order) => normalizeAdditionalOrderStatus(order.status) === statusFilter,
+          );
         });
       }
 
@@ -158,6 +174,16 @@ const AdminAdditionalOrders = () => {
     return isAdmin && dealerGuid === ALL_DEALERS_VALUE;
   }, [isAdmin, dealerGuid]);
 
+  const buildRequestParams = useCallback((forceMonth) => {
+    const params = { year: selectedYear };
+    const month = forceMonth || filter.month;
+
+    if (month) {
+      params.month = month;
+    }
+    return params;
+  }, [filter.month, selectedYear]);
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -167,7 +193,7 @@ const AdminAdditionalOrders = () => {
       setLoading(true);
       try {
         let endpoint = "/additional_orders/get_additional_orders_info/";
-        const params = { year: selectedYear };
+        const params = buildRequestParams();
 
         if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
           endpoint = "/additional_orders/get_additional_orders_info_all/";
@@ -234,6 +260,7 @@ const AdminAdditionalOrders = () => {
     dealerGuid,
     isAdmin,
     shouldRefetchOnMonthChange ? filter.month : null,
+    buildRequestParams,
   ]);
 
 
@@ -246,7 +273,10 @@ const AdminAdditionalOrders = () => {
     try {
       const response = await axiosInstance.get(
         "/additional_orders/get_additional_orders_info_all/",
-        { params: { year: selectedYear }, signal: controller.signal },
+        {
+          params: buildRequestParams(filter.month || currentMonth),
+          signal: controller.signal,
+        },
       );
 
       if (response.data?.status === "success") {
@@ -277,7 +307,7 @@ const AdminAdditionalOrders = () => {
     } finally {
       setReloading(false);
     }
-  }, [cancelAll, register, selectedYear, filter, getFilteredItems]);
+  }, [buildRequestParams, cancelAll, currentMonth, filter, getFilteredItems, register]);
 
 
   const handleFilterClick = (statusKey) => {
@@ -378,25 +408,25 @@ const AdminAdditionalOrders = () => {
 
   const statusSummary = useMemo(() => {
     const summary = {
-      "Р’СЃС–": 0,
-      "РќРѕРІРёР№": 0,
-      "Р’ СЂРѕР±РѕС‚С–": 0,
-      "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ": 0,
-      "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№": 0,
-      "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ": 0,
-      "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–": 0,
-      "Р“РѕС‚РѕРІРёР№": 0,
-      "Р”РѕСЃС‚Р°РІР»РµРЅРѕ": 0,
-      "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ": 0,
-      "Р’С–РґРјРѕРІР°": 0,
+      all: 0,
+      new: 0,
+      processing: 0,
+      waiting_payment: 0,
+      waiting_confirmation: 0,
+      confirmed: 0,
+      production: 0,
+      ready: 0,
+      shipped: 0,
+      rejected: 0,
     };
 
     additionalOrdersData.forEach((item) => {
-      summary["Р’СЃС–"]++;
+      summary.all++;
       const orders = item.orders || [];
-      if (orders.length === 0) summary["РќРѕРІРёР№"]++;
+      if (orders.length === 0) summary.new++;
       orders.forEach((o) => {
-        if (o.status && Object.hasOwn(summary, o.status)) summary[o.status]++;
+        const statusKey = normalizeAdditionalOrderStatus(o.status);
+        if (Object.hasOwn(summary, statusKey)) summary[statusKey]++;
       });
     });
 
@@ -685,16 +715,16 @@ const AdminAdditionalOrders = () => {
              <div className="w-full h-full min-h-full bg-[#6B98BF] py-[26px] rounded-tl-[5px] rounded-tr-[20px] rounded-bl-[5px] rounded-br-[20px] overflow-y-auto overflow-x-hidden">
             {/* <li className="delimiter1"></li> */}
             {[
-              { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "Р’СЃС–" },
-              { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "РќРѕРІРёР№" },
-              { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "Р’ СЂРѕР±РѕС‚С–" },
-              { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "РћС‡С–РєСѓС”РјРѕ РѕРїР»Р°С‚Сѓ" },
-              { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "РћС‡С–РєСѓС”РјРѕ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ" },
-              { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "РџС–РґС‚РІРµСЂРґР¶РµРЅРёР№" },
-              { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "РЈ РІРёСЂРѕР±РЅРёС†С‚РІС–" },
-              { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "Р“РѕС‚РѕРІРёР№" },
-              { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "Р’С–РґРІР°РЅС‚Р°Р¶РµРЅРѕ" },
-              { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "Р’С–РґРјРѕРІР°" },
+              { id: "all", label: t("additional_order.statuses.all"), icon: statusIcons.all, statusKey: "all" },
+              { id: "new", label: t("additional_order.statuses.new"), icon: statusIcons.new, statusKey: "new" },
+              { id: "processing", label: t("additional_order.statuses.in_work"), icon: statusIcons.processing, statusKey: "processing" },
+              { id: "waiting-payment", label: t("additional_order.statuses.waiting_pay"), icon: statusIcons.waitingPay, statusKey: "waiting_payment" },
+              { id: "waiting-confirm", label: t("additional_order.statuses.waiting_confirm"), icon: statusIcons.waitingConfirm, statusKey: "waiting_confirmation" },
+              { id: "confirmed", label: t("additional_order.statuses.confirmed"), icon: statusIcons.confirmed, statusKey: "confirmed" },
+              { id: "production", label: t("additional_order.statuses.in_production"), icon: statusIcons.factory, statusKey: "production" },
+              { id: "ready", label: t("additional_order.statuses.ready"), icon: statusIcons.finished, statusKey: "ready" },
+              { id: "shipped", label: t("additional_order.statuses.shipped"), icon: statusIcons.delivered, statusKey: "shipped" },
+              { id: "rejected", label: t("additional_order.statuses.rejected"), icon: statusIcons.canceled, statusKey: "rejected" },
             ].map(({ id, label, icon, statusKey }) => (
               <li
                 key={id}
