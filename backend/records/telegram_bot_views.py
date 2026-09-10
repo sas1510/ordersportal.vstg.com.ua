@@ -130,6 +130,35 @@ def _serialise_order(order, calculation):
     }
 
 
+def _serialise_calculation_orders(calculation):
+    """Keep portal calculations visible before a production order is assigned."""
+    valid_orders = [
+        order for order in (calculation.get("orders") or [])
+        if order.get("idGuid") and _clean(order.get("number"))
+    ]
+    if valid_orders:
+        return [_serialise_order(order, calculation) for order in valid_orders]
+
+    calculation_status = _clean(calculation.get("status")) or "Новий"
+    return [{
+        "id": "",
+        "number": "",
+        "portal_number": _clean(calculation.get("webNumber") or calculation.get("number")) or "Без номера на порталі",
+        "portal_date": _iso_value(calculation.get("dateRaw")),
+        "calculation_number": _clean(calculation.get("number")) or None,
+        "linked_order_number": None,
+        "status": calculation_status,
+        "status_key": _status_key(calculation_status),
+        "date": _iso_value(calculation.get("dateRaw")),
+        "amount": round(float(calculation.get("amount") or 0), 2),
+        "paid": 0.0,
+        "count": int(calculation.get("constructionsQTY") or calculation.get("constructionsCount") or 0),
+        "currency": _clean(calculation.get("currency")) or "грн",
+        "planned_delivery_at": None,
+        "calculation_only": True,
+    }]
+
+
 
 def _iso_value(value):
     return value.isoformat() if getattr(value, "isoformat", None) else value
@@ -180,12 +209,7 @@ def _orders_for_user(user, days=180):
         today,
         user.user_id_1C,
     )
-    return [
-        _serialise_order(order, calculation)
-        for calculation in calculations
-        for order in (calculation.get("orders") or [])
-        if order.get("idGuid") and order.get("number")
-    ]
+    return [item for calculation in calculations for item in _serialise_calculation_orders(calculation)]
 
 
 def _menu_payload(user, orders):
@@ -309,12 +333,7 @@ def telegram_bot_orders(request):
             calculations = get_orders_by_period_and_contractor(
                 date_from, date_to, user.user_id_1C,
             )
-            orders = [
-                _serialise_order(order, calculation)
-                for calculation in calculations
-                for order in (calculation.get("orders") or [])
-                if order.get("idGuid") and order.get("number")
-            ]
+            orders = [item for calculation in calculations for item in _serialise_calculation_orders(calculation)]
         else:
             orders = _orders_for_user(user)
     except DatabaseError:
