@@ -1474,8 +1474,7 @@ const CustomerBillsPage = () => {
                 >
                   + {t("bills.add_bill")}
                 </button>
-                {/* Temporarily hidden: new invoice flow.
-                <button
+                {/* <button
                   className="btn btn-create-bill"
                   onClick={() => setIsCreateBillV2Open(true)}
                   title="New parallel invoice form"
@@ -1546,13 +1545,12 @@ const CustomerBillsPage = () => {
           onClose={() => setIsCreateBillOpen(false)}
           onSuccess={fetchBills}
         />
-        {/* Temporarily hidden: new invoice flow.
         <CreateCustomerBillModal
           isOpen={isCreateBillV2Open}
           onClose={() => setIsCreateBillV2Open(false)}
           onSuccess={fetchBills}
           newFlow
-        /> */}
+        />
 
         {/* =========================
             МОДАЛЬНЕ ВІКНО QR-КОДУ ТА ОПЛАТИ

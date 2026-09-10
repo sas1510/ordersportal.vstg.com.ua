@@ -91,7 +91,7 @@ const PortalOriginal = () => {
 
   const [loading, setLoading] = useState(false);
   const [reloading, setReloading] = useState(false);
-  const [expandedCalc, setExpandedCalc] = useState(null);
+  const [expandedCalcIds, setExpandedCalcIds] = useState(() => new Set());
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [limit, setLimit] = useState(ITEMS_PER_LOAD);
@@ -325,7 +325,15 @@ const PortalOriginal = () => {
   }, []);
 
   const toggleCalc = useCallback((id) => {
-    setExpandedCalc((previous) => (previous === id ? null : id));
+    setExpandedCalcIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   }, []);
 
   const toggleOrder = useCallback((id) => {
@@ -875,9 +883,12 @@ const PortalOriginal = () => {
 
     const orderKey = matchedOrder?.idGuid || matchedOrder?.number || null;
 
-    setExpandedCalc((previous) =>
-      previous === matchedCalculation.id ? previous : matchedCalculation.id,
-    );
+    setExpandedCalcIds((previous) => {
+      if (previous.has(matchedCalculation.id)) return previous;
+      const next = new Set(previous);
+      next.add(matchedCalculation.id);
+      return next;
+    });
 
     if (orderKey) {
       setExpandedOrder((previous) =>
@@ -886,6 +897,27 @@ const PortalOriginal = () => {
     }
   }, [filter.name, fullFiltered]);
 
+
+  const areAllVisibleCalculationsExpanded =
+    paginatedItems.length > 0 &&
+    paginatedItems.every((calc) => expandedCalcIds.has(calc.id));
+
+  const toggleAllVisibleCalculations = useCallback(() => {
+    setExpandedCalcIds((previous) => {
+      const next = new Set(previous);
+      const shouldCollapse = paginatedItems.every((calc) => next.has(calc.id));
+
+      paginatedItems.forEach((calc) => {
+        if (shouldCollapse) {
+          next.delete(calc.id);
+        } else {
+          next.add(calc.id);
+        }
+      });
+
+      return next;
+    });
+  }, [paginatedItems]);
 
   const hasMore = limit < totalFilteredCount;
 
@@ -1477,6 +1509,8 @@ const PortalOriginal = () => {
               />
             </div>
 
+
+
             <ul className="buttons">
               <li
                 className="btn-add-calc"
@@ -1495,6 +1529,27 @@ const PortalOriginal = () => {
                 </div>
               </li>
             </ul>
+
+            <button
+              type="button"
+              className="orders-expand-all-button"
+              onClick={toggleAllVisibleCalculations}
+              disabled={paginatedItems.length === 0}
+              aria-expanded={areAllVisibleCalculationsExpanded}
+            >
+              <span
+                className={`icon ${
+                  areAllVisibleCalculationsExpanded
+                    ? "icon-chevron-up"
+                    : "icon-chevron-down"
+                }`}
+              />
+              <span>
+                {areAllVisibleCalculationsExpanded
+                  ? "Згорнути всі"
+                  : "Розгорнути всі"}
+              </span>
+            </button>
 
             <ul className="filter column align-center h-full overflow-hidden">
               <div
@@ -1624,7 +1679,7 @@ const PortalOriginal = () => {
                       key={calc.id}
                       calc={calc}
                       isExpanded={
-                        expandedCalc === calc.id
+                        expandedCalcIds.has(calc.id)
                       }
                       onToggle={toggleCalc}
                       expandedOrderId={expandedOrder}
@@ -1647,7 +1702,7 @@ const PortalOriginal = () => {
                       key={calc.id}
                       calc={calc}
                       isExpanded={
-                        expandedCalc === calc.id
+                        expandedCalcIds.has(calc.id)
                       }
                       onToggle={toggleCalc}
                       expandedOrderId={expandedOrder}

@@ -1,4 +1,5 @@
-﻿import hashlib
+﻿import ast
+import hashlib
 import secrets
 from collections import Counter
 from datetime import date as date_type, datetime, time, timedelta
@@ -70,6 +71,23 @@ def _clean(value):
     return " ".join(str(value or "").split())
 
 
+def _guid_value(value):
+    """Return a regular GUID for binary 1C links instead of ``b'\\x..'``."""
+    if isinstance(value, memoryview):
+        value = value.tobytes()
+    if isinstance(value, (bytes, bytearray)):
+        return bin_to_guid_1c(bytes(value)) or ""
+    text = _clean(value)
+    if text.startswith(("b'", 'b"')):
+        try:
+            parsed = ast.literal_eval(text)
+            if isinstance(parsed, bytes):
+                return bin_to_guid_1c(parsed) or ""
+        except (SyntaxError, ValueError):
+            pass
+    return text
+
+
 def _status_key(value):
     normalized = _clean(value).lower()
     if any(part in normalized for part in ("відмова", "отказ")):
@@ -98,6 +116,7 @@ def _serialise_order(order, calculation):
         # ``number`` on the calculation is the label entered in the portal;
         # the nested order ``number`` remains the 1C order number.
         "portal_number": _clean(calculation.get("webNumber") or calculation.get("number")) or None,
+        "portal_date": _iso_value(calculation.get("dateRaw")),
         "calculation_number": _clean(calculation.get("number")) or None,
         "linked_order_number": _clean(order.get("linkedOrderNumber")) or None,
         "status": _clean(order.get("status")) or "\u041d\u043e\u0432\u0438\u0439",
@@ -304,6 +323,15 @@ def telegram_bot_orders(request):
     if status_filter and status_filter != "all":
         orders = [order for order in orders if order["status_key"] == status_filter]
 
+    search_filter = _clean(request.query_params.get("search")).lower()
+    if search_filter:
+        orders = [
+            order for order in orders
+            if any(search_filter in _clean(order.get(field)).lower() for field in (
+                "number", "portal_number", "calculation_number", "linked_order_number",
+            ))
+        ]
+
 
     if delivery_pending:
         today = timezone.localdate()
@@ -336,17 +364,30 @@ def telegram_bot_reclamations(request):
     try:
         rows = async_to_sync(execute_stored_procedure)(user.user_id_1C, timezone.localdate().year)
         complaints = [{
-            "id": str(row.get("ComplaintGuid") or ""),
+            "id": _guid_value(row.get("ComplaintGuid")),
             "number": _clean(row.get("ComplaintNumber") or row.get("Number") or row.get("ClaimNumber")),
+            "act_number": _clean(row.get("ActNumber")),
             "status": _clean(row.get("StatusName") or row.get("Status") or "—"),
             "date": _iso_value(row.get("ComplaintDate") or row.get("Date")),
             "order_number": _clean(row.get("OrderNumber") or row.get("ClientOrderNumber")),
+            "dealer": _clean(row.get("Customer") or row.get("Dealer") or row.get("Organization") or row.get("OrganizationName")),
+            "manager": _clean(row.get("LastManagerName") or row.get("Manager") or row.get("ManagerName")),
+            "series": _clean(row.get("SeriesList")),
+            "reason": _clean(row.get("ComplaintReasonName") or row.get("IssueName")),
             "description": _clean(row.get("AdditionalInformation") or row.get("Description")),
         } for row in rows]
         status_filter = _clean(request.query_params.get("status")).lower()
+        search_filter = _clean(request.query_params.get("search")).lower()
         status_counts = dict(Counter(item["status"] for item in complaints if item["status"] and item["status"] != "—"))
         if status_filter:
             complaints = [item for item in complaints if item["status"].lower() == status_filter]
+        if search_filter:
+            complaints = [
+                item for item in complaints
+                if any(search_filter in _clean(item.get(field)).lower() for field in (
+                    "number", "act_number", "order_number", "dealer", "manager", "series", "reason",
+                ))
+            ]
         return Response({
             "success": True,
             "reclamations": complaints,
@@ -371,11 +412,13 @@ def telegram_bot_additional_orders(request):
         for row in rows:
             try:
                 additional_orders.append({
-                    "id": str(row.get("AdditionalOrderGuid") or ""),
+                    "id": _guid_value(row.get("AdditionalOrderGuid")),
                     "number": _clean(row.get("AdditionalOrderNumber") or row.get("Number")),
                     "status": _clean(row.get("StatusName") or row.get("Status") or "—"),
                     "date": _iso_value(row.get("AdditionalOrderDate") or row.get("Date")),
                     "order_number": _clean(row.get("OrderNumber") or row.get("ClaimOrderNumber")),
+                    "main_order_number": _clean(row.get("MainOrderNumber") or row.get("OrderNumber") or row.get("ClaimOrderNumber")),
+                    "dealer": _clean(row.get("Dealer") or row.get("Organization") or row.get("OrganizationName")),
                     "amount": round(float(row.get("DocumentAmount") or 0), 2),
                     "paid": round(float(row.get("TotalPayments") or 0), 2),
                     "count": int(float(row.get("ConstructionsQTY") or 0)),
@@ -383,6 +426,14 @@ def telegram_bot_additional_orders(request):
                 })
             except (TypeError, ValueError):
                 logger.warning("Telegram bot skipped malformed additional order for %s", user.username, exc_info=True)
+        search_filter = _clean(request.query_params.get("search")).lower()
+        if search_filter:
+            additional_orders = [
+                item for item in additional_orders
+                if any(search_filter in _clean(item.get(field)).lower() for field in (
+                    "number", "order_number", "main_order_number", "dealer",
+                ))
+            ]
         return Response({"success": True, "additional_orders": additional_orders, "total": len(additional_orders)})
     except Exception:
         logger.exception("Telegram bot additional orders error for %s", user.username)
@@ -487,12 +538,12 @@ def telegram_bot_order_file_download(request):
 
 def _telegram_user_additional_order(user, item_id):
     rows=async_to_sync(execute_additional_orders_procedure)(user.user_id_1C, timezone.localdate().year)
-    return any(_clean(r.get("AdditionalOrderGuid")).lower()==item_id.lower() for r in rows)
+    return any(_guid_value(r.get("AdditionalOrderGuid")).lower()==item_id.lower() for r in rows)
 
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])
 def telegram_bot_additional_order_files(request):
-    user=_linked_user(_request_chat_id(request)); item_id=_clean(request.query_params.get("additional_order_id"))
+    user=_linked_user(_request_chat_id(request)); item_id=_guid_value(request.query_params.get("additional_order_id"))
     if not user or not item_id: return Response({"success":False,"error":"Missing parameters."},status=status.HTTP_400_BAD_REQUEST)
     try:
         if not _telegram_user_additional_order(user,item_id): return Response({"success":False,"error":"Access denied."},status=status.HTTP_403_FORBIDDEN)
@@ -501,6 +552,95 @@ def telegram_bot_additional_order_files(request):
     except Exception:
         logger.exception("Telegram additional order files error")
         return Response({"success":False,"error":"Could not load files."},status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_additional_order_file_download(request):
+    user = _linked_user(_request_chat_id(request))
+    item_id = _guid_value(request.query_params.get("additional_order_id"))
+    file_id = _clean(request.query_params.get("file_id"))
+    if not user or not item_id or not file_id:
+        return Response({"success": False, "error": "Missing parameters."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        if not _telegram_user_additional_order(user, item_id):
+            return Response({"success": False, "error": "Access denied."}, status=status.HTTP_403_FORBIDDEN)
+        file_item = next((item for item in _telegram_order_files(item_id) if item["id"].lower() == file_id.lower()), None)
+        if not file_item:
+            return Response({"success": False, "error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+        query = request._request.GET.copy()
+        query["filename"] = file_item["name"]
+        request._request.GET = query
+        return _download_order_file_content(request._request, item_id, file_id)
+    except Exception:
+        logger.exception("Telegram additional order file download error")
+        return Response({"success": False, "error": "Could not download file."}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+def _telegram_user_reclamation(user, claim_id):
+    rows = async_to_sync(execute_stored_procedure)(user.user_id_1C, timezone.localdate().year)
+    return any(_guid_value(row.get("ComplaintGuid")).lower() == claim_id.lower() for row in rows)
+
+
+def _telegram_reclamation_files(claim_id):
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetClaimFiles_BV @ClaimLink=%s", [guid_to_1c_bin(claim_id)])
+        columns = [column[0] for column in (cursor.description or [])]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    files = []
+    for row in rows:
+        file_id = _guid_value(row.get("File_GUID"))
+        if not file_id:
+            continue
+        files.append({
+            "id": file_id,
+            "name": _clean(row.get("File_FileName") or row.get("FileName") or row.get("Name")) or f"file_{file_id[:8]}",
+            "type": _clean(row.get("File_DataType_Name") or row.get("DataType") or "Файл"),
+            "date": _iso_value(row.get("File_Date") or row.get("Date")),
+        })
+    return files
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_reclamation_files(request):
+    user = _linked_user(_request_chat_id(request))
+    claim_id = _guid_value(request.query_params.get("reclamation_id"))
+    if not user or not claim_id:
+        return Response({"success": False, "error": "Missing parameters."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        if not _telegram_user_reclamation(user, claim_id):
+            return Response({"success": False, "error": "Access denied."}, status=status.HTTP_403_FORBIDDEN)
+        files = _telegram_reclamation_files(claim_id)
+        return Response({"success": True, "reclamation_id": claim_id, "files": files, "total": len(files)})
+    except Exception:
+        logger.exception("Telegram reclamation files error")
+        return Response({"success": False, "error": "Could not load files."}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([HasTelegramBotApiKey])
+def telegram_bot_reclamation_file_download(request):
+    user = _linked_user(_request_chat_id(request))
+    claim_id = _guid_value(request.query_params.get("reclamation_id"))
+    file_id = _clean(request.query_params.get("file_id"))
+    if not user or not claim_id or not file_id:
+        return Response({"success": False, "error": "Missing parameters."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        if not _telegram_user_reclamation(user, claim_id):
+            return Response({"success": False, "error": "Access denied."}, status=status.HTTP_403_FORBIDDEN)
+        file_item = next((item for item in _telegram_reclamation_files(claim_id) if item["id"].lower() == file_id.lower()), None)
+        if not file_item:
+            return Response({"success": False, "error": "File not found."}, status=status.HTTP_404_NOT_FOUND)
+        query = request._request.GET.copy()
+        query["filename"] = file_item["name"]
+        request._request.GET = query
+        # The common downloader first checks SMB and then retrieves the same
+        # 1C binary by FileLink from SQL, which also covers complaint files.
+        return _download_order_file_content(request._request, claim_id, file_id)
+    except Exception:
+        logger.exception("Telegram reclamation file download error")
+        return Response({"success": False, "error": "Could not download file."}, status=status.HTTP_502_BAD_GATEWAY)
 
 @api_view(["GET"])
 @permission_classes([HasTelegramBotApiKey])

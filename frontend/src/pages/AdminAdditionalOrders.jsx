@@ -684,7 +684,7 @@ const AdminAdditionalOrders = () => {
           {isAdmin && (
             <>
               {/* <div className="delimiter1" /> */}
-              <div className="dealer-select-wrapper text-[#44403E] mb-2 ">
+              <div className="dealer-select-wrapper text-[#44403E] mt-2 mb-2 ">
                 <DealerSelectWithAll
                   value={dealerGuid}
                   onChange={setDealerGuid}

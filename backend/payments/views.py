@@ -1203,8 +1203,32 @@ def create_invoice_v2(request):
                 for item in data.get("OrderItemsLIST", [])
             ],
         }
-        result = send_to_1c(payload=payload_1c, query="CreateBill")
-        logger.info("New invoice created for %s", contractor_guid)
+        result = send_to_1c(payload=payload_1c, query="CreateBillV2")
+        if not isinstance(result, dict) or result.get("success") is not True:
+            logger.warning(
+                "CreateBillV2 rejected invoice for %s",
+                contractor_guid,
+                extra={
+                    "tags": {"action": "create_invoice_v2", "status": "rejected"},
+                    "response_1c": result,
+                },
+            )
+            return Response(
+                result if isinstance(result, dict) else {
+                    "success": False,
+                    "error": "1C returned an invalid response",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        logger.info(
+            "New invoice created for %s",
+            contractor_guid,
+            extra={
+                "tags": {"action": "create_invoice_v2", "status": "success"},
+                "bill_guid": result.get("BillGuid"),
+                "bill_number": result.get("BillNumber"),
+            },
+        )
         return Response({"status": "ok", "data": result, "payload": payload_1c}, status=status.HTTP_201_CREATED)
     except Exception as exc:
         logger.exception("New invoice creation error")

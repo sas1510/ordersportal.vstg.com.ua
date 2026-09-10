@@ -48,3 +48,6 @@ staticfiles/
 
 .env.save
 .env.save.*
+
+.codex/.codex/
+.codex/

@@ -147,7 +147,7 @@ const AdminPortalOriginal = () => {
   const [reloading, setReloading] = useState(false);
   const [ordersRefreshVersion, setOrdersRefreshVersion] = useState(0);
 
-  const [expandedCalc, setExpandedCalc] = useState(null);
+  const [expandedCalcIds, setExpandedCalcIds] = useState(() => new Set());
   const [expandedOrder, setExpandedOrder] = useState(null);
 
   const toggleOrder = useCallback((id) => {
@@ -833,6 +833,39 @@ const AdminPortalOriginal = () => {
   );
 
   const itemsToShow = sortedItems.slice(0, displayLimit);
+
+  const areAllVisibleCalculationsExpanded =
+    itemsToShow.length > 0 &&
+    itemsToShow.every((calc) => expandedCalcIds.has(calc.id));
+
+  const toggleCalc = useCallback((id) => {
+    setExpandedCalcIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleAllVisibleCalculations = useCallback(() => {
+    setExpandedCalcIds((previous) => {
+      const next = new Set(previous);
+      const shouldCollapse = itemsToShow.every((calc) => next.has(calc.id));
+
+      itemsToShow.forEach((calc) => {
+        if (shouldCollapse) {
+          next.delete(calc.id);
+        } else {
+          next.add(calc.id);
+        }
+      });
+
+      return next;
+    });
+  }, [itemsToShow]);
   const showLoadMoreButton =
     sortedItems.length > displayLimit;
 
@@ -1360,6 +1393,8 @@ const AdminPortalOriginal = () => {
               />
             </div>
 
+
+
             {isAdmin && (
               <ul className="buttons mt-2">
                 <li>
@@ -1396,6 +1431,27 @@ const AdminPortalOriginal = () => {
                 </div>
               </li>
             </ul>
+
+            <button
+              type="button"
+              className="orders-expand-all-button"
+              onClick={toggleAllVisibleCalculations}
+              disabled={itemsToShow.length === 0}
+              aria-expanded={areAllVisibleCalculationsExpanded}
+            >
+              <span
+                className={
+                  areAllVisibleCalculationsExpanded
+                    ? "icon icon-chevron-up"
+                    : "icon icon-chevron-down"
+                }
+              />
+              <span>
+                {areAllVisibleCalculationsExpanded
+                  ? "Згорнути всі"
+                  : "Розгорнути всі"}
+              </span>
+            </button>
 
             <ul className="filter column align-center h-full overflow-hidden">
               <div
@@ -1575,16 +1631,9 @@ const AdminPortalOriginal = () => {
                       key={calc.id}
                       calc={calc}
                       isExpanded={
-                        expandedCalc === calc.id
+                        expandedCalcIds.has(calc.id)
                       }
-                      onToggle={() =>
-                        setExpandedCalc(
-                          (previous) =>
-                            previous === calc.id
-                              ? null
-                              : calc.id,
-                        )
-                      }
+                      onToggle={toggleCalc}
                       expandedOrderId={
                         expandedOrder
                       }
@@ -1599,16 +1648,9 @@ const AdminPortalOriginal = () => {
                       key={calc.id}
                       calc={calc}
                       isExpanded={
-                        expandedCalc === calc.id
+                        expandedCalcIds.has(calc.id)
                       }
-                      onToggle={() =>
-                        setExpandedCalc(
-                          (previous) =>
-                            previous === calc.id
-                              ? null
-                              : calc.id,
-                        )
-                      }
+                      onToggle={toggleCalc}
                       expandedOrderId={
                         expandedOrder
                       }

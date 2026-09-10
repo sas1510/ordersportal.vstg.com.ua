@@ -137,8 +137,8 @@
 // // //     };
 
 // // //     try {
-// // //       await axiosInstance.post(newFlow ? "/payments/create_invoice_v2/" : "/payments/create_invoice/", dto);
-// // //       addNotification("Рахунок успішно створено!", "success");
+// //       await axiosInstance.post("/payments/create_invoice/", dto);
+// //       addNotification("Рахунок успішно створено!", "success");
 // // //       onSuccess?.();
 // // //       onClose();
 // // //     } catch (error) {
@@ -1485,7 +1485,10 @@ const handleSubmit = async () => {
   };
 
     try {
-      await axiosInstance.post("/payments/create_invoice/", dto);
+      await axiosInstance.post(
+        newFlow ? "/payments/create_invoice_v2/" : "/payments/create_invoice/",
+        dto,
+      );
       addNotification(t("create_bill.notifications.success"), "success");
       onSuccess?.();
       onClose();
@@ -1501,7 +1504,9 @@ const handleSubmit = async () => {
 
   const handleNextStep = () => {
     if (step === STEPS.BASE) {
-      if (!selectedOrgAccount || !selectedAddress) {
+      const newFlowInvalid = newFlow && (!selectedOrgCode || !selectedContractor);
+      const oldFlowInvalid = !newFlow && (!selectedOrgAccount || !selectedAddress);
+      if (newFlowInvalid || oldFlowInvalid) {
         addNotification(t("create_bill.validation.step1"), "info");
         return;
       }
