@@ -19,6 +19,8 @@ from .models import HelpServiceLog
 from .serializers import HelpServiceLogSerializer
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
+from django.db.models import Q
+from backend.utils.contractor import get_accessible_dealer_binaries
 
 # @extend_schema(
 #     auth=[{"jwtAuth": []}],
@@ -176,6 +178,29 @@ def help_log_list(request):
     Повертає список усіх SOS-викликів (для адміністратора/менеджера),
     включаючи хто викликав і кому.
     """
-    logs = HelpServiceLog.objects.select_related('contact', 'user').order_by('-create_date')
+    role = str(getattr(request.user, "role", "") or "").strip().lower()
+    if role not in {"admin", "branch_manager", "branches_director"}:
+        return Response({"detail": "Доступ заборонено"}, status=status.HTTP_403_FORBIDDEN)
+
+    logs = HelpServiceLog.objects.select_related('contact', 'user')
+    if role in {"branch_manager", "branches_director"}:
+        accessible_contractors = list(get_accessible_dealer_binaries(request.user))
+        scope = Q(user_id=request.user.id)
+
+        if role == "branch_manager":
+            if not request.user.branch_id:
+                logs = logs.none()
+            else:
+                scope |= Q(user__branch_id=request.user.branch_id)
+        else:
+            scope |= Q(user__branch__isnull=False)
+
+        if accessible_contractors:
+            scope |= Q(user__user_id_1C__in=accessible_contractors)
+
+        if role != "branch_manager" or request.user.branch_id:
+            logs = logs.filter(scope)
+
+    logs = logs.order_by('-create_date')
     serializer = HelpServiceLogSerializer(logs, many=True)
     return Response(serializer.data)

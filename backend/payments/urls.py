@@ -3,7 +3,7 @@
 from django.urls import path
 from . import views  
 from django.urls import path
-from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view, create_invoice, create_invoice_v2, invoice_contractors_view, invoice_profile_v2_view, invoice_advance_contracts_view, make_payment_from_advance, get_partner_full_data_view
+from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view, create_invoice, create_invoice_v2, invoice_contractors_view, invoice_profile_v2_view, invoice_advance_contracts_view, invoice_settlements_view, make_payment_from_advance, get_partner_full_data_view
 from .views import GetBillPDF
 
 urlpatterns = [
@@ -19,6 +19,7 @@ urlpatterns = [
     path("invoice-contractors/", invoice_contractors_view, name="invoice_contractors"),
     path("invoice-profile-v2/", invoice_profile_v2_view, name="invoice_profile_v2"),
     path("invoice-advance-contracts/", invoice_advance_contracts_view, name="invoice_advance_contracts"),
+    path("invoice-settlements/", invoice_settlements_view, name="invoice_settlements"),
     path("make_payment_from_advance/", make_payment_from_advance, name="make_payment_from_advance"),
     path("get_partner_full_data/", get_partner_full_data_view, name="get_partner_full_data_view"),
     path("get_bill_pdf/<str:bill_guid>/", GetBillPDF.as_view(), name="get_bill_pdf"),

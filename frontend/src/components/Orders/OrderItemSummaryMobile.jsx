@@ -310,14 +310,27 @@ export default React.memo(function OrderItemSummaryMobile({
     setIsFilesModalOpen(true);
   }, []);
 
-  const handleReorderSave = useCallback(
-    (formData) => {
-      console.log("Дозамовлення по замовленню", order.number, formData);
-      setIsReorderModalOpen(false);
+  const handleReorderSave = useCallback(async (formData) => {
+    try {
+      const response = await axiosInstance.post(
+        "/additional_orders/save_additional_order/",
+        formData,
+      );
+      const result = Array.isArray(response.data) ? response.data[0] : response.data;
 
-    },
-    [order.number],
-  );
+      if (result?.success !== true && response.status !== 201) {
+        throw new Error(result?.message || t("errors.unknownError"));
+      }
+
+      setIsReorderModalOpen(false);
+      addNotification(t("reorder_modal.success_create"), "success");
+    } catch (error) {
+      addNotification(
+        error.response?.data?.message || error.message || t("errors.errorSendData"),
+        "error",
+      );
+    }
+  }, [addNotification, t]);
 
 
   const handleConfirmOrder = useCallback(async () => {
@@ -712,9 +725,7 @@ export default React.memo(function OrderItemSummaryMobile({
       <AddClaimModal
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
-        onSave={() => {
-
-        }}
+        onSave={() => setIsClaimModalOpen(false)}
         initialOrderNumber={claimOrderNumber}
         initialContractorGuid={contractorGuid}
       />

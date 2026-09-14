@@ -11,6 +11,7 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c
 from django.db import connection
 from backend.utils.get_main_manager import get_contractor_main_manager_bin
 from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
+from backend.utils.contractor import resolve_contractor
 from records.models import ChatMessage
 
 from django.shortcuts import render
@@ -179,10 +180,20 @@ def get_default_delivery_address(request):
     user = request.user
     role = (getattr(user, "role", "") or "").lower()
     requested_contractor = str(request.query_params.get("contractor_guid") or "").strip()
-    is_backoffice = role in ("admin", "manager", "region_manager")
+    is_backoffice = role in ("admin", "manager", "region_manager", "branch_manager", "branches_director")
 
     try:
-        contractor_guid = requested_contractor if is_backoffice and requested_contractor else bin_to_guid_1c(getattr(user, "user_id_1C", None))
+        if is_backoffice and requested_contractor:
+            _, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+            )
+        elif role in ("branch_manager", "branches_director"):
+            return Response({"error": "Contractor is required"}, status=400)
+        else:
+            contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
         if not contractor_guid:
             return Response({"error": "Contractor is required"}, status=400)
 
@@ -243,31 +254,12 @@ class AdditionalOrderViewSet(viewsets.ViewSet):
             
 
             role = getattr(user, "role", "").lower()
-            is_admin = role in ("admin", "manager", "region_manager")
-
-   
-            if is_admin:
-    
-                contractor_guid = request.data.get("contractor_guid")
-                if not contractor_guid:
-                    logger.warning(f"Admin {user.id} attempted create without contractor_guid", extra={
-                    'tags': {
-                        'action': 'AdditionalOrderViewSet (create)'
-                    
-                    }
-                })
-                    raise ValueError("contractor_guid is required for admin role")
-            else:
-
-                contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
-                if not contractor_guid:
-                    logger.error(f"User {user.id} has no user_id_1C in profile", extra={
-                        'tags': {
-                            'action': 'AdditionalOrderViewSet (create)'
-                        
-                        }
-                    })
-                    raise ValueError("contractor_guid not found for this user")
+            _, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+            )
 
 
             author_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))

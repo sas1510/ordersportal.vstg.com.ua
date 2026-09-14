@@ -167,6 +167,7 @@ export default function CustomSelect({
   onChange,
   placeholder,
   disabled = false,
+  error = false,
 }) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -209,11 +210,15 @@ export default function CustomSelect({
   const selectedOption = translatedOptions.find((o) => o.Link === value);
 
   return (
-    <div className={`custom-select ${disabled ? "disabled" : ""}`} ref={ref}>
+    <div
+      className={`custom-select ${disabled ? "disabled" : ""} ${error ? "has-error" : ""}`}
+      ref={ref}
+    >
       {label && <span className="select-label">{label}</span>}
 
       <div
         className="select-control"
+        aria-invalid={error || undefined}
         onClick={() => !disabled && setOpen((p) => !p)}
       >
         <span className={`select-value ${!selectedOption ? "placeholder" : ""}`}>

@@ -38,6 +38,92 @@
   white-space: nowrap;
 }
 
+.users-page-wrapper .actions-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.users-page-wrapper .actions-container button {
+  min-height: 26px;
+  padding: 3px 7px !important;
+  border: 1px solid var(--ulp-border-color) !important;
+  border-radius: 2px !important;
+  background: #eef1f3 !important;
+  color: #46525d !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 500;
+}
+
+.users-page-wrapper .actions-container button:hover {
+  border-color: #aab4bc !important;
+  background: #e1e6e9 !important;
+}
+
+.users-page-wrapper .actions-container .user-action--edit { border-color: #d8bb68 !important; background: #fff7df !important; color: #725616 !important; }
+.users-page-wrapper .actions-container .user-action--edit:hover { background: #f7ebc5 !important; }
+.users-page-wrapper .actions-container .user-action--password { border-color: #8bb7d1 !important; background: #eaf4fb !important; color: #315e76 !important; }
+.users-page-wrapper .actions-container .user-action--password:hover { background: #dcecf6 !important; }
+.users-page-wrapper .actions-container .user-action--deactivate { border-color: #d7a096 !important; background: #fff0ec !important; color: #874b42 !important; }
+.users-page-wrapper .actions-container .user-action--deactivate:hover { background: #f7e0da !important; }
+.users-page-wrapper .actions-container .user-action--api { border-color: #aa9bc8 !important; background: #f1edfb !important; color: #5d5079 !important; }
+.users-page-wrapper .actions-container .user-action--api:hover { background: #e5def5 !important; }
+.users-page-wrapper .actions-container .user-action--delete { border-color: #c99393 !important; background: #f8e8e8 !important; color: #783d3d !important; }
+.users-page-wrapper .actions-container .user-action--delete:hover { background: #efd7d7 !important; }
+
+.users-page-wrapper .actions-container button:disabled {
+  background: #7f898f !important;
+  opacity: 0.55;
+}
+
+.dark-theme .users-page-wrapper .actions-container button {
+  border-color: #66717a !important;
+  background: #363d43 !important;
+  color: #d8dee3 !important;
+}
+
+.dark-theme .users-page-wrapper .actions-container .user-action--edit { border-color: #806d3f !important; background: #4b422b !important; color: #f3d887 !important; }
+.dark-theme .users-page-wrapper .actions-container .user-action--password { border-color: #4d7187 !important; background: #293f4d !important; color: #a9d6ee !important; }
+.dark-theme .users-page-wrapper .actions-container .user-action--deactivate,
+.dark-theme .users-page-wrapper .actions-container .user-action--delete { border-color: #865851 !important; background: #4b302e !important; color: #efaaa0 !important; }
+.dark-theme .users-page-wrapper .actions-container .user-action--api { border-color: #6d6188 !important; background: #3d354e !important; color: #cbbbea !important; }
+
+.users-page-wrapper .users-page-toolbar-button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--ulp-border-color);
+  border-radius: 3px;
+  background: var(--ulp-table-bg);
+  color: var(--ulp-text-color);
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.users-page-wrapper .users-page-toolbar-button:hover {
+  border-color: #9ba8b2;
+  background: var(--ulp-row-hover-bg);
+}
+
+.users-page-wrapper .users-page-toolbar-button--primary {
+  border-color: #8fa95b;
+  background: color-mix(in srgb, #95c11f 12%, var(--ulp-table-bg));
+}
+
+.users-page-wrapper .users-page-toolbar-button--telegram {
+  border-color: #7da6bd;
+  background: color-mix(in srgb, #6bb3d6 12%, var(--ulp-table-bg));
+  color: var(--ulp-text-color);
+}
+
+.users-page-wrapper .users-page-toolbar-button svg {
+  width: 15px;
+  height: 15px;
+}
+
 /* Table container */
 .ulp-table-container {
   border-radius: 12px;
@@ -179,7 +265,7 @@
     /* font-size: 14px; */
     /* font-weight: 700; */
     text-transform: uppercase;
-    border-radius: 10px;
+    border-radius: 3px;
     border: none;
     cursor: pointer;
     transition: opacity 0.2s;

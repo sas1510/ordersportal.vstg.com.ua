@@ -11,6 +11,8 @@ const BillSelect = ({
   getLabel,
   placeholder,
   searchable = true,
+  autoTranslate = true,
+  disabled = false,
   onChange,
 }) => {
   const { t } = useTranslation();
@@ -24,7 +26,7 @@ const BillSelect = ({
   const filtered = useMemo(() => {
     if (!searchable) return options;
     return options.filter((o) =>
-      getLabel(o).toLowerCase().includes(search.toLowerCase())
+      String(getLabel(o) || "").toLowerCase().includes(search.toLowerCase())
     );
   }, [options, search, searchable, getLabel]);
 
@@ -58,12 +60,15 @@ const BillSelect = ({
         ref={controlRef}
         type="button"
         className={`bill-select__control ${open ? "open" : ""}`}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => !disabled && setOpen((o) => !o)}
+        disabled={disabled}
       >
         <span className={selected ? "" : "placeholder"}>
           {selected ? (
             
-            <AutoTranslatedText text={getLabel(selected)} />
+            autoTranslate
+              ? <AutoTranslatedText text={getLabel(selected)} />
+              : getLabel(selected)
           ) : (
             placeholder || t("common.select_placeholder")
           )}
@@ -110,7 +115,9 @@ const BillSelect = ({
                     }}
                   >
                     {/* АВТОПЕРЕКЛАД КОЖНОЇ ОПЦІЇ В СПИСКУ */}
-                    <AutoTranslatedText text={getLabel(o)} />
+                    {autoTranslate
+                      ? <AutoTranslatedText text={getLabel(o)} />
+                      : getLabel(o)}
                   </div>
                 );
               })}

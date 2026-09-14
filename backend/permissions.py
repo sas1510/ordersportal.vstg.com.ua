@@ -9,7 +9,7 @@ class IsAdminManagerOrReadOnly(BasePermission):
     а зміни (POST, PUT, PATCH, DELETE) лише користувачам, 
     які належать до груп 'admin' або 'manager'.
     """
-    allowed_groups = {"admin", "manager"}  # Можна додати 'regional_manager' якщо потрібно
+    allowed_groups = {"admin", "manager", "region_manager", "branch_manager", "branches_director"}  # Можна додати 'regional_manager' якщо потрібно
 
     def has_permission(self, request, view):
         # Безпечні методи доступні всім
@@ -172,6 +172,22 @@ class ApiKey1С(BasePermission):
 from rest_framework.permissions import BasePermission
 
 
+class IsBranchesDirectorReadOnly(BasePermission):
+    """Read-only access for the role that sees all branch portfolios."""
+
+    message = "Керівник усіх філій має доступ лише до перегляду даних філій."
+
+    def has_permission(self, request, view):
+        user = request.user
+        role = str(getattr(user, "role", "") or "").strip().lower()
+        return bool(
+            user
+            and user.is_authenticated
+            and request.method in SAFE_METHODS
+            and role == "branches_director"
+        )
+
+
 class IsAdminJWT(BasePermission):
     message = "Доступ дозволено лише адміністраторам і менеджерам."
 
@@ -180,6 +196,8 @@ class IsAdminJWT(BasePermission):
         "director",
         "manager",
         "region_manager",
+        "branch_manager",
+        "branches_director",
     }
 
     def has_permission(self, request, view):

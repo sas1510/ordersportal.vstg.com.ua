@@ -54,7 +54,8 @@ from backend.authentication import OneCApiKeyAuthentication
 from backend.permissions import (
     IsAuthenticatedOr1CApiKey, 
     IsAdminJWTOr1CApiKey, 
-    IsAdminJWT
+    IsAdminJWT,
+    IsBranchesDirectorReadOnly,
 )
 from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
 from backend.utils.GuidToBin1C import guid_to_1c_bin
@@ -64,7 +65,7 @@ from backend.utils.db_1c_lookups import (
     get_document_number_by_guid, 
     get_document_year_by_guid
 )
-from backend.utils.contractor import ensure_order_action_access, resolve_contractor
+from backend.utils.contractor import ensure_order_action_access, resolve_contractor, get_accessible_dealer_guids, get_accessible_dealer_rows, get_dealer_scope_requester_ids
 from backend.utils.onec_api import send_to_1c
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
@@ -735,23 +736,8 @@ def complaints_view(request):  # Знову синхронна для DRF
     requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
     requested_contractor_guid = request.GET.get("contractor")
 
-    if requester_role in {"manager", "region_manager"} and requested_contractor_guid:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
-                [request.user.id],
-            )
-            columns = [column[0] for column in cursor.description]
-            contractor_index = columns.index("ContractorID")
-            allowed_guids = {
-                str(
-                    bin_to_guid_1c(row[contractor_index])
-                    if isinstance(row[contractor_index], (bytes, bytearray, memoryview))
-                    else row[contractor_index]
-                ).lower()
-                for row in cursor.fetchall()
-                if row[contractor_index]
-            }
+    if requester_role in {"manager", "region_manager", "branch_manager", "branches_director"} and requested_contractor_guid:
+        allowed_guids = get_accessible_dealer_guids(request.user)
 
         if requested_contractor_guid.strip().lower() not in allowed_guids:
             return Response(
@@ -766,7 +752,7 @@ def complaints_view(request):  # Знову синхронна для DRF
                 request,
                 allow_admin=True,
                 admin_param="contractor",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return {"error": str(e), "status_code": 403}
@@ -1457,12 +1443,8 @@ def api_get_orders(request):
     requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
     requested_contractor_guid = request.GET.get("contractor_guid")
 
-    if requester_role in {"manager", "region_manager"} and requested_contractor_guid:
-        with connection.cursor() as cursor:
-            cursor.execute("EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s", [request.user.id])
-            columns = [column[0] for column in cursor.description]
-            contractor_index = columns.index("ContractorID")
-            allowed_guids = {str(bin_to_guid_1c(row[contractor_index]) if isinstance(row[contractor_index], (bytes, bytearray, memoryview)) else row[contractor_index]).lower() for row in cursor.fetchall() if row[contractor_index]}
+    if requester_role in {"manager", "region_manager", "branch_manager", "branches_director"} and requested_contractor_guid:
+        allowed_guids = get_accessible_dealer_guids(request.user)
 
         if requested_contractor_guid.strip().lower() not in allowed_guids:
             return Response({"error": "У вас немає доступу до вибраного дилера."}, status=status.HTTP_403_FORBIDDEN)
@@ -1473,7 +1455,7 @@ def api_get_orders(request):
             request,
             allow_admin=True,
             admin_param="contractor_guid",
-            elevated_roles=("admin", "manager", "region_manager"),
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
         )
     except (ValueError, PermissionError) as e:
         logger.warning(
@@ -1786,23 +1768,8 @@ def additional_orders_view(request):  # Синхронна обгортка дл
     requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
     requested_contractor_guid = request.GET.get("contractor")
 
-    if requester_role in {"manager", "region_manager"} and requested_contractor_guid:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
-                [request.user.id],
-            )
-            columns = [column[0] for column in cursor.description]
-            contractor_index = columns.index("ContractorID")
-            allowed_guids = {
-                str(
-                    bin_to_guid_1c(row[contractor_index])
-                    if isinstance(row[contractor_index], (bytes, bytearray, memoryview))
-                    else row[contractor_index]
-                ).lower()
-                for row in cursor.fetchall()
-                if row[contractor_index]
-            }
+    if requester_role in {"manager", "region_manager", "branch_manager", "branches_director"} and requested_contractor_guid:
+        allowed_guids = get_accessible_dealer_guids(request.user)
 
         if requested_contractor_guid.strip().lower() not in allowed_guids:
             return Response(
@@ -1817,7 +1784,7 @@ def additional_orders_view(request):  # Синхронна обгортка дл
                 request,
                 allow_admin=True,
                 admin_param="contractor",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return {"error": str(e), "status_code": 403}
@@ -2354,12 +2321,15 @@ def get_additional_orders_info_all(request):
         return Response({"error": "Invalid year or month"}, status=400)
     
 
+    scope_requester_ids = get_dealer_scope_requester_ids(request.user)
+
     logger.info(f"Fetching additional orders by portal role for {year}-{month:02d}", extra={
         'tags': {
             'action': 'get_additional_orders_by_portal_role',
             'year': year,
             'month': month,
-            'portal_user': request.user.username if request.user else 'unknown'
+            'portal_user': request.user.username if request.user else 'unknown',
+            'scope_requester_ids': scope_requester_ids,
         }
     })
 
@@ -2374,25 +2344,44 @@ def get_additional_orders_info_all(request):
 
     try: 
 
+        raw_rows = []
         with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers_2]
-                    @RequesterUserID = %s,
-                    @Year = %s,
-                    @Month = %s
-                """,
-                [request.user.id, year, month]
+            for scoped_requester_id in scope_requester_ids:
+                cursor.execute(
+                    """
+                    EXEC [dbo].[GetAdditionalOrdersByMonth_ForPortalUsers_2]
+                        @RequesterUserID = %s,
+                        @Year = %s,
+                        @Month = %s
+                    """,
+                    [scoped_requester_id, year, month]
+                )
+                columns = [c[0] for c in cursor.description]
+                raw_rows.extend(
+                    dict(zip(columns, values))
+                    for values in cursor.fetchall()
+                )
+
+        unique_rows = {}
+        for row in raw_rows:
+            raw_guid = row.get("AdditionalOrderGuid")
+            if isinstance(raw_guid, memoryview):
+                raw_guid = raw_guid.tobytes()
+            if isinstance(raw_guid, bytearray):
+                raw_guid = bytes(raw_guid)
+            row_key = raw_guid or (
+                str(row.get("AdditionalOrderNumber") or ""),
+                str(row.get("CustomerID") or ""),
             )
-            columns = [c[0] for c in cursor.description]
-            raw_rows = cursor.fetchall()
+            unique_rows[row_key] = row
+        raw_rows = list(unique_rows.values())
 
         sql_duration = time.time() - start_time
 
 
         rows = []
         for r in raw_rows:
-            raw = dict(zip(columns, r))
+            raw = dict(r)
 
     
             raw_guid = raw.get("AdditionalOrderGuid")
@@ -2561,7 +2550,7 @@ def get_additional_orders_info_all(request):
     exclude=True
 )
 @api_view(["GET"])
-@permission_classes([IsAdminJWT])
+@permission_classes([IsAdminJWT | IsBranchesDirectorReadOnly])
 def complaints_view_all_by_month(request):
     """
     Повертає рекламації за місяць відповідно до ролі користувача.
@@ -2603,6 +2592,7 @@ def complaints_view_all_by_month(request):
         )
 
     requester_user_id = request.user.id
+    scope_requester_ids = get_dealer_scope_requester_ids(request.user)
     requester_role = str(
         getattr(request.user, "role", "") or ""
     ).strip().lower()
@@ -2617,35 +2607,55 @@ def complaints_view_all_by_month(request):
                 "role": requester_role,
                 "year": year,
                 "month": month,
+                "scope_requester_ids": scope_requester_ids,
             }
         },
     )
 
     try:
+        raw_rows = []
         with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                EXEC [dbo].[GetComplaintsFull_ByMonth_2]
-                    @RequesterUserID = %s,
-                    @Year = %s,
-                    @Month = %s
-                """,
-                [
-                    requester_user_id,
-                    year,
-                    month,
-                ],
-            )
+            for scoped_requester_id in scope_requester_ids:
+                cursor.execute(
+                    """
+                    EXEC [dbo].[GetComplaintsFull_ByMonth_2]
+                        @RequesterUserID = %s,
+                        @Year = %s,
+                        @Month = %s
+                    """,
+                    [
+                        scoped_requester_id,
+                        year,
+                        month,
+                    ],
+                )
 
-            columns = [col[0] for col in cursor.description]
-            raw_rows = cursor.fetchall()
+                columns = [col[0] for col in cursor.description]
+                raw_rows.extend(
+                    dict(zip(columns, values))
+                    for values in cursor.fetchall()
+                )
+
+        unique_rows = {}
+        for row in raw_rows:
+            raw_guid = row.get("ComplaintGuid")
+            if isinstance(raw_guid, memoryview):
+                raw_guid = raw_guid.tobytes()
+            if isinstance(raw_guid, bytearray):
+                raw_guid = bytes(raw_guid)
+            row_key = raw_guid or (
+                str(row.get("ComplaintNumber") or ""),
+                str(row.get("CustomerLink") or ""),
+            )
+            unique_rows[row_key] = row
+        raw_rows = list(unique_rows.values())
             
         sql_duration = time.time() - start_time
         processed_rows = []
 
         for r in raw_rows:
             try:
-                row = dict(zip(columns, r))
+                row = dict(r)
                 row["CustomerLink"] = bin_to_guid_1c(row["CustomerLink"])
           
                 raw_guid = row.get("ComplaintGuid")
@@ -2765,7 +2775,7 @@ def complaints_view_all_by_month(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAdminJWT])
+@permission_classes([IsAdminJWT | IsBranchesDirectorReadOnly])
 def orders_view_all_by_month(request):
     """
     Повертає заявки на прорахунок і пов'язані замовлення
@@ -2788,6 +2798,7 @@ def orders_view_all_by_month(request):
         return maintenance_response
 
     requester_user_id = request.user.id
+    scoped_user = request.user
     requester_role = (
         str(getattr(request.user, "role", "") or "")
         .strip()
@@ -2801,11 +2812,13 @@ def orders_view_all_by_month(request):
             scoped_user = CustomUser.objects.get(
                 id=int(scope_user_id),
                 is_active=True,
-                role__in=("manager", "region_manager"),
+                role__in=("manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, CustomUser.DoesNotExist):
             return JsonResponse({"error": "Активного менеджера не знайдено."}, status=404)
         requester_user_id = scoped_user.id
+    # GetOrdersMonthWithCalculations8 resolves branch_manager scope in SQL.
+    scope_requester_ids = [scoped_user.id]
     dealer_group = request.GET.get("dealer_group")
     dealer_group = dealer_group.strip() if isinstance(dealer_group, str) else None
     if dealer_group == "":
@@ -2864,33 +2877,52 @@ def orders_view_all_by_month(request):
                 "date_from": str(date_from),
                 "date_to": str(date_to),
                 "dealer_group": dealer_group,
+                "scope_requester_ids": scope_requester_ids,
             }
         },
     )
 
     try:
+        rows = []
         with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                EXEC [dbo].[GetOrdersMonthWithCalculations7]
-                    @RequesterUserID = %s,
-                    @DateFrom = %s,
-                    @DateTo = %s,
-                    @DealerGroup = %s
-                """,
-                [
-                    requester_user_id,
-                    date_from,
-                    date_to,
-                    dealer_group,
-                ],
+            for scoped_requester_id in scope_requester_ids:
+                cursor.execute(
+                    """
+                    EXEC [dbo].[GetOrdersMonthWithCalculations8]
+                        @RequesterUserID = %s,
+                        @DateFrom = %s,
+                        @DateTo = %s,
+                        @DealerGroup = %s
+                    """,
+                    [
+                        scoped_requester_id,
+                        date_from,
+                        date_to,
+                        dealer_group,
+                    ],
+                )
+                columns = [column[0] for column in cursor.description]
+                rows.extend(
+                    dict(zip(columns, row))
+                    for row in cursor.fetchall()
+                )
+
+        unique_rows = {}
+        for row in rows:
+            def key_value(value):
+                if isinstance(value, memoryview):
+                    value = value.tobytes()
+                if isinstance(value, bytearray):
+                    value = bytes(value)
+                return value
+            row_key = (
+                key_value(row.get("CalcID_GUID")),
+                key_value(row.get("OrderID_GUID")),
+                str(row.get("CalcNumber") or ""),
+                str(row.get("OrderNumber") or ""),
             )
-            
-            columns = [column[0] for column in cursor.description]
-            rows = [
-                dict(zip(columns, row))
-                for row in cursor.fetchall()
-            ]
+            unique_rows[row_key] = row
+        rows = list(unique_rows.values())
 
         sql_duration = time.time() - start_time
 
@@ -2943,6 +2975,12 @@ def orders_view_all_by_month(request):
                         "dealerId": bin_to_guid_1c(
                             row.get("ContractorID")
                         ),
+                        "dealerType": row.get("DealerType"),
+                        "dealerRegion": row.get("DealerRegion"),
+                        "dealerFolder": row.get("DealerFolder"),
+                        "isBranch": bool(row.get("IsBranch")),
+                        "branchId": row.get("BranchID"),
+                        "mainDealerUserId": row.get("MainDealerUserID"),
                         "constructionsQTY": calc_constructions_count,
                         "authorGuid": (
                             row.get("CalcAuthor_GUID")
@@ -3821,7 +3859,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             logger.warning(f"Access denied for create calculation: {str(e)}", extra={
@@ -4090,7 +4128,7 @@ class UpdateCalculationView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return Response(
@@ -4225,7 +4263,7 @@ def get_dealer_addresses(request):
         request,
         allow_admin=True,
         admin_param="contractor",
-        elevated_roles=("admin", "manager", "region_manager"),
+        elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
     )
 
     # logger.info(f"Fetching addresses for contractor", extra={
@@ -4357,7 +4395,7 @@ def wds_codes_by_contractor(request):
 
     contractor_bin, contractor_guid = resolve_contractor(
         request,
-        elevated_roles=("admin", "manager", "region_manager", "director"),
+        elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director", "director"),
     )
 
     raw_from = request.GET.get("date_from")
@@ -5231,7 +5269,7 @@ class ProductionStatisticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -5486,7 +5524,7 @@ def _should_include_ruta_dealer(scope_user, requester_user_id=None):
     scope_role = str(getattr(scope_user, "role", "") or "").strip().lower()
     if scope_role in {"admin", "director"}:
         return True
-    if scope_role not in {"manager", "region_manager"}:
+    if scope_role not in {"manager", "region_manager", "branch_manager", "branches_director"}:
         return False
 
     if _portal_user_1c_guid(scope_user) == RUTA_MAIN_MANAGER_GUID:
@@ -5497,7 +5535,7 @@ def _should_include_ruta_dealer(scope_user, requester_user_id=None):
     if not requester_user_id:
         return False
 
-    accessible_dealers = _fetch_accessible_portal_dealers(requester_user_id)
+    accessible_dealers = _fetch_accessible_portal_dealers(scope_user)
     return any(
         str(item.get("contractor_guid") or "").strip().lower() == RUTA_CONTRACTOR_GUID
         for item in accessible_dealers
@@ -5662,16 +5700,8 @@ def _normalize_portal_user_guid(value):
     return _normalize_guid_text(value)
 
 
-def _fetch_accessible_portal_dealers(requester_user_id):
-    with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            EXEC dbo.GetDealerPortalUsers_2
-                @RequesterUserID = %s
-            """,
-            [requester_user_id],
-        )
-        rows = _dictfetchall(cursor)
+def _fetch_accessible_portal_dealers(requester_user):
+    rows = get_accessible_dealer_rows(requester_user)
 
     normalized = []
     for row in rows:
@@ -5707,21 +5737,47 @@ def _fetch_portal_comparison_result(date_from, date_to, contractor_bin):
 
 
 def _fetch_accessible_portal_reports_result(requester_user_id, date_from, date_to):
-    with connections["default"].cursor() as cursor:
-        cursor.execute(
-            """
-            SET ANSI_WARNINGS OFF;
-            EXEC [dbo].[GetPortalAccessibleDealerReports]
-                @RequesterUserID = %s,
-                @StartDate = %s,
-                @EndDate = %s
-            """,
-            [requester_user_id, date_from, date_to],
+    requester_user = CustomUser.objects.get(id=requester_user_id)
+    requester_ids = get_dealer_scope_requester_ids(requester_user)
+    if not requester_ids:
+        return [], [], []
+
+    all_dealer_rows = []
+    totals_rows = []
+    region_rows = []
+    for scoped_requester_id in requester_ids:
+        with connections["default"].cursor() as cursor:
+            cursor.execute(
+                """
+                SET ANSI_WARNINGS OFF;
+                EXEC [dbo].[GetPortalAccessibleDealerReports]
+                    @RequesterUserID = %s,
+                    @StartDate = %s,
+                    @EndDate = %s
+                """,
+                [scoped_requester_id, date_from, date_to],
+            )
+            scoped_totals = _dictfetchall(cursor)
+            scoped_dealers = _dictfetchall(cursor) if cursor.nextset() else []
+            scoped_regions = _dictfetchall(cursor) if cursor.nextset() else []
+
+        if len(requester_ids) == 1:
+            totals_rows = scoped_totals
+            region_rows = scoped_regions
+        all_dealer_rows.extend(scoped_dealers)
+
+    unique_dealers = {}
+    for row in all_dealer_rows:
+        contractor_guid = _normalize_portal_user_guid(
+            _portal_row_value(row, "ContractorGuid", "ContractorID")
         )
-        totals_rows = _dictfetchall(cursor)
-        dealer_rows = _dictfetchall(cursor) if cursor.nextset() else []
-        region_rows = _dictfetchall(cursor) if cursor.nextset() else []
-    return totals_rows, dealer_rows, region_rows
+        if contractor_guid:
+            unique_dealers[contractor_guid] = row
+
+    if len(requester_ids) > 1:
+        totals_rows = []
+        region_rows = []
+    return totals_rows, list(unique_dealers.values()), region_rows
 
 
 def _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scope_user=None):
@@ -5765,7 +5821,7 @@ def _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scop
         )
     )
 
-    if len(dealers) != original_dealers_count:
+    if len(dealers) != original_dealers_count or not totals_row or (dealers and not regions):
         fallback_currency = _analytics_row_currency(totals_row)
         totals = _build_accessible_report_totals(dealers, fallback_currency)
         regions = _build_accessible_report_regions(dealers)
@@ -5796,6 +5852,141 @@ def _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scop
         "regions": top_regions,
         "insights": insights,
     }
+
+
+def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, date_to, dealer_group):
+    """Apply the same 1C dealer-folder grouping used by the orders/KPI report."""
+    if not dealer_group:
+        return payload
+
+    grouped_dealers = {}
+    seen_orders = set()
+    allowed_guids = set()
+    for requester_id in get_dealer_scope_requester_ids(scope_user):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC [dbo].[GetOrdersMonthWithCalculations8]
+                    @RequesterUserID = %s,
+                    @DateFrom = %s,
+                    @DateTo = %s,
+                    @DealerGroup = %s
+                """,
+                [requester_id, date_from, date_to, dealer_group],
+            )
+            columns = [column[0] for column in cursor.description]
+            for values in cursor.fetchall():
+                row = dict(zip(columns, values))
+                contractor_id = row.get("ContractorID")
+                if isinstance(contractor_id, (bytes, bytearray, memoryview)):
+                    contractor_guid = bin_to_guid_1c(bytes(contractor_id)).strip().lower()
+                elif contractor_id:
+                    contractor_guid = str(contractor_id).strip().lower()
+                else:
+                    continue
+                allowed_guids.add(contractor_guid)
+
+                order_id = row.get("OrderID_GUID") or row.get("OrderNumber")
+                if not order_id:
+                    continue
+                order_key = (contractor_guid, str(order_id))
+                if order_key in seen_orders:
+                    continue
+                seen_orders.add(order_key)
+
+                dealer = grouped_dealers.setdefault(contractor_guid, {
+                    "contractor_guid": contractor_guid,
+                    "dealer_name": row.get("Customer") or row.get("OrganizationName") or "Без назви",
+                    "region_name": row.get("DealerRegion") or None,
+                    "main_manager_guid": None,
+                    "main_manager_name": None,
+                    "orders_count": 0,
+                    "total_constructions": 0,
+                    "total_turnover": 0,
+                    "avg_check": 0,
+                    "currency": row.get("Currency") or "грн",
+                })
+                dealer["orders_count"] += 1
+                dealer["total_constructions"] += _safe_int(row.get("ConstructionsCount"))
+                dealer["total_turnover"] += _safe_float(row.get("OrderSum"))
+
+    existing_by_guid = {
+        str(item.get("contractor_guid") or "").strip().lower(): item
+        for item in payload.get("dealers", [])
+    }
+    if dealer_group == "Філіали":
+        # The 1C grouping procedure can omit a branch when it has no order row
+        # in the period, while the accessible-dealers report still contains it.
+        allowed_guids.update(
+            contractor_guid
+            for contractor_guid, item in existing_by_guid.items()
+            if "філіал" in str(item.get("dealer_name") or "").casefold()
+        )
+    dealers = []
+    for contractor_guid in allowed_guids:
+        if contractor_guid not in grouped_dealers and contractor_guid in existing_by_guid:
+            dealers.append(dict(existing_by_guid[contractor_guid]))
+    for contractor_guid, dealer in grouped_dealers.items():
+        existing = existing_by_guid.get(contractor_guid) or {}
+        dealer["main_manager_guid"] = existing.get("main_manager_guid")
+        dealer["main_manager_name"] = existing.get("main_manager_name")
+        dealer["avg_check"] = (
+            dealer["total_turnover"] / dealer["orders_count"]
+            if dealer["orders_count"] else 0
+        )
+        dealers.append(dealer)
+    dealers.sort(key=lambda item: (-_safe_float(item.get("total_turnover")), item.get("dealer_name") or ""))
+    for index, dealer in enumerate(dealers, start=1):
+        dealer["turnover_rank"] = index
+
+    fallback_currency = (payload.get("totals") or {}).get("currency") or "грн"
+    regions = _build_accessible_report_regions(dealers)
+    payload = dict(payload)
+    payload.update({
+        "totals": _build_accessible_report_totals(dealers, fallback_currency),
+        "dealers": dealers,
+        "top_dealers": dealers[:10],
+        "regions": regions[:10],
+        "insights": {
+            "top_region_name": regions[0].get("region_name") if regions else None,
+            "top_region_turnover": regions[0].get("total_turnover") if regions else None,
+            "top_region_avg_check": regions[0].get("avg_check") if regions else None,
+        },
+    })
+    return payload
+
+
+def _filter_accessible_dealer_report_by_contractor(payload, contractor_guid):
+    """Narrow all dealer-report totals and charts to one accessible dealer."""
+    if not contractor_guid:
+        return payload
+
+    normalized_guid = _normalize_portal_contractor_guid(contractor_guid)
+    dealers = [
+        item
+        for item in payload.get("dealers", [])
+        if _normalize_portal_contractor_guid(item.get("contractor_guid")) == normalized_guid
+    ]
+    fallback_currency = (
+        (dealers[0].get("currency") if dealers else None)
+        or (payload.get("totals") or {}).get("currency")
+        or "грн"
+    )
+    regions = _build_accessible_report_regions(dealers)
+    payload = dict(payload)
+    payload.update({
+        "totals": _build_accessible_report_totals(dealers, fallback_currency),
+        "dealers": dealers,
+        "top_dealers": dealers,
+        "regions": regions,
+        "insights": {
+            "top_region_name": regions[0].get("region_name") if regions else None,
+            "top_region_turnover": regions[0].get("total_turnover") if regions else None,
+            "top_region_avg_check": regions[0].get("avg_check") if regions else None,
+        },
+        "selected_contractor_guid": normalized_guid,
+    })
+    return payload
 
 
 def _build_portal_comparison_insights(selected_row, leaderboard_rows, region_rows):
@@ -5861,7 +6052,7 @@ class ProductionTimelinessByContractorView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as exc:
             return Response({"detail": str(exc)}, status=400)
@@ -6030,7 +6221,7 @@ class ProductionUnifiedAnalyticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as exc:
             return Response({"detail": str(exc)}, status=400)
@@ -6201,7 +6392,7 @@ class PortalDealerComparisonAnalyticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as exc:
             return Response({"detail": str(exc)}, status=400)
@@ -6354,7 +6545,7 @@ class PortalAccessibleDealerReportsView(APIView):
 
     def get(self, request):
         role = getattr(request.user, "role", "")
-        if role not in ("admin", "director", "manager", "region_manager"):
+        if role not in ("admin", "director", "manager", "region_manager", "branch_manager", "branches_director"):
             return Response({"detail": "Недостатньо прав для перегляду звітів."}, status=403)
 
         requester_user_id = request.user.id
@@ -6367,11 +6558,19 @@ class PortalAccessibleDealerReportsView(APIView):
                 scope_user = CustomUser.objects.get(
                     id=int(scope_user_id),
                     is_active=True,
-                    role__in=("manager", "region_manager"),
+                    role__in=("manager", "region_manager", "branch_manager", "branches_director"),
                 )
             except (ValueError, CustomUser.DoesNotExist):
                 return Response({"detail": "Активного менеджера не знайдено."}, status=404)
             requester_user_id = scope_user.id
+
+        dealer_group = str(request.GET.get("dealer_group") or "").strip() or None
+        contractor_guid = str(request.GET.get("contractor_guid") or "").strip() or None
+        allowed_dealer_groups = {"Дилера", 'ТОВ "Наша фірма"', "Експорт", "Філіали"}
+        if dealer_group and role not in ("admin", "director"):
+            return Response({"detail": "Змінювати тип дилерів може лише адміністратор."}, status=403)
+        if dealer_group and dealer_group not in allowed_dealer_groups:
+            return Response({"detail": "Невідомий тип дилерів."}, status=400)
 
         date_from_raw = request.GET.get("date_from")
         date_to_raw = request.GET.get("date_to")
@@ -6390,6 +6589,14 @@ class PortalAccessibleDealerReportsView(APIView):
 
         try:
             payload = _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scope_user)
+            payload = _filter_accessible_dealer_report_by_group(
+                payload,
+                scope_user,
+                date_from,
+                date_to,
+                dealer_group,
+            )
+            payload = _filter_accessible_dealer_report_by_contractor(payload, contractor_guid)
         except DatabaseError as exc:
             error_msg = str(exc)
             if "927" in error_msg or "процессе восстановления" in error_msg.lower():
@@ -6421,7 +6628,7 @@ class DealerDetailedStatisticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -6472,7 +6679,7 @@ class DealerFullAnalyticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -6549,7 +6756,7 @@ class OrdersDealerStatisticsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             return Response({"detail": str(e)}, status=400)
@@ -6710,7 +6917,7 @@ class PartnerDebtsView(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             logger.warning(f"Unauthorized debt access attempt by {user_name}: {str(e)}")
@@ -7097,6 +7304,31 @@ class PortalManagerReportView(APIView):
 
         start_time = time.time()
         user_name = request.user.username if request.user.is_authenticated else "unknown"
+        requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+
+        if requester_role not in {"admin", "branch_manager", "branches_director"}:
+            return Response({"detail": "Доступ заборонено"}, status=403)
+
+        allowed_manager_guids = None
+        if requester_role in {"branch_manager", "branches_director"}:
+            manager_users = CustomUser.objects.filter(
+                is_active=True,
+                role__in=("manager", "region_manager", "branch_manager", "branches_director"),
+                user_id_1C__isnull=False,
+            )
+            if requester_role == "branch_manager":
+                if not request.user.branch_id:
+                    manager_users = manager_users.none()
+                else:
+                    manager_users = manager_users.filter(branch_id=request.user.branch_id)
+            else:
+                manager_users = manager_users.filter(branch__isnull=False)
+
+            allowed_manager_guids = {
+                bin_to_guid_1c(bytes(value)).strip().lower()
+                for value in manager_users.values_list("user_id_1C", flat=True)
+                if value
+            }
 
         # logger.info(f"User {user_name} requested Portal Manager Report", extra={
         #     'tags': {
@@ -7122,6 +7354,13 @@ class PortalManagerReportView(APIView):
      
                     if row_dict.get("ManagerID"):
                         row_dict["ManagerID"] = bin_to_guid_1c(row_dict["ManagerID"])
+
+                    if (
+                        allowed_manager_guids is not None
+                        and str(row_dict.get("ManagerID") or "").strip().lower()
+                        not in allowed_manager_guids
+                    ):
+                        continue
                     
                     managers_list.append(row_dict)
 
@@ -8405,7 +8644,7 @@ def get_all_manager_list(request):
         managers = list(
             CustomUser.objects.filter(
                 is_active=True,
-                role__in=["manager", "region_manager"],
+                role__in=["manager", "region_manager", "branch_manager", "branches_director"],
             ).values(
                 "id",
                 "username",

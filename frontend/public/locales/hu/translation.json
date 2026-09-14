@@ -526,6 +526,11 @@
       "solutions": "Hiba a megoldások betöltésekor",
       "series": "Nem sikerült adatokat szerezni a tervek sorozatáról",
       "address": "Nem sikerült lekérni a szállítási címet"
+    },
+    "validation": {
+      "reason_required": "Válassza ki a panasz okát",
+      "solution_required": "Válassza ki a panasz megoldását",
+      "reason_and_solution_required": "Válassza ki a panasz okát és megoldását"
     }
   },
   "select": {

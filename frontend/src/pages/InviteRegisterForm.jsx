@@ -806,7 +806,7 @@ export default function InviteRegisterForm() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const shouldShowTelegramAfterRegistration = !["manager", "region_manager"].includes(info.role);
+  const shouldShowTelegramAfterRegistration = !["manager", "region_manager", "branch_manager", "branches_director"].includes(info.role);
 
   /* ================= HELPERS ================= */
   

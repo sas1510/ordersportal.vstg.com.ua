@@ -6,7 +6,7 @@ class IsAdminManagerOrReadOnly(BasePermission):
     а зміни (POST, PUT, PATCH, DELETE) лише користувачам, 
     які належать до груп 'admin' або 'manager'.
     """
-    allowed_groups = {"admin", "manager"}  # Можна додати 'regional_manager' якщо потрібно
+    allowed_groups = {"admin", "manager", "region_manager", "branch_manager", "branches_director"}  # Можна додати 'regional_manager' якщо потрібно
 
     def has_permission(self, request, view):
         # Безпечні методи доступні всім

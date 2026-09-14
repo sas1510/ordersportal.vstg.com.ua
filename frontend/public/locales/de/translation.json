@@ -527,6 +527,11 @@
       "solutions": "Fehler beim Laden der Lösungsoptionen",
       "series": "Daten zur Designserie konnten nicht abgerufen werden",
       "address": "Lieferadresse konnte nicht abgerufen werden"
+    },
+    "validation": {
+      "reason_required": "Wählen Sie einen Reklamationsgrund",
+      "solution_required": "Wählen Sie eine Lösung für die Reklamation",
+      "reason_and_solution_required": "Wählen Sie einen Reklamationsgrund und eine Lösung"
     }
   },
   "select": {

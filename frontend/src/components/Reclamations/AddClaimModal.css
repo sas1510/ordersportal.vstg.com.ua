@@ -555,6 +555,14 @@ body.dark-theme .claim-clear-file {
   font-size: 14px;
 }
 
+.claim-validation-error {
+  display: block;
+  margin-top: 5px;
+  color: #d63333;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* ===== МОБІЛЬНА АДАПТАЦІЯ ===== */
 @media (max-width: 480px) {
   /* Вікно модалки — менше відступів */

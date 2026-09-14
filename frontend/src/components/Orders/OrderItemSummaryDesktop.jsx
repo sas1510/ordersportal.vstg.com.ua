@@ -45,9 +45,6 @@ export default React.memo(function OrderItemSummaryDesktop({
   ] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [, setRefreshTrigger] = useState(0);
-
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const [claimOrderGuid, setClaimOrderGuid] = useState("");
 
@@ -195,8 +192,6 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   const handleSaveAdditionalOrder = useCallback(
     async (formData) => {
-      setLoading(true);
-
       try {
         const response = await axiosInstance.post(
           "/additional_orders/save_additional_order/",
@@ -214,11 +209,6 @@ export default React.memo(function OrderItemSummaryDesktop({
           );
 
           setIsReorderModalOpen(false);
-          setRefreshTrigger((prev) => prev + 1);
-
-          if (onRefresh) {
-            await onRefresh();
-          }
         } else {
           addNotification(
             `${t("errors.error")} ${
@@ -234,11 +224,9 @@ export default React.memo(function OrderItemSummaryDesktop({
           }`,
           "error",
         );
-      } finally {
-        setLoading(false);
       }
     },
-    [addNotification, onRefresh, t],
+    [addNotification, t],
   );
 
   const openClaimModal = useCallback(() => {
@@ -833,6 +821,7 @@ export default React.memo(function OrderItemSummaryDesktop({
       <AddClaimModal
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
+        onSave={() => setIsClaimModalOpen(false)}
         initialOrderNumber={claimOrderNumber}
         initialOrderGUID={claimOrderGuid}
         initialContractorGuid={contractorGuid}
@@ -862,11 +851,6 @@ export default React.memo(function OrderItemSummaryDesktop({
         />
       )}
 
-      {loading && (
-        <div className="loading-spinner-wrapper">
-          <div className="loading-spinner" />
-        </div>
-      )}
     </div>
   );
 });

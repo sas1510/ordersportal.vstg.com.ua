@@ -510,6 +510,10 @@ export default function AddClaimModal({
   const [claimDate, setClaimDate] = useState("");
   const [reasonLink, setReasonLink] = useState("");
   const [solutionLink, setSolutionLink] = useState("");
+  const [validationErrors, setValidationErrors] = useState({
+    reason: false,
+    solution: false,
+  });
   const [description, setDescription] = useState("");
 
   const [photos, setPhotos] = useState([]);
@@ -631,9 +635,17 @@ export default function AddClaimModal({
       setFetchErrors((p) => ({ ...p, series: null }));
       return;
     }
+    if (isManager && !dealerId) {
+      setSeriesOptions([]);
+      setSelectedSeries([]);
+      setOrderNotFound(false);
+      return;
+    }
     setFetchErrors((p) => ({ ...p, series: null }));
     try {
-      const res = await axiosInstance.get(`/complaints/get_series/${orderNumber}/`);
+      const res = await axiosInstance.get(`/complaints/get_series/${orderNumber}/`, {
+        params: isManager ? { contractor: dealerId } : undefined,
+      });
       if (!res.data?.series?.length) {
         setSeriesOptions([]);
         setSelectedSeries([]);
@@ -648,7 +660,7 @@ export default function AddClaimModal({
       setOrderNotFound(false);
       setFetchErrors((p) => ({ ...p, series: t("add_claim.errors.series") }));
     }
-  }, [orderNumber, t]);
+  }, [dealerId, isManager, orderNumber, t]);
 
   useEffect(() => {
     fetchSeries();
@@ -661,11 +673,17 @@ export default function AddClaimModal({
       setFetchErrors((previous) => ({ ...previous, address: null }));
       return;
     }
+    if (isManager && !dealerId) {
+      setOrderDeliveryAddress("");
+      setFetchErrors((previous) => ({ ...previous, address: null }));
+      return;
+    }
 
     setFetchErrors((previous) => ({ ...previous, address: null }));
     try {
       const response = await axiosInstance.get(
         `/complaints/delivery-address/${encodeURIComponent(normalizedOrderNumber)}/`,
+        { params: isManager ? { contractor: dealerId } : undefined },
       );
       setOrderDeliveryAddress(response.data?.address || "");
     } catch {
@@ -675,7 +693,7 @@ export default function AddClaimModal({
         address: t("add_claim.errors.address"),
       }));
     }
-  }, [orderNumber, t]);
+  }, [dealerId, isManager, orderNumber, t]);
 
   useEffect(() => {
     fetchDeliveryAddress();
@@ -699,6 +717,7 @@ export default function AddClaimModal({
     setClaimDate("");
     setReasonLink("");
     setSolutionLink("");
+    setValidationErrors({ reason: false, solution: false });
     setDescription("");
     setPhotos([]);
     setSeriesOptions([]);
@@ -720,6 +739,25 @@ export default function AddClaimModal({
       addNotification(t("add_claim.select_dealer"), "error");
       return;
     }
+
+    const missingReason = !String(reasonLink || "").trim();
+    const missingSolution = !String(solutionLink || "").trim();
+    if (missingReason || missingSolution) {
+      setValidationErrors({
+        reason: missingReason,
+        solution: missingSolution,
+      });
+
+      const message = missingReason && missingSolution
+        ? t("add_claim.validation.reason_and_solution_required")
+        : missingReason
+          ? t("add_claim.validation.reason_required")
+          : t("add_claim.validation.solution_required");
+      addNotification(message, "error");
+      return;
+    }
+
+    setValidationErrors({ reason: false, solution: false });
     setLoading(true);
     try {
       const photosBase64 = await Promise.all(
@@ -869,7 +907,26 @@ export default function AddClaimModal({
           </div>
 
           <div className="claim-select-container">
-            <CustomSelect label={t("add_claim.reason_label")} options={reasonOptions} value={reasonLink} onChange={setReasonLink} />
+            <CustomSelect
+              label={t("add_claim.reason_label")}
+              options={reasonOptions}
+              value={reasonLink}
+              error={validationErrors.reason}
+              onChange={(value) => {
+                setReasonLink(value);
+                setSolutionLink("");
+                setValidationErrors((previous) => ({
+                  ...previous,
+                  reason: false,
+                  solution: false,
+                }));
+              }}
+            />
+            {validationErrors.reason && (
+              <span className="claim-validation-error">
+                {t("add_claim.validation.reason_required")}
+              </span>
+            )}
             {fetchErrors.reasons && (
               <div className="error-inline-retry">
                 <span>{fetchErrors.reasons}</span>
@@ -879,7 +936,25 @@ export default function AddClaimModal({
           </div>
 
           <div className="claim-select-container">
-            <CustomSelect label={t("add_claim.solution_label")} options={solutionOptions} value={solutionLink} onChange={setSolutionLink} disabled={!solutionOptions.length} />
+            <CustomSelect
+              label={t("add_claim.solution_label")}
+              options={solutionOptions}
+              value={solutionLink}
+              error={validationErrors.solution}
+              onChange={(value) => {
+                setSolutionLink(value);
+                setValidationErrors((previous) => ({
+                  ...previous,
+                  solution: false,
+                }));
+              }}
+              disabled={!solutionOptions.length}
+            />
+            {validationErrors.solution && (
+              <span className="claim-validation-error">
+                {t("add_claim.validation.solution_required")}
+              </span>
+            )}
             {fetchErrors.solutions && (
               <div className="error-inline-retry">
                 <span>{fetchErrors.solutions}</span>

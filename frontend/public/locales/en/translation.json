@@ -527,6 +527,11 @@
       "solutions": "Error loading solution options",
       "series": "Failed to get design series data",
       "address": "Failed to get the delivery address"
+    },
+    "validation": {
+      "reason_required": "Select a claim reason",
+      "solution_required": "Select a claim solution",
+      "reason_and_solution_required": "Select a claim reason and solution"
     }
   },
   "select": {

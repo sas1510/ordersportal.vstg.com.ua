@@ -1328,7 +1328,6 @@ const CustomerBillsPage = () => {
   const [loading, setLoading] = useState(!isAdmin);
   const [_error, setError] = useState("");
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
-  const [isCreateBillV2Open, setIsCreateBillV2Open] = useState(false);
 
   const [pdfDownloadingId, setPdfDownloadingId] = useState(null);
   const [activeQrBill, setActiveQrBill] = useState(null);
@@ -1467,21 +1466,12 @@ const CustomerBillsPage = () => {
               <FaSearch /> {t("common.search")}
             </button>
             {USER_ROLE === "customer" && (
-              <>
-                <button
-                  className="btn btn-create-bill"
-                  onClick={() => setIsCreateBillOpen(true)}
-                >
-                  + {t("bills.add_bill")}
-                </button>
-                {/* <button
-                  className="btn btn-create-bill"
-                  onClick={() => setIsCreateBillV2Open(true)}
-                  title="New parallel invoice form"
-                >
-                  + Новий рахунок
-                </button> */}
-              </>
+              <button
+                className="btn btn-create-bill"
+                onClick={() => setIsCreateBillOpen(true)}
+              >
+                + {t("bills.add_bill")}
+              </button>
             )}
           </div>
         </div>
@@ -1543,11 +1533,6 @@ const CustomerBillsPage = () => {
         <CreateCustomerBillModal
           isOpen={isCreateBillOpen}
           onClose={() => setIsCreateBillOpen(false)}
-          onSuccess={fetchBills}
-        />
-        <CreateCustomerBillModal
-          isOpen={isCreateBillV2Open}
-          onClose={() => setIsCreateBillV2Open(false)}
           onSuccess={fetchBills}
           newFlow
         />

@@ -341,7 +341,7 @@ import { AppIcon } from "../Icons/AppIcon";
 // ];
 
 export default function HeaderAdmin() {
-  const { isAdmin } = useAuthGetRole();
+  const { isAdmin, role } = useAuthGetRole();
   const isMobile = useMediaQuery({ maxWidth: 1460 }); 
   const location = useLocation();
   const navigate = useNavigate();
@@ -368,16 +368,26 @@ export default function HeaderAdmin() {
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
   ], [t]);
 
-  const SETTINGS_SUBMENU = useMemo(() => (
-    isAdmin
-      ? [
+  const SETTINGS_SUBMENU = useMemo(() => {
+    if (isAdmin) {
+      return [
           { title: t('nav.settings_users'), to: "/users-list" },
           { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
           { title: "Розсилки", to: "/announcements" },
           { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
-        ]
-      : []
-  ), [isAdmin, t]);
+      ];
+    }
+
+    if (["branch_manager", "branches_director"].includes(role)) {
+      return [
+        { title: t('nav.settings_users'), to: "/users-list" },
+        { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
+        { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
+      ];
+    }
+
+    return [];
+  }, [isAdmin, role, t]);
 
   // --- UI СТАН ---
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

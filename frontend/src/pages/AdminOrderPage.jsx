@@ -30,16 +30,19 @@ const DEALER_GROUP_VALUES = {
   dealers: "__GROUP__DEALERS",
   ourCompany: "__GROUP__OUR_COMPANY",
   export: "__GROUP__EXPORT",
+  branches: "__GROUP__BRANCHES",
 };
 const DEALER_GROUP_TO_SQL_VALUE = {
   [DEALER_GROUP_VALUES.dealers]: "Дилера",
   [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
   [DEALER_GROUP_VALUES.export]: "Експорт",
+  [DEALER_GROUP_VALUES.branches]: "Філіали",
 };
 const DEALER_GROUP_OPTIONS = [
   { value: DEALER_GROUP_VALUES.dealers, label: "Дилера" },
   { value: DEALER_GROUP_VALUES.ourCompany, label: "Наша фірма" },
   { value: DEALER_GROUP_VALUES.export, label: "Експорт" },
+  { value: DEALER_GROUP_VALUES.branches, label: "Філіали" },
 ];
 
 const getLocalDateString = (dateValue = new Date()) => {

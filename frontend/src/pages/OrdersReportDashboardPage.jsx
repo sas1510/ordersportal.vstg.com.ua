@@ -54,20 +54,24 @@ const DEALER_GROUP_VALUES = {
   dealers: "__GROUP__DEALERS",
   ourCompany: "__GROUP__OUR_COMPANY",
   export: "__GROUP__EXPORT",
+  branches: "__GROUP__BRANCHES",
 };
 const DEALER_GROUP_TO_SQL_VALUE = {
   [DEALER_GROUP_VALUES.dealers]: "Дилера",
   [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
   [DEALER_GROUP_VALUES.export]: "Експорт",
+  [DEALER_GROUP_VALUES.branches]: "Філіали",
 };
 const DEALER_GROUP_OPTIONS = [
   { value: DEALER_GROUP_VALUES.dealers, label: "Дилера" },
   { value: DEALER_GROUP_VALUES.ourCompany, label: "Наша фірма" },
   { value: DEALER_GROUP_VALUES.export, label: "Експорт" },
+  { value: DEALER_GROUP_VALUES.branches, label: "Філіали" },
 ];
 const KPI_PROCESSING_GROUPS = [
   { key: "dealers", label: "Дилери", dealerGroup: "Дилера" },
   { key: "export", label: "Експорт", dealerGroup: "Експорт" },
+  { key: "branches", label: "Філіали", dealerGroup: "Філіали" },
 ];
 
 const currentMonthStart = () => {
@@ -491,6 +495,8 @@ export default function OrdersReportDashboardPage() {
   const [dealerReportsLoading, setDealerReportsLoading] = useState(false);
   const [dealerReportsError, setDealerReportsError] = useState("");
   const [dealerReportScopeUserId, setDealerReportScopeUserId] = useState("");
+  const [dealerReportGroup, setDealerReportGroup] = useState("");
+  const [dealerReportDealerGuid, setDealerReportDealerGuid] = useState(ALL_DEALERS_VALUE);
   const [statusScopeUserId, setStatusScopeUserId] = useState("");
   const [kpiScopeUserId, setKpiScopeUserId] = useState("");
   const [activeManagerOptions, setActiveManagerOptions] = useState([]);
@@ -601,6 +607,10 @@ export default function OrdersReportDashboardPage() {
           date_from: dateFrom,
           date_to: dateTo,
           ...(dealerReportScopeUserId ? { scope_user_id: dealerReportScopeUserId } : {}),
+          ...(dealerReportGroup ? { dealer_group: dealerReportGroup } : {}),
+          ...(dealerReportDealerGuid && dealerReportDealerGuid !== ALL_DEALERS_VALUE
+            ? { contractor_guid: dealerReportDealerGuid }
+            : {}),
         },
       });
       setDealerReportsData(response.data || null);
@@ -614,7 +624,7 @@ export default function OrdersReportDashboardPage() {
     } finally {
       setDealerReportsLoading(false);
     }
-  }, [dateFrom, dateTo, dealerContextLoading, dealerReportScopeUserId, isAdmin]);
+  }, [dateFrom, dateTo, dealerContextLoading, dealerReportDealerGuid, dealerReportGroup, dealerReportScopeUserId, isAdmin]);
 
   const loadActiveManagerOptions = useCallback(async () => {
     if (!isSuperAdmin) {
@@ -936,6 +946,15 @@ export default function OrdersReportDashboardPage() {
     return buildDealerTotals(activeDealers);
   }, [activeDealers, dealerTotals, isSuperAdmin, selectedManagerGuid, selectedRegionName]);
 
+  const hideDealerRegions = ["branch_manager", "branches_director"].includes(role)
+    || dealerReportGroup === "Філіали";
+
+  useEffect(function () {
+    if (hideDealerRegions) {
+      setSelectedRegionName(ALL_REGIONS_VALUE);
+    }
+  }, [hideDealerRegions]);
+
   const activeTopDealers = useMemo(function () {
     const source = (isSuperAdmin && selectedManagerGuid !== ALL_MANAGERS_VALUE) || selectedRegionName !== ALL_REGIONS_VALUE ? activeDealers : topDealers;
     return [...source]
@@ -1060,7 +1079,7 @@ export default function OrdersReportDashboardPage() {
   };
 
   return (
-    <main className={"orders-dashboard orders-dashboard--reports-mixed" + (viewMode === "kpi" ? " orders-dashboard--analytics" : "")}>
+    <main className={"orders-dashboard orders-dashboard--reports-mixed orders-dashboard--unified-filters" + (viewMode === "kpi" ? " orders-dashboard--analytics" : "")}>
       <section className="orders-dashboard__panel">
         <div className="orders-dashboard__header">
           <div>
@@ -1093,7 +1112,7 @@ export default function OrdersReportDashboardPage() {
           </div>
 
           {viewMode !== "dealers" && isAdmin ? (
-            <label>
+            <label className="orders-dashboard__filter orders-dashboard__filter--dealer">
               Дилер
               <DealerSelectWithAll
                 value={dealerGuid || ALL_DEALERS_VALUE}
@@ -1107,8 +1126,34 @@ export default function OrdersReportDashboardPage() {
             </label>
           ) : null}
 
+          {viewMode === "dealers" && isAdmin ? (
+            <label className="orders-dashboard__filter orders-dashboard__filter--dealer">
+              Тип дилерів / дилер
+              <DealerSelectWithAll
+                value={
+                  dealerReportGroup
+                    ? DEALER_GROUP_OPTIONS.find(function (item) {
+                        return DEALER_GROUP_TO_SQL_VALUE[item.value] === dealerReportGroup;
+                      })?.value || ALL_DEALERS_VALUE
+                    : dealerReportDealerGuid
+                }
+                onChange={function (value) {
+                  if (DEALER_GROUP_TO_SQL_VALUE[value]) {
+                    setDealerReportGroup(DEALER_GROUP_TO_SQL_VALUE[value]);
+                    setDealerReportDealerGuid(ALL_DEALERS_VALUE);
+                    return;
+                  }
+                  setDealerReportGroup("");
+                  setDealerReportDealerGuid(value);
+                }}
+                allLabel="Всі типи і дилери"
+                extraOptions={isSuperAdmin ? DEALER_GROUP_OPTIONS : []}
+              />
+            </label>
+          ) : null}
+
           {viewMode === "dealers" && isSuperAdmin ? (
-            <label>
+            <label className="orders-dashboard__filter orders-dashboard__filter--manager">
               Менеджер / регіональний менеджер
               <select value={dealerReportScopeUserId} onChange={function (event) { setDealerReportScopeUserId(event.target.value); }}>
                 <option value="">Всі менеджери</option>
@@ -1120,7 +1165,7 @@ export default function OrdersReportDashboardPage() {
           ) : null}
 
           {viewMode === "statuses" && isSuperAdmin ? (
-            <label>
+            <label className="orders-dashboard__filter orders-dashboard__filter--manager">
               Менеджер / регіональний менеджер
               <select value={statusScopeUserId} onChange={function (event) { setStatusScopeUserId(event.target.value); }}>
                 <option value="">Всі менеджери</option>
@@ -1132,7 +1177,7 @@ export default function OrdersReportDashboardPage() {
           ) : null}
 
           {viewMode === "kpi" && isSuperAdmin ? (
-            <label>
+            <label className="orders-dashboard__filter orders-dashboard__filter--manager">
               Менеджер / регіональний менеджер
               <select value={kpiScopeUserId} onChange={function (event) { setKpiScopeUserId(event.target.value); }}>
                 <option value="">Всі менеджери</option>
@@ -1143,8 +1188,8 @@ export default function OrdersReportDashboardPage() {
             </label>
           ) : null}
 
-          {viewMode === "dealers" ? (
-            <label>
+          {viewMode === "dealers" && !hideDealerRegions ? (
+            <label className="orders-dashboard__filter orders-dashboard__filter--region">
               Область
               <select value={selectedRegionName} onChange={function (event) { setSelectedRegionName(event.target.value); }}>
                 <option value={ALL_REGIONS_VALUE}>Всі області</option>
@@ -1155,11 +1200,11 @@ export default function OrdersReportDashboardPage() {
             </label>
           ) : null}
 
-          <label>
+          <label className="orders-dashboard__filter orders-dashboard__filter--date">
             Від
             <input type="date" value={dateFrom} max={dateTo} onChange={function (event) { setDateFrom(event.target.value); }} />
           </label>
-          <label>
+          <label className="orders-dashboard__filter orders-dashboard__filter--date">
             До
             <input type="date" value={dateTo} min={dateFrom} onChange={function (event) { setDateTo(event.target.value); }} />
           </label>
@@ -1290,7 +1335,16 @@ export default function OrdersReportDashboardPage() {
         ) : viewMode === "kpi" ? (
           <>
             <section className="orders-dashboard__kpi-cards">
-              {showGroupedKpi ? visibleProcessingGroupKpis.map(function (group) {
+              {showGroupedKpi ? <>
+                {isSuperAdmin && !selectedProcessingGroupKey ? (
+                  <article className={"orders-dashboard__kpi-card orders-dashboard__kpi-card--summary is-processing is-clickable" + (processingDetailsScope === "selection" ? " is-details-open" : "")} role="button" tabIndex={0} onClick={function () { openProcessingDetails("selection"); }} onKeyDown={function (event) { if (event.key === "Enter" || event.key === " ") openProcessingDetails("selection"); }}>
+                    <span className="orders-dashboard__kpi-label">Загалом · середній час обробки</span>
+                    <strong className="orders-dashboard__kpi-value">{loading || !selectedManagerKpi.processedCount ? "—" : formatHours(selectedManagerKpi.averageProcessingHours)}</strong>
+                    <span className="orders-dashboard__kpi-hint">Усі типи · {formatNumber(selectedManagerKpi.processedCount)} заявок із замовленням</span>
+                    <button type="button" className="orders-dashboard__details-trigger" onClick={function (event) { event.stopPropagation(); openProcessingDetails("selection"); }}>Детальніше</button>
+                  </article>
+                ) : null}
+                {visibleProcessingGroupKpis.map(function (group) {
                 const isLoading = processingGroupsLoading;
                 return (
                   <Fragment key={group.name}>
@@ -1316,7 +1370,7 @@ export default function OrdersReportDashboardPage() {
                     </article>
                   </Fragment>
                 );
-              }) : (
+              })}</> : (
                 <>
                   <article className={"orders-dashboard__kpi-card is-processing is-clickable" + (processingDetailsScope === "selection" ? " is-details-open" : "")} role="button" tabIndex={0} aria-expanded={processingDetailsScope === "selection"} onClick={function () { openProcessingDetails("selection"); }} onKeyDown={function (event) { if (event.key === "Enter" || event.key === " ") openProcessingDetails("selection"); }}>
                     <span className="orders-dashboard__kpi-label">{selectedKpiDealerName ? selectedKpiDealerName + " · середній час обробки" : "Середній час обробки"}</span>
@@ -1632,7 +1686,7 @@ export default function OrdersReportDashboardPage() {
                     </div>
                   </article>
 
-                  <article className="dealer-reports-panel orders-dashboard__chart-panel">
+                  {!hideDealerRegions ? <article className="dealer-reports-panel orders-dashboard__chart-panel">
                     <div className="dealer-reports-panel__header">
                       <h3>Області по обороту</h3>
                       <span>{activeDealerInsights?.top_region_name ? "Лідер: " + normalizeRegionName(activeDealerInsights.top_region_name) : "Немає даних"}</span>
@@ -1665,7 +1719,7 @@ export default function OrdersReportDashboardPage() {
                         })}
                       </div>
                     ) : null}
-                  </article>
+                  </article> : null}
                 </section>
 
                 <section className={"dealer-reports-grid " + (isSuperAdmin ? "is-admin" : "is-manager")}>
@@ -1681,7 +1735,7 @@ export default function OrdersReportDashboardPage() {
                             <tr>
                               <th>#</th>
                               <th>Дилер</th>
-                              <th>Область</th>
+                              {!hideDealerRegions ? <th>Область</th> : null}
                               <th>Замовлення</th>
                               <th>Оборот</th>
                               <th></th>
@@ -1693,7 +1747,7 @@ export default function OrdersReportDashboardPage() {
                                 <tr key={item.contractor_guid}>
                                   <td>{hasPositiveValue(item.turnover_rank) ? formatNumber(item.turnover_rank) : index + 1}</td>
                                   <td>{item.dealer_name || "—"}</td>
-                                  <td>{normalizeRegionName(item.region_name) || "—"}</td>
+                                  {!hideDealerRegions ? <td>{normalizeRegionName(item.region_name) || "—"}</td> : null}
                                   <td>{hasPositiveValue(item.orders_count) ? formatNumber(item.orders_count) : "—"}</td>
                                   <td>{hasPositiveValue(item.total_turnover) ? formatCurrency(item.total_turnover) : "—"}</td>
                                   <td>
@@ -1710,7 +1764,7 @@ export default function OrdersReportDashboardPage() {
                     </article>
                   ) : null}
 
-                  {isSuperAdmin ? (
+                  {isSuperAdmin && !hideDealerRegions ? (
                     <article className="dealer-reports-panel">
                       <div className="dealer-reports-panel__header">
                         <h3>Області</h3>
@@ -1761,7 +1815,7 @@ export default function OrdersReportDashboardPage() {
                         <tr>
                           <th>#</th>
                           <th>Дилер</th>
-                          <th>Область</th>
+                          {!hideDealerRegions ? <th>Область</th> : null}
                           {/* <th>Менеджер</th> */}
                           <th>Замовлення</th>
                           <th>Конструкції</th>
@@ -1776,7 +1830,7 @@ export default function OrdersReportDashboardPage() {
                             <tr key={item.contractor_guid}>
                               <td>{hasPositiveValue(item.turnover_rank) ? formatNumber(item.turnover_rank) : index + 1}</td>
                               <td>{item.dealer_name || "—"}</td>
-                              <td>{normalizeRegionName(item.region_name) || "—"}</td>
+                              {!hideDealerRegions ? <td>{normalizeRegionName(item.region_name) || "—"}</td> : null}
                               {/* <td>{item.main_manager_name || "—"}</td> */}
                               <td>{hasPositiveValue(item.orders_count) ? formatNumber(item.orders_count) : "—"}</td>
                               <td>{hasPositiveValue(item.total_constructions) ? formatNumber(item.total_constructions) : "—"}</td>
@@ -1791,7 +1845,7 @@ export default function OrdersReportDashboardPage() {
                           );
                         }) : (
                           <tr>
-                            <td colSpan="8">Немає інших дилерів у вибраному періоді.</td>
+                            <td colSpan={hideDealerRegions ? 7 : 8}>Немає інших дилерів у вибраному періоді.</td>
                           </tr>
                         )}
                       </tbody>

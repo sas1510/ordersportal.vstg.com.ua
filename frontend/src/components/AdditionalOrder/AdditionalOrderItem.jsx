@@ -327,6 +327,7 @@ export const AdditionalOrderItem = ({
               <AdditionalOrderItemSummaryDesktop
                 key={order.number}
                 order={order}
+                contractorGuid={additionalOrder.dealerId}
                 onRefresh={reloadCalculations}
               />
             ))

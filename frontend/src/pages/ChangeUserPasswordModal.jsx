@@ -27,8 +27,10 @@ export default function ChangeUserPasswordModal({ user, onClose }) {
 
       setTimeout(onClose, 700);
     } catch (e) {
-      // console.error("Error changing password:", e);
-      addNotification("Помилка зміни паролю", "error");
+      addNotification(
+        e?.response?.data?.detail || "Помилка зміни паролю",
+        "error",
+      );
     }
 
     setSaving(false);

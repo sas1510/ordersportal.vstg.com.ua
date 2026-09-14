@@ -77,7 +77,8 @@ class CustomUser(AbstractUser):
         ("operator", "Оператор"),
         ("director", "Директор"),
         ("region_manager", "Регіональний менеджер"),
-        ("branch_manager", "Менеджер філіалу"),
+        ("branch_manager", "Керівник філіалу"),
+        ("branches_director", "Керівник усіх філій"),
         ("complaint_manager", "Менеджер скарг"),
         ("customer", "Клієнт"),
     ]

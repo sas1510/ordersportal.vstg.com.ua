@@ -5,6 +5,77 @@ from backend.utils.GuidToBin1C import guid_to_1c_bin
 from backend.utils.BinToGuid1C import bin_to_guid_1c
 
 
+def get_dealer_scope_requester_ids(user):
+    """Return SQL requester IDs whose dealer portfolios compose this user's scope."""
+    role = (getattr(user, "role", "") or "").strip().lower()
+    if role not in {"branch_manager", "branches_director"}:
+        return [user.id]
+
+    from users.models import CustomUser
+
+    managers = CustomUser.objects.filter(
+        role="manager",
+        is_branch=True,
+        is_active=True,
+    )
+    if role == "branch_manager":
+        if not getattr(user, "branch_id", None):
+            return []
+        managers = managers.filter(branch_id=user.branch_id)
+
+    return list(managers.values_list("id", flat=True))
+
+
+def get_accessible_dealer_rows(user):
+    """Return dealer rows available to a portal user."""
+    requester_ids = get_dealer_scope_requester_ids(user)
+    result = []
+    seen = set()
+    with connection.cursor() as cursor:
+        for requester_id in dict.fromkeys(requester_ids):
+            cursor.execute(
+                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
+                [requester_id],
+            )
+            columns = [column[0] for column in cursor.description]
+            for values in cursor.fetchall():
+                row = dict(zip(columns, values))
+                contractor_id = row.get("ContractorID")
+                key = (
+                    bytes(contractor_id)
+                    if isinstance(contractor_id, (bytes, bytearray, memoryview))
+                    else str(contractor_id or "").strip().lower()
+                )
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                result.append(row)
+    return result
+
+
+def get_accessible_dealer_guids(user):
+    result = set()
+    for row in get_accessible_dealer_rows(user):
+        contractor_id = row.get("ContractorID")
+        if not contractor_id:
+            continue
+        value = (
+            bin_to_guid_1c(bytes(contractor_id))
+            if isinstance(contractor_id, (bytes, bytearray, memoryview))
+            else str(contractor_id)
+        )
+        result.add(str(value).strip().lower())
+    return result
+
+
+def get_accessible_dealer_binaries(user):
+    return {
+        bytes(row["ContractorID"])
+        for row in get_accessible_dealer_rows(user)
+        if isinstance(row.get("ContractorID"), (bytes, bytearray, memoryview))
+    }
+
+
 def resolve_contractor(
     request,
     *,
@@ -45,6 +116,8 @@ def resolve_contractor(
         for item in (elevated_roles or ("admin",))
         if str(item or "").strip()
     }
+    if {"manager", "region_manager", "branch_manager", "branches_director"} & allowed_elevated_roles:
+        allowed_elevated_roles.update({"branch_manager", "branches_director"})
 
     if allow_admin and role in allowed_elevated_roles:
         contractor_guid = request.data.get(admin_param) if hasattr(request, 'data') else None
@@ -54,23 +127,8 @@ def resolve_contractor(
         if not contractor_guid:
             raise ValueError(f"{admin_param} is required for admin")
 
-        if role in {"manager", "region_manager"}:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
-                    [request.user.id],
-                )
-                columns = [column[0] for column in cursor.description]
-                contractor_index = columns.index("ContractorID")
-                allowed_guids = {
-                    str(
-                        bin_to_guid_1c(row[contractor_index])
-                        if isinstance(row[contractor_index], (bytes, bytearray, memoryview))
-                        else row[contractor_index]
-                    ).strip().lower()
-                    for row in cursor.fetchall()
-                    if row[contractor_index]
-                }
+        if role in {"manager", "region_manager", "branch_manager", "branches_director"}:
+            allowed_guids = get_accessible_dealer_guids(request.user)
 
             if str(contractor_guid).strip().lower() not in allowed_guids:
                 raise PermissionError("У вас немає доступу до вибраного дилера.")
@@ -119,18 +177,8 @@ def ensure_order_action_access(request, order_guid):
 
         order_contractor = bytes(row[0])
 
-        if role in {"manager", "region_manager"}:
-            cursor.execute(
-                "EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s",
-                [user.id],
-            )
-            columns = [column[0] for column in cursor.description]
-            contractor_index = columns.index("ContractorID")
-            allowed_contractors = {
-                bytes(row[contractor_index])
-                for row in cursor.fetchall()
-                if row[contractor_index]
-            }
+        if role in {"manager", "region_manager", "branch_manager", "branches_director"}:
+            allowed_contractors = get_accessible_dealer_binaries(user)
 
             if order_contractor not in allowed_contractors:
                 raise PermissionError("У вас немає доступу до дилера цього замовлення.")

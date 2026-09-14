@@ -10,6 +10,7 @@ import UserApiKeysModal from "../pages/UserApiKeysModal";
 import CreateUserInvitationModal from "./CreateUserInvitationModal";
 import TelegramBotKeyModal from "./TelegramBotKeyModal";
 import { normalizeRole } from "../utils/roles";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
 import "../pages/UsersListPage.css";
 
@@ -18,6 +19,8 @@ const ROLE_OPTIONS = [
   { value: "admin", label: "Адміністратор" },
   { value: "manager", label: "Менеджер" },
   { value: "region_manager", label: "Регіональний менеджер" },
+  { value: "branch_manager", label: "Керівник філіалу" },
+  { value: "branches_director", label: "Керівник усіх філій" },
   { value: "director", label: "Директор" },
   { value: "complaint_manager", label: "Менеджер рекламацій" },
   { value: "operator", label: "Оператор" },
@@ -29,6 +32,8 @@ const ROLE_LABELS = {
   admin: "Адміністратор",
   manager: "Менеджер",
   region_manager: "Регіональний менеджер",
+  branch_manager: "Керівник філіалу",
+  branches_director: "Керівник усіх філій",
   regionalManager: "Регіональний менеджер",
   director: "Директор",
   complaint_manager: "Менеджер рекламацій",
@@ -45,6 +50,8 @@ const getRoleBadgeClass = (role) => {
       return "bg-red-200 text-red-800 dark:bg-red-700/60 dark:text-red-200";
     case "manager":
     case "region_manager":
+    case "branch_manager":
+    case "branches_director":
     case "director":
     case "complaint_manager":
     case "operator":
@@ -58,7 +65,20 @@ const getRoleBadgeClass = (role) => {
 };
 
 export default function UsersListPage() {
+  const { isAdmin, role, user: currentUser } = useAuthGetRole();
+  const canManageBranchUsers = ["branch_manager", "branches_director"].includes(role);
+  const canManageUsers = isAdmin || canManageBranchUsers;
+  const canEditListedUser = (listedUser) => {
+    if (isAdmin) return true;
+    if (listedUser.id === currentUser?.id) return false;
+
+    const allowedRoles = role === "branch_manager"
+      ? ["manager", "customer", "dealer"]
+      : ["manager", "branch_manager", "customer", "dealer"];
+    return allowedRoles.includes(normalizeRole(listedUser.role));
+  };
   const [users, setUsers] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [filterRole, setFilterRole] = useState("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -76,6 +96,7 @@ export default function UsersListPage() {
     try {
       const res = await axiosInstance.get("/users/all/");
       setUsers(res.data.users || []);
+      setBranches(res.data.branches || []);
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
         console.error("Помилка завантаження користувачів:", error);
@@ -116,24 +137,26 @@ export default function UsersListPage() {
     >
       <div className="max-w-[1334px] mx-auto">
         <div className="flex max-w-[1334px] justify-between items-center mb-6 mt-2 border-b pb-4">
-          <h1 className="ulp-title text-3xl font-extrabold m-0">Усі користувачі</h1>
-          <div className="flex items-center gap-3">
-            <button
+          <h1 className="ulp-title text-3xl font-extrabold m-0">
+            {isAdmin ? "Усі користувачі" : "Користувачі філій"}
+          </h1>
+          {canManageUsers && <div className="users-page-toolbar-actions flex items-center gap-3">
+            {isAdmin && <button
               type="button"
               onClick={() => setShowTelegramBotKeyModal(true)}
-              className="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
+              className="users-page-toolbar-button users-page-toolbar-button--telegram flex items-center gap-2"
             >
               <KeyRound size={18} />
               <span>{"\u041a\u043b\u044e\u0447 Telegram-\u0431\u043e\u0442\u0430"}</span>
-            </button>
+            </button>}
             <button
               onClick={() => setShowInviteModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-md active:scale-95"
+              className="users-page-toolbar-button users-page-toolbar-button--primary flex items-center gap-2"
             >
               <Plus size={18} />
               <span>Створити користувача</span>
             </button>
-          </div>
+          </div>}
         </div>
 
         <div className="ulp-filter mb-6 max-w-[1334px] flex gap-3 items-center">
@@ -181,7 +204,7 @@ export default function UsersListPage() {
                   <th className="p-4 hidden sm:table-cell">Email</th>
                   <th className="p-4">Роль</th>
                   <th className="p-4">Активний</th>
-                  <th className="p-4 text-center">Дії</th>
+                  {canManageUsers && <th className="p-4 text-center">Дії</th>}
                 </tr>
               </thead>
 
@@ -223,25 +246,25 @@ export default function UsersListPage() {
                       )}
                     </td>
 
-                    <td className="p-4 flex gap-2 justify-center flex-wrap" data-label="Дії">
+                    {canManageUsers && <td className="p-4 flex gap-2 justify-center flex-wrap" data-label="Дії">
                       <div className="actions-container">
-                        <button
-                          className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-full transition-colors"
+                        {canEditListedUser(user) && <button
+                          className="user-action user-action--edit px-3 py-1 text-sm transition-colors"
                           onClick={() => setEditUser(user)}
                         >
                           Редагувати
-                        </button>
+                        </button>}
 
-                        <button
+                        {canEditListedUser(user) && <button
                           type="button"
-                          className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-full transition-colors"
+                          className="user-action user-action--password px-3 py-1 text-sm transition-colors"
                           onClick={() => setSelectedUser(user)}
                         >
                           Змінити пароль
-                        </button>
+                        </button>}
 
-                        <button
-                          className={`px-3 py-1 text-white text-sm rounded-full transition-colors ${
+                        {isAdmin && <button
+                          className={`user-action user-action--deactivate px-3 py-1 text-sm transition-colors ${
                             user.is_active
                               ? "bg-red-500 hover:bg-red-600"
                               : "bg-gray-400 cursor-not-allowed opacity-70"
@@ -250,23 +273,23 @@ export default function UsersListPage() {
                           disabled={!user.is_active}
                         >
                           {user.is_active ? "Деактивувати" : "Деактивовано"}
-                        </button>
+                        </button>}
 
-                        <button
-                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-full ulp-nowrap-btn transition-colors"
+                        {isAdmin && <button
+                          className="user-action user-action--api px-3 py-1 text-sm ulp-nowrap-btn transition-colors"
                           onClick={() => setApiKeyUser(user)}
                         >
                           API-ключі
-                        </button>
+                        </button>}
 
-                        <button
-                          className="px-3 py-1 bg-red-700 hover:bg-red-800 text-white text-sm rounded-full ulp-nowrap-btn transition-colors"
+                        {isAdmin && <button
+                          className="user-action user-action--delete px-3 py-1 text-sm ulp-nowrap-btn transition-colors"
                           onClick={() => setDeleteUser(user)}
                         >
                           Видалити назавжди
-                        </button>
+                        </button>}
                       </div>
-                    </td>
+                    </td>}
                   </tr>
                 ))}
                 {filteredUsers.length === 0 && !loading && (
@@ -287,6 +310,7 @@ export default function UsersListPage() {
 
         {showInviteModal && (
           <CreateUserInvitationModal
+            branches={branches}
             onClose={() => setShowInviteModal(false)}
             onCreated={loadUsers}
           />
@@ -302,6 +326,7 @@ export default function UsersListPage() {
         {editUser && (
           <EditUserModal
             user={editUser}
+            branches={branches}
             onClose={() => setEditUser(null)}
             onUpdated={loadUsers}
           />
@@ -330,6 +355,3 @@ export default function UsersListPage() {
     </div>
   );
 }
-
-
-

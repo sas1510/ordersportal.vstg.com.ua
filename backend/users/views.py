@@ -309,10 +309,16 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.db import connection
+from django.db.models import Q
 from django.utils import timezone
 from datetime import timedelta
 from backend.utils.BinToGuid1C import bin_to_guid_1c
-from backend.utils.contractor import resolve_contractor
+from backend.utils.contractor import (
+    resolve_contractor,
+    get_accessible_dealer_binaries,
+    get_accessible_dealer_rows,
+)
+from .models import Branch
 from backend.utils.dates import clean_date, parse_date
 from backend.utils.api_helpers import safe_view
 from rest_framework.decorators import api_view, permission_classes
@@ -328,6 +334,41 @@ from django.contrib.auth.models import Group
 from django.utils import timezone
 
 from backend.permissions import IsAdminJWT
+
+
+BRANCH_LEADERSHIP_ROLES = {"branch_manager", "branches_director"}
+
+
+def _can_manage_scoped_user(requester, target_user):
+    """Return whether a branch leader may change this subordinate portal user."""
+    requester_role = str(getattr(requester, "role", "") or "").strip().lower()
+    if requester_role == "admin":
+        return True
+    if requester_role not in BRANCH_LEADERSHIP_ROLES or requester.id == target_user.id:
+        return False
+
+    allowed_target_roles = {
+        "branch_manager": {"manager", "customer", "dealer"},
+        "branches_director": {"manager", "branch_manager", "customer", "dealer"},
+    }
+    target_role = str(getattr(target_user, "role", "") or "").strip().lower()
+    if target_role not in allowed_target_roles[requester_role]:
+        return False
+
+    if (
+        requester_role == "branch_manager"
+        and requester.branch_id
+        and target_user.branch_id == requester.branch_id
+    ):
+        return True
+    if requester_role == "branches_director" and target_user.branch_id:
+        return True
+
+    target_contractor = getattr(target_user, "user_id_1C", None)
+    return bool(
+        target_contractor
+        and bytes(target_contractor) in get_accessible_dealer_binaries(requester)
+    )
 from users.models import UserApiKey
 import pytz
 from utils.email import send_registration_success_email
@@ -742,7 +783,7 @@ def register_with_invite(request, code):
     user_guid_str = bin_to_guid_1c(user.user_id_1C)
     bot_username = settings.TELEGRAM_BOT_USERNAME
     tg_link = f"https://t.me/{bot_username}?start={user_guid_str}"
-    should_offer_telegram_after_registration = user.role not in {"manager", "region_manager"}
+    should_offer_telegram_after_registration = user.role not in {"manager", "region_manager", "branch_manager"}
 
     # ---------- GET ----------
     if request.method == "GET":
@@ -778,7 +819,7 @@ def register_with_invite(request, code):
             }
         })
 
-        if user.role not in {"manager", "region_manager"} and user.email:
+        if user.role not in {"manager", "region_manager", "branch_manager"} and user.email:
             send_registration_success_email(user, tg_link)
 
     
@@ -1123,7 +1164,8 @@ def admin_change_user_password(request, user_id):
     start_time = time.time()
     admin_user = request.user
 
-    if admin_user.role != "admin":
+    requester_role = str(getattr(admin_user, "role", "") or "").strip().lower()
+    if requester_role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
         logger.warning(f"Unauthorized password change attempt by {admin_user.username}", extra={
             'tags': {'action': 'admin_change_password', 'status': 'forbidden', 'admin': admin_user.username}
         })
@@ -1133,6 +1175,9 @@ def admin_change_user_password(request, user_id):
         target_user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
         return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    if not _can_manage_scoped_user(admin_user, target_user):
+        return Response({"detail": "Ви можете змінювати пароль лише своїм користувачам"}, status=403)
 
     password = request.data.get("password")
     if not password:
@@ -1215,8 +1260,9 @@ def admin_change_user_password(request, user_id):
 def get_all_users_view(request):
     start_time = time.time()
     admin_user = request.user
+    requester_role = str(getattr(admin_user, "role", "") or "").strip().lower()
 
-    if admin_user.role != "admin":
+    if requester_role not in {"admin", "branch_manager", "branches_director"}:
         logger.warning(f"Unauthorized user list request by {admin_user.username}")
         return Response(
             {"detail": "У вас немає прав для перегляду цього списку"},
@@ -1224,7 +1270,25 @@ def get_all_users_view(request):
         )
 
     try:
-        users = CustomUser.objects.all().order_by("role", "full_name")
+        users = CustomUser.objects.select_related("branch").all()
+
+        if requester_role in {"branch_manager", "branches_director"}:
+            accessible_contractors = list(get_accessible_dealer_binaries(admin_user))
+            scope = Q(id=admin_user.id)
+
+            if requester_role == "branch_manager":
+                if not admin_user.branch_id:
+                    return Response({"users": [], "branches": []})
+                scope |= Q(branch_id=admin_user.branch_id)
+            else:
+                scope |= Q(branch__isnull=False)
+
+            if accessible_contractors:
+                scope |= Q(user_id_1C__in=accessible_contractors)
+
+            users = users.filter(scope)
+
+        users = users.order_by("role", "full_name")
 
         # Оптимізація: отримуємо всі інвайти одним запитом
         invites_map = {
@@ -1242,6 +1306,9 @@ def get_all_users_view(request):
                 "is_active": u.is_active,
                 "permit_finance_info": bool(u.permit_finance_info),
                 "load_all_contractor_addresses": bool(u.load_all_contractor_addresses),
+                "branch_id": u.branch_id,
+                "branch_name": u.branch.name if u.branch_id else None,
+                "is_branch": bool(u.is_branch),
                 "phone_number": u.phone_number,
                 "expire_date": u.expire_date,
                 "is_invited": invites_map.get(u.user_id_1C) is not None,
@@ -1260,7 +1327,16 @@ def get_all_users_view(request):
             }
         })
 
-        return Response({"users": data})
+        branches_query = Branch.objects.filter(is_active=True)
+        if requester_role == "branch_manager":
+            branches_query = branches_query.filter(id=admin_user.branch_id)
+
+        branches = list(
+            branches_query
+            .values("id", "name", "code")
+            .order_by("name")
+        )
+        return Response({"users": data, "branches": branches})
     
     except Exception as e:
         logger.error(f"Error fetching users list: {str(e)}", exc_info=True)
@@ -1305,7 +1381,7 @@ from django.utils.timezone import make_aware, get_current_timezone
             "email": serializers.EmailField(required=False, allow_blank=True),
             "phone_number": serializers.CharField(required=False, allow_blank=True),
             "role": serializers.ChoiceField(
-                choices=["admin", "manager", "region_manager", "customer"],
+                choices=["admin", "manager", "region_manager", "branch_manager", "branches_director", "customer"],
                 required=False,
             ),
             "expire_date": serializers.DateField(
@@ -1371,7 +1447,8 @@ def admin_edit_user_view(request, user_id):
     start_time = time.time()
     admin_user = request.user
     
-    if request.user.role != "admin":
+    requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+    if requester_role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
         logger.warning(f"Unauthorized user edit attempt by {admin_user.username}")
         return Response({"detail": "Доступ заборонено"}, status=403)
 
@@ -1380,18 +1457,59 @@ def admin_edit_user_view(request, user_id):
     except CustomUser.DoesNotExist:
         return Response({"detail": "Користувача не знайдено"}, status=404)
 
+    if not _can_manage_scoped_user(admin_user, user):
+        return Response({"detail": "Ви можете редагувати лише своїх користувачів"}, status=403)
+
     allowed_fields = [
         "username", "full_name", "email", "phone_number", "role",
-        "expire_date", "is_active", "permit_finance_info", "load_all_contractor_addresses", "old_portal_id"
+        "expire_date", "is_active", "permit_finance_info", "load_all_contractor_addresses",
+        "branch_id", "is_branch", "old_portal_id"
     ]
 
     incoming = request.data.copy()
 
+    if requester_role in BRANCH_LEADERSHIP_ROLES:
+        allowed_roles = {
+            "branch_manager": {"manager", "customer", "dealer"},
+            "branches_director": {"manager", "branch_manager", "customer", "dealer"},
+        }[requester_role]
+        incoming_role = str(incoming.get("role", user.role) or "").strip().lower()
+        if incoming_role not in allowed_roles:
+            return Response({"detail": "Цю роль керівник призначати не може"}, status=403)
+
+        incoming.pop("old_portal_id", None)
+        if requester_role == "branch_manager":
+            if not admin_user.branch_id:
+                return Response({"detail": "Для керівника не призначено філію"}, status=400)
+            incoming["branch_id"] = admin_user.branch_id
+        elif incoming_role in {"manager", "branch_manager"}:
+            requested_branch_id = incoming.get("branch_id", user.branch_id)
+            if not requested_branch_id or not Branch.objects.filter(
+                id=requested_branch_id,
+                is_active=True,
+            ).exists():
+                return Response({"detail": "Оберіть активну філію"}, status=400)
+
+        if incoming_role == "manager":
+            incoming["is_branch"] = True
+
     # Checkboxes → bool
-    bool_fields = ["is_active", "permit_finance_info", "load_all_contractor_addresses"]
+    bool_fields = ["is_active", "permit_finance_info", "load_all_contractor_addresses", "is_branch"]
     for field in bool_fields:
         if field in incoming:
             incoming[field] = incoming[field] in ["true", "True", True, "1", 1]
+
+    if "branch_id" in incoming:
+        branch_id = incoming.get("branch_id")
+        if branch_id in ("", None):
+            incoming["branch_id"] = None
+        else:
+            try:
+                incoming["branch_id"] = int(branch_id)
+            except (TypeError, ValueError):
+                return Response({"error": "Невірна філія"}, status=400)
+            if not Branch.objects.filter(id=incoming["branch_id"], is_active=True).exists():
+                return Response({"error": "Філію не знайдено"}, status=400)
 
     # 🔥 Робимо expire_date timezone-aware
     if "expire_date" in incoming and incoming["expire_date"]:
@@ -1442,6 +1560,9 @@ def admin_edit_user_view(request, user_id):
             "is_active": user.is_active,
             "permit_finance_info": user.permit_finance_info,
             "load_all_contractor_addresses": user.load_all_contractor_addresses,
+            "branch_id": user.branch_id,
+            "branch_name": user.branch.name if user.branch_id else None,
+            "is_branch": user.is_branch,
             "old_portal_id": user.old_portal_id,
         }
     })
@@ -1737,22 +1858,12 @@ def get_dealer_portal_users(request):
     )
 
     try:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                EXEC dbo.GetDealerPortalUsers_2
-                    @RequesterUserID = %s
-                """,
-                [requester_user_id],
-            )
-
-            columns = [column[0] for column in cursor.description]
-            rows = cursor.fetchall()
+        rows = get_accessible_dealer_rows(request.user)
 
         data = []
 
-        for row in rows:
-            record = dict(zip(columns, row))
+        for record in rows:
+            record = dict(record)
 
             contractor_id = record.get("ContractorID")
 
@@ -1826,12 +1937,12 @@ def get_dealer_portal_users(request):
 def registered_dealers_report(request):
     """Registered portal dealers, restricted to the requester's allowed portfolio."""
     role = str(getattr(request.user, "role", "") or "").strip().lower()
-    if role not in {"admin", "director", "manager", "region_manager"}:
+    if role not in {"admin", "director", "manager", "region_manager", "branch_manager", "branches_director"}:
         return Response({"detail": "Недостатньо прав для перегляду звіту."}, status=403)
 
     def active_manager_options():
         users = CustomUser.objects.filter(
-            role__in=("manager", "region_manager"),
+            role__in=("manager", "region_manager", "branch_manager", "branches_director"),
             is_active=True,
         ).values("id", "full_name", "username", "role", "user_id_1C").order_by("full_name", "username")
         result = []
@@ -1858,15 +1969,12 @@ def registered_dealers_report(request):
         try:
             scope_user = CustomUser.objects.get(
                 id=int(scope_user_id),
-                role__in=("manager", "region_manager"),
+                role__in=("manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, CustomUser.DoesNotExist):
             return Response({"detail": "Менеджера не знайдено."}, status=404)
 
-    with connection.cursor() as cursor:
-        cursor.execute("EXEC dbo.GetDealerPortalUsers_2 @RequesterUserID = %s", [scope_user.id])
-        columns = [column[0] for column in cursor.description]
-        allowed_rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    allowed_rows = get_accessible_dealer_rows(scope_user)
 
     allowed_dealers = {}
     for row in allowed_rows:
@@ -2460,6 +2568,12 @@ class CreateInvitationView(APIView):
     @transaction.atomic
     def post(self, request):
         start_time = time.time()
+        requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+        is_1c_request = request.auth == "1C_API_KEY"
+
+        if not is_1c_request and requester_role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
+            return Response({"detail": "Доступ заборонено"}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = CreateInvitationSerializer(data=request.data)
         if not serializer.is_valid():
 
@@ -2470,6 +2584,37 @@ class CreateInvitationView(APIView):
 
         raw_role = data.get("role", "customer")
         normalized_role = raw_role.lower()
+        selected_branch = None
+
+        if not is_1c_request and requester_role in BRANCH_LEADERSHIP_ROLES:
+            allowed_roles = {
+                "branch_manager": {"manager"},
+                "branches_director": {"manager", "branch_manager"},
+            }[requester_role]
+            if normalized_role not in allowed_roles:
+                return Response(
+                    {"detail": "Цю роль керівник створювати не може"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            if requester_role == "branch_manager":
+                if not request.user.branch_id:
+                    return Response({"detail": "Для керівника не призначено філію"}, status=400)
+                selected_branch = request.user.branch
+            else:
+                selected_branch = Branch.objects.filter(
+                    id=data.get("branchId"),
+                    is_active=True,
+                ).first()
+                if not selected_branch:
+                    return Response({"detail": "Оберіть активну філію"}, status=400)
+        elif data.get("branchId"):
+            selected_branch = Branch.objects.filter(
+                id=data.get("branchId"),
+                is_active=True,
+            ).first()
+            if not selected_branch:
+                return Response({"detail": "Оберіть активну філію"}, status=400)
 
         # BOT_USERNAME = "test_test343bot"
 
@@ -2491,6 +2636,13 @@ class CreateInvitationView(APIView):
 
 
             if user:
+
+                if (
+                    requester_role == "branch_manager"
+                    and user.branch_id
+                    and user.branch_id != request.user.branch_id
+                ):
+                    return Response({"detail": "Користувач належить іншій філії"}, status=403)
 
                 if user.is_active:
                     logger.info(f"Invite failed: User {user.username} already active", extra={
@@ -2532,6 +2684,9 @@ class CreateInvitationView(APIView):
                 user.phone_number = data.get("phoneNumber")
                 user.expire_date = data["expireDate"]
                 user.role = normalized_role  # Зберігаємо завжди малими
+                if selected_branch:
+                    user.branch = selected_branch
+                    user.is_branch = normalized_role in {"manager", "branch_manager"}
                 user.load_all_contractor_addresses = False
                 user.save()
             else:
@@ -2545,6 +2700,8 @@ class CreateInvitationView(APIView):
                     expire_date=data["expireDate"],
                     role=normalized_role, 
                     user_id_1C=user_guid_binary,
+                    branch=selected_branch,
+                    is_branch=bool(selected_branch and normalized_role in {"manager", "branch_manager"}),
                     is_active=False,
                     email_confirmed=False,
                     permit_finance_info=True,

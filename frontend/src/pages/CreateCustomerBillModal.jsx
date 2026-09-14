@@ -1310,6 +1310,7 @@ export default function CreateCustomerBillModal({
   const [organisation, setOrganisation] = useState([]);
   const [contractors, setContractors] = useState([]);
   const [advanceContracts, setAdvanceContracts] = useState([]);
+  const [settlements, setSettlements] = useState([]);
 
   // Стани для форми
   const [selectedOrgCode, setSelectedOrgCode] = useState("");
@@ -1318,6 +1319,10 @@ export default function CreateCustomerBillModal({
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedContractor, setSelectedContractor] = useState("");
   const [selectedAdvanceContract, setSelectedAdvanceContract] = useState("");
+  const [selectedSettlement, setSelectedSettlement] = useState("");
+  const [street, setStreet] = useState("");
+  const [house, setHouse] = useState("");
+  const [includeTtnAddress, setIncludeTtnAddress] = useState(false);
 
   const [paymentDate, setPaymentDate] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -1361,7 +1366,12 @@ export default function CreateCustomerBillModal({
     setSelectedAddress("");
     setSelectedContractor("");
     setSelectedAdvanceContract("");
+    setSelectedSettlement("");
+    setStreet("");
+    setHouse("");
+    setIncludeTtnAddress(false);
     setAdvanceContracts([]);
+    setSettlements([]);
     setPaymentDate("");
     setDeliveryDate("");
     setInternalComment("");
@@ -1370,10 +1380,11 @@ export default function CreateCustomerBillModal({
     const fetchProfile = async () => {
       setFetchingProfile(true);
       try {
-        const [res, contractorsRes, advanceRes] = await Promise.all([
+        const [res, contractorsRes, advanceRes, settlementsRes] = await Promise.all([
           axiosInstance.get("/payments/dealers/profile/"),
           newFlow ? axiosInstance.get("/payments/invoice-contractors/") : Promise.resolve(null),
           newFlow ? axiosInstance.get("/payments/invoice-advance-contracts/") : Promise.resolve(null),
+          newFlow ? axiosInstance.get("/payments/invoice-settlements/") : Promise.resolve(null),
         ]);
         const data = res.data?.data || {};
         setAddresses(data.addresses || []);
@@ -1382,6 +1393,7 @@ export default function CreateCustomerBillModal({
         setOrganisation(data.organizations || []);
         setContractors(contractorsRes?.data?.data || []);
         setAdvanceContracts(advanceRes?.data?.data || []);
+        setSettlements(settlementsRes?.data?.data || []);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
           console.error("Error fetching profile:", err);
@@ -1392,25 +1404,7 @@ export default function CreateCustomerBillModal({
       }
     };
     fetchProfile();
-  }, [isOpen, addNotification, t]);
-
-  useEffect(() => {
-    if (!isOpen || !newFlow || !selectedContractor) return;
-    const loadContractorData = async () => {
-      try {
-        const profileRes = await axiosInstance.get(
-          "/payments/invoice-profile-v2/?contractor_guid=" + selectedContractor
-        );
-        const profile = profileRes.data?.data || {};
-        setAddresses(profile.addresses || []);
-        setSelectedAddress("");
-      } catch (err) {
-        addNotification(t("create_bill.notifications.profile_error"), "error");
-      }
-    };
-    loadContractorData();
-  }, [isOpen, newFlow, selectedContractor, addNotification, t]);
-
+  }, [isOpen, newFlow, addNotification, t]);
 
   // Фільтрація унікальних організацій для першого селекту
   const uniqueOrganizations = useMemo(() => {
@@ -1424,6 +1418,32 @@ export default function CreateCustomerBillModal({
     if (!selectedOrgCode) return [];
     return organisation.filter((org) => org.OrganizationCode === selectedOrgCode);
   }, [organisation, selectedOrgCode]);
+
+  const selectedSettlementData = useMemo(
+    () => settlements.find((item) => item.SettlementGUID === selectedSettlement) || null,
+    [settlements, selectedSettlement],
+  );
+
+  const formattedAddress = useMemo(() => {
+    if (!includeTtnAddress) return null;
+
+    const regionName = String(selectedSettlementData?.RegionName || "").trim();
+    const region = regionName && !regionName.toLowerCase().includes("область")
+      ? regionName + " область"
+      : regionName;
+    const houseValue = house.trim();
+    const housePart = houseValue ? "будинок " + houseValue : "";
+
+    const parts = [
+      region,
+      selectedSettlementData?.DistrictName,
+      selectedSettlementData?.SettlementName,
+      street.trim(),
+      housePart,
+    ].filter((value) => value && String(value).trim());
+
+    return parts.length ? parts.join(", ") : null;
+  }, [includeTtnAddress, selectedSettlementData, street, house]);
 
   // Хендлер зміни організації (скидає обраний раніше рахунок)
   const handleOrganizationChange = (orgCode) => {
@@ -1465,11 +1485,14 @@ const handleSubmit = async () => {
   const dto = {
     ...(newFlow ? {
       ContractorGUID: selectedContractor,
-      AdvanceContractGUID: selectedAdvanceContract,
-    } : { IbanGUID: selectedIban?.trim() ? selectedIban : null }),
+      AdvanceContractGUID: selectedAdvanceContract || null,
+      Address: formattedAddress,
+    } : {
+      IbanGUID: selectedIban?.trim() ? selectedIban : null,
+      AddressGUID: selectedAddress || null,
+    }),
     OrganizationCode: selectedOrgCode?.trim() ? selectedOrgCode : null,
-    TaxIdInRegBase: selectedOrgAccount?.trim() ? selectedOrgAccount : null, // Змінено ключ та передається TaxIdInRegBase
-    AddressGUID: selectedAddress,
+    TaxIdInRegBase: selectedOrgAccount?.trim() ? selectedOrgAccount : null,
     OrderSuma: totalSum,
     InternalComment: internalComment,
     OrderPaymentDate: paymentDate || null,
@@ -1648,18 +1671,75 @@ const handleSubmit = async () => {
                       </div>
                     </>
                   )}
-                  {/* 4. Адреса */}
-                  <div className="bill-field">
-                    <span className="bill-field__label">{t("create_bill.fields.address")}</span>
-                    <BillSelect
-                      value={selectedAddress}
-                      options={addresses}
-                      placeholder={t("create_bill.placeholders.address")}
-                      getValue={(a) => a.AddressKindGUID}
-                      getLabel={(a) => `${a.AddressKind} — ${a.AddressValue}`}
-                      onChange={setSelectedAddress}
-                    />
-                  </div>
+                  {!newFlow && (
+                    <div className="bill-field">
+                      <span className="bill-field__label">{t("create_bill.fields.address")}</span>
+                      <BillSelect
+                        value={selectedAddress}
+                        options={addresses}
+                        placeholder={t("create_bill.placeholders.address")}
+                        getValue={(item) => item.AddressKindGUID}
+                        getLabel={(item) => item.AddressKind + " - " + item.AddressValue}
+                        onChange={setSelectedAddress}
+                      />
+                    </div>
+                  )}
+
+                  {newFlow && (
+                    <>
+                      <label className="flex items-center gap-2 py-2 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={includeTtnAddress}
+                          onChange={(event) => setIncludeTtnAddress(event.target.checked)}
+                        />
+                        <span className="bill-field__label">Додати адресу ТТН</span>
+                      </label>
+
+                      {includeTtnAddress && (
+                        <>
+                      <div className="bill-field">
+                        <span className="bill-field__label">Населений пункт (необов’язково)</span>
+                        <BillSelect
+                          value={selectedSettlement}
+                          options={settlements}
+                          placeholder="Оберіть населений пункт"
+                          getValue={(item) => item.SettlementGUID}
+                          getLabel={(item) =>
+                            item.SettlementName +
+                            (item.RegionName ? " (" + item.RegionName + ")" : "")
+                          }
+                          onChange={setSelectedSettlement}
+                          autoTranslate={false}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3">
+                        <div className="bill-field">
+                          <span className="bill-field__label">Вулиця (необов’язково)</span>
+                          <input
+                            type="text"
+                            className="bill-input"
+                            value={street}
+                            onChange={(event) => setStreet(event.target.value)}
+                            placeholder="Введіть вулицю"
+                          />
+                        </div>
+                        <div className="bill-field">
+                          <span className="bill-field__label">Будинок (необов’язково)</span>
+                          <input
+                            type="text"
+                            className="bill-input"
+                            value={house}
+                            onChange={(event) => setHouse(event.target.value)}
+                            placeholder="№ будинку"
+                          />
+                        </div>
+                      </div>
+                        </>
+                      )}
+                    </>
+                  )}
                 </>
               )}
 

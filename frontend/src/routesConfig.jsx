@@ -112,6 +112,18 @@ export const managerRoutes = adminRoutes.filter(
   ({ path }) => !managerBlockedRoutePaths.has(path),
 );
 
+const branchLeaderBlockedRoutePaths = new Set([
+  "files/add",
+  "files/edit/:id",
+  "videos/add",
+  "videos/edit/:id",
+  "announcements",
+]);
+
+export const branchLeaderRoutes = adminRoutes.filter(
+  ({ path }) => !branchLeaderBlockedRoutePaths.has(path),
+);
+
 export const dealerRoutes = [
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },

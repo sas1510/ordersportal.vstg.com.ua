@@ -16,7 +16,7 @@ import { hasFinanceAccess } from "../../utils/financeAccess";
 import { useTranslation } from "react-i18next";
 import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 
-export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) {
+export default function AdditionalOrderItemSummaryDesktop({ order, contractorGuid, onRefresh }) {
 
   const {t, i18n} = useTranslation();
   const locale = i18n.language ;
@@ -326,12 +326,14 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
         onClose={() => setIsClaimModalOpen(false)}
         initialOrderNumber={claimOrderNumber}
         initialOrderGUID={order.guid}
+        initialContractorGuid={contractorGuid}
       />
 
       <AddReorderModal
         isOpen={isReorderModalOpen}
         onClose={() => setIsReorderModalOpen(false)}
         initialOrderNumber={order.number}
+        initialContractorGuid={contractorGuid}
       />
 
       <ConfirmModal
@@ -354,6 +356,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, onRefresh }) 
             OrderID: order.guid,
             CurrencyName: order.currency,
           }}
+          contractorGuid={contractorGuid}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}
           formatCurrency={formatMoney}

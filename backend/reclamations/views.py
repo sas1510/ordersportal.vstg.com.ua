@@ -425,22 +425,18 @@ def get_complaint_series_by_order(request, order_number):
                     }
                 })
                 raise PermissionError("User has no contractor assigned")
-        elif role == "admin":
-            # admin може передати contractor, але необов'язково
+        elif role in ("admin", "manager", "region_manager", "branch_manager", "branches_director"):
+            # Backoffice may pass a dealer explicitly; branch roles must do so.
             contractor_guid = request.GET.get("contractor")
             if contractor_guid:
-                try:
-                    contractor_bin = guid_to_1c_bin(contractor_guid)
-                    # logger.debug(f"Admin filtering by contractor: {contractor_guid}")
-                except Exception:
-                    logger.error(f"Invalid GUID format from admin: {contractor_guid}", extra={
-                    'tags': {
-                        'action': 'get_complaint_series_by_order'
-                    
-                    }
-                })
-                    raise ValueError("Invalid contractor GUID")
-            # якщо не передано – contractor_bin залишається None → SQL не фільтрує
+                contractor_bin, _ = resolve_contractor(
+                    request,
+                    allow_admin=True,
+                    admin_param="contractor",
+                    elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+                )
+            elif role in ("branch_manager", "branches_director"):
+                raise PermissionError("contractor is required for branch manager")
 
 
         with connection.cursor() as cursor:
@@ -519,10 +515,17 @@ def get_order_delivery_address(request, order_number):
             contractor_bin = getattr(user, "user_id_1C", None)
             if not contractor_bin:
                 raise PermissionError("User has no contractor assigned")
-        elif role in ("admin", "manager", "region_manager"):
+        elif role in ("admin", "manager", "region_manager", "branch_manager", "branches_director"):
             contractor_guid = request.GET.get("contractor")
             if contractor_guid:
-                contractor_bin = guid_to_1c_bin(contractor_guid)
+                contractor_bin, _ = resolve_contractor(
+                    request,
+                    allow_admin=True,
+                    admin_param="contractor",
+                    elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+                )
+            elif role in ("branch_manager", "branches_director"):
+                raise PermissionError("contractor is required for branch manager")
         else:
             raise PermissionError("Access denied")
 
@@ -637,35 +640,28 @@ class ReclamationViewSet(viewsets.ViewSet):
 
 
         try:
+            issue = str(request.data.get("issue") or "").strip()
+            solution = str(request.data.get("solution") or "").strip()
+            if not issue or not solution:
+                if not issue and not solution:
+                    message = "Оберіть причину рекламації та варіант вирішення."
+                elif not issue:
+                    message = "Оберіть причину рекламації."
+                else:
+                    message = "Оберіть варіант вирішення рекламації."
+                return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+
             # logger.info(f"Starting reclamation creation for {user_log_label}")
 
             role = getattr(user, "role", None)
             role = role.lower() if role else ""
 
-            is_admin = role in ("admin", "manager", "region_manager")
-
-
-            if is_admin:
-                contractor_guid = request.data.get("contractor_guid")
-                if not contractor_guid:
-                    logger.warning(f"{user_log_label} (Admin) attempted create without contractor_guid", extra={
-                    'tags': {
-                        'action': 'ReclamationViewSet (create)'
-                    
-                    }
-                })
-                    raise ValueError("contractor_guid is required for admin")
-            else:
-
-                contractor_guid = bin_to_guid_1c(getattr(user, "user_id_1C", None))
-                if not contractor_guid:
-                    logger.error(f"User {user_log_label} has no user_id_1C linked", extra={
-                        'tags': {
-                            'action': 'ReclamationViewSet (create)'
-                        
-                        }
-                    })
-                    raise ValueError("contractor_guid not found for user")
+            _, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+            )
 
 
 

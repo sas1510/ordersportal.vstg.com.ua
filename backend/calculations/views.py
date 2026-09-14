@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 # Припускаємо, що OrderCreateSerializer імпортовано коректно
 from .serializers import OrderCreateSerializer 
 from backend.utils.logging_setup import logger
+from backend.utils.contractor import get_accessible_dealer_guids
 
 
 # ====================================================================
@@ -65,7 +66,7 @@ class CreateOrderView(APIView):
 
         # ВИЗНАЧЕННЯ РОЛЕЙ ТА КОМЕНТАРЯ
         role = user.role
-        manager_roles = ["manager", "region_manager", "admin"]
+        manager_roles = ["manager", "region_manager", "branch_manager", "branches_director", "admin"]
         comment_text = request.data.get("Comment")
 
 
@@ -84,6 +85,8 @@ class CreateOrderView(APIView):
                     }
                 })
                 return Response({"error": "CustomerId є обов'язковим для менеджерів."}, status=400)
+            if role in {"branch_manager", "branches_director"} and str(customer_id).strip().lower() not in get_accessible_dealer_guids(user):
+                return Response({"error": "У вас немає доступу до вибраного дилера."}, status=403)
         else:
             # Звичайний користувач: клієнт - це сам користувач, використовуємо user_id_1C
             try:

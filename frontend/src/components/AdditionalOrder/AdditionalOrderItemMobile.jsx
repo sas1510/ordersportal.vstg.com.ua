@@ -334,6 +334,7 @@ export const AdditionalOrderItemMobile = ({
               <AdditionalOrderItemSummaryMobile
                 key={order.number}
                 order={order}
+                contractorGuid={calc.dealerId}
               />
             ))
           )}

@@ -526,6 +526,11 @@
       "solutions": "Eroare la încărcarea soluțiilor",
       "series": "Nu s-au putut obține date despre serii de modele",
       "address": "Adresa de livrare nu a putut fi încărcată"
+    },
+    "validation": {
+      "reason_required": "Selectați motivul reclamației",
+      "solution_required": "Selectați o soluție pentru reclamație",
+      "reason_and_solution_required": "Selectați motivul și soluția reclamației"
     }
   },
   "select": {

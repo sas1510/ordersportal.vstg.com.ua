@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import axiosInstance from "../api/axios";
 import "./AnnouncementsPage.css";
-const roles=["admin","manager","region_manager","dealer"];
-const roleLabels={admin:"Адміністратори",manager:"Менеджери",region_manager:"Регіональні менеджери",dealer:"Дилери"};
+const roles=["admin","manager","region_manager","branch_manager","branches_director","dealer"];
+const roleLabels={admin:"Адміністратори",manager:"Менеджери",region_manager:"Регіональні менеджери",branch_manager:"Керівники філіалів",branches_director:"Керівники всіх філій",dealer:"Дилери"};
 const templates=[
  {name:"Технічні роботи",icon:"🛠",style:"warning",title:"Планові технічні роботи",body:"У зазначений час портал може бути тимчасово недоступний. Просимо завершити роботу завчасно.",action_label:"Переглянути деталі"},
  {name:"Важливе",icon:"⚠",style:"critical",title:"Важливе повідомлення",body:"Зверніть, будь ласка, увагу на це повідомлення. Воно потребує вашого ознайомлення.",action_label:"Ознайомився",require_acknowledgement:true,show_every_login:true},

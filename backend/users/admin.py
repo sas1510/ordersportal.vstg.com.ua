@@ -1,12 +1,19 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Invitation, UserApiKey
+from .models import Branch, CustomUser, Invitation, UserApiKey
+
+@admin.register(Branch)
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "folder_guid_1c", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("name", "code", "folder_guid_1c")
+
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     # Відображення списку користувачів
-    list_display = ('username', 'email', 'full_name', 'role', 'is_active', 'is_staff', 'expire_date')
-    list_filter = ('role', 'is_active', 'is_staff', 'is_superuser')
+    list_display = ('username', 'email', 'full_name', 'role', 'branch', 'is_branch', 'is_active', 'is_staff', 'expire_date')
+    list_filter = ('role', 'branch', 'is_branch', 'is_active', 'is_staff', 'is_superuser')
     search_fields = ('username', 'email', 'full_name', 'phone_number')
     ordering = ('username',)
 
@@ -24,7 +31,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
             'classes': ('wide',),
-            'fields': ('full_name', 'role', 'email'),
+            'fields': ('full_name', 'role', 'branch', 'is_branch', 'email'),
         }),
     )
 

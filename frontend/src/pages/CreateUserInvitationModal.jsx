@@ -14,23 +14,34 @@ import {
 } from "lucide-react";
 import "./InviteRegisterModal.css";
 import { useNotification } from "../hooks/useNotification";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Адміністратор" },
   { value: "manager", label: "Менеджер" },
   { value: "region_manager", label: "Регіональний менеджер" },
+  { value: "branch_manager", label: "Керівник філіалу" },
+  { value: "branches_director", label: "Керівник усіх філій" },
 ];
 
-export default function CreateUserInvitationModal({ onClose, onCreated }) {
+export default function CreateUserInvitationModal({ branches = [], onClose, onCreated }) {
   const { addNotification } = useNotification();
+  const { isAdmin, role: currentRole } = useAuthGetRole();
   const searchRef = useRef(null);
+
+  const availableRoleOptions = currentRole === "branch_manager"
+    ? ROLE_OPTIONS.filter((option) => option.value === "manager")
+    : currentRole === "branches_director"
+      ? ROLE_OPTIONS.filter((option) => ["manager", "branch_manager"].includes(option.value))
+      : ROLE_OPTIONS;
 
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
     email: "",
     phoneNumber: "",
-    role: "admin",
+    role: currentRole === "branch_manager" || currentRole === "branches_director" ? "manager" : "admin",
+    branchId: "",
     userGuid: "",
     expireDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
       .toISOString()
@@ -322,13 +333,36 @@ export default function CreateUserInvitationModal({ onClose, onCreated }) {
                     setFormData({ ...formData, role: e.target.value })
                   }
                 >
-                  {ROLE_OPTIONS.map((roleOption) => (
+                  {availableRoleOptions.map((roleOption) => (
                     <option key={roleOption.value} value={roleOption.value}>
                       {roleOption.label}
                     </option>
                   ))}
                 </select>
               </div>
+
+              {(isAdmin || currentRole === "branches_director") && formData.role !== "admin" && (
+                <div>
+                  <label className="input-label-add-user">
+                    Філія{currentRole === "branches_director" ? " *" : ""}
+                  </label>
+                  <select
+                    required={currentRole === "branches_director"}
+                    className="form-input-add-user"
+                    value={formData.branchId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, branchId: e.target.value })
+                    }
+                  >
+                    <option value="">Оберіть філію</option>
+                    {branches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="input-label-add-user">

@@ -5,8 +5,10 @@ import { useNotification } from "../hooks/useNotification";
 import "./UrgentCallLogsPage.css";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 
 export default function EmergencyCallLogsPage() {
+  const { isAdmin } = useAuthGetRole();
   const [logs, setLogs] = useState([]);
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -170,12 +172,12 @@ export default function EmergencyCallLogsPage() {
         <h1 className="emergency-log-title text-color mt-3 text-4xl font-bold mb-0">
           Журнал термінових дзвінків
         </h1>
-        <button
+        {isAdmin && <button
           className="bg-custom-green hover:bg-custom-green-dark text-white px-4 py-2 rounded mt-3 text-semibold"
           onClick={openNewModal}
         >
           + Додати контакт
-        </button>
+        </button>}
       </div>
 
       <div style={{ border: "1px dashed #ccc", marginBottom: "5px" }}></div>
@@ -205,12 +207,12 @@ export default function EmergencyCallLogsPage() {
             className="emergency-log-input"
           />
         </div>
-        <button
+        {isAdmin && <button
           onClick={() => navigate("/emergency-contacts")}
           className="btn-emergency"
         >
           Сторінка термінових дзвінків
-        </button>
+        </button>}
       </div>
       <div style={{ border: "1px dashed #ccc", marginBottom: "5px" }}></div>
 

@@ -15,7 +15,7 @@ import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
 import SupportVideoUploadPage from "./pages/SupportVideoUploadPage";
 
 import PortalLoader from "./components/ui/PortalLoader";
-import { adminRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
+import { adminRoutes, branchLeaderRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
 import { hasFinanceAccess } from "./utils/financeAccess";
 import { useCacheBuster } from "./hooks/useCacheBuster";
 import SupportChatWidget from "./components/SupportChatWidget";
@@ -202,6 +202,9 @@ function AppRoutes() {
   if (isAdminRole(normalizedRole)) {
     LayoutComponent = AdminLayout;
     routes = adminRoutes;
+  } else if (["branch_manager", "branches_director"].includes(normalizedRole)) {
+    LayoutComponent = AdminLayout;
+    routes = branchLeaderRoutes;
   } else if (isBackofficeRole(normalizedRole)) {
     LayoutComponent = AdminLayout;
     routes = managerRoutes;

@@ -140,6 +140,7 @@
 import uuid
 import base64
 import requests
+import html
 from datetime import date
 from binascii import unhexlify
 
@@ -172,6 +173,11 @@ from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
 from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
 from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
 from backend.utils.finance_access import finance_access_denied_response
+from backend.records.services.manager_service import (
+    get_manager_by_contractor,
+    get_telegram_id_by_manager,
+)
+from backend.records.services.telegram_service import send_telegram_message
 
 # import logging
 import time
@@ -248,7 +254,7 @@ def get_payment_status_view(request):
         request,
         allow_admin=True,
         admin_param="contractor",
-        elevated_roles=("admin", "manager", "region_manager"),
+        elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
     )
 
     # logger.info(
@@ -367,7 +373,7 @@ def get_dealer_payment_page_data_view(request):  # Синхронна для с�
                 request,
                 allow_admin=True,
                 admin_param="contractor",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except Exception as e:
             logger.error(f"Contractor resolution failed in payment page: {str(e)}", extra={
@@ -488,7 +494,7 @@ def get_dealer_advance_balance(request):
             request,
             allow_admin=True,
             admin_param="contractor_guid",
-            elevated_roles=("admin", "manager", "region_manager"),
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
         )
     except Exception as e:
         logger.error(f"Contractor resolution failed in payment page: {str(e)}")
@@ -964,7 +970,7 @@ def customer_bills_view(request):
         request,
         allow_admin=True,
         admin_param="contractor",
-        elevated_roles=("admin", "manager", "region_manager"),
+        elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
     )
 
     # logger.info(f"Fetching customer bills for {contractor_guid}", extra={
@@ -1107,6 +1113,100 @@ def _invoice_related_contractors(request):
     return owner_guid, rows, allowed
 
 
+def _notify_main_manager_about_invoice(
+    *, contractor_guid, contractor_name, requester_name, result, total_sum
+):
+    """Best-effort Telegram notification after a bill is created in 1C."""
+    try:
+        manager_guid = get_manager_by_contractor(contractor_guid)
+        if not manager_guid:
+            logger.warning(
+                "Main manager not found for created invoice",
+                extra={
+                    "tags": {
+                        "action": "create_invoice_v2_telegram",
+                        "status": "manager_not_found",
+                    },
+                    "contractor_guid": contractor_guid,
+                    "bill_number": result.get("BillNumber"),
+                },
+            )
+            return
+
+        telegram_id = get_telegram_id_by_manager(manager_guid)
+        if not telegram_id:
+            logger.warning(
+                "Main manager Telegram ID not found for created invoice",
+                extra={
+                    "tags": {
+                        "action": "create_invoice_v2_telegram",
+                        "status": "telegram_not_found",
+                    },
+                    "contractor_guid": contractor_guid,
+                    "bill_number": result.get("BillNumber"),
+                },
+            )
+            return
+
+        try:
+            amount = f"{float(total_sum or 0):,.2f}".replace(",", " ")
+        except (TypeError, ValueError):
+            amount = str(total_sum or "0")
+
+        bill_number = html.escape(str(result.get("BillNumber") or "-"))
+        dealer = html.escape(str(contractor_name or contractor_guid))
+        author = html.escape(str(requester_name or "-"))
+        message = (
+            "<b>\u0412\u0438\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u043e \u043d\u043e\u0432\u0438\u0439 \u0440\u0430\u0445\u0443\u043d\u043e\u043a</b>\n"
+            f"\u0420\u0430\u0445\u0443\u043d\u043e\u043a: \u2116{bill_number}\n"
+            f"\u0414\u0438\u043b\u0435\u0440: {dealer}\n"
+            f"\u0410\u0432\u0442\u043e\u0440 \u0437\u0430\u044f\u0432\u043a\u0438: {author}\n"
+            f"\u0421\u0443\u043c\u0430: {amount} \u0433\u0440\u043d"
+        )
+        telegram_result = send_telegram_message(
+            telegram_chat_id=int(telegram_id),
+            text=message,
+        )
+        if not isinstance(telegram_result, dict) or telegram_result.get("ok") is not True:
+            logger.error(
+                "Telegram rejected created invoice notification",
+                extra={
+                    "tags": {
+                        "action": "create_invoice_v2_telegram",
+                        "status": "rejected",
+                    },
+                    "contractor_guid": contractor_guid,
+                    "bill_number": result.get("BillNumber"),
+                    "telegram_response": telegram_result,
+                },
+            )
+            return
+
+        logger.info(
+            "Created invoice notification sent to main manager",
+            extra={
+                "tags": {
+                    "action": "create_invoice_v2_telegram",
+                    "status": "success",
+                },
+                "contractor_guid": contractor_guid,
+                "bill_number": result.get("BillNumber"),
+            },
+        )
+    except Exception:
+        logger.exception(
+            "Created invoice Telegram notification failed",
+            extra={
+                "tags": {
+                    "action": "create_invoice_v2_telegram",
+                    "status": "error",
+                },
+                "contractor_guid": contractor_guid,
+                "bill_number": result.get("BillNumber"),
+            },
+        )
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def invoice_contractors_view(request):
@@ -1163,6 +1263,62 @@ def invoice_advance_contracts_view(request):
         return Response({"error": "Unable to load advance contracts"}, status=status.HTTP_502_BAD_GATEWAY)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_settlements_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetUkraineSettlements")
+            rows = cursor.fetchall()
+
+        def clean(value):
+            return str(value).strip() if value is not None else ""
+
+        def guid(value):
+            if value is None:
+                return None
+            if isinstance(value, memoryview):
+                value = value.tobytes()
+            if isinstance(value, bytearray):
+                value = bytes(value)
+            if isinstance(value, bytes):
+                try:
+                    return bin_to_guid_1c(value)
+                except Exception:
+                    return value.hex()
+            return clean(value) or None
+
+        settlements = [
+            {
+                "SettlementGUID": guid(row[0]),
+                "SettlementCode": clean(row[1]),
+                "SettlementName": clean(row[2]),
+                "SettlementType": clean(row[3]),
+                "RegionGUID": guid(row[4]),
+                "RegionCode": clean(row[5]),
+                "RegionName": clean(row[6]),
+                "DistrictGUID": guid(row[7]),
+                "DistrictName": clean(row[8]),
+                "CountryGUID": guid(row[9]),
+                "CountryName": clean(row[10]),
+            }
+            for row in rows
+        ]
+        return Response({"data": settlements})
+    except Exception:
+        logger.exception(
+            "Unable to load Ukraine settlements for new invoice",
+            extra={"tags": {"action": "invoice_settlements", "status": "error"}},
+        )
+        return Response(
+            {"error": "Unable to load settlements"},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticatedOr1CApiKey])
 def create_invoice_v2(request):
@@ -1176,14 +1332,14 @@ def create_invoice_v2(request):
     data = request.data
     contractor_guid = str(data.get("ContractorGUID") or "").lower()
     try:
-        requester_contractor_guid, _, allowed = _invoice_related_contractors(request)
+        requester_contractor_guid, contractors, allowed = _invoice_related_contractors(request)
         if not contractor_guid or contractor_guid not in allowed:
             return Response({"error": "Contractor is not available"}, status=status.HTTP_403_FORBIDDEN)
 
         payload_1c = {
             "requesterContractorGUID": requester_contractor_guid,
             "contragentGUID": contractor_guid,
-            "addressGUID": data.get("AddressGUID"),
+            "address": data.get("Address"),
             "createDate": data.get("OrderCreateDate"),
             "deliveryDate": data.get("OrderDeliveryDate"),
             "paymentDate": data.get("OrderPaymentDate"),
@@ -1228,6 +1384,25 @@ def create_invoice_v2(request):
                 "bill_guid": result.get("BillGuid"),
                 "bill_number": result.get("BillNumber"),
             },
+        )
+        contractor_name = next(
+            (
+                row.get("\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435") or row.get("ContractorName")
+                for row in contractors
+                if str(row.get("ContractorGUID") or "").lower() == contractor_guid
+            ),
+            contractor_guid,
+        )
+        request_user = getattr(request, "user", None)
+        requester_name = ""
+        if request_user and getattr(request_user, "is_authenticated", False):
+            requester_name = request_user.get_full_name() or request_user.username
+        _notify_main_manager_about_invoice(
+            contractor_guid=contractor_guid,
+            contractor_name=contractor_name,
+            requester_name=requester_name,
+            result=result,
+            total_sum=data.get("OrderSuma"),
         )
         return Response({"status": "ok", "data": result, "payload": payload_1c}, status=status.HTTP_201_CREATED)
     except Exception as exc:
@@ -1307,6 +1482,15 @@ def create_invoice(request):
             },
             'response_1c': result
         })
+        notification_result = result if isinstance(result, dict) else {}
+        requester_name = user.get_full_name() or user_name
+        _notify_main_manager_about_invoice(
+            contractor_guid=contractor_guid,
+            contractor_name=requester_name,
+            requester_name=requester_name,
+            result=notification_result,
+            total_sum=data.get("OrderSuma"),
+        )
         return Response({"status": "ok", "data": result, "payload": payload_1c}, status=201)
 
     
@@ -1435,7 +1619,7 @@ class GetBillPDF(APIView):
                 request,
                 allow_admin=True,
                 admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager"),
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
             )
         except (ValueError, PermissionError) as e:
             logger.warning(f"Unauthorized PDF access by {user_name}: {str(e)}")
@@ -1534,7 +1718,7 @@ def get_partner_full_data_view(request):
             request,
             allow_admin=True,
             admin_param="contractor",
-            elevated_roles=("admin", "manager", "region_manager"),
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
         )
     except (ValueError, PermissionError) as e:
         return JsonResponse({"detail": str(e)}, status=400)

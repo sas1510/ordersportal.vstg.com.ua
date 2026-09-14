@@ -2,6 +2,8 @@ const BACKOFFICE_ROLES = new Set([
   "admin",
   "manager",
   "region_manager",
+  "branch_manager",
+  "branches_director",
   "regionalManager",
   "director",
 ]);
@@ -14,6 +16,8 @@ const DEALER_ROLES = new Set([
 const MANAGER_ROLES = new Set([
   "manager",
   "region_manager",
+  "branch_manager",
+  "branches_director",
   "regionalManager",
 ]);
 

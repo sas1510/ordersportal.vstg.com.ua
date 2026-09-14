@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import { formatDateHumanShorter, formatDateHumanShorter_full } from "../../utils/formatters";
 
 
-export default function AdditionalOrderItemSummaryMobile({ order }) {
+export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid }) {
   const {t, i18n} = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -306,12 +306,14 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
         onClose={() => setIsClaimModalOpen(false)}
         initialOrderNumber={order.number}
         initialOrderGUID={order.guid}
+        initialContractorGuid={contractorGuid}
       />
 
       <AddReorderModal
         isOpen={isReorderModalOpen}
         onClose={() => setIsReorderModalOpen(false)}
         initialOrderNumber={order.number}
+        initialContractorGuid={contractorGuid}
       />
 
       <ConfirmModal
@@ -334,6 +336,7 @@ export default function AdditionalOrderItemSummaryMobile({ order }) {
             OrderID: order.guid,
             CurrencyName: order.currency,
           }}
+          contractorGuid={contractorGuid}
           onClose={() => setIsPaymentOpen(false)}
           onConfirm={handlePaymentConfirm}
           formatCurrency={formatMoney}

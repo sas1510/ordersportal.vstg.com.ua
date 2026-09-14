@@ -3,25 +3,59 @@ import axiosInstance from "../api/axios";
 import { useNotification } from "../hooks/useNotification";
 import { Settings, X, Save, Eraser } from "lucide-react";
 import "./EditUserModal.css";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
+import { normalizeRole } from "../utils/roles";
 
-export default function EditUserModal({ user, onClose, onUpdated }) {
+const EDITABLE_ROLE_OPTIONS = [
+  { value: "admin", label: "Адміністратор" },
+  { value: "manager", label: "Менеджер" },
+  { value: "region_manager", label: "Регіональний менеджер" },
+  { value: "branch_manager", label: "Керівник філіалу" },
+  { value: "branches_director", label: "Керівник усіх філій" },
+];
+
+const LEGACY_ROLE_LABELS = {
+  customer: "Дилер",
+  dealer: "Дилер",
+  director: "Директор",
+  complaint_manager: "Менеджер рекламацій",
+  operator: "Оператор",
+};
+
+export default function EditUserModal({ user, branches = [], onClose, onUpdated }) {
   const { addNotification } = useNotification();
+  const { isAdmin, role: currentRole } = useAuthGetRole();
 
   const originalFormData = {
     username: user.username,
     full_name: user.full_name,
     email: user.email,
     phone_number: user.phone_number,
-    role: user.role,
+    role: normalizeRole(user.role),
     expire_date: user.expire_date?.slice(0, 10) ?? "",
     is_active: user.is_active,
     permit_finance_info: user.permit_finance_info,
     load_all_contractor_addresses: user.load_all_contractor_addresses ?? false,
+    branch_id: user.branch_id ?? "",
+    is_branch: user.is_branch ?? false,
     old_portal_id: user.old_portal_id,
   };
 
   const [form, setForm] = useState(originalFormData);
   const [isSaving, setIsSaving] = useState(false);
+  const normalizedUserRole = normalizeRole(user.role);
+  const allowedRoleOptions = isAdmin
+    ? EDITABLE_ROLE_OPTIONS
+    : EDITABLE_ROLE_OPTIONS.filter((option) => ["manager", "branch_manager"].includes(option.value));
+  const roleOptions = allowedRoleOptions.some((option) => option.value === normalizedUserRole)
+    ? allowedRoleOptions
+    : [
+        ...allowedRoleOptions,
+        {
+          value: normalizedUserRole,
+          label: LEGACY_ROLE_LABELS[normalizedUserRole] || normalizedUserRole,
+        },
+      ];
 
   const hasChanges = Object.keys(form).some(
     (key) => String(form[key]) !== String(originalFormData[key]),
@@ -130,7 +164,7 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
               />
             </label>
 
-            <label className="portal-user-edit-label">
+            {(isAdmin || currentRole === "branches_director") && <label className="portal-user-edit-label">
               <span>Роль</span>
               <select
                 name="role"
@@ -138,16 +172,44 @@ export default function EditUserModal({ user, onClose, onUpdated }) {
                 onChange={handleChange}
                 className="portal-user-edit-select"
               >
-                <option value="admin">Адміністратор</option>
-                <option value="manager">Менеджер</option>
-                <option value="region_manager">Регіональний менеджер</option>
-                <option value="director">Директор</option>
-                <option value="complaint_manager">Менеджер рекламацій</option>
-                <option value="operator">Оператор</option>
-                <option value="customer">Дилер</option>
-                <option value="dealer">Дилер</option>
+                {roleOptions.map((roleOption) => (
+                  <option key={roleOption.value} value={roleOption.value}>
+                    {roleOption.label}
+                  </option>
+                ))}
               </select>
-            </label>
+            </label>}
+
+            {(isAdmin || currentRole === "branches_director") && (form.role === "manager" || form.role === "branch_manager") && (
+              <label className="portal-user-edit-label">
+                <span>Філія</span>
+                <select
+                  name="branch_id"
+                  value={form.branch_id}
+                  onChange={handleChange}
+                  className="portal-user-edit-select"
+                >
+                  <option value="">Не вибрано</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {form.role === "manager" && (
+              <label className="portal-user-edit-label portal-user-edit-checkbox-row">
+                <input
+                  type="checkbox"
+                  name="is_branch"
+                  checked={form.is_branch}
+                  onChange={handleChange}
+                />
+                <span>Філіал</span>
+              </label>
+            )}
 
             <label className="portal-user-edit-label">
               <span>Дата закінчення доступу</span>
