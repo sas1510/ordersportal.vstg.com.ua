@@ -259,9 +259,30 @@ body.dark-theme .orders-dashboard__dealer-processing { border-top-color: #506272
 @media (max-width: 720px) {
   .orders-dashboard { padding: 0; }
   .orders-dashboard__header { flex-direction: column; }
+  .orders-dashboard--unified-filters .orders-dashboard__filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 10px;
+    padding: 14px;
+    overflow: visible;
+  }
   .orders-dashboard__filters label, .orders-dashboard__filters input, .orders-dashboard__filters select, .orders-dashboard__filters button { width: 100%; }
   .orders-dashboard--unified-filters .orders-dashboard__filter { width: 100%; }
-  .orders-dashboard__view-switcher { width: 100%; }
+  .orders-dashboard--unified-filters .orders-dashboard__view-switcher,
+  .orders-dashboard--unified-filters .orders-dashboard__filter,
+  .orders-dashboard--unified-filters .orders-dashboard__filter--dealer,
+  .orders-dashboard--unified-filters .orders-dashboard__filter--manager,
+  .orders-dashboard--unified-filters .orders-dashboard__filter--region,
+  .orders-dashboard--unified-filters .orders-dashboard__filters > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+  .orders-dashboard--unified-filters .orders-dashboard__filters input,
+  .orders-dashboard--unified-filters .orders-dashboard__filters select,
+  .orders-dashboard--unified-filters .orders-dashboard__filters .dealer-select,
+  .orders-dashboard--unified-filters .orders-dashboard__filters .dealer-select__control { min-width: 0; max-width: 100%; box-sizing: border-box; }
   .orders-dashboard__view-switcher button { flex: 1; }
   .orders-dashboard__kpi-cards { grid-template-columns: 1fr; }
   .orders-dashboard__charts-grid,

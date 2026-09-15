@@ -1750,6 +1750,36 @@ body.dark-theme .pp-empty {
 .pp-pay-btn:hover {
   background-color: #445e00;
 }
+.pp-pay-btn--select-all {
+  border: 1px solid #397ca3;
+  background: #397ca3;
+  color: #ffffff;
+}
+.pp-pay-btn--select-all:hover {
+  border-color: #2e6687;
+  background: #2e6687;
+}
+.pp-pay-btn:disabled {
+  cursor: not-allowed;
+  border-color: #87909a;
+  background: #87909a;
+  color: #ffffff;
+  opacity: 1;
+}
+.batch-payment-toolbar-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+body.dark-theme .pp-pay-btn--select-all {
+  border-color: #397ca3;
+  background: #397ca3;
+  color: #ffffff;
+}
+body.dark-theme .pp-pay-btn:disabled {
+  border-color: #59636b;
+  background: #59636b;
+  color: #e9edf0;
+}
 .pp-pay-icon {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
@@ -2289,6 +2319,8 @@ body.dark-theme .pp-order-card .pp-info-block:nth-child(5) img {
 @media (max-width: 600px) {
   .batch-payment-inline { align-items: flex-start; flex-direction: column; }
   .batch-payment-inline select { min-width: 0; width: 100%; }
+  .batch-payment-toolbar-actions { width: 100%; justify-content: stretch; }
+  .batch-payment-toolbar-actions .pp-pay-btn { flex: 1 1 auto; justify-content: center; }
 }
 
 

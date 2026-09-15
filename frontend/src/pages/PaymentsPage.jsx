@@ -641,6 +641,77 @@ export default function PaymentsPage() {
     setSelectedOrder(null);
   };
 
+  const selectAllFilteredBatchOrders = useCallback(() => {
+    if (!batchContract) {
+      addNotification(
+        t("payments_page.notifications.batch_contract_required", "Оберіть авансовий договір."),
+        "warning",
+      );
+      return;
+    }
+
+    const payableOrders = filteredOrders.filter(
+      (order) => parseFlexibleAmount(order?.DebtAmount) > 0,
+    );
+    if (!payableOrders.length) {
+      addNotification(
+        t("payments_page.notifications.no_filtered_orders_to_pay", "У поточному фільтрі немає замовлень із залишком до оплати."),
+        "warning",
+      );
+      return;
+    }
+
+    const firstOrder = payableOrders[0];
+    const primaryContractKey =
+      normalizeCompareValue(firstOrder?.Dogovor_GUID) ||
+      normalizeCompareValue(firstOrder?.Dogovor_ID);
+    const eligibleFilteredOrders = payableOrders.filter((order) => {
+      const orderContractKey =
+        normalizeCompareValue(order?.Dogovor_GUID) ||
+        normalizeCompareValue(order?.Dogovor_ID);
+      return !primaryContractKey || orderContractKey === primaryContractKey;
+    });
+    const filteredOrdersTotal = eligibleFilteredOrders.reduce(
+      (total, order) => total + parseFlexibleAmount(order?.DebtAmount),
+      0,
+    );
+
+    if (filteredOrdersTotal > batchAvailableAmount + 0.005) {
+      addNotification(
+        t(
+          "payments_page.notifications.batch_not_enough_for_all",
+          "Коштів на вибраному авансовому договорі недостатньо для оплати всіх відфільтрованих замовлень. Буде вибрано суму в межах доступного залишку.",
+        ),
+        "warning",
+      );
+    }
+
+    let remaining = parseFlexibleAmount(batchAvailableAmount);
+    const nextSelection = {};
+    const nextDrafts = {};
+
+    eligibleFilteredOrders.forEach((order) => {
+      if (remaining <= 0) return;
+
+      const amount = Math.min(parseFlexibleAmount(order?.DebtAmount), remaining);
+      if (amount <= 0 || !order?.OrderID_GUID) return;
+
+      const roundedAmount = Number(amount.toFixed(2));
+      nextSelection[order.OrderID_GUID] = roundedAmount;
+      nextDrafts[order.OrderID_GUID] = String(roundedAmount.toFixed(2)).replace(".", ",");
+      remaining -= roundedAmount;
+    });
+
+    setBatchSelection(nextSelection);
+    setBatchAmountDrafts(nextDrafts);
+  }, [
+    addNotification,
+    batchAvailableAmount,
+    batchContract,
+    filteredOrders,
+    t,
+  ]);
+
   const submitBatchPayments = useCallback(async () => {
     if (batchSubmitting) return;
 
@@ -1080,18 +1151,28 @@ export default function PaymentsPage() {
               <h2 className="pp-title" style={{ marginTop: 0 }}>
                 {t("payments_page.sections.orders_to_pay")}
               </h2>
-              <div className="flex items-center gap-3">
+              <div className="batch-payment-toolbar-actions flex items-center gap-3">
                 {batchPaymentOpen && (
-                  <button
-                    className="pp-pay-btn"
-                    type="button"
-                    disabled={!batchContract || !batchSelectedOrders.length || batchHasOverLimit || batchSubmitting}
-                    onClick={submitBatchPayments}
-                  >
-                    {batchSubmitting
-                      ? t("payments_page.batch.processing", "Оплата...")
-                      : t("payments_page.batch.pay_selected", "Оплатити всі")}
-                  </button>
+                  <>
+                    <button
+                      className="pp-pay-btn pp-pay-btn--select-all"
+                      type="button"
+                      disabled={!batchContract || batchAvailableAmount <= 0 || !filteredOrders.some((order) => parseFlexibleAmount(order?.DebtAmount) > 0) || batchSubmitting}
+                      onClick={selectAllFilteredBatchOrders}
+                    >
+                      {t("payments_page.batch.select_all_filtered", "Вибрати всі")}
+                    </button>
+                    <button
+                      className="pp-pay-btn"
+                      type="button"
+                      disabled={!batchContract || !batchSelectedOrders.length || batchHasOverLimit || batchSubmitting}
+                      onClick={submitBatchPayments}
+                    >
+                      {batchSubmitting
+                        ? t("payments_page.batch.processing", "Оплата...")
+                        : t("payments_page.batch.pay_selected", "Оплатити всі")}
+                    </button>
+                  </>
                 )}
                 <button className="pp-pay-btn" type="button" onClick={() => setBatchPaymentOpen((value) => !value)}>
                   {batchPaymentOpen
