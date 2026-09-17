@@ -212,7 +212,16 @@ def extract_1c_download_binary(raw_blob, filename=""):
 
         return decoded or raw_blob
 
-    extracted = extract_1c_binary(raw_blob)
+    # A compressed 1C container may coincidentally contain a file signature in
+    # its compressed bytes. Prefer the decompressed payload; otherwise a false
+    # JPEG/PNG match can produce a corrupt preview (for example image fields
+    # stored without a filename or extension).
+    if decoded:
+        extracted = _extract_by_signatures(decoded)
+        if extracted:
+            return extracted
+
+    extracted = _extract_by_signatures(raw_blob)
     if extracted:
         return extracted
 

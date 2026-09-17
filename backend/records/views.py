@@ -2017,7 +2017,11 @@ def order_files_view(request, order_guid):
         for row in rows:
             row_dict = dict(zip(columns, row))
             file_guid = row_dict.get("File_GUID")
-            file_name = str(row_dict.get("File_FileName") or "").strip()
+            file_name = str(
+                row_dict.get("File_FileName")
+                or row_dict.get("File_Name")
+                or ""
+            ).strip()
             file_type = str(row_dict.get("File_DataType_Name") or "Файл").strip()
 
             # Some 1C storage records contain a BLOB but have no saved file name.
@@ -2169,7 +2173,19 @@ def _download_order_file_content(request, order_guid, file_guid):
     try:
         _ensure_smb_session()
         stat = smbclient.stat(remote_path)
-        file_handle = smbclient.open_file(remote_path, mode="rb")
+        # Allow multiple previews/downloads of files from the same order at the
+        # same time. smbclient otherwise opens a read handle exclusively, so a
+        # second image can fail with STATUS_SHARING_VIOLATION and fall back to
+        # the empty SQL placeholder used by some 1C file records.
+        file_handle = smbclient.open_file(remote_path, mode="rb", share_access="r")
+        file_header = file_handle.read(16)
+        file_handle.seek(0)
+        detected_ext = guess_extension_from_bytes(file_header)
+        if detected_ext:
+            detected_content_type, _ = mimetypes.guess_type("file" + detected_ext)
+            content_type = detected_content_type or content_type
+            if detected_ext in [".pdf", ".jpg", ".jpeg", ".png", ".webp"]:
+                disposition = "inline"
         
         response = StreamingHttpResponse(file_handle, content_type=content_type)
         response["Content-Length"] = stat.st_size
@@ -7604,7 +7620,11 @@ def get_calc_files(request, order_guid):
             row_dict = dict(zip(columns, row))
             
             f_guid = row_dict.get("File_GUID")
-            f_name = str(row_dict.get("File_FileName") or "").strip()
+            f_name = str(
+                row_dict.get("File_FileName")
+                or row_dict.get("File_Name")
+                or ""
+            ).strip()
             f_type = str(row_dict.get("File_DataType_Name") or "Файл").strip()
             f_date = row_dict.get("File_Date")
             normalized_type = f_type.lower()

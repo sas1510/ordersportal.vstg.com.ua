@@ -38,10 +38,18 @@ const OrderFilesModal = ({
 
   const getFileExtension = (fileName = "") => fileName.toLowerCase().split(".").pop();
 
-  const isPreviewableFile = (fileName = "") => {
+  const isImageFileType = (fileType = "") => {
+    const normalizedType = String(fileType).toLowerCase();
+    return normalizedType.includes("фото") || normalizedType.includes("изображ") || normalizedType.includes("зображ");
+  };
+
+  const isPreviewableFile = (fileName = "", fileType = "", contentType = "") => {
     const ext = getFileExtension(fileName);
     if (ext === "zkz") {
       return false;
+    }
+    if (isImageFileType(fileType) || String(contentType).toLowerCase().startsWith("image/")) {
+      return true;
     }
     return [
       "pdf",
@@ -61,8 +69,13 @@ const OrderFilesModal = ({
     ].includes(ext);
   };
 
-  const getPreviewKind = (fileName = "") => {
+  const getPreviewKind = (fileName = "", contentType = "", fileType = "") => {
     const ext = getFileExtension(fileName);
+    const normalizedContentType = String(contentType).toLowerCase();
+    if (isImageFileType(fileType) || normalizedContentType.startsWith("image/")) return "image";
+    if (normalizedContentType.startsWith("video/")) return "video";
+    if (normalizedContentType === "application/pdf") return "pdf";
+    if (normalizedContentType.startsWith("text/")) return "text";
     if (["jpg", "jpeg", "png", "webp", "gif", "bmp", "svg"].includes(ext)) return "image";
     if (["mp4", "webm"].includes(ext)) return "video";
     if (["txt", "csv", "json", "xml"].includes(ext)) return "text";
@@ -197,9 +210,9 @@ const OrderFilesModal = ({
     try {
       const { blob, response } = await fetchFileBlob(fileItem);
 
-      if (isPreviewableFile(fileItem.fileName)) {
+      if (isPreviewableFile(fileItem.fileName, fileItem.type, blob.type)) {
         const nextPreviewUrl = window.URL.createObjectURL(blob);
-        const previewKind = getPreviewKind(fileItem.fileName);
+        const previewKind = getPreviewKind(fileItem.fileName, blob.type, fileItem.type);
 
         if (previewUrl) {
           window.URL.revokeObjectURL(previewUrl);
@@ -311,10 +324,10 @@ const OrderFilesModal = ({
     );
   };
 
-  const getFileIcon = (fileName) => {
+  const getFileIcon = (fileName, fileType = "") => {
     const ext = getFileExtension(fileName);
     if (ext === "zkz") return <FaFileArchive className="file-icon icon-zkz" />;
-    if (["jpg", "jpeg", "png", "webp"].includes(ext)) return <FaImage className="file-icon icon-image" />;
+    if (isImageFileType(fileType) || ["jpg", "jpeg", "png", "webp"].includes(ext)) return <FaImage className="file-icon icon-image" />;
     return <FaFileAlt className="file-icon icon-doc" />;
   };
 
@@ -322,12 +335,12 @@ const OrderFilesModal = ({
 
   const renderFileCard = (file) => {
     const isDownloading = downloadingFileGuid === file.fileGuid;
-    const isPreviewable = isPreviewableFile(file.fileName);
+    const isPreviewable = isPreviewableFile(file.fileName, file.type);
 
     return (
       <div key={file.fileGuid} className={`file-card ${file.fileName.toLowerCase().endsWith('.zkz') ? 'card-zkz' : /\.(jpg|jpeg|png|webp)$/i.test(file.fileName) ? 'card-image' : 'card-other'}`}>
         <div className="file-card-info">
-          {getFileIcon(file.fileName)}
+          {getFileIcon(file.fileName, file.type)}
           <div className="file-details">
             <span className="file-name-text" title={file.fileName}>{file.fileName}</span>
             <span className="file-date-text">
