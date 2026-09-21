@@ -664,10 +664,15 @@ export default function PaymentsPage() {
     (order) => Number(order.Debt || 0) > 0,
   );
 
+  const inWorkDebtOrders = debtItems.filter(
+    (order) => Number(order.InWorkDebt || 0) > 0,
+  );
+
   const moneyInTransitOrders = debtItems.filter(
     (order) =>
       Number(order.Summa || 0) > 0 &&
-      Number(order.Debt || 0) <= 0,
+      Number(order.Debt || 0) <= 0 &&
+      Number(order.InWorkDebt || 0) <= 0,
   );
 
   const criticalOrders = debtItems.filter(
@@ -687,6 +692,11 @@ export default function PaymentsPage() {
     0,
   );
 
+  const inWorkDebtTotal = inWorkDebtOrders.reduce(
+    (sum, order) => sum + Number(order.InWorkDebt || 0),
+    0,
+  );
+
   const moneyInTransitTotal = moneyInTransitOrders.reduce(
     (sum, order) => sum + Number(order.Summa || 0),
     0,
@@ -699,11 +709,13 @@ export default function PaymentsPage() {
     routeDebtOrders,
     moneyInTransitOrders,
     criticalOrders,
+    inWorkDebtOrders,
     noPrepaymentOrders,
     underfundedOrders,
 
     routeDebtTotal,
     moneyInTransitTotal,
+    inWorkDebtTotal,
     postSaleDebtTotal,
   };
 }, [debtItems]);
@@ -735,6 +747,13 @@ export default function PaymentsPage() {
       filtered = debtAnalytics.underfundedOrders;
       title = t(
         "payments_page.analytics.underfunded_orders",
+      );
+      break;
+
+    case "in_work":
+      filtered = debtAnalytics.inWorkDebtOrders;
+      title = t(
+        "payments_page.analytics.in_work_orders",
       );
       break;
 
@@ -1173,6 +1192,7 @@ export default function PaymentsPage() {
   <div
     className={`card-value ${
       (Number(debtTotal.Debt || 0) +
+        Number(debtTotal.InWorkDebt || 0) +
         Number(debtTotal.Summa || 0) +
         Number(debtTotal.BezPeredOplaty || 0)) >
         Number(debtTotal.CustomerLimit || 0) &&
@@ -1186,6 +1206,7 @@ export default function PaymentsPage() {
 
       const limitUsage =
         Number(debtTotal.Debt || 0) +
+        Number(debtTotal.InWorkDebt || 0) +
         Number(debtTotal.Summa || 0) +
         Number(debtTotal.BezPeredOplaty || 0);
 
@@ -1205,7 +1226,7 @@ export default function PaymentsPage() {
                       <div className="card-value">
                         {debtTotal.CustomerLimit > 0
                           ? formatCurrency(
-                              debtTotal.LimitUsage ?? Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0))
+                              debtTotal.LimitUsage ?? Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.InWorkDebt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0))
                             )
                           : "—"}{" "}
                         {debtTotal.CustomerLimit > 0 && `${debtTotal.CurrencyName}`}
@@ -1240,7 +1261,24 @@ export default function PaymentsPage() {
                   <div className="analytics-divider" />
 
                   <div className="analytics-row-bottom">
-                    <div className="analytics-card !pl-0">
+                    <div
+                      className={`analytics-card !pl-0 ${debtAnalytics.inWorkDebtTotal > 0 ? "pointer-link" : ""}`}
+                      onClick={() =>
+                        debtAnalytics.inWorkDebtTotal > 0 &&
+                        showDebtDetails("in_work")
+                      }
+                    >
+                      <div className="card-title">
+                        {t("payments_page.analytics.in_work_debt")}
+                      </div>
+                      <div className="card-value">
+                        {debtAnalytics.inWorkDebtTotal > 0
+                          ? `${formatCurrency(debtAnalytics.inWorkDebtTotal)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
+                          : "—"}
+                      </div>
+                    </div>
+
+                    <div className="analytics-card">
                       <div className="card-title">{t("payments_page.analytics.post_sale_debt")}</div>
                       <div className="card-value">
                         {debtAnalytics.postSaleDebtTotal > 0

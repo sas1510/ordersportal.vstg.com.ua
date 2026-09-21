@@ -650,6 +650,7 @@
       "underfunded": "Underfunded",
       "post_sale_debt": "Debt after sale",
       "route_debt": "Debt after route completion",
+      "in_work_debt": "In progress",
       "in_routes": "In routes",
       "money_in_transit": "Money in transit",
       "debt_over_ten_days": "Debt > 10d",
@@ -658,6 +659,7 @@
       "critical_orders": "Orders overdue by more than 10 days",
       "underfunded_orders": "Underfunded orders",
       "in_route_orders": "Debt in routes (in transit)",
+      "in_work_orders": "Orders in progress",
       "money_in_transit_orders": "Money in transit"
     },
     "detail": {

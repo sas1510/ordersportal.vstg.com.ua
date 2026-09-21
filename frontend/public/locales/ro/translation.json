@@ -626,6 +626,7 @@
       "underfunded": "Subdezvoltat",
       "post_sale_debt": "Datorie după realizare",
       "route_debt": "Datorie după finalizarea traseului",
+      "in_work_debt": "În lucru",
       "in_routes": "În trasee",
       "money_in_transit": "Banii sunt pe drum",
       "debt_over_ten_days": "Datorii > 10 zile",
@@ -634,6 +635,7 @@
       "critical_orders": "Comenzi restante > 10 zile",
       "underfunded_orders": "Comenzi neavansate",
       "in_route_orders": "Datorii pe rute (pe drum)",
+      "in_work_orders": "Comenzi în lucru",
       "money_in_transit_orders": "Banii sunt pe drum"
     },
     "detail": {

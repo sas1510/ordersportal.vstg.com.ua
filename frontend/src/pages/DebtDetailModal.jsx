@@ -85,7 +85,7 @@ export default function DebtDetailModal({
                     </td>
                     <td className="ddm-td-amount ">
                       {formatCurrency(
-                        o.Debt || o.NedoAvans || o.Summa || o.ZakazSumma
+                        o.InWorkDebt || o.Debt || o.NedoAvans || o.Summa || o.ZakazSumma
                       )}{" "}
                       {o.CurrencyName || t("common.currency_uah")}
                     </td>

@@ -29,16 +29,20 @@ export default function PaymentsAnalyticsMobile({
           <div className="card-title">{t("payments_page.analytics.overlimit")}</div>
           <div
             className={`card-value ${
-              Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit &&
+              Number(debtTotal.Debt || 0) +
+                Number(debtTotal.InWorkDebt || 0) +
+                Number(debtTotal.Summa || 0) +
+                Number(debtTotal.BezPeredOplaty || 0) > debtTotal.CustomerLimit &&
               debtTotal.CustomerLimit > 0
                 ? "text-danger"
                 : ""
             }`}
           >
             {debtTotal.CustomerLimit > 0 &&
-            Number(debtTotal.Debt || 0) + Number(debtTotal.Summa || 0) > debtTotal.CustomerLimit
+            Number(debtTotal.Debt || 0) + Number(debtTotal.InWorkDebt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0) > debtTotal.CustomerLimit
               ? `${formatCurrency(
                   Number(debtTotal.Debt || 0) +
+                    Number(debtTotal.InWorkDebt || 0) +
                     Number(debtTotal.Summa || 0) +
                     Number(debtTotal.BezPeredOplaty || 0) -
                     debtTotal.CustomerLimit
@@ -89,6 +93,19 @@ export default function PaymentsAnalyticsMobile({
         <div className="mobile-solid-divider" />
 
         {/* РЯДОК 3: ДВІ КОЛОНКИ */}
+        <div
+          className={`analytics-card ${Number(debtTotal.InWorkDebt || 0) > 0 ? "pointer-link" : ""}`}
+          onClick={() => Number(debtTotal.InWorkDebt || 0) > 0 && showDebtDetails("in_work")}
+        >
+          <div className="card-title">{t("payments_page.analytics.in_work_debt")}</div>
+          <div className="card-value">
+            {Number(debtTotal.InWorkDebt || 0) > 0
+              ? `${formatCurrency(debtTotal.InWorkDebt)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
+              : "—"}
+          </div>
+          <div className="mobile-vert-divider" />
+        </div>
+
         <div className="analytics-card">
           <div className="card-title">{t("payments_page.analytics.post_sale_debt")}</div>
           <div className="card-value">

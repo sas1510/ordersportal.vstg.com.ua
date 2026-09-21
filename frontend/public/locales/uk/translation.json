@@ -649,6 +649,7 @@
       "underfunded": "Недоавансовані",
       "post_sale_debt": "Борг після реалізації",
       "route_debt": "Борг після завершення маршрута",
+      "in_work_debt": "В роботі",
       "in_routes": "У маршрутах",
       "money_in_transit": "Гроші в дорозі",
       "debt_over_ten_days": "Борг > 10дн",
@@ -657,6 +658,7 @@
       "critical_orders": "Замовлення з прострочкою > 10 днів",
       "underfunded_orders": "Недоавансовані замовлення",
       "in_route_orders": "Борг у маршрутах (в дорозі)",
+      "in_work_orders": "Замовлення в роботі",
       "money_in_transit_orders": "Гроші в дорозі"
     },
     "detail": {

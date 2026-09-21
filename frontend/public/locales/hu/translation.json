@@ -626,6 +626,7 @@
       "underfunded": "Fejletlen",
       "post_sale_debt": "Adósság a realizálás után",
       "route_debt": "Adósság az útvonal teljesítése után",
+      "in_work_debt": "Folyamatban",
       "in_routes": "Az útvonalakban",
       "money_in_transit": "A pénz úton van",
       "debt_over_ten_days": "Tartozás > 10 nap",
@@ -634,6 +635,7 @@
       "critical_orders": "A lejárt rendelések > 10 nap",
       "underfunded_orders": "Nem előre megrendelés",
       "in_route_orders": "Adósság az útvonalakban (útközben)",
+      "in_work_orders": "Folyamatban lévő rendelések",
       "money_in_transit_orders": "A pénz úton van"
     },
     "detail": {

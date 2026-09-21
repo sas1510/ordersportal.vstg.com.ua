@@ -650,6 +650,7 @@
       "underfunded": "Unterfinanziert",
       "post_sale_debt": "Schuld nach Realisierung",
       "route_debt": "Schuld nach Routenabschluss",
+      "in_work_debt": "In Bearbeitung",
       "in_routes": "In Routen",
       "money_in_transit": "Geld unterwegs",
       "debt_over_ten_days": "Schuld > 10T",
@@ -658,6 +659,7 @@
       "critical_orders": "Bestellungen mit Verzug > 10 Tage",
       "underfunded_orders": "Unterfinanzierte Bestellungen",
       "in_route_orders": "Schuld in Routen (unterwegs)",
+      "in_work_orders": "Aufträge in Bearbeitung",
       "money_in_transit_orders": "Geld unterwegs"
     },
     "detail": {

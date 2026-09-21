@@ -870,7 +870,7 @@ def get_customers(request):
 @sync_to_async
 def execute_balance_procedure(user_id_1c):
     with connection.cursor() as cursor:
-        cursor.execute("EXEC dbo.GetDealerAdvanceBalance_2 @Контрагент=%s", [user_id_1c])
+        cursor.execute("EXEC dbo.GetDealerAdvanceBalance_V3 @Контрагент=%s", [user_id_1c])
         return cursor.fetchone()
 
 

@@ -6952,7 +6952,7 @@ class PartnerDebtsView(APIView):
         try:
             with connection.cursor() as cursor:
 
-                cursor.execute("EXEC [dbo].[GetPartnerDebtsDirect] @TargetPartnerID=%s", 
+                cursor.execute("EXEC [dbo].[GetPartnerDebtsDirect_V2] @TargetPartnerID=%s",
                                [contractor_bin])
                 
      
