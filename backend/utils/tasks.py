@@ -366,7 +366,7 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
             if isinstance(msg.related_object_id, (bytearray, memoryview))
             else msg.related_object_id
         )
-        suborder_numbers = (
+        production_numbers = (
             get_calculation_suborder_numbers_for_telegram(calculation_guid_bin)
             if notification_transaction_type == 1
             else []
@@ -374,24 +374,25 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
         log_payload = {
             "tags": {
                 "action": "telegram_calculation_suborders",
-                "status": "success" if suborder_numbers else "empty",
+                "status": "success" if production_numbers else "empty",
             },
             "message_id": message_id,
             "transaction_type": notification_transaction_type,
             "calculation_guid_present": bool(calculation_guid_bin),
-            "production_numbers_count": len(suborder_numbers),
-            "production_numbers": suborder_numbers,
+            "production_numbers_count": len(production_numbers),
+            "production_numbers": production_numbers,
         }
-        if notification_transaction_type == 1 and calculation_guid_bin and not suborder_numbers:
+        if notification_transaction_type == 1 and calculation_guid_bin and not production_numbers:
             logger.warning(
                 "Telegram production numbers lookup returned no rows",
                 extra=log_payload,
             )
         else:
             logger.info("TG calculation production numbers resolved", extra=log_payload)
-        suborders_html = (
-            "\n<b>" + "".join(chr(code) for code in (1055, 1110, 1076, 1079, 1072, 1084, 1086, 1074, 1083, 1077, 1085, 1085, 1103)) + ":</b> " + ", ".join(suborder_numbers)
-            if suborder_numbers
+        production_numbers_html = (
+            "\n<b>Номери замовлень:</b> "
+            + ", ".join(f"№{number}" for number in production_numbers)
+            if production_numbers
             else ""
         )
 
@@ -409,7 +410,7 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
 
         with connection.cursor() as cursor:
             cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [recipient_bin])
-            row = cursor.fetchone()
+            row = cursor.fetchone() if cursor.description else None
             if row:
                 telegram_id = row[1] if len(row) > 1 else row[0]
         logger.info(
@@ -425,7 +426,7 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
         )
 
         token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
-        if telegram_id and token:
+        if token:
             message_text = (msg.text or "").strip()
             is_refusal_request = message_text.startswith("Відмова. Номери:")
 
@@ -435,7 +436,7 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
                     f"У {document_type} <b>№{doc_number}</b>.\n\n"
                     f"<b>{message_text}</b>\n"
                     f"<i>Від {author_name}.</i>"
-                    f"{suborders_html}{link_html}"
+                    f"{production_numbers_html}{link_html}"
                 )
             else:
                 text = (
@@ -443,17 +444,17 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
                     f"У {document_type} <b>№{doc_number}</b>.\n\n"
                     f"<i>\"{message_text}...\"</i>\n"
                     f"<i>Від {author_name}.</i>"
-                    f"{suborders_html}{link_html}"
+                    f"{production_numbers_html}{link_html}"
                 )
 
-            target_chat_ids = [int(telegram_id)]
+            target_chat_ids = [int(telegram_id)] if telegram_id else []
 
             try:
                 for copy_user_id_1c_hex in TELEGRAM_COPY_USER_IDS_1C_HEX:
                     copy_bin = bytes.fromhex(copy_user_id_1c_hex[2:])
                     with connection.cursor() as cursor:
                         cursor.execute("EXEC [dbo].[GetTelegramID] @UserGUID=%s", [copy_bin])
-                        copy_row = cursor.fetchone()
+                        copy_row = cursor.fetchone() if cursor.description else None
                     copy_telegram_id = None
                     if copy_row:
                         copy_telegram_id = copy_row[1] if len(copy_row) > 1 else copy_row[0]
@@ -463,6 +464,9 @@ def check_and_send_telegram_notification(self, message_id, recipient_guid_str, t
                 raise
             except Exception:
                 logger.warning("Could not resolve Telegram copy recipients in check_and_send_telegram_notification", exc_info=True)
+
+            if not target_chat_ids:
+                return "No Telegram IDs found for recipient or copy recipients"
 
             for chat_id in target_chat_ids:
                 logger.info(

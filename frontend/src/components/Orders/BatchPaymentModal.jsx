@@ -22,7 +22,7 @@ export default function BatchPaymentModal({ orders, contractorGuid, formatCurren
     () => contracts.find((contract) => String(contract.Dogovor_ID) === String(contractId)),
     [contracts, contractId],
   );
-  const available = Number(selectedContract?.DogovorSum ?? selectedContract?.DogovorBalance ?? 0);
+  const available = Number(selectedContract?.DogovorBalance ?? selectedContract?.DogovorSum ?? 0);
   const selectedCurrency = currencyKey(selectedContract?.CurrencyName);
   const selectedPayments = useMemo(
     () => payableOrders
@@ -105,6 +105,7 @@ export default function BatchPaymentModal({ orders, contractorGuid, formatCurren
     try {
       const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractId,
+        contractor_guid: contractorGuid,
         payments: selectedPayments.map(({ order, amount }) => ({
           order_id: order.OrderID_GUID,
           amount: Number(amount.toFixed(2)),
@@ -114,8 +115,8 @@ export default function BatchPaymentModal({ orders, contractorGuid, formatCurren
       await onSuccess();
       addNotification("Оплату підтверджено в 1С.", "success");
       onClose();
-    } catch {
-      setError("Оплату не підтверджено. Перевірте дані та спробуйте ще раз.");
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || "Оплату не підтверджено. Перевірте дані та спробуйте ще раз.");
     } finally {
       setSubmitting(false);
     }

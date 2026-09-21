@@ -93,6 +93,86 @@ const getContractOptionValue = (contract, index) => {
   ].join("__");
 };
 
+
+const PENDING_ADVANCE_PAYMENTS_KEY = "pending_advance_payments_v1";
+const PENDING_ADVANCE_PAYMENT_TTL = 30 * 60 * 1000;
+
+const readPendingAdvancePayments = () => {
+  try {
+    const value = JSON.parse(localStorage.getItem(PENDING_ADVANCE_PAYMENTS_KEY) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+};
+
+const writePendingAdvancePayments = (items) => {
+  try {
+    localStorage.setItem(PENDING_ADVANCE_PAYMENTS_KEY, JSON.stringify(items));
+  } catch {
+    // Local state still stays correct for the current page session.
+  }
+};
+
+const applyPendingAdvancePaymentOverlay = (sourceOrders, sourceContracts, contractorGuid) => {
+  const scope = String(contractorGuid || "").trim().toLowerCase();
+  const now = Date.now();
+  const activeItems = readPendingAdvancePayments().filter(
+    (item) => now - Number(item?.createdAt || 0) < PENDING_ADVANCE_PAYMENT_TTL,
+  );
+  const retainedItems = [];
+  let orders = sourceOrders || [];
+  let contracts = sourceContracts || [];
+
+  activeItems.forEach((item) => {
+    if (String(item?.contractorGuid || "").trim().toLowerCase() !== scope) {
+      retainedItems.push(item);
+      return;
+    }
+
+    const contractIndex = contracts.findIndex(
+      (contract, index) => getContractOptionValue(contract, index) === String(item.contractId || "").trim(),
+    );
+    const contractIsSynced = contractIndex >= 0 && (
+      item.balanceAfter == null ||
+      parseFlexibleAmount(contracts[contractIndex]?.DogovorBalance ?? contracts[contractIndex]?.DogovorSum) <=
+        Number(item.balanceAfter) + 0.005
+    );
+    const ordersAreSynced = (item.orders || []).every((target) => {
+      const serverOrder = orders.find(
+        (order) => String(order?.OrderID_GUID || "").trim().toLowerCase() === String(target.orderId || "").trim().toLowerCase(),
+      );
+      return serverOrder && parseFlexibleAmount(serverOrder.DebtAmount) <= Number(target.debtAfter) + 0.005;
+    });
+
+    if (contractIsSynced && ordersAreSynced) return;
+    retainedItems.push(item);
+
+    contracts = contracts.map((contract, index) => {
+      if (getContractOptionValue(contract, index) !== String(item.contractId || "").trim()) return contract;
+      if (item.balanceAfter == null) return contract;
+      const serverBalance = parseFlexibleAmount(contract.DogovorBalance ?? contract.DogovorSum);
+      return {
+        ...contract,
+        DogovorBalance: Number(Math.min(serverBalance, Number(item.balanceAfter)).toFixed(2)),
+      };
+    });
+    orders = orders.map((order) => {
+      const target = (item.orders || []).find(
+        (entry) => String(entry.orderId || "").trim().toLowerCase() === String(order?.OrderID_GUID || "").trim().toLowerCase(),
+      );
+      if (!target) return order;
+      return {
+        ...order,
+        DebtAmount: Number(Math.min(parseFlexibleAmount(order.DebtAmount), Number(target.debtAfter)).toFixed(2)),
+      };
+    });
+  });
+
+  writePendingAdvancePayments(retainedItems);
+  return { orders, contracts };
+};
+
 export default function PaymentsPage() {
   const { isDark } = useTheme();
   const { t, i18n } = useTranslation();
@@ -208,8 +288,11 @@ export default function PaymentsPage() {
           params: { contractor_guid: contractorGUID },
         }),
       ]);
-      setOrders(resPage.data.orders || []);
-      setContracts(resPage.data.contracts || []);
+      const overlaidData = applyPendingAdvancePaymentOverlay(
+        resPage.data.orders || [], resPage.data.contracts || [], contractorGUID,
+      );
+      setOrders(overlaidData.orders);
+      setContracts(overlaidData.contracts);
       setDebtItems(resDebts.data.debts?.items || []);
       setDebtTotal(resDebts.data.debts?.total || null);
     } catch (_e) {
@@ -218,6 +301,88 @@ export default function PaymentsPage() {
       setLoading(false);
     }
   }, [contractorGUID, t]);
+
+  const applySuccessfulPayments = useCallback(
+    (contractId, successfulPayments, balanceAfter) => {
+      const normalizedPayments = (successfulPayments || []).map((payment) => ({
+        orderId: String(payment.order_id || "").trim().toLowerCase(),
+        amount: parseFlexibleAmount(payment.amount),
+      }));
+      const totalPaid = normalizedPayments.reduce(
+        (sum, payment) => sum + payment.amount,
+        0,
+      );
+      const exactBalance = Number(balanceAfter);
+      const selectedContractIndex = contracts.findIndex(
+        (item, index) => getContractOptionValue(item, index) === String(contractId).trim(),
+      );
+      const currentBalance = selectedContractIndex >= 0
+        ? parseFlexibleAmount(
+            contracts[selectedContractIndex]?.DogovorBalance ??
+              contracts[selectedContractIndex]?.DogovorSum,
+          )
+        : 0;
+      const localBalanceAfter = Math.max(0, currentBalance - totalPaid);
+      const targetBalance = Number.isFinite(exactBalance)
+        ? Math.min(localBalanceAfter, exactBalance)
+        : localBalanceAfter;
+      const orderTargets = normalizedPayments.map((payment) => {
+        const currentOrder = orders.find(
+          (order) => String(order?.OrderID_GUID || "").trim().toLowerCase() === payment.orderId,
+        );
+        return {
+          orderId: payment.orderId,
+          debtAfter: Number(
+            Math.max(0, parseFlexibleAmount(currentOrder?.DebtAmount) - payment.amount).toFixed(2),
+          ),
+        };
+      });
+
+      const pendingItems = readPendingAdvancePayments().filter(
+        (item) => Date.now() - Number(item?.createdAt || 0) < PENDING_ADVANCE_PAYMENT_TTL,
+      );
+      pendingItems.push({
+        contractorGuid: String(contractorGUID || "").trim().toLowerCase(),
+        contractId: String(contractId).trim(),
+        balanceAfter: Number(targetBalance.toFixed(2)),
+        orders: orderTargets,
+        createdAt: Date.now(),
+      });
+      writePendingAdvancePayments(pendingItems);
+
+      setContracts((previous) =>
+        previous.map((item, index) => {
+          if (getContractOptionValue(item, index) !== String(contractId).trim()) {
+            return item;
+          }
+          return {
+            ...item,
+            DogovorBalance: Number(
+              Math.min(
+                parseFlexibleAmount(item.DogovorBalance ?? item.DogovorSum),
+                targetBalance,
+              ).toFixed(2),
+            ),
+          };
+        }),
+      );
+
+      setOrders((previous) =>
+        previous.map((order) => {
+          const orderId = String(order?.OrderID_GUID || "").trim().toLowerCase();
+          const target = orderTargets.find((item) => item.orderId === orderId);
+          if (!target) return order;
+          return {
+            ...order,
+            DebtAmount: Number(
+              Math.min(parseFlexibleAmount(order.DebtAmount), target.debtAfter).toFixed(2),
+            ),
+          };
+        }),
+      );
+    },
+    [contractorGUID, contracts, orders],
+  );
 
   useEffect(() => {
     loadData();
@@ -733,32 +898,41 @@ export default function PaymentsPage() {
 
     setBatchSubmitting(true);
 
+    const submittedPayments = batchSelectedOrders.map(({ order, amount }) => ({
+      order_id: order.OrderID_GUID,
+      amount: Number(amount.toFixed(2)),
+    }));
+
     try {
       const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: batchContractId,
-        payments: batchSelectedOrders.map(({ order, amount }) => ({
-          order_id: order.OrderID_GUID,
-          amount: Number(amount.toFixed(2)),
-        })),
+        contractor_guid: contractorGUID,
+        payments: submittedPayments,
       });
 
       if (response?.data?.success !== true) {
         throw new Error("Batch payment was not confirmed by 1C");
       }
 
+      applySuccessfulPayments(
+        batchContractId,
+        submittedPayments,
+        response.data?.available_balance_after,
+      );
       setBatchSelection({});
       setBatchAmountDrafts({});
       setBatchPaymentOpen(false);
       addNotification(
         t(
-          "payments_page.notifications.batch_payment_pending_refresh",
-          "Рознесення авансу успішно виконано. Будь ласка, зачекайте 2–3 хвилини на оновлення даних щодо коштів.",
+          "payments_page.notifications.batch_payment_updated",
+          "Рознесення авансу успішно виконано. Суми оновлено.",
         ),
         "success",
       );
-    } catch {
+    } catch (error) {
       addNotification(
-        t("payments_page.notifications.batch_payment_error", "Не вдалося виконати оплату вибраних замовлень."),
+        error.response?.data?.error ||
+          t("payments_page.notifications.batch_payment_error", "Не вдалося виконати оплату вибраних замовлень."),
         "warning",
       );
     } finally {
@@ -766,10 +940,12 @@ export default function PaymentsPage() {
     }
   }, [
     addNotification,
+    applySuccessfulPayments,
     batchContract,
     batchContractId,
     batchSelectedOrders,
     batchSubmitting,
+    contractorGUID,
     t,
   ]);
 
@@ -777,22 +953,36 @@ export default function PaymentsPage() {
     try {
       const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractID,
+        contractor_guid: contractorGUID,
         order_id: selectedOrder.OrderID_GUID,
         amount: Number(amount),
       });
       if (response?.data?.success !== true) {
         throw new Error("Payment was not confirmed by 1C");
       }
+      applySuccessfulPayments(
+        contractID,
+        [
+          {
+            order_id: selectedOrder.OrderID_GUID,
+            amount: Number(amount),
+          },
+        ],
+        response.data?.available_balance_after,
+      );
       closeModal();
       addNotification(
         t(
-          "payments_page.notifications.payment_pending_refresh",
-          "Рознесення авансу успішно виконано. Будь ласка, зачекайте 2–3 хвилини на оновлення даних щодо коштів.",
+          "payments_page.notifications.payment_updated",
+          "Рознесення авансу успішно виконано. Суми оновлено.",
         ),
         "success",
       );
-    } catch {
-      addNotification(t("payments_page.notifications.payment_error"), "warning");
+    } catch (error) {
+      addNotification(
+        error.response?.data?.error || t("payments_page.notifications.payment_error"),
+        "warning",
+      );
     }
   };
 

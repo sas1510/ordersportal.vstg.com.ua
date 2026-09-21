@@ -32,6 +32,45 @@ const DEALER_GROUP_VALUES = {
   export: "__GROUP__EXPORT",
   branches: "__GROUP__BRANCHES",
 };
+
+const PENDING_ADVANCE_PAYMENTS_KEY = "pending_advance_payments_v1";
+const PENDING_ADVANCE_PAYMENT_TTL = 30 * 60 * 1000;
+
+const applyPendingOrderPayments = (sourceCalculations) => {
+  let pendingItems = [];
+  try {
+    const stored = JSON.parse(localStorage.getItem(PENDING_ADVANCE_PAYMENTS_KEY) || "[]");
+    pendingItems = (Array.isArray(stored) ? stored : []).filter(
+      (item) => Date.now() - Number(item?.createdAt || 0) < PENDING_ADVANCE_PAYMENT_TTL,
+    );
+    localStorage.setItem(PENDING_ADVANCE_PAYMENTS_KEY, JSON.stringify(pendingItems));
+  } catch {
+    return sourceCalculations;
+  }
+
+  return (sourceCalculations || []).map((calculation) => {
+    const scope = String(calculation?.dealerId || "").trim().toLowerCase();
+    const targets = pendingItems
+      .filter((item) => String(item?.contractorGuid || "").trim().toLowerCase() === scope)
+      .flatMap((item) => item.orders || []);
+    if (!targets.length) return calculation;
+
+    const orders = (calculation.orders || []).map((order) => {
+      const orderId = String(order?.idGuid || "").trim().toLowerCase();
+      const matchingTargets = targets.filter(
+        (target) => String(target?.orderId || "").trim().toLowerCase() === orderId,
+      );
+      if (!matchingTargets.length) return order;
+      const targetPaid = Math.max(
+        Number(order.paid || 0),
+        ...matchingTargets.map((target) => Number(target.paidAfter ?? (Number(order.amount || 0) - Number(target.debtAfter || 0)))),
+      );
+      return { ...order, paid: Number(Math.min(Number(order.amount || 0), targetPaid).toFixed(2)) };
+    });
+    const debt = orders.reduce((sum, order) => sum + Math.max(0, Number(order.amount || 0) - Number(order.paid || 0)), 0);
+    return { ...calculation, orders, debt: Number(debt.toFixed(2)) };
+  });
+};
 const DEALER_GROUP_TO_SQL_VALUE = {
   [DEALER_GROUP_VALUES.dealers]: "Дилера",
   [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
@@ -152,6 +191,65 @@ const AdminPortalOriginal = () => {
 
   const [expandedCalcIds, setExpandedCalcIds] = useState(() => new Set());
   const [expandedOrder, setExpandedOrder] = useState(null);
+
+  const refreshCurrentOrders = useCallback(() => {
+    silentOrdersRefreshRef.current = true;
+    setOrdersRefreshVersion((version) => version + 1);
+  }, []);
+
+  const handleOrderPaymentSuccess = useCallback(({ orderIdGuid, amount, paidAfter, debtAfter, contractId, contractorGuid, balanceAfter }) => {
+    const normalizedOrderId = String(orderIdGuid || "").trim().toLowerCase();
+    const paymentAmount = Number(amount || 0);
+
+    if (!normalizedOrderId || paymentAmount <= 0) return;
+
+    try {
+      const stored = JSON.parse(localStorage.getItem(PENDING_ADVANCE_PAYMENTS_KEY) || "[]");
+      const pendingItems = (Array.isArray(stored) ? stored : []).filter(
+        (item) => Date.now() - Number(item?.createdAt || 0) < PENDING_ADVANCE_PAYMENT_TTL,
+      );
+      pendingItems.push({
+        contractorGuid: String(contractorGuid || "").trim().toLowerCase(),
+        contractId: String(contractId || "").trim(),
+        balanceAfter: Number.isFinite(Number(balanceAfter)) ? Number(balanceAfter) : null,
+        orders: [{
+          orderId: normalizedOrderId,
+          paidAfter: Number(paidAfter || 0),
+          debtAfter: Number(debtAfter || 0),
+        }],
+        createdAt: Date.now(),
+      });
+      localStorage.setItem(PENDING_ADVANCE_PAYMENTS_KEY, JSON.stringify(pendingItems));
+    } catch {
+      // The current React state is still updated below.
+    }
+
+    setCalculationsData((previous) =>
+      previous.map((calculation) => {
+        let appliedAmount = 0;
+        const orders = (calculation.orders || []).map((order) => {
+          if (String(order?.idGuid || "").trim().toLowerCase() !== normalizedOrderId) {
+            return order;
+          }
+
+          const orderAmount = Number(order.amount || 0);
+          const currentPaid = Number(order.paid || 0);
+          const nextPaid = Math.min(orderAmount, currentPaid + paymentAmount);
+          appliedAmount = Math.max(0, nextPaid - currentPaid);
+
+          return { ...order, paid: Number(nextPaid.toFixed(2)) };
+        });
+
+        if (appliedAmount <= 0) return calculation;
+
+        return {
+          ...calculation,
+          orders,
+          debt: Number(Math.max(0, Number(calculation.debt || 0) - appliedAmount).toFixed(2)),
+        };
+      }),
+    );
+  }, []);
 
   const toggleOrder = useCallback((id) => {
     setExpandedOrder((previous) => (previous === id ? null : id));
@@ -500,7 +598,7 @@ const AdminPortalOriginal = () => {
         const rawData =
           response.data.data?.calculation || [];
 
-        setCalculationsData(rawData);
+        setCalculationsData(applyPendingOrderPayments(rawData));
         setDisplayLimit(ITEMS_PER_LOAD);
       } else {
         setCalculationsData([]);
@@ -612,7 +710,7 @@ const AdminPortalOriginal = () => {
           const rawData =
             response.data.data?.calculation || [];
 
-          setCalculationsData(rawData);
+          setCalculationsData(applyPendingOrderPayments(rawData));
         } else {
           setCalculationsData([]);
         }
@@ -1645,6 +1743,8 @@ const AdminPortalOriginal = () => {
                         handleDeleteSuccess
                       }
                       onEdit={handleEditCalculation}
+                      reloadCalculations={refreshCurrentOrders}
+                      onOrderPaymentSuccess={handleOrderPaymentSuccess}
                     />
                   ) : (
                     <CalculationItem
@@ -1662,6 +1762,8 @@ const AdminPortalOriginal = () => {
                         handleDeleteSuccess
                       }
                       onEdit={handleEditCalculation}
+                      reloadCalculations={refreshCurrentOrders}
+                      onOrderPaymentSuccess={handleOrderPaymentSuccess}
                     />
                   ),
                 )

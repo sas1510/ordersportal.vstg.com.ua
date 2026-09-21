@@ -141,6 +141,7 @@ import uuid
 import base64
 import requests
 import html
+from decimal import Decimal, InvalidOperation
 from datetime import date
 from binascii import unhexlify
 
@@ -1541,9 +1542,9 @@ def make_payment_from_advance(request):
             return Response({"error": "\u041a\u043e\u0436\u0435\u043d \u0435\u043b\u0435\u043c\u0435\u043d\u0442 payments \u043c\u0430\u0454 \u0431\u0443\u0442\u0438 \u043e\u0431\u02bc\u0454\u043a\u0442\u043e\u043c"}, status=status.HTTP_400_BAD_REQUEST)
         order_id = item.get("order_id")
         try:
-            amount = float(item.get("amount"))
-        except (TypeError, ValueError):
-            amount = 0
+            amount = Decimal(str(item.get("amount"))).quantize(Decimal("0.01"))
+        except (InvalidOperation, TypeError, ValueError):
+            amount = Decimal("0")
         if not order_id or amount <= 0:
             return Response({"error": "\u0414\u043b\u044f \u043a\u043e\u0436\u043d\u043e\u0433\u043e \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u043e\u0442\u0440\u0456\u0431\u043d\u0456 order_id \u0456 \u0434\u043e\u0434\u0430\u0442\u043d\u044f amount"}, status=status.HTTP_400_BAD_REQUEST)
         payments.append({"order_id": str(order_id), "amount": amount})
@@ -1557,8 +1558,92 @@ def make_payment_from_advance(request):
         })
         return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
 
-    total_amount = sum(payment["amount"] for payment in payments)
-    payload_1c = {"contract": contract, "payments": payments}
+    try:
+        contractor_bin, _ = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+        )
+    except (PermissionError, ValueError) as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    total_amount = sum(
+        (payment["amount"] for payment in payments),
+        Decimal("0"),
+    )
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetDealerAllAdvancedBalance @Контрагент = %s",
+                [contractor_bin],
+            )
+            columns = [column[0] for column in cursor.description]
+            advance_rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    except Exception:
+        logger.exception("Unable to verify the current advance balance")
+        return Response(
+            {"error": "Не вдалося перевірити актуальний залишок авансу. Спробуйте ще раз."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    def normalize_guid(value):
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            value = bin_to_guid_1c(bytes(value))
+        return str(value or "").strip().strip("{}").lower()
+
+    requested_contract = normalize_guid(contract)
+    current_contract = next(
+        (
+            row
+            for row in advance_rows
+            if requested_contract
+            in {
+                normalize_guid(row.get("Dogovor_ID")),
+                normalize_guid(row.get("Dogovor_GUID")),
+                normalize_guid(row.get("DogovorId")),
+                normalize_guid(row.get("DogovorGuid")),
+            }
+        ),
+        None,
+    )
+
+    if current_contract is None:
+        return Response(
+            {"error": "Авансовий договір не знайдено або він недоступний."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        available_balance = Decimal(
+            str(
+                current_contract.get("DogovorBalance")
+                if current_contract.get("DogovorBalance") is not None
+                else current_contract.get("DogovorSum", 0)
+            )
+        ).quantize(Decimal("0.01"))
+    except (InvalidOperation, TypeError, ValueError):
+        available_balance = Decimal("0")
+
+    if total_amount > available_balance:
+        return Response(
+            {
+                "success": False,
+                "error": "Недостатньо коштів на авансовому договорі.",
+                "available_balance": float(available_balance),
+                "requested_amount": float(total_amount),
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    payload_1c = {
+        "contract": contract,
+        "payments": [
+            {**payment, "amount": float(payment["amount"])}
+            for payment in payments
+        ],
+    }
     logger.info("Advance payment allocation requested", extra={
         "tags": {"action": "advance_payment", "stage": "requested", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount)}
     })
@@ -1581,7 +1666,16 @@ def make_payment_from_advance(request):
         logger.info("Advance payment allocation completed", extra={
             "tags": {"action": "advance_payment", "stage": "completed", "status": "success", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "results_count": len(results), "duration_sec": round(duration, 4)}
         })
-        return Response({"success": True, "sent_to_1c": payload_1c, "response_1c": response_1c}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "success": True,
+                "sent_to_1c": payload_1c,
+                "response_1c": response_1c,
+                "available_balance_before": float(available_balance),
+                "available_balance_after": float(available_balance - total_amount),
+            },
+            status=status.HTTP_200_OK,
+        )
     except Exception:
         logger.error("Advance payment allocation failed", exc_info=True, extra={
             "tags": {"action": "advance_payment", "stage": "send_to_1c", "status": "error", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "duration_sec": round(time.time() - start_time, 4)}

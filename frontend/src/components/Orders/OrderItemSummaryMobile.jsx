@@ -233,6 +233,7 @@ export default React.memo(function OrderItemSummaryMobile({
     try {
       const response = await axiosInstance.post("/payments/make_payment_from_advance/", {
         contract: contractID,
+        contractor_guid: contractorGuid,
         order_id: order.idGuid,
         amount: Number(amount),
       });
@@ -240,12 +241,17 @@ export default React.memo(function OrderItemSummaryMobile({
         throw new Error("Payment was not confirmed by 1C");
       }
 
-      if (onRefresh) {
-        await onRefresh({ silent: true });
-      }
       onOrderPaymentSuccess?.({
         orderIdGuid: order?.idGuid,
         amount: Number(amount),
+        paidAfter: Math.min(
+          Number(order?.amount || 0),
+          Number(order?.paid || 0) + Number(amount),
+        ),
+        debtAfter: Math.max(0, Number(order?.amount || 0) - Number(order?.paid || 0) - Number(amount)),
+        contractId: contractID,
+        contractorGuid,
+        balanceAfter: response.data?.available_balance_after,
       });
       setIsPaymentOpen(false);
       addNotification(
@@ -254,7 +260,10 @@ export default React.memo(function OrderItemSummaryMobile({
       );
     } catch (error) {
       console.error(error);
-      addNotification(t("errors.paymentError"), "error");
+      addNotification(
+        error.response?.data?.error || t("errors.paymentError"),
+        "error",
+      );
     }
   };
 
@@ -355,6 +364,7 @@ export default React.memo(function OrderItemSummaryMobile({
         orderIdGuid: order?.idGuid,
         status: isSketchOrder ? String.fromCharCode(1045, 1089, 1082, 1110, 1079, 32, 1087, 1110, 1076, 1090, 1074, 1077, 1088, 1076, 1078, 1077, 1085, 1086) : String.fromCharCode(1055, 1110, 1076, 1090, 1074, 1077, 1088, 1076, 1078, 1077, 1085, 1080, 1081),
       });
+      onRefresh?.({ silent: true });
 
       addNotification(
         response.data?.message ||
