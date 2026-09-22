@@ -276,16 +276,23 @@ LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.БВ_Состояния
 
             ISNULL(V_Base.Наименование, V.Наименование) AS CurrencyName,
 
-            IIF
-            (
-                ISNULL(S.SummaRealization, 0) <= 0
-                AND PD.Summa IS NOT NULL
-                AND PD.Summa <> 0
-                AND Z.OrderSum <> PD.Summa
-                AND Z.OrderSum / 2 < PD.Summa,
-                PD.Summa - Z.OrderSum / 2,
-                NULL
-            ) AS NedoAvans,
+            CASE
+                WHEN ISNULL(S.SummaRealization, 0) <= 0
+                     AND AV.Summa > Z.OrderSum / 2
+                     AND AV.Summa < Z.OrderSum
+                    THEN AV.Summa - Z.OrderSum / 2
+                WHEN ISNULL(S.SummaRealization, 0) <= 0
+                     AND AV.Summa IS NULL
+                     AND PD.Summa < 0
+                     AND PD.Summa * -1 < Z.OrderSum / 2
+                    THEN Z.OrderSum / 2 + PD.Summa
+                WHEN ISNULL(S.SummaRealization, 0) <= 0
+                     AND AV.Summa IS NULL
+                     AND PD.Summa > Z.OrderSum / 2
+                     AND PD.Summa < Z.OrderSum
+                    THEN PD.Summa - Z.OrderSum / 2
+                ELSE NULL
+            END AS NedoAvans,
 
             IIF
             (
@@ -321,11 +328,13 @@ LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.БВ_Состояния
                 WHEN R.RouteStatus IS NULL
                      AND AV.Summa > 0
                      AND AV.Summa < Z.OrderSum
+                     AND AV.Summa <= Z.OrderSum / 2
                     THEN AV.Summa
                 WHEN R.RouteStatus IS NULL
                      AND AV.Summa IS NULL
                      AND PD.Summa < 0
                      AND PD.Summa * -1 < Z.OrderSum
+                     AND Z.OrderSum + PD.Summa <= Z.OrderSum / 2
                     THEN Z.OrderSum + PD.Summa
                 ELSE NULL
             END AS InWorkDebt,

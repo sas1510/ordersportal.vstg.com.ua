@@ -281,6 +281,14 @@
   text-overflow: ellipsis;
 }
 
+.file-preview-order-amount {
+  display: block;
+  margin-top: 5px;
+  color: #2f6f3e;
+  font-size: 15px;
+  font-weight: 700;
+}
+
 .file-preview-subtitle {
   display: block;
   margin-top: 4px;
@@ -384,6 +392,10 @@ body.dark-theme .file-preview-title,
 body.dark-theme .file-name-text {
   color: #f5f3f1;
 }
+body.dark-theme .file-preview-order-amount {
+  color: #b6db48;
+}
+
 
 body.dark-theme .preview-subtitle,
 body.dark-theme .preview-footer-count,

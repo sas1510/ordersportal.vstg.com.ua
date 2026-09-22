@@ -45,6 +45,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   ] = useState(false);
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [autoOpenOrderPdf, setAutoOpenOrderPdf] = useState(false);
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const [claimOrderGuid, setClaimOrderGuid] = useState("");
 
@@ -52,6 +53,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   const orderNumber = String(order?.number || "").trim();
   const isSketchOrder = orderNumber.startsWith("34-");
+  const opensPdfFromNumber = /^(01|45)-/.test(orderNumber);
   const isSketchConfirmed = order?.status === "Ескіз підтверджено";
 
   const toggleExpand = useCallback(() => {
@@ -287,8 +289,16 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   const openFilesModal = useCallback((event) => {
     event.stopPropagation();
+    setAutoOpenOrderPdf(false);
     setIsFilesModalOpen(true);
   }, []);
+
+  const openOrderPdf = useCallback((event) => {
+    event.stopPropagation();
+    if (!opensPdfFromNumber) return;
+    setAutoOpenOrderPdf(true);
+    setIsFilesModalOpen(true);
+  }, [opensPdfFromNumber]);
 
   const openPaymentModal = useCallback((event) => {
     event.stopPropagation();
@@ -506,7 +516,10 @@ export default React.memo(function OrderItemSummaryDesktop({
                 {t("order_mobile.labels.order_number")}
               </span>
 
-              <div className="text-[15px] text-bold mt-0.5">
+              <div
+                className={"text-[15px] text-bold mt-0.5 " + (opensPdfFromNumber ? "order-number-pdf-link" : "")}
+                onClick={opensPdfFromNumber ? openOrderPdf : undefined}
+              >
                 № {orderNumber}
               </div>
 
@@ -778,6 +791,10 @@ export default React.memo(function OrderItemSummaryDesktop({
       {isFilesModalOpen && (
         <OrderFilesModal
           orderGuid={order?.idGuid}
+          orderNumber={orderNumber}
+          orderAmount={order?.amount}
+          orderCurrency={order?.currency}
+          autoOpenPdf={autoOpenOrderPdf}
           hideZkzFiles
           entityType="order"
           onClose={() => setIsFilesModalOpen(false)}

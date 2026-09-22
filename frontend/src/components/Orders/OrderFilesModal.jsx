@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
@@ -23,6 +23,9 @@ const OrderFilesModal = ({
   orderNumber,
   entityType = "order",
   hideZkzFiles = false,
+  autoOpenPdf = false,
+  orderAmount,
+  orderCurrency,
   onClose,
 }) => {
   const { t, i18n } = useTranslation();
@@ -35,6 +38,17 @@ const OrderFilesModal = ({
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewText, setPreviewText] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
+  const autoOpenedPdfRef = useRef(false);
+
+  const formattedOrderAmount = useMemo(() => {
+    const amount = Number(orderAmount);
+    if (!Number.isFinite(amount)) return "";
+
+    return `${new Intl.NumberFormat(i18n.language || "uk-UA", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)} ${orderCurrency || "грн"}`;
+  }, [i18n.language, orderAmount, orderCurrency]);
 
   const getFileExtension = (fileName = "") => fileName.toLowerCase().split(".").pop();
 
@@ -165,6 +179,9 @@ const OrderFilesModal = ({
     setPreviewText("");
     setPreviewFile(null);
     setPreviewLoading(false);
+    if (autoOpenPdf) {
+      onClose();
+    }
   };
 
   const buildFileDownloadUrl = (fileItem) => {
@@ -289,6 +306,23 @@ const OrderFilesModal = ({
     }
   };
 
+  useEffect(() => {
+    autoOpenedPdfRef.current = false;
+  }, [orderGuid, autoOpenPdf]);
+
+  useEffect(() => {
+    if (!autoOpenPdf || loading || autoOpenedPdfRef.current) return;
+
+    const pdfFile = files.find(
+      (file) => getFileExtension(file?.fileName) === "pdf",
+    );
+
+    if (!pdfFile) return;
+
+    autoOpenedPdfRef.current = true;
+    handleFileAction(pdfFile);
+  }, [autoOpenPdf, files, loading]);
+
   const renderPreviewContent = () => {
     if (!previewFile) return null;
     if (previewLoading) {
@@ -386,6 +420,7 @@ const OrderFilesModal = ({
 
   return createPortal(
     <>
+      {!autoOpenPdf && (
       <div className="preview-modal-overlay" onClick={onClose}>
         <div className="preview-modal-window" onClick={(e) => e.stopPropagation()}>
         
@@ -451,13 +486,53 @@ const OrderFilesModal = ({
 
         </div>
       </div>
+      )}
 
-      {previewFile && (
-        <div className="file-preview-overlay" onClick={handleClosePreview}>
+      {autoOpenPdf && !previewFile && (
+        <div className="file-preview-overlay" onClick={onClose}>
+          <div className="file-preview-window" onClick={(e) => e.stopPropagation()}>
+            <div className="file-preview-header">
+              <div className="file-preview-title-wrap">
+                <h3 className="file-preview-title">
+                  Замовлення{orderNumber ? ` № ${orderNumber}` : ""}
+                </h3>
+                {formattedOrderAmount && (
+                  <strong className="file-preview-order-amount">
+                    Сума замовлення: {formattedOrderAmount}
+                  </strong>
+                )}
+              </div>
+              <button className="preview-close-btn" onClick={onClose}>
+                <FaTimes size={18} />
+              </button>
+            </div>
+            <div className="file-preview-body">
+              {loading || downloadingFileGuid ? (
+                <div className="file-preview-state">
+                  <FaSpinner className="spinner-animation" size={30} />
+                  <p>Завантаження PDF...</p>
+                </div>
+              ) : (
+                <div className="file-preview-state">
+                  <FaFileAlt size={40} style={{ color: "#bbb", marginBottom: "10px" }} />
+                  <p>PDF замовлення не знайдено.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewFile && (        <div className="file-preview-overlay" onClick={handleClosePreview}>
           <div className="file-preview-window" onClick={(e) => e.stopPropagation()}>
             <div className="file-preview-header">
               <div className="file-preview-title-wrap">
                 <h3 className="file-preview-title">{previewFile.fileName}</h3>
+                {formattedOrderAmount && (
+                  <strong className="file-preview-order-amount">
+                    Сума замовлення: {formattedOrderAmount}
+                  </strong>
+                )}
                 <span className="file-preview-subtitle">{t("orders.modalFilesSubtitle")}</span>
               </div>
               <button className="preview-close-btn" onClick={handleClosePreview}>

@@ -43,6 +43,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
 
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
+  const [autoOpenOrderPdf, setAutoOpenOrderPdf] = useState(false);
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
@@ -68,6 +69,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
   const orderNumber = String(order?.number || "").trim();
   const isSketchOrder = orderNumber.startsWith("34-");
+  const opensPdfFromNumber = /^(01|45)-/.test(orderNumber);
   const isSketchConfirmed = order?.status === "Ескіз підтверджено";
 
   const toggleExpand = useCallback(() => {
@@ -315,9 +317,17 @@ export default React.memo(function OrderItemSummaryMobile({
 
   
   const openFilesModal = useCallback((e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
+    setAutoOpenOrderPdf(false);
     setIsFilesModalOpen(true);
   }, []);
+
+  const openOrderPdf = useCallback((event) => {
+    event.stopPropagation();
+    if (!opensPdfFromNumber) return;
+    setAutoOpenOrderPdf(true);
+    setIsFilesModalOpen(true);
+  }, [opensPdfFromNumber]);
 
   const handleReorderSave = useCallback(async (formData) => {
     try {
@@ -446,7 +456,10 @@ export default React.memo(function OrderItemSummaryMobile({
              <img src={listCalcIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
             <div className="flex  flex-col gap-[6px] no-wrap w-full">
   
-              <div className="text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight">
+              <div
+                className={"text-[15px] w-full font-bold pb-1 no-wrap text-WS---DarkGrey border-bottom leading-tight " + (opensPdfFromNumber ? "order-number-pdf-link" : "")}
+                onClick={opensPdfFromNumber ? openOrderPdf : undefined}
+              >
                 № {order.number}
               </div>
               {order.linkedOrderNumber && (
@@ -685,6 +698,10 @@ export default React.memo(function OrderItemSummaryMobile({
       {isFilesModalOpen && (
         <OrderFilesModal
           orderGuid={order.idGuid}
+          orderNumber={orderNumber}
+          orderAmount={order?.amount}
+          orderCurrency={order?.currency}
+          autoOpenPdf={autoOpenOrderPdf}
           hideZkzFiles={true}
           onClose={() => setIsFilesModalOpen(false)}
         />

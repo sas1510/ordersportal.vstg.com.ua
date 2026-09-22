@@ -1,5 +1,8 @@
-/* У вашому файлі стилів (наприклад, Cal
-culationItem.css або загальному стилі) */
+.order-number-pdf-link { cursor: pointer; transition: color 0.15s ease; }
+.order-number-pdf-link:hover, body.dark-theme .order-number-pdf-link:hover { color: #6f8ba7 !important; }
+ 
+/* У вашому файлі стилів (наприклад, CalculationItem.css або загальному стилі) */
+ 
 
 .calc-item {
   /* Базові стилі, якщо вони не визначені в інших місцях */
