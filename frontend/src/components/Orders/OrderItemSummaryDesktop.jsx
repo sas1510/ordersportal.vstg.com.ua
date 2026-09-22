@@ -53,7 +53,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
   const orderNumber = String(order?.number || "").trim();
   const isSketchOrder = orderNumber.startsWith("34-");
-  const opensPdfFromNumber = /^(01|45)-/.test(orderNumber);
+  const opensPdfFromNumber = Boolean(orderNumber);
   const isSketchConfirmed = order?.status === "Ескіз підтверджено";
 
   const toggleExpand = useCallback(() => {
