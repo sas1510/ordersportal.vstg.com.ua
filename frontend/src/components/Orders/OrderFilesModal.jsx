@@ -13,6 +13,8 @@ import {
   FaFileArchive,
   FaEye,
   FaExternalLinkAlt,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 
 import "./OrderFilesPreviewModal.css";
@@ -168,6 +170,21 @@ const OrderFilesModal = ({
     };
   }, [files, hideZkzFiles]);
 
+  const previewImages = useMemo(
+    () => groups.images.filter((file) => isPreviewableFile(file.fileName, file.type)),
+    [groups.images],
+  );
+
+  const currentImageIndex = previewFile?.previewKind === "image"
+    ? previewImages.findIndex((file) => file.fileGuid === previewFile.fileGuid)
+    : -1;
+
+  const showAdjacentImage = (direction) => {
+    if (previewImages.length < 2 || currentImageIndex < 0 || downloadingFileGuid) return;
+    const nextIndex = (currentImageIndex + direction + previewImages.length) % previewImages.length;
+    handleFileAction(previewImages[nextIndex]);
+  };
+
   /* =========================
       ЛОГІКА ВІДКРИТТЯ/ЗАВАНТАЖЕННЯ ФАЙЛІВ
   ========================= */
@@ -269,6 +286,23 @@ const OrderFilesModal = ({
       setDownloadingFileGuid(null);
     }
   };
+
+  useEffect(() => {
+    if (previewFile?.previewKind !== "image" || previewImages.length < 2) return undefined;
+
+    const handleImageKeyDown = (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showAdjacentImage(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showAdjacentImage(1);
+      }
+    };
+
+    window.addEventListener("keydown", handleImageKeyDown);
+    return () => window.removeEventListener("keydown", handleImageKeyDown);
+  }, [previewFile, previewImages, currentImageIndex, downloadingFileGuid]);
 
   const handleOpenFileInNewWindow = async (fileItem) => {
     const openedWindow = window.open("", "_blank");
@@ -539,7 +573,19 @@ const OrderFilesModal = ({
                 <FaTimes size={18} />
               </button>
             </div>
-            <div className="file-preview-body">{renderPreviewContent()}</div>
+            <div className="file-preview-body">
+              {previewFile.previewKind === "image" && previewImages.length > 1 && (
+                <>
+                  <button type="button" className="file-preview-nav file-preview-nav-prev" onClick={() => showAdjacentImage(-1)} aria-label="Попереднє зображення">
+                    <FaChevronLeft />
+                  </button>
+                  <button type="button" className="file-preview-nav file-preview-nav-next" onClick={() => showAdjacentImage(1)} aria-label="Наступне зображення">
+                    <FaChevronRight />
+                  </button>
+                </>
+              )}
+              {renderPreviewContent()}
+            </div>
             <div className="file-preview-footer">
               <button
                 className="preview-btn-secondary-footer"

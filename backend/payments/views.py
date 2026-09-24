@@ -333,7 +333,7 @@ logger = logging.getLogger(__name__)
 @sync_to_async
 def execute_payment_page_procedure(contractor_binary):
     sql = """
-        EXEC dbo.GetDealerPaymentPageData
+        EXEC dbo.GetDealerPaymentPageDataV2
             @Contractor = %s
     """
     with connection.cursor() as cursor:

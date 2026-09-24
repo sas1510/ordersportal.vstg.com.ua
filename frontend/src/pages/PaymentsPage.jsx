@@ -236,7 +236,7 @@ export default function PaymentsPage() {
   const STATUS_COLORS = {
     "Очікуємо оплату": "status-wait-payment",
     "Очікуємо підтвердження": "status-wait-confirm",
-    Підтверджено: "status-confirmed",
+    Підтверджений: "status-confirmed",
     Резервування: "status-reserved",
     "У виробництві": "status-production",
     Готовий: "status-ready",
@@ -249,7 +249,7 @@ export default function PaymentsPage() {
     { key: "all", label: t("payments_page.status_filters.all"), icon: allPayment, colorClass: "status-all" },
     { key: "Очікуємо підтвердження", label: t("payments_page.status_filters.waiting_confirmation"), icon: waitingForConfirmIcon, colorClass: "status-wait-confirm" },
     { key: "Очікуємо оплату", label: t("payments_page.status_filters.waiting_payment"), icon: waitingForPaymentIcon, colorClass: "status-wait-payment" },
-    { key: "Підтверджено", label: t("payments_page.status_filters.confirmed"), icon: confirmedIcon, colorClass: "status-confirmed" },
+    { key: "Підтверджений", label: t("payments_page.status_filters.confirmed"), icon: confirmedIcon, colorClass: "status-confirmed" },
     { key: "У виробництві", label: t("payments_page.status_filters.production"), icon: factoryIcon, colorClass: "status-production" },
     { key: "Готовий", label: t("payments_page.status_filters.ready"), icon: finishedIcon, colorClass: "status-ready" },
     { key: "Відвантажений", label: t("payments_page.status_filters.shipped"), icon: deliveredIcon, colorClass: "status-shipped" },
@@ -785,7 +785,7 @@ export default function PaymentsPage() {
       const statusMap = {
         "Очікуємо оплату": t("order_status.waiting_payment"),
         "Очікуємо підтвердження": t("order_status.waiting_confirmation"),
-        "Підтверджено": t("payments_page.status_filters.confirmed"),
+        "Підтверджений": t("payments_page.status_filters.confirmed"),
         "У виробництві": t("order_status.production"),
         "Готовий": t("order_status.ready"),
         "Відвантажений": t("order_status.shipped"),
