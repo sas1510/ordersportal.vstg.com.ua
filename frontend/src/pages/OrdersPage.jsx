@@ -191,7 +191,7 @@ const PortalOriginal = () => {
             return isSameFilter ? previous : nextFilter;
           });
 
-          setExpandedCalc(null);
+          setExpandedCalcIds(new Set());
           setExpandedOrder(null);
           resetLocalMonthFilter();
           setError(null);
@@ -276,7 +276,7 @@ const PortalOriginal = () => {
       return isSameFilter ? previous : nextFilter;
     });
 
-    setExpandedCalc(null);
+    setExpandedCalcIds(new Set());
     setExpandedOrder(null);
     resetLocalMonthFilter();
   }, [
@@ -652,7 +652,12 @@ const PortalOriginal = () => {
         .includes(normalizedSearch),
     );
 
-    setExpandedCalc(foundCalculation.id);
+    setExpandedCalcIds((previous) => {
+      if (previous.has(foundCalculation.id)) return previous;
+      const next = new Set(previous);
+      next.add(foundCalculation.id);
+      return next;
+    });
     setExpandedOrder(matchedOrder?.idGuid || matchedOrder?.number || null);
 
     navigate(location.pathname, {
