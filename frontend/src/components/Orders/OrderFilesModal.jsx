@@ -152,7 +152,7 @@ const OrderFilesModal = ({
       ГРУПУВАННЯ ФАЙЛІВ
   ========================= */
   const groups = useMemo(() => {
-    const visibleFiles = hideZkzFiles
+    const visibleFiles = hideZkzFiles && !/^(01|45)-/.test(String(orderNumber || "").trim())
       ? files.filter(
           (f) =>
             !(f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz")),
@@ -160,15 +160,16 @@ const OrderFilesModal = ({
       : files;
 
     return {
+      pdf: visibleFiles.filter(f => /\.pdf$/i.test(f.fileName)),
       zkz: visibleFiles.filter(f => f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz")),
-      images: visibleFiles.filter(f => f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName)),
+      images: visibleFiles.filter(f => !/\.pdf$/i.test(f.fileName) && (f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName))),
       others: visibleFiles.filter(f => {
         const isZkz = f.type?.toLowerCase().includes("заявка") || f.fileName.toLowerCase().endsWith(".zkz");
         const isImg = f.type?.toLowerCase().includes("фото") || /\.(jpg|jpeg|png|webp)$/i.test(f.fileName);
-        return !isZkz && !isImg;
+        return !isZkz && !isImg && !/\.pdf$/i.test(f.fileName);
       })
     };
-  }, [files, hideZkzFiles]);
+  }, [files, hideZkzFiles, orderNumber]);
 
   const previewImages = useMemo(
     () => groups.images.filter((file) => isPreviewableFile(file.fileName, file.type)),
@@ -486,6 +487,13 @@ const OrderFilesModal = ({
             </div>
           ) : (
             <div className="preview-files-container">
+              {groups.pdf.length > 0 && (
+                <div className="preview-section">
+                  <h4>PDF</h4>
+                  <div className="preview-grid">{groups.pdf.map(renderFileCard)}</div>
+                </div>
+              )}
+
               {groups.zkz.length > 0 && (
                 <div className="preview-section">
                   <h4>{t("orders.sectionProjects")}</h4>
