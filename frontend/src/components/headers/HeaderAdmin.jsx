@@ -430,10 +430,14 @@ export default function HeaderAdmin() {
     setIsMaintenanceSaving(true);
 
     try {
-      const response = await axiosInstance.post("/system/maintenance/1c/", {
-        enabled: !maintenanceState.enabled,
-        clear_schedule: maintenanceState.enabled,
-      });
+      const now = new Date();
+      const response = await axiosInstance.post("/system/maintenance/1c/", maintenanceState.enabled
+        ? { enabled: false, clear_schedule: true }
+        : {
+            enabled: false,
+            starts_at: now.toISOString(),
+            ends_at: new Date(now.getTime() + 20 * 60 * 1000).toISOString(),
+          });
 
       const nextState = response.data?.data || {
         enabled: !maintenanceState.enabled,
@@ -454,6 +458,13 @@ export default function HeaderAdmin() {
       setIsMaintenanceSaving(false);
     }
   }, [maintenanceState.enabled, addNotification, t]);
+
+  useEffect(() => {
+    if (!maintenanceState.enabled || !maintenanceState.ends_at) return undefined;
+    const remaining = new Date(maintenanceState.ends_at).getTime() - Date.now();
+    const timer = setTimeout(loadMaintenanceState, Math.max(0, remaining) + 1000);
+    return () => clearTimeout(timer);
+  }, [maintenanceState.enabled, maintenanceState.ends_at, loadMaintenanceState]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
