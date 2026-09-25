@@ -592,6 +592,7 @@ export const CalculationItemMobile = React.memo(
                 <OrderItemSummaryMobile
                   key={order.number}
                   order={order}
+                  siblingOrders={orderList}
                   contractorGuid={calc.dealerId}
                   calculationDate={calc.date}
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}

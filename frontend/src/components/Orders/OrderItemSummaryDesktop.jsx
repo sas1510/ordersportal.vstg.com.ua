@@ -17,6 +17,7 @@ import { hasFinanceAccess } from "../../utils/financeAccess";
 
 export default React.memo(function OrderItemSummaryDesktop({
   order,
+  siblingOrders = [],
   contractorGuid,
   calculationDate,
   calculationConstructionsCount,
@@ -46,6 +47,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [autoOpenOrderPdf, setAutoOpenOrderPdf] = useState(false);
+  const [pdfOrder, setPdfOrder] = useState(order);
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
   const [claimOrderGuid, setClaimOrderGuid] = useState("");
 
@@ -296,9 +298,10 @@ export default React.memo(function OrderItemSummaryDesktop({
   const openOrderPdf = useCallback((event) => {
     event.stopPropagation();
     if (!opensPdfFromNumber) return;
+    setPdfOrder(order);
     setAutoOpenOrderPdf(true);
     setIsFilesModalOpen(true);
-  }, [opensPdfFromNumber]);
+  }, [opensPdfFromNumber, order]);
 
   const openPaymentModal = useCallback((event) => {
     event.stopPropagation();
@@ -790,10 +793,12 @@ export default React.memo(function OrderItemSummaryDesktop({
 
       {isFilesModalOpen && (
         <OrderFilesModal
-          orderGuid={order?.idGuid}
-          orderNumber={orderNumber}
-          orderAmount={order?.amount}
-          orderCurrency={order?.currency}
+          key={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
+          orderGuid={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
+          orderNumber={autoOpenOrderPdf ? pdfOrder?.number : orderNumber}
+          orderAmount={autoOpenOrderPdf ? pdfOrder?.amount : order?.amount}
+          orderCurrency={autoOpenOrderPdf ? pdfOrder?.currency : order?.currency}
+          pdfNavigation={autoOpenOrderPdf ? { orders: siblingOrders, currentGuid: pdfOrder?.idGuid, onSelect: setPdfOrder } : null}
           autoOpenPdf={autoOpenOrderPdf}
           hideZkzFiles
           entityType="order"

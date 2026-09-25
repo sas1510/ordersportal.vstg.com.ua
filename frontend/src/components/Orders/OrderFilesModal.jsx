@@ -26,6 +26,7 @@ const OrderFilesModal = ({
   entityType = "order",
   hideZkzFiles = false,
   autoOpenPdf = false,
+  pdfNavigation = null,
   orderAmount,
   orderCurrency,
   onClose,
@@ -41,6 +42,12 @@ const OrderFilesModal = ({
   const [previewText, setPreviewText] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
   const autoOpenedPdfRef = useRef(false);
+  const pdfOrders = (pdfNavigation?.orders || []).filter((item) => item?.idGuid && item?.number);
+  const pdfOrderIndex = pdfOrders.findIndex((item) => item.idGuid === pdfNavigation?.currentGuid);
+  const showAdjacentOrderPdf = (direction) => {
+    if (pdfOrders.length < 2 || pdfOrderIndex < 0 || downloadingFileGuid) return;
+    pdfNavigation.onSelect(pdfOrders[(pdfOrderIndex + direction + pdfOrders.length) % pdfOrders.length]);
+  };
 
   const formattedOrderAmount = useMemo(() => {
     const amount = Number(orderAmount);
@@ -126,6 +133,8 @@ const OrderFilesModal = ({
   useEffect(() => {
     if (!orderGuid) return;
     const loadFiles = async () => {
+      setLoading(true);
+      setFiles([]);
       try {
         // Динамічний URL для отримання списку файлів залежно від типу
         const fetchUrl = entityType === "calculation"
@@ -343,6 +352,8 @@ const OrderFilesModal = ({
 
   useEffect(() => {
     autoOpenedPdfRef.current = false;
+    setPreviewFile(null);
+    setPreviewUrl("");
   }, [orderGuid, autoOpenPdf]);
 
   useEffect(() => {
@@ -357,6 +368,18 @@ const OrderFilesModal = ({
     autoOpenedPdfRef.current = true;
     handleFileAction(pdfFile);
   }, [autoOpenPdf, files, loading]);
+
+  useEffect(() => {
+    if (!autoOpenPdf || pdfOrders.length < 2) return undefined;
+    const handlePdfKeyDown = (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        showAdjacentOrderPdf(event.key === "ArrowLeft" ? -1 : 1);
+      }
+    };
+    window.addEventListener("keydown", handlePdfKeyDown);
+    return () => window.removeEventListener("keydown", handlePdfKeyDown);
+  }, [autoOpenPdf, pdfNavigation, downloadingFileGuid]);
 
   const renderPreviewContent = () => {
     if (!previewFile) return null;
@@ -590,6 +613,12 @@ const OrderFilesModal = ({
                   <button type="button" className="file-preview-nav file-preview-nav-next" onClick={() => showAdjacentImage(1)} aria-label="Наступне зображення">
                     <FaChevronRight />
                   </button>
+                </>
+              )}
+              {autoOpenPdf && previewFile.previewKind === "pdf" && pdfOrders.length > 1 && (
+                <>
+                  <button type="button" className="file-preview-nav file-preview-nav-prev" onClick={() => showAdjacentOrderPdf(-1)} aria-label="Попереднє підзамовлення"><FaChevronLeft /></button>
+                  <button type="button" className="file-preview-nav file-preview-nav-next" onClick={() => showAdjacentOrderPdf(1)} aria-label="Наступне підзамовлення"><FaChevronRight /></button>
                 </>
               )}
               {renderPreviewContent()}

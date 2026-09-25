@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 
 export default React.memo(function OrderItemSummaryMobile({
   order,
+  siblingOrders = [],
   contractorGuid,
   calculationDate,
   calculationConstructionsCount,
@@ -44,6 +45,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const [autoOpenOrderPdf, setAutoOpenOrderPdf] = useState(false);
+  const [pdfOrder, setPdfOrder] = useState(order);
 
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
@@ -325,9 +327,10 @@ export default React.memo(function OrderItemSummaryMobile({
   const openOrderPdf = useCallback((event) => {
     event.stopPropagation();
     if (!opensPdfFromNumber) return;
+    setPdfOrder(order);
     setAutoOpenOrderPdf(true);
     setIsFilesModalOpen(true);
-  }, [opensPdfFromNumber]);
+  }, [opensPdfFromNumber, order]);
 
   const handleReorderSave = useCallback(async (formData) => {
     try {
@@ -697,10 +700,12 @@ export default React.memo(function OrderItemSummaryMobile({
 
       {isFilesModalOpen && (
         <OrderFilesModal
-          orderGuid={order.idGuid}
-          orderNumber={orderNumber}
-          orderAmount={order?.amount}
-          orderCurrency={order?.currency}
+          key={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
+          orderGuid={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
+          orderNumber={autoOpenOrderPdf ? pdfOrder?.number : orderNumber}
+          orderAmount={autoOpenOrderPdf ? pdfOrder?.amount : order?.amount}
+          orderCurrency={autoOpenOrderPdf ? pdfOrder?.currency : order?.currency}
+          pdfNavigation={autoOpenOrderPdf ? { orders: siblingOrders, currentGuid: pdfOrder?.idGuid, onSelect: setPdfOrder } : null}
           autoOpenPdf={autoOpenOrderPdf}
           hideZkzFiles={true}
           onClose={() => setIsFilesModalOpen(false)}
