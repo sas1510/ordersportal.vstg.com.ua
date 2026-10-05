@@ -30,6 +30,10 @@ export const CalculationItemMobile = React.memo(
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
     const [isOrderNumbersOpen, setIsOrderNumbersOpen] = useState(false);
     const [isOrderRefusalOpen, setIsOrderRefusalOpen] = useState(false);
+    const [pendingRefusal, setPendingRefusal] = useState(null);
+    const displayedComment = pendingRefusal && calc.message === pendingRefusal.previousMessage
+      ? pendingRefusal.message
+      : calc.message;
     
 
     const { addNotification } = useNotification();
@@ -493,7 +497,7 @@ export const CalculationItemMobile = React.memo(
 
     <div className="flex flex-col h-full justify-between">
       <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
-        {calc.message ||  t("calc.no_comments")}
+        {displayedComment || t("calc.no_comments")}
       </div>
     </div>
   </div>
@@ -644,7 +648,8 @@ export const CalculationItemMobile = React.memo(
           calculationGuid={calc.id}
           recipientGuid={isBackoffice ? calc.dealerId : calc.manager}
           orders={refusableOrders}
-          onSubmitted={() => {
+          onSubmitted={(message) => {
+            setPendingRefusal({ previousMessage: calc.message, message });
             reloadCalculations?.();
           }}
         />

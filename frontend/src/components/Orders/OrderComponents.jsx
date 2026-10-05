@@ -33,6 +33,10 @@ export const CalculationItem = React.memo(
     const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
     const [isOrderNumbersOpen, setIsOrderNumbersOpen] = useState(false);
     const [isOrderRefusalOpen, setIsOrderRefusalOpen] = useState(false);
+    const [pendingRefusal, setPendingRefusal] = useState(null);
+    const displayedComment = pendingRefusal && calc.message === pendingRefusal.previousMessage
+      ? pendingRefusal.message
+      : calc.message;
 
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
@@ -448,7 +452,7 @@ const statusPanelClass = (() => {
           >
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
               <div className="comments-text-wrapper-last ">
-               {calc.message || t('calc.no_comments')}
+               {displayedComment || t('calc.no_comments')}
               </div>
             </div>
           </div>
@@ -618,7 +622,8 @@ const statusPanelClass = (() => {
         calculationGuid={calc.id}
         recipientGuid={isBackoffice ? calc.dealerId : calc.manager}
         orders={refusableOrders}
-        onSubmitted={() => {
+        onSubmitted={(message) => {
+          setPendingRefusal({ previousMessage: calc.message, message });
           reloadCalculations?.();
         }}
       />

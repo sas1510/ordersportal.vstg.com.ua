@@ -879,3 +879,45 @@ def send_chat_notification_to_1c(self, t_type, base_guid_str, manager_guid_str, 
         raise
     finally:
         close_old_connections()
+
+
+@shared_task(name="tasks.update_calculation_comment_in_1c", bind=True, max_retries=3)
+def update_calculation_comment_in_1c(self, message_id):
+    """Update the existing 1C calculation with a staff chat comment."""
+    from records.models import ChatMessage
+    from utils.onec_api import send_to_1c
+    from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+    close_old_connections()
+    try:
+        message = ChatMessage.objects.filter(
+            id=message_id, transaction_type_id=1, is_notification=False
+        ).first()
+        if not message or not message.related_object_id:
+            return {"status": "skipped", "reason": "message_not_found"}
+
+        # An older queued task must not replace a newer chat comment in 1C.
+        latest = ChatMessage.objects.filter(
+            chat_id=message.chat_id, transaction_type_id=1, is_notification=False
+        ).order_by("-timestamp", "-id").values_list("id", flat=True).first()
+        if latest != message_id:
+            return {"status": "skipped", "reason": "newer_message_exists"}
+
+        calculation_guid = str(bin_to_guid_1c(bytes(message.related_object_id)))
+        payload = {"calculations": [{
+            "calculationGUID": calculation_guid,
+            "comment": message.text,
+        }]}
+        result = send_to_1c("UpdateCalculation", payload)
+        if not result.get("success", True):
+            logger.error(
+                "1C rejected calculation comment update: message_id=%s calculation_guid=%s result=%s",
+                message_id, calculation_guid, result,
+            )
+            return {"status": "failed", "result": result}
+        return {"status": "updated", "calculation_guid": calculation_guid}
+    except Exception as exc:
+        logger.exception("Failed to update calculation comment in 1C: message_id=%s", message_id)
+        raise self.retry(exc=exc, countdown=10 * (self.request.retries + 1))
+    finally:
+        close_old_connections()

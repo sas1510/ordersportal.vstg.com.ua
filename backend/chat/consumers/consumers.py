@@ -665,6 +665,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send_error("Помилка збереження")
                 return
 
+            if t_type == 1 and getattr(self.user, 'role', '') in {
+                'manager', 'admin', 'region_manager'
+            }:
+                from backend.utils.tasks import update_calculation_comment_in_1c
+
+                update_calculation_comment_in_1c.delay(saved_msg.id)
+
             await self.send(
                 text_data=json.dumps(
                     {
