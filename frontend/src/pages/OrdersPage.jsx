@@ -536,7 +536,7 @@ const PortalOriginal = () => {
 
           const totals = updatedOrders.reduce(
             (accumulator, order) => {
-              if (order?.status !== "Відмова") {
+              if (order?.status !== "Відмова" && !String(order?.number || "").trim().startsWith("34-")) {
                 accumulator.amount += Number(order?.amount || 0);
                 accumulator.paid += Number(order?.paid || 0);
               }

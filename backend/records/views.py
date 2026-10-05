@@ -1138,14 +1138,23 @@ def get_orders_by_period_and_contractor(
                     status_counts.get(order_status, 0) + 1
                 )
 
-            if order_status != "Відмова":
+            if (order_status != "Відмова"
+                    and not str(order.get("number") or "").strip().startswith("34-")):
                 total_amount += order["amount"]
                 total_paid += order["paid"]
 
         calc["statuses"] = status_counts
         calc["orderCountInCalc"] = len(orders)
         calc["amount"] = total_amount
-        calc["debt"] = max(total_amount - total_paid, 0)
+        calc["debt"] = max(
+            sum(
+                order["amount"] - order["paid"]
+                for order in orders
+                if order["status"] != "Відмова"
+                and not str(order.get("number") or "").strip().startswith("34-")
+            ),
+            0,
+        )
 
         calc_constructions = calc.pop(
             "calcConstructionsFromSQL",
@@ -1301,7 +1310,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             st = o["status"]
             if st:
                 status_counts[st] = status_counts.get(st, 0) + 1
-            if st != "Відмова":
+            if (st != "Відмова"
+                    and not str(o.get("number") or "").strip().startswith("34-")):
                 total_amount += o["amount"]
                 total_paid += o["paid"]
 
@@ -1310,7 +1320,12 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         calc["orderCountInCalc"] = len(orders)
         
         calc["amount"] = total_amount
-        calc["debt"] = total_amount - total_paid
+        calc["debt"] = sum(
+            order["amount"] - order["paid"]
+            for order in orders
+            if order["status"] != "Відмова"
+            and not str(order.get("number") or "").strip().startswith("34-")
+        )
         if calc.get("calcConstructionsFromSQL") is not None:
                 constructions_qty = int(calc["calcConstructionsFromSQL"])
         else:
@@ -3245,7 +3260,8 @@ def orders_view_all_by_month(request):
                         status_counts.get(status, 0) + 1
                     )
 
-                if status != "Відмова":
+                if (status != "Відмова"
+                        and not str(order.get("number") or "").strip().startswith("34-")):
                     total_amount += order["amount"]
                     total_paid += order["paid"]
 
@@ -3260,7 +3276,12 @@ def orders_view_all_by_month(request):
 
             calc["amount"] = total_amount
             calc["debt"] = max(
-                total_amount - total_paid,
+                sum(
+                    order["amount"] - order["paid"]
+                    for order in orders
+                    if order["status"] != "Відмова"
+                    and not str(order.get("number") or "").strip().startswith("34-")
+                ),
                 0,
             )
 

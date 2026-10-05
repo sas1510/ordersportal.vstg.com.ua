@@ -668,9 +668,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if t_type == 1 and getattr(self.user, 'role', '') in {
                 'manager', 'admin', 'region_manager'
             }:
-                from backend.utils.tasks import update_calculation_comment_in_1c
-
-                update_calculation_comment_in_1c.delay(saved_msg.id)
+                sync_task = current_app.send_task(
+                    'tasks.update_calculation_comment_in_1c',
+                    args=[saved_msg.id],
+                )
+                logger.info(
+                    'Queued 1C calculation comment update: message_id=%s task_id=%s role=%s',
+                    saved_msg.id, sync_task.id, self.user.role,
+                )
 
             await self.send(
                 text_data=json.dumps(

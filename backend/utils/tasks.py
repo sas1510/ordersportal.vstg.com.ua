@@ -885,15 +885,15 @@ def send_chat_notification_to_1c(self, t_type, base_guid_str, manager_guid_str, 
 def update_calculation_comment_in_1c(self, message_id):
     """Update the existing 1C calculation with a staff chat comment."""
     from records.models import ChatMessage
-    from utils.onec_api import send_to_1c
-    from backend.utils.BinToGuid1C import bin_to_guid_1c
 
     close_old_connections()
+    logger.info("1C calculation comment task started: message_id=%s", message_id)
     try:
         message = ChatMessage.objects.filter(
             id=message_id, transaction_type_id=1, is_notification=False
         ).first()
         if not message or not message.related_object_id:
+            logger.warning("1C calculation comment skipped: message_id=%s not found", message_id)
             return {"status": "skipped", "reason": "message_not_found"}
 
         # An older queued task must not replace a newer chat comment in 1C.
@@ -901,6 +901,7 @@ def update_calculation_comment_in_1c(self, message_id):
             chat_id=message.chat_id, transaction_type_id=1, is_notification=False
         ).order_by("-timestamp", "-id").values_list("id", flat=True).first()
         if latest != message_id:
+            logger.info("1C calculation comment skipped: message_id=%s newer_message_id=%s", message_id, latest)
             return {"status": "skipped", "reason": "newer_message_exists"}
 
         calculation_guid = str(bin_to_guid_1c(bytes(message.related_object_id)))
@@ -915,6 +916,10 @@ def update_calculation_comment_in_1c(self, message_id):
                 message_id, calculation_guid, result,
             )
             return {"status": "failed", "result": result}
+        logger.info(
+            "1C calculation comment updated: message_id=%s calculation_guid=%s",
+            message_id, calculation_guid,
+        )
         return {"status": "updated", "calculation_guid": calculation_guid}
     except Exception as exc:
         logger.exception("Failed to update calculation comment in 1C: message_id=%s", message_id)
