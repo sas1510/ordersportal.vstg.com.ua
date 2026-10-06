@@ -174,15 +174,18 @@ const AdminAdditionalOrders = () => {
     return isAdmin && dealerGuid === ALL_DEALERS_VALUE;
   }, [isAdmin, dealerGuid]);
 
-  const buildRequestParams = useCallback((forceMonth) => {
-    const params = { year: selectedYear };
-    const month = forceMonth || filter.month;
+  const requestMonth = shouldRefetchOnMonthChange
+    ? filter.month || currentMonth
+    : null;
 
-    if (month) {
-      params.month = month;
+  const buildRequestParams = useCallback(() => {
+    const params = { year: selectedYear };
+
+    if (requestMonth) {
+      params.month = requestMonth;
     }
     return params;
-  }, [filter.month, selectedYear]);
+  }, [requestMonth, selectedYear]);
 
 
   useEffect(() => {
@@ -259,7 +262,6 @@ const AdminAdditionalOrders = () => {
     selectedYear,
     dealerGuid,
     isAdmin,
-    shouldRefetchOnMonthChange ? filter.month : null,
     buildRequestParams,
   ]);
 
@@ -271,10 +273,16 @@ const AdminAdditionalOrders = () => {
     setError(null); 
 
     try {
+      const params = buildRequestParams();
+      if (!shouldRefetchOnMonthChange && dealerGuid) {
+        params.contractor = dealerGuid;
+      }
       const response = await axiosInstance.get(
-        "/additional_orders/get_additional_orders_info_all/",
+        shouldRefetchOnMonthChange
+          ? "/additional_orders/get_additional_orders_info_all/"
+          : "/additional_orders/get_additional_orders_info/",
         {
-          params: buildRequestParams(filter.month || currentMonth),
+          params,
           signal: controller.signal,
         },
       );
@@ -307,7 +315,7 @@ const AdminAdditionalOrders = () => {
     } finally {
       setReloading(false);
     }
-  }, [buildRequestParams, cancelAll, currentMonth, filter, getFilteredItems, register]);
+  }, [buildRequestParams, cancelAll, dealerGuid, shouldRefetchOnMonthChange, filter, getFilteredItems, register]);
 
 
   const handleFilterClick = (statusKey) => {

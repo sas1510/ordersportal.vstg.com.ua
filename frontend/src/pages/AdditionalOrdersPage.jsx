@@ -209,13 +209,9 @@ const AdditionalOrders = () => {
   );
 
   const buildRequestParams = useCallback(() => {
-    const params = { year: selectedYear };
-
-    if (filter.month) {
-      params.month = filter.month;
-    }
-    return params;
-  }, [filter.month, selectedYear]);
+    // Load the full year; month selection filters the loaded dealer data.
+    return { year: selectedYear };
+  }, [selectedYear]);
 
   useEffect(() => {
     const controller = new AbortController();
