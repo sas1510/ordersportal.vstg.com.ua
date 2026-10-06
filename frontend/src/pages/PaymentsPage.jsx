@@ -14,6 +14,7 @@ import { useNotification } from "../hooks/useNotification";
 import { AppIcon } from "../components/Icons/AppIcon";
 import PaymentsAnalyticsMobile from "./PaymentsAnalyticsMobile";
 import { useTranslation } from "react-i18next";
+import { matchesOrderNumber } from "../utils/matchesOrderNumber";
 
 // Хук для мобільної версії
 const useIsMobile = () => {
@@ -434,12 +435,7 @@ export default function PaymentsPage() {
       const statusOk = statusFilter === "all" || o.OrderStage === statusFilter;
       const contractOk =
         contractFilter === "all" || o.Dogovor_GUID === contractFilter;
-      const searchOk =
-        !search ||
-        (o.OrderNumber || "")
-          .toString()
-          .toLowerCase()
-          .includes(search.toLowerCase());
+      const searchOk = matchesOrderNumber(o.OrderNumber, search);
       return statusOk && contractOk && searchOk;
     });
   }, [orders, statusFilter, contractFilter, search]);

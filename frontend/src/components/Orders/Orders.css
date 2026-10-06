@@ -371,6 +371,21 @@ body.dark-theme .calc-item-soft .order-action-button--pay {
   background-color: #7a942a !important;
 }
 
+.order-action-button--paid,
+body.dark-theme .calc-item-soft .order-action-button--paid {
+  background-color: #345a3e !important;
+  border: 1px solid #9aab91 !important;
+  color: #ffc883 !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  cursor: not-allowed !important;
+}
+
+.order-action-button--paid * {
+  color: #ffc883 !important;
+  cursor: not-allowed !important;
+}
+
 body.dark-theme .calc-item-soft .order-action-button--reorder {
   background-color: #6f8ba7 !important;
 }
@@ -628,4 +643,3 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
   cursor: default;
   opacity: 0.45;
 }
-

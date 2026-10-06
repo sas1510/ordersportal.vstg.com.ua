@@ -44,6 +44,7 @@ from drf_spectacular.utils import (
 
 from users.models import CustomUser
 from .models import CalculationIdempotencyRecord, ChatMessage, TransactionType
+from utils.onec_response_logging import log_1c_response
 from .serializers import (
     ChatMessageSerializer,
     CalculationCreateSerializer,
@@ -3797,6 +3798,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 },
                 timeout=30,
                 verify=settings.ONE_C_VERIFY_SSL,
+                hooks={"response": log_1c_response},
             )
 
             duration = time.time() - start_time
@@ -4220,6 +4222,7 @@ class UpdateCalculationView(APIView):
                 },
                 timeout=30,
                 verify=settings.ONE_C_VERIFY_SSL,
+                hooks={"response": log_1c_response},
             )
             response.raise_for_status()
             result = response.json()

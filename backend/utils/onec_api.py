@@ -3,6 +3,7 @@ import requests
 import logging
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
+from utils.onec_response_logging import log_1c_response
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def send_to_1c(query_name: str, payload: dict, timeout: int = 30) -> dict:
             headers=headers,
             timeout=timeout,
             verify=settings.ONE_C_VERIFY_SSL,
+            hooks={"response": log_1c_response},
         )
         response.raise_for_status()
         return response.json()

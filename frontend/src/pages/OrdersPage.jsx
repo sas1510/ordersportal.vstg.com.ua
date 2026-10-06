@@ -7,6 +7,7 @@ import React, {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
+import { matchesOrderNumber } from "../utils/matchesOrderNumber";
 
 import axiosInstance from "../api/axios";
 import {
@@ -629,9 +630,7 @@ const PortalOriginal = () => {
       ).toLowerCase();
 
       const hasMatchingOrder = (calc.orders || []).some((order) =>
-        String(order.number || "")
-          .toLowerCase()
-          .includes(normalizedSearch),
+        matchesOrderNumber(order.number, normalizedSearch),
       );
 
       return (
@@ -647,9 +646,7 @@ const PortalOriginal = () => {
     }
 
     const matchedOrder = (foundCalculation.orders || []).find((order) =>
-      String(order.number || "")
-        .toLowerCase()
-        .includes(normalizedSearch),
+      matchesOrderNumber(order.number, normalizedSearch),
     );
 
     setExpandedCalcIds((previous) => {
@@ -814,9 +811,7 @@ const PortalOriginal = () => {
             dealerName.includes(normalizedName) ||
             firstComment.includes(normalizedName) ||
             orders.some((order) =>
-              String(order.number || "")
-                .toLowerCase()
-                .includes(normalizedName),
+              matchesOrderNumber(order.number, normalizedName),
             )
           );
         });
@@ -869,9 +864,7 @@ const PortalOriginal = () => {
         (
           Array.isArray(calc.orders) &&
           calc.orders.some((order) =>
-            String(order.number || "")
-              .toLowerCase()
-              .includes(normalizedSearch),
+            matchesOrderNumber(order.number, normalizedSearch),
           )
         ),
     );
@@ -881,9 +874,7 @@ const PortalOriginal = () => {
     }
 
     const matchedOrder = (matchedCalculation.orders || []).find((order) =>
-      String(order.number || "")
-        .toLowerCase()
-        .includes(normalizedSearch),
+      matchesOrderNumber(order.number, normalizedSearch),
     );
 
     const orderKey = matchedOrder?.idGuid || matchedOrder?.number || null;

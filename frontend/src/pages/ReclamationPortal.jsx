@@ -6,6 +6,7 @@
 } from 'react';
 
 import axiosInstance from '../api/axios'; 
+import { matchesOrderNumber } from '../utils/matchesOrderNumber';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import { ReclamationItem } from '../components/Reclamations/ReclamationItem';
 import { ReclamationItemMobile } from '../components/Reclamations/ReclamationItemMobile';
@@ -187,9 +188,9 @@ const ReclamationPortal = () => {
 
             if (reclamationsData.length > 0) {
                 const found = reclamationsData.find(r => 
-                    String(r.number) === searchQuery ||
-                    String(r.actNumber) === searchQuery ||
-                    String(r.orderNumber) === searchQuery ||
+                    matchesOrderNumber(r.number, searchQuery) ||
+                    matchesOrderNumber(r.actNumber, searchQuery) ||
+                    matchesOrderNumber(r.orderNumber, searchQuery) ||
                     String(r.dealer || r.organization || "").toLowerCase().includes(searchQuery.toLowerCase())
                 );
                 
@@ -387,9 +388,9 @@ const ReclamationPortal = () => {
             if (filter.name) {
                 const q = filter.name.toLowerCase();
                 out = out.filter(r =>
-                    (r.number || '').toLowerCase().includes(q) ||
-                    (r.actNumber || '').toLowerCase().includes(q) ||
-                    (r.orderNumber || '').toLowerCase().includes(q) ||
+                    matchesOrderNumber(r.number, q) ||
+                    matchesOrderNumber(r.actNumber, q) ||
+                    matchesOrderNumber(r.orderNumber, q) ||
                     (r.dealer || r.organization || '').toLowerCase().includes(q) ||
                     (r.manager || '').toLowerCase().includes(q)
                 );

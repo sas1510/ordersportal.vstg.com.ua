@@ -700,8 +700,8 @@ export default React.memo(function OrderItemSummaryDesktop({
                   {canViewFinance && (
               <button
                     type="button"
-                    className={`column align-center button bg-WS---DarkGreen order-action-button order-action-button--pay ${
-                      !buttonState.pay || !canViewFinance
+                    className={`column align-center button bg-WS---DarkGreen order-action-button order-action-button--pay ${debtAmount <= 0 ? "order-action-button--paid" : ""} ${
+                      debtAmount > 0 && (!buttonState.pay || !canViewFinance)
                         ? "disabled opacity-50"
                         : ""
                     }`}

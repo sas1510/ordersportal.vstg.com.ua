@@ -603,7 +603,7 @@ export default React.memo(function OrderItemSummaryMobile({
             {canViewFinance && (
               <button
               type="button"
-              className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--pay"
+              className={`h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight order-action-button order-action-button--pay ${debtAmount <= 0 ? "order-action-button--paid" : "disabled:opacity-50"}`}
               disabled={!buttonState.pay || !canViewFinance}
               onClick={canViewFinance ? openPaymentModal : undefined}
             >

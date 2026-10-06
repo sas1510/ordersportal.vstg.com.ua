@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 import axiosInstance from "../api/axios";
+import { matchesOrderNumber } from "../utils/matchesOrderNumber";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 
 import { ReclamationItem } from "../components/Reclamations/ReclamationItem";
@@ -200,9 +201,9 @@ const AdminReclamationPortal = () => {
         const q = name.toLowerCase();
         result = result.filter(
           (r) =>
-            (r.number || "").toLowerCase().includes(q) ||
-            (r.actNumber || "").toLowerCase().includes(q) ||
-            (r.orderNumber || "").toLowerCase().includes(q) ||
+            matchesOrderNumber(r.number, q) ||
+            matchesOrderNumber(r.actNumber, q) ||
+            matchesOrderNumber(r.orderNumber, q) ||
             (r.dealer || r.organization || "").toLowerCase().includes(q) ||
             (r.manager || "").toLowerCase().includes(q),
         );

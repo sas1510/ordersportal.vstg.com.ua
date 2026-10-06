@@ -22,6 +22,7 @@ import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
+import { matchesOrderNumber } from "../utils/matchesOrderNumber";
 import { useLocation } from "react-router-dom";
 
 const ITEMS_PER_LOAD = 100;
@@ -387,9 +388,7 @@ const AdminPortalOriginal = () => {
               .toLowerCase()
               .includes(query) ||
             (calc.orders || []).some((order) =>
-              String(order.number || "")
-                .toLowerCase()
-                .includes(query),
+              matchesOrderNumber(order.number, query),
             ),
         );
       }
