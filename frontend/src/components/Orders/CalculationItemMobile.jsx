@@ -496,7 +496,7 @@ export const CalculationItemMobile = React.memo(
   > 
 
     <div className="flex flex-col h-full justify-between">
-      <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1">
+      <div className="comments-text-wrapper-last text-WS---DarkGrey text-[13px] mb-1" data-has-comment={Boolean(displayedComment?.trim())}>
         {displayedComment || t("calc.no_comments")}
       </div>
     </div>

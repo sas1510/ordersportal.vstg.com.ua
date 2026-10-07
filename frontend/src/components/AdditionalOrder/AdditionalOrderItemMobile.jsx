@@ -293,6 +293,7 @@ export const AdditionalOrderItemMobile = ({
 >
             <div
               className="comments-text-wrapper-last"
+              data-has-comment={Boolean(calc.message?.trim())}
               title="Останній коментар / Опис"
             >
               {calc.message || t("additional_order.no_description")}

@@ -451,7 +451,7 @@ const statusPanelClass = (() => {
             title={t('calc.comment_history')}
           >
             <div className="column" style={{ flex: 1, minWidth: 0 }}>
-              <div className="comments-text-wrapper-last ">
+              <div className="comments-text-wrapper-last " data-has-comment={Boolean(displayedComment?.trim())}>
                {displayedComment || t('calc.no_comments')}
               </div>
             </div>

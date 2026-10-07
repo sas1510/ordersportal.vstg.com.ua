@@ -2155,6 +2155,21 @@ html {
   font-family: 'Inter', sans-serif;
 }
 
+body:not(.dark-theme) .comments-text-wrapper-last[data-has-comment="true"],
+body:not(.dark-theme) .comments-text-wrapper-last[data-has-comment="true"] * {
+  color: #252b30 !important;
+}
+
+body:not(.dark-theme) .comments-text-wrapper-last[data-has-comment="false"],
+body:not(.dark-theme) .comments-text-wrapper-last[data-has-comment="false"] * {
+  color: #85898d !important;
+}
+
+.dark-theme .comments-text-wrapper-last[data-has-comment="true"],
+.dark-theme .comments-text-wrapper-last[data-has-comment="true"] * {
+  color: #ffffff !important;
+}
+
 .btn-comments {
   /* align-self: flex-end; кнопка зліва */
   padding: 4px 8px;

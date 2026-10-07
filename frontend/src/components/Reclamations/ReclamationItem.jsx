@@ -283,6 +283,7 @@ export const ReclamationItem = ({
 
     <div 
       className="comments-text-wrapper-last font-['Inter'] overflow-hidden cursor-pointer" 
+      data-has-comment={Boolean((reclamation.message || reclamation.firstMessage)?.trim())}
       style={{ 
         flex: "2 1 0%", 
         minHeight: 0,

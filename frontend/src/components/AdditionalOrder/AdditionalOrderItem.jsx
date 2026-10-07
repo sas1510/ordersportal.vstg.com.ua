@@ -242,6 +242,7 @@ export const AdditionalOrderItem = ({
           <div className="column" style={{ flex: 1, minWidth: 0 }}>
             <div
               className="comments-text-wrapper-last"
+              data-has-comment={Boolean(additionalOrder.message?.trim())}
               title="Останній коментар / Опис"
             >
               {additionalOrder.message || t("additional_order.no_description")}
