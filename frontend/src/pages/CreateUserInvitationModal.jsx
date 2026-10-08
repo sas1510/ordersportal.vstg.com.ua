@@ -184,7 +184,13 @@ export default function CreateUserInvitationModal({ branches = [], onClose, onCr
     setError("");
 
     try {
-      const res = await axiosInstance.post("/create_invitations/", formData);
+      const payload = {
+        ...formData,
+        branchId: formData.branchId === "" || formData.branchId == null
+          ? null
+          : Number(formData.branchId),
+      };
+      const res = await axiosInstance.post("/create_invitations/", payload);
       setCreatedData(res.data);
       addNotification("Запрошення створено успішно", "success");
       if (onCreated) onCreated();

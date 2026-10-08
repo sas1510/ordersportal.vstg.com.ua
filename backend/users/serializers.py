@@ -145,6 +145,13 @@ class ChangePasswordSerializer(serializers.Serializer):
 from rest_framework import serializers
 
 
+class OptionalBranchIdField(serializers.IntegerField):
+    def to_internal_value(self, data):
+        if isinstance(data, str) and not data.strip():
+            return None
+        return super().to_internal_value(data)
+
+
 class CreateInvitationSerializer(serializers.Serializer):
     # Тепер email можна не передавати взагалі або передати як порожній рядок
     email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
@@ -155,7 +162,7 @@ class CreateInvitationSerializer(serializers.Serializer):
     expireDate = serializers.DateTimeField()
     role = serializers.ChoiceField(choices=["admin", "manager", "region_manager", "branch_manager", "branches_director", "customer", "Customer"])
     userGuid = serializers.CharField()
-    branchId = serializers.IntegerField(required=False, allow_null=True)
+    branchId = OptionalBranchIdField(required=False, allow_null=True)
 
 
 
