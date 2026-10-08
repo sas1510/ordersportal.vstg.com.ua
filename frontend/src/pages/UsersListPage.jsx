@@ -248,7 +248,7 @@ export default function UsersListPage() {
 
                     {canManageUsers && <td className="p-4 flex gap-2 justify-center flex-wrap" data-label="Дії">
                       <div className="actions-container">
-                        {canEditListedUser(user) && <button
+                        {canEditListedUser(user) && user.can_edit !== false && <button
                           className="user-action user-action--edit px-3 py-1 text-sm transition-colors"
                           onClick={() => setEditUser(user)}
                         >

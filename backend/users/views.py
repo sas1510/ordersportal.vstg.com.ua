@@ -1312,7 +1312,11 @@ def get_all_users_view(request):
                 "phone_number": u.phone_number,
                 "expire_date": u.expire_date,
                 "is_invited": invites_map.get(u.user_id_1C) is not None,
-                "invite_accepted": invites_map.get(u.user_id_1C, False)
+                "invite_accepted": invites_map.get(u.user_id_1C, False),
+                "can_edit": not (
+                    str(getattr(admin_user, "role", "")).strip().lower() == "admin"
+                    and admin_user.id == u.id and admin_user.id != 2
+                )
             }
             for u in users
         ]
@@ -1448,6 +1452,8 @@ def admin_edit_user_view(request, user_id):
     admin_user = request.user
     
     requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
+    if requester_role == "admin" and admin_user.id == user_id and admin_user.id != 2:
+        return Response({"detail": "Адміністратор не може редагувати власний обліковий запис."}, status=403)
     if requester_role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
         logger.warning(f"Unauthorized user edit attempt by {admin_user.username}")
         return Response({"detail": "Доступ заборонено"}, status=403)
