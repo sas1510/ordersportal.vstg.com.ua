@@ -518,7 +518,7 @@ const FilesPage = () => {
                 {isAdmin && (
                   <>
                     <button
-                     className="button bg-WS---DarkGreen-Light h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
+                     className="button file-resource-edit-button bg-WS---DarkGreen-Light h-[44px] text-WS---DarkGrey border border-zinc-300 font-semibold text-lg pl-2 py-2 rounded-[5px] flex items-center  gap-3 transition-colors"
                       onClick={() => handleEditClick(file)}
                     >
                       <FaEdit size={25} />      <div className="text-[16px] uppercase !hidden md:!block">{t('files.buttons.edit')}</div>

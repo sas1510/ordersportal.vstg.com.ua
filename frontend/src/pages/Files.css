@@ -757,3 +757,21 @@ body.dark-theme .file-body {
     radial-gradient(ellipse 38% 32% at 91% 78%, rgba(180, 217, 71, 0.24) 0%, rgba(180, 217, 71, 0.08) 44%, transparent 74%),
     #333333;
 }
+.button.file-resource-edit-button,
+body.dark-theme .button.file-resource-edit-button {
+  background: #e8f1d0 !important;
+  color: #33451c !important;
+  border-color: #a2b97b !important;
+  opacity: 1;
+}
+.button.file-resource-edit-button > div,
+.button.file-resource-edit-button svg {
+  color: inherit !important;
+}
+.button.file-resource-edit-button:hover {
+  background: #d7e7b0 !important;
+}
+.button.file-resource-edit-button:focus-visible {
+  outline: 2px solid #567a2c;
+  outline-offset: 2px;
+}
