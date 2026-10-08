@@ -1,0 +1,25 @@
+.pdf-comparison-backdrop { position: fixed; inset: 0; z-index: 10000; background: #0009; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.pdf-comparison { background: #fff; color: #263746; width: 1200px; max-width: 100%; max-height: 90vh; overflow: auto; border-radius: 8px; padding: 20px; box-shadow: 0 8px 32px #0005; }
+.pdf-comparison header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pdf-comparison h2 { font-size: 20px; }
+.pdf-comparison button { background: #497d9b; color: white; padding: 8px 14px; border-radius: 4px; }
+.pdf-comparison p { margin: 12px 0; font-size: 14px; }
+.pdf-comparison-table { overflow-x: auto; }
+.pdf-comparison table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.pdf-comparison th, .pdf-comparison td { padding: 10px; text-align: left; border-bottom: 1px solid #d9dfe4; }
+.pdf-comparison small { display: block; font-size: 12px; margin-top: 4px; }
+.pdf-comparison-mismatch { background: #fff0e5; }
+.pdf-comparison-period { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 16px; }
+.pdf-comparison-period label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.pdf-comparison-period input { background: #fff; color: #263746; border: 1px solid #aab7c1; border-radius: 4px; padding: 7px 10px; }
+.pdf-comparison-completed { background: #e8f3e7; color: #285a2a; border: 1px solid #bad6b8; padding: 10px 12px; border-radius: 4px; }
+.pdf-comparison-dark { background: #302f2d; color: #e4e9ec; color-scheme: dark; }
+.pdf-comparison-dark th { background: #393a39; color: #b4d7ed; }
+.pdf-comparison-dark th, .pdf-comparison-dark td { border-color: #535857; }
+.pdf-comparison-dark small { color: #bfc8cd; }
+.pdf-comparison-dark .pdf-comparison-mismatch { background: #49352c; }
+.pdf-comparison-dark .pdf-comparison-period input { background: #393a39; color: #e4e9ec; border-color: #67716f; }
+.pdf-comparison-dark button { background: #386c8c; color: #fff; }
+.pdf-comparison-dark .pdf-comparison-completed { background: #293d2c; color: #c5e8c4; border-color: #527257; }
+.pdf-comparison header button { background: #89b3d8; color: #203447; }
+.pdf-comparison .pdf-comparison-period button { background: #b4d947; color: #293614; }

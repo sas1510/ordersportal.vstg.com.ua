@@ -1,6 +1,7 @@
 # api/urls.py
 
 from django.urls import path
+from .pdf_comparison import extract_pdf_amount
 from . import views  # РџРµСЂРµРєРѕРЅР°Р№С‚РµСЃСЏ, С‰Рѕ С–РјРїРѕСЂС‚ РєРѕСЂРµРєС‚РЅРёР№
 from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, send_faq_expert_request, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number, get_all_manager_list
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView, PortalDealerComparisonAnalyticsView, PortalAccessibleDealerReportsView
@@ -54,6 +55,7 @@ urlpatterns = [
     path('additional_orders/get_additional_orders_info_all/', views.get_additional_orders_info_all, name='get_additional_orders_info_all'),
     path('complaints/get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
     path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
+    path("pdf-amount-extract/", extract_pdf_amount),
     path("order/<str:order_guid>/files/", order_files_view),
     path("order/<str:order_guid>/files/<str:file_guid>/download/", download_order_file, name="download_order_file"), #log stopped here
     path("calculations/create/", create_calculation),

@@ -665,7 +665,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send_error("Помилка збереження")
                 return
 
-            if t_type == 1 and getattr(self.user, 'role', '') in {
+            from utils.calculation_comment_policy import should_sync_calculation_comment
+
+            if t_type == 1 and should_sync_calculation_comment(saved_msg.author) and getattr(self.user, 'role', '') in {
                 'manager', 'admin', 'region_manager'
             }:
                 sync_task = current_app.send_task(

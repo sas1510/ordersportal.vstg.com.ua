@@ -1676,11 +1676,25 @@ def make_payment_from_advance(request):
             },
             status=status.HTTP_200_OK,
         )
+    except ValidationError as exc:
+        logger.warning("1C rejected advance payment allocation", exc_info=True)
+        details = exc.detail if isinstance(exc.detail, dict) else {}
+        reason = str(details.get("response_text") or "").strip()
+        # Do not expose HTML error pages, request payloads or technical details.
+        if reason and "<" not in reason and len(reason) <= 500:
+            reason = reason.replace("1С", "").replace("1C", "").strip(" :.-")
+            message = f"Не вдалося виконати оплату. {reason}"
+        else:
+            message = "Не вдалося виконати оплату: отримано некоректну відповідь."
+        return Response({
+            "success": False,
+            "error": message + " Перед повторною оплатою перевірте рознесення коштів, щоб уникнути дублювання.",
+        }, status=status.HTTP_400_BAD_REQUEST)
     except Exception:
         logger.error("Advance payment allocation failed", exc_info=True, extra={
             "tags": {"action": "advance_payment", "stage": "send_to_1c", "status": "error", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "duration_sec": round(time.time() - start_time, 4)}
         })
-        return Response({"success": False, "error": "Internal error"}, status=500)
+        return Response({"success": False, "error": "Не вдалося отримати підтвердження оплати. Перед повторною оплатою перевірте рознесення коштів, щоб уникнути дублювання."}, status=500)
 
 
 

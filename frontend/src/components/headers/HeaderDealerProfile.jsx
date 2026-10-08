@@ -1,10 +1,14 @@
 import { useTheme } from "../../hooks/useTheme";
+import { useState, useCallback } from "react";
+import PdfAmountComparison from "./PdfAmountComparison";
 import "./HeaderDealerProfile.css"; 
 import { AppIcon } from "../Icons/AppIcon";
 
 // Приймаємо дані через props
 export default function HeaderDealerProfile({ balance, debtAmount, currency, fullName, showFinanceInfo = true }) {
   const { theme } = useTheme();
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const closeComparison = useCallback(() => setComparisonOpen(false), []);
   
   const formatName = (name) => {
     if (!name || name === "Завантаження...") return name;
@@ -32,6 +36,7 @@ export default function HeaderDealerProfile({ balance, debtAmount, currency, ful
         <div 
   className="profile-name-text truncate max-w-[150px] hover:max-w-none hover:white-space-normal hover:overflow-visible transition-all" 
   title={fullName}
+  onDoubleClick={() => setComparisonOpen(true)}
 >
   {formatName(fullName)}
 </div>
@@ -61,6 +66,7 @@ export default function HeaderDealerProfile({ balance, debtAmount, currency, ful
           </>
         )}
       </div>
+      {comparisonOpen && <PdfAmountComparison onClose={closeComparison} />}
     </div>
   );
 }

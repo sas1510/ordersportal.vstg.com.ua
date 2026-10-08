@@ -885,6 +885,7 @@ def send_chat_notification_to_1c(self, t_type, base_guid_str, manager_guid_str, 
 def update_calculation_comment_in_1c(self, message_id):
     """Update the existing 1C calculation with a staff chat comment."""
     from records.models import ChatMessage
+    from utils.calculation_comment_policy import should_sync_calculation_comment
 
     close_old_connections()
     logger.info("1C calculation comment task started: message_id=%s", message_id)
@@ -895,6 +896,10 @@ def update_calculation_comment_in_1c(self, message_id):
         if not message or not message.related_object_id:
             logger.warning("1C calculation comment skipped: message_id=%s not found", message_id)
             return {"status": "skipped", "reason": "message_not_found"}
+
+        if not should_sync_calculation_comment(message.author):
+            logger.info("1C calculation comment skipped: message_id=%s excluded_author", message_id)
+            return {"status": "skipped", "reason": "excluded_author"}
 
         # An older queued task must not replace a newer chat comment in 1C.
         latest = ChatMessage.objects.filter(

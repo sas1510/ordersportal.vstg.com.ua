@@ -610,6 +610,7 @@ import { useNotification } from "../../hooks/useNotification";
 import { useTheme } from "../../hooks/useTheme";
 import NotificationDrawer from "../../pages/NotificationPage";
 import HeaderDealerProfile from "./HeaderDealerProfile";
+import PdfAmountComparison from "./PdfAmountComparison";
 import logo from "../../assets/icons/logo-vst.svg";
 import logoDark from "../../assets/icons/logo-vst-dark.svg";
 import "./HeaderDealerProfile.css";
@@ -635,6 +636,8 @@ import {
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
 
 export default function HeaderDealer() {
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const closeComparison = useCallback(() => setComparisonOpen(false), []);
   const { t } = useTranslation();
   const isMobile = useMediaQuery({ maxWidth: 1340 });
   const navigate = useNavigate();
@@ -1201,7 +1204,7 @@ export default function HeaderDealer() {
               <AppIcon name="ProfileUserHeader" className="profile-img-icon-mobile mr-4 "/>
 
               <div className="flex items-center justify-between flex-grow min-w-0">
-                <span className="text-[#234461] text-xl font-bold truncate">
+                <span className="text-[#234461] text-xl font-bold truncate" onDoubleClick={(event) => { event.stopPropagation(); setComparisonOpen(true); }}>
                   {fullName}
                 </span>
 
@@ -1308,6 +1311,7 @@ export default function HeaderDealer() {
         setUnreadCount={setUnreadCount}
         onClose={() => setIsNotificationOpen(false)}
       />
+      {comparisonOpen && <PdfAmountComparison onClose={closeComparison} />}
     </header>
   );
 }
