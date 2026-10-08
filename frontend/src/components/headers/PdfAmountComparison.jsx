@@ -4,6 +4,7 @@ import axios from "../../api/axios";
 import { defaultPdfComparisonPeriod } from "../../utils/pdfComparisonPeriod";
 import { useTheme } from "../../hooks/useTheme";
 import { useNotification } from "../../hooks/useNotification";
+import DealerSelectWithAll from "../../pages/DealerSelectWithAll";
 import "./PdfAmountComparison.css";
 
 const currencyCode = (value) => ({ "ГРН": "UAH", "€": "EUR", "$": "USD" }[String(value || "").toUpperCase().replace(/\./g, "").trim()] || String(value || "").toUpperCase().trim());
@@ -20,6 +21,7 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
   const notificationRef = useRef(addNotification);
   useEffect(() => { notificationRef.current = addNotification; }, [addNotification]);
   const [period, setPeriod] = useState(() => defaultPdfComparisonPeriod(admin));
+  const [dealerId, setDealerId] = useState("__ALL__");
   const [appliedPeriod, setAppliedPeriod] = useState(period);
   const [periodError, setPeriodError] = useState("");
   const [rows, setRows] = useState([]);
@@ -38,7 +40,7 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
-    const { dateFrom, dateTo } = appliedPeriod;
+    const { dateFrom, dateTo, dealerId: selectedDealerId } = appliedPeriod;
     setRows([]);
     setError("");
     setDone(false);
@@ -49,7 +51,8 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
         const response = await axios.get(admin ? "/order/get_orders_info_all/" : "/order/get_orders_info/", { params: { date_from: dateFrom, date_to: dateTo }, signal });
         if (response.data?.status !== "success") throw new Error(response.data?.error || "Не вдалося отримати замовлення.");
         const seen = new Set();
-        const orders = (response.data.data?.calculation || []).flatMap((calc) => (calc.orders || []).map((order) => ({ ...order, dealer: calc.dealer || calc.contractorName || calc.dealerName || "" }))).filter((order) => {
+        const calculations = (response.data.data?.calculation || []).filter((calc) => !admin || !selectedDealerId || selectedDealerId === "__ALL__" || String(calc.dealerId || "").toLowerCase() === selectedDealerId.toLowerCase());
+        const orders = calculations.flatMap((calc) => (calc.orders || []).map((order) => ({ ...order, dealer: calc.dealer || calc.contractorName || calc.dealerName || "" }))).filter((order) => {
           if (/^34\s*[-‐‑‒–—]/.test(String(order.number || "").trim())) return false;
           if (!order.idGuid || seen.has(order.idGuid)) return false;
           seen.add(order.idGuid);
@@ -104,11 +107,12 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
       return;
     }
     setPeriodError("");
-    setAppliedPeriod({ ...period });
+    setAppliedPeriod({ ...period, dealerId });
   };
   return createPortal(<div className="pdf-comparison-backdrop" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className={`pdf-comparison ${theme === "dark" ? "pdf-comparison-dark" : ""}`} role="dialog" aria-modal="true" aria-label="Порівняння сум PDF">
     <header><h2>Порівняння сум PDF</h2><button type="button" onClick={onClose}>Закрити</button></header>
     <form className="pdf-comparison-period" onSubmit={startComparison}>
+      {admin && <div className="pdf-comparison-dealer"><span>Дилер</span><DealerSelectWithAll value={dealerId} onChange={setDealerId} allLabel="Усі доступні дилери" /></div>}
       <label>Від<input type="date" required value={period.dateFrom} onChange={(event) => setPeriod((previous) => ({ ...previous, dateFrom: event.target.value }))} /></label>
       <label>До<input type="date" required value={period.dateTo} onChange={(event) => setPeriod((previous) => ({ ...previous, dateTo: event.target.value }))} /></label>
       <button type="submit">Звірити</button>

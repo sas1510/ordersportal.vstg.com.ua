@@ -23,3 +23,5 @@
 .pdf-comparison-dark .pdf-comparison-completed { background: #293d2c; color: #c5e8c4; border-color: #527257; }
 .pdf-comparison header button { background: #89b3d8; color: #203447; }
 .pdf-comparison .pdf-comparison-period button { background: #b4d947; color: #293614; }
+.pdf-comparison-dealer { width: 280px; max-width: 100%; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.pdf-comparison-dark .dealer-select__control, .pdf-comparison-dark .dealer-select__dropdown { background: #393a39; color: #e4e9ec; border-color: #67716f; }
