@@ -311,6 +311,7 @@ import { useNotification } from "../../hooks/useNotification";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTheme } from "../../hooks/useTheme";
 import HeaderUserProfile from "./HeaderUserProfile";
+import PdfAmountComparison from "./PdfAmountComparison";
 import logo from "../../assets/icons/logo-vst.svg";
 import logoDark from "../../assets/icons/logo-vst-dark.svg";
 import "./HeaderAdmin.css";
@@ -341,6 +342,8 @@ import { AppIcon } from "../Icons/AppIcon";
 // ];
 
 export default function HeaderAdmin() {
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const closeComparison = useCallback(() => setComparisonOpen(false), []);
   const { isAdmin, role } = useAuthGetRole();
   const isMobile = useMediaQuery({ maxWidth: 1460 }); 
   const location = useLocation();
@@ -630,7 +633,7 @@ export default function HeaderAdmin() {
                   className="h-full w-full focus:outline-none transition-colors hover:bg-gray-200"
                   onClick={() => setProfileOpen(!profileOpen)}
                 >
-                  <HeaderUserProfile />
+                  <HeaderUserProfile onOpenComparison={() => setComparisonOpen(true)} />
                 </button>
 
                 {profileOpen && (
@@ -846,6 +849,7 @@ export default function HeaderAdmin() {
           </div>
         )}
       </div>
+      {comparisonOpen && <PdfAmountComparison admin onClose={closeComparison} />}
     </header>
   );
 }

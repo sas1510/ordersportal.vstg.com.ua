@@ -590,7 +590,7 @@ const PortalOriginal = () => {
 
       resetLocalMonthFilter();
 
-      navigate(location.pathname, {
+      navigate(searchQuery ? `${location.pathname}?search=${encodeURIComponent(searchQuery)}` : location.pathname, {
         replace: true,
       });
 

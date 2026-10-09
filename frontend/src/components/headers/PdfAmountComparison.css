@@ -7,7 +7,8 @@
 .pdf-comparison-table { overflow-x: auto; }
 .pdf-comparison table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .pdf-comparison th, .pdf-comparison td { padding: 10px; text-align: left; border-bottom: 1px solid #d9dfe4; }
-.pdf-comparison small { display: block; font-size: 12px; margin-top: 4px; }
+.pdf-comparison small { display: block; font-size: 12px; margin-top: 1px; line-height: 1.25; }
+.pdf-comparison td { padding-top: 6px; padding-bottom: 6px; line-height: 1.3; }
 .pdf-comparison-mismatch { background: #fff0e5; }
 .pdf-comparison-period { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 16px; }
 .pdf-comparison-period label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
@@ -25,3 +26,31 @@
 .pdf-comparison .pdf-comparison-period button { background: #b4d947; color: #293614; }
 .pdf-comparison-dealer { width: 280px; max-width: 100%; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .pdf-comparison-dark .dealer-select__control, .pdf-comparison-dark .dealer-select__dropdown { background: #393a39; color: #e4e9ec; border-color: #67716f; }
+.pdf-comparison a { color: #24608b; text-decoration: underline; }
+.pdf-comparison-dark a { color: #89b3d8; }
+.pdf-comparison button:disabled { cursor: not-allowed; background: #c4cbd0; color: #424b51; }
+.pdf-comparison-period input, .pdf-comparison-period button, .pdf-comparison-period .dealer-select__control { height: 40px; box-sizing: border-box; margin: 0; }
+.pdf-comparison-period label { margin: 0; }
+.pdf-comparison-period input { line-height: normal; }
+.pdf-comparison-difference { width: 160px; }
+.pdf-comparison-difference input { width: 100%; text-align: right; }
+.pdf-comparison-period input[type="date"] { width: 150px; }
+.pdf-comparison { padding: 16px 20px; border-radius: 6px; }
+.pdf-comparison h2 { font-size: 18px; margin: 0; font-weight: 500; }
+.pdf-comparison button { padding: 5px 10px; font-size: 13px; line-height: 20px; border-radius: 3px; }
+.pdf-comparison-period { gap: 10px; margin-top: 12px; }
+.pdf-comparison-period label, .pdf-comparison-dealer { font-size: 12px; gap: 3px; text-align: left; font-weight: 400; }
+.pdf-comparison-period input, .pdf-comparison-period button, .pdf-comparison-period .dealer-select__control { height: 34px; font-size: 13px; }
+.pdf-comparison-period input { padding: 4px 8px; }
+.pdf-comparison-period input[type="date"] { width: 140px; }
+.pdf-comparison-difference { width: 130px; }
+.pdf-comparison-dealer { width: 230px; }
+.pdf-comparison .pdf-comparison-export-actions { display: flex; margin: 0; gap: 8px; }
+.pdf-comparison .pdf-comparison-export-actions button { background: #edf1f3; border: 1px solid #b8c6ce; color: #38596d; height: 34px; white-space: nowrap; }
+.pdf-comparison-dark .pdf-comparison-export-actions button { background: #393a39; border-color: #606d73; color: #a9c9df; }
+.pdf-comparison .pdf-comparison-export-actions button:disabled { background: #393a39; color: #909a9f; border-color: #60686c; }
+.pdf-comparison p { margin: 8px 0; font-size: 13px; font-weight: 400; }
+.pdf-comparison-completed { padding: 7px 10px; }
+.pdf-comparison-sign { display: flex; align-items: center; gap: 8px; height: 34px; }
+.pdf-comparison-sign label { flex-direction: row; align-items: center; gap: 4px; white-space: nowrap; }
+.pdf-comparison-sign input[type="checkbox"] { width: 14px; height: 14px; padding: 0; accent-color: #b4d947; }

@@ -1008,6 +1008,7 @@ export default function HeaderDealer() {
                   }}
                 >
                   <HeaderDealerProfile 
+                    onOpenComparison={() => setComparisonOpen(true)}
                     balance={balance} 
                     debtAmount={debtAmount}
                     currency={currency} 
