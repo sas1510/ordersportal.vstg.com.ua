@@ -17,6 +17,11 @@ if not logger.handlers:
 
 def log_1c_response(response, *args, **kwargs):
     """Requests response hook; does not log credentials or request headers."""
+    from utils.user_action_audit import audit_1c_response
+    try:
+        audit_1c_response(response)
+    except Exception:
+        logger.exception("Failed to audit 1C response")
     response_id = uuid.uuid4().hex
     query = response.request.headers.get("Query", "unknown")
     body = response.text

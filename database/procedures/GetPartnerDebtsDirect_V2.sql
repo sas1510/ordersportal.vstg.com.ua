@@ -280,17 +280,17 @@ LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.БВ_Состояния
                 WHEN ISNULL(S.SummaRealization, 0) <= 0
                      AND AV.Summa > Z.OrderSum / 2
                      AND AV.Summa < Z.OrderSum
-                    THEN AV.Summa - Z.OrderSum / 2
+                    THEN AV.Summa
                 WHEN ISNULL(S.SummaRealization, 0) <= 0
                      AND AV.Summa IS NULL
                      AND PD.Summa < 0
                      AND PD.Summa * -1 < Z.OrderSum / 2
-                    THEN Z.OrderSum / 2 + PD.Summa
+                    THEN Z.OrderSum + PD.Summa
                 WHEN ISNULL(S.SummaRealization, 0) <= 0
                      AND AV.Summa IS NULL
                      AND PD.Summa > Z.OrderSum / 2
                      AND PD.Summa < Z.OrderSum
-                    THEN PD.Summa - Z.OrderSum / 2
+                    THEN PD.Summa
                 ELSE NULL
             END AS NedoAvans,
 

@@ -700,6 +700,17 @@ export default function PaymentsPage() {
 
   const postSaleDebtTotal =
     routeDebtTotal + moneyInTransitTotal;
+  const underfundedDebtTotal = underfundedOrders.reduce((sum, item) => {
+    const numberKey = (value) => String(value || "").replace(/[-‐‑‒–—\s]/g, "").toLowerCase();
+    const matchingOrders = orders.filter((order) => numberKey(order.OrderNumber) === numberKey(item.ZakazNum));
+    const paymentOrder = matchingOrders.length === 1 ? matchingOrders[0] : null;
+    const fullDebt = paymentOrder?.DebtAmount != null
+      ? parseFlexibleAmount(paymentOrder.DebtAmount)
+      : item.ZakazSumma != null && item.PaidAmount != null
+        ? parseFlexibleAmount(item.ZakazSumma) - parseFlexibleAmount(item.PaidAmount)
+        : parseFlexibleAmount(item.NedoAvans);
+    return sum + Math.max(0, fullDebt);
+  }, 0);
 
   return {
     routeDebtOrders,
@@ -713,8 +724,9 @@ export default function PaymentsPage() {
     moneyInTransitTotal,
     inWorkDebtTotal,
     postSaleDebtTotal,
+    underfundedDebtTotal,
   };
-}, [debtItems]);
+}, [debtItems, orders]);
 
 
   // =====================================================
@@ -1163,7 +1175,7 @@ export default function PaymentsPage() {
             {debtTotal &&
               (isMobile ? (
                 <PaymentsAnalyticsMobile
-                  debtTotal={debtTotal}
+                  debtTotal={{ ...debtTotal, NedoAvans: debtAnalytics.underfundedDebtTotal }}
                   formatCurrency={formatCurrency}
                   showDebtDetails={showDebtDetails}
                 />
@@ -1242,13 +1254,13 @@ export default function PaymentsPage() {
                     </div>
 
                     <div
-                      className={`analytics-card !pr-0 ${Number(debtTotal.NedoAvans || 0) > 0 ? "pointer-link" : ""}`}
-                      onClick={() => Number(debtTotal.NedoAvans || 0) > 0 && showDebtDetails("nedoavans")}
+                      className={`analytics-card !pr-0 ${debtAnalytics.underfundedDebtTotal > 0 ? "pointer-link" : ""}`}
+                      onClick={() => debtAnalytics.underfundedDebtTotal > 0 && showDebtDetails("nedoavans")}
                     >
                       <div className="card-title">{t("payments_page.analytics.underfunded")}</div>
                       <div className="card-value">
-                        {Number(debtTotal.NedoAvans || 0) > 0
-                          ? `${formatCurrency(debtTotal.NedoAvans)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
+                        {debtAnalytics.underfundedDebtTotal > 0
+                          ? `${formatCurrency(debtAnalytics.underfundedDebtTotal)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
                           : "—"}
                       </div>
                     </div>

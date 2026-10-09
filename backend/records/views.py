@@ -6984,6 +6984,8 @@ class PartnerDebtsView(APIView):
 
                 orders = [item for item in raw_data if item.get('SortOrder') == 0]
                 summary = next((item for item in raw_data if item.get('SortOrder') == 1), None)
+                from .debt_amounts import use_full_underadvance_debt
+                use_full_underadvance_debt(orders, summary)
 
 
             duration = time.time() - start_time
