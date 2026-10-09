@@ -94,7 +94,7 @@ def deliveries_pdf(request):
             if not isinstance(row, dict):
                 raise ValueError("Invalid row")
             day = date.fromisoformat(row["day"]).isoformat()
-            hour = time.fromisoformat(row["time"]).strftime("%H:%M")
+            hour = time.fromisoformat(row["time"]).strftime("%H:%M") if row.get("time") else ""
             count = str(row.get("count") if row.get("count") is not None else "").strip()
             if count:
                 numeric_count = Decimal(count)

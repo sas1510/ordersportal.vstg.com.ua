@@ -38,6 +38,12 @@ class DeliveriesPdfTests(SimpleTestCase):
         self.assertIn("шрифт", response.data["error"])
 
     @patch("records.deliveries_pdf.build_deliveries_pdf", return_value=b"%PDF-test")
+    def test_delivery_without_time_is_exported(self, build):
+        response = self.call({"rows": [{"day": "2026-10-08", "time": "", "number": "01-361866", "count": 1}]})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(build.call_args.args[0][0]["time"], "")
+
+    @patch("records.deliveries_pdf.build_deliveries_pdf", return_value=b"%PDF-test")
     def test_exports_filtered_payload(self, build):
         response = self.call({"rows": [{"day": "2026-10-10", "time": "10:00", "number": "45-179571", "calculation": "000106948", "dealer": "Дилер", "count": 3}]})
         self.assertEqual(response.status_code, 200)

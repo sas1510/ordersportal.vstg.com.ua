@@ -17,7 +17,7 @@ test("future timed deliveries only, sorted and deduplicated in Kyiv timezone", (
     order("first", "2026-10-09T12:00:00+03:00"),
   ] }];
   const rows = getDeliveryRows(data, Date.parse("2026-10-09T10:00:00+03:00"));
-  assert.deepEqual(rows.map((row) => [row.order.number, row.day, row.time]), [["first", "2026-10-09", "12:00"], ["later", "2026-10-10", "12:00"]]);
+  assert.deepEqual(rows.map((row) => [row.order.number, row.day, row.time]), [["first", "2026-10-09", "12:00"], ["midnight", "2026-10-10", ""], ["date-only", "2026-10-10", ""], ["later", "2026-10-10", "12:00"]]);
 });
 test("past and all delivery modes retain date grouping and exclude undated orders", () => {
   const now = Date.parse("2026-10-09T10:00:00+03:00");
@@ -27,8 +27,8 @@ test("past and all delivery modes retain date grouping and exclude undated order
     { number: "too-old", plannedDeliveryDateTime: "2026-07-08T09:30:00+03:00" },
     { number: "no-time", plannedDeliveryDateTime: "2026-10-08" },
   ] }];
-  assert.deepEqual(getDeliveryRows(data, now, "past").map((row) => row.order.number), ["past"]);
-  assert.deepEqual(getDeliveryRows(data, now, "all").map((row) => row.order.number), ["past", "future"]);
+  assert.deepEqual(getDeliveryRows(data, now, "past").map((row) => row.order.number), ["no-time", "past"]);
+  assert.deepEqual(getDeliveryRows(data, now, "all").map((row) => row.order.number), ["no-time", "past", "future"]);
 });
 test("past window is three calendar months with month-end clamping", () => {
   const data = [{ orders: [

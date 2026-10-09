@@ -17,13 +17,14 @@ export function getDeliveryRows(calculations, now = Date.now(), period = "future
   return calculations.flatMap((calc) => (calc.orders || []).flatMap((order) => {
     const raw = order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime;
     const delivery = new Date(raw);
-    if (!raw || !/\d{2}:\d{2}/.test(String(raw)) || !Number.isFinite(delivery.getTime()) || timeLabel(delivery) === "00:00" || String(order.status || "").trim() === "Відмова") return [];
+    if (!raw || !Number.isFinite(delivery.getTime()) || String(order.status || "").trim() === "Відмова") return [];
+    const time = /\d{2}:\d{2}/.test(String(raw)) && timeLabel(delivery) !== "00:00" ? timeLabel(delivery) : "";
     if (period === "future" && delivery.getTime() < now) return [];
     if (period === "past" && delivery.getTime() >= now) return [];
     if (delivery.getTime() < now && dayKey(delivery) < earliestDay) return [];
     const key = order.idGuid || order.number;
     if (!key || seen.has(key)) return [];
     seen.add(key);
-    return [{ order, calc, day: dayKey(delivery), time: timeLabel(delivery), timestamp: delivery.getTime() }];
+    return [{ order, calc, day: dayKey(delivery), time, timestamp: delivery.getTime() }];
   })).sort((a, b) => a.timestamp - b.timestamp);
 }
