@@ -203,8 +203,11 @@ const NewCalculationModal = ({
       const list = res.data?.addresses || [];
       const deliveryAddresses = list.filter(
         (a) =>
-          typeof a.AddressKind === "string" &&
-          a.AddressKind.toLowerCase().includes("достав"),
+          a.IsDefault === true ||
+          a.IsDefault === 1 ||
+          a.IsDefault === "\u0001" ||
+          (typeof a.AddressKind === "string" &&
+            a.AddressKind.toLowerCase().includes("достав")),
       );
 
       const translatedAddresses =
