@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import axiosInstance from "../api/axios";
+import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 import {
   CalculationItem,
 } from "../components/Orders/OrderComponents";
@@ -932,7 +933,14 @@ const AdminPortalOriginal = () => {
     [filteredItems],
   );
 
-  const itemsToShow = sortedItems.slice(0, displayLimit);
+  const delivery = useDeliveries(sortedItems);
+  const deliveryFilteredItems = delivery.filteredCalculations;
+  const itemsToShow = deliveryFilteredItems.slice(0, displayLimit);
+  const deliveryVisibleIds = itemsToShow.map((calc) => calc.id).join(",");
+  useEffect(() => {
+    if (!delivery.enabled) return;
+    setExpandedCalcIds((previous) => new Set([...previous, ...itemsToShow.map((calc) => calc.id)]));
+  }, [delivery.enabled, delivery.date, deliveryVisibleIds]);
 
   const areAllVisibleCalculationsExpanded =
     itemsToShow.length > 0 &&
@@ -967,15 +975,15 @@ const AdminPortalOriginal = () => {
     });
   }, [itemsToShow]);
   const showLoadMoreButton =
-    sortedItems.length > displayLimit;
+    deliveryFilteredItems.length > displayLimit;
 
   const nextLoadCount = Math.min(
     ITEMS_PER_LOAD,
-    sortedItems.length - displayLimit,
+    deliveryFilteredItems.length - displayLimit,
   );
 
   const remainingItems =
-    sortedItems.length - displayLimit;
+    deliveryFilteredItems.length - displayLimit;
 
   if (loading || reloading) {
     return (
@@ -1532,6 +1540,7 @@ const AdminPortalOriginal = () => {
               </li>
             </ul>
 
+            <div className="orders-list-controls">
             <button
               type="button"
               className="orders-expand-all-button"
@@ -1552,6 +1561,8 @@ const AdminPortalOriginal = () => {
                   : "Розгорнути всі"}
               </span>
             </button>
+            <DeliveriesControl delivery={delivery} />
+            </div>
 
             <ul className="filter column align-center h-full overflow-hidden">
               <div
@@ -1812,7 +1823,7 @@ const AdminPortalOriginal = () => {
               )}
 
               {!showLoadMoreButton &&
-                sortedItems.length >
+                deliveryFilteredItems.length >
                   ITEMS_PER_LOAD && (
                   <div
                     className="row  text-grey"
@@ -1825,7 +1836,7 @@ const AdminPortalOriginal = () => {
                       "portal_calc.ui.all_loaded",
                       {
                         count:
-                          sortedItems.length,
+                          deliveryFilteredItems.length,
                       },
                     )}
                   </div>

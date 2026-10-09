@@ -1,0 +1,22 @@
+.orders-list-controls { display: flex; gap: 6px; width: 100%; position: relative; }
+.orders-list-controls > .orders-expand-all-button { flex: 1; width: auto; }
+.deliveries-control { position: relative; display: flex; gap: 3px; align-items: flex-start; }
+.deliveries-reset { display: flex; align-items: center; justify-content: center; min-height: 30px; width: 25px; padding: 0; background: #89b3d8; color: #203447; border: 1px solid #6b98bf; border-radius: 4px; font-size: 19px; line-height: 1; }
+.deliveries-button { width: auto; white-space: nowrap; }
+.deliveries-button.active { background: #b4d947; color: #293614; border-color: #94b530; }
+.deliveries-button.active:hover { background: #c2e463; border-color: #94b530; }
+.deliveries-settings { position: absolute; right: 0; top: 34px; z-index: 1005; width: 250px; max-width: 85vw; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fff; color: #263746; border: 1px solid #89a1b2; border-radius: 5px; box-shadow: 0 5px 15px #0003; }
+.deliveries-settings label { display: flex; align-items: center; gap: 7px; font-size: 13px; }
+.deliveries-settings input { accent-color: #89b3d8; }
+.deliveries-settings select { width: 100%; padding: 6px; border: 1px solid #82949f; border-radius: 3px; }
+.deliveries-settings button { display: flex; align-items: center; justify-content: center; gap: 7px; background: #89b3d8; color: #203447; padding: 7px; border-radius: 3px; }
+.deliveries-settings button:disabled { cursor: not-allowed; }
+body.dark-theme .deliveries-settings { background: #373633; color: #e5e9ed; }
+body.dark-theme .deliveries-settings select { background: #45433f; color: #e5e9ed; }
+.deliveries-date-select { position: relative; width: 100%; }
+.deliveries-settings .deliveries-date-trigger { width: 100%; justify-content: space-between; border: 1px solid #82949f; background: #fff; color: #263746; text-align: left; }
+.deliveries-date-options { position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 1; max-height: min(220px, 35vh); overflow-y: auto; background: #fff; border: 1px solid #82949f; border-radius: 3px; box-shadow: 0 5px 15px #0003; }
+.deliveries-settings .deliveries-date-options button { width: 100%; justify-content: flex-start; background: transparent; color: #263746; border-radius: 0; padding: 7px 9px; text-align: left; }
+.deliveries-settings .deliveries-date-options button:hover, .deliveries-settings .deliveries-date-options button:focus-visible, .deliveries-settings .deliveries-date-options button[aria-checked="true"] { background: #89b3d8; color: #203447; }
+body.dark-theme .deliveries-date-options, body.dark-theme .deliveries-settings .deliveries-date-trigger { background: #45433f; color: #e5e9ed; }
+body.dark-theme .deliveries-date-options button { color: #e5e9ed; }

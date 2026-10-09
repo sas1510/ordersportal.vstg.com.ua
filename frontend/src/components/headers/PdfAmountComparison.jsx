@@ -43,6 +43,26 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
     }
     return `${admin ? "/admin-order" : "/orders"}?${params}`;
   };
+  const openPdf = async (row) => {
+    const tab = window.open("", "_blank");
+    if (!tab) {
+      addNotification("Дозвольте відкриття нових вкладок у браузері", "warning");
+      return;
+    }
+    tab.opener = null;
+    tab.document.title = row.file;
+    tab.document.body.textContent = "Завантаження PDF…";
+    try {
+      const response = await axios.get(`/order/${row.orderGuid}/files/${row.fileGuid}/download/`, { params: { filename: row.file }, responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      if (tab.closed) { URL.revokeObjectURL(url); return; }
+      tab.location.href = url;
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch {
+      tab.close();
+      addNotification("Не вдалося відкрити PDF. Спробуйте ще раз.", "error");
+    }
+  };
   const copyNumbers = async () => {
     const text = [...new Set(mismatches.map((row) => row.order).filter(Boolean))].join(", ");
     try {
@@ -139,7 +159,7 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
                 const sameCurrency = data.currency && currencyCode(order.currency) === data.currency;
                 const rawDifference = data.status === "extracted" && sameCurrency ? Math.round((Number(data.amount) - Number(order.amount)) * 100) / 100 : null;
                 const difference = rawDifference !== null && data.currency === "UAH" && Math.abs(rawDifference) <= 2 ? 0 : rawDifference;
-                append({ ...base, file: file.fileName, pdf: data.amount, pdfCurrency: data.currency, difference, evidence: data.evidence, status: data.status !== "extracted" ? data.reason : !sameCurrency ? "Перевірте валюту" : difference === 0 ? "Збігається" : "Розбіжність" });
+                append({ ...base, orderGuid: order.idGuid, fileGuid: file.fileGuid, file: file.fileName, pdf: data.amount, pdfCurrency: data.currency, difference, evidence: data.evidence, status: data.status !== "extracted" ? data.reason : !sameCurrency ? "Перевірте валюту" : difference === 0 ? "Збігається" : "Розбіжність" });
               } catch (failure) {
                 if (signal.aborted) return;
                 append({ ...base, file: file.fileName, status: failure.response?.data?.error || "Не вдалося перевірити PDF" });
@@ -193,7 +213,7 @@ export default function PdfAmountComparison({ admin = false, onClose }) {
     {periodError && <p role="alert">{periodError}</p>}
     <p aria-live="polite">{error || progress}</p>
     {done && !error && <p className="pdf-comparison-completed" role="status">Звірку завершено. Розбіжностей: {mismatches.length}. Не вдалося порівняти: {reviewOrderNumbers.length} замовлень.</p>}
-    <div className="pdf-comparison-table"><table><thead><tr><th>Замовлення</th><th>PDF</th><th>Портал</th><th>Сума PDF</th><th>Різниця</th><th>Результат</th></tr></thead><tbody>{mismatches.map((row, index) => <tr key={index} className="pdf-comparison-mismatch"><td><a href={orderUrl(row)} target="_blank" rel="noopener noreferrer">{orderLabel(row)}</a>{row.calculationNumber && <small>{row.calculationNumber}</small>}<small>{row.dealer}</small></td><td>{row.file || "—"}<small>{row.evidence}</small></td><td>{money(row.portal, row.currency)}</td><td>{money(row.pdf, row.pdfCurrency)}</td><td>{money(row.difference, row.currency)}</td><td>{row.status}</td></tr>)}</tbody></table></div>
+    <div className="pdf-comparison-table"><table><thead><tr><th>Замовлення</th><th>PDF</th><th>Портал</th><th>Сума PDF</th><th>Різниця</th><th>Результат</th></tr></thead><tbody>{mismatches.map((row, index) => <tr key={index} className="pdf-comparison-mismatch"><td><a href={orderUrl(row)} target="_blank" rel="noopener noreferrer">{orderLabel(row)}</a>{row.calculationNumber && <small>{row.calculationNumber}</small>}<small>{row.dealer}</small></td><td>{row.fileGuid ? <button type="button" className="pdf-comparison-file-link" title="Відкрити PDF у новій вкладці" onClick={() => openPdf(row)}>{row.file}</button> : row.file || "—"}<small>{row.evidence}</small></td><td>{money(row.portal, row.currency)}</td><td>{money(row.pdf, row.pdfCurrency)}</td><td>{money(row.difference, row.currency)}</td><td>{row.status}</td></tr>)}</tbody></table></div>
     {done && !mismatches.length && !error && <p>Розбіжностей за заданим порогом не знайдено.</p>}
     {reviewCount > 0 && <p>Не вдалося порівняти: {reviewCount} файлів / замовлень. Вони не враховані як збіги.</p>}
     {reviewOrderNumbers.length > 0 && <p>Номери замовлень, які не вдалося порівняти ({reviewOrderNumbers.length}): {reviewOrderNumbers.join(", ")}</p>}

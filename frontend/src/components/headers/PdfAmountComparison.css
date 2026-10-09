@@ -54,3 +54,5 @@
 .pdf-comparison-sign { display: flex; align-items: center; gap: 8px; height: 34px; }
 .pdf-comparison-sign label { flex-direction: row; align-items: center; gap: 4px; white-space: nowrap; }
 .pdf-comparison-sign input[type="checkbox"] { width: 14px; height: 14px; padding: 0; accent-color: #b4d947; }
+.pdf-comparison button.pdf-comparison-file-link { background: transparent; color: #24608b; border: 0; padding: 0; font-size: inherit; text-decoration: underline; cursor: pointer; }
+.pdf-comparison-dark button.pdf-comparison-file-link { color: #89b3d8; }

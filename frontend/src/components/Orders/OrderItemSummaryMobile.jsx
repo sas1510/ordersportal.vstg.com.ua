@@ -447,7 +447,7 @@ export default React.memo(function OrderItemSummaryMobile({
     <div className="order-item flex flex-col w-full gap-0 !border-0">
     
       <div
-        className="md:hidden flex flex-col w-full p-1 "
+        className={`md:hidden flex flex-col w-full p-1${String(order?.status || "").trim() === "Відмова" ? " order-refused-muted" : ""}`}
         onClick={toggleExpand}
         
       >

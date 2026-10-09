@@ -1,4 +1,5 @@
 .order-number-pdf-link { cursor: pointer; transition: color 0.15s ease; }
+.order-refused-muted { opacity: 0.55; filter: saturate(0.25); }
 .order-number-pdf-link:hover, body.dark-theme .order-number-pdf-link:hover { color: #6f8ba7 !important; }
  
 /* У вашому файлі стилів (наприклад, CalculationItem.css або загальному стилі) */
@@ -624,10 +625,10 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid rgba(111, 160, 197, 0.55);
+  border: 1px solid #7199ba;
   border-radius: 7px;
-  background: rgba(111, 160, 197, 0.12);
-  color: var(--WS---DarkBlue, #183249);
+  background: #89b3d8;
+  color: #172d40;
   font-size: 12px;
   font-weight: 700;
   transition: background-color 0.18s ease, border-color 0.18s ease;
@@ -635,11 +636,15 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 }
 
 .orders-expand-all-button:hover:not(:disabled) {
-  background: rgba(111, 160, 197, 0.22);
-  border-color: rgba(111, 160, 197, 0.85);
+  background: #a1c6e5;
+  border-color: #89b3d8;
 }
+
+.orders-expand-all-button:focus-visible { outline: 2px solid #b4d947; outline-offset: 2px; }
 
 .orders-expand-all-button:disabled {
   cursor: default;
-  opacity: 0.45;
+  opacity: 1;
+  background: #c2ccd4;
+  color: #485762;
 }

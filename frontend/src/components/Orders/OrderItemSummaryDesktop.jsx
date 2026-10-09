@@ -489,7 +489,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     cursor: isSketchOrder ? "default" : "pointer",
   }}>
       <div
-  className="order-item-summary order-grid"
+  className={`order-item-summary order-grid${String(order?.status || "").trim() === "Відмова" ? " order-refused-muted" : ""}`}
   style={{
     cursor: isSketchOrder ? "default" : "pointer",
   }}

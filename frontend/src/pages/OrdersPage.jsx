@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { matchesOrderNumber } from "../utils/matchesOrderNumber";
+import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 
 import axiosInstance from "../api/axios";
 import {
@@ -842,12 +843,18 @@ const PortalOriginal = () => {
     });
   }, [filter, getFilteredItems]);
 
-  const totalFilteredCount = fullFiltered.length;
+  const delivery = useDeliveries(fullFiltered);
+  const totalFilteredCount = delivery.filteredCalculations.length;
 
   const paginatedItems = useMemo(
-    () => fullFiltered.slice(0, limit),
-    [fullFiltered, limit],
+    () => delivery.filteredCalculations.slice(0, limit),
+    [delivery.filteredCalculations, limit],
   );
+  const deliveryVisibleIds = paginatedItems.map((calc) => calc.id).join(",");
+  useEffect(() => {
+    if (!delivery.enabled) return;
+    setExpandedCalcIds((previous) => new Set([...previous, ...paginatedItems.map((calc) => calc.id)]));
+  }, [delivery.enabled, delivery.date, deliveryVisibleIds]);
 
   useEffect(() => {
     const normalizedSearch = filter.name?.toLowerCase().trim();
@@ -1526,6 +1533,7 @@ const PortalOriginal = () => {
               </li>
             </ul>
 
+            <div className="orders-list-controls">
             <button
               type="button"
               className="orders-expand-all-button"
@@ -1546,6 +1554,8 @@ const PortalOriginal = () => {
                   : "Розгорнути всі"}
               </span>
             </button>
+            <DeliveriesControl delivery={delivery} />
+            </div>
 
             <ul className="filter column align-center h-full overflow-hidden">
               <div
