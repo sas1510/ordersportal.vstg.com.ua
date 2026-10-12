@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = False  # Set to False in production  
+DEBUG = True  # Set to False in production  
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -172,7 +172,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": True,   # True на https
+    "AUTH_COOKIE_SECURE": False,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -287,9 +287,14 @@ CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+DELIVERY_NOTIFICATION_START_DATE = os.getenv("DELIVERY_NOTIFICATION_START_DATE", "2026-10-12")
 
 
 CELERY_BEAT_SCHEDULE = {
+    'cleanup-portal-notifications': {
+        'task': 'cleanup_portal_notifications',
+        'schedule': crontab(hour=3, minute=15),
+    },
     'publish-portal-announcements': {
         'task': 'publish_due_portal_announcements',
         'schedule': crontab(minute='*'),

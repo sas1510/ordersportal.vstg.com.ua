@@ -119,7 +119,7 @@ export default function PaymentsAnalyticsMobile({
         </div>
 
         <div
-          className={`analytics-card ${Number(debtTotal.Debt || 0) > 0 ? "pointer-link" : ""}`}
+          className={`analytics-card analytics-card-route-separated ${Number(debtTotal.Debt || 0) > 0 ? "pointer-link" : ""}`}
           onClick={() => Number(debtTotal.Debt || 0) > 0 && showDebtDetails("in_route")}
         >
           <div className="card-title">{t("payments_page.analytics.in_routes")}</div>
@@ -128,7 +128,10 @@ export default function PaymentsAnalyticsMobile({
               ? `${formatCurrency(debtTotal.Debt)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
               : "—"}
           </div>
+          <div className="mobile-vert-divider" />
         </div>
+
+        <div className="analytics-card analytics-card-route-separated" aria-hidden="true" />
 
         <div className="mobile-solid-divider" />
 
@@ -156,7 +159,10 @@ export default function PaymentsAnalyticsMobile({
               ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
               : "—"}
           </div>
+          <div className="mobile-vert-divider" />
         </div>
+
+        <div className="mobile-solid-divider" />
 
       </div>
     </div>

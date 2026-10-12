@@ -790,9 +790,11 @@ export default function HeaderDealer() {
   // 3. Форматування балансу (Виправлено перенос за допомогою \u00A0 - нерозривний пробіл)
   const formattedBalance = useMemo(() => {
     return new Intl.NumberFormat("uk-UA", {
-      minimumFractionDigits: 0,
-    }).format(balance) + "\u00A0грн";
-  }, [balance]);
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(balance) + "\u00A0" + (currency || "грн");
+  }, [balance, currency]);
+  const formattedDebt = useMemo(() => new Intl.NumberFormat("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(debtAmount) + "\u00A0" + (currency || "грн"), [debtAmount, currency]);
 
   /* ================= WEBSOCKET LOGIC ================= */
   useEffect(() => {
@@ -1202,7 +1204,7 @@ export default function HeaderDealer() {
                 src={profileIcon}
                 alt="profile"
               /> */}
-              <AppIcon name="ProfileUserHeader" className="profile-img-icon-mobile mr-4 "/>
+              <AppIcon name="ProfileUserHeader" className="profile-img-icon-mobile mobile-profile-icon-wide mr-4 "/>
 
               <div className="flex items-center justify-between flex-grow min-w-0">
                 <span className="text-[#234461] text-xl font-bold truncate" onDoubleClick={(event) => { event.stopPropagation(); setComparisonOpen(true); }}>
@@ -1249,7 +1251,14 @@ export default function HeaderDealer() {
 
             <div className="sidebar-divider mx-[5%] border-t border-dotted border-[#44403E]/50" />
 
-            <div className="px-[15%] pt-3">
+            {canViewFinance && <div className="mobile-profile-finances">
+              <AppIcon name="money" className="profile-money-img-icon-mobile" />
+              <div className="mobile-profile-finance-values">
+                <div><span className="mobile-profile-advance" aria-label={`Аванс: ${formattedBalance}`}>{formattedBalance}</span></div>
+                <div><span className="mobile-profile-debt" aria-label={`Борг: ${formattedDebt}`}>{formattedDebt}</span></div>
+              </div>
+            </div>}
+            <div className="px-[15%] pt-3 pb-3">
               <div className="flex items-center gap-3">
                 <LanguageSwitcher className="w-fit" />
                 <button
@@ -1266,12 +1275,6 @@ export default function HeaderDealer() {
               </div>
             </div>
 
-            <div className="flex items-center px-[15%] gap-4 py-3 pb-2 whitespace-nowrap">
-              <AppIcon name="money" className="profile-money-img-icon-mobile mr-4" />
-              <span className="text-success text-xl font-normal">
-                {formattedBalance}
-              </span>
-            </div>
           </div>
         </div>
 
@@ -1286,7 +1289,7 @@ export default function HeaderDealer() {
             className="flex items-center justify-center gap-3 w-full"
           >
             <img
-              className="header-theme-icon w-7 h-6 mr-2"
+              className="header-theme-icon w-9 h-7 object-contain mr-2"
               src={exitIcon}
               alt={t("nav.logout")}
             />

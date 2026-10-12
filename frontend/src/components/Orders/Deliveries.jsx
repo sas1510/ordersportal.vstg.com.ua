@@ -4,8 +4,10 @@ import axios from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
 import { getDeliveryRows, sortDeliveryDates } from "../../utils/deliveryRows";
 import "./Deliveries.css";
+import DeliveryNotice from "./DeliveryNotice";
 
-export function useDeliveries(calculations) {
+export function useDeliveries(calculations, observationCalculations = calculations) {
+  const observations = observationCalculations.length ? JSON.stringify(observationCalculations.flatMap((calc) => (calc.orders || []).filter((order) => order.idGuid && order.status !== "Відмова").map((order) => ({ orderGuid: order.idGuid, number: order.number, count: order.count ?? null, calculation: calc.number || calc.webNumber || "", delivery: order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime || null })))) : null;
   const [enabled, setEnabled] = useState(false);
   const [date, setDate] = useState("");
   const [now, setNow] = useState(Date.now());
@@ -22,7 +24,7 @@ export function useDeliveries(calculations) {
       return orders.length ? [{ ...calc, orders }] : [];
     });
   }, [enabled, calculations, selectedRows]);
-  return { enabled, setEnabled, date, setDate, dates, rows: selectedRows, filteredCalculations };
+  return { enabled, setEnabled, date, setDate, dates, rows: selectedRows, filteredCalculations, observations };
 }
 
 export function DeliveriesControl({ delivery }) {
@@ -40,7 +42,7 @@ export function DeliveriesControl({ delivery }) {
   const download = async () => {
     setBusy(true);
     try {
-      const response = await axios.post("/deliveries-pdf/", { rows: delivery.rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "" })) }, { responseType: "blob" });
+      const response = await axios.post("/deliveries-pdf/", { rows: delivery.rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" })) }, { responseType: "blob" });
       const url = URL.createObjectURL(response.data);
       const link = document.createElement("a"); link.href = url; link.download = `Доставки_${delivery.date || "усі-дати"}.pdf`; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -48,6 +50,7 @@ export function DeliveriesControl({ delivery }) {
     finally { setBusy(false); }
   };
   return <div className="deliveries-control" ref={ref}>
+    <DeliveryNotice observations={delivery.observations} />
     <button type="button" className={`orders-expand-all-button deliveries-button${delivery.enabled ? " active" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}><FaTruck />Доставки</button>
     {delivery.enabled && <button type="button" className="deliveries-reset" title="Зняти фільтр доставок" aria-label="Зняти фільтр доставок" onClick={() => { delivery.setEnabled(false); delivery.setDate(""); setOpen(false); setDateOpen(false); }}>×</button>}
     {open && <div className="deliveries-settings">

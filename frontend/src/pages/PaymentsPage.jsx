@@ -654,6 +654,9 @@ export default function PaymentsPage() {
       setBatchAmountDrafts({});
     }
   }, [batchPaymentOpen]);
+  useEffect(() => {
+    if (isMobile) setBatchPaymentOpen(false);
+  }, [isMobile]);
 
   const debtAnalytics = useMemo(() => {
   const routeDebtOrders = debtItems.filter(
@@ -1383,11 +1386,11 @@ export default function PaymentsPage() {
 
             {/* СПИСОК ЗАМОВЛЕНЬ */}
             <div className={batchPaymentOpen ? "batch-payment-sticky-anchor" : ""}>
-            <div className="flex items-center justify-between gap-3" style={{ marginTop: 4, marginBottom: 8 }}>
+            <div className="payment-orders-toolbar flex items-center justify-between gap-3" style={{ marginTop: 4, marginBottom: 8 }}>
               <h2 className="pp-title" style={{ marginTop: 0 }}>
                 {t("payments_page.sections.orders_to_pay")}
               </h2>
-              <div className="batch-payment-toolbar-actions flex items-center gap-3">
+              {!isMobile && <div className="batch-payment-toolbar-actions flex items-center gap-3">
                 {batchPaymentOpen && (
                   <>
                     <button
@@ -1415,9 +1418,9 @@ export default function PaymentsPage() {
                     ? t("payments_page.batch.cancel_selection", "Скасувати вибір")
                     : t("payments_page.batch.open", "Оплатити декілька замовлень")}
                 </button>
-              </div>
+              </div>}
             </div>
-            {batchPaymentOpen && (
+            {!isMobile && batchPaymentOpen && (
               <div className="batch-payment-inline">
                 <label>{t("payments_page.batch.advance_contract", "Авансовий договір")}
                   <select

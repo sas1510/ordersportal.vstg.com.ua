@@ -7238,7 +7238,7 @@ def mark_notifications_as_read(request):
             recipient=contractor_bin,
             is_notification=True,
             is_read=False
-        ).update(is_read=True)
+        ).update(is_read=True, notification_read_at=timezone.now())
 
         duration = time.time() - start_time
 
@@ -7304,6 +7304,8 @@ def mark_single_notification_as_read(request, pk):
         
         notification = ChatMessage.objects.get(pk=pk, recipient=contractor_bin)
         notification.is_read = True
+        if notification.is_notification and notification.notification_read_at is None:
+            notification.notification_read_at = timezone.now()
         notification.save()
 
         duration = time.time() - start_time

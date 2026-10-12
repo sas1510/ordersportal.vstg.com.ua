@@ -1,4 +1,26 @@
 .orders-list-controls { display: flex; gap: 6px; width: 100%; position: relative; }
+.delivery-notice-backdrop { position: fixed; inset: 0; z-index: 11000; background: #0008; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.delivery-notice { width: 400px; max-width: 100%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; color: #263746; border: 1px solid #89b3d8; border-radius: 6px; padding: 18px; }
+.delivery-notice-items { min-height: 0; overflow-y: auto; padding-right: 10px; scrollbar-gutter: stable; }
+.delivery-notice-group { padding: 5px 0; border-bottom: 1px solid #89959c66; }
+.delivery-notice-group h4 { margin: 0 0 4px; font-size: 13px; color: #6b98bf; }
+.delivery-notice-numbers { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
+.delivery-notice-order { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0; line-height: 1.2; }
+.delivery-notice-order > span:first-child { min-width: 0; }
+.delivery-notice-items .delivery-notice-order .delivery-notice-calc { display: block; font-size: 10px; overflow-wrap: anywhere; line-height: 1.2; }
+.delivery-notice-time { font-size: 11px; white-space: nowrap; margin-left: auto; text-align: right; }
+.delivery-notice-numbers > span { white-space: nowrap; }
+.delivery-notice-items .delivery-notice-numbers small { display: inline; font-size: 12px; }
+.delivery-notice > h3, .delivery-notice > p, .delivery-notice > button { flex-shrink: 0; }
+.delivery-notice h3 { margin: 0 0 12px; font-size: 18px; }
+.delivery-notice-items > div { padding: 10px 0; border-bottom: 1px solid #89959c66; }
+.delivery-notice-items small { display: block; }
+.delivery-notice-items > .delivery-notice-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 7px 0; }
+.delivery-notice-row span { white-space: nowrap; }
+.delivery-notice-total { font-size: 13px; font-weight: 600; margin: 12px 0 0; }
+.delivery-notice-items p { margin: 5px 0; }
+.delivery-notice button { margin-top: 12px; background: #b4d947; color: #293614; padding: 8px 18px; border-radius: 3px; }
+body.dark-theme .delivery-notice { background: #373633; color: #edf0f2; }
 .orders-list-controls > .orders-expand-all-button { flex: 1; width: auto; }
 .deliveries-control { position: relative; display: flex; gap: 3px; align-items: flex-start; }
 .deliveries-reset { display: flex; align-items: center; justify-content: center; min-height: 30px; width: 25px; padding: 0; background: #89b3d8; color: #203447; border: 1px solid #6b98bf; border-radius: 4px; font-size: 19px; line-height: 1; }

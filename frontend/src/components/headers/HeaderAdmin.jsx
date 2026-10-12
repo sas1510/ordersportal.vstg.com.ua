@@ -839,7 +839,7 @@ export default function HeaderAdmin() {
                       onClick={handleLogoutAction}
                       className="flex items-center justify-center gap-3 w-full py-3 border-t border-dashed border-gray-300"
                     >
-                      <img className="header-theme-icon w-7 h-6" src={exitIcon} alt="exit" />
+                      <img className="header-theme-icon w-9 h-7 object-contain" src={exitIcon} alt="exit" />
                       <span className="text-dark text-xl font-bold">{t('nav.logout')}</span>
                     </button>
                   </div>

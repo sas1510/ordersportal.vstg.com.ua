@@ -933,7 +933,7 @@ const AdminPortalOriginal = () => {
     [filteredItems],
   );
 
-  const delivery = useDeliveries(sortedItems);
+  const delivery = useDeliveries(sortedItems, calculationsData);
   const deliveryFilteredItems = delivery.filteredCalculations;
   const itemsToShow = deliveryFilteredItems.slice(0, displayLimit);
   const deliveryVisibleIds = itemsToShow.map((calc) => calc.id).join(",");

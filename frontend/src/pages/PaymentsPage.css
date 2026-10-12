@@ -55,6 +55,14 @@
   z-index: -1;
 }
 
+@media (max-width: 700px) {
+  .payment-orders-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .payment-orders-toolbar .pp-title { width: 100%; margin-bottom: 0; }
+  .payment-orders-toolbar .batch-payment-toolbar-actions { width: 100%; min-width: 0; flex-wrap: wrap; gap: 6px; }
+  .payment-orders-toolbar .pp-pay-btn { flex: 1 1 130px; min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; padding: 9px 10px; text-align: center; }
+  .pp-badges .pp-badge { box-sizing: border-box; min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; padding: 10px 12px; }
+}
+
 .pp-orders-header {
   display: flex;
   justify-content: space-between;
@@ -1861,6 +1869,9 @@ body.dark-theme .pp-pay-btn:disabled {
 
 }
 
+.analytics-mobile-grid .analytics-card-route-separated { border-top: 1px solid #88969f; padding-top: 8px; }
+body.dark-theme .analytics-mobile-grid .analytics-card-route-separated { border-top-color: #828b91; }
+
 .dark-theme .analytics-mobile-grid {
   background: #333333;
   /* border-color: #444; */
@@ -1880,11 +1891,11 @@ body.dark-theme .pp-pay-btn:disabled {
 .mobile-solid-divider {
   grid-column: span 6; /* Розтягується на всю ширину (всі 6 колонок) */
   height: 2px;
-  background-color: #000000;
+  background-color: #88969f;
 
 }
 body.dark-theme .mobile-solid-divider {
-  background-color: #444;
+  background-color: #828b91;
 }
 
 
@@ -1918,14 +1929,14 @@ body.dark-theme .mobile-vert-divider {
     height: 100%;               /* Висота лінії відносно висоти картки */
     width: 0px;                /* Для dotted товщина має бути 0 */
     
-    border-right: 1px dotted #000000; /* Чорний пунктир */
+    border-right: 1px solid #88969f;
     pointer-events: none;      /* Щоб не перекривала кліки */
     z-index: 2;
   }
 
   /* Темна тема */
   body.dark-theme .mobile-vert-divider {
-    border-right-color: #666666;
+    border-right-color: #828b91;
   }
 
   .pp-order-card {

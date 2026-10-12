@@ -142,6 +142,7 @@ class ChatMessage(models.Model):
     
 
     is_read = models.BooleanField(default=False, verbose_name="Прочитано", db_column='IsRead')
+    notification_read_at = models.DateTimeField(null=True, blank=True, db_column="NotificationReadAt")
     
 
     is_sent_vtg = models.BooleanField(default=False, verbose_name="Відправлено ВТГ", db_column='IsSentVtg')
@@ -353,6 +354,23 @@ class PortalAnnouncement(models.Model):
     class Meta:
         db_table = "PortalAnnouncement"
         ordering = ["-created_at"]
+
+class DeliveryNotificationState(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    initialized = models.BooleanField(default=False)
+
+
+class DeliveryNotificationReceipt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    order_guid = models.CharField(max_length=36)
+    delivery_key = models.CharField(max_length=40)
+    observed_at = models.DateTimeField(auto_now_add=True)
+    shown_at = models.DateTimeField(null=True, blank=True)
+    notify = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["user", "order_guid", "delivery_key"], name="unique_delivery_notification")]
+
 
 class PortalAnnouncementReceipt(models.Model):
     id = models.BigAutoField(primary_key=True, db_column="ID")

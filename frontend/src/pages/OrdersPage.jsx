@@ -843,7 +843,7 @@ const PortalOriginal = () => {
     });
   }, [filter, getFilteredItems]);
 
-  const delivery = useDeliveries(fullFiltered);
+  const delivery = useDeliveries(fullFiltered, calculationsData);
   const totalFilteredCount = delivery.filteredCalculations.length;
 
   const paginatedItems = useMemo(
