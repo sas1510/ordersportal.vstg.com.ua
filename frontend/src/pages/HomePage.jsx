@@ -331,6 +331,7 @@ import { motion , useScroll, useTransform } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../hooks/useTheme";
+import TikTokPlayer from "../components/TikTokPlayer";
 import {
   faAward,
   faUsers,
@@ -879,17 +880,7 @@ const statsData = [
                 >
            
                   <div className="aspect-[9/16] w-full  overflow-hidden ">
-                     <iframe
-     
-            src={`https://www.tiktok.com/embed/v2/${videoId}`}
-            className="w-full h-full border-0"
-            title={`tiktok-video-${index}`}
-            // 3. Повний набір дозволів
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; visibility"
-            allowFullScreen
-            // 4. ПРАВИЛЬНИЙ sandbox (без allow-all-origin)
-            sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-          ></iframe>
+            <TikTokPlayer videoId={videoId} title={`tiktok-video-${index}`} />
                   </div>
                 </div>
               );

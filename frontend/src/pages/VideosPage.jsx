@@ -584,7 +584,7 @@ const VideosPage = () => {
 
       if (video.resource_type === "tiktok" || urlObj.hostname.includes("tiktok.com")) {
         const match = rawUrl.match(/\/video\/(\d+)/);
-        if (match) return `https://www.tiktok.com/embed/v2/${match[1]}`;
+        if (match) return `https://www.tiktok.com/player/v1/${match[1]}?autoplay=0&description=1&music_info=1`;
       }
       
       return rawUrl;
@@ -782,7 +782,7 @@ const VideosPage = () => {
                   {filteredVideos.map((video) => (
                     <div key={video.id} className={`video-card-display ${video.resource_type === "tiktok" ? "tiktok-big" : ""}`}>
                       <div className="video-thumbnail">
-                        <iframe src={getEmbedUrl(video)} allowFullScreen title={t("videos.iframe_title")} />
+                        <iframe src={getEmbedUrl(video)} loading="lazy" allowFullScreen title={t("videos.iframe_title")} />
                       </div>
                       <div className="video-card-footer flex justify-between items-start">
                         <div className="flex flex-col">

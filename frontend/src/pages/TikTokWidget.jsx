@@ -10,7 +10,9 @@ useEffect(() => {
 
       const existingScript = document.getElementById(scriptId);
       if (existingScript) {
-        existingScript.remove();
+        if (existingScript.dataset.loaded === 'true') setIsLoaded(true);
+        else existingScript.addEventListener('load', () => setIsLoaded(true), { once: true });
+        return;
       }
 
     
@@ -20,6 +22,7 @@ useEffect(() => {
       script.async = true;
       
       script.onload = () => {
+        script.dataset.loaded = 'true';
    
         if (window.tiktok && typeof window.tiktok.render === 'function') {
           window.tiktok.render();
@@ -35,8 +38,6 @@ useEffect(() => {
     return () => {
       clearTimeout(timeout);
 
-      const script = document.getElementById(scriptId);
-      if (script) script.remove();
     };
   }, [username]);
 
