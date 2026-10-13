@@ -1,4 +1,8 @@
 .order-number-pdf-link { cursor: pointer; transition: color 0.15s ease; }
+.order-zkz-download { font-size: 10px; line-height: 1.3; padding: 2px 6px; margin-top: 3px; border: 1px solid #6b98bf; border-radius: 3px; background: #89b3d8; color: #203447; white-space: nowrap; cursor: pointer; }
+.order-zkz-download:hover:not(:disabled) { background: #a1c6e5; }
+.order-zkz-download:disabled { cursor: default; background: #a7afb5; }
+.no-data .order-zkz-download { font-size: 13px; padding: 8px 12px; margin: 10px 0; white-space: normal; }
 .order-refused-muted { opacity: 0.55; filter: saturate(0.25); }
 .order-number-pdf-link:hover, body.dark-theme .order-number-pdf-link:hover { color: #6f8ba7 !important; }
  

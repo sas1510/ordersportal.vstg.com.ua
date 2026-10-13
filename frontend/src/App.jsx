@@ -20,6 +20,7 @@ import { hasFinanceAccess } from "./utils/financeAccess";
 import { useCacheBuster } from "./hooks/useCacheBuster";
 import SupportChatWidget from "./components/SupportChatWidget";
 import PortalAnnouncementModal from "./components/PortalAnnouncementModal";
+import ManagerDelayNotice from "./components/ManagerDelayNotice";
 import {
   isAdminRole,
   isBackofficeRole,
@@ -244,6 +245,7 @@ return (
     </Routes>
 
     {normalizedRole && <PortalAnnouncementModal />}
+    {normalizedRole && <ManagerDelayNotice />}
     {isDealerRole(normalizedRole) && <SupportChatWidget />}
   </>
 );

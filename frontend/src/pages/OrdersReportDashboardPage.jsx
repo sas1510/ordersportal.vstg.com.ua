@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight, FaArrowUp, FaBoxes, FaChartLine, FaMoneyBillWave, FaSearch, FaUsers } from "react-icons/fa";
 import {
   Bar,
@@ -15,6 +15,8 @@ import {
 } from "recharts";
 import axiosInstance from "../api/axios";
 import DealerSelectWithAll from "./DealerSelectWithAll";
+import OperationalReport from "../components/Orders/OperationalReport";
+import { inReportPeriod, belongsToDealerGroup, isRefusedCalculation } from "../utils/reportDataset";
 import { useDealerContext } from "../hooks/useDealerContext";
 import "./DealerReportsPage.css";
 import "./OrdersReportDashboardPage.css";
@@ -283,7 +285,7 @@ function buildProcessingDetails(calculations) {
 }
 
 function buildManagerKpi(calculations, managerName) {
-  const source = Array.isArray(calculations) ? calculations : [];
+  const source = (Array.isArray(calculations) ? calculations : []).filter((calculation) => !isRefusedCalculation(calculation));
   const orders = source.flatMap(function (calculation) {
     return Array.isArray(calculation.orders) ? calculation.orders : [];
   });
@@ -342,6 +344,7 @@ function groupCalculationsByStatus(calculations) {
   }));
 
   (Array.isArray(calculations) ? calculations : []).forEach(function (calculation) {
+    if (isRefusedCalculation(calculation)) return;
     const orders = Array.isArray(calculation.orders) ? calculation.orders : [];
     if (!orders.length) {
       result[STATUSES[0].status].push({
@@ -469,6 +472,7 @@ function CustomChartTooltip({ active, payload, label }) {
 }
 
 export default function OrdersReportDashboardPage() {
+  const reportLocation = useLocation();
   const navigate = useNavigate();
   const processingDetailsRef = useRef(null);
   const {
@@ -480,11 +484,20 @@ export default function OrdersReportDashboardPage() {
     isLoading: dealerContextLoading,
   } = useDealerContext();
 
-  const [viewMode, setViewMode] = useState("statuses");
+  const [viewMode, setViewMode] = useState(() => {
+    const requested = new URLSearchParams(window.location.search).get("view");
+    return ["statuses", "dealers", "kpi", "operations"].includes(requested) ? requested : "operations";
+  });
+  useEffect(() => {
+    if (new URLSearchParams(reportLocation.search).get("view") === "operations") setViewMode("operations");
+  }, [reportLocation.search]);
   const [dateFrom, setDateFrom] = useState(currentMonthStart);
   const [dateTo, setDateTo] = useState(dateInput(new Date()));
 
   const [calculations, setCalculations] = useState([]);
+  const [operationalCalculations, setOperationalCalculations] = useState([]);
+  const reportRequest = useRef(null);
+  useEffect(() => () => reportRequest.current?.abort(), []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [processingGroupCalculations, setProcessingGroupCalculations] = useState({});
@@ -518,75 +531,50 @@ export default function OrdersReportDashboardPage() {
   );
 
   const loadStatusReport = useCallback(async () => {
-    if (!dateFrom || !dateTo || dateFrom > dateTo) {
+    if (viewMode !== "operations" && (!dateFrom || !dateTo || dateFrom > dateTo)) {
       setError("Вкажіть коректний період звітності.");
       return;
     }
 
     setLoading(true);
     setError("");
+    setProcessingGroupsLoading(true);
+    reportRequest.current?.abort();
+    const controller = new AbortController();
+    reportRequest.current = controller;
 
     try {
       const response = await axiosInstance.get("/order/get_orders_info_all/", {
+        signal: controller.signal,
         params: {
-          date_from: dateFrom,
-          date_to: dateTo,
-          ...((viewMode === "kpi" ? kpiScopeUserId : viewMode === "statuses" ? statusScopeUserId : "")
-            ? { scope_user_id: viewMode === "kpi" ? kpiScopeUserId : statusScopeUserId }
-            : {}),
-          ...(appliedDealerGroup
-            ? { dealer_group: appliedDealerGroup }
+          date_from: viewMode === "operations" ? dateInput(new Date(Date.now() - 90 * 86400000)) : dateFrom,
+          date_to: viewMode === "operations" ? dateInput(new Date()) : dateTo,
+          ...((["kpi", "operations"].includes(viewMode) ? kpiScopeUserId : viewMode === "statuses" ? statusScopeUserId : "")
+            ? { scope_user_id: ["kpi", "operations"].includes(viewMode) ? kpiScopeUserId : statusScopeUserId }
             : {}),
         },
       });
       if (response.data?.status !== "success") {
         throw new Error();
       }
-      setCalculations(response.data?.data?.calculation || []);
+      const all = response.data?.data?.calculation || [];
+      const period = inReportPeriod(all, dateFrom, dateTo);
+      setCalculations(period);
+      const historyStart = dateInput(new Date(Date.now() - 90 * 86400000));
+      setOperationalCalculations(inReportPeriod(all, historyStart, dateInput(new Date())));
+      setProcessingGroupCalculations(Object.fromEntries(KPI_PROCESSING_GROUPS.map((group) => [group.key, period.filter((calc) => belongsToDealerGroup(calc, group.dealerGroup))])));
+      setProcessingGroupsError("");
     } catch (requestError) {
+      if (controller.signal.aborted) return;
       setCalculations([]);
+      setOperationalCalculations([]);
+      setProcessingGroupCalculations({});
       setError(requestError.response?.data?.error || "Не вдалося завантажити дані звіту.");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) { setLoading(false); setProcessingGroupsLoading(false); }
     }
-  }, [appliedDealerGroup, dateFrom, dateTo, kpiScopeUserId, statusScopeUserId, viewMode]);
+  }, [dateFrom, dateTo, kpiScopeUserId, statusScopeUserId, viewMode]);
 
-  const loadProcessingGroupsReport = useCallback(async () => {
-    if (!canUseDealerGroups || !dateFrom || !dateTo || dateFrom > dateTo) {
-      return;
-    }
-
-    setProcessingGroupsLoading(true);
-    setProcessingGroupsError("");
-    try {
-      const responses = await Promise.all(
-        KPI_PROCESSING_GROUPS.map(function (group) {
-          return axiosInstance.get("/order/get_orders_info_all/", {
-            params: {
-              date_from: dateFrom,
-              date_to: dateTo,
-              dealer_group: group.dealerGroup,
-              ...((viewMode === "statuses" ? statusScopeUserId : kpiScopeUserId)
-                ? { scope_user_id: viewMode === "statuses" ? statusScopeUserId : kpiScopeUserId }
-                : {}),
-            },
-          });
-        }),
-      );
-      setProcessingGroupCalculations(
-        Object.fromEntries(
-          KPI_PROCESSING_GROUPS.map(function (group, index) {
-            return [group.key, responses[index]?.data?.data?.calculation || []];
-          }),
-        ),
-      );
-    } catch (requestError) {
-      setProcessingGroupCalculations({});
-      setProcessingGroupsError("Не вдалося завантажити показники за групами.");
-    } finally {
-      setProcessingGroupsLoading(false);
-    }
-  }, [canUseDealerGroups, dateFrom, dateTo, kpiScopeUserId, statusScopeUserId, viewMode]);
 
   const loadDealerReports = useCallback(async () => {
     if (!isAdmin || dealerContextLoading) {
@@ -641,16 +629,12 @@ export default function OrdersReportDashboardPage() {
 
 
   useEffect(function () {
-    if (viewMode === "kpi") {
+    if (viewMode === "kpi" || viewMode === "operations") {
       loadStatusReport();
-      loadProcessingGroupsReport();
     } else if (viewMode === "statuses") {
       loadStatusReport();
-      if (canUseDealerGroups) {
-        loadProcessingGroupsReport();
-      }
     }
-  }, [canUseDealerGroups, kpiScopeUserId, loadProcessingGroupsReport, loadStatusReport, statusScopeUserId, viewMode]);
+  }, [loadStatusReport, viewMode]);
 
   useEffect(function () {
     loadActiveManagerOptions();
@@ -658,6 +642,7 @@ export default function OrdersReportDashboardPage() {
 
 
   const visibleCalculations = useMemo(() => {
+    if (appliedDealerGroup) return calculations.filter((calc) => belongsToDealerGroup(calc, appliedDealerGroup));
     if (
       !dealerGuid ||
       dealerGuid === ALL_DEALERS_VALUE ||
@@ -669,7 +654,7 @@ export default function OrdersReportDashboardPage() {
     return calculations.filter(function (calculation) {
       return String(calculation.dealerId || "").toLowerCase() === String(dealerGuid).toLowerCase();
     });
-  }, [calculations, dealerGuid]);
+  }, [calculations, dealerGuid, appliedDealerGroup]);
 
   const selectedManagerKpi = useMemo(function () {
     const selectedPerson = activeManagerOptions.find(function (item) {
@@ -1092,7 +1077,7 @@ export default function OrdersReportDashboardPage() {
                   : ""}
             </p>
           </div>
-          <div className="orders-dashboard__total">
+          <div className="orders-dashboard__total" hidden={viewMode === "operations"}>
             <span>{dashboardTotalLabel}</span>
             <strong>{dashboardTotal}</strong>
           </div>
@@ -1107,7 +1092,10 @@ export default function OrdersReportDashboardPage() {
               Дилери
             </button>
             <button type="button" className={viewMode === "kpi" ? "is-active" : ""} onClick={function () { setViewMode("kpi"); }}>
-              KPI
+              KPI за період
+            </button>
+            <button type="button" className={viewMode === "operations" ? "is-active" : ""} onClick={() => setViewMode("operations")}>
+              Доставки й затримки · 90 днів
             </button>
           </div>
 
@@ -1176,7 +1164,7 @@ export default function OrdersReportDashboardPage() {
             </label>
           ) : null}
 
-          {viewMode === "kpi" && isSuperAdmin ? (
+          {["kpi", "operations"].includes(viewMode) && isSuperAdmin ? (
             <label className="orders-dashboard__filter orders-dashboard__filter--manager">
               Менеджер / регіональний менеджер
               <select value={kpiScopeUserId} onChange={function (event) { setKpiScopeUserId(event.target.value); }}>
@@ -1200,14 +1188,14 @@ export default function OrdersReportDashboardPage() {
             </label>
           ) : null}
 
-          <label className="orders-dashboard__filter orders-dashboard__filter--date">
+          {viewMode !== "operations" && <><label className="orders-dashboard__filter orders-dashboard__filter--date">
             Від
             <input type="date" value={dateFrom} max={dateTo} onChange={function (event) { setDateFrom(event.target.value); }} />
           </label>
           <label className="orders-dashboard__filter orders-dashboard__filter--date">
             До
             <input type="date" value={dateTo} min={dateFrom} onChange={function (event) { setDateTo(event.target.value); }} />
-          </label>
+          </label></>}
 
           <button
             type="button"
@@ -1217,9 +1205,6 @@ export default function OrdersReportDashboardPage() {
                 return;
               }
               loadStatusReport();
-              if (viewMode === "kpi" || (viewMode === "statuses" && canUseDealerGroups)) {
-                loadProcessingGroupsReport();
-              }
             }}
             disabled={viewMode === "dealers" ? dealerReportsLoading : loading}
           >
@@ -1230,7 +1215,10 @@ export default function OrdersReportDashboardPage() {
           </button>
         </div>
 
-        {viewMode === "statuses" ? (
+        {viewMode === "kpi" && <p className="operational-report-hint">KPI за датою заявки: {dateFrom} — {dateTo}. Фільтри періоду застосовуються до всіх показників цієї вкладки.</p>}
+        {viewMode === "operations" ? (
+          <OperationalReport data={operationalCalculations} loading={loading} error={error} dealerGroup={appliedDealerGroup} dealerGuid={dealerGuid} />
+        ) : viewMode === "statuses" ? (
           <>
             {error ? <p className="orders-dashboard__error">{error}</p> : null}
 

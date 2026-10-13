@@ -6,6 +6,7 @@ import React, {
   useRef,
 } from "react";
 import axiosInstance from "../api/axios";
+import OrderZkzButton from "../components/Orders/OrderZkzButton";
 import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 import {
   CalculationItem,
@@ -1729,6 +1730,7 @@ const AdminPortalOriginal = () => {
             >
               {itemsToShow.length === 0 ? (
                 <div className="no-data column align-center h-100">
+                  {/^(?:№\s*)?\d{2}-?\d{5,8}$/.test(filter.name.trim()) && !reloading && <OrderZkzButton search={filter.name} />}
                   <div className="font-size-24 text-grey">
                     {t(
                       "portal_calc.ui.no_calculations",

@@ -1,8 +1,8 @@
 # backend/utils/contractor.py
 from django.db import connection
 from rest_framework.response import Response
-from backend.utils.GuidToBin1C import guid_to_1c_bin
-from backend.utils.BinToGuid1C import bin_to_guid_1c
+from .GuidToBin1C import guid_to_1c_bin
+from .BinToGuid1C import bin_to_guid_1c
 
 
 def get_dealer_scope_requester_ids(user):

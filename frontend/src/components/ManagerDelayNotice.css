@@ -1,0 +1,12 @@
+.manager-delay-backdrop { position: fixed; inset: 0; z-index: 10900; display: flex; align-items: center; justify-content: center; padding: 16px; background: #0008; }
+.manager-delay-notice { width: 410px; max-width: 100%; padding: 22px; border: 1px solid #89b3d8; border-radius: 7px; background: #fff; color: #343331; box-shadow: 0 12px 45px #0005; }
+.manager-delay-notice h3 { margin: 0 0 12px; font-size: 19px; }
+.manager-delay-notice p { margin: 0 0 8px; }
+.manager-delay-notice small { opacity: .8; }
+.manager-delay-orders { margin: 12px 0; display: grid; gap: 7px; max-height: 180px; overflow: auto; }
+.manager-delay-orders small { display: block; }
+.manager-delay-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.manager-delay-actions button { padding: 9px 13px; border: 0; border-radius: 4px; background: #b4d947; color: #29341c; cursor: pointer; }
+.manager-delay-actions button:last-child { background: #89b3d8; color: #203447; }
+.manager-delay-actions button:focus-visible { outline: 2px solid #527da2; outline-offset: 3px; }
+body.dark-theme .manager-delay-notice { background: #383735; color: #fff; }

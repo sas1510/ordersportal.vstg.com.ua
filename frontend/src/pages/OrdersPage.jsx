@@ -19,6 +19,7 @@ import {
 } from "../components/Orders/CalculationItemMobile";
 import NewCalculationModal from "../components/Orders/NewCalculationModal";
 import OrdersDailyReminderModal from "../components/Orders/OrdersDailyReminderModal";
+import OrderZkzButton from "../components/Orders/OrderZkzButton";
 
 import useWindowWidth from "../hooks/useWindowWidth";
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
@@ -1672,6 +1673,7 @@ const PortalOriginal = () => {
                 </div>
               ) : totalFilteredCount === 0 ? (
                 <div className="no-data column align-center h-100">
+                  {/^(?:№\s*)?\d{2}-?\d{5,8}$/.test(filter.name.trim()) && !reloading && <OrderZkzButton search={filter.name} />}
                   <div className="font-size-24 text-grey">
                     {t(
                       "portal_calc.ui.no_calculations",

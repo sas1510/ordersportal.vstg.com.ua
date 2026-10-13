@@ -378,7 +378,7 @@ BEGIN
             ----------------------------------------------------
             IIF
             (
-                R.RouteStatus IS NOT NULL
+                (R.RouteStatus IS NOT NULL OR ISNULL(S.SummaRealization, 0) > 0)
                 AND PD.Summa > 0,
                 PD.Summa,
                 NULL
@@ -389,10 +389,12 @@ BEGIN
             ----------------------------------------------------
             CASE
                 WHEN R.RouteStatus IS NULL
+                     AND ISNULL(S.SummaRealization, 0) <= 0
                      AND AV.Summa > 0
                      AND AV.Summa < Z.OrderSum
                     THEN AV.Summa
                 WHEN R.RouteStatus IS NULL
+                     AND ISNULL(S.SummaRealization, 0) <= 0
                      AND AV.Summa IS NULL
                      AND PD.Summa < 0
                      AND PD.Summa * -1 < Z.OrderSum
