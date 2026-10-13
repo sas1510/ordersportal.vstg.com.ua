@@ -61,5 +61,5 @@ export default function PullToRefresh({ children, style }) {
       node.removeEventListener("scroll", recordScroll, true);
     };
   }, []);
-  return <><main ref={container} style={style} className="portal-pull-refresh">{children}</main><button type="button" className="portal-refresh-button" title="Оновити сторінку" aria-label="Оновити сторінку" disabled={refreshing} onClick={() => { if (!document.querySelector('[aria-modal="true"], .preview-modal-overlay, .file-preview-overlay, .modal-overlay')) { setRefreshing(true); window.location.reload(); } }}>↻</button>{(distance > 0 || refreshing) && <div className="portal-pull-refresh-hint" role="status">{refreshing ? "Оновлення…" : distance >= 90 ? "Відпустіть, щоб оновити ↓" : "Потягніть вниз, щоб оновити ↓"}</div>}</>;
+  return <><main ref={container} style={style} className="portal-pull-refresh">{children}</main>{(distance > 0 || refreshing) && <div className="portal-pull-refresh-hint" role="status">{refreshing ? "Оновлення…" : distance >= 90 ? "Відпустіть, щоб оновити ↓" : "Потягніть вниз, щоб оновити ↓"}</div>}</>;
 }
