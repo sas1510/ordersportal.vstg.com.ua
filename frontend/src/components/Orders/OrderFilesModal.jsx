@@ -29,6 +29,7 @@ const OrderFilesModal = ({
   pdfNavigation = null,
   orderAmount,
   orderCurrency,
+  deliveryOrders = [],
   onClose,
 }) => {
   const { t, i18n } = useTranslation();
@@ -58,6 +59,10 @@ const OrderFilesModal = ({
       maximumFractionDigits: 2,
     }).format(amount)} ${orderCurrency || "грн"}`;
   }, [i18n.language, orderAmount, orderCurrency]);
+  const orderInformation = <div className="file-order-information">
+    {formattedOrderAmount && <strong className="file-preview-order-amount">Сума замовлення: {formattedOrderAmount}</strong>}
+  </div>;
+  const pdfOrderTitle = <div className="file-pdf-order-heading"><h3 className="file-preview-title">Замовлення{orderNumber ? ` № ${orderNumber}` : ""}</h3>{deliveryOrders[0]?.deliveryAddress && <span className="file-pdf-order-address">{deliveryOrders[0].deliveryAddress}</span>}</div>;
 
   const getFileExtension = (fileName = "") => fileName.toLowerCase().split(".").pop();
 
@@ -489,7 +494,6 @@ const OrderFilesModal = ({
               {entityType === "calculation" ? t("orders.modalCalcFilesTitle") : t("orders.modalFilesTitle")} 
               {orderNumber ? ` № ${orderNumber}` : ""}
             </h3>
-            <span className="preview-subtitle">{t("orders.modalFilesSubtitle")}</span>
           </div>
           <button className="preview-close-btn" onClick={onClose}>
             <FaTimes size={18} />
@@ -558,14 +562,8 @@ const OrderFilesModal = ({
           <div className="file-preview-window" onClick={(e) => e.stopPropagation()}>
             <div className="file-preview-header">
               <div className="file-preview-title-wrap">
-                <h3 className="file-preview-title">
-                  Замовлення{orderNumber ? ` № ${orderNumber}` : ""}
-                </h3>
-                {formattedOrderAmount && (
-                  <strong className="file-preview-order-amount">
-                    Сума замовлення: {formattedOrderAmount}
-                  </strong>
-                )}
+                {pdfOrderTitle}
+                {orderInformation}
               </div>
               <button className="preview-close-btn" onClick={onClose}>
                 <FaTimes size={18} />
@@ -592,13 +590,8 @@ const OrderFilesModal = ({
           <div className="file-preview-window" onClick={(e) => e.stopPropagation()}>
             <div className="file-preview-header">
               <div className="file-preview-title-wrap">
-                <h3 className="file-preview-title">{previewFile.fileName}</h3>
-                {formattedOrderAmount && (
-                  <strong className="file-preview-order-amount">
-                    Сума замовлення: {formattedOrderAmount}
-                  </strong>
-                )}
-                <span className="file-preview-subtitle">{t("orders.modalFilesSubtitle")}</span>
+                {previewFile.previewKind === "pdf" ? pdfOrderTitle : <h3 className="file-preview-title">{previewFile.fileName}</h3>}
+                {orderInformation}
               </div>
               <button className="preview-close-btn" onClick={handleClosePreview}>
                 <FaTimes size={18} />

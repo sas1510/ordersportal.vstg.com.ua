@@ -1,6 +1,7 @@
 // ================= CalculationItemMobile.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import OrderItemSummaryMobile from "./OrderItemSummaryMobile";
+import OrderDeliveryAddress from "./OrderDeliveryAddress";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import axiosInstance from "../../api/axios";
@@ -525,7 +526,7 @@ export const CalculationItemMobile = React.memo(
       </div>
 
 
-      {calc.dealer && (
+{calc.dealer && (
         <div 
           className="flex items-center gap-2 cursor-pointer"
           onClick={(e) => {
@@ -539,6 +540,7 @@ export const CalculationItemMobile = React.memo(
           </span>
         </div>
       )}
+
     </div>
   </div>
 </div>
@@ -655,16 +657,13 @@ export const CalculationItemMobile = React.memo(
         />
 
 
-        <CounterpartyInfoModal
+<OrderDeliveryAddress
           isOpen={isCounterpartyOpen}
           onClose={() => setIsCounterpartyOpen(false)}
-          data={{
-            name: calc.recipient,
-            phone: calc.recipientPhone,
-            address: calc.deliveryAddresses,
-            organizationName: calc.organizationName,
-            recipientAdditionalInfo: calc.recipientAdditionalInfo,
-          }}
+          hideButton
+          calculation={calc}
+          calculationNumber={calc.number}
+          orders={calc.orders || []}
         />
       </div>
     );

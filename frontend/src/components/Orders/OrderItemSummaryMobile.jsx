@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import ConfirmModal from "./ConfirmModal";
 import OrderFilesModal from "./OrderFilesModal";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
+import OrderDeliveryAddress from "./OrderDeliveryAddress";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "./CommentsModal";
 import { CalculationMenu } from "./CalculationMenu";
@@ -488,14 +489,15 @@ export default React.memo(function OrderItemSummaryMobile({
             </div>
 
             <div 
-              className="flex items-center gap-2 text-center justify-center pt-2 flex-1 pb-[17px] cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={openFilesModal}
+              className="order-files-delivery flex-1"
 
             >
        
+             <button type="button" className="order-files-delivery-top flex items-center justify-center gap-2" onClick={openFilesModal}>
              <img src={fileIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
             
               <div className="text-[13px] text-dark">{t("order_mobile.labels.files")}</div>
+              </button>
             </div>
 
 
@@ -701,6 +703,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
       {isFilesModalOpen && (
         <OrderFilesModal
+          deliveryOrders={[autoOpenOrderPdf ? pdfOrder || order : order]}
           key={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
           orderGuid={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
           orderNumber={autoOpenOrderPdf ? pdfOrder?.number : orderNumber}

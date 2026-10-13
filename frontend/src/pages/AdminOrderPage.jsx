@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import axiosInstance from "../api/axios";
 import OrderZkzButton from "../components/Orders/OrderZkzButton";
+import { matchesCalculationComment } from "../utils/orderCommentSearch";
 import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 import {
   CalculationItem,
@@ -386,9 +387,7 @@ const AdminPortalOriginal = () => {
             )
               .toLowerCase()
               .includes(query) ||
-            String(calc.firstMessage || calc.sourceComment || "")
-              .toLowerCase()
-              .includes(query) ||
+            matchesCalculationComment(calc, query) ||
             (calc.orders || []).some((order) =>
               matchesOrderNumber(order.number, query),
             ),

@@ -6,6 +6,7 @@ import CounterpartyInfoModal from "./CounterpartyInfoModal";
 import { CalculationMenu } from "./CalculationMenu";
 import axiosInstance from "../../api/axios";
 import OrderItemSummaryDesktop from "./OrderItemSummaryDesktop";
+import OrderDeliveryAddress from "./OrderDeliveryAddress";
 import {
   formatDateTimeShort, formatDateTimeShort_2
 } from "../../utils/formatters";
@@ -496,7 +497,7 @@ const statusPanelClass = (() => {
                 </div>
               </div>
 
-              {calc.dealer && (
+{calc.dealer && (
                 <div className="text-WS---DarkGrey  row align-start gap-1">
 
                   {isBackoffice ? (
@@ -528,6 +529,7 @@ const statusPanelClass = (() => {
                   </span>
                 </div>
               )}
+
             </div>
           </div>
 
@@ -628,16 +630,13 @@ const statusPanelClass = (() => {
         }}
       />
 
-      <CounterpartyInfoModal
-        isOpen={isCounterpartyOpen}
+<OrderDeliveryAddress
+          isOpen={isCounterpartyOpen}
           onClose={() => setIsCounterpartyOpen(false)}
-          data={{
-            name: calc.recipient,
-            phone: calc.recipientPhone,
-            address: calc.deliveryAddresses,
-            organizationName: calc.organizationName,
-            recipientAdditionalInfo: calc.recipientAdditionalInfo,
-          }}
+          hideButton
+          calculation={calc}
+          calculationNumber={calc.number}
+          orders={calc.orders || []}
         />
       </div>
     );

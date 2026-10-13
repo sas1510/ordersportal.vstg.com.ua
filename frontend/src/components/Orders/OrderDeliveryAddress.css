@@ -1,0 +1,22 @@
+.order-address-button { width: 100%; border: 0; border-top: 1px solid #84939f66; padding: 4px 0; background: transparent; color: #44749c; font-size: 11px; cursor: pointer; white-space: nowrap; }
+.order-address-button:disabled { opacity: .45; cursor: default; }
+.order-address-button:focus-visible, .order-address-actions button:focus-visible { outline: 2px solid #89b3d8; outline-offset: 2px; }
+.order-address-backdrop { position: fixed; inset: 0; z-index: 12000; display: flex; align-items: center; justify-content: center; padding: 16px; background: #0008; }
+.order-address-dialog { width: 420px; max-width: 100%; max-height: 85vh; overflow: auto; border: 1px solid #89b3d8; border-radius: 6px; padding: 20px; background: #fff; color: #343331; box-shadow: 0 10px 35px #0005; }
+.order-address-dialog h3 { margin: 0 0 5px; font-size: 19px; }
+.order-address-dialog small { opacity: .75; }
+.order-address-dialog p { margin: 16px 0; overflow-wrap: anywhere; user-select: text; line-height: 1.5; }
+.order-address-actions { display: flex; gap: 8px; }
+.order-address-actions button { padding: 8px 12px; border: 0; border-radius: 4px; background: #b4d947; color: #29341c; cursor: pointer; }
+.order-address-actions button:last-child { background: #89b3d8; color: #203447; }
+.order-address-feedback { font-size: 12px; margin-top: 8px; }
+.order-address-list { max-height: 50vh; overflow-y: auto; margin: 12px 0; padding-right: 8px; }
+.order-address-list > div { padding: 9px 0; border-bottom: 1px solid #84939f55; }
+.order-address-list p { margin: 4px 0 0; font-size: 13px; }
+.order-address-recipient { display: grid; gap: 7px; margin-top: 12px; padding: 10px; border-radius: 4px; background: #89b3d814; font-size: 13px; }
+.order-address-recipient small, .order-address-list small { display: block; font-size: 11px; }
+.order-address-button { white-space: normal; text-align: left; }
+.order-files-delivery .order-address-button--icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 26px; width: 26px; height: 30px; padding: 4px; border: 0; border-radius: 4px; background: transparent; }
+.order-address-button--icon:hover:not(:disabled) { background: #89b3d822; }
+body.dark-theme .order-address-dialog { background: #383735; color: #fff; }
+body.dark-theme .order-address-button { color: #afd1ec; }

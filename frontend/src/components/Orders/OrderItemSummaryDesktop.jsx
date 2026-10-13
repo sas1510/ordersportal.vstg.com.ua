@@ -1,6 +1,7 @@
 // ================= OrderItemSummary.jsx =================
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
+import OrderDeliveryAddress from "./OrderDeliveryAddress";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import AddClaimModal from "../Reclamations/AddClaimModal";
 import AddReorderModal from "../AdditionalOrder/AddReorderModal";
@@ -567,10 +568,9 @@ export default React.memo(function OrderItemSummaryDesktop({
 
         {/* FILES */}
         <div
-          className="summary-item flex items-start justify-start cursor-pointer w-full"
-          onClick={openFilesModal}
+          className="summary-item order-files-delivery w-full"
         >
-          <div className="row gap-1 align-center">
+          <button type="button" className="order-files-delivery-top row gap-1 align-center" onClick={openFilesModal}>
             <AppIcon
               name="file"
               className="order-summary-icon order-summary-icon--accent order-files-icon align-center mr-0.5 w-[20px] h-[25px]"
@@ -579,7 +579,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <div className="text-WS---DarkGrey text-[13px] underline">
               {t("order_mobile.labels.files")}
             </div>
-          </div>
+          </button>
         </div>
 
       {/* FINANCE CELLS */}
@@ -794,6 +794,7 @@ export default React.memo(function OrderItemSummaryDesktop({
 
       {isFilesModalOpen && (
         <OrderFilesModal
+          deliveryOrders={[autoOpenOrderPdf ? pdfOrder || order : order]}
           key={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
           orderGuid={autoOpenOrderPdf ? pdfOrder?.idGuid : order?.idGuid}
           orderNumber={autoOpenOrderPdf ? pdfOrder?.number : orderNumber}
