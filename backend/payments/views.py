@@ -1657,6 +1657,8 @@ def make_payment_from_advance(request):
         duration = time.time() - start_time
 
         if not results or any(not item.get("success", False) for item in results):
+            from .payment_logging import log_payment_refusal
+            log_payment_refusal(user=request.user, contract=contract, payments=payments, amount=total_amount, reason="1С не підтвердила успішне виконання", response=response_1c)
             logger.error("1C rejected advance payment allocation", extra={
                 "tags": {"action": "advance_payment", "stage": "response_from_1c", "status": "rejected", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "results_count": len(results), "duration_sec": round(duration, 4)},
                 "response": response_1c,
@@ -1677,9 +1679,10 @@ def make_payment_from_advance(request):
             status=status.HTTP_200_OK,
         )
     except ValidationError as exc:
-        logger.warning("1C rejected advance payment allocation", exc_info=True)
         details = exc.detail if isinstance(exc.detail, dict) else {}
         reason = str(details.get("response_text") or "").strip()
+        from .payment_logging import log_payment_refusal
+        log_payment_refusal(user=request.user, contract=contract, payments=payments, amount=total_amount, reason=reason or details.get("detail"))
         # Do not expose HTML error pages, request payloads or technical details.
         if reason and "<" not in reason and len(reason) <= 500:
             reason = reason.replace("1С", "").replace("1C", "").strip(" :.-")
