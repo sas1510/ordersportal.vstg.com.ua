@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import { useTheme } from "../hooks/useTheme";
 import PaymentModal from "../components/Orders/PaymentModal";
+import FundsTransferForms from "../components/Payments/FundsTransferForms";
 import OrderFilesModal from "../components/Orders/OrderFilesModal";
 import DebtDetailModal from "./DebtDetailModal"; // 👈 Імпортуємо нову модалку
 import { formatDateHuman } from "../utils/formatters";
@@ -1048,6 +1049,7 @@ export default function PaymentsPage() {
         )}
       </div>
 
+      {!isMobileLarger && <FundsTransferForms contractor={contractorGUID} sidebar />}
       <div className="filters-scroll">
 
       <div className="min-[1260px]:w-72 min-[1260px]:bg-white min-[1260px]:shadow-sm min-[1260px]:py-[18px] min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] min-[1260px]:rounded-bl-[5px] min-[1260px]:rounded-br-[20px] max-[1260px]:bg-transparent max-[1260px]:shadow-none max-[1260px]:py-0 max-[1260px]:w-full max-[1260px]:overflow-visible">
@@ -1173,6 +1175,7 @@ export default function PaymentsPage() {
             </div>
 
             {error && <div className="pp-error">{error}</div>}
+            {isMobileLarger && <FundsTransferForms contractor={contractorGUID} compact />}
 
             {/* АНАЛІТИЧНА ТАБЛИЦЯ */}
             {debtTotal &&

@@ -366,6 +366,7 @@ export default function HeaderAdmin() {
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
+    { title: 'Історія передавання коштів', to: '/finance/funds-transfer-history' },
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
     { title: t('nav.finance_analytics'), to: "/statistics" },
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },

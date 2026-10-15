@@ -42,7 +42,7 @@ def deliveries_font_path():
             return candidate
     raise PdfFontError("No Cyrillic PDF font found")
 
-def build_deliveries_pdf(rows):
+def build_deliveries_pdf(rows, include_amounts=True):
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4, landscape
     from reportlab.lib.styles import ParagraphStyle
@@ -67,19 +67,22 @@ def build_deliveries_pdf(rows):
         groups.setdefault(row["day"], []).append(row)
     for day, items in groups.items():
         story.append(Paragraph(".".join(reversed(day.split("-"))), heading))
-        data = [[Paragraph(text, style) for text in ["Час", "Замовлення", "Прорахунок", "Дилер", "Констр.", "Сума замовлення", "Оплачено", "Борг"]]]
+        headers = ["Час", "Замовлення", "Прорахунок", "Дилер", "Констр."] + (["Сума замовлення", "Оплачено", "Борг"] if include_amounts else [])
+        data = [[Paragraph(text, style) for text in headers]]
         for item in items:
             cells = [str(item.get(key, "")) for key in ["time", "number", "calculation", "dealer", "count"]]
-            cells.extend(money_text(item.get(key), item.get("currency", "")) for key in ["amount", "paid", "debt"])
+            if include_amounts:
+                cells.extend(money_text(item.get(key), item.get("currency", "")) for key in ["amount", "paid", "debt"])
             data.append([Paragraph(escape(cell), style) for cell in cells])
-        data.append([Paragraph("Разом за дату", style), "", "", "", Paragraph(str(construction_total(items)), style), "", "", ""])
-        table = Table(data, colWidths=[38, 80, 90, 225, 48, 100, 100, 100], repeatRows=1, hAlign="LEFT")
+        data.append([Paragraph("Разом за дату", style), "", "", "", Paragraph(str(construction_total(items)), style)] + (["", "", ""] if include_amounts else []))
+        widths = [38, 80, 90, 225, 48, 100, 100, 100] if include_amounts else [50, 95, 120, 420, 96]
+        table = Table(data, colWidths=widths, repeatRows=1, hAlign="LEFT")
         table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#edf2f5")), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LINEBELOW", (0, 0), (-1, -1), .3, colors.HexColor("#ccd5dc")), ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
         table.setStyle(TableStyle([("SPAN", (0, -1), (3, -1)), ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#edf2f5"))]))
         story.extend([table, Spacer(1, 6)])
     story.append(Paragraph(f"Усього конструкцій: {construction_total(rows)}", heading))
     totals = {}
-    for row in rows:
+    for row in rows if include_amounts else []:
         currency = row.get("currency", "")
         if not currency or any(row.get(key) is None for key in ["amount", "paid", "debt"]):
             continue
@@ -101,6 +104,9 @@ def build_deliveries_pdf(rows):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def deliveries_pdf(request):
+    include_amounts = request.data.get('include_amounts', True)
+    if not isinstance(include_amounts, bool):
+        return Response({'error': 'Параметр друку сум має бути true або false.'}, status=400)
     # Export the already accessible, filtered list supplied by the browser.
     # This endpoint does not query additional orders or change any data.
     from datetime import date, time
@@ -134,7 +140,7 @@ def deliveries_pdf(request):
     except (TypeError, ValueError, KeyError, InvalidOperation):
         return Response({"error": "Некоректні дані доставок."}, status=400)
     try:
-        data = build_deliveries_pdf(clean)
+        data = build_deliveries_pdf(clean, include_amounts=include_amounts)
     except (ImportError, OSError, PdfFontError):
         logger.exception("Failed to initialize deliveries PDF export")
         return Response({"error": "Не вдалося сформувати PDF: недоступний шрифт або модуль експорту. Зверніться до адміністратора."}, status=503)

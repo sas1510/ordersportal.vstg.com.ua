@@ -1,0 +1,44 @@
+.funds-transfer-controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
+.funds-transfer-controls button, .funds-transfer-dialog button { padding: 7px 11px; border: 1px solid #89b3d8; border-radius: 4px; background: #89b3d8; color: #203447; cursor: pointer; font-size: 12px; }
+.funds-transfer-controls button:first-child { background: #b4d947; border-color: #b4d947; color: #29341c; }
+.funds-transfer-controls button:disabled, .funds-transfer-dialog button:disabled { opacity: .5; cursor: default; }
+.funds-transfer-controls small { width: 100%; }
+.funds-transfer-controls--sidebar { flex-direction: row; flex-wrap: wrap; align-items: stretch; width: 100%; min-width: 0; margin: 2px 0 12px; gap: 6px; }
+.funds-transfer-controls--sidebar > button { flex: 1 1 0; min-width: 0; padding: 7px 6px; text-align: center; white-space: nowrap; font-size: 11px; }
+.funds-transfer-menu { position: relative; }
+.funds-transfer-menu summary { list-style: none; padding: 7px 11px; border: 1px solid #89b3d8; border-radius: 4px; color: #203447; background: #89b3d8; font-size: 12px; cursor: pointer; }
+.funds-transfer-menu summary::-webkit-details-marker { display: none; }
+.funds-transfer-menu > div { position: absolute; top: calc(100% + 4px); left: 0; min-width: 165px; padding: 5px; border-radius: 4px; background: #fff; border: 1px solid #89b3d8; z-index: 50; box-shadow: 0 4px 12px #0003; }
+.funds-transfer-menu > div button { display: block; width: 100%; margin: 3px 0; text-align: left; }
+body.dark-theme .funds-transfer-menu > div { background: #383735; }
+.funds-transfer-backdrop { position: fixed; inset: 0; z-index: 12500; padding: 16px; display: flex; justify-content: center; align-items: center; background: #0009; }
+.funds-transfer-dialog { background: #fff; color: #343331; border: 1px solid #89b3d8; border-radius: 6px; padding: 18px; width: 480px; max-width: 100%; max-height: 90dvh; overflow: auto; }
+.funds-transfer-dialog header, .funds-transfer-dialog footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.funds-transfer-dialog h3 { margin: 0; font-size: 19px; }
+.funds-transfer-dialog label { display: flex; flex-direction: column; gap: 5px; margin: 10px 0; font-size: 13px; }
+.funds-transfer-dialog input, .funds-transfer-dialog textarea, .funds-transfer-dialog select { width: 100%; padding: 8px; border: 1px solid #84939f88; border-radius: 4px; background: transparent; color: inherit; box-sizing: border-box; }
+.funds-transfer-amount { display: grid; grid-template-columns: 1fr 100px; gap: 10px; }
+.funds-transfer-photo { display: block; max-width: 100%; max-height: 250px; object-fit: contain; margin: 10px auto; }
+.funds-transfer-hint, .funds-transfer-dialog small { font-size: 11px; opacity: .8; }
+.funds-transfer-error { color: #c34329; font-size: 13px; }
+.funds-transfer-dialog footer { margin-top: 14px; }
+.funds-transfer-dialog form footer button:last-child { background: #b4d947; border-color: #b4d947; color: #29341c; }
+.funds-transfer-history article { padding: 12px 0; border-bottom: 1px solid #84939f55; }
+.funds-transfer-history article > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+.funds-transfer-history p { white-space: pre-wrap; font-size: 13px; overflow-wrap: anywhere; }
+body.dark-theme .funds-transfer-dialog { background: #383735; color: #fff; }
+.funds-transfer-dialog button:focus-visible { outline: 2px solid #6b98bf; outline-offset: 2px; }
+.funds-history-page { max-width: 1334px; margin: 100px auto 20px; padding: 16px; color: var(--text-color); }
+.funds-history-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 15px 0; }
+.funds-history-filters label { display: flex; flex-direction: row; align-items: center; gap: 8px; margin: 0; font-size: 12px; white-space: nowrap; }
+.funds-history-filters label:first-child { flex: 0 1 390px; min-width: 0; }
+.funds-history-filters .dealer-select { flex: 1; min-width: 0; }
+.funds-history-filters .dealer-select__control { height: 40px; box-sizing: border-box; }
+.funds-history-filters .dealer-select__control > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.funds-history-filters > button, .funds-history-filters > label > select { height: 40px; box-sizing: border-box; white-space: nowrap; }
+.funds-history-page button, .funds-history-page select { padding: 7px 10px; border: 1px solid #89b3d8; border-radius: 4px; background: #89b3d8; color: #203447; cursor: pointer; }
+.funds-history-page button:disabled { opacity: .5; cursor: default; }
+.funds-history-table { overflow: auto; }
+.funds-history-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.funds-history-table td, .funds-history-table th { padding: 10px; border-bottom: 1px solid #84939f55; text-align: left; vertical-align: top; }
+.funds-history-table td:nth-child(4) { white-space: pre-wrap; min-width: 140px; max-width: 400px; overflow-wrap: anywhere; }

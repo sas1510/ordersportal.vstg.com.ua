@@ -32,6 +32,7 @@ import ChangePasswordPage from "./pages/ChangePasswordPage";
 import UsersListPage from "./pages/UsersListPage";
 import PaymentStatusV2 from "./pages/PaymentStatusV2";
 import PaymentsPage from "./pages/PaymentsPage";
+import FundsTransferHistoryPage from "./pages/FundsTransferHistoryPage";
 
 import CustomerBillsPage from "./pages/CustomerBillsPage";
 import AdminPortalOriginal from "./pages/AdminOrderPage";
@@ -49,6 +50,7 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 
 
 export const adminRoutes = [
+  { path: "finance/funds-transfer-history", element: <FundsTransferHistoryPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
   { path: "files", element: <FilesPage /> },

@@ -31,6 +31,7 @@ export function DeliveriesControl({ delivery }) {
   const [open, setOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [includeAmounts, setIncludeAmounts] = useState(true);
   const ref = useRef(null);
   const { addNotification } = useNotification();
   useEffect(() => {
@@ -42,7 +43,7 @@ export function DeliveriesControl({ delivery }) {
   const download = async () => {
     setBusy(true);
     try {
-      const response = await axios.post("/deliveries-pdf/", { rows: delivery.rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" })) }, { responseType: "blob" });
+      const response = await axios.post("/deliveries-pdf/", { include_amounts: includeAmounts, rows: delivery.rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", ...(includeAmounts ? { amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" } : {}) })) }, { responseType: "blob" });
       const url = URL.createObjectURL(response.data);
       const link = document.createElement("a"); link.href = url; link.download = `Доставки_${delivery.date || "усі-дати"}.pdf`; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -61,6 +62,7 @@ export function DeliveriesControl({ delivery }) {
           {["", ...delivery.dates].map((day) => <button type="button" role="menuitemradio" aria-checked={delivery.date === day} key={day || "all"} onClick={() => { delivery.setDate(day); delivery.setEnabled(true); setDateOpen(false); }}>{day ? day.split("-").reverse().join(".") : "Усі дати"}</button>)}
         </div>}
       </div>
+      <label><input type="checkbox" checked={includeAmounts} onChange={(event) => setIncludeAmounts(event.target.checked)} />Друкувати суми</label>
       <button type="button" onClick={download} disabled={busy || !delivery.rows.length}><FaFilePdf />{busy ? "Формування…" : "Завантажити PDF"}</button>
       <small>{delivery.rows.length} замовлень у поточному списку</small>
     </div>}

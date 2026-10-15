@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = False  # Set to False in production  
+DEBUG = True  # Set to False in production  
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -172,7 +172,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": True,   # True на https
+    "AUTH_COOKIE_SECURE": False,   # True на https
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -205,6 +205,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BOT_TOKEN = config('BOT_TOKEN', default='')
 TELEGRAM_BOT_TOKEN = config('BOT_TOKEN', default='')
+FUNDS_TRANSFER_TELEGRAM_COPY_CHAT_ID = config('FUNDS_TRANSFER_TELEGRAM_COPY_CHAT_ID', default='716230412')
 PORTAL_ERROR_TELEGRAM_CHAT_ID = config('PORTAL_ERROR_TELEGRAM_CHAT_ID', default='716230412')
 PORTAL_ERROR_TELEGRAM_BOT_TOKEN = config('PORTAL_ERROR_TELEGRAM_BOT_TOKEN', default=TELEGRAM_BOT_TOKEN)
 
@@ -292,6 +293,10 @@ CELERY_TASK_SERIALIZER = 'json'
 
 
 CELERY_BEAT_SCHEDULE = {
+    'pending-funds-transfer-notifications': {
+        'task': 'enqueue_pending_funds_transfer_notifications',
+        'schedule': 300.0,
+    },
     'publish-portal-announcements': {
         'task': 'publish_due_portal_announcements',
         'schedule': crontab(minute='*'),

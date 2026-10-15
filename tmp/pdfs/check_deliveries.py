@@ -27,3 +27,12 @@ assert "000106940" in text and "Усього конструкцій: 12" in text
 pdf = pypdfium2.PdfDocument(data)
 pdf[0].render(scale=1.5).to_pil().save(output.with_suffix(".png"))
 print(f"PDF verified: {len(reader.pages)} page(s)")
+without_amounts = namespace["build_deliveries_pdf"](rows, include_amounts=False)
+without_reader = PdfReader(BytesIO(without_amounts))
+without_text = '\n'.join(page.extract_text() for page in without_reader.pages)
+assert 'Усього конструкцій: 12' in without_text and '01-363132' in without_text
+assert 'Сума замовлення' not in without_text and 'Оплачено' not in without_text and 'Борг' not in without_text
+assert '19 900' not in without_text and 'UAH' not in without_text and 'EUR' not in without_text
+(root / 'tmp/pdfs/deliveries-without-amounts.pdf').write_bytes(without_amounts)
+pypdfium2.PdfDocument(without_amounts)[0].render(scale=1.5).to_pil().save(root / 'tmp/pdfs/deliveries-without-amounts.png')
+print('PDF without financial columns and totals verified.')
