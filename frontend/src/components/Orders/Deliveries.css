@@ -20,6 +20,9 @@
 .delivery-notice-total { font-size: 13px; font-weight: 600; margin: 12px 0 0; }
 .delivery-notice-items p { margin: 5px 0; }
 .delivery-notice button { margin-top: 12px; background: #b4d947; color: #293614; padding: 8px 18px; border-radius: 3px; }
+.delivery-notice-actions { display: flex; flex-shrink: 0; gap: 8px; }
+.delivery-notice-actions button { flex: 1; }
+.delivery-notice-actions .delivery-notice-close { background: #89b3d8; color: #203447; }
 body.dark-theme .delivery-notice { background: #373633; color: #edf0f2; }
 .orders-list-controls > .orders-expand-all-button { flex: 1; width: auto; }
 .deliveries-control { position: relative; display: flex; gap: 3px; align-items: flex-start; }

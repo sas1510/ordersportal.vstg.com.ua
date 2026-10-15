@@ -42,6 +42,9 @@ export default function DeliveryNotice({ observations }) {
     })}</div>
     <p className="delivery-notice-total">Усього: {deliveries.length} замовлень · {deliveries.reduce((sum, item) => sum + Number(item.count || 0), 0)} констр.{deliveries.some((item) => item.count == null) ? " (без урахування невідомої кількості)" : ""}</p>
     {error && <p role="alert">{error}</p>}
-    <button type="button" disabled={confirming} onClick={confirm}>{confirming ? "Збереження…" : "Зрозуміло"}</button>
+    <div className="delivery-notice-actions">
+      <button type="button" className="delivery-notice-close" disabled={confirming} onClick={() => { setDeliveries([]); setError(""); }}>Закрити</button>
+      <button type="button" disabled={confirming} onClick={confirm}>{confirming ? "Збереження…" : "Зрозуміло"}</button>
+    </div>
   </section></div>, document.body);
 }
