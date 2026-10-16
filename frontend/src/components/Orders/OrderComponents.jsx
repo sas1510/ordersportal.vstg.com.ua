@@ -497,7 +497,7 @@ const statusPanelClass = (() => {
                 </div>
               </div>
 
-{calc.dealer && (
+{(calc.authorName?.trim() || calc.dealer) && (
                 <div className="text-WS---DarkGrey  row align-start gap-1">
 
                   {isBackoffice ? (
@@ -522,7 +522,7 @@ const statusPanelClass = (() => {
                     }}
                   >
                     {isBackoffice ? (
-                      <span>{calc.dealer}</span>
+                      <span>{calc.authorName?.trim() || calc.dealer}</span>
                     ) : (
                       <span>{t('calc.recipient_label')}</span>
                     )}

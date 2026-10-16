@@ -526,7 +526,7 @@ export const CalculationItemMobile = React.memo(
       </div>
 
 
-{calc.dealer && (
+{(calc.authorName?.trim() || calc.dealer) && (
         <div 
           className="flex items-center gap-2 cursor-pointer"
           onClick={(e) => {
@@ -536,7 +536,7 @@ export const CalculationItemMobile = React.memo(
         >
           <img src={recipientIcon} className={`mr-1 calc-summary-icon ${recipientIconClass}`} alt="" />
           <span className="text-[13px] text-WS---DarkGrey">
-            {isBackoffice ? calc.dealer : t("calc.recipient_label")}
+            {isBackoffice ? (calc.authorName?.trim() || calc.dealer) : t("calc.recipient_label")}
           </span>
         </div>
       )}

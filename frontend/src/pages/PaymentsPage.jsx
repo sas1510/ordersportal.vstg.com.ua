@@ -1149,7 +1149,7 @@ export default function PaymentsPage() {
           {Sidebar}
 
           <div className="content scroll-bar-custom " id="content" style={{ paddingTop: '0px' }}>
-            <div className="pp-header">
+            <div className="pp-header payment-page-header">
               <div className="pp-title-header row ai-center gap-7">
                 {isMobileLarger && (
                   // <span

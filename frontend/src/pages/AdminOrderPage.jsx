@@ -387,6 +387,7 @@ const AdminPortalOriginal = () => {
             )
               .toLowerCase()
               .includes(query) ||
+            String(calc.authorName || "").toLowerCase().includes(query) ||
             matchesCalculationComment(calc, query) ||
             (calc.orders || []).some((order) =>
               matchesOrderNumber(order.number, query),

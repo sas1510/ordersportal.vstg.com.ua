@@ -249,10 +249,12 @@ body.dark-theme .orders-dashboard__dealer-processing { border-top-color: #506272
   .orders-dashboard__kpi-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1101px) {
-  .orders-dashboard--unified-filters .orders-dashboard__filters { flex-wrap: nowrap; gap: 10px; padding: 18px 20px; }
+  .orders-dashboard--unified-filters .orders-dashboard__filters { flex-wrap: wrap; gap: 10px; padding: 18px 20px; }
+  .orders-dashboard--unified-filters .orders-dashboard__view-switcher { flex: 0 0 100%; min-width: 0; flex-wrap: wrap; margin-bottom: 6px; }
   .orders-dashboard--unified-filters .orders-dashboard__filters label { min-width: 0; }
   .orders-dashboard--unified-filters .orders-dashboard__filters label select,
-  .orders-dashboard--unified-filters .orders-dashboard__filters label input { max-width: none; }
+  .orders-dashboard--unified-filters .orders-dashboard__filters label input { max-width: 100%; box-sizing: border-box; }
+  .orders-dashboard--unified-filters .orders-dashboard__filters .dealer-select__control { box-sizing: border-box; }
   .orders-dashboard--unified-filters .orders-dashboard__filters input[type="date"] { width: 100%; }
   .orders-dashboard--unified-filters .orders-dashboard__filters > button { flex: 0 0 auto; min-height: 36px; }
 }

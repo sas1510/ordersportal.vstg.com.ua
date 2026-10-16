@@ -638,6 +638,7 @@ const PortalOriginal = () => {
       return (
         calculationNumber.includes(normalizedSearch) ||
         dealerName.includes(normalizedSearch) ||
+        String(calc.authorName || "").toLowerCase().includes(normalizedSearch) ||
         firstComment.includes(normalizedSearch) ||
         hasMatchingOrder
       );
@@ -811,6 +812,7 @@ const PortalOriginal = () => {
           return (
             calculationNumber.includes(normalizedName) ||
             dealerName.includes(normalizedName) ||
+            String(calc.authorName || "").toLowerCase().includes(normalizedName) ||
             firstComment.includes(normalizedName) ||
             orders.some((order) =>
               matchesOrderNumber(order.number, normalizedName),
