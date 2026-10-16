@@ -19,6 +19,7 @@ body.dark-theme .funds-transfer-menu > div { background: #383735; }
 .funds-transfer-dialog input, .funds-transfer-dialog textarea, .funds-transfer-dialog select { width: 100%; padding: 8px; border: 1px solid #84939f88; border-radius: 4px; background: transparent; color: inherit; box-sizing: border-box; }
 .funds-transfer-amount { display: grid; grid-template-columns: 1fr 100px; gap: 10px; }
 .funds-transfer-photo { display: block; max-width: 100%; max-height: 250px; object-fit: contain; margin: 10px auto; }
+.funds-transfer-photo-view .funds-transfer-photo { max-height: 65dvh; }
 .funds-transfer-hint, .funds-transfer-dialog small { font-size: 11px; opacity: .8; }
 .funds-transfer-error { color: #c34329; font-size: 13px; }
 .funds-transfer-dialog footer { margin-top: 14px; }
