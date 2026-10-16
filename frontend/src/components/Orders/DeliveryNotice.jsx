@@ -27,7 +27,7 @@ export default function DeliveryNotice({ observations }) {
     try {
       await axios.post("/delivery-notifications/shown/", { ids });
       setDeliveries((items) => items.filter((item) => !ids.includes(item.receiptId)));
-    } catch { setError("Не вдалося підтвердити. Натисніть «Зрозуміло» ще раз."); }
+    } catch { setError("Не вдалося підтвердити. Натисніть «Більше не показувати» ще раз."); }
     finally { setConfirming(false); }
   };
   if (!isDealer || !deliveries.length) return null;
@@ -44,7 +44,7 @@ export default function DeliveryNotice({ observations }) {
     {error && <p role="alert">{error}</p>}
     <div className="delivery-notice-actions">
       <button type="button" className="delivery-notice-close" disabled={confirming} onClick={() => { setDeliveries([]); setError(""); }}>Закрити</button>
-      <button type="button" disabled={confirming} onClick={confirm}>{confirming ? "Збереження…" : "Зрозуміло"}</button>
+      <button type="button" disabled={confirming} onClick={confirm}>{confirming ? "Збереження…" : "Більше не показувати"}</button>
     </div>
   </section></div>, document.body);
 }

@@ -44,7 +44,7 @@ def deliveries_font_path():
 
 def build_deliveries_pdf(rows, include_amounts=True):
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont, TTFError
@@ -55,11 +55,11 @@ def build_deliveries_pdf(rows, include_amounts=True):
             pdfmetrics.registerFont(TTFont("DeliveryManrope", str(deliveries_font_path())))
         except TTFError as exc:
             raise PdfFontError("Unable to load PDF font") from exc
-    style = ParagraphStyle("delivery", fontName="DeliveryManrope", fontSize=9, leading=13)
+    style = ParagraphStyle("delivery", fontName="DeliveryManrope", fontSize=8, leading=11)
     title = ParagraphStyle("deliveryTitle", parent=style, fontSize=16, leading=22, spaceAfter=12)
     heading = ParagraphStyle("deliveryDay", parent=style, fontSize=12, leading=17, spaceBefore=12, spaceAfter=6)
     stream = BytesIO()
-    page_size = landscape(A4)
+    page_size = A4
     document = SimpleDocTemplate(stream, pagesize=page_size, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
     story = [Paragraph("Доставки замовлень", title)]
     groups = {}
@@ -67,18 +67,18 @@ def build_deliveries_pdf(rows, include_amounts=True):
         groups.setdefault(row["day"], []).append(row)
     for day, items in groups.items():
         story.append(Paragraph(".".join(reversed(day.split("-"))), heading))
-        headers = ["Час", "Замовлення", "Прорахунок", "Дилер", "Констр."] + (["Сума замовлення", "Оплачено", "Борг"] if include_amounts else [])
+        headers = ["Час", "Замовлення", "Прорахунок", "Констр.", "Дилер"] + (["Сума замовлення", "Оплачено", "Борг"] if include_amounts else [])
         data = [[Paragraph(text, style) for text in headers]]
         for item in items:
-            cells = [str(item.get(key, "")) for key in ["time", "number", "calculation", "dealer", "count"]]
+            cells = [str(item.get(key, "")) for key in ["time", "number", "calculation", "count", "dealer"]]
             if include_amounts:
                 cells.extend(money_text(item.get(key), item.get("currency", "")) for key in ["amount", "paid", "debt"])
             data.append([Paragraph(escape(cell), style) for cell in cells])
-        data.append([Paragraph("Разом за дату", style), "", "", "", Paragraph(str(construction_total(items)), style)] + (["", "", ""] if include_amounts else []))
-        widths = [38, 80, 90, 225, 48, 100, 100, 100] if include_amounts else [50, 95, 120, 420, 96]
+        data.append([Paragraph("Разом за дату", style), "", "", Paragraph(str(construction_total(items)), style), ""] + (["", "", ""] if include_amounts else []))
+        widths = [35, 65, 65, 42, 113, 72, 72, 71] if include_amounts else [40, 80, 95, 42, 278]
         table = Table(data, colWidths=widths, repeatRows=1, hAlign="LEFT")
         table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#edf2f5")), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LINEBELOW", (0, 0), (-1, -1), .3, colors.HexColor("#ccd5dc")), ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
-        table.setStyle(TableStyle([("SPAN", (0, -1), (3, -1)), ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#edf2f5"))]))
+        table.setStyle(TableStyle([("SPAN", (0, -1), (2, -1)), ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#edf2f5"))]))
         story.extend([table, Spacer(1, 6)])
     story.append(Paragraph(f"Усього конструкцій: {construction_total(rows)}", heading))
     totals = {}

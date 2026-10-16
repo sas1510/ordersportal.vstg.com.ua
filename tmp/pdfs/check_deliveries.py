@@ -21,6 +21,7 @@ data = namespace["build_deliveries_pdf"](rows)
 output = root / "tmp/pdfs/deliveries-check.pdf"
 output.write_bytes(data)
 reader = PdfReader(BytesIO(data))
+assert all(page.mediabox.width < page.mediabox.height for page in reader.pages)
 text = "\n".join(page.extract_text() for page in reader.pages)
 assert "Томищ Василь" in text and "01-363132" in text and "10.10.2026" in text
 assert "000106940" in text and "Усього конструкцій: 12" in text and "Разом за дату" in text
@@ -29,6 +30,7 @@ pdf[0].render(scale=1.5).to_pil().save(output.with_suffix(".png"))
 print(f"PDF verified: {len(reader.pages)} page(s)")
 without_amounts = namespace["build_deliveries_pdf"](rows, include_amounts=False)
 without_reader = PdfReader(BytesIO(without_amounts))
+assert all(page.mediabox.width < page.mediabox.height for page in without_reader.pages)
 without_text = '\n'.join(page.extract_text() for page in without_reader.pages)
 assert 'Усього конструкцій: 12' in without_text and '01-363132' in without_text
 assert 'Сума замовлення' not in without_text and 'Оплачено' not in without_text and 'Борг' not in without_text
