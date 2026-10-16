@@ -1,0 +1,12 @@
+.maintenance-schedule-backdrop { position: fixed; inset: 0; z-index: 15000; background: #0009; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.maintenance-schedule-dialog { box-sizing: border-box; width: 440px; max-width: 100%; max-height: 90dvh; overflow: auto; padding: 22px; border-radius: 7px; border: 1px solid #89b3d8; background: #fff; color: #263746; }
+.maintenance-schedule-dialog h3 { margin: 0 0 10px; font-size: 21px; }
+.maintenance-schedule-dialog p { font-size: 13px; margin-bottom: 12px; }
+.maintenance-schedule-dialog label { display: flex; flex-direction: column; gap: 6px; margin: 14px 0; font-size: 14px; }
+.maintenance-schedule-dialog input { box-sizing: border-box; width: 100%; min-width: 0; padding: 9px; border: 1px solid #84939f; border-radius: 4px; color: inherit; background: transparent; }
+.maintenance-schedule-actions { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+.maintenance-schedule-dialog button { padding: 9px 12px; border-radius: 4px; background: #89b3d8; color: #203447; cursor: pointer; }
+.maintenance-schedule-actions button[type="submit"] { background: #b4d947; color: #293614; }
+.maintenance-schedule-dialog button:disabled { opacity: .5; cursor: wait; }
+.maintenance-schedule-dialog .maintenance-schedule-cancel { margin-top: 14px; background: transparent; color: inherit; text-decoration: underline; font-size: 12px; }
+body.dark-theme .maintenance-schedule-dialog { background: #373633; color: #edf0f2; }

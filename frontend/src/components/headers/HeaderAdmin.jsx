@@ -312,6 +312,7 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import { useTheme } from "../../hooks/useTheme";
 import HeaderUserProfile from "./HeaderUserProfile";
 import PdfAmountComparison from "./PdfAmountComparison";
+import MaintenanceSchedule from "./MaintenanceSchedule";
 import logo from "../../assets/icons/logo-vst.svg";
 import logoDark from "../../assets/icons/logo-vst-dark.svg";
 import "./HeaderAdmin.css";
@@ -408,6 +409,7 @@ export default function HeaderAdmin() {
   });
   const [isMaintenanceLoading, setIsMaintenanceLoading] = useState(true);
   const [isMaintenanceSaving, setIsMaintenanceSaving] = useState(false);
+  const [maintenanceScheduleOpen, setMaintenanceScheduleOpen] = useState(false);
 
   const financeRef = useRef(null);
   const settingsRef = useRef(null);
@@ -432,43 +434,17 @@ export default function HeaderAdmin() {
 
   const handleMaintenanceToggle = useCallback(async () => {
     setIsMaintenanceSaving(true);
-
-    try {
-      const now = new Date();
-      const response = await axiosInstance.post("/system/maintenance/1c/", maintenanceState.enabled
-        ? { enabled: false, clear_schedule: true }
-        : {
-            enabled: false,
-            starts_at: now.toISOString(),
-            ends_at: new Date(now.getTime() + 20 * 60 * 1000).toISOString(),
-          });
-
-      const nextState = response.data?.data || {
-        enabled: !maintenanceState.enabled,
-      };
-      setMaintenanceState(nextState);
-      addNotification(
-        t(
-          nextState.enabled
-            ? "maintenance.admin.enabled_success"
-            : "maintenance.admin.disabled_success",
-        ),
-        "success",
-      );
-    } catch (error) {
-      console.error("Failed to toggle 1C maintenance mode:", error);
-      addNotification(t("maintenance.admin.toggle_error"), "error");
-    } finally {
-      setIsMaintenanceSaving(false);
-    }
-  }, [maintenanceState.enabled, addNotification, t]);
+    try { await loadMaintenanceState(); setMaintenanceScheduleOpen(true); }
+    finally { setIsMaintenanceSaving(false); }
+  }, [loadMaintenanceState]);
 
   useEffect(() => {
-    if (!maintenanceState.enabled || !maintenanceState.ends_at) return undefined;
-    const remaining = new Date(maintenanceState.ends_at).getTime() - Date.now();
-    const timer = setTimeout(loadMaintenanceState, Math.max(0, remaining) + 1000);
+    const now = Date.now();
+    const next = [maintenanceState.starts_at, maintenanceState.ends_at].filter(Boolean).map((value) => new Date(value).getTime()).filter((value) => value > now).sort((a, b) => a - b)[0];
+    if (!next) return undefined;
+    const timer = setTimeout(loadMaintenanceState, Math.min(next - now + 1000, 2147483647));
     return () => clearTimeout(timer);
-  }, [maintenanceState.enabled, maintenanceState.ends_at, loadMaintenanceState]);
+  }, [maintenanceState, loadMaintenanceState]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -851,6 +827,7 @@ export default function HeaderAdmin() {
         )}
       </div>
       {comparisonOpen && <PdfAmountComparison admin onClose={closeComparison} />}
+      {isAdmin && maintenanceScheduleOpen && <MaintenanceSchedule state={maintenanceState} onSaved={(state) => { setMaintenanceState(state); addNotification("Розклад паузи 1С оновлено", "success"); }} onClose={() => setMaintenanceScheduleOpen(false)} />}
     </header>
   );
 }
