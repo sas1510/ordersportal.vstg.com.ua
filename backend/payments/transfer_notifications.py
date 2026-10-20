@@ -37,7 +37,12 @@ def notification_text(item):
     lines = ['💰 Дилер подав інформацію про передані кошти', f'Дилер: {dealer}', f'Сума: {amount} {currency}', f'Подано: {timezone.localtime(item.created_at):%d.%m.%Y %H:%M}', f'Подання № {item.pk}']
     if item.comment:
         lines.append(f'Коментар: {item.comment[:2000]}')
-    return '\n'.join(lines)
+    if getattr(item, 'transfer_date', None):
+        lines.append(f'Дата передачі: {item.transfer_date:%d.%m.%Y}')
+    if getattr(item, 'routing_number', ''):
+        lines.append(f'Маршрутизація: {item.routing_number}')
+        lines.append('Замовлення: ' + ', '.join(item.routing_orders))
+    return '\n'.join(lines)[:4000]
 
 def send_transfer_notification(submission_id):
     logger.info('Funds transfer notification started: submission_id=%s', submission_id)

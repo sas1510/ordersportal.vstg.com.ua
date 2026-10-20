@@ -17,8 +17,12 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from utils.contractor import resolve_contractor, get_accessible_dealer_rows
 from utils.BinToGuid1C import bin_to_guid_1c
 from .models import FundsTransferSubmission
+from django.core import signing
+from .transfer_routes import find_transfer_routes, route_snapshot, confirm_transfer_route, SALT
 
 class TransferInput(serializers.Serializer):
+    transfer_date = serializers.DateField()
+    route_confirmation = serializers.CharField(max_length=16000)
     amount = serializers.DecimalField(max_digits=14, decimal_places=2, min_value=Decimal('0.01'))
     currency = serializers.ChoiceField(choices=['UAH', 'EUR', 'USD'], default='UAH')
     comment = serializers.CharField(max_length=2000, required=False, allow_blank=True, default='')
@@ -78,7 +82,7 @@ def history_queryset(request):
     return query.select_related('author').order_by(*ordering), names
 
 def serialize_submission(item, names=None):
-    return {'id': item.pk, 'contractor_guid': str(item.contractor_guid), 'dealer': (names or {}).get(item.contractor_guid) or item.author.full_name or item.author.username, 'amount': str(item.amount), 'currency': item.currency, 'comment': item.comment, 'created_at': item.created_at.isoformat(), 'author': item.author.full_name or item.author.username}
+    return {'funds_status': item.funds_status, 'funds_status_label': item.get_funds_status_display(), 'received_amount': str(item.received_amount) if item.received_amount is not None else None, 'funds_checked_at': item.funds_checked_at.isoformat() if item.funds_checked_at else None, 'cash_receipts': item.cash_receipts, 'transfer_date': item.transfer_date.isoformat() if item.transfer_date else None, 'routing_number': item.routing_number, 'routing_orders': item.routing_orders, 'id': item.pk, 'contractor_guid': str(item.contractor_guid), 'dealer': (names or {}).get(item.contractor_guid) or item.author.full_name or item.author.username, 'amount': str(item.amount), 'currency': item.currency, 'comment': item.comment, 'created_at': item.created_at.isoformat(), 'author': item.author.full_name or item.author.username}
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -90,7 +94,12 @@ def transfer_submissions(request):
         contractor = contractor_scope(request)
         data = TransferInput(data=request.data)
         data.is_valid(raise_exception=True)
-        item = FundsTransferSubmission.objects.create(contractor_guid=contractor, author=request.user, **data.validated_data)
+        values = dict(data.validated_data)
+        route = confirm_transfer_route(contractor, values['transfer_date'], values.pop('route_confirmation'))
+        item = FundsTransferSubmission.objects.create(
+            contractor_guid=contractor, author=request.user,
+            routing_guid=route['guid'], routing_number=route['number'], routing_orders=route['orders'], **values,
+        )
         transaction.on_commit(lambda: queue_transfer_notification(item.pk))
         return Response(serialize_submission(item), status=201)
     paginator = PageNumberPagination()
@@ -98,6 +107,15 @@ def transfer_submissions(request):
     queryset, names = history_queryset(request)
     page = paginator.paginate_queryset(queryset, request)
     return paginator.get_paginated_response([serialize_submission(item, names) for item in page])
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def transfer_routes(request):
+    contractor = contractor_scope(request)
+    data = serializers.DateField().run_validation(request.query_params.get('transfer_date'))
+    routes = find_transfer_routes(contractor, data)
+    return Response({'routes': [{**route, 'confirmation': signing.dumps(route_snapshot(contractor, data, route), salt=SALT, compress=True)} for route in routes]})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

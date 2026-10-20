@@ -18,6 +18,11 @@ body.dark-theme .funds-transfer-menu > div { background: #383735; }
 .funds-transfer-dialog label { display: flex; flex-direction: column; gap: 5px; margin: 10px 0; font-size: 13px; }
 .funds-transfer-dialog input, .funds-transfer-dialog textarea, .funds-transfer-dialog select { width: 100%; padding: 8px; border: 1px solid #84939f88; border-radius: 4px; background: transparent; color: inherit; box-sizing: border-box; }
 .funds-transfer-amount { display: grid; grid-template-columns: 1fr 100px; gap: 10px; }
+.funds-transfer-routes { min-width: 0; border: 1px solid #84939f88; border-radius: 4px; padding: 10px; font-size: 13px; }
+.funds-transfer-dialog .funds-transfer-route { flex-direction: row; align-items: flex-start; gap: 8px; }
+.funds-transfer-dialog .funds-transfer-route input { width: auto; flex-shrink: 0; margin-top: 3px; }
+.funds-transfer-route span { min-width: 0; overflow-wrap: anywhere; }
+.funds-transfer-route small { display: block; margin-top: 4px; }
 .funds-transfer-photo { display: block; max-width: 100%; max-height: 250px; object-fit: contain; margin: 10px auto; }
 .funds-transfer-photo-view .funds-transfer-photo { max-height: 65dvh; }
 .funds-transfer-hint, .funds-transfer-dialog small { font-size: 11px; opacity: .8; }
@@ -42,4 +47,48 @@ body.dark-theme .funds-transfer-dialog { background: #383735; color: #fff; }
 .funds-history-table { overflow: auto; }
 .funds-history-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .funds-history-table td, .funds-history-table th { padding: 10px; border-bottom: 1px solid #84939f55; text-align: left; vertical-align: top; }
-.funds-history-table td:nth-child(4) { white-space: pre-wrap; min-width: 140px; max-width: 400px; overflow-wrap: anywhere; }
+.funds-history-table td:nth-child(5) { white-space: pre-wrap; min-width: 140px; max-width: 400px; overflow-wrap: anywhere; }
+.funds-reconciliation, .funds-transfer-history article > .funds-reconciliation { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin: 6px 0; font-size: 12px; }
+.funds-reconciliation small { display: block; font-size: 11px; opacity: .75; }
+.funds-reconciliation--received > span { color: #34834a; }
+.funds-reconciliation--partial > span { color: #946512; }
+.funds-reconciliation--mismatch > span { color: #b84b39; }
+body.dark-theme .funds-reconciliation--received > span { color: #a5d885; }
+body.dark-theme .funds-reconciliation--partial > span { color: #efc16d; }
+body.dark-theme .funds-reconciliation--mismatch > span { color: #f6a38e; }
+.funds-transfer-dialog .funds-transfer-close { margin: 0 0 0 auto; flex: 0 0 30px; width: 30px; height: 30px; min-height: 0; padding: 0; border: 0; background: transparent; color: inherit; font-size: 24px; line-height: 1; }
+.funds-transfer-close:hover { opacity: .7; }
+.funds-transfer-dialog--history { width: 760px; padding: 16px; box-sizing: border-box; }
+.funds-transfer-history-table { overflow-x: auto; margin-top: 8px; }
+.funds-transfer-history-table table { width: 100%; min-width: 620px; border-collapse: collapse; text-align: left; font-size: 12px; }
+.funds-transfer-history-table th { font-size: 11px; font-weight: 500; opacity: .7; }
+.funds-transfer-history-table th, .funds-transfer-history-table td { padding: 8px; border-bottom: 1px solid #84939f44; vertical-align: top; }
+.funds-transfer-history-table th:first-child, .funds-transfer-history-table td:first-child { padding-left: 0; }
+.funds-transfer-history-table th:last-child, .funds-transfer-history-table td:last-child { padding-right: 0; }
+.funds-transfer-history-table tbody tr:last-child td { border-bottom: 0; }
+.funds-transfer-history-table time { white-space: nowrap; }
+.funds-transfer-history-table td > small, .funds-transfer-history-table details small { display: block; margin-top: 3px; font-weight: 400; }
+.funds-transfer-history-table .funds-reconciliation { margin: 0; font-size: 11px; max-width: 165px; }
+.funds-transfer-history-sum { white-space: nowrap; font-weight: 600; font-variant-numeric: tabular-nums; }
+.funds-transfer-history-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.funds-transfer-history-table td:nth-child(4) { min-width: 120px; max-width: 220px; }
+.funds-transfer-history-table details { margin-top: 5px; }
+.funds-transfer-history-table summary { cursor: pointer; font-size: 11px; opacity: .8; }
+.funds-transfer-dialog--history h3 { font-size: 16px; }
+.funds-transfer-dialog--history .funds-transfer-hint { margin: 4px 0 10px; font-size: 11px; font-weight: 400; }
+.funds-transfer-dialog--history .funds-transfer-export,
+.funds-transfer-dialog--history .funds-transfer-photo-link { min-height: 0; width: auto; padding: 3px 0; background: transparent; border: 0; color: #41729a; font-size: 12px; line-height: 1.4; }
+.funds-transfer-dialog--history .funds-transfer-export:hover,
+.funds-transfer-dialog--history .funds-transfer-photo-link:hover { text-decoration: underline; }
+.funds-transfer-dialog--history article { padding: 10px 0; }
+.funds-transfer-dialog--history article:last-child { border-bottom: 0; padding-bottom: 0; }
+.funds-transfer-dialog--history article strong { font-size: 16px; font-weight: 600; }
+.funds-transfer-dialog--history article small { display: block; font-size: 11px; font-weight: 400; }
+.funds-transfer-dialog--history .funds-transfer-author { margin-top: 3px; }
+.funds-transfer-dialog--history article p { margin: 5px 0; font-size: 12px; font-weight: 400; }
+.funds-transfer-dialog--history footer { font-size: 12px; margin-top: 10px; }
+.funds-transfer-dialog--history footer button { padding: 4px 8px; font-size: 11px; }
+.funds-transfer-dialog--photo > header { position: sticky; top: -18px; padding: 4px 0; background: inherit; z-index: 1; }
+.funds-transfer-dialog--photo .funds-transfer-photo { max-height: 70dvh; }
+body.dark-theme .funds-transfer-dialog--history .funds-transfer-export,
+body.dark-theme .funds-transfer-dialog--history .funds-transfer-photo-link { color: #9bc5e5; }
