@@ -76,7 +76,7 @@ def send_transfer_notification(submission_id):
                     logger.warning('Funds transfer Telegram request failed: submission_id=%s recipient=%s error_type=%s', item.pk, recipient, type(exc).__name__)
                 if delivered:
                     sent_to.append(recipient)
-                logger.info('Funds transfer Telegram recipient processed', extra={'tags': {'component': 'funds_transfer_notification', 'status': 'sent' if delivered else 'failed'}, 'submission_id': item.pk, 'recipient_chat_id': recipient})
+                logger.info('Funds transfer Telegram recipient processed: submission_id=%s recipient=%s status=%s', item.pk, recipient, 'sent' if delivered else 'failed', extra={'tags': {'component': 'funds_transfer_notification', 'status': 'sent' if delivered else 'failed'}, 'submission_id': item.pk, 'recipient_chat_id': recipient})
             state = 'sent' if len(sent_to) == len(recipients) else 'partial' if sent_to else 'failed'
         if not recipients or not token:
             logger.warning('Funds transfer Telegram skipped: submission_id=%s recipient_found=%s token_configured=%s', item.pk, bool(recipients), bool(token))
