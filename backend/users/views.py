@@ -1517,6 +1517,9 @@ def admin_edit_user_view(request, user_id):
             if not Branch.objects.filter(id=incoming["branch_id"], is_active=True).exists():
                 return Response({"error": "Філію не знайдено"}, status=400)
 
+    if str(incoming.get("role", user.role) or "").strip().lower() == "region_manager":
+        incoming["is_branch"] = bool(incoming.get("branch_id", user.branch_id))
+
     # 🔥 Робимо expire_date timezone-aware
     if "expire_date" in incoming and incoming["expire_date"]:
         try:
@@ -2690,9 +2693,9 @@ class CreateInvitationView(APIView):
                 user.phone_number = data.get("phoneNumber")
                 user.expire_date = data["expireDate"]
                 user.role = normalized_role  # Зберігаємо завжди малими
-                if selected_branch:
+                if selected_branch or normalized_role in {"manager", "region_manager"}:
                     user.branch = selected_branch
-                    user.is_branch = normalized_role in {"manager", "branch_manager"}
+                    user.is_branch = bool(selected_branch and normalized_role in {"manager", "region_manager", "branch_manager"})
                 user.load_all_contractor_addresses = False
                 user.save()
             else:
@@ -2707,7 +2710,7 @@ class CreateInvitationView(APIView):
                     role=normalized_role, 
                     user_id_1C=user_guid_binary,
                     branch=selected_branch,
-                    is_branch=bool(selected_branch and normalized_role in {"manager", "branch_manager"}),
+                    is_branch=bool(selected_branch and normalized_role in {"manager", "region_manager", "branch_manager"}),
                     is_active=False,
                     email_confirmed=False,
                     permit_finance_info=True,

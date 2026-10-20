@@ -12,10 +12,11 @@ logger = logging.getLogger(__name__)
 def queue_transfer_notification(submission_id):
     try:
         from .tasks import notify_manager_of_funds_transfer
-        notify_manager_of_funds_transfer.apply_async(args=[submission_id], retry=False)
+        task = notify_manager_of_funds_transfer.apply_async(args=[submission_id], retry=False)
+        logger.info('Funds transfer notification queued: submission_id=%s task_id=%s', submission_id, task.id)
     except Exception as exc:
         # Keep pending so Beat can enqueue it later. Never fail a saved form.
-        logger.warning('Funds transfer notification queue unavailable', extra={'tags': {'component': 'funds_transfer_notification', 'status': 'pending'}, 'submission_id': submission_id, 'error_type': type(exc).__name__})
+        logger.warning('Funds transfer notification queue unavailable: submission_id=%s error_type=%s', submission_id, type(exc).__name__, extra={'tags': {'component': 'funds_transfer_notification', 'status': 'pending'}, 'submission_id': submission_id, 'error_type': type(exc).__name__})
 
 def manager_telegram_id(contractor_guid):
     with connection.cursor() as cursor:
@@ -38,6 +39,7 @@ def notification_text(item):
     return '\n'.join(lines)
 
 def send_transfer_notification(submission_id):
+    logger.info('Funds transfer notification started: submission_id=%s', submission_id)
     # Lock this submission to prevent duplicate sends by concurrent workers.
     with transaction.atomic():
         item = FundsTransferSubmission.objects.select_for_update().select_related('author').filter(pk=submission_id).first()
@@ -64,17 +66,22 @@ def send_transfer_notification(submission_id):
                 delivered = False
                 try:
                     response = requests.post(f'https://api.telegram.org/bot{token}/sendMessage', json={**payload, 'chat_id': recipient}, timeout=10)
-                    delivered = response.status_code == 200 and response.json().get('ok') is True
-                except (requests.RequestException, ValueError):
+                    result = response.json()
+                    delivered = response.status_code == 200 and result.get('ok') is True
+                    if not delivered:
+                        logger.warning('Funds transfer Telegram rejected: submission_id=%s recipient=%s http_status=%s error_code=%s description=%s', item.pk, recipient, response.status_code, result.get('error_code'), result.get('description'))
+                except (requests.RequestException, ValueError) as exc:
                     # Delivery after a timeout is ambiguous; do not resend blindly.
-                    pass
+                    logger.warning('Funds transfer Telegram request failed: submission_id=%s recipient=%s error_type=%s', item.pk, recipient, type(exc).__name__)
                 if delivered:
                     sent_to.append(recipient)
                 logger.info('Funds transfer Telegram recipient processed', extra={'tags': {'component': 'funds_transfer_notification', 'status': 'sent' if delivered else 'failed'}, 'submission_id': item.pk, 'recipient_chat_id': recipient})
             state = 'sent' if len(sent_to) == len(recipients) else 'partial' if sent_to else 'failed'
+        if not recipients or not token:
+            logger.warning('Funds transfer Telegram skipped: submission_id=%s recipient_found=%s token_configured=%s', item.pk, bool(recipients), bool(token))
         item.manager_notification_status = state
         if chat_id in sent_to:
             item.manager_notified_at = timezone.now()
         item.save(update_fields=['manager_notification_status', 'manager_notified_at'])
-        logger.info('Funds transfer manager notification processed', extra={'tags': {'component': 'funds_transfer_notification', 'status': state}, 'submission_id': item.pk, 'recipient_found': bool(chat_id), 'token_configured': bool(token)})
+        logger.info('Funds transfer manager notification processed: submission_id=%s status=%s recipient_found=%s token_configured=%s', item.pk, state, bool(chat_id), bool(token), extra={'tags': {'component': 'funds_transfer_notification', 'status': state}, 'submission_id': item.pk, 'recipient_found': bool(chat_id), 'token_configured': bool(token)})
         return state

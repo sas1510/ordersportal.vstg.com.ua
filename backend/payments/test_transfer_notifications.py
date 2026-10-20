@@ -49,6 +49,17 @@ class TransferNotificationTests(SimpleTestCase):
         self.assertEqual(post.call_count, 1)
         self.assertIsNone(item.manager_notified_at)
 
+    def test_telegram_rejection_logs_reason_without_bot_token(self):
+        response = SimpleNamespace(status_code=403, json=lambda: {
+            'ok': False, 'error_code': 403, 'description': 'Forbidden: bot was blocked by the user',
+        })
+        with self.assertLogs('payments.transfer_notifications', level='WARNING') as logs:
+            result, post, _ = self.run_send(self.item(), response=response)
+        self.assertEqual(result, 'failed')
+        self.assertEqual(post.call_count, 1)
+        self.assertIn('bot was blocked', '\n'.join(logs.output))
+        self.assertNotIn('test-token', '\n'.join(logs.output))
+
     def test_broker_failure_does_not_fail_submission(self):
         with patch('payments.tasks.notify_manager_of_funds_transfer.apply_async', side_effect=RuntimeError('offline')):
             queue_transfer_notification(7)

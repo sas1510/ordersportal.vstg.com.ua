@@ -43,6 +43,8 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
 
   const [form, setForm] = useState(originalFormData);
   const [isSaving, setIsSaving] = useState(false);
+  const canChooseBranchMembership = isAdmin && ["manager", "region_manager"].includes(form.role);
+  const belongsToBranch = Boolean(form.branch_id || form.is_branch);
   const normalizedUserRole = normalizeRole(user.role);
   const allowedRoleOptions = isAdmin
     ? EDITABLE_ROLE_OPTIONS
@@ -66,6 +68,8 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
 
     setForm({
       ...form,
+      ...(name === "branch_id" && ["manager", "region_manager"].includes(form.role)
+        ? { is_branch: Boolean(value) } : {}),
       [name]:
         type === "checkbox"
           ? checked
@@ -77,6 +81,10 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
 
   const saveChanges = useCallback(async () => {
     if (!hasChanges || isSaving) return;
+    if (canChooseBranchMembership && belongsToBranch && !form.branch_id) {
+      addNotification("Оберіть філію користувача", "error");
+      return;
+    }
 
     setIsSaving(true);
 
@@ -98,7 +106,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
     } finally {
       setIsSaving(false);
     }
-  }, [form, user.id, onUpdated, onClose, hasChanges, isSaving, addNotification]);
+  }, [form, user.id, onUpdated, onClose, hasChanges, isSaving, addNotification, canChooseBranchMembership, belongsToBranch]);
 
   return (
     <div className="portal-user-edit-modal-overlay" onClick={onClose}>
@@ -180,9 +188,27 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
               </select>
             </label>}
 
-            {(isAdmin || currentRole === "branches_director") && (form.role === "manager" || form.role === "branch_manager") && (
+            {canChooseBranchMembership && (
               <label className="portal-user-edit-label">
-                <span>Філія</span>
+                <span>Належність до філії</span>
+                <select
+                  value={belongsToBranch ? "branch" : "standalone"}
+                  onChange={(event) => setForm((previous) => ({
+                    ...previous,
+                    is_branch: event.target.value === "branch",
+                    branch_id: event.target.value === "branch" ? previous.branch_id : "",
+                  }))}
+                  className="portal-user-edit-select"
+                >
+                  <option value="standalone">Без філії</option>
+                  <option value="branch">Належить філії</option>
+                </select>
+              </label>
+            )}
+
+            {(isAdmin || currentRole === "branches_director") && ["manager", "region_manager", "branch_manager"].includes(form.role) && (!canChooseBranchMembership || belongsToBranch) && (
+              <label className="portal-user-edit-label">
+                <span>Філія{canChooseBranchMembership ? " *" : ""}</span>
                 <select
                   name="branch_id"
                   value={form.branch_id}
@@ -199,7 +225,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
               </label>
             )}
 
-            {form.role === "manager" && (
+            {form.role === "manager" && !canChooseBranchMembership && (
               <label className="portal-user-edit-label portal-user-edit-checkbox-row">
                 <input
                   type="checkbox"

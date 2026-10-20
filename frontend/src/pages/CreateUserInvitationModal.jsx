@@ -49,6 +49,7 @@ export default function CreateUserInvitationModal({ branches = [], onClose, onCr
   });
 
   const [users1c, setUsers1c] = useState([]);
+  const [managerScope, setManagerScope] = useState("standalone");
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loading, setLoading] = useState(false);
   const [createdData, setCreatedData] = useState(null);
@@ -186,7 +187,7 @@ export default function CreateUserInvitationModal({ branches = [], onClose, onCr
     try {
       const payload = {
         ...formData,
-        branchId: formData.branchId === "" || formData.branchId == null
+        branchId: (isAdmin && ["manager", "region_manager"].includes(formData.role) && managerScope === "standalone") || formData.branchId === "" || formData.branchId == null
           ? null
           : Number(formData.branchId),
       };
@@ -336,7 +337,7 @@ export default function CreateUserInvitationModal({ branches = [], onClose, onCr
                   className="form-input-add-user"
                   value={formData.role}
                   onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
+                    setFormData({ ...formData, role: e.target.value, branchId: "" })
                   }
                 >
                   {availableRoleOptions.map((roleOption) => (
@@ -347,13 +348,31 @@ export default function CreateUserInvitationModal({ branches = [], onClose, onCr
                 </select>
               </div>
 
-              {(isAdmin || currentRole === "branches_director") && formData.role !== "admin" && (
+              {isAdmin && ["manager", "region_manager"].includes(formData.role) && (
+                <div>
+                  <label className="input-label-add-user" htmlFor="new-user-manager-scope">Належність до філії</label>
+                  <select
+                    id="new-user-manager-scope"
+                    className="form-input-add-user"
+                    value={managerScope}
+                    onChange={(e) => {
+                      setManagerScope(e.target.value);
+                      setFormData((prev) => ({ ...prev, branchId: "" }));
+                    }}
+                  >
+                    <option value="standalone">Без філії</option>
+                    <option value="branch">Належить філії</option>
+                  </select>
+                </div>
+              )}
+
+              {(isAdmin || currentRole === "branches_director") && formData.role !== "admin" && !(isAdmin && ["manager", "region_manager"].includes(formData.role) && managerScope === "standalone") && (
                 <div>
                   <label className="input-label-add-user">
-                    Філія{currentRole === "branches_director" ? " *" : ""}
+                    Філія{currentRole === "branches_director" || ["manager", "region_manager"].includes(formData.role) ? " *" : ""}
                   </label>
                   <select
-                    required={currentRole === "branches_director"}
+                    required={currentRole === "branches_director" || ["manager", "region_manager"].includes(formData.role)}
                     className="form-input-add-user"
                     value={formData.branchId}
                     onChange={(e) =>
