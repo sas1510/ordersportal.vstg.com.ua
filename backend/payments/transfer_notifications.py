@@ -1,4 +1,5 @@
 import logging
+import os
 from urllib.parse import urlencode
 import requests
 from django.conf import settings
@@ -53,7 +54,7 @@ def send_transfer_notification(submission_id):
             copy_chat_id = None
             logger.warning('Invalid funds transfer Telegram copy configuration')
         recipients = list(dict.fromkeys(value for value in [chat_id, copy_chat_id] if value))
-        token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '') or getattr(settings, 'BOT_TOKEN', '')
+        token = os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN', '')
         state = 'skipped'
         sent_to = []
         if recipients and token:

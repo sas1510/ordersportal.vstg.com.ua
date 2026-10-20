@@ -1,4 +1,5 @@
 from contextlib import nullcontext
+import os
 from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -9,6 +10,7 @@ from django.utils import timezone
 from .transfer_notifications import send_transfer_notification, queue_transfer_notification, manager_telegram_id
 
 @override_settings(TELEGRAM_BOT_TOKEN='test-token', FRONTEND_URL='https://portal.example/', FUNDS_TRANSFER_TELEGRAM_COPY_CHAT_ID='')
+@patch.dict(os.environ, {'NOTIFICATION_TELEGRAM_BOT_TOKEN': 'notification-test-token'})
 class TransferNotificationTests(SimpleTestCase):
     def item(self):
         return SimpleNamespace(pk=7, contractor_guid=UUID('9056e09d-a7a0-11ed-8142-74867ad9d525'), manager_notification_status='pending', manager_notified_at=None, amount=Decimal('15115.00'), currency='UAH', comment='Передано водію', created_at=timezone.now(), author=SimpleNamespace(full_name='Тестовий дилер', username='dealer'), save=Mock())
@@ -24,6 +26,7 @@ class TransferNotificationTests(SimpleTestCase):
         result, post, _ = self.run_send(item, response=SimpleNamespace(status_code=200, json=lambda: {'ok': True}))
         self.assertEqual(result, 'sent')
         payload = post.call_args.kwargs['json']
+        self.assertEqual(post.call_args.args[0], 'https://api.telegram.org/botnotification-test-token/sendMessage')
         self.assertEqual(payload['chat_id'], 123)
         self.assertIn('15 115,00 грн', payload['text'])
         self.assertIn('Тестовий дилер', payload['text'])
