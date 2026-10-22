@@ -1,9 +1,11 @@
 # services/agent.py
 import json
+from django.conf import settings
 from openai import OpenAI
 from .agent_tools import TOOLS_SCHEMA, AVAILABLE_TOOLS
 
-client = OpenAI()
+class AIChatNotConfigured(Exception):
+    pass
 
 # Схема відповіді для фронтенду (Strict JSON Schema)
 RESPONSE_FORMAT_SCHEMA = {
@@ -71,6 +73,10 @@ RESPONSE_FORMAT_SCHEMA = {
 }
 
 def run_agent(user, system_prompt, messages):
+    api_key = (getattr(settings, 'OPENAI_API_KEY', '') or '').strip()
+    if not api_key:
+        raise AIChatNotConfigured('ШІ-чат не налаштований: відсутній OPENAI_API_KEY.')
+    client = OpenAI(api_key=api_key)
     api_messages = [{"role": "system", "content": system_prompt}] + messages
 
     # Крок 1: Перевірка потреби у виклику функцій

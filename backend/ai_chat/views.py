@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
-from .services.agent import run_agent  
+from .services.agent import AIChatNotConfigured, run_agent
 from .services.prompts import build_system_prompt
 from backend.permissions import (
     IsAuthenticatedOr1CApiKey, 
@@ -84,6 +84,8 @@ def chat_view(request):
             'reply': reply_data
         })
 
+    except AIChatNotConfigured as e:
+        return JsonResponse({'error': str(e)}, status=503)
     except Exception as e:
         # Залишаємо логування в консоль бекенду
         logger.error(f"Error in AI Agent chat view: {str(e)}", exc_info=True)
