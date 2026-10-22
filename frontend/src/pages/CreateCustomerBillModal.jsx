@@ -1480,6 +1480,12 @@ export default function CreateCustomerBillModal({
   }, [orderItems]);
 
 const handleSubmit = async () => {
+  if (loading) return;
+  if (newFlow && !selectedAdvanceContract) {
+    addNotification("Оберіть авансовий договір", "info");
+    setStep(STEPS.BASE);
+    return;
+  }
   setLoading(true);
 
   const dto = {
@@ -1527,6 +1533,10 @@ const handleSubmit = async () => {
 
   const handleNextStep = () => {
     if (step === STEPS.BASE) {
+      if (newFlow && !selectedAdvanceContract) {
+        addNotification("Оберіть авансовий договір", "info");
+        return;
+      }
       const newFlowInvalid = newFlow && (!selectedOrgCode || !selectedContractor);
       const oldFlowInvalid = !newFlow && (!selectedOrgAccount || !selectedAddress);
       if (newFlowInvalid || oldFlowInvalid) {
@@ -1646,7 +1656,7 @@ const handleSubmit = async () => {
                           onChange={setSelectedContractor} />
                       </div>
                       <div className="bill-field">
-                        <span className="bill-field__label">{"Авансовий договір"}</span>
+                        <span className="bill-field__label">{"Авансовий договір *"}</span>
                         <BillSelect value={selectedAdvanceContract} options={advanceContracts}
                           placeholder={selectedContractor ? "Оберіть авансовий договір" : "Спочатку оберіть контрагента"}
                           disabled={!selectedContractor}
@@ -1886,7 +1896,8 @@ const handleSubmit = async () => {
             <button
               className="bill-btn-save"
               onClick={handleNextStep}
-              disabled={fetchingProfile}
+              disabled={fetchingProfile || loading}
+              title={newFlow && !selectedAdvanceContract ? "Оберіть авансовий договір" : undefined}
             >
               {t("common.next")} →
             </button>
@@ -1895,7 +1906,7 @@ const handleSubmit = async () => {
           {step === 3 && (
             <button
               className="bill-btn-save"
-              disabled={loading}
+              disabled={loading || fetchingProfile || (newFlow && !selectedAdvanceContract)}
               onClick={handleSubmit}
             >
               {loading ? t("create_bill.actions.creating") : t("create_bill.actions.submit")}

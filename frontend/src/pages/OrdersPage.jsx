@@ -751,9 +751,16 @@ const PortalOriginal = () => {
     return summary;
   }, [calculationsData]);
 
+  const sortedCalculations = useMemo(() => {
+    const timestamp = (calc) => calc.dateRaw ? new Date(calc.dateRaw).getTime() : 0;
+    return calculationsData.map((calc) => ({ calc, time: timestamp(calc) }))
+      .sort((first, second) => second.time - first.time)
+      .map(({ calc }) => calc);
+  }, [calculationsData]);
+
   const getFilteredItems = useCallback(
     (statusValue, monthValue, nameValue) => {
-      let items = [...calculationsData];
+      let items = sortedCalculations;
 
       if (statusValue !== "Всі") {
         items = items.filter((calc) => {
@@ -823,7 +830,7 @@ const PortalOriginal = () => {
 
       return items;
     },
-    [calculationsData, appliedDateFilter.mode],
+    [sortedCalculations, appliedDateFilter.mode],
   );
 
   const fullFiltered = useMemo(() => {
@@ -833,18 +840,8 @@ const PortalOriginal = () => {
       filter.name,
     );
 
-    return items.sort((first, second) => {
-      const firstTime = first.dateRaw
-        ? new Date(first.dateRaw).getTime()
-        : 0;
-
-      const secondTime = second.dateRaw
-        ? new Date(second.dateRaw).getTime()
-        : 0;
-
-      return secondTime - firstTime;
-    });
-  }, [filter, getFilteredItems]);
+    return items;
+  }, [filter.status, filter.month, filter.name, getFilteredItems]);
 
   const delivery = useDeliveries(fullFiltered, calculationsData);
   const totalFilteredCount = delivery.filteredCalculations.length;

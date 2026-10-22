@@ -1,3 +1,7 @@
+# Backend dependencies. Python 3.11+; Linux/WSL for Gunicorn/Celery deployment.
+# System dependency (installed separately): Microsoft ODBC Driver 17 for SQL Server.
+# Legacy Facebook scraping commands and standalone data-import scripts require
+# separate optional environments and are not included in the portal runtime.
 aiofiles==25.1.0
 aiogram==3.26.0
 aiohappyeyeballs==2.6.1
@@ -107,7 +111,6 @@ python-decouple==3.8
 python-dotenv==1.2.2
 python-engineio==4.13.1
 python-socketio==5.16.1
-python-telegram-bot==13.15
 pytz==2025.2
 pywebpush==2.3.0
 PyYAML==6.0.3
@@ -154,3 +157,5 @@ zope.event==6.1
 zope.interface==8.2
 pypdf==6.19.0
 reportlab==4.4.3
+openai==2.38.0
+python-logging-loki==0.3.1

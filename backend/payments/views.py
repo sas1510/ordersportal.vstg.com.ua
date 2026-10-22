@@ -1332,6 +1332,10 @@ def create_invoice_v2(request):
 
     data = request.data
     contractor_guid = str(data.get("ContractorGUID") or "").lower()
+    advance_contract_guid = data.get("AdvanceContractGUID")
+    if not isinstance(advance_contract_guid, str) or not advance_contract_guid.strip():
+        return Response({"error": "Оберіть авансовий договір"}, status=status.HTTP_400_BAD_REQUEST)
+    advance_contract_guid = advance_contract_guid.strip()
     try:
         requester_contractor_guid, contractors, allowed = _invoice_related_contractors(request)
         if not contractor_guid or contractor_guid not in allowed:
@@ -1348,7 +1352,7 @@ def create_invoice_v2(request):
             "totalSum": data.get("OrderSuma"),
             "organizationCode": data.get("OrganizationCode"),
             "taxIdInRegBase": data.get("TaxIdInRegBase"),
-            "advanceContractGUID": data.get("AdvanceContractGUID"),
+            "advanceContractGUID": advance_contract_guid,
             "items": [
                 {
                     "itemID": item.get("ItemGUID"),

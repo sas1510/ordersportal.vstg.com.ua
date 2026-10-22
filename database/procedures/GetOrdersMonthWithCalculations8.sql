@@ -750,39 +750,60 @@ ON #Payments(OrderID);
 
     CREATE CLUSTERED INDEX IX_ProdOrders_OrderID ON #ProdOrders(Заказ);
 
-    DROP TABLE IF EXISTS #ProdReports;
-
-    SELECT
-        O.OrderID AS ЗаказРезерв,
-        SUM(OPP._Fld10543) AS ProducedTotal,
-        MIN(CASE
-                WHEN YEAR(D._Date_Time) < 3753 THEN D._Date_Time
-                ELSE DATEADD(YEAR, -2000, D._Date_Time)
-            END) AS ReadyMin,
-        MAX(CASE
-                WHEN YEAR(D._Date_Time) < 3753 THEN D._Date_Time
-                ELSE DATEADD(YEAR, -2000, D._Date_Time)
-            END) AS ReadyMax
-    INTO #ProdReports
+    -- Full readiness, one indexed production read; cosmetic kits excluded.
+    DROP TABLE IF EXISTS #RequiredItems;
+    SELECT T.Ссылка AS OrderID, T.Номенклатура AS ItemID,
+           ISNULL(T.ХарактеристикаНоменклатуры, 0x00000000000000000000000000000000) AS CharacteristicID,
+           SUM(T.Количество) AS RequiredQty
+    INTO #RequiredItems
     FROM #OrderIDs O
-    INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488_VT10534] AS OPP
-         WITH (INDEX(_Documen488_VT10534_ByField10583_RR), FORCESEEK)
-        ON OPP._Fld10575_TYPE = @OrderDocType
-       AND OPP._Fld10575_RTRef = @OrderDocRTRef
-       AND OPP._Fld10575_RRRef = O.OrderID
-       AND OPP._Fld10548RRef = 0x99B8002590633BB311E177FF631F08AD
-    INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488] AS D
-        ON D._IDRRef = OPP._Document488_IDRRef
-    WHERE D._Posted = 0x01
-      AND
-      (
-            (D._Date_Time >= @RawPrevYearStart AND D._Date_Time < '3753-01-01')
-         OR D._Date_Time >= @ShiftedPrevYearStart
-      )
-    GROUP BY O.OrderID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары] T ON T.Ссылка = O.OrderID
+    WHERE T.Номенклатура NOT IN (0x89AF92BF3734FEC94BFAB4E884CAE5C5, 0x99DC002590633BB311E22E3A03435ED0, 0xA7009E14FF7CCB2E424091FF00E66DDA)
+    GROUP BY T.Ссылка, T.Номенклатура, ISNULL(T.ХарактеристикаНоменклатуры, 0x00000000000000000000000000000000)
+    HAVING SUM(T.Количество) > 0
     OPTION (FORCE ORDER, LOOP JOIN, RECOMPILE);
+    CREATE UNIQUE CLUSTERED INDEX IX_RequiredItems ON #RequiredItems(OrderID, ItemID, CharacteristicID);
 
-    CREATE CLUSTERED INDEX IX_ProdReports_OrderID ON #ProdReports(ЗаказРезерв);
+    DROP TABLE IF EXISTS #ProducedItems;
+    SELECT O.OrderID, P._Fld10548RRef AS ItemID,
+           ISNULL(P._Fld10565RRef, 0x00000000000000000000000000000000) AS CharacteristicID,
+           SUM(P._Fld10543) AS ProducedQty,
+           MIN(CASE WHEN YEAR(D._Date_Time) < 3753 THEN D._Date_Time ELSE DATEADD(YEAR,-2000,D._Date_Time) END) AS ReadyMin,
+           MAX(CASE WHEN YEAR(D._Date_Time) < 3753 THEN D._Date_Time ELSE DATEADD(YEAR,-2000,D._Date_Time) END) AS ReadyMax
+    INTO #ProducedItems
+    FROM #OrderIDs O
+    INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488_VT10534] P
+        WITH (INDEX(_Documen488_VT10534_ByField10583_RR), FORCESEEK)
+        ON P._Fld10575_TYPE = @OrderDocType AND P._Fld10575_RTRef = @OrderDocRTRef
+       AND P._Fld10575_RRRef = O.OrderID
+    INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488] D ON D._IDRRef = P._Document488_IDRRef
+    WHERE D._Posted = 0x01
+      AND P._Fld10548RRef NOT IN (0x89AF92BF3734FEC94BFAB4E884CAE5C5, 0x99DC002590633BB311E22E3A03435ED0, 0xA7009E14FF7CCB2E424091FF00E66DDA)
+      AND ((D._Date_Time >= @RawPrevYearStart AND D._Date_Time < '3753-01-01') OR D._Date_Time >= @ShiftedPrevYearStart)
+    GROUP BY O.OrderID, P._Fld10548RRef, ISNULL(P._Fld10565RRef, 0x00000000000000000000000000000000)
+    OPTION (FORCE ORDER, LOOP JOIN, RECOMPILE);
+    CREATE UNIQUE CLUSTERED INDEX IX_ProducedItems ON #ProducedItems(OrderID, ItemID, CharacteristicID);
+
+    DROP TABLE IF EXISTS #ProdReports;
+    ;WITH Completeness AS (
+        SELECT R.OrderID,
+               MIN(CASE WHEN ISNULL(P.ProducedQty,0) >= R.RequiredQty THEN 1 ELSE 0 END) AS IsComplete
+        FROM #RequiredItems R
+        LEFT JOIN #ProducedItems P ON P.OrderID=R.OrderID AND P.ItemID=R.ItemID AND P.CharacteristicID=R.CharacteristicID
+        GROUP BY R.OrderID
+    )
+    SELECT P.OrderID AS ЗаказРезерв,
+           SUM(CASE WHEN P.ItemID = 0x99B8002590633BB311E177FF631F08AD THEN P.ProducedQty ELSE 0 END) AS ProducedTotal,
+           CASE WHEN MAX(C.IsComplete)=1 THEN MIN(P.ReadyMin) END AS ReadyMin,
+           CASE WHEN MAX(C.IsComplete)=1 THEN MAX(P.ReadyMax) END AS ReadyMax
+    INTO #ProdReports
+    FROM #ProducedItems P
+    LEFT JOIN Completeness C ON C.OrderID=P.OrderID
+    GROUP BY P.OrderID
+    OPTION (RECOMPILE);
+    CREATE UNIQUE CLUSTERED INDEX IX_ProdReports_OrderID ON #ProdReports(ЗаказРезерв);
+    DROP TABLE #RequiredItems;
+    DROP TABLE #ProducedItems;
 
     DROP TABLE IF EXISTS #SalesDocs;
 

@@ -3,6 +3,7 @@ import FilesPage from "./pages/FilesPage";
 import AddOrEditFilePage from "./pages/AddOrEditFilePage";
 
 import VideosPage from "./pages/VideosPage";
+import ConstructorPage from "./pages/ConstructorPage";
 import VideoFormPage from "./pages/VideoFormPage";
 import FAQ from "./pages/FAQ";
 
@@ -50,6 +51,7 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 
 
 export const adminRoutes = [
+  { path: "constructor", element: <ConstructorPage /> },
   { path: "finance/funds-transfer-history", element: <FundsTransferHistoryPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
@@ -127,6 +129,7 @@ export const branchLeaderRoutes = adminRoutes.filter(
 );
 
 export const dealerRoutes = [
+  { path: "constructor", element: <ConstructorPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
   { path: "files", element: <FilesPage /> },

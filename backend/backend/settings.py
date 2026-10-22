@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = False  # Set to False in production  
+DEBUG = True  # Set to False in production  
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
@@ -64,7 +64,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware'
+    'django.middleware.security.SecurityMiddleware',
     # 'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,6 +130,30 @@ DATABASES = {
         }
 }
 
+# Separate local connection to the restored portal database.
+DATABASES['portal_test'] = {
+    'ENGINE': config('PORTAL_TEST_DB_ENGINE', default='mssql'),
+    'NAME': config('PORTAL_TEST_DB_NAME', default='portal_db'),
+    'HOST': config('PORTAL_TEST_DB_HOST', default=r'WST-SQL\WSTSQL'),
+    'USER': config('PORTAL_TEST_DB_USER', default='Bodnaruk_V'),
+    'PASSWORD': config('PORTAL_TEST_DB_PASSWORD', default=''),
+    'PORT': '',
+    'CONN_MAX_AGE': 600,
+    'OPTIONS': {
+        'driver': 'ODBC Driver 17 for SQL Server',
+        'trusted_connection': 'no',
+        'unicode_results': True,
+    },
+}
+
+# Opt in locally; existing deployments keep their current default connection.
+if config('PORTAL_USE_TEST_DB', default=False, cast=bool):
+    if not DATABASES['portal_test']['PASSWORD']:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured('Set PORTAL_TEST_DB_PASSWORD before enabling PORTAL_USE_TEST_DB.')
+    DATABASES['default'] = {**DATABASES['portal_test'], 'OPTIONS': dict(DATABASES['portal_test']['OPTIONS'])}
+
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -172,7 +196,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": True,   # True на https
+    "AUTH_COOKIE_SECURE": not DEBUG,  # Allow HTTP cookies only in debug mode.
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }

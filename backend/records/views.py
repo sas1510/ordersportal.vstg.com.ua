@@ -1489,6 +1489,7 @@ def api_get_orders(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    data_started = time.perf_counter()
     try:
         data = async_to_sync(async_get_data)(
             date_from,
@@ -1518,6 +1519,8 @@ def api_get_orders(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+    data_seconds = time.perf_counter() - data_started
+    chat_started = time.perf_counter()
     calc_bins = []
     calc_to_bin_map = {}
     calc_to_str_map = {}
@@ -1553,19 +1556,8 @@ def api_get_orders(request):
             .distinct()
         )
 
-    all_messages = []
-    if calc_bins:
-        all_messages = (
-            ChatMessage.objects.filter(
-                related_object_id__in=calc_bins,
-                is_notification=False,
-            )
-            .order_by("-id")
-            .values(
-                "related_object_id",
-                "text",
-            )
-        )
+    from .order_chat_summary import get_order_boundary_messages
+    all_messages = get_order_boundary_messages(calc_bins)
 
     latest_messages_map = {}
     first_messages_map = {}
@@ -1611,10 +1603,12 @@ def api_get_orders(request):
 
         calc["firstMessage"] = first_messages_map.get(lookup_key)
 
+    chat_seconds = time.perf_counter() - chat_started
     duration = time.time() - start_time
 
     logger.info(
-        "Orders fetched successfully",
+        "Orders fetched: data_seconds=%.3f chat_seconds=%.3f total_seconds=%.3f calculations=%s",
+        data_seconds, chat_seconds, duration, len(data),
         extra={
             "tags": {
                 "action": "get_orders",
@@ -1628,7 +1622,7 @@ def api_get_orders(request):
         },
     )
 
-    return Response(
+    response = Response(
         {
             "status": "success",
             "filters": {
@@ -1642,6 +1636,8 @@ def api_get_orders(request):
             },
         }
     )
+    response["Server-Timing"] = f"orders_data;dur={data_seconds * 1000:.1f}, orders_chat;dur={chat_seconds * 1000:.1f}"
+    return response
 
 @sync_to_async
 def execute_additional_orders_procedure(contractor_bin, year):
@@ -5761,7 +5757,7 @@ def _fetch_portal_comparison_result(date_from, date_to, contractor_bin):
     with connections["default"].cursor() as cursor:
         cursor.execute(
             """
-            SET ANSI_WARNINGS OFF;
+            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
             EXEC [dbo].[GetPortalDealerComparisonAnalytics]
                 @StartDate = %s,
                 @EndDate = %s,
@@ -5789,7 +5785,7 @@ def _fetch_accessible_portal_reports_result(requester_user_id, date_from, date_t
         with connections["default"].cursor() as cursor:
             cursor.execute(
                 """
-                SET ANSI_WARNINGS OFF;
+                SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                 EXEC [dbo].[GetPortalAccessibleDealerReports]
                     @RequesterUserID = %s,
                     @StartDate = %s,
@@ -6123,7 +6119,7 @@ class ProductionTimelinessByContractorView(APIView):
                 try:
                     cursor.execute(
                         """
-                        SET ANSI_WARNINGS OFF;
+                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                         EXEC [dbo].[GetABCProductionTimelinessByContractorV2]
                             @ContractorID = %s,
                             @DateFrom = %s,
@@ -6138,7 +6134,7 @@ class ProductionTimelinessByContractorView(APIView):
                     logger.warning("Analytics V2 timeliness procedure is unavailable or invalid; using the stable timeliness procedure")
                     cursor.execute(
                         """
-                        SET ANSI_WARNINGS OFF;
+                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                         EXEC [dbo].[GetABCProductionTimelinessByContractor]
                             @ContractorID = %s,
                             @DateFrom = %s,
@@ -6292,7 +6288,7 @@ class ProductionUnifiedAnalyticsView(APIView):
                 try:
                     cursor.execute(
                         """
-                        SET ANSI_WARNINGS OFF;
+                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                         EXEC [dbo].[GetContractorUnifiedAnalyticsV2]
                             @StartDate = %s,
                             @EndDate = %s,
@@ -6306,7 +6302,7 @@ class ProductionUnifiedAnalyticsView(APIView):
                     logger.warning("Unified analytics V2 has an invalid currency column; using the stable procedure")
                     cursor.execute(
                         """
-                        SET ANSI_WARNINGS OFF;
+                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                         EXEC [dbo].[GetContractorUnifiedAnalytics]
                             @StartDate = %s,
                             @EndDate = %s,
@@ -6463,7 +6459,7 @@ class PortalDealerComparisonAnalyticsView(APIView):
                 try:
                     cursor.execute(
                         """
-                        SET ANSI_WARNINGS OFF;
+                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                         EXEC [dbo].[GetPortalDealerComparisonAnalyticsV2]
                             @StartDate = %s,
                             @EndDate = %s,
@@ -6477,7 +6473,7 @@ class PortalDealerComparisonAnalyticsView(APIView):
                     logger.warning("Dealer comparison V2 has an invalid currency column; using the stable procedure")
                     cursor.execute(
                         """
-                        SET ANSI_WARNINGS OFF;
+                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
                         EXEC [dbo].[GetPortalDealerComparisonAnalytics]
                             @StartDate = %s,
                             @EndDate = %s,
@@ -6734,14 +6730,14 @@ class DealerFullAnalyticsView(APIView):
             with connections[db_alias].cursor() as cursor:
 
                 cursor.execute(
-                    "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000", 
+                    "SET ANSI_NULLS ON; SET ANSI_WARNINGS ON; EXEC [dbo].[GetProductionStatistics] %s, %s, %s, 100000", 
                     [date_from, date_to, contractor_bin]
                 )
                 tech_items = self.dictfetchall(cursor)
 
 
                 cursor.execute(
-                    "SET ANSI_WARNINGS OFF; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s", 
+                    "SET ANSI_NULLS ON; SET ANSI_WARNINGS ON; EXEC [dbo].[GetContractorMonthlyTop] %s, %s, %s", 
                     [date_from, date_to, contractor_bin]
                 )
                 monthly_stats = self.dictfetchall(cursor)
@@ -6808,7 +6804,7 @@ class OrdersDealerStatisticsView(APIView):
  
         try:
             with connections[db_alias].cursor() as cursor:
-                cursor.execute("SET ANSI_WARNINGS OFF; EXEC [dbo].[GetFullDealerAnalytics] %s, %s, %s", 
+                cursor.execute("SET ANSI_NULLS ON; SET ANSI_WARNINGS ON; EXEC [dbo].[GetFullDealerAnalytics] %s, %s, %s", 
                                [date_from, date_to, contractor_bin])
                 
               

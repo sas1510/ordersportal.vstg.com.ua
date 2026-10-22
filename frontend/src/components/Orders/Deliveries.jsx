@@ -7,13 +7,13 @@ import "./Deliveries.css";
 import DeliveryNotice from "./DeliveryNotice";
 
 export function useDeliveries(calculations, observationCalculations = calculations) {
-  const observations = observationCalculations.length ? JSON.stringify(observationCalculations.flatMap((calc) => (calc.orders || []).filter((order) => order.idGuid && order.status !== "Відмова").map((order) => ({ orderGuid: order.idGuid, number: order.number, count: order.count ?? null, calculation: calc.number || calc.webNumber || "", delivery: order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime || null })))) : null;
+  const observations = useMemo(() => observationCalculations.length ? JSON.stringify(observationCalculations.flatMap((calc) => (calc.orders || []).filter((order) => order.idGuid && order.status !== "Відмова").map((order) => ({ orderGuid: order.idGuid, number: order.number, count: order.count ?? null, calculation: calc.number || calc.webNumber || "", delivery: order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime || null })))) : null, [observationCalculations]);
   const [enabled, setEnabled] = useState(false);
   const [date, setDate] = useState("");
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(timer); }, []);
   const rows = useMemo(() => getDeliveryRows(calculations, now, "all"), [calculations, now]);
-  const dates = sortDeliveryDates([...new Set(rows.map((row) => row.day))]);
+  const dates = useMemo(() => sortDeliveryDates([...new Set(rows.map((row) => row.day))]), [rows]);
   useEffect(() => { if (date && !dates.includes(date)) setDate(""); }, [date, dates.join(",")]);
   const selectedRows = useMemo(() => date ? rows.filter((row) => row.day === date) : rows, [rows, date]);
   const filteredCalculations = useMemo(() => {

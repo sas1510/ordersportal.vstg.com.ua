@@ -7,29 +7,30 @@ import os
 
 from pathlib import Path
 from dotenv import load_dotenv
-
 import logging
 
 load_dotenv()
-OPENAI_API_KEY = config('OPENAI_API_KEY')
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
 SECRET_KEY = config('SECRET_KEY')
-DEBUG=False
+DEBUG = True  # Set to False in production  
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 ONE_C_API_KEYS = config('ONE_C_API_KEYS', cast=Csv(), default="")
+TELEGRAM_BOT_API_KEY = config('TELEGRAM_BOT_API_KEY', default='')
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+OPENAI_API_KEY = config('OPENAI_API_KEY')
 
 
 
 INSTALLED_APPS = [
 
-    'daphne',  
+    'daphne', 
     'channels',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,7 +43,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     "drf_spectacular",
-    'ai_chat',
     "webpush",
     'users',
     'chat',
@@ -52,8 +52,9 @@ INSTALLED_APPS = [
     'portal_media',
     'payments',
     'reclamations',
-    'additional_order',
-        'bonus',
+    'bonus.apps.BonusConfig',
+
+
     # 'silk',
     # 'documents',
     # 'order',
@@ -64,7 +65,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'backend.maintenance_middleware.OneCMaintenanceMiddleware',
     # 'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -130,6 +130,30 @@ DATABASES = {
         }
 }
 
+# Separate local connection to the restored portal database.
+DATABASES['portal_test'] = {
+    'ENGINE': config('PORTAL_TEST_DB_ENGINE', default='mssql'),
+    'NAME': config('PORTAL_TEST_DB_NAME', default='portal_db'),
+    'HOST': config('PORTAL_TEST_DB_HOST', default=r'WST-SQL\WSTSQL'),
+    'USER': config('PORTAL_TEST_DB_USER', default='Bodnaruk_V'),
+    'PASSWORD': config('PORTAL_TEST_DB_PASSWORD', default=''),
+    'PORT': '',
+    'CONN_MAX_AGE': 600,
+    'OPTIONS': {
+        'driver': 'ODBC Driver 17 for SQL Server',
+        'trusted_connection': 'no',
+        'unicode_results': True,
+    },
+}
+
+# Opt in locally; existing deployments keep their current default connection.
+if config('PORTAL_USE_TEST_DB', default=False, cast=bool):
+    if not DATABASES['portal_test']['PASSWORD']:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured('Set PORTAL_TEST_DB_PASSWORD before enabling PORTAL_USE_TEST_DB.')
+    DATABASES['default'] = {**DATABASES['portal_test'], 'OPTIONS': dict(DATABASES['portal_test']['OPTIONS'])}
+
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -172,7 +196,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     "AUTH_COOKIE": "refresh",
     "AUTH_COOKIE_HTTP_ONLY": True,
-    "AUTH_COOKIE_SECURE": True,   # True на https
+    "AUTH_COOKIE_SECURE": not DEBUG,  # Allow HTTP cookies only in debug mode.
     "AUTH_COOKIE_SAMESITE": "Lax",
 
 }
@@ -205,6 +229,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BOT_TOKEN = config('BOT_TOKEN', default='')
 TELEGRAM_BOT_TOKEN = config('BOT_TOKEN', default='')
+PORTAL_ERROR_TELEGRAM_CHAT_ID = config('PORTAL_ERROR_TELEGRAM_CHAT_ID', default='716230412')
+PORTAL_ERROR_TELEGRAM_BOT_TOKEN = config('PORTAL_ERROR_TELEGRAM_BOT_TOKEN', default=TELEGRAM_BOT_TOKEN)
 
 
 
@@ -283,8 +309,6 @@ WEBPUSH_SETTINGS = {
 }
 
 
-FUNDS_TRANSFER_TELEGRAM_COPY_CHAT_ID = os.getenv('FUNDS_TRANSFER_TELEGRAM_COPY_CHAT_ID', '716230412')
-
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -292,11 +316,16 @@ CELERY_TASK_SERIALIZER = 'json'
 
 
 CELERY_BEAT_SCHEDULE = {
+    'publish-portal-announcements': {
+        'task': 'publish_due_portal_announcements',
+        'schedule': crontab(minute='*'),
+    },
     'order-stuck-check': {
         'task': 'run_order_reminder_cron',
         'schedule': crontab(hour='10, 16', minute=0), 
     },
 }
+
 
 
 
@@ -308,15 +337,18 @@ CELERY_BEAT_SCHEDULE = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 
-
 CORS_ALLOWED_ORIGINS = [
     "https://portal.vstg.com.ua",
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "http://172.17.19.107"
+    "http://172.17.19.107",
+    # "http://192.168.50.50",
+
     
 ]
+
+
 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -349,10 +381,16 @@ CSRF_TRUSTED_ORIGINS = [
 ALLOWED_HOSTS = ['172.17.19.107', 'localhost', '127.0.0.1', 'portal.vstg.com.ua', 'www.portal.vstg.com.ua', 'ordersportal.vstg.com.ua', 'www.ordersportal.vstg.com.ua', 'backend']
 
 
+
+
 # SILKY_PYTHON_PROFILER = True  
 # SILKY_INTERCEPT_PERCENT = 100 
 
 
+
+# --- Налаштування Content Security Policy (CSP) ---
+
+# Забороняємо вкладення вашого сайту у фрейми на інших доменах (Clickjacking)
 
 CSP_FRAME_ANCESTORS = ("*",)
 
@@ -417,27 +455,16 @@ CSP_OBJECT_SRC = ("'none'",)
 CSP_BASE_URI = ("'self'",)
 
 
-
 if not DEBUG:
-
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
     # Apache proxy currently does not forward X-Forwarded-Proto,
     # so forced SSL redirects create a loop for /api/* requests.
-    # Keep secure cookies/HSTS enabled and disable app-level redirect
-    # until the proxy header is configured on the web server.
     SECURE_SSL_REDIRECT = False
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
 
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-
-    
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
