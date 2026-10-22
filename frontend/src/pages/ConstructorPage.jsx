@@ -1,23 +1,38 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import './ConstructorPage.css';
 
-const CONSTRUCTOR_URL = 'https://viknastyle.com.ua/constructor';
+const SUPPORTED_LANGUAGES = ['en', 'de', 'pl', 'it', 'fr', 'ro'];
 
 export default function ConstructorPage() {
-  const [frameKey, setFrameKey] = useState(0);
-  return <section className="constructor-page">
-    <header className="constructor-page-toolbar">
-      <h1>Конструктор дверей</h1>
-      <div>
-        <button type="button" onClick={() => setFrameKey((value) => value + 1)}>Оновити</button>
-        <a href={CONSTRUCTOR_URL} target="_blank" rel="noopener noreferrer">Відкрити окремо ↗</a>
-      </div>
-    </header>
-    <p className="constructor-page-hint">Якщо конструктор не відображається, відкрийте його окремо.</p>
+  const { i18n } = useTranslation();
+  const pageRef = useRef(null);
+  const language = (i18n.resolvedLanguage || i18n.language || 'uk').split(/[-_]/)[0].toLowerCase();
+  const prefix = SUPPORTED_LANGUAGES.includes(language) ? `${language}/` : '';
+
+  useLayoutEffect(() => {
+    const header = document.querySelector('[data-portal-header]');
+    const updateBounds = () => {
+      if (!pageRef.current) return;
+      const top = Math.max(0, header?.getBoundingClientRect().bottom || 0);
+      pageRef.current.style.top = `${top}px`;
+    };
+    updateBounds();
+    const observer = new ResizeObserver(updateBounds);
+    if (header) observer.observe(header);
+    window.addEventListener('resize', updateBounds);
+    window.addEventListener('scroll', updateBounds, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateBounds);
+      window.removeEventListener('scroll', updateBounds);
+    };
+  }, []);
+
+  return <section ref={pageRef} className="constructor-page">
     <iframe
-      key={frameKey}
       className="constructor-page-frame"
-      src={CONSTRUCTOR_URL}
+      src={`https://viknastyle.com.ua/${prefix}frame/constructor`}
       title="Конструктор дверей Вікна Стиль"
       sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"
       referrerPolicy="strict-origin-when-cross-origin"

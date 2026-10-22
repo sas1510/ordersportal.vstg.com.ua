@@ -911,7 +911,7 @@ export default function HeaderDealer() {
 
   return (
     // <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
-    <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] ml-[8px] mr-[10px]">
+    <header data-portal-header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] ml-[8px] mr-[10px]">
       {/* <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} /> */}
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 

@@ -505,7 +505,7 @@ export default function HeaderAdmin() {
     : "bg-[#B4D947] text-[#44403E] hover:bg-[#a6ca42]";
 
   return (
-    <header className="w-[calc(100%-20px)] mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
+    <header data-portal-header className="w-[calc(100%-20px)] mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
      

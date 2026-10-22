@@ -1,9 +1,20 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from django.test import SimpleTestCase
-from .order_chat_summary import get_order_boundary_messages
+from .order_chat_summary import _hashable_binary_params, get_order_boundary_messages
 
 
 class OrderChatSummaryTests(SimpleTestCase):
+    def test_binary_parameters_are_hashable_after_field_preparation(self):
+        execute = Mock(side_effect=lambda sql, params, many, context: set((value, type(value)) for value in params))
+        result = _hashable_binary_params(execute, 'GROUP BY', [bytearray(b'a'), memoryview(b'b'), 1, None], False, {})
+        self.assertEqual(result, {(b'a', bytes), (b'b', bytes), (1, int), (None, type(None))})
+
+    def test_bytearray_ids_are_normalized_before_deduplication(self):
+        with patch('records.order_chat_summary.ChatMessage.objects.filter') as query:
+            query.return_value.order_by.return_value.values.return_value.annotate.return_value = []
+            get_order_boundary_messages([bytearray(b'a'), memoryview(b'a')])
+        self.assertEqual(query.call_args.kwargs['related_object_id__in'], [b'a'])
+
     def test_empty_list_does_not_query_database(self):
         with patch('records.order_chat_summary.ChatMessage.objects.filter') as query:
             self.assertEqual(get_order_boundary_messages([]), [])

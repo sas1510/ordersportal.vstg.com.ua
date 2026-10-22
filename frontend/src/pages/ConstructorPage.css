@@ -1,12 +1,17 @@
-.constructor-page { width: 100%; max-width: none; box-sizing: border-box; margin: 110px 0 8px; padding: 0 8px; color: var(--text-color, #263746); }
-.constructor-page-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-.constructor-page-toolbar h1 { font-size: 18px; margin: 0; }
-.constructor-page-toolbar > div { display: flex; align-items: center; gap: 10px; }
-.constructor-page-toolbar button, .constructor-page-toolbar a { padding: 6px 10px; border: 1px solid #89b3d8; border-radius: 4px; background: transparent; color: inherit; font: inherit; font-size: 12px; cursor: pointer; text-decoration: none; }
-.constructor-page-toolbar button:focus-visible, .constructor-page-toolbar a:focus-visible { outline: 2px solid #89b3d8; outline-offset: 3px; }
-.constructor-page-hint { margin: 8px 0; font-size: 12px; opacity: .75; }
-.constructor-page-frame { display: block; width: 100%; box-sizing: border-box; height: calc(100dvh - 200px); min-height: 460px; border: 1px solid #84939f66; border-radius: 5px; background: white; }
-@media (max-width: 768px) {
-  .constructor-page { margin-top: 85px; padding: 0 8px; }
-  .constructor-page-frame { height: calc(100dvh - 185px); min-height: 400px; }
+.constructor-page {
+  position: fixed;
+  inset: 82px 0 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: none;
+  overflow: hidden;
+}
+
+.constructor-page-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
 }
