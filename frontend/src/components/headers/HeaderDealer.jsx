@@ -621,16 +621,15 @@ import { AppIcon } from "../Icons/AppIcon";
 import { RoleContext } from "../../context/RoleContext";
 import { hasFinanceAccess } from "../../utils/financeAccess";
 import { 
-  Ticket, 
+  Ticket,
+  Ruler,
   ShoppingBag, 
   AlertTriangle, 
   PlusCircle, 
   FolderOpen, 
   CircleHelp,
   Video, 
-  CreditCard,
   Wallet,
-  BarChart3
 } from "lucide-react";
 
 const BALANCE_CACHE_KEY = "dealer_balance_cache";
@@ -652,6 +651,7 @@ export default function HeaderDealer() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const NAV_LINKS = useMemo(() => [
+    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: Ruler },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/orders", icon: ShoppingBag },
     { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
@@ -659,18 +659,15 @@ export default function HeaderDealer() {
     { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files", icon: FolderOpen },
     { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos", icon: Video },
     // { title: t('nav.faq_short'), mobileTitle: t('nav.faq'), to: "/faq", icon: CircleHelp },
-    { title: t('nav.finance_analytics_short'), mobileTitle: t('nav.finance_analytics'), to: "/statistics", icon: BarChart3  },
-    canViewFinance && { title: t('nav.payment_short'), mobileTitle: t('nav.payment'), to: "/payment", icon: CreditCard },
-  ].filter(Boolean), [t, canViewFinance]);
+  ], [t]);
 
-  const FINANCE_SUBMENU = useMemo(() => (
-    canViewFinance
-      ? [
-          { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
-          { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
-        ]
-      : []
-  ), [t, canViewFinance]);
+  const FINANCE_SUBMENU = useMemo(() => [
+    canViewFinance && { title: t('nav.payment'), to: '/payment' },
+    { title: t('nav.finance_analytics'), to: '/statistics' },
+    canViewFinance && { title: t('nav.finance_cash_flow'), to: '/finance/cash-flow' },
+    canViewFinance && { title: t('nav.finance_bills'), to: '/finance/customer-bills' },
+  ].filter(Boolean), [t, canViewFinance]);
+  const isFinanceActive = FINANCE_SUBMENU.some((item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`));
 
   // --- СТАН ДАНИХ ---
   const [unreadCount, setUnreadCount] = useState(0);
@@ -954,7 +951,7 @@ export default function HeaderDealer() {
                     </li>
                   ))}
                 
-                {canViewFinance && <li 
+                {FINANCE_SUBMENU.length > 0 && <li 
   className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" 
   ref={financeRef}
 >
@@ -964,7 +961,7 @@ export default function HeaderDealer() {
       shadow-[0_2px_4px_rgba(0,0,0,0.1)]
       active:translate-y-[1px] active:shadow-none
 
-      ${showFinanceMenu || location.pathname.includes("/finance")
+      ${showFinanceMenu || isFinanceActive
         ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner" 
         : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
       }`}
@@ -1150,11 +1147,11 @@ export default function HeaderDealer() {
               );
             })}
 
-            {canViewFinance && <div className="relative flex flex-col w-full">
+            {FINANCE_SUBMENU.length > 0 && <div className="relative flex flex-col w-full">
               <button
                 onClick={() => setShowFinanceMenu(!showFinanceMenu)}
                 className={`w-full py-3 px-[15%] flex items-center group ${
-                  location.pathname.includes("/finance")
+                  isFinanceActive
                     ? "text-[#6B98BF]"
                     : "text-[#44403E]"
                 }`}

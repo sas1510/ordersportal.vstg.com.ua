@@ -346,7 +346,7 @@ export default function HeaderAdmin() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const closeComparison = useCallback(() => setComparisonOpen(false), []);
   const { isAdmin, role } = useAuthGetRole();
-  const isMobile = useMediaQuery({ maxWidth: 1460 }); 
+  const isMobile = useMediaQuery({ maxWidth: 1460 });
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
@@ -357,6 +357,7 @@ export default function HeaderAdmin() {
 
   const NAV_LINKS = useMemo(() => [
     { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
+    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor' },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order" },
     { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation" },

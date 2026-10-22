@@ -1,10 +1,12 @@
 .constructor-page {
   position: fixed;
-  inset: 82px 0 0;
+  top: 82px;
+  bottom: 0;
+  left: max(10px, calc((100% - 1334px) / 2));
   margin: 0;
   padding: 0;
-  width: 100%;
-  max-width: none;
+  width: min(1334px, calc(100% - 20px));
+  box-sizing: border-box;
   overflow: hidden;
 }
 

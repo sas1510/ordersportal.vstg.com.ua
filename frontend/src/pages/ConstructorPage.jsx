@@ -12,14 +12,21 @@ export default function ConstructorPage() {
 
   useLayoutEffect(() => {
     const header = document.querySelector('[data-portal-header]');
+    const headerContent = header?.firstElementChild;
     const updateBounds = () => {
       if (!pageRef.current) return;
       const top = Math.max(0, header?.getBoundingClientRect().bottom || 0);
       pageRef.current.style.top = `${top}px`;
+      const bounds = (headerContent || header)?.getBoundingClientRect();
+      if (bounds) {
+        pageRef.current.style.left = `${bounds.left}px`;
+        pageRef.current.style.width = `${bounds.width}px`;
+      }
     };
     updateBounds();
     const observer = new ResizeObserver(updateBounds);
     if (header) observer.observe(header);
+    if (headerContent) observer.observe(headerContent);
     window.addEventListener('resize', updateBounds);
     window.addEventListener('scroll', updateBounds, { passive: true });
     return () => {
