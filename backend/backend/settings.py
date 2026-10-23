@@ -315,7 +315,10 @@ CELERY_BEAT_SCHEDULE = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 
+MEASUREMENT_APP_ORIGIN = config('MEASUREMENT_APP_ORIGIN', default='https://zamir.viknastyle.com.ua').rstrip('/')
+
 CORS_ALLOWED_ORIGINS = [
+    MEASUREMENT_APP_ORIGIN,
     "https://portal.vstg.com.ua",
     "https://ordersportal.vstg.com.ua",
     "http://localhost:5173",
@@ -332,6 +335,7 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
+    "idempotency-key",
     "accept",
     "authorization",
     "content-type",
@@ -344,6 +348,7 @@ CORS_ALLOW_HEADERS = [
 
 # Додайте IP вашого сервера
 CSRF_TRUSTED_ORIGINS = [
+    MEASUREMENT_APP_ORIGIN,
     PORTAL_LOCAL_ORIGIN,
     'http://localhost',
     'http://127.0.0.1',

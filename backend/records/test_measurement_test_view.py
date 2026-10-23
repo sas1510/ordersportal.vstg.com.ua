@@ -1,12 +1,25 @@
 from types import SimpleNamespace
 from unittest.mock import patch
 from django.test import SimpleTestCase, override_settings
+from django.conf import settings
+from django.http import HttpResponse
+from corsheaders.middleware import CorsMiddleware
 from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework.response import Response
 from .measurement_test_view import MeasurementTestView
 
 
 class MeasurementTestPageAccessTests(SimpleTestCase):
+    @override_settings(CORS_ALLOW_ALL_ORIGINS=False)
+    def test_measurement_origin_preflight_allows_authorization_and_replay_header(self):
+        request = APIRequestFactory().options('/api/integrations/measurement/test/',
+            HTTP_ORIGIN=settings.MEASUREMENT_APP_ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD='POST',
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS='authorization,content-type,idempotency-key')
+        response = CorsMiddleware(lambda req: HttpResponse())(request)
+        self.assertEqual(response['Access-Control-Allow-Origin'], settings.MEASUREMENT_APP_ORIGIN)
+        self.assertIn('idempotency-key', response['Access-Control-Allow-Headers'])
+
     def test_anonymous_denied(self):
         response = MeasurementTestView.as_view()(APIRequestFactory().get('/test/'))
         self.assertEqual(response.status_code, 401)
