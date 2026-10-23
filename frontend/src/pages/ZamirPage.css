@@ -47,3 +47,10 @@
 .zamir-email-heading .zamir-email-icon { width: 40px; height: 40px; flex: 0 0 40px; margin: 0; border-radius: 12px; }
 .zamir-email-heading h1 { margin: 0; font-size: 21px; }
 @media (max-width: 480px) { .zamir-email-heading { gap: 9px; } .zamir-email-heading h1 { font-size: 18px; } }
+
+.zamir-page:fullscreen, .zamir-page-expanded { inset: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; background: #fff; }
+.zamir-page-expanded { z-index: 10000; }
+.zamir-fullscreen-button { position: absolute; top: 12px; right: 12px; z-index: 2; display: flex; align-items: center; gap: 7px; min-height: 38px; padding: 8px 11px; border: 1px solid #ffffff38; border-radius: 9px; background: #343b43ed; color: #fff; box-shadow: 0 3px 12px #0002; font-size: 12px; line-height: 1.2; cursor: pointer; }
+.zamir-fullscreen-button:hover { background: #24394b; }
+.zamir-fullscreen-button:focus-visible { outline: 2px solid #b4d947; outline-offset: 3px; }
+@media (max-width: 600px) { .zamir-fullscreen-button { top: 8px; right: 8px; padding: 9px; } .zamir-fullscreen-button span { display: none; } }

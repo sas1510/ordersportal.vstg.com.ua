@@ -476,3 +476,7 @@ LOGGING = {
 
 # Separate server-to-server measurement integration key.
 MEASUREMENT_API_KEY = config('MEASUREMENT_API_KEY', default='')
+
+# Separate credentials for the measurement test 1C publication.
+MEASUREMENT_ONE_C_USER = config('MEASUREMENT_ONE_C_USER', default='')
+MEASUREMENT_ONE_C_PASSWORD = config('MEASUREMENT_ONE_C_PASSWORD', default='')

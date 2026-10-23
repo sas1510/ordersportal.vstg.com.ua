@@ -17,6 +17,7 @@ def payload():
     return {'user_id': 78, 'items_count': 2, 'file': {'fileName': 'measurement.pdf', 'fileDataB64': base64.b64encode(b'%PDF-1.4\n%%EOF').decode()}}
 
 
+@override_settings(MEASUREMENT_ONE_C_USER='test-user', MEASUREMENT_ONE_C_PASSWORD='test-pass')
 class MeasurementOrderTests(SimpleTestCase):
     @override_settings(ONE_C_URL='https://production.invalid/hs/service/')
     def test_measurement_posts_only_to_test_1c(self):
@@ -120,3 +121,16 @@ class MeasurementOrderTests(SimpleTestCase):
             response = MeasurementOrderViewSet().create(request)
         self.assertEqual(response.data['portal_user_id'], 78)
         self.assertNotIn('payload_sent_to_1c', response.data)
+
+
+    @override_settings(MEASUREMENT_ONE_C_USER='', MEASUREMENT_ONE_C_PASSWORD='', ONE_C_USER='prod-user', ONE_C_PASSWORD='prod-pass')
+    def test_missing_test_credentials_never_fall_back_to_production(self):
+        from .measurement_orders import MeasurementOneCNotConfigured
+        with self.assertRaises(MeasurementOneCNotConfigured):
+            MeasurementOrderViewSet().get_one_c_credentials()
+
+    def test_test_credentials_are_used_in_authorization_header(self):
+        upstream = SimpleNamespace(ok=True, text='{}', status_code=200, json=lambda: {'success': True})
+        with patch('records.views.requests.post', return_value=upstream) as post:
+            MeasurementOrderViewSet()._send_to_1c({'calculations': [{}]})
+        self.assertEqual(post.call_args.kwargs['headers']['Authorization'], 'Basic ' + base64.b64encode(b'test-user:test-pass').decode())

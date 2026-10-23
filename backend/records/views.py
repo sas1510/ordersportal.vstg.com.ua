@@ -3771,6 +3771,9 @@ class CreateCalculationViewSet(viewsets.ViewSet):
     def get_one_c_url(self):
         return settings.ONE_C_URL
 
+    def get_one_c_credentials(self):
+        return settings.ONE_C_USER, settings.ONE_C_PASSWORD
+
     def _send_to_1c(self, payload: dict) -> dict:
         start_time = time.time()
         calculation = (payload.get("calculations") or [{}])[0]
@@ -3788,7 +3791,8 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             }
         })
         try:
-            auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
+            auth_user, auth_password = self.get_one_c_credentials()
+            auth_raw = f"{auth_user}:{auth_password}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
             response = requests.post(
                 self.get_one_c_url(),

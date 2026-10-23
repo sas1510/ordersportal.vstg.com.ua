@@ -10,6 +10,30 @@ export default function ZamirPage() {
   const setFrameRef = useCallback((node) => updateZamirFrameRef(frameRef, node), []);
   const pageRef = useRef(null);
   const [error, setError] = useState('');
+  const [nativeFullscreen, setNativeFullscreen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const fullscreen = nativeFullscreen || expanded;
+  useEffect(() => {
+    const onChange = () => setNativeFullscreen(document.fullscreenElement === pageRef.current);
+    const onKeyDown = (event) => { if (event.key === 'Escape') setExpanded(false); };
+    document.addEventListener('fullscreenchange', onChange);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, []);
+  const toggleFullscreen = async () => {
+    if (document.fullscreenElement === pageRef.current) {
+      try { await document.exitFullscreen(); } catch { /* Browser may already have exited. */ }
+      return;
+    }
+    if (expanded) { setExpanded(false); return; }
+    if (pageRef.current?.requestFullscreen) {
+      try { await pageRef.current.requestFullscreen(); return; } catch { /* Fall back to filling the browser viewport. */ }
+    }
+    setExpanded(true);
+  };
   const [retry, setRetry] = useState(0);
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState('');
@@ -105,7 +129,16 @@ export default function ZamirPage() {
     };
   }, [isDealer, retry]);
   if (!isDealer) return <p>Замірник доступний лише дилерам.</p>;
-  return <section ref={pageRef} className="zamir-page">
+  return <section ref={pageRef} className={`zamir-page${expanded ? ' zamir-page-expanded' : ''}`}>
+    {profile && !profile.email_required && <button
+      type="button" className="zamir-fullscreen-button" onClick={toggleFullscreen}
+      aria-label={fullscreen ? 'Вийти з повного екрана' : 'На повний екран'}
+      title={fullscreen ? 'Вийти з повного екрана' : 'На повний екран'} aria-pressed={fullscreen}>
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d={fullscreen ? 'M9 3v6H3m12-6v6h6M3 15h6v6m12-6h-6v6' : 'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5'} />
+      </svg>
+      <span>{fullscreen ? 'Згорнути' : 'На весь екран'}</span>
+    </button>}
     {error && <div role="alert" className="zamir-error">{error}
       <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1); }}>Спробувати ще раз</button>
     </div>}
