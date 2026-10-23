@@ -467,3 +467,6 @@ LOGGING = {
         "level": "INFO",
     },
 }
+
+# Separate server-to-server measurement integration key.
+MEASUREMENT_API_KEY = config('MEASUREMENT_API_KEY', default='')

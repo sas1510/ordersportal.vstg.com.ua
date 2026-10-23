@@ -1,0 +1,12 @@
+.measurement-test { max-width: 860px; margin: 110px auto 30px; padding: 20px; color: var(--text-color, #263746); }
+.measurement-test h1 { font-size: 24px; margin-bottom: 16px; }
+.measurement-test-warning { padding: 12px; background: #fff0cf; color: #704500; border-radius: 6px; }
+.measurement-test fieldset { border: 0; padding: 0; display: grid; gap: 14px; margin: 20px 0; }
+.measurement-test label { display: grid; gap: 6px; }
+.measurement-test input, .measurement-test textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #8a9ba9; border-radius: 5px; background: var(--input-bg, #fff); color: var(--text-color, #263746); }
+.measurement-test-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.measurement-test button { padding: 10px 16px; background: #6b98bf; color: #102d44; border-radius: 5px; cursor: pointer; }
+.measurement-test button:disabled { opacity: .55; cursor: not-allowed; }
+.measurement-test pre { max-height: 450px; overflow: auto; padding: 14px; background: #172331; color: #eaf2fa; white-space: pre-wrap; overflow-wrap: anywhere; }
+.measurement-test code { overflow-wrap: anywhere; }
+@media (max-width: 768px) { .measurement-test { margin-top: 80px; padding: 12px; } }

@@ -4,6 +4,7 @@ import AddOrEditFilePage from "./pages/AddOrEditFilePage";
 
 import VideosPage from "./pages/VideosPage";
 import ConstructorPage from "./pages/ConstructorPage";
+import MeasurementTestPage from "./pages/MeasurementTestPage";
 import VideoFormPage from "./pages/VideoFormPage";
 import FAQ from "./pages/FAQ";
 
@@ -51,6 +52,7 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 
 
 export const adminRoutes = [
+  { path: "integration-test/measurement", element: <MeasurementTestPage /> },
   { path: "constructor", element: <ConstructorPage /> },
   { path: "finance/funds-transfer-history", element: <FundsTransferHistoryPage /> },
   { path: "home", element: <HomePage /> },
@@ -102,6 +104,7 @@ export const adminRoutes = [
 ];
 
 const managerBlockedRoutePaths = new Set([
+  "integration-test/measurement",
   "files/add",
   "files/edit/:id",
   "videos/add",
@@ -117,6 +120,7 @@ export const managerRoutes = adminRoutes.filter(
 );
 
 const branchLeaderBlockedRoutePaths = new Set([
+  "integration-test/measurement",
   "files/add",
   "files/edit/:id",
   "videos/add",

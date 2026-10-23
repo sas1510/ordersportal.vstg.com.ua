@@ -34,6 +34,7 @@ export default function AddReorderModal({
   const [manualDeliveryAddress, setManualDeliveryAddress] = useState("");
   const [deliveryAddressMode, setDeliveryAddressMode] = useState("order");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
     .split("-")[0];
@@ -193,8 +194,9 @@ export default function AddReorderModal({
     onClose();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     const formData = {
       orderNumber: noOrder ? null : orderNumber,
       noOrder,
@@ -204,8 +206,13 @@ export default function AddReorderModal({
       order_delivery_address: (deliveryAddressMode === "order" ? orderDeliveryAddress : manualDeliveryAddress).trim(),
       ...(isBackoffice && contractorGuid ? { contractor_guid: contractorGuid } : {}),
     };
-    onSave?.(formData);
-    handleCloseWithReset();
+    setSaving(true);
+    try {
+      const saved = await onSave?.(formData);
+      if (saved !== false) handleCloseWithReset();
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -336,9 +343,9 @@ export default function AddReorderModal({
             <button
               type="submit"
               className="reorder-btn-save"
-              disabled={loading || (!noOrder && !orderNumber) || (isBackoffice && !contractorGuid)}
+              disabled={loading || saving || (!noOrder && !orderNumber) || (isBackoffice && !contractorGuid)}
             >
-              {loading ? <FaSpinner className="spinner" /> : <FaPlus />} {t("reorder_modal.btn_save")}
+              {loading || saving ? <FaSpinner className="spinner" /> : <FaPlus />} {t("reorder_modal.btn_save")}
             </button>
           </div>
         </form>

@@ -3763,6 +3763,13 @@ def extract_calculation_guid(result) -> str | None:
 #
 class CreateCalculationViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticatedOr1CApiKey]
+    create_serializer_class = CalculationCreateSerializer
+
+    def get_idempotency_key(self, request):
+        return request.headers.get("Idempotency-Key")
+
+    def get_one_c_url(self):
+        return settings.ONE_C_URL
 
     def _send_to_1c(self, payload: dict) -> dict:
         start_time = time.time()
@@ -3784,7 +3791,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             auth_raw = f"{settings.ONE_C_USER}:{settings.ONE_C_PASSWORD}"
             auth_b64 = base64.b64encode(auth_raw.encode("utf-8")).decode("ascii")
             response = requests.post(
-                settings.ONE_C_URL,
+                self.get_one_c_url(),
                 json=payload,
                 headers={
                     "Content-Type": "application/json; charset=utf-8",
@@ -3885,7 +3892,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         tags=["order"]
     )
     def create(self, request):
-        serializer = CalculationCreateSerializer(data=request.data)
+        serializer = self.create_serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
@@ -3929,7 +3936,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
 
 
         idempotency_record = None
-        idempotency_key = request.headers.get("Idempotency-Key")
+        idempotency_key = self.get_idempotency_key(request)
         logger.info("CreateCalculation request validated", extra={
             "tags": {
                 "action": "create_calculation",

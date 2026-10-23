@@ -7,6 +7,8 @@ import AddReorderModal from "../components/AdditionalOrder/AddReorderModal";
 import useWindowWidth from "../hooks/useWindowWidth";
 
 import { useTranslation } from "react-i18next";
+import { useNotification } from "../hooks/useNotification";
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 // import { useTheme } from '../context/ThemeContext';
 import useCancelAllRequests from "../hooks/useCancelAllRequests";
 import DealerSelectWithAll from "./DealerSelectWithAll";
@@ -33,6 +35,8 @@ const AdminAdditionalOrders = () => {
     const { register, cancelAll } = useCancelAllRequests();
   const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
   const {t} = useTranslation();
+  const { addNotificaton } = useNotification();
+  const { isBackoffice } = useAuthGetRole();
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -407,11 +411,24 @@ const AdminAdditionalOrders = () => {
     );
   }, []);
 
-  const handleSaveAdditionalOrder = useCallback((_newOrder) => {
-
-    setIsNewOrderModalOpen(false);
-    setDisplayLimit(initialLimit);
-  }, []);
+  const handleSaveAdditionalOrder = useCallback(async (formData) => {
+    try {
+      const response = await axiosInstance.post(
+        "/additional_orders/save_additional_order/", formData,
+      );
+      if (response.data?.success !== true && response.status !== 201) {
+        addNotificaton(response.data?.message || t("errors.unknownError"), "error");
+        return false;
+      }
+      setIsNewOrderModalOpen(false);
+      setDisplayLimit(initialLimit);
+      await reloadAdditionalOrders();
+      return true;
+    } catch (error) {
+      addNotificaton(error.response?.data?.error || error.response?.data?.message || t("errors.errorSendData_2"), "error");
+      return false;
+    }
+  }, [addNotificaton, t, reloadAdditionalOrders]);
 
 
   const statusSummary = useMemo(() => {
@@ -688,6 +705,23 @@ const AdminAdditionalOrders = () => {
               className="portal-service-icon absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
             />
           </div>
+
+          {isBackoffice && (
+            <ul className="buttons">
+              <li>
+                <button
+                  type="button"
+                  className="btn-add-calc !min-h-[65px] w-full"
+                  onClick={() => { setIsSidebarOpen(false); setIsNewOrderModalOpen(true); }}
+                >
+                  <img src={plusIcon} alt="" className="portal-service-icon align-center mr-2" />
+                  <span className="text-center text-WS---DarkGrey text-[18px] font-bold uppercase">
+                    {t("additional_order.new_order_btn")}
+                  </span>
+                </button>
+              </li>
+            </ul>
+          )}
 
           {isAdmin && (
             <>
