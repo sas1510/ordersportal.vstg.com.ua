@@ -38,12 +38,21 @@ export default function ZamirPage() {
   };
   useLayoutEffect(() => {
     const header = document.querySelector('[data-portal-header]');
+    const headerContent = header?.firstElementChild;
     const update = () => {
-      if (pageRef.current) pageRef.current.style.top = `${Math.max(0, header?.getBoundingClientRect().bottom || 0)}px`;
+      if (!pageRef.current) return;
+      pageRef.current.style.top = `${Math.max(0, header?.getBoundingClientRect().bottom || 0)}px`;
+      const bounds = (headerContent || header)?.getBoundingClientRect();
+      if (bounds) {
+        pageRef.current.style.left = `${bounds.left}px`;
+        pageRef.current.style.width = `${bounds.width}px`;
+        pageRef.current.style.right = 'auto';
+      }
     };
     update();
     const observer = new ResizeObserver(update);
     if (header) observer.observe(header);
+    if (headerContent) observer.observe(headerContent);
     window.addEventListener('resize', update);
     window.addEventListener('scroll', update, { passive: true });
     return () => {
@@ -96,11 +105,11 @@ export default function ZamirPage() {
     </div>}
     {profile?.email_required && <div className="zamir-email-panel">
       <form onSubmit={saveEmail}>
-        <h1>Вкажіть email для замірника</h1>
-        <p>Ця адреса буде вашим логіном у замірнику. Вкажіть власну діючу пошту — ми збережемо її у профілі порталу.</p>
+        <h1>Підтвердьте email для замірника</h1>
+        <p>Ця адреса буде вашим логіном у замірнику. Перевірте пошту або вкажіть актуальну. Натискаючи кнопку, ви підтверджуєте, що це ваша діюча адреса.</p>
         <label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={savingEmail} /></label>
         {emailError && <p role="alert">{emailError}</p>}
-        <button type="submit" disabled={savingEmail}>{savingEmail ? 'Збереження…' : 'Зберегти й увійти'}</button>
+        <button type="submit" disabled={savingEmail}>{savingEmail ? 'Збереження…' : 'Підтвердити й увійти'}</button>
       </form>
     </div>}
     {!profile && !error && <p className="zamir-profile-loading">Перевірка профілю…</p>}

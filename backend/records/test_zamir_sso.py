@@ -15,7 +15,7 @@ from .zamir_sso import ZamirTicketView, ZamirProfileView
 class ZamirTicketTests(SimpleTestCase):
     def user(self, **changes):
         return SimpleNamespace(**dict(dict(pk=78, is_authenticated=True, is_active=True,
-            role='dealer', expire_date=None, email='dealer@example.com',
+            role='dealer', expire_date=None, email='dealer@example.com', email_confirmed=True,
             full_name='Іван Петренко', username='dealer'), **changes))
 
     def ticket(self, user):
@@ -71,7 +71,7 @@ class ZamirEmailProfileTests(ZamirTicketTests):
             self.assertTrue(response.data['email_required'])
         self.assertFalse(self.profile(self.user()).data['email_required'])
 
-    def test_email_saved_only_on_current_user_and_confirmation_reset(self):
+    def test_email_saved_only_on_current_user_and_confirmed(self):
         user = self.user(email='', email_confirmed=True, save=Mock())
         with patch('records.zamir_sso.CustomUser.objects.filter') as query:
             query.return_value.exclude.return_value.exists.return_value = False
@@ -79,7 +79,7 @@ class ZamirEmailProfileTests(ZamirTicketTests):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(user.pk, 78)
         self.assertEqual(user.email, 'new@example.com')
-        self.assertFalse(user.email_confirmed)
+        self.assertTrue(user.email_confirmed)
         user.save.assert_called_once_with(update_fields=['email', 'email_confirmed'])
 
     def test_invalid_email_is_not_saved(self):
@@ -97,3 +97,21 @@ class ZamirEmailProfileTests(ZamirTicketTests):
 
     def test_manager_cannot_update_email_through_zamir(self):
         self.assertEqual(self.profile(self.user(role='manager'), {'email': 'new@example.com'}).status_code, 403)
+
+
+    def test_unconfirmed_email_prompts_and_cannot_issue_ticket(self):
+        user = self.user(email_confirmed=False)
+        self.assertTrue(self.profile(user).data['email_required'])
+        response = self.ticket(user)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data['code'], 'email_required')
+
+    def test_same_email_can_be_explicitly_confirmed(self):
+        user = self.user(email_confirmed=False, save=Mock())
+        with patch('records.zamir_sso.CustomUser.objects.filter') as query:
+            query.return_value.exclude.return_value.exists.return_value = False
+            response = self.profile(user, {'email': user.email})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(user.email_confirmed)
+        user.save.assert_called_once_with(update_fields=['email', 'email_confirmed'])
+        self.assertEqual(self.ticket(user).status_code, 200)

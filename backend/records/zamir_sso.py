@@ -47,6 +47,8 @@ class ZamirTicketView(APIView):
             validate_email(email)
         except ValidationError:
             return Response({'detail': 'Для входу в замірник заповніть коректний email.', 'code': 'email_required'}, status=400)
+        if not getattr(user, 'email_confirmed', False):
+            return Response({'detail': 'Підтвердьте актуальну пошту для входу в замірник.', 'code': 'email_required'}, status=400)
         key = getattr(settings, 'MEASUREMENT_API_KEY', '') or ''
         if not key:
             return Response({'detail': 'Інтеграцію замірника не налаштовано.'}, status=503)
@@ -70,7 +72,7 @@ class ZamirProfileView(ZamirTicketView):
         email = (request.user.email or '').strip()
         try:
             validate_email(email)
-            required = False
+            required = not bool(getattr(request.user, 'email_confirmed', False))
         except ValidationError:
             required = True
         return Response({'email': email, 'email_required': required})
@@ -85,8 +87,9 @@ class ZamirProfileView(ZamirTicketView):
         if CustomUser.objects.filter(email__iexact=email).exclude(pk=request.user.pk).exists():
             return Response({'email': ['Ця адреса вже використовується іншим користувачем.']}, status=400)
         user = request.user
-        if (user.email or '') != email:
+        if (user.email or '') != email or not user.email_confirmed:
             user.email = email
-            user.email_confirmed = False
+            # The dealer explicitly confirms the address in the portal form.
+            user.email_confirmed = True
             user.save(update_fields=['email', 'email_confirmed'])
         return Response({'email': email, 'email_required': False})
