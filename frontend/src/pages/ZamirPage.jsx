@@ -104,12 +104,19 @@ export default function ZamirPage() {
       <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1); }}>Спробувати ще раз</button>
     </div>}
     {profile?.email_required && <div className="zamir-email-panel">
-      <form onSubmit={saveEmail}>
-        <h1>Підтвердьте email для замірника</h1>
-        <p>Ця адреса буде вашим логіном у замірнику. Перевірте пошту або вкажіть актуальну. Натискаючи кнопку, ви підтверджуєте, що це ваша діюча адреса.</p>
-        <label>Email<input type="email" required maxLength={254} autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={savingEmail} /></label>
+      <form onSubmit={saveEmail} aria-labelledby="zamir-email-title">
+        <span className="zamir-email-eyebrow">Перший вхід у замірник</span>
+        <div className="zamir-email-heading">
+          <span className="zamir-email-icon" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="m4 7 8 6 8-6" /></svg>
+        </span>
+          <h1 id="zamir-email-title">Підтвердьте вашу пошту</h1>
+        </div>
+        <p className="zamir-email-description">Вона стане вашим логіном у замірнику.<br />Перевірте адресу або вкажіть актуальну.</p>
+        <label>Електронна пошта<input type="email" placeholder="name@example.com" spellCheck={false} required maxLength={254} autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={savingEmail} /></label>
         {emailError && <p role="alert">{emailError}</p>}
-        <button type="submit" disabled={savingEmail}>{savingEmail ? 'Збереження…' : 'Підтвердити й увійти'}</button>
+        <button type="submit" disabled={savingEmail}>{savingEmail ? 'Збереження…' : <>Підтвердити й увійти <span aria-hidden="true">→</span></>}</button>
+        <p className="zamir-email-note">Підтверджую, що це моя діюча адреса пошти.</p>
       </form>
     </div>}
     {!profile && !error && <p className="zamir-profile-loading">Перевірка профілю…</p>}

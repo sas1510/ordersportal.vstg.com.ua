@@ -3,12 +3,47 @@
 .zamir-error { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1; padding: 14px; border: 1px solid #d38443; border-radius: 6px; background: #fff5e8; color: #6d350c; }
 .zamir-error button { margin-left: 12px; padding: 6px 10px; border: 1px solid currentColor; border-radius: 4px; }
 
-.zamir-email-panel { height: 100%; overflow: auto; display: grid; place-items: center; padding: 20px; box-sizing: border-box; }
-.zamir-email-panel form { width: 100%; max-width: 460px; padding: 24px; box-sizing: border-box; border: 1px solid #8a9ba9; border-radius: 10px; background: var(--header-bg, #fff); color: var(--text-color, #263746); }
-.zamir-email-panel h1 { font-size: 22px; margin-bottom: 12px; }
-.zamir-email-panel label { display: grid; gap: 8px; margin: 20px 0; }
-.zamir-email-panel input { padding: 10px; width: 100%; box-sizing: border-box; color: inherit; background: transparent; border: 1px solid #8a9ba9; border-radius: 5px; }
-.zamir-email-panel button { padding: 10px 16px; border-radius: 5px; background: #6b98bf; color: #102d44; }
-.zamir-email-panel button:disabled { opacity: .6; }
-.zamir-email-panel [role="alert"] { color: #dc733a; margin: 10px 0; }
+.zamir-email-panel {
+  --zamir-card: #fff;
+  --zamir-ink: #263746;
+  --zamir-muted: #6d7880;
+  --zamir-line: #dce4e9;
+  --zamir-field: #f7f9fa;
+  height: 100%; overflow: auto; display: grid; place-items: center;
+  padding: 32px 20px; box-sizing: border-box;
+  background: radial-gradient(ellipse at 50% 35%, #89b3d811, transparent 65%);
+}
+.dark-theme .zamir-email-panel {
+  --zamir-card: #393735;
+  --zamir-ink: #f5f5f3;
+  --zamir-muted: #bebdb9;
+  --zamir-line: #ffffff20;
+  --zamir-field: #2f2d2b;
+}
+.zamir-email-panel form {
+  position: relative; width: 100%; max-width: 440px; box-sizing: border-box;
+  padding: 32px; border: 1px solid var(--zamir-line); border-radius: 20px;
+  background: var(--zamir-card); color: var(--zamir-ink);
+  box-shadow: 0 16px 48px #00000014; font-family: inherit;
+}
+.zamir-email-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: #b4d94722; color: #718f20; margin-bottom: 20px; }
+.dark-theme .zamir-email-icon { color: #c1df68; }
+.zamir-email-eyebrow { display: block; color: var(--zamir-muted); font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+.zamir-email-panel h1 { font-size: 23px; line-height: 1.3; font-weight: 650; letter-spacing: -.4px; margin: 0 0 12px; color: var(--zamir-ink); }
+.zamir-email-description { font-size: 14px; line-height: 1.65; color: var(--zamir-muted); margin: 0; }
+.zamir-email-panel label { display: grid; gap: 9px; margin: 25px 0 18px; font-size: 13px; font-weight: 600; }
+.zamir-email-panel input { height: 48px; margin: 0; padding: 0 13px; width: 100%; box-sizing: border-box; font: inherit; font-size: 15px; font-weight: 400; color: var(--zamir-ink); background: var(--zamir-field); border: 1px solid var(--zamir-line); border-radius: 9px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.zamir-email-panel input:focus { border-color: #89b3d8; box-shadow: 0 0 0 3px #89b3d825; }
+.zamir-email-panel button { display: flex; align-items: center; justify-content: center; gap: 14px; width: 100%; min-height: 48px; padding: 11px 16px; border: 0; border-radius: 9px; background: #b4d947; color: #283514; font-size: 14px; font-weight: 650; cursor: pointer; transition: background .15s; }
+.zamir-email-panel button:hover:not(:disabled) { background: #c1e35e; }
+.zamir-email-panel button:focus-visible { outline: 2px solid #89b3d8; outline-offset: 3px; }
+.zamir-email-panel button:disabled { opacity: .6; cursor: wait; }
+.zamir-email-panel .zamir-email-note { text-align: center; font-size: 11px; line-height: 1.5; color: var(--zamir-muted); margin: 14px 0 0; }
+.zamir-email-panel [role="alert"] { font-size: 13px; color: #d16d35; margin: 0 0 14px; }
+@media (max-width: 480px) { .zamir-email-panel { padding: 20px 12px; } .zamir-email-panel form { padding: 24px; border-radius: 16px; } .zamir-email-panel h1 { font-size: 21px; } }
 .zamir-profile-loading { padding: 24px; }
+
+.zamir-email-heading { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; }
+.zamir-email-heading .zamir-email-icon { width: 40px; height: 40px; flex: 0 0 40px; margin: 0; border-radius: 12px; }
+.zamir-email-heading h1 { margin: 0; font-size: 21px; }
+@media (max-width: 480px) { .zamir-email-heading { gap: 9px; } .zamir-email-heading h1 { font-size: 18px; } }
