@@ -137,7 +137,6 @@ export default function ZamirPage() {
       <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d={fullscreen ? 'M9 3v6H3m12-6v6h6M3 15h6v6m12-6h-6v6' : 'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5'} />
       </svg>
-      <span>{fullscreen ? 'Згорнути' : 'На весь екран'}</span>
     </button>}
     {error && <div role="alert" className="zamir-error">{error}
       <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1); }}>Спробувати ще раз</button>
