@@ -1,12 +1,13 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import axiosInstance from '../api/axios';
 import { useAuthGetRole } from '../hooks/useAuthGetRole';
-import { isZamirLoginRequest, ZAMIR_ORIGIN } from '../integrations/zamir';
+import { isZamirLoginRequest, sendZamirLogout, updateZamirFrameRef, ZAMIR_ORIGIN } from '../integrations/zamir';
 import './ZamirPage.css';
 
 export default function ZamirPage() {
   const { isDealer } = useAuthGetRole();
   const frameRef = useRef(null);
+  const setFrameRef = useCallback((node) => updateZamirFrameRef(frameRef, node), []);
   const pageRef = useRef(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -69,7 +70,7 @@ export default function ZamirPage() {
     const onLogout = () => {
       stopped = true;
       controller.abort();
-      frameRef.current?.contentWindow?.postMessage({ type: 'zamir:logout' }, ZAMIR_ORIGIN);
+      sendZamirLogout(frameRef.current?.contentWindow);
     };
     const onMessage = async (event) => {
       const frameWindow = frameRef.current?.contentWindow;
@@ -89,11 +90,16 @@ export default function ZamirPage() {
         }
       } finally { pending = false; }
     };
+    const onPageShow = (event) => { if (event.persisted) setRetry((value) => value + 1); };
+    window.addEventListener('pagehide', onLogout);
+    window.addEventListener('pageshow', onPageShow);
     window.addEventListener('message', onMessage);
     window.addEventListener('portal:logout', onLogout);
     return () => {
       stopped = true;
       controller.abort();
+      window.removeEventListener('pagehide', onLogout);
+      window.removeEventListener('pageshow', onPageShow);
       window.removeEventListener('message', onMessage);
       window.removeEventListener('portal:logout', onLogout);
     };
@@ -120,7 +126,7 @@ export default function ZamirPage() {
       </form>
     </div>}
     {!profile && !error && <p className="zamir-profile-loading">Перевірка профілю…</p>}
-    {profile && !profile.email_required && <iframe key={retry} ref={frameRef} src={`${ZAMIR_ORIGIN}/`} title="Замірник Вікна Стиль"
+    {profile && !profile.email_required && <iframe key={retry} ref={setFrameRef} src={`${ZAMIR_ORIGIN}/`} title="Замірник Вікна Стиль"
       allow="camera; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" />}
   </section>;
 }
