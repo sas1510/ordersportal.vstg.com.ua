@@ -420,6 +420,7 @@ CSP_CONNECT_SRC = (
 
 # Фрейми: для ваших віджетів TikTok
 CSP_FRAME_SRC = (
+    "https://zamir.viknastyle.com.ua",
     "https://viknastyle.com.ua",
     "'self'", 
     "https://www.tiktok.com", 

@@ -8,6 +8,7 @@ import { AuthContext } from "./AuthContext";
 import { useLocation } from "react-router-dom";
 
 import PortalLoader from "../components/ui/PortalLoader";
+import { notifyZamirLogout } from "../integrations/zamir";
 
 export default function AuthProvider({ children }) {
 
@@ -61,6 +62,7 @@ const isPublicRoute =
 
 
   const logout = useCallback(async () => {
+    notifyZamirLogout();
     try {
       await axiosInstance.post("/logout/", {}, { withCredentials: true });
     } catch (err) {

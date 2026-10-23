@@ -4,6 +4,7 @@ import AddOrEditFilePage from "./pages/AddOrEditFilePage";
 
 import VideosPage from "./pages/VideosPage";
 import ConstructorPage from "./pages/ConstructorPage";
+import ZamirPage from "./pages/ZamirPage";
 import MeasurementTestPage from "./pages/MeasurementTestPage";
 import VideoFormPage from "./pages/VideoFormPage";
 import FAQ from "./pages/FAQ";
@@ -133,6 +134,7 @@ export const branchLeaderRoutes = adminRoutes.filter(
 );
 
 export const dealerRoutes = [
+  { path: "zamir", element: <ZamirPage /> },
   { path: "constructor", element: <ConstructorPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },

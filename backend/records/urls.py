@@ -4,6 +4,7 @@ from django.urls import path
 from .pdf_comparison import extract_pdf_amount
 from .measurement_orders import MeasurementOrderViewSet
 from .measurement_test_view import MeasurementTestView
+from .zamir_sso import ZamirTicketView, ZamirProfileView
 from .deliveries_pdf import deliveries_pdf
 from .zkz_search import find_order_for_zkz
 from .delivery_notifications import check_delivery_notifications, mark_delivery_notifications_shown
@@ -27,6 +28,8 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 
 urlpatterns = [
+    path('zamir/profile/', ZamirProfileView.as_view(), name='zamir-profile'),
+    path('zamir/ticket/', ZamirTicketView.as_view(), name='zamir-ticket'),
     path('integrations/measurement/test/', MeasurementTestView.as_view(), name='measurement-test'),
     path('integrations/measurement/orders/', MeasurementOrderViewSet.as_view({'post': 'create'}), name='measurement-create-order'),
     path("announcements/", announcements, name="announcements"),
