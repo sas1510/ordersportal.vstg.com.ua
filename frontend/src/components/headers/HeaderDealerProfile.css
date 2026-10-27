@@ -314,3 +314,11 @@ body.dark-theme .mobile-side-menu .sidebar-divider { border-color: #6e6963 !impo
 .dark-theme .dropdown-header {
     color: #f5f3f1;
 }
+
+/* Compact desktop profile alongside navigation and account controls. */
+.profile-box:not(.admin-profile-box) { width: 185px; }
+.profile-box:not(.admin-profile-box) .profile-menu-inner,
+.profile-box:not(.admin-profile-box) .profile-rectangle { width: 185px; }
+.profile-box:not(.admin-profile-box) .profile-separator-line { width: 173px; }
+.profile-box:not(.admin-profile-box) .profile-name-text { right: 8px; }
+.admin-profile-box, .admin-profile-box .profile-rectangle { width: 200px; }

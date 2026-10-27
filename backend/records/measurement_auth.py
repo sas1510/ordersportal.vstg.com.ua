@@ -34,7 +34,9 @@ class MeasurementApiKeyAuthentication(BaseAuthentication):
                 expires = timezone.make_aware(expires)
             if expires <= timezone.now():
                 raise PermissionDenied('Термін доступу користувача завершився.')
-        if str(user.role or '').strip().lower() not in {'dealer', 'customer'} or not user.user_id_1C:
+        if str(user.role or '').strip().lower() not in {'dealer', 'customer'}:
+            raise PermissionDenied('Ви не дилер. Створення заявки недоступне.')
+        if not user.user_id_1C:
             raise PermissionDenied('Потрібен користувач дилера з прив’язкою UserId1C.')
         # Reuse the existing contractor resolution without allowing point overrides.
         return user, '1C_API_KEY'

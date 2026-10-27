@@ -33,6 +33,7 @@ class FundsTransferSubmission(models.Model):
     funds_status = models.CharField(max_length=12, choices=FundsStatus.choices, default=FundsStatus.PENDING, db_index=True, editable=False)
     received_amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True, editable=False)
     funds_checked_at = models.DateTimeField(null=True, blank=True, editable=False)
+    reconciliation_note = models.CharField(max_length=1000, blank=True, default='', editable=False)
     # Snapshot of matched 1C cash receipts; multiple documents may settle one submission.
     cash_receipts = models.JSONField(default=list, blank=True, editable=False)
 

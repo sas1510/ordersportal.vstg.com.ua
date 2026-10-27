@@ -80,7 +80,7 @@ export default function MeasurementTestPage() {
   if (!isAdmin) return <main className="measurement-test"><p>Доступ лише адміністратору.</p></main>;
   return <main className="measurement-test">
     <h1>Тест інтеграції замірника</h1>
-    <p className="measurement-test-warning">Надсилання створює справжню заявку в тестовій 1С.</p>
+    <p className="measurement-test-warning">Надсилання створює справжню заявку в робочій 1С.</p>
     <p>Адреса 1С: <code>{config?.one_c_url || 'Завантаження…'}</code></p>
     {config && !config.configured && <p role="alert">Додайте MEASUREMENT_API_KEY у backend/.env та перезапустіть Django.</p>}
     <form onSubmit={submit}>
@@ -93,7 +93,7 @@ export default function MeasurementTestPage() {
         <label>Фото — до 10 файлів по 10 МіБ (необов’язково)<input type="file" multiple accept=".jpg,.jpeg,.png,.webp" onChange={(e) => { setPhotos(Array.from(e.target.files)); resetKey(); }} /></label>
       </fieldset>
       <div className="measurement-test-actions">
-        <button type="submit" disabled={busy || !config?.configured || sentRef.current}>{busy ? 'Надсилання…' : sentRef.current ? 'Заявку створено' : 'Надіслати тестову заявку'}</button>
+        <button type="submit" disabled={busy || !config?.configured || sentRef.current}>{busy ? 'Надсилання…' : sentRef.current ? 'Заявку створено' : 'Створити заявку'}</button>
         <button type="button" disabled={busy} onClick={newRequest}>Нова заявка / новий UUID</button>
       </div>
     </form>

@@ -18,6 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = False  # Set to False in production  
 # Local deployment address is configured once in backend/.env.
+ORDER_READINESS_VNEXT = config('ORDER_READINESS_VNEXT', default=False, cast=bool)
 PORTAL_LOCAL_IP = config('PORTAL_LOCAL_IP', default='127.0.0.1').strip()
 PORTAL_LOCAL_ORIGIN = f'http://{PORTAL_LOCAL_IP}'
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())

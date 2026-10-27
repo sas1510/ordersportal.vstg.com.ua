@@ -24,7 +24,7 @@ def build_transfer_history_pdf(rows, font_path, contractor):
         amount = Decimal(str(item['amount']))
         currency = item['currency']
         totals[currency] = totals.get(currency, Decimal(0)) + amount
-        data.append([cell(item['date']), cell(item.get('dealer', '')), cell(f'{amount:,.2f}'.replace(',', ' ').replace('.', ',')), cell('грн' if currency == 'UAH' else currency), cell(item['comment']), cell(item['author'])])
+        data.append([cell(item['date']), cell(item.get('dealer', '')), cell(f'{amount:,.2f}'.replace(',', ' ').replace('.', ',')), cell('грн' if currency == 'UAH' else currency), cell('\n'.join(filter(None, [item['comment'], item.get('reconciliation')]))), cell(item['author'])])
     if rows:
         table = Table(data, colWidths=[70, 100, 65, 50, 160, 94], repeatRows=1, hAlign='LEFT')
         table.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#edf2f5')), ('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LINEBELOW', (0, 0), (-1, -1), .3, colors.HexColor('#ccd5dc')), ('TOPPADDING', (0, 0), (-1, -1), 6), ('BOTTOMPADDING', (0, 0), (-1, -1), 6)]))

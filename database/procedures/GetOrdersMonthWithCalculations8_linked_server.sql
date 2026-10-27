@@ -1,4 +1,4 @@
-ALTER PROCEDURE [dbo].[GetOrdersMonthWithCalculations8]
+CREATE OR ALTER PROCEDURE [dbo].[GetOrdersMonthWithCalculations8]
     @RequesterUserID INT,
     @DateFrom DATE = NULL,
     @DateTo DATE = NULL,
@@ -750,19 +750,169 @@ ON #Payments(OrderID);
 
     CREATE CLUSTERED INDEX IX_ProdOrders_OrderID ON #ProdOrders(Заказ);
 
-    -- Full readiness, one indexed production read; cosmetic kits excluded.
+    -- VNext: purchased accessories require supplier receipts; manufactured items require production.
+    DROP TABLE IF EXISTS #PurchasedCatalog;
+    ;WITH CatalogTree AS (
+        SELECT N.Ссылка AS ItemID
+        FROM [oknastyle_biV2].[dbo].[Справочники.Номенклатура] N
+        WHERE LTRIM(RTRIM(N.Наименование)) IN
+            (N'Підвіконня', N'Подоконники', N'Подоконник', N'Відлив метал', N'Відливи', N'Отливы')
+        UNION ALL
+        SELECT N.Ссылка
+        FROM [oknastyle_biV2].[dbo].[Справочники.Номенклатура] N
+        INNER JOIN CatalogTree C ON N.Родитель=C.ItemID
+    )
+    SELECT DISTINCT ItemID INTO #PurchasedCatalog FROM CatalogTree
+    OPTION (MAXRECURSION 100);
+    CREATE UNIQUE CLUSTERED INDEX IX_PurchasedCatalog ON #PurchasedCatalog(ItemID);
+
     DROP TABLE IF EXISTS #RequiredItems;
     SELECT T.Ссылка AS OrderID, T.Номенклатура AS ItemID,
            ISNULL(T.ХарактеристикаНоменклатуры, 0x00000000000000000000000000000000) AS CharacteristicID,
-           SUM(T.Количество) AS RequiredQty
+           SUM(T.Количество) AS RequiredQty,
+           SUM(T.Количество * ISNULL(NULLIF(T.Коэффициент,0),1)) AS RequiredBaseQty,
+           MAX(CASE WHEN C.ItemID IS NOT NULL THEN 1 ELSE 0 END) AS IsPurchased
     INTO #RequiredItems
     FROM #OrderIDs O
-    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары] T ON T.Ссылка = O.OrderID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары] T ON T.Ссылка=O.OrderID
+    LEFT JOIN #PurchasedCatalog C ON C.ItemID=T.Номенклатура
     WHERE T.Номенклатура NOT IN (0x89AF92BF3734FEC94BFAB4E884CAE5C5, 0x99DC002590633BB311E22E3A03435ED0, 0xA7009E14FF7CCB2E424091FF00E66DDA)
-    GROUP BY T.Ссылка, T.Номенклатура, ISNULL(T.ХарактеристикаНоменклатуры, 0x00000000000000000000000000000000)
-    HAVING SUM(T.Количество) > 0
+    GROUP BY T.Ссылка,T.Номенклатура,ISNULL(T.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)
+    HAVING SUM(T.Количество)>0
     OPTION (RECOMPILE);
-    CREATE UNIQUE CLUSTERED INDEX IX_RequiredItems ON #RequiredItems(OrderID, ItemID, CharacteristicID);
+    CREATE UNIQUE CLUSTERED INDEX IX_RequiredItems ON #RequiredItems(OrderID,ItemID,CharacteristicID);
+
+    -- Use the existing small-input plan; materialize shared lookups once
+    -- when four or more purchased positions make correlated scans expensive.
+    DROP TABLE IF EXISTS #PurchaseLinks;
+    CREATE TABLE #PurchaseLinks (
+        OrderID binary(16) NOT NULL,ItemID binary(16) NOT NULL,
+        CharacteristicID binary(16) NOT NULL,PurchaseID binary(16) NOT NULL
+    );
+    IF (SELECT COUNT(*) FROM #RequiredItems WHERE IsPurchased=1)>=4
+    BEGIN
+    -- Materialize only relevant purchase keys once. Avoid correlated remote
+    -- scans of supplier/customer lines for each candidate link.
+    DROP TABLE IF EXISTS #PurchaseKeys;
+    SELECT DISTINCT ItemID,CharacteristicID INTO #PurchaseKeys
+    FROM #RequiredItems WHERE IsPurchased=1;
+    CREATE UNIQUE CLUSTERED INDEX IX_PurchaseKeys ON #PurchaseKeys(ItemID,CharacteristicID);
+
+    DROP TABLE IF EXISTS #PurchaseOwners;
+    SELECT K.ItemID,K.CharacteristicID,COUNT(DISTINCT X.Ссылка) AS OwnerCount,
+           MIN(X.Ссылка) AS OnlyOrderID
+    INTO #PurchaseOwners
+    FROM #PurchaseKeys K
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары] X
+      ON X.Номенклатура=K.ItemID AND X.ХарактеристикаНоменклатуры=K.CharacteristicID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] D ON D.Ссылка=X.Ссылка
+    WHERE K.CharacteristicID<>0x00000000000000000000000000000000 AND X.Количество>0
+      AND D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+    GROUP BY K.ItemID,K.CharacteristicID
+    OPTION (RECOMPILE);
+    CREATE UNIQUE CLUSTERED INDEX IX_PurchaseOwners ON #PurchaseOwners(ItemID,CharacteristicID);
+
+    DROP TABLE IF EXISTS #PurchaseRows;
+    SELECT DISTINCT T.Ссылка AS PurchaseID,T.Номенклатура AS ItemID,
+           T.ХарактеристикаНоменклатуры AS CharacteristicID,T.Заказ AS CustomerOrderID
+    INTO #PurchaseRows
+    FROM #PurchaseKeys K
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПоставщику.Товары] T
+      ON T.Номенклатура=K.ItemID AND T.ХарактеристикаНоменклатуры=K.CharacteristicID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПоставщику] D ON D.Ссылка=T.Ссылка
+    WHERE T.Количество>0 AND D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+    OPTION (RECOMPILE);
+    CREATE UNIQUE CLUSTERED INDEX IX_PurchaseRows ON #PurchaseRows(PurchaseID,ItemID,CharacteristicID,CustomerOrderID);
+
+
+    INSERT INTO #PurchaseLinks(OrderID,ItemID,CharacteristicID,PurchaseID)
+    SELECT DISTINCT R.OrderID,R.ItemID,R.CharacteristicID,T.PurchaseID
+    FROM #RequiredItems R
+    INNER JOIN #PurchaseRows T ON T.ItemID=R.ItemID AND T.CharacteristicID=R.CharacteristicID
+    LEFT JOIN #PurchaseOwners O ON O.ItemID=R.ItemID AND O.CharacteristicID=R.CharacteristicID
+    WHERE R.IsPurchased=1
+      AND (T.CustomerOrderID=R.OrderID OR
+          (T.CustomerOrderID=0x00000000000000000000000000000000
+           AND R.CharacteristicID<>0x00000000000000000000000000000000
+           AND (ISNULL(O.OwnerCount,0)=0 OR (O.OwnerCount=1 AND O.OnlyOrderID=R.OrderID))))
+      AND NOT EXISTS (
+          SELECT 1 FROM #PurchaseRows X
+          WHERE X.PurchaseID=T.PurchaseID AND X.ItemID=R.ItemID AND X.CharacteristicID=R.CharacteristicID
+            AND X.CustomerOrderID<>R.OrderID AND X.CustomerOrderID<>0x00000000000000000000000000000000
+      )
+    OPTION (RECOMPILE);
+    DROP TABLE #PurchaseKeys;
+    DROP TABLE #PurchaseOwners;
+    DROP TABLE #PurchaseRows;
+
+    END
+    ELSE
+    BEGIN
+    -- A blank customer-order reference is accepted only for a nonempty
+    -- characteristic belonging to exactly one posted, undeleted customer order.
+
+    INSERT INTO #PurchaseLinks(OrderID,ItemID,CharacteristicID,PurchaseID)
+    SELECT DISTINCT R.OrderID,R.ItemID,R.CharacteristicID,T.Ссылка AS PurchaseID
+    FROM #RequiredItems R
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПоставщику.Товары] T
+      ON T.Номенклатура=R.ItemID
+     AND ISNULL(T.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)=R.CharacteristicID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПоставщику] D ON D.Ссылка=T.Ссылка
+    WHERE R.IsPurchased=1 AND D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+      AND T.Количество>0
+      AND (T.Заказ=R.OrderID OR
+          (ISNULL(T.Заказ,0x00000000000000000000000000000000)=0x00000000000000000000000000000000
+           AND R.CharacteristicID<>0x00000000000000000000000000000000
+           AND NOT EXISTS (
+               SELECT 1 FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары] X
+               INNER JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] XD ON XD.Ссылка=X.Ссылка
+               WHERE X.Номенклатура=R.ItemID AND X.ХарактеристикаНоменклатуры=R.CharacteristicID
+                 AND X.Ссылка<>R.OrderID AND X.Количество>0
+                 AND XD.Проведен=0x01 AND XD.ПометкаУдаления=0x00
+           )))
+      -- Do not assign an undivided supplier receipt to several customer orders.
+      AND NOT EXISTS (
+          SELECT 1 FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПоставщику.Товары] X
+          WHERE X.Ссылка=T.Ссылка AND X.Номенклатура=R.ItemID
+            AND ISNULL(X.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)=R.CharacteristicID
+            AND X.Количество>0 AND X.Заказ<>R.OrderID
+            AND X.Заказ<>0x00000000000000000000000000000000
+      )
+    OPTION (RECOMPILE);
+
+    END;
+    CREATE UNIQUE CLUSTERED INDEX IX_PurchaseLinks ON #PurchaseLinks(PurchaseID,ItemID,CharacteristicID,OrderID);
+
+    DROP TABLE IF EXISTS #PurchasedEvents;
+    SELECT L.OrderID,L.ItemID,L.CharacteristicID,
+           T.Количество * ISNULL(NULLIF(T.Коэффициент,0),1) AS BaseQty,
+           CASE WHEN YEAR(D.Дата)>=3753 THEN DATEADD(YEAR,-2000,D.Дата) ELSE D.Дата END AS ReceiptDate
+    INTO #PurchasedEvents
+    FROM #PurchaseLinks L
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ПоступлениеТоваровУслуг.Товары] T
+      ON COALESCE(NULLIF(T.ЗаказПоставщику,0x00000000000000000000000000000000),T.Заказ)=L.PurchaseID
+     AND T.Номенклатура=L.ItemID
+     AND ISNULL(T.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)=L.CharacteristicID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ПоступлениеТоваровУслуг] D ON D.Ссылка=T.Ссылка
+    WHERE D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+    UNION ALL
+    SELECT L.OrderID,L.ItemID,L.CharacteristicID,
+           -T.Количество * ISNULL(NULLIF(T.Коэффициент,0),1), NULL
+    FROM #PurchaseLinks L
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ВозвратТоваровПоставщику.Товары] T
+      ON T.Номенклатура=L.ItemID
+     AND ISNULL(T.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)=L.CharacteristicID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ВозвратТоваровПоставщику] D ON D.Ссылка=T.Ссылка
+    WHERE D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+      AND COALESCE(NULLIF(T.Заказ,0x00000000000000000000000000000000),D.Сделка)=L.PurchaseID
+    OPTION (RECOMPILE);
+
+    DROP TABLE IF EXISTS #PurchasedItems;
+    SELECT OrderID,ItemID,CharacteristicID,SUM(BaseQty) AS ReceivedQty,
+           MIN(ReceiptDate) AS ReadyMin,MAX(ReceiptDate) AS ReadyMax
+    INTO #PurchasedItems FROM #PurchasedEvents
+    GROUP BY OrderID,ItemID,CharacteristicID;
+    CREATE UNIQUE CLUSTERED INDEX IX_PurchasedItems ON #PurchasedItems(OrderID,ItemID,CharacteristicID);
 
     DROP TABLE IF EXISTS #ProducedItems;
     SELECT O.OrderID, P._Fld10548RRef AS ItemID,
@@ -785,25 +935,31 @@ ON #Payments(OrderID);
     CREATE UNIQUE CLUSTERED INDEX IX_ProducedItems ON #ProducedItems(OrderID, ItemID, CharacteristicID);
 
     DROP TABLE IF EXISTS #ProdReports;
-    ;WITH Completeness AS (
-        SELECT R.OrderID,
-               MIN(CASE WHEN ISNULL(P.ProducedQty,0) >= R.RequiredQty THEN 1 ELSE 0 END) AS IsComplete
+    ;WITH ItemReadiness AS (
+        SELECT R.OrderID,R.ItemID,
+               CASE WHEN R.IsPurchased=1 THEN CASE WHEN ISNULL(B.ReceivedQty,0)>=R.RequiredBaseQty AND B.ReadyMax IS NOT NULL THEN 1 ELSE 0 END
+                    ELSE CASE WHEN ISNULL(P.ProducedQty,0)>=R.RequiredQty AND P.ReadyMax IS NOT NULL THEN 1 ELSE 0 END END AS IsComplete,
+               CASE WHEN R.IsPurchased=1 THEN B.ReadyMin ELSE P.ReadyMin END AS ReadyMin,
+               CASE WHEN R.IsPurchased=1 THEN B.ReadyMax ELSE P.ReadyMax END AS ReadyMax,
+               CASE WHEN R.IsPurchased=0 THEN ISNULL(P.ProducedQty,0) ELSE 0 END AS ProducedQty
         FROM #RequiredItems R
         LEFT JOIN #ProducedItems P ON P.OrderID=R.OrderID AND P.ItemID=R.ItemID AND P.CharacteristicID=R.CharacteristicID
-        GROUP BY R.OrderID
+        LEFT JOIN #PurchasedItems B ON B.OrderID=R.OrderID AND B.ItemID=R.ItemID AND B.CharacteristicID=R.CharacteristicID
     )
-    SELECT P.OrderID AS ЗаказРезерв,
-           SUM(CASE WHEN P.ItemID = 0x99B8002590633BB311E177FF631F08AD THEN P.ProducedQty ELSE 0 END) AS ProducedTotal,
-           CASE WHEN MAX(C.IsComplete)=1 THEN MIN(P.ReadyMin) END AS ReadyMin,
-           CASE WHEN MAX(C.IsComplete)=1 THEN MAX(P.ReadyMax) END AS ReadyMax
-    INTO #ProdReports
-    FROM #ProducedItems P
-    LEFT JOIN Completeness C ON C.OrderID=P.OrderID
-    GROUP BY P.OrderID
+    SELECT OrderID AS ЗаказРезерв,
+           SUM(CASE WHEN ItemID=0x99B8002590633BB311E177FF631F08AD THEN ProducedQty ELSE 0 END) AS ProducedTotal,
+           CASE WHEN MIN(IsComplete)=1 THEN MIN(ReadyMin) END AS ReadyMin,
+           CASE WHEN MIN(IsComplete)=1 THEN MAX(ReadyMax) END AS ReadyMax
+    INTO #ProdReports FROM ItemReadiness GROUP BY OrderID
     OPTION (RECOMPILE);
     CREATE UNIQUE CLUSTERED INDEX IX_ProdReports_OrderID ON #ProdReports(ЗаказРезерв);
     DROP TABLE #RequiredItems;
     DROP TABLE #ProducedItems;
+    DROP TABLE #PurchasedCatalog;
+    DROP TABLE #PurchaseLinks;
+    DROP TABLE #PurchasedEvents;
+    DROP TABLE #PurchasedItems;
+
 
     DROP TABLE IF EXISTS #SalesDocs;
 

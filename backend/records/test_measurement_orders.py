@@ -17,14 +17,14 @@ def payload():
     return {'user_id': 78, 'items_count': 2, 'file': {'fileName': 'measurement.pdf', 'fileDataB64': base64.b64encode(b'%PDF-1.4\n%%EOF').decode()}}
 
 
-@override_settings(MEASUREMENT_ONE_C_USER='test-user', MEASUREMENT_ONE_C_PASSWORD='test-pass')
+@override_settings(ONE_C_URL='https://production.invalid/hs/service/', ONE_C_USER='live-user', ONE_C_PASSWORD='live-pass')
 class MeasurementOrderTests(SimpleTestCase):
     @override_settings(ONE_C_URL='https://production.invalid/hs/service/')
-    def test_measurement_posts_only_to_test_1c(self):
+    def test_measurement_posts_to_configured_live_1c(self):
         upstream = SimpleNamespace(ok=True, text='{}', status_code=200, json=lambda: {'success': True})
         with patch('records.views.requests.post', return_value=upstream) as post:
             MeasurementOrderViewSet()._send_to_1c({'calculations': [{}]})
-        self.assertEqual(post.call_args.args[0], 'http://192.168.50.50/oknastyle_vmm/hs/gp-obmen/')
+        self.assertEqual(post.call_args.args[0], 'https://production.invalid/hs/service/')
         self.assertEqual(post.call_args.kwargs['headers']['Query'], 'CreateCalculation')
         self.assertEqual(CreateCalculationViewSet().get_one_c_url(), 'https://production.invalid/hs/service/')
 
@@ -116,21 +116,40 @@ class MeasurementOrderTests(SimpleTestCase):
 
     def test_success_response_excludes_base64_and_has_real_guid(self):
         request = SimpleNamespace(headers={'Idempotency-Key': str(uuid.uuid4())}, user=SimpleNamespace(pk=78, user_id_1C=b'1' * 16))
-        upstream = Response({'success': True, 'calculation_guid': str(uuid.uuid4()), 'payload_sent_to_1c': {'file': 'base64'}}, status=201)
-        with patch.object(CreateCalculationViewSet, 'create', return_value=upstream):
+        upstream = Response({'success': True, 'calculation_guid': str(uuid.uuid4()), 'payload_sent_to_1c': {'file': 'base64'}, '_measurement_telegram': {'status': 'sent'}}, status=201)
+        with patch.object(CreateCalculationViewSet, 'create', return_value=upstream), patch('records.measurement_orders.record_measurement_notification'):
             response = MeasurementOrderViewSet().create(request)
         self.assertEqual(response.data['portal_user_id'], 78)
         self.assertNotIn('payload_sent_to_1c', response.data)
+        self.assertNotIn('_measurement_telegram', response.data)
 
 
-    @override_settings(MEASUREMENT_ONE_C_USER='', MEASUREMENT_ONE_C_PASSWORD='', ONE_C_USER='prod-user', ONE_C_PASSWORD='prod-pass')
-    def test_missing_test_credentials_never_fall_back_to_production(self):
+    @override_settings(MEASUREMENT_ONE_C_USER='old-test-user', MEASUREMENT_ONE_C_PASSWORD='old-test-pass', ONE_C_USER='', ONE_C_PASSWORD='')
+    def test_missing_live_credentials_never_fall_back_to_old_test(self):
         from .measurement_orders import MeasurementOneCNotConfigured
         with self.assertRaises(MeasurementOneCNotConfigured):
             MeasurementOrderViewSet().get_one_c_credentials()
 
-    def test_test_credentials_are_used_in_authorization_header(self):
+    def test_live_credentials_are_used_in_authorization_header(self):
         upstream = SimpleNamespace(ok=True, text='{}', status_code=200, json=lambda: {'success': True})
         with patch('records.views.requests.post', return_value=upstream) as post:
             MeasurementOrderViewSet()._send_to_1c({'calculations': [{}]})
-        self.assertEqual(post.call_args.kwargs['headers']['Authorization'], 'Basic ' + base64.b64encode(b'test-user:test-pass').decode())
+        self.assertEqual(post.call_args.kwargs['headers']['Authorization'], 'Basic ' + base64.b64encode(b'live-user:live-pass').decode())
+
+
+    @override_settings(MEASUREMENT_API_KEY='integration-test')
+    def test_all_staff_roles_are_forbidden_from_submitting_orders(self):
+        for role in ['admin', 'manager', 'region_manager', 'branch_manager', 'branches_director', 'director']:
+            user = SimpleNamespace(pk=123, role=role, expire_date=None, user_id_1C=b'1' * 16)
+            request = SimpleNamespace(headers={'X-API-KEY': 'integration-test'}, data={'user_id': 123})
+            with patch('records.measurement_auth.CustomUser.objects.get', return_value=user):
+                with self.assertRaisesMessage(PermissionDenied, 'Ви не дилер. Створення заявки недоступне.'):
+                    MeasurementApiKeyAuthentication().authenticate(request)
+
+
+    def test_idempotency_results_are_isolated_by_destination(self):
+        request = SimpleNamespace(headers={'Idempotency-Key': str(uuid.uuid4())}, user=SimpleNamespace(pk=78))
+        with override_settings(ONE_C_URL='https://old-test.invalid/'):
+            old_key = MeasurementOrderViewSet().get_idempotency_key(request)
+        with override_settings(ONE_C_URL='https://live.invalid/'):
+            self.assertNotEqual(old_key, MeasurementOrderViewSet().get_idempotency_key(request))

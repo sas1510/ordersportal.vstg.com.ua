@@ -385,3 +385,4 @@ class PortalAnnouncementReceipt(models.Model):
         db_table = "PortalAnnouncementReceipt"
         constraints = [models.UniqueConstraint(fields=["announcement", "user"], name="unique_announcement_receipt")]
         indexes = [models.Index(fields=["user", "acknowledged_at"]), models.Index(fields=["announcement", "acknowledged_at"])]
+

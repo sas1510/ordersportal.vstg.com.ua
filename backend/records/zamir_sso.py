@@ -27,8 +27,8 @@ class ZamirTicketView(APIView):
         return response
 
     def dealer_access_error(self, user):
-        if not user.is_active or str(user.role or '').strip().lower() not in {'dealer', 'customer'}:
-            return Response({'detail': 'Вхід у замірник доступний лише активним дилерам.'}, status=403)
+        if not user.is_active or str(user.role or '').strip().lower() != 'admin':
+            return Response({'detail': 'Замірник тимчасово доступний лише адміністраторам.'}, status=403)
         expires = user.expire_date
         if expires:
             if timezone.is_naive(expires):

@@ -15,7 +15,7 @@ from .zamir_sso import ZamirTicketView, ZamirProfileView
 class ZamirTicketTests(SimpleTestCase):
     def user(self, **changes):
         return SimpleNamespace(**dict(dict(pk=78, is_authenticated=True, is_active=True,
-            role='dealer', expire_date=None, email='dealer@example.com', email_confirmed=True,
+            role='admin', expire_date=None, email='dealer@example.com', email_confirmed=True,
             full_name='Іван Петренко', username='dealer'), **changes))
 
     def ticket(self, user):
@@ -38,11 +38,23 @@ class ZamirTicketTests(SimpleTestCase):
         self.assertTrue(decoded['nonce'])
         self.assertIn('no-store', response['Cache-Control'])
 
+    def test_admin_ticket_uses_own_portal_id(self):
+        response = self.ticket(self.user(pk=123, role='admin'))
+        self.assertEqual(response.status_code, 200)
+        data = response.data['ticket'].split('.')[0]
+        decoded = json.loads(base64.urlsafe_b64decode(data + '=' * (-len(data) % 4)))
+        self.assertEqual(decoded['user_id'], 123)
+
+    def test_all_non_admin_roles_are_denied(self):
+        for role in ['dealer', 'customer', 'manager', 'region_manager', 'regionalManager', 'branch_manager', 'branches_director', 'director']:
+            with self.subTest(role=role):
+                self.assertEqual(self.ticket(self.user(role=role)).status_code, 403)
+
     def test_nonce_is_unique(self):
         self.assertNotEqual(self.ticket(self.user()).data['ticket'], self.ticket(self.user()).data['ticket'])
 
-    def test_only_active_dealers(self):
-        for changes in [dict(role='admin'), dict(role='manager'), dict(is_active=False), dict(expire_date=timezone.now() - timedelta(seconds=1))]:
+    def test_inactive_expired_and_unknown_roles_are_denied(self):
+        for changes in [dict(role='unknown'), dict(is_active=False), dict(expire_date=timezone.now() - timedelta(seconds=1))]:
             self.assertEqual(self.ticket(self.user(**changes)).status_code, 403)
 
     def test_email_required(self):
@@ -95,8 +107,13 @@ class ZamirEmailProfileTests(ZamirTicketTests):
         self.assertEqual(response.status_code, 400)
         user.save.assert_not_called()
 
-    def test_manager_cannot_update_email_through_zamir(self):
-        self.assertEqual(self.profile(self.user(role='manager'), {'email': 'new@example.com'}).status_code, 403)
+    def test_only_admin_can_check_or_update_zamir_email(self):
+        self.assertEqual(self.profile(self.user(role='admin')).status_code, 200)
+        for role in ['dealer', 'customer', 'manager', 'region_manager', 'branch_manager', 'branches_director', 'director']:
+            user = self.user(role=role, save=Mock())
+            self.assertEqual(self.profile(user).status_code, 403)
+            self.assertEqual(self.profile(user, {'email': 'new@example.com'}).status_code, 403)
+            user.save.assert_not_called()
 
 
     def test_unconfirmed_email_prompts_and_cannot_issue_ticket(self):

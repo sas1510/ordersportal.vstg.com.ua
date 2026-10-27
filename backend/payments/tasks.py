@@ -13,3 +13,10 @@ def enqueue_pending_funds_transfer_notifications():
     for submission_id in ids:
         queue_transfer_notification(submission_id)
     return len(ids)
+
+
+@shared_task(name='reconcile_funds_transfers')
+def reconcile_funds_transfers():
+    from .models import FundsTransferSubmission
+    from .funds_reconciliation import reconcile_submissions
+    return reconcile_submissions(FundsTransferSubmission.objects.filter(routing_guid__isnull=False), max_groups=50)

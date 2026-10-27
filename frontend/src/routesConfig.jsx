@@ -53,6 +53,7 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 
 
 export const adminRoutes = [
+  { path: "zamir", element: <ZamirPage /> },
   { path: "integration-test/measurement", element: <MeasurementTestPage /> },
   { path: "constructor", element: <ConstructorPage /> },
   { path: "finance/funds-transfer-history", element: <FundsTransferHistoryPage /> },
@@ -105,6 +106,7 @@ export const adminRoutes = [
 ];
 
 const managerBlockedRoutePaths = new Set([
+  "zamir",
   "integration-test/measurement",
   "files/add",
   "files/edit/:id",
@@ -121,6 +123,7 @@ export const managerRoutes = adminRoutes.filter(
 );
 
 const branchLeaderBlockedRoutePaths = new Set([
+  "zamir",
   "integration-test/measurement",
   "files/add",
   "files/edit/:id",
@@ -134,7 +137,6 @@ export const branchLeaderRoutes = adminRoutes.filter(
 );
 
 export const dealerRoutes = [
-  { path: "zamir", element: <ZamirPage /> },
   { path: "constructor", element: <ConstructorPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },

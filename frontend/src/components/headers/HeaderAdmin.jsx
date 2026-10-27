@@ -1,3 +1,5 @@
+import { Ruler, DoorOpen } from "lucide-react";
+import MaterialsMenu from './MaterialsMenu';
 // import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { useState, useRef, useEffect, useContext } from "react";
 // import { useMediaQuery } from "react-responsive";
@@ -356,15 +358,19 @@ export default function HeaderAdmin() {
   const currentLogo = theme === "dark" ? logoDark : logo;
 
   const NAV_LINKS = useMemo(() => [
+    ...(isAdmin ? [{ title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler }] : []),
+    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
     { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
-    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor' },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order" },
     { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation" },
     { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/admin-additional-order" },
-    { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files" },
-    { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos" },
-    { title: t('nav.faq_short'), mobileTitle: t('nav.faq'), to: "/faq" },
+  ], [t, isAdmin]);
+
+  const MATERIAL_LINKS = useMemo(() => [
+    { title: t('nav.tech_file'), to: '/files' },
+    { title: t('nav.videos'), to: '/videos' },
+    { title: t('nav.faq'), to: '/faq' },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
@@ -513,18 +519,19 @@ export default function HeaderAdmin() {
       <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
         
 
-        <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
-          <img src={currentLogo} alt="Вікна Стиль" className="h-[43px] max-[1261px]:h-[40px] w-auto" />
+        <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-2 max-[1261px]:mr-[4px]">
+          <img src={currentLogo} alt="Вікна Стиль" className="h-[38px] max-[1261px]:h-[36px] w-auto" />
         </Link>
 
         {!isMobile ? (
           <>
 
-            <nav className="flex h-full flex-grow">
+            <nav className="flex h-full min-w-0 flex-1">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
                   <li
                     key={link.to}
+                    style={link.to === '/zamir' ? { flex: '0 0 80px' } : undefined}
                     className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0"
                   >
                     <Link
@@ -535,12 +542,14 @@ export default function HeaderAdmin() {
                           : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                       }`}
                     >
+                      {link.icon && <link.icon aria-hidden="true" className="w-[14px] h-[14px] shrink-0 mr-[2px]" />}
                       {link.title}
                     </Link>
                   </li>
                 ))}
                 
 
+                <MaterialsMenu links={MATERIAL_LINKS} />
                 <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={financeRef}>
                   <button 
                     onClick={() => { setShowFinanceMenu(!showFinanceMenu); setShowSettings(false); }}
@@ -603,7 +612,7 @@ export default function HeaderAdmin() {
 
             <div className="ml-auto flex items-center h-full flex-shrink-0">
               <div 
-                className="h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[220px] max-w-[260px]"
+                className="h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[190px] max-w-[220px]"
                 style={{ backgroundColor: 'var(--header-profile-bg)' }}
                 ref={profileRef}
               >
@@ -636,7 +645,7 @@ export default function HeaderAdmin() {
                 )}
               </div>
 
-              <div className="flex items-center px-2 gap-5 max-[1261px]:px-1 max-[1261px]:gap-2">
+              <div className="flex shrink-0 items-center px-1 gap-1 max-[1261px]:px-1 max-[1261px]:gap-1">
                 {isAdmin && (
                   <button
                     type="button"
@@ -707,11 +716,14 @@ export default function HeaderAdmin() {
                               location.pathname === link.to ? "bg-[#6B98BF] text-white" : "text-[#44403E]"
                             }`}
                           >
+                            {link.icon && <link.icon aria-hidden="true" className="w-[18px] h-[18px] shrink-0 mr-2" />}
                             {link.mobileTitle || link.title}
                           </Link>
                           <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dashed border-[#B4D947]" />
                         </div>
                       ))}
+
+                      <MaterialsMenu links={MATERIAL_LINKS} mobile />
 
                       {/* Фінанси (Моб) */}
                       <div className="relative flex flex-col w-full">

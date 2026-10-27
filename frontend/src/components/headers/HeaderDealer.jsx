@@ -298,7 +298,7 @@
 //     {!isMobile ? (
 //       <>
 
-//         <nav className="flex h-full flex-grow">
+//         <nav className="flex h-full min-w-0 flex-1">
 //           <ul className="flex h-full w-full items-center">
 //             {NAV_LINKS.map((link) => (
          
@@ -411,7 +411,7 @@
 //               <i className={theme === "light" ? "fas fa-moon" : "fas fa-sun"}></i>
 //             </button> */}
 
-//             <button onClick={() => { logout(); navigate("/home"); }} className="text-[#44403E] hover:text-red-500 text-lg">
+//             <button onClick={() => { logout(); navigate("/home"); }} className="shrink-0 flex items-center justify-center w-[28px] h-[32px] text-[#44403E] hover:text-red-500 text-lg">
 //                <img src={exitIcon} alt={t('nav.logout')} className="w-[20px] h-[20px] object-contain" />
 //             </button>
 //           </div>
@@ -623,6 +623,7 @@ import { hasFinanceAccess } from "../../utils/financeAccess";
 import { 
   Ticket,
   Ruler,
+  DoorOpen,
   ShoppingBag, 
   AlertTriangle, 
   PlusCircle, 
@@ -651,7 +652,7 @@ export default function HeaderDealer() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const NAV_LINKS = useMemo(() => [
-    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: Ruler },
+    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/orders", icon: ShoppingBag },
     { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
@@ -917,17 +918,18 @@ export default function HeaderDealer() {
           backgroundColor: 'var(--header-bg)',
           borderColor: '#d1d5db4d',
         }}>
-        <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-4 max-[1261px]:mr-[6px]">
-          <img src={currentLogo} alt="Вікна Стиль" className="h-[43px] max-[1261px]:h-[40px] w-auto" />
+        <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-2 max-[1261px]:mr-[4px]">
+          <img src={currentLogo} alt="Вікна Стиль" className="h-[38px] max-[1261px]:h-[36px] w-auto" />
         </Link>
 
         {!isMobile ? (
           <>
-            <nav className="flex h-full flex-grow">
+            <nav className="flex h-full min-w-0 flex-1">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
                     <li 
                       key={link.to} 
+                      style={link.to === '/zamir' ? { flex: '0 0 80px' } : undefined}
                       className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0 "
                     >
                       {/* shadow-[inset_0_2px_4px_rgba(255,255,255,0.5),_inset_0_-1px_3px_rgba(0,0,0,0.05),_0_2px_5px_rgba(0,0,0,0.15)] */}
@@ -1040,7 +1042,7 @@ export default function HeaderDealer() {
                 )}
               </div>
           
-              <div className="flex items-center px-2 gap-5 max-[1261px]:px-1 max-[1261px]:gap-2">
+              <div className="flex shrink-0 items-center px-1 gap-1 max-[1261px]:px-1 max-[1261px]:gap-1">
                 <LanguageSwitcher />
 
                 <button
@@ -1055,10 +1057,10 @@ export default function HeaderDealer() {
                   </span>
                 </button>
 
-                <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
+                <div className="relative -left-[6px] shrink-0 flex items-center justify-center w-[28px] h-[32px] cursor-pointer" onClick={() => setIsNotificationOpen(true)}>
                   <img src={bellIcon} alt={t('nav.notifications')} className="header-theme-icon w-[20px] h-[20px] object-contain" />
                   {unreadCount > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 w-[19px] h-[19px] bg-[#e46321] rounded-full pulse-animation border-2 border-white flex items-center justify-center">
+                    <div className="absolute top-0 -right-1 w-[19px] h-[19px] bg-[#e46321] rounded-full pulse-animation border-2 border-white flex items-center justify-center">
                       <span className="text-[#fff] text-[9px] font-black">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
@@ -1139,6 +1141,7 @@ export default function HeaderDealer() {
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                   >
+                    {link.icon && <link.icon aria-hidden="true" className="w-[18px] h-[18px] shrink-0 mr-2" />}
                     {link.mobileTitle || link.title}
                   </Link>
 

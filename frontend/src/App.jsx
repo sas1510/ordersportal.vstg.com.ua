@@ -246,7 +246,7 @@ return (
 
     {normalizedRole && <PortalAnnouncementModal />}
     {normalizedRole && <ManagerDelayNotice />}
-    {isDealerRole(normalizedRole) && <SupportChatWidget />}
+    {isDealerRole(normalizedRole) && !["/constructor", "/zamir"].includes(location.pathname.replace(/\/+$/, "")) && <SupportChatWidget />}
   </>
 );
 }

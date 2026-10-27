@@ -5,7 +5,8 @@ import { isZamirLoginRequest, sendZamirLogout, updateZamirFrameRef, ZAMIR_ORIGIN
 import './ZamirPage.css';
 
 export default function ZamirPage() {
-  const { isDealer } = useAuthGetRole();
+  const { isAdmin } = useAuthGetRole();
+  const canUseZamir = isAdmin;
   const frameRef = useRef(null);
   const setFrameRef = useCallback((node) => updateZamirFrameRef(frameRef, node), []);
   const pageRef = useRef(null);
@@ -40,7 +41,7 @@ export default function ZamirPage() {
   const [savingEmail, setSavingEmail] = useState(false);
   const [emailError, setEmailError] = useState('');
   useEffect(() => {
-    if (!isDealer) return;
+    if (!canUseZamir) return;
     const controller = new AbortController();
     axiosInstance.get('/zamir/profile/', { signal: controller.signal }).then(({ data }) => {
       setProfile(data); setEmail(data.email || ''); setError('');
@@ -48,7 +49,7 @@ export default function ZamirPage() {
       if (!controller.signal.aborted) setError(failure.response?.data?.detail || 'Не вдалося перевірити email.');
     });
     return () => controller.abort();
-  }, [isDealer, retry]);
+  }, [canUseZamir, retry]);
   const saveEmail = async (event) => {
     event.preventDefault();
     if (savingEmail) return;
@@ -87,7 +88,7 @@ export default function ZamirPage() {
     };
   }, []);
   useLayoutEffect(() => {
-    if (!isDealer) return;
+    if (!canUseZamir) return;
     let stopped = false;
     let pending = false;
     const controller = new AbortController();
@@ -127,8 +128,8 @@ export default function ZamirPage() {
       window.removeEventListener('message', onMessage);
       window.removeEventListener('portal:logout', onLogout);
     };
-  }, [isDealer, retry]);
-  if (!isDealer) return <p>Замірник доступний лише дилерам.</p>;
+  }, [canUseZamir, retry]);
+  if (!canUseZamir) return <p>Замірник недоступний для вашого облікового запису.</p>;
   return <section ref={pageRef} className={`zamir-page${expanded ? ' zamir-page-expanded' : ''}`}>
     {profile && !profile.email_required && <button
       type="button" className="zamir-fullscreen-button" onClick={toggleFullscreen}

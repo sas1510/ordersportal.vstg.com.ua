@@ -36,7 +36,7 @@ export default function FundsTransferForms({ contractor, historyOnly = false, si
   useEffect(() => {
     if (mode !== 'history') return;
     const controller = new AbortController(); setBusy(true); setError('');
-    axios.get('/payments/funds-transfers/', { params: { contractor, page }, signal: controller.signal }).then(({ data }) => { setHistory(data.results); setCount(data.count); }).catch((err) => { if (!controller.signal.aborted) setError(err.response?.data?.detail || 'Не вдалося завантажити історію.'); }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
+    axios.get('/payments/funds-transfers/', { params: { contractor, page }, signal: controller.signal }).then(({ data }) => { setHistory(data.results); setCount(data.count); setError(data.reconciliation_warning || ''); }).catch((err) => { if (!controller.signal.aborted) setError(err.response?.data?.detail || 'Не вдалося завантажити історію.'); }).finally(() => { if (!controller.signal.aborted) setBusy(false); });
     return () => controller.abort();
   }, [mode, contractor, page]);
   const open = (value) => { setError(''); setNotice(''); setHistoryPhoto(''); setPage(1); setMode(value); };

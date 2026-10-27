@@ -1,4 +1,5 @@
-﻿import os
+﻿from .order_procedures import calculations_procedure, monthly_orders_procedure
+import os
 import re
 import json
 import base64
@@ -919,8 +920,8 @@ def get_orders_by_period_and_contractor(
     if get_maintenance_state()["enabled"]:
         raise RuntimeError("ONEC_MAINTENANCE_ACTIVE")
 
-    query = """
-        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor7]
+    query = f"""
+        EXEC [dbo].[{calculations_procedure()}]
             @DateFrom = %s,
             @DateTo = %s,
             @Contractor_ID = %s
@@ -1196,8 +1197,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
     
         return []
 
-    query = """
-        EXEC [dbo].[GetCalculationsWithOrdersByYearAndContractor7] @Year=%s, @Contractor_ID=%s
+    query = f"""
+        EXEC [dbo].[{calculations_procedure()}] @Year=%s, @Contractor_ID=%s
     """
 
     with connection.cursor() as cursor:
@@ -2915,8 +2916,8 @@ def orders_view_all_by_month(request):
         with connection.cursor() as cursor:
             for scoped_requester_id in scope_requester_ids:
                 cursor.execute(
-                    """
-                    EXEC [dbo].[GetOrdersMonthWithCalculations8]
+                    f"""
+                    EXEC [dbo].[{monthly_orders_procedure()}]
                         @RequesterUserID = %s,
                         @DateFrom = %s,
                         @DateTo = %s,
@@ -5912,8 +5913,8 @@ def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, da
     for requester_id in get_dealer_scope_requester_ids(scope_user):
         with connection.cursor() as cursor:
             cursor.execute(
-                """
-                EXEC [dbo].[GetOrdersMonthWithCalculations8]
+                f"""
+                EXEC [dbo].[{monthly_orders_procedure()}]
                     @RequesterUserID = %s,
                     @DateFrom = %s,
                     @DateTo = %s,

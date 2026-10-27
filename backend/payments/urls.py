@@ -7,7 +7,10 @@ from .views import get_payment_status_view, get_dealer_payment_page_data_view, g
 from .views import GetBillPDF
 from .transfer_submissions import transfer_submissions, transfer_photo, transfer_history_pdf, transfer_routes
 
+from .reconciliation_views import reconcile_transfer_history
+
 urlpatterns = [
+    path('funds-transfers/reconcile/', reconcile_transfer_history),
     path('funds-transfers/', transfer_submissions),
     path('funds-transfers/routes/', transfer_routes),
     path('funds-transfers/export-pdf/', transfer_history_pdf),

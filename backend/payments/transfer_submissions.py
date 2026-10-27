@@ -82,7 +82,7 @@ def history_queryset(request):
     return query.select_related('author').order_by(*ordering), names
 
 def serialize_submission(item, names=None):
-    return {'funds_status': item.funds_status, 'funds_status_label': item.get_funds_status_display(), 'received_amount': str(item.received_amount) if item.received_amount is not None else None, 'funds_checked_at': item.funds_checked_at.isoformat() if item.funds_checked_at else None, 'cash_receipts': item.cash_receipts, 'transfer_date': item.transfer_date.isoformat() if item.transfer_date else None, 'routing_number': item.routing_number, 'routing_orders': item.routing_orders, 'id': item.pk, 'contractor_guid': str(item.contractor_guid), 'dealer': (names or {}).get(item.contractor_guid) or item.author.full_name or item.author.username, 'amount': str(item.amount), 'currency': item.currency, 'comment': item.comment, 'created_at': item.created_at.isoformat(), 'author': item.author.full_name or item.author.username}
+    return {'reconciliation_note': item.reconciliation_note, 'funds_status': item.funds_status, 'funds_status_label': item.get_funds_status_display(), 'received_amount': str(item.received_amount) if item.received_amount is not None else None, 'funds_checked_at': item.funds_checked_at.isoformat() if item.funds_checked_at else None, 'cash_receipts': item.cash_receipts, 'transfer_date': item.transfer_date.isoformat() if item.transfer_date else None, 'routing_number': item.routing_number, 'routing_orders': item.routing_orders, 'id': item.pk, 'contractor_guid': str(item.contractor_guid), 'dealer': (names or {}).get(item.contractor_guid) or item.author.full_name or item.author.username, 'amount': str(item.amount), 'currency': item.currency, 'comment': item.comment, 'created_at': item.created_at.isoformat(), 'author': item.author.full_name or item.author.username}
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
@@ -106,7 +106,21 @@ def transfer_submissions(request):
     paginator.page_size = 20
     queryset, names = history_queryset(request)
     page = paginator.paginate_queryset(queryset, request)
-    return paginator.get_paginated_response([serialize_submission(item, names) for item in page])
+    # Reconcile only the visible page; the service includes the entire route
+    # group internally to prevent counting a receipt twice across pages.
+    from .funds_reconciliation import reconcile_submissions
+    ids = [item.pk for item in page]
+    summary = reconcile_submissions(queryset.filter(pk__in=ids), max_groups=20) if ids else {'errors': 0}
+    refreshed = {item.pk: item for item in queryset.filter(pk__in=ids)}
+    response = paginator.get_paginated_response([
+        serialize_submission(refreshed[item.pk], names) for item in page if item.pk in refreshed
+    ])
+    response.data['reconciliation_warning'] = (
+        'Не вдалося звірити частину подань із ПКО. Показано останній збережений результат.'
+        if summary['errors'] else ''
+    )
+    response['Cache-Control'] = 'private, no-store'
+    return response
 
 
 @api_view(['GET'])
@@ -137,7 +151,7 @@ def transfer_history_pdf(request):
     items = list(queryset[:1001])
     if len(items) > 1000:
         return Response({'detail': 'Для одного PDF дозволено не більше 1000 подань.'}, status=400)
-    rows = [{'date': timezone.localtime(item.created_at).strftime('%d.%m.%Y %H:%M'), 'dealer': names.get(item.contractor_guid) or item.author.full_name or item.author.username, 'amount': item.amount, 'currency': item.currency, 'comment': item.comment, 'author': item.author.full_name or item.author.username} for item in items]
+    rows = [{'date': timezone.localtime(item.created_at).strftime('%d.%m.%Y %H:%M'), 'dealer': names.get(item.contractor_guid) or item.author.full_name or item.author.username, 'amount': item.amount, 'currency': item.currency, 'comment': item.comment, 'author': item.author.full_name or item.author.username, 'reconciliation': '\n'.join(filter(None, [f'Маршрут: {item.routing_number}' if item.routing_number else '', item.get_funds_status_display(), f'Отримано: {item.received_amount} {item.currency}' if item.received_amount is not None else '', 'ПКО: ' + ', '.join(receipt.get('number', '') for receipt in item.cash_receipts) if item.cash_receipts else '', item.reconciliation_note]))} for item in items]
     from records.deliveries_pdf import deliveries_font_path, PdfFontError
     from .transfer_pdf import build_transfer_history_pdf
     try:
