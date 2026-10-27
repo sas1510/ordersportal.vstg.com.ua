@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import RouteContent from "../ui/RouteContent";
 import HeaderDealer from "../headers/HeaderDealer";
 import Footer from "./Footer";
 import PullToRefresh from "./PullToRefresh";
@@ -21,7 +21,7 @@ const DealerLayout = () => (
 </div>
 
     <PullToRefresh style={styles.main}>
-      <Outlet />
+      <RouteContent />
     </PullToRefresh>
   </div>
 );

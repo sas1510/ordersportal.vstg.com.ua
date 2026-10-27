@@ -1,7 +1,7 @@
 import React from "react";
 import HeaderWithoutAuth from "../headers/HeaderWithoutAuth";
 import Footer from "./Footer";
-import { Outlet } from "react-router-dom";
+import RouteContent from "../ui/RouteContent";
 
 export default function PublicLayout() {
   return (
@@ -12,7 +12,7 @@ export default function PublicLayout() {
       </div>
 
       <main style={styles.main}>
-        <Outlet />
+        <RouteContent />
       </main>
 
    

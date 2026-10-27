@@ -1,8 +1,10 @@
+import "./styles/portalSharedStyles";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
+import ApplicationBoundary, { ApplicationReady } from "./components/ui/ApplicationBoundary";
 // У main.jsx змініть старий імпорт на новий:
 import { RoleProvider } from "./context/RoleProvider";
 import '../public/assets/css/mobile-responsive.css';
@@ -22,6 +24,8 @@ import { ThemeProvider } from "./context/ThemeProvider";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    <ApplicationBoundary>
+      <ApplicationReady />
     <BrowserRouter>
       <RoleProvider>
         <AuthProvider>
@@ -33,5 +37,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </AuthProvider>
       </RoleProvider>
     </BrowserRouter>
+    </ApplicationBoundary>
   </React.StrictMode>,
 );

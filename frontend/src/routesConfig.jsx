@@ -1,56 +1,51 @@
-import Dashboard from "./pages/Dashboard";
-import FilesPage from "./pages/FilesPage";
-import AddOrEditFilePage from "./pages/AddOrEditFilePage";
+import { lazy } from "react";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const FilesPage = lazy(() => import("./pages/FilesPage"));
+const AddOrEditFilePage = lazy(() => import("./pages/AddOrEditFilePage"));
 
-import VideosPage from "./pages/VideosPage";
-import ConstructorPage from "./pages/ConstructorPage";
-import ZamirPage from "./pages/ZamirPage";
-import MeasurementTestPage from "./pages/MeasurementTestPage";
-import VideoFormPage from "./pages/VideoFormPage";
-import FAQ from "./pages/FAQ";
+const VideosPage = lazy(() => import("./pages/VideosPage"));
+const ConstructorPage = lazy(() => import("./pages/ConstructorPage"));
+const ZamirPage = lazy(() => import("./pages/ZamirPage"));
+const MeasurementTestPage = lazy(() => import("./pages/MeasurementTestPage"));
+const VideoFormPage = lazy(() => import("./pages/VideoFormPage"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 
-import PortalOriginal from "./pages/OrdersPage";
+const PortalOriginal = lazy(() => import("./pages/OrdersPage"));
 
-import AdditionalOrdersPage from "./pages/AdditionalOrdersPage";
-import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
+const AdditionalOrdersPage = lazy(() => import("./pages/AdditionalOrdersPage"));
+const FilePreviewErrorPage = lazy(() => import("./pages/FilePreviewErrorPage"));
 
-import ChangePassword from "./pages/ChangePassword";
-
-import AiChatPage from "./pages/AiChatPage";
-import DealerAddressesPage from "./pages/DealerAddressesPage";
-import ContactFormPage from "./pages/ContactFormPage";
-import UrgentCallLogsPage from "./pages/UrgentCallLogsPage";
-import EmergencyContactsPage from "./pages/EmergencyContactsPage";
+const ContactFormPage = lazy(() => import("./pages/ContactFormPage"));
+const UrgentCallLogsPage = lazy(() => import("./pages/UrgentCallLogsPage"));
+const EmergencyContactsPage = lazy(() => import("./pages/EmergencyContactsPage"));
 
 // import AddClaimForm from "./pages/AddClaimForm";
 // import AddReorderForm from "./pages/AddReorderForm";
-import HomePage from "./pages/HomePage";
+const HomePage = lazy(() => import("./pages/HomePage"));
 
-import AdminAdditionalOrders from "./pages/AdminAdditionalOrders";
+const AdminAdditionalOrders = lazy(() => import("./pages/AdminAdditionalOrders"));
 
-import CreateCustomerBillPage from "./pages/CreateCustomerBillPage";
-import ReclamationPortal from "./pages/ReclamationPortal";
+const ReclamationPortal = lazy(() => import("./pages/ReclamationPortal"));
 
-import ChangePasswordPage from "./pages/ChangePasswordPage";
-import UsersListPage from "./pages/UsersListPage";
-import PaymentStatusV2 from "./pages/PaymentStatusV2";
-import PaymentsPage from "./pages/PaymentsPage";
-import FundsTransferHistoryPage from "./pages/FundsTransferHistoryPage";
+const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
+const UsersListPage = lazy(() => import("./pages/UsersListPage"));
+const PaymentStatusV2 = lazy(() => import("./pages/PaymentStatusV2"));
+const PaymentsPage = lazy(() => import("./pages/PaymentsPage"));
+const FundsTransferHistoryPage = lazy(() => import("./pages/FundsTransferHistoryPage"));
 
-import CustomerBillsPage from "./pages/CustomerBillsPage";
-import AdminPortalOriginal from "./pages/AdminOrderPage";
-import AdminReclamationPortal from "./pages/AdminReclamationPortal";
-import WDSCodesTable from "./pages/WDSCodesTable";
-import InvalidLinkPage from "./pages/InvalidLinkPage";
-import ProductionStatisticsPage from "./pages/ProductionStatisticsPage";
-import OrdersReportDashboardPage from "./pages/OrdersReportDashboardPage";
-import DashboardPage from "./pages/DashboardPage";
-import NotificationPage from "./pages/NotificationPage";
-import ManagerQrDropdown from "./pages/ManagerQrDropdown";
-import BonusPage from "./pages/BonusPage";
-import DealerReportsPage from "./pages/DealerReportsPage";
-import AnnouncementsPage from "./pages/AnnouncementsPage";
-
+const CustomerBillsPage = lazy(() => import("./pages/CustomerBillsPage"));
+const AdminPortalOriginal = lazy(() => import("./pages/AdminOrderPage"));
+const AdminReclamationPortal = lazy(() => import("./pages/AdminReclamationPortal"));
+const WDSCodesTable = lazy(() => import("./pages/WDSCodesTable"));
+const InvalidLinkPage = lazy(() => import("./pages/InvalidLinkPage"));
+const ProductionStatisticsPage = lazy(() => import("./pages/ProductionStatisticsPage"));
+const OrdersReportDashboardPage = lazy(() => import("./pages/OrdersReportDashboardPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const NotificationPage = lazy(() => import("./pages/NotificationPage"));
+const ManagerQrDropdown = lazy(() => import("./pages/ManagerQrDropdown"));
+const BonusPage = lazy(() => import("./pages/BonusPage"));
+const DealerReportsPage = lazy(() => import("./pages/DealerReportsPage"));
+const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
 
 export const adminRoutes = [
   { path: "zamir", element: <ZamirPage /> },

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import RouteContent from "../ui/RouteContent";
 import HeaderAdmin from "../headers/HeaderAdmin";
 import Footer from "./Footer";
 import PullToRefresh from "./PullToRefresh";
@@ -19,7 +19,7 @@ const AdminLayout = () => (
 
     {/* Основний контент */}
     <PullToRefresh style={styles.main}>
-      <Outlet />
+      <RouteContent />
     </PullToRefresh>
 
     {/* <Footer /> */}

@@ -7,6 +7,9 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
+  # Missing build assets must return 404, not React HTML as JavaScript.
+  RewriteRule ^assets/ - [R=404,L]
+
   # ВСІ інші запити — index.html для React Router
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
@@ -14,4 +17,10 @@
 <IfModule mod_mime.c>
   AddType application/javascript .js
   AddType text/css .css
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|version\.json|portal-startup\.js)$">
+    Header always set Cache-Control "no-cache, max-age=0, must-revalidate"
+  </FilesMatch>
 </IfModule>

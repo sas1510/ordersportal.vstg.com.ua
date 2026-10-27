@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/header_logo_small.svg" />
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
 
     <meta property="og:title" content="Portal ViknaStyle" />
     <meta property="og:description" content="Система керування замовленнями" />
-    <meta property="og:image" content="/og-image.jpg" /> 
+    <meta property="og:image" content="/og-image.jpg" />
     <meta property="og:url" content="https://portal.vstg.com.ua" />
     <meta property="og:type" content="website" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -17,7 +17,7 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
 
     <meta name="twitter:card" content="summary_large_image" />
-  
+
 
     <meta name="twitter:image" content="/og-image.jpg" />
 
@@ -35,40 +35,36 @@
       <link rel="apple-touch-icon" sizes="180x180" href="/logo180.png">
 
 
-      
+
 
     <title>Vikna Style</title>
 
 
     <link rel="stylesheet" href="/src/assets/css/icomoon/icomoon.css" />
 
-    
 
 
-    <!-- <link rel="stylesheet" 
-      href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/font/material-icons.min.css" 
-      integrity="sha512-976p69fN3pUkwmO68Z4uE5T1hS4P5pL+9U/vQkP56R04M5O5M1pL+0987654321..." 
+
+    <!-- <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/font/material-icons.min.css"
+      integrity="sha512-976p69fN3pUkwmO68Z4uE5T1hS4P5pL+9U/vQkP56R04M5O5M1pL+0987654321..."
       crossorigin="anonymous"> -->
 
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
 
-    
-    <!-- <link rel="stylesheet" 
-          href="https://cdn.jsdelivr.net/npm/izimodal@1.6.1/css/iziModal.min.css" 
-          integrity="sha256-As9vHeK0YpZ9S6K7eM1+7eC+50u7L9A2q6f6T8f5/8I=" 
+
+
+
+    <!-- <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/izimodal@1.6.1/css/iziModal.min.css"
+          integrity="sha256-As9vHeK0YpZ9S6K7eM1+7eC+50u7L9A2q6f6T8f5/8I="
           crossorigin="anonymous"> -->
 
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" 
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" 
-            crossorigin="anonymous" 
-            defer></script>
-            
+    <script src="/vendor/jquery-3.7.1.min.js" defer></script>
+
 
     <script>
       // Перевірка версії застосунку
@@ -91,7 +87,7 @@
               localStorage.setItem('app_version', data.version);
               if (nextBuildTime) localStorage.setItem('app_build_time', nextBuildTime);
               // Жорстке перезавантаження для оновлення кешу
-              window.location.reload(true); 
+              window.location.reload(true);
             } else if (data.version) {
               localStorage.setItem('app_version', data.version);
               if (nextBuildTime) localStorage.setItem('app_build_time', nextBuildTime);
@@ -100,17 +96,44 @@
           .catch(() => {});
       })();
     </script>
-    
 
-    
+
+
+
+    <style>
+      #portal-startup[hidden], #portal-startup [hidden] { display: none !important; }
+      #portal-startup { position: fixed; inset: 0; z-index: 20000; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; background: #f4f5f2; color: #333; font: 16px/1.5 system-ui, -apple-system, sans-serif; text-align: center; }
+      #portal-startup .portal-startup-card { width: 100%; max-width: 390px; }
+      #portal-startup h1 { font-size: 23px; margin: 16px 0 8px; }
+      #portal-startup p { margin: 8px 0; }
+      #portal-startup a { display: inline-block; margin-top: 18px; padding: 11px 20px; border-radius: 8px; background: #b5d93b; color: #252b11; text-decoration: none; font-weight: 600; }
+      #portal-startup-code { display: block; margin-top: 16px; font-size: 12px; opacity: .7; }
+      #portal-startup-spinner { display: inline-block; width: 30px; height: 30px; border: 3px solid #d4d8c8; border-top-color: #7c961a; border-radius: 50%; animation: portal-startup-spin .9s linear infinite; }
+      @keyframes portal-startup-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { #portal-startup-spinner { animation: none; } }
+      @media (prefers-color-scheme: dark) { #portal-startup { background: #292825; color: #f2f2eb; } }
+    </style>
   </head>
   <body>
+    <div id="portal-startup" role="status" aria-live="polite">
+      <div class="portal-startup-card">
+        <span id="portal-startup-spinner" aria-hidden="true"></span>
+        <h1 id="portal-startup-title">Відкриваємо портал…</h1>
+        <p id="portal-startup-message">Зачекайте, будь ласка.</p>
+        <div id="portal-startup-help" hidden>
+          <a href="">Спробувати ще раз</a>
+          <small id="portal-startup-code"></small>
+        </div>
+        <noscript><p>Для роботи порталу потрібно увімкнути JavaScript у браузері.</p><a href="">Відкрити повторно</a></noscript>
+      </div>
+    </div>
+    <script src="/portal-startup.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    
+
 
     <div id="fb-root"></div>
-    <script async defer crossorigin="anonymous" 
+    <script async defer crossorigin="anonymous"
             src="https://connect.facebook.net/uk_UA/sdk.js#xfbml=1&version=v25.0&appId=2817254248621410">
     </script>
   </body>

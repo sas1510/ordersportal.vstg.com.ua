@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from "react";
+import React, { lazy, useContext, useEffect, useMemo } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { RoleContext } from "./context/RoleContext";
 import { useTranslation } from "react-i18next";
@@ -8,11 +8,7 @@ import AdminLayout from "./components/layout/AdminLayout";
 import DealerLayout from "./components/layout/DealerLayout";
 // В App.js
 import '../public/assets/css/mobile-responsive.css';
-import HomePage from "./pages/HomePage";
-import LoginPage from "./pages/LoginPage";
-import InviteRegisterForm from "./pages/InviteRegisterForm";
-import FilePreviewErrorPage from "./pages/FilePreviewErrorPage";
-import SupportVideoUploadPage from "./pages/SupportVideoUploadPage";
+
 
 import PortalLoader from "./components/ui/PortalLoader";
 import { adminRoutes, branchLeaderRoutes, dealerRoutes, managerRoutes } from "./routesConfig";
@@ -27,6 +23,11 @@ import {
   isDealerRole,
   normalizeRole,
 } from "./utils/roles";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const InviteRegisterForm = lazy(() => import("./pages/InviteRegisterForm"));
+const SupportVideoUploadPage = lazy(() => import("./pages/SupportVideoUploadPage"));
 
 const routeTitlePatterns = [
   ["/login", "route_titles.login"],
