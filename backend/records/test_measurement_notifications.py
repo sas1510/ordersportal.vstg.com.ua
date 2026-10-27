@@ -11,7 +11,13 @@ from .views import CreateCalculationViewSet
 
 @override_settings(BOT_TOKEN='test-token', TELEGRAM_BOT_TOKEN='', NOTIFICATION_TELEGRAM_BOT_TOKEN='')
 class MeasurementNotificationTests(SimpleTestCase):
+    def _mock_alerts(self):
+        alert_patcher = patch('records.measurement_orders.enqueue_alert')
+        alert_patcher.start()
+        self.addCleanup(alert_patcher.stop)
+
     def setUp(self):
+        self._mock_alerts()
         self.item = SimpleNamespace(pk=1, status='succeeded', calculation_guid=uuid.uuid4(), contractor_guid=uuid.uuid4(),
             payload={'dealer': '<dealer>', 'items_count': 2, 'order_number': 'zamir-1'}, save=MagicMock())
         self.item.response_body = {'success': True, '_measurement_telegram': {'status': 'pending', 'deliveries': {}, 'contractor_guid': str(self.item.contractor_guid), 'payload': self.item.payload}}
@@ -75,6 +81,14 @@ class MeasurementNotificationTests(SimpleTestCase):
 
 @override_settings(ONE_C_URL='https://test.invalid/', ONE_C_USER='u',ONE_C_PASSWORD='p')
 class MeasurementNotificationHookTests(SimpleTestCase):
+    def setUp(self):
+        self._mock_alerts()
+
+    def _mock_alerts(self):
+        alert_patcher = patch('records.measurement_orders.enqueue_alert')
+        alert_patcher.start()
+        self.addCleanup(alert_patcher.stop)
+
     def request(self):
         return SimpleNamespace(headers={'Idempotency-Key':str(uuid.uuid4())},user=SimpleNamespace(pk=78,user_id_1C=b'1'*16),data={'items_count':2})
 
@@ -93,3 +107,4 @@ class MeasurementNotificationHookTests(SimpleTestCase):
     def test_notification_failure_does_not_fail_created_order(self, record):
         with patch.object(CreateCalculationViewSet,'create',return_value=Response({'success':True,'calculation_guid':str(uuid.uuid4())},status=201)):
             self.assertEqual(MeasurementOrderViewSet().create(self.request()).status_code,201)
+

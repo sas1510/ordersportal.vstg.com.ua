@@ -19,6 +19,14 @@ def payload():
 
 @override_settings(ONE_C_URL='https://production.invalid/hs/service/', ONE_C_USER='live-user', ONE_C_PASSWORD='live-pass')
 class MeasurementOrderTests(SimpleTestCase):
+    def setUp(self):
+        self._mock_alerts()
+
+    def _mock_alerts(self):
+        alert_patcher = patch('records.measurement_orders.enqueue_alert')
+        alert_patcher.start()
+        self.addCleanup(alert_patcher.stop)
+
     @override_settings(ONE_C_URL='https://production.invalid/hs/service/')
     def test_measurement_posts_to_configured_live_1c(self):
         upstream = SimpleNamespace(ok=True, text='{}', status_code=200, json=lambda: {'success': True})
@@ -153,3 +161,4 @@ class MeasurementOrderTests(SimpleTestCase):
             old_key = MeasurementOrderViewSet().get_idempotency_key(request)
         with override_settings(ONE_C_URL='https://live.invalid/'):
             self.assertNotEqual(old_key, MeasurementOrderViewSet().get_idempotency_key(request))
+

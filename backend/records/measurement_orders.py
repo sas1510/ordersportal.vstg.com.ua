@@ -2,6 +2,8 @@
 import uuid
 import logging
 from .measurement_notifications import record_measurement_notification
+from .measurement_alerts import report_measurement_failure
+from utils.portal_error_alerts import enqueue_alert
 logger = logging.getLogger(__name__)
 from rest_framework.exceptions import APIException
 
@@ -26,6 +28,14 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
     authentication_classes = [MeasurementApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     create_serializer_class = MeasurementOrderSerializer
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        try:
+            report_measurement_failure(request, response)
+        except Exception:
+            logger.warning('Measurement failure alert could not be queued')
+        return response
 
     def get_one_c_credentials(self):
         user, password = super().get_one_c_credentials()
@@ -76,6 +86,9 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
                 except Exception as exc:
                     # Creation in 1C succeeded: Telegram must not turn it into a failed order.
                     logger.error('Measurement Telegram outbox failed: calculation=%s error_type=%s', calculation_guid, type(exc).__name__)
+            else:
+                enqueue_alert('🚨 Заявка із замірника: 1С повернула успіх без GUID документа.\nКористувач ID: ' + str(request.user.pk))
+
             return Response({
                 'success': True,
                 'calculation_guid': response.data.get('calculation_guid') or extract_calculation_guid(response.data.get('result_1c') or {}),

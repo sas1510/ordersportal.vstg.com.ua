@@ -19,6 +19,7 @@ class MeasurementApiKeyAuthentication(BaseAuthentication):
         supplied = request.headers.get('X-API-KEY', '')
         if not expected or not supplied or not secrets.compare_digest(supplied.encode(), expected.encode()):
             raise AuthenticationFailed('Недійсний ключ інтеграції замірника.')
+        request._measurement_key_valid = True
         if not isinstance(request.data, Mapping):
             raise ValidationError('Потрібен JSON-об’єкт.')
         user_id = request.data.get('user_id')
