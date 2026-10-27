@@ -890,11 +890,25 @@ ON #Payments(OrderID);
     INTO #PurchasedEvents
     FROM #PurchaseLinks L
     INNER JOIN [oknastyle_biV2].[dbo].[Документы.ПоступлениеТоваровУслуг.Товары] T
-      ON COALESCE(NULLIF(T.ЗаказПоставщику,0x00000000000000000000000000000000),T.Заказ)=L.PurchaseID
+      ON T.ЗаказПоставщику=L.PurchaseID
      AND T.Номенклатура=L.ItemID
      AND ISNULL(T.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)=L.CharacteristicID
     INNER JOIN [oknastyle_biV2].[dbo].[Документы.ПоступлениеТоваровУслуг] D ON D.Ссылка=T.Ссылка
     WHERE D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+        AND T.ЗаказПоставщику<>0x00000000000000000000000000000000
+    UNION ALL
+    SELECT L.OrderID,L.ItemID,L.CharacteristicID,
+           T.Количество * ISNULL(NULLIF(T.Коэффициент,0),1) AS BaseQty,
+           CASE WHEN YEAR(D.Дата)>=3753 THEN DATEADD(YEAR,-2000,D.Дата) ELSE D.Дата END AS ReceiptDate
+    
+    FROM #PurchaseLinks L
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ПоступлениеТоваровУслуг.Товары] T
+      ON T.Заказ=L.PurchaseID
+     AND T.Номенклатура=L.ItemID
+     AND ISNULL(T.ХарактеристикаНоменклатуры,0x00000000000000000000000000000000)=L.CharacteristicID
+    INNER JOIN [oknastyle_biV2].[dbo].[Документы.ПоступлениеТоваровУслуг] D ON D.Ссылка=T.Ссылка
+    WHERE D.Проведен=0x01 AND D.ПометкаУдаления=0x00
+        AND (T.ЗаказПоставщику IS NULL OR T.ЗаказПоставщику=0x00000000000000000000000000000000)
     UNION ALL
     SELECT L.OrderID,L.ItemID,L.CharacteristicID,
            -T.Количество * ISNULL(NULLIF(T.Коэффициент,0),1), NULL

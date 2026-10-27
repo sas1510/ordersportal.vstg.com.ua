@@ -1,0 +1,11 @@
+[
+  {
+    "case": "admin",
+    "rows": 2822,
+    "equal": true,
+    "baseline_seconds": 2.47,
+    "test_seconds": 2.315,
+    "baseline_logical_reads": 1399477,
+    "test_logical_reads": 1399482
+  }
+]

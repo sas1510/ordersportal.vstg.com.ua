@@ -1,0 +1,170 @@
+[
+  {
+    "case": "dealer",
+    "plan_count": 76,
+    "top_reads": [
+      {
+        "table": "[_Document381_VT6283]",
+        "index": "[_Document381_VT6283_IntKeyInd]",
+        "reads": 121953
+      },
+      {
+        "table": "[_Document382_VT6547]",
+        "index": "[_Document382_VT6547_IntKeyInd]",
+        "reads": 21507
+      },
+      {
+        "table": "[_Reference252]",
+        "index": "[_Reference252_ByFieldFld3500_RR]",
+        "reads": 16920
+      },
+      {
+        "table": "[_Document540_VT13376]",
+        "index": "[_Document540_VT13376_IntKeyInd]",
+        "reads": 16139
+      },
+      {
+        "table": "[_Reference252]",
+        "index": "[PK___Referen__AC8ED0C4F9FCC555]",
+        "reads": 10899
+      },
+      {
+        "table": "[_Document44856]",
+        "index": "[PK___Documen__AC8ED0C41B487FAD]",
+        "reads": 9884
+      },
+      {
+        "table": "[_Reference150]",
+        "index": "[_Reference150_ByParentFieldFld2483_RLRR]",
+        "reads": 3134
+      },
+      {
+        "table": "[_Reference150]",
+        "index": "[_Reference150_Descr_SR]",
+        "reads": 1679
+      },
+      {
+        "table": "[_Document381]",
+        "index": "[PK___Documen__AC8ED0C496EB1A24]",
+        "reads": 925
+      },
+      {
+        "table": "[_Document362_VT5540]",
+        "index": "[_Document362_VT5540_IntKeyInd]",
+        "reads": 447
+      }
+    ]
+  },
+  {
+    "case": "manager",
+    "plan_count": 68,
+    "top_reads": [
+      {
+        "table": "[_Document381]",
+        "index": "[PK___Documen__AC8ED0C496EB1A24]",
+        "reads": 234945
+      },
+      {
+        "table": "[_Document381_VT6283]",
+        "index": "[_Document381_VT6283_IntKeyInd]",
+        "reads": 123639
+      },
+      {
+        "table": "[_Document382_VT6547]",
+        "index": "[_Document382_VT6547_IntKeyInd]",
+        "reads": 21511
+      },
+      {
+        "table": "[_Reference252]",
+        "index": "[_Reference252_ByFieldFld3500_RR]",
+        "reads": 16920
+      },
+      {
+        "table": "[_Document540_VT13376]",
+        "index": "[_Document540_VT13376_IntKeyInd]",
+        "reads": 16026
+      },
+      {
+        "table": "[_Reference252]",
+        "index": "[PK___Referen__AC8ED0C4F9FCC555]",
+        "reads": 10899
+      },
+      {
+        "table": "[_Document44856]",
+        "index": "[PK___Documen__AC8ED0C41B487FAD]",
+        "reads": 9884
+      },
+      {
+        "table": "[_Document380_VT6116]",
+        "index": "[_Document380_VT6116_IntKeyInd]",
+        "reads": 7488
+      },
+      {
+        "table": "[_Document628_VT17263]",
+        "index": "[_Documen628_VT17263_IntKeyInd]",
+        "reads": 6438
+      },
+      {
+        "table": "[_Document381]",
+        "index": "[_Document381_ByFieldFld6187_RR]",
+        "reads": 6333
+      }
+    ]
+  },
+  {
+    "case": "admin",
+    "plan_count": 74,
+    "top_reads": [
+      {
+        "table": "[_Document381]",
+        "index": "[PK___Documen__AC8ED0C496EB1A24]",
+        "reads": 250072
+      },
+      {
+        "table": "[_Document381_VT6283]",
+        "index": "[_Document381_VT6283_IntKeyInd]",
+        "reads": 133787
+      },
+      {
+        "table": "[_Document380_VT6116]",
+        "index": "[_Document380_VT6116_IntKeyInd]",
+        "reads": 40322
+      },
+      {
+        "table": "[_Document628_VT17263]",
+        "index": "[_Documen628_VT17263_IntKeyInd]",
+        "reads": 29565
+      },
+      {
+        "table": "[_Document488_VT10534]",
+        "index": "[_Documen488_VT10534_IntKeyInd]",
+        "reads": 21588
+      },
+      {
+        "table": "[_Document382_VT6547]",
+        "index": "[_Document382_VT6547_IntKeyInd]",
+        "reads": 21507
+      },
+      {
+        "table": "[_AccumRg24770]",
+        "index": "[_Accum24770_ByPeriod_TRN]",
+        "reads": 19010
+      },
+      {
+        "table": "[_Reference252]",
+        "index": "[_Reference252_ByFieldFld3500_RR]",
+        "reads": 16920
+      },
+      {
+        "table": "[_Document488]",
+        "index": "[PK___Documen__AC8ED0C4A82C0D84]",
+        "reads": 16293
+      },
+      {
+        "table": "[_Document540_VT13376]",
+        "index": "[_Document540_VT13376_IntKeyInd]",
+        "reads": 16142
+      }
+    ]
+  }
+]

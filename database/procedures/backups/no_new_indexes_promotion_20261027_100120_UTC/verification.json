@@ -1,0 +1,29 @@
+[
+  {
+    "case": "dealer",
+    "rows": 14,
+    "equal": true,
+    "baseline_seconds": 1.049,
+    "test_seconds": 1.305,
+    "baseline_logical_reads": 214942,
+    "test_logical_reads": 214942
+  },
+  {
+    "case": "manager",
+    "rows": 409,
+    "equal": true,
+    "baseline_seconds": 2.929,
+    "test_seconds": 3.017,
+    "baseline_logical_reads": 514133,
+    "test_logical_reads": 514133
+  },
+  {
+    "case": "admin",
+    "rows": 2825,
+    "equal": true,
+    "baseline_seconds": 3.252,
+    "test_seconds": 3.009,
+    "baseline_logical_reads": 803617,
+    "test_logical_reads": 803615
+  }
+]

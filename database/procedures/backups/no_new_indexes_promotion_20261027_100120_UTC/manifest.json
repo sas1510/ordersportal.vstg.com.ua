@@ -1,0 +1,9 @@
+{
+  "server": "WST\\WST",
+  "database": "portal_db",
+  "created_utc": "20261027_100120_UTC",
+  "original_sha256": {
+    "GetCalculationsWithOrdersByYearAndContractor7": "b6d997035e8a2a7ed3cad6aed7bc3335621ccb539096daad1d3500eef90150ba",
+    "GetOrdersMonthWithCalculations8": "60aa452622e7710fa04994507334ebc1a5a729ac44cbc0b930091839b187fbd8"
+  }
+}

@@ -45,10 +45,10 @@ class ZamirTicketTests(SimpleTestCase):
         decoded = json.loads(base64.urlsafe_b64decode(data + '=' * (-len(data) % 4)))
         self.assertEqual(decoded['user_id'], 123)
 
-    def test_all_non_admin_roles_are_denied(self):
-        for role in ['dealer', 'customer', 'manager', 'region_manager', 'regionalManager', 'branch_manager', 'branches_director', 'director']:
+    def test_dealers_and_managers_can_enter_with_own_identity(self):
+        for role in ['dealer', 'customer', 'manager', 'region_manager', 'regionalManager', 'branch_manager', 'branches_director']:
             with self.subTest(role=role):
-                self.assertEqual(self.ticket(self.user(role=role)).status_code, 403)
+                self.assertEqual(self.ticket(self.user(role=role)).status_code, 200)
 
     def test_nonce_is_unique(self):
         self.assertNotEqual(self.ticket(self.user()).data['ticket'], self.ticket(self.user()).data['ticket'])
@@ -107,14 +107,22 @@ class ZamirEmailProfileTests(ZamirTicketTests):
         self.assertEqual(response.status_code, 400)
         user.save.assert_not_called()
 
-    def test_only_admin_can_check_or_update_zamir_email(self):
-        self.assertEqual(self.profile(self.user(role='admin')).status_code, 200)
-        for role in ['dealer', 'customer', 'manager', 'region_manager', 'branch_manager', 'branches_director', 'director']:
-            user = self.user(role=role, save=Mock())
-            self.assertEqual(self.profile(user).status_code, 403)
-            self.assertEqual(self.profile(user, {'email': 'new@example.com'}).status_code, 403)
-            user.save.assert_not_called()
+    def test_allowed_roles_can_check_and_confirm_their_email(self):
+        for role in ['admin', 'dealer', 'customer', 'manager', 'region_manager', 'regionalManager', 'branch_manager', 'branches_director']:
+            with self.subTest(role=role):
+                user = self.user(role=role, email_confirmed=False, save=Mock())
+                self.assertEqual(self.profile(user).status_code, 200)
+                with patch('records.zamir_sso.CustomUser.objects.filter') as query:
+                    query.return_value.exclude.return_value.exists.return_value = False
+                    response = self.profile(user, {'email': 'new@example.com'})
+                self.assertEqual(response.status_code, 200)
+                user.save.assert_called_once_with(update_fields=['email', 'email_confirmed'])
 
+    def test_disallowed_role_cannot_check_or_update_email(self):
+        user = self.user(role='complaint_manager', save=Mock())
+        self.assertEqual(self.profile(user).status_code, 403)
+        self.assertEqual(self.profile(user, {'email': 'new@example.com'}).status_code, 403)
+        user.save.assert_not_called()
 
     def test_unconfirmed_email_prompts_and_cannot_issue_ticket(self):
         user = self.user(email_confirmed=False)

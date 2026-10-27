@@ -5,8 +5,8 @@ import { isZamirLoginRequest, sendZamirLogout, updateZamirFrameRef, ZAMIR_ORIGIN
 import './ZamirPage.css';
 
 export default function ZamirPage() {
-  const { isAdmin } = useAuthGetRole();
-  const canUseZamir = isAdmin;
+  const { isAdmin, isDealer, isManager } = useAuthGetRole();
+  const canUseZamir = isAdmin || isDealer || isManager;
   const frameRef = useRef(null);
   const setFrameRef = useCallback((node) => updateZamirFrameRef(frameRef, node), []);
   const pageRef = useRef(null);

@@ -101,7 +101,6 @@ export const adminRoutes = [
 ];
 
 const managerBlockedRoutePaths = new Set([
-  "zamir",
   "integration-test/measurement",
   "files/add",
   "files/edit/:id",
@@ -118,7 +117,6 @@ export const managerRoutes = adminRoutes.filter(
 );
 
 const branchLeaderBlockedRoutePaths = new Set([
-  "zamir",
   "integration-test/measurement",
   "files/add",
   "files/edit/:id",
@@ -132,6 +130,7 @@ export const branchLeaderRoutes = adminRoutes.filter(
 );
 
 export const dealerRoutes = [
+  { path: "zamir", element: <ZamirPage /> },
   { path: "constructor", element: <ConstructorPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
