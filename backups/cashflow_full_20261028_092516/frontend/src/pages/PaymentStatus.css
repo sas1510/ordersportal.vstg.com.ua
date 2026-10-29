@@ -1,0 +1,2101 @@
+
+/* Використовуються CSS-змінні з PortalOriginal.css:
+--portal-bg-color-start
+--cream-bg-color
+--grey-border-color
+--shadow-color
+--info-color
+--text-color
+--info-bg-color
+--success-color
+--danger-color
+--grey-text-color
+--purple-color
+--purple-bg-color
+*/
+
+
+.payments-body {
+  /* padding: 28px !important;
+    min-height: 100vh;
+    background-color: var(--portal-bg-color-start);
+    color: var(--text-color); */
+  background: radial-gradient(
+    circle,
+    var(--portal-bg-color-end) 45%,
+    var(--portal-bg-color-start)
+  );
+  height: 100vh;
+  width: 100%;
+  padding-top: 80px;
+  padding-bottom: 60px;
+    /* display: flex;
+  flex-direction: column; */
+
+
+  /* Адаптивні відступи зліва і справа */
+  /* padding-left: clamp(5px, 5vw, 100px);
+  padding-right: clamp(5px, 5vw, 100px); */
+
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+/* --- ФІЛЬТРИ --- */
+.filters-container {
+  background: var(--cream-bg-color);
+  padding: 14px;
+  border-radius: 5px;
+  margin-bottom: 14px;
+  box-shadow: 0 0 5px var(--shadow-color);
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  border: 1px dashed var(--grey-border-color);
+}
+
+.input-date {
+  padding: 7px 14px;
+  border: 1px dashed var(--grey-border-color);
+  border-radius: 3px;
+  font-size: 14px;
+  background: #fff;
+  color: var(--text-color);
+  transition: all 0.2s;
+}
+
+.input-date:focus {
+  outline: none;
+  border-color: var(--info-color);
+  box-shadow: 0 0 3px var(--info-color);
+}
+
+label {
+  color: var(--text-color);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background-color: var(--info-color);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.cashflow-error-state {
+  margin-top: 8px;
+  padding: 36px 28px;
+  border-radius: 5px;
+  background: var(--cream-bg-color);
+  border: 1px dashed var(--grey-border-color);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.cashflow-error-state__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.cashflow-error-state.is-warning .cashflow-error-state__icon {
+  background: rgba(243, 156, 18, 0.14);
+  color: #b26b00;
+}
+
+.cashflow-error-state.is-danger .cashflow-error-state__icon {
+  background: rgba(192, 57, 43, 0.12);
+  color: var(--danger-color);
+}
+
+.cashflow-error-state__eyebrow {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--grey-text-color);
+}
+
+.cashflow-error-state__title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  color: var(--text-color);
+}
+
+.cashflow-error-state__detail {
+  max-width: 720px;
+  margin: 14px auto 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--grey-text-color);
+}
+
+.cashflow-error-state__actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+/* --- ТАБЛИЦЯ --- */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 2px dashed var(--grey-border-color);
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+
+.payments-table thead th {
+  background: var(--info-color);
+  color: white;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.payments-table thead th:first-child {
+  border-top-left-radius: 5px;
+}
+
+.payments-table thead th:last-child {
+  border-top-right-radius: 5px;
+}
+
+.date-row {
+  background: var(--info-bg-color); /* Світло-синій фон */
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.date-row td {
+  padding: 10px 12px;
+  color: var(--text-color);
+  border-top: 2px dashed var(--grey-border-color);
+}
+
+.data-row {
+  transition: all 0.2s;
+  background: #fff;
+  border-bottom: 1px dashed var(--grey-border-color);
+}
+
+.data-row:hover {
+  background: var(--info-bg-color);
+}
+
+.data-row td {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.total-row {
+  background: var(--portal-bg-color-end);
+  font-weight: 700;
+  border-top: 2px solid var(--info-color);
+  border-bottom: 3px solid var(--info-color);
+}
+
+.total-row td {
+  padding: 10px 12px !important;
+  color: var(--text-color);
+}
+
+/* --- КОЛЬОРИ ТА ТЕКСТ --- */
+
+
+.text-red {
+  color: var(--danger-color) !important;
+  font-weight: 600;
+}
+
+.text-bold {
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.text-small {
+  font-size: 12px;
+  color: var(--grey-text-color);
+  margin-top: 4px;
+}
+
+/* --- БЕЙДЖІ (Через що) --- */
+.channel-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.channel-badge.bank {
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
+}
+
+.channel-badge.cash {
+  background-color: var(--success-bg-color);
+  color: var(--success-color);
+}
+
+/* ЗАМОВЛЕННЯ (Order) використовує синій (Info) */
+.channel-badge.order {
+  border: 1px solid var(--info-color);
+  background-color: var(--info-bg-color);
+  color: var(--info-color);
+}
+
+.channel-badge.none {
+  background-color: var(--info-bg-color);
+  color: var(--grey-text-color);
+}
+
+/* --- КОМІРКА ЗАМОВЛЕННЯ --- */
+.order-cell .order-num {
+  color: var(--info-color);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  color: var(--info-color);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 2px 4px;
+  transition: all 0.2s;
+}
+
+.expand-btn:hover {
+  color: var(--info-color);
+  opacity: 0.8;
+}
+
+/* --- ПОЧАТКОВІ ЗАЛИШКИ (Пурпурний акцент) --- */
+.initial-contracts-row td {
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: var(--purple-bg-color);
+  border-top: 1px dashed var(--grey-border-color);
+  color: var(--text-color);
+}
+
+.initial-contracts-row .contract-name-bold {
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+/* --- ПІДСУМОК ПО ДОГОВОРАМ (Пурпурний акцент) --- */
+.contract-summary {
+  background: var(--purple-bg-color);
+  padding: 12px 16px;
+  margin: 4px 0;
+  border-radius: 4px;
+  border-left: 4px solid var(--purple-color);
+}
+
+.contract-summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--purple-color);
+  margin-bottom: 8px;
+}
+
+.contract-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--grey-border-color);
+  align-items: center;
+  font-size: 13px;
+}
+
+.contract-item-name {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.contract-item-value {
+  text-align: right;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* --- РОЗГОРНУТИЙ ПІДПУНКТ (Деталі замовлення) --- */
+.payments-table td.sub-row {
+  /* background: #f6f6f8; */
+  padding-left: 100px;
+}
+
+.sub-info {
+  padding: 14px 16px;
+  margin: 4px 0;
+  border-left: 4px solid var(--info-color);
+  background: #fff;
+}
+
+.sub-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--info-color);
+  margin-bottom: 12px;
+}
+
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 16px;
+  background: var(--portal-bg-color-light);
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px dashed var(--grey-border-color);
+}
+
+.sub-grid .title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--grey-text-color);
+  font-weight: 600;
+}
+
+.sub-grid > div > :last-child {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+/* --- АДАПТАЦІЯ ДЛЯ ТЕМНОЇ ТЕМИ (.dark-theme) --- */
+
+.dark-theme .filters-container {
+  background: #2c2c2c;
+}
+
+.dark-theme .cashflow-error-state {
+  background: #2c2c2c;
+  border-color: #555555;
+  box-shadow: none;
+}
+
+.dark-theme .cashflow-error-state__title {
+  color: #f3f4f6;
+}
+
+.dark-theme .cashflow-error-state__detail,
+.dark-theme .cashflow-error-state__eyebrow {
+  color: #b9bec6;
+}
+.dark-theme .input-date {
+  background: #383838;
+  color: var(--text-color);
+  border: 1px dashed #555555;
+}
+.dark-theme label {
+  color: var(--grey-text-color);
+}
+
+.dark-theme .table-wrapper {
+  border: 1px dashed #555555;
+  box-shadow: none;
+}
+.dark-theme .payments-table {
+  background: #2c2c2c;
+}
+.dark-theme .date-row {
+  background: #383838;
+}
+.dark-theme .date-row td {
+  border-top: 2px dashed #555555;
+}
+.dark-theme .data-row {
+  background: #2c2c2c;
+  border-bottom: 1px dashed #555555;
+}
+.dark-theme .data-row:hover {
+  background: #383838;
+}
+.dark-theme .text-bold,
+.dark-theme .contract-name {
+  color: #dddddd;
+}
+
+.dark-theme .total-row {
+  background: #3d3d3d;
+  border-top: 2px solid var(--info-color);
+  border-bottom: 3px solid var(--info-color);
+}
+.dark-theme .total-row td {
+  color: #fff;
+}
+
+.dark-theme .initial-contracts-row td {
+  background-color: #383838;
+  border-top: 1px dashed #555555;
+}
+
+/* Фіолетовий блок підсумку для темної теми */
+.dark-theme .contract-summary {
+  background: #383838;
+  border-left: 4px solid var(--purple-color);
+}
+
+.dark-theme .contract-item {
+  border-bottom: 1px dashed #555555;
+}
+.dark-theme .contract-item-name {
+  color: #f0f0f0;
+}
+.dark-theme .expand-btn {
+  color: #90cdf4;
+}
+.dark-theme .channel-badge.none {
+  background-color: #383838;
+}
+
+/* Деталі замовлення */
+.dark-theme .sub-row {
+  background: #3d3d3d;
+}
+.dark-theme .sub-info {
+  background: #383838;
+}
+.dark-theme .sub-grid {
+  background: #2c2c2c;
+  border: 1px dashed #555555;
+}
+.dark-theme .sub-grid > div > :last-child {
+  color: #fff;
+}
+
+/* ... (існуючі стилі) ... */
+
+/* --- ТАБЛИЦЯ --- */
+.table-wrapper {
+  overflow-x: auto;
+  /* --- ВАЖЛИВО: ОПТИМІЗАЦІЯ ДЛЯ ПЛАВНОСТІ --- */
+  max-height: calc(
+    100vh - 210px
+  ); /* Встановлюємо максимальну висоту для прокрутки */
+  overflow-y: auto; /* Активуємо вертикальну прокрутку */
+  will-change: scroll-position; /* Підказуємо браузеру, що ця область буде прокручуватися */
+  /* ------------------------------------------- */
+
+  border-radius: 5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px dashed var(--grey-border-color);
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+}
+
+.payments-table thead th {
+  /* Робимо заголовок липким при прокручуванні */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* ... (інші стилі заголовка) ... */
+}
+
+/* --- ОПТИМІЗАЦІЯ ВЕРТИКАЛЬНОЇ ПРОКРУТКИ WEBKIT (для Chrome/Safari) --- */
+.table-wrapper::-webkit-scrollbar {
+  width: 6px; /* Ширина прокрутки */
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--info-color); /* Колір бігунка */
+  border-radius: 3px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+  background: var(--cream-bg-color); /* Фон доріжки */
+}
+
+/* ... (існуючі стилі dark-theme) ... */
+
+.dark-theme .table-wrapper::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+/* --- Мінімалістичні картки підрядків замовлення --- */
+
+.mini-card {
+  background: var(--cream-bg-color);
+  border-left: 3px solid var(--info-color);
+  padding: 10px 8px;
+  margin: 10px 10px 10px 100px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.order-mini-header {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #9FD3FF;
+}
+
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 4px 12px;
+}
+
+.mini-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--grey-text-color);
+  display: block;
+}
+
+.mini-value {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.mini-green {
+  font-weight: 700;
+  font-size: 14px;
+  color: #b4d947;
+}
+
+.mini-red {
+  font-weight: 700;
+  font-size: 14px;
+  color: #e46321;
+  /* color: var(--text-danger); */
+}
+
+
+.dark-theme .analytics-divider {
+  background-color: #69645e;
+}
+/* ====== ПОВЕРТАЄМО ВІДСТУПИ ДЛЯ ВСІЄЇ ТАБЛИЦІ ====== */
+.payments-table td,
+.payments-table th {
+  padding: 8px 10px !important;
+  box-sizing: border-box;
+}
+
+.payments-table td.sp {
+  padding-left: 50px;
+}
+
+/* === 1. РІЗНІ ВІДСТУПИ ДЛЯ КОЛОНОК === */
+
+/* Дата у верхньому синьому рядку */
+.date-row td span {
+
+  display: inline-block;
+}
+
+/* Час у першій колонці */
+.payments-table td.col-time {
+  padding-left: 30px !important;
+}
+
+/* Кнопка "рознесено", замовлення — третя велика колонка */
+.payments-table td.col-details {
+  padding-left: 60px !important;
+}
+
+/* === 2. ПІДСВІЧУВАТИ ВІДКРИТИЙ РЯДОК ДОКУМЕНТА === */
+.data-row.expanded {
+  background-color: #eef6ff !important; /* світло-синій фон */
+  border-left: 4px solid var(--info-color);
+}
+
+.data-row.expanded:hover {
+  background-color: #e5f1ff !important;
+}
+
+/* Незалежні відступи */
+.indent-date {
+  padding-left: 10px !important;
+}
+
+.indent-time {
+  padding-left: 60px !important;
+}
+
+.indent-details {
+  padding-left: 100px !important;
+}
+
+.indent-subcard {
+  padding-left: 120px !important;
+}
+
+/* Клікабельний ряд документа */
+.data-row.expanded {
+  background-color: #eef6ff !important;
+  border-left: 4px solid var(--info-color);
+}
+
+/* Картка замовлення */
+.clickable-subcard {
+  /* cursor: pointer; */
+  transition: 0.2s;
+}
+
+.dark-theme .clickable-subcard:hover {
+  background: #fff8e0;
+}
+
+.dark-theme .clickable-subcard:hover {
+  background: #242424;
+}
+
+/* ДАТА — зовсім зліва (10px) */
+span.td-date {
+  padding-right: 0px !important;
+  margin: 0px !important;
+  display: inline-block;
+}
+
+.td-date {
+  padding-right: 0px !important;
+  margin: 0px !important;
+  display: inline-block;
+}
+
+/* ЧАС — трохи правіше (30px) */
+
+.payments-table td.td-time {
+  padding-left: 50px !important;
+}
+
+/* ДЕТАЛІ — ще правіше (60px) */
+
+/* КАРТКИ — найправіше (90px) */
+.sub-wrapper {
+  padding-left: 90px !important;
+}
+
+.doc-main-row.has-sub {
+  cursor: pointer;
+}
+
+.doc-main-row.has-sub:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.total-row-separator {
+  border-bottom: 2px solid var(--border-color, #ddd);
+  padding-bottom: 12px;
+  margin-bottom: 18px; /* головний відступ */
+}
+
+.total-row td[colspan="3"] {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.contract-totals {
+  padding-right: 16px;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: right; /* на всяк випадок */
+}
+
+.contract-total-line {
+  margin-left: 10px;
+}
+
+.contract-amount {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: var(--purple-bg-color);
+  border: 1px solid var(--purple-color);
+}
+
+.total-row.total-row-separator td {
+  padding-bottom: 14px;
+}
+
+.spacer-row td {
+  padding: 14px 0;
+  background: #fff;
+}
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.doc-main-row.expanded-with-orders {
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
+}
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.doc-main-row.expanded-with-orders:hover {
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #e3f2fd;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
+}
+
+.dark-theme .contract-amount {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #2c2c2c;
+  background-color: var(--purple-bg-color);
+  border: 1px solid var(--purple-color);
+}
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.dark-theme .doc-main-row.expanded-with-orders {
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #353535;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
+}
+
+/* Додайте цей стиль до Вашого CSS-файлу */
+.dark-theme .doc-main-row.expanded-with-orders:hover {
+  /* Наприклад, синій фон для підсвітки */
+  background-color: #383838;
+  border-left: 5px solid #2196f3;
+  cursor: pointer;
+}
+
+.dark-theme .contract-total-line {
+  color: #e4e4e4; /* світлий текст */
+}
+
+.dark-theme .contract-name-bold {
+  color: #cccccc; /* яскравий акцент */
+  font-weight: 700;
+}
+
+.contract-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  background: #5bb89c;
+  padding: 4px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #73d3b6;
+  color: white;
+
+  margin-right: 6px; /* Відступ між баджами */
+}
+
+/* Контрактне імʼя всередині баджа */
+.contract-badge .name {
+  font-weight: 600;
+}
+
+.contract-badge .value {
+  font-weight: 700;
+  color: #fff;
+  font-size: 13.5px;
+  letter-spacing: 0.2px;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+}
+
+.btn-refresh {
+  padding: 8px 16px;
+  background-color: var(--purple-color);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-refresh:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-excel {
+  padding: 8px 16px;
+  background-color: #1aaa56;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-excel:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-excel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.arrow {
+  font-size: 14px;
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.arrow-in {
+  color: #2ecc71; /* зелена */
+}
+
+.arrow-out {
+  color: #e74c3c; /* червона */
+}
+
+.arrow-none {
+  color: #999; /* нейтральна */
+}
+
+@media (max-width: 1354px) { 
+  .payments-body {
+      /* padding-top: 100px; */
+    padding-left: 10px;
+    padding-right: 10px ;
+  }
+}
+
+/* ========================================
+   📱 MOBILE ADAPTATION (<= 768px)
+   ======================================== */
+@media (max-width: 1050px) {
+  /* --- ОСНОВНИЙ КОНТЕЙНЕР --- */
+  .payments-body {
+    /* padding-top: 100px; */
+    padding-bottom: 40px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    height: 100vh;
+  }
+
+  /* --- ФІЛЬТРИ --- */
+  .filters-container {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .filters-container label {
+    font-size: 13px;
+  }
+
+  .input-date {
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-refresh {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .cashflow-error-state {
+    padding: 28px 18px;
+  }
+
+  .cashflow-error-state__title {
+    font-size: 22px;
+  }
+
+  .cashflow-error-state__detail {
+    font-size: 14px;
+  }
+
+  .cashflow-error-state__actions {
+    justify-content: stretch;
+  }
+
+  .cashflow-error-state__actions .btn-primary {
+    width: 100%;
+  }
+
+  /* --- ТАБЛИЦЯ --- */
+  .table-wrapper {
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .payments-table {
+    font-size: 13px;
+  }
+
+  .payments-table thead th {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+
+  .payments-table td {
+    padding: 6px 6px !important;
+  }
+
+  /* --- ВІДСТУПИ КОЛОНОК — СКИДАЄМО --- */
+  .payments-table td.col-time,
+  .payments-table td.col-details,
+  .payments-table td.td-time,
+  .indent-time,
+  .indent-details,
+  .indent-subcard,
+  .sub-wrapper {
+    padding-left: 8px !important;
+  }
+
+  /* --- ДАТА / ЧАС --- */
+  .date-row td {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .td-date,
+  .td-time {
+    font-size: 12px;
+  }
+
+  /* --- ОСНОВНИЙ РЯД ДОКУМЕНТА --- */
+  .data-row td {
+    font-size: 13px;
+  }
+
+  .doc-main-row.has-sub {
+    cursor: pointer;
+  }
+
+  /* --- КАРТКИ ЗАМОВЛЕНЬ (SUB) --- */
+  .mini-card {
+    margin: 8px 4px;
+    padding: 10px;
+    border-left-width: 4px;
+  }
+
+  .order-mini-header {
+    font-size: 13px;
+  }
+
+  .order-mini-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .mini-label {
+    font-size: 10px;
+  }
+
+  .mini-value {
+    font-size: 13px;
+  }
+
+  /* --- CONTRACT SUMMARY --- */
+  .contract-summary {
+    padding: 10px;
+  }
+
+  .contract-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .contract-item-value {
+    text-align: left;
+  }
+
+  /* --- TOTAL ROW --- */
+  .total-row td[colspan="3"] {
+    justify-content: flex-start;
+  }
+
+  .contract-totals {
+    text-align: left;
+    font-size: 13px;
+  }
+
+  /* --- BADGES --- */
+  .contract-badge {
+    margin-bottom: 6px;
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  /* --- ARROWS --- */
+  .arrow {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .payments-body {
+    padding-bottom: 25px !important;
+    padding-top: 60px !important;
+  }
+}
+
+/* Cash flow+�u���T Figma-aligned dark dashboard. */
+.cashflow-page-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  color: #44403e;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.cashflow-page-title::before,
+.cashflow-page-title::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: currentColor;
+  opacity: .45;
+}
+body.dark-theme .payments-body {
+  background:
+    radial-gradient(circle at 8% 86%, rgba(137,179,216,.13), transparent 26%),
+    radial-gradient(circle at 92% 18%, rgba(180,217,71,.1), transparent 24%),
+    #4c4644;
+  color: #f5f3f1;
+}
+body.dark-theme .cashflow-page-title { color: #f5f3f1; }
+body.dark-theme .filters-container {
+  background: #333333;
+  border: 1px solid #706963;
+  box-shadow: none;
+  padding: 10px 14px;
+  gap: 10px;
+}
+body.dark-theme .filters-container label { color: #f5f3f1; font-size: 13px; }
+body.dark-theme .filters-container .input-date {
+  background: #f5f3f1; color: #44403e; border: 0; border-radius: 4px; padding: 3px 8px;
+}
+body.dark-theme .filters-container .dealer-select__control {
+  background: #f5f3f1; color: #44403e; border-color: #f5f3f1;
+}
+body.dark-theme .filters-container .btn,
+body.dark-theme .mobile-filter-actions .mobile-btn { border-radius: 4px; box-shadow: none; padding: 4px 8px; }
+body.dark-theme .filters-container .btn-primary,
+body.dark-theme .mobile-btn-primary { background: #6b98bf; color: #fff; }
+body.dark-theme .filters-container .btn-refresh,
+body.dark-theme .mobile-btn-refresh { background: #b4d947; color: #44403e; }
+body.dark-theme .filters-container .btn-excel,
+body.dark-theme .mobile-btn-excel { background: #789b15; color: #fff; }
+body.dark-theme .table-wrapper { border: 1px solid #706963; border-radius: 5px; background: #333333; box-shadow: none; }
+body.dark-theme .payments-table { background: #4c4644; }
+body.dark-theme .payments-table thead th {
+  background: #b4d947; color: #44403e; font-weight: 800; text-transform: none; letter-spacing: 0;
+}
+body.dark-theme .date-row { background: #65615f; }
+body.dark-theme .date-row td { color: #f5f3f1; border-top-color: #65615f; padding-top: 8px !important; padding-bottom: 8px !important; }
+body.dark-theme .data-row { background: #4c4644; border-bottom-color: #706963; }
+body.dark-theme .data-row:hover,
+body.dark-theme .doc-main-row.has-sub:hover { background: #464340; }
+body.dark-theme .data-row td { color: #f5f3f1; }
+body.dark-theme .data-row .td-operation { color: #eeeae5; }
+body.dark-theme .payments-table .text-bold { color: #ffffff; }
+body.dark-theme .payments-table .text-green { color: #b4d947 !important; }
+body.dark-theme .payments-table .text-red,
+body.dark-theme .payments-table .mini-red { color: #ED8B33 !important; }
+body.dark-theme .contract-badge { background: #6b98bf; border-color: #89b3d8; border-radius: 4px; color: #fff; }
+body.dark-theme .channel-badge { background: #333333; border: 1px solid #b9b3ad; color: #f5f3f1; }
+body.dark-theme .channel-badge.cash { border-color: #b4d947; color: #b4d947; }
+body.dark-theme .channel-badge.bank,
+body.dark-theme .expand-btn { color: #89b3d8; font-weight: 700;border-color: #89b3d8;  }
+body.dark-theme .sub-wrapper { background: #3b3938; }
+body.dark-theme .mini-card { background: #65615f; border-left-color: #6b98bf;  box-shadow: none; margin-bottom: 10px; }
+body.dark-theme .mini-card .mini-label { color: #ddd8d3; }
+body.dark-theme .mini-card .mini-value { color: #f5f3f1; }
+body.dark-theme .doc-main-row.expanded-with-orders,
+body.dark-theme .doc-main-row.expanded-with-orders:hover { background: #3b3938; border-left-color: #89b3d8; }
+
+@media (min-width: 1051px) {
+  .payments-body .filters-container {
+    position: relative;
+    margin-top: 52px;
+  }
+
+  .payments-body .filters-container::before {
+    content: "\0420\0423\0425 \041A\041E\0428\0422\0406\0412";
+    position: absolute;
+    top: -37px;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #44403e;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+
+  body.dark-theme .payments-body .filters-container::before {
+    color: #f5f3f1;
+    text-shadow: -1px 0 #4c4644, 0 1px #4c4644, 1px 0 #4c4644, 0 -1px #4c4644;
+  }
+}
+
+/* Cash-flow direction palette and separators from the Figma layout. */
+body.dark-theme .payments-table .arrow-in,
+body.dark-theme .mobile-arrow.arrow-in {
+  color: #b4d947;
+}
+
+body.dark-theme .payments-table .arrow-out,
+body.dark-theme .mobile-arrow.arrow-out {
+  color: #ED8B33;
+}
+
+body.dark-theme .payments-table .arrow-none,
+body.dark-theme .mobile-arrow.arrow-none {
+  color: #b9b3ad;
+}
+
+body.dark-theme .payments-table .data-row td {
+  border-bottom: 1px dotted #706963;
+}
+
+body.dark-theme .payments-table .doc-main-row:has(.arrow-in) {
+  box-shadow: inset 4px 0 0 #b4d947;
+}
+
+body.dark-theme .payments-table .doc-main-row:has(.arrow-out) {
+  box-shadow: inset 4px 0 0 #ED8B33;
+}
+
+body.dark-theme .payments-table .doc-main-row:has(.arrow-none) {
+  box-shadow: inset 4px 0 0 #b9b3ad;
+}
+
+body.dark-theme .payments-table .date-row + .doc-main-row td {
+  border-top: 1px dotted #706963;
+}
+
+body.dark-theme .mobile-doc-card {
+  border-bottom-color: #706963;
+}
+
+/* Keep cash-flow rows clean: no colored left rail. */
+body.dark-theme .payments-table .doc-main-row:has(.arrow-in),
+body.dark-theme .payments-table .doc-main-row:has(.arrow-out),
+body.dark-theme .payments-table .doc-main-row:has(.arrow-none) {
+  box-shadow: none;
+}
+
+/* Hide unused order details in cash-flow cards. */
+
+.payments-table .mini-grid > div:nth-child(7),
+.payments-table .mini-grid > div:nth-child(8),
+.mobile-suborders .order-mini-grid > .order-mini-col:nth-child(7),
+.mobile-suborders .order-mini-grid > .order-mini-col:nth-child(8) {
+  display: none;
+}
+
+/* Keep the date and contract badges in one horizontal cash-flow header row. */
+.payments-table .date-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 1334px;
+  min-width: max-content;
+}
+
+.payments-table .date-header .td-date {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.payments-table .date-header .contracts-text {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.payments-table .date-header .contract-badge {
+  margin-right: 0;
+  white-space: nowrap;
+}
+
+/* Exact Figma typography for the cash-flow page title. */
+@media (min-width: 1051px) {
+  body.dark-theme .payments-body .filters-container::before {
+    height: 29px;
+    top: -40px;
+    color: #ffffff;
+    font-family: Inter, sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    background:
+      linear-gradient(#ffffff, #ffffff) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#ffffff, #ffffff) right center / calc(50% - 143px) 1px no-repeat;
+    text-shadow: none;
+  }
+
+  body:not(.dark-theme) .payments-body .filters-container::before {
+    height: 29px;
+    top: -40px;
+    color: #44403e;
+    font-family: Inter, sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 24px;
+    text-align: center;
+    text-transform: uppercase;
+    background:
+      linear-gradient(#44403e, #44403e) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#44403e, #44403e) right center / calc(50% - 143px) 1px no-repeat;
+  }
+}
+
+/* Keep long cash-flow operation names within one readable table column. */
+.payments-table td.td-operation {
+  width: 350px;
+  max-width: 350px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Keep the cash-flow table within the approved desktop width. */
+.payments-table {
+  width: 100%;
+  max-width: 1334px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Enforce the cash-flow table width even with long cell content. */
+@media (min-width: 1051px) {
+  .payments-body .table-wrapper {
+    width: min(100%, 1334px);
+    max-width: 1334px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .payments-body .payments-table {
+    width: 100%;
+    max-width: 1334px;
+    table-layout: fixed;
+  }
+
+  .payments-body .payments-table th,
+  .payments-body .payments-table td {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Preserve natural column sizing while keeping the cash-flow table 1334px wide. */
+@media (min-width: 1051px) {
+  .payments-body .table-wrapper {
+    width: 100%;
+    max-width: 1334px;
+    overflow-x: hidden;
+  }
+
+  .payments-body .payments-table {
+    width: 1334px;
+    min-width: 1334px;
+    max-width: none;
+    table-layout: auto;
+  }
+
+  .payments-body .payments-table th,
+  .payments-body .payments-table td {
+    overflow-wrap: normal;
+  }
+
+}
+
+/* Fix title spacing and keep long contract badges inside the date row. */
+@media (min-width: 1051px) {
+  .payments-body .filters-container::before {
+    content: "\0420\0423\0425\0020\041A\041E\0428\0422\0406\0412";
+  }
+
+  .payments-table .date-header {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .payments-table .date-header .contracts-text {
+    min-width: 0;
+    max-width: calc(100% - 150px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+
+  .payments-table .date-header .contracts-text::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .payments-table .date-header .contracts-text::-webkit-scrollbar-thumb {
+    background: #6b98bf;
+    border-radius: 3px;
+  }
+}
+
+
+/* Wrap contract badges to the next line when the date header is full. */
+@media (min-width: 1051px) {
+  .payments-table .date-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .payments-table .date-header .contracts-text {
+    flex: 1 1 600px;
+    max-width: none;
+    min-width: 0;
+    flex-wrap: wrap;
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
+/* Cash-flow subrow cards follow the supplied Figma layout. */
+@media (min-width: 1051px) {
+  .payments-table .sub-wrapper {
+    padding: 10px 0 10px 62px !important;
+  }
+
+  .payments-table .sub-orders-container.minimal {
+    width: 95%;
+  }
+
+  .payments-table .mini-card {
+
+    margin: 0 10px 0 0;
+    padding: 10px 14px;
+    background: #585858;
+    border: 0;
+    border-left: 7px solid #6b98bf;
+    border-radius: 0 5px 5px 0;
+    box-shadow: none;
+  }
+
+  .payments-table .order-mini-header {
+    margin-bottom: 6px;
+    color: #9fd3ff;
+    font-family: Inter, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 19px;
+  }
+
+  .payments-table .mini-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) minmax(220px, 1.35fr);
+    gap: 0;
+  }
+
+  .payments-table .mini-grid > div {
+    min-width: 0;
+    padding: 0 12px;
+  }
+
+  .payments-table .mini-grid > div:first-child {
+    padding-left: 0;
+  }
+
+  .payments-table .mini-grid > div:last-child {
+    padding-right: 0;
+  }
+
+  .payments-table .mini-grid > div:not(:last-child) {
+    border-right: 1px dashed rgba(255, 255, 255, .72);
+  }
+
+  .payments-table .mini-grid > div:last-child .mini-value {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+
+  .payments-table .mini-label {
+    color: #aeaeae;
+    font-family: Inter, sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .payments-table .mini-value {
+    color: #ffffff;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 17px;
+  }
+
+  .payments-table .mini-green { color: #b4d947 !important; }
+  .payments-table .mini-red { color: #ed8b33 !important; }
+}
+
+body.dark-theme .payments-table .sub-wrapper {
+  background: #3b3938;
+}
+
+body.dark-theme .payments-table .mini-card {
+  background: #585858;
+  border-left-color: #6b98bf;
+}
+
+/* AppIcon alignment inside cash-flow subrow amounts. */
+.payments-table .mini-value,
+.payments-table .mini-green,
+.payments-table .mini-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.payments-table .cashflow-mini-icon {
+  width: 20px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+/* Figma border tone for the dark cash-flow header lines. */
+@media (min-width: 1051px) {
+  body.dark-theme .payments-body .filters-container::before {
+    background:
+      linear-gradient(#aeaeae, #aeaeae) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#aeaeae, #aeaeae) right center / calc(50% - 143px) 1px no-repeat;
+  }
+}
+
+
+@media (min-width: 1051px) and (max-width: 1334px) {
+
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .payments-table {
+    min-width: 1180px;
+  }
+
+  .payments-table thead th {
+    padding: 9px 10px !important;
+    font-size: 12px;
+  }
+
+  .date-row td {
+    padding: 9px 10px !important;
+    font-size: 14px;
+  }
+
+  .data-row td,
+  .payments-table td,
+  .payments-table td.sub-row {
+    padding: 7px 10px !important;
+    font-size: 13px;
+  }
+
+  .payments-table .date-header {
+    gap: 8px;
+  }
+
+  .contract-badge,
+  .channel-badge {
+    transform: scale(0.96);
+    transform-origin: left center;
+  }
+  .payments-table td.td-operation {
+
+    max-width: 350px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 200px !important;
+  }
+}
+
+@media (min-width: 1051px) and (max-width: 1280px) {
+
+
+  .payments-table {
+    min-width: 1100px;
+  }
+
+  .payments-table td.td-time {
+    width: 110px;
+    min-width: 110px;
+  }
+
+  .payments-table thead th {
+    padding: 8px 8px;
+    font-size: 11px;
+  }
+
+  .date-row td {
+    padding: 8px 8px;
+    font-size: 13px;
+  }
+
+  .data-row td,
+  .payments-table td,
+  .payments-table td.sub-row {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .td-date,
+  .td-time,
+  .td-operation,
+  .contract-badge .name,
+  .contract-badge .value {
+    font-size: 12px;
+  }
+
+  .payments-table .date-header {
+    gap: 6px;
+  }
+
+  .payments-table td.td-operation {
+
+    max-width: 350px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-width: 200px !important;
+  }
+}
+
+
+
+@media (min-width: 1281px) and (max-width: 1354px) {
+  .total-row td {
+    padding: 9px 10px !important;
+  }
+
+  .contract-totals {
+    max-width: 520px;
+    margin-left: auto;
+    padding-right: 8px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .contract-total-line {
+    margin-left: 0;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1354px) {
+  .payments-table thead th {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .payments-table td {
+    padding: 7px 8px !important;
+    font-size: 12px;
+  }
+
+  .date-row td {
+    padding: 8px 8px !important;
+  }
+
+  .payments-table .date-header {
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .payments-table .contract-badge {
+    padding: 3px 8px;
+    margin-right: 4px;
+    font-size: 12px;
+  }
+
+  .payments-table .contract-badge .value {
+    font-size: 12px;
+  }
+
+  .payments-table td.td-time,
+  .payments-table th:nth-child(1) {
+    width: 110px;
+    min-width: 110px;
+  }
+
+  .payments-table td:nth-child(7),
+  .payments-table th:nth-child(7) {
+    width: 92px;
+    min-width: 92px;
+    text-align: center;
+  }
+
+  .payments-table td.td-details,
+  .payments-table th:nth-child(8) {
+    min-width: 190px;
+  }
+
+  .payments-table td.td-operation {
+    max-width: 180px !important;
+  }
+
+  .payments-table .contract-totals {
+    max-width: 480px;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1354px) {
+  .payments-table th:nth-child(3),
+  .payments-table td:nth-child(3),
+  .payments-table th:nth-child(4),
+  .payments-table td:nth-child(4),
+  .payments-table th:nth-child(5),
+  .payments-table td:nth-child(5),
+  .payments-table th:nth-child(6),
+  .payments-table td:nth-child(6) {
+    max-width: 110px;
+    white-space: nowrap;
+  }
+
+  .payments-table th:nth-child(2),
+  .payments-table td.td-operation {
+    max-width: 155px !important;
+  }
+
+  .payments-table td.td-details,
+  .payments-table th:nth-child(8) {
+    min-width: 220px;
+  }
+
+  .payments-table td,
+  .payments-table thead th {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+}
+
+/* =========================================================
+   CASH FLOW TABLE — RESPONSIVE DESKTOP FIX
+   Keeps expanded order cards inside the visible table.
+   This block must remain at the end of the file so it
+   overrides the older conflicting 1334px/min-width rules.
+   ========================================================= */
+@media (min-width: 1051px) and (max-width: 1334px) {
+  .payments-body .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .payments-body .payments-table {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    table-layout: fixed;
+  }
+
+  .payments-table .sub-wrapper {
+    padding: 10px 8px 10px 62px !important;
+    overflow: hidden;
+  }
+
+  .payments-table .sub-orders-container.minimal {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .payments-table .mini-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .payments-table .mini-grid {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+  }
+
+  .payments-table .mini-grid > div {
+    min-width: 0;
+    padding-right: 7px;
+    padding-left: 7px;
+    box-sizing: border-box;
+  }
+
+  .payments-table .mini-label,
+  .payments-table .mini-value,
+  .payments-table .mini-green,
+  .payments-table .mini-red {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .payments-table .cashflow-mini-icon {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 17px;
+  }
+}
+
+/* =========================================================
+   CASH FLOW ? FORCED LIGHT THEME
+   Keeps the dark-theme layout and spacing, but swaps in
+   a light palette only for the cash-flow page.
+   ========================================================= */
+.payments-body.light {
+  background:
+    radial-gradient(circle at 8% 86%, rgba(107,152,191,.12), transparent 26%),
+    radial-gradient(circle at 92% 18%, rgba(180,217,71,.14), transparent 24%),
+    #f3efe9;
+  color: #44403e;
+}
+
+.payments-body.light .cashflow-page-title {
+  color: #44403e;
+}
+
+.payments-body.light .filters-container {
+  background: #ffffff;
+  border: 1px solid #d6cec7;
+  box-shadow: none;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
+.payments-body.light .filters-container label {
+  color: #44403e;
+  font-size: 13px;
+}
+
+.payments-body.light .filters-container .input-date {
+  background: #f8f5f1;
+  color: #44403e;
+  border: 1px solid #d6cec7;
+  border-radius: 4px;
+  padding: 3px 8px;
+  box-shadow: none;
+}
+
+.payments-body.light .filters-container .dealer-select__control {
+  background: #f8f5f1;
+  color: #44403e;
+  border-color: #d6cec7;
+}
+
+.payments-body.light .filters-container .btn,
+.payments-body.light .mobile-filter-actions .mobile-btn {
+  border-radius: 4px;
+  box-shadow: none;
+  padding: 4px 8px;
+}
+
+.payments-body.light .filters-container .btn-primary,
+.payments-body.light .mobile-btn-primary {
+  background: #6b98bf;
+  color: #fff;
+}
+
+.payments-body.light .filters-container .btn-refresh,
+.payments-body.light .mobile-btn-refresh {
+  background: #b4d947;
+  color: #44403e;
+}
+
+.payments-body.light .filters-container .btn-excel,
+.payments-body.light .mobile-btn-excel {
+  background: #789b15;
+  color: #fff;
+}
+
+.payments-body.light .table-wrapper {
+  border: 1px solid #d6cec7;
+  border-radius: 5px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.payments-body.light .payments-table {
+  background: #f8f5f1;
+}
+
+.payments-body.light .payments-table thead th {
+  background: #b4d947;
+  color: #44403e;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.payments-body.light .date-row {
+  background: #ece6de;
+}
+
+.payments-body.light .date-row td {
+  color: #44403e;
+  border-top-color: #d6cec7;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.payments-body.light .data-row {
+  background: #f8f5f1;
+  border-bottom-color: #d6cec7;
+}
+
+.payments-body.light .data-row:hover,
+.payments-body.light .doc-main-row.has-sub:hover {
+  background: #f1ece6;
+}
+
+.payments-body.light .data-row td {
+  color: #44403e;
+}
+
+.payments-body.light .data-row .td-operation {
+  color: #5b5652;
+}
+
+.payments-body.light .payments-table .text-bold {
+  color: #2f2b28;
+}
+
+.payments-body.light .payments-table .text-green {
+  color: #7aa60f !important;
+}
+
+.payments-body.light .payments-table .text-red,
+.payments-body.light .payments-table .mini-red {
+  color: #d9771f !important;
+}
+
+.payments-body.light .contract-badge {
+  background: #6b98bf;
+  border-color: #89b3d8;
+  border-radius: 4px;
+  color: #fff;
+}
+
+.payments-body.light .channel-badge {
+  background: #fff;
+  border: 1px solid #c8c0ba;
+  color: #44403e;
+}
+
+.payments-body.light .channel-badge.cash {
+  border-color: #9bbd31;
+  color: #789b15;
+}
+
+.payments-body.light .channel-badge.bank,
+.payments-body.light .expand-btn {
+  color: #6b98bf;
+  font-weight: 700;
+  border-color: #6b98bf;
+}
+
+.payments-body.light .sub-wrapper {
+  background: #efe9e2;
+}
+
+.payments-body.light .mini-card {
+  background: #ffffff;
+  border-left-color: #6b98bf;
+  box-shadow: none;
+  margin-bottom: 10px;
+}
+
+.payments-body.light .mini-card .mini-label {
+  color: #7d746d;
+}
+
+.payments-body.light .mini-card .mini-value {
+  color: #44403e;
+}
+
+.payments-body.light .doc-main-row.expanded-with-orders,
+.payments-body.light .doc-main-row.expanded-with-orders:hover {
+  background: #efe9e2;
+  border-left-color: #89b3d8;
+}
+
+.payments-body.light .payments-table .sub-wrapper {
+  background: #efe9e2;
+}
+
+.payments-body.light .payments-table .mini-card {
+  background: #ffffff;
+  border-left-color: #6b98bf;
+}
+
+.payments-body.light .payments-table .mini-grid > div:not(:last-child) {
+  border-right: 1px dashed rgba(107, 105, 99, .45);
+}
+
+.payments-body.light .payments-table .mini-label {
+  color: #7d746d;
+}
+
+.payments-body.light .payments-table .mini-value {
+  color: #44403e;
+}
+
+.payments-body.light .payments-table .mini-green {
+  color: #7aa60f !important;
+}
+
+.payments-body.light .payments-table .mini-red {
+  color: #d9771f !important;
+}
+
+.payments-body.light .total-row {
+  background: #ece6de;
+  border-top: 2px solid #b4d947;
+  border-bottom: 3px solid #b4d947;
+}
+
+.payments-body.light .total-row td {
+  color: #44403e;
+}
+
+.payments-body.light .contract-amount {
+  color: #44403e;
+}
+
+.payments-body.light .contract-total-line {
+  color: #5b5652;
+}
+
+.payments-body.light .contract-name-bold {
+  color: #2f2b28;
+  font-weight: 700;
+}
+
+.payments-body.light .table-wrapper::-webkit-scrollbar-track {
+  background: #ece6de;
+}
+
+.payments-body.light .payments-table .arrow-in,
+.payments-body.light .mobile-arrow.arrow-in {
+  color: #8cab22;
+}
+
+.payments-body.light .payments-table .arrow-out,
+.payments-body.light .mobile-arrow.arrow-out {
+  color: #d9771f;
+}
+
+.payments-body.light .payments-table .arrow-none,
+.payments-body.light .mobile-arrow.arrow-none {
+  color: #9f958e;
+}
+
+.payments-body.light .payments-table .data-row td {
+  border-bottom: 1px dotted #d6cec7;
+}
+
+.payments-body.light .payments-table .date-row + .doc-main-row td {
+  border-top: 1px dotted #d6cec7;
+}
+
+.payments-body.light .mobile-doc-card {
+  border-bottom-color: #d6cec7;
+}
+
+@media (min-width: 1051px) {
+  .payments-body.light .filters-container::before {
+    color: #44403e;
+    text-shadow: none;
+    background:
+      linear-gradient(#aeaeae, #aeaeae) left center / calc(50% - 143px) 1px no-repeat,
+      linear-gradient(#aeaeae, #aeaeae) right center / calc(50% - 143px) 1px no-repeat;
+  }
+}
+
+/* Compact cash-flow table header on desktop. */
+@media (min-width: 1051px) {
+  .payments-body .payments-table thead th {
+    padding: 5px 8px !important;
+    font-size: 12px;
+    line-height: 16px;
+    height: auto;
+    vertical-align: middle;
+  }
+}

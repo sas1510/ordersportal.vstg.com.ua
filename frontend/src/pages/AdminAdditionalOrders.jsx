@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
 import { AdditionalOrderItem } from "../components/AdditionalOrder/AdditionalOrderItem";
@@ -33,7 +34,8 @@ const normalizeAdditionalOrderStatus = (value) => {
 
 const AdminAdditionalOrders = () => {
     const { register, cancelAll } = useCancelAllRequests();
-  const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
+  const { dealerGuid, setDealerGuid, isAdmin, isSuperAdmin } = useDealerContext({ defaultAll: true });
+  const selectedDealerGroup = isSuperAdmin ? dealerGroupForSelection(dealerGuid) : null;
   const {t} = useTranslation();
   const { addNotificaton } = useNotification();
   const { isBackoffice } = useAuthGetRole();
@@ -165,7 +167,7 @@ const AdminAdditionalOrders = () => {
 
 
   useEffect(() => {
-    if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
+    if (isAdmin && isAggregateDealerSelection(dealerGuid)) {
       setFilter((prev) => {
         if (prev.month === 0) return { ...prev, month: currentMonth };
         return prev;
@@ -175,7 +177,7 @@ const AdminAdditionalOrders = () => {
 
 
   const shouldRefetchOnMonthChange = useMemo(() => {
-    return isAdmin && dealerGuid === ALL_DEALERS_VALUE;
+    return isAdmin && isAggregateDealerSelection(dealerGuid);
   }, [isAdmin, dealerGuid]);
 
   const requestMonth = shouldRefetchOnMonthChange
@@ -183,13 +185,13 @@ const AdminAdditionalOrders = () => {
     : null;
 
   const buildRequestParams = useCallback(() => {
-    const params = { year: selectedYear };
+    const params = { year: selectedYear, ...(selectedDealerGroup ? { dealer_group: selectedDealerGroup } : {}) };
 
     if (requestMonth) {
       params.month = requestMonth;
     }
     return params;
-  }, [requestMonth, selectedYear]);
+  }, [requestMonth, selectedYear, selectedDealerGroup]);
 
 
   useEffect(() => {
@@ -202,7 +204,7 @@ const AdminAdditionalOrders = () => {
         let endpoint = "/additional_orders/get_additional_orders_info/";
         const params = buildRequestParams();
 
-        if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
+        if (isAdmin && isAggregateDealerSelection(dealerGuid)) {
           endpoint = "/additional_orders/get_additional_orders_info_all/";
           params.month = filter.month || currentMonth; 
         } else if (dealerGuid) {
@@ -337,11 +339,11 @@ const AdminAdditionalOrders = () => {
 
   const handleMonthClick = (month) => {
 
-    if (dealerGuid === ALL_DEALERS_VALUE && month === 0) return;
+    if (isAggregateDealerSelection(dealerGuid) && month === 0) return;
 
     const newMonth =
       filter.month === month
-        ? dealerGuid === ALL_DEALERS_VALUE
+        ? isAggregateDealerSelection(dealerGuid)
           ? month
           : 0 
         : month;
@@ -349,7 +351,7 @@ const AdminAdditionalOrders = () => {
     setFilter((prev) => ({ ...prev, month: newMonth }));
 
 
-    if (dealerGuid !== ALL_DEALERS_VALUE) {
+    if (!isAggregateDealerSelection(dealerGuid)) {
       setFilteredItems(
         getFilteredItems(
           filter.status,
@@ -568,7 +570,7 @@ const AdminAdditionalOrders = () => {
        
           <ul className="gap-6 row no-wrap month-list flex-1">
 
-            {dealerGuid !== ALL_DEALERS_VALUE && (
+            {!isAggregateDealerSelection(dealerGuid) && (
               <li
                 className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
                 onClick={() => handleMonthClick(0)}
@@ -598,7 +600,7 @@ const AdminAdditionalOrders = () => {
               const labels = t("portal_calc.months.short", { returnObjects: true });
 
               const disabled =
-                dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
+                !isAggregateDealerSelection(dealerGuid) && monthSummary[num] === 0;
 
               return (
                 <li
@@ -610,7 +612,7 @@ const AdminAdditionalOrders = () => {
                   }}
                 >
                   {labels[i]}
-                  {dealerGuid !== ALL_DEALERS_VALUE && (
+                  {!isAggregateDealerSelection(dealerGuid) && (
                     <span className="text-grey"> ({monthSummary[num]})</span>
                   )}
                 </li>
@@ -625,7 +627,7 @@ const AdminAdditionalOrders = () => {
             onChange={(e) => handleMonthClick(Number(e.target.value))}
           >
 
-            {dealerGuid !== ALL_DEALERS_VALUE && (
+            {!isAggregateDealerSelection(dealerGuid) && (
               <option value={0}>{t("portal_calc.months.all_year")}</option>
             )}
 
@@ -648,12 +650,12 @@ const AdminAdditionalOrders = () => {
               const labels = t("portal_calc.months.full", { returnObjects: true });
 
               const disabled =
-                dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
+                !isAggregateDealerSelection(dealerGuid) && monthSummary[num] === 0;
 
               return (
                 <option key={num} value={num} disabled={disabled}>
                   {labels[i]}
-                  {dealerGuid !== ALL_DEALERS_VALUE
+                  {!isAggregateDealerSelection(dealerGuid)
                     ? ` (${monthSummary[num]})`
                     : ""}
                 </option>
@@ -706,6 +708,19 @@ const AdminAdditionalOrders = () => {
             />
           </div>
 
+          {isAdmin && (
+            <>
+              {/* <div className="delimiter1" /> */}
+              <div className="dealer-select-wrapper text-[#44403E] mt-2 mb-2 ">
+                <DealerSelectWithAll
+                  extraOptions={isSuperAdmin ? DEALER_REPORT_GROUP_OPTIONS : []}
+                  value={dealerGuid}
+                  onChange={setDealerGuid}
+                />
+              </div>
+            </>
+          )}
+
           {isBackoffice && (
             <ul className="buttons">
               <li>
@@ -723,17 +738,7 @@ const AdminAdditionalOrders = () => {
             </ul>
           )}
 
-          {isAdmin && (
-            <>
-              {/* <div className="delimiter1" /> */}
-              <div className="dealer-select-wrapper text-[#44403E] mt-2 mb-2 ">
-                <DealerSelectWithAll
-                  value={dealerGuid}
-                  onChange={setDealerGuid}
-                />
-              </div>
-            </>
-          )}
+
 
           {/* <div className="delimiter1"></div> */}
 
@@ -894,7 +899,7 @@ const AdminAdditionalOrders = () => {
         isOpen={isNewOrderModalOpen}
         onClose={() => setIsNewOrderModalOpen(false)}
         onSave={handleSaveAdditionalOrder}
-        initialContractorGuid={dealerGuid !== ALL_DEALERS_VALUE ? dealerGuid : ""}
+        initialContractorGuid={!isAggregateDealerSelection(dealerGuid) ? dealerGuid : ""}
       />
       </div>
     </div>

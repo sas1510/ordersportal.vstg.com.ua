@@ -1,4 +1,5 @@
-﻿from .order_procedures import calculations_procedure, monthly_orders_procedure
+from .dealer_groups import requested_dealer_group, filter_report_dealer_group, dealer_folder_regions
+from .order_procedures import calculations_procedure, monthly_orders_procedure
 import os
 import re
 import json
@@ -2350,6 +2351,7 @@ def get_additional_orders_info_all(request):
         return Response({"error": "Invalid year or month"}, status=400)
     
 
+    dealer_group = requested_dealer_group(request)
     scope_requester_ids = get_dealer_scope_requester_ids(request.user)
 
     logger.info(f"Fetching additional orders by portal role for {year}-{month:02d}", extra={
@@ -2404,6 +2406,7 @@ def get_additional_orders_info_all(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
+        raw_rows = filter_report_dealer_group(raw_rows, dealer_group, 'CustomerID')
 
         sql_duration = time.time() - start_time
 
@@ -2621,6 +2624,7 @@ def complaints_view_all_by_month(request):
         )
 
     requester_user_id = request.user.id
+    dealer_group = requested_dealer_group(request)
     scope_requester_ids = get_dealer_scope_requester_ids(request.user)
     requester_role = str(
         getattr(request.user, "role", "") or ""
@@ -2678,6 +2682,7 @@ def complaints_view_all_by_month(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
+        raw_rows = filter_report_dealer_group(raw_rows, dealer_group, 'CustomerLink')
             
         sql_duration = time.time() - start_time
         processed_rows = []
@@ -5987,6 +5992,14 @@ def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, da
     for index, dealer in enumerate(dealers, start=1):
         dealer["turnover_rank"] = index
 
+    if dealer_group == "Дилера":
+        folder_regions = dealer_folder_regions(item["contractor_guid"] for item in dealers)
+        for dealer in dealers:
+            guid = dealer["contractor_guid"]
+            dealer["region_name"] = _normalize_portal_region_name(
+                folder_regions.get(guid) or (existing_by_guid.get(guid) or {}).get("region_name")
+            )
+
     fallback_currency = (payload.get("totals") or {}).get("currency") or "грн"
     regions = _build_accessible_report_regions(dealers)
     payload = dict(payload)
@@ -5994,7 +6007,7 @@ def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, da
         "totals": _build_accessible_report_totals(dealers, fallback_currency),
         "dealers": dealers,
         "top_dealers": dealers[:10],
-        "regions": regions[:10],
+        "regions": regions,
         "insights": {
             "top_region_name": regions[0].get("region_name") if regions else None,
             "top_region_turnover": regions[0].get("total_turnover") if regions else None,

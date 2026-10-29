@@ -573,18 +573,15 @@ Frontend працює через `/api` поточного origin у перев�
 
 ## 8. Файли та права Linux
 
-Перевірте `settings.BASE_DIR`, `STATIC_ROOT`, `MEDIA_ROOT` і сховище приватних фото.
-У цій локальній конфігурації приватні фото розташовані в `private_uploads`.
+Перевірте `settings.BASE_DIR`, `STATIC_ROOT` та `MEDIA_ROOT`.
 
 ```bash
-sudo install -d -o www-data -g www-data -m 2770 "$PORTAL_DIR/private_uploads/funds_transfers"
 sudo install -d -o www-data -g www-data -m 2770 "$PORTAL_DIR/media"
 ```
 
 Визначте права для інших runtime-каталогів за фактичним використанням. Backend
 має читати код, venv і `.env`; frontend/dist — читатися Apache. Не використовуйте
-`chmod -R 777`. Не відкривайте `private_uploads` публічним `Alias`: фото подань
-видаються через API з перевіркою доступу.
+`chmod -R 777`. Приватні завантаження не слід відкривати публічним `Alias`.
 
 Для поточного варіанта із сокетом у корені проєкту служба `www-data` повинна мати
 можливість створювати `$PORTAL_DIR/backend.sock`. Можна організувати обмежений

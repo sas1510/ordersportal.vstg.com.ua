@@ -147,7 +147,8 @@
 // //               {detectPaymentChannel(firstItem) === "bank" && "БАНК"}
 // //               {detectPaymentChannel(firstItem) === "cash" && "КАСА"}
 // //               {detectPaymentChannel(firstItem) === "order" && "ЗАМОВЛ."}
-// //               {detectPaymentChannel(firstItem) === "none" && "—"}
+// //               {detectPaymentChannel(firstItem) === 'realization' && t('payments.realizations', { defaultValue: 'Реалізації' })}
+//               {detectPaymentChannel(firstItem) === "none" && "—"}
 // //             </span>
 // //           </td>
 
@@ -940,6 +941,7 @@
 //               {detectPaymentChannel(firstItem) === "bank" && "БАНК"}
 //               {detectPaymentChannel(firstItem) === "cash" && "КАСА"}
 //               {detectPaymentChannel(firstItem) === "order" && "ЗАМОВЛ."}
+//               {detectPaymentChannel(firstItem) === 'realization' && t('payments.realizations', { defaultValue: 'Реалізації' })}
 //               {detectPaymentChannel(firstItem) === "none" && "—"}
 //             </span>
 //           </td>
@@ -1457,6 +1459,7 @@
 
 // export default PaymentStatusV2;
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { buildCashFlowGroups, isRealization } from "../utils/cashFlowGroups";
 import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
 import "./PaymentStatus.css";
@@ -1501,6 +1504,7 @@ const useIsMobile = () => {
 };
 
 const detectPaymentChannel = (item) => {
+  if (isRealization(item)) return 'realization';
   const doc = item.DocumentType || item.DealType || "";
   const hasOrder = item.Сделка || item.OrderNumber;
   if (hasOrder) return "order";
@@ -1616,9 +1620,10 @@ const DocumentRow = React.memo(
     <>
       {/* Перевіряємо словник: якщо ключа немає, використовуємо автопереклад */}
       { (
-        <AutoTranslatedText text={firstItem.DealType || firstItem.DocumentType || "—"} />
+        <AutoTranslatedText text={docGroup.hideContractAmounts ? 'Рознесення коштів' : firstItem.DealType || firstItem.DocumentType || '—'} />
       )}
       
+      {isRealization(firstItem) && firstItem.RealizationOrderNumbers && <span> · {t('payments.orders', { defaultValue: 'Замовлення' })}: {firstItem.RealizationOrderNumbers}</span>}
       {/* Додаткові деталі для повернень або специфічних номерів */}
       {firstItem.DocumentType === "ВозвратОтПокупателя" && firstItem.DealNumber && (
         `, №${firstItem.DealNumber}`
@@ -1626,14 +1631,14 @@ const DocumentRow = React.memo(
     </>
   )}
 </td>
-          <td>{formatCurrency(docGroup.CumSaldoStart, currency, i18n)}</td>
+          <td>{docGroup.hideContractAmounts ? "—" : formatCurrency(docGroup.CumSaldoStart, currency, i18n)}</td>
           <td className={income > 0 ? "text-green" : ""}>
-            {income > 0 ? formatCurrency(income, "", i18n) : "—"}
+            {!docGroup.hideContractAmounts && income > 0 ? formatCurrency(income, "", i18n) : "—"}
           </td>
           <td className={expense > 0 ? "text-red" : ""}>
-            {expense > 0 ? formatCurrency(expense, "", i18n) : "—"}
+            {!docGroup.hideContractAmounts && expense > 0 ? formatCurrency(expense, "", i18n) : "—"}
           </td>
-          <td className="text-bold">{formatCurrency(cumSaldo, currency, i18n)}</td>
+          <td className="text-bold">{docGroup.hideContractAmounts ? "—" : formatCurrency(cumSaldo, currency, i18n)}</td>
           <td>
             <span
               className={`channel-badge ${detectPaymentChannel(firstItem)}`}
@@ -1641,6 +1646,7 @@ const DocumentRow = React.memo(
               {detectPaymentChannel(firstItem) === "bank" && t('payments.channels.bank')}
               {detectPaymentChannel(firstItem) === "cash" && t('payments.channels.cash')}
               {detectPaymentChannel(firstItem) === "order" && t('payments.channels.order_short')}
+              {detectPaymentChannel(firstItem) === 'realization' && t('payments.realizations', { defaultValue: 'Реалізації' })}
               {detectPaymentChannel(firstItem) === "none" && "—"}
             </span>
           </td>
@@ -1795,13 +1801,13 @@ const PaymentGroup = React.memo(
             toggleRow={toggleRow}
           />
         ))}
-        <tr className="total-row total-row-separator">
+        {Object.keys(group.contractSummary).length > 0 && <tr className="total-row total-row-separator">
           <td colSpan={4}> {t('payments.total_for')} {formatDateHuman(group.date, i18n.language)}:</td>
           <td colSpan={6}>
             <div className="contract-totals">
-              {Object.entries(group.contractSummary).map(([name, c], idx) => (
+              {Object.values(group.contractSummary).map((c, idx) => (
                 <div key={idx} className="contract-total-line">
-                  <span className="contract-name-bold"><AutoTranslatedText text={name} /></span>:{" "}
+                  <span className="contract-name-bold"><AutoTranslatedText text={c.contractName} /></span>:{" "}
                   <span className="text-green">
                     +{formatCurrency(c.income || 0, c.currency, i18n)}
                   </span>{" "}
@@ -1817,7 +1823,7 @@ const PaymentGroup = React.memo(
               ))}
             </div>
           </td>
-        </tr>
+        </tr>}
       </>
     );
   },
@@ -1918,89 +1924,9 @@ const PaymentStatusV2 = () => {
     });
   }, []);
 
-  const sortedGroups = useMemo(() => {
-    const groupedByDate = {};
-    const toNum = (v) => {
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    };
-
-    paymentsData.forEach((item) => {
-      const date = item.Date?.split("T")[0] || t('payments.unknown_date');
-      const docKey = item.RegistrarId
-        ? `${item.RegistrarId}_${item.FinalDogovor}_${item.FlowDirection}`
-        : `${item.DocumentType}|${item.DocumentNumber}|${date}_${item.FinalDogovor}_${item.FlowDirection}`;
-
-      if (!groupedByDate[date]) {
-        groupedByDate[date] = {
-          date,
-          documentGroups: {},
-          totalIncome: 0,
-          totalExpense: 0,
-          contractSummary: {},
-        };
-      }
-      const group = groupedByDate[date];
-      if (!group.documentGroups[docKey]) {
-        group.documentGroups[docKey] = {
-          docKey,
-          items: [],
-          totalIncome: 0,
-          totalExpense: 0,
-          CumSaldoStart: toNum(item.CumSaldoStart),
-          lastCumSaldo: toNum(item.CumSaldo),
-        };
-      }
-      const dg = group.documentGroups[docKey];
-      dg.items.push(item);
-      const absDelta = Math.abs(toNum(item.DeltaRow));
-      if (item.FlowDirection === "Прихід") {
-        group.totalIncome += absDelta;
-        dg.totalIncome += absDelta;
-      } else {
-        group.totalExpense += absDelta;
-        dg.totalExpense += absDelta;
-      }
-      dg.lastCumSaldo = toNum(item.CumSaldo);
-      const cName = item.FinalDogovorName || t('payments.no_contract');
-      if (!group.contractSummary[cName]) {
-        group.contractSummary[cName] = {
-          income: 0,
-          expense: 0,
-          lastCumSaldo: 0,
-          currency: item.Currency_2 || "грн",
-          __t: "",
-        };
-      }
-      const cs = group.contractSummary[cName];
-      if (item.FlowDirection === "Прихід") cs.income += absDelta;
-      else cs.expense += absDelta;
-      if (Date.parse(item.Date) >= Date.parse(cs.__t || "1970-01-01")) {
-        cs.lastCumSaldo = toNum(item.CumSaldo);
-        cs.__t = item.Date;
-      }
-    });
-
-    const groups = Object.values(groupedByDate).sort(
-      (a, b) => new Date(a.date) - new Date(b.date),
-    );
-    const prevDayTotals = {};
-    groups.forEach((g) => {
-      g.initialContracts = {};
-      Object.entries(g.contractSummary).forEach(([name, s]) => {
-        g.initialContracts[name] = {
-          contractName: name,
-          currency: s.currency,
-          initialSaldo:
-            prevDayTotals[name] !== undefined
-              ? prevDayTotals[name]
-              : s.lastCumSaldo - (s.income - s.expense),
-        };
-        prevDayTotals[name] = s.lastCumSaldo;
-      });
-    });
-    return groups.reverse();
-  }, [paymentsData, t]);
+  const sortedGroups = useMemo(() => buildCashFlowGroups(paymentsData, {
+    allocationView: true, unknownDate: t('payments.unknown_date'), noContract: t('payments.no_contract'),
+  }), [paymentsData, t]);
 
   if (loading)
     return (

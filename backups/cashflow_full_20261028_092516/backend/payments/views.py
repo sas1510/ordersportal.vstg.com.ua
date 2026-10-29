@@ -1,0 +1,1939 @@
+# from django.shortcuts import render
+
+# # Create your views here.
+# # payments/views.py
+# from django.db import connection
+# from django.http import JsonResponse
+# from datetime import date
+# from binascii import unhexlify
+
+# from django.shortcuts import render
+# from backend.utils.send_to_1c import send_to_1c
+# from django.http import JsonResponse
+# from django.db import connection
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParameter, OpenApiRequest, OpenApiResponse, OpenApiTypes
+
+# from rest_framework import serializers
+
+# from backend.utils.contractor import ensure_order_action_access, resolve_contractor
+
+# from backend.utils.api_helpers import safe_view
+# from backend.utils.dates import parse_date, clean_date
+# from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
+
+# from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+# from django.db import connection
+# import requests
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from rest_framework import status
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from rest_framework.response import Response
+# from rest_framework import status
+
+
+# from django.db import connection
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+# from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+# from django.db import connection
+
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+
+
+# from openpyxl import Workbook
+# from openpyxl.styles import Font
+# from django.http import HttpResponse
+# from datetime import date
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from django.db import connection
+
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+# from rest_framework.decorators import api_view, permission_classes
+# from django.http import HttpResponse
+# from django.db import connection
+# from openpyxl import Workbook
+
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+
+
+# # /var/www/html/ordersportal.vstg.com.ua/backend/payments/views.py
+
+# from datetime import date
+# from django.http import JsonResponse
+# from django.db import connection
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+
+# # коректний імпорт
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+# from backend.utils.BinToGuid1C import bin_to_guid_1c
+
+# from datetime import date
+# from rest_framework.decorators import api_view, permission_classes
+# from django.http import JsonResponse
+# from django.db import connection
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+
+
+
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.response import Response
+# from rest_framework.exceptions import ValidationError
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin_2
+
+# from django.http import JsonResponse
+# from django.db import connection
+# from rest_framework.decorators import api_view, permission_classes
+# from rest_framework.permissions import IsAuthenticated
+# from datetime import date
+
+
+# from rest_framework.decorators import api_view, permission_classes
+# from django.http import JsonResponse
+# from django.db import connection
+# from backend.permissions import IsAuthenticatedOr1CApiKey
+# from backend.utils.GuidToBin1C import guid_to_1c_bin
+
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework import status
+# from django.db import connection
+# import uuid
+
+# import base64
+# from django.http import HttpResponse
+# from rest_framework.views import APIView
+# from rest_framework.response import Response
+# from rest_framework import status
+# from rest_framework.permissions import IsAuthenticated
+import uuid
+import base64
+import requests
+import html
+from decimal import Decimal, InvalidOperation
+from datetime import date
+from binascii import unhexlify
+
+from django.db import connection
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
+
+from rest_framework import status, serializers
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from rest_framework.views import APIView
+
+from drf_spectacular.utils import (
+    extend_schema, inline_serializer, OpenApiParameter, 
+    OpenApiRequest, OpenApiResponse, OpenApiTypes
+)
+
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
+# Внутрішні утиліти проекту
+from backend.permissions import IsAuthenticatedOr1CApiKey
+from backend.utils.contractor import ensure_order_action_access, resolve_contractor
+from backend.utils.api_helpers import safe_view
+from backend.utils.dates import parse_date, clean_date
+from backend.utils.send_to_1c import send_to_1c, fetch_file_from_1c
+from backend.utils.BinToGuid1C import bin_to_guid_1c, convert_row
+from backend.utils.GuidToBin1C import guid_to_1c_bin, guid_to_1c_bin_2
+from backend.maintenance_mode import build_maintenance_payload, get_maintenance_state
+from backend.utils.finance_access import finance_access_denied_response
+from backend.records.services.manager_service import (
+    get_manager_by_contractor,
+    get_telegram_id_by_manager,
+)
+from backend.records.services.telegram_service import send_telegram_message
+
+# import logging
+import time
+
+# logger = logging.getLogger(__name__)
+
+from backend.utils.logging_setup import logger
+
+
+def get_maintenance_json_response():
+    if not get_maintenance_state()["enabled"]:
+        return None
+    return JsonResponse(build_maintenance_payload(), status=503)
+
+
+@extend_schema(
+    summary="Отримати фінансовий леджер дилера",
+    description=(
+        "Повертає повний фінансовий леджер дилера за період.\n\n"
+        " Доступ:\n"
+        "- JWT (admin → будь-який дилер, dealer → тільки свій)\n"
+        "- 1C API Key → без обмежень\n\n"
+        " SQL: dbo.GetDealerFullLedger"
+    ),
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Дата початку періоду (YYYY-MM-DD)",
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Дата кінця періоду (YYYY-MM-DD)",
+        ),
+    ]
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def get_payment_status_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+    date_from = parse_date(request.GET.get("date_from"), "date_from")
+    date_to = parse_date(request.GET.get("date_to"), "date_to")
+
+
+
+    
+
+
+    contractor_binary, contractor_guid = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+        elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+    )
+
+    # logger.info(
+    #     f"Fetching payment status: Contractor={contractor_binary.hex().upper() if contractor_binary else 'None'}, "
+    #     f"From={date_from}, To={date_to}"
+    # )
+
+    try:
+        sql = """
+            EXEC dbo.GetDealerFullLedger_4
+                @Контрагент = %s,
+                @ДатаЗ = %s,
+                @ДатаПо = %s
+        """
+
+        results = []
+        with connection.cursor() as cursor:
+            cursor.execute(sql, [contractor_binary, date_from, date_to])
+            columns = [col[0] for col in cursor.description]
+
+            for row in cursor.fetchall():
+                results.append(dict(zip(columns, row)))
+
+
+        def convert_bytes(value):
+            if isinstance(value, (bytes, bytearray, memoryview)):
+                return value.hex().upper()
+            return value
+
+        results = [
+            {k: convert_bytes(v) for k, v in row.items()}
+            for row in results
+        ]
+
+        duration = time.time() - start_time
+        # logger.info(f"Payment status request completed in {duration:.3f}s. Rows returned: {len(results)}")
+
+
+        return JsonResponse(
+            results,
+            safe=False,
+            json_dumps_params={"ensure_ascii": False}
+        )
+    except Exception as e:
+        # Розраховуємо тривалість навіть при помилці
+        duration = time.time() - start_time
+        
+        # 4. Лог помилки
+        logger.error(f"Payment ledger error for {user_name}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_payment_ledger',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        
+        return JsonResponse(
+            {"error": "Internal server error", "detail": str(e)}, 
+            status=500
+        )
+
+
+
+import time
+import logging
+from django.db import connection
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from asgiref.sync import async_to_sync, sync_to_async
+
+logger = logging.getLogger(__name__)
+
+# 1. Асинхронна обгортка для читання кількох наборів даних (Multiple Result Sets) з MS SQL
+@sync_to_async
+def execute_payment_page_procedure(contractor_binary):
+    sql = """
+        EXEC dbo.GetDealerPaymentPageDataV2
+            @Contractor = %s
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [contractor_binary])
+        
+        # Читаємо перший набір даних (orders)
+        columns1 = [col[0] for col in cursor.description] if cursor.description else []
+        orders = [dict(zip(columns1, row)) for row in cursor.fetchall()]
+
+        # Читаємо другий набір даних (contracts), якщо він є
+        contracts = []
+        if cursor.nextset() and cursor.description:
+            columns2 = [col[0] for col in cursor.description]
+            contracts = [dict(zip(columns2, row)) for row in cursor.fetchall()]
+            
+        return orders, contracts
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def get_dealer_payment_page_data_view(request):  # Синхронна для сумісності з DRF
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+    # Внутрішня асинхронна функція для обробки I/O
+    async def _async_logic():
+        try:
+            # Загортаємо resolve_contractor, якщо вона робить синхронні запити в БД
+            contractor_binary, contractor_guid = await sync_to_async(resolve_contractor)(
+                request,
+                allow_admin=True,
+                admin_param="contractor",
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+            )
+        except Exception as e:
+            logger.error(f"Contractor resolution failed in payment page: {str(e)}", extra={
+                'tags': {'action': 'get_dealer_payment_page_data_view'}
+            })
+            return {"error": "Unauthorized or missing contractor", "status_code": 400}
+
+        try:
+            # Викликаємо збережену процедуру асинхронно
+            orders, contracts = await execute_payment_page_procedure(contractor_binary)
+            
+            # Допоміжна функція для очищення бінарних даних 1С (CPU-bound логіка)
+            def fix(v):
+                if isinstance(v, (bytes, bytearray, memoryview)):
+                    return bin_to_guid_1c(v)
+                return v
+
+            orders = [{k: fix(v) for k, v in r.items()} for r in orders]
+            contracts = [{k: fix(v) for k, v in r.items()} for r in contracts]
+
+            return {
+                "orders": orders,
+                "contracts": contracts,
+                "contractor_guid": contractor_guid,
+                "status": "success"
+            }
+
+        except Exception as e:
+            return {
+                "error": "Internal server error",
+                "detail": str(e),
+                "status_code": 500,
+                "contractor_guid": contractor_guid if 'contractor_guid' in locals() else "unknown"
+            }
+
+    # Запуск асинхронного таска у синхронному DRF
+    result = async_to_sync(_async_logic)()
+
+    # Якщо сталася помилка під час виконання логіки
+    if "error" in result:
+        duration = time.time() - start_time
+        logger.error(
+            f"Error loading payment page data: {result.get('detail')}", 
+            exc_info=True, 
+            extra={
+                'tags': {
+                    'action': 'get_payment_page_data',
+                    'status': 'error',
+                    'contractor': result.get("contractor_guid"),
+                    'duration_sec': round(duration, 4)
+                }
+            }
+        )
+        return JsonResponse({"error": result["error"], "detail": result.get("detail", "")}, status=result["status_code"])
+
+    # Успішний результат
+    duration = time.time() - start_time
+    
+    # Роскомментуйте, якщо логгер потрібен на продакшені:
+    # logger.info(f"Payment page data loaded for {result['contractor_guid']}", extra={
+    #     'tags': {
+    #         'action': 'get_payment_page_data',
+    #         'status': 'success',
+    #         'orders_count': len(result["orders"]),
+    #         'contracts_count': len(result["contracts"]),
+    #         'duration_sec': round(duration, 4)
+    #     }
+    # })
+
+    return JsonResponse(
+        {
+            "orders": result["orders"],
+            "contracts": result["contracts"]
+        },
+        json_dumps_params={"ensure_ascii": False},
+        safe=False
+    )
+
+@extend_schema(
+    summary="Авансові залишки дилера",
+    description=(
+        "Повертає всі авансові баланси дилера.\n\n"
+        "Доступ:\n"
+        "- admin → може передати contractor_guid\n"
+        "- dealer / customer → тільки свій contractor\n"
+        "- 1C API KEY → автоматично по UserId1C"
+    ),
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter(
+            name="contractor_guid",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+    ],
+    responses={
+        200: serializers.ListSerializer(child=serializers.DictField()),
+        400: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+    }
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def get_dealer_advance_balance(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+    try:
+        contractor_bin, contractor_guid = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+        )
+    except Exception as e:
+        logger.error(f"Contractor resolution failed in payment page: {str(e)}")
+        return JsonResponse({"error": "Unauthorized or missing contractor"}, status=400)
+    
+
+    # logger.info(f"Fetching advance balance for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_advance_balance',
+    #         'user': user_name,
+    #         'contractor': contractor_guid
+    #     }
+    # })
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetDealerAllAdvancedBalance
+                    @Контрагент = %s
+                """,
+                [contractor_bin]
+            )
+
+            rows = cursor.fetchall()
+            columns = [col[0] for col in cursor.description]
+
+
+        result = []
+
+        for row in rows:
+            row_dict = {}
+
+            for col, val in zip(columns, row):
+
+                if isinstance(val, (bytes, bytearray, memoryview)):
+                    row_dict[col] = bin_to_guid_1c(bytes(val))
+                else:
+                    row_dict[col] = val
+
+            result.append(row_dict)
+
+        duration = time.time() - start_time
+
+        # 4. Лог успіху
+        logger.info(f"Successfully retrieved advance balance for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_advance_balance',
+                'status': 'success',
+                'count': len(result),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+
+        return Response(result, status=200)
+    
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error fetching advance balance for {contractor_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_advance_balance',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        raise e
+
+@extend_schema(
+    summary="Експорт статусу оплат в Excel",
+    description=(
+        "Генерує XLSX-файл з фінансовим леджером дилера.\n\n"
+        "### Доступ:\n"
+        "- **Admin** — може передати `contractor`\n"
+        "- **Dealer / Customer** — тільки власний contractor\n"
+        "- **1C API KEY** — автоматично по UserId1C\n\n"
+        "### Обовʼязкові параметри:\n"
+        "- date_from, date_to"
+    ),
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Початкова дата (YYYY-MM-DD)",
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Кінцева дата (YYYY-MM-DD)",
+        ),
+    ],
+    responses={
+        200: OpenApiTypes.BINARY,
+        400: OpenApiTypes.OBJECT,
+        403: OpenApiTypes.OBJECT,
+    }
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def export_payment_status_excel(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+
+    start_time = time.time()
+
+    date_from = parse_date(request.GET.get("date_from"), "date_from")
+    date_to = parse_date(request.GET.get("date_to"), "date_to")
+
+
+    contractor_bin, contractor_guid = resolve_contractor(request)
+
+
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet("Payment Status")
+
+    ws.append([
+        "Дата", "Час", "Договір", "Канал",
+        "Зал. поч.", "Прихід", "Розхід",
+        "Зал. кін.", "№ зам.", "Сума зам.",
+        "Оплата", "Зал. зам.", "Статус",
+        "Дата реалізації", "Реалізовано за день", "Машина", "У т. ч. реалізації", "Документ"
+    ])
+
+    try:
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetDealerFullLedger_4
+                @Контрагент = %s,
+                @ДатаЗ = %s,
+                @ДатаПо = %s
+                """,
+                [contractor_bin, date_from, date_to]
+            )
+
+            cols = [c[0] for c in cursor.description]
+            idx = {c: i for i, c in enumerate(cols)}
+
+            while True:
+                rows = cursor.fetchmany(2000)
+                if not rows:
+                    break
+
+                for r in rows:
+                    period = r[idx["Date"]]
+                    delta = r[idx["DeltaRow"]] or 0
+                    inout = r[idx["FlowDirection"]]
+                    is_realization = r[idx["DocumentType"]] in ("Реалізація", "РеализацияТоваровУслуг")
+
+                    ws.append([
+                        period.date().isoformat() if period else "",
+                        period.time().strftime("%H:%M") if period else "",
+                        r[idx["FinalDogovorName"]],
+                        r[idx["DealType"]],
+                        r[idx["CumSaldoStart"]],
+                        abs(delta) if inout == "Прихід" and not is_realization else "",
+                        abs(delta) if inout in ("Витрата", "Розхід") else "",
+                        r[idx["CumSaldo"]],
+                        r[idx["RealizationOrderNumbers"]] if is_realization and "RealizationOrderNumbers" in idx else r[idx["OrderNumber"]],
+                        r[idx["OrderAmount"]],
+                        "" if is_realization else abs(delta),
+                        r[idx["OrderBalance"]],
+                        r[idx["PaymentStatus"]],
+                        r[idx.get("RealizedDate")] if "RealizedDate" in idx else None,
+                        r[idx.get("RealizedPerDay")] if "RealizedPerDay" in idx else None,
+                        r[idx.get("CarNumber")] if "CarNumber" in idx else None,
+                        r[idx["RealizationAmount"]] if is_realization else None,
+                        "" if is_realization else r[idx["DocumentNumber"]],
+                    ])
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="payment_status_{date_from}_{date_to}.xlsx"'
+        )
+
+        wb.save(response)
+        return response
+    except Exception as e:
+
+    
+        duration = time.time() - start_time
+        logger.error(f"Error fetching excel for {contractor_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'export_payment_status_excel',
+                'status': 'error',
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        raise e
+
+
+
+
+@extend_schema(
+    summary="Додаткова інформація для рахунків дилера",
+    description="Контрагент, адреси, рахунки, номенклатура.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter("contractor_guid", OpenApiTypes.UUID, OpenApiParameter.PATH),
+    ],
+    responses={
+        200: inline_serializer(
+            name="DealerBillsAddInfo",
+            fields={
+                "contractor": serializers.DictField(),
+                "addresses": serializers.ListField(child=serializers.DictField()),
+                "accounts": serializers.ListField(child=serializers.DictField()),
+                "nomenclature": serializers.ListField(child=serializers.DictField()),
+            }
+        )
+    }
+)
+def dealer_bills_add_info(contractor_guid: str, is_branch: bool = False):
+    start_time = time.time()
+    
+    try:
+      
+        contractor_bin = guid_to_1c_bin_2(contractor_guid)
+
+        with connection.cursor() as cursor:
+         
+            cursor.execute(
+                "EXEC dbo.GetDealerBillsAdd_2 %s",
+                [contractor_bin]
+            )
+
+          
+            row = cursor.fetchone()
+            contractor = (
+                convert_row(dict(zip([c[0] for c in cursor.description], row)))
+                if row else None
+            )
+
+           
+            cursor.nextset()
+            addresses = [
+                convert_row(dict(zip([c[0] for c in cursor.description], r)))
+                for r in cursor.fetchall()
+            ]
+
+          
+            cursor.nextset()
+            accounts = [
+                convert_row(dict(zip([c[0] for c in cursor.description], r)))
+                for r in cursor.fetchall()
+            ]
+
+            # Набір 4: Дозволена номенклатура
+            cursor.nextset()
+            nomenclature = [
+                dict(zip([c[0] for c in cursor.description], r))
+                for r in cursor.fetchall()
+            ]
+
+           
+            cursor.nextset()
+
+            # 1. Збираємо всі записи з бази
+            all_organizations = [
+                dict(zip([c[0] for c in cursor.description], r))
+                for r in cursor.fetchall()
+            ]
+
+            
+            bank_key = 'AccountNameInRegBase'   
+
+            
+            if is_branch:
+           
+                organizations = all_organizations
+            else:
+                
+                target_banks = {
+                    'Акцiонерний банк"Пiвденний" (Расчетный)',
+                    'ПРИВАТБАНК Євро Віндоус UA783052990000026005041804757'
+                }
+                
+                
+                organizations = [
+                    org for org in all_organizations
+                    if str(org.get(bank_key, "")).strip() in target_banks
+                ]
+
+                # Fallback: if bank labels changed in 1C, do not hide all organizations.
+                if not organizations:
+                    organizations = all_organizations
+
+                
+        duration = time.time() - start_time
+
+        logger.info(f"Successfully retrieved billing info for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_bills_add_info',
+                'status': 'success',
+                'contractor': contractor_guid,
+                'addr_count': len(addresses),
+                'acc_count': len(accounts),
+                'nom_count': len(nomenclature),
+                'org_count': len(organizations),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        
+        return {
+            "contractor": contractor,
+            "addresses": addresses,
+            "accounts": accounts,
+            "nomenclature": nomenclature,
+            "organizations": organizations,  # Нове поле з даними 5-го селекту
+        }
+
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"Error fetching billing info for {contractor_guid}: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_bills_add_info',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        raise e
+
+@extend_schema(
+    summary="Додаткова інформація для рахунків дилера",
+    description=(
+        "Повертає додаткову інформацію, необхідну для створення або "
+        "відображення рахунків дилера.\n\n"
+
+        "### Доступ:\n"
+        "- **Admin** — може передати `contractor`\n"
+        "- **Dealer / Customer** — тільки власний contractor\n"
+        "- **1C API KEY** — автоматично по UserId1C\n\n"
+
+        "### Авторизація:\n"
+        "- JWT або 1C API KEY"
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+    ],
+    tags=["payments"],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def dealer_bills_add_info_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
+    start_time = time.time()
+
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+
+    is_branch = request.user.is_branch if request.user.is_authenticated else "api_key_user"
+
+    contractor_bin, contractor_guid = resolve_contractor(request)
+
+    try:
+
+
+        data = dealer_bills_add_info(contractor_guid, is_branch)
+
+        return Response({
+            # "contractor": contractor_guid,
+            "data": data
+        })
+
+    except Exception as e:
+        duration = time.time() - start_time
+       
+        logger.error(f"API Error in billing add-info view: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'view_bills_add_info',
+                'status': 'error',
+                'user': user_name,
+                'duration_sec': round(duration, 4)
+            }
+        })
+  
+        raise e
+
+
+
+
+@extend_schema(
+    summary="Рахунки клієнта (дилера) за період",
+    description="""
+Універсальний endpoint для отримання рахунків.
+
+### Логіка доступу:
+- **Admin (JWT)** — ОБОВʼЯЗКОВО передає `contractor` у query
+- **Dealer / Customer (JWT)** — `contractor` ІГНОРУЄТЬСЯ, береться з токена
+- **1C API Key** — автоматично по `UserId1C`
+
+### Параметри:
+- `contractor` — GUID контрагента (**тільки для admin**)
+- `date_from` — YYYY-MM-DD
+- `date_to` — YYYY-MM-DD
+""",
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=OpenApiTypes.UUID,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (обовʼязковий ТІЛЬКИ для admin)",
+        ),
+        OpenApiParameter(
+            name="date_from",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+        ),
+        OpenApiParameter(
+            name="date_to",
+            type=OpenApiTypes.DATE,
+            location=OpenApiParameter.QUERY,
+            required=True,
+        ),
+    ],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+@safe_view
+def customer_bills_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "api_key_user"
+    
+
+    raw_from = request.GET.get("date_from")
+    raw_to = request.GET.get("date_to")
+    date_from = parse_date(raw_from, "date_from")
+    date_to = parse_date(raw_to, "date_to")
+
+    contractor_bin, contractor_guid = resolve_contractor(
+        request,
+        allow_admin=True,
+        admin_param="contractor",
+        elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+    )
+
+    # logger.info(f"Fetching customer bills for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_customer_bills',
+    #         'user': user_name,
+    #         'contractor': contractor_guid,
+    #         'period_start': raw_from,
+    #         'period_end': raw_to
+    #     }
+    # })
+    try:
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                EXEC dbo.GetCustomerBillsByContractorAndDates
+                    @ContractorBin = %s,
+                    @DateFrom = %s,
+                    @DateTo = %s
+                """,
+                [contractor_bin, date_from, date_to]
+            )
+
+            # 1. ОБРОБКА ПЕРШОГО SELECT (Рахунки)
+            columns_bills = [c[0] for c in cursor.description]
+            rows_bills = cursor.fetchall()
+     
+            VAT_RATE = 0.20  # Ставка ПДВ (20%)
+            bills_data = []
+
+            for row in rows_bills:
+                # Отримуємо початковий словник рядка
+                bill = convert_row(dict(zip(columns_bills, row)))
+                
+                # Приводимо значення до потрібних типів даних
+                total = float(bill.get("TotalAmount") or 0)
+                is_vat = bool(bill.get("IsVAT"))
+                include_vat = bool(bill.get("SumIncludeVAT"))
+                
+                
+                if is_vat:
+                    if include_vat:
+                        vat_amount = total * 20 / 120  
+                        total_with_vat = total
+                    else:
+                        vat_amount = total * VAT_RATE  
+                        total_with_vat = total + vat_amount
+                else:
+                    vat_amount = 0.0
+                    total_with_vat = total
+
+               
+                processed_bill = {
+                    **bill, 
+                    "InvoiceNumber": bill["InvoiceNumber"].replace(" ", "") if bill.get("InvoiceNumber") else "",
+                    "BillNumber": bill.get("BillNumber"),
+                    "BillNumber_2": str(bill["BillNumber"])[1:].lstrip('0') if bill.get("BillNumber") else "",
+                    "VAT_Amount": round(vat_amount, 2),
+                    "TotalWithVAT": round(total_with_vat, 2)
+                }
+                bills_data.append(processed_bill)
+            # Перемикаємо курсор на наступний SELECT
+            cursor.nextset()
+
+            # 2. ОБРОБКА ДРУГОГО SELECT (Організація)
+            columns_org = [c[0] for c in cursor.description]
+            rows_org = cursor.fetchall()
+            org_data = [
+                dict(zip(columns_org, row)) # тут convert_row зазвичай не потрібен, але можна додати за потреби
+                for row in rows_org
+            ]
+
+# Тепер у вас є два окремих списки:
+# bills_data -> список рахунків
+# org_data   -> дані організації (зазвичай 1 рядок)
+
+        duration = time.time() - start_time
+
+
+        logger.info(f"Successfully retrieved {len(bills_data)} customer bills", extra={
+            'tags': {
+                'action': 'get_customer_bills',
+                'status': 'success',
+                'contractor': contractor_guid,
+                'count': len(bills_data),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+
+
+        return Response({
+            "contractor": contractor_guid,
+            "count": len(bills_data),
+            "edrpou": org_data,
+            "items": bills_data
+        })
+    
+    except Exception as e:
+        duration = time.time() - start_time
+
+        logger.error(f"Error fetching customer bills: {str(e)}", exc_info=True, extra={
+            'tags': {
+                'action': 'get_customer_bills',
+                'status': 'error',
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+        raise e
+
+
+
+
+
+import binascii
+
+def get_contractor_guid_from_db(user):
+    if not user.user_id_1C:
+        return None
+
+    # binary → hex string
+    return bin_to_guid_1c(user.user_id_1C)
+
+
+def _invoice_related_contractors(request):
+    _, owner_guid = resolve_contractor(request)
+    owner_bin = guid_to_1c_bin_2(owner_guid)
+    with connection.cursor() as cursor:
+        cursor.execute("EXEC dbo.GetMainContractorDealers @MainContractor = %s", [owner_bin])
+        columns = [column[0] for column in cursor.description]
+        rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    allowed = {
+        str(row.get("ContractorGUID", "")).lower()
+        for row in rows
+        if row.get("ContractorGUID")
+    }
+    allowed.add(str(owner_guid).lower())
+    return owner_guid, rows, allowed
+
+
+def _notify_main_manager_about_invoice(
+    *, contractor_guid, contractor_name, requester_name, result, total_sum
+):
+    """Best-effort Telegram notification after a bill is created in 1C."""
+    try:
+        manager_guid = get_manager_by_contractor(contractor_guid)
+        if not manager_guid:
+            logger.warning(
+                "Main manager not found for created invoice",
+                extra={
+                    "tags": {
+                        "action": "create_invoice_v2_telegram",
+                        "status": "manager_not_found",
+                    },
+                    "contractor_guid": contractor_guid,
+                    "bill_number": result.get("BillNumber"),
+                },
+            )
+            return
+
+        telegram_id = get_telegram_id_by_manager(manager_guid)
+        if not telegram_id:
+            logger.warning(
+                "Main manager Telegram ID not found for created invoice",
+                extra={
+                    "tags": {
+                        "action": "create_invoice_v2_telegram",
+                        "status": "telegram_not_found",
+                    },
+                    "contractor_guid": contractor_guid,
+                    "bill_number": result.get("BillNumber"),
+                },
+            )
+            return
+
+        try:
+            amount = f"{float(total_sum or 0):,.2f}".replace(",", " ")
+        except (TypeError, ValueError):
+            amount = str(total_sum or "0")
+
+        bill_number = html.escape(str(result.get("BillNumber") or "-"))
+        dealer = html.escape(str(contractor_name or contractor_guid))
+        author = html.escape(str(requester_name or "-"))
+        message = (
+            "<b>\u0412\u0438\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u043e \u043d\u043e\u0432\u0438\u0439 \u0440\u0430\u0445\u0443\u043d\u043e\u043a</b>\n"
+            f"\u0420\u0430\u0445\u0443\u043d\u043e\u043a: \u2116{bill_number}\n"
+            f"\u0414\u0438\u043b\u0435\u0440: {dealer}\n"
+            f"\u0410\u0432\u0442\u043e\u0440 \u0437\u0430\u044f\u0432\u043a\u0438: {author}\n"
+            f"\u0421\u0443\u043c\u0430: {amount} \u0433\u0440\u043d"
+        )
+        telegram_result = send_telegram_message(
+            telegram_chat_id=int(telegram_id),
+            text=message,
+        )
+        if not isinstance(telegram_result, dict) or telegram_result.get("ok") is not True:
+            logger.error(
+                "Telegram rejected created invoice notification",
+                extra={
+                    "tags": {
+                        "action": "create_invoice_v2_telegram",
+                        "status": "rejected",
+                    },
+                    "contractor_guid": contractor_guid,
+                    "bill_number": result.get("BillNumber"),
+                    "telegram_response": telegram_result,
+                },
+            )
+            return
+
+        logger.info(
+            "Created invoice notification sent to main manager",
+            extra={
+                "tags": {
+                    "action": "create_invoice_v2_telegram",
+                    "status": "success",
+                },
+                "contractor_guid": contractor_guid,
+                "bill_number": result.get("BillNumber"),
+            },
+        )
+    except Exception:
+        logger.exception(
+            "Created invoice Telegram notification failed",
+            extra={
+                "tags": {
+                    "action": "create_invoice_v2_telegram",
+                    "status": "error",
+                },
+                "contractor_guid": contractor_guid,
+                "bill_number": result.get("BillNumber"),
+            },
+        )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_contractors_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    try:
+        _, contractors, _ = _invoice_related_contractors(request)
+        return Response({"data": contractors})
+    except Exception:
+        logger.exception("Unable to load contractors for new invoice")
+        return Response({"error": "Unable to load contractors"}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_profile_v2_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    selected_guid = str(request.query_params.get("contractor_guid") or "").lower()
+    try:
+        _, _, allowed = _invoice_related_contractors(request)
+        if not selected_guid or selected_guid not in allowed:
+            return Response({"error": "Contractor is not available"}, status=status.HTTP_403_FORBIDDEN)
+        data = dealer_bills_add_info(selected_guid, False)
+        return Response({"data": data})
+    except Exception:
+        logger.exception("Unable to load new invoice profile")
+        return Response({"error": "Unable to load invoice profile"}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_advance_contracts_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    try:
+        # The advance contract belongs to the authenticated requester.
+        requester_bin, requester_guid = resolve_contractor(request)
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetDealerAllAdvancedBalanceV1 @\u041a\u043e\u043d\u0442\u0440\u0430\u0433\u0435\u043d\u0442 = %s", [requester_bin])
+            columns = [column[0] for column in cursor.description]
+            result = []
+            for row in cursor.fetchall():
+                item = {}
+                for key, value in zip(columns, row):
+                    item[key] = bin_to_guid_1c(bytes(value)) if isinstance(value, (bytes, bytearray, memoryview)) else value
+                result.append(item)
+        return Response({"data": result})
+    except Exception:
+        logger.exception("Unable to load advance contracts for new invoice")
+        return Response({"error": "Unable to load advance contracts"}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def invoice_settlements_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("EXEC dbo.GetUkraineSettlements")
+            rows = cursor.fetchall()
+
+        def clean(value):
+            return str(value).strip() if value is not None else ""
+
+        def guid(value):
+            if value is None:
+                return None
+            if isinstance(value, memoryview):
+                value = value.tobytes()
+            if isinstance(value, bytearray):
+                value = bytes(value)
+            if isinstance(value, bytes):
+                try:
+                    return bin_to_guid_1c(value)
+                except Exception:
+                    return value.hex()
+            return clean(value) or None
+
+        settlements = [
+            {
+                "SettlementGUID": guid(row[0]),
+                "SettlementCode": clean(row[1]),
+                "SettlementName": clean(row[2]),
+                "SettlementType": clean(row[3]),
+                "RegionGUID": guid(row[4]),
+                "RegionCode": clean(row[5]),
+                "RegionName": clean(row[6]),
+                "DistrictGUID": guid(row[7]),
+                "DistrictName": clean(row[8]),
+                "CountryGUID": guid(row[9]),
+                "CountryName": clean(row[10]),
+            }
+            for row in rows
+        ]
+        return Response({"data": settlements})
+    except Exception:
+        logger.exception(
+            "Unable to load Ukraine settlements for new invoice",
+            extra={"tags": {"action": "invoice_settlements", "status": "error"}},
+        )
+        return Response(
+            {"error": "Unable to load settlements"},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def create_invoice_v2(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
+    data = request.data
+    contractor_guid = str(data.get("ContractorGUID") or "").lower()
+    advance_contract_guid = data.get("AdvanceContractGUID")
+    if not isinstance(advance_contract_guid, str) or not advance_contract_guid.strip():
+        return Response({"error": "Оберіть авансовий договір"}, status=status.HTTP_400_BAD_REQUEST)
+    advance_contract_guid = advance_contract_guid.strip()
+    try:
+        requester_contractor_guid, contractors, allowed = _invoice_related_contractors(request)
+        if not contractor_guid or contractor_guid not in allowed:
+            return Response({"error": "Contractor is not available"}, status=status.HTTP_403_FORBIDDEN)
+
+        payload_1c = {
+            "requesterContractorGUID": requester_contractor_guid,
+            "contragentGUID": contractor_guid,
+            "address": data.get("Address"),
+            "createDate": data.get("OrderCreateDate"),
+            "deliveryDate": data.get("OrderDeliveryDate"),
+            "paymentDate": data.get("OrderPaymentDate"),
+            "comment": data.get("InternalComment", ""),
+            "totalSum": data.get("OrderSuma"),
+            "organizationCode": data.get("OrganizationCode"),
+            "taxIdInRegBase": data.get("TaxIdInRegBase"),
+            "advanceContractGUID": advance_contract_guid,
+            "items": [
+                {
+                    "itemID": item.get("ItemGUID"),
+                    "count": item.get("Count"),
+                    "price": item.get("Price"),
+                    "width": item.get("Width"),
+                    "height": item.get("Height"),
+                }
+                for item in data.get("OrderItemsLIST", [])
+            ],
+        }
+        result = send_to_1c(payload=payload_1c, query="CreateBillV2")
+        if not isinstance(result, dict) or result.get("success") is not True:
+            logger.warning(
+                "CreateBillV2 rejected invoice for %s",
+                contractor_guid,
+                extra={
+                    "tags": {"action": "create_invoice_v2", "status": "rejected"},
+                    "response_1c": result,
+                },
+            )
+            return Response(
+                result if isinstance(result, dict) else {
+                    "success": False,
+                    "error": "1C returned an invalid response",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        logger.info(
+            "New invoice created for %s",
+            contractor_guid,
+            extra={
+                "tags": {"action": "create_invoice_v2", "status": "success"},
+                "bill_guid": result.get("BillGuid"),
+                "bill_number": result.get("BillNumber"),
+            },
+        )
+        contractor_name = next(
+            (
+                row.get("\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435") or row.get("ContractorName")
+                for row in contractors
+                if str(row.get("ContractorGUID") or "").lower() == contractor_guid
+            ),
+            contractor_guid,
+        )
+        request_user = getattr(request, "user", None)
+        requester_name = ""
+        if request_user and getattr(request_user, "is_authenticated", False):
+            requester_name = request_user.get_full_name() or request_user.username
+        _notify_main_manager_about_invoice(
+            contractor_guid=contractor_guid,
+            contractor_name=contractor_name,
+            requester_name=requester_name,
+            result=result,
+            total_sum=data.get("OrderSuma"),
+        )
+        return Response({"status": "ok", "data": result, "payload": payload_1c}, status=status.HTTP_201_CREATED)
+    except Exception as exc:
+        logger.exception("New invoice creation error")
+        return Response({"error": "1C Connection Error", "details": str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticatedOr1CApiKey])
+def create_invoice(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+    start_time = time.time()
+
+    user = request.user
+    data = request.data
+
+    contractor_guid = get_contractor_guid_from_db(user)
+    user_name = user.username if user.is_authenticated else "api_key_user"
+
+    if not contractor_guid:
+        logger.warning(f"Invoice creation failed: No 1C GUID for user {user_name}")
+        return Response({"error": "User has no 1C contractor GUID"}, status=400)
+
+    items_count = len(data.get("OrderItemsLIST", []))
+    
+
+    # logger.info(f"User {user_name} is creating invoice", extra={
+    #     'tags': {
+    #         'action': 'create_invoice',
+    #         'contractor': contractor_guid,
+    #         'items_count': items_count
+    #     }
+    # })
+
+    payload_1c = {
+        "contragentGUID": contractor_guid,
+        "addressGUID": data.get("AddressGUID"),
+        "ibanGUID": data.get("IbanGUID"),
+        "createDate": data.get("OrderCreateDate"),
+        "deliveryDate": data.get("OrderDeliveryDate"),
+        "paymentDate": data.get("OrderPaymentDate"),
+        "comment": data.get("InternalComment", ""),
+        "totalSum": data.get("OrderSuma"),
+        "organizationCode": data.get("OrganizationCode"),
+        "taxIdInRegBase": data.get("TaxIdInRegBase"),
+        "items": [
+            {
+                "itemID": i.get("ItemGUID"),
+                "count": i.get("Count"),
+                "price": i.get("Price"),
+                "width": i.get("Width"),
+                "height": i.get("Height"),
+            }
+            for i in data.get("OrderItemsLIST", [])
+        ],
+    }
+    try:
+        result = send_to_1c(
+            payload=payload_1c,
+            query="CreateBill",
+        )
+
+        duration = time.time() - start_time
+
+        logger.info(f"Invoice created successfully for {contractor_guid}", extra={
+            'tags': {
+                'action': 'create_invoice',
+                'status': 'success',
+                'duration_sec': round(duration, 4)
+            },
+            'response_1c': result
+        })
+        notification_result = result if isinstance(result, dict) else {}
+        requester_name = user.get_full_name() or user_name
+        _notify_main_manager_about_invoice(
+            contractor_guid=contractor_guid,
+            contractor_name=requester_name,
+            requester_name=requester_name,
+            result=notification_result,
+            total_sum=data.get("OrderSuma"),
+        )
+        return Response({"status": "ok", "data": result, "payload": payload_1c}, status=201)
+
+    
+    except Exception as e:
+        logger.error(f"Invoice creation error: {str(e)}", exc_info=True, extra={
+            'tags': {'action': 'create_invoice', 'status': 'error'}
+        })
+        return Response({"error": "1C Connection Error"}, status=502)
+
+
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def make_payment_from_advance(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+    maintenance_response = get_maintenance_json_response()
+    if maintenance_response is not None:
+        return maintenance_response
+
+    start_time = time.time()
+    data = request.data
+    user_name = request.user.username
+    contract = data.get("contract")
+    raw_payments = data.get("payments")
+
+    # Keep the legacy single-order request working while the portal uses
+    # the new batch structure below.
+    if raw_payments is None:
+        raw_payments = [{
+            "order_id": data.get("order_id"),
+            "amount": data.get("amount"),
+        }]
+
+    if not contract or not isinstance(raw_payments, list) or not raw_payments:
+        return Response(
+            {"error": "\u041f\u043e\u0442\u0440\u0456\u0431\u043d\u0456 contract \u0456 \u043d\u0435\u043f\u043e\u0440\u043e\u0436\u043d\u0456\u0439 \u0441\u043f\u0438\u0441\u043e\u043a payments"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    payments = []
+    for item in raw_payments:
+        if not isinstance(item, dict):
+            return Response({"error": "\u041a\u043e\u0436\u0435\u043d \u0435\u043b\u0435\u043c\u0435\u043d\u0442 payments \u043c\u0430\u0454 \u0431\u0443\u0442\u0438 \u043e\u0431\u02bc\u0454\u043a\u0442\u043e\u043c"}, status=status.HTTP_400_BAD_REQUEST)
+        order_id = item.get("order_id")
+        try:
+            amount = Decimal(str(item.get("amount"))).quantize(Decimal("0.01"))
+        except (InvalidOperation, TypeError, ValueError):
+            amount = Decimal("0")
+        if not order_id or amount <= 0:
+            return Response({"error": "\u0414\u043b\u044f \u043a\u043e\u0436\u043d\u043e\u0433\u043e \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u043d\u044f \u043f\u043e\u0442\u0440\u0456\u0431\u043d\u0456 order_id \u0456 \u0434\u043e\u0434\u0430\u0442\u043d\u044f amount"}, status=status.HTTP_400_BAD_REQUEST)
+        payments.append({"order_id": str(order_id), "amount": amount})
+
+    try:
+        for payment in payments:
+            ensure_order_action_access(request, payment["order_id"])
+    except (PermissionError, ValueError) as exc:
+        logger.warning("Advance payment access denied", extra={
+            "tags": {"action": "advance_payment", "stage": "authorization", "status": "forbidden", "user": user_name, "contract": str(contract), "orders_count": len(payments)}
+        })
+        return Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        contractor_bin, _ = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+        )
+    except (PermissionError, ValueError) as exc:
+        return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    total_amount = sum(
+        (payment["amount"] for payment in payments),
+        Decimal("0"),
+    )
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "EXEC dbo.GetDealerAllAdvancedBalance @Контрагент = %s",
+                [contractor_bin],
+            )
+            columns = [column[0] for column in cursor.description]
+            advance_rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    except Exception:
+        logger.exception("Unable to verify the current advance balance")
+        return Response(
+            {"error": "Не вдалося перевірити актуальний залишок авансу. Спробуйте ще раз."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    def normalize_guid(value):
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            value = bin_to_guid_1c(bytes(value))
+        return str(value or "").strip().strip("{}").lower()
+
+    requested_contract = normalize_guid(contract)
+    current_contract = next(
+        (
+            row
+            for row in advance_rows
+            if requested_contract
+            in {
+                normalize_guid(row.get("Dogovor_ID")),
+                normalize_guid(row.get("Dogovor_GUID")),
+                normalize_guid(row.get("DogovorId")),
+                normalize_guid(row.get("DogovorGuid")),
+            }
+        ),
+        None,
+    )
+
+    if current_contract is None:
+        return Response(
+            {"error": "Авансовий договір не знайдено або він недоступний."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        available_balance = Decimal(
+            str(
+                current_contract.get("DogovorBalance")
+                if current_contract.get("DogovorBalance") is not None
+                else current_contract.get("DogovorSum", 0)
+            )
+        ).quantize(Decimal("0.01"))
+    except (InvalidOperation, TypeError, ValueError):
+        available_balance = Decimal("0")
+
+    if total_amount > available_balance:
+        return Response(
+            {
+                "success": False,
+                "error": "Недостатньо коштів на авансовому договорі.",
+                "available_balance": float(available_balance),
+                "requested_amount": float(total_amount),
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    payload_1c = {
+        "contract": contract,
+        "payments": [
+            {**payment, "amount": float(payment["amount"])}
+            for payment in payments
+        ],
+    }
+    logger.info("Advance payment allocation requested", extra={
+        "tags": {"action": "advance_payment", "stage": "requested", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount)}
+    })
+
+    try:
+        logger.info("Advance payment allocation sending to 1C", extra={
+            "tags": {"action": "advance_payment", "stage": "send_to_1c", "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount)}
+        })
+        response_1c = send_to_1c(payload=payload_1c, query="PaymentForOrders")
+        results = response_1c.get("results", []) if isinstance(response_1c, dict) else []
+        duration = time.time() - start_time
+
+        if not results or any(not item.get("success", False) for item in results):
+            from .payment_logging import log_payment_refusal
+            log_payment_refusal(user=request.user, contract=contract, payments=payments, amount=total_amount, reason="1С не підтвердила успішне виконання", response=response_1c)
+            logger.error("1C rejected advance payment allocation", extra={
+                "tags": {"action": "advance_payment", "stage": "response_from_1c", "status": "rejected", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "results_count": len(results), "duration_sec": round(duration, 4)},
+                "response": response_1c,
+            })
+            return Response({"success": False, "error": "\u0031\u0421 \u0432\u0456\u0434\u0445\u0438\u043b\u0438\u043b\u0430 \u0437\u0430\u043f\u0438\u0442 \u0430\u0431\u043e \u043f\u043e\u0432\u0435\u0440\u043d\u0443\u043b\u0430 \u043f\u043e\u043c\u0438\u043b\u043a\u0443", "details_from_1c": response_1c}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger.info("Advance payment allocation completed", extra={
+            "tags": {"action": "advance_payment", "stage": "completed", "status": "success", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "results_count": len(results), "duration_sec": round(duration, 4)}
+        })
+        return Response(
+            {
+                "success": True,
+                "sent_to_1c": payload_1c,
+                "response_1c": response_1c,
+                "available_balance_before": float(available_balance),
+                "available_balance_after": float(available_balance - total_amount),
+            },
+            status=status.HTTP_200_OK,
+        )
+    except ValidationError as exc:
+        details = exc.detail if isinstance(exc.detail, dict) else {}
+        reason = str(details.get("response_text") or "").strip()
+        from .payment_logging import log_payment_refusal
+        log_payment_refusal(user=request.user, contract=contract, payments=payments, amount=total_amount, reason=reason or details.get("detail"))
+        # Do not expose HTML error pages, request payloads or technical details.
+        if reason and "<" not in reason and len(reason) <= 500:
+            reason = reason.replace("1С", "").replace("1C", "").strip(" :.-")
+            message = f"Не вдалося виконати оплату. {reason}"
+        else:
+            message = "Не вдалося виконати оплату: отримано некоректну відповідь."
+        return Response({
+            "success": False,
+            "error": message + " Перед повторною оплатою перевірте рознесення коштів, щоб уникнути дублювання.",
+        }, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        logger.error("Advance payment allocation failed", exc_info=True, extra={
+            "tags": {"action": "advance_payment", "stage": "send_to_1c", "status": "error", "user": user_name, "contract": str(contract), "orders_count": len(payments), "amount": str(total_amount), "duration_sec": round(time.time() - start_time, 4)}
+        })
+        return Response({"success": False, "error": "Не вдалося отримати підтвердження оплати. Перед повторною оплатою перевірте рознесення коштів, щоб уникнути дублювання."}, status=500)
+
+
+
+
+class GetBillPDF(APIView):
+    permission_classes = [IsAuthenticated]
+
+
+
+
+    def post(self, request, bill_guid):
+        finance_denied = finance_access_denied_response(request)
+        if finance_denied is not None:
+            return finance_denied
+
+        start_time = time.time()
+        user_name = request.user.username
+        
+     
+        # logger.info(f"User {user_name} requested PDF for bill {bill_guid}", extra={
+        #     'tags': {
+        #         'action': 'download_bill_pdf',
+        #         'bill_id': bill_guid,
+        #         'user': user_name
+        #     }
+        # })
+        # 1. Перевірка доступу (resolve_contractor)
+        try:
+            _, contractor_guid = resolve_contractor(
+                request,
+                allow_admin=True,
+                admin_param="contractor_guid",
+                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+            )
+        except (ValueError, PermissionError) as e:
+            logger.warning(f"Unauthorized PDF access by {user_name}: {str(e)}")
+            return Response({"detail": str(e)}, status=400)
+
+        if not bill_guid or bill_guid == "undefined":
+            return Response({"detail": "BillGuid не передано"}, status=400)
+
+        # 2. Отримання сирого b64 через нову функцію
+        try:
+            pdf_b64 = fetch_file_from_1c(
+                payload={"BillGuid": str(bill_guid)},
+                query="CustomerBillPdf"
+            )
+        except ValidationError as e:
+            logger.error(f"1C Validation error for bill {bill_guid}: {str(e)}")
+            return Response(e.detail, status=400)
+
+        if not pdf_b64:
+            logger.error(f"1C returned empty file for bill {bill_guid}")
+            return Response({"detail": "1С повернула порожній файл"}, status=404)
+
+        # 3. Формування PDF відповіді
+        try:
+            pdf_binary = base64.b64decode(pdf_b64)
+            duration = time.time() - start_time
+            
+            logger.info(f"PDF bill {bill_guid} sent successfully", extra={
+                'tags': {
+                    'action': 'download_bill_pdf',
+                    'status': 'success',
+                    'size_kb': round(len(pdf_binary) / 1024, 2),
+                    'duration_sec': round(duration, 4)
+                }
+            })
+
+            response = HttpResponse(pdf_binary, content_type='application/pdf')
+          
+            filename = f"Bill_{bill_guid[:8]}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            
+            return response
+
+        except Exception as e:
+            logger.error(f"Error processing PDF for bill {bill_guid}: {str(e)}", exc_info=True)
+            return Response({"detail": f"Помилка обробки файлу: {str(e)}"}, status=500) 
+        
+
+
+from django.db import connection, DatabaseError
+from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
+from rest_framework import serializers
+
+@extend_schema(
+    summary="Повні дані взаєморозрахунків партнера",
+    description="Повертає замовлення, авансові договори та детальну таблицю дебіторської заборгованості.",
+    tags=["payments"],
+    parameters=[
+        OpenApiParameter(
+            name="contractor",
+            type=serializers.UUIDField,
+            location=OpenApiParameter.QUERY,
+            required=False,
+            description="GUID контрагента (тільки для admin)",
+        ),
+    ],
+    responses={
+        200: inline_serializer(
+            name="PartnerFullDataResponse",
+            fields={
+                "orders": serializers.ListField(child=serializers.DictField()),
+                "contracts": serializers.ListField(child=serializers.DictField()),
+                "debts": serializers.DictField(),
+            }
+        )
+    }
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated]) 
+@safe_view 
+def get_partner_full_data_view(request):
+    finance_denied = finance_access_denied_response(request)
+    if finance_denied is not None:
+        return finance_denied
+
+
+    start_time = time.time()
+    user_name = request.user.username if request.user.is_authenticated else "unknown"
+
+    
+    try:
+        contractor_binary, contractor_guid = resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor",
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+        )
+    except (ValueError, PermissionError) as e:
+        return JsonResponse({"detail": str(e)}, status=400)
+
+  
+    # logger.info(f"Fetching full partner data for {contractor_guid}", extra={
+    #     'tags': {
+    #         'action': 'get_partner_full_data',
+    #         'user': user_name,
+    #         'contractor': contractor_guid
+    #     }
+    # })
+
+    def fix_value(v):
+        if isinstance(v, (bytes, bytearray, memoryview)):
+            return v.hex().upper()
+        return v
+
+    def get_dict_list(cursor):
+        if cursor.description:
+            columns = [col[0] for col in cursor.description]
+            return [{k: fix_value(v) for k, v in dict(zip(columns, row)).items()} 
+                    for row in cursor.fetchall()]
+        return []
+
+    try:
+        with connection.cursor() as cursor:
+        
+            cursor.execute("EXEC dbo.GetPartnerFullData @Contractor = %s", [contractor_binary])
+
+   
+            orders = get_dict_list(cursor)
+
+          
+            contracts = []
+            if cursor.nextset():
+                contracts = get_dict_list(cursor)
+
+      
+            debt_items = []
+            debt_summary = []
+            if cursor.nextset():
+                raw_debts = get_dict_list(cursor)
+               
+                debt_items = [d for d in raw_debts if d.get('SortOrder') == 0]
+                debt_summary = [d for d in raw_debts if d.get('SortOrder') == 1]
+
+        duration = time.time() - start_time
+
+
+        logger.info(f"Partner full data loaded for {contractor_guid}", extra={
+            'tags': {
+                'action': 'get_partner_full_data',
+                'status': 'success',
+                'orders_count': len(orders),
+                'contracts_count': len(contracts),
+                'debt_rows': len(debt_items),
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        return JsonResponse(
+            {
+                "contractor_guid": contractor_guid,
+                "orders": orders,
+                "contracts": contracts,
+                "debts": {
+                    "items": debt_items,
+                    "summaries": debt_summary 
+                }
+            },
+            json_dumps_params={"ensure_ascii": False}
+        )
+
+
+
+    except DatabaseError as e:
+
+        duration = time.time() - start_time
+        error_msg = str(e)
+
+
+        status_tag = 'db_recovery' if ("927" in error_msg or "recovery" in error_msg.lower()) else 'db_error'
+        
+        logger.error(f"Database error in PartnerFullData: {error_msg}", extra={
+            'tags': {
+                'action': 'get_partner_full_data',
+                'status': status_tag,
+                'contractor': contractor_guid,
+                'duration_sec': round(duration, 4)
+            }
+        })
+
+        if status_tag == 'db_recovery':
+            return JsonResponse({"error": "database_recovery", "detail": "База оновлюється..."}, status=503)
+        return JsonResponse({"detail": f"SQL Error: {error_msg}"}, status=500)
+    
+
+    
+    # Формуємо єдину відповідь

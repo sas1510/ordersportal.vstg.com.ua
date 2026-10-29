@@ -15,3 +15,12 @@ test("one dataset supplies selected period, history and disjoint groups", () => 
   assert.equal(period.filter((row) => belongsToDealerGroup(row, "Філіали")).length, 1);
   assert.equal(period.filter((row) => belongsToDealerGroup(row, "Дилера")).length, 1);
 });
+
+test('processing calculations without orders retain their status instead of becoming new', async () => {
+  const { calculationReportStatus, normalizeReportStatus } = await import('./reportDataset.js');
+  assert.equal(calculationReportStatus({ status: 'В обробці', orders: [] }), 'В обробці');
+  assert.equal(calculationReportStatus({ statuses: { 'В обробці': 1 }, orders: [] }), 'В обробці');
+  assert.equal(calculationReportStatus({ status: 'Відмова', orders: [] }), 'Відмова');
+  assert.equal(calculationReportStatus({ orders: [] }), 'Новий');
+  assert.equal(normalizeReportStatus(' В  роботі '), 'В обробці');
+});

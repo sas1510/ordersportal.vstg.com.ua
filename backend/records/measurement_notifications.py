@@ -6,7 +6,7 @@ from celery import shared_task
 from django.conf import settings
 from django.db import transaction
 from .models import CalculationIdempotencyRecord
-from payments.transfer_notifications import manager_telegram_id
+from .services.manager_service import manager_telegram_id
 from utils.BinToGuid1C import bin_to_guid_1c
 
 logger = logging.getLogger(__name__)

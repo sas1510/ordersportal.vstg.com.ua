@@ -58,6 +58,7 @@
 //       bank: "БАНК",
 //       cash: "КАСА",
 //       order: "ЗАМОВЛ.",
+//       realization: t('payments.realizations', { defaultValue: 'Реалізації' }),
 //       none: "—",
 //     };
 //     return (
@@ -208,7 +209,7 @@
 //                   <div
 //                     key={docKey}
 //                     className={`mobile-doc-card ${
-//                       firstItem.FlowDirection === "Прихід"
+//                       channel === 'realization' ? 'neutral' : firstItem.FlowDirection === "Прихід"
 //                         ? "income"
 //                         : firstItem.FlowDirection === "Витрата"
 //                           ? "expense"
@@ -506,6 +507,7 @@ const MobilePaymentsView = ({
       bank: t('payments.channels.bank'),
       cash: t('payments.channels.cash'),
       order: t('payments.channels.order_short'),
+      realization: t('payments.realizations', { defaultValue: 'Реалізації' }),
       none: "—",
     };
     return (
@@ -687,10 +689,11 @@ const MobilePaymentsView = ({
                       <div className="mobile-doc-operation">
                           {firstItem.DocumentType === "КорректировкаДолга"
                           ? <AutoTranslatedText text={`Коригування. ${firstItem.DescriptionCor || ""}`} />
-                          : <AutoTranslatedText text={firstItem.DealType || firstItem.DocumentType || "—"} />}
+                          : <AutoTranslatedText text={docGroup.hideContractAmounts ? 'Рознесення коштів' : firstItem.DealType || firstItem.DocumentType || '—'} />}
+                          {channel === 'realization' && firstItem.RealizationOrderNumbers && <span> · {t('payments.orders', { defaultValue: 'Замовлення' })}: {firstItem.RealizationOrderNumbers}</span>}
                       </div>
 
-                      <div className="mobile-doc-amounts">
+                      {!docGroup.hideContractAmounts && <div className="mobile-doc-amounts">
                         <div className="mobile-amount-item">
                           <span className="mobile-amount-label">{t('payments.start_short', 'Початок')}:</span>
                           <span className="mobile-amount-value">
@@ -723,7 +726,7 @@ const MobilePaymentsView = ({
                             {formatCurrency(docGroup.lastCumSaldo, currency, i18n)}
                           </span>
                         </div>
-                      </div>
+                      </div>}
 
                       {canExpand ? (
                         <div className="mobile-expand-btn">

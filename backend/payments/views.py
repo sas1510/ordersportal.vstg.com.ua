@@ -1,3 +1,4 @@
+from .cashflow_display import is_main_contract, show_cashflow_row
 # from django.shortcuts import render
 
 # # Create your views here.
@@ -265,7 +266,7 @@ def get_payment_status_view(request):
 
     try:
         sql = """
-            EXEC dbo.GetDealerFullLedger_3
+            EXEC dbo.GetDealerFullLedger_4
                 @Контрагент = %s,
                 @ДатаЗ = %s,
                 @ДатаПо = %s
@@ -632,7 +633,7 @@ def export_payment_status_excel(request):
         "Зал. поч.", "Прихід", "Розхід",
         "Зал. кін.", "№ зам.", "Сума зам.",
         "Оплата", "Зал. зам.", "Статус",
-        "Дата реалізації", "Реалізовано за день", "Машина"
+        "Дата реалізації", "Реалізовано за день", "Машина", "Документ"
     ])
 
     try:
@@ -640,7 +641,7 @@ def export_payment_status_excel(request):
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                EXEC dbo.GetDealerFullLedger_3
+                EXEC dbo.GetDealerFullLedger_4
                 @Контрагент = %s,
                 @ДатаЗ = %s,
                 @ДатаПо = %s
@@ -657,27 +658,33 @@ def export_payment_status_excel(request):
                     break
 
                 for r in rows:
+                    item = dict(zip(cols, r))
+                    if not show_cashflow_row(item):
+                        continue
+                    hide_contract_amounts = is_main_contract(item.get('FinalDogovorName'))
                     period = r[idx["Date"]]
                     delta = r[idx["DeltaRow"]] or 0
                     inout = r[idx["FlowDirection"]]
+                    is_realization = r[idx["DocumentType"]] in ("Реалізація", "РеализацияТоваровУслуг")
 
                     ws.append([
                         period.date().isoformat() if period else "",
                         period.time().strftime("%H:%M") if period else "",
                         r[idx["FinalDogovorName"]],
                         r[idx["DealType"]],
-                        r[idx["CumSaldoStart"]],
-                        abs(delta) if inout == "Прихід" else "",
-                        abs(delta) if inout == "Витрата" else "",
-                        r[idx["CumSaldo"]],
-                        r[idx["OrderNumber"]],
+                        None if hide_contract_amounts else r[idx["CumSaldoStart"]],
+                        abs(delta) if inout == "Прихід" and not hide_contract_amounts else "",
+                        abs(delta) if inout in ("Витрата", "Розхід") and not hide_contract_amounts else "",
+                        None if hide_contract_amounts else r[idx["CumSaldo"]],
+                        r[idx["RealizationOrderNumbers"]] if is_realization and "RealizationOrderNumbers" in idx else r[idx["OrderNumber"]],
                         r[idx["OrderAmount"]],
-                        abs(delta),
+                        "" if is_realization else abs(delta),
                         r[idx["OrderBalance"]],
                         r[idx["PaymentStatus"]],
                         r[idx.get("RealizedDate")] if "RealizedDate" in idx else None,
                         r[idx.get("RealizedPerDay")] if "RealizedPerDay" in idx else None,
                         r[idx.get("CarNumber")] if "CarNumber" in idx else None,
+                        "" if is_realization else r[idx["DocumentNumber"]],
                     ])
 
         response = HttpResponse(

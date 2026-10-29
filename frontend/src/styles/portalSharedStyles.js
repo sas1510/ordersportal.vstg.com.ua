@@ -68,7 +68,6 @@ import "../pages/InviteRegisterModal.css";
 import "../pages/UsersListPage.css";
 import "../pages/PaymentStatus.css";
 import "../pages/MobilePaymentsView.css";
-import "../components/Payments/FundsTransferForms.css";
 import "../pages/DebtDetailModal.css";
 import "../components/Portal/PortalSidebar.css";
 import "../pages/PaymentsPage.css";

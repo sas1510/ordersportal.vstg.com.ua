@@ -1,3 +1,4 @@
+import { calculationReportStatus } from "../utils/reportDataset";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import axiosInstance from "../api/axios";
@@ -91,7 +92,8 @@ export default function OrdersReportPage() {
     calculations.forEach((calculation) => {
       const orders = Array.isArray(calculation.orders) ? calculation.orders : [];
       if (orders.length === 0) {
-        counts["Новий"] += 1;
+        const status = calculationReportStatus(calculation);
+        if (Object.hasOwn(counts, status)) counts[status] += 1;
         return;
       }
       orders.forEach((order) => {
@@ -109,7 +111,9 @@ export default function OrdersReportPage() {
     calculations.forEach((calculation) => {
       const orders = Array.isArray(calculation.orders) ? calculation.orders : [];
       if (orders.length === 0) {
-        result["Новий"].push({
+        const status = calculationReportStatus(calculation);
+        if (!Object.hasOwn(result, status)) return;
+        result[status].push({
           number: calculation.number || "Без номера",
           dealer: calculation.dealer || "Не вказано",
           dateValue: calculation.dateRaw,

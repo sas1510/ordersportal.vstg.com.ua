@@ -12,3 +12,15 @@ export function belongsToDealerGroup(calc, group) {
   if (group === "Філіали") return type === "філіали" || type === "филиалы";
   return type === group.toLocaleLowerCase("uk-UA");
 }
+
+export function normalizeReportStatus(value) {
+  const status = String(value || '').trim().replace(/\s+/gu, ' ');
+  if (['в обробці', 'у обробці', 'в роботі', 'в обработке'].includes(status.toLocaleLowerCase('uk-UA'))) return 'В обробці';
+  return status;
+}
+export function calculationReportStatus(calculation) {
+  const status = normalizeReportStatus(calculation.status);
+  if (status) return status;
+  const statuses = Object.entries(calculation.statuses || {}).filter(([, count]) => Number(count) > 0);
+  return statuses.length === 1 ? normalizeReportStatus(statuses[0][0]) : 'Новий';
+}

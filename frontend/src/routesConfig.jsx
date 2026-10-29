@@ -31,7 +31,6 @@ const ChangePasswordPage = lazy(() => import("./pages/ChangePasswordPage"));
 const UsersListPage = lazy(() => import("./pages/UsersListPage"));
 const PaymentStatusV2 = lazy(() => import("./pages/PaymentStatusV2"));
 const PaymentsPage = lazy(() => import("./pages/PaymentsPage"));
-const FundsTransferHistoryPage = lazy(() => import("./pages/FundsTransferHistoryPage"));
 
 const CustomerBillsPage = lazy(() => import("./pages/CustomerBillsPage"));
 const AdminPortalOriginal = lazy(() => import("./pages/AdminOrderPage"));
@@ -51,7 +50,6 @@ export const adminRoutes = [
   { path: "zamir", element: <ZamirPage /> },
   { path: "integration-test/measurement", element: <MeasurementTestPage /> },
   { path: "constructor", element: <ConstructorPage /> },
-  { path: "finance/funds-transfer-history", element: <FundsTransferHistoryPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
   { path: "files", element: <FilesPage /> },

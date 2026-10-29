@@ -1,0 +1,10 @@
+{
+  "cash_rows": 27,
+  "cash_core_values_unchanged": true,
+  "single_day_equal": true,
+  "realizations": {
+    "2026-10-22": "7871.00",
+    "2026-10-23": "8654.00"
+  },
+  "v3_unchanged": true
+}

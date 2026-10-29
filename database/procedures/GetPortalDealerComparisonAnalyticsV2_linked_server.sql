@@ -78,6 +78,24 @@ BEGIN
        1. ДИЛЕРИ ПОРТАЛУ
        ============================================================ */
 
+
+    -- Region = first counterparty subfolder directly below Дилера.
+    -- Keep that region for every deeper subfolder and dealer.
+    DROP TABLE IF EXISTS #DealerFolderRegions;
+    ;WITH FolderRegions AS (
+        SELECT F.Ссылка AS NodeID, F.Ссылка AS RegionID
+        FROM [oknastyle_biV2].[dbo].[Справочники.Контрагенты] F
+        INNER JOIN [oknastyle_biV2].[dbo].[Справочники.Контрагенты] RootFolder
+            ON RootFolder.Ссылка = F.Родитель
+        WHERE UPPER(LTRIM(RTRIM(RootFolder.Наименование))) = N'ДИЛЕРА' AND F.ЭтоГруппа = 0x00 AND RootFolder.ЭтоГруппа = 0x00
+        UNION ALL
+        SELECT Child.Ссылка, Parent.RegionID
+        FROM [oknastyle_biV2].[dbo].[Справочники.Контрагенты] Child
+        INNER JOIN FolderRegions Parent ON Parent.NodeID = Child.Родитель
+    )
+    SELECT NodeID, RegionID INTO #DealerFolderRegions
+    FROM FolderRegions OPTION (MAXRECURSION 100);
+
     SELECT DISTINCT
 
         U.[UserId1C] AS ContractorGuid,
@@ -182,26 +200,11 @@ BEGIN
 
         ON C.[Ссылка] =
            U.[UserId1C]
-
-
-    LEFT JOIN
-        [WST\WST].[oknastyle_biV2].[dbo].
-        [Справочники.ГруппыДоступаКонтрагентов] G
-        WITH (NOLOCK)
-
-        ON G.[Ссылка] =
-           C.[ГруппаДоступаКонтрагента]
-
-
-    LEFT JOIN
-        [WST\WST].[oknastyle_biV2].[dbo].
-        [Справочники.ГруппыДоступаКонтрагентов] GParent
-        WITH (NOLOCK)
-
-        ON GParent.[Ссылка] =
-           G.[Родитель]
-
-
+    LEFT JOIN #DealerFolderRegions FR ON FR.NodeID = C.Ссылка
+    LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.Контрагенты] G
+        ON G.Ссылка = FR.RegionID
+    LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.Контрагенты] GParent
+        ON GParent.Ссылка = G.Родитель
     WHERE
         U.[IsActive] = 1
 
@@ -264,7 +267,11 @@ BEGIN
         [WST\WST].[oknastyle].[dbo].[_Document381]
         AS ZP
 
-        
+        WITH
+        (
+            INDEX(_Document381_ByFieldFld6187_RR),
+            FORCESEEK
+        )
 
 
     INNER JOIN #PortalDealers PD
@@ -302,7 +309,7 @@ BEGIN
     INNER JOIN
         [WST\WST].[oknastyle].[dbo].[_Document381]
         AS ZP
-        
+        WITH (FORCESEEK)
 
         ON ZP._IDRRef =
            S.OrderID

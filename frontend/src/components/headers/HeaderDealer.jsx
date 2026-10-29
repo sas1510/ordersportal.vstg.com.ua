@@ -652,6 +652,7 @@ export default function HeaderDealer() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const NAV_LINKS = useMemo(() => [
+    { title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler },
     { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/orders", icon: ShoppingBag },

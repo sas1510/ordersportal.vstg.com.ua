@@ -1,3 +1,4 @@
+import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 
 import axiosInstance from "../api/axios";
@@ -112,7 +113,8 @@ const AdminReclamationPortal = () => {
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState(null);
 
-  const { dealerGuid, setDealerGuid, isAdmin } = useDealerContext();
+  const { dealerGuid, setDealerGuid, isAdmin, isSuperAdmin } = useDealerContext({ defaultAll: true });
+  const selectedDealerGroup = isSuperAdmin ? dealerGroupForSelection(dealerGuid) : null;
 
   const [reclamationsData, setReclamationsData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -223,13 +225,13 @@ const AdminReclamationPortal = () => {
   );
 
   useEffect(() => {
-    if (isAdmin && dealerGuid === ALL_DEALERS_VALUE && filter.month === 0) {
+    if (isAdmin && isAggregateDealerSelection(dealerGuid) && filter.month === 0) {
       setFilter((prev) => ({ ...prev, month: currentMonth }));
     }
   }, [dealerGuid, isAdmin, currentMonth, filter.month]);
 
   const shouldRefetchOnMonthChange = useMemo(
-    () => isAdmin && dealerGuid === ALL_DEALERS_VALUE,
+    () => isAdmin && isAggregateDealerSelection(dealerGuid),
     [isAdmin, dealerGuid],
   );
 
@@ -252,9 +254,9 @@ const AdminReclamationPortal = () => {
 
       try {
         let endpoint = RECLAMATIONS_API_URL;
-        const params = { year: selectedYear };
+        const params = { year: selectedYear, ...(selectedDealerGroup ? { dealer_group: selectedDealerGroup } : {}) };
 
-        if (isAdmin && dealerGuid === ALL_DEALERS_VALUE) {
+        if (isAdmin && isAggregateDealerSelection(dealerGuid)) {
           endpoint = RECLAMATIONS_API_ALL_URL;
           params.month = filter.month || currentMonth;
         } else {
@@ -370,18 +372,18 @@ const AdminReclamationPortal = () => {
   };
 
   const handleMonthClick = (month) => {
-    if (dealerGuid === ALL_DEALERS_VALUE && month === 0) return;
+    if (isAggregateDealerSelection(dealerGuid) && month === 0) return;
 
     const newMonth =
       filter.month === month
-        ? dealerGuid === ALL_DEALERS_VALUE
+        ? isAggregateDealerSelection(dealerGuid)
           ? month
           : 0
         : month;
 
     setFilter((prev) => ({ ...prev, month: newMonth }));
 
-    if (dealerGuid !== ALL_DEALERS_VALUE) {
+    if (!isAggregateDealerSelection(dealerGuid)) {
       setFilteredItems(
         getFilteredItems(
           filter.status,
@@ -525,7 +527,7 @@ const AdminReclamationPortal = () => {
         
           {!isMobilePagination && (
             <ul className=" flex-1  gap-6 row no-wrap month-list">
-              {dealerGuid !== ALL_DEALERS_VALUE && (
+              {!isAggregateDealerSelection(dealerGuid) && (
                 <li
                   className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
                   onClick={() => handleMonthClick(0)}
@@ -558,7 +560,7 @@ const AdminReclamationPortal = () => {
 
 
                 const disabled =
-                  dealerGuid !== ALL_DEALERS_VALUE && monthSummary[num] === 0;
+                  !isAggregateDealerSelection(dealerGuid) && monthSummary[num] === 0;
 
                 return (
                   <li
@@ -569,7 +571,7 @@ const AdminReclamationPortal = () => {
                     onClick={() => !disabled && handleMonthClick(num)}
                   >
                     {labels[i]}
-                    {dealerGuid !== ALL_DEALERS_VALUE && (
+                    {!isAggregateDealerSelection(dealerGuid) && (
                       <span className="text-grey"> ({monthSummary[num]})</span>
                     )}
                   </li>
@@ -595,12 +597,12 @@ const AdminReclamationPortal = () => {
                     key={num}
                     value={num}
                     disabled={
-                      dealerGuid !== ALL_DEALERS_VALUE &&
+                      !isAggregateDealerSelection(dealerGuid) &&
                       monthSummary[num] === 0
                     }
                   >
                     {labels[i]}
-                    {dealerGuid !== ALL_DEALERS_VALUE
+                    {!isAggregateDealerSelection(dealerGuid)
                       ? ` (${monthSummary[num]})`
                       : ""}
                   </option>
@@ -665,6 +667,35 @@ const AdminReclamationPortal = () => {
                   />
           </div>
 
+          {isAdmin && (
+            <>
+            <div className="dealer-select-wrapper text-[#44403E]">
+              {/* <div className="delimiter1" /> */}
+                <DealerSelectWithAll
+                  extraOptions={isSuperAdmin ? DEALER_REPORT_GROUP_OPTIONS : []}
+                  value={dealerGuid}
+                  onChange={(val) => {
+                    const nextValue = val?.target?.value ?? val;
+
+                    setDealerChanging(true);
+                    setLoading(true);
+                    setDealerGuid(nextValue);
+
+                    if (isAggregateDealerSelection(nextValue)) {
+                      setFilter((prev) => ({
+                        ...prev,
+                        month: prev.month || currentMonth,
+                      }));
+                    }
+
+                    if (isMobile) setIsSidebarOpen(false);
+                  }}
+                />
+              </div>
+            </>
+            
+          )}
+
           <ul className="buttons">
             <li>
               <a
@@ -679,33 +710,7 @@ const AdminReclamationPortal = () => {
             </li>
           </ul>
 
-          {isAdmin && (
-            <>
-            <div className="dealer-select-wrapper text-[#44403E]">
-              {/* <div className="delimiter1" /> */}
-                <DealerSelectWithAll
-                  value={dealerGuid}
-                  onChange={(val) => {
-                    const nextValue = val?.target?.value ?? val;
 
-                    setDealerChanging(true);
-                    setLoading(true);
-                    setDealerGuid(nextValue);
-
-                    if (nextValue === ALL_DEALERS_VALUE) {
-                      setFilter((prev) => ({
-                        ...prev,
-                        month: prev.month || currentMonth,
-                      }));
-                    }
-
-                    if (isMobile) setIsSidebarOpen(false);
-                  }}
-                />
-              </div>
-            </>
-            
-          )}
 
           {isAdmin && (
             <>
@@ -873,7 +878,7 @@ const AdminReclamationPortal = () => {
         isOpen={isNewReclamationModalOpen}
         onClose={() => setIsNewReclamationModalOpen(false)}
         onSave={() => setIsNewReclamationModalOpen(false)}
-        initialContractorGuid={dealerGuid !== ALL_DEALERS_VALUE ? dealerGuid : ""}
+        initialContractorGuid={!isAggregateDealerSelection(dealerGuid) ? dealerGuid : ""}
       />
       </div>
     </div>

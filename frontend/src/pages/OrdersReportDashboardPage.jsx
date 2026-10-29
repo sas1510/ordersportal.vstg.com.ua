@@ -16,7 +16,7 @@ import {
 import axiosInstance from "../api/axios";
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import OperationalReport from "../components/Orders/OperationalReport";
-import { inReportPeriod, belongsToDealerGroup, isRefusedCalculation } from "../utils/reportDataset";
+import { inReportPeriod, belongsToDealerGroup, isRefusedCalculation, calculationReportStatus, normalizeReportStatus } from "../utils/reportDataset";
 import { useDealerContext } from "../hooks/useDealerContext";
 import "./DealerReportsPage.css";
 import "./OrdersReportDashboardPage.css";
@@ -307,13 +307,13 @@ function buildManagerKpi(calculations, managerName) {
     .filter(function (value) { return value !== null; });
   const backlog = source.filter(function (calculation) {
     const ordersInCalculation = Array.isArray(calculation.orders) ? calculation.orders : [];
-    return !ordersInCalculation.length || ordersInCalculation.some(function (order) {
+    return (!ordersInCalculation.length && calculationReportStatus(calculation) === "Очікуємо підтвердження") || ordersInCalculation.some(function (order) {
       return order.status === "Очікуємо підтвердження";
     });
   }).length;
   const newCount = source.filter(function (calculation) {
     const ordersInCalculation = Array.isArray(calculation.orders) ? calculation.orders : [];
-    return !ordersInCalculation.length || ordersInCalculation.some(function (order) {
+    return (!ordersInCalculation.length && calculationReportStatus(calculation) === "Новий") || ordersInCalculation.some(function (order) {
       return order.status === "Новий";
     });
   }).length;
@@ -347,7 +347,9 @@ function groupCalculationsByStatus(calculations) {
     if (isRefusedCalculation(calculation)) return;
     const orders = Array.isArray(calculation.orders) ? calculation.orders : [];
     if (!orders.length) {
-      result[STATUSES[0].status].push({
+      const status = calculationReportStatus(calculation);
+      if (!Object.hasOwn(result, status)) return;
+      result[status].push({
         number: calculation.number || "Без номера",
         dealer: calculation.dealer || "Без дилера",
         dateValue: calculation.dateRaw,
@@ -356,8 +358,9 @@ function groupCalculationsByStatus(calculations) {
     }
 
     orders.forEach(function (order) {
-      if (Object.hasOwn(result, order.status)) {
-        result[order.status].push({
+      const status = normalizeReportStatus(order.status);
+      if (Object.hasOwn(result, status)) {
+        result[status].push({
           number: order.number || "Без номера",
           dealer: calculation.dealer || "Без дилера",
           dateValue: order.createDate || order.dateRaw || calculation.dateRaw,

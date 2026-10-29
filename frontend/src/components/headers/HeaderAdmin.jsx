@@ -347,7 +347,7 @@ import { AppIcon } from "../Icons/AppIcon";
 export default function HeaderAdmin() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const closeComparison = useCallback(() => setComparisonOpen(false), []);
-  const { isAdmin, role } = useAuthGetRole();
+  const { isAdmin, isManager, role } = useAuthGetRole();
   const isMobile = useMediaQuery({ maxWidth: 1460 });
   const location = useLocation();
   const navigate = useNavigate();
@@ -358,14 +358,14 @@ export default function HeaderAdmin() {
   const currentLogo = theme === "dark" ? logoDark : logo;
 
   const NAV_LINKS = useMemo(() => [
-    ...(isAdmin ? [{ title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler }] : []),
+    ...((isAdmin || isManager) ? [{ title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler }] : []),
     { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
     { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
     { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order" },
     { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation" },
     { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/admin-additional-order" },
-  ], [t, isAdmin]);
+  ], [t, isAdmin, isManager]);
 
   const MATERIAL_LINKS = useMemo(() => [
     { title: t('nav.tech_file'), to: '/files' },
@@ -374,7 +374,6 @@ export default function HeaderAdmin() {
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
-    { title: 'Історія передавання коштів', to: '/finance/funds-transfer-history' },
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
     { title: t('nav.finance_analytics'), to: "/statistics" },
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },

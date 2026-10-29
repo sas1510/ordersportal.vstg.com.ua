@@ -2088,3 +2088,14 @@ body.dark-theme .payments-table .mini-card {
       linear-gradient(#aeaeae, #aeaeae) right center / calc(50% - 143px) 1px no-repeat;
   }
 }
+
+/* Compact cash-flow table header on desktop. */
+@media (min-width: 1051px) {
+  .payments-body .payments-table thead th {
+    padding: 5px 8px !important;
+    font-size: 12px;
+    line-height: 16px;
+    height: auto;
+    vertical-align: middle;
+  }
+}
