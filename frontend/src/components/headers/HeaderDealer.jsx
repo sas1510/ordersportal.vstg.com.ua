@@ -1076,7 +1076,16 @@ export default function HeaderDealer() {
             </div>
           </>
         ) : (
-          <div className="ml-auto flex items-center gap-5 mr-4" ref={mobileMenuRef}>
+          <div className="ml-auto flex items-center gap-3 mr-4" ref={mobileMenuRef}>
+            <Link
+              to="/zamir"
+              aria-current={location.pathname.startsWith('/zamir') ? 'page' : undefined}
+              className="flex min-h-[40px] min-w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] font-bold leading-tight transition-colors hover:bg-[var(--header-profile-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--header-accent)]"
+              style={{ color: location.pathname.startsWith('/zamir') ? 'var(--header-accent)' : 'var(--header-text)' }}
+            >
+              <Ruler aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+              {t('nav.measurements', { defaultValue: 'Замірник' })}
+            </Link>
             <div className="relative cursor-pointer mr-2" onClick={() => setIsNotificationOpen(true)}>
               <img src={bellIcon} alt={t('nav.notifications')} className="header-theme-icon w-[20px] h-[20px]" />
               {unreadCount > 0 && (

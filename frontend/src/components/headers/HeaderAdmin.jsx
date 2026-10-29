@@ -683,7 +683,18 @@ export default function HeaderAdmin() {
           </>
         ) : (
           /* МОБІЛЬНЕ МЕНЮ (Бургер) */
-          <div className="ml-auto flex items-center gap-5 mr-4">
+          <div className="ml-auto flex items-center gap-3 mr-4">
+            {(isAdmin || isManager) && <>
+            <Link
+              to="/zamir"
+              aria-current={location.pathname.startsWith('/zamir') ? 'page' : undefined}
+              className="flex min-h-[40px] min-w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg px-1 text-[10px] font-bold leading-tight transition-colors hover:bg-[var(--header-profile-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--header-accent)]"
+              style={{ color: location.pathname.startsWith('/zamir') ? 'var(--header-accent)' : 'var(--header-text)' }}
+            >
+              <Ruler aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+              {t('nav.measurements', { defaultValue: 'Замірник' })}
+            </Link>
+            </>}
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
               className="header-theme-icon text-2xl focus:outline-none"
