@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { regionForAddress, settlementsForRegion } from './settlementDirectory.js';
+const directory = { regions: [{id:'A',name:'Рівненська',sourceName:'Рівненьська'},{id:'B',name:'Львівська'}], settlements: [{id:'1',regionId:'A',name:'Озерне',district:'Рівненський'},{id:'2',regionId:'B',name:'Озерне',district:'Львівський'},{id:'3',regionId:'A',name:'Інше село',district:''}] };
+assert.equal(regionForAddress(directory.regions,'Рівненська область').id,'A');
+assert.equal(regionForAddress(directory.regions,'Рівненьська').id,'A');
+assert.deepEqual(settlementsForRegion(directory,'Рівненська').map(item=>item.id),['1','3']);
+assert.equal(settlementsForRegion(directory,'Львівська')[0].value,'Озерне — Львівський');
+assert.equal(settlementsForRegion(directory,'Рівненська')[1].district,'');
+assert.deepEqual(settlementsForRegion(directory,'Poland'),[]);
+console.log('Settlement directory: region aliases, matching names across regions, missing districts and foreign exclusions passed');

@@ -367,6 +367,7 @@ from celery import current_app
 import redis.asyncio as redis # переконайтеся, що пакет redis встановлено
 from django.conf import settings
 
+
 HARDCODED_DUPLICATE_MANAGER_GUID = "1d812dba-dd6b-11eb-810e-74867ad9d525"
 
 
@@ -464,7 +465,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.redis_conn = redis.from_url(f"redis://{settings.CHANNEL_LAYERS['default']['CONFIG']['hosts'][0][0]}:6379/0")
 
         try:
-            from backend.utils.contractor_ws import resolve_contractor_ws 
+            from backend.utils.contractor_ws import resolve_contractor_ws
             self.contractor_bin, self.contractor_guid = resolve_contractor_ws(self.scope)
             logger.info(
                 "WS contractor resolved",
@@ -811,11 +812,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     
                         print(f"User {recipient_id_1c} is in chat. Notification skipped.")
 
-                # For calculation messages from a customer, create the same 1C task
+                # For calculation messages from customers or managers, copy the 1C task
                 # for the second manager. Telegram copies are already handled by the
                 # primary route, so no second Telegram task is queued here.
                 should_duplicate_to_hardcoded_manager = (
-                    getattr(self.user, 'role', '') == 'customer'
+                    getattr(self.user, 'role', '') in {'customer', 'manager', 'region_manager', 'branch_manager'}
                     and t_type == 1
                     and HARDCODED_DUPLICATE_MANAGER_GUID
                     and HARDCODED_DUPLICATE_MANAGER_GUID.lower() != recipient_id_1c.lower()
@@ -975,3 +976,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
         
+
+
+
+
+

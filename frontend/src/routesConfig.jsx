@@ -43,10 +43,12 @@ const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const NotificationPage = lazy(() => import("./pages/NotificationPage"));
 const ManagerQrDropdown = lazy(() => import("./pages/ManagerQrDropdown"));
 const BonusPage = lazy(() => import("./pages/BonusPage"));
+const DealerReconciliationPage = lazy(() => import("./pages/DealerReconciliationPage"));
 const DealerReportsPage = lazy(() => import("./pages/DealerReportsPage"));
 const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
 
 export const adminRoutes = [
+  { path: "/statistics/reconciliation", element: <DealerReconciliationPage /> },
   { path: "zamir", element: <ZamirPage /> },
   { path: "integration-test/measurement", element: <MeasurementTestPage /> },
   { path: "constructor", element: <ConstructorPage /> },
@@ -99,6 +101,7 @@ export const adminRoutes = [
 ];
 
 const managerBlockedRoutePaths = new Set([
+  "/statistics/reconciliation",
   "integration-test/measurement",
   "files/add",
   "files/edit/:id",
@@ -115,6 +118,7 @@ export const managerRoutes = adminRoutes.filter(
 );
 
 const branchLeaderBlockedRoutePaths = new Set([
+  "/statistics/reconciliation",
   "integration-test/measurement",
   "files/add",
   "files/edit/:id",

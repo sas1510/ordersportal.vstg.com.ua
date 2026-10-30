@@ -349,3 +349,6 @@ body.dark-theme #operational-panel-risks th { background: #343331; }
 body.dark-theme .operational-risk-alert { background: #472e28; color: #ffc3b5; }
 body.dark-theme .operational-metrics .is-risk strong { color: #ff9a81; }
 @media (max-width: 900px) { .operational-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .operational-charts { grid-template-columns: 1fr; } }
+
+.orders-dashboard__region-link{border:0;background:transparent;padding:0;font:inherit;text-align:left;cursor:pointer}.orders-dashboard__region-link:hover{text-decoration:underline}.orders-dashboard__region-link:focus-visible{outline:2px solid var(--header-accent,#6b98bf);outline-offset:4px;border-radius:3px}
+@media(max-width:700px){.orders-dashboard__filters{min-width:0}.orders-dashboard__filter{min-width:0;max-width:100%}.orders-dashboard__filter input,.orders-dashboard__filter select{font-size:16px;min-height:44px;min-width:0;max-width:100%}.orders-dashboard__view-switcher{display:flex;flex-wrap:wrap;gap:8px}.orders-dashboard__view-switcher button{min-height:44px;flex:1 1 140px;white-space:normal}.orders-dashboard__header{flex-wrap:wrap;gap:12px}.orders-dashboard__chart-wrap{max-width:100%}}

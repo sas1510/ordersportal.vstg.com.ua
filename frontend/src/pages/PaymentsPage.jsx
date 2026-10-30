@@ -4,7 +4,7 @@ import { useTheme } from "../hooks/useTheme";
 import PaymentModal from "../components/Orders/PaymentModal";
 import OrderFilesModal from "../components/Orders/OrderFilesModal";
 import DebtDetailModal from "./DebtDetailModal"; // 👈 Імпортуємо нову модалку
-import { formatDateHuman } from "../utils/formatters";
+import { formatDateHuman, formatDate } from "../utils/formatters";
 import PaymentsMobileContent from "./PaymentsMobileContent.jsx";
 // Стилі
 import "../components/Portal/PortalOriginal.css";
@@ -1526,7 +1526,7 @@ export default function PaymentsPage() {
                           return (
                             <span className={`status-pill ${statusColor}`}>
                               <img src={statusIcon} alt="" className="brightness-0 invert" />
-                              {translateStatus(currentStatus)}
+                              <span className="pp-status-label">{translateStatus(currentStatus)}{currentStatus === "Відвантажений" && o.ShipmentDate && <small className="pp-shipment-date">{formatDate(String(o.ShipmentDate).slice(0, 10), i18n.language)}</small>}</span>
                             </span>
                           );
                         })()}
@@ -1693,3 +1693,4 @@ export default function PaymentsPage() {
     </div>
   );
 }
+

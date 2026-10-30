@@ -9,11 +9,11 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from .dealer_reconciliation import build_report, filter_report, parse_period
+from .dealer_reconciliation import build_report, filter_report, parse_period, status_breakdown
 
 logger=logging.getLogger(__name__)
 # Shared by all Gunicorn workers. The portal already runs Redis for Celery/channels.
-cache=RedisCache('redis://127.0.0.1:6379/4',{'TIMEOUT':1800,'KEY_PREFIX':'dealer-constructions-v2'})
+cache=RedisCache('redis://127.0.0.1:6379/4',{'TIMEOUT':1800,'KEY_PREFIX':'dealer-management-v3'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -23,6 +23,9 @@ def dealer_reconciliation(request):
     format_=request.GET.get('export','json')
     if format_ not in ('json','pdf','csv'):
         return Response({'detail':'Невідомий формат звіту.'},status=400)
+    dataset=request.GET.get('dataset','documents')
+    if dataset not in ('documents','applications'):
+        return Response({'detail':'Невідомий склад CSV.'},status=400)
     if request.GET.get('status'):
         return Response({'detail':'Фільтр статусу дилера більше не використовується. Оновіть сторінку.'},status=400)
     token=request.GET.get('snapshot','')
@@ -43,7 +46,7 @@ def dealer_reconciliation(request):
         region=request.GET.get('region','')
         if region and region not in {r['name'] for r in report['regions']}:
             return Response({'detail':'Область відсутня у сформованому звіті.'},status=400)
-        report=filter_report(report,region,request.GET.get('search','').strip())
+        report=filter_report(report,region,request.GET.get('search','').strip(),request.GET.get('group',''),request.GET.get('contractor',''))
         if format_=='json':
             response=Response({**report,'snapshot':token})
         elif format_=='pdf':
@@ -52,11 +55,26 @@ def dealer_reconciliation(request):
             response['Content-Disposition']='attachment; filename="new-portal-constructions.pdf"'
         else:
             buf=StringIO(newline=''); writer=csv.writer(buf,delimiter=';')
-            writer.writerow(['Дилер','Область / філіал','Номер заявки','Дата заявки','Конструкцій у заявці','Підтверджені замовлення','Конструкцій у замовленнях','Різниця','GUID заявки','GUID дилера'])
-            safe=lambda v: "'"+v if v[:1] in ('=','+','-','@','\t','\r') else v
-            for row in report['rows']:
-                for app in row['applicationDetails']:
-                    writer.writerow([safe(str(v)) for v in [row['name'],row['region'],app['number'],app['date'],app['constructions'],', '.join(o['number'] for o in app['orders']),app['orderConstructions'],app['constructions']-app['orderConstructions'],app['guid'],row['guid']]])
+            safe=lambda value: "'"+value if value[:1] in ('=','+','-','@','\t','\r') else value
+            def write(values): writer.writerow([safe(str(value)) for value in values])
+            if dataset=='applications':
+                write(['Заявка','Дата','Статус заявки','Дилер','Область / філіал','Конструкцій у заявці','Кількість замовлень','Конструкцій у замовленнях','Підтверджених замовлень','Підтверджених конструкцій','Замовлення за статусами (кількість / конструкцій)','Номери замовлень','GUID заявки'])
+                for row in report['rows']:
+                    for app in row['applicationDetails']:
+                        states=app.get('orderStatuses') or status_breakdown(app['orders'])
+                        state_text='; '.join(f"{state['name']}: {state['documents']} / {state['constructions']:g}" for state in states)
+                        write([app['number'],app['date'],app['state'],row['name'],row['region'],app['constructions'],len(app['orders']),app['orderConstructions'],sum(order['confirmed'] for order in app['orders']),app['confirmedOrderConstructions'],state_text,', '.join(order['number'] for order in app['orders']),app['guid']])
+            else:
+                write(['Тип документа','Номер','Дата','Статус','Конструкцій','Проведено','Дилер','Область / філіал','Пов’язані документи','GUID документа','GUID дилера'])
+                for row in report['rows']:
+                    reverse={}
+                    for app in row['applicationDetails']:
+                        for order in app['orders']:
+                            reverse.setdefault(order['guid'],set()).add(app['number'])
+                    documents=[('Заявка / прорахунок',app,', '.join(order['number'] for order in app['orders'])) for app in row['applicationDetails']]
+                    documents += [('Замовлення',order,', '.join(sorted(reverse.get(order['guid'],set())))) for order in row['cohortOrders']]
+                    for kind,doc,related in documents:
+                        write([kind,doc['number'],doc['date'],doc['state'],doc['constructions'],'Так' if doc['posted'] else 'Ні',row['name'],row['region'],related,doc['guid'],row['guid']])
             response=HttpResponse('\ufeff'+buf.getvalue(),content_type='text/csv; charset=utf-8')
             response['Content-Disposition']='attachment; filename="portal-applications.csv"'
         response['Cache-Control']='private, no-store'

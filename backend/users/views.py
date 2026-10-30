@@ -1868,6 +1868,10 @@ def get_dealer_portal_users(request):
 
     try:
         rows = get_accessible_dealer_rows(request.user)
+        if request.GET.get('report_groups') == '1':
+            from records.dealer_groups import dealer_group_map, normalized_contractor
+            classes = dealer_group_map(rows, 'ContractorID')
+            rows = [{**dict(row), 'DealerGroup': classes.get(normalized_contractor(row.get('ContractorID')), 'Інше')} for row in rows]
 
         data = []
 

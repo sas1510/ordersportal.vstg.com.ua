@@ -1,0 +1,476 @@
+{
+  "database": "portal_db",
+  "condition": "M.[Text] IS NULL OR LEN(LTRIM(RTRIM(M.[Text]))) = 0",
+  "messages": [
+    {
+      "id": 102656,
+      "ChatId": "1_725e40cc-1898-11f1-b7a6-782bcb19f9a7",
+      "Timestamp": "2024-09-11T11:11:33.980000",
+      "Text": " ",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "1",
+      "RelatedObjectId": {
+        "base64": "t6Z4K8sZ+acR8RiYcl5AzA=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "pGsAJZBjO7MR4X4gPv4x2g=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 102657,
+      "ChatId": "1_725e40cc-1898-11f1-b7a6-782bcb19f9a7",
+      "Timestamp": "2024-09-11T11:11:56.370000",
+      "Text": "  ",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "1",
+      "RelatedObjectId": {
+        "base64": "t6Z4K8sZ+acR8RiYcl5AzA=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "pGsAJZBjO7MR4X4gPv4x2g=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114430,
+      "ChatId": "1_709a5b1e-2f59-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-04-03T12:34:22.386792",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8S9ZcJpbHg=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114570,
+      "ChatId": "1_0a6b0aad-3d50-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-04-21T07:02:41.514866",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8T1QCmsKrQ=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114574,
+      "ChatId": "3_97e2cc80-3d52-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-04-21T07:20:53.024379",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": false,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8T1Sl+LMgA=="
+      },
+      "TransactionTypeID": 3,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114608,
+      "ChatId": "1_0a41e913-4ade-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-08T13:01:04.075282",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8UreCkHpEw=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114609,
+      "ChatId": "1_1d94fad7-4adf-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-08T13:08:46.004518",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8UrfHZT61w=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114610,
+      "ChatId": "1_3723d8ca-4adf-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-08T13:09:28.825497",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8UrfNyPYyg=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114661,
+      "ChatId": "1_758487a8-5052-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-15T11:37:06.916349",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8VBSdYSHqA=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114662,
+      "ChatId": "1_0e4b79c2-528c-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-18T07:34:29.215893",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8VKMDkt5wg=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "rAoAJZBjO7MR4YotHhcU2A=="
+      },
+      "RecipientId": {
+        "base64": "gVt0hnrZ1SUR7ei7D4BJ8A=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114669,
+      "ChatId": "1_918256f3-536b-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-19T10:14:28.268722",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8VNrkYJW8w=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114672,
+      "ChatId": "1_9ef5e5fe-5377-11f1-b7a7-782bcb19f9a7",
+      "Timestamp": "2026-05-19T11:40:44.697935",
+      "Text": "",
+      "IsRead": false,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "",
+      "RelatedObjectId": {
+        "base64": "t6d4K8sZ+acR8VN3nvXl/g=="
+      },
+      "TransactionTypeID": 1,
+      "AuthorId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "RecipientId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114800,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-26T13:45:05.169063",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": null,
+      "RecipientId": null,
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114801,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-26T13:47:33.874297",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": null,
+      "RecipientId": null,
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114909,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T06:36:27.719720",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114910,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T06:37:24.863954",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114911,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T06:43:23.462617",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114919,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T07:09:59.757931",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114921,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T07:11:56.566908",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114922,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T07:14:37.693766",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114923,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T07:18:26.686237",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    },
+    {
+      "id": 114924,
+      "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+      "Timestamp": "2026-06-30T07:23:13.197113",
+      "Text": "",
+      "IsRead": true,
+      "IsSentVtg": true,
+      "IsNotification": false,
+      "EventType": "support_reply",
+      "RelatedObjectId": null,
+      "TransactionTypeID": 4,
+      "AuthorId": {
+        "base64": "gPZ0hnrZ1SUR6VqX9nxNTA=="
+      },
+      "RecipientId": {
+        "base64": "nRwAJZBjO7MR4Y7q24txFA=="
+      },
+      "NotificationReadAt": null
+    }
+  ],
+  "related": {
+    "ChatMessageAttachment": [],
+    "ChatTelegramMap": [
+      {
+        "Id": 7,
+        "MessageId": 114800,
+        "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+        "TelegramChatId": 716230412,
+        "TelegramMessageId": 377,
+        "TelegramReplyToMessageId": 374,
+        "Direction": "TelegramToPortal",
+        "CreatedAt": "2026-06-26T13:45:05.530259"
+      },
+      {
+        "Id": 8,
+        "MessageId": 114801,
+        "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+        "TelegramChatId": 716230412,
+        "TelegramMessageId": 378,
+        "TelegramReplyToMessageId": 374,
+        "Direction": "TelegramToPortal",
+        "CreatedAt": "2026-06-26T13:47:34.250638"
+      },
+      {
+        "Id": 25,
+        "MessageId": 114910,
+        "ChatId": "support_db8b7114-8eea-11e1-9d1c-002590633bb3",
+        "TelegramChatId": 716230412,
+        "TelegramMessageId": 397,
+        "TelegramReplyToMessageId": 395,
+        "Direction": "TelegramToPortal",
+        "CreatedAt": "2026-06-30T06:37:25.362119"
+      }
+    ],
+    "ChatLargeVideoUploadToken": []
+  }
+}

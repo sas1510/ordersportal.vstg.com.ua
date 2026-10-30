@@ -1,3 +1,7 @@
+import { useDealerContext } from "../hooks/useDealerContext";
+import DealerSelectWithAll from "./DealerSelectWithAll";
+import { dealerGroupForSelection, DEALER_REPORT_GROUP_OPTIONS } from "../utils/dealerReportGroups";
+import { belongsToDealerGroup } from "../utils/reportDataset";
 import { calculationReportStatus } from "../utils/reportDataset";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
@@ -50,9 +54,12 @@ function getAge(value) {
 }
 
 export default function OrdersReportPage() {
+  const { isAdmin, role } = useDealerContext();
   const [dateFrom, setDateFrom] = useState(getMonthStart);
   const [dateTo, setDateTo] = useState(getToday);
-  const [calculations, setCalculations] = useState([]);
+  const [allCalculations, setCalculations] = useState([]);
+  const [selection, setSelection] = useState("__ALL__");
+  const calculations = useMemo(() => allCalculations.filter(calc => selection === "__ALL__" || (dealerGroupForSelection(selection) ? belongsToDealerGroup(calc, dealerGroupForSelection(selection)) : String(calc.dealerId || '').toLowerCase() === selection.toLowerCase())), [allCalculations, selection]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeStatus, setActiveStatus] = useState(STATUS_CARDS[0].status);
@@ -189,6 +196,7 @@ export default function OrdersReportPage() {
         </div>
 
         <div className="orders-report__filters">
+          {isAdmin && <div><span>Дилер / філіал</span><DealerSelectWithAll value={selection} onChange={setSelection} extraOptions={["admin", "director"].includes(role) ? DEALER_REPORT_GROUP_OPTIONS : []} /></div>}
           <label>
             ???
             <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => setDateFrom(event.target.value)} />

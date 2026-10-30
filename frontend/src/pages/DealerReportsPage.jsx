@@ -1,3 +1,5 @@
+import DealerSelectWithAll from "./DealerSelectWithAll";
+import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection } from "../utils/dealerReportGroups";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axiosInstance from "../api/axios";
@@ -40,6 +42,7 @@ export default function DealerReportsPage() {
 
   const [dateInputs, setDateInputs] = useState({ from: initialFrom, to: initialTo });
   const [searchParams, setSearchParams] = useState({ from: initialFrom, to: initialTo });
+  const [selection, setSelection] = useState("__ALL__");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
@@ -65,6 +68,8 @@ export default function DealerReportsPage() {
           params: {
             date_from: searchParams.from,
             date_to: searchParams.to,
+            dealer_group: dealerGroupForSelection(selection) || undefined,
+            contractor_guid: selection !== "__ALL__" && !dealerGroupForSelection(selection) ? selection : undefined,
           },
         });
         if (!cancelled) {
@@ -91,7 +96,7 @@ export default function DealerReportsPage() {
     return () => {
       cancelled = true;
     };
-  }, [contextLoading, isAdmin, searchParams]);
+  }, [contextLoading, isAdmin, searchParams, selection]);
 
   const totals = reportData?.totals || {};
   const dealers = reportData?.dealers || [];
@@ -157,6 +162,7 @@ export default function DealerReportsPage() {
       </section>
 
       <section className="dealer-reports-toolbar">
+        <div><span>Дилер / група</span><DealerSelectWithAll value={selection} onChange={setSelection} extraOptions={["admin", "director"].includes(role) ? DEALER_REPORT_GROUP_OPTIONS : []} /></div>
         <label>
           <span>З</span>
           <input
@@ -179,6 +185,7 @@ export default function DealerReportsPage() {
         </button>
       </section>
 
+      <p className="operational-report-hint"><strong>Які замовлення враховано:</strong> без вибору групи — лише зі станом 1С «Подтверждено». Вони можуть бути у виробництві, готовими або відвантаженими — це окремі етапи виконання. При виборі групи «Дилери», «Філіали», «Експорт» або «Наша фірма» використовується ширший набір статусів, тому змінюються також правила підрахунку показників.</p>
       {error ? <div className="dealer-reports-state is-error">{error}</div> : null}
       {!error && loading ? <div className="dealer-reports-state">Формуємо звіт по дилерах…</div> : null}
 
@@ -312,3 +319,5 @@ export default function DealerReportsPage() {
     </div>
   );
 }
+
+

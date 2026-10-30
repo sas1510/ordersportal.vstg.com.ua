@@ -207,7 +207,7 @@ const handleFindOnMap = () => {
 const handleSave = () => {
     // Валідація обов'язкових полів адреси
     for (const k of requiredFields) {
-      if (!String(formAddr[k]).trim()) {
+      if (!String(formAddr[k] ?? "").trim()) {
         addNotification(
           t("clientAddressModal.errors.requiredField", { field: t(`clientAddressModal.fields.${k}`) }), 
           "error"
@@ -390,3 +390,5 @@ const handleSave = () => {
 };
 
 export default ClientAddressModal;
+
+

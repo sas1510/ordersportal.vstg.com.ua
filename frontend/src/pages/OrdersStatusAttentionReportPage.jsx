@@ -1,3 +1,6 @@
+import DealerSelectWithAll from "./DealerSelectWithAll";
+import { dealerGroupForSelection, DEALER_REPORT_GROUP_OPTIONS } from "../utils/dealerReportGroups";
+import { belongsToDealerGroup } from "../utils/reportDataset";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import axiosInstance from "../api/axios";
 import "./OrdersReportPage.css";
@@ -41,7 +44,9 @@ export default function OrdersStatusAttentionReportPage() {
   const [dateFrom, setDateFrom] = useState(getMonthStart);
   const [dateTo, setDateTo] = useState(getToday);
   const [dealerGroup, setDealerGroup] = useState("");
-  const [calculations, setCalculations] = useState([]);
+  const [allCalculations, setCalculations] = useState([]);
+  const [selection, setSelection] = useState("__ALL__");
+  const calculations = useMemo(() => allCalculations.filter(calc => selection === "__ALL__" || (dealerGroupForSelection(selection) ? belongsToDealerGroup(calc, dealerGroupForSelection(selection)) : String(calc.dealerId || '').toLowerCase() === selection.toLowerCase())), [allCalculations, selection]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const canUseDealerGroups =
@@ -111,6 +116,7 @@ export default function OrdersStatusAttentionReportPage() {
           <div className="orders-report__total"><span>Потребують уваги</span><strong>{total}</strong></div>
         </div>
         <div className="orders-report__filters">
+          {canUseDealerGroups && <div><span>Дилер / філіал</span><DealerSelectWithAll value={selection} onChange={setSelection} extraOptions={[]} /></div>}
           <label>Від<input type="date" value={dateFrom} max={dateTo || undefined} onChange={(event) => setDateFrom(event.target.value)} /></label>
           <label>До<input type="date" value={dateTo} min={dateFrom || undefined} onChange={(event) => setDateTo(event.target.value)} /></label>
           {canUseDealerGroups && (

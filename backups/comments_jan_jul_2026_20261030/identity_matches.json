@@ -1,0 +1,2210 @@
+[
+  {
+    "oldId": "002e525a-9187-441a-a627-02e96e8336b9",
+    "login": "V_Kovalchuk",
+    "guid": "8db72f83-709e-11e8-80c9-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "01834c0f-6a89-49c1-a771-ab434fec225b",
+    "login": "parashchuk",
+    "guid": "8ac46f5a-491d-11e2-ac25-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0493e997-6b84-4170-a29d-90a175ac5d50",
+    "login": "VS_Mamaivtsi",
+    "guid": "30b649ee-6906-11ee-9b40-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "062ba7e4-1e54-4cef-9b50-bba35aa64f6b",
+    "login": "Diduk_M",
+    "guid": "9f48f696-4a13-11e8-80c3-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0725ee01-842d-4d33-97cb-96ca4f93ca3c",
+    "login": "I_Hnytka",
+    "guid": "d9abdf2d-c34f-11e4-9906-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0828dd76-f1ef-4c3d-8db0-c6da1ba0ced2",
+    "login": "Dimaks",
+    "guid": "d113598d-5a8f-11e8-80c8-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0864a67c-f78f-448a-a150-5a5dd228100c",
+    "login": "O_Zhuravetskiy",
+    "guid": "6ee453ee-cfe6-11e1-a419-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "092c13c3-1145-4e76-b8a9-6f1450a10622",
+    "login": "test",
+    "guid": "81887d1d-f626-11e3-9d7b-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "09f0d736-af80-4cee-adf1-f2bb51a3d3a0",
+    "login": "M_Koruzhak",
+    "guid": "0daf5902-f291-11e1-99b2-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0a9326b4-292d-400c-9567-bcd8de76558d",
+    "login": "Ustyak_R",
+    "guid": "aae9eaea-3fb0-11e8-80c2-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0aedb589-4b04-44bc-b383-55cb519616bd",
+    "login": "Bairov_M",
+    "guid": "9e82d2d7-543a-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0ceb873e-41f6-45c8-bf0e-5844d9e4e823",
+    "login": "V_Luchak",
+    "guid": "11a2ac6d-1089-11e7-8e12-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0da48939-3bd6-477e-b8c2-fe763b1a67bc",
+    "login": "V_Melnichuk",
+    "guid": "34fed18c-2022-11eb-80f6-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0e638ade-f2f9-459b-8f83-4200a34efc0c",
+    "login": "V_Buchko",
+    "guid": "3fa54a16-62c7-11e5-9a3f-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0e9b72ef-3bcb-440f-9289-97b56eb6b89b",
+    "login": "Bedey_V",
+    "guid": "d0e27231-f72d-11ee-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0edf6a0c-de97-45c0-8837-0efdf8bc17a0",
+    "login": "Yarema_Volodymyr",
+    "guid": "47a0082f-b006-11f1-9cf6-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "0fb7cc48-1647-49e8-af02-fbc3d8080093",
+    "login": "Shynkaryk_I",
+    "guid": "6fb1b2a1-ca56-11e1-b32b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "11b6645a-2969-4d5c-9d2b-fbbd6c116d95",
+    "login": "Byndyu_G",
+    "guid": "9f7f2677-aa23-11e1-b329-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "12024dc6-dc3d-4c48-92c4-11b6adeeae90",
+    "login": "P_Pavliuk",
+    "guid": "dbfa0529-65a8-11e8-80c8-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "120603b3-07aa-453f-a4c5-5682fa5d3571",
+    "login": "Visnuchak_V",
+    "guid": "cde510b7-0af5-11e3-99cd-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "12d677e3-c11e-41fe-b654-c07ffc1e8d4d",
+    "login": "Chernushchyk_I",
+    "guid": "992f6c1c-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "130c900e-115c-4ff3-ad50-a840bf5835ff",
+    "login": "S_Dmytruk",
+    "guid": "7c1e96b5-faa5-11e3-9d7b-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "132a2908-d2a6-4889-91da-bffa9c82d514",
+    "login": "Yesupchuk_M",
+    "guid": "6358cf1c-4da1-11ef-9b50-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "139c8181-ea06-4c72-aab8-fa2d401bf554",
+    "login": "O_Kiriliyk",
+    "guid": "6620d405-e5a8-11e3-ae8e-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "145d59e1-eef4-4cee-9002-31f138cfb6a6",
+    "login": "V_Choma",
+    "guid": "7a7c4a0d-8463-11e1-8a64-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "14a61bb9-5982-46ae-af66-62d8f971ae48",
+    "login": "V_Danch",
+    "guid": "cc7e6a45-7cb5-11e1-a46a-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1678a854-18a4-488b-b8ac-ca901263a3cb",
+    "login": "A_Kuzmenko",
+    "guid": "f7684e41-e3db-11e2-ac3b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "174cb9d7-a560-45de-9c23-e9ab4fb3e7fa",
+    "login": "O_Puyko",
+    "guid": "f284ff30-b2f2-11e6-81b7-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "180c4234-836c-4252-bad2-df52dad993fb",
+    "login": "Sikora_V",
+    "guid": "9251620c-357d-11e7-90f0-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "18a98a9a-8090-411c-8527-be47bda90bd4",
+    "login": "Korjan_Y",
+    "guid": "317c4634-15fe-11ec-8114-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "19e9f9e7-f39f-4040-916b-f47d00591c9e",
+    "login": "M_Yakimchyk",
+    "guid": "1c60365d-ae4c-11e2-b32e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1a2116ad-cd2f-4b04-bfe6-7a9b4e64508d",
+    "login": "Boyko_N",
+    "guid": "3f1af595-7bba-11ed-813b-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1a926c61-71a3-4b42-a9f1-8bd39d1b686a",
+    "login": "Korovin_O",
+    "guid": "b157fbd3-ba44-11f0-9cd9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1b973caa-2e1d-41ac-8534-c2a8ff2f2fae",
+    "login": "Rapatska_Oliya",
+    "guid": "03b989fd-7c51-11ed-813b-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1c785d84-c261-429f-8da5-67e48a6c7ec1",
+    "login": "Mazurok_I_Lviv",
+    "guid": "c7af3dc4-2e4d-4f07-8356-280de33f9bb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1c9a117f-e433-4981-8bf4-fc22dbabc7b5",
+    "login": "Y_Karvatyk",
+    "guid": "71e17ab4-ace8-11e7-8968-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1d41387c-cd1a-46a1-8a59-85f448ab96cd",
+    "login": "O_Kordyak",
+    "guid": "eb76308e-215b-11ee-9b3d-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1db143ac-aeeb-46df-9ee9-2710d1096543",
+    "login": "Verhola_V",
+    "guid": "9e8dd342-3fa9-11e3-bb4d-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1de93c12-e801-45a4-87b7-7df400af4c71",
+    "login": "Gutak_Piramida",
+    "guid": "8f848209-ab51-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1f47336b-9df8-4638-82bb-dba142eec6e3",
+    "login": "Kovalchuk_M",
+    "guid": "c4ad2ac9-567b-11ec-8117-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "1f7ba632-829b-4541-95b3-ce4c331fae66",
+    "login": "I_Kozar",
+    "guid": "35de5a39-bd97-11e8-80d7-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "20dea85f-17c8-4407-ba6e-e5830305d65d",
+    "login": "Pasichnyi_J",
+    "guid": "1c603660-ae4c-11e2-b32e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "219d1d9d-5081-40b1-8c87-6872bd4111a1",
+    "login": "Grizhak_I",
+    "guid": "b8167260-98db-11e9-80c8-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "22557ea9-c6e4-4bc3-b5f6-e30423f9320c",
+    "login": "O_Pukas",
+    "guid": "b27ddab8-5fba-11e7-8c01-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2266d980-69af-492e-8c65-c3cf3fd3f1ad",
+    "login": "O_Smirnov",
+    "guid": "04415521-8cae-11e3-8e01-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "237a01c5-62e7-46f4-81df-261bce89f9ca",
+    "login": "Pavlish_A",
+    "guid": "1cbe0ae2-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "256edc7f-0ad1-4cf6-987f-5195e052672e",
+    "login": "M_Harmatyuk",
+    "guid": "75c77044-7ef5-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "25976421-d6a5-4e5b-b627-291c1fb0accb",
+    "login": "Kozyatinska_M",
+    "guid": "e3a08693-5741-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "267fa54b-a942-49eb-86a0-6709e465116a",
+    "login": "Gerasimenko_A",
+    "guid": "ed8d8822-f591-11e4-adf0-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "269526df-f663-45f1-b5aa-ad01a601485d",
+    "login": "Marchuk_T",
+    "guid": "57ae09a1-e75c-11e4-84b3-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "269cf0a0-079b-40ab-b8a1-97c956770ea1",
+    "login": "R_Pokotylo",
+    "guid": "2497b600-ea7f-11e4-bd74-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2731fdb6-27df-4887-82f3-848113765589",
+    "login": "Chemeruz_V",
+    "guid": "240e1702-46e1-11ec-8117-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2759de43-c5a0-4eda-81a0-f1b7baae6d4d",
+    "login": "M_Gubinec",
+    "guid": "72e8d496-3e33-11ec-8117-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "278d68de-992e-4483-b0e5-4fe1008e8d9d",
+    "login": "Viknavam",
+    "guid": "53befe07-75ad-11e6-a8a8-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "279b4c94-bc31-441f-a02e-a9f9bb0ea891",
+    "login": "I_Sulymovskyy",
+    "guid": "b6318fc4-abf1-11e2-87a7-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2831a360-f2be-4163-a8c3-7ed02dcf3bd0",
+    "login": "Ganushchak_M",
+    "guid": "84b1f3bc-de57-11e2-ac3b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "29d7d178-2ee8-426d-91e6-dc41b2a890af",
+    "login": "Y_Matador",
+    "guid": "e16de00e-3fe2-11e4-8794-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2bbe1911-1e4c-440f-8faa-7563bc6dd1b7",
+    "login": "Shtefanesa",
+    "guid": "d95ea030-1c77-11e3-87a4-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2d531643-8dfd-41b1-b9df-3c11133102f8",
+    "login": "Bezruka_T",
+    "guid": "520dabaf-16d4-11f0-9b57-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2df12be4-792a-4668-b203-61b57ddf725b",
+    "login": "Stuslo_V",
+    "guid": "b161d9eb-d45b-11ed-814d-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2e714c74-3968-4cc0-8593-1edc2325bc16",
+    "login": "I_Bilivskiy",
+    "guid": "176c6e1d-1384-11e2-b338-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2f702446-8fb4-49b9-94e6-d0e42d8546f0",
+    "login": "Lyutyk",
+    "guid": "3b454416-d1fe-11e4-ade7-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "2feb7875-a03e-46f9-9431-ca35dab29490",
+    "login": "I_Marusych",
+    "guid": "1cbe0adc-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "31239cc7-2fa0-4f24-ba9d-6ecc39c7544a",
+    "login": "S_Vovkiv",
+    "guid": "1cbe0ae8-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "31873ecf-7c65-482a-9ca0-8f0c3d2a641f",
+    "login": "Marchuk_Zhdanova",
+    "guid": "e950d1f2-d85f-11e4-8af2-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "32017f12-f625-46a5-afc2-e3c26d29d562",
+    "login": "Energobud",
+    "guid": "aab5d672-2a17-11e9-80ec-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "321c0e3f-305d-4c21-988c-c989df75c6fd",
+    "login": "Boiko_V",
+    "guid": "a1f9e47b-a35a-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3232a387-c202-45f4-ad7e-f2bf99957d37",
+    "login": "I_Klyuchkovych",
+    "guid": "daa985f2-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "32368ca7-e75d-44c2-9d4f-275ad0c9bc72",
+    "login": "Karabinovich_O",
+    "guid": "be4aabf3-defa-11eb-8110-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "32892bea-000b-48e4-98b9-023ef216bedb",
+    "login": "VST_Market_Magala",
+    "guid": "05ab5edd-5901-11ed-8129-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3469d287-9f6c-4591-95b9-16aa709d6e8e",
+    "login": "Gubal_Ivan_U",
+    "guid": "016170c7-9d63-11ed-8141-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "34de661c-84d8-437d-8514-a6ef24fce9df",
+    "login": "Import_Plus",
+    "guid": "d6096533-0957-11f0-9b57-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "352e90ff-b62f-46eb-9a72-8f386a129370",
+    "login": "Kozak_V",
+    "guid": "358eb7b7-3166-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "37a0cda6-1866-4d3e-91f9-bba0ddf900c1",
+    "login": "I_Ostafiy",
+    "guid": "9adad74b-9b34-11e1-9ec4-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "38608f80-2806-4803-af38-1b87c2d0116c",
+    "login": "P_Suhatskyy",
+    "guid": "154863d7-3068-11ee-9b3d-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3b3869f1-08ab-465f-a62e-f37793b6bc75",
+    "login": "Windor.cv",
+    "guid": "322c4aad-fa25-11e9-80da-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3bf8b537-96c6-4583-adf4-418ae0fc6c57",
+    "login": "Ivasiuk_Ivan",
+    "guid": "21ef5e4e-7ad2-11ed-813a-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3c330f22-5113-4a90-9abb-e4917c1a2d8f",
+    "login": "Boyko_Khristina",
+    "guid": "768e7195-923f-11f1-9cf0-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3cefef35-7b10-41f8-a74d-26314f0910ee",
+    "login": "S_Anhelyashko",
+    "guid": "3cfd1a45-8bff-11e7-9a4b-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3de7c581-5294-4107-8889-8fe2a24b70c2",
+    "login": "V_Kuziv",
+    "guid": "841b9440-2377-11e8-80c1-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3e1f2a05-00d0-455f-9a00-5e9a36398642",
+    "login": "Grozavu_V",
+    "guid": "3cc84e0d-7e48-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "3f2109bb-8d83-46eb-acaf-2033abf2f7d7",
+    "login": "Y_Ostapyuk",
+    "guid": "d957572d-7f06-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "408ccc15-c2b7-46c5-8884-d3e047908513",
+    "login": "M_Klychuk",
+    "guid": "ee62eed2-582d-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "41392fe9-628e-4153-a065-2db474b1dd09",
+    "login": "Gavriliv_P",
+    "guid": "bbab6c75-6933-11e2-99b4-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "42f6f672-3f9c-444b-9d9f-e66ebed9ff04",
+    "login": "I_Kochanchyk",
+    "guid": "b538b97b-b16a-11e2-b32e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4470e4c9-64b1-4bb5-bae2-86eaa2205551",
+    "login": "I_Herba",
+    "guid": "e8840904-3065-11e9-80ec-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "45843e63-e714-49b8-98ec-866ef8c61954",
+    "login": "Kservisgroup01",
+    "guid": "8db72f83-709e-11e8-80c9-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "45a8df4d-a980-4c55-9edf-fd51ccc9128a",
+    "login": "Gakman_M",
+    "guid": "2194a068-7cd6-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "45c96ba9-39f7-485e-a0fa-656170e869c3",
+    "login": "Tserkovniuk_D",
+    "guid": "2307edb9-79ca-11f1-9ceb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "469a5193-1104-4fdf-944b-d6f41264f91c",
+    "login": "Prestyzh",
+    "guid": "48eca9aa-689d-11e7-8c01-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "473fc44e-6eb5-40eb-a0e5-45927410b671",
+    "login": "V_Harinyak",
+    "guid": "47b3860e-315e-11e7-90f0-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "474c8cb4-b3c0-421b-b692-5744717f61fb",
+    "login": "Max_Bud",
+    "guid": "40ccbbd9-c5c5-11ee-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "47898a17-5705-42a1-aacd-da2f58887f22",
+    "login": "A_Makivka",
+    "guid": "257327cd-3a60-11ed-8127-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "478fecd5-fce5-4757-9869-1e34e566ce93",
+    "login": "Vakulenko_G",
+    "guid": "e28d9ef4-ce1c-11ed-814d-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "48926ef0-6675-4e6c-a2dd-c4f22b841cb1",
+    "login": "Sholya_R",
+    "guid": "6f0d3d39-8478-11e1-8a64-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "48c15178-3279-4393-a5a6-68f22cd470e5",
+    "login": "Evrostyl_B",
+    "guid": "dedc5cdd-7b94-11ed-813a-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "49d6a77b-7c95-4b0d-a721-8b1c5dcab801",
+    "login": "S_Homenchuk",
+    "guid": "992f6bec-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4a247054-7706-4efd-9b1b-d72b03e49643",
+    "login": "L_Sadivska",
+    "guid": "b39bd4de-7d5e-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4ad2e41f-04c6-4435-85bb-5f219fb401bb",
+    "login": "Koval_Trach",
+    "guid": "06f4e539-ea5c-11e4-bd74-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4ae16ec2-2e2b-4bf1-888d-30989980b3b1",
+    "login": "Tepliy_Dim",
+    "guid": "3e72c204-730a-11f0-9b63-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4b29857f-8d6e-4713-9762-98ea84b7cc85",
+    "login": "M_Hiletska",
+    "guid": "ad845d09-e057-11e1-9d1e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4b492311-c904-4602-8718-a82c56ccf0a5",
+    "login": "Y_Dyakiv",
+    "guid": "4284b60e-7d4b-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4baa3668-7dd7-44b5-b6e5-8d348687d98a",
+    "login": "Атлант Плюс",
+    "guid": "7a62f11d-3a56-11e3-a955-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4bd8f10a-0247-47fb-b289-9746d6b2e031",
+    "login": "Hospodarets_R",
+    "guid": "03a6d50d-92ce-11f0-9b66-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4be22a3a-e16d-4367-89bf-40e16a8e556c",
+    "login": "A_Moranu",
+    "guid": "2338b398-d40d-11eb-810e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4c4a4d71-a71b-4b13-9423-408cbe51be26",
+    "login": "Naumiuk_L",
+    "guid": "b0e4b933-633a-11f1-9ceb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4e25a961-2487-47ce-84a6-f4f2820dbabf",
+    "login": "I_Kochysh",
+    "guid": "c6c007d7-69a2-11e4-bcf9-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4f4042b8-36e3-40c2-82b9-d275d14ea9d2",
+    "login": "O_Mendzhul",
+    "guid": "bd023f2e-7d9b-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4f5a671b-97b2-48d9-a438-00d42857a953",
+    "login": "A_Kizima",
+    "guid": "932c79ce-6bbd-11e8-80c9-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4f945ac7-a1b8-4629-b4a0-6a76fa9a0105",
+    "login": "Fedash_R",
+    "guid": "2d038ddb-58a8-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "4fe6707b-2cf6-45bf-a40c-8c47b257d71f",
+    "login": "I_Bushtyn",
+    "guid": "41f561e5-ab05-11e1-b329-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "511fc05b-81d3-44c8-989f-2f02f6604247",
+    "login": "Yuraschuk_V",
+    "guid": "c7679dd4-ac46-11ed-8143-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "5139311f-c50d-4260-a2fc-28a2a0a5a465",
+    "login": "O_Gerevych",
+    "guid": "8a5684c1-f2b3-11e2-99ab-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "52d7d512-b904-404c-9588-728d10d88ae8",
+    "login": "Koval_R",
+    "guid": "27d4648c-6004-44e2-b4db-0a31973af790",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "52f744c8-bcd0-467d-b68b-cb37f0d79a25",
+    "login": "Bodnar_Vasul",
+    "guid": "76842ab1-59d0-11f1-9cea-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "530e69f9-9bf2-47f8-87b9-d40c21951cef",
+    "login": "oleksandr.kirshul",
+    "guid": "aa00a00d-0327-11e3-99bd-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "53654343-6d1f-4c06-8fdc-be48690523cb",
+    "login": "Bachun_M",
+    "guid": "49900137-f6d4-11f0-9cdc-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "53dc8691-f9f0-46af-b798-efba12c92446",
+    "login": "R_Bogatur",
+    "guid": "b66b6d9c-92bf-11e5-a641-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "550fae30-ac29-4b97-8632-7d902f79a0c5",
+    "login": "Moschuk_Y",
+    "guid": "beba6640-4fa1-11e9-80f2-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "58994fdc-6896-47f8-a079-0520d7892904",
+    "login": "Zalevskiy_V",
+    "guid": "b161d7c4-fb3c-11e2-99bd-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "58a5fd7b-449e-463e-8172-9d58c399991d",
+    "login": "V_Kuzyk",
+    "guid": "992f6c0a-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "59f4dc7e-2194-46a4-a641-9c23538903d1",
+    "login": "S_Hymynets",
+    "guid": "63965032-8247-11e1-8a64-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "5ad6e179-2b5c-4b20-806e-725c590148c5",
+    "login": "R_Marusyak",
+    "guid": "992f6bfc-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "5b85717e-fdad-47cf-a056-d48d7273f447",
+    "login": "Hushuliy",
+    "guid": "929d7489-c76a-11e2-b32e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "5c0c54e4-46e8-4f1f-bd2b-c19d7dafcd88",
+    "login": "Kelemen_O",
+    "guid": "49d07936-0b1d-11e3-99cd-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "5d6cd0c6-1dfd-49a2-9534-319899422e55",
+    "login": "Karpin_V",
+    "guid": "a26a4dd1-357e-11e7-90f0-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "602e85c7-bffd-4f80-bddf-858480852a83",
+    "login": "N_Kapitula",
+    "guid": "f30312b4-f030-11e1-9d14-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "62586591-5237-4e0a-b924-f2cec70c122b",
+    "login": "Kostyk_R",
+    "guid": "aad5340b-4bc2-11e9-80f2-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "643d93b0-1e79-450f-beec-697fc3bdc2a0",
+    "login": "A_Vereda",
+    "guid": "580eafd9-98aa-11ed-8141-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "66a6cba0-99b1-4084-80d7-8b7561a4d9ee",
+    "login": "Kachmar_V",
+    "guid": "877d2592-333c-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "676046e9-8388-495e-a561-ebb231cbb76e",
+    "login": "V_Gryga",
+    "guid": "daa985f4-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "68c07c18-6641-4562-b97a-400e9de32546",
+    "login": "R_Ginchak",
+    "guid": "b3cba005-22bb-11e4-bd2b-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6a660fe4-8fae-468c-8bf5-468dcab75925",
+    "login": "Zavod_Parketu",
+    "guid": "42e739c9-688c-11e8-80c8-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6ac3a8de-d742-4e0c-99f2-05670c4ec4e7",
+    "login": "A_Marusyk",
+    "guid": "99359c62-b912-11e4-aa24-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6bc5ffeb-8758-4951-aa4c-b3653b9adfd5",
+    "login": "Zelma_Group",
+    "guid": "9056e09d-a7a0-11ed-8142-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6cd82061-a41e-49ba-99df-08936bfaa4e7",
+    "login": "Hrutsak_O",
+    "guid": "763058a6-f155-11f0-9cdb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6d1ea991-2d05-4c40-9e76-5fc0c02697cd",
+    "login": "Y_Popadin",
+    "guid": "3b88f3ef-3edd-11eb-80fd-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6eba4c8f-2e1f-4761-8af3-610ba075dad4",
+    "login": "Lastavchuk_M",
+    "guid": "a0def3ed-f0fb-11ee-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "6ff528a7-40e7-4879-8bf9-2ca148ad3da7",
+    "login": "A_Zelizniy",
+    "guid": "b443cff5-f565-11e4-adf0-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "70513a06-de9e-4188-a5d8-64849dc030cf",
+    "login": "Zingel_V",
+    "guid": "5228572b-01d6-11f1-9cdc-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "70a3029d-9782-4699-bb9d-f799f465c63c",
+    "login": "A_Sapovych",
+    "guid": "1cbe0ada-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "70cfdd4d-c315-4f3a-a180-962cede24c87",
+    "login": "Vikna_24",
+    "guid": "54b51266-86e5-11ef-9b51-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "70e15119-464a-4118-9866-084e6ef9fa91",
+    "login": "Davidova_Y",
+    "guid": "c7433fbd-8925-11ee-9b44-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "72254f1e-280f-499a-a2a0-345cff145c93",
+    "login": "N_Soroka",
+    "guid": "e5e004b2-ee5b-11e8-80dd-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "72465495-b3c3-4544-83e3-ca90549d5f56",
+    "login": "Voloshanskyi_O",
+    "guid": "aa71dd66-e210-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7270fe76-e196-43de-a8b0-27abed02bb54",
+    "login": "S_Pukas",
+    "guid": "1a29f012-f32b-11ee-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "72cfac22-74e2-4e7d-9354-43377adb93ef",
+    "login": "A_Pashchenko",
+    "guid": "a8ff7202-687a-11e1-8db0-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "72f9bd25-1caa-42c2-b21b-5e036d1290b8",
+    "login": "Kutselya_O",
+    "guid": "da65ac05-62e7-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "741f0582-7975-4e82-93dd-4afd827d3838",
+    "login": "Borisikevich_V",
+    "guid": "3b243fd8-3e2d-11e8-80c2-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7607ff4d-566d-429f-a94d-66d1cae0be4d",
+    "login": "Shkrobanetc_A",
+    "guid": "88dc04ba-8f74-11e1-9d1c-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "76fb0248-1d06-48c7-bb07-1502eca38d9b",
+    "login": "Gorohovska_Galyna",
+    "guid": "efaa4b81-fb8f-11ec-811f-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "77b12443-509d-4db7-a1d0-624e2e463ed5",
+    "login": "Panas_T",
+    "guid": "176d98ee-31ae-11ec-8117-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7847ba4f-fd70-401f-b4fa-180a046d6f2b",
+    "login": "Pallagi_V",
+    "guid": "3e494ec1-8554-11e1-8a64-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7886fef5-52eb-45ec-8ff2-9d77c7f78c6c",
+    "login": "Alians",
+    "guid": "f4a08b65-43cb-11e4-8794-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "79026a14-5e23-4482-bd51-3cb31eef20a8",
+    "login": "Y_Yelkov",
+    "guid": "aad60268-7d99-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "798f5594-2fbd-407c-9102-297eb4f2ece0",
+    "login": "T_shpak",
+    "guid": "cacee804-7d61-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "79a2b71c-c58c-4e4b-9c8f-83a62bf8b1ec",
+    "login": "Dorosh_A",
+    "guid": "992f6c1a-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7bb4cf22-4d44-4c0a-a419-5918b1ed422b",
+    "login": "O_Hrynyuk",
+    "guid": "b44240a1-aef1-11e1-b862-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7c2a64b7-2668-4053-ae2d-5297d81b0553",
+    "login": "Centr-Dekor",
+    "guid": "cfc9057f-cf3e-11e2-ac24-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7c3dc1b2-7b11-4a6b-9373-2a21b8fa9aab",
+    "login": "S_Rusetskiy",
+    "guid": "31073cc4-9430-11e1-ac23-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7d5912ec-0736-4d3c-bd38-a17fd08bd489",
+    "login": "Nazaruk_O",
+    "guid": "fecfe708-a1f0-4fc8-a883-3c7aeda2c5dd",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7dc2fa8f-bf7e-4b3a-9a58-aa80f604fe5f",
+    "login": "Borovska_R",
+    "guid": "fd652378-2d9e-11ed-8125-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7df60507-5324-4855-908b-6f423b272b8a",
+    "login": "Livanovuch_A",
+    "guid": "008a5f60-60b1-11e7-8c01-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7e27b26c-26b3-496a-a7bc-a00465bcc1ac",
+    "login": "Tatarin_M",
+    "guid": "333d4b1e-1152-11f0-9b57-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7e94a44e-d3ae-4d04-b127-e16d8c23c5d1",
+    "login": "V_Klympotyuk",
+    "guid": "12e97525-8fa7-11e2-a8fc-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7ed7cf62-9e19-4b0b-900a-dafd7a80c8e3",
+    "login": "Osuka_Igor",
+    "guid": "c168c39b-d494-11e1-9d1e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7f17b082-7391-49fe-a068-2f32dff7ecfe",
+    "login": "Dragan_O",
+    "guid": "8e149c68-6ddd-11f0-9b60-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7f7b155a-63a0-4553-b984-2e842d1c9028",
+    "login": "Volivender_A",
+    "guid": "80248b8c-b4ab-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "7f8ff493-a1ca-4b51-8225-2031a4a74a9f",
+    "login": "Zahidevrodim",
+    "guid": "b9681835-1a15-11e4-a51c-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "808c7c75-686b-4d44-9428-b06b79be61bf",
+    "login": "T_Shtuller",
+    "guid": "daa985da-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "81e5ba91-0cc2-4b15-ad74-020fbc8e648c",
+    "login": "Danilesku_S",
+    "guid": "4284b5ff-7d4b-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "81fea7e5-97db-4651-8177-7f3a4bd98624",
+    "login": "EverestVD_TOV",
+    "guid": "474e4d93-c07a-11f0-9cda-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "82fa15be-7c49-4d01-8868-45ceeadbcb12",
+    "login": "Prestushbud",
+    "guid": "de22e0ec-c10b-11e5-a617-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "832af244-fa1e-4217-9ac1-cab0ee04a425",
+    "login": "O_Pih",
+    "guid": "adc6cfa8-c0ec-11e5-ab08-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "835b7b01-89b9-4d99-9c6d-99e0f268ecd6",
+    "login": "Vigor_tm",
+    "guid": "885d537f-e2f7-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "84102e5d-ff80-4eab-be12-bde0ac57bdab",
+    "login": "Alfa_Liberti",
+    "guid": "65a69745-7220-11ed-8138-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "84519fcd-dc2b-4749-8c6c-9697ae4a4ab1",
+    "login": "O_Krasnickiy",
+    "guid": "3cdc5723-c7ad-11ed-8148-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "846ac30a-cf44-447a-98ad-902520b5f590",
+    "login": "Intex",
+    "guid": "cab00842-4ad5-11ed-8129-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "84a3d2db-07bf-43e3-8629-66c50dd496a7",
+    "login": "Motrynets_V",
+    "guid": "110572e2-2400-11ef-9b4d-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "84a856ed-0574-43d6-b73b-6cde3b90c955",
+    "login": "Malaiko_Ivan",
+    "guid": "462c7a7b-0657-11f1-9cdc-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "85f7202f-8dc1-45fa-abd6-bc6ffe918f52",
+    "login": "T_Motrynets",
+    "guid": "a4ad6ea8-8248-11e1-8a64-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "870821e0-a732-4383-87c2-f149a20c341f",
+    "login": "Prodan_M",
+    "guid": "9c72464b-00b1-11ef-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "87693663-8e0c-4f7f-8ed0-4f693fd546ca",
+    "login": "Novosad_N",
+    "guid": "3a6e4f95-3554-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "88b1ea2f-4051-4fd4-8e56-cf2bf3903c57",
+    "login": "Yuskiv_Tanya",
+    "guid": "cd8fa939-514a-11e9-80f4-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "89391299-9510-409c-bdcf-4fc0cfb0ec33",
+    "login": "MaysternyaVD",
+    "guid": "5bfc88ff-ef3a-11ed-815c-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "89753da3-47c4-43e3-8495-f2ed8c80338c",
+    "login": "Pelenskyy_V",
+    "guid": "b9163e0e-f384-11e2-99ab-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8a0cadca-b91a-46a6-8b8c-198258848d81",
+    "login": "Pudyk_V",
+    "guid": "53ec152d-6229-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8a5be970-4277-4951-9138-c09c03cb8c3b",
+    "login": "Burtsev_I",
+    "guid": "7b402a26-db40-11f0-9cdb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8a8c6bcd-35bb-4913-a1e3-8d6dd6778e06",
+    "login": "Zloy_P",
+    "guid": "1016632d-76d0-11ed-8139-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8b448d3a-16ec-45a9-b47d-72f3a81fb5ca",
+    "login": "I_Hiryak",
+    "guid": "54f2de63-cee4-11e4-9b5f-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8b9c100d-8782-412f-9be5-c4804d4cb269",
+    "login": "V_Lukinchuk",
+    "guid": "7331aa04-8f6f-11e1-9d1c-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8c42f855-e992-4d5e-bfed-56dbd2545a16",
+    "login": "Klebanyuk_V",
+    "guid": "7abfb743-d9d8-11ed-814e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8ca6aef1-b023-45f3-a79b-ec6bcb2bab66",
+    "login": "Mushchak_V",
+    "guid": "4a98ad66-f00b-11ee-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8caff180-425f-4ab6-8f0c-a0b841ff0455",
+    "login": "M_Paklin",
+    "guid": "3f8e043e-92c1-11e2-b335-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8d095d07-9e5b-42bd-aecf-f9ef2ff2d47e",
+    "login": "Kovalskiy_V",
+    "guid": "6e58561a-d51b-11e7-8f43-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8d197fca-e483-4748-9aa0-7cec72f20084",
+    "login": "Evro_Bud_Group",
+    "guid": "35762c65-2100-11f0-9b58-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8e482b03-5e28-4ce7-8963-1a0f2e247e65",
+    "login": "S_Grechkovskiy",
+    "guid": "1d84f305-4362-11e2-bb47-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "8f34e412-b4be-4206-9218-f66526a359d2",
+    "login": "Tsumbal_G",
+    "guid": "ee63a8d2-1ad0-11e7-a41a-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9030af56-9331-415d-9c96-25e5d364b56c",
+    "login": "I_Tsubak",
+    "guid": "567919c8-e52f-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "912c6a48-6fe4-472e-a946-02ba761d5176",
+    "login": "Drubetskoi_B",
+    "guid": "812703d6-9744-11e5-a7e4-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "91b47af2-ff3e-4779-885b-76bec9c63759",
+    "login": "Skrilenko_M",
+    "guid": "2a793bcd-b6a8-11ee-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9252433a-1b4c-41c5-a0a2-19d883a74b8b",
+    "login": "Zavadyak_V",
+    "guid": "a84455d4-23c8-11e9-80ea-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "926a9184-9251-42dd-a27f-b8444556629f",
+    "login": "Negrych_K",
+    "guid": "6ab052f9-ebc7-11ec-811e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "945c318d-c652-4626-af7a-8d30958cc0b7",
+    "login": "Gubal_Ivan_I",
+    "guid": "dbd051ae-e0df-11e3-bffd-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9685f145-4aa0-41ad-b40b-62093a1a1e82",
+    "login": "Pyzhivska_Tatyana",
+    "guid": "20b84a23-7bae-11ed-813a-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "96de9c9b-ec88-47a1-a7d0-dfce56512dd4",
+    "login": "Bovtun_I",
+    "guid": "51da43d0-a8d1-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "975fd394-8fe2-4b29-8922-69c2578becbe",
+    "login": "Ruta",
+    "guid": "db8b7114-8eea-11e1-9d1c-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "97933364-cfcf-49d9-86b0-b26c7e44e0a3",
+    "login": "Y_Najda",
+    "guid": "a736ed57-01a3-11ec-8113-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "986e2223-4f5d-487c-92bc-baeb12b425e2",
+    "login": "S_Trubnikov",
+    "guid": "6956905b-7f17-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "98e1d88a-11d7-4985-be31-f4f5a6f9a827",
+    "login": "V_Marych",
+    "guid": "6c83cb0c-de9a-11e8-80dd-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "991145f6-bfc1-47b9-a9ab-4dfc90b1e82b",
+    "login": "Marunovuch_L",
+    "guid": "4bf80d8a-01d6-11f0-9b57-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9a2b1ea7-9942-42e8-9498-8bc9fb1178bb",
+    "login": "Integral_PP",
+    "guid": "3df6eb04-679c-11f0-9b5c-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9ad95ef6-a956-40c9-abd8-8e5e46b96868",
+    "login": "S_Teren",
+    "guid": "1cbe0aee-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9cb84235-aeba-470b-af90-86986a0b571c",
+    "login": "Strunarda_R",
+    "guid": "d9790b92-6656-11f1-9ceb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9cd827d6-21b6-48ac-be8a-9f74fbe63130",
+    "login": "Drevnutskuj_O",
+    "guid": "c81e41f4-3fb8-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9d540f83-d7a5-46b2-8bc0-3d0cd6059b50",
+    "login": "I_Migali",
+    "guid": "6fcfe28d-db02-11e5-8976-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9dcb2661-2a33-4edb-9deb-ddacc6a3200e",
+    "login": "Kurnosova_N",
+    "guid": "a84d08d3-af6b-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9e384979-c207-478e-8fe5-8f2a3e7056d6",
+    "login": "Suchoviy_V",
+    "guid": "83f336af-3b6c-11e9-80ef-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9ee5df2a-934a-47db-948a-1098bd3122c5",
+    "login": "O_Smolyak",
+    "guid": "20b4e28e-ca4b-11e5-b8bb-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "9ee87fd0-b0be-4599-a326-061e9204b96f",
+    "login": "Bontar_D",
+    "guid": "1e5c09b6-cc6a-4bee-b9e5-7e54cac7874e",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a05f46ed-2854-463b-ada9-d0ef60095066",
+    "login": "Nakonechnyi_V",
+    "guid": "7cfc98db-d4ac-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a0992d54-d57d-45e6-b141-d2bc9bfd4b64",
+    "login": "I_Nayda",
+    "guid": "32792501-7d7f-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a19cf108-7755-4332-8d4c-4174f0440600",
+    "login": "U_Braylyak",
+    "guid": "a3d94f95-f7d8-11e5-9a03-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a1e3afca-af71-4d8e-8d0c-c0dac2ba2a44",
+    "login": "Kolomyyets_I",
+    "guid": "b5d92313-5be8-11eb-8102-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a42d2e22-3a44-4433-83ed-a18aa7121521",
+    "login": "Yurij_Lukov",
+    "guid": "33033992-9f36-11e1-99bb-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a4f7b5b9-799d-4dd7-aaca-40ef3685dacf",
+    "login": "V_Savchyn",
+    "guid": "455ddc5f-8973-11e7-9a4b-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a5f34773-9505-4c3d-becf-684720b4442e",
+    "login": "O_Saydulaeva",
+    "guid": "16265e29-6266-11e1-82cb-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a63d094a-9317-4245-9009-69b6899ab7f4",
+    "login": "Kostiv_Ihor",
+    "guid": "1c80f9b7-b055-11e4-9b77-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a692cbf8-34f8-42ba-81cf-6722fc4e2897",
+    "login": "V_Viychuk",
+    "guid": "3a39a152-3ff5-11e9-80f0-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a6e50176-b332-4ae6-bda9-992019583cc2",
+    "login": "Evrostyl_new_Husyatyn",
+    "guid": "3de50617-7aef-11ed-813a-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a7dcf9f2-b6c3-4711-8bff-32aeed01f349",
+    "login": "I_Klym",
+    "guid": "1cbe0ad0-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a7e352cd-1430-41b8-95d0-b389961100ec",
+    "login": "Bernyk_G",
+    "guid": "8fa9bc50-d19a-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a8055d99-fce7-4d54-b86a-bc6524c18351",
+    "login": "vikna.muzyka",
+    "guid": "17d269d6-bf6f-11e1-ac02-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a9980c12-1aa3-4cbf-ae57-395aeebc13b8",
+    "login": "V_Zdrobylko",
+    "guid": "e3192e07-5351-11e3-91a0-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "a9ba0ea9-621b-4b69-8039-8aeab9680c17",
+    "login": "V_Tomyshch",
+    "guid": "1e1714d8-8a2d-11e1-ac0a-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "aa49a6dd-db1b-4ee3-b0d4-22901ac33cef",
+    "login": "A_Pidgirniy",
+    "guid": "d5de4e9c-45e2-11e7-89be-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ab0c14d8-a185-46d7-b83b-212e789827d4",
+    "login": "M_Stoyko",
+    "guid": "edbc32b4-2a67-11e7-a41a-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "abfcaa17-9eb6-4565-a60f-718b5d22fc57",
+    "login": "Franchuk_G",
+    "guid": "4d20f026-456d-11ed-8129-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "acc362be-5bc2-455e-a280-7d6da78b68f1",
+    "login": "Sazanova_V",
+    "guid": "8267f193-af6f-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "acfbae4a-b271-4ba2-be7c-27b61ac435fa",
+    "login": "Pochunok_D",
+    "guid": "ccfe8147-e7e8-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ad059591-2d6d-4ad9-bc5b-ba3883edafb6",
+    "login": "Karalash_N",
+    "guid": "c50ae956-7dbc-11f0-9b66-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "aeb1e6a3-2b0e-4d4a-8df4-c0469c49d2c2",
+    "login": "Topdah",
+    "guid": "a599bf58-ee27-11ec-811e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "aed3cfd0-1eab-4428-b214-041718fe7ab8",
+    "login": "Dovbenchuk_L",
+    "guid": "fbdd377b-b318-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "af289ecb-7c9a-4087-9b27-fefb4dd9c6d4",
+    "login": "Filial_Lviv",
+    "guid": "9999d244-8ade-11ef-9b51-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b0893863-8ecb-46d2-bc46-fc6dd671a3d9",
+    "login": "Okhrim_R",
+    "guid": "1fe5490c-b3e5-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b0989663-0c7a-4ed5-941b-df00198e2dc5",
+    "login": "Gunchak_V",
+    "guid": "c714e977-2aa9-11ed-8125-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b0f8a36c-0a70-40a3-8bd8-0cdb706390ca",
+    "login": "M_Shurma",
+    "guid": "992f6c1e-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b221f8bc-896b-48d3-a0fd-6e9321453c25",
+    "login": "Onyshuk_O",
+    "guid": "3a21442c-044c-11ee-815d-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b22b620c-720b-4fc6-8b49-45b4f3e913f5",
+    "login": "I_Martikean",
+    "guid": "1d06fceb-0773-11e4-be43-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b383752e-cab5-486e-995e-ebad05a2d12b",
+    "login": "A_Panko",
+    "guid": "b2639229-f9a4-11e2-99bd-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b3a7fdd2-6a4a-4be8-9479-f22e5b81c074",
+    "login": "Nedobijchuk_O",
+    "guid": "09eecf7f-0034-11f1-9cdc-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b5965712-1da3-4723-967d-a96dcc3c5e05",
+    "login": "Yoni_M",
+    "guid": "e303fe73-b19f-11e8-80d7-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b5a5019f-0eab-487b-9cbc-452b4cb811fb",
+    "login": "Bezuk_S",
+    "guid": "88f21e80-309a-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b72b38dd-d885-4b88-9aa8-6ac8b8a36883",
+    "login": "Beregova_L",
+    "guid": "4d6dd9ba-97bb-11f1-9cf2-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b7b63dda-3341-44cb-9586-f6c047eb9310",
+    "login": "Tsyuvanyk_A",
+    "guid": "a0e27886-2f52-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b83a26b2-7584-4f81-9894-aa592539165b",
+    "login": "Shkvarun_D",
+    "guid": "6a24ff99-6037-11e9-80fa-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "b9ebd4f5-35d6-4dd8-8ddc-e9005f372606",
+    "login": "S_Lyashko",
+    "guid": "7b8a0fd1-2286-11eb-80f6-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "bba7783c-757d-46a2-a604-d8a62f9a3298",
+    "login": "M_Kishyk",
+    "guid": "f0f9f18d-4332-11e4-8794-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "bc5460b5-f565-4c8b-8bcd-2a038604911e",
+    "login": "A_Gakman",
+    "guid": "e5415765-e7c2-11ec-811d-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "bcd8e3cf-3a2e-4ea0-b245-af2b1d6eb6de",
+    "login": "ENERHOEKOSERVIS",
+    "guid": "371e3142-294b-11ea-80dd-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "bd45879f-032f-4899-bd25-c7d6b3395efa",
+    "login": "Semkiv_V",
+    "guid": "b141647d-402a-11ef-9b4d-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "be4cf50e-0c48-4cc8-96ce-00a44b86124b",
+    "login": "N_Antonyuk",
+    "guid": "daa98610-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "be868278-a111-41a9-8a64-136d5d8c1e76",
+    "login": "Kosovan_A",
+    "guid": "9032ef70-ff94-11e4-a09f-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "be91dd6f-911a-4ee5-b407-c3b006b946e2",
+    "login": "Hrimut_V",
+    "guid": "6fa55673-866a-11f1-9ced-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "bfa6794e-b21c-424e-850c-a3f4d5e93d7e",
+    "login": "Hrytsyuk",
+    "guid": "97e43de8-640a-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c1d705e1-64d1-4da8-9fe1-bac6d35835f4",
+    "login": "Kuchma_R",
+    "guid": "64159f8b-6de8-11f0-9b60-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c34e1a72-98d2-4407-83ac-91ab4ef38910",
+    "login": "M_Aleksandruyk",
+    "guid": "0a6c5458-8dfc-11e1-9d1c-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c49b8ad6-fdea-4f4d-be07-f53005bd05fa",
+    "login": "Rovanbud",
+    "guid": "fc241c8b-4dd1-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c4f552dd-bba4-4514-99ba-becd9fdbb737",
+    "login": "Shkurenkova_O",
+    "guid": "9145db79-ddc6-11e4-adcc-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c5289837-7505-4286-92b4-715fe9735941",
+    "login": "Yurku_L",
+    "guid": "cd89eede-4065-11e7-89be-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c6a01e88-51a2-488e-a150-eba33febd439",
+    "login": "I_Ginchak",
+    "guid": "910edc17-e75b-11e4-84b3-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c78c6fbd-9f9b-4af4-85d3-b022ea777890",
+    "login": "Mandzyk_D",
+    "guid": "0293727c-b3dd-11ef-9b54-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c7ae2285-9c5c-4bf1-8aff-9338fe13badd",
+    "login": "Yavorskiy_I",
+    "guid": "ddbccb92-1e2f-11ed-8124-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "c980eccb-0493-45c3-9079-0438a7f58690",
+    "login": "PVZ",
+    "guid": "82f6beab-bacd-11ea-80ed-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cb27565f-508a-40d8-930b-f854d6f9e7a9",
+    "login": "Kyrduban_V",
+    "guid": "ca341716-1ee2-11f1-9cdc-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cb6436ba-d414-4f03-a952-48c0c9fdc745",
+    "login": "Y_Rebryk",
+    "guid": "096f9901-c4a3-11e3-9834-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cc1b4e53-2345-46ea-adc3-d44ac1132b99",
+    "login": "Galysh_TOV",
+    "guid": "bbbb1486-a673-11ef-9b54-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cc2affc3-2fc1-4ee0-9305-fe5c53bde449",
+    "login": "Askalin_A",
+    "guid": "820271a8-358c-11e7-90f0-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cc3adc47-75bd-49c8-a957-493a7a1ed50e",
+    "login": "Kolotulo_Andriy",
+    "guid": "1b659de0-c8fb-11eb-810e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cc7156f5-d454-4465-a290-7daf1faa70fa",
+    "login": "Shtovk_S",
+    "guid": "cdb1fb2f-a20f-11ed-8141-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cc8bba14-6228-4a7e-9afe-3bdf69f9a4e6",
+    "login": "Dyakiv_V",
+    "guid": "1eb315b5-cfff-11e5-b8bb-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ccd6d032-e6f5-4e77-9086-d9edfd0aefc6",
+    "login": "R_Bodnaruk",
+    "guid": "4b3ae9d4-5a3d-11e7-98e9-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cd65460d-0dd0-4461-ab4b-0022ad231fe4",
+    "login": "Shypitka_R",
+    "guid": "e863ddbf-67be-11e7-8c01-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cdf9d26a-8bad-47ff-a0bf-220b58b45c32",
+    "login": "R_Bokoch",
+    "guid": "ad707675-ed1b-11e2-b32a-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ce94ee40-f7c9-4e08-9dce-e9009d00f6e2",
+    "login": "doskonaliy.dim",
+    "guid": "f51b4312-327a-11e8-80c1-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cf5f786e-61ed-45c2-8a64-57f88e088385",
+    "login": "M_Shkremetko",
+    "guid": "aeb6376c-fcd6-11e6-86b7-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "cf9e24f6-66cb-4f55-8e79-8875d20dfb9c",
+    "login": "Frankevych_A",
+    "guid": "b2690880-255b-4e62-8772-cdfd89882a64",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d0195f6b-2790-41fb-a7ef-81a64cd77bc2",
+    "login": "Duhnich_I",
+    "guid": "1e827a5f-0e39-11f1-9cdc-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d0f04456-18c4-41d8-9f55-47062695d60c",
+    "login": "R_Pantya",
+    "guid": "951a4794-693e-11e2-99b4-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d10179b3-948f-4df6-8e24-a53a1988aaf7",
+    "login": "Eco_Dim",
+    "guid": "b25fbd47-8cd2-11ed-8140-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d1c1cf21-e8d5-425f-a504-7bd17d155aa6",
+    "login": "N_Gorak",
+    "guid": "f67c4d4c-5a97-11e9-80f6-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d203b549-29bd-4084-a31d-dede60b7df4a",
+    "login": "Mazurok_I",
+    "guid": "b45d806e-49b2-11eb-80fe-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d24c3188-6d16-4d39-8b8d-ee910c09589e",
+    "login": "R_Sereda",
+    "guid": "c4828c5a-4d99-11e2-b326-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d399a630-a584-4e18-b415-4538c674f8da",
+    "login": "M_Nazar",
+    "guid": "a46cf302-3428-11ed-8125-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d43b7539-b45c-489d-b725-1c5234341511",
+    "login": "Hudyk_V",
+    "guid": "fb1761f3-8715-11eb-810e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d450b1a8-6f80-47ab-872c-ed405df5e0b4",
+    "login": "Ushtan_V",
+    "guid": "4a436e5e-9fb6-4def-a7be-48c46684cb92",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d4baae82-dd88-42a0-ac81-48801c99fb35",
+    "login": "Kosmenko_T",
+    "guid": "c7b7e59f-e636-11eb-8112-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d4bb2945-8ab2-423c-ad98-e2a0d71e6de2",
+    "login": "Zavytyk_T",
+    "guid": "f11b92a2-2097-11e9-80ea-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d4eaef73-593b-4ac2-94b0-fa85857e088d",
+    "login": "M_Shupenya",
+    "guid": "a6aa4dc0-a0f3-11e1-99bb-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d5b4035d-b7bf-4b1a-97ca-cc8a9008d21e",
+    "login": "S_Dyrda",
+    "guid": "11f35206-d626-11e1-9d1e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d5c4aa18-3450-4f68-b771-fa10b034cdf9",
+    "login": "M_Manko",
+    "guid": "bdabc922-ebda-11ec-811e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d6cfa916-78f3-43fc-b389-cbfe34f9ea8b",
+    "login": "I_Gumenyk",
+    "guid": "6b7e318f-9b36-11e1-9ec4-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d7be8001-91ae-4b71-9b90-0ffaa06b2ccb",
+    "login": "Shadurska_L",
+    "guid": "cd585cef-5b52-11f1-9ceb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d7cd2c52-f2d5-4c80-bbcb-4d923149fdb6",
+    "login": "M_Tuz",
+    "guid": "6962d99b-0007-11e3-99bd-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d841d5f5-ac6f-4e1f-95d2-1f8edc864135",
+    "login": "Kalutchuk_P",
+    "guid": "2e022d78-d960-11ef-9b55-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d8c46a29-69b4-44b8-9132-2c68cd7627d5",
+    "login": "M_Zakharchuk",
+    "guid": "89d9154e-456b-11ed-8129-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d96cdf26-de7d-4d28-b276-b88354b8fe72",
+    "login": "R_Ushnevych",
+    "guid": "49e220f4-bb19-11ec-8118-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "d9a815d5-7c26-4a68-b4da-ced235fe97ba",
+    "login": "V_Irichuk",
+    "guid": "d9677621-341f-11e9-80ec-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "dc3e54a2-f9c9-4983-8485-24dfdaf3b8ec",
+    "login": "U_Gafinets",
+    "guid": "9f3d7087-d7c4-11e1-9d1e-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "dcdf7ab9-3514-4f28-94b4-91032c981680",
+    "login": "Tymchuk_S",
+    "guid": "c1cbefa5-9388-11e5-a641-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "dd315a9e-05ac-429c-8f2e-53f35c36e9a9",
+    "login": "Mytskan_S",
+    "guid": "7f81b25e-b7e6-11eb-810e-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e04e8255-a5c1-40cb-a3ea-3eddc9bf9409",
+    "login": "Shtefiuk_M",
+    "guid": "27aa456a-633b-11f1-9ceb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e1baddc9-27db-4577-a145-c054b43fc2e9",
+    "login": "Kruchfalushiy_I",
+    "guid": "ca8e1c06-8229-11e1-8a64-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e2d9bc6d-c72c-41df-a0ba-a70a12d496a9",
+    "login": "Blushchuk_O",
+    "guid": "253a2e87-f70a-11e8-80dd-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e306264a-e9ed-4c5d-aeee-e7a2f44010d1",
+    "login": "Evrostyl",
+    "guid": "bb9e7c6d-4aca-11ed-8129-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e3aa604e-2977-4659-9232-09019ccdf2c9",
+    "login": "Y_Bybyk",
+    "guid": "7b1220dc-8ecf-11e5-a641-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e4437fef-bf7e-4f39-912f-60e79a325cf6",
+    "login": "Modern_Lviv",
+    "guid": "baeea510-652b-11ea-80e9-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e5b53a5a-2b41-4da0-bed2-38896ee79eca",
+    "login": "KD_KapitalDoors",
+    "guid": "54577359-304b-11ee-9b3d-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e717b893-11c5-4bc5-b772-91cc4431d062",
+    "login": "P_Kozak",
+    "guid": "24c745ca-9bfc-11e1-9ec4-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e7202b18-d248-4016-8329-34644a8954db",
+    "login": "M_Tsybulyak",
+    "guid": "6cb562bd-7d5e-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e76d0778-b60f-4a3d-8e36-f346ecb01614",
+    "login": "M_Vlasenko",
+    "guid": "575884d1-30d9-11e7-90f0-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e78d6379-7c4b-483a-aca8-6d43feef1db3",
+    "login": "V_Golub",
+    "guid": "daa985dc-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e7a2dec2-201c-45ef-8e1b-9ca897b2edfd",
+    "login": "V_Pinyashko",
+    "guid": "daa98604-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "e7ba0249-c995-49b3-b6d8-0be2455b7bc6",
+    "login": "N_Novosad",
+    "guid": "812ed143-fae9-11e4-8ae5-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ead7de98-b17f-488b-92b9-0da58e77a3ea",
+    "login": "Kuza_A",
+    "guid": "2920e826-cb75-11f0-9cdb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "eae7fcc5-2cfa-4548-85ea-631034da386b",
+    "login": "A_Rohovyk",
+    "guid": "e6e547ec-3630-11e7-90f0-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ec0ca683-ac16-476c-9433-8393975fa839",
+    "login": "S_Marchuk",
+    "guid": "a8ff7237-687a-11e1-8db0-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ec104fee-9a03-46c6-8bef-65a355abf308",
+    "login": "V_Gavrylyuk",
+    "guid": "992f6c00-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ed5f7c34-e52a-4b12-b1e4-4a2aba9f66e8",
+    "login": "A_Gershtun",
+    "guid": "512b4875-84a4-11e2-8785-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ed895465-3a4d-47b8-9b50-daf0c30a2619",
+    "login": "Kravchuk_R",
+    "guid": "f48aa199-3c99-11ec-8117-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ed95eff8-c0dc-4f51-b06f-e50ecc7a5953",
+    "login": "Konto_Centr",
+    "guid": "4c12ae33-8403-11e7-8b25-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ee231ccb-dab3-47d1-8a1e-a9a76bd35efd",
+    "login": "Y_Havadzyn",
+    "guid": "1cbe0ac2-6405-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ee9426ef-ea18-4ee5-8a35-cbeb66529be4",
+    "login": "A_Polych",
+    "guid": "ec8b491e-25ce-11e7-a41a-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "eefd7eda-3b3f-480b-9b8f-f8be1a34f7ed",
+    "login": "Slobodyaniuk_Ya",
+    "guid": "3e611e05-acc4-11ef-9b54-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ef6f6f83-7179-4dd4-a584-e0b4d4e901f8",
+    "login": "V_Ferents",
+    "guid": "97e43dde-640a-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ef9c0d51-dab3-403f-ad48-445c2c8e244e",
+    "login": "J_khimjak",
+    "guid": "c13be324-0260-11eb-80f4-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "efc7115b-d6bd-4267-8b40-b4c9a2f5e904",
+    "login": "V_Suhoviy",
+    "guid": "784b5810-b6b1-11e4-aa24-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f01bf7b2-f46a-429b-bfa2-1efff0a318be",
+    "login": "V_Duplyak",
+    "guid": "b8060441-b066-11e1-b862-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f0a61113-9bab-48a3-939c-4c8d102b1b59",
+    "login": "B_Gusak",
+    "guid": "bcd28b4a-b4c1-11e3-a93f-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f0a9ff7c-db90-4615-9cd0-92a58569ac95",
+    "login": "Zapotichnyj_Ya",
+    "guid": "898df97f-8f6e-11e1-9d1c-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f23f850b-2d77-43ed-bdca-a111845b6e8b",
+    "login": "Kononov_O",
+    "guid": "cff060be-3a40-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f27035c5-4dfd-45fd-ae33-0e3ff38bf49f",
+    "login": "O_Suhopar",
+    "guid": "84d806e9-0930-11e2-8a65-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f29ddea5-368b-4040-bd65-e5e15c981a42",
+    "login": "Kalinyuk",
+    "guid": "992f6c10-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f37c3e0c-48e1-4530-b5e0-5c1bff31ca9b",
+    "login": "Sabov_L",
+    "guid": "21e3e320-11ea-11ef-9b47-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f38ced7f-c6e4-42a2-96bf-6e666d912b3e",
+    "login": "R_Golovchun",
+    "guid": "e6822f0a-a550-11e4-9b77-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f3f7d4cf-5474-47d6-9d5f-a063939ee48e",
+    "login": "Gutash_Mukola",
+    "guid": "aab8968f-97c4-11f1-9cf2-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f48aed21-1f00-4f87-af52-9f25ff2e56e8",
+    "login": "Vursta_V",
+    "guid": "b12a4686-f5db-11ef-9b57-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f4aec3d9-7f10-4558-b5bd-9e06e14674c3",
+    "login": "S_Konontsova",
+    "guid": "9de86b7a-7d6f-11e5-bd3e-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f52a0776-78dd-4329-8929-c2a254d26316",
+    "login": "Fedkovich_Mikhailo",
+    "guid": "70f15582-3576-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f5964465-8c2d-4fce-9ea9-61f54b1453ab",
+    "login": "M_Bogovych",
+    "guid": "4cb79d36-7fc0-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f691d3ac-bf6b-431d-b5cd-bf3a8cbd86b0",
+    "login": "Lusaniuk_P",
+    "guid": "eb87380c-571f-11f0-9b5a-90b11c14deb2",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f6c0e828-eb1f-4feb-8b16-423319b7f12f",
+    "login": "Knyazeva_O",
+    "guid": "79b1af9a-e8b9-11ec-811d-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f6fff9b1-83f9-4d28-8ca8-5554face2f62",
+    "login": "Didukh_V",
+    "guid": "92dd5c7f-eb72-11e5-b2b8-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f74a621e-589c-40b3-a950-d61c360ff28f",
+    "login": "Korec_S",
+    "guid": "992f6c20-6400-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f7aa55ff-5fbf-4999-9535-3fa7770a1239",
+    "login": "A_Kharchenko",
+    "guid": "f71c94b3-5ca2-11e7-b030-74867ad9d524",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f7f832c9-087a-4ce2-ac70-a8304cc27694",
+    "login": "Bodnaruk_M",
+    "guid": "16d3dccc-3423-11ed-8125-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f8430a8d-d1fe-4ae0-bc95-97fc4fc306fb",
+    "login": "I_Sobolevskyy",
+    "guid": "7ab5456f-228c-11e2-ac30-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f874e503-ccfb-4e72-a4a1-545471a16e70",
+    "login": "K_Maksitec",
+    "guid": "2bc869ef-9b67-11e6-ab8c-002590554e96",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f895e39c-c2be-4804-a6a9-b529237debb7",
+    "login": "I_Bodnarchuk",
+    "guid": "daa985e8-63f9-11e1-b125-001b214eee7a",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "f98e9231-131e-4a66-807c-82df29139e38",
+    "login": "Andriuk_M",
+    "guid": "8707f0b2-2f52-11f1-9ce9-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "faa13e6f-8cf7-48dd-ad88-14c9a4499890",
+    "login": "Kuziv_O",
+    "guid": "e122e47e-68c0-11f1-9ceb-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "fb922e41-7692-4917-8d33-65b89540fa8b",
+    "login": "Rode_Yurij",
+    "guid": "72654594-8d58-11f0-9b66-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "fba95408-21cc-4f8a-869e-2eb494259b06",
+    "login": "M_Tkach",
+    "guid": "d48e90cf-6171-11ec-8118-74867ad9d525",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "fc89e789-c527-42d2-bbcc-ae22054286e4",
+    "login": "Viytovych_V",
+    "guid": "8a89e42c-af6d-11f0-9b71-4cd98f08e56d",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "fcb31aac-84a7-4a26-a4d0-2bc0c53d6c91",
+    "login": "V_Klym",
+    "guid": "3efe31da-7e20-11e1-a46b-002590633bb3",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "feccc577-739d-44c0-b03d-6b23705568c9",
+    "login": "a_brovchenko",
+    "guid": "e318690d-dbf7-11e3-bffd-002590633c17",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ff801188-2f0f-4cfa-a8c6-0ea0ffcf5a31",
+    "login": "O_Dydyk",
+    "guid": "bf1fb667-e75c-11e4-84b3-002590554e97",
+    "method": "exact_unique_portal_login"
+  },
+  {
+    "oldId": "ffd09eea-166e-4ff5-b0df-9ba268be0ecd",
+    "login": "Stasyuk_I",
+    "guid": "996f8ba7-2f31-11e2-ac35-002590633bb3",
+    "method": "exact_unique_portal_login"
+  }
+]

@@ -5,7 +5,7 @@ import { paymentDebtTotals } from "../../utils/paymentDebtTotals";
 import { belongsToDealerGroup } from "../../utils/reportDataset";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-export default function OperationalReport({ data, loading, error, dealerGroup, dealerGuid }) {
+export default function OperationalReport({ data, loading, error, dealerGroup, dealerGuid, dateFrom, dateTo }) {
   const [tab, setTab] = useState("risks");
   const [onlyMissingDelay, setOnlyMissingDelay] = useState(false);
   const [filter, setFilter] = useState("all");
@@ -64,10 +64,10 @@ export default function OperationalReport({ data, loading, error, dealerGroup, d
   ];
   const deliveryChart = [...new Set(report.deliveries.map((order) => new Date(order.delivery).toLocaleDateString("uk-UA")))].map((day) => ({ name: day, count: report.deliveries.filter((order) => new Date(order.delivery).toLocaleDateString("uk-UA") === day).length }));
   const riskChart = ["1–3 дні", "4–7 днів", "Понад 7 днів"].map((name) => ({ name, count: report.risks.filter((order) => order.delayBucket === name).length }));
-  const link = (number) => `/admin-order?${new URLSearchParams({ search: number, date_from: new Date(Date.now() - 90 * 86400000).toLocaleDateString("en-CA"), date_to: new Date().toLocaleDateString("en-CA") })}`;
+  const link = (number) => `/admin-order?${new URLSearchParams({ search: number, date_from: dateFrom, date_to: dateTo })}`;
   return <section className="dealer-reports-panel operational-report">
-    <div className="dealer-reports-panel__header"><h3>Дилери й доставки · останні 90 днів</h3></div>
-    <p className="operational-report-hint">Активність дилерів — за останні 90 днів. Затримки — станом на сьогодні серед заявок цього періоду. Доставки — на найближчі 7 днів. Вибрані менеджер і дилер застосовуються до всіх розділів.</p>
+    <div className="dealer-reports-panel__header"><h3>Дилери й доставки · вибраний період</h3></div>
+    <p className="operational-report-hint">Активність дилерів — за вибраний період {dateFrom} — {dateTo}. Затримки — станом на сьогодні серед заявок цього періоду. Доставки — на найближчі 7 днів. Вибрані менеджер і дилер застосовуються до всіх розділів.</p>
     {loading ? <p>Завантаження…</p> : error ? <p role="alert">{error}</p> : <>
       <div className="operational-metrics"><article className="is-risk"><small>Прострочені замовлення</small><strong>{report.risks.filter((order) => order.daysLate > 0).length}</strong></article><article className={alerts.length ? "is-risk" : ""}><small>Потребують дати затримки</small><strong>{alerts.length}</strong></article><article><small>Доставки · 7 днів</small><strong>{report.deliveries.length}</strong></article><article><small>Регулярні дилери</small><strong>{activityChart[0].count}</strong></article></div>
       <div className="operational-tabs" role="tablist" aria-label="Розділи звіту">{[{ id: "risks", title: "Затримки", count: report.risks.length }, { id: "deliveries", title: "Доставки", count: report.deliveries.length }, { id: "dealers", title: "Дилери", count: report.dealers.length }].map((item) => <button key={item.id} id={`operational-tab-${item.id}`} type="button" role="tab" aria-selected={tab === item.id} aria-controls={`operational-panel-${item.id}`} onClick={() => { setTab(item.id); setDealerMenuOpen(false); }}>{item.title}<span>{item.count}</span></button>)}</div>
@@ -105,3 +105,4 @@ export default function OperationalReport({ data, loading, error, dealerGroup, d
     </>}
   </section>;
 }
+

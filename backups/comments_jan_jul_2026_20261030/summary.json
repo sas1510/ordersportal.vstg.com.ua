@@ -1,0 +1,9 @@
+{
+  "already_present": 7413,
+  "application_not_found": 626,
+  "author_missing": 710,
+  "contractor_not_unique_or_missing": 15,
+  "application_ambiguous": 2,
+  "source": 8848,
+  "ready": 82
+}

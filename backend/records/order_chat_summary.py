@@ -1,5 +1,4 @@
 """Load only the oldest and newest chat text needed by order list cards."""
-from django.db.models import Min, Max
 from django.db import connections
 from .models import ChatMessage
 
@@ -9,21 +8,25 @@ def _hashable_binary_params(execute, sql, params, many, context):
     # GROUP BY formatter deduplicates parameters using set(), requiring bytes.
     if params is not None:
         params = tuple(bytes(value) if isinstance(value, (bytearray, memoryview)) else value for value in params)
-    return execute(sql, params, many, context)
+    # mssql-django rewrites uppercase GROUP BY parameters as DECLARE VARBINARY
+    # without a length, truncating each GUID to one byte. Keep bound parameters.
+    return execute(sql.replace('GROUP BY', 'group by'), params, many, context)
 
 
 def get_order_boundary_messages(calculation_ids):
-    # Keep SQL Server parameter counts bounded even for a full year of orders.
+    # Historical imports receive new IDs; boundaries follow message time, then ID.
     calculation_ids = list(dict.fromkeys(bytes(value) if isinstance(value, (bytearray, memoryview)) else value for value in calculation_ids))
     messages = []
     for start in range(0, len(calculation_ids), 800):
-        boundaries = ChatMessage.objects.filter(
-            related_object_id__in=calculation_ids[start:start + 800],
-            is_notification=False,
-        ).order_by().values('related_object_id').annotate(first_id=Min('id'), last_id=Max('id'))
-        with connections[ChatMessage.objects.db].execute_wrapper(_hashable_binary_params):
-            ids = {value for row in boundaries for value in (row['first_id'], row['last_id']) if value is not None}
-        if ids:
-            messages.extend(ChatMessage.objects.filter(pk__in=ids).values('id', 'related_object_id', 'text'))
-    # Preserve the existing newest-first mapping, including empty comments.
-    return sorted(messages, key=lambda message: message['id'], reverse=True)
+        chunk = calculation_ids[start:start + 800]
+        placeholders = ','.join(['%s'] * len(chunk))
+        sql = f"""SELECT id, RelatedObjectId, [Text], [Timestamp] FROM (
+            SELECT id, RelatedObjectId, [Text], [Timestamp],
+                ROW_NUMBER() OVER (PARTITION BY RelatedObjectId ORDER BY [Timestamp], id) AS first_row,
+                ROW_NUMBER() OVER (PARTITION BY RelatedObjectId ORDER BY [Timestamp] DESC, id DESC) AS last_row
+            FROM dbo.ChatMessage WHERE IsNotification=0 AND RelatedObjectId IN ({placeholders})
+        ) AS boundaries WHERE first_row=1 OR last_row=1"""
+        with connections[ChatMessage.objects.db].cursor() as cursor:
+            cursor.execute(sql, chunk)
+            messages.extend(dict(zip(('id', 'related_object_id', 'text', 'timestamp'), row)) for row in cursor.fetchall())
+    return sorted(messages, key=lambda message: (message['timestamp'], message['id']), reverse=True)

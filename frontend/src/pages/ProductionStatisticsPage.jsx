@@ -1546,7 +1546,7 @@ export default function ProductionStatisticsPage() {
         </div>
         <div className="production-design__filters">
           <div className="production-design__filters-stack">
-            {isAdmin ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelect value={dealerGuid} onChange={setDealerGuid} /></div> : null}
+            {isAdmin ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelect showGroupFilter value={dealerGuid} onChange={setDealerGuid} /></div> : null}
             <div className="production-design__date-range">
               <label><span>{t("production_statistics.from")}</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
               <label><span>{t("production_statistics.to")}</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>

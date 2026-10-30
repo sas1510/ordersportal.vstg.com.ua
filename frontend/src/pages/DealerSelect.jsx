@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next"; // 👈 Імпорт
 import axiosInstance from "../api/axios";
 import "./DealerSelect.css";
 
-const DealerSelect = ({ value, onChange }) => {
+const DealerSelect = ({ value, onChange, showGroupFilter = false }) => {
   const { t } = useTranslation(); // 👈 Ініціалізація
   const [dealers, setDealers] = useState([]);
+  const [group, setGroup] = useState("");
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -35,7 +36,7 @@ useEffect(() => {
   useEffect(() => {
     const loadDealers = async () => {
       try {
-        const res = await axiosInstance.get("/dealer-portal-users/");
+        const res = await axiosInstance.get("/dealer-portal-users/", { params: showGroupFilter ? { report_groups: 1 } : {} });
         setDealers(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
         if (process.env.NODE_ENV === "development") {
@@ -48,7 +49,7 @@ useEffect(() => {
     };
 
     loadDealers();
-  }, [t]);
+  }, [t, showGroupFilter]);
 
   useEffect(() => {
     if (open) {
@@ -60,7 +61,7 @@ useEffect(() => {
   const selected = dealers.find((d) => d.ContractorID === value);
 
   const filtered = dealers.filter((d) =>
-    d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
+    (!group || d.DealerGroup === group) && d.ContractorName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleKeyDown = (e) => {
@@ -97,6 +98,7 @@ useEffect(() => {
 
   return (
     <div className="dealer-select" ref={wrapperRef}>
+      {showGroupFilter && <select aria-label="Група дилерів" value={group} onChange={e => { setGroup(e.target.value); onChange(""); setOpen(false); }} style={{ width: '100%', minHeight: 40, marginBottom: 8 }}><option value="">Усі групи</option>{[...new Set(dealers.map(d => d.DealerGroup).filter(Boolean))].sort().map(g => <option key={g}>{g}</option>)}</select>}
       <div
         className="dealer-select__control"
         onClick={() => setOpen((o) => !o)}

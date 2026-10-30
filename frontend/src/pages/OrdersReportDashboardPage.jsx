@@ -1,3 +1,4 @@
+import { DEALER_REPORT_GROUP_OPTIONS } from '../utils/dealerReportGroups';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight, FaArrowUp, FaBoxes, FaChartLine, FaMoneyBillWave, FaSearch, FaUsers } from "react-icons/fa";
@@ -64,12 +65,6 @@ const DEALER_GROUP_TO_SQL_VALUE = {
   [DEALER_GROUP_VALUES.export]: "Експорт",
   [DEALER_GROUP_VALUES.branches]: "Філіали",
 };
-const DEALER_GROUP_OPTIONS = [
-  { value: DEALER_GROUP_VALUES.dealers, label: "Дилера" },
-  { value: DEALER_GROUP_VALUES.ourCompany, label: "Наша фірма" },
-  { value: DEALER_GROUP_VALUES.export, label: "Експорт" },
-  { value: DEALER_GROUP_VALUES.branches, label: "Філіали" },
-];
 const KPI_PROCESSING_GROUPS = [
   { key: "dealers", label: "Дилери", dealerGroup: "Дилера" },
   { key: "export", label: "Експорт", dealerGroup: "Експорт" },
@@ -510,14 +505,22 @@ export default function OrdersReportDashboardPage() {
   const [dealerReportsData, setDealerReportsData] = useState(null);
   const [dealerReportsLoading, setDealerReportsLoading] = useState(false);
   const [dealerReportsError, setDealerReportsError] = useState("");
-  const [dealerReportScopeUserId, setDealerReportScopeUserId] = useState("");
-  const [dealerReportGroup, setDealerReportGroup] = useState("");
-  const [dealerReportDealerGuid, setDealerReportDealerGuid] = useState(ALL_DEALERS_VALUE);
-  const [statusScopeUserId, setStatusScopeUserId] = useState("");
-  const [kpiScopeUserId, setKpiScopeUserId] = useState("");
+  const [reportScopeUserId, setReportScopeUserId] = useState("");
+  const dealerReportScopeUserId = reportScopeUserId;
+  const dealerReportGroup = (["admin", "director"].includes(role) ? DEALER_GROUP_TO_SQL_VALUE[dealerGuid] || "" : "");
+  const dealerReportDealerGuid = dealerReportGroup ? ALL_DEALERS_VALUE : dealerGuid;
+  const statusScopeUserId = reportScopeUserId;
+  const kpiScopeUserId = reportScopeUserId;
   const [activeManagerOptions, setActiveManagerOptions] = useState([]);
   const [selectedManagerGuid, setSelectedManagerGuid] = useState(ALL_MANAGERS_VALUE);
   const [selectedRegionName, setSelectedRegionName] = useState(ALL_REGIONS_VALUE);
+  const allDealersPanelRef = useRef(null);
+  const openRegionDealers = useCallback(function (regionName) {
+    setSelectedRegionName(normalizeRegionName(regionName));
+    window.requestAnimationFrame(function () {
+      allDealersPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
   const [activeStatus, setActiveStatus] = useState(STATUSES[0].status);
   const [activeStatusGroup, setActiveStatusGroup] = useState(KPI_PROCESSING_GROUPS[0].key);
   const [processingDetailsScope, setProcessingDetailsScope] = useState(null);
@@ -534,7 +537,7 @@ export default function OrdersReportDashboardPage() {
   );
 
   const loadStatusReport = useCallback(async () => {
-    if (viewMode !== "operations" && (!dateFrom || !dateTo || dateFrom > dateTo)) {
+    if ((!dateFrom || !dateTo || dateFrom > dateTo)) {
       setError("Вкажіть коректний період звітності.");
       return;
     }
@@ -550,8 +553,8 @@ export default function OrdersReportDashboardPage() {
       const response = await axiosInstance.get("/order/get_orders_info_all/", {
         signal: controller.signal,
         params: {
-          date_from: viewMode === "operations" ? dateInput(new Date(Date.now() - 90 * 86400000)) : dateFrom,
-          date_to: viewMode === "operations" ? dateInput(new Date()) : dateTo,
+          date_from: dateFrom,
+          date_to: dateTo,
           ...((["kpi", "operations"].includes(viewMode) ? kpiScopeUserId : viewMode === "statuses" ? statusScopeUserId : "")
             ? { scope_user_id: ["kpi", "operations"].includes(viewMode) ? kpiScopeUserId : statusScopeUserId }
             : {}),
@@ -563,8 +566,7 @@ export default function OrdersReportDashboardPage() {
       const all = response.data?.data?.calculation || [];
       const period = inReportPeriod(all, dateFrom, dateTo);
       setCalculations(period);
-      const historyStart = dateInput(new Date(Date.now() - 90 * 86400000));
-      setOperationalCalculations(inReportPeriod(all, historyStart, dateInput(new Date())));
+      setOperationalCalculations(period);
       setProcessingGroupCalculations(Object.fromEntries(KPI_PROCESSING_GROUPS.map((group) => [group.key, period.filter((calc) => belongsToDealerGroup(calc, group.dealerGroup))])));
       setProcessingGroupsError("");
     } catch (requestError) {
@@ -1098,108 +1100,29 @@ export default function OrdersReportDashboardPage() {
               KPI за період
             </button>
             <button type="button" className={viewMode === "operations" ? "is-active" : ""} onClick={() => setViewMode("operations")}>
-              Доставки й затримки · 90 днів
+              Доставки й затримки
             </button>
           </div>
 
-          {viewMode !== "dealers" && isAdmin ? (
-            <label className="orders-dashboard__filter orders-dashboard__filter--dealer">
-              Дилер
-              <DealerSelectWithAll
-                value={dealerGuid || ALL_DEALERS_VALUE}
-                onChange={setDealerGuid}
-                extraOptions={
-                  canUseDealerGroups
-                    ? DEALER_GROUP_OPTIONS
-                    : []
-                }
-              />
-            </label>
-          ) : null}
-
-          {viewMode === "dealers" && isAdmin ? (
-            <label className="orders-dashboard__filter orders-dashboard__filter--dealer">
-              Тип дилерів / дилер
-              <DealerSelectWithAll
-                value={
-                  dealerReportGroup
-                    ? DEALER_GROUP_OPTIONS.find(function (item) {
-                        return DEALER_GROUP_TO_SQL_VALUE[item.value] === dealerReportGroup;
-                      })?.value || ALL_DEALERS_VALUE
-                    : dealerReportDealerGuid
-                }
-                onChange={function (value) {
-                  if (DEALER_GROUP_TO_SQL_VALUE[value]) {
-                    setDealerReportGroup(DEALER_GROUP_TO_SQL_VALUE[value]);
-                    setDealerReportDealerGuid(ALL_DEALERS_VALUE);
-                    return;
-                  }
-                  setDealerReportGroup("");
-                  setDealerReportDealerGuid(value);
-                }}
-                allLabel="Всі типи і дилери"
-                extraOptions={isSuperAdmin ? DEALER_GROUP_OPTIONS : []}
-              />
-            </label>
-          ) : null}
-
-          {viewMode === "dealers" && isSuperAdmin ? (
-            <label className="orders-dashboard__filter orders-dashboard__filter--manager">
-              Менеджер / регіональний менеджер
-              <select value={dealerReportScopeUserId} onChange={function (event) { setDealerReportScopeUserId(event.target.value); }}>
-                <option value="">Всі менеджери</option>
-                {activeManagerOptions.map(function (item) {
-                  return <option key={item.id} value={item.id}>{item.full_name || item.username} ({item.role === "region_manager" ? "регіональний" : "менеджер"})</option>;
-                })}
-              </select>
-            </label>
-          ) : null}
-
-          {viewMode === "statuses" && isSuperAdmin ? (
-            <label className="orders-dashboard__filter orders-dashboard__filter--manager">
-              Менеджер / регіональний менеджер
-              <select value={statusScopeUserId} onChange={function (event) { setStatusScopeUserId(event.target.value); }}>
-                <option value="">Всі менеджери</option>
-                {activeManagerOptions.map(function (item) {
-                  return <option key={item.id} value={item.id}>{item.full_name || item.username} ({item.role === "region_manager" ? "регіональний" : "менеджер"})</option>;
-                })}
-              </select>
-            </label>
-          ) : null}
-
-          {["kpi", "operations"].includes(viewMode) && isSuperAdmin ? (
-            <label className="orders-dashboard__filter orders-dashboard__filter--manager">
-              Менеджер / регіональний менеджер
-              <select value={kpiScopeUserId} onChange={function (event) { setKpiScopeUserId(event.target.value); }}>
-                <option value="">Всі менеджери</option>
-                {activeManagerOptions.map(function (item) {
-                  return <option key={item.id} value={item.id}>{item.full_name || item.username} ({item.role === "region_manager" ? "регіональний" : "менеджер"})</option>;
-                })}
-              </select>
-            </label>
-          ) : null}
-
-          {viewMode === "dealers" && !hideDealerRegions ? (
-            <label className="orders-dashboard__filter orders-dashboard__filter--region">
-              Область
-              <select value={selectedRegionName} onChange={function (event) { setSelectedRegionName(event.target.value); }}>
-                <option value={ALL_REGIONS_VALUE}>Всі області</option>
-                {regionOptions.map(function (item) {
-                  return <option key={item.value} value={item.value}>{item.label}</option>;
-                })}
-              </select>
-            </label>
-          ) : null}
-
-          {viewMode !== "operations" && <><label className="orders-dashboard__filter orders-dashboard__filter--date">
+          <label className="orders-dashboard__filter orders-dashboard__filter--date">
             Від
-            <input type="date" value={dateFrom} max={dateTo} onChange={function (event) { setDateFrom(event.target.value); }} />
+            <input type="date" value={dateFrom} max={dateTo} onChange={(event) => setDateFrom(event.target.value)} />
           </label>
           <label className="orders-dashboard__filter orders-dashboard__filter--date">
             До
-            <input type="date" value={dateTo} min={dateFrom} onChange={function (event) { setDateTo(event.target.value); }} />
-          </label></>}
-
+            <input type="date" value={dateTo} min={dateFrom} onChange={(event) => setDateTo(event.target.value)} />
+          </label>
+          {isAdmin && <label className="orders-dashboard__filter orders-dashboard__filter--dealer">
+            Дилер
+            <DealerSelectWithAll value={dealerGuid || ALL_DEALERS_VALUE} onChange={(value) => { setDealerGuid(value); setSelectedRegionName(ALL_REGIONS_VALUE); }} extraOptions={canUseDealerGroups ? DEALER_REPORT_GROUP_OPTIONS : []} />
+          </label>}
+          {isSuperAdmin && <label className="orders-dashboard__filter orders-dashboard__filter--manager">
+            Менеджер
+            <select value={reportScopeUserId} onChange={(event) => { setReportScopeUserId(event.target.value); setSelectedRegionName(ALL_REGIONS_VALUE); }}>
+              <option value="">Всі менеджери</option>
+              {activeManagerOptions.map((item) => <option key={item.id} value={item.id}>{item.full_name || item.username} ({item.role === "region_manager" ? "регіональний" : "менеджер"})</option>)}
+            </select>
+          </label>}
           <button
             type="button"
             onClick={function () {
@@ -1218,9 +1141,10 @@ export default function OrdersReportDashboardPage() {
           </button>
         </div>
 
+        {viewMode === "dealers" && <p className="operational-report-hint"><strong>Які замовлення враховано:</strong> без вибору групи — лише зі станом 1С «Подтверждено». Вони можуть бути у виробництві, готовими або відвантаженими — це окремі етапи виконання. При виборі групи «Дилери», «Філіали», «Експорт» або «Наша фірма» використовується ширший набір статусів, тому змінюються також правила підрахунку показників.</p>}
         {viewMode === "kpi" && <p className="operational-report-hint">KPI за датою заявки: {dateFrom} — {dateTo}. Фільтри періоду застосовуються до всіх показників цієї вкладки.</p>}
         {viewMode === "operations" ? (
-          <OperationalReport data={operationalCalculations} loading={loading} error={error} dealerGroup={appliedDealerGroup} dealerGuid={dealerGuid} />
+          <OperationalReport dateFrom={dateFrom} dateTo={dateTo} data={operationalCalculations} loading={loading} error={error} dealerGroup={appliedDealerGroup} dealerGuid={dealerGuid} />
         ) : viewMode === "statuses" ? (
           <>
             {error ? <p className="orders-dashboard__error">{error}</p> : null}
@@ -1686,7 +1610,7 @@ export default function OrdersReportDashboardPage() {
                       {regionChartData.length ? (
                         <ResponsiveContainer width="100%" height={320}>
                           <PieChart>
-                            <Pie data={regionChartData} dataKey="turnover" nameKey="name" cx="50%" cy="50%" outerRadius={110} innerRadius={56} paddingAngle={2}>
+                            <Pie data={regionChartData} dataKey="turnover" nameKey="name" cx="50%" cy="50%" outerRadius={110} innerRadius={56} paddingAngle={2} onClick={function (entry) { if (entry?.name) openRegionDealers(entry.name); }} style={{ cursor: "pointer" }}>
                               {regionChartData.map(function (entry, index) {
                                 return <Cell key={entry.name} fill={REGION_CHART_COLORS[index % REGION_CHART_COLORS.length]} />;
                               })}
@@ -1702,10 +1626,10 @@ export default function OrdersReportDashboardPage() {
                       <div className="orders-dashboard__chart-legend">
                         {regionChartData.map(function (item, index) {
                           return (
-                            <div key={item.name} className="orders-dashboard__legend-item">
+                            <button type="button" key={item.name} className="orders-dashboard__legend-item orders-dashboard__region-link" onClick={function () { openRegionDealers(item.name); }} aria-label={"Показати дилерів: " + item.name}>
                               <span className="orders-dashboard__legend-dot" style={{ backgroundColor: REGION_CHART_COLORS[index % REGION_CHART_COLORS.length] }}></span>
                               <span>{item.name}</span>
-                            </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -1776,7 +1700,7 @@ export default function OrdersReportDashboardPage() {
                             {activeRegions.length ? activeRegions.map(function (item) {
                               return (
                                 <tr key={item.region_name}>
-                                  <td>{normalizeRegionName(item.region_name) || "—"}</td>
+                                  <td><button type="button" className="dealer-reports-link" onClick={function () { openRegionDealers(item.region_name); }} aria-label={"Показати дилерів: " + normalizeRegionName(item.region_name)}>{normalizeRegionName(item.region_name) || "—"}</button></td>
                                   <td>{hasPositiveValue(item.dealers_count) ? formatNumber(item.dealers_count) : "—"}</td>
                                   <td>{hasPositiveValue(item.orders_count) ? formatNumber(item.orders_count) : "—"}</td>
                                   <td>{hasPositiveValue(item.avg_check) ? formatCurrency(item.avg_check) : "—"}</td>
@@ -1795,10 +1719,11 @@ export default function OrdersReportDashboardPage() {
                   ) : null}
                 </section>
 
-                <section className="dealer-reports-panel dealer-reports-panel--full orders-dashboard__all-dealers-panel">
+                <section ref={allDealersPanelRef} className="dealer-reports-panel dealer-reports-panel--full orders-dashboard__all-dealers-panel" style={{ scrollMarginTop: "100px" }}>
                   <div className="dealer-reports-panel__header">
-                    <h3>Всі дилери</h3>
-                    <span>Повний список доступних дилерів у вибраному періоді</span>
+                    <h3>{selectedRegionName === ALL_REGIONS_VALUE ? "Всі дилери" : "Дилери — " + selectedRegionName}</h3>
+                    <span>{selectedRegionName === ALL_REGIONS_VALUE ? "Повний список доступних дилерів у вибраному періоді" : "Лише дилери вибраної області"}</span>
+                    {selectedRegionName !== ALL_REGIONS_VALUE && <button type="button" className="dealer-reports-link" onClick={function () { setSelectedRegionName(ALL_REGIONS_VALUE); }}>Всі області</button>}
                   </div>
                   <div className="dealer-reports-table-wrap">
                     <table className="dealer-reports-table">
@@ -1863,3 +1788,8 @@ export default function OrdersReportDashboardPage() {
     </main>
   );
 }
+
+
+
+
+

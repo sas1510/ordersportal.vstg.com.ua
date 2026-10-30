@@ -265,3 +265,6 @@ body.dark-theme .dealer-reports-toolbar input {
     grid-template-columns: 1fr;
   }
 }
+/* Report controls remain readable and usable on narrow screens. */
+@media(max-width:700px){.dealer-reports-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dealer-reports-toolbar label{min-width:0;width:100%}.dealer-reports-toolbar input,.dealer-reports-toolbar select{font-size:16px;min-height:46px;max-width:100%;min-width:0;width:100%;box-sizing:border-box}.dealer-reports-toolbar>button{grid-column:1/-1;min-height:48px;justify-content:center;background:#123c6a;color:#fff;font-weight:800}.dealer-reports-hero h1{font-size:25px}.dealer-reports-panel__header{flex-wrap:wrap;gap:10px}.dealer-reports-table-wrap{max-width:100%;-webkit-overflow-scrolling:touch}.dealer-reports-table button{min-height:44px}.dealer-reports-grid>*{min-width:0}}
+body.dark-theme .dealer-reports-toolbar>button{background:#b7d7f7;color:#112f4c}

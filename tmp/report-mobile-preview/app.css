@@ -1,0 +1,655 @@
+/* src/pages/DealerReconciliationPage.css */
+.reconcile-page {
+  --rc-text:#17324d;
+  --rc-muted:#475569;
+  --rc-surface:#fff;
+  --rc-border:#cbd5e1;
+  --rc-soft:#eff6ff;
+  --rc-link:#174f9e;
+  max-width: 1550px;
+  min-width: 0;
+  margin: auto;
+  padding: 100px 24px 32px;
+  color: var(--rc-text);
+  box-sizing: border-box;
+}
+body.dark-theme .reconcile-page {
+  --rc-text:#f1f5f9;
+  --rc-muted:#cbd5e1;
+  --rc-surface:#253241;
+  --rc-border:#617084;
+  --rc-soft:#334155;
+  --rc-link:#bfdbfe;
+}
+.reconcile-page * {
+  box-sizing: border-box;
+}
+.reconcile-page h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 4px 0 12px;
+  overflow-wrap: anywhere;
+}
+.reconcile-page h2 {
+  font-size: 20px;
+  line-height: 1.35;
+  margin: 0 0 12px;
+}
+.reconcile-page h3,
+.reconcile-page h4 {
+  line-height: 1.4;
+}
+.reconcile-page p {
+  line-height: 1.6;
+}
+.reconcile-eyebrow {
+  color: var(--rc-link);
+  font-weight: 700;
+}
+.reconcile-panel {
+  min-width: 0;
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  border: 1px solid var(--rc-border);
+  border-radius: 14px;
+  padding: 20px;
+  margin: 18px 0;
+  box-shadow: 0 3px 14px #17324d08;
+}
+.reconcile-controls,
+.reconcile-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.reconcile-controls label {
+  display: flex;
+  flex: 1 1 175px;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.reconcile-page input,
+.reconcile-page select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--rc-border);
+  border-radius: 8px;
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  font-size: 16px;
+  color-scheme: light;
+}
+.reconcile-page input::placeholder {
+  color: var(--rc-muted);
+  opacity: 1;
+}
+body.dark-theme .reconcile-page input,
+body.dark-theme .reconcile-page select {
+  color-scheme: dark;
+}
+.reconcile-page button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 16px;
+  background: #174b82;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.35;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.reconcile-page button:hover {
+  background: #123b68;
+}
+.reconcile-page button:disabled {
+  background: #d5dde5;
+  color: #43556a;
+  cursor: wait;
+  opacity: 1;
+}
+.reconcile-page button:focus-visible,
+.reconcile-page summary:focus-visible,
+.reconcile-page input:focus-visible,
+.reconcile-page select:focus-visible {
+  outline: 3px solid #f5ad34;
+  outline-offset: 3px;
+}
+.reconcile-page .reconcile-generate {
+  flex: 0 0 auto;
+  min-height: 48px;
+  min-width: 190px;
+  background: #123c6a;
+  color: #fff;
+  border: 2px solid #123c6a;
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 3px 8px #123c6a28;
+}
+.reconcile-page .reconcile-generate:hover {
+  background: #082d54;
+}
+.reconcile-page .reconcile-generate:disabled {
+  background: #d5dde5;
+  border-color: #aebdcb;
+  color: #43556a;
+  box-shadow: none;
+}
+body.dark-theme .reconcile-page button {
+  background: #b7d7f7;
+  color: #112f4c;
+}
+body.dark-theme .reconcile-page button:hover {
+  background: #d7eaff;
+}
+body.dark-theme .reconcile-page .reconcile-generate {
+  background: #93c5fd;
+  border-color: #bfdbfe;
+  color: #102f4f;
+}
+body.dark-theme .reconcile-page button:disabled {
+  background: #46566a;
+  border-color: #64748b;
+  color: #e2e8f0;
+}
+.reconcile-toolbar {
+  align-items: center;
+  justify-content: flex-start;
+  margin: 16px 0;
+}
+.reconcile-toolbar > span {
+  flex: 1 1 100%;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--rc-muted);
+}
+.reconcile-scroll {
+  overflow: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+.reconcile-page table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.reconcile-page th,
+.reconcile-page td {
+  padding: 11px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--rc-border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.reconcile-page th {
+  background: var(--rc-soft);
+  color: var(--rc-text);
+  font-weight: 700;
+}
+.reconcile-page td:not(:first-child) {
+  font-variant-numeric: tabular-nums;
+}
+.reconcile-page tfoot {
+  font-weight: 700;
+  background: var(--rc-soft);
+}
+.reconcile-page .reconcile-link {
+  min-height: 44px;
+  background: transparent;
+  color: var(--rc-link);
+  padding: 3px 0;
+  text-align: left;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+.reconcile-page .reconcile-link:hover {
+  background: transparent;
+  color: var(--rc-text);
+}
+.reconcile-result-summary {
+  font-size: 17px;
+  line-height: 1.7;
+}
+.reconcile-stages {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0;
+}
+.reconcile-stages article {
+  border: 1px solid var(--rc-border);
+  border-radius: 12px;
+  padding: 17px;
+  background: var(--rc-soft);
+  min-width: 0;
+}
+.reconcile-stages h3 {
+  font-size: 15px;
+  min-height: 42px;
+  margin: 0 0 12px;
+}
+.reconcile-stages strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.reconcile-stages small {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rc-muted);
+  margin: 5px 0 12px;
+}
+.reconcile-stages article > span {
+  display: block;
+  font-size: 16px;
+}
+.reconcile-stages article > span b {
+  font-size: 21px;
+}
+.reconcile-comparison {
+  display: grid;
+  gap: 20px;
+  margin: 24px 0;
+}
+.reconcile-comparison > div > span {
+  font-size: 14px;
+}
+.reconcile-comparison > div > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 7px;
+  padding-right: 65px;
+}
+.reconcile-comparison i {
+  display: block;
+  height: 22px;
+  border-radius: 4px;
+  min-width: 0;
+}
+.reconcile-comparison b {
+  font-size: 14px;
+  white-space: nowrap;
+}
+.reconcile-new {
+  background: #2563eb;
+}
+.reconcile-linked {
+  background: #7c3aed;
+}
+.reconcile-confirmed {
+  background: #15803d;
+}
+.reconcile-error {
+  padding: 14px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+}
+.reconcile-page .reconcile-application-search {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+  font-size: 14px;
+  font-weight: 700;
+  max-width: 600px;
+}
+.reconcile-applications {
+  scroll-margin-top: 100px;
+}
+.reconcile-application {
+  border: 1px solid var(--rc-border);
+  border-radius: 12px;
+  margin: 12px 0;
+  background: var(--rc-surface);
+  overflow: hidden;
+}
+.reconcile-application summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+  min-height: 60px;
+  list-style: none;
+  background: var(--rc-soft);
+}
+.reconcile-application summary::-webkit-details-marker {
+  display: none;
+}
+.reconcile-application summary::after {
+  content: "\ff0b";
+  margin-left: auto;
+  font-size: 23px;
+  font-weight: 700;
+}
+.reconcile-application[open] summary::after {
+  content: "\2212";
+}
+.reconcile-application-title {
+  flex: 1 1 210px;
+  font-weight: 800;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.reconcile-application-title small {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--rc-muted);
+  margin-top: 4px;
+}
+.reconcile-document-state {
+  border: 1px solid var(--rc-border);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--rc-surface);
+  overflow-wrap: anywhere;
+}
+.reconcile-application-brief {
+  flex: 1 1 100%;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.reconcile-application-body {
+  padding: 16px;
+}
+.reconcile-application-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.reconcile-application-metrics > div {
+  padding: 12px;
+  border: 1px solid var(--rc-border);
+  border-radius: 9px;
+  background: var(--rc-soft);
+}
+.reconcile-application-metrics dt {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--rc-muted);
+}
+.reconcile-application-metrics dd {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 6px 0 0;
+}
+.reconcile-status-group {
+  margin: 20px 0;
+}
+.reconcile-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+.reconcile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: #0f172aaa;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.reconcile-dialog {
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  border: 1px solid var(--rc-border);
+  border-radius: 16px;
+  padding: 24px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+  width: min(100%, 1100px);
+}
+.reconcile-close {
+  float: right;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-left: 12px;
+}
+.reconcile-dialog p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 900px) {
+  .reconcile-page {
+    padding: 90px 16px 24px;
+  }
+  .reconcile-panel {
+    padding: 16px;
+  }
+  .reconcile-stages {
+    gap: 10px;
+  }
+  .reconcile-stages article {
+    padding: 12px;
+  }
+  .reconcile-application-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .reconcile-page {
+    padding: 78px 12px 24px;
+    width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .reconcile-page h1 {
+    font-size: 24px;
+  }
+  .reconcile-page h2 {
+    font-size: 19px;
+  }
+  .reconcile-panel {
+    padding: 14px;
+    margin: 14px 0;
+  }
+  .reconcile-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .reconcile-controls label {
+    width: 100%;
+    font-size: 13px;
+  }
+  .reconcile-controls label:nth-of-type(3),
+  .reconcile-controls > button {
+    grid-column: 1/-1;
+  }
+  .reconcile-page .reconcile-generate {
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+  }
+  .reconcile-controls:not(form) {
+    grid-template-columns: 1fr;
+  }
+  .reconcile-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .reconcile-toolbar > span,
+  .reconcile-toolbar > button:first-of-type {
+    grid-column: 1/-1;
+  }
+  .reconcile-toolbar > button {
+    width: 100%;
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+  .reconcile-stages {
+    grid-template-columns: 1fr;
+  }
+  .reconcile-stages article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 12px;
+    padding: 14px;
+  }
+  .reconcile-stages h3 {
+    grid-column: 1/-1;
+    min-height: 0;
+    margin: 0;
+    font-size: 15px;
+  }
+  .reconcile-stages strong {
+    font-size: 28px;
+  }
+  .reconcile-stages small {
+    margin-bottom: 0;
+  }
+  .reconcile-stages article > span {
+    align-self: center;
+  }
+  .reconcile-comparison > div > div {
+    padding-right: 52px;
+  }
+  .reconcile-application summary {
+    padding: 13px;
+    gap: 10px;
+  }
+  .reconcile-application-title {
+    flex-basis: calc(100% - 35px);
+    font-size: 15px;
+  }
+  .reconcile-application summary::after {
+    position: absolute;
+    right: 14px;
+    top: 10px;
+  }
+  .reconcile-application summary {
+    position: relative;
+  }
+  .reconcile-document-state {
+    max-width: 100%;
+    font-size: 12px;
+  }
+  .reconcile-application-brief {
+    font-size: 14px;
+  }
+  .reconcile-application-body {
+    padding: 12px;
+  }
+  .reconcile-overlay {
+    padding: 8px;
+  }
+  .reconcile-dialog {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    padding: 14px;
+    border-radius: 12px;
+  }
+  .reconcile-dialog h2 {
+    padding-right: 82px;
+    min-height: 44px;
+  }
+  .reconcile-close {
+    font-size: 13px !important;
+    padding: 9px 12px !important;
+  }
+  .reconcile-application-metrics {
+    gap: 8px;
+  }
+  .reconcile-application-metrics > div {
+    padding: 9px;
+  }
+  .reconcile-application-metrics dd {
+    font-size: 21px;
+  }
+  .reconcile-stack-table,
+  .reconcile-stack-table tbody,
+  .reconcile-stack-table tfoot {
+    display: block;
+    width: 100%;
+  }
+  .reconcile-stack-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .reconcile-stack-table tbody tr,
+  .reconcile-stack-table tfoot tr {
+    display: block;
+    margin: 10px 0;
+    border: 1px solid var(--rc-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--rc-surface);
+  }
+  .reconcile-stack-table td[data-label],
+  .reconcile-stack-table tfoot th[data-label] {
+    display: grid;
+    grid-template-columns: minmax(100px, .95fr) minmax(0, 1.05fr);
+    gap: 12px;
+    padding: 10px 12px;
+    text-align: right;
+    line-height: 1.5;
+    font-size: 14px;
+  }
+  .reconcile-stack-table td[data-label]::before,
+  .reconcile-stack-table tfoot th[data-label]::before {
+    content: attr(data-label);
+    text-align: left;
+    font-weight: 600;
+    color: var(--rc-muted);
+  }
+  .reconcile-stack-table td:first-child {
+    background: var(--rc-soft);
+    font-weight: 800;
+  }
+  .reconcile-stack-table td:last-child,
+  .reconcile-stack-table tfoot th:last-child {
+    border-bottom: 0;
+  }
+  .reconcile-stack-table .reconcile-link {
+    min-height: 24px;
+    text-align: right;
+    font-size: 14px;
+    padding: 0;
+  }
+  .reconcile-stack-table tfoot th {
+    background: var(--rc-soft);
+  }
+  .reconcile-pagination button {
+    min-width: 80px;
+  }
+  .reconcile-scroll:has(> .reconcile-stack-table) {
+    overflow: visible;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reconcile-page * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

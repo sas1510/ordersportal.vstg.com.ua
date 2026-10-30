@@ -46,15 +46,15 @@ def classify_dealer(folder, region, region_parent):
 def normalized_contractor(value):
     if isinstance(value, (bytes, bytearray, memoryview)):
         value = bin_to_guid_1c(bytes(value))
+    if isinstance(value, str) and value.upper().startswith('0X') and len(value)==34:
+        value = bin_to_guid_1c(bytes.fromhex(value[2:]))
     try:
         return str(UUID(str(value)))
     except (ValueError, TypeError, AttributeError):
         return None
 
 
-def filter_report_dealer_group(rows, group, contractor_field):
-    if not group or not rows:
-        return rows
+def dealer_group_map(rows, contractor_field):
     ids = sorted({guid for row in rows if (guid := normalized_contractor(row.get(contractor_field)))})
     classes = {}
     with connection.cursor() as cursor:
@@ -70,6 +70,13 @@ def filter_report_dealer_group(rows, group, contractor_field):
                 WHERE C.Ссылка IN ({placeholders})''', [guid_to_1c_bin(value) for value in chunk])
             for row in cursor.fetchall():
                 classes[normalized_contractor(row[0])] = classify_dealer(*row[1:4])
+    return classes
+
+
+def filter_report_dealer_group(rows, group, contractor_field):
+    if not group or not rows:
+        return rows
+    classes = dealer_group_map(rows, contractor_field)
     return [row for row in rows if (guid := normalized_contractor(row.get(contractor_field)))
             and classes.get(guid, 'Інше') == group]
 

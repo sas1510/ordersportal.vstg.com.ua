@@ -3197,7 +3197,7 @@ def orders_view_all_by_month(request):
                     related_object_id__in=calc_bins,
                     is_notification=False,
                 )
-                .order_by("-id")
+                .order_by("-timestamp", "-id")
                 .values(
                     "related_object_id",
                     "text",

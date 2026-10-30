@@ -2526,3 +2526,6 @@ body.dark-theme .batch-payment-sticky-anchor {
 .batch-payment-summary-row strong {
   font-size: inherit;
 }
+
+.pp-status-label{display:flex;flex-direction:column;align-items:center;gap:3px}
+.pp-shipment-date{font-size:13px;line-height:1.25;font-weight:500;color:inherit}
