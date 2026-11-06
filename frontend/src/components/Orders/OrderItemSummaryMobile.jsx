@@ -478,6 +478,7 @@ export default React.memo(function OrderItemSummaryMobile({
               )}
               <div className="text-[10px] text-WS---DarkGrey">
                  {formatDateHumanShorter_full(order.date, locale)}
+
               </div>
             </div>
           </div>
@@ -538,6 +539,7 @@ export default React.memo(function OrderItemSummaryMobile({
     <span className={"icon-info-with-circle font-size-24 mr-2 shrink-0 order-status-icon " + getStatusClass(order.status)}></span>
     <div className="flex flex-col">
       <div className={"font-size-14 leading-tight order-status-text " + getStatusClass(order.status)}>{translatedStatus}</div>
+      {order.status === "Для прорахунку" && order.authorName && <div className="text-[11px]" title="Автор замовлення">Автор: {order.authorName}</div>}
       {readyDeliveryTimeDisplay && (
         <div className="text-[9px] text-grey leading-tight mt-0.5">{readyDeliveryTimeDisplay}</div>
       )}

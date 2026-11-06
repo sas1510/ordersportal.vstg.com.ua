@@ -1,3 +1,4 @@
+import { FaSearch } from "react-icons/fa";
 import { useState } from "react";
 import OrderMonthPicker from "./OrderMonthPicker";
 import { orderMonthPeriod } from "../../utils/orderReportPeriod";
@@ -7,7 +8,7 @@ export default function ServiceOrderDateFilter({ year, month, years, counts, all
   const initial = period || orderMonthPeriod(year, month || new Date().getMonth() + 1);
   const [from, setFrom] = useState(initial.dateFrom);
   const [to, setTo] = useState(initial.dateTo);
-  return <div className="row" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+  return <div className="row service-order-date-filter" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
     <div className="date-filter-mode-switch row">
       <button type="button" className={`date-filter-mode-button ${mode === "month" ? "active" : ""}`} onClick={() => setMode("month")}>Місяць</button>
       <button type="button" className={`date-filter-mode-button ${mode === "period" ? "active" : ""}`} onClick={() => setMode("period")}>Період</button>
@@ -18,7 +19,7 @@ export default function ServiceOrderDateFilter({ year, month, years, counts, all
     }}>
       <label>З <input className="year-select-minimal" type="date" required value={from} max={to || undefined} onChange={event => setFrom(event.target.value)} /></label>
       <label>По <input className="year-select-minimal" type="date" required value={to} min={from || undefined} onChange={event => setTo(event.target.value)} /></label>
-      <button type="submit" className="date-filter-search-button" disabled={!from || !to || from > to}>Пошук</button>
+      <button type="submit" className="date-filter-search-button" aria-label="Пошук" title="Пошук" disabled={!from || !to || from > to}><FaSearch className="date-filter-search-icon" /><span className="date-filter-search-text">Пошук</span></button>
     </form>}
   </div>;
 }

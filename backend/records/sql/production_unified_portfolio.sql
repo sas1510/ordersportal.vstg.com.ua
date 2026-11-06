@@ -444,6 +444,26 @@ DECLARE @NextEndDate DATE = DATEADD(DAY, 1, @EndDate);
         ON #OrdersFinal(PeriodSort);
     CREATE NONCLUSTERED INDEX IX_OrdersFinal_ABC
         ON #OrdersFinal(ABC);
+    -- Categories use the same ABC calculation-period scope as the top KPI.
+    DROP TABLE IF EXISTS #CategoryOrders;
+    SELECT ZP.Ссылка AS OrderID, ZP.Номер AS OrderNumber,
+           LEFT(ZP.Номер, 2) AS OrderPrefix, ZP.БВ_СложностьПродукции
+    INTO #CategoryOrders
+    FROM #BaseOrderSource S
+    INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document381] Z ON Z._IDRRef = S.OrderID
+    INNER JOIN [WST\WST].[oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] ZP ON ZP.Ссылка = S.OrderID
+    INNER JOIN [WST\WST].[oknastyle_biV2].[dbo].[Справочники.БВ_СостоянияЗаказов] OS ON OS.Ссылка = ZP.БВ_СостояниеЗаказа
+    WHERE Z._Marked = 0x00
+      AND OS.Наименование = N'Подтверждено' AND TRY_CAST(OS.Код AS INT) >= 2
+      AND LEFT(ZP.Номер, 3) IN (N'15-', N'01-', N'02-', N'22-', N'45-', N'55-', N'56-', N'65-')
+      AND EXISTS (
+        SELECT 1 FROM [WST\WST].[oknastyle_biV2].[dbo].[РегистрыСведений.ГМ_ИсторияРасчетаДатыПроизводства] HH
+        WHERE HH.ЗаказПокупателя = S.OrderID
+          AND HH.Период >= @StartDate AND HH.Период < @NextEndDate
+          AND HH.Расшифровка LIKE N'%ИТОГО ABC%'
+      )
+    OPTION (RECOMPILE);
+    CREATE UNIQUE CLUSTERED INDEX IX_CategoryOrders_OrderID ON #CategoryOrders(OrderID);
     SELECT
         OFN.OrderID,
         OFN.OrderNumber,
@@ -586,7 +606,7 @@ DECLARE @NextEndDate DATE = DATEADD(DAY, 1, @EndDate);
             N'алюмінієві'
         ) AS Складність_UA
     INTO #OrderItems
-    FROM #OrdersFinal AS OFN
+    FROM #CategoryOrders AS OFN
     INNER JOIN
         [WST\WST].[oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары]
         AS ZPT WITH (NOLOCK)
@@ -1089,3 +1109,5 @@ DECLARE @NextEndDate DATE = DATEADD(DAY, 1, @EndDate);
     DROP TABLE IF EXISTS #Sales;
     DROP TABLE IF EXISTS #OrdersFinal;
     DROP TABLE IF EXISTS #OrderItems;
+
+DROP TABLE IF EXISTS #CategoryOrders;

@@ -99,17 +99,14 @@ BEGIN
         CASE WHEN YEAR(D._Date_Time) < 3753 THEN D._Date_Time
              ELSE DATEADD(YEAR, -2000, D._Date_Time) END AS OrderDate,
         D._Fld6187RRef AS ContractorID, D._Fld6216 AS ConstructionsCount,
-        CAST(NULL AS binary(16)) AS ApplicationID
+        CAST(NULL AS binary(16)) AS ApplicationID,
+        BZ.БВ_Автор AS OrderAuthorID
     INTO #InternalOrders
     FROM [WST\WST].[oknastyle].[dbo].[_Document381] D
+    LEFT JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] BZ ON BZ.Ссылка = D._IDRRef
     WHERE D._Marked = 0x00
       AND D._Fld6187RRef = @LocalContractor
       AND D._Fld6191RRef = 0xA88A001B214EEE7A11E15373F04D8182
-      AND NOT EXISTS (
-          SELECT 1 FROM [oknastyle_biV2].[dbo].[Справочники.БВ_СостоянияЗаказов] ExcludedState
-          WHERE ExcludedState.Ссылка = D._Fld6252RRef
-            AND ExcludedState.Наименование = N'Для просчета'
-      )
       AND (D._Number LIKE N'15-%' OR D._Number LIKE N'01-%' OR D._Number LIKE N'02-%' OR D._Number LIKE N'04-%' OR D._Number LIKE N'22-%' OR D._Number LIKE N'34-%' OR D._Number LIKE N'45-%' OR D._Number LIKE N'55-%' OR D._Number LIKE N'56-%' OR D._Number LIKE N'65-%' OR D._Number LIKE N'90-%')
       AND ((D._Date_Time >= @RawStartDate AND D._Date_Time < @RawEndDate)
         OR (D._Date_Time >= @ShiftedStartDate AND D._Date_Time < @ShiftedEndDate))
@@ -144,7 +141,7 @@ BEGIN
         CAST('' AS nvarchar(max)) AS CalcComment,
         ConstructionsCount AS CalcConstructionsCount,
         CAST(NULL AS binary(16)) AS CalcState,
-        CAST(NULL AS binary(16)) AS Автор,
+        OrderAuthorID AS Автор,
         CAST('' AS nvarchar(255)) AS Получатель,
         CAST('' AS nvarchar(50)) AS ТелефонПолучателя,
         CAST('' AS nvarchar(max)) AS [Дополнительно]

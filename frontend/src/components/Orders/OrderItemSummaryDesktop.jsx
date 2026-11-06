@@ -654,6 +654,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             />
             <div className="flex flex-col">
               <div className={"text-[12px] order-status-text " + getStatusClass(order?.status)}>{translatedStatus}</div>
+              {order.status === "Для прорахунку" && order.authorName && <div className="text-[11px]" title="Автор замовлення">Автор: {order.authorName}</div>}
               {readyDeliveryTimeDisplay && (
                 <div className="text-[9px] text-grey leading-tight mt-0.5">{readyDeliveryTimeDisplay}</div>
               )}

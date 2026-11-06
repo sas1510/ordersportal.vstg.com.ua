@@ -57,10 +57,10 @@ export default function OrderMonthPicker({ year, month, years, counts, allowYear
         }
         setOpen(!open);
       }}>{label} <span aria-hidden="true">▾</span></button>
-    <button type="button" className="date-filter-search-button" onClick={() => {
+    <button type="button" className="date-filter-search-button" aria-label="Пошук" title="Пошук" onClick={() => {
       setOpen(false);
       onSelect(draft.year, draft.month);
-    }}><FaSearch className="date-filter-search-icon" />{t("portal_calc.ui.search", { defaultValue: "Пошук" })}</button>
+    }}><FaSearch className="date-filter-search-icon" /><span className="date-filter-search-text">{t("portal_calc.ui.search", { defaultValue: "Пошук" })}</span></button>
     {open && createPortal(<div ref={popup} className="order-month-picker__popup" style={position} aria-label="Вибір місяця">
       <div className="order-month-picker__grid">
         {months.map((name, index) => {

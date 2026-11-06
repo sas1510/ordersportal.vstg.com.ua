@@ -1,3 +1,4 @@
+import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import OrderMonthPicker, { OrderFilterYear } from "../components/Orders/OrderMonthPicker";
 import React, {
@@ -40,6 +41,8 @@ const getLocalDateString = (dateValue = new Date()) => {
 };
 
 const PortalOriginal = () => {
+  const { role } = useAuthGetRole();
+  const isInternalDealer = role === "internal_dealer";
   const { register, cancelAll } = useCancelAllRequests();
   const { t, i18n } = useTranslation();
 
@@ -689,14 +692,14 @@ const PortalOriginal = () => {
       }
 
       orders.forEach((order) => {
-        if (summary[order.status] !== undefined && (order.status !== "Для прорахунку" || (calc.isOrderOnly && !order.applicationGuid))) {
+        if (summary[order.status] !== undefined && (order.status !== "Для прорахунку" || isInternalDealer)) {
           summary[order.status] += 1;
         }
       });
     });
 
     return summary;
-  }, [calculationsData]);
+  }, [calculationsData, isInternalDealer]);
 
   const monthSummary = useMemo(() => {
     const summary = {};
@@ -744,7 +747,7 @@ const PortalOriginal = () => {
           }
 
           return orders.some(
-            (order) => order.status === statusValue && (statusValue !== "Для прорахунку" || (calc.isOrderOnly && !order.applicationGuid)),
+            (order) => order.status === statusValue && (statusValue !== "Для прорахунку" || isInternalDealer),
           );
         });
       }
@@ -801,7 +804,7 @@ const PortalOriginal = () => {
 
       return items;
     },
-    [sortedCalculations, appliedDateFilter.mode],
+    [sortedCalculations, appliedDateFilter.mode, isInternalDealer],
   );
 
   const fullFiltered = useMemo(() => {
@@ -931,6 +934,12 @@ const PortalOriginal = () => {
         icon: allCalcIcon,
         statusKey: "Всі",
       },
+      ...(isInternalDealer ? [{
+        id: "for-calculation",
+        label: "Для прорахунку",
+        icon: newCalcIcon,
+        statusKey: "Для прорахунку",
+      }] : []),
       {
         id: "new",
         label: t("portal_calc.filter_labels.new"),
@@ -992,6 +1001,7 @@ const PortalOriginal = () => {
     ],
     [
       t,
+      isInternalDealer,
       allCalcIcon,
       newCalcIcon,
       waitingForConfirmIcon,

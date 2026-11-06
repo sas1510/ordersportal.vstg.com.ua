@@ -1064,6 +1064,8 @@ def get_orders_by_period_and_contractor(
             "id": row.get("OrderID"),
             "idGuid": order_id_guid,
             "applicationGuid": row.get("ApplicationID_GUID") if internal_dealer else calc_id,
+            "authorName": (row.get("CalcAuthorName") or "") if internal_dealer else "",
+            "authorGuid": (row.get("CalcAuthor_GUID") or "") if internal_dealer else "",
             "number": order_number or "",
             "linkedOrderNumber": row.get("LinkedOrderNumber") or None,
             "dateRaw": order_date,

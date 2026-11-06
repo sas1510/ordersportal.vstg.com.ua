@@ -70,6 +70,8 @@ const CATEGORY_MAPPING = {
   "Міжкімнатні двері": "Двері",
   "Технічні двері ПВХ": "Двері",
   "Двері Lampre": "Двері",
+  ВходнаяДверь: "Двері",
+  "Вхідні двері": "Двері",
   Лиштва: "Додатки",
   "Москітні сітки": "Додатки",
   Підвіконня: "Додатки",
@@ -1196,8 +1198,12 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
     const groups = {};
 
     constructionPortfolio.forEach((item) => {
-      const category =
-        CATEGORY_MAPPING[item.construction_type_name_ua?.trim()] || "Додатки";
+      const type = item.construction_type_name_ua?.trim();
+      const isUnspecifiedConstruction = (!CATEGORY_MAPPING[type] || type === "Інше") && /м\/п конструкц/i.test(item.item_name_ua || "");
+      const category = isUnspecifiedConstruction
+        ? /двер/i.test(`${type || ""} ${item.complexity_ua || ""}`) ? "Двері"
+          : /вік|окн/i.test(`${type || ""} ${item.complexity_ua || ""}`) ? "Вікна" : "Інші конструкції"
+        : CATEGORY_MAPPING[type] || "Додатки";
 
       if (!groups[category]) {
         groups[category] = {
@@ -1564,6 +1570,11 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
           <article className="production-design__panel production-design__panel--profile-donut">
             <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Portfolio by category</div><h2 className="uppercase font-bold">{t("production_statistics.categories")}</h2></div></div>
             {constructionDonutData.length ? <ComplexityDonut data={constructionDonutData}
+    centerLabel="Всього за період"
+    innerRadius="24%"
+    outerRadius="44%"
+    labelFormatter={(params) => `{name|${params.name}}\n{val|${formatNumber(params.value)} шт.}\n{val|${Number(params.percent || 0).toFixed(1)}%}`}
+
     colors={[
         "#B4D947",
         "#ED8B33",
