@@ -3,6 +3,7 @@ import uuid
 import logging
 from .measurement_notifications import record_measurement_notification
 from .measurement_alerts import report_measurement_failure
+from .measurement_activity import report_measurement_attempt, report_measurement_success
 from utils.portal_error_alerts import enqueue_alert
 logger = logging.getLogger(__name__)
 from rest_framework.exceptions import APIException
@@ -29,10 +30,18 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
     permission_classes = [IsAuthenticated]
     create_serializer_class = MeasurementOrderSerializer
 
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        try:
+            report_measurement_attempt(request)
+        except Exception:
+            logger.warning('Measurement attempt alert could not be queued')
+
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
         try:
             report_measurement_failure(request, response)
+            report_measurement_success(request, response)
         except Exception:
             logger.warning('Measurement failure alert could not be queued')
         return response
@@ -55,6 +64,10 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
         # Keep independent callers from sharing cached responses with each other.
         return str(uuid.uuid5(uuid.NAMESPACE_URL, f'measurement-order:{self.get_one_c_url()}:{request.user.pk}:{key}'))
 
+    def resolve_creation_contractor(self, request):
+        contractor = request.user.user_id_1C
+        return (contractor, bin_to_guid_1c(contractor)) if contractor else (None, None)
+
     def _send_to_1c(self, payload):
         for calculation in payload.get('calculations', []):
             calculation.setdefault('orders', [])
@@ -68,7 +81,7 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
 
     @extend_schema(
         summary='Створення заявки із замірника (PDF)',
-        description='X-API-KEY інтеграції з MEASUREMENT_API_KEY та Idempotency-Key (UUID) обов’язкові. user_id — внутрішній ID дилера з portal_db.dbo.User. PDF до 20 МіБ; до 10 фото по 10 МіБ. Створює прорахунок у 1С.',
+        description='X-API-KEY інтеграції з MEASUREMENT_API_KEY та Idempotency-Key (UUID) обов’язкові. user_id — необов’язковий внутрішній ID дилера з portal_db.dbo.User. PDF необов’язковий, до 20 МіБ; до 10 фото по 10 МіБ. audio — один файл або до 10 голосових по 30 МіБ. Створює прорахунок у 1С.',
         request=MeasurementOrderSerializer,
         responses={201: dict, 400: dict, 401: dict, 403: dict, 409: dict, 502: dict},
         tags=['measurement'],
@@ -80,20 +93,21 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
         response = super().create(request)
         if response.status_code in (200, 201) and response.data.get('success'):
             calculation_guid = response.data.get('calculation_guid') or extract_calculation_guid(response.data.get('result_1c') or {})
-            if calculation_guid:
+            contractor = request.user.user_id_1C
+            if calculation_guid and contractor:
                 try:
                     record_measurement_notification(request, calculation_guid, self.get_idempotency_key(request))
                 except Exception as exc:
                     # Creation in 1C succeeded: Telegram must not turn it into a failed order.
                     logger.error('Measurement Telegram outbox failed: calculation=%s error_type=%s', calculation_guid, type(exc).__name__)
-            else:
+            elif not calculation_guid:
                 enqueue_alert('🚨 Заявка із замірника: 1С повернула успіх без GUID документа.\nКористувач ID: ' + str(request.user.pk))
 
             return Response({
                 'success': True,
                 'calculation_guid': response.data.get('calculation_guid') or extract_calculation_guid(response.data.get('result_1c') or {}),
                 'portal_user_id': request.user.pk,
-                'contractor_guid': bin_to_guid_1c(request.user.user_id_1C),
+                'contractor_guid': bin_to_guid_1c(contractor) if contractor else None,
             }, status=response.status_code)
         # Don't expose files/Base64 from a failed upstream request.
         if isinstance(response.data, dict):

@@ -10,14 +10,15 @@ from django.core.validators import validate_email
 from django.utils import timezone
 from rest_framework import serializers
 from users.models import CustomUser
+from users.dealer_preview import DealerPreviewAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from users.internal_dealer import PortalJWTAuthentication as JWTAuthentication
 
 
 class ZamirTicketView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [DealerPreviewAuthentication, JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def finalize_response(self, request, response, *args, **kwargs):
@@ -28,10 +29,13 @@ class ZamirTicketView(APIView):
 
     def dealer_access_error(self, user):
         if not user.is_active or str(user.role or '').strip().lower() not in {
-            'admin', 'dealer', 'customer', 'manager', 'region_manager',
+            'admin', 'dealer', 'customer', 'internal_dealer', 'manager', 'region_manager',
             'regionalmanager', 'branch_manager', 'branches_director',
         }:
             return Response({'detail': 'У вас немає доступу до замірника.'}, status=403)
+        from users.internal_dealer import internal_dealer_is_readonly
+        if internal_dealer_is_readonly(user):
+            return Response({"detail": "Read-only access"}, status=403)
         expires = user.expire_date
         if expires:
             if timezone.is_naive(expires):

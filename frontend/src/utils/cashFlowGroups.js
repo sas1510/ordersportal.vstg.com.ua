@@ -3,7 +3,15 @@ const number = (value) => Number.isFinite(Number(value)) ? Number(value) : 0;
 const hasNumber = (value) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
 export const isRealization = (item) => ['Реалізація', 'РеализацияТоваровУслуг'].includes(item.DocumentType);
 
-export const isMainContract = (name) => /^основн(?:ой|ий)(?:\s|$)/iu.test(String(name || '').trim());
+export const isMainContract = (value) => {
+  if (value && typeof value === "object") {
+    if (value.ContractKind === "main" || value.ContractKind === "advance") {
+      return value.ContractKind === "main";
+    }
+    value = value.FinalDogovorName;
+  }
+  return /^основн(?:ой|ий)(?:\s|$)/iu.test(String(value || "").trim());
+};
 export const isOrderAllocation = (item) => ['ППВход', 'ПКО'].includes(item.DocumentType) && Boolean(String(item.OrderNumber || item.DealNumber || '').trim());
 
 export function buildCashFlowGroups(items, { allocationView = false, unknownDate = 'Невідома дата', noContract = 'Без договору' } = {}) {
@@ -13,8 +21,8 @@ export function buildCashFlowGroups(items, { allocationView = false, unknownDate
     String(a.RegistrarId || '').localeCompare(String(b.RegistrarId || '')) ||
     number(a.LineNumber) - number(b.LineNumber));
   for (const item of sorted) {
-    const hideContractAmounts = allocationView && isMainContract(item.FinalDogovorName);
-    if (allocationView && (isRealization(item) || (hideContractAmounts && !isOrderAllocation(item)))) continue;
+    const hideContractAmounts = allocationView && isMainContract(item);
+    if (allocationView && isRealization(item)) continue;
     const date = item.Date?.split(/[T ]/)[0] || unknownDate;
     const name = item.FinalDogovorName || noContract;
     const currency = item.Currency_2 || 'грн';
@@ -31,7 +39,13 @@ export function buildCashFlowGroups(items, { allocationView = false, unknownDate
     const document = group.documentGroups[docKey];
     document.items.push(item);
     document.lastCumSaldo = number(item.CumSaldo);
-    if (hideContractAmounts) continue; // Keep order allocation cards, omit main-contract totals/badges.
+    if (hideContractAmounts) {
+      // Main-contract cash stays visible per document, without balance/summary badges.
+      const amount = Math.abs(number(item.DeltaRow));
+      if (item.FlowDirection === 'Прихід') document.totalIncome += amount;
+      else document.totalExpense += amount;
+      continue;
+    }
     if (!group.contractSummary[contractKey]) {
       group.contractSummary[contractKey] = { contractName: name, income: 0, expense: 0,
         realized: 0, lastCumSaldo: 0, currency };

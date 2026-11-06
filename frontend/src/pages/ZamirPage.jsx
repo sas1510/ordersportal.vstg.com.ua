@@ -1,12 +1,21 @@
+import { useSearchParams } from 'react-router-dom';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import axiosInstance from '../api/axios';
+import axiosInstance, { dealerPreviewToken } from '../api/axios';
 import { useAuthGetRole } from '../hooks/useAuthGetRole';
 import { isZamirLoginRequest, sendZamirLogout, updateZamirFrameRef, ZAMIR_ORIGIN } from '../integrations/zamir';
 import './ZamirPage.css';
 
 export default function ZamirPage() {
   const { isAdmin, isDealer, isManager } = useAuthGetRole();
+  const delegated = Boolean(dealerPreviewToken());
   const canUseZamir = isAdmin || isDealer || isManager;
+  const [linkParams] = useSearchParams();
+  const requestedId = linkParams.get('request_id') || '';
+  const requestedDealer = linkParams.get('dealer_id') || '';
+  const validRequest = /^[1-9]\d*$/.test(requestedId);
+  const frameUrl = validRequest
+    ? `${ZAMIR_ORIGIN}/requests/${encodeURIComponent(requestedId)}${/^[1-9]\d*$/.test(requestedDealer) ? `?portal_user_id=${encodeURIComponent(requestedDealer)}` : ''}`
+    : `${ZAMIR_ORIGIN}/`;
   const frameRef = useRef(null);
   const setFrameRef = useCallback((node) => updateZamirFrameRef(frameRef, node), []);
   const pageRef = useRef(null);
@@ -142,7 +151,8 @@ export default function ZamirPage() {
     {error && <div role="alert" className="zamir-error">{error}
       <button type="button" onClick={() => { setError(''); setRetry((value) => value + 1); }}>Спробувати ще раз</button>
     </div>}
-    {profile?.email_required && <div className="zamir-email-panel">
+    {profile?.email_required && delegated && <p role="alert" className="zamir-profile-loading">Дилеру потрібно підтвердити свою пошту для входу в замірник.</p>}
+    {profile?.email_required && !delegated && <div className="zamir-email-panel">
       <form onSubmit={saveEmail} aria-labelledby="zamir-email-title">
         <span className="zamir-email-eyebrow">Перший вхід у замірник</span>
         <div className="zamir-email-heading">
@@ -159,7 +169,7 @@ export default function ZamirPage() {
       </form>
     </div>}
     {!profile && !error && <p className="zamir-profile-loading">Перевірка профілю…</p>}
-    {profile && !profile.email_required && <iframe key={retry} ref={setFrameRef} src={`${ZAMIR_ORIGIN}/`} title="Замірник Вікна Стиль"
-      allow="camera; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" />}
+    {profile && !profile.email_required && <iframe key={retry} ref={setFrameRef} src={frameUrl} title="Замірник Вікна Стиль"
+      allow="camera; microphone; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" />}
   </section>;
 }

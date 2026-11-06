@@ -22,6 +22,20 @@ import "./hooks/i18n";
 
 import { ThemeProvider } from "./context/ThemeProvider";
 
+// A tab opened before deployment can still request chunks from the old build.
+window.addEventListener("vite:preloadError", (event) => {
+  const key = `portal-chunk-retry:${window.location.pathname}`;
+  try {
+    const lastRetry = Number(sessionStorage.getItem(key) || 0);
+    if (Date.now() - lastRetry < 60_000) return;
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    return;
+  }
+  event.preventDefault();
+  window.location.reload();
+});
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ApplicationBoundary>

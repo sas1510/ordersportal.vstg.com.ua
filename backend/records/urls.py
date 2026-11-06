@@ -1,10 +1,11 @@
+from .measurement_order_target import measurement_order_target
 from .settlement_views import delivery_settlements
 # api/urls.py
 
 from django.urls import path
 from .pdf_comparison import extract_pdf_amount
 from .measurement_orders import MeasurementOrderViewSet
-from .measurement_test_view import MeasurementTestView
+from .measurement_test_view import AudioCalculationTestView, MeasurementTestView
 from .zamir_sso import ZamirTicketView, ZamirProfileView
 from .deliveries_pdf import deliveries_pdf
 from .dealer_reconciliation_views import dealer_reconciliation
@@ -30,10 +31,12 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 
 urlpatterns = [
+    path("order/measurement-target/", measurement_order_target),
     path("delivery-settlements/", delivery_settlements),
     path('dealer-reconciliation/', dealer_reconciliation, name='dealer-reconciliation'),
     path('zamir/profile/', ZamirProfileView.as_view(), name='zamir-profile'),
     path('zamir/ticket/', ZamirTicketView.as_view(), name='zamir-ticket'),
+    path('integrations/measurement/audio-test/', AudioCalculationTestView.as_view()),
     path('integrations/measurement/test/', MeasurementTestView.as_view(), name='measurement-test'),
     path('integrations/measurement/orders/', MeasurementOrderViewSet.as_view({'post': 'create'}), name='measurement-create-order'),
     path("announcements/", announcements, name="announcements"),

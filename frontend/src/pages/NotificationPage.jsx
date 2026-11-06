@@ -1,3 +1,4 @@
+import { dealerPreviewToken } from "../api/axios";
 import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -118,7 +119,7 @@ const NotificationDrawer = ({
   };
 
   const handleNavigation = async (notification) => {
-    if (!notification.isRead) {
+    if (!notification.isRead && !dealerPreviewToken()) {
       try {
         await axiosInstance.patch(
           `/notifications/${notification.id}/mark-read/`,
@@ -344,7 +345,7 @@ const NotificationDrawer = ({
               onClick={handleMarkAllRead}
               className="btn-mark-read"
               title={t("notifications.mark_all_read")}
-              disabled={unreadCount === 0}
+              disabled={unreadCount === 0 || Boolean(dealerPreviewToken())}
             >
               <FaCheckDouble size={14} />
             </button>

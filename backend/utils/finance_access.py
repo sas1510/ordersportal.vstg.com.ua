@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from backend.utils.logging_setup import logger
 
 
-FINANCE_RESTRICTED_ROLES = {"dealer", "customer"}
+FINANCE_RESTRICTED_ROLES = {"dealer", "customer", "internal_dealer"}
 
 
 def finance_access_denied_response(request):

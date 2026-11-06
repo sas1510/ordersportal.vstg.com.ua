@@ -658,3 +658,174 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
   background: #c2ccd4;
   color: #485762;
 }
+
+
+.order-grid.order-grid--readonly {
+  grid-template-columns: 30px minmax(133px, 1.5fr) minmax(70px, .8fr) minmax(70px, .8fr) minmax(125px, 1.4fr) minmax(125px, 1.4fr) minmax(130px, 1.5fr) 70px;
+}
+.order-grid--readonly > * { min-width: 0; }
+.calc-item-aligned .order-grid.order-grid--readonly {
+  grid-template-columns:
+    30px 165px minmax(70px, 0.8fr) minmax(70px, 0.8fr)
+    minmax(125px, 1.4fr) minmax(125px, 1.4fr) minmax(240px, 2.2fr) 70px;
+}
+.calc-item-aligned .order-grid--readonly > * {
+  min-width: 0;
+}
+
+
+.calc-item-aligned .order-grid.order-grid--readonly {
+  align-items: stretch;
+}
+.calc-item-aligned .order-grid--readonly > .summary-item {
+  justify-content: center !important;
+  align-items: center;
+  text-align: center;
+  padding-inline: 8px;
+}
+.calc-item-aligned .order-grid--readonly .order-summary-date-block > .column {
+  align-items: center;
+}
+.calc-item-aligned .order-grid--readonly .order-summary-date-block .text-start {
+  text-align: center;
+}
+.calc-item-aligned .order-grid--readonly .order-status-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Compact desktop summaries: centered totals and full-height status. */
+.calc-item-aligned > .item-summary { align-items: stretch; }
+.calc-item-aligned > .item-summary > .calc-metric { justify-content: center; align-items: center; text-align: center; }
+.calc-item-aligned .calc-metric .calc-orders-list { align-items: center; text-align: center; }
+.calc-item-aligned > .item-summary > .calc-status-panel { flex: 0 0 260px; width: 260px; height: auto; min-height: 70px; margin-block: 0; padding: 8px 10px !important; justify-content: center; }
+.calc-item-aligned .calc-status-panel > .row { width: 100%; justify-content: center; }
+.calc-item-aligned .calc-status-panel .calc-status { white-space: nowrap; flex-wrap: nowrap; justify-content: space-between; }
+.calc-item-aligned .dealer-clickable { white-space: nowrap; }
+.calc-item-aligned .order-grid--readonly .order-summary-date-block { justify-content: flex-start !important; text-align: left; }
+.calc-item-aligned .order-grid--readonly .order-summary-date-block > .column { align-items: flex-start; }
+.calc-item-aligned .order-grid--readonly .order-summary-date-block .text-start { text-align: left; }
+
+.calc-item-aligned > .item-summary > .calc-metric { flex: 1 1 0; min-width: 95px; }
+.calc-item-aligned > .item-summary > .calc-metric:nth-child(4) { flex-grow: 1.4; min-width: 165px; }
+.calc-item-aligned .dealer-clickable, .calc-item-aligned .dealer-clickable span { white-space: nowrap !important; overflow-wrap: normal; word-break: normal; }
+.calc-item-aligned > .item-summary > .summary-item:has(.dealer-clickable) { min-width: 170px; }
+
+/* Share summary space between date, order numbers and construction count. */
+.calc-item-aligned > .item-summary > .summary-item:first-child { flex: 1.2 1 185px; min-width: 185px !important; }
+.calc-item-aligned > .item-summary > .calc-metric:nth-child(2) { flex: 1 1 115px !important; min-width: 105px !important; }
+.calc-item-aligned > .item-summary > .calc-metric:nth-child(3) { flex: .65 1 105px; min-width: 100px; }
+
+
+.calc-item > .item-summary > .summary-item:has(.calc-orders-list) {
+  justify-content: flex-start !important;
+  align-self: stretch;
+  padding-top: 3px !important;
+}
+
+/* Reduce only the gap before history; preserve timeline icon spacing. */
+.order-item > .separator-border > .order-item-details {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Anchor the history separator to the bottom edge of its summary row. */
+.order-item:has(> .separator-border) > .order-item-summary {
+  border-bottom: 1px dotted var(--grey-border-color) !important;
+}
+.order-item > .separator-border,
+body.dark-theme .order-item > .separator-border {
+  border-top: 0;
+  margin-top: 0;
+}
+
+.order-item > .order-summary--history-open { border-bottom: 1px dotted var(--grey-border-color) !important; }
+.order-item > .order-history-panel { width: 100%; border: 0; margin: 0; padding: 0; }
+.order-item > .order-history-panel > .order-item-details { margin-top: 0; padding-top: 16px; }
+
+/* Standalone orders must fit the available panel, including a narrow viewport. */
+.calc-item-aligned > .item-summary {
+  display: grid !important;
+  grid-template-columns: minmax(140px, 1.2fr) minmax(85px, .8fr) minmax(85px, .8fr) minmax(145px, 1.2fr) minmax(135px, 1fr) minmax(220px, 1.5fr) auto;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.calc-item-aligned > .item-summary > .summary-item {
+  min-width: 0 !important;
+  width: auto !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.calc-item-aligned > .item-summary > .calc-status-panel { width: auto; }
+.calc-item-aligned .calc-status-panel .calc-status { margin-left: 0; gap: 4px; }
+.calc-item-aligned .calc-status-panel > .row { min-width: 0; gap: 5px; }
+.calc-item-aligned .calc-status-panel .calc-status-icon { flex-shrink: 0; }
+@media (max-width: 1150px) {
+  .calc-item-aligned > .item-summary {
+    grid-template-columns: minmax(120px, 1.1fr) minmax(75px, .7fr) minmax(75px, .7fr) minmax(125px, 1fr) minmax(115px, 1fr) minmax(170px, 1.3fr) auto;
+  }
+  .calc-item-aligned .calc-status-panel .calc-status { white-space: normal; }
+  .calc-item-aligned .dealer-clickable, .calc-item-aligned .dealer-clickable span { white-space: normal !important; }
+}
+
+.calc-item-aligned { container-type: inline-size; min-width: 0; }
+@container (max-width: 900px) {
+  .calc-item-aligned > .item-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 4px;
+  }
+  .calc-item-aligned > .item-summary > .summary-item { overflow-wrap: anywhere; }
+  .calc-item-aligned .calc-status-panel .calc-status { white-space: normal; }
+  .calc-item-aligned .dealer-clickable, .calc-item-aligned .dealer-clickable span { white-space: normal !important; }
+  .calc-item-aligned .order-grid.order-grid--readonly {
+    grid-template-columns: 25px minmax(100px, 1.1fr) minmax(55px, .6fr) minmax(60px, .6fr) minmax(90px, 1fr) minmax(90px, 1fr) minmax(120px, 1.2fr) 45px;
+  }
+  .calc-item-aligned .order-grid--readonly .order-summary-amount-text,
+  .calc-item-aligned .order-grid--readonly .order-summary-debt-text { font-size: 13px; overflow-wrap: anywhere; }
+}
+@container (max-width: 650px) {
+  .calc-item-aligned .order-grid.order-grid--readonly { grid-template-columns: 25px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); row-gap: 6px; }
+}
+
+/* Keep totals readable; reserve flexible space for the status instead. */
+.calc-item.calc-item-aligned > .item-summary > .calc-metric:nth-child(4) {
+  min-width: 145px !important;
+  overflow: visible;
+}
+.calc-item.calc-item-aligned > .item-summary > .calc-status-panel {
+  min-width: 0 !important;
+  overflow: hidden;
+}
+@container (max-width: 900px) {
+  .calc-item.calc-item-aligned > .item-summary > .calc-metric:nth-child(4) { min-width: 0 !important; }
+}
+
+/* Distribute additional-order fields over the available row width. */
+.additional-order-summary-spread > .summary-item { min-width: 0; }
+.additional-order-summary-spread > .summary-item:nth-child(2) { flex: 1.3 1 170px; }
+.additional-order-summary-spread > .summary-item:nth-child(3) { flex: .6 1 65px; width: auto; }
+.additional-order-summary-spread > .summary-item:nth-child(4) { flex: .7 1 85px; width: auto; }
+.additional-order-summary-spread > .summary-item:nth-child(5),
+.additional-order-summary-spread > .summary-item:nth-child(6) { flex: 1 1 125px; justify-content: center; }
+.additional-order-summary-spread > .summary-item:nth-child(7) { flex: 1.4 1 185px; width: auto; justify-content: center; }
+
+.additional-order-summary-spread > .summary-item:nth-child(2) > .column {
+  align-items: flex-start;
+  text-align: left;
+}
+.additional-order-summary-spread > .summary-item:nth-child(2) .text-start {
+  align-self: flex-start;
+  text-align: left;
+}
+
+.calc-item-aligned.calc-item--no-summary-status > .item-summary {
+  grid-template-columns: minmax(140px, 1.2fr) minmax(85px, .8fr) minmax(85px, .8fr) minmax(145px, 1.3fr) minmax(135px, 1.2fr) auto;
+}
+@container (max-width: 900px) {
+ .calc-item-aligned.calc-item--no-summary-status > .item-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.calc-item-aligned .calc-money-summary > .flex { gap: 3px; }
+.calc-item-aligned .calc-money-summary .calc-summary-icon--money { margin-right: 0; }
+.calc-item-aligned .calc-money-summary > .flex > .flex-col { align-items: flex-start; text-align: left; }

@@ -57,7 +57,7 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.45;
-  color: #7b746b;
+  color: #625b53;
 }
 
 .orders-reminder-close {
@@ -122,7 +122,7 @@
   margin-top: 4px;
   font-size: 13px;
   line-height: 1.45;
-  color: #7b746b;
+  color: #625b53;
 }
 
 .orders-reminder-action,
@@ -210,7 +210,7 @@ body.dark-theme .orders-reminder-overlay {
 }
 
 body.dark-theme .orders-reminder-window {
-  background: #868179;
+  background: #4d4945;
   border-top-color: var(--WS---Green);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.26);
 }
@@ -229,16 +229,16 @@ body.dark-theme .orders-reminder-subtitle,
 body.dark-theme .orders-reminder-card-count,
 body.dark-theme .orders-reminder-card-text,
 body.dark-theme .orders-reminder-footer-question {
-  color: #ddd8d3;
+  color: #ebe7e2;
 }
 
 body.dark-theme .orders-reminder-close {
-  color: #ddd8d3;
+  color: #ebe7e2;
 }
 
 body.dark-theme .orders-reminder-card {
-  background: #797e86;
-  border-color: #6e6963;
+  background: #4b5058;
+  border-color: #757b84;
 }
 
 body.dark-theme .orders-reminder-dismiss {

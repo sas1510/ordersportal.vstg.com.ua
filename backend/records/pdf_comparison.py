@@ -10,7 +10,7 @@ from .pdf_amounts import extract_total
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def extract_pdf_amount(request):
-    if str(getattr(request.user, "role", "")) not in {"customer", "dealer", "admin", "manager", "region_manager"}:
+    if str(getattr(request.user, "role", "")) not in {"customer", "dealer", "internal_dealer", "admin", "manager", "region_manager"}:
         return Response({"error": "Немає доступу до порівняння."}, status=403)
     upload = request.FILES.get("file")
     if not upload or upload.size > 10 * 1024 * 1024:

@@ -28,7 +28,7 @@ export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const { addNotification } = useNotification();
   const locale = i18n.language;
-  const { user } = useAuthGetRole();
+  const { user, isReadOnly } = useAuthGetRole();
   const canViewFinance = hasFinanceAccess(user);
 
 
@@ -64,6 +64,8 @@ export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid
     if (debtAmount <= 0) state.pay = false;
     return state;
   }, [order.status, debtAmount, getButtonState]);
+
+  const hasActionButtons = !isReadOnly && ((user?.role !== "admin" && (buttonState.confirm || (buttonState.pay && canViewFinance))) || buttonState.claim);
 
   const getStatusClass = (status) => {
      switch (status) {
@@ -246,35 +248,36 @@ export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid
         {/* Кнопки дій */}
         <div
           className="flex gap-2 overflow-x-auto pb-1.5 py-[2px] mobile-buttons-scroll"
+          style={{ display: hasActionButtons ? undefined : "none" }}
           onClick={(e) => e.stopPropagation()}
         >
           {user?.role !== "admin" && (
             <>
-              <button
+              {buttonState.confirm && (<button
                 className="grow text-[14px] font-bold text-center shrink-0 h-8 flex items-center justify-center px-3 bg-WS---DarkGrey text-white rounded  whitespace-nowrap disabled:opacity-50"
                 disabled={!buttonState.confirm}
                 onClick={() => setIsConfirmModalOpen(true)}
               >
                 {t("order_mobile.buttons.confirm")}
-              </button>
+              </button>)}
 
-              <button
+              {buttonState.pay && canViewFinance && (<button
                 className="grow shrink-0 text-white font-bold bg-WS---DarkGreen h-8 flex items-center justify-center px-3 rounded text-[14px] whitespace-nowrap disabled:opacity-50"
                 disabled={!buttonState.pay || !canViewFinance}
                 onClick={() => setIsPaymentOpen(true)}
               >
                  {debtAmount <= 0 ? t("order_status.paid", { defaultValue: "Сплачено" }) : t("order_mobile.buttons.pay")}
-              </button>
+              </button>)}
             </>
           )}
 
-          <button
+          {buttonState.claim && (<button
             className="grow shrink-0 h-8 flex items-center  font-bold text-center justify-center px-3 bg-WS---DarkRed text-white rounded text-[14px] whitespace-nowrap disabled:opacity-50"
             disabled={!buttonState.claim}
             onClick={() => setIsClaimModalOpen(true)}
           >
             {t("order_mobile.buttons.claim")}
-          </button>
+          </button>)}
         </div>
 
   <div className="flex justify-center mt-2 cursor-pointer" >

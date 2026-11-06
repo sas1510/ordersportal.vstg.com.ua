@@ -16,6 +16,7 @@ export const useAuthGetRole = () => {
   return {
     ...context,
     role: normalizedRole,
+    isReadOnly: normalizedRole === "internal_dealer" && context?.user?.internal_dealer_can_edit !== true,
     isAdmin: isAdminRole(normalizedRole),
     isBackoffice: isBackofficeRole(normalizedRole),
     isDealer: isDealerRole(normalizedRole),

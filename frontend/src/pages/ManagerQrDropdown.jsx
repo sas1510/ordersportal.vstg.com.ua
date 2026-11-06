@@ -157,7 +157,7 @@ export default function PortalManagersPage() {
         <div className="header-container invite-border-bottom invite-pb-10 mb-10">
           <h2 className="uppercase text-info font-size-18 text-bold">
             <i className="fa-solid fa-users-gear mr-10"></i>
-            Менеджери порталу та навантаження
+            Підключити менеджера до телеграм боту для отримання сповіщень
           </h2>
         </div>
 

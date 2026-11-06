@@ -339,17 +339,20 @@ from backend.permissions import IsAdminJWT
 BRANCH_LEADERSHIP_ROLES = {"branch_manager", "branches_director"}
 
 
-def _can_manage_scoped_user(requester, target_user):
+def _can_manage_scoped_user(requester, target_user, *, accessible_contractors=None):
     """Return whether a branch leader may change this subordinate portal user."""
     requester_role = str(getattr(requester, "role", "") or "").strip().lower()
+    if target_user.username.casefold() == "admin":
+        from users.dealer_preview import is_primary_admin
+        return requester.id == target_user.id and is_primary_admin(requester)
     if requester_role == "admin":
         return True
     if requester_role not in BRANCH_LEADERSHIP_ROLES or requester.id == target_user.id:
         return False
 
     allowed_target_roles = {
-        "branch_manager": {"manager", "customer", "dealer"},
-        "branches_director": {"manager", "branch_manager", "customer", "dealer"},
+        "branch_manager": {"manager", "customer", "dealer", "internal_dealer"},
+        "branches_director": {"manager", "branch_manager", "customer", "dealer", "internal_dealer"},
     }
     target_role = str(getattr(target_user, "role", "") or "").strip().lower()
     if target_role not in allowed_target_roles[requester_role]:
@@ -365,9 +368,11 @@ def _can_manage_scoped_user(requester, target_user):
         return True
 
     target_contractor = getattr(target_user, "user_id_1C", None)
+    if accessible_contractors is None:
+        accessible_contractors = get_accessible_dealer_binaries(requester) if target_contractor else set()
     return bool(
         target_contractor
-        and bytes(target_contractor) in get_accessible_dealer_binaries(requester)
+        and bytes(target_contractor) in accessible_contractors
     )
 from users.models import UserApiKey
 import pytz
@@ -870,7 +875,8 @@ def get_customers(request):
 @sync_to_async
 def execute_balance_procedure(user_id_1c):
     with connection.cursor() as cursor:
-        cursor.execute("EXEC dbo.GetDealerAdvanceBalance_V3 @Контрагент=%s", [user_id_1c])
+        from utils.finance_order_queries import finance_order_sql
+        cursor.execute(finance_order_sql("GetDealerAdvanceBalanceLocal.sql", "Контрагент"), [user_id_1c])
         return cursor.fetchone()
 
 
@@ -903,9 +909,27 @@ def get_balance_view(request):  # Синхронна для DRF
         return JsonResponse({"detail": "Доступ до фінансової інформації вимкнено."}, status=403)
 
     # Швидка синхронна перевірка прав, не заходячи в асинхронний контекст
-    if getattr(user, 'role', None) not in ['customer']:
+    if getattr(user, 'role', None) not in ['customer', 'internal_dealer']:
         logger.warning(f"Balance access denied for role {getattr(user, 'role', 'None')}: {user.username}")
         return JsonResponse({'detail': 'У вас немає прав для перегляду балансу.'}, status=403)
+
+    if user.role == "internal_dealer":
+        from .internal_dealer_queries import internal_dealer_balance_sql
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(internal_dealer_balance_sql(), [user.user_id_1C])
+                balances = [
+                    {"debt_sum": row[0], "my_wallet": row[1], "currency": row[3]}
+                    for row in cursor.fetchall()
+                ]
+            primary = balances[0] if balances else {"debt_sum": 0, "my_wallet": 0, "currency": ""}
+            return JsonResponse({
+                **primary, "sum": primary["my_wallet"],
+                "my_name": user.full_name, "full_name": user.full_name, "balances": balances,
+            })
+        except Exception:
+            logger.exception("Unable to load internal dealer currency balances")
+            return JsonResponse({"detail": "Unable to load currency balances"}, status=500)
 
     # Внутрішня асинхронна функція для I/O операцій
     async def _async_logic():
@@ -1271,9 +1295,10 @@ def get_all_users_view(request):
 
     try:
         users = CustomUser.objects.select_related("branch").all()
+        accessible_contractors = set()
 
         if requester_role in {"branch_manager", "branches_director"}:
-            accessible_contractors = list(get_accessible_dealer_binaries(admin_user))
+            accessible_contractors = set(get_accessible_dealer_binaries(admin_user))
             scope = Q(id=admin_user.id)
 
             if requester_role == "branch_manager":
@@ -1306,6 +1331,7 @@ def get_all_users_view(request):
                 "is_active": u.is_active,
                 "permit_finance_info": bool(u.permit_finance_info),
                 "load_all_contractor_addresses": bool(u.load_all_contractor_addresses),
+                "internal_dealer_can_edit": u.internal_dealer_can_edit,
                 "branch_id": u.branch_id,
                 "branch_name": u.branch.name if u.branch_id else None,
                 "is_branch": bool(u.is_branch),
@@ -1313,10 +1339,10 @@ def get_all_users_view(request):
                 "expire_date": u.expire_date,
                 "is_invited": invites_map.get(u.user_id_1C) is not None,
                 "invite_accepted": invites_map.get(u.user_id_1C, False),
-                "can_edit": not (
-                    str(getattr(admin_user, "role", "")).strip().lower() == "admin"
-                    and admin_user.id == u.id and admin_user.id != 2
-                )
+                "can_edit": _can_manage_scoped_user(admin_user, u, accessible_contractors=accessible_contractors),
+                "can_deactivate_or_delete": admin_user.id != u.id and _can_manage_scoped_user(
+                    admin_user, u, accessible_contractors=accessible_contractors
+                ),
             }
             for u in users
         ]
@@ -1385,7 +1411,7 @@ from django.utils.timezone import make_aware, get_current_timezone
             "email": serializers.EmailField(required=False, allow_blank=True),
             "phone_number": serializers.CharField(required=False, allow_blank=True),
             "role": serializers.ChoiceField(
-                choices=["admin", "manager", "region_manager", "branch_manager", "branches_director", "customer"],
+                choices=["admin", "manager", "region_manager", "branch_manager", "branches_director", "customer", "internal_dealer"],
                 required=False,
             ),
             "expire_date": serializers.DateField(
@@ -1395,6 +1421,7 @@ from django.utils.timezone import make_aware, get_current_timezone
             "is_active": serializers.BooleanField(required=False),
             "permit_finance_info": serializers.BooleanField(required=False),
             "load_all_contractor_addresses": serializers.BooleanField(required=False),
+            "internal_dealer_can_edit": serializers.BooleanField(required=False),
             "old_portal_id": serializers.CharField(required=False, allow_blank=True),
         },
     ),
@@ -1452,8 +1479,6 @@ def admin_edit_user_view(request, user_id):
     admin_user = request.user
     
     requester_role = str(getattr(request.user, "role", "") or "").strip().lower()
-    if requester_role == "admin" and admin_user.id == user_id and admin_user.id != 2:
-        return Response({"detail": "Адміністратор не може редагувати власний обліковий запис."}, status=403)
     if requester_role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
         logger.warning(f"Unauthorized user edit attempt by {admin_user.username}")
         return Response({"detail": "Доступ заборонено"}, status=403)
@@ -1473,11 +1498,15 @@ def admin_edit_user_view(request, user_id):
     ]
 
     incoming = request.data.copy()
+    if user.username.casefold() == "admin":
+        for field in ("username", "role", "is_active", "expire_date"):
+            incoming.pop(field, None)
+
 
     if requester_role in BRANCH_LEADERSHIP_ROLES:
         allowed_roles = {
-            "branch_manager": {"manager", "customer", "dealer"},
-            "branches_director": {"manager", "branch_manager", "customer", "dealer"},
+            "branch_manager": {"manager", "customer", "dealer", "internal_dealer"},
+            "branches_director": {"manager", "branch_manager", "customer", "dealer", "internal_dealer"},
         }[requester_role]
         incoming_role = str(incoming.get("role", user.role) or "").strip().lower()
         if incoming_role not in allowed_roles:
@@ -1498,6 +1527,9 @@ def admin_edit_user_view(request, user_id):
 
         if incoming_role == "manager":
             incoming["is_branch"] = True
+
+    if str(incoming.get("role", user.role)) == "internal_dealer" and not user.user_id_1C:
+        return Response({"detail": "Для внутрішнього дилера потрібна прив’язка до контрагента 1С."}, status=400)
 
     # Checkboxes → bool
     bool_fields = ["is_active", "permit_finance_info", "load_all_contractor_addresses", "is_branch"]
@@ -1541,7 +1573,24 @@ def admin_edit_user_view(request, user_id):
             setattr(user, field, incoming[field])
             changed_fields.append(field)
 
-    user.save()
+    from django.db import transaction
+    with transaction.atomic():
+        user.save()
+        if "internal_dealer_can_edit" in incoming:
+            from django.contrib.auth.models import Permission
+            permission = Permission.objects.get(
+                content_type__app_label="users", content_type__model="customuser",
+                codename="edit_internal_dealer",
+            )
+            allowed = incoming["internal_dealer_can_edit"] in ["true", "True", True, "1", 1]
+            if user.role == "internal_dealer" and allowed:
+                user.user_permissions.add(permission)
+            else:
+                user.user_permissions.remove(permission)
+            for cache_name in ("_perm_cache", "_user_perm_cache", "_group_perm_cache", "internal_dealer_can_edit"):
+                user.__dict__.pop(cache_name, None)
+            changed_fields.append("internal_dealer_can_edit")
+
 
     duration = time.time() - start_time
     logger.info(f"ADMIN {admin_user.username} edited user {user.username}", extra={
@@ -1569,6 +1618,7 @@ def admin_edit_user_view(request, user_id):
             "is_active": user.is_active,
             "permit_finance_info": user.permit_finance_info,
             "load_all_contractor_addresses": user.load_all_contractor_addresses,
+            "internal_dealer_can_edit": user.internal_dealer_can_edit,
             "branch_id": user.branch_id,
             "branch_name": user.branch.name if user.branch_id else None,
             "is_branch": user.is_branch,
@@ -1647,13 +1697,13 @@ from .models import CustomUser
 def admin_deactivate_user_view(request, user_id):
     """
     Деактивація користувача (is_active = False).
-    Доступ тільки для admin.
+    Доступ адміністратору та керівникам у межах їхньої філії.
     """
 
     start_time = time.time()
     admin_user = request.user
 
-    if request.user.role != "admin":
+    if admin_user.role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
         logger.warning(f"Unauthorized deactivation attempt by {admin_user.username}")
         return Response({"detail": "Доступ заборонено"}, status=403)
 
@@ -1664,6 +1714,9 @@ def admin_deactivate_user_view(request, user_id):
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
         return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    if not _can_manage_scoped_user(admin_user, user):
+        return Response({"detail": "Ви можете керувати лише доступними вам користувачами."}, status=403)
 
     if not user.is_active:
         return Response({
@@ -1711,13 +1764,13 @@ def admin_deactivate_user_view(request, user_id):
 def admin_delete_user_view(request, user_id):
     """
     Повне видалення користувача порталу.
-    Доступ тільки для admin.
+    Доступ адміністратору та керівникам у межах їхньої філії.
     """
 
     start_time = time.time()
     admin_user = request.user
 
-    if request.user.role != "admin":
+    if admin_user.role not in {"admin", *BRANCH_LEADERSHIP_ROLES}:
         logger.warning(f"Unauthorized delete attempt by {admin_user.username}")
         return Response({"detail": "Доступ заборонено"}, status=403)
 
@@ -1728,6 +1781,9 @@ def admin_delete_user_view(request, user_id):
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
         return Response({"detail": "Користувача не знайдено"}, status=404)
+
+    if not _can_manage_scoped_user(admin_user, user):
+        return Response({"detail": "Ви можете керувати лише доступними вам користувачами."}, status=403)
 
     deleted_snapshot = {
         "id": user.id,
@@ -1794,6 +1850,7 @@ def admin_delete_user_view(request, user_id):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_current_user(request):
+    from users.dealer_preview import is_primary_admin
     user = request.user
 
     logger.debug(f"Session heartbeat for {user.username}", extra={
@@ -1804,12 +1861,15 @@ def get_current_user(request):
     user_guid_1c = bin_to_guid_1c(user.user_id_1C) if user.user_id_1C else None
 
     return Response({
+        "can_preview_staff": is_primary_admin(user),
+        "staff_preview": isinstance(request.auth, dict) and bool(request.auth.get("staff_preview")),
         "id": user.id,
         "username": user.username,
         "full_name": user.full_name,
         "role": user.role,
         "permit_finance_info": bool(user.permit_finance_info),
         "load_all_contractor_addresses": bool(user.load_all_contractor_addresses),
+        "internal_dealer_can_edit": user.internal_dealer_can_edit,
 
         "user_id_1c": user_guid_1c,
 
@@ -1867,11 +1927,16 @@ def get_dealer_portal_users(request):
     )
 
     try:
-        rows = get_accessible_dealer_rows(request.user)
+        if request.GET.get("dealer_preview") == "1":
+            from .dealer_preview import get_preview_dealer_rows, PREVIEW_ROLES
+            if requester_role not in PREVIEW_ROLES:
+                return Response({"detail": "Вхід від імені дилера недоступний для вашої ролі."}, status=403)
+            rows = get_preview_dealer_rows(request.user)
+        else:
+            rows = get_accessible_dealer_rows(request.user)
         if request.GET.get('report_groups') == '1':
-            from records.dealer_groups import dealer_group_map, normalized_contractor
-            classes = dealer_group_map(rows, 'ContractorID')
-            rows = [{**dict(row), 'DealerGroup': classes.get(normalized_contractor(row.get('ContractorID')), 'Інше')} for row in rows]
+            from records.dealer_groups import analytics_dealer_rows
+            rows = analytics_dealer_rows(rows)
 
         data = []
 
@@ -2192,6 +2257,9 @@ def create_api_key(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    if not _can_manage_scoped_user(admin_user, dealer):
+        return Response({"detail": "Доступ заборонено"}, status=403)
+
     try:
         # очікуємо YYYY-MM-DD
         expire_date = datetime.strptime(expire_date_raw, "%Y-%m-%d")
@@ -2453,6 +2521,9 @@ def deactivate_api_key(request, key_id):
     try:
         key = UserApiKey.objects.get(id=key_id)
         
+        if not _can_manage_scoped_user(request.user, key.user):
+            return Response({"detail": "Доступ заборонено"}, status=403)
+
         if not key.is_active:
             return Response({"detail": "API key already inactive"}, status=400)
 

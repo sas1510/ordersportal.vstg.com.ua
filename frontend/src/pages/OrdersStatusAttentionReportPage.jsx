@@ -23,7 +23,6 @@ const DEALER_GROUP_OPTIONS = [
   { value: "", label: "Всі типи" },
   { value: "Дилера", label: "Дилера" },
   { value: 'ТОВ "Наша фірма"', label: "Наша фірма" },
-  { value: "Експорт", label: "Експорт" },
   { value: "Філіали", label: "Філіали" },
 ];
 

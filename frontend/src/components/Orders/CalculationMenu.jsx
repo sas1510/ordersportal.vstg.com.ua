@@ -1,3 +1,4 @@
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import "./CalcMenu.css";
 import { useState } from "react";
 import DeleteConfirmModal from "./DeleteConfirmModal";
@@ -46,6 +47,8 @@ export const CalculationMenu = ({
     ? t("portal_calc.ui.edit_calc_allowed")
     : t("portal_calc.ui.edit_calc_disallowed");
 
+  const { isReadOnly } = useAuthGetRole();
+  if (isReadOnly || calc.isOrderOnly) return null;
   return (
     <div className="summary-item small row no-wrap gap-10 align-center">
       <button

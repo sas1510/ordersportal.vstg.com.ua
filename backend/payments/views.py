@@ -1,4 +1,4 @@
-from .cashflow_display import is_main_contract, show_cashflow_row
+from .cashflow_display import is_main_contract, show_cashflow_row, get_cashflow_contract_types, classify_cashflow_row
 # from django.shortcuts import render
 
 # # Create your views here.
@@ -272,13 +272,14 @@ def get_payment_status_view(request):
                 @ДатаПо = %s
         """
 
+        contract_types = get_cashflow_contract_types(contractor_binary)
         results = []
         with connection.cursor() as cursor:
             cursor.execute(sql, [contractor_binary, date_from, date_to])
             columns = [col[0] for col in cursor.description]
 
             for row in cursor.fetchall():
-                results.append(dict(zip(columns, row)))
+                results.append(classify_cashflow_row(dict(zip(columns, row)), contract_types))
 
 
         def convert_bytes(value):
@@ -333,10 +334,8 @@ logger = logging.getLogger(__name__)
 # 1. Асинхронна обгортка для читання кількох наборів даних (Multiple Result Sets) з MS SQL
 @sync_to_async
 def execute_payment_page_procedure(contractor_binary):
-    sql = """
-        EXEC dbo.GetDealerPaymentPageDataV2
-            @Contractor = %s
-    """
+    from utils.finance_order_queries import finance_order_sql
+    sql = finance_order_sql("GetDealerPaymentPageDataLocal.sql", "Contractor")
     with connection.cursor() as cursor:
         cursor.execute(sql, [contractor_binary])
         
@@ -516,9 +515,10 @@ def get_dealer_advance_balance(request):
             cursor.execute(
                 """
                 EXEC dbo.GetDealerAllAdvancedBalance
-                    @Контрагент = %s
+                    @Контрагент = %s,
+                    @IncludeZeroBalance = %s
                 """,
-                [contractor_bin]
+                [contractor_bin, int(request.GET.get("include_zero") == "1")]
             )
 
             rows = cursor.fetchall()
@@ -637,6 +637,7 @@ def export_payment_status_excel(request):
     ])
 
     try:
+        contract_types = get_cashflow_contract_types(contractor_bin)
 
         with connection.cursor() as cursor:
             cursor.execute(
@@ -658,10 +659,10 @@ def export_payment_status_excel(request):
                     break
 
                 for r in rows:
-                    item = dict(zip(cols, r))
+                    item = classify_cashflow_row(dict(zip(cols, r)), contract_types)
                     if not show_cashflow_row(item):
                         continue
-                    hide_contract_amounts = is_main_contract(item.get('FinalDogovorName'))
+                    hide_contract_amounts = is_main_contract(item)
                     period = r[idx["Date"]]
                     delta = r[idx["DeltaRow"]] or 0
                     inout = r[idx["FlowDirection"]]
@@ -671,7 +672,7 @@ def export_payment_status_excel(request):
                         period.date().isoformat() if period else "",
                         period.time().strftime("%H:%M") if period else "",
                         r[idx["FinalDogovorName"]],
-                        r[idx["DealType"]],
+                        item.get("DealType"),
                         None if hide_contract_amounts else r[idx["CumSaldoStart"]],
                         abs(delta) if inout == "Прихід" and not hide_contract_amounts else "",
                         abs(delta) if inout in ("Витрата", "Розхід") and not hide_contract_amounts else "",

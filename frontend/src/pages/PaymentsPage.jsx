@@ -12,7 +12,7 @@ import "../components/Portal/PortalSidebar.css";
 import "./PaymentsPage.css";
 import { useNotification } from "../hooks/useNotification";
 import { AppIcon } from "../components/Icons/AppIcon";
-import PaymentsAnalyticsMobile from "./PaymentsAnalyticsMobile";
+import PaymentsAnalytics from "./PaymentsAnalytics";
 import { useTranslation } from "react-i18next";
 import { matchesOrderNumber } from "../utils/matchesOrderNumber";
 
@@ -174,6 +174,79 @@ const applyPendingAdvancePaymentOverlay = (sourceOrders, sourceContracts, contra
   return { orders, contracts };
 };
 
+export function calculateDebtAnalytics(debtItems, orders) {
+  const routeDebtOrders = debtItems.filter(
+    (order) => Number(order.Debt || 0) > 0,
+  );
+
+  const inWorkDebtOrders = debtItems.filter(
+    (order) => Number(order.InWorkDebt || 0) > 0,
+  );
+
+  const moneyInTransitOrders = debtItems.filter(
+    (order) =>
+      Number(order.Summa || 0) > 0 &&
+      Number(order.Debt || 0) <= 0 &&
+      Number(order.InWorkDebt || 0) <= 0,
+  );
+
+  const criticalOrders = debtItems.filter(
+    (order) => Number(order.DebtMoreTen || 0) > 0,
+  );
+
+  const noPrepaymentOrders = debtItems.filter(
+    (order) => Number(order.BezPeredOplaty || 0) > 0,
+  );
+
+  const underfundedOrders = debtItems.filter(
+    (order) => Number(order.NedoAvans || 0) > 0,
+  );
+
+  const routeDebtTotal = routeDebtOrders.reduce(
+    (sum, order) => sum + Number(order.Debt || 0),
+    0,
+  );
+
+  const inWorkDebtTotal = inWorkDebtOrders.reduce(
+    (sum, order) => sum + Number(order.InWorkDebt || 0),
+    0,
+  );
+
+  const moneyInTransitTotal = moneyInTransitOrders.reduce(
+    (sum, order) => sum + Number(order.Summa || 0),
+    0,
+  );
+
+  const postSaleDebtTotal =
+    routeDebtTotal + moneyInTransitTotal;
+  const underfundedDebtTotal = underfundedOrders.reduce((sum, item) => {
+    const numberKey = (value) => String(value || "").replace(/[-‐‑‒–—\s]/g, "").toLowerCase();
+    const matchingOrders = orders.filter((order) => numberKey(order.OrderNumber) === numberKey(item.ZakazNum));
+    const paymentOrder = matchingOrders.length === 1 ? matchingOrders[0] : null;
+    const fullDebt = paymentOrder?.DebtAmount != null
+      ? parseFlexibleAmount(paymentOrder.DebtAmount)
+      : item.ZakazSumma != null && item.PaidAmount != null
+        ? parseFlexibleAmount(item.ZakazSumma) - parseFlexibleAmount(item.PaidAmount)
+        : parseFlexibleAmount(item.NedoAvans);
+    return sum + Math.max(0, fullDebt);
+  }, 0);
+
+  return {
+    routeDebtOrders,
+    moneyInTransitOrders,
+    criticalOrders,
+    inWorkDebtOrders,
+    noPrepaymentOrders,
+    underfundedOrders,
+
+    routeDebtTotal,
+    moneyInTransitTotal,
+    inWorkDebtTotal,
+    postSaleDebtTotal,
+    underfundedDebtTotal,
+  };
+}
+
 export default function PaymentsPage() {
   const { isDark } = useTheme();
   const { t, i18n } = useTranslation();
@@ -207,7 +280,7 @@ export default function PaymentsPage() {
   const [orders, setOrders] = useState([]);
   const [contracts, setContracts] = useState([]);
   const [debtItems, setDebtItems] = useState([]); // Деталі з SQL для Drill-down
-  const [debtTotal, setDebtTotal] = useState(null); // Рядок РАЗОМ
+  const [debtTotals, setDebtTotals] = useState([]); // Підсумки окремо за валютами
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -295,7 +368,10 @@ export default function PaymentsPage() {
       setOrders(overlaidData.orders);
       setContracts(overlaidData.contracts);
       setDebtItems(resDebts.data.debts?.items || []);
-      setDebtTotal(resDebts.data.debts?.total || null);
+      const summaries = resDebts.data.debts?.totals;
+      setDebtTotals(Array.isArray(summaries)
+        ? summaries
+        : resDebts.data.debts?.total ? [resDebts.data.debts.total] : []);
     } catch (_e) {
       setError(t("payments_page.errors.load_data"));
     } finally {
@@ -658,84 +734,20 @@ export default function PaymentsPage() {
     if (isMobile) setBatchPaymentOpen(false);
   }, [isMobile]);
 
-  const debtAnalytics = useMemo(() => {
-  const routeDebtOrders = debtItems.filter(
-    (order) => Number(order.Debt || 0) > 0,
-  );
-
-  const inWorkDebtOrders = debtItems.filter(
-    (order) => Number(order.InWorkDebt || 0) > 0,
-  );
-
-  const moneyInTransitOrders = debtItems.filter(
-    (order) =>
-      Number(order.Summa || 0) > 0 &&
-      Number(order.Debt || 0) <= 0 &&
-      Number(order.InWorkDebt || 0) <= 0,
-  );
-
-  const criticalOrders = debtItems.filter(
-    (order) => Number(order.DebtMoreTen || 0) > 0,
-  );
-
-  const noPrepaymentOrders = debtItems.filter(
-    (order) => Number(order.BezPeredOplaty || 0) > 0,
-  );
-
-  const underfundedOrders = debtItems.filter(
-    (order) => Number(order.NedoAvans || 0) > 0,
-  );
-
-  const routeDebtTotal = routeDebtOrders.reduce(
-    (sum, order) => sum + Number(order.Debt || 0),
-    0,
-  );
-
-  const inWorkDebtTotal = inWorkDebtOrders.reduce(
-    (sum, order) => sum + Number(order.InWorkDebt || 0),
-    0,
-  );
-
-  const moneyInTransitTotal = moneyInTransitOrders.reduce(
-    (sum, order) => sum + Number(order.Summa || 0),
-    0,
-  );
-
-  const postSaleDebtTotal =
-    routeDebtTotal + moneyInTransitTotal;
-  const underfundedDebtTotal = underfundedOrders.reduce((sum, item) => {
-    const numberKey = (value) => String(value || "").replace(/[-‐‑‒–—\s]/g, "").toLowerCase();
-    const matchingOrders = orders.filter((order) => numberKey(order.OrderNumber) === numberKey(item.ZakazNum));
-    const paymentOrder = matchingOrders.length === 1 ? matchingOrders[0] : null;
-    const fullDebt = paymentOrder?.DebtAmount != null
-      ? parseFlexibleAmount(paymentOrder.DebtAmount)
-      : item.ZakazSumma != null && item.PaidAmount != null
-        ? parseFlexibleAmount(item.ZakazSumma) - parseFlexibleAmount(item.PaidAmount)
-        : parseFlexibleAmount(item.NedoAvans);
-    return sum + Math.max(0, fullDebt);
-  }, 0);
-
-  return {
-    routeDebtOrders,
-    moneyInTransitOrders,
-    criticalOrders,
-    inWorkDebtOrders,
-    noPrepaymentOrders,
-    underfundedOrders,
-
-    routeDebtTotal,
-    moneyInTransitTotal,
-    inWorkDebtTotal,
-    postSaleDebtTotal,
-    underfundedDebtTotal,
-  };
-}, [debtItems, orders]);
+  const debtAnalyticsGroups = useMemo(() => debtTotals.map((total) => {
+    const currency = total.CurrencyName || "грн";
+    const items = debtItems.filter((item) => (item.CurrencyName || "грн") === currency);
+    const currencyOrders = orders.filter((order) => (order.CurrencyName || "грн") === currency);
+    return { total, currency, analytics: calculateDebtAnalytics(items, currencyOrders) };
+  }), [debtItems, debtTotals, orders]);
 
 
   // =====================================================
   // DRILL-DOWN LOGIC
   // =====================================================
-  const showDebtDetails = (type) => {
+  const showDebtDetails = (type, currency) => {
+  const debtAnalytics = debtAnalyticsGroups.find((group) => group.currency === currency)?.analytics;
+  if (!debtAnalytics) return;
   let filtered = [];
   let title = "";
 
@@ -787,7 +799,7 @@ export default function PaymentsPage() {
   }
 
   setFilteredDetailOrders(filtered);
-  setDetailTitle(title);
+  setDetailTitle(title + " (" + currency + ")");
   setDetailModalOpen(true);
 };
 
@@ -1175,197 +1187,7 @@ export default function PaymentsPage() {
             {error && <div className="pp-error">{error}</div>}
 
             {/* АНАЛІТИЧНА ТАБЛИЦЯ */}
-            {debtTotal &&
-              (isMobile ? (
-                <PaymentsAnalyticsMobile
-                  debtTotal={{ ...debtTotal, NedoAvans: debtAnalytics.underfundedDebtTotal }}
-                  formatCurrency={formatCurrency}
-                  showDebtDetails={showDebtDetails}
-                />
-              ) : (
-                <div className="analytics-container">
-                  <div className="analytics-row-top">
-                    <div className="analytics-card !pl-0">
-                      <div className="card-title">{t("payments_page.analytics.debt_limit")}</div>
-                      <div className="card-value">
-                        {debtTotal.CustomerLimit === null || debtTotal.CustomerLimit === 0
-                          ? "—"
-                          : `${formatCurrency(debtTotal.CustomerLimit)} ${debtTotal.CurrencyName || t("common.currency_uah")}`}
-                      </div>
-                      <div className="mobile-vert-divider" />
-                    </div>
-
-                    <div className="analytics-card">
-  <div className="card-title">
-    {t("payments_page.analytics.overlimit")}
-  </div>
-
-  <div
-    className={`card-value ${
-      (Number(debtTotal.Debt || 0) +
-        Number(debtTotal.InWorkDebt || 0) +
-        Number(debtTotal.Summa || 0) +
-        Number(debtTotal.BezPeredOplaty || 0)) >
-        Number(debtTotal.CustomerLimit || 0) &&
-      Number(debtTotal.CustomerLimit || 0) > 0
-        ? "text-danger"
-        : ""
-    }`}
-  >
-    {(() => {
-      const limit = Number(debtTotal.CustomerLimit || 0);
-
-      const limitUsage =
-        Number(debtTotal.Debt || 0) +
-        Number(debtTotal.InWorkDebt || 0) +
-        Number(debtTotal.Summa || 0) +
-        Number(debtTotal.BezPeredOplaty || 0);
-
-      const overLimit = limitUsage - limit;
-
-      return limit > 0 && overLimit > 0
-        ? `${formatCurrency(overLimit)} ${
-            debtTotal.CurrencyName || t("common.currency_uah")
-          }`
-        : "—";
-    })()}
-  </div>
-</div>
-
-                    <div className="analytics-card">
-                      <div className="card-title">{t("payments_page.analytics.limit_usage")}</div>
-                      <div className="card-value">
-                        {debtTotal.CustomerLimit > 0
-                          ? formatCurrency(
-                              debtTotal.LimitUsage ?? Math.min(Number(debtTotal.CustomerLimit), Number(debtTotal.Debt || 0) + Number(debtTotal.InWorkDebt || 0) + Number(debtTotal.Summa || 0) + Number(debtTotal.BezPeredOplaty || 0))
-                            )
-                          : "—"}{" "}
-                        {debtTotal.CustomerLimit > 0 && `${debtTotal.CurrencyName}`}
-                      </div>
-                    </div>
-
-                    <div
-                      className={`analytics-card ${Number(debtTotal.BezPeredOplaty || 0) > 0 ? "pointer-link" : ""}`}
-                      onClick={() => Number(debtTotal.BezPeredOplaty || 0) > 0 && showDebtDetails("no_prepayment")}
-                    >
-                      <div className="card-title">{t("payments_page.analytics.no_prepayment")}</div>
-                      <div className="card-value">
-                        {Number(debtTotal.BezPeredOplaty || 0) > 0
-                          ? `${formatCurrency(debtTotal.BezPeredOplaty)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
-
-                    <div
-                      className={`analytics-card !pr-0 ${debtAnalytics.underfundedDebtTotal > 0 ? "pointer-link" : ""}`}
-                      onClick={() => debtAnalytics.underfundedDebtTotal > 0 && showDebtDetails("nedoavans")}
-                    >
-                      <div className="card-title">{t("payments_page.analytics.underfunded")}</div>
-                      <div className="card-value">
-                        {debtAnalytics.underfundedDebtTotal > 0
-                          ? `${formatCurrency(debtAnalytics.underfundedDebtTotal)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="analytics-divider" />
-
-                  <div className="analytics-row-bottom">
-                    <div
-                      className={`analytics-card !pl-0 ${debtAnalytics.inWorkDebtTotal > 0 ? "pointer-link" : ""}`}
-                      onClick={() =>
-                        debtAnalytics.inWorkDebtTotal > 0 &&
-                        showDebtDetails("in_work")
-                      }
-                    >
-                      <div className="card-title">
-                        {t("payments_page.analytics.in_work_debt")}
-                      </div>
-                      <div className="card-value">
-                        {debtAnalytics.inWorkDebtTotal > 0
-                          ? `${formatCurrency(debtAnalytics.inWorkDebtTotal)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
-
-                    <div className="analytics-card">
-                      <div className="card-title">{t("payments_page.analytics.post_sale_debt")}</div>
-                      <div className="card-value">
-                        {debtAnalytics.postSaleDebtTotal > 0
-                          ? `${formatCurrency(debtAnalytics.postSaleDebtTotal)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
-
-                    <div
-  className={`analytics-card ${
-    debtAnalytics.routeDebtTotal > 0
-      ? "pointer-link"
-      : ""
-  }`}
-  onClick={() =>
-    debtAnalytics.routeDebtTotal > 0 &&
-    showDebtDetails("in_route")
-  }
->
-  <div className="card-title">
-    {t("payments_page.analytics.route_debt")}
-  </div>
-
-  <div className="card-value">
-    {debtAnalytics.routeDebtTotal > 0
-      ? `${formatCurrency(
-          debtAnalytics.routeDebtTotal,
-        )} ${
-          debtTotal.CurrencyName ||
-          t("common.currency_uah")
-        }`
-      : "—"}
-  </div>
-</div>
-
-                    <div
-  className={`analytics-card ${
-    debtAnalytics.moneyInTransitTotal > 0
-      ? "pointer-link"
-      : ""
-  }`}
-  onClick={() =>
-    debtAnalytics.moneyInTransitTotal > 0 &&
-    showDebtDetails("money_way")
-  }
->
-  <div className="card-title">
-    {t("payments_page.analytics.money_in_transit")}
-  </div>
-
-  <div className="card-value">
-    {debtAnalytics.moneyInTransitTotal > 0
-      ? `${formatCurrency(
-          debtAnalytics.moneyInTransitTotal,
-        )} ${
-          debtTotal.CurrencyName ||
-          t("common.currency_uah")
-        }`
-      : "—"}
-  </div>
-</div>
-
-                    <div
-                      className={`analytics-card !pr-0 ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "pointer-link" : ""}`}
-                      onClick={() => Number(debtTotal.DebtMoreTen || 0) > 0 && showDebtDetails("critical")}
-                    >
-                      <div className="card-title">{t("payments_page.analytics.debt_over_ten_days")}</div>
-                      <div className={`card-value ${Number(debtTotal.DebtMoreTen || 0) > 0 ? "text-danger" : ""}`}>
-                        {Number(debtTotal.DebtMoreTen || 0) > 0
-                          ? `${formatCurrency(debtTotal.DebtMoreTen)} ${debtTotal.CurrencyName || t("common.currency_uah")}`
-                          : "—"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <PaymentsAnalytics groups={debtAnalyticsGroups} formatCurrency={formatCurrency} showDebtDetails={showDebtDetails} />
 
             {/* АВАНСИ */}
             <h2 className="pp-title" style={{ marginTop: 24 }}>

@@ -44,10 +44,36 @@ class MeasurementPhotoSerializer(PhotoFileSerializer):
         return attrs
 
 
+class MeasurementAudioSerializer(PhotoFileSerializer):
+    def validate(self, attrs):
+        if PurePath(attrs['fileName']).suffix.lower() not in {'.mp3', '.m4a', '.wav', '.ogg', '.webm', '.opus', '.aac'}:
+            raise serializers.ValidationError({'fileName': 'Unsupported audio extension.'})
+        decode_attachment(attrs['fileDataB64'], 30 * 1024 * 1024)
+        return attrs
+
+
 class MeasurementOrderSerializer(CalculationCreateSerializer):
-    user_id = serializers.IntegerField(min_value=1)
-    file = MeasurementPDFSerializer()
+    user_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    file = MeasurementPDFSerializer(required=False, allow_null=True)
     photos = serializers.ListField(child=MeasurementPhotoSerializer(), required=False, default=list, max_length=10)
+
+    audio = serializers.ListField(child=MeasurementAudioSerializer(), required=False, default=list, max_length=10)
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            for key in ('user_id', 'file', 'audio'):
+                value = data.get(key)
+                if isinstance(value, str) and not value.strip():
+                    data[key] = None
+            file = data.get('file')
+            if isinstance(file, dict) and not str(file.get('fileDataB64') or '').strip():
+                data['file'] = None
+            if data.get('audio') is None:
+                data.pop('audio', None)
+            elif isinstance(data['audio'], dict):
+                data['audio'] = [data['audio']]
+        return super().to_internal_value(data)
 
     def get_fields(self):
         fields = super().get_fields()
@@ -56,9 +82,9 @@ class MeasurementOrderSerializer(CalculationCreateSerializer):
 
     def validate(self, attrs):
         # The authenticated user_id owns the contractor; reject GUID overrides.
-        if self.initial_data.get('contractor_guid') is not None:
+        if self.initial_data.get('contractor_guid') not in (None, ''):
             raise serializers.ValidationError({'contractor_guid': 'Точка визначається за UserId1C вибраного user_id. Не передавайте contractor_guid.'})
-        if self.initial_data.get('contractor_id') is not None:
+        if self.initial_data.get('contractor_id') not in (None, ''):
             raise serializers.ValidationError({'contractor_id': 'Використовуйте user_id — ID із portal_db.dbo.User.'})
         modes = sum(bool(attrs.get(name)) for name in ('delivery_is_pickup', 'delivery_address_guid', 'client_address'))
         if modes > 1:

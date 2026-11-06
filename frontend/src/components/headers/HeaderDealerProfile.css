@@ -322,3 +322,39 @@ body.dark-theme .mobile-side-menu .sidebar-divider { border-color: #6e6963 !impo
 .profile-box:not(.admin-profile-box) .profile-separator-line { width: 173px; }
 .profile-box:not(.admin-profile-box) .profile-name-text { right: 8px; }
 .admin-profile-box, .admin-profile-box .profile-rectangle { width: 200px; }
+
+.profile-identity {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-align: left;
+}
+
+.admin-profile-box .profile-identity {
+    top: 50%;
+    right: 26px;
+    transform: translateY(-50%);
+}
+
+.profile-box .profile-identity > .profile-name-text,
+.profile-box .profile-identity > .profile-img-icon {
+    position: static !important;
+    transform: none;
+}
+
+.profile-identity > .profile-img-icon { flex-shrink: 0; }
+.profile-identity > .profile-name-text { min-width: 0; }
+
+.profile-currency-balance { white-space: nowrap; }
+.profile-wallet-amount,
+.profile-debt-amount { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+.profile-balance-text--currencies { gap: 2px; }
+.profile-currency-row { display: flex; gap: 5px; width: 100%; min-width: 0; }
+.profile-currency-row .profile-wallet-amount,
+.profile-currency-row .profile-debt-amount { flex: 1 1 0; min-width: 0; font-size: 10px; line-height: 12px; margin-top: 0; }

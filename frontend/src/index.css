@@ -466,3 +466,23 @@ body.dark-theme .videos-container {
     radial-gradient(circle at 88% 80%, rgba(180, 217, 71, 0.12), transparent 26%),
     #333333;
 }
+
+/* The internal dealer can inspect data but has no business mutation controls. */
+body.internal-dealer-readonly .btn-add-calc,
+body.internal-dealer-readonly .calc-menu-icon-button,
+body.internal-dealer-readonly .btn-delete-mobile,
+body.internal-dealer-readonly .order-action-button,
+body.internal-dealer-readonly .comments-form-container,
+body.internal-dealer-readonly .btn-create-bill,
+body.internal-dealer-readonly .pay-topup-link,
+body.internal-dealer-readonly .pp-pay-btn,
+body.internal-dealer-readonly .btn-save-address,
+body.internal-dealer-readonly .btn-save {
+  display: none !important;
+}
+
+body.internal-dealer-readonly .icon-delete-red,
+body.internal-dealer-readonly img[src$="DeleteIcon.png"],
+body.internal-dealer-readonly .btn-edit-mobile {
+  display: none !important;
+}

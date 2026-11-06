@@ -2529,3 +2529,21 @@ body.dark-theme .batch-payment-sticky-anchor {
 
 .pp-status-label{display:flex;flex-direction:column;align-items:center;gap:3px}
 .pp-shipment-date{font-size:13px;line-height:1.25;font-weight:500;color:inherit}
+
+.analytics-currencies .finance-currency-value { line-height: 1.7; white-space: normal; overflow-wrap: anywhere; }
+.analytics-currencies .finance-currency-value span { white-space: nowrap; }
+.analytics-currencies .finance-currency-value + .finance-currency-value { margin-top: 3px; padding-top: 3px; }
+.analytics-currencies .finance-currency-value button { background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+.analytics-currencies .finance-currency-value button:hover { text-decoration: underline; }
+@media (max-width: 640px) {
+ .analytics-currencies .analytics-row-top, .analytics-currencies .analytics-row-bottom { gap: 12px; }
+ .analytics-currencies .analytics-row-bottom { margin-top: 12px; }
+ .analytics-currencies .analytics-card { border-right: 0 !important; }
+}
+
+/* Keep payment amounts and currency labels compact. */
+.analytics-currencies .card-value { font-size: 13px; }
+.analytics-currencies .finance-currency-value span { font-size: 11px; font-weight: 500; }
+.pp-value-wrapper strong { font-size: 14px; }
+.pp-currency { font-size: 11px !important; margin-left: 4px; }
+.pp-badges strong { font-size: 13px; }

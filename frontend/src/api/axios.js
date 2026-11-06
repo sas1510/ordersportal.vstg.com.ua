@@ -94,8 +94,35 @@ export function setAccessToken(token) {
   else localStorage.removeItem("access");
 }
 
+export const dealerPreviewToken = () => sessionStorage.getItem("dealerPreviewToken");
+
+export async function exitDealerPreview() {
+  const token = dealerPreviewToken();
+  if (token) {
+    try {
+      await fetch(`${API_URL}/dealer-preview/session/`, {
+        method: "DELETE",
+        headers: { Authorization: `DealerPreview ${token}` },
+        signal: AbortSignal.timeout(2500),
+        keepalive: true,
+      });
+    } catch { /* The server still enforces idle and absolute expiry. */ }
+  }
+  closeDealerPreviewTab();
+}
+
+export function closeDealerPreviewTab() {
+  window.dispatchEvent(new Event("portal:logout"));
+  sessionStorage.removeItem("dealerPreviewToken");
+  sessionStorage.removeItem("dealerPreviewSeparateTab");
+  sessionStorage.removeItem("dealerPreviewStartedAt");
+  sessionStorage.removeItem("dealerPreviewActivityAt");
+  sessionStorage.removeItem("dealerPreviewWarnedAt");
+  window.location.replace("/admin-order");
+}
+
 export function getAccessToken() {
-  return localStorage.getItem("access");
+  return dealerPreviewToken() || localStorage.getItem("access");
 }
 
 export const refreshAccessToken = async () => {
@@ -127,6 +154,13 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
+    const preview = dealerPreviewToken();
+    if (preview) {
+      const url = new URL(config.url, API_URL);
+      if (url.origin !== API_ORIGIN) return Promise.reject(new Error("Запит за межі порталу недоступний."));
+      config.headers["Authorization"] = `DealerPreview ${preview}`;
+      return config;
+    }
     const token = getAccessToken();
     if (token) config.headers["Authorization"] = `Bearer ${token}`;
     return config;
@@ -164,6 +198,10 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     handleMaintenanceResponse(error);
+    if (dealerPreviewToken()) {
+      if (error.response?.status === 401) closeDealerPreviewTab();
+      return Promise.reject(error);
+    }
 
     const originalRequest = error.config || {};
 

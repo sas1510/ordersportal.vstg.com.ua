@@ -28,6 +28,11 @@ def get_dealer_scope_requester_ids(user):
 
 def get_accessible_dealer_rows(user):
     """Return dealer rows available to a portal user."""
+    if getattr(user, "role", "") == "internal_dealer":
+        contractor = getattr(user, "user_id_1C", None)
+        if not contractor:
+            return []
+        return [{"ContractorID": bytes(contractor), "ContractorName": user.full_name or user.username}]
     requester_ids = get_dealer_scope_requester_ids(user)
     result = []
     seen = set()
@@ -50,7 +55,8 @@ def get_accessible_dealer_rows(user):
                     continue
                 seen.add(key)
                 result.append(row)
-    return result
+    from records.dealer_groups import exclude_export_dealers
+    return exclude_export_dealers(result, "ContractorID")
 
 
 def get_accessible_dealer_guids(user):
@@ -137,6 +143,11 @@ def resolve_contractor(
             contractor_bin = guid_to_1c_bin(contractor_guid)
         except Exception:
             raise ValueError("Invalid contractor GUID")
+
+        if role not in {"manager", "region_manager", "branch_manager", "branches_director"}:
+            from records.dealer_groups import exclude_export_dealers
+            if not exclude_export_dealers([{"ContractorID": contractor_bin}], "ContractorID"):
+                raise PermissionError("Експортний дилер недоступний у порталі.")
 
         return contractor_bin, contractor_guid
 

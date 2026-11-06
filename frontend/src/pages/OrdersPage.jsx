@@ -1,3 +1,5 @@
+import { orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
+import OrderMonthPicker, { OrderFilterYear } from "../components/Orders/OrderMonthPicker";
 import React, {
   useState,
   useEffect,
@@ -10,7 +12,7 @@ import { FaSearch } from "react-icons/fa";
 import { matchesOrderNumber } from "../utils/matchesOrderNumber";
 import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 
-import axiosInstance from "../api/axios";
+import axiosInstance, { dealerPreviewToken } from "../api/axios";
 import {
   CalculationItem,
 } from "../components/Orders/OrderComponents";
@@ -74,18 +76,19 @@ const PortalOriginal = () => {
   const [editingCalculation, setEditingCalculation] = useState(null);
   const [calculationsData, setCalculationsData] = useState([]);
 
+  const [restoredPeriod] = useState(() => readOrderReportPeriod(location.search));
   const [filter, setFilter] = useState({
     status: "Всі",
-    month: 0,
+    month: restoredPeriod?.month || 0,
     name: "",
   });
 
-  const [dateFilterMode, setDateFilterMode] = useState("year");
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
-  const [dateTo, setDateTo] = useState(todayDate);
+  const [dateFilterMode, setDateFilterMode] = useState(restoredPeriod?.mode || "year");
+  const [selectedYear, setSelectedYear] = useState(restoredPeriod?.year || currentYear);
+  const [dateFrom, setDateFrom] = useState(restoredPeriod?.dateFrom || `${currentYear}-01-01`);
+  const [dateTo, setDateTo] = useState(restoredPeriod?.dateTo || todayDate);
 
-  const [appliedDateFilter, setAppliedDateFilter] = useState({
+  const [appliedDateFilter, setAppliedDateFilter] = useState(restoredPeriod || {
     mode: "year",
     year: currentYear,
     dateFrom: `${currentYear}-01-01`,
@@ -159,56 +162,22 @@ const PortalOriginal = () => {
     setLimit(ITEMS_PER_LOAD);
   }, []);
 
-  const handleDateFilterModeChange = useCallback(
-    (mode) => {
-      setDateFilterMode((previousMode) => {
-        if (previousMode === mode) {
-          return previousMode;
-        }
+  const handleDateFilterModeChange = useCallback((mode) => {
+    setDateFilterMode(mode);
+    if (mode === "period") {
+      saveOrderReportPeriod({ mode, year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
+    }
+  }, [dateFrom, dateTo]);
 
-        if (mode === "period") {
-          setFilter((previous) => ({
-            ...previous,
-            month: 0,
-          }));
-
-          setLimit(ITEMS_PER_LOAD);
-          return mode;
-        }
-
-        if (previousMode === "period" && mode === "year") {
-          setAppliedDateFilter((previous) => {
-            const nextFilter = {
-              mode: "year",
-              year: selectedYear,
-              dateFrom: `${selectedYear}-01-01`,
-              dateTo: `${selectedYear}-12-31`,
-            };
-
-            const isSameFilter =
-              previous.mode === nextFilter.mode &&
-              previous.year === nextFilter.year &&
-              previous.dateFrom === nextFilter.dateFrom &&
-              previous.dateTo === nextFilter.dateTo;
-
-            return isSameFilter ? previous : nextFilter;
-          });
-
-          setExpandedCalcIds(new Set());
-          setExpandedOrder(null);
-          resetLocalMonthFilter();
-          setError(null);
-        }
-
-        return mode;
-      });
-    },
-    [resetLocalMonthFilter, selectedYear],
-  );
-
-  const handleYearChange = useCallback((event) => {
-    setSelectedYear(event.target.value);
-  }, []);
+  const selectMonth = (year, month) => {
+    saveOrderReportPeriod(orderMonthPeriod(year, month));
+    setSelectedYear(year);
+    setAppliedDateFilter({ mode: "year", year, dateFrom: `${year}-01-01`, dateTo: `${year}-12-31` });
+    setFilter((previous) => ({ ...previous, month }));
+    setExpandedCalcIds(new Set());
+    setExpandedOrder(null);
+    setLimit(ITEMS_PER_LOAD);
+  };
 
   const handleDateFromChange = useCallback(
     (event) => {
@@ -269,6 +238,7 @@ const PortalOriginal = () => {
       };
     }
 
+    saveOrderReportPeriod({ ...nextFilter, year: nextFilter.dateFrom.slice(0, 4), month: 0 });
     setAppliedDateFilter((previous) => {
       const isSameFilter =
         previous.mode === nextFilter.mode &&
@@ -694,6 +664,7 @@ const PortalOriginal = () => {
       Всі: 0,
       Новий: 0,
       "В обробці": 0,
+      "Для прорахунку": 0,
       "Очікуємо оплату": 0,
       "Очікуємо підтвердження": 0,
       Підтверджений: 0,
@@ -718,7 +689,7 @@ const PortalOriginal = () => {
       }
 
       orders.forEach((order) => {
-        if (summary[order.status] !== undefined) {
+        if (summary[order.status] !== undefined && (order.status !== "Для прорахунку" || (calc.isOrderOnly && !order.applicationGuid))) {
           summary[order.status] += 1;
         }
       });
@@ -773,7 +744,7 @@ const PortalOriginal = () => {
           }
 
           return orders.some(
-            (order) => order.status === statusValue,
+            (order) => order.status === statusValue && (statusValue !== "Для прорахунку" || (calc.isOrderOnly && !order.applicationGuid)),
           );
         });
       }
@@ -952,22 +923,6 @@ const PortalOriginal = () => {
     );
   }, [totalFilteredCount]);
 
-  const shortMonthLabels = useMemo(() => {
-    const labels = t("portal_calc.months.short", {
-      returnObjects: true,
-    });
-
-    return Array.isArray(labels) ? labels : [];
-  }, [t, locale]);
-
-  const fullMonthLabels = useMemo(() => {
-    const labels = t("portal_calc.months.full", {
-      returnObjects: true,
-    });
-
-    return Array.isArray(labels) ? labels : [];
-  }, [t, locale]);
-
   const statusFilters = useMemo(
     () => [
       {
@@ -1099,7 +1054,7 @@ const PortalOriginal = () => {
   }, [closeDailyReminder, getReminderOptOutKey]);
 
   useEffect(() => {
-    if (loading || reloading) {
+    if (dealerPreviewToken() || loading || reloading) {
       return;
     }
 
@@ -1227,63 +1182,19 @@ const PortalOriginal = () => {
                 </div>
 
                 {dateFilterMode === "year" && (
-                  <>
-                    <select
-                      className="year-select-minimal"
-                      value={selectedYear}
-                      onChange={handleYearChange}
-                    >
-                      {Array.from(
-                        { length: 5 },
-                        (_, index) => {
-                          const year =
-                            currentYearNumber - index;
-
-                          return (
-                            <option
-                              key={year}
-                              value={year}
-                            >
-                              {year}
-                            </option>
-                          );
-                        },
-                      )}
-                    </select>
-
-                    <button
-                      type="button"
-                      className="date-filter-search-button"
-                      onClick={handleApplyDateFilter}
-                      disabled={loading || reloading}
-                    >
-                      <FaSearch className="date-filter-search-icon" />
-
-                      <span className="date-filter-search-text">
-                        {reloading
-                          ? t(
-                              "portal_calc.ui.searching",
-                              {
-                                defaultValue:
-                                  "Пошук...",
-                              },
-                            )
-                          : t(
-                              "portal_calc.ui.search",
-                              {
-                                defaultValue:
-                                  "Пошук",
-                              },
-                            )}
-                      </span>
-                    </button>
-                  </>
+                  <OrderMonthPicker year={appliedDateFilter.year} month={filter.month}
+                    years={Array.from({ length: 5 }, (_, index) => currentYearNumber - index)}
+                    counts={monthSummary} allowYear onSelect={selectMonth} />
                 )}
               </div>
 
               {dateFilterMode === "period" && (
                 <div className="date-filter-bottom-row">
                   <div className="date-period-fields">
+                    <OrderFilterYear year={dateFrom.slice(0, 4)} years={Array.from({ length: 5 }, (_, index) => currentYearNumber - index)} onChange={(year) => {
+                      setDateFrom(`${year}-01-01`);
+                      setDateTo(`${year}-12-31`);
+                    }} />
                     <label className="date-period-field">
                       <span>
                         {t(
@@ -1353,98 +1264,7 @@ const PortalOriginal = () => {
               )}
             </div>
 
-            {dateFilterMode === "year" && (
-              <>
-                <ul className="gap-6 row no-wrap month-list">
-                  <li
-                    className={`pagination-item ${
-                      filter.month === 0
-                        ? "active"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleFilterChange("month", 0)
-                    }
-                  >
-                    {t("portal_calc.months.all_year")}
-                  </li>
 
-                  {Array.from(
-                    { length: 12 },
-                    (_, index) => {
-                      const monthNumber = index + 1;
-
-                      const isDisabled =
-                        monthSummary[monthNumber] === 0;
-
-                      return (
-                        <li
-                          key={monthNumber}
-                          className={`pagination-item ${
-                            filter.month === monthNumber
-                              ? "active"
-                              : ""
-                          } ${
-                            isDisabled ? "disabled" : ""
-                          }`}
-                          onClick={() => {
-                            if (!isDisabled) {
-                              handleFilterChange(
-                                "month",
-                                monthNumber,
-                              );
-                            }
-                          }}
-                        >
-                          {shortMonthLabels[index] ||
-                            monthNumber}{" "}
-                          <span className="text-yellow">
-                            (
-                            {monthSummary[monthNumber]})
-                          </span>
-                        </li>
-                      );
-                    },
-                  )}
-                </ul>
-
-                <select
-                  className="month-select row"
-                  value={filter.month}
-                  onChange={(event) =>
-                    handleFilterChange(
-                      "month",
-                      Number(event.target.value),
-                    )
-                  }
-                >
-                  <option value={0}>
-                    {t("portal_calc.months.all_year")}
-                  </option>
-
-                  {Array.from(
-                    { length: 12 },
-                    (_, index) => {
-                      const monthNumber = index + 1;
-
-                      return (
-                        <option
-                          key={monthNumber}
-                          value={monthNumber}
-                          disabled={
-                            monthSummary[monthNumber] === 0
-                          }
-                        >
-                          {fullMonthLabels[index] ||
-                            monthNumber}{" "}
-                          ({monthSummary[monthNumber]})
-                        </option>
-                      );
-                    },
-                  )}
-                </select>
-              </>
-            )}
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+from users.internal_dealer import internal_dealer_is_readonly
 # import json
 # from channels.generic.websocket import AsyncWebsocketConsumer
 # from channels.db import database_sync_to_async
@@ -386,6 +387,17 @@ def _hex_1c_user_to_guid(value):
 HARDCODED_DUPLICATE_MANAGER_BIN = guid_to_1c_bin(HARDCODED_DUPLICATE_MANAGER_GUID)
 
 
+def internal_dealer_chat_readonly(user):
+    if getattr(user, "role", None) != "internal_dealer":
+        return False
+    if getattr(user, "pk", None) is not None:
+        from users.models import CustomUser
+        user = CustomUser.objects.get(pk=user.pk)
+        if not user.is_active:
+            return True
+    return internal_dealer_is_readonly(user)
+
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
 
@@ -488,12 +500,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.contractor_bin = None
             self.contractor_guid = getattr(self.user, 'user_id_1C', None)
 
+        self.internal_readonly = await database_sync_to_async(internal_dealer_chat_readonly)(self.user)
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
+        if self.scope.get("dealer_preview_actor") or getattr(self.user, "role", None) == "internal_dealer":
+            try:
+                transaction_type, document_guid = self.chat_id.split("_", 1)
+                is_owner = await self.check_document_ownership(guid_to_1c_bin(document_guid), int(transaction_type), self.contractor_bin)
+            except (ValueError, TypeError):
+                is_owner = False
+            if not is_owner:
+                await self.close(code=4003)
+                return
         self.room_group_name = f'chat_{self.chat_id}'
 
     
         user_guid_str = str(bin_to_guid_1c(self.contractor_bin)) if self.contractor_bin else str(self.contractor_guid)
-        if user_guid_str:
+        if user_guid_str and not self.scope.get("dealer_preview_actor") and not self.internal_readonly:
             await self.redis_conn.sadd(f"active_users_{self.room_group_name}", user_guid_str.lower())
             logger.info(f"WS Connect: User {user_guid_str} joined {self.room_group_name}", extra={
             'tags': {
@@ -510,7 +532,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if hasattr(self, 'room_group_name'):
     
             user_guid_str = str(bin_to_guid_1c(self.contractor_bin)) if self.contractor_bin else str(self.contractor_guid)
-            if user_guid_str:
+            if user_guid_str and not self.scope.get("dealer_preview_actor") and not self.internal_readonly:
                 await self.redis_conn.srem(f"active_users_{self.room_group_name}", user_guid_str.lower())
             
 
@@ -533,12 +555,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
     async def chat_message(self, event):
+        token = self.scope.get("dealer_preview_token")
+        if token:
+            from users.dealer_preview import resolve_dealer_session
+            try:
+                await database_sync_to_async(resolve_dealer_session)(token)
+            except Exception:
+                await self.close(code=4003)
+                return
         await self.send(text_data=json.dumps(event))
 
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
 
     async def receive(self, text_data):
+        if await database_sync_to_async(internal_dealer_chat_readonly)(self.user):
+            await self.send_error("Read-only access")
+            return
         try:
             try:
                 data = json.loads(text_data)
@@ -598,7 +631,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 await self.send_error("Некоректний формат chat_id")
                 return
             
-            if getattr(self.user, 'role', '') == 'customer':
+            if self.scope.get("dealer_preview_actor"):
+                from users.dealer_preview import resolve_dealer_session
+                try:
+                    await database_sync_to_async(resolve_dealer_session)(self.scope["dealer_preview_token"])
+                except Exception:
+                    await self.close(code=4003)
+                    return
+                logger.info("Delegated dealer chat actor=%s dealer=%s document=%s", self.scope["dealer_preview_actor"], self.user.pk, base_transaction_guid)
+            if self.scope.get("dealer_preview_actor") or getattr(self.user, 'role', '') in {'customer', 'internal_dealer'}:
                 is_owner = await self.check_document_ownership(base_guid, t_type, self.contractor_bin)
                 logger.info(
                     "WS customer ownership gate",
@@ -699,7 +740,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
 
 
-                if getattr(self.user, 'role', '') == 'customer' and not is_recipient_active:
+                if getattr(self.user, 'role', '') in {'customer', 'internal_dealer'} and not is_recipient_active:
                     from backend.utils.tasks import send_chat_notification_to_1c
                     
                     base_guid_str = str(bin_to_guid_1c(base_guid))
@@ -847,7 +888,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                                 message_text,
                                 saved_msg.id,
                             ],
-                            countdown=6,
                         )
 
 
@@ -976,6 +1016,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
         
+
 
 
 

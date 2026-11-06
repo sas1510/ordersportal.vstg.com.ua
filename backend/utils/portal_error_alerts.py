@@ -1,6 +1,7 @@
 """Bounded, non-blocking Telegram alerts without request data or secrets."""
 import hashlib
 import logging
+import os
 import queue
 import sys
 import threading
@@ -25,8 +26,17 @@ def send_alert(text):
         return
     try:
         response = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={"chat_id": chat_id, "text": text, "disable_web_page_preview": True}, timeout=5)
+        if response.status_code == 401:
+            # Unauthorized means nothing was delivered. Use the existing portal bot
+            # for this same configured personal chat; never retry ambiguous sends.
+            fallback = (getattr(settings, 'NOTIFICATION_TELEGRAM_BOT_TOKEN', '')
+                        or os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN', ''))
+            if fallback and fallback != token:
+                response = requests.post(f"https://api.telegram.org/bot{fallback}/sendMessage", json={"chat_id": chat_id, "text": text, "disable_web_page_preview": True}, timeout=5)
         if response.status_code != 200:
             logger.warning("Portal error Telegram alert rejected (HTTP %s)", response.status_code)
+            return False
+        return True
     except Exception:
         # Never log the URL, token, response body or exception text.
         logger.warning("Portal error Telegram alert transport failed")

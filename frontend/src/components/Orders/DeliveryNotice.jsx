@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import axios from "../../api/axios";
+import axios, { dealerPreviewToken } from "../../api/axios";
 import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 export default function DeliveryNotice({ observations }) {
   const { role } = useAuthGetRole();
-  const isDealer = role === "customer" || role === "dealer";
+  const isDealer = !dealerPreviewToken() && (role === "customer" || role === "dealer");
   const [deliveries, setDeliveries] = useState([]);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");

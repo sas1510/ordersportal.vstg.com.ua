@@ -366,7 +366,8 @@ const videos = [
   "https://www.tiktok.com/@viknastyle/video/7618147133090286869",
 ];
 
-export default function Dashboard() {
+export default function HomePage({ showVideo = false, companyInfoOnly = false }) {
+  const [isHeroVideoPlaying, setIsHeroVideoPlaying] = useState(false);
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const containerRef = useRef(null);
@@ -563,21 +564,10 @@ const statsData = [
   return (
     <div className={`homepage-container ${isDark ? "homepage-dark" : ""}`}>
       {/* Hero Section */}
-      <section className="hero-section">
-      {/* 1. ФОНОВЕ ВІДЕО */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="hero-video-bg"
-        poster="/assets/video/hero-poster.jpg" // Обов'язково додайте "заглушку"
-        preload="auto"
-      >
-        <source src="/assets/video/hero-background-1.webm" type="video/webm" />
-        <source src="/assets/video/hero-background-1.mp4" type="video/mp4" />
-      </video>
-
+      {!companyInfoOnly && <section className="hero-section" style={showVideo ? { backgroundImage: 'url("/assets/video/hero-poster.jpg")', backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+      {showVideo && <video autoPlay loop muted playsInline preload="auto" className={`hero-video-bg${isHeroVideoPlaying ? " hero-video-bg--playing" : ""}`} poster="/assets/video/hero-poster.jpg" aria-hidden="true" onPlaying={() => setIsHeroVideoPlaying(true)} onWaiting={() => setIsHeroVideoPlaying(false)} onError={() => setIsHeroVideoPlaying(false)}>
+        <source src="/assets/video/hero-background-h264.mp4" type="video/mp4" />
+      </video>}
       {/* 2. ОВЕРЛЕЙ */}
       <motion.div className="hero-overlay">
         <div className="hero-gradient"></div>
@@ -658,7 +648,7 @@ const statsData = [
           />
         </motion.div>
       </div>
-    </section>
+    </section>}
 
 {isMobile ? (
       /* 1. МОБІЛЬНА ВЕРСІЯ */

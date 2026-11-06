@@ -7,6 +7,8 @@ import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { normalizeRole } from "../utils/roles";
 
 const EDITABLE_ROLE_OPTIONS = [
+  { value: "internal_dealer", label: "Внутрішній дилер" },
+  { value: "customer", label: "Дилер" },
   { value: "admin", label: "Адміністратор" },
   { value: "manager", label: "Менеджер" },
   { value: "region_manager", label: "Регіональний менеджер" },
@@ -36,6 +38,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
     is_active: user.is_active,
     permit_finance_info: user.permit_finance_info,
     load_all_contractor_addresses: user.load_all_contractor_addresses ?? false,
+    internal_dealer_can_edit: user.internal_dealer_can_edit ?? false,
     branch_id: user.branch_id ?? "",
     is_branch: user.is_branch ?? false,
     old_portal_id: user.old_portal_id,
@@ -48,7 +51,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
   const normalizedUserRole = normalizeRole(user.role);
   const allowedRoleOptions = isAdmin
     ? EDITABLE_ROLE_OPTIONS
-    : EDITABLE_ROLE_OPTIONS.filter((option) => ["manager", "branch_manager"].includes(option.value));
+    : EDITABLE_ROLE_OPTIONS.filter((option) => ["manager", "branch_manager", "internal_dealer", "customer"].includes(option.value));
   const roleOptions = allowedRoleOptions.some((option) => option.value === normalizedUserRole)
     ? allowedRoleOptions
     : [
@@ -134,6 +137,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
               <span>Логін</span>
               <input
                 name="username"
+                disabled={user.username?.toLowerCase() === "admin"}
                 value={form.username}
                 onChange={handleChange}
                 className="portal-user-edit-input"
@@ -176,6 +180,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
               <span>Роль</span>
               <select
                 name="role"
+                disabled={user.username?.toLowerCase() === "admin"}
                 value={form.role}
                 onChange={handleChange}
                 className="portal-user-edit-select"
@@ -237,11 +242,20 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
               </label>
             )}
 
+            {form.role === "internal_dealer" && (
+              <label className="portal-user-edit-label portal-user-edit-checkbox-row">
+                <input type="checkbox" name="internal_dealer_can_edit"
+                  checked={form.internal_dealer_can_edit} onChange={handleChange} />
+                <span>Дозволити редагування</span>
+              </label>
+            )}
+
             <label className="portal-user-edit-label">
               <span>Дата закінчення доступу</span>
               <input
                 type="date"
                 name="expire_date"
+                disabled={user.username?.toLowerCase() === "admin"}
                 value={form.expire_date}
                 onChange={handleChange}
                 className="portal-user-edit-input"
@@ -252,6 +266,7 @@ export default function EditUserModal({ user, branches = [], onClose, onUpdated 
               <input
                 type="checkbox"
                 name="is_active"
+                disabled={user.username?.toLowerCase() === "admin"}
                 checked={form.is_active}
                 onChange={handleChange}
               />

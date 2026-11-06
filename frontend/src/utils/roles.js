@@ -9,6 +9,7 @@ const BACKOFFICE_ROLES = new Set([
 ]);
 
 const DEALER_ROLES = new Set([
+  "internal_dealer",
   "dealer",
   "customer",
 ]);

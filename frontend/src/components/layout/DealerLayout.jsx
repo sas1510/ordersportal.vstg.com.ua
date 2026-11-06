@@ -1,12 +1,17 @@
 import RouteContent from "../ui/RouteContent";
 import HeaderDealer from "../headers/HeaderDealer";
-import Footer from "./Footer";
+import { useContext } from "react";
+import { RoleContext } from "../../context/RoleContext";
+import { dealerPreviewToken, exitDealerPreview } from "../../api/axios";
 import PullToRefresh from "./PullToRefresh";
 
 
 
 
-const DealerLayout = () => (
+const DealerLayout = () => {
+  const { user } = useContext(RoleContext);
+  const delegated = Boolean(dealerPreviewToken());
+  return (
   <div style={styles.layout}>
     {/* Змінюємо absolute на fixed */}
     <div 
@@ -15,16 +20,23 @@ const DealerLayout = () => (
   }}
   style={styles.headerWrapper}
 >
+  {delegated && (
+    <div className="flex h-[22px] items-center justify-between gap-2 bg-amber-100 px-2 text-xs text-amber-950">
+      <span className="truncate">{user?.staff_preview ? "Перегляд дилера · Лише читання" : "Ви дієте від імені дилера"} — {user?.full_name || user?.username}</span>
+      <button type="button" className="shrink-0 underline" onClick={exitDealerPreview}>Вийти</button>
+    </div>
+  )}
   <div style={{ pointerEvents: "auto" }}>
     <HeaderDealer />
   </div>
 </div>
 
-    <PullToRefresh style={styles.main}>
+    <PullToRefresh style={delegated ? { ...styles.main, marginTop: 22 } : styles.main}>
       <RouteContent />
     </PullToRefresh>
   </div>
-);
+  );
+};
 
 const styles = {
    layout: {

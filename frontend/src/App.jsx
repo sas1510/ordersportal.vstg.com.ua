@@ -6,6 +6,8 @@ import { useTranslation } from "react-i18next";
 import PublicLayout from "./components/layout/PublicLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import DealerLayout from "./components/layout/DealerLayout";
+import { dealerPreviewToken, getAccessToken } from "./api/axios";
+import { useDealerPreviewLifetime } from "./hooks/useDealerPreviewLifetime";
 // В App.js
 import '../public/assets/css/mobile-responsive.css';
 
@@ -34,6 +36,7 @@ const routeTitlePatterns = [
   ["/", "route_titles.home"],
   ["/home", "route_titles.home"],
   ["/dashboard", "route_titles.dashboard"],
+  ["/dashboardV2", "route_titles.dashboard"],
   ["/users", "route_titles.users"],
   ["/files", "route_titles.files"],
   ["/files/add", "route_titles.files_add"],
@@ -117,7 +120,7 @@ const pathToRegExp = (pattern) =>
 //       {/* Публічні маршрути */}
 //       <Route path="/" element={<PublicLayout />}>
 //         <Route index element={<HomePage />} />
-//         <Route path="home" element={<HomePage />} />
+//         <Route path="home" element={<HomePage showVideo />} />
 //         <Route path="login" element={<LoginPage />} />
 //         <Route path="invite/:code/" element={<InviteRegisterForm />} />
 //       </Route>
@@ -147,9 +150,11 @@ const pathToRegExp = (pattern) =>
 function AppRoutes() {
   useCacheBuster();
   const { role, user, isLoading } = useContext(RoleContext);
+  useDealerPreviewLifetime(user);
   const location = useLocation();
   const { t } = useTranslation();
   const normalizedRole = normalizeRole(role);
+  const isDealerPreview = Boolean(dealerPreviewToken());
 
   const routeTitles = useMemo(
     () =>
@@ -176,12 +181,16 @@ function AppRoutes() {
   // --- ЛОГІКА ВІДОБРАЖЕННЯ ---
 
   // 1. Якщо ми на публічній сторінці — показуємо її ВІДРАЗУ
+  if (location.pathname === "/" && getAccessToken()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (isPublicRoute) {
     return (
       <Routes>
         <Route path="/" element={<PublicLayout />}>
           <Route index element={<HomePage />} />
-          <Route path="home" element={<HomePage />} />
+          <Route path="home" element={<HomePage showVideo />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="invite/:code/" element={<InviteRegisterForm />} />
           <Route path="support/video-upload" element={<SupportVideoUploadPage />} />
@@ -214,6 +223,9 @@ function AppRoutes() {
     LayoutComponent = DealerLayout;
     routes = dealerRoutes;
   }
+  if ((user?.staff_preview && normalizedRole !== "region_manager") || !["admin", "region_manager", "branch_manager", "branches_director"].includes(normalizedRole)) {
+    routes = routes.filter(({ path }) => path !== "dealer-login");
+  }
   if (isDealerRole(normalizedRole) && !hasFinanceAccess(user)) {
     const financePaths = new Set([
       "/payment",
@@ -227,6 +239,12 @@ function AppRoutes() {
   //   routes = managerRoutes;
   // }
 
+if (normalizedRole === "internal_dealer" && user?.internal_dealer_can_edit !== true) {
+  routes = routes.map((route) => ["zamir", "constructor", "change-password"].includes(route.path)
+    ? { ...route, element: <main className="p-8"><p>Доступний лише перегляд даних.</p></main> }
+    : route);
+}
+
 return (
   <>
     <Routes>
@@ -235,7 +253,7 @@ return (
           {routes.map(({ path, element }) => (
             <Route key={path} path={path} element={element} />
           ))}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to={isDealerPreview ? "/orders" : "/dashboard"} replace />} />
         </Route>
       ) : (
         <Route
@@ -245,9 +263,9 @@ return (
       )}
     </Routes>
 
-    {normalizedRole && <PortalAnnouncementModal />}
-    {normalizedRole && <ManagerDelayNotice />}
-    {isDealerRole(normalizedRole) && !["/constructor", "/zamir"].includes(location.pathname.replace(/\/+$/, "")) && <SupportChatWidget />}
+    {normalizedRole && !isDealerPreview && <PortalAnnouncementModal />}
+    {normalizedRole && !isDealerPreview && <ManagerDelayNotice />}
+    {!isDealerPreview && (normalizedRole !== "internal_dealer" || user?.internal_dealer_can_edit === true) && isDealerRole(normalizedRole) && !["/constructor", "/zamir"].includes(location.pathname.replace(/\/+$/, "")) && <SupportChatWidget />}
   </>
 );
 }

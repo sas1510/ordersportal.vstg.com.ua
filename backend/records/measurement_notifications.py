@@ -1,6 +1,8 @@
 """Telegram notifications only for the measurement integration's successful orders."""
 import logging
 import os
+from urllib.parse import urlencode
+from django.utils import timezone
 import requests
 from celery import shared_task
 from django.conf import settings
@@ -66,8 +68,11 @@ def notification_text(item):
     lines = ['📐 Нова заявка із замірника',
              'Дилер: ' + (data.get('dealer') or str(data.get('user_id', ''))),
              'Номер заявки: ' + (data.get('order_number') or 'не вказано'),
-             f"Кількість конструкцій: {data.get('items_count', '')}",
-             f'GUID прорахунку 1С: {item.calculation_guid}']
+             f"Кількість конструкцій: {data.get('items_count', '')}"]
+    created = getattr(item, 'created_at', None) or timezone.now()
+    day = timezone.localtime(created).date().isoformat()
+    query = urlencode({'search': data.get('order_number') or '', 'contractor_guid': item.response_body[STATE_KEY].get('contractor_guid') or '', 'measurement_dealer': data.get('user_id') or '', 'expand': '1', 'date_from': day, 'date_to': day})
+    lines.extend(['', 'Відкрити замовлення: ' + settings.FRONTEND_URL.rstrip('/') + '/admin-order?' + query])
     if data.get('comment'):
         lines.append('Коментар: ' + data['comment'])
     return '\n'.join(lines)[:3500]

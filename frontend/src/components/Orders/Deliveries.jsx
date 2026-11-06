@@ -6,8 +6,10 @@ import { getDeliveryRows, sortDeliveryDates } from "../../utils/deliveryRows";
 import "./Deliveries.css";
 import DeliveryNotice from "./DeliveryNotice";
 
+const SHOW_DELIVERY_NOTICES = false;
+
 export function useDeliveries(calculations, observationCalculations = calculations) {
-  const observations = useMemo(() => observationCalculations.length ? JSON.stringify(observationCalculations.flatMap((calc) => (calc.orders || []).filter((order) => order.idGuid && order.status !== "Відмова").map((order) => ({ orderGuid: order.idGuid, number: order.number, count: order.count ?? null, calculation: calc.number || calc.webNumber || "", delivery: order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime || null })))) : null, [observationCalculations]);
+  const observations = useMemo(() => SHOW_DELIVERY_NOTICES ? JSON.stringify(observationCalculations.flatMap((calc) => (calc.orders || []).filter((order) => order.idGuid && order.status !== "Відмова").map((order) => ({ orderGuid: order.idGuid, number: order.number, count: order.count ?? null, calculation: calc.number || calc.webNumber || "", delivery: order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime || null })))) : null, [observationCalculations]);
   const [enabled, setEnabled] = useState(false);
   const [date, setDate] = useState("");
   const [now, setNow] = useState(Date.now());
@@ -51,7 +53,7 @@ export function DeliveriesControl({ delivery }) {
     finally { setBusy(false); }
   };
   return <div className="deliveries-control" ref={ref}>
-    <DeliveryNotice observations={delivery.observations} />
+    {SHOW_DELIVERY_NOTICES && <DeliveryNotice observations={delivery.observations} />}
     <button type="button" className={`orders-expand-all-button deliveries-button${delivery.enabled ? " active" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}><FaTruck />Доставки</button>
     {delivery.enabled && <button type="button" className="deliveries-reset" title="Зняти фільтр доставок" aria-label="Зняти фільтр доставок" onClick={() => { delivery.setEnabled(false); delivery.setDate(""); setOpen(false); setDateOpen(false); }}>×</button>}
     {open && <div className="deliveries-settings">

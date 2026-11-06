@@ -24,6 +24,7 @@ const ROLE_OPTIONS = [
   { value: "director", label: "Директор" },
   { value: "complaint_manager", label: "Менеджер рекламацій" },
   { value: "operator", label: "Оператор" },
+  { value: "internal_dealer", label: "Внутрішній дилер" },
   { value: "customer", label: "Дилер" },
   { value: "dealer", label: "Дилер" },
 ];
@@ -67,16 +68,8 @@ const getRoleBadgeClass = (role) => {
 export default function UsersListPage() {
   const { isAdmin, role, user: currentUser } = useAuthGetRole();
   const canManageBranchUsers = ["branch_manager", "branches_director"].includes(role);
-  const canManageUsers = isAdmin || canManageBranchUsers;
-  const canEditListedUser = (listedUser) => {
-    if (isAdmin) return true;
-    if (listedUser.id === currentUser?.id) return false;
-
-    const allowedRoles = role === "branch_manager"
-      ? ["manager", "customer", "dealer"]
-      : ["manager", "branch_manager", "customer", "dealer"];
-    return allowedRoles.includes(normalizeRole(listedUser.role));
-  };
+  const canManageUsers = !currentUser?.staff_preview && (isAdmin || canManageBranchUsers);
+  const canEditListedUser = (listedUser) => listedUser.can_edit === true;
   const [users, setUsers] = useState([]);
   const [branches, setBranches] = useState([]);
   const [filterRole, setFilterRole] = useState("all");
@@ -248,7 +241,7 @@ export default function UsersListPage() {
 
                     {canManageUsers && <td className="p-4 flex gap-2 justify-center flex-wrap" data-label="Дії">
                       <div className="actions-container">
-                        {canEditListedUser(user) && user.can_edit !== false && <button
+                        {canEditListedUser(user) && <button
                           className="user-action user-action--edit px-3 py-1 text-sm transition-colors"
                           onClick={() => setEditUser(user)}
                         >
@@ -263,7 +256,7 @@ export default function UsersListPage() {
                           Змінити пароль
                         </button>}
 
-                        {isAdmin && <button
+                        {user.can_deactivate_or_delete && <button
                           className={`user-action user-action--deactivate px-3 py-1 text-sm transition-colors ${
                             user.is_active
                               ? "bg-red-500 hover:bg-red-600"
@@ -275,14 +268,14 @@ export default function UsersListPage() {
                           {user.is_active ? "Деактивувати" : "Деактивовано"}
                         </button>}
 
-                        {isAdmin && <button
+                        {isAdmin && canEditListedUser(user) && <button
                           className="user-action user-action--api px-3 py-1 text-sm ulp-nowrap-btn transition-colors"
                           onClick={() => setApiKeyUser(user)}
                         >
                           API-ключі
                         </button>}
 
-                        {isAdmin && <button
+                        {user.can_deactivate_or_delete && <button
                           className="user-action user-action--delete px-3 py-1 text-sm ulp-nowrap-btn transition-colors"
                           onClick={() => setDeleteUser(user)}
                         >

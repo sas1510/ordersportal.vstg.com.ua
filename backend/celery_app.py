@@ -9,7 +9,7 @@ app.conf.beat_schedule = {
     **app.conf.beat_schedule,
     'pending-measurement-order-notifications': {
         'task': 'enqueue_pending_measurement_order_notifications',
-        'schedule': 60.0,
+        'schedule': 300.0,
     },
 }
 # у celery.py додайте цей рядок ПЕРЕД autodiscover_tasks
@@ -17,3 +17,4 @@ app.conf.imports = ('utils.tasks', 'records.notification_cleanup', 'records.meas
 
 # Цей рядок критично важливий!
 app.autodiscover_tasks()
+

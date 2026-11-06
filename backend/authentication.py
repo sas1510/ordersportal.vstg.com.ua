@@ -58,6 +58,8 @@ class OneCApiKeyAuthentication(BaseAuthentication):
         key_obj.save(update_fields=["last_used_at"])
 
         # 👇 КЛЮЧОВЕ
+        from users.internal_dealer import enforce_internal_dealer_readonly
+        enforce_internal_dealer_readonly(request, user)
         return (user, "1C_API_KEY")
 
 # class OneCApiKeyAuthentication(BaseAuthentication):

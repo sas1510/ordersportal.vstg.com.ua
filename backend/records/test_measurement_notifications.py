@@ -108,3 +108,16 @@ class MeasurementNotificationHookTests(SimpleTestCase):
         with patch.object(CreateCalculationViewSet,'create',return_value=Response({'success':True,'calculation_guid':str(uuid.uuid4())},status=201)):
             self.assertEqual(MeasurementOrderViewSet().create(self.request()).status_code,201)
 
+
+class MeasurementTelegramSourceLinkTests(SimpleTestCase):
+    @override_settings(FRONTEND_URL='https://portal.vstg.com.ua/')
+    def test_manager_and_copy_text_contains_the_exact_measurement_link(self):
+        from .measurement_notifications import notification_text
+        item=SimpleNamespace(calculation_guid=uuid.uuid4(),response_body={'_measurement_telegram':{'contractor_guid':'11111111-2222-4333-8444-555555555555','payload':{'order_number':'zamir-16','user_id':119,'dealer':'Тест','items_count':2}}})
+        text=notification_text(item)
+        self.assertIn('Відкрити замовлення: https://portal.vstg.com.ua/admin-order?search=zamir-16&contractor_guid=11111111-2222-4333-8444-555555555555&measurement_dealer=119&expand=1&date_from=',text)
+
+    def test_invalid_source_identity_never_creates_a_guessed_link(self):
+        from .measurement_links import measurement_portal_path
+        for number,dealer in [('16',119),('zamir-16',None),('zamir-16','119&admin=1'),('https://other.invalid',119)]:
+            self.assertIsNone(measurement_portal_path(number,dealer))

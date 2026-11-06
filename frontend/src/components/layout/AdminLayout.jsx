@@ -1,9 +1,13 @@
 import RouteContent from "../ui/RouteContent";
 import HeaderAdmin from "../headers/HeaderAdmin";
-import Footer from "./Footer";
+import { useContext } from "react";
+import { RoleContext } from "../../context/RoleContext";
+import { exitDealerPreview } from "../../api/axios";
 import PullToRefresh from "./PullToRefresh";
 
-const AdminLayout = () => (
+const AdminLayout = () => {
+  const { user } = useContext(RoleContext);
+  return (
   <div style={styles.layout}>
     {/* Обгортка хедера з високим z-index та фіксацією */}
     <div 
@@ -12,19 +16,26 @@ const AdminLayout = () => (
       }}
       style={styles.headerWrapper}
     >
+      {user?.staff_preview && (
+        <div className="flex h-[22px] items-center justify-between gap-2 bg-amber-100 px-2 text-xs text-amber-950">
+          <span className="truncate">Перегляд від імені {user.full_name || user.username} · Лише читання</span>
+          <button type="button" className="shrink-0 underline" onClick={exitDealerPreview}>Вийти</button>
+        </div>
+      )}
       <div style={{ pointerEvents: "auto" }}>
         <HeaderAdmin />
       </div>
     </div>
 
     {/* Основний контент */}
-    <PullToRefresh style={styles.main}>
+    <PullToRefresh style={user?.staff_preview ? { ...styles.main, marginTop: 22 } : styles.main}>
       <RouteContent />
     </PullToRefresh>
 
     {/* <Footer /> */}
   </div>
-);
+  );
+};
 
 const styles = {
    layout: {

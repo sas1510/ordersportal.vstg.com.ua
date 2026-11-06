@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import axiosInstance, {
   setLogoutHandler,
+  dealerPreviewToken,
+  exitDealerPreview,
   setAccessToken as setAxiosAccessToken,
 } from "../api/axios";
 import { RoleContext } from "./RoleContext";
@@ -23,10 +25,10 @@ const isPublicRoute =
 
 
   const [accessToken, setAccessTokenState] = useState(
-    localStorage.getItem("access") || null,
+    dealerPreviewToken() || localStorage.getItem("access") || null,
   );
   const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem("access"),
+    !!(dealerPreviewToken() || localStorage.getItem("access")),
   );
   const { setRole } = useContext(RoleContext);
   const [loading, setLoading] = useState(true);
@@ -62,6 +64,7 @@ const isPublicRoute =
 
 
   const logout = useCallback(async () => {
+    if (dealerPreviewToken()) { exitDealerPreview(); return; }
     notifyZamirLogout();
     try {
       await axiosInstance.post("/logout/", {}, { withCredentials: true });

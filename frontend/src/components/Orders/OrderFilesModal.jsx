@@ -137,6 +137,7 @@ const OrderFilesModal = ({
   ========================= */
   useEffect(() => {
     if (!orderGuid) return;
+    const controller = new AbortController();
     const loadFiles = async () => {
       setLoading(true);
       setFiles([]);
@@ -146,7 +147,7 @@ const OrderFilesModal = ({
           ? `orders/${orderGuid}/files/` // Для прорахунків (як у вашому urls.py)
           : `order/${orderGuid}/files/`; // Для звичайних замовлень
 
-        const response = await axiosInstance.get(fetchUrl);
+        const response = await axiosInstance.get(fetchUrl, { signal: controller.signal });
         if (response.data?.status === "success") {
           setFiles(response.data.files || []);
         } else if (Array.isArray(response.data)) {
@@ -154,12 +155,14 @@ const OrderFilesModal = ({
           setFiles(response.data);
         }
       } catch (err) {
+        if (controller.signal.aborted) return;
         addNotification(t("errors.fetchFilesFailed"), "error");
       } finally {
         setLoading(false);
       }
     };
     loadFiles();
+    return () => controller.abort();
   }, [orderGuid, entityType, t, addNotification]);
 
   /* =========================

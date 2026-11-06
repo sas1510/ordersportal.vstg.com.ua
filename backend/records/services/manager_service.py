@@ -1,5 +1,5 @@
 from django.db import connections
-from backend.utils.GuidToBin1C import guid_to_1c_bin
+from utils.GuidToBin1C import guid_to_1c_bin
 
 
 def get_manager_by_contractor(contractor_id: str):

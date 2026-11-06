@@ -1,3 +1,4 @@
+from functools import cached_property
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -81,6 +82,7 @@ class CustomUser(AbstractUser):
         ("branches_director", "Керівник усіх філій"),
         ("complaint_manager", "Менеджер скарг"),
         ("customer", "Клієнт"),
+        ("internal_dealer", "Внутрішній дилер"),
     ]
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default="customer", db_column='Role')
 
@@ -126,8 +128,15 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.role})"
 
+    @cached_property
+    def internal_dealer_can_edit(self):
+        return self.role == "internal_dealer" and self.user_permissions.filter(
+            content_type__app_label="users", codename="edit_internal_dealer",
+        ).exists()
+
     class Meta:
         db_table = 'User'
+        permissions = [("edit_internal_dealer", "Дозволити дії внутрішньому дилеру")] 
 
 # class CustomUser(AbstractUser):
 #     # -----------------------------------------------------------------

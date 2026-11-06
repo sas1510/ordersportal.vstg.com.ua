@@ -58,7 +58,7 @@ test('legacy response uses first movement opening, not inferred closing minus vi
   assert.equal(Object.values(groups[0].initialContracts)[0].initialSaldo, 121642);
 });
 
-test('allocation view hides sales/main totals and retains allocated orders only', () => {
+test('allocation view shows main cash amounts without balances or summaries', () => {
   const groups = buildCashFlowGroups([
     row({ DocumentType: 'Реалізація', DeltaRow: -1441, FlowDirection: 'Витрата', OrderNumber: 'order-sale' }),
     row({ RegistrarId: 'cash-without-order', OrderNumber: '' }),
@@ -66,8 +66,9 @@ test('allocation view hides sales/main totals and retains allocated orders only'
   ], { allocationView: true });
   assert.equal(groups.length, 1);
   const documents = Object.values(groups[0].documentGroups);
-  assert.equal(documents.length, 1);
-  assert.equal(documents[0].items[0].OrderNumber, '15-04162');
+  assert.equal(documents.length, 2);
+  assert.equal(documents.find(doc => doc.items[0].OrderNumber === '15-04162').totalIncome, 30876);
+  assert.equal(documents.find(doc => doc.items[0].OrderNumber === '').totalIncome, 30876);
   assert.equal(documents[0].hideContractAmounts, true);
   assert.deepEqual(groups[0].initialContracts, {});
   assert.deepEqual(groups[0].contractSummary, {});
@@ -82,4 +83,12 @@ test('allocation view preserves advance cash amounts and ignores realization-onl
   assert.equal(groups[0].date, '2026-10-23');
   assert.equal(Object.values(groups[0].initialContracts)[0].initialSaldo, 130296);
   assert.equal(Object.values(groups[0].contractSummary)[0].income, 30876);
+});
+
+
+test('main contract outgoing cash is visible without a daily summary', () => {
+  const [group] = buildCashFlowGroups([row({ FlowDirection: 'Витрата', DeltaRow: -500, OrderNumber: '' })], { allocationView: true });
+  assert.equal(Object.values(group.documentGroups)[0].totalExpense, 500);
+  assert.deepEqual(group.contractSummary, {});
+  assert.deepEqual(group.initialContracts, {});
 });

@@ -1,5 +1,7 @@
+import DashboardV2Metrics from "./DashboardV2Metrics";
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import axiosInstance from "../api/axios";
 import {
@@ -34,7 +36,7 @@ import {
   YAxis,
 } from "recharts";
 import "./ProductionStatisticsPage.css";
-import DealerSelect from "./DealerSelect";
+import DealerSelectWithAll from "./DealerSelectWithAll";
 import { useDealerContext } from "../hooks/useDealerContext";
 import ComplexityDonut from "../components/charts/ComplexityDonut";
 import ComplexityTreemap from "../components/charts/ComplexityTreeMap";
@@ -552,7 +554,7 @@ function ProductionRingCard({
   );
 }
 
-export default function ProductionStatisticsPage() {
+export default function ProductionStatisticsPage({ portfolio = false, allDealers = false, summaryOnly = portfolio, summaryVariant = "classic", summaryPeriod = "month" }) {
   const { t, i18n } = useTranslation();
   const getProductionStatusLabel = (status) => {
     const key = {
@@ -567,17 +569,22 @@ export default function ProductionStatisticsPage() {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const summaryMonthOffset = summaryPeriod === "dashboard-month" && now.getDate() === 1 ? -1 : 0;
+  const summaryMonthStart = new Date(now.getFullYear(), now.getMonth() + summaryMonthOffset, 1);
+  const summaryMonthEnd = new Date(now.getFullYear(), now.getMonth() + summaryMonthOffset + 1, 0);
 
   const { dealerGuid, setDealerGuid, isAdmin, isLoading: dealerContextLoading } =
     useDealerContext();
-  const initialFrom = queryParams.get("date_from") || formatDateInput(monthStart);
-  const initialTo = queryParams.get("date_to") || formatDateInput(monthEnd);
+  const [dealerGroup, setDealerGroup] = useState("");
+  const aggregateDealers = portfolio || (isAdmin && dealerGuid === "__ALL__");
+  const loadDealerDetails = !summaryOnly;
+  const [savedPeriod] = useState(() => readOrderReportPeriod());
+  const initialFrom = summaryOnly ? formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 0, 1) : summaryMonthStart) : queryParams.get("date_from") || savedPeriod?.dateFrom || formatDateInput(monthStart);
+  const initialTo = summaryOnly ? formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 11, 31) : summaryMonthEnd) : queryParams.get("date_to") || savedPeriod?.dateTo || formatDateInput(monthEnd);
   const requestedDealerGuid = queryParams.get("contractor_guid") || "";
   const pageRootRef = useRef(null);
   const orderDetailsRef = useRef(null);
   const constructionDetailsRef = useRef(null);
-  const returnScrollPositionRef = useRef(null);
-  const returnScrollContainerRef = useRef(null);
   const timelinessChartRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
@@ -594,7 +601,6 @@ export default function ProductionStatisticsPage() {
   const [activeAnalyticsSection, setActiveAnalyticsSection] = useState("systems");
   const [activeAnalyticsMetric, setActiveAnalyticsMetric] = useState("total_constructions");
   const [selectedAnalyticsCurrency, setSelectedAnalyticsCurrency] = useState("грн");
-  const [returnScrollPosition, setReturnScrollPosition] = useState(null);
   const [timelinessChartWidth, setTimelinessChartWidth] = useState(0);
   const [isDarkTheme, setIsDarkTheme] = useState(() => {
     if (typeof document === "undefined") {
@@ -614,10 +620,10 @@ export default function ProductionStatisticsPage() {
   });
 
   useEffect(() => {
-    if (!dealerContextLoading && isAdmin && requestedDealerGuid && requestedDealerGuid !== dealerGuid) {
+    if (!dealerContextLoading && isAdmin && requestedDealerGuid) {
       setDealerGuid(requestedDealerGuid);
     }
-  }, [dealerContextLoading, dealerGuid, isAdmin, requestedDealerGuid, setDealerGuid]);
+  }, [dealerContextLoading, isAdmin, requestedDealerGuid, setDealerGuid]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -673,11 +679,11 @@ export default function ProductionStatisticsPage() {
   }, [dashboardData]);
 
   useEffect(() => {
-    if (dealerContextLoading) {
+    if (!portfolio && dealerContextLoading) {
       return;
     }
 
-    if (isAdmin && !dealerGuid) {
+    if (!portfolio && isAdmin && !dealerGuid) {
       setDashboardData(null);
       setUnifiedData(null);
       setComparisonData(null);
@@ -695,18 +701,18 @@ export default function ProductionStatisticsPage() {
         const params = {
           date_from: searchParams.from,
           date_to: searchParams.to,
-          contractor_guid: dealerGuid,
+          ...(aggregateDealers ? { portfolio: 1, dealer_group: summaryOnly ? undefined : dealerGroup || undefined } : { contractor_guid: dealerGuid }),
         };
         const [timelinessResponse, unifiedResponse, comparisonResponse] = await Promise.all([
-          axiosInstance.get("/production-timeliness/", { params }),
-          axiosInstance.get("/production-unified-analytics/", { params }),
-          axiosInstance.get("/dealer-portal-comparison/", { params }),
+          axiosInstance.get("/production-timeliness/", { params, timeout: 60000 }),
+          !loadDealerDetails ? null : axiosInstance.get("/production-unified-analytics/", { params, timeout: 60000 }),
+          !loadDealerDetails ? null : axiosInstance.get("/dealer-portal-comparison/", { params, timeout: 60000 }),
         ]);
 
         if (!isCancelled) {
           setDashboardData(timelinessResponse.data);
-          setUnifiedData(unifiedResponse.data);
-          setComparisonData(comparisonResponse.data);
+          setUnifiedData(unifiedResponse?.data);
+          setComparisonData(comparisonResponse?.data);
         }
       } catch (err) {
         if (isCancelled) {
@@ -733,7 +739,7 @@ export default function ProductionStatisticsPage() {
     return () => {
       isCancelled = true;
     };
-  }, [dealerContextLoading, dealerGuid, isAdmin, searchParams, t]);
+  }, [aggregateDealers, dealerGroup, dealerContextLoading, dealerGuid, isAdmin, loadDealerDetails, portfolio, searchParams, t]);
 
   const summary = dashboardData?.summary || [];
   const orders = dashboardData?.orders || [];
@@ -744,7 +750,7 @@ export default function ProductionStatisticsPage() {
   const averageCheckCurrencyRows = useMemo(() => {
     const rows = Array.isArray(meta.currency_totals) && meta.currency_totals.length
       ? meta.currency_totals
-      : [{ currency: "грн", avg_check: meta.avg_check, total_sum: meta.total_sum, orders_count: meta.orders_count }];
+      : [{ currency: "грн", avg_check: meta.avg_check, total_sum: meta.total_sum, orders_count: meta.orders_count, total_constructions: meta.total_constructions }];
 
     return rows
       .map((item) => {
@@ -758,11 +764,12 @@ export default function ProductionStatisticsPage() {
         return {
           currency: normalizeAnalyticsCurrency(item.currency),
           avg_check: avgCheck,
+          avg_construction: Number(item.total_constructions) > 0 ? Number(item.total_sum || 0) / Number(item.total_constructions) : null,
           orders_count: ordersCount,
         };
       })
       .filter((item) => item.avg_check > 0 || item.orders_count > 0);
-  }, [meta.avg_check, meta.currency_totals, meta.orders_count, meta.total_sum]);
+  }, [meta.avg_check, meta.currency_totals, meta.orders_count, meta.total_sum, meta.total_constructions]);
 
   const profileSystems = unifiedData?.profile_systems || [];
   const furniture = unifiedData?.furniture || [];
@@ -1279,11 +1286,12 @@ export default function ProductionStatisticsPage() {
   );
 
   const comparisonSelectedDealer = useMemo(() => {
+    if (aggregateDealers) return null;
     const rows = comparisonData?.selected_dealers || [];
     return rows.find((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
       || comparisonData?.selected_dealer
       || null;
-  }, [comparisonData, selectedAnalyticsCurrency]);
+  }, [aggregateDealers, comparisonData, selectedAnalyticsCurrency]);
   const comparisonTotals = useMemo(() => {
     const rows = comparisonData?.totals_by_currency || [];
     return rows.find((item) => normalizeAnalyticsCurrency(item.currency) === selectedAnalyticsCurrency)
@@ -1406,55 +1414,12 @@ export default function ProductionStatisticsPage() {
     setShowOrderDetails(false);
     setActiveConstructionCategory(null);
     setActiveConstructionSubCategory(null);
-    setReturnScrollPosition(null);
-    returnScrollPositionRef.current = null;
+    const { from, to } = dateInputs;
+    saveOrderReportPeriod({ mode: "period", year: from.slice(0, 4), month: 0, dateFrom: from, dateTo: to });
     setSearchParams({ ...dateInputs });
   };
 
-  const getScrollContainer = () => {
-    if (returnScrollContainerRef.current) {
-      return returnScrollContainerRef.current;
-    }
-
-    let current = pageRootRef.current?.parentElement || null;
-
-    while (current) {
-      const styles = window.getComputedStyle(current);
-      const overflowY = styles.overflowY;
-      const isScrollable =
-        (overflowY === "auto" || overflowY === "scroll") &&
-        current.scrollHeight > current.clientHeight;
-
-      if (isScrollable) {
-        returnScrollContainerRef.current = current;
-        return current;
-      }
-
-      current = current.parentElement;
-    }
-
-    const fallback =
-      document.scrollingElement || document.documentElement || document.body;
-    returnScrollContainerRef.current = fallback;
-    return fallback;
-  };
-
-  const rememberScrollPosition = () => {
-    const scrollContainer = getScrollContainer();
-    const currentPosition =
-      scrollContainer?.scrollTop ??
-      window.scrollY ??
-      window.pageYOffset ??
-      document.documentElement.scrollTop ??
-      0;
-
-    returnScrollContainerRef.current = scrollContainer;
-    returnScrollPositionRef.current = currentPosition;
-    setReturnScrollPosition(currentPosition);
-  };
-
   const handleRingStatusClick = (statusLabel) => {
-    rememberScrollPosition();
     setSelectedAbc("all");
     setSelectedStatus(statusLabel);
     setShowOrderDetails(true);
@@ -1473,7 +1438,6 @@ export default function ProductionStatisticsPage() {
       return;
     }
 
-    rememberScrollPosition();
     setSelectedAbc(abc);
     setSelectedStatus(statusLabel);
     setShowOrderDetails(true);
@@ -1489,7 +1453,6 @@ export default function ProductionStatisticsPage() {
   const hasData = summary.length > 0 || orders.length > 0;
 
   const handleConstructionCategorySelect = (categoryName) => {
-    rememberScrollPosition();
     setActiveConstructionCategory(categoryName);
     setActiveConstructionSubCategory(null);
   };
@@ -1507,71 +1470,60 @@ export default function ProductionStatisticsPage() {
     });
   }, [activeConstructionCategory]);
 
-  const handleReturnToPreviousPosition = () => {
-    const targetPosition = returnScrollPositionRef.current ?? returnScrollPosition;
-
-    if (targetPosition === null || targetPosition === undefined) {
-      return;
-    }
-
-    const nextTop = Math.max(targetPosition - 16, 0);
-    const scrollingElement =
-      returnScrollContainerRef.current ||
-      getScrollContainer() ||
-      document.scrollingElement ||
-      document.documentElement ||
-      document.body;
-
-    if (scrollingElement && typeof scrollingElement.scrollTo === "function") {
-      scrollingElement.scrollTo({
-        top: nextTop,
-        behavior: "smooth",
-      });
-    } else if (scrollingElement) {
-      scrollingElement.scrollTop = nextTop;
-    }
+  const handleScrollToTop = () => {
+    pageRootRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const showReturnToPreviousButton =
-    returnScrollPosition !== null &&
-    (showOrderDetails || Boolean(activeConstructionGroup));
+  const analyticsLink = (
+    <Link className="production-design__analytics-link" to="/statistics">
+            {t("production_statistics.open_analytics", { defaultValue: "\u041f\u0435\u0440\u0435\u0439\u0442\u0438 \u0434\u043e \u0430\u043d\u0430\u043b\u0456\u0442\u0438\u043a\u0438" })}
+          </Link>
+  );
 
   return (
     <main ref={pageRootRef} className={`production-design ${isDarkTheme ? "is-dark" : "is-light"}`}>
       <section className="production-design__hero">
         <div>
           <div className="production-design__eyebrow">ABC production timeline</div>
-          <h1>{t("production_statistics.title")}</h1>
-          <p>{t("production_statistics.subtitle")}</p>
+          <h1>{summaryOnly ? t("production_statistics.key_metrics", { defaultValue: "\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438" }) : t("production_statistics.title")}</h1>
+          <p>{portfolio && !allDealers ? t("production_statistics.assigned_dealers", { defaultValue: "\u0423\u0441\u0456 \u0437\u0430\u043a\u0440\u0456\u043f\u043b\u0435\u043d\u0456 \u0434\u0438\u043b\u0435\u0440\u0438" }) : t("production_statistics.subtitle")}</p>
         </div>
-        <div className="production-design__filters">
+        {summaryOnly && analyticsLink}
+        {!summaryOnly && <div className="production-design__filters">
           <div className="production-design__filters-stack">
-            {isAdmin ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelect showGroupFilter value={dealerGuid} onChange={setDealerGuid} /></div> : null}
-            <div className="production-design__date-range">
+            {isAdmin && !portfolio ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelectWithAll showGroupFilter group={dealerGroup} onGroupChange={setDealerGroup} value={dealerGuid} onChange={setDealerGuid} /></div> : null}
+            {!summaryOnly && <div className="production-design__date-range">
               <label><span>{t("production_statistics.from")}</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
               <label><span>{t("production_statistics.to")}</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>
-            </div>
+            </div>}
           </div>
-          <button type="button" onClick={handleSearch} disabled={loading || (isAdmin && !dealerGuid)}><AppIcon name="AnalyticsSearchIcon" className="w-[20px] h-[20px]" />{loading ? t("production_statistics.generating") : t("production_statistics.generate")}</button>
-        </div>
+          {!summaryOnly && <button type="button" onClick={handleSearch} disabled={loading || (!portfolio && isAdmin && !dealerGuid)}><AppIcon name="AnalyticsSearchIcon" className="w-[20px] h-[20px]" />{loading ? t("production_statistics.generating") : t("production_statistics.generate")}</button>}
+        </div>}
       </section>
 
       {error ? <section className="production-design__state"><FaExclamationTriangle /><h2>{t("production_statistics.data_unavailable")}</h2><p>{error}</p><button type="button" onClick={handleSearch}>{t("production_statistics.retry")}</button></section> : null}
       {!error && loading ? <section className="production-design__state"><div className="loading-spinner" /><h2>{t("production_statistics.generating_statistics")}</h2></section> : null}
-      {!error && isAdmin && !dealerGuid && !loading ? <section className="production-design__state"><FaFilter /><h2>{t("production_statistics.select_dealer")}</h2><p>{t("production_statistics.select_dealer_hint")}</p></section> : null}
+      {!error && !portfolio && isAdmin && !dealerGuid && !loading ? <section className="production-design__state"><FaFilter /><h2>{t("production_statistics.select_dealer")}</h2><p>{t("production_statistics.select_dealer_hint")}</p></section> : null}
 
-      {!error && !loading && hasData ? <>
-        <section className="production-design__kpi">
+      {!error && !loading && dashboardData && !hasData && !aggregateDealers ? (
+        <section className="production-design__state" role="status">
+          <h2>{t("production_statistics.no_period_data", { defaultValue: "\u0417\u0430 \u0446\u0435\u0439 \u043f\u0435\u0440\u0456\u043e\u0434 \u0434\u0430\u043d\u0438\u0445 \u043d\u0435\u043c\u0430\u0454" })}</h2>
+        </section>
+      ) : null}
+
+      {!error && !loading && (hasData || (aggregateDealers && dashboardData)) ? <>
+        {summaryVariant === "v2" ? <DashboardV2Metrics meta={meta} averageRows={averageCheckCurrencyRows} period={`${formatDate(searchParams.from, i18n.language)} — ${formatDate(searchParams.to, i18n.language)}`} inTimePercent={topInTimePercent} delayedPercent={topDelayedPercent} averageProductionDays={inTimeProductionDays.overallAverage} onSelectStatus={handleRingStatusClick} /> : <section className="production-design__kpi">
           <article className="production-design__average-card">
             <div className="production-design__eyebrow">{t("production_statistics.average_check")}</div>
             <strong className="production-design__average-value production-design__average-value--currencies">
               <AppIcon name="money" className="w-[30px] h-[27px] color-[#B4D947] mt-1.5 mr-2" />
               <span>
                 {averageCheckCurrencyRows.map((item) => (
-                  <b key={item.currency}>{formatCurrency(item.avg_check, item.currency)}</b>
+                  <b key={item.currency}>{formatNumber(item.avg_check)} / {item.avg_construction == null ? "—" : formatNumber(item.avg_construction)} {item.currency}</b>
                 ))}
               </span>
             </strong>
+            <small>На замовлення / на конструкцію</small>
             <div className="production-design__period"><AppIcon name="CalendarIcon" className="w-[30px] h-[27px]" /><span>{t("production_statistics.for_period")}<b>{formatDate(searchParams.from, i18n.language)} - {formatDate(searchParams.to, i18n.language)}</b></span></div>
             <div className="production-design__counts">
   <span className="production-design__count-item">
@@ -1604,8 +1556,9 @@ export default function ProductionStatisticsPage() {
             <article><div className="production-design__eyebrow">{t("production_statistics.turnover")}</div><strong className="production-design__currency-total"><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" /><span>{(meta.currency_totals?.length ? meta.currency_totals : [{ currency: "грн", total_sum: meta.total_sum }]).map((item) => <b key={item.currency}>{formatCurrency(item.total_sum, item.currency)}</b>)}</span></strong><span>{t("production_statistics.turnover_hint")}</span></article>
             <article><div className="production-design__eyebrow">{t("production_statistics.average_delay")}</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>{t("production_statistics.max_delay", { days: formatDays(meta.max_delay_days) })}</span></article>
           </div>
-        </section>
+        </section>}
 
+        {loadDealerDetails ? <>
         <section className="production-design__dashboard-grid">
           <article className="production-design__panel production-design__panel--profile-donut">
             <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Portfolio by category</div><h2 className="uppercase font-bold">{t("production_statistics.categories")}</h2></div></div>
@@ -1697,7 +1650,7 @@ export default function ProductionStatisticsPage() {
                   <span>{t("production_statistics.comparison_top")}</span>
                 </div>
               </div>
-              <div className="production-design__dealer-ranks">
+              {!aggregateDealers && <div className="production-design__dealer-ranks">
                 <div>
                   <strong>
                     <FaTrophy />
@@ -1705,7 +1658,7 @@ export default function ProductionStatisticsPage() {
                   </strong>
                   <small>{t("production_statistics.in_region")}</small>
                 </div>
-              </div>
+              </div>}
             </header>
 
             <div className="production-design__dealer-main">
@@ -1744,11 +1697,11 @@ export default function ProductionStatisticsPage() {
                   </div>
                 </div>
                 <p>{t("production_statistics.average_vs_leader")}</p>
-                <div className="production-design__dealer-profit-card">
+                {!aggregateDealers && <div className="production-design__dealer-profit-card">
                   <span>{t("production_statistics.expected_profit")}</span>
                   <strong>+{formatCurrencyPlain(comparisonInsights.extra_profit_vs_region_20 || 0, comparisonSelectedDealer.currency)}</strong>
                  <small>{t("production_statistics.profit_hint")}</small>
-                </div>
+                </div>}
               </aside>
             </div>
 
@@ -1898,6 +1851,8 @@ export default function ProductionStatisticsPage() {
 
         {activeConstructionGroup ? <section ref={constructionDetailsRef} className="production-design__panel production-design__details"><button type="button" onClick={() => { setActiveConstructionCategory(null); setActiveConstructionSubCategory(null); }}>×</button><div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Construction details</div><h2>{t("production_statistics.order_details")}: {activeConstructionGroup.name}</h2></div></div><ComplexityTreemap data={constructionTreemapData} activeGroup={activeConstructionGroup.name} height="520px" /></section> : null}
 
+        </> : null}
+
         {showOrderDetails ? <section ref={orderDetailsRef} className="production-design__panel production-design__orders">
           <button type="button" onClick={() => setShowOrderDetails(false)} aria-label={t("production_statistics.close_details")}>×</button>
           <div className="production-design__panel-heading"><div><div className="production-design__eyebrow">Order details</div><h2>{t("production_statistics.order_details")}</h2><p className="production-design__orders-caption">{t("production_statistics.opened_for", { scope: selectedAbc === "all" ? t("production_statistics.all_classes") : t("production_statistics.class_scope", { value: selectedAbc }), status: selectedStatus === "all" ? t("production_statistics.all_statuses") : getProductionStatusLabel(selectedStatus).toLowerCase() })}</p></div></div>
@@ -1929,7 +1884,7 @@ export default function ProductionStatisticsPage() {
             </article>) : <div className="production-design__orders-empty production-design__orders-empty--mobile">{t("production_statistics.orders_empty")}</div>}
           </div>
         </section> : null}
-        {showReturnToPreviousButton ? <button type="button" className="production-design__return-button" onClick={handleReturnToPreviousPosition} aria-label={t("production_statistics.return_up")}><span>↑</span></button> : null}
+        {(showOrderDetails || Boolean(activeConstructionGroup)) ? <button type="button" className="production-design__return-button" onClick={handleScrollToTop} aria-label={t("production_statistics.return_up", { defaultValue: "\u041d\u0430\u0433\u043e\u0440\u0443" })}><span>↑</span></button> : null}
       </> : null}
     </main>
   );

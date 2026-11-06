@@ -68,6 +68,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "users.dealer_audit.DealerAuditMiddleware",
     'django.middleware.security.SecurityMiddleware',
     # 'silk.middleware.SilkyMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -158,7 +159,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         # "rest_framework.authentication.SessionAuthentication",
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.dealer_preview.DealerPreviewAuthentication',
+        'users.internal_dealer.PortalJWTAuthentication',
         "backend.authentication.OneCApiKeyAuthentication", 
         
     ),
@@ -295,6 +297,10 @@ CELERY_TASK_SERIALIZER = 'json'
 
 
 CELERY_BEAT_SCHEDULE = {
+    'pending-measurement-order-notifications': {
+        'task': 'enqueue_pending_measurement_order_notifications',
+        'schedule': 300.0,
+    },
     'publish-portal-announcements': {
         'task': 'publish_due_portal_announcements',
         'schedule': crontab(minute='*'),
@@ -481,3 +487,4 @@ MEASUREMENT_API_KEY = config('MEASUREMENT_API_KEY', default='')
 # Separate credentials for the measurement test 1C publication.
 MEASUREMENT_ONE_C_USER = config('MEASUREMENT_ONE_C_USER', default='')
 MEASUREMENT_ONE_C_PASSWORD = config('MEASUREMENT_ONE_C_PASSWORD', default='')
+

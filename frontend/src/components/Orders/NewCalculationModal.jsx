@@ -39,6 +39,7 @@ const NewCalculationModal = ({
   const [addresses, setAddresses] = useState([]);
   const [addressGuid, setAddressGuid] = useState("");
   const [addressesLoading, setAddressesLoading] = useState(false);
+  const [addressesLoaded, setAddressesLoaded] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -191,6 +192,7 @@ const NewCalculationModal = ({
 
   const loadAddresses = async (contractorGuid = null) => {
     setAddressesLoading(true);
+    setAddressesLoaded(false);
     setAddresses([]);
     setAddressGuid("");
     setDealerCoords(null);
@@ -214,6 +216,7 @@ const NewCalculationModal = ({
         await translateAddressesForLanguage(deliveryAddresses);
 
       setAddresses(translatedAddresses);
+      setAddressesLoaded(true);
 
       const selectedSourceAddressText =
         initialCalculation?.deliveryAddresses?.trim() || "";
@@ -242,7 +245,8 @@ const NewCalculationModal = ({
       const preselectedAddress =
         initialAddressByGuid ||
         initialAddressByText ||
-        def;
+        def ||
+        (translatedAddresses.length === 1 ? translatedAddresses[0] : null);
 
       if (preselectedAddress) {
         setAddressGuid(preselectedAddress.AddressKindGUID);
@@ -759,18 +763,20 @@ const NewCalculationModal = ({
                   <span>{t("orders.newOrderModal.address")}</span>
                   <div
                     className={`address-dropdown ${isAddressOpen ? "open" : ""}`}
-                    onClick={() => !addressesLoading && setIsAddressOpen((p) => !p)}
+                    onClick={() => !addressesLoading && addresses.length > 0 && setIsAddressOpen((p) => !p)}
                   >
                     <div className="address-dropdown-selected">
                       <span>
                         {addressesLoading
                           ? t("orders.newOrderModal.loadingOfAddress")
-                          : addresses.find((a) => a.AddressKindGUID === addressGuid)?.AddressValue || t("orders.newOrderModal.error_message_4")}
+                          : addressesLoaded && addresses.length === 0
+                            ? t("orders.newOrderModal.noDealerAddresses", "Немає збережених адрес доставки")
+                            : addresses.find((a) => a.AddressKindGUID === addressGuid)?.AddressValue || t("orders.newOrderModal.error_message_4")}
                       </span>
                       <FaChevronDown className={`dropdown-arrow-icon ${isAddressOpen ? "rotated" : ""}`} />
                     </div>
 
-                    {isAddressOpen && (
+                    {isAddressOpen && addresses.length > 0 && (
                       <div className="address-dropdown-menu">
                         {addresses.map((a) => (
                           <div
@@ -788,6 +794,12 @@ const NewCalculationModal = ({
                     )}
                   </div>
                 </div>
+              )}
+
+              {addressMode === "dealer" && addressesLoaded && addresses.length === 0 && (
+                <p role="status" className="new-calc-field-hint">
+                  {t("orders.newOrderModal.enterAddressOrPickup", "Вкажіть адресу клієнта вручну або оберіть самовивіз.")}
+                </p>
               )}
 
               {addressMode === "client" && (

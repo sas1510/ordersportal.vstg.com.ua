@@ -673,7 +673,7 @@ export default function PaymentModal({
     setLoadError("");
     try {
       const res = await axiosInstance.get(`/payments/get_dealer_advance_balance/`, {
-        params: contractorGuid ? { contractor_guid: contractorGuid } : undefined,
+        params: { include_zero: 1, contractor_guid: contractorGuid || undefined },
       });
       const allData = res.data || [];
       
@@ -684,7 +684,7 @@ export default function PaymentModal({
       setContracts(filteredData);
 
       if (filteredData.length > 0) {
-        const firstContract = filteredData[0];
+        const firstContract = filteredData.find((item) => Number(item.DogovorSum) > 0) || filteredData[0];
         setSelectedContract(firstContract.Dogovor_ID);
         const available = Number(firstContract.DogovorSum || 0);
         if (available > 0) {
@@ -816,6 +816,9 @@ export default function PaymentModal({
                     <strong className={getAvailable() <= 0 ? "text-red" : ""}>
                       {formatCurrency(getAvailable())} {orderCurrency}
                     </strong>
+                    {getAvailable() <= 0 && (
+                      <div>{t("payment_modal.topup_required", { defaultValue: "\u041f\u043e\u043f\u043e\u0432\u043d\u0456\u0442\u044c \u0430\u0432\u0430\u043d\u0441\u043e\u0432\u0438\u0439 \u0434\u043e\u0433\u043e\u0432\u0456\u0440." })}</div>
+                    )}
                   </div>
                   <div className="pay-topup-container justify-center">
                     <Link 
@@ -856,6 +859,7 @@ export default function PaymentModal({
                 </div>
               )}
 
+              {selectedContract && getAvailable() > 0 && <>
               <label className="pay-label" style={{ marginTop: '15px' }}>
                 <span>{t("payment_modal.payment_amount")}</span>
                 <input
@@ -869,6 +873,7 @@ export default function PaymentModal({
                 />
               </label>
               {amountError && <div className="pay-error">{amountError}</div>}
+              </>}
             </>
           )}
         </div>
@@ -877,14 +882,14 @@ export default function PaymentModal({
           <button className="pay-btn-cancel" onClick={onClose} disabled={isSubmitting}>
             <FaTimes size={16} /> {t("payment_modal.btn_cancel")}
           </button>
-          <button
+          {(!selectedContract || getAvailable() > 0) && <button
             className="pay-btn-confirm"
-            disabled={loading || isSubmitting || !paymentAmount || !!amountError || !selectedContract}
+            disabled={loading || isSubmitting || !paymentAmount || !!amountError || !selectedContract || getAvailable() <= 0}
             onClick={handleConfirm}
           >
             {isSubmitting ? <FaSpinner className="spinning" /> : <FaCheck />}
             {isSubmitting ? ` ${t("payment_modal.btn_processing")}` : ` ${t("payment_modal.btn_pay")}`}
-          </button>
+          </button>}
         </div>
       </div>
     </div>

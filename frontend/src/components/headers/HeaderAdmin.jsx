@@ -1,5 +1,3 @@
-import { Ruler, DoorOpen } from "lucide-react";
-import MaterialsMenu from './MaterialsMenu';
 // import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { useState, useRef, useEffect, useContext } from "react";
 // import { useMediaQuery } from "react-responsive";
@@ -358,20 +356,17 @@ export default function HeaderAdmin() {
   const currentLogo = theme === "dark" ? logoDark : logo;
 
   const NAV_LINKS = useMemo(() => [
-    ...((isAdmin || isManager) ? [{ title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler }] : []),
-    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
-    { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
+    { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order", primary: true },
+    { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation", primary: true },
+    { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/admin-additional-order", primary: true },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes" },
-    { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/admin-order" },
-    { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/admin-reclamation" },
-    { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/admin-additional-order" },
-  ], [t, isAdmin, isManager]);
-
-  const MATERIAL_LINKS = useMemo(() => [
-    { title: t('nav.tech_file'), to: '/files' },
-    { title: t('nav.videos'), to: '/videos' },
+    { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: '/files' },
+    { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: '/videos' },
+    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor' },
+    ...((isAdmin || isManager) ? [{ title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir' }] : []),
+    { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
     { title: t('nav.faq'), to: '/faq' },
-  ], [t]);
+  ], [t, isAdmin, isManager]);
 
   const FINANCE_SUBMENU = useMemo(() => [
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
@@ -382,6 +377,7 @@ export default function HeaderAdmin() {
   const SETTINGS_SUBMENU = useMemo(() => {
     if (isAdmin) {
       return [
+          { title: "Увійти як дилер", to: "/dealer-login" },
           { title: t('nav.settings_users'), to: "/users-list" },
           { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
           { title: "Розсилки", to: "/announcements" },
@@ -391,6 +387,7 @@ export default function HeaderAdmin() {
 
     if (["branch_manager", "branches_director"].includes(role)) {
       return [
+        { title: "Увійти як дилер", to: "/dealer-login" },
         { title: t('nav.settings_users'), to: "/users-list" },
         { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
         { title: t('nav.settings_sos_stats'), to: "/urgentLogs" },
@@ -530,12 +527,11 @@ export default function HeaderAdmin() {
                 {NAV_LINKS.map((link) => (
                   <li
                     key={link.to}
-                    style={link.to === '/zamir' ? { flex: '0 0 80px' } : undefined}
                     className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0"
                   >
                     <Link
                       to={link.to}
-                      className={`h-full w-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
+                      className={`h-full w-full flex items-center justify-center px-[2px] ${link.primary ? "text-[13px]" : "text-[12px]"} font-bold leading-tight transition-all text-center shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
                         location.pathname.startsWith(link.to) 
                           ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
                           : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
@@ -548,11 +544,10 @@ export default function HeaderAdmin() {
                 ))}
                 
 
-                <MaterialsMenu links={MATERIAL_LINKS} />
                 <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={financeRef}>
                   <button 
                     onClick={() => { setShowFinanceMenu(!showFinanceMenu); setShowSettings(false); }}
-                    className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
+                    className={`w-full h-full px-[2px] text-[14px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
                       showFinanceMenu || location.pathname.includes("/finance")
                         ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
                         : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
@@ -576,6 +571,14 @@ export default function HeaderAdmin() {
                   )}
                 </li>
 
+
+                {role === "region_manager" && (
+                  <li className="h-full flex-1 flex items-center border-r border-gray-300/30">
+                    <Link to="/dealer-login" className={`h-full w-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight text-center ${location.pathname === "/dealer-login" ? "bg-[var(--header-accent)] text-[var(--header-active-text)]" : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)]"}`}>
+                      Увійти як дилер
+                    </Link>
+                  </li>
+                )}
 
                 {SETTINGS_SUBMENU.length > 0 && (
                   <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={settingsRef}>
@@ -722,7 +725,6 @@ export default function HeaderAdmin() {
                         </div>
                       ))}
 
-                      <MaterialsMenu links={MATERIAL_LINKS} mobile />
 
                       {/* Фінанси (Моб) */}
                       <div className="relative flex flex-col w-full">
@@ -743,6 +745,12 @@ export default function HeaderAdmin() {
                           </div>
                         )}
                       </div>
+
+                      {role === "region_manager" && (
+                        <Link to="/dealer-login" className={`flex items-center w-full py-4 px-[15%] text-xl font-bold ${location.pathname === "/dealer-login" ? "bg-[#6B98BF] text-white" : "text-[#44403E]"}`}>
+                          Увійти як дилер
+                        </Link>
+                      )}
 
                       {/* Налаштування (Моб) */}
                       {SETTINGS_SUBMENU.length > 0 && (

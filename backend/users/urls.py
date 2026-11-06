@@ -1,3 +1,4 @@
+from .dealer_preview_views import dealer_preview_session, start_dealer_preview
 from django.urls import path
 from .views import (
     CustomTokenObtainPairView,
@@ -10,6 +11,8 @@ from .views import register_with_invite, get_customers, get_balance_view, get_us
 
 
 urlpatterns = [
+    path("dealer-preview/start/", start_dealer_preview),
+    path("dealer-preview/session/", dealer_preview_session),
     path("login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("logout/", LogoutView.as_view(), name="logout"),

@@ -1,3 +1,5 @@
+import { orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
+import OrderMonthPicker, { OrderFilterYear } from "../components/Orders/OrderMonthPicker";
 import React, {
   useState,
   useEffect,
@@ -26,14 +28,14 @@ import { useDealerContext } from "../hooks/useDealerContext";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { matchesOrderNumber } from "../utils/matchesOrderNumber";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const ITEMS_PER_LOAD = 100;
 const ALL_DEALERS_VALUE = "__ALL__";
+const isDealerGuid = (value) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value || "");
 const DEALER_GROUP_VALUES = {
   dealers: "__GROUP__DEALERS",
   ourCompany: "__GROUP__OUR_COMPANY",
-  export: "__GROUP__EXPORT",
   branches: "__GROUP__BRANCHES",
 };
 
@@ -78,13 +80,11 @@ const applyPendingOrderPayments = (sourceCalculations) => {
 const DEALER_GROUP_TO_SQL_VALUE = {
   [DEALER_GROUP_VALUES.dealers]: "Дилера",
   [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
-  [DEALER_GROUP_VALUES.export]: "Експорт",
   [DEALER_GROUP_VALUES.branches]: "Філіали",
 };
 const DEALER_GROUP_OPTIONS = [
   { value: DEALER_GROUP_VALUES.dealers, label: "Дилера" },
   { value: DEALER_GROUP_VALUES.ourCompany, label: "Наша фірма" },
-  { value: DEALER_GROUP_VALUES.export, label: "Експорт" },
   { value: DEALER_GROUP_VALUES.branches, label: "Філіали" },
 ];
 
@@ -138,44 +138,45 @@ const AdminPortalOriginal = () => {
   const { register, cancelAll } = useCancelAllRequests();
   const { t } = useTranslation();
   const location = useLocation();
-
+  const [restoredPeriod] = useState(() => readOrderReportPeriod(location.search));
+  const navigate = useNavigate();
   const [calculationsData, setCalculationsData] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
 
   const [filter, setFilter] = useState({
     status: "Всі",
-    month: 0,
+    month: restoredPeriod?.month || 0,
     name: "",
   });
 
   const [selectedYear, setSelectedYear] = useState(
-    String(new Date().getFullYear()),
+    restoredPeriod?.year || String(new Date().getFullYear()),
   );
 
-  const [allDealersDateMode, setAllDealersDateMode] = useState("month");
+  const [allDealersDateMode, setAllDealersDateMode] = useState(restoredPeriod?.mode === "period" ? "range" : "month");
 
-  const [singleDealerDateMode, setSingleDealerDateMode] = useState("year");
+  const [singleDealerDateMode, setSingleDealerDateMode] = useState(restoredPeriod?.mode || "year");
 
   const [singleDealerDateFrom, setSingleDealerDateFrom] = useState(
-    `${new Date().getFullYear()}-01-01`,
+    restoredPeriod?.dateFrom || `${new Date().getFullYear()}-01-01`,
   );
   const [singleDealerDateTo, setSingleDealerDateTo] = useState(
-    getLocalDateString(),
+    restoredPeriod?.dateTo || getLocalDateString(),
   );
 
   const [appliedSingleDealerDateFrom, setAppliedSingleDealerDateFrom] =
-    useState(`${new Date().getFullYear()}-01-01`);
+    useState(restoredPeriod?.dateFrom || `${new Date().getFullYear()}-01-01`);
   const [appliedSingleDealerDateTo, setAppliedSingleDealerDateTo] =
-    useState(`${new Date().getFullYear()}-12-31`);
+    useState(restoredPeriod?.dateTo || `${new Date().getFullYear()}-12-31`);
   const [appliedSingleDealerMode, setAppliedSingleDealerMode] =
-    useState("year");
+    useState(restoredPeriod?.mode || "year");
   const [appliedSingleDealerYear, setAppliedSingleDealerYear] =
-    useState(String(new Date().getFullYear()));
+    useState(restoredPeriod?.year || String(new Date().getFullYear()));
 
   const previousDealerGuidRef = useRef(dealerGuid);
   const silentOrdersRefreshRef = useRef(false);
 
-  const defaultDateRange = useMemo(() => getDefaultDateRange(), []);
+  const defaultDateRange = useMemo(() => restoredPeriod || getDefaultDateRange(), [restoredPeriod]);
 
   const [dateFrom, setDateFrom] = useState(defaultDateRange.dateFrom);
   const [dateTo, setDateTo] = useState(defaultDateRange.dateTo);
@@ -190,6 +191,7 @@ const AdminPortalOriginal = () => {
   const [dateRangeError, setDateRangeError] = useState("");
 
   const [loading, setLoading] = useState(true);
+  const [measurementTargetError, setMeasurementTargetError] = useState("");
   const [reloading, setReloading] = useState(false);
   const [ordersRefreshVersion, setOrdersRefreshVersion] = useState(0);
 
@@ -268,7 +270,59 @@ const AdminPortalOriginal = () => {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 1024;
 
-  useEffect(() => { const params = new URLSearchParams(location.search); const search = params.get("search") || ""; const from = params.get("date_from"); const to = params.get("date_to"); if (!search && !from && !to) return; setFilter((previous) => ({ ...previous, name: search, month: 0 })); if (isValidDateRange(from, to)) { setDateFrom(from); setDateTo(to); setAppliedDateFrom(from); setAppliedDateTo(to); setAllDealersDateMode("period"); } }, [location.search]);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const search = params.get("search") || "";
+    const from = params.get("date_from");
+    const to = params.get("date_to");
+    if (!search && !from && !to) return;
+    setFilter({ status: "Всі", name: search, month: 0 });
+    const linkedDealer = params.get("contractor_guid");
+    if (isAdmin && isDealerGuid(linkedDealer)) setDealerGuid(linkedDealer);
+    if (isValidDateRange(from, to)) {
+      setDateFrom(from); setDateTo(to);
+      setAppliedDateFrom(from); setAppliedDateTo(to);
+      setAllDealersDateMode("range");
+      setSingleDealerDateFrom(from); setSingleDealerDateTo(to);
+      setAppliedSingleDealerDateFrom(from); setAppliedSingleDealerDateTo(to);
+      setSingleDealerDateMode("period"); setAppliedSingleDealerMode("period");
+    }
+  }, [location.search, isAdmin, setDealerGuid]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const dealerId = params.get("measurement_dealer");
+    setMeasurementTargetError("");
+    if (!dealerId || isDealerGuid(params.get("contractor_guid"))) return;
+    const controller = new AbortController();
+    setLoading(true);
+    setCalculationsData([]);
+    axiosInstance.get("/order/measurement-target/", {
+      params: { measurement_dealer: dealerId }, signal: controller.signal,
+    }).then(({ data }) => {
+      if (controller.signal.aborted) return;
+      if (!isDealerGuid(data.contractor_guid)) throw new Error("Не визначено контрагента заміру.");
+      params.set("contractor_guid", data.contractor_guid);
+      if (!isValidDateRange(params.get("date_from"), params.get("date_to"))) {
+        const year = new Date().getFullYear();
+        params.set("date_from", `${year}-01-01`);
+        params.set("date_to", `${year}-12-31`);
+      }
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    }).catch((error) => {
+      if (controller.signal.aborted) return;
+      setMeasurementTargetError(error.response?.data?.detail || error.message || "Не вдалося визначити дилера заміру.");
+      setLoading(false);
+    });
+    return () => controller.abort();
+  }, [location.pathname, location.search, navigate]);
+
+  const clearLinkedFilters = () => {
+    const params = new URLSearchParams(location.search);
+    ["search", "measurement_dealer", "contractor_guid", "expand"].forEach((key) => params.delete(key));
+    navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    setFilter((previous) => ({ ...previous, name: "", status: "Всі" }));
+  };
   const currentMonth = useMemo(
     () => new Date().getMonth() + 1,
     [],
@@ -379,6 +433,7 @@ const AdminPortalOriginal = () => {
       if (query) {
         result = result.filter(
           (calc) =>
+            String(calc.measurementNumber || "").toLowerCase().includes(query) ||
             String(calc.number || "")
               .toLowerCase()
               .includes(query) ||
@@ -401,10 +456,16 @@ const AdminPortalOriginal = () => {
   );
 
   useEffect(() => {
-    if (isAdmin && !dealerGuid) {
-      setDealerGuid(ALL_DEALERS_VALUE);
+    if (!isAdmin) return;
+    const params = new URLSearchParams(location.search);
+    const linkedDealer = params.get("contractor_guid");
+    if (isDealerGuid(linkedDealer)) {
+      if (String(dealerGuid).toLowerCase() !== linkedDealer.toLowerCase()) setDealerGuid(linkedDealer);
+      return;
     }
-  }, [isAdmin, dealerGuid, setDealerGuid]);
+    if (params.has("measurement_dealer")) return;
+    if (!dealerGuid) setDealerGuid(ALL_DEALERS_VALUE);
+  }, [isAdmin, dealerGuid, location.search, setDealerGuid]);
 
   useEffect(() => {
     if (!isAllDealers) return;
@@ -444,6 +505,7 @@ const AdminPortalOriginal = () => {
     }
 
     setDateRangeError("");
+    saveOrderReportPeriod({ mode: "period", year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
     setAppliedDateFrom(dateFrom);
     setAppliedDateTo(dateTo);
     setDisplayLimit(ITEMS_PER_LOAD);
@@ -456,6 +518,7 @@ const AdminPortalOriginal = () => {
       setDisplayLimit(ITEMS_PER_LOAD);
 
       if (mode === "range") {
+        saveOrderReportPeriod({ mode: "period", year: appliedDateFrom.slice(0, 4), month: 0, dateFrom: appliedDateFrom, dateTo: appliedDateTo });
         setDateFrom(appliedDateFrom);
         setDateTo(appliedDateTo);
       }
@@ -489,6 +552,7 @@ const AdminPortalOriginal = () => {
     }
 
     setDateRangeError("");
+    saveOrderReportPeriod({ mode: "period", year: singleDealerDateFrom.slice(0, 4), month: 0, dateFrom: singleDealerDateFrom, dateTo: singleDealerDateTo });
     setAppliedSingleDealerMode("period");
     setAppliedSingleDealerDateFrom(singleDealerDateFrom);
     setAppliedSingleDealerDateTo(singleDealerDateTo);
@@ -506,13 +570,14 @@ const AdminPortalOriginal = () => {
       setDisplayLimit(ITEMS_PER_LOAD);
 
       if (mode === "period") {
+        saveOrderReportPeriod({ mode, year: singleDealerDateFrom.slice(0, 4), month: 0, dateFrom: singleDealerDateFrom, dateTo: singleDealerDateTo });
         setFilter((previous) => ({
           ...previous,
           month: 0,
         }));
       }
     },
-    [],
+    [singleDealerDateFrom, singleDealerDateTo],
   );
 
   const applySingleDealerYear = useCallback(() => {
@@ -536,7 +601,7 @@ const AdminPortalOriginal = () => {
       dealerGuid !== ALL_DEALERS_VALUE &&
       !Object.hasOwn(DEALER_GROUP_TO_SQL_VALUE, dealerGuid);
 
-    if (switchedFromAllToSingle) {
+    if (switchedFromAllToSingle && allDealersDateMode !== "range" && !isDealerGuid(new URLSearchParams(location.search).get("contractor_guid"))) {
       setSingleDealerDateMode("year");
       setAppliedSingleDealerMode("year");
       setAppliedSingleDealerYear(selectedYear);
@@ -553,7 +618,7 @@ const AdminPortalOriginal = () => {
     }
 
     previousDealerGuidRef.current = dealerGuid;
-  }, [dealerGuid, selectedYear]);
+  }, [dealerGuid, selectedYear, location.search, allDealersDateMode]);
 
   const reloadCalculations = useCallback(async () => {
     cancelAll();
@@ -627,6 +692,11 @@ const AdminPortalOriginal = () => {
     : appliedSingleDealerYear;
 
   useEffect(() => {
+    const linkParams = new URLSearchParams(location.search);
+    const linkedDealer = linkParams.get("contractor_guid");
+    // Never fall back to an all-dealer request while resolving a measurement link.
+    if (linkParams.has("measurement_dealer") && !isDealerGuid(linkedDealer)) return;
+    if (isAdmin && isDealerGuid(linkedDealer) && String(dealerGuid).toLowerCase() !== linkedDealer.toLowerCase()) return;
     cancelAll();
 
     const controller = register();
@@ -757,6 +827,7 @@ const AdminPortalOriginal = () => {
     appliedSingleDealerDateFrom,
     appliedSingleDealerDateTo,
     ordersRefreshVersion,
+    location.search,
   ]);
 
   useEffect(() => {
@@ -766,7 +837,10 @@ const AdminPortalOriginal = () => {
         filter.month,
         filter.name,
         calculationsData,
-      ),
+      ).filter((calc) => {
+        const dealer = new URLSearchParams(location.search).get("measurement_dealer");
+        return !dealer || String(calc.measurementDealerId) === dealer;
+      }),
     );
 
     setDisplayLimit(ITEMS_PER_LOAD);
@@ -776,6 +850,7 @@ const AdminPortalOriginal = () => {
     filter.name,
     calculationsData,
     getFilteredItems,
+    location.search,
   ]);
 
   const statusSummary = useMemo(() => {
@@ -865,36 +940,21 @@ const AdminPortalOriginal = () => {
     setIsCalcModalOpen(true);
   }, []);
 
-  const handleMonthClick = (month) => {
-    if (isAllDealers && month === 0) return;
-
-    const newMonth =
-      filter.month === month
-        ? isAllDealers
-          ? month
-          : 0
-        : month;
-
-    setFilter((previous) => ({
-      ...previous,
-      month: newMonth,
-    }));
-
-    /*
-     * Для всіх дилерів місяць є серверним фільтром:
-     * одразу формуємо date_from/date_to і запускаємо запит.
-     */
-    if (isAllDealers && allDealersDateMode === "month") {
-      const range = getMonthDateRange(
-        selectedYear,
-        newMonth,
-      );
-
-      setDateRangeError("");
+  const selectMonth = (year, month) => {
+    saveOrderReportPeriod(orderMonthPeriod(year, month));
+    setSelectedYear(year);
+    setFilter((previous) => ({ ...previous, month }));
+    setDateRangeError("");
+    if (isAllDealers) {
+      const range = getMonthDateRange(year, month);
       setAppliedDateFrom(range.dateFrom);
       setAppliedDateTo(range.dateTo);
+    } else {
+      setAppliedSingleDealerMode("year");
+      setAppliedSingleDealerYear(year);
+      setAppliedSingleDealerDateFrom(`${year}-01-01`);
+      setAppliedSingleDealerDateTo(`${year}-12-31`);
     }
-
     setDisplayLimit(ITEMS_PER_LOAD);
   };
 
@@ -910,6 +970,7 @@ const AdminPortalOriginal = () => {
   };
 
   const handleClearSearch = () => {
+    clearLinkedFilters();
     setFilter((previous) => ({
       ...previous,
       name: "",
@@ -942,6 +1003,11 @@ const AdminPortalOriginal = () => {
     if (!delivery.enabled) return;
     setExpandedCalcIds((previous) => new Set([...previous, ...itemsToShow.map((calc) => calc.id)]));
   }, [delivery.enabled, delivery.date, deliveryVisibleIds]);
+
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get("expand") !== "1") return;
+    setExpandedCalcIds((previous) => new Set([...previous, ...itemsToShow.map((calc) => calc.id)]));
+  }, [location.search, deliveryVisibleIds]);
 
   const areAllVisibleCalculationsExpanded =
     itemsToShow.length > 0 &&
@@ -986,6 +1052,10 @@ const AdminPortalOriginal = () => {
   const remainingItems =
     deliveryFilteredItems.length - displayLimit;
 
+  if (measurementTargetError) {
+    return <div className="no-data column align-center p-6" role="alert"><p>{measurementTargetError}</p><button type="button" onClick={() => window.location.reload()}>Спробувати ще раз</button></div>;
+  }
+
   if (loading || reloading) {
     return (
       <div className="loading-spinner-wrapper">
@@ -999,20 +1069,6 @@ const AdminPortalOriginal = () => {
       </div>
     );
   }
-
-  const monthShortLabels = t(
-    "portal_calc.months.short",
-    {
-      returnObjects: true,
-    },
-  );
-
-  const monthFullLabels = t(
-    "portal_calc.months.full",
-    {
-      returnObjects: true,
-    },
-  );
 
   return (
     <div className="column portal-body">
@@ -1099,177 +1155,9 @@ const AdminPortalOriginal = () => {
             allDealersDateMode === "month") ||
             (!isAllDealers &&
               singleDealerDateMode === "year")) && (
-            <>
-              <div className="year-inline-selector row">
-                {/* <img
-                  src={yearIcon}
-                  alt=""
-                  className="align-center mr-2 w-[26px] h-[25px]"
-                />
-
-                <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-                  {t("portal_calc.ui.report_year")}
-                </div> */}
-
-                <select
-                  className="year-select-minimal"
-                  value={selectedYear}
-                  onChange={(event) =>
-                    setSelectedYear(event.target.value)
-                  }
-                >
-                  {availableYears.map((year) => (
-                    <option
-                      key={year}
-                      value={year}
-                    >
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {isAllDealers && (
-                <button
-                  type="button"
-                  className="date-filter-search-button"
-                  onClick={applyAllDealersMonth}
-                  disabled={loading || reloading}
-                >
-                  <FaSearch className="date-filter-search-icon" />
-                  <span className="date-filter-search-text">
-                    {reloading
-                      ? t("portal_calc.ui.searching", {
-                          defaultValue: "Пошук...",
-                        })
-                      : t("portal_calc.ui.search", {
-                          defaultValue: "Пошук",
-                        })}
-                  </span>
-                </button>
-              )}
-
-              {!isAllDealers && (
-                <button
-                  type="button"
-                  className="date-filter-search-button"
-                  onClick={applySingleDealerYear}
-                  disabled={loading || reloading}
-                >
-                  <FaSearch className="date-filter-search-icon" />
-                  <span className="date-filter-search-text">
-                    {reloading
-                      ? t("portal_calc.ui.searching", {
-                          defaultValue: "Пошук...",
-                        })
-                      : t("portal_calc.ui.search", {
-                          defaultValue: "Пошук",
-                        })}
-                  </span>
-                </button>
-              )}
-
-              <ul className="gap-6 row no-wrap month-list flex-1">
-                {!isAllDealers && (
-                  <li
-                    className={`pagination-item ${
-                      filter.month === 0
-                        ? "active"
-                        : ""
-                    }`}
-                    onClick={() =>
-                      handleMonthClick(0)
-                    }
-                  >
-                    {t(
-                      "portal_calc.months.all_year",
-                    )}
-                  </li>
-                )}
-
-                {Array.from(
-                  { length: 12 },
-                  (_, index) => {
-                    const month = index + 1;
-
-                    const disabled =
-                      !isAllDealers &&
-                      monthSummary[month] === 0;
-
-                    return (
-                      <li
-                        key={month}
-                        className={`pagination-item ${
-                          filter.month === month
-                            ? "active"
-                            : ""
-                        } ${
-                          disabled
-                            ? "disabled"
-                            : ""
-                        }`}
-                        onClick={() => {
-                          if (disabled) return;
-
-                          handleMonthClick(month);
-                        }}
-                      >
-                        {monthShortLabels[index]}
-
-                        {!isAllDealers && (
-                          <span className="text-yellow">
-                            {" "}
-                            ({monthSummary[month]})
-                          </span>
-                        )}
-                      </li>
-                    );
-                  },
-                )}
-              </ul>
-
-              <select
-                className="month-select flex-1"
-                value={filter.month}
-                onChange={(event) =>
-                  handleMonthClick(
-                    Number(event.target.value),
-                  )
-                }
-              >
-                {!isAllDealers && (
-                  <option value={0}>
-                    {t(
-                      "portal_calc.months.all_year",
-                    )}
-                  </option>
-                )}
-
-                {Array.from(
-                  { length: 12 },
-                  (_, index) => {
-                    const month = index + 1;
-
-                    const disabled =
-                      !isAllDealers &&
-                      monthSummary[month] === 0;
-
-                    return (
-                      <option
-                        key={month}
-                        value={month}
-                        disabled={disabled}
-                      >
-                        {monthFullLabels[index]}
-                        {!isAllDealers
-                          ? ` (${monthSummary[month]})`
-                          : ""}
-                      </option>
-                    );
-                  },
-                )}
-              </select>
-            </>
+            <OrderMonthPicker year={isAllDealers ? selectedYear : appliedSingleDealerYear}
+              month={isAllDealers ? filter.month || currentMonth : filter.month} years={availableYears}
+              counts={isAllDealers ? undefined : monthSummary} allowYear={!isAllDealers} onSelect={selectMonth} />
           )}
 
           {!isAllDealers &&
@@ -1277,6 +1165,10 @@ const AdminPortalOriginal = () => {
               <div className="date-filter-inline">
                 <div className="date-filter-top-row">
                   <div className="date-period-fields">
+                    <OrderFilterYear year={singleDealerDateFrom.slice(0, 4)} years={availableYears} onChange={(year) => {
+                      setSingleDealerDateFrom(`${year}-01-01`);
+                      setSingleDealerDateTo(`${year}-12-31`);
+                    }} />
                     <label className="date-period-field">
                       <span>З</span>
                       <input
@@ -1359,6 +1251,10 @@ const AdminPortalOriginal = () => {
               <div className="date-filter-inline">
                 <div className="date-filter-top-row">
                   <div className="date-period-fields">
+                    <OrderFilterYear year={dateFrom.slice(0, 4)} years={availableYears} onChange={(year) => {
+                      setDateFrom(`${year}-01-01`);
+                      setDateTo(`${year}-12-31`);
+                    }} />
                     <label className="date-period-field">
                       <span>З</span>
 
@@ -1510,7 +1406,7 @@ const AdminPortalOriginal = () => {
                   <div className="dealer-select-wrapper text-[#44403E]">
                     <DealerSelectWithAll
                       value={dealerGuid}
-                      onChange={setDealerGuid}
+                      onChange={(value) => { clearLinkedFilters(); setDealerGuid(value); }}
                       extraOptions={
                         canUseDealerGroups
                           ? DEALER_GROUP_OPTIONS

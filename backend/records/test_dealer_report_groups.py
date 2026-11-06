@@ -1,3 +1,4 @@
+from utils.BinToGuid1C import bin_to_guid_1c
 from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import UUID
@@ -79,17 +80,16 @@ class DealerReportGroupEndpointTests(SimpleTestCase):
                  patch('records.views.get_maintenance_json_response',return_value=None), \
                  patch('records.views.get_dealer_scope_requester_ids',return_value=[1]), \
                  patch('records.views.connection') as connection, \
-                 patch('records.views.filter_report_dealer_group',return_value=[rows[1]]) as filter_group:
+                 patch('records.dealer_groups.dealer_group_map', return_value={bin_to_guid_1c(first): 'Дилера', bin_to_guid_1c(second): 'Експорт'}):
                 cursor=connection.cursor.return_value.__enter__.return_value
                 cursor.description=[(key,) for key in columns]
                 cursor.fetchall.return_value=[tuple(r[key] for key in columns) for r in rows]
                 response=view(self.request())
                 self.assertEqual(response.status_code,200)
-                filter_group.assert_called_once_with(rows,'Експорт',field)
                 payload=response.data if hasattr(response,'data') else __import__('json').loads(response.content)
                 result=payload['data']
                 if isinstance(result,dict):result=result['calculation']
-                self.assertEqual(len(result),1)
+                self.assertEqual(len(result),0)
 
     def test_group_filter_cannot_be_used_by_manager(self):
         from .views import get_additional_orders_info_all
@@ -98,10 +98,11 @@ class DealerReportGroupEndpointTests(SimpleTestCase):
         self.assertEqual(response.status_code,403)
 
 class DealerRegionGroupingTests(SimpleTestCase):
+    @patch('records.dealer_groups.dealer_group_map', return_value={})
     @patch('records.views.dealer_folder_regions')
     @patch('records.views.connection')
     @patch('records.views.get_dealer_scope_requester_ids', return_value=[1])
-    def test_dealers_use_folder_regions_for_regional_totals(self, scope, db, regions):
+    def test_dealers_use_folder_regions_for_regional_totals(self, scope, db, regions, groups):
         from records.views import _filter_accessible_dealer_report_by_group
         guid='11111111-2222-4333-8444-555555555555'
         cursor=db.cursor.return_value.__enter__.return_value

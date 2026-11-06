@@ -32,16 +32,12 @@ export default function HeaderUserProfile({ onOpenComparison }) {
       <div className="profile-menu-container">
         <div className="profile-rectangle" />
 
-        <div className="profile-name-text admin-profile-name-text" title={fullName} onDoubleClick={() => { if (canCompare) onOpenComparison?.(); }}>
-          {fullName}
+        <div className="profile-identity">
+          <AppIcon name="ProfileUserHeader" className="profile-img-icon" />
+          <span className="profile-name-text admin-profile-name-text" title={fullName} onDoubleClick={() => { if (canCompare) onOpenComparison?.(); }}>
+            {fullName}
+          </span>
         </div>
-{/* 
-        <img
-          className="profile-img-icon"
-          alt="Profile"
-          src={profileIcon}
-        /> */}
-        <AppIcon name="ProfileUserHeader" className="profile-img-icon  "/>
 
         <img
           src="/assets/icons/PolygonOpenProfileSubmenu.png"

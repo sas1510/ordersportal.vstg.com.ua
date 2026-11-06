@@ -1,4 +1,7 @@
-from .dealer_groups import requested_dealer_group, filter_report_dealer_group, dealer_folder_regions
+from .order_sql_compat import execute_orders_sql
+from pathlib import Path
+from .calculation_metadata import attach_calculation_metadata
+from .dealer_groups import requested_dealer_group, filter_report_dealer_group, dealer_folder_regions, exclude_export_dealers, fill_missing_dealer_regions
 from .order_procedures import calculations_procedure, monthly_orders_procedure
 import os
 import re
@@ -68,7 +71,7 @@ from backend.utils.db_1c_lookups import (
     get_document_number_by_guid, 
     get_document_year_by_guid
 )
-from backend.utils.contractor import ensure_order_action_access, resolve_contractor, get_accessible_dealer_guids, get_accessible_dealer_rows, get_dealer_scope_requester_ids
+from backend.utils.contractor import ensure_order_action_access, resolve_contractor, get_accessible_dealer_binaries, get_accessible_dealer_guids, get_accessible_dealer_rows, get_dealer_scope_requester_ids
 from backend.utils.onec_api import send_to_1c
 from backend.utils.api_helpers import safe_view
 from backend.utils.dates import parse_date, clean_date
@@ -885,6 +888,7 @@ def get_orders_by_period_and_contractor(
     date_from,
     date_to,
     contractor_id,
+    internal_dealer=False,
 ):
     """
     Викликає SQL-процедуру
@@ -921,15 +925,19 @@ def get_orders_by_period_and_contractor(
     if get_maintenance_state()["enabled"]:
         raise RuntimeError("ONEC_MAINTENANCE_ACTIVE")
 
-    query = f"""
-        EXEC [dbo].[{calculations_procedure()}]
-            @DateFrom = %s,
-            @DateTo = %s,
-            @Contractor_ID = %s
-    """
+    if internal_dealer:
+        from users.internal_dealer_queries import internal_dealer_orders_sql
+        query = internal_dealer_orders_sql()
+    else:
+        query = f"""
+            EXEC [dbo].[{calculations_procedure()}]
+                @DateFrom = %s,
+                @DateTo = %s,
+                @Contractor_ID = %s
+        """
 
     with connection.cursor() as cursor:
-        cursor.execute(
+        execute_orders_sql(cursor,
             query,
             [
                 local_date_from,
@@ -966,14 +974,20 @@ def get_orders_by_period_and_contractor(
 
         order_date = row.get("OrderDate")
 
-        if calc_id not in calcs_dict:
+        client_order_number = str(row.get("ClientOrderNumber") or "").strip() if internal_dealer else ""
+        group_key = (client_order_number, str(row.get("Currency") or "")) if client_order_number else calc_id
+
+        if group_key not in calcs_dict:
             contractor_value = row.get("ContractorID")
             manager_value = row.get("Manager")
 
-            calcs_dict[calc_id] = {
+            calcs_dict[group_key] = {
                 "id": calc_id,
+                "isOrderOnly": bool(row.get("IsOrderOnly")),
+                "clientOrderNumber": client_order_number or None,
                 "number": (
-                    row.get("CalcDealerNumber")
+                    (client_order_number or row.get("OrderNumber") if row.get("IsOrderOnly") else None)
+                    or row.get("CalcDealerNumber")
                     or row.get("ClientOrderNumber")
                     or row.get("CalcNumber")
                     or ""
@@ -987,7 +1001,7 @@ def get_orders_by_period_and_contractor(
                 "date": calculation_date,
                 "orders": [],
                 "calcConstructionsFromSQL": (
-                    row.get("CalcConstructionsCount")
+                    None if internal_dealer else row.get("CalcConstructionsCount")
                 ),
                 "dealer": row.get("Customer"),
                 "dealerId": (
@@ -1034,7 +1048,7 @@ def get_orders_by_period_and_contractor(
             }
 
         elif order_date:
-            calcs_dict[calc_id]["raw_order_dates"].append(
+            calcs_dict[group_key]["raw_order_dates"].append(
                 order_date
             )
 
@@ -1049,6 +1063,7 @@ def get_orders_by_period_and_contractor(
         order = {
             "id": row.get("OrderID"),
             "idGuid": order_id_guid,
+            "applicationGuid": row.get("ApplicationID_GUID") if internal_dealer else calc_id,
             "number": order_number or "",
             "linkedOrderNumber": row.get("LinkedOrderNumber") or None,
             "dateRaw": order_date,
@@ -1104,7 +1119,7 @@ def get_orders_by_period_and_contractor(
             "currency": row.get("Currency"),
         }
 
-        calcs_dict[calc_id]["orders"].append(order)
+        calcs_dict[group_key]["orders"].append(order)
 
     formatted_calcs = []
 
@@ -1172,12 +1187,22 @@ def get_orders_by_period_and_contractor(
                 for order in orders
             )
 
+        if internal_dealer:
+            application_ids = {order.get("applicationGuid") for order in orders if order.get("applicationGuid")}
+            calc["applicationGuid"] = (
+                next(iter(application_ids))
+                if len(application_ids) == 1 and all(order.get("applicationGuid") for order in orders)
+                else None
+            )
+
         calc["constructionsQTY"] = constructions_qty
         calc["constructionsCount"] = constructions_qty
 
         formatted_calcs.append(calc)
 
-    return attach_34_order_bindings(formatted_calcs)
+    if internal_dealer:
+        return attach_34_order_bindings(formatted_calcs)
+    return attach_calculation_metadata(attach_34_order_bindings(formatted_calcs))
 
 
 
@@ -1339,7 +1364,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
         formatted_calcs.append(calc)
 
-    return attach_34_order_bindings(formatted_calcs)
+    return attach_calculation_metadata(attach_34_order_bindings(formatted_calcs))
 
 
 
@@ -1497,6 +1522,7 @@ def api_get_orders(request):
             date_from,
             date_to,
             contractor_bin,
+            internal_dealer=requester_role == "internal_dealer",
         )
     except RuntimeError as exc:
         if str(exc) == "ONEC_MAINTENANCE_ACTIVE":
@@ -1528,7 +1554,7 @@ def api_get_orders(request):
     calc_to_str_map = {}
 
     for calc in data:
-        calc_id = calc.get("id")
+        calc_id = calc.get("applicationGuid") if calc.get("isOrderOnly") else calc.get("id")
 
         if not calc_id:
             continue
@@ -1578,7 +1604,7 @@ def api_get_orders(request):
         first_messages_map[lookup_key] = message["text"]
 
     for calc in data:
-        calc_id = calc.get("id")
+        calc_id = calc.get("applicationGuid") if calc.get("isOrderOnly") else calc.get("id")
 
         if not calc_id:
             calc["hasUnreadMessages"] = False
@@ -2406,7 +2432,7 @@ def get_additional_orders_info_all(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
-        raw_rows = filter_report_dealer_group(raw_rows, dealer_group, 'CustomerID')
+        raw_rows = filter_report_dealer_group(exclude_export_dealers(raw_rows, 'CustomerID'), dealer_group, 'CustomerID')
 
         sql_duration = time.time() - start_time
 
@@ -2682,7 +2708,7 @@ def complaints_view_all_by_month(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
-        raw_rows = filter_report_dealer_group(raw_rows, dealer_group, 'CustomerLink')
+        raw_rows = filter_report_dealer_group(exclude_export_dealers(raw_rows, 'CustomerLink'), dealer_group, 'CustomerLink')
             
         sql_duration = time.time() - start_time
         processed_rows = []
@@ -2920,7 +2946,7 @@ def orders_view_all_by_month(request):
         rows = []
         with connection.cursor() as cursor:
             for scoped_requester_id in scope_requester_ids:
-                cursor.execute(
+                execute_orders_sql(cursor,
                     f"""
                     EXEC [dbo].[{monthly_orders_procedure()}]
                         @RequesterUserID = %s,
@@ -2941,6 +2967,10 @@ def orders_view_all_by_month(request):
                     for row in cursor.fetchall()
                 )
 
+        rows = exclude_export_dealers(
+            [row for row in rows if str(row.get("DealerType") or "").strip().casefold() != "експорт"],
+            "ContractorID",
+        )
         unique_rows = {}
         for row in rows:
             def key_value(value):
@@ -3313,7 +3343,7 @@ def orders_view_all_by_month(request):
 
             formatted_calcs.append(calc)
 
-        formatted_calcs = attach_34_order_bindings(formatted_calcs)
+        formatted_calcs = attach_calculation_metadata(attach_34_order_bindings(formatted_calcs))
 
         total_duration = time.time() - start_time
 
@@ -3458,6 +3488,7 @@ def build_1c_payload(
     file_name=None,
     file_b64=None,
     photos=None,
+    audio=None,
 ):
     if photos is None:
         photos = []
@@ -3486,6 +3517,14 @@ def build_1c_payload(
             "fileDataType": "Photo"
         })
 
+    for recording in audio or ():
+        all_files.append({
+            "fileName": recording["fileName"],
+            "fileDataB64": recording["fileDataB64"],
+            "fileExtension": get_file_extension(recording["fileName"]),
+            "fileDataType": "Calculation",
+        })
+
     payload = {
         "calculations": [
             {
@@ -3493,8 +3532,8 @@ def build_1c_payload(
                 "calculationNumber": order_number,
                 "itemsCount": int(items_count),
                 "comment": comment or "",
-                "kontragentGUID": str(contractor_guid),
-                "authorGUID": str(contractor_guid),
+                "kontragentGUID": str(contractor_guid) if contractor_guid is not None else "",
+                "authorGUID": str(contractor_guid) if contractor_guid is not None else "",
                 "file": all_files,
                 "orders": [],
             }
@@ -3872,6 +3911,14 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 "query": "CreateCalculation",
             })
 
+    def resolve_creation_contractor(self, request):
+        return resolve_contractor(
+            request,
+            allow_admin=True,
+            admin_param="contractor_guid",
+            elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
+        )
+
     @extend_schema(
         summary="Створення прорахунку та відправка в 1С",
         description=(
@@ -3907,12 +3954,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         data = serializer.validated_data
 
         try:
-            contractor_bin, contractor_guid = resolve_contractor(
-                request,
-                allow_admin=True,
-                admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
-            )
+            _, contractor_guid = self.resolve_creation_contractor(request)
         except (ValueError, PermissionError) as e:
             logger.warning(f"Access denied for create calculation: {str(e)}", extra={
                 "tags": {
@@ -3925,7 +3967,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        file = data["file"]
+        file = data.get("file") or {}
         photos = data.get("photos", []) 
 
       
@@ -3939,9 +3981,10 @@ class CreateCalculationViewSet(viewsets.ViewSet):
             delivery_is_pickup=data.get("delivery_is_pickup", False),
             delivery_address_is_default=data.get("delivery_address_is_default"),
             client_address=data.get("client_address"),
-            file_name=file["fileName"],
-            file_b64=file["fileDataB64"],
-            photos=photos,  
+            file_name=file.get("fileName"),
+            file_b64=file.get("fileDataB64"),
+            photos=photos,
+            audio=data.get("audio"),  
         )
 
 
@@ -4358,6 +4401,15 @@ def get_dealer_addresses(request):
             ]
         )
 
+        if not rows and not load_all_contractor_addresses:
+            delivery_rows = [
+                row for row in all_rows
+                if "достав" in str(row.get("AddressKind") or "").casefold()
+                and row.get("AddressKindGUID") and row.get("AddressValue")
+            ]
+            if len(delivery_rows) == 1:
+                rows = delivery_rows
+
         for row in rows:
             row["IsDefault"] = is_default_address(row.get("IsDefault"))
         duration = time.time() - start_time
@@ -4589,6 +4641,18 @@ def get_messages(request):
         return Response({"error": "Invalid base_transaction_guid"}, status=400)
 
 
+    delegated = isinstance(request.auth, dict) and bool(request.auth.get("dealer_preview_actor"))
+    from users.internal_dealer import internal_dealer_is_readonly
+    internal_readonly = internal_dealer_is_readonly(request.user)
+    if delegated or getattr(request.user, "role", "") == "internal_dealer":
+        from users.dealer_preview import dealer_owns_document
+        try:
+            transaction_type = int(transaction_type_id)
+        except (TypeError, ValueError):
+            return Response({"detail": "Некоректний тип документа."}, status=400)
+        if not dealer_owns_document(base_transaction_bin, transaction_type, current_author_bin):
+            return Response({"detail": "Доступ до документа відсутній."}, status=403)
+
     messages_qs = ChatMessage.objects.filter(
         related_object_id=base_transaction_bin,
         transaction_type_id__in=(
@@ -4600,7 +4664,7 @@ def get_messages(request):
     ).order_by("timestamp")
 
  
-    if current_author_bin:
+    if current_author_bin and not delegated and not internal_readonly:
         messages_qs.filter(
             is_read=False
         ).exclude(
@@ -5858,6 +5922,7 @@ def _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scop
     )
 
     original_dealers_count = len(dealers)
+    dealers = exclude_export_dealers(dealers, "contractor_guid")
     if scope_user is not None:
         dealers = _filter_ruta_for_accessible_reports(dealers, scope_user, requester_user_id)
 
@@ -5890,6 +5955,9 @@ def _build_accessible_dealer_reports(requester_user_id, date_from, date_to, scop
             "currency": _analytics_row_currency(totals_row),
         })
 
+    if fill_missing_dealer_regions(dealers):
+        regions = _build_accessible_report_regions(dealers)
+
     top_dealers = dealers[:10]
     top_regions = regions[:10]
     insights = {
@@ -5917,7 +5985,7 @@ def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, da
     allowed_guids = set()
     for requester_id in get_dealer_scope_requester_ids(scope_user):
         with connection.cursor() as cursor:
-            cursor.execute(
+            execute_orders_sql(cursor,
                 f"""
                 EXEC [dbo].[{monthly_orders_procedure()}]
                     @RequesterUserID = %s,
@@ -5988,6 +6056,7 @@ def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, da
             if dealer["orders_count"] else 0
         )
         dealers.append(dealer)
+    dealers = exclude_export_dealers(dealers, "contractor_guid")
     dealers.sort(key=lambda item: (-_safe_float(item.get("total_turnover")), item.get("dealer_name") or ""))
     for index, dealer in enumerate(dealers, start=1):
         dealer["turnover_rank"] = index
@@ -6000,6 +6069,7 @@ def _filter_accessible_dealer_report_by_group(payload, scope_user, date_from, da
                 folder_regions.get(guid) or (existing_by_guid.get(guid) or {}).get("region_name")
             )
 
+    fill_missing_dealer_regions(dealers)
     fallback_currency = (payload.get("totals") or {}).get("currency") or "грн"
     regions = _build_accessible_report_regions(dealers)
     payload = dict(payload)
@@ -6104,19 +6174,69 @@ def _build_portal_comparison_insights(selected_row, leaderboard_rows, region_row
     }
 
 
+PORTFOLIO_ANALYTICS_ROLES = (
+    "admin", "manager", "region_manager", "regionalManager",
+    "branch_manager", "branches_director", "director",
+)
+
+
+def load_portfolio_analytics_sql(filename, start_parameter, end_parameter):
+    return (
+        f"DECLARE @ContractorIDs nvarchar(max) = %s, @{start_parameter} date = %s, @{end_parameter} date = %s;\n"
+        + (Path(__file__).parent / "sql" / filename).read_text(encoding="utf-8").replace("%", "%%")
+    )
+
+
+PORTFOLIO_TIMELINESS_SQL = load_portfolio_analytics_sql(
+    "production_timeliness_portfolio.sql", "DateFrom", "DateTo",
+)
+PORTFOLIO_UNIFIED_SQL = load_portfolio_analytics_sql(
+    "production_unified_portfolio.sql", "StartDate", "EndDate",
+)
+PORTFOLIO_COMPARISON_SQL = load_portfolio_analytics_sql(
+    "dealer_comparison_portfolio.sql", "StartDate", "EndDate",
+)
+
+
+def analytics_portfolio_contractors(request):
+    from .dealer_groups import analytics_dealer_rows
+    rows = analytics_dealer_rows(get_accessible_dealer_rows(request.user))
+    group = str(request.GET.get("dealer_group") or "").strip()
+    if group:
+        from records.dealer_groups import GROUPS, filter_report_dealer_group
+        if group not in GROUPS.values() or group in {"Експорт", "Інше"}:
+            raise ValidationError({"dealer_group": "Unknown dealer group"})
+        rows = filter_report_dealer_group(rows, group, "ContractorID")
+    return {
+        bytes(row["ContractorID"]) for row in rows
+        if isinstance(row.get("ContractorID"), (bytes, bytearray, memoryview))
+    }
+
+
+def execute_portfolio_analytics(cursor, sql, request, date_from, date_to):
+    contractor_ids = analytics_portfolio_contractors(request)
+    cursor.execute(sql, [json.dumps(sorted(value.hex() for value in contractor_ids)), date_from, date_to])
+
+
 class ProductionTimelinessByContractorView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            contractor_bin, contractor_guid = resolve_contractor(
-                request,
-                allow_admin=True,
-                admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
-            )
-        except (ValueError, PermissionError) as exc:
-            return Response({"detail": str(exc)}, status=400)
+        portfolio = request.GET.get("portfolio") == "1"
+        if portfolio:
+            if request.user.role not in PORTFOLIO_ANALYTICS_ROLES:
+                return Response({"detail": "Portfolio access denied"}, status=403)
+            contractor_guid = request.GET.get("contractor_guid") or None
+        else:
+            try:
+                contractor_bin, contractor_guid = resolve_contractor(
+                    request,
+                    allow_admin=True,
+                    admin_param="contractor_guid",
+                    elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director", "director"),
+                )
+            except (ValueError, PermissionError) as exc:
+                return Response({"detail": str(exc)}, status=400)
 
         date_from_raw = request.GET.get("date_from")
         date_to_raw = request.GET.get("date_to")
@@ -6140,38 +6260,60 @@ class ProductionTimelinessByContractorView(APIView):
             )
 
         try:
-            with connections["default"].cursor() as cursor:
-                try:
-                    cursor.execute(
-                        """
-                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
-                        EXEC [dbo].[GetABCProductionTimelinessByContractorV2]
-                            @ContractorID = %s,
-                            @DateFrom = %s,
-                            @DateTo = %s
-                        """,
-                        [contractor_bin, date_from, date_to],
-                    )
-                except DatabaseError as procedure_error:
-                    procedure_error_message = str(procedure_error)
-                    if "2812" not in procedure_error_message and "207" not in procedure_error_message:
-                        raise
-                    logger.warning("Analytics V2 timeliness procedure is unavailable or invalid; using the stable timeliness procedure")
-                    cursor.execute(
-                        """
-                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
-                        EXEC [dbo].[GetABCProductionTimelinessByContractor]
-                            @ContractorID = %s,
-                            @DateFrom = %s,
-                            @DateTo = %s
-                        """,
-                        [contractor_bin, date_from, date_to],
-                    )
-                summary_rows = _dictfetchall(cursor)
+            if portfolio:
+                contractor_ids = analytics_portfolio_contractors(request)
+                if contractor_guid:
+                    try:
+                        selected_id = guid_to_1c_bin(contractor_guid)
+                    except ValueError:
+                        return Response({"detail": "Invalid contractor_guid"}, status=400)
+                    if selected_id not in contractor_ids:
+                        return Response({"detail": "Dealer access denied"}, status=403)
+                    contractor_ids = {selected_id}
 
-                orders_rows = []
-                if cursor.nextset():
-                    orders_rows = _dictfetchall(cursor)
+                summary_rows, orders_rows = [], []
+                if contractor_ids:
+                    with connections["default"].cursor() as cursor:
+                        cursor.execute(
+                            PORTFOLIO_TIMELINESS_SQL,
+                            [json.dumps(sorted(value.hex() for value in contractor_ids)), date_from, date_to],
+                        )
+                        summary_rows = _dictfetchall(cursor)
+                        if cursor.nextset():
+                            orders_rows = _dictfetchall(cursor)
+            else:
+                summary_rows, orders_rows = [], []
+                with connections["default"].cursor() as cursor:
+                    try:
+                        cursor.execute(
+                            """
+                            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
+                            EXEC [dbo].[GetABCProductionTimelinessByContractorV2]
+                                @ContractorID = %s,
+                                @DateFrom = %s,
+                                @DateTo = %s
+                            """,
+                            [contractor_bin, date_from, date_to],
+                        )
+                    except DatabaseError as procedure_error:
+                        procedure_error_message = str(procedure_error)
+                        if "2812" not in procedure_error_message and "207" not in procedure_error_message:
+                            raise
+                        logger.warning("Analytics V2 timeliness procedure is unavailable or invalid; using the stable timeliness procedure")
+                        cursor.execute(
+                            """
+                            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
+                            EXEC [dbo].[GetABCProductionTimelinessByContractor]
+                                @ContractorID = %s,
+                                @DateFrom = %s,
+                                @DateTo = %s
+                            """,
+                            [contractor_bin, date_from, date_to],
+                        )
+                    summary_rows.extend(_dictfetchall(cursor))
+
+                    if cursor.nextset():
+                        orders_rows.extend(_dictfetchall(cursor))
         except DatabaseError as exc:
             error_msg = str(exc)
             if "927" in error_msg or "процессе восстановления" in error_msg.lower():
@@ -6236,10 +6378,11 @@ class ProductionTimelinessByContractorView(APIView):
             currency = item.get("currency") or "грн"
             currency_total = currency_totals.setdefault(
                 currency,
-                {"currency": currency, "total_sum": 0.0, "orders_count": 0},
+                {"currency": currency, "total_sum": 0.0, "orders_count": 0, "total_constructions": 0},
             )
             currency_total["total_sum"] += _safe_float(item.get("total_sum"))
             currency_total["orders_count"] += _safe_int(item.get("orders_count"))
+            currency_total["total_constructions"] += _safe_int(item.get("total_constructions"))
 
         totals["currency_totals"] = []
         for item in currency_totals.values():
@@ -6277,15 +6420,21 @@ class ProductionUnifiedAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            contractor_bin, contractor_guid = resolve_contractor(
-                request,
-                allow_admin=True,
-                admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
-            )
-        except (ValueError, PermissionError) as exc:
-            return Response({"detail": str(exc)}, status=400)
+        portfolio = request.GET.get("portfolio") == "1"
+        if portfolio:
+            if request.user.role not in PORTFOLIO_ANALYTICS_ROLES:
+                return Response({"detail": "Portfolio access denied"}, status=403)
+            contractor_guid = None
+        else:
+            try:
+                contractor_bin, contractor_guid = resolve_contractor(
+                    request,
+                    allow_admin=True,
+                    admin_param="contractor_guid",
+                    elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director", "director"),
+                )
+            except (ValueError, PermissionError) as exc:
+                return Response({"detail": str(exc)}, status=400)
 
         date_from_raw = request.GET.get("date_from")
         date_to_raw = request.GET.get("date_to")
@@ -6310,31 +6459,34 @@ class ProductionUnifiedAnalyticsView(APIView):
 
         try:
             with connections["default"].cursor() as cursor:
-                try:
-                    cursor.execute(
-                        """
-                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
-                        EXEC [dbo].[GetContractorUnifiedAnalyticsV2]
-                            @StartDate = %s,
-                            @EndDate = %s,
-                            @Contractor_ID = %s
-                        """,
-                        [date_from, date_to, contractor_bin],
-                    )
-                except DatabaseError as procedure_error:
-                    if "207" not in str(procedure_error):
-                        raise
-                    logger.warning("Unified analytics V2 has an invalid currency column; using the stable procedure")
-                    cursor.execute(
-                        """
-                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
-                        EXEC [dbo].[GetContractorUnifiedAnalytics]
-                            @StartDate = %s,
-                            @EndDate = %s,
-                            @Contractor_ID = %s
-                        """,
-                        [date_from, date_to, contractor_bin],
-                    )
+                if portfolio:
+                    execute_portfolio_analytics(cursor, PORTFOLIO_UNIFIED_SQL, request, date_from, date_to)
+                else:
+                    try:
+                        cursor.execute(
+                            """
+                            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
+                            EXEC [dbo].[GetContractorUnifiedAnalyticsV2]
+                                @StartDate = %s,
+                                @EndDate = %s,
+                                @Contractor_ID = %s
+                            """,
+                            [date_from, date_to, contractor_bin],
+                        )
+                    except DatabaseError as procedure_error:
+                        if "207" not in str(procedure_error):
+                            raise
+                        logger.warning("Unified analytics V2 has an invalid currency column; using the stable procedure")
+                        cursor.execute(
+                            """
+                            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
+                            EXEC [dbo].[GetContractorUnifiedAnalytics]
+                                @StartDate = %s,
+                                @EndDate = %s,
+                                @Contractor_ID = %s
+                            """,
+                            [date_from, date_to, contractor_bin],
+                        )
 
                 status_rows = _dictfetchall(cursor)
                 stage_rows = _dictfetchall(cursor) if cursor.nextset() else []
@@ -6448,15 +6600,21 @@ class PortalDealerComparisonAnalyticsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            contractor_bin, contractor_guid = resolve_contractor(
-                request,
-                allow_admin=True,
-                admin_param="contractor_guid",
-                elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director"),
-            )
-        except (ValueError, PermissionError) as exc:
-            return Response({"detail": str(exc)}, status=400)
+        portfolio = request.GET.get("portfolio") == "1"
+        if portfolio:
+            if request.user.role not in PORTFOLIO_ANALYTICS_ROLES:
+                return Response({"detail": "Portfolio access denied"}, status=403)
+            contractor_guid = None
+        else:
+            try:
+                contractor_bin, contractor_guid = resolve_contractor(
+                    request,
+                    allow_admin=True,
+                    admin_param="contractor_guid",
+                    elevated_roles=("admin", "manager", "region_manager", "branch_manager", "branches_director", "director"),
+                )
+            except (ValueError, PermissionError) as exc:
+                return Response({"detail": str(exc)}, status=400)
 
         date_from_raw = request.GET.get("date_from")
         date_to_raw = request.GET.get("date_to")
@@ -6481,31 +6639,34 @@ class PortalDealerComparisonAnalyticsView(APIView):
 
         try:
             with connections["default"].cursor() as cursor:
-                try:
-                    cursor.execute(
-                        """
-                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
-                        EXEC [dbo].[GetPortalDealerComparisonAnalyticsV2]
-                            @StartDate = %s,
-                            @EndDate = %s,
-                            @Contractor_ID = %s
-                        """,
-                        [date_from, date_to, contractor_guid],
-                    )
-                except DatabaseError as procedure_error:
-                    if "207" not in str(procedure_error):
-                        raise
-                    logger.warning("Dealer comparison V2 has an invalid currency column; using the stable procedure")
-                    cursor.execute(
-                        """
-                        SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
-                        EXEC [dbo].[GetPortalDealerComparisonAnalytics]
-                            @StartDate = %s,
-                            @EndDate = %s,
-                            @Contractor_ID = %s
-                        """,
-                        [date_from, date_to, contractor_bin],
-                    )
+                if portfolio:
+                    execute_portfolio_analytics(cursor, PORTFOLIO_COMPARISON_SQL, request, date_from, date_to)
+                else:
+                    try:
+                        cursor.execute(
+                            """
+                            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
+                            EXEC [dbo].[GetPortalDealerComparisonAnalyticsV2]
+                                @StartDate = %s,
+                                @EndDate = %s,
+                                @Contractor_ID = %s
+                            """,
+                            [date_from, date_to, contractor_guid],
+                        )
+                    except DatabaseError as procedure_error:
+                        if "207" not in str(procedure_error):
+                            raise
+                        logger.warning("Dealer comparison V2 has an invalid currency column; using the stable procedure")
+                        cursor.execute(
+                            """
+                            SET ANSI_NULLS ON; SET ANSI_WARNINGS ON;
+                            EXEC [dbo].[GetPortalDealerComparisonAnalytics]
+                                @StartDate = %s,
+                                @EndDate = %s,
+                                @Contractor_ID = %s
+                            """,
+                            [date_from, date_to, contractor_bin],
+                        )
                 totals_rows = _dictfetchall(cursor)
                 selected_rows = _dictfetchall(cursor) if cursor.nextset() else []
                 leaderboard_rows = _dictfetchall(cursor) if cursor.nextset() else []
@@ -6627,7 +6788,7 @@ class PortalAccessibleDealerReportsView(APIView):
 
         dealer_group = str(request.GET.get("dealer_group") or "").strip() or None
         contractor_guid = str(request.GET.get("contractor_guid") or "").strip() or None
-        allowed_dealer_groups = {"Дилера", 'ТОВ "Наша фірма"', "Експорт", "Філіали"}
+        allowed_dealer_groups = {"Дилера", 'ТОВ "Наша фірма"', "Філіали"}
         if dealer_group and role not in ("admin", "director"):
             return Response({"detail": "Змінювати тип дилерів може лише адміністратор."}, status=403)
         if dealer_group and dealer_group not in allowed_dealer_groups:
@@ -6997,16 +7158,22 @@ class PartnerDebtsView(APIView):
         try:
             with connection.cursor() as cursor:
 
-                cursor.execute("EXEC [dbo].[GetPartnerDebtsDirect_V2] @TargetPartnerID=%s",
-                               [contractor_bin])
+                from users.internal_dealer_queries import internal_dealer_debts_sql
+                cursor.execute(internal_dealer_debts_sql(), [contractor_bin])
                 
      
                 raw_data = self.dictfetchall(cursor)
 
                 orders = [item for item in raw_data if item.get('SortOrder') == 0]
-                summary = next((item for item in raw_data if item.get('SortOrder') == 1), None)
+                summaries = [item for item in raw_data if item.get('SortOrder') == 1]
+                summary = summaries[0] if summaries else None
                 from .debt_amounts import use_full_underadvance_debt
-                use_full_underadvance_debt(orders, summary)
+                for currency_summary in summaries:
+                    currency_orders = [
+                        item for item in orders
+                        if item.get("CurrencyName") == currency_summary.get("CurrencyName")
+                    ]
+                    use_full_underadvance_debt(currency_orders, currency_summary)
 
 
             duration = time.time() - start_time
@@ -7024,7 +7191,8 @@ class PartnerDebtsView(APIView):
                 "contractor_guid": contractor_guid,
                 "debts": {
                     "items": orders,
-                    "total": summary
+                    "total": summary,
+                    "totals": summaries
                 }
             })
 

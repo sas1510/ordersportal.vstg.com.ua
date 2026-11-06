@@ -21,6 +21,7 @@ class CashFlowV4Tests(SimpleTestCase):
             DealType='Оплата по заказу', DocumentNumber='payment-1', OrderNumber='15-04162', DeltaRow=Decimal('30876'),
             RealizationAmount=0, CumSaldoStart=Decimal('121642'), CumSaldo=Decimal('152518'))
         for name, value in [('finance_access_denied_response', None),
+                            ('get_cashflow_contract_types', {}),
                             ('get_maintenance_json_response', None),
                             ('resolve_contractor', (b'1'*16, 'contractor'))]:
             p = patch('payments.views.'+name, return_value=value);p.start();self.addCleanup(p.stop)
@@ -66,3 +67,35 @@ class CashFlowV4Tests(SimpleTestCase):
         headers=list(values[0]);payment=values[1]
         self.assertEqual(payment[headers.index('Прихід')],30876)
         self.assertEqual(payment[headers.index('Зал. поч.')],121642)
+
+
+    def test_service_contract_article_hides_main_contract_summaries(self):
+        service = dict(self.payment, FinalDogovorName="договір послуги", FinalDogovor=b"2" * 16)
+        cols = list(service)
+        self.cursor.description = [(name,) for name in cols]
+        row = tuple(service[col] for col in cols)
+        self.cursor.fetchall.return_value = [row]
+        self.cursor.fetchmany.side_effect = [[row], []]
+        types = {(b"2" * 16).hex(): {"ContractKind": "main", "ContractArticleName": "Main revenue"}}
+        with patch("payments.views.get_cashflow_contract_types", return_value=types):
+            import json
+            result = json.loads(get_payment_status_view(self.request()).content)
+            self.assertEqual(result[0]["ContractKind"], "main")
+            response = export_payment_status_excel(self.request())
+        values = list(load_workbook(io.BytesIO(response.content), read_only=True).active.values)
+        headers = list(values[0])
+        self.assertIsNone(values[1][headers.index("Зал. поч.")])
+        self.assertEqual(values[1][headers.index("Оплата")], 30876)
+
+    def test_advance_article_overrides_main_contract_name(self):
+        advance = dict(self.payment, FinalDogovor=b"3" * 16)
+        cols = list(advance)
+        self.cursor.description = [(name,) for name in cols]
+        self.cursor.fetchmany.side_effect = [[tuple(advance[col] for col in cols)], []]
+        types = {(b"3" * 16).hex(): {"ContractKind": "advance", "ContractArticleName": "Advance"}}
+        with patch("payments.views.get_cashflow_contract_types", return_value=types):
+            response = export_payment_status_excel(self.request())
+        values = list(load_workbook(io.BytesIO(response.content), read_only=True).active.values)
+        headers = list(values[0])
+        self.assertEqual(values[1][headers.index("Прихід")], 30876)
+        self.assertEqual(values[1][headers.index("Зал. поч.")], 121642)

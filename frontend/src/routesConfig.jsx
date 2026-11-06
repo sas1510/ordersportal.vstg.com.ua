@@ -1,4 +1,5 @@
 import { lazy } from "react";
+const DashboardV2 = lazy(() => import("./pages/DashboardV2"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FilesPage = lazy(() => import("./pages/FilesPage"));
 const AddOrEditFilePage = lazy(() => import("./pages/AddOrEditFilePage"));
@@ -47,13 +48,20 @@ const DealerReconciliationPage = lazy(() => import("./pages/DealerReconciliation
 const DealerReportsPage = lazy(() => import("./pages/DealerReportsPage"));
 const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
 
+const DealerLoginPage = lazy(() => import("./pages/DealerLoginPage"));
+
+const AudioCalculationTestPage = lazy(() => import("./pages/MeasurementTestPage").then((module) => ({ default: module.AudioCalculationTestPage })));
+
 export const adminRoutes = [
+  { path: "integration-test/audio", element: <AudioCalculationTestPage /> },
+  { path: "dealer-login", element: <DealerLoginPage /> },
   { path: "/statistics/reconciliation", element: <DealerReconciliationPage /> },
   { path: "zamir", element: <ZamirPage /> },
   { path: "integration-test/measurement", element: <MeasurementTestPage /> },
   { path: "constructor", element: <ConstructorPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
+  { path: "dashboardV2", element: <DashboardV2 /> },
   { path: "files", element: <FilesPage /> },
   // { path: "users", element: <AdminUsersPage /> },
   { path: "files/add", element: <AddOrEditFilePage /> },
@@ -103,6 +111,7 @@ export const adminRoutes = [
 const managerBlockedRoutePaths = new Set([
   "/statistics/reconciliation",
   "integration-test/measurement",
+  "integration-test/audio",
   "files/add",
   "files/edit/:id",
   "videos/add",
@@ -136,6 +145,7 @@ export const dealerRoutes = [
   { path: "constructor", element: <ConstructorPage /> },
   { path: "home", element: <HomePage /> },
   { path: "dashboard", element: <Dashboard /> },
+  { path: "dashboardV2", element: <DashboardV2 /> },
   { path: "files", element: <FilesPage /> },
   { path: "videos", element: <VideosPage /> },
   { path: "faq", element: <FAQ /> },

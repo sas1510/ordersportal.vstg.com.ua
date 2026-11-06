@@ -35,7 +35,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
   const fileIcon = "/assets/icons/FileIcon.png";
   const windowsIcon = "/assets/icons/WindowsIconCalc.png";
 
-  const { user } = useAuthGetRole();
+  const { user, isReadOnly } = useAuthGetRole();
   const canViewFinance = hasFinanceAccess(user);
   // const isAdmin = role === "admin";
 
@@ -73,6 +73,8 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
     if (debtAmount <= 0) state.pay = false;
     return state;
   }, [order.status, debtAmount, getButtonState]);
+
+  const hasActionButtons = !isReadOnly && ((user?.role !== "admin" && (buttonState.confirm || (buttonState.pay && canViewFinance))) || buttonState.claim);
 
   const getStatusClass = (status) => {
      switch (status) {
@@ -161,7 +163,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
   return (
     <div className="order-item flex flex-col w-full gap-0 !border-0">
       <div
-        className="order-item-summary flex w-full cursor-pointer items-center !border-0 "
+        className={`order-item-summary additional-order-summary-spread ${isReadOnly ? "additional-order-summary-spread--readonly" : ""} flex w-full cursor-pointer items-center !border-0`}
         onClick={toggleExpand}
       >
         <div className="summary-item row no-wrap !border-r-0 !pr-0">
@@ -259,12 +261,12 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
         </div>
 
 
-<div className="flex flex-col gap-1.5 w-fit p-1" onClick={(e) => e.stopPropagation()}>
+<div style={{ display: hasActionButtons ? undefined : "none" }} className="flex flex-col gap-1.5 w-fit p-1" onClick={(e) => e.stopPropagation()}>
   
 
   {user?.role !== "admin" && (
     <div className="flex gap-1.5">
-      <button
+      {buttonState.confirm && (<button
         className={`flex-1 min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkGrey transition-all active:scale-95 ${
           !buttonState.confirm ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
         }`}
@@ -272,9 +274,9 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
         onClick={() => setIsConfirmModalOpen(true)}
       >
         <div className="text-[12px] font-bold text-center">{t("order_mobile.buttons.confirm")}</div>
-      </button>
+      </button>)}
 
-      <button
+      {buttonState.pay && canViewFinance && (<button
         className={`flex-1 min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkGreen transition-all active:scale-95 ${
           !buttonState.pay ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
         }`}
@@ -282,13 +284,13 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
         onClick={() => setIsPaymentOpen(true)}
       >
         <div className="text-[12px] font-bold text-center">{debtAmount <= 0 ? t("order_status.paid", { defaultValue: "Сплачено" }) : t("order_mobile.buttons.pay")}</div>
-      </button>
+      </button>)}
     </div>
   )}
 
   {/* Нижній ряд: Рекламація (не розтягується) */}
   <div className="flex justify-start">
-    <button
+    {buttonState.claim && (<button
       className={`min-w-[100px] py-[3px] px-2 rounded-[5px] text-white bg-WS---DarkRed transition-all active:scale-95 ${
         !buttonState.claim ? "opacity-50 cursor-not-allowed" : "hover:brightness-110"
       }`}
@@ -299,7 +301,7 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
       }}
     >
       <div className="text-[12px] font-bold text-center">{t("order_mobile.buttons.claim")}</div>
-    </button>
+    </button>)}
   </div>
 </div>
       </div>

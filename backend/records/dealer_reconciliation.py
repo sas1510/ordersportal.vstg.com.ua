@@ -238,5 +238,5 @@ def build_report(start,end,activity):
     return report
 
 def filter_report(report,region='',search='',dealer_group='',contractor=''):
-    rows=[row for row in report['rows'] if (not dealer_group or row.get('dealerGroup')==dealer_group) and (not contractor or row['guid']==contractor) and (not region or row['region']==region) and (not search or search.casefold() in ' '.join([row['name'],row['guid'],*row['aliases']]).casefold())]
+    rows=[row for row in report['rows'] if row.get('dealerGroup') != 'Експорт' and (not dealer_group or row.get('dealerGroup')==dealer_group) and (not contractor or row['guid']==contractor) and (not region or row['region']==region) and (not search or search.casefold() in ' '.join([row['name'],row['guid'],*row['aliases']]).casefold())]
     return {**report,'rows':rows,'totals':summarize(rows),'regions':[{'name':name,**summarize([row for row in rows if row['region']==name])} for name in sorted({row['region'] for row in rows})]}

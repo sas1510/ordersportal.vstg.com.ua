@@ -20,7 +20,7 @@ def number_variants(value):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def find_order_for_zkz(request):
-    if getattr(request.user, "role", "") not in {"admin", "director", "manager", "region_manager", "branch_manager", "branches_director", "customer", "dealer"}:
+    if getattr(request.user, "role", "") not in {"admin", "director", "manager", "region_manager", "branch_manager", "branches_director", "customer", "dealer", "internal_dealer"}:
         return Response({"error": "Немає доступу до замовлень."}, status=403)
     try:
         formatted, compact = number_variants(request.GET.get("number"))

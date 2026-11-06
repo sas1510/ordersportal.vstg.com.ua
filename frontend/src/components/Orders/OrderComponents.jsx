@@ -1,3 +1,4 @@
+import OrderFilesModal from "./OrderFilesModal";
 // ================= CalculationItem.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { formatMoney, formatMoney2} from "../../utils/formatMoney";
@@ -26,7 +27,9 @@ export const CalculationItem = React.memo(
   ({ calc, isExpanded, onToggle, expandedOrderId, onOrderToggle, onDelete, onEdit, onMarkAsRead , reloadCalculations, onOrderPaymentSuccess, onOrderConfirmationSuccess}) => {
     const { t, i18n } = useTranslation();
     const [expanded, setExpanded] = useState(false);
+    const [historyOrderIds, setHistoryOrderIds] = useState(() => new Set());
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+    const canShowChat = !calc.isOrderOnly || Boolean(calc.applicationGuid);
     const [_selectedComments, setSelectedComments] = useState([]);
     const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
     const { addNotification } = useNotification();
@@ -45,7 +48,7 @@ export const CalculationItem = React.memo(
     const historyOfMessage = "/assets/icons/HistoryOfMessageIcon.png";
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
-    const { isBackoffice } = useAuthGetRole();
+    const { isBackoffice, isReadOnly } = useAuthGetRole();
 
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
@@ -85,11 +88,11 @@ export const CalculationItem = React.memo(
         setIsCommentsOpen(true);
 
 
-        if (calc.hasUnreadMessages && onMarkAsRead) {
+        if (!isReadOnly && calc.hasUnreadMessages && onMarkAsRead) {
           onMarkAsRead(calc.id);
         }
       },
-      [calc.id, calc.hasUnreadMessages, onMarkAsRead],
+      [calc.id, calc.hasUnreadMessages, isReadOnly, onMarkAsRead],
     );
 
     const handleDownload = useCallback(async () => {
@@ -133,6 +136,39 @@ export const CalculationItem = React.memo(
         (order) => order.number && String(order.number).trim() !== "",
       );
     }, [calc.orders]);
+
+    const openStatusHistory = (event, status) => {
+      event.stopPropagation();
+      const ids = orderList
+        .filter((order) => !status || String(order.status || "").trim() === String(status).trim())
+        .map((order) => order.idGuid || order.number);
+      const sameHistory = expanded
+        && ids.length === historyOrderIds.size
+        && ids.every((id) => historyOrderIds.has(id));
+
+      if (sameHistory) {
+        setHistoryOrderIds(new Set());
+        if (ids.includes(expandedOrderId)) onOrderToggle?.(expandedOrderId);
+        toggleExpanded();
+        return;
+      }
+
+      setHistoryOrderIds(new Set(ids));
+      if (!expanded) toggleExpanded();
+    };
+
+    const toggleOrderHistory = (id) => {
+      if (historyOrderIds.has(id)) {
+        setHistoryOrderIds((previous) => {
+          const next = new Set(previous);
+          next.delete(id);
+          return next;
+        });
+        if (expandedOrderId === id) onOrderToggle?.(id);
+      } else {
+        onOrderToggle?.(id);
+      }
+    };
 
     const totalOrderConstructions = useMemo(() => {
       return orderList.reduce((sum, order) => {
@@ -281,7 +317,7 @@ const statusPanelClass = (() => {
 
     return (
       <div
-        className={`calc-item calc-item-soft column`}
+        className={`calc-item calc-item-soft${calc.isOrderOnly && !calc.applicationGuid ? " calc-item-aligned" : ""} column`}
         style={{
           borderLeft:
             calc.dealerId === calc.authorGuid
@@ -304,7 +340,7 @@ const statusPanelClass = (() => {
   <div className="column">
     {/* Блок Номера замовлення */}
     <div className="column border-bottom pb-0.5">
-      {/* <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span> */}
+      {/* <span className="text-[10px] text-grey leading-none">{calc.clientOrderNumber ? t("calc.client_order_number", { defaultValue: "Номер замовлення клієнта" }) : calc.isOrderOnly ? t("order_mobile.labels.order_number", { defaultValue: "Номер замовлення" }) : t("portal_calc.ui.calculation_number")}</span> */}
       <div className="text-[14px] m text-bold text-WS---DarkGrey mt-0.5 calc-primary-text">
         {formatDateTimeShort_2(calc.date, i18n.language)} 
       </div>
@@ -313,16 +349,21 @@ const statusPanelClass = (() => {
     {/* Блок Дати створення */}
     <div className="column pt-1">
       {/* <span className="text-[10px] text-grey leading-none">Дата </span> */}
-      <span className="text-[10px] text-grey leading-none">{t("portal_calc.ui.calculation_number")}</span>
+      <span className="text-[10px] text-grey leading-none">{calc.clientOrderNumber ? t("calc.client_order_number", { defaultValue: "Номер замовлення клієнта" }) : calc.isOrderOnly ? t("order_mobile.labels.order_number", { defaultValue: "Номер замовлення" }) : t("portal_calc.ui.calculation_number")}</span>
       <div className="text-[13px] text-bold text-WS---DarkGrey mt-0.5 calc-primary-text">
         № {calc.number} 
       </div>
+      {calc.fromMeasurement && calc.measurementUrl && <a
+        href={calc.measurementUrl} target="_blank" rel="noopener noreferrer"
+        className="measurement-source-link" onClick={event => event.stopPropagation()}
+        style={{ display: 'inline-block', marginTop: 4, fontSize: 12, textDecoration: 'underline', color: 'inherit' }}
+      >Відкрити в замірнику ↗</a>}
     </div>
   </div>
 </div>
 
 <div
-  className="summary-item !gap-0 flex min-w-0 flex-col w-8 !p-0 overflow-hidden"
+  className="summary-item calc-metric !gap-0 flex min-w-0 flex-col w-8 !p-0 overflow-hidden"
   style={{
     minWidth: "78px",
     flex: "0 0 78px",
@@ -369,7 +410,7 @@ const statusPanelClass = (() => {
 </div>
 
 <div
-  className="summary-item flex flex-col w-8"
+  className="summary-item calc-metric flex flex-col w-8"
        title={t("portal_calc.ui.constructions")}
 >
 
@@ -408,7 +449,7 @@ const statusPanelClass = (() => {
           </div> */}
 
 
-<div className="summary-item row w-16 no-wrap items-center">
+<div className="summary-item calc-metric calc-money-summary row w-16 no-wrap items-center">
   <div className="flex flex-row items-center gap-2"> 
     {/* Іконка монет */}
     <img 
@@ -443,6 +484,7 @@ const statusPanelClass = (() => {
   </div>
 </div>
 
+          {canShowChat && (
           <div
             className="summary-item expandable row w-20 align-start space-between cursor-pointer"
             onClick={(e) => {
@@ -457,6 +499,7 @@ const statusPanelClass = (() => {
               </div>
             </div>
           </div>
+          )}
 
           <div className="summary-item row w-12 no-wrap">
             <div
@@ -464,7 +507,7 @@ const statusPanelClass = (() => {
             
             >
             
-              <div className="row align-start" style={{ gap: 0 }}>
+              {(!calc.isOrderOnly || calc.applicationGuid || calc.file) && <div className="row align-start" style={{ gap: 0 }}>
                 <div
                   className="row file-download"
                   style={{
@@ -495,7 +538,7 @@ const statusPanelClass = (() => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div>}
 
 {(calc.authorName?.trim() || calc.dealer) && (
                 <div className="text-WS---DarkGrey  row align-start gap-1">
@@ -524,7 +567,7 @@ const statusPanelClass = (() => {
                     {isBackoffice ? (
                       <span>{calc.authorName?.trim() || calc.dealer}</span>
                     ) : (
-                      <span>{t('calc.recipient_label')}</span>
+                      <span>{calc.isOrderOnly && !calc.applicationGuid ? "Адреса доставки" : t('calc.recipient_label')}</span>
                     )}
                   </span>
                 </div>
@@ -536,13 +579,35 @@ const statusPanelClass = (() => {
          <div className={`summary-item row w-16 calc-status-panel ${statusPanelClass}`}>
           <div className="row gap-2 align-center">
 
-            <div className="icon-info-with-circle font-size-24 calc-status-icon"></div>
+            <div
+              className="icon-info-with-circle font-size-24 calc-status-icon cursor-pointer"
+              role="button"
+              tabIndex={0}
+              title={t("calc.open_status_history", { defaultValue: "\u0412\u0456\u0434\u043a\u0440\u0438\u0442\u0438 \u0456\u0441\u0442\u043e\u0440\u0456\u044e \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u044c" })}
+              onClick={(event) => openStatusHistory(event)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openStatusHistory(event);
+                }
+              }}
+            />
 
             <div className="column gap-3 text-[13px] flex-wrap scroll-y">
               {statusEntries.length > 0 ? (
                 statusEntries.map(([status, count]) => (
                   <div
                     key={status}
+                    title={t("calc.open_status_history", { defaultValue: "\u0412\u0456\u0434\u043a\u0440\u0438\u0442\u0438 \u0456\u0441\u0442\u043e\u0440\u0456\u044e \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u044c" })}
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => openStatusHistory(event, status)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openStatusHistory(event, status);
+                      }
+                    }}
                     className={`row gap-3 left  calc-status ${getStatusClass(status)}`}
                   >
                     <div>{t(`statuses.${status}`, status)}</div>
@@ -588,8 +653,8 @@ const statusPanelClass = (() => {
                   calculationDate={calc.date}
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
                   totalOrderConstructions={totalOrderConstructions}
-                  isExpanded={expandedOrderId === (order.idGuid || order.number)}
-                  onToggle={onOrderToggle}
+                  isExpanded={historyOrderIds.has(order.idGuid || order.number) || expandedOrderId === (order.idGuid || order.number)}
+                  onToggle={toggleOrderHistory}
                   onRefresh={reloadCalculations}
                   onOrderPaymentSuccess={onOrderPaymentSuccess}
                   onOrderConfirmationSuccess={onOrderConfirmationSuccess}
@@ -599,20 +664,28 @@ const statusPanelClass = (() => {
           </div>
         )}
 
+        {canShowChat && (
         <CommentsModal
           isOpen={isCommentsOpen}
           onClose={() => setIsCommentsOpen(false)}
-          baseTransactionGuid={calc.id}
+          baseTransactionGuid={calc.applicationGuid || calc.id}
           transactionTypeId={1}
           manager={isBackoffice ? calc.dealerId : calc.manager}
         />
+        )}
+        {calc.isOrderOnly ? (isFilesModalOpen && <OrderFilesModal
+          onClose={() => setIsFilesModalOpen(false)}
+          orderGuid={calc.id}
+          orderNumber={calc.number}
+        />) : (
         <OrderFilesPreviewModal
           isOpen={isFilesModalOpen}
           onClose={() => setIsFilesModalOpen(false)}
           orderGuid={calc.id}      // GUID розрахунку для запиту до API
-          entityType="calculation"
+          entityType={calc.isOrderOnly ? "order" : "calculation"}
           orderNumber={calc.number} // Номер для заголовка
         />
+        )}
       <OrderNumbersListModal
         isOpen={isOrderNumbersOpen}
         onClose={() => setIsOrderNumbersOpen(false)}

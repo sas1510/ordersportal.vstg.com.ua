@@ -1,3 +1,4 @@
+import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
@@ -45,10 +46,11 @@ const AdminAdditionalOrders = () => {
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState({ status: "all", month: 0, name: "" });
-  const [selectedYear, setSelectedYear] = useState(
-    String(new Date().getFullYear()),
-  );
+  const [restoredPeriod] = useState(() => readOrderReportPeriod());
+  const [filter, setFilter] = useState({ status: "all", month: restoredPeriod?.month || 0, name: "" });
+  const [sharedPeriod, setSharedPeriod] = useState(() => restoredPeriod?.mode === "period" ? restoredPeriod : null);
+  const [selectedYear, setSelectedYear] = useState(() => restoredPeriod?.year || String(new Date().getFullYear()));
+  const getPeriodData = useCallback((endpoint, config) => getWithOrderReportPeriod(axiosInstance, endpoint, config, sharedPeriod), [sharedPeriod]);
 
   const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
@@ -167,13 +169,13 @@ const AdminAdditionalOrders = () => {
 
 
   useEffect(() => {
-    if (isAdmin && isAggregateDealerSelection(dealerGuid)) {
+    if (!sharedPeriod && isAdmin && isAggregateDealerSelection(dealerGuid)) {
       setFilter((prev) => {
         if (prev.month === 0) return { ...prev, month: currentMonth };
         return prev;
       });
     }
-  }, [isAdmin, dealerGuid, currentMonth]);
+  }, [isAdmin, dealerGuid, currentMonth, sharedPeriod]);
 
 
   const shouldRefetchOnMonthChange = useMemo(() => {
@@ -218,7 +220,7 @@ const AdminAdditionalOrders = () => {
           return;
         }
 
-        const response = await axiosInstance.get(endpoint, { params, signal });
+        const response = await getPeriodData(endpoint, { params, signal });
         if (signal.aborted) return;
 
         if (response.data?.status === "success") {
@@ -269,6 +271,7 @@ const AdminAdditionalOrders = () => {
     dealerGuid,
     isAdmin,
     buildRequestParams,
+    getPeriodData,
   ]);
 
 
@@ -283,7 +286,7 @@ const AdminAdditionalOrders = () => {
       if (!shouldRefetchOnMonthChange && dealerGuid) {
         params.contractor = dealerGuid;
       }
-      const response = await axiosInstance.get(
+      const response = await getPeriodData(
         shouldRefetchOnMonthChange
           ? "/additional_orders/get_additional_orders_info_all/"
           : "/additional_orders/get_additional_orders_info/",
@@ -338,6 +341,7 @@ const AdminAdditionalOrders = () => {
   };
 
   const handleMonthClick = (month) => {
+    setSharedPeriod(null);
 
     if (isAggregateDealerSelection(dealerGuid) && month === 0) return;
 
@@ -348,6 +352,7 @@ const AdminAdditionalOrders = () => {
           : 0 
         : month;
 
+    saveOrderReportPeriod(orderMonthPeriod(selectedYear, newMonth));
     setFilter((prev) => ({ ...prev, month: newMonth }));
 
 
@@ -506,6 +511,10 @@ const AdminAdditionalOrders = () => {
 
   return (
     <div className="column portal-body">
+      {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
+        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
+        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
+      </div>}
       <div className="content-summary row w-100"  style={{justifyContent: 'center'}}>
 
 
@@ -514,7 +523,7 @@ const AdminAdditionalOrders = () => {
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
+            onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
           >
             {availableYears.map((year) => (
               <option key={year} value={year}>
@@ -554,7 +563,7 @@ const AdminAdditionalOrders = () => {
              <select
                 className="year-select-minimal"
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
+                onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
               >
                 {Array.from({ length: 3 }, (_, i) => {
                   const year = new Date().getFullYear() - i;

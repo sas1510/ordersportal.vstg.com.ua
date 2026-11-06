@@ -1,3 +1,4 @@
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 // import "./CalcMenu.css";
 // import { useState } from "react";
 // import DeleteConfirmModal from "../Orders/DeleteConfirmModal";
@@ -67,6 +68,8 @@ export const AdditionalOrderMenu = ({ calc, _onEdit, onDelete }) => {
     setIsDeleteModalOpen(true);
   };
 
+  const { isReadOnly } = useAuthGetRole();
+  if (isReadOnly) return null;
   return (
     <div className="summary-item small row no-wrap gap-10 align-center" onClick={(e) => e.stopPropagation()}>
       <img

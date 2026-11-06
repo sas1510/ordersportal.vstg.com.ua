@@ -223,7 +223,7 @@
 .production-ring-card__legend--not-finished { right: 29px; bottom: 24px; width: 137px; }
 .production-ring-card__legend--not-finished strong { color: var(--muted); }
 
-.production-design__summary-stack { display: grid; grid-template-rows: 141px 141px; gap: 15px; }
+.production-design__summary-stack { display: grid; grid-template-rows: repeat(2, minmax(141px, auto)); gap: 15px; }
 .production-design__summary-stack article { padding: 25px 30px 18px; }
 .production-design__summary-stack article > strong { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: var(--blue); font-size: 32px; line-height: 39px; }
 .production-design__summary-stack article > strong svg { width: 30px; height: 30px; }
@@ -744,7 +744,7 @@
 
 @media (max-width: 1180px) {
   .production-design__kpi { grid-template-columns: 317px minmax(0, 1fr); }
-  .production-design__summary-stack { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; grid-template-rows: 141px; }
+  .production-design__summary-stack { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(141px, auto); }
   .production-design__hero { min-height: 205px; }
   .production-design__filters { position: absolute; left: 32px; bottom: 24px; }
   .production-design__hero::after { opacity: .4; }
@@ -768,7 +768,7 @@
   .production-design__filters input { flex: 1; }
   .production-design__filters button { width: 100%; }
   .production-design__kpi, .production-design__summary-stack, .production-design__potential { grid-template-columns: 1fr; }
-  .production-design__summary-stack { grid-column: auto; grid-template-rows: 141px 141px; }
+  .production-design__summary-stack { grid-column: auto; grid-template-rows: repeat(2, minmax(141px, auto)); }
   .production-ring-card__chart { left: 50%; transform: translateX(-50%); }
   .production-ring-card__legend--in-time { left: 17px; }
   .production-ring-card__legend--delayed, .production-ring-card__legend--not-finished { right: 17px; }
@@ -3559,4 +3559,103 @@
     grid-template-columns: 1fr;
     grid-template-rows: none;
   }
+}
+
+
+.production-design__analytics-link {
+  display: inline-flex;
+  align-self: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid var(--lime);
+  border-radius: 5px;
+  color: var(--text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.production-design__analytics-link:hover,
+.production-design__analytics-link:focus-visible {
+  background: var(--lime);
+  color: #33312f;
+}
+
+
+.production-design__summary-stack article {
+  min-width: 0;
+}
+
+.production-design__summary-stack article > .production-design__currency-total {
+  min-width: 0;
+  font-size: clamp(22px, 1.8vw, 32px);
+}
+
+.production-design__currency-total > svg {
+  flex-shrink: 0;
+}
+
+.production-design__currency-total > span {
+  min-width: 0;
+}
+
+.production-design__currency-total b {
+  overflow-wrap: anywhere;
+}
+
+/* Average per order / per construction: compact amounts with one currency. */
+.production-design__average-card .production-design__average-value--currencies {
+  font-size: clamp(20px, 1.7vw, 28px);
+}
+.production-design__average-card .production-design__average-value--currencies b {
+  white-space: nowrap;
+}
+
+.production-design__average-card .production-design__average-value--currencies {
+  justify-content: flex-start;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;
+}
+.production-design__average-value--currencies > span {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.production-design__average-card .production-design__average-value--currencies {
+  gap: 0;
+}
+.production-design__average-card .production-design__average-value--currencies > span {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+/* Keep metric icons visible and monetary values on one line. */
+.production-design__average-card .production-design__average-value--currencies,
+.production-design__summary-stack article > .production-design__currency-total {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center !important;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  font-size: clamp(17px, 1.45vw, 24px);
+  line-height: 1.2;
+  text-align: left;
+}
+.production-design__average-value--currencies > svg,
+.production-design__currency-total > svg {
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  margin: 0;
+}
+.production-design__average-value--currencies > span,
+.production-design__currency-total > span {
+  min-width: 0;
+  text-align: left;
+  align-items: flex-start;
+}
+.production-design__average-value--currencies b,
+.production-design__currency-total b {
+  white-space: nowrap;
 }

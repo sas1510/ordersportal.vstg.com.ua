@@ -97,7 +97,13 @@ class HybridAuthMiddleware:
 
         try:
             # Логіка ідентифікації
-            if token_param:
+            if token_param and token_param.startswith("dealer-preview:"):
+                if path.startswith("/ws/chat/"):
+                    from users.dealer_preview import resolve_dealer_session
+                    delegated_token = token_param.removeprefix("dealer-preview:")
+                    user, actor_id = await database_sync_to_async(resolve_dealer_session)(delegated_token)
+                    scope.update(user=user, dealer_preview_actor=actor_id, dealer_preview_token=delegated_token)
+            elif token_param:
 
                 user = await get_user_from_jwt(token_param)
 

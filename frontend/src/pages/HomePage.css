@@ -1009,3 +1009,5 @@ body.dark-theme .homepage-partnership-section {
 body.dark-theme  .homepage-icon-beige {
   filter: brightness(0) saturate(100%) invert(100%);
 }
+.hero-video-bg { opacity: 0; transition: opacity .3s ease; }
+.hero-video-bg.hero-video-bg--playing { opacity: 1; }

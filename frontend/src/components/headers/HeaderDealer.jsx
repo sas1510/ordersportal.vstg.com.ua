@@ -105,12 +105,13 @@
 //   // 1. Отримання даних з кешу
 //   const cached = (() => {
 //     try {
-//       return JSON.parse(localStorage.getItem(BALANCE_CACHE_KEY));
+//       return JSON.parse(localStorage.getItem(balanceCacheKey));
 //     } catch {
 //       return null;
 //     }
 //   })();
 
+//   const [currencyBalances, setCurrencyBalances] = useState(cached?.balances || []);
 //   const [balance, setBalance] = useState(cached?.sum ?? 0);
 //   const [fullName, setFullName] = useState(cached?.full_name ?? "Завантаження...");
 //   const [currency, setCurrency] = useState(cached?.currency ?? "грн");
@@ -142,7 +143,7 @@
 //         setFullName(data.full_name || "Дилер Ім'я");
 //         setCurrency(data.currency || "грн");
 //         localStorage.setItem(
-//           BALANCE_CACHE_KEY,
+//           balanceCacheKey,
 //           JSON.stringify({
 //             sum: data.sum,
 //             full_name: data.full_name,
@@ -605,7 +606,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
 import { AuthContext } from "../../context/AuthContext";
-import axiosInstance, { getAccessToken } from "../../api/axios";
+import axiosInstance, { dealerPreviewToken, getAccessToken } from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
 import { useTheme } from "../../hooks/useTheme";
 import NotificationDrawer from "../../pages/NotificationPage";
@@ -645,6 +646,7 @@ export default function HeaderDealer() {
   const { logout } = useContext(AuthContext);
   const { user } = useContext(RoleContext);
   const canViewFinance = hasFinanceAccess(user);
+  const balanceCacheKey = BALANCE_CACHE_KEY + ":" + (user?.id || "") + ":" + (user?.role || "");
   const { addNotification } = useNotification();
   const { theme, toggleTheme } = useTheme();
   const currentLogo = theme === "dark" ? logoDark : logo;
@@ -652,15 +654,14 @@ export default function HeaderDealer() {
   const [profileOpen, setProfileOpen] = useState(false);
 
   const NAV_LINKS = useMemo(() => [
-    { title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler },
-    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
+    { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/orders", icon: ShoppingBag, primary: true },
+    { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/complaints", icon: AlertTriangle, primary: true },
+    { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle, primary: true },
     { title: t('nav.promo_wds_short'), mobileTitle: t('nav.promo_wds'), to: "/promo-wds-codes", highlight: true, icon: Ticket },
-    { title: t('nav.orders_short'), mobileTitle: t('nav.orders'), to: "/orders", icon: ShoppingBag },
-    { title: t('nav.complaints_short'), mobileTitle: t('nav.complaints'), to: "/complaints", icon: AlertTriangle },
-    { title: t('nav.additional_orders_short'), mobileTitle: t('nav.additional_orders'), to: "/additional-orders", icon: PlusCircle },
     { title: t('nav.tech_file_short'), mobileTitle: t('nav.tech_file'), to: "/files", icon: FolderOpen },
     { title: t('nav.videos_short'), mobileTitle: t('nav.videos'), to: "/videos", icon: Video },
-    // { title: t('nav.faq_short'), mobileTitle: t('nav.faq'), to: "/faq", icon: CircleHelp },
+    { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
+    { title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler },
   ], [t]);
 
   const FINANCE_SUBMENU = useMemo(() => [
@@ -711,12 +712,13 @@ export default function HeaderDealer() {
   // 1. Отримання даних з кешу
   const cached = (() => {
     try {
-      return JSON.parse(localStorage.getItem(BALANCE_CACHE_KEY));
+      return dealerPreviewToken() ? null : JSON.parse(localStorage.getItem(balanceCacheKey));
     } catch {
       return null;
     }
   })();
 
+  const [currencyBalances, setCurrencyBalances] = useState(cached?.balances || []);
   const [balance, setBalance] = useState(cached?.sum ?? cached?.my_wallet ?? 0);
   const [fullName, setFullName] = useState(user?.full_name || cached?.full_name || cached?.my_name || "Завантаження...");
   const [currency, setCurrency] = useState(cached?.currency ?? "грн");
@@ -737,9 +739,10 @@ export default function HeaderDealer() {
   // 2. Фонове оновлення через API
   useEffect(() => {
     if (!canViewFinance) {
-      localStorage.removeItem(BALANCE_CACHE_KEY);
+      if (!dealerPreviewToken()) localStorage.removeItem(balanceCacheKey);
       setBalance(0);
       setDebtAmount(0);
+      setCurrencyBalances([]);
       return undefined;
     }
 
@@ -761,8 +764,9 @@ export default function HeaderDealer() {
         setDebtAmount(debtValue);
         setFullName(resolvedName);
         setCurrency(resolvedCurrency);
-        localStorage.setItem(
-          BALANCE_CACHE_KEY,
+        setCurrencyBalances(Array.isArray(data.balances) ? data.balances : []);
+        if (!dealerPreviewToken()) localStorage.setItem(
+          balanceCacheKey,
           JSON.stringify({
             sum: walletAmount,
             my_wallet: walletAmount,
@@ -770,6 +774,7 @@ export default function HeaderDealer() {
             full_name: resolvedName,
             my_name: resolvedName,
             currency: resolvedCurrency,
+            balances: Array.isArray(data.balances) ? data.balances : [],
             updatedAt: Date.now(),
           })
         );
@@ -780,7 +785,7 @@ export default function HeaderDealer() {
 
     fetchBalance();
     return () => { isMounted = false; };
-  }, [canViewFinance]);
+  }, [canViewFinance, balanceCacheKey]);
 
   useEffect(() => {
     fetchInitialData();
@@ -788,12 +793,15 @@ export default function HeaderDealer() {
 
   // 3. Форматування балансу (Виправлено перенос за допомогою \u00A0 - нерозривний пробіл)
   const formattedBalance = useMemo(() => {
-    return new Intl.NumberFormat("uk-UA", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(balance) + "\u00A0" + (currency || "грн");
-  }, [balance, currency]);
-  const formattedDebt = useMemo(() => new Intl.NumberFormat("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(debtAmount) + "\u00A0" + (currency || "грн"), [debtAmount, currency]);
+    const rows = currencyBalances.length ? currencyBalances : [{ my_wallet: balance, currency }];
+    return rows.map((row) => new Intl.NumberFormat("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      .format(row.my_wallet || 0) + "\u00A0" + (row.currency || "грн")).join(" / ");
+  }, [balance, currency, currencyBalances]);
+  const formattedDebt = useMemo(() => {
+    const rows = currencyBalances.length ? currencyBalances : [{ debt_sum: debtAmount, currency }];
+    return rows.map((row) => new Intl.NumberFormat("uk-UA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      .format(row.debt_sum || 0) + "\u00A0" + (row.currency || "грн")).join(" / ");
+  }, [debtAmount, currency, currencyBalances]);
 
   /* ================= WEBSOCKET LOGIC ================= */
   useEffect(() => {
@@ -801,6 +809,7 @@ export default function HeaderDealer() {
   }, [fetchInitialData]);
 
   useEffect(() => {
+    if (dealerPreviewToken()) return;
     let pingInterval;
     let isCleanup = false;
 
@@ -938,7 +947,7 @@ export default function HeaderDealer() {
                        {/* shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)] */}
                       <Link
                         to={link.to}
-                        className={`h-full w-full flex items-center justify-center px-[2px] text-[12px] font-bold leading-tight transition-all text-center 
+                        className={`h-full w-full flex items-center justify-center px-[2px] ${link.primary ? "text-[13px]" : "text-[12px]"} font-bold leading-tight transition-all text-center 
                          
                           shadow-[0_2px_4px_rgba(0,0,0,0.1)]
                           active:translate-y-[1px] active:shadow-none 
@@ -960,7 +969,7 @@ export default function HeaderDealer() {
 >
   <button 
     onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-    className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all
+    className={`w-full h-full px-[2px] text-[14px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all
       shadow-[0_2px_4px_rgba(0,0,0,0.1)]
       active:translate-y-[1px] active:shadow-none
 
@@ -1013,7 +1022,8 @@ export default function HeaderDealer() {
                     onOpenComparison={() => setComparisonOpen(true)}
                     balance={balance} 
                     debtAmount={debtAmount}
-                    currency={currency} 
+                    currency={currency}
+                    currencyBalances={currencyBalances} 
                     fullName={fullName}
                     showFinanceInfo={canViewFinance} 
                   />

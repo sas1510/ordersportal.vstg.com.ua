@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import axiosInstance, { getAccessToken } from "../../api/axios";
+import axiosInstance, { dealerPreviewToken, getAccessToken } from "../../api/axios";
 import { FaRegCommentDots, FaPaperPlane } from "react-icons/fa";
 import "./CommentsModal.css";
 import { useTranslation } from "react-i18next";
@@ -78,7 +78,8 @@ const CommentsModal = ({
       return;
     }
 
-    const token = getAccessToken();
+    const preview = dealerPreviewToken();
+    const token = preview ? `dealer-preview:${preview}` : getAccessToken();
     if (!token) return;
 
     const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
@@ -90,7 +91,7 @@ const CommentsModal = ({
     }
 
     const ws = new WebSocket(
-      `${ws_scheme}://${ws_host}/ws/chat/${chatId}/?token=${token}`,
+      `${ws_scheme}://${ws_host}/ws/chat/${chatId}/?token=${encodeURIComponent(token)}`,
     );
     socket.current = ws;
 

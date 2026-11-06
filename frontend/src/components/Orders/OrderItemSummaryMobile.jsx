@@ -65,7 +65,7 @@ export default React.memo(function OrderItemSummaryMobile({
 
   // ------------------------------------
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
-  const { isAdmin, isBackoffice, isManager } = useAuthGetRole();
+  const { isAdmin, isBackoffice, isManager, isReadOnly } = useAuthGetRole();
   const canViewFinance = hasFinanceAccess();
   const canConfirmOrder = !isBackoffice || isManager || isAdmin;
   const canPayOrder = !isBackoffice || isManager || isAdmin;
@@ -189,6 +189,10 @@ export default React.memo(function OrderItemSummaryMobile({
     isSketchConfirmed,
   ]);
 
+
+  const hasActionButtons = !isReadOnly && (isSketchOrder
+    ? canConfirmOrder && buttonState.confirm
+    : (canConfirmOrder && buttonState.confirm) || (canPayOrder && canViewFinance && buttonState.pay) || buttonState.reorder || buttonState.claim);
 
   const getStatusClass = useCallback((status) => {
       switch (status) {
@@ -569,10 +573,12 @@ export default React.memo(function OrderItemSummaryMobile({
         {/* КНОПКИ (Сітка 2х2 + Швидке оформлення) */}
 <div 
   className="flex items-center gap-3 " 
+  style={{ display: isReadOnly ? "none" : undefined }}
   onClick={(e) => e.stopPropagation()}
 >
   {/* Ліва частина: кнопки дій */}
   <div
+    style={{ display: hasActionButtons ? undefined : "none" }}
     className={
       isSketchOrder
         ? "flex-grow"
@@ -580,8 +586,7 @@ export default React.memo(function OrderItemSummaryMobile({
     }
   >
     {isSketchOrder ? (
-      canConfirmOrder && (
-        <button
+      canConfirmOrder && buttonState.confirm && (<button
           type="button"
           className="w-full h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
           disabled={!buttonState.confirm}
@@ -594,17 +599,16 @@ export default React.memo(function OrderItemSummaryMobile({
       <>
         {canConfirmOrder ? (
           <>
-            <button
+            {buttonState.confirm && (<button
               type="button"
               className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGrey text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--confirm"
               disabled={!buttonState.confirm}
               onClick={openConfirmModal}
             >
               {t("order_mobile.buttons.confirm")}
-            </button>
+            </button>)}
 
-            {canViewFinance && (
-              <button
+            {canViewFinance && buttonState.pay && (<button
               type="button"
               className={`h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight order-action-button order-action-button--pay ${debtAmount <= 0 ? "order-action-button--paid" : "disabled:opacity-50"}`}
               disabled={!buttonState.pay || !canViewFinance}
@@ -617,10 +621,10 @@ export default React.memo(function OrderItemSummaryMobile({
               )}
           </>
         ) : (
-          <div className="col-span-2" />
+          null
         )}
 
-        <button
+        {buttonState.reorder && (<button
           type="button"
           className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkBlue text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--reorder"
           disabled={!buttonState.reorder}
@@ -630,9 +634,9 @@ export default React.memo(function OrderItemSummaryMobile({
           }}
         >
           {t("order_mobile.buttons.reorder")}
-        </button>
+        </button>)}
 
-        <button
+        {buttonState.claim && (<button
           type="button"
           className="h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkRed text-white rounded-[5px] font-medium text-[14px] leading-tight disabled:opacity-50 order-action-button order-action-button--claim"
           disabled={!buttonState.claim}
@@ -642,7 +646,7 @@ export default React.memo(function OrderItemSummaryMobile({
           }}
         >
           {t("order_mobile.buttons.claim")}
-        </button>
+        </button>)}
       </>
     )}
   </div>

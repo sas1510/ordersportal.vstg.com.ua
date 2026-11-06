@@ -6,7 +6,7 @@ import React, {
 
 import { useLocation } from "react-router-dom";
 
-import axiosInstance from "../api/axios";
+import axiosInstance, { dealerPreviewToken, exitDealerPreview } from "../api/axios";
 import { RoleContext } from "./RoleContext";
 import { normalizeRole } from "../utils/roles";
 
@@ -26,10 +26,16 @@ export function RoleProvider({ children }) {
   const [role, setRole] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    document.body.classList.toggle("internal-dealer-readonly", role === "internal_dealer" && user?.internal_dealer_can_edit !== true);
+    return () => document.body.classList.remove("internal-dealer-readonly");
+  }, [role, user?.internal_dealer_can_edit]);
+
   const updateRole = (newRole) => {
     const normalizedRole = normalizeRole(newRole);
     setRole(normalizedRole);
 
+    if (dealerPreviewToken()) return;
     if (normalizedRole) {
       localStorage.setItem("role", normalizedRole);
     } else {
@@ -39,7 +45,7 @@ export function RoleProvider({ children }) {
 
   const loadUser = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access");
+      const token = dealerPreviewToken() || localStorage.getItem("access");
 
       // нема токена -> нема сенсу викликати /me/
       if (!token) {
@@ -52,9 +58,10 @@ export function RoleProvider({ children }) {
       );
 
       setUser(res.data);
-      localStorage.setItem("user", JSON.stringify(res.data));
+      if (!dealerPreviewToken()) localStorage.setItem("user", JSON.stringify(res.data));
       updateRole(res.data.role);
     } catch {
+      if (dealerPreviewToken()) exitDealerPreview();
       setUser(null);
       updateRole(null);
     } finally {

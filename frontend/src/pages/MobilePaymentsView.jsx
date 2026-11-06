@@ -265,7 +265,7 @@
 //                           </div>
 //                         )}
 
-//                         <div className="mobile-amount-item mobile-amount-total">
+//                         {!docGroup.hideContractAmounts && <div className="mobile-amount-item mobile-amount-total">
 //                           <span className="mobile-amount-label">Залишок:</span>
 //                           <span className="mobile-amount-value text-bold">
 //                             {formatCurrency(docGroup.lastCumSaldo)}
@@ -693,13 +693,13 @@ const MobilePaymentsView = ({
                           {channel === 'realization' && firstItem.RealizationOrderNumbers && <span> · {t('payments.orders', { defaultValue: 'Замовлення' })}: {firstItem.RealizationOrderNumbers}</span>}
                       </div>
 
-                      {!docGroup.hideContractAmounts && <div className="mobile-doc-amounts">
-                        <div className="mobile-amount-item">
+                      <div className="mobile-doc-amounts">
+                        {!docGroup.hideContractAmounts && <div className="mobile-amount-item">
                           <span className="mobile-amount-label">{t('payments.start_short', 'Початок')}:</span>
                           <span className="mobile-amount-value">
                             {formatCurrency(docGroup.CumSaldoStart, currency, i18n)}
                           </span>
-                        </div>
+                        </div>}
 
                         <div className="mobile-amount-item">
                           <span className="mobile-amount-label">{t('payments.income')}:</span>
@@ -720,13 +720,13 @@ const MobilePaymentsView = ({
                         </div>
 
 
-                        <div className="mobile-amount-item mobile-amount-total">
+                        {!docGroup.hideContractAmounts && <div className="mobile-amount-item mobile-amount-total">
                           <span className="mobile-amount-label">{t('payments.balance')}:</span>
                           <span className="mobile-amount-value text-bold">
                             {formatCurrency(docGroup.lastCumSaldo, currency, i18n)}
                           </span>
-                        </div>
-                      </div>}
+                        </div>}
+                      </div>
 
                       {canExpand ? (
                         <div className="mobile-expand-btn">

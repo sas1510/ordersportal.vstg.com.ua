@@ -69,14 +69,14 @@
 .orders-dashboard__all-dealers-panel { margin-top: 0 !important; }
 
 /* KPI uses the same visual language as the main analytics dashboard. */
-.orders-dashboard--analytics { --analytics-surface: #ffffff; --analytics-muted: #f3f7fa; --analytics-line: #d7dee8; --analytics-text: #263445; --analytics-subtle: #6a788a; --analytics-lime: #9cc63b; --analytics-blue: #6b98bf; --analytics-orange: #ed8b33; background: #eef3f8; }
+.orders-dashboard--analytics { --analytics-surface: #ffffff; --analytics-muted: #f3f7fa; --analytics-line: #d7dee8; --analytics-text: #263445; --analytics-subtle: #6a788a; --analytics-lime: #9cc63b; --analytics-blue: #6b98bf; --analytics-orange: #ed8b33; }
 .orders-dashboard--unified-filters { --analytics-surface: #ffffff; --analytics-muted: #f3f7fa; --analytics-line: #d7dee8; --analytics-text: #263445; --analytics-subtle: #6a788a; --analytics-lime: #9cc63b; --analytics-blue: #6b98bf; --analytics-orange: #ed8b33; }
-.orders-dashboard--analytics .orders-dashboard__panel { border: 0; background: transparent; }
-.orders-dashboard--analytics .orders-dashboard__header { position: relative; min-height: 154px; overflow: hidden; align-items: center; border: 1px solid var(--analytics-line); border-radius: 7px; background: radial-gradient(circle at 84% 15%, rgba(159,211,255,.34), transparent 31%), linear-gradient(135deg, #fff 0%, #f3f8fc 100%); box-shadow: 0 14px 40px rgba(48,66,88,.08); }
-.orders-dashboard--analytics .orders-dashboard__header::after { content: ""; position: absolute; inset: 0 0 auto auto; width: 620px; height: 154px; background: url("/analytics.png") no-repeat right top / 650px 154px; opacity: .16; pointer-events: none; }
-.orders-dashboard--analytics .orders-dashboard__header > * { position: relative; z-index: 1; }
-.orders-dashboard--analytics .orders-dashboard__header h1 { font-size: 30px; letter-spacing: .02em; text-transform: uppercase; }
-.orders-dashboard--analytics .orders-dashboard__total { border: 0; border-radius: 7px; background: rgba(107,152,191,.14); }
+.orders-dashboard--unified-filters .orders-dashboard__panel { border: 0; background: transparent; }
+.orders-dashboard--unified-filters .orders-dashboard__header { position: relative; min-height: 154px; overflow: hidden; align-items: center; border: 1px solid var(--analytics-line); border-radius: 7px; background: radial-gradient(circle at 84% 15%, rgba(159,211,255,.34), transparent 31%), linear-gradient(135deg, #fff 0%, #f3f8fc 100%); box-shadow: 0 14px 40px rgba(48,66,88,.08); }
+.orders-dashboard--unified-filters .orders-dashboard__header::after { content: ""; position: absolute; inset: 0 0 auto auto; width: 620px; height: 154px; background: url("/analytics.png") no-repeat right top / 650px 154px; opacity: .16; pointer-events: none; }
+.orders-dashboard--unified-filters .orders-dashboard__header > * { position: relative; z-index: 1; }
+.orders-dashboard--unified-filters .orders-dashboard__header h1 { font-size: 30px; letter-spacing: .02em; text-transform: uppercase; }
+.orders-dashboard--unified-filters .orders-dashboard__total { border: 0; border-radius: 7px; background: rgba(107,152,191,.14); }
 .orders-dashboard--unified-filters .orders-dashboard__filters { margin-top: 14px; border: 1px solid var(--analytics-line); border-radius: 7px; background: var(--analytics-surface); box-shadow: 0 10px 30px rgba(48,66,88,.06); }
 .orders-dashboard--unified-filters .orders-dashboard__filters input,
 .orders-dashboard--unified-filters .orders-dashboard__filters select,
@@ -170,10 +170,10 @@ body.dark-theme .orders-dashboard__legend-button { border-color: #506272; backgr
 body.dark-theme .orders-dashboard__legend-button strong { color: #f6f3ed; }
 body.dark-theme .orders-dashboard__legend-button.is-active { border-color: #74b1ce; background: rgba(116, 177, 206, 0.14); }
 
-body.dark-theme .orders-dashboard--analytics { --analytics-surface: #33312f; --analytics-muted: #44403e; --analytics-line: #5f5b58; --analytics-text: #fff; --analytics-subtle: #aeaeae; --analytics-lime: #b4d947; --analytics-blue: #9fd3ff; --analytics-orange: #ed8b33; background: #4c4644; }
+body.dark-theme .orders-dashboard--analytics { --analytics-surface: #33312f; --analytics-muted: #44403e; --analytics-line: #5f5b58; --analytics-text: #fff; --analytics-subtle: #aeaeae; --analytics-lime: #b4d947; --analytics-blue: #9fd3ff; --analytics-orange: #ed8b33; }
 body.dark-theme .orders-dashboard--unified-filters { --analytics-surface: #33312f; --analytics-muted: #44403e; --analytics-line: #5f5b58; --analytics-text: #fff; --analytics-subtle: #aeaeae; --analytics-lime: #b4d947; --analytics-blue: #9fd3ff; --analytics-orange: #ed8b33; }
-body.dark-theme .orders-dashboard--analytics .orders-dashboard__header { background: #33312f; box-shadow: none; }
-body.dark-theme .orders-dashboard--analytics .orders-dashboard__header::after { opacity: .55; }
+body.dark-theme .orders-dashboard--unified-filters .orders-dashboard__header { background: #33312f; box-shadow: none; }
+body.dark-theme .orders-dashboard--unified-filters .orders-dashboard__header::after { opacity: .55; }
 body.dark-theme .orders-dashboard--unified-filters .orders-dashboard__filters,
 body.dark-theme .orders-dashboard--analytics .orders-dashboard__kpi-card,
 body.dark-theme .orders-dashboard--analytics .orders-dashboard__chart-panel,

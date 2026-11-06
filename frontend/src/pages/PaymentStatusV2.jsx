@@ -1633,10 +1633,10 @@ const DocumentRow = React.memo(
 </td>
           <td>{docGroup.hideContractAmounts ? "—" : formatCurrency(docGroup.CumSaldoStart, currency, i18n)}</td>
           <td className={income > 0 ? "text-green" : ""}>
-            {!docGroup.hideContractAmounts && income > 0 ? formatCurrency(income, "", i18n) : "—"}
+            {income > 0 ? formatCurrency(income, "", i18n) : "—"}
           </td>
           <td className={expense > 0 ? "text-red" : ""}>
-            {!docGroup.hideContractAmounts && expense > 0 ? formatCurrency(expense, "", i18n) : "—"}
+            {expense > 0 ? formatCurrency(expense, "", i18n) : "—"}
           </td>
           <td className="text-bold">{docGroup.hideContractAmounts ? "—" : formatCurrency(cumSaldo, currency, i18n)}</td>
           <td>

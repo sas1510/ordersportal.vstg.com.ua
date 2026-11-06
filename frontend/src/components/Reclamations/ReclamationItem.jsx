@@ -98,16 +98,16 @@ export const ReclamationItem = ({
 //     }
 //   };
 
-  const { role } = useAuthGetRole();
+  const { role, isReadOnly } = useAuthGetRole();
 
-  const isCustomer = role === "customer";
+  const isCustomer = ["customer", "dealer", "internal_dealer"].includes(role);
 
 
   const managerAssigned =
     reclamation.manager &&
     reclamation.manager !== "N/A" &&
     reclamation.manager !== "Не вказано";
-    const canDelete =  !managerAssigned;
+    const canDelete = !isReadOnly && !managerAssigned;
   // const canDelete = true;
 
 //   const handleDownload = async () => {
@@ -348,6 +348,7 @@ export const ReclamationItem = ({
 
           <img
             src={deleteIcon}
+            style={{ display: isReadOnly ? "none" : undefined }}
             alt={t("reclamation.delete")}
             className={`transition-all ${
               !canDelete 

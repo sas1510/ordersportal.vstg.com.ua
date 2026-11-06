@@ -6,6 +6,14 @@ app = Celery('backend')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # у celery.py додайте цей рядок ПЕРЕД autodiscover_tasks
-app.conf.imports = ('utils.tasks',) # шлях до твого файлу (без .py)
+app.conf.imports = ('utils.tasks', 'records.measurement_notifications')
+
+app.conf.beat_schedule = {
+    **app.conf.beat_schedule,
+    'pending-measurement-order-notifications': {
+        'task': 'enqueue_pending_measurement_order_notifications',
+        'schedule': 300.0,
+    },
+}
 
 app.autodiscover_tasks()

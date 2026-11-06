@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import axiosInstance from '../api/axios';
 import { useAuthGetRole } from '../hooks/useAuthGetRole';
 import './MeasurementTestPage.css';
+import DealerSelectWithAll from './DealerSelectWithAll';
 
 function createRequestKey() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -99,5 +100,67 @@ export default function MeasurementTestPage() {
     </form>
     <p>При повторі без зміни полів UUID зберігається. Після помилки зв’язку спочатку перевірте результат у 1С.</p>
     {result && <section aria-live="polite"><h2>Результат {result.status ? `— HTTP ${result.status}` : ''}</h2><pre>{JSON.stringify(result.data, null, 2)}</pre></section>}
+  </main>;
+}
+
+
+export function AudioCalculationTestPage() {
+  const { isAdmin } = useAuthGetRole();
+  const [configured, setConfigured] = useState(false);
+  const [dealerGuid, setDealerGuid] = useState("");
+  const [audio, setAudio] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [attempted, setAttempted] = useState(false);
+  const endpoint = "/integrations/measurement/audio-test/";
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    const controller = new AbortController();
+    axiosInstance.get(endpoint, { signal: controller.signal })
+      .then(({ data }) => setConfigured(data.configured))
+      .catch(() => { if (!controller.signal.aborted) setResult("Не вдалося перевірити доступ до тесту."); });
+    return () => controller.abort();
+  }, [isAdmin]);
+
+  async function submit(event) {
+    event.preventDefault();
+    if (!configured || !dealerGuid || !audio || busy || attempted) return;
+    if (audio.size > 10 * 1024 * 1024) {
+      setResult("Оберіть аудіо до 10 МіБ.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const file = await readBase64(audio);
+      setAttempted(true);
+      const response = await axiosInstance.post(endpoint, {
+        contractor_guid: dealerGuid,
+        order_number: "AUD-" + createRequestKey().slice(0, 8),
+        items_count: 1,
+        file,
+      }, { timeout: 120000 });
+      setResult(response.data);
+    } catch (error) {
+      setResult(error.response?.data || "Не отримано відповіді. Перевірте в 1С, чи створилася заявка.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!isAdmin) return null;
+  return <main className="measurement-test">
+    <h1>Тест збереження аудіо в 1С</h1>
+    <p>Створює тестову заявку із самовивозом і передає аудіо як основний файл.</p>
+    {!configured && <p role="status">Запис доступний лише в локальному порталі.</p>}
+    <form onSubmit={submit}>
+      <fieldset disabled={!configured || busy || attempted}>
+        <legend>Дилер і файл</legend>
+        <DealerSelectWithAll value={dealerGuid} onChange={setDealerGuid} allowAll={false} placeholder="Вибрати дилера" />
+        <label>Аудіо до 10 МіБ<input required type="file" accept=".mp3,.m4a,.wav,.ogg,.webm" onChange={(event) => setAudio(event.target.files[0] || null)} /></label>
+        <button type="submit" disabled={!dealerGuid || !audio}>{busy ? "Надсилання…" : "Створити тестову заявку"}</button>
+      </fieldset>
+    </form>
+    {result && <section aria-live="polite"><h2>Результат</h2><pre>{JSON.stringify(result, null, 2)}</pre></section>}
   </main>;
 }

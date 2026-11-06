@@ -1,3 +1,4 @@
+import OrderFilesModal from "./OrderFilesModal";
 // ================= CalculationItemMobile.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import OrderItemSummaryMobile from "./OrderItemSummaryMobile";
@@ -24,7 +25,9 @@ export const CalculationItemMobile = React.memo(
     const {t, i18n} = useTranslation();
     const locale = i18n.language;
     const [expanded, setExpanded] = useState(false);
+    const [historyOrderIds, setHistoryOrderIds] = useState(() => new Set());
     const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+    const canShowChat = !calc.isOrderOnly || Boolean(calc.applicationGuid);
     const [_selectedComments, setSelectedComments] = useState([]);
     const [isCounterpartyOpen, setIsCounterpartyOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -47,7 +50,7 @@ export const CalculationItemMobile = React.memo(
     const fileIcon = "/assets/icons/FileIcon.png";
     const recipientIcon = "/assets/icons/RecipientIcon.png";
     const deleteIcon  = "/assets/icons/DeleteIcon.png";
-    const { isBackoffice } = useAuthGetRole();
+    const { isBackoffice, isReadOnly } = useAuthGetRole();
 
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
@@ -127,11 +130,11 @@ export const CalculationItemMobile = React.memo(
         setIsCommentsOpen(true);
 
      
-        if (calc.hasUnreadMessages && onMarkAsRead) {
+        if (!isReadOnly && calc.hasUnreadMessages && onMarkAsRead) {
           onMarkAsRead(calc.id);
         }
       },
-      [calc.id, calc.hasUnreadMessages, onMarkAsRead],
+      [calc.id, calc.hasUnreadMessages, isReadOnly, onMarkAsRead],
     );
 
 
@@ -143,6 +146,39 @@ export const CalculationItemMobile = React.memo(
         (order) => order.number && String(order.number).trim() !== "",
       );
     }, [calc.orders]);
+
+    const openStatusHistory = (event, status) => {
+      event.stopPropagation();
+      const ids = orderList
+        .filter((order) => !status || String(order.status || "").trim() === String(status).trim())
+        .map((order) => order.idGuid || order.number);
+      const sameHistory = expanded
+        && ids.length === historyOrderIds.size
+        && ids.every((id) => historyOrderIds.has(id));
+
+      if (sameHistory) {
+        setHistoryOrderIds(new Set());
+        if (ids.includes(expandedOrderId)) onOrderToggle?.(expandedOrderId);
+        toggleExpanded();
+        return;
+      }
+
+      setHistoryOrderIds(new Set(ids));
+      if (!expanded) toggleExpanded();
+    };
+
+    const toggleOrderHistory = (id) => {
+      if (historyOrderIds.has(id)) {
+        setHistoryOrderIds((previous) => {
+          const next = new Set(previous);
+          next.delete(id);
+          return next;
+        });
+        if (expandedOrderId === id) onOrderToggle?.(id);
+      } else {
+        onOrderToggle?.(id);
+      }
+    };
 
     const totalOrderConstructions = useMemo(() => {
       return orderList.reduce((sum, order) => {
@@ -282,7 +318,7 @@ export const CalculationItemMobile = React.memo(
 
     <div className="flex flex-col pt-0.5">
       <span className="text-[10px] text-grey leading-none">
-        {t("portal_calc.ui.calculation_number")}
+        {calc.clientOrderNumber ? t("calc.client_order_number", { defaultValue: "Номер замовлення клієнта" }) : calc.isOrderOnly ? t("order_mobile.labels.order_number", { defaultValue: "Номер замовлення" }) : t("portal_calc.ui.calculation_number")}
       </span>
       <div
         className="text-[13px] font-bold text-start text-WS---DarkGrey leading-tight"
@@ -299,6 +335,11 @@ export const CalculationItemMobile = React.memo(
       >
         № {calc.number}
       </div>
+      {calc.fromMeasurement && calc.measurementUrl && <a
+        href={calc.measurementUrl} target="_blank" rel="noopener noreferrer"
+        className="measurement-source-link" onClick={event => event.stopPropagation()}
+        style={{ display: 'inline-block', marginTop: 4, fontSize: 12, textDecoration: 'underline', color: 'inherit' }}
+      >Відкрити в замірнику ↗</a>}
     </div>
   </div>
 </div>
@@ -309,7 +350,17 @@ export const CalculationItemMobile = React.memo(
     <div className="calc-status-list flex flex-wrap items-center gap-x-1 gap-y-0.5">
       {statusEntries.map(([status, count]) => {
         return (
-          <div key={status} className="flex items-center gap-1 calc-status">
+          <div key={status} title={t("calc.open_status_history", { defaultValue: "\u0412\u0456\u0434\u043a\u0440\u0438\u0442\u0438 \u0456\u0441\u0442\u043e\u0440\u0456\u044e \u0437\u0430\u043c\u043e\u0432\u043b\u0435\u043d\u044c" })}
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => openStatusHistory(event, status)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openStatusHistory(event, status);
+                      }
+                    }}
+                    className="flex items-center gap-1 calc-status">
 
             <span className="icon-info-with-circle text-[20px] shrink-0 mr-1"></span>
             
@@ -487,6 +538,7 @@ export const CalculationItemMobile = React.memo(
 <div className="flex items-stretch justify-between mb-3 w-full min-h-[70px] border-bottom pb-2 gap-4">
   
 
+          {canShowChat && (
   <div
     className="flex pr-4 border-right flex-[1.9] cursor-pointer"
     onClick={(e) => {
@@ -502,6 +554,7 @@ export const CalculationItemMobile = React.memo(
       </div>
     </div>
   </div>
+          )}
 
   <div className="flex-1 pl-1">
     <div className="flex flex-col h-full gap-2 justify-center">
@@ -603,8 +656,8 @@ export const CalculationItemMobile = React.memo(
                   calculationDate={calc.date}
                   calculationConstructionsCount={Number(calc.constructionsQTY ?? 0)}
                   totalOrderConstructions={totalOrderConstructions}
-                  isExpanded={expandedOrderId === (order.idGuid || order.number)}
-                  onToggle={onOrderToggle}
+                  isExpanded={historyOrderIds.has(order.idGuid || order.number) || expandedOrderId === (order.idGuid || order.number)}
+                  onToggle={toggleOrderHistory}
                   onRefresh={reloadCalculations}
                   onOrderPaymentSuccess={onOrderPaymentSuccess}
                   onOrderConfirmationSuccess={onOrderConfirmationSuccess}
@@ -614,13 +667,15 @@ export const CalculationItemMobile = React.memo(
           </div>
         )}
 
+        {canShowChat && (
         <CommentsModal
           isOpen={isCommentsOpen}
           onClose={() => setIsCommentsOpen(false)}
-          baseTransactionGuid={calc.id}
+          baseTransactionGuid={calc.applicationGuid || calc.id}
           transactionTypeId={1}
           manager={isBackoffice ? calc.dealerId : calc.manager}
         />
+        )}
 
         <DeleteConfirmModal
           isOpen={isDeleteModalOpen}
@@ -633,12 +688,19 @@ export const CalculationItemMobile = React.memo(
           itemType="calculation"
         />
 
+        {calc.isOrderOnly ? (isFilesModalOpen && <OrderFilesModal
+          onClose={() => setIsFilesModalOpen(false)}
+          orderGuid={calc.id}
+          orderNumber={calc.number}
+        />) : (
         <OrderFilesPreviewModal
           isOpen={isFilesModalOpen}
           onClose={() => setIsFilesModalOpen(false)}
+          entityType={calc.isOrderOnly ? "order" : "calculation"}
           orderGuid={calc.id}      // GUID розрахунку для запиту до API
           orderNumber={calc.number} // Номер для заголовка
         />
+        )}
         <OrderNumbersListModal
           isOpen={isOrderNumbersOpen}
           onClose={() => setIsOrderNumbersOpen(false)}

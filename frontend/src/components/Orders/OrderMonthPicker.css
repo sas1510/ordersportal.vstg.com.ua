@@ -1,0 +1,12 @@
+
+.order-month-picker { position: relative; flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.order-month-picker__trigger { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.order-month-picker__popup { position: fixed; z-index: 10010; box-sizing: border-box; padding: 6px; background: var(--month-picker-bg, var(--header-profile-bg, #f7f6f4)); color: var(--header-text, #302e2b); border: 1px solid #807b72; box-shadow: 0 4px 12px #0004; }
+.order-month-picker__popup button { color: inherit; background: var(--month-picker-bg, var(--header-profile-bg, #f7f6f4)); border: 1px solid #807b72; padding: 3px 2px; font-size: 12px; line-height: 1.2; }
+.order-month-picker__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
+.order-month-picker__grid button { min-height: 28px; }
+.order-month-picker__popup button:hover { background: #b4d947; color: #25251f; }
+.order-month-picker__popup button[aria-pressed="true"] { border-color: #b4d947; box-shadow: inset 0 0 0 1px #b4d947; }
+.order-month-picker__year { width: 100%; min-height: 26px; margin-top: 4px; }
+
+body.dark-theme .order-month-picker__popup { --month-picker-bg: #494541; border-color: #928981; box-shadow: 0 6px 16px #0008; }

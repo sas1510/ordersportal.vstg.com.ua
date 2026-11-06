@@ -1,6 +1,7 @@
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { DEALER_REPORT_GROUP_OPTIONS } from '../utils/dealerReportGroups';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaArrowRight, FaArrowUp, FaBoxes, FaChartLine, FaMoneyBillWave, FaSearch, FaUsers } from "react-icons/fa";
 import {
   Bar,
@@ -56,18 +57,15 @@ const ALL_DEALERS_VALUE = "__ALL__";
 const DEALER_GROUP_VALUES = {
   dealers: "__GROUP__DEALERS",
   ourCompany: "__GROUP__OUR_COMPANY",
-  export: "__GROUP__EXPORT",
   branches: "__GROUP__BRANCHES",
 };
 const DEALER_GROUP_TO_SQL_VALUE = {
   [DEALER_GROUP_VALUES.dealers]: "Дилера",
   [DEALER_GROUP_VALUES.ourCompany]: 'ТОВ "Наша фірма"',
-  [DEALER_GROUP_VALUES.export]: "Експорт",
   [DEALER_GROUP_VALUES.branches]: "Філіали",
 };
 const KPI_PROCESSING_GROUPS = [
   { key: "dealers", label: "Дилери", dealerGroup: "Дилера" },
-  { key: "export", label: "Експорт", dealerGroup: "Експорт" },
   { key: "branches", label: "Філіали", dealerGroup: "Філіали" },
 ];
 
@@ -469,7 +467,7 @@ function CustomChartTooltip({ active, payload, label }) {
   );
 }
 
-export default function OrdersReportDashboardPage() {
+export default function OrdersReportDashboardPage({ home = false }) {
   const reportLocation = useLocation();
   const navigate = useNavigate();
   const processingDetailsRef = useRef(null);
@@ -484,13 +482,14 @@ export default function OrdersReportDashboardPage() {
 
   const [viewMode, setViewMode] = useState(() => {
     const requested = new URLSearchParams(window.location.search).get("view");
-    return ["statuses", "dealers", "kpi", "operations"].includes(requested) ? requested : "operations";
+    return ["statuses", "dealers", "kpi", "operations"].includes(requested) ? requested : home ? "dealers" : "operations";
   });
   useEffect(() => {
     if (new URLSearchParams(reportLocation.search).get("view") === "operations") setViewMode("operations");
   }, [reportLocation.search]);
-  const [dateFrom, setDateFrom] = useState(currentMonthStart);
-  const [dateTo, setDateTo] = useState(dateInput(new Date()));
+  const [restoredPeriod] = useState(() => readOrderReportPeriod(reportLocation.search));
+  const [dateFrom, setDateFrom] = useState(() => restoredPeriod?.dateFrom || currentMonthStart());
+  const [dateTo, setDateTo] = useState(() => restoredPeriod?.dateTo || dateInput(new Date()));
 
   const [calculations, setCalculations] = useState([]);
   const [operationalCalculations, setOperationalCalculations] = useState([]);
@@ -618,6 +617,13 @@ export default function OrdersReportDashboardPage() {
       setDealerReportsLoading(false);
     }
   }, [dateFrom, dateTo, dealerContextLoading, dealerReportDealerGuid, dealerReportGroup, dealerReportScopeUserId, isAdmin]);
+
+  const initialHomeReport = useRef(false);
+  useEffect(() => {
+    if (!home || viewMode !== "dealers" || !isAdmin || dealerContextLoading || initialHomeReport.current) return;
+    initialHomeReport.current = true;
+    loadDealerReports();
+  }, [home, viewMode, isAdmin, dealerContextLoading, loadDealerReports]);
 
   const loadActiveManagerOptions = useCallback(async () => {
     if (!isSuperAdmin) {
@@ -923,18 +929,18 @@ export default function OrdersReportDashboardPage() {
   }, [managerFilteredDealers, selectedRegionName]);
 
   const neufferDealer = useMemo(function () {
-    return activeDealers.find(function (item) {
+    return managerFilteredDealers.find(function (item) {
       return isNeufferDealer(item.dealer_name);
     }) || null;
-  }, [activeDealers]);
+  }, [managerFilteredDealers]);
 
   const activeDealerTotals = useMemo(function () {
-    if ((!isSuperAdmin || selectedManagerGuid === ALL_MANAGERS_VALUE) && selectedRegionName === ALL_REGIONS_VALUE) {
+    if ((!isSuperAdmin || selectedManagerGuid === ALL_MANAGERS_VALUE)) {
       return dealerTotals;
     }
 
-    return buildDealerTotals(activeDealers);
-  }, [activeDealers, dealerTotals, isSuperAdmin, selectedManagerGuid, selectedRegionName]);
+    return buildDealerTotals(managerFilteredDealers);
+  }, [managerFilteredDealers, dealerTotals, isSuperAdmin, selectedManagerGuid]);
 
   const hideDealerRegions = ["branch_manager", "branches_director"].includes(role)
     || dealerReportGroup === "Філіали";
@@ -946,7 +952,7 @@ export default function OrdersReportDashboardPage() {
   }, [hideDealerRegions]);
 
   const activeTopDealers = useMemo(function () {
-    const source = (isSuperAdmin && selectedManagerGuid !== ALL_MANAGERS_VALUE) || selectedRegionName !== ALL_REGIONS_VALUE ? activeDealers : topDealers;
+    const source = (isSuperAdmin && selectedManagerGuid !== ALL_MANAGERS_VALUE) ? managerFilteredDealers : topDealers;
     return [...source]
       .filter(function (item) { return !isNeufferDealer(item.dealer_name); })
       .sort(function (a, b) {
@@ -957,18 +963,18 @@ export default function OrdersReportDashboardPage() {
         return (a.dealer_name || "").localeCompare(b.dealer_name || "", "uk");
       })
       .slice(0, 10);
-  }, [activeDealers, isSuperAdmin, selectedManagerGuid, selectedRegionName, topDealers]);
+  }, [managerFilteredDealers, isSuperAdmin, selectedManagerGuid, topDealers]);
 
   const activeRegions = useMemo(function () {
-    if ((!isSuperAdmin || selectedManagerGuid === ALL_MANAGERS_VALUE) && selectedRegionName === ALL_REGIONS_VALUE) {
+    if ((!isSuperAdmin || selectedManagerGuid === ALL_MANAGERS_VALUE)) {
       return regions;
     }
 
-    return buildRegionAggregates(activeDealers);
-  }, [activeDealers, isSuperAdmin, regions, selectedManagerGuid, selectedRegionName]);
+    return buildRegionAggregates(managerFilteredDealers);
+  }, [managerFilteredDealers, isSuperAdmin, regions, selectedManagerGuid]);
 
   const activeDealerInsights = useMemo(function () {
-    if ((!isSuperAdmin || selectedManagerGuid === ALL_MANAGERS_VALUE) && selectedRegionName === ALL_REGIONS_VALUE) {
+    if ((!isSuperAdmin || selectedManagerGuid === ALL_MANAGERS_VALUE)) {
       return dealerInsights;
     }
 
@@ -979,7 +985,7 @@ export default function OrdersReportDashboardPage() {
       top_region_turnover: topRegion?.total_turnover || null,
       top_region_avg_check: topRegion?.avg_check || null,
     };
-  }, [activeRegions, dealerInsights, isSuperAdmin, selectedManagerGuid, selectedRegionName]);
+  }, [activeRegions, dealerInsights, isSuperAdmin, selectedManagerGuid]);
 
   const dealerCards = useMemo(function () {
     return [
@@ -1074,14 +1080,8 @@ export default function OrdersReportDashboardPage() {
         <div className="orders-dashboard__header">
           <div>
             <h1>Звіти за замовленнями</h1>
-            <p>
-              {viewMode === "dealers"
-                ? ""
-                : viewMode === "kpi"
-                  ? ""
-                  : ""}
-            </p>
           </div>
+          {home && <Link className="dealer-reports-link" to="/statistics">Перейти до аналітики</Link>}
           <div className="orders-dashboard__total" hidden={viewMode === "operations"}>
             <span>{dashboardTotalLabel}</span>
             <strong>{dashboardTotal}</strong>
@@ -1126,6 +1126,7 @@ export default function OrdersReportDashboardPage() {
           <button
             type="button"
             onClick={function () {
+              saveOrderReportPeriod({ mode: "period", year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
               if (viewMode === "dealers") {
                 loadDealerReports();
                 return;
@@ -1141,7 +1142,7 @@ export default function OrdersReportDashboardPage() {
           </button>
         </div>
 
-        {viewMode === "dealers" && <p className="operational-report-hint"><strong>Які замовлення враховано:</strong> без вибору групи — лише зі станом 1С «Подтверждено». Вони можуть бути у виробництві, готовими або відвантаженими — це окремі етапи виконання. При виборі групи «Дилери», «Філіали», «Експорт» або «Наша фірма» використовується ширший набір статусів, тому змінюються також правила підрахунку показників.</p>}
+        {viewMode === "dealers" && <p className="operational-report-hint"><strong>Які замовлення враховано:</strong> без вибору групи — лише зі станом 1С «Подтверждено». Вони можуть бути у виробництві, готовими або відвантаженими — це окремі етапи виконання. При виборі групи «Дилери», «Філіали» або «Наша фірма» використовується ширший набір статусів, тому змінюються також правила підрахунку показників.</p>}
         {viewMode === "kpi" && <p className="operational-report-hint">KPI за датою заявки: {dateFrom} — {dateTo}. Фільтри періоду застосовуються до всіх показників цієї вкладки.</p>}
         {viewMode === "operations" ? (
           <OperationalReport dateFrom={dateFrom} dateTo={dateTo} data={operationalCalculations} loading={loading} error={error} dealerGroup={appliedDealerGroup} dealerGuid={dealerGuid} />

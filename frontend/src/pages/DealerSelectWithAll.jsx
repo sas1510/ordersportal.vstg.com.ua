@@ -13,6 +13,10 @@ const DealerSelectWithAll = ({
   placeholder,
   allLabel,
   extraOptions = [],
+  showGroupFilter = false,
+  dealerPreview = false,
+  group = "",
+  onGroupChange,
 }) => {
   const [dealers, setDealers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +32,7 @@ const DealerSelectWithAll = ({
   useEffect(() => {
     const loadDealers = async () => {
       try {
-        const res = await axiosInstance.get("/dealer-portal-users/");
+        const res = await axiosInstance.get("/dealer-portal-users/", { params: { ...(showGroupFilter ? { report_groups: 1 } : {}), ...(dealerPreview ? { dealer_preview: 1 } : {}) } });
         setDealers(Array.isArray(res.data) ? res.data : []);
       } catch (e) {
         if (process.env.NODE_ENV === "development") {
@@ -41,7 +45,7 @@ const DealerSelectWithAll = ({
     };
 
     loadDealers();
-  }, [t]);
+  }, [t, showGroupFilter, dealerPreview]);
 
   useEffect(() => {
     if (!open) return;
@@ -70,13 +74,32 @@ const DealerSelectWithAll = ({
   const resolvedAllLabel = allLabel || t("dealer_select.all_dealers");
   const resolvedPlaceholder = placeholder || t("dealer_select.placeholder");
 
+  const groupLabel = (name) => name === "\u0414\u0438\u043b\u0435\u0440\u0430" ? "\u0414\u0438\u043b\u0435\u0440\u0438" : name;
+  const options = [
+    ...extraOptions,
+    ...(showGroupFilter
+      ? [...new Set(dealers.map((dealer) => dealer.DealerGroup).filter(Boolean))]
+        .sort()
+        .map((name) => ({ value: "group:" + name, label: groupLabel(name) }))
+      : []),
+  ];
+  const selectValue = (nextValue) => {
+    if (showGroupFilter) {
+      const selectedGroup = nextValue.startsWith("group:") ? nextValue.slice(6) : "";
+      onGroupChange?.(selectedGroup);
+      onChange(selectedGroup ? ALL_DEALERS_VALUE : nextValue);
+    } else {
+      onChange(nextValue);
+    }
+  };
+
   const selectedLabel =
     allowAll && value === ALL_DEALERS_VALUE
-      ? resolvedAllLabel
-      : extraOptions.find((option) => option.value === value)?.label ||
+      ? (showGroupFilter && group ? groupLabel(group) : resolvedAllLabel)
+      : options.find((option) => option.value === value)?.label ||
         dealers.find((d) => d.ContractorID === value)?.ContractorName;
 
-  const filteredExtraOptions = extraOptions.filter((option) =>
+  const filteredExtraOptions = options.filter((option) =>
     option.label?.toLowerCase().includes(search.toLowerCase()),
   );
   const filteredDealers = dealers.filter((d) =>
@@ -105,13 +128,13 @@ const DealerSelectWithAll = ({
       e.preventDefault();
 
       if (allowAll && highlightedIndex === 0) {
-        onChange(ALL_DEALERS_VALUE);
+        selectValue(ALL_DEALERS_VALUE);
       } else if (
         filteredExtraOptions[
           highlightedIndex - (allowAll ? 1 : 0)
         ]
       ) {
-        onChange(
+        selectValue(
           filteredExtraOptions[
             highlightedIndex - (allowAll ? 1 : 0)
           ].value,
@@ -122,7 +145,7 @@ const DealerSelectWithAll = ({
           (allowAll ? 1 : 0) -
           filteredExtraOptions.length;
         const dealer = filteredDealers[dealerIndex];
-        if (dealer) onChange(dealer.ContractorID);
+        if (dealer) selectValue(dealer.ContractorID);
       }
 
       setOpen(false);
@@ -181,7 +204,7 @@ const DealerSelectWithAll = ({
                     }`}
                     onMouseEnter={() => setHighlightedIndex(0)}
                     onClick={() => {
-                      onChange(ALL_DEALERS_VALUE);
+                      selectValue(ALL_DEALERS_VALUE);
                       setOpen(false);
                       setSearch("");
                       setHighlightedIndex(-1);
@@ -203,7 +226,7 @@ const DealerSelectWithAll = ({
                       setHighlightedIndex(idx + (allowAll ? 1 : 0))
                     }
                     onClick={() => {
-                      onChange(option.value);
+                      selectValue(option.value);
                       setOpen(false);
                       setSearch("");
                       setHighlightedIndex(-1);
@@ -236,7 +259,7 @@ const DealerSelectWithAll = ({
                         )
                       }
                       onClick={() => {
-                        onChange(d.ContractorID);
+                        selectValue(d.ContractorID);
                         setOpen(false);
                         setSearch("");
                         setHighlightedIndex(-1);

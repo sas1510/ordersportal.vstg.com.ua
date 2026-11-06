@@ -1,3 +1,4 @@
+import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 ﻿import React, { 
     useState, 
     useEffect, 
@@ -114,8 +115,11 @@ const ReclamationPortal = () => {
     const [isNewReclamationModalOpen, setIsNewReclamationModalOpen] = useState(false);
     const [reclamationsData, setReclamationsData] = useState([]);
 
-    const [filter, setFilter] = useState({ status: 'Всі', month: 0, name: '', compensation: 'all' });
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+    const [restoredPeriod] = useState(() => readOrderReportPeriod());
+    const [filter, setFilter] = useState({ status: 'Всі', month: restoredPeriod?.month || 0, name: '', compensation: 'all' });
+    const [sharedPeriod, setSharedPeriod] = useState(() => restoredPeriod?.mode === "period" ? restoredPeriod : null);
+    const [selectedYear, setSelectedYear] = useState(() => restoredPeriod?.year || String(new Date().getFullYear()));
+    const getPeriodData = useCallback((endpoint, config) => getWithOrderReportPeriod(axiosInstance, endpoint, config, sharedPeriod), [sharedPeriod]);
 
     const [loading, setLoading] = useState(true);
 
@@ -225,11 +229,8 @@ const ReclamationPortal = () => {
         setError(null);
 
         try {
-            const year = new Date().getFullYear().toString();
-            setSelectedYear(year);
-
-            const response = await axiosInstance.get(RECLAMATIONS_API_URL, {
-                params: { year },
+            const response = await getPeriodData(RECLAMATIONS_API_URL, {
+                params: { year: selectedYear },
                 signal: controller.signal
             });
 
@@ -249,7 +250,7 @@ const ReclamationPortal = () => {
         } finally {
             setReloading(false);
         }
-    }, [cancelAll, register]);
+    }, [cancelAll, register, getPeriodData, selectedYear]);
 
 
 
@@ -280,7 +281,7 @@ const ReclamationPortal = () => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const response = await axiosInstance.get(RECLAMATIONS_API_URL, {
+                const response = await getPeriodData(RECLAMATIONS_API_URL, {
                     params: { year: selectedYear },
                     signal: controller.signal
                 });
@@ -301,7 +302,7 @@ const ReclamationPortal = () => {
         };
 
         loadData();
-    }, [selectedYear]);
+    }, [selectedYear, getPeriodData]);
 
     const handleDeleteReclamation = useCallback((id) => {
        
@@ -464,7 +465,11 @@ const ReclamationPortal = () => {
 
 
    
-            <div className="content-summary row w-100" style={{justifyContent:'center'}}> 
+            {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
+        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
+        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
+      </div>}
+      <div className="content-summary row w-100" style={{justifyContent:'center'}}> 
                
 
 
@@ -496,7 +501,7 @@ const ReclamationPortal = () => {
                 <select
                 className="year-select-minimal"
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
+                onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
                 >
       
                 {Array.from({ length: 3 }, (_, i) =>
@@ -516,7 +521,7 @@ const ReclamationPortal = () => {
 
             <li
                 className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
-                onClick={() => setFilter(prev => ({ ...prev, month: 0 }))}
+                onClick={() => { setSharedPeriod(null); saveOrderReportPeriod(orderMonthPeriod(selectedYear, 0)); setFilter(prev => ({ ...prev, month: 0 })); }}
             >
                 {t('portal_calc.months.all_year')}
             </li>
@@ -535,10 +540,13 @@ const ReclamationPortal = () => {
                         className={`pagination-item 
                             ${filter.month === num ? 'active' : ''} 
                             ${monthSummary[num] === 0 ? 'disabled' : ''}`}
-                        onClick={() =>
-                            monthSummary[num] > 0 &&
-                            setFilter(prev => ({ ...prev, month: num }))
-                        }
+                        onClick={() => {
+                            if (monthSummary[num] > 0) {
+                                setSharedPeriod(null);
+                                saveOrderReportPeriod(orderMonthPeriod(selectedYear, num));
+                                setFilter(prev => ({ ...prev, month: num }));
+                            }
+                        }}
                     >
                         {labels[i]} <span className="text-yellow">({monthSummary[num]})</span>
                     </li>
@@ -552,10 +560,12 @@ const ReclamationPortal = () => {
         <select
             className="month-select flex-1"
             value={filter.month}
-            onChange={(e) => setFilter(prev => ({
-                ...prev,
-                month: Number(e.target.value)
-            }))}
+            onChange={(e) => {
+                const month = Number(e.target.value);
+                setSharedPeriod(null);
+                saveOrderReportPeriod(orderMonthPeriod(selectedYear, month));
+                setFilter(prev => ({ ...prev, month }));
+            }}
         >
             <option value={0}>{t('portal_calc.months.all_year')}</option>
 

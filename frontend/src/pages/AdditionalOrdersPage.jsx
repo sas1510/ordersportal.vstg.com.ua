@@ -1,3 +1,4 @@
+import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 ﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
 import "../components/Portal/PortalOriginal.css";
@@ -36,10 +37,11 @@ const AdditionalOrders = () => {
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]); 
   const [_filteredItems, setFilteredItems] = useState([]);
-  const [filter, setFilter] = useState({ status: "all", month: 0, name: "" });
-  const [selectedYear, setSelectedYear] = useState(
-    String(new Date().getFullYear()),
-  ); 
+  const [restoredPeriod] = useState(() => readOrderReportPeriod());
+  const [filter, setFilter] = useState({ status: "all", month: restoredPeriod?.month || 0, name: "" });
+  const [sharedPeriod, setSharedPeriod] = useState(() => restoredPeriod?.mode === "period" ? restoredPeriod : null);
+  const [selectedYear, setSelectedYear] = useState(() => restoredPeriod?.year || String(new Date().getFullYear()));
+  const getPeriodData = useCallback((endpoint, config) => getWithOrderReportPeriod(axiosInstance, endpoint, config, sharedPeriod), [sharedPeriod]); 
   const [loading, setLoading] = useState(true);
   const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null); 
   const [expandedOrder, setExpandedOrder] = useState(null);
@@ -222,7 +224,7 @@ const AdditionalOrders = () => {
       setError(null); 
 
       try {
-        const response = await axiosInstance.get(
+        const response = await getPeriodData(
           "/additional_orders/get_additional_orders_info/",
           { params: buildRequestParams(), signal },
         );
@@ -268,7 +270,7 @@ const AdditionalOrders = () => {
 
     fetchData();
     return () => controller.abort();
-  }, [buildRequestParams, refreshTrigger]); 
+  }, [buildRequestParams, refreshTrigger, getPeriodData]); 
 
   const reloadAdditionalOrders = useCallback(async () => {
     cancelAll();
@@ -277,7 +279,7 @@ const AdditionalOrders = () => {
     setError(null); 
 
     try {
-      const response = await axiosInstance.get(
+      const response = await getPeriodData(
         "/additional_orders/get_additional_orders_info/",
         { params: buildRequestParams(), signal: controller.signal },
       );
@@ -370,7 +372,9 @@ const AdditionalOrders = () => {
   };
 
   const handleMonthClick = (month) => {
+    setSharedPeriod(null);
     const newMonth = filter.month === month ? 0 : month;
+    saveOrderReportPeriod(orderMonthPeriod(selectedYear, newMonth));
     setFilter((prev) => ({ ...prev, month: newMonth }));
     setFilteredItems(getFilteredItems(filter.status, newMonth, filter.name));
     setDisplayLimit(initialLimit); 
@@ -489,6 +493,10 @@ const AdditionalOrders = () => {
     <div className="column portal-body">
 
 
+      {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
+        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
+        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
+      </div>}
       <div className="content-summary row w-100 " style={{justifyContent: 'center'}} >
 
        
@@ -498,7 +506,7 @@ const AdditionalOrders = () => {
           <span className="icon icon-calendar2 font-size-24 text-info"></span>
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
+            onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
           >
             <option value="2026">2026</option>
             <option value="2025">2025</option>
@@ -535,7 +543,7 @@ const AdditionalOrders = () => {
              <select
                 className="year-select-minimal"
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
+                onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
               >
                 {Array.from({ length: 3 }, (_, i) => {
                   const year = new Date().getFullYear() - i;

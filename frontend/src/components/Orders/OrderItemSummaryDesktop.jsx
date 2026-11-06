@@ -32,7 +32,7 @@ export default React.memo(function OrderItemSummaryDesktop({
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { addNotification } = useNotification();
-  const { isAdmin, isBackoffice, isManager } = useAuthGetRole();
+  const { isAdmin, isBackoffice, isManager, isReadOnly } = useAuthGetRole();
   const canViewFinance = hasFinanceAccess();
   const canConfirmOrder = !isBackoffice || isManager || isAdmin;
   const canPayOrder = !isBackoffice || isManager || isAdmin;
@@ -162,6 +162,10 @@ export default React.memo(function OrderItemSummaryDesktop({
 
     return state;
   }, [order?.status, debtAmount, getButtonState, isSketchOrder, isSketchConfirmed]);
+
+  const hasActionButtons = !isReadOnly && (isSketchOrder
+    ? canConfirmOrder && buttonState.confirm
+    : (canConfirmOrder && buttonState.confirm) || (canPayOrder && canViewFinance && buttonState.pay) || buttonState.reorder || buttonState.claim);
 
   const getStatusClass = useCallback((status) => {
     switch (status) {
@@ -491,7 +495,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     cursor: isSketchOrder ? "default" : "pointer",
   }}>
       <div
-  className={`order-item-summary order-grid${String(order?.status || "").trim() === "Відмова" ? " order-refused-muted" : ""}`}
+  className={`order-item-summary order-grid${!hasActionButtons ? " order-grid--readonly" : ""}${String(order?.status || "").trim() === "Відмова" ? " order-refused-muted" : ""}${!isSketchOrder && isExpanded ? " order-summary--history-open" : ""}`}
   style={{
     cursor: isSketchOrder ? "default" : "pointer",
   }}
@@ -658,15 +662,14 @@ export default React.memo(function OrderItemSummaryDesktop({
         </div>
 
         {/* ACTIONS */}
-        <div
+        {hasActionButtons && <div
           className={`summary-item row ${
     !isSketchOrder ? "grid-buttons" : ""
   }`}
           onClick={(event) => event.stopPropagation()}
         >
           {isSketchOrder ? (
-            canConfirmOrder && (
-              <button
+            canConfirmOrder && buttonState.confirm && (<button
                 type="button"
                 className={`column align-center button bg-WS---DarkGrey order-action-button order-action-button--confirm ${
                   !buttonState.confirm ? "disabled opacity-50" : ""
@@ -683,7 +686,7 @@ export default React.memo(function OrderItemSummaryDesktop({
             <>
               {canConfirmOrder && (
                 <>
-                  <button
+                  {buttonState.confirm && (<button
                     type="button"
                     className={`column align-center button bg-WS---DarkGrey order-action-button order-action-button--confirm ${
                       !buttonState.confirm
@@ -696,10 +699,9 @@ export default React.memo(function OrderItemSummaryDesktop({
                     <div className="text-[12px] font-bold font-['Inter']">
                       {t("order_mobile.buttons.confirm")}
                     </div>
-                  </button>
+                  </button>)}
 
-                  {canViewFinance && (
-              <button
+                  {canViewFinance && buttonState.pay && (<button
                     type="button"
                     className={`column align-center button bg-WS---DarkGreen order-action-button order-action-button--pay ${debtAmount <= 0 ? "order-action-button--paid" : ""} ${
                       debtAmount > 0 && (!buttonState.pay || !canViewFinance)
@@ -717,7 +719,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                 </>
               )}
 
-              <button
+              {buttonState.reorder && (<button
                 type="button"
                 className={`column align-center button bg-WS---DarkBlue px-1 order-action-button order-action-button--reorder ${
                   !buttonState.reorder
@@ -730,9 +732,9 @@ export default React.memo(function OrderItemSummaryDesktop({
                 <div className="text-[12px] font-bold font-['Inter']">
                   {t("order_mobile.buttons.reorder")}
                 </div>
-              </button>
+              </button>)}
 
-              <button
+              {buttonState.claim && (<button
                 type="button"
                 className={`column align-center button bg-WS---DarkRed order-action-button order-action-button--claim ${
                   !buttonState.claim
@@ -745,10 +747,10 @@ export default React.memo(function OrderItemSummaryDesktop({
                 <div className="text-[12px] font-bold font-['Inter']">
                   {t("order_mobile.buttons.claim")}
                 </div>
-              </button>
+              </button>)}
             </>
           )}
-        </div>
+        </div>}
 
         {/* FAST ORDER */}
         <div
@@ -787,7 +789,7 @@ export default React.memo(function OrderItemSummaryDesktop({
       </div>
 
       {!isSketchOrder && isExpanded && (
-        <div className="separator-border w-full">
+        <div className="order-history-panel w-full">
           <OrderDetailsDesktop order={order} />
         </div>
       )}

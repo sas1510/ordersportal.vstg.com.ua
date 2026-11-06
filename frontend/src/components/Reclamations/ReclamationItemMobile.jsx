@@ -35,7 +35,7 @@
 
 //   const { user, role } = useAuth();
 
-//   const isCustomer = role === "customer";
+//   const isCustomer = ["customer", "dealer", "internal_dealer"].includes(role);
 
 //   const canEdit = !isCustomer && reclamation.status !== "Закрита";
 //   const canDelete = reclamation.status === "Нова";
@@ -294,7 +294,7 @@ export const ReclamationItemMobile = ({
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]); 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const { role } = useAuthGetRole();
+  const { role, isReadOnly } = useAuthGetRole();
 
   if (!reclamation) {
     return null;
@@ -317,7 +317,7 @@ export const ReclamationItemMobile = ({
     reclamation.manager !== "Не вказано";
 
 
-  const canDelete =  !managerAssigned;
+  const canDelete = !isReadOnly && !managerAssigned;
   const locale = i18n.language;
 
  
@@ -475,7 +475,8 @@ export const ReclamationItemMobile = ({
       )}
       
       <img 
-        src={deleteIcon} 
+        src={deleteIcon}
+            style={{ display: isReadOnly ? "none" : undefined }} 
         alt={t("reclamation.delete")}
         onClick={handleDeleteClick}
         className={`transition-all 

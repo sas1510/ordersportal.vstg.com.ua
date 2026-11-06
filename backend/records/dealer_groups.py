@@ -73,6 +73,24 @@ def dealer_group_map(rows, contractor_field):
     return classes
 
 
+def exclude_export_dealers(rows, contractor_field):
+    if not rows:
+        return rows
+    classes = dealer_group_map(rows, contractor_field)
+    return [row for row in rows
+            if classes.get(normalized_contractor(row.get(contractor_field))) != 'Експорт']
+
+
+def analytics_dealer_rows(rows, contractor_field="ContractorID"):
+    """Keep recognized analytics groups without changing general dealer access."""
+    if not rows:
+        return []
+    classes = dealer_group_map(rows, contractor_field)
+    return [{**dict(row), "DealerGroup": group} for row in rows
+            if (group := classes.get(normalized_contractor(row.get(contractor_field)), "Інше"))
+            not in {"Інше", "Експорт"}]
+
+
 def filter_report_dealer_group(rows, group, contractor_field):
     if not group or not rows:
         return rows
@@ -107,3 +125,32 @@ def dealer_folder_regions(contractor_guids):
             for contractor, region in cursor.fetchall():
                 result[normalized_contractor(contractor)] = str(region or '').strip() or 'Не визначено'
     return result
+
+
+def fill_missing_dealer_regions(dealers):
+    """Use the dealer's immediate 1C folder where the report has no region."""
+    missing = {
+        guid: dealer for dealer in dealers
+        if str(dealer.get("region_name") or "").strip().casefold() in {"", "не визначено"}
+        and (guid := normalized_contractor(dealer.get("contractor_guid")))
+    }
+    if not missing:
+        return False
+    ids = sorted(missing)
+    changed = False
+    with connection.cursor() as cursor:
+        for offset in range(0, len(ids), 500):
+            chunk = ids[offset:offset + 500]
+            placeholders = ",".join(["%s"] * len(chunk))
+            cursor.execute(f"""
+                SELECT C.Ссылка, F.Наименование
+                FROM [oknastyle_biV2].[dbo].[Справочники.Контрагенты] C
+                JOIN [oknastyle_biV2].[dbo].[Справочники.Контрагенты] F ON F.Ссылка = C.Родитель
+                WHERE C.Ссылка IN ({placeholders})
+            """, [guid_to_1c_bin(guid) for guid in chunk])
+            for contractor, folder in cursor.fetchall():
+                name = str(folder or "").strip()
+                if name:
+                    missing[normalized_contractor(contractor)]["region_name"] = name
+                    changed = True
+    return changed

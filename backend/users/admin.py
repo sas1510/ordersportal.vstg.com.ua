@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import Branch, CustomUser, Invitation, UserApiKey
+from .dealer_preview import is_primary_admin
 
 @admin.register(Branch)
 class BranchAdmin(admin.ModelAdmin):
@@ -26,6 +27,19 @@ class CustomUserAdmin(UserAdmin):
         ('Групи та права', {'fields': ('groups', 'user_permissions')}),
         ('Важливі дати', {'fields': ('last_login', 'date_joined')}),
     )
+
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.username.casefold() == "admin":
+            return request.user.pk == obj.pk and is_primary_admin(request.user)
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.username.casefold() == "admin":
+            return False
+        return super().has_delete_permission(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        super().delete_queryset(request, queryset.exclude(username__iexact="admin"))
 
     # Поля, які додаються при створенні нового користувача через адмінку
     add_fieldsets = UserAdmin.add_fieldsets + (
