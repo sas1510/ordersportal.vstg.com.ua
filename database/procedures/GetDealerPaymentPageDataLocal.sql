@@ -71,7 +71,7 @@ BEGIN
              AND ZP._Date_Time < '30000101')
          OR ZP._Date_Time >= @ShiftedStartDate
       )
-      AND (ZP._Number LIKE N'15-%' OR ZP._Number LIKE N'01-%' OR ZP._Number LIKE N'02-%' OR ZP._Number LIKE N'04-%' OR ZP._Number LIKE N'22-%' OR ZP._Number LIKE N'34-%' OR ZP._Number LIKE N'45-%' OR ZP._Number LIKE N'55-%' OR ZP._Number LIKE N'56-%' OR ZP._Number LIKE N'65-%' OR ZP._Number LIKE N'90-%' OR ZP._Number LIKE N'70-%')
+      AND (ZP._Number LIKE N'15-%' OR ZP._Number LIKE N'01-%' OR ZP._Number LIKE N'02-%' OR ZP._Number LIKE N'04-%' OR ZP._Number LIKE N'22-%' OR ZP._Number LIKE N'45-%' OR ZP._Number LIKE N'55-%' OR ZP._Number LIKE N'56-%' OR ZP._Number LIKE N'65-%' OR ZP._Number LIKE N'90-%' OR ZP._Number LIKE N'70-%')
     OPTION (RECOMPILE);
 
     CREATE UNIQUE CLUSTERED INDEX IX_CO_ID
