@@ -1,3 +1,4 @@
+import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 ﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axiosInstance from "../api/axios";
@@ -493,10 +494,7 @@ const AdditionalOrders = () => {
     <div className="column portal-body">
 
 
-      {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
-        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
-        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
-      </div>}
+      
       <div className="content-summary row w-100 " style={{justifyContent: 'center'}} >
 
        
@@ -514,7 +512,7 @@ const AdditionalOrders = () => {
           </select>
         </div> */}
 
-        <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'center'}} >
+        <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'flex-start'}} >
 
             <div
             className="mobile-sidebar-toggle mr-1"
@@ -529,106 +527,26 @@ const AdditionalOrders = () => {
                 />
           </div>
 
-           <div className="year-inline-selector row">
-              <img 
-                  src={yearIcon} 
-                  alt="РЎС‚СЂС–Р»РєР°" 
-                  className="portal-service-icon align-center mr-2 w-[26px] h-[25px]" 
-              
-                />
-                <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            {t("portal_calc.ui.report_year")}
-          </div>
-
-             <select
-                className="year-select-minimal"
-                value={selectedYear}
-                onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
-              >
-                {Array.from({ length: 3 }, (_, i) => {
-                  const year = new Date().getFullYear() - i;
-                  return (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-
-          <ul className="gap-6 row no-wrap month-list flex-1">
-            <li
-              className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
-              onClick={() => handleMonthClick(0)}
-            >
-              {t("portal_calc.months.all_year")}
-            </li>
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              // const labels = [
-              //   "РЎС–С‡.",
-              //   "Р›СЋС‚.",
-              //   "Р‘РµСЂ.",
-              //   "РљРІС–С‚.",
-              //   "РўСЂР°РІ.",
-              //   "Р§РµСЂРІ.",
-              //   "Р›РёРї.",
-              //   "РЎРµСЂ.",
-              //   "Р’РµСЂ.",
-              //   "Р–РѕРІ.",
-              //   "Р›РёСЃ.",
-              //   "Р“СЂСѓРґ.",
-              // ];
-              const labels = t("portal_calc.months.short", { returnObjects: true });
-              return (
-                <li
-                  key={num}
-                  className={`pagination-item ${filter.month === num ? "active" : ""} ${monthSummary[num] === 0 ? "disabled" : ""}`}
-                  onClick={() => monthSummary[num] > 0 && handleMonthClick(num)}
-                >
-                  {labels[i]}{" "}
-                  <span className="text-yellow">({monthSummary[num]})</span>
-                </li>
-              );
-            })}
-          </ul>
-
-       
-          <select
-            className="month-select flex-1"
-            value={filter.month}
-            onChange={(e) => handleMonthClick(Number(e.target.value))}
-          >
-            <option value={0}>{t("portal_calc.months.all_year")}</option>
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              // const labels = [
-              //   "РЎС–С‡РµРЅСЊ",
-              //   "Р›СЋС‚РёР№",
-              //   "Р‘РµСЂРµР·РµРЅСЊ",
-              //   "РљРІС–С‚РµРЅСЊ",
-              //   "РўСЂР°РІРµРЅСЊ",
-              //   "Р§РµСЂРІРµРЅСЊ",
-              //   "Р›РёРїРµРЅСЊ",
-              //   "РЎРµСЂРїРµРЅСЊ",
-              //   "Р’РµСЂРµСЃРµРЅСЊ",
-              //   "Р–РѕРІС‚РµРЅСЊ",
-              //   "Р›РёСЃС‚РѕРїР°Рґ",
-              //   "Р“СЂСѓРґРµРЅСЊ",
-              // ];
-              const labels = t("portal_calc.months.full", { returnObjects: true });
-              return (
-                <option
-                  key={num}
-                  value={num}
-                  disabled={monthSummary[num] === 0}
-                >
-                  {labels[i]} ({monthSummary[num]})
-                </option>
-              );
-            })}
-          </select>
+           <ServiceOrderDateFilter
+            year={selectedYear}
+            month={filter.month}
+            years={Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i)}
+            counts={monthSummary}
+            allowYear={true}
+            period={sharedPeriod}
+            onPeriod={(period) => {
+              setSelectedYear(period.year);
+              setSharedPeriod(period);
+              setFilter(prev => ({ ...prev, month: 0 }));
+              saveOrderReportPeriod(period);
+            }}
+            onMonth={(year, month) => {
+              setSharedPeriod(null);
+              setSelectedYear(String(year));
+              setFilter(prev => ({ ...prev, month }));
+              saveOrderReportPeriod(orderMonthPeriod(year, month));
+            }}
+          />
         </div>
       </div>
 

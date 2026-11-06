@@ -1,3 +1,4 @@
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import axios from '../api/axios';
 import { useDealerContext } from '../hooks/useDealerContext';
@@ -48,7 +49,7 @@ function ConstructionsChart({ totals }) {
 export default function DealerReconciliationPage() {
   const { isSuperAdmin, isLoading } = useDealerContext();
   const today = localDay(new Date());
-  const [dates, setDates] = useState({ date_from: today.slice(0, 8) + '01', date_to: today, activity_from: activityStart(today) });
+  const [dates, setDates] = useState(() => { const saved = readOrderReportPeriod(); return { date_from: saved?.dateFrom || today.slice(0, 8) + '01', date_to: saved?.dateTo || today, activity_from: activityStart(saved?.dateFrom || today) }; });
   const [report, setReport] = useState(null), [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [exporting, setExporting] = useState(false), [filters, setFilters] = useState({ region: '', search: '', group: '', contractor: '' });
   const [selected, setSelected] = useState(null);
@@ -73,6 +74,7 @@ export default function DealerReconciliationPage() {
   }, [selected]);
   async function generate(e) {
     e.preventDefault(); controller.current?.abort();
+    saveOrderReportPeriod({ mode: "period", year: dates.date_from.slice(0, 4), month: 0, dateFrom: dates.date_from, dateTo: dates.date_to });
     const active = new AbortController(); controller.current = active;
     setBusy(true); setError(''); setSelected(null);
     try {

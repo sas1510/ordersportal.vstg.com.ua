@@ -478,7 +478,7 @@ export default function OrdersReportDashboardPage({ home = false }) {
     isSuperAdmin,
     role,
     isLoading: dealerContextLoading,
-  } = useDealerContext();
+  } = useDealerContext({ allowGroups: true });
 
   const [viewMode, setViewMode] = useState(() => {
     const requested = new URLSearchParams(window.location.search).get("view");

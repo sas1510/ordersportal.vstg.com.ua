@@ -1,3 +1,4 @@
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 // // import React, { useState, useEffect, useCallback, useMemo } from "react";
 // // import axiosInstance from "../api/axios";
 // // import "../components/Portal/PortalOriginal.css";
@@ -1834,7 +1835,10 @@ const PaymentStatusV2 = () => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { isAdmin, dealerGuid, setDealerGuid } = useDealerContext();
-  const { dateFrom: df, dateTo: dt } = getCurrentMonthDates();
+  const [restoredPeriod] = useState(() => readOrderReportPeriod());
+  const defaults = getCurrentMonthDates();
+  const df = restoredPeriod?.dateFrom || defaults.dateFrom;
+  const dt = restoredPeriod?.dateTo || defaults.dateTo;
 
   const [paymentsData, setPaymentsData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1857,6 +1861,7 @@ const PaymentStatusV2 = () => {
   const { addNotification } = useNotification();
 
   const fetchData = useCallback(async () => {
+    saveOrderReportPeriod({ mode: "period", year: filters.dateFrom.slice(0, 4), month: 0, dateFrom: filters.dateFrom, dateTo: filters.dateTo });
     setLoading(true);
     setError(null);
     try {

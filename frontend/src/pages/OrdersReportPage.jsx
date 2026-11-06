@@ -1,3 +1,4 @@
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { useDealerContext } from "../hooks/useDealerContext";
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import { dealerGroupForSelection, DEALER_REPORT_GROUP_OPTIONS } from "../utils/dealerReportGroups";
@@ -54,11 +55,12 @@ function getAge(value) {
 }
 
 export default function OrdersReportPage() {
-  const { isAdmin, role } = useDealerContext();
-  const [dateFrom, setDateFrom] = useState(getMonthStart);
-  const [dateTo, setDateTo] = useState(getToday);
+  const { isAdmin, role, dealerGuid, setDealerGuid } = useDealerContext({ defaultAll: true, allowGroups: true });
+  const [dateFrom, setDateFrom] = useState(() => readOrderReportPeriod()?.dateFrom || getMonthStart());
+  const [dateTo, setDateTo] = useState(() => readOrderReportPeriod()?.dateTo || getToday());
   const [allCalculations, setCalculations] = useState([]);
-  const [selection, setSelection] = useState("__ALL__");
+  const selection = dealerGuid || "__ALL__";
+  const setSelection = setDealerGuid;
   const calculations = useMemo(() => allCalculations.filter(calc => selection === "__ALL__" || (dealerGroupForSelection(selection) ? belongsToDealerGroup(calc, dealerGroupForSelection(selection)) : String(calc.dealerId || '').toLowerCase() === selection.toLowerCase())), [allCalculations, selection]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,6 +71,7 @@ export default function OrdersReportPage() {
       setError("Вкажіть коректний період звіту.");
       return;
     }
+    saveOrderReportPeriod({ mode: "period", year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
     setLoading(true);
     setError("");
     try {

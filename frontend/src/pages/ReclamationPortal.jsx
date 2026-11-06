@@ -1,3 +1,4 @@
+import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 ﻿import React, { 
     useState, 
@@ -465,15 +466,12 @@ const ReclamationPortal = () => {
 
 
    
-            {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
-        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
-        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
-      </div>}
+            
       <div className="content-summary row w-100" style={{justifyContent:'center'}}> 
                
 
 
-<div className="by-month-pagination-wrapper row  flex items-center gap-4">
+<div className="by-month-pagination-wrapper row  flex items-center gap-4" style={{justifyContent: "flex-start"}}>
 
                 <div
        className="mobile-sidebar-toggle mr-1 flex items-center justify-center"
@@ -489,108 +487,27 @@ const ReclamationPortal = () => {
         </div>
 
 
-            <div className="flex items-center no-wrap mr-1" style={{ display: 'flex', flexShrink: 0 }}>
-                <img 
-                src={yearIcon} 
-                alt="Календар" 
-                className="align-center mr-1 w-[26px] h-[25px]" 
-                />
-                <div className=" flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-1">
-                {t('reclamation.common.report_year')}
-                </div>
-                <select
-                className="year-select-minimal"
-                value={selectedYear}
-                onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
-                >
-      
-                {Array.from({ length: 3 }, (_, i) =>
-                    (new Date().getFullYear() - i).toString()
-                ).map(y => (
-                    <option key={y} value={y}>{y}</option>
-                ))}
-                </select>
-            </div>
-
-
-    {!isMobile && (
-
-            
-    <ul className="flex-1 items-center gap-4 m-0 p-0 list-none no-wrap month-list">
-   
-
-            <li
-                className={`pagination-item ${filter.month === 0 ? 'active' : ''}`}
-                onClick={() => { setSharedPeriod(null); saveOrderReportPeriod(orderMonthPeriod(selectedYear, 0)); setFilter(prev => ({ ...prev, month: 0 })); }}
-            >
-                {t('portal_calc.months.all_year')}
-            </li>
-
-            {Array.from({ length: 12 }, (_, i) => {
-                const num = i + 1;
-                const labels = [
-                    t('reclamation.months.jan'), t('reclamation.months.feb'), t('reclamation.months.mar'), t('reclamation.months.apr'), 
-                    t('reclamation.months.may'), t('reclamation.months.jun'), t('reclamation.months.jul'), t('reclamation.months.aug'), 
-                    t('reclamation.months.sep'), t('reclamation.months.oct'), t('reclamation.months.nov'), t('reclamation.months.dec')
-                ];
-
-                return (
-                    <li
-                        key={num}
-                        className={`pagination-item 
-                            ${filter.month === num ? 'active' : ''} 
-                            ${monthSummary[num] === 0 ? 'disabled' : ''}`}
-                        onClick={() => {
-                            if (monthSummary[num] > 0) {
-                                setSharedPeriod(null);
-                                saveOrderReportPeriod(orderMonthPeriod(selectedYear, num));
-                                setFilter(prev => ({ ...prev, month: num }));
-                            }
-                        }}
-                    >
-                        {labels[i]} <span className="text-yellow">({monthSummary[num]})</span>
-                    </li>
-                );
-            })}
-        </ul>
-    )}
-
-
- 
-        <select
-            className="month-select flex-1"
-            value={filter.month}
-            onChange={(e) => {
-                const month = Number(e.target.value);
-                setSharedPeriod(null);
-                saveOrderReportPeriod(orderMonthPeriod(selectedYear, month));
-                setFilter(prev => ({ ...prev, month }));
+            <ServiceOrderDateFilter
+            year={selectedYear}
+            month={filter.month}
+            years={Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i)}
+            counts={monthSummary}
+            allowYear={true}
+            period={sharedPeriod}
+            onPeriod={(period) => {
+              setSelectedYear(period.year);
+              setSharedPeriod(period);
+              setFilter(prev => ({ ...prev, month: 0 }));
+              saveOrderReportPeriod(period);
             }}
-        >
-            <option value={0}>{t('portal_calc.months.all_year')}</option>
-
-            {Array.from({ length: 12 }, (_, i) => {
-                const num = i + 1;
-                // const labels = [
-                //     'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
-                //     'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
-                // ];
-                const labels = t("portal_calc.months.full", { returnObjects: true });
-
-                return (
-                    <option
-                        key={num}
-                        value={num}
-                        disabled={monthSummary[num] === 0}
-                    >
-                        {labels[i]} ({monthSummary[num]})
-                    </option>
-                );
-            })}
-        </select>
-
-
-</div>
+            onMonth={(year, month) => {
+              setSharedPeriod(null);
+              setSelectedYear(String(year));
+              setFilter(prev => ({ ...prev, month }));
+              saveOrderReportPeriod(orderMonthPeriod(year, month));
+            }}
+          />
+        </div>
 </div>
 
 

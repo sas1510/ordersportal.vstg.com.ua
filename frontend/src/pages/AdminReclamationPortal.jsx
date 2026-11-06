@@ -1,3 +1,4 @@
+import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -114,7 +115,7 @@ const AdminReclamationPortal = () => {
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState(null);
 
-  const { dealerGuid, setDealerGuid, isAdmin, isSuperAdmin } = useDealerContext({ defaultAll: true });
+  const { dealerGuid, setDealerGuid, isAdmin, isSuperAdmin } = useDealerContext({ defaultAll: true, allowGroups: true });
   const selectedDealerGroup = isSuperAdmin ? dealerGroupForSelection(dealerGuid) : null;
 
   const [reclamationsData, setReclamationsData] = useState([]);
@@ -472,10 +473,7 @@ const AdminReclamationPortal = () => {
   return (
     <div className={`column portal-body ${theme}`}>
 
-      {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
-        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
-        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
-      </div>}
+      
       <div className="content-summary row w-100" style={{justifyContent:'center'}}>
         
 {/* 
@@ -493,7 +491,7 @@ const AdminReclamationPortal = () => {
           </select>
         </div> */}
 
-        <div className="by-month-pagination-wrapper row  flex items-center gap-4">
+        <div className="by-month-pagination-wrapper row  flex items-center gap-4" style={{justifyContent: "flex-start"}}>
 
             <div
        className="mobile-sidebar-toggle mr-1 flex items-center justify-center"
@@ -507,118 +505,26 @@ const AdminReclamationPortal = () => {
         />
         </div>
 
-        <div className="flex-0 items-center no-wrap mr-1" style={{ display: 'flex', flexShrink: 0 }}>
-        <img 
-            src={yearIcon} 
-            alt="Календар" 
-            className="align-center mr-2 w-[26px] h-[25px]" 
-        />
-        <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            {t('reclamation.common.report_year')}
-        </div>
-        <select
-            className="year-select-minimal"
-            value={selectedYear}
-            onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
-        >
-
-            {Array.from({ length: 3 }, (_, i) => {
-                const year = new Date().getFullYear() - i;
-                return (
-                    <option key={year} value={year.toString()}>
-                        {year}
-                    </option>
-                );
-            })}
-        </select>
-    </div>
-
-        
-          {!isMobilePagination && (
-            <ul className=" flex-1  gap-6 row no-wrap month-list">
-              {!isAggregateDealerSelection(dealerGuid) && (
-                <li
-                  className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
-                  onClick={() => handleMonthClick(0)}
-                >
-                 {t('portal_calc.months.all_year')}
-                </li>
-              )}
-
-              {Array.from({ length: 12 }, (_, i) => {
-                const num = i + 1;
-                // const labels = [
-                //   "Січ.",
-                //   "Лют.",
-                //   "Бер.",
-                //   "Квіт.",
-                //   "Трав.",
-                //   "Черв.",
-                //   "Лип.",
-                //   "Сер.",
-                //   "Вер.",
-                //   "Жов.",
-                //   "Лис.",
-                //   "Груд.",
-                // ];
-                 const labels = [
-                    t('reclamation.months.jan'), t('reclamation.months.feb'), t('reclamation.months.mar'), t('reclamation.months.apr'), 
-                    t('reclamation.months.may'), t('reclamation.months.jun'), t('reclamation.months.jul'), t('reclamation.months.aug'), 
-                    t('reclamation.months.sep'), t('reclamation.months.oct'), t('reclamation.months.nov'), t('reclamation.months.dec')
-                ];
-
-
-                const disabled =
-                  !isAggregateDealerSelection(dealerGuid) && monthSummary[num] === 0;
-
-                return (
-                  <li
-                    key={num}
-                    className={`pagination-item 
-                                            ${filter.month === num ? "active" : ""} 
-                                            ${disabled ? "disabled" : ""}`}
-                    onClick={() => !disabled && handleMonthClick(num)}
-                  >
-                    {labels[i]}
-                    {!isAggregateDealerSelection(dealerGuid) && (
-                      <span className="text-grey"> ({monthSummary[num]})</span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-
-          {isMobilePagination && (
-            <select
-              className="month-select flex-1 "
-              value={filter.month}
-              onChange={(e) => handleMonthClick(Number(e.target.value))}
-            >
-              <option value={0}> {t('portal_calc.months.all_year')}</option>
-
-              {Array.from({ length: 12 }, (_, i) => {
-                const num = i + 1;
-                const labels = t("portal_calc.months.full", { returnObjects: true });
-
-                return (
-                  <option
-                    key={num}
-                    value={num}
-                    disabled={
-                      !isAggregateDealerSelection(dealerGuid) &&
-                      monthSummary[num] === 0
-                    }
-                  >
-                    {labels[i]}
-                    {!isAggregateDealerSelection(dealerGuid)
-                      ? ` (${monthSummary[num]})`
-                      : ""}
-                  </option>
-                );
-              })}
-            </select>
-          )}
+        <ServiceOrderDateFilter
+            year={selectedYear}
+            month={filter.month}
+            years={Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i)}
+            counts={isAggregateDealerSelection(dealerGuid) ? undefined : monthSummary}
+            allowYear={!isAggregateDealerSelection(dealerGuid)}
+            period={sharedPeriod}
+            onPeriod={(period) => {
+              setSelectedYear(period.year);
+              setSharedPeriod(period);
+              setFilter(prev => ({ ...prev, month: 0 }));
+              saveOrderReportPeriod(period);
+            }}
+            onMonth={(year, month) => {
+              setSharedPeriod(null);
+              setSelectedYear(String(year));
+              setFilter(prev => ({ ...prev, month }));
+              saveOrderReportPeriod(orderMonthPeriod(year, month));
+            }}
+          />
         </div>
       </div>
 

@@ -134,7 +134,7 @@ const isValidDateRange = (dateFrom, dateTo) => {
 };
 
 const AdminPortalOriginal = () => {
-  const { dealerGuid, setDealerGuid, isAdmin, role } = useDealerContext();
+  const { dealerGuid, setDealerGuid, isAdmin, role } = useDealerContext({ allowGroups: true });
   const { register, cancelAll } = useCancelAllRequests();
   const { t } = useTranslation();
   const location = useLocation();

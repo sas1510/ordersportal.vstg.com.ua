@@ -1,3 +1,4 @@
+import { dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
 import DashboardV2Metrics from "./DashboardV2Metrics";
 import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -455,7 +456,7 @@ function ProductionRingCard({
         <small>
           {formatNumber(inTimeCount)} {t("production_statistics.order")}
           <br />
-          {t("production_statistics.average")} {formatDays(averageProductionDays)} {t("production_statistics.units_pieces")}.
+          {t("production_statistics.average")} {formatDays(averageProductionDays)} дн.
         </small>
       </button>
 
@@ -574,13 +575,13 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
   const summaryMonthEnd = new Date(now.getFullYear(), now.getMonth() + summaryMonthOffset + 1, 0);
 
   const { dealerGuid, setDealerGuid, isAdmin, isLoading: dealerContextLoading } =
-    useDealerContext();
-  const [dealerGroup, setDealerGroup] = useState("");
-  const aggregateDealers = portfolio || (isAdmin && dealerGuid === "__ALL__");
+    useDealerContext({ defaultAll: portfolio, allowGroups: true });
+  const dealerGroup = dealerGroupForSelection(dealerGuid) || "";
+  const aggregateDealers = (portfolio && !dealerGuid) || (isAdmin && isAggregateDealerSelection(dealerGuid));
   const loadDealerDetails = !summaryOnly;
   const [savedPeriod] = useState(() => readOrderReportPeriod());
-  const initialFrom = summaryOnly ? formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 0, 1) : summaryMonthStart) : queryParams.get("date_from") || savedPeriod?.dateFrom || formatDateInput(monthStart);
-  const initialTo = summaryOnly ? formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 11, 31) : summaryMonthEnd) : queryParams.get("date_to") || savedPeriod?.dateTo || formatDateInput(monthEnd);
+  const initialFrom = summaryOnly ? savedPeriod?.dateFrom || formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 0, 1) : summaryMonthStart) : queryParams.get("date_from") || savedPeriod?.dateFrom || formatDateInput(monthStart);
+  const initialTo = summaryOnly ? savedPeriod?.dateTo || formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 11, 31) : summaryMonthEnd) : queryParams.get("date_to") || savedPeriod?.dateTo || formatDateInput(monthEnd);
   const requestedDealerGuid = queryParams.get("contractor_guid") || "";
   const pageRootRef = useRef(null);
   const orderDetailsRef = useRef(null);
@@ -679,7 +680,7 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
   }, [dashboardData]);
 
   useEffect(() => {
-    if (!portfolio && dealerContextLoading) {
+    if (dealerContextLoading) {
       return;
     }
 
@@ -701,7 +702,7 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
         const params = {
           date_from: searchParams.from,
           date_to: searchParams.to,
-          ...(aggregateDealers ? { portfolio: 1, dealer_group: summaryOnly ? undefined : dealerGroup || undefined } : { contractor_guid: dealerGuid }),
+          ...(aggregateDealers ? { portfolio: 1, dealer_group: dealerGroup || undefined } : { contractor_guid: dealerGuid }),
         };
         const [timelinessResponse, unifiedResponse, comparisonResponse] = await Promise.all([
           axiosInstance.get("/production-timeliness/", { params, timeout: 60000 }),
@@ -1491,7 +1492,7 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
         {summaryOnly && analyticsLink}
         {!summaryOnly && <div className="production-design__filters">
           <div className="production-design__filters-stack">
-            {isAdmin && !portfolio ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelectWithAll showGroupFilter group={dealerGroup} onGroupChange={setDealerGroup} value={dealerGuid} onChange={setDealerGuid} /></div> : null}
+            {isAdmin && !portfolio ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelectWithAll showGroupFilter unifiedGroupSelection group={dealerGroup} value={dealerGroup ? "__ALL__" : dealerGuid} onChange={setDealerGuid} /></div> : null}
             {!summaryOnly && <div className="production-design__date-range">
               <label><span>{t("production_statistics.from")}</span><input type="date" value={dateInputs.from} onChange={(event) => setDateInputs((prev) => ({ ...prev, from: event.target.value }))} /></label>
               <label><span>{t("production_statistics.to")}</span><input type="date" value={dateInputs.to} onChange={(event) => setDateInputs((prev) => ({ ...prev, to: event.target.value }))} /></label>

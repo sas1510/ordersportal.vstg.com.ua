@@ -1,3 +1,4 @@
+import { DEALER_REPORT_GROUP_OPTIONS } from "../utils/dealerReportGroups";
 import React, { useEffect, useState, useRef } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import axiosInstance from "../api/axios";
@@ -14,6 +15,7 @@ const DealerSelectWithAll = ({
   allLabel,
   extraOptions = [],
   showGroupFilter = false,
+  unifiedGroupSelection = false,
   dealerPreview = false,
   group = "",
   onGroupChange,
@@ -86,6 +88,10 @@ const DealerSelectWithAll = ({
   const selectValue = (nextValue) => {
     if (showGroupFilter) {
       const selectedGroup = nextValue.startsWith("group:") ? nextValue.slice(6) : "";
+      if (unifiedGroupSelection) {
+        onChange(selectedGroup ? DEALER_REPORT_GROUP_OPTIONS.find(option => option.group === selectedGroup)?.value || ALL_DEALERS_VALUE : nextValue);
+        return;
+      }
       onGroupChange?.(selectedGroup);
       onChange(selectedGroup ? ALL_DEALERS_VALUE : nextValue);
     } else {

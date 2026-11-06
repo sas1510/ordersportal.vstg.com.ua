@@ -241,7 +241,7 @@ function AppRoutes() {
 
 if (normalizedRole === "internal_dealer" && user?.internal_dealer_can_edit !== true) {
   routes = routes.map((route) => ["zamir", "constructor", "change-password"].includes(route.path)
-    ? { ...route, element: <main className="p-8"><p>Доступний лише перегляд даних.</p></main> }
+    ? { ...route, element: <main className="p-8" style={{ paddingTop: 170 }}><p>Доступний лише перегляд даних.</p></main> }
     : route);
 }
 

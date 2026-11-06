@@ -1,3 +1,4 @@
+import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -35,7 +36,7 @@ const normalizeAdditionalOrderStatus = (value) => {
 
 const AdminAdditionalOrders = () => {
     const { register, cancelAll } = useCancelAllRequests();
-  const { dealerGuid, setDealerGuid, isAdmin, isSuperAdmin } = useDealerContext({ defaultAll: true });
+  const { dealerGuid, setDealerGuid, isAdmin, isSuperAdmin } = useDealerContext({ defaultAll: true, allowGroups: true });
   const selectedDealerGroup = isSuperAdmin ? dealerGroupForSelection(dealerGuid) : null;
   const {t} = useTranslation();
   const { addNotificaton } = useNotification();
@@ -511,10 +512,7 @@ const AdminAdditionalOrders = () => {
 
   return (
     <div className="column portal-body">
-      {sharedPeriod && <div className="px-3 py-1 text-center" role="status">
-        Період: {sharedPeriod.dateFrom} — {sharedPeriod.dateTo}{" "}
-        <button type="button" className="underline" onClick={() => setSharedPeriod(null)}>Вибрати інший</button>
-      </div>}
+      
       <div className="content-summary row w-100"  style={{justifyContent: 'center'}}>
 
 
@@ -533,7 +531,7 @@ const AdminAdditionalOrders = () => {
           </select>
         </div> */}
 
-        <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'center'}} >
+        <div className="by-month-pagination-wrapper row gap-4" style={{justifyContent: 'flex-start'}} >
 
         <div
             className="mobile-sidebar-toggle mr-1"
@@ -549,128 +547,26 @@ const AdminAdditionalOrders = () => {
           </div>
 
 
-           <div className="year-inline-selector row">
-              <img 
-                  src={yearIcon} 
-                  alt="РЎС‚СЂС–Р»РєР°" 
-                  className="portal-service-icon align-center mr-2 w-[26px] h-[25px]" 
-           
-                />
-                <div className="flex items-center justify-center text-center text-white text-lg font-normal font-['Inter'] uppercase mr-2">
-            {t("portal_calc.ui.report_year")}
-          </div>
-
-             <select
-                className="year-select-minimal"
-                value={selectedYear}
-                onChange={(e) => { setSharedPeriod(null); setSelectedYear(e.target.value); saveOrderReportPeriod(orderMonthPeriod(e.target.value, filter.month)); }}
-              >
-                {Array.from({ length: 3 }, (_, i) => {
-                  const year = new Date().getFullYear() - i;
-                  return (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-       
-          <ul className="gap-6 row no-wrap month-list flex-1">
-
-            {!isAggregateDealerSelection(dealerGuid) && (
-              <li
-                className={`pagination-item ${filter.month === 0 ? "active" : ""}`}
-                onClick={() => handleMonthClick(0)}
-              >
-                {t("portal_calc.months.all_year")}
-              </li>
-            )}
-            
-
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              // const labels = [
-              //   "РЎС–С‡.",
-              //   "Р›СЋС‚.",
-              //   "Р‘РµСЂ.",
-              //   "РљРІС–С‚.",
-              //   "РўСЂР°РІ.",
-              //   "Р§РµСЂРІ.",
-              //   "Р›РёРї.",
-              //   "РЎРµСЂ.",
-              //   "Р’РµСЂ.",
-              //   "Р–РѕРІ.",
-              //   "Р›РёСЃ.",
-              //   "Р“СЂСѓРґ.",
-              // ];
-
-              const labels = t("portal_calc.months.short", { returnObjects: true });
-
-              const disabled =
-                !isAggregateDealerSelection(dealerGuid) && monthSummary[num] === 0;
-
-              return (
-                <li
-                  key={num}
-                  className={`pagination-item ${filter.month === num ? "active" : ""} ${disabled ? "disabled" : ""}`}
-                  onClick={() => {
-                    if (disabled) return;
-                    handleMonthClick(num);
-                  }}
-                >
-                  {labels[i]}
-                  {!isAggregateDealerSelection(dealerGuid) && (
-                    <span className="text-grey"> ({monthSummary[num]})</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-
-
-          <select
-            className="month-select flex-1"
-            value={filter.month}
-            onChange={(e) => handleMonthClick(Number(e.target.value))}
-          >
-
-            {!isAggregateDealerSelection(dealerGuid) && (
-              <option value={0}>{t("portal_calc.months.all_year")}</option>
-            )}
-
-            {Array.from({ length: 12 }, (_, i) => {
-              const num = i + 1;
-              // const labels = [
-              //   "РЎС–С‡РµРЅСЊ",
-              //   "Р›СЋС‚РёР№",
-              //   "Р‘РµСЂРµР·РµРЅСЊ",
-              //   "РљРІС–С‚РµРЅСЊ",
-              //   "РўСЂР°РІРµРЅСЊ",
-              //   "Р§РµСЂРІРµРЅСЊ",
-              //   "Р›РёРїРµРЅСЊ",
-              //   "РЎРµСЂРїРµРЅСЊ",
-              //   "Р’РµСЂРµСЃРµРЅСЊ",
-              //   "Р–РѕРІС‚РµРЅСЊ",
-              //   "Р›РёСЃС‚РѕРїР°Рґ",
-              //   "Р“СЂСѓРґРµРЅСЊ",
-              // ];
-              const labels = t("portal_calc.months.full", { returnObjects: true });
-
-              const disabled =
-                !isAggregateDealerSelection(dealerGuid) && monthSummary[num] === 0;
-
-              return (
-                <option key={num} value={num} disabled={disabled}>
-                  {labels[i]}
-                  {!isAggregateDealerSelection(dealerGuid)
-                    ? ` (${monthSummary[num]})`
-                    : ""}
-                </option>
-              );
-            })}
-          </select>
+           <ServiceOrderDateFilter
+            year={selectedYear}
+            month={filter.month}
+            years={Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i)}
+            counts={isAggregateDealerSelection(dealerGuid) ? undefined : monthSummary}
+            allowYear={!isAggregateDealerSelection(dealerGuid)}
+            period={sharedPeriod}
+            onPeriod={(period) => {
+              setSelectedYear(period.year);
+              setSharedPeriod(period);
+              setFilter(prev => ({ ...prev, month: 0 }));
+              saveOrderReportPeriod(period);
+            }}
+            onMonth={(year, month) => {
+              setSharedPeriod(null);
+              setSelectedYear(String(year));
+              setFilter(prev => ({ ...prev, month }));
+              saveOrderReportPeriod(orderMonthPeriod(year, month));
+            }}
+          />
         </div>
       </div>
 

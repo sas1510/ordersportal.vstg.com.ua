@@ -1,3 +1,4 @@
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import DealerSelectWithAll from "./DealerSelectWithAll";
 import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection } from "../utils/dealerReportGroups";
 import { useEffect, useMemo, useState } from "react";
@@ -35,14 +36,15 @@ export default function DealerReportsPage() {
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   const navigate = useNavigate();
   const [query] = useSearchParams();
-  const { isAdmin, role, isLoading: contextLoading } = useDealerContext();
+  const { isAdmin, role, isLoading: contextLoading, dealerGuid, setDealerGuid } = useDealerContext({ defaultAll: true, allowGroups: true });
 
-  const initialFrom = query.get("date_from") || monthStart.toISOString().slice(0, 10);
-  const initialTo = query.get("date_to") || monthEnd.toISOString().slice(0, 10);
+  const initialFrom = query.get("date_from") || readOrderReportPeriod()?.dateFrom || monthStart.toISOString().slice(0, 10);
+  const initialTo = query.get("date_to") || readOrderReportPeriod()?.dateTo || monthEnd.toISOString().slice(0, 10);
 
   const [dateInputs, setDateInputs] = useState({ from: initialFrom, to: initialTo });
   const [searchParams, setSearchParams] = useState({ from: initialFrom, to: initialTo });
-  const [selection, setSelection] = useState("__ALL__");
+  const selection = dealerGuid || "__ALL__";
+  const setSelection = setDealerGuid;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reportData, setReportData] = useState(null);
@@ -132,6 +134,7 @@ export default function DealerReportsPage() {
   );
 
   const handleSearch = () => {
+    saveOrderReportPeriod({ mode: "period", year: dateInputs.from.slice(0, 4), month: 0, dateFrom: dateInputs.from, dateTo: dateInputs.to });
     setSearchParams({ ...dateInputs });
   };
 

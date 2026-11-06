@@ -1,3 +1,4 @@
+import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 // // // // import React, { useEffect, useState } from "react";
 // // // // import axiosInstance from "../api/axios";
 // // // // import "./CustomerBillsPage.css";
@@ -1323,8 +1324,8 @@ const CustomerBillsPage = () => {
   const defaultDates = useMemo(() => getCurrentMonthRange(), []);
   const [bills, setBills] = useState([]);
   const [edrpouData, setEdrpouData] = useState([]); 
-  const [dateFrom, setDateFrom] = useState(defaultDates.dateFrom);
-  const [dateTo, setDateTo] = useState(defaultDates.dateTo);
+  const [dateFrom, setDateFrom] = useState(() => readOrderReportPeriod()?.dateFrom || defaultDates.dateFrom);
+  const [dateTo, setDateTo] = useState(() => readOrderReportPeriod()?.dateTo || defaultDates.dateTo);
   const [loading, setLoading] = useState(!isAdmin);
   const [_error, setError] = useState("");
   const [isCreateBillOpen, setIsCreateBillOpen] = useState(false);
@@ -1344,6 +1345,7 @@ const CustomerBillsPage = () => {
         return;
       }
 
+      saveOrderReportPeriod({ mode: "period", year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
       const res = await axiosInstance.get("/payments/dealers/bills/", { params });
       setBills(res.data?.items || []);
       setEdrpouData(res.data?.edrpou || []); 

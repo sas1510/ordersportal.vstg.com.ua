@@ -1,4 +1,10 @@
-const periodKey = () => `portal.orderReportPeriod:${window.location.pathname}`;
+const periodKey = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const preview = sessionStorage.getItem("dealerPreviewToken") ? ":preview" : "";
+    return `portal.orderReportPeriod:shared:${user.id || user.username || ""}${preview}`;
+  } catch { return "portal.orderReportPeriod:shared"; }
+};
 const validDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "");
 
 export function readOrderReportPeriod(search = window.location.search) {
@@ -12,7 +18,10 @@ export function readOrderReportPeriod(search = window.location.search) {
   if (/^\d{4}$/.test(year || "")) return orderMonthPeriod(year, 0);
   try {
     const saved = JSON.parse(sessionStorage.getItem(periodKey()));
-    if (saved && validDate(saved.dateFrom) && validDate(saved.dateTo) && saved.dateFrom <= saved.dateTo) return saved;
+    if (saved && validDate(saved.dateFrom) && validDate(saved.dateTo) && saved.dateFrom <= saved.dateTo) {
+      // Aggregate pages have no all-year month option; preserve the full range instead.
+      return saved.mode === "year" && !saved.month ? { ...saved, mode: "period" } : saved;
+    }
   } catch { /* Storage may be unavailable. */ }
   return null;
 }
