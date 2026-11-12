@@ -5,5 +5,7 @@ for(const role of ["admin","manager","region_manager","regionalManager"]) { asse
 assert.equal(calculationNumber(calc,"dealer"),"45-12345");
 assert.equal(calculationDealerNumber(calc,"dealer"),"");
 assert.equal(calculationDealerNumber({...calc,dealerNumber:"",webNumber:"45-12345"},"admin"),"");
-assert.equal(calculationDealerNumber({...calc,isOrderOnly:true},"admin"),"");
+assert.equal(calculationDealerNumber({...calc,isOrderOnly:true,oneCNumber:""},"admin"),"");
 console.log("Role-specific calculation and dealer number checks passed");
+
+assert.equal(calculationDealerNumber({...calc,isOrderOnly:true},"admin"),"8204");
