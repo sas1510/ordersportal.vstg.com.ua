@@ -1,6 +1,8 @@
+import { isRiminiDealer } from "../../utils/dealerCapabilities";
 // import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
-// import { useMediaQuery } from "react-responsive";
+// import useHeaderLayout from "../../hooks/useHeaderLayout";
+import "./HeaderLayout.css";
 // import { AuthContext } from "../../context/AuthContext";
 // // import axiosInstance, { getAccessToken } from "../../api/axios";
 // import { useNotification } from "../../hooks/useNotification";
@@ -299,20 +301,20 @@
 //     {!isMobile ? (
 //       <>
 
-//         <nav className="flex h-full min-w-0 flex-1">
+//         <nav className="header-desktop-nav flex h-full min-w-0 flex-1">
 //           <ul className="flex h-full w-full items-center">
 //             {NAV_LINKS.map((link) => (
          
 //               <li key={link.to} className="h-full flex-1">
 //                 <Link
-//   to={link.to}
+//   to={link.to} data-header-primary={link.primary || undefined}
 //   className={`h-full flex items-center justify-center px-1 text-[13px] font-bold transition-all text-center 
 //     ${location.pathname.startsWith(link.to) 
 //       ? "bg-[var(--header-accent)] text-[var(--header-active-text)]" 
 //       : "text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
 //     }`}
 // >
-//   {link.title}
+//   {link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}
 // </Link>
 //               </li>
 //             ))}
@@ -320,7 +322,7 @@
        
 //             <li className="h-full relative flex-1" ref={financeRef}>
 //               <button 
-//                 onClick={() => setShowFinanceMenu(!showFinanceMenu)}
+//                 data-header-primary="true" onClick={() => setShowFinanceMenu(!showFinanceMenu)}
 //                 className={`w-full h-full px-2 text-[14px] font-bold flex items-center justify-center gap-1 transition-colors`}
 //                 style={{
 //                   backgroundColor: showFinanceMenu || location.pathname.includes("/finance") ? 'var(--header-accent)' : 'transparent',
@@ -473,7 +475,7 @@
 //           }`}
 //           onClick={() => setMobileMenuOpen(false)}
 //         >
-//           {link.title}
+//           {link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}
 //         </Link>
 //         <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />
 //       </div>
@@ -604,7 +606,8 @@
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
-import { useMediaQuery } from "react-responsive";
+import useHeaderLayout from "../../hooks/useHeaderLayout";
+import "./HeaderLayout.css";
 import { AuthContext } from "../../context/AuthContext";
 import axiosInstance, { dealerPreviewToken, getAccessToken } from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
@@ -640,7 +643,7 @@ export default function HeaderDealer() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const closeComparison = useCallback(() => setComparisonOpen(false), []);
   const { t } = useTranslation();
-  const isMobile = useMediaQuery({ maxWidth: 1340 });
+  const { headerRef, isMobile } = useHeaderLayout();
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useContext(AuthContext);
@@ -669,7 +672,8 @@ export default function HeaderDealer() {
     { title: t('nav.finance_analytics'), to: '/statistics' },
     canViewFinance && { title: t('nav.finance_cash_flow'), to: '/finance/cash-flow' },
     canViewFinance && { title: t('nav.finance_bills'), to: '/finance/customer-bills' },
-  ].filter(Boolean), [t, canViewFinance]);
+    canViewFinance && !isRiminiDealer(user) && { title: 'Рахунки', to: '/finance/invoices' },
+  ].filter(Boolean), [t, canViewFinance, user]);
   const isFinanceActive = FINANCE_SUBMENU.some((item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`));
 
   // --- СТАН ДАНИХ ---
@@ -689,8 +693,6 @@ export default function HeaderDealer() {
   const [showFinanceMenu, setShowFinanceMenu] = useState(false);
   const financeRef = useRef(null);
   const mobileMenuRef = useRef(null);
-  const moneyIcon = "/assets/icons/MoneyIconSubMenu.png"; 
-  const profileIcon = "/assets/icons/ProfileIconSubMenu.png";
   const closeIcon = "/assets/icons/CloseButton.png";
   const polygonIcon = "/assets/icons/PolygonOpenProfileSubmenu.png";
   const menuIcon = "/assets/icons/Menu_Button.png";
@@ -919,26 +921,26 @@ export default function HeaderDealer() {
 
   return (
     // <header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
-    <header data-portal-header className="w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] ml-[8px] mr-[10px]">
+    <header ref={headerRef} data-portal-header className="portal-header-layout w-[calc(100%-20px)] flex flex-col items-center bg-transparent z-50 font-['Inter'] ml-[8px] mr-[10px]">
       {/* <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} /> */}
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
-      {/* <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
-      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative border  border-t-0 " style={{
+      {/* <div data-header-row className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative rounded-bl-[25px] rounded-br-[25px]" style={{ backgroundColor: 'var(--header-bg)' }}> */}
+      <div data-header-row className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative border  border-t-0 " style={{
           backgroundColor: 'var(--header-bg)',
           borderColor: '#d1d5db4d',
         }}>
         <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-2 max-[1261px]:mr-[4px]">
-          <img src={currentLogo} alt="Вікна Стиль" className="h-[38px] max-[1261px]:h-[36px] w-auto" />
+          <img src={currentLogo} alt="Вікна Стиль" className="h-[38px] w-auto" />
         </Link>
 
         {!isMobile ? (
           <>
-            <nav className="flex h-full min-w-0 flex-1">
+            <nav className="header-desktop-nav flex h-full min-w-0 flex-1">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
                     <li 
-                      key={link.to} 
+                      key={link.to} data-header-item={link.to} 
                       style={link.to === '/zamir' ? { flex: '0 0 80px' } : undefined}
                       className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0 "
                     >
@@ -946,8 +948,8 @@ export default function HeaderDealer() {
 
                        {/* shadow-[inset_0_1px_0_rgba(255,255,255,0.3),_0_2px_4px_rgba(0,0,0,0.1)] */}
                       <Link
-                        to={link.to}
-                        className={`h-full w-full flex items-center justify-center px-[2px] ${link.primary ? "text-[13px]" : "text-[12px]"} font-bold leading-tight transition-all text-center 
+                        to={link.to} data-header-primary={link.primary || undefined}
+                        className={`h-full w-full flex items-center justify-center px-[2px] ${link.primary ? "text-[clamp(14px,0.8vw,15px)] [color:#fff!important] [-webkit-text-fill-color:#fff!important]" : "text-[12px]"} font-bold leading-tight transition-all text-center 
                          
                           shadow-[0_2px_4px_rgba(0,0,0,0.1)]
                           active:translate-y-[1px] active:shadow-none 
@@ -957,19 +959,19 @@ export default function HeaderDealer() {
                             : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                           }`}
                       >
-                        {link.icon && <link.icon className="!w-[14px] !h-[14px] shrink-0 mr-[2px]" />}
-                        {link.title}
+                        {link.icon && <link.icon className={`!w-[14px] !h-[14px] shrink-0 mr-[2px] ${link.primary ? "text-[#B4D947]" : ""}`} />}
+                        {link.primary ? <span className="[-webkit-text-stroke:0.3px_#B4D947] [paint-order:stroke_fill]">{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span> : <span className={link.to === "/promo-wds-codes" || link.to === "/files" ? "header-two-line-label" : undefined}>{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span>}
                       </Link>
                     </li>
                   ))}
                 
                 {FINANCE_SUBMENU.length > 0 && <li 
-  className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" 
-  ref={financeRef}
+  className="h-full relative flex-1 min-w-max flex items-center border-r border-gray-300/30 last:border-r-0" 
+  ref={financeRef} data-header-finance="true"
 >
   <button 
-    onClick={() => setShowFinanceMenu(!showFinanceMenu)}
-    className={`w-full h-full px-[2px] text-[14px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all
+    data-header-primary="true" onClick={() => setShowFinanceMenu(!showFinanceMenu)}
+    className={`w-full h-full px-[2px] text-[clamp(14px,0.8vw,15px)] [color:#fff!important] [-webkit-text-fill-color:#fff!important] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all
       shadow-[0_2px_4px_rgba(0,0,0,0.1)]
       active:translate-y-[1px] active:shadow-none
 
@@ -978,8 +980,8 @@ export default function HeaderDealer() {
         : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
       }`}
   >
-    {<Wallet className="!w-[14px] !h-[14px] shrink-0 mr-[2px]" />}
-    {t('nav.finance_short')} 
+    {<Wallet className="!w-[14px] !h-[14px] shrink-0 mr-[2px] text-[#B4D947]" />}
+    <span className="whitespace-nowrap [-webkit-text-stroke:0.3px_#B4D947] [paint-order:stroke_fill]">{t('nav.finance_short')}</span> 
     <span className={`inline-block transition-transform duration-200 ${showFinanceMenu ? "rotate-180" : ""}`}>
       ▾
     </span>
@@ -1181,7 +1183,7 @@ export default function HeaderDealer() {
               </button>
 
               {showFinanceMenu && (
-                <div className="mobile-side-menu-submenu bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
+                <div className="mobile-side-menu-submenu finance-profile-submenu bg-[#F9FFE6]/50 mx-[10%] rounded-lg overflow-hidden">
                   {FINANCE_SUBMENU.map((sub) => {
                     const isSubActive = location.pathname === sub.to;
 
@@ -1330,3 +1332,6 @@ export default function HeaderDealer() {
     </header>
   );
 }
+
+
+

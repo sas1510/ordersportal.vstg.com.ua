@@ -40,7 +40,10 @@ def dealer_reconciliation(request):
             if format_!='json':
                 return Response({'detail':'Спочатку сформуйте звіт.'},status=400)
             start,end,activity=parse_period(request.GET,timezone.localdate())
-            report=build_report(start,end,activity)
+            if request.GET.get('daily')=='1':
+                report=build_report(start,end,activity,daily=True)
+            else:
+                report=build_report(start,end,activity)
             token=uuid4().hex
             cache.set(f'{request.user.pk}:{token}',report,timeout=1800)
         region=request.GET.get('region','')

@@ -1,10 +1,10 @@
 /* Стилі для таблиці менеджерів */
-.portal-table thead tr {
+.manager-tg-page .portal-table thead tr {
   background-color: var(--drawer-item-unread, #f4f7f9) !important;
   color: var(--drawer-text-main, #333);
 }
 
-.portal-table tbody tr {
+.manager-tg-page .portal-table tbody tr {
   border-bottom: 1px solid var(--drawer-border, #eee) !important;
   color: var(--drawer-text-main, #262626);
 }
@@ -28,7 +28,27 @@
 }
 
 /* Адаптація фону панелі */
-.panel {
+.manager-tg-page .panel {
   background-color: var(--drawer-bg, #fff);
   color: var(--drawer-text-main, #333);
 }
+
+.portal-page-content .manager-tg-page {
+  padding:100px 5px 24px !important;
+  justify-content:flex-start;
+  height:auto;
+  min-height:100%;
+}
+.manager-tg-page .panel { margin-top:16px; padding:22px; border:1px solid #aaa095; border-top:3px solid #b4d947; border-radius:5px; box-shadow:none; }
+.manager-tg-page .header-container { margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #a49b90; }
+.manager-tg-page h2 { font-size:23px; line-height:1.35; text-transform:none; color:inherit; }
+.manager-tg-page .portal-table th { font-size:13px; font-weight:700; padding:14px 12px !important; }
+.manager-tg-page .portal-table td { padding:14px 12px !important; font-size:15px; }
+.manager-tg-page .portal-table tbody tr:hover { background:#b4d94712; }
+body.dark-theme .manager-tg-page { background:#4c4644; color:#fff; }
+body.dark-theme .manager-tg-page .panel { background:#5e5750; color:#fff; border-color:#8e8478; border-top-color:#b4d947; }
+body.dark-theme .manager-tg-page .portal-table thead tr { background:#746d63 !important; color:#fff; }
+body.dark-theme .manager-tg-page .portal-table tbody tr { color:#f5f1eb; border-color:#8a8074 !important; }
+body.dark-theme .manager-tg-page .manager-name-trigger { color:#b5dcfa !important; }
+.manager-tg-page .tg-popover-card { --drawer-bg:#f2eee7; --drawer-border:#c9c0b4; --drawer-text-main:#302d29; --drawer-text-muted:#625b53; }
+@media(max-width:720px) { .portal-page-content .manager-tg-page { padding-top:70px !important; } .manager-tg-page .panel { padding:14px 10px; } .manager-tg-page h2 { font-size:19px; } }

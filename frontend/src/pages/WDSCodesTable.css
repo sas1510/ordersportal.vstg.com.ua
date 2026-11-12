@@ -294,3 +294,5 @@ body.dark-theme .wds-card .row .badge-wds {
 body.dark-theme .no-data {
   color: var(--wds-text-muted);
 }
+
+.wds-page-content { padding-inline: 5px; box-sizing: border-box; }

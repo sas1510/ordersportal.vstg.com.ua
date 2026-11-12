@@ -65,10 +65,10 @@ export default React.memo(function OrderItemSummaryMobile({
 
   // ------------------------------------
   const [claimOrderNumber, setClaimOrderNumber] = useState("");
-  const { isAdmin, isBackoffice, isManager, isReadOnly } = useAuthGetRole();
+  const { isAdmin, isBackoffice, isManager, isReadOnly, canManageAfterSales } = useAuthGetRole();
   const canViewFinance = hasFinanceAccess();
-  const canConfirmOrder = !isBackoffice || isManager || isAdmin;
-  const canPayOrder = !isBackoffice || isManager || isAdmin;
+  const canConfirmOrder = !isReadOnly && (!isBackoffice || isManager || isAdmin);
+  const canPayOrder = !isReadOnly && (!isBackoffice || isManager || isAdmin);
 
   const orderNumber = String(order?.number || "").trim();
   const isSketchOrder = orderNumber.startsWith("34-");
@@ -190,7 +190,7 @@ export default React.memo(function OrderItemSummaryMobile({
   ]);
 
 
-  const hasActionButtons = !isReadOnly && (isSketchOrder
+  const hasActionButtons = (!isSketchOrder && canManageAfterSales && (buttonState.reorder || buttonState.claim)) || !isReadOnly && (isSketchOrder
     ? canConfirmOrder && buttonState.confirm
     : (canConfirmOrder && buttonState.confirm) || (canPayOrder && canViewFinance && buttonState.pay) || buttonState.reorder || buttonState.claim);
 
@@ -480,6 +480,7 @@ export default React.memo(function OrderItemSummaryMobile({
                  {formatDateHumanShorter_full(order.date, locale)}
 
               </div>
+
             </div>
           </div>
 
@@ -575,7 +576,7 @@ export default React.memo(function OrderItemSummaryMobile({
         {/* КНОПКИ (Сітка 2х2 + Швидке оформлення) */}
 <div 
   className="flex items-center gap-3 " 
-  style={{ display: isReadOnly ? "none" : undefined }}
+  style={{ display: !canManageAfterSales && isReadOnly ? "none" : undefined }}
   onClick={(e) => e.stopPropagation()}
 >
   {/* Ліва частина: кнопки дій */}
@@ -610,7 +611,7 @@ export default React.memo(function OrderItemSummaryMobile({
               {t("order_mobile.buttons.confirm")}
             </button>)}
 
-            {canViewFinance && buttonState.pay && (<button
+            {!isReadOnly && canViewFinance && buttonState.pay && (<button
               type="button"
               className={`h-[31px] flex items-center font-['Inter'] justify-center px-2 bg-WS---DarkGreen text-white rounded-[5px] font-medium text-[14px] leading-tight order-action-button order-action-button--pay ${debtAmount <= 0 ? "order-action-button--paid" : "disabled:opacity-50"}`}
               disabled={!buttonState.pay || !canViewFinance}
@@ -653,35 +654,12 @@ export default React.memo(function OrderItemSummaryMobile({
     )}
   </div>
 
-  {!isSketchOrder && (
-    <div
-      className="flex flex-col items-center justify-center min-w-[40px] text-center gap-1 cursor-help"
-      title={
-        dateDiffStatus
-          ? t("order_mobile.fast_order.fast")
-          : t("order_mobile.fast_order.slow")
-      }
-    >
-      {dateDiffStatus === null ? null : (
-        <div className="order-fast-icon-wrap p-1 rounded-sm overflow-hidden flex items-center justify-center">
-          <img
-            src={speedIcon}
-            alt="Іконка швидкості"
-            className={`block order-fast-icon ${
-              dateDiffStatus
-                ? "order-fast-icon--positive"
-                : "order-fast-icon--negative"
-            }`}
-          />
-        </div>
-      )}
-      <span className="order-fast-label text-[9px] leading-none text-gray-500 font-medium whitespace-nowrap">
-        {t("order_mobile.fast_order.title_1")}
-        <br />
-        {t("order_mobile.fast_order.title_2")}
-      </span>
-    </div>
-  )}
+
+        {!isSketchOrder && <div className="summary-item order-fast-final" title={dateDiffStatus ? t("order_mobile.fast_order.fast") : t("order_mobile.fast_order.slow")}>
+          <span className="order-fast-label">{t("order_mobile.fast_order.title_1")}<br />{t("order_mobile.fast_order.title_2")}</span>
+          {dateDiffStatus !== null && <img src={speedIcon} alt="" className={`order-fast-icon ${dateDiffStatus ? "order-fast-icon--positive" : "order-fast-icon--negative"}`} />}
+        </div>}
+
 </div>
 
 {!isSketchOrder && (

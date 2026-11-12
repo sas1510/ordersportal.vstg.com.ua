@@ -5,6 +5,7 @@ from . import views
 from django.urls import path
 from .views import get_payment_status_view, get_dealer_payment_page_data_view, get_dealer_advance_balance, export_payment_status_excel, dealer_bills_add_info_view, customer_bills_view, create_invoice, create_invoice_v2, invoice_contractors_view, invoice_profile_v2_view, invoice_advance_contracts_view, invoice_settlements_view, make_payment_from_advance, get_partner_full_data_view
 from .views import GetBillPDF
+from .customer_bill_items import customer_bill_items_view
 
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path("export_payment_status_excel/", export_payment_status_excel , name="export_payment_status_excel"),
     path("dealers/profile/", dealer_bills_add_info_view , name="dealer_bills_add_info_view"),
     path("dealers/bills/", customer_bills_view, name="customer_bills_view" ),
+    path("dealers/bill-items/", customer_bill_items_view, name="customer_bill_items"),
     path("create_invoice/", create_invoice, name="create_invoice" ),
     path("create_invoice_v2/", create_invoice_v2, name="create_invoice_v2"),
     path("invoice-contractors/", invoice_contractors_view, name="invoice_contractors"),

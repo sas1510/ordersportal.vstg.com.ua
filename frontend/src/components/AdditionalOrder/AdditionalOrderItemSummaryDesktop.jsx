@@ -35,8 +35,8 @@ export default function AdditionalOrderItemSummaryDesktop({ order, contractorGui
   const fileIcon = "/assets/icons/FileIcon.png";
   const windowsIcon = "/assets/icons/WindowsIconCalc.png";
 
-  const { user, isReadOnly } = useAuthGetRole();
-  const canViewFinance = hasFinanceAccess(user);
+  const { user, isReadOnly, isGeneralReadOnly } = useAuthGetRole({ afterSales: true });
+  const canViewFinance = hasFinanceAccess(user) && !isGeneralReadOnly;
   // const isAdmin = role === "admin";
 
   const debtAmount = useMemo(() => {

@@ -162,3 +162,8 @@ body:not(.dark-theme) .dashboard-v2__card--constructions { --v2-metric:#856108; 
   font-size: clamp(18px, 1.5vw, 24px);
   letter-spacing: -.3px;
 }
+
+.dashboard-v2__card--average .dashboard-v2__money strong,
+.dashboard-v2__card--accent .dashboard-v2__money strong {
+  font-size: clamp(22px, 1.9vw, 32px);
+}

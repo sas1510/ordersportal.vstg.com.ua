@@ -15,7 +15,7 @@
   width: calc(100%);
   align-items: flex-start;
   transition: box-shadow 0.2s ease-in-out;
-  margin-bottom: 14px; /* Відступ між елементами списку */
+  margin-bottom: 2px; /* Compact spacing between complaints. */
   cursor: pointer;
 }
 
@@ -234,7 +234,7 @@
 /* 1. Базові стилі для ВСІХ рекламацій (Світла тема) */
 .reclamation-item {
   position: relative;
-  margin-bottom: 14px; /* Відступ між елементами списку */
+  margin-bottom: 2px; /* Compact spacing between complaints. */
   min-height: 60px;
   padding: 7px;
   width: calc(100%);

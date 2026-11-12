@@ -1,3 +1,4 @@
+from .posted_orders import mark_posted_orders
 from .order_sql_compat import execute_orders_sql
 from pathlib import Path
 from .calculation_metadata import attach_calculation_metadata
@@ -953,6 +954,7 @@ def get_orders_by_period_and_contractor(
             for row in cursor.fetchall()
         ]
 
+    rows = mark_posted_orders(rows)
     calcs_dict = {}
 
     for row in rows:
@@ -1057,7 +1059,7 @@ def get_orders_by_period_and_contractor(
         order_id_guid = row.get("OrderID_GUID")
         order_number = row.get("OrderNumber")
 
-        if not order_id_guid and not order_number:
+        if not row.get("_posted_order") or (not order_id_guid and not order_number):
             continue
 
         order = {
@@ -1234,6 +1236,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
         columns = [col[0] for col in cursor.description]
         rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+    rows = mark_posted_orders(rows)
     calcs_dict = {}
     for row in rows:
         calc_id = row.get("CalcID_GUID") or row.get("ClientOrderNumber") or row.get("OrderNumber") or "default"
@@ -1276,6 +1279,9 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
 
 
     
+        if not row.get("_posted_order"):
+            continue
+
         order = {
             "id": row.get("OrderID"),
             "idGuid": row.get("OrderID_GUID"),
@@ -1518,6 +1524,9 @@ def api_get_orders(request):
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    search_number = request.GET.get("search_number", "").strip().removeprefix("№").strip()
+    if search_number and not re.fullmatch(r"[0-9A-Za-z_А-Яа-яІіЇїЄєҐґ-]{3,40}", search_number):
+        return Response({"error": "Введіть повний номер документа."}, status=400)
     data_started = time.perf_counter()
     try:
         data = async_to_sync(async_get_data)(
@@ -1548,6 +1557,27 @@ def api_get_orders(request):
             {"error": "Internal server error during data fetch"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+    if search_number:
+        def normalized_number(value):
+            value = str(value or "").strip().removeprefix("№").strip().casefold().replace("-", "")
+            return value.lstrip("0") or "0"
+
+        wanted = normalized_number(search_number)
+        if requester_role != "internal_dealer":
+            standalone = async_to_sync(async_get_data)(
+                date_from, date_to, contractor_bin, internal_dealer=True,
+            )
+            data += [
+                calc for calc in standalone
+                if calc.get("isOrderOnly") and not calc.get("applicationGuid")
+                and all(not order.get("applicationGuid") for order in calc.get("orders", []))
+            ]
+        data = [
+            calc for calc in data
+            if any(normalized_number(calc.get(field)) == wanted for field in ("number", "webNumber", "clientOrderNumber"))
+            or any(normalized_number(order.get("number")) == wanted for order in calc.get("orders", []))
+        ]
 
     data_seconds = time.perf_counter() - data_started
     chat_started = time.perf_counter()
@@ -2928,6 +2958,9 @@ def orders_view_all_by_month(request):
             status=400,
         )
 
+    if request.GET.get("operational") == "1" and (date_to - date_from).days < 89:
+        return JsonResponse({"error": "Виберіть період щонайменше 90 днів включно."}, status=400)
+
     logger.info(
         "Fetching orders with role-based contractor filtering",
         extra={
@@ -2969,6 +3002,7 @@ def orders_view_all_by_month(request):
                     for row in cursor.fetchall()
                 )
 
+        rows = mark_posted_orders(rows)
         rows = exclude_export_dealers(
             [row for row in rows if str(row.get("DealerType") or "").strip().casefold() != "експорт"],
             "ContractorID",
@@ -3101,7 +3135,7 @@ def orders_view_all_by_month(request):
                     or row.get("OrderNumber")
                 )
 
-                if not has_order:
+                if not has_order or not row.get("_posted_order"):
                     continue
 
                 order = {
@@ -3376,6 +3410,8 @@ def orders_view_all_by_month(request):
                 "status": "success",
                 "data": {
                     "calculation": formatted_calcs,
+                    **({"dealer_activity": _operational_dealer_activity(scoped_user, dealer_group)}
+                       if request.GET.get("operational") == "1" else {}),
                 },
             },
             json_dumps_params={
@@ -3956,7 +3992,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         data = serializer.validated_data
 
         try:
-            _, contractor_guid = self.resolve_creation_contractor(request)
+            contractor_bin, contractor_guid = self.resolve_creation_contractor(request)
         except (ValueError, PermissionError) as e:
             logger.warning(f"Access denied for create calculation: {str(e)}", extra={
                 "tags": {
@@ -5817,6 +5853,53 @@ def _normalize_portal_user_guid(value):
         except Exception:
             return None
     return _normalize_guid_text(value)
+
+
+def _operational_dealer_activity(user, group):
+    from datetime import timedelta
+    from .dealer_groups import normalized_contractor
+
+    rows = filter_report_dealer_group(get_accessible_dealer_rows(user), group, "ContractorID")
+    dealers = {}
+    for row in rows:
+        guid = normalized_contractor(row.get("ContractorID"))
+        if guid:
+            dealers[guid] = {
+                "id": guid,
+                "name": row.get("ContractorName") or row.get("DealerName") or "Без назви",
+                "orders": 0, "last": None, "regular": False, "inactive": True,
+            }
+
+    end = now().astimezone(ZoneInfo("Europe/Kyiv")).date()
+    previous_month = end.replace(day=1) - timedelta(days=1)
+    start = (previous_month.replace(day=1) - timedelta(days=1)).replace(day=1)
+    stop = end + timedelta(days=1)
+    ids = list(dealers)
+    with connection.cursor() as cursor:
+        for offset in range(0, len(ids), 500):
+            chunk = ids[offset:offset + 500]
+            placeholders = ",".join(["%s"] * len(chunk))
+            cursor.execute(f"""
+                SELECT B.Контрагент, COUNT(*), MAX(N.OrderDate),
+                       COUNT(DISTINCT MONTH(N.OrderDate))
+                FROM [oknastyle].[dbo].[_Document381] D
+                JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] B ON B.Ссылка = D._IDRRef
+                CROSS APPLY (VALUES (CASE WHEN YEAR(D._Date_Time) >= 3753
+                    THEN DATEADD(year, -2000, D._Date_Time) ELSE D._Date_Time END)) N(OrderDate)
+                WHERE D._Marked = 0x00 AND D._Posted = 0x01
+                  AND ((D._Date_Time >= %s AND D._Date_Time < %s)
+                    OR (D._Date_Time >= %s AND D._Date_Time < %s))
+                  AND B.Контрагент IN ({placeholders})
+                group by B.Контрагент
+            """, [start, stop, start.replace(year=start.year + 2000),
+                stop.replace(year=stop.year + 2000), *map(guid_to_1c_bin, chunk),
+            ])
+            for contractor, count, last, periods in cursor.fetchall():
+                dealers[normalized_contractor(contractor)].update(
+                    orders=count, last=last.date().isoformat(),
+                    regular=periods == 3, inactive=False,
+                )
+    return sorted(dealers.values(), key=lambda dealer: (-dealer["orders"], dealer["name"]))
 
 
 def _fetch_accessible_portal_dealers(requester_user):
@@ -8912,3 +8995,4 @@ def get_all_manager_list(request):
             },
             status=500,
         )
+

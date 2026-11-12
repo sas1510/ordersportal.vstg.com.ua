@@ -1,0 +1,93 @@
+/* Size top-level items by their text; dropdowns keep their own layout. */
+.portal-header-layout { --header-menu-font-size: clamp(10px, calc(0.72vw + 1.2px), 15px); }
+.portal-header-layout > div { max-width: 1800px; }
+.portal-header-layout .header-desktop-nav > ul > li {
+  flex: 1 0 auto !important;
+  min-width: max-content;
+}
+.portal-header-layout .header-desktop-nav > ul > li > a,
+.portal-header-layout .header-desktop-nav > ul > li > button {
+  box-sizing: border-box;
+  padding-inline: 3px;
+  font-size: var(--header-menu-font-size);
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  gap: 2px;
+}
+.portal-header-layout .header-desktop-nav .header-two-line-label {
+  display: inline-block;
+  max-width: 80px;
+  white-space: normal;
+  text-align: center;
+}
+@media (min-width: 1224px) {
+  .portal-header-layout [data-header-row] > a > img {
+    width: clamp(155px, 12vw, 195px);
+    height: auto;
+    max-height: 38px;
+    object-fit: contain;
+  }
+}
+
+
+.portal-header-layout .header-desktop-nav > ul > li > a > span,
+.portal-header-layout .header-desktop-nav > ul > li > button > span {
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+/* Keep the four main actions larger at every desktop width. */
+.portal-header-layout .header-desktop-nav > ul > li > [data-header-primary] {
+  font-size: calc(var(--header-menu-font-size) + 3px);
+}
+
+/* Give the shorter two-line materials label less room and reserve the finance arrow. */
+.portal-header-layout .header-desktop-nav > ul > li[data-header-item="/files"] {
+  flex: 0 0 clamp(78px, 6vw, 96px) !important;
+  min-width: 0;
+}
+.portal-header-layout .header-desktop-nav > ul > li[data-header-item="/files"] .header-two-line-label {
+  max-width: 62px;
+}
+.portal-header-layout .header-desktop-nav > ul > li[data-header-finance] {
+  min-width: clamp(104px, 7.5vw, 140px);
+}
+.portal-header-layout .header-desktop-nav > ul > li[data-header-finance] > button > span {
+  flex-shrink: 0;
+}
+
+/* Backoffice has extra reports/settings links and the 1C control. */
+.header-admin-layout { --header-menu-font-size: clamp(9px, calc(0.65vw + 0.5px), 13px); }
+.header-admin-layout .header-desktop-nav > ul > li[data-header-settings] {
+  min-width: 72px;
+  flex: 0 0 auto !important;
+}
+@media (min-width: 1224px) {
+  .header-admin-layout [data-header-row] > a > img { width: clamp(145px, 10.5vw, 180px); }
+  .header-admin-layout [data-header-profile] {
+    width: clamp(130px, 10vw, 175px);
+    min-width: 0;
+    max-width: none;
+    flex: 0 0 auto;
+  }
+  .header-admin-layout [data-header-profile] .admin-profile-box,
+  .header-admin-layout [data-header-profile] .profile-rectangle {
+    width: 100% !important;
+    min-width: 0;
+  }
+}
+
+/* The label grows with desktop type; the narrow layout keeps its existing width. */
+@media (min-width: 1600px) {
+  .portal-header-layout .header-desktop-nav > ul > li[data-header-item="/files"] {
+    flex: 0 0 clamp(112px, 7.5vw, 144px) !important;
+    min-width: 112px;
+  }
+  .portal-header-layout .header-desktop-nav > ul > li[data-header-item="/files"] .header-two-line-label {
+    max-width: 108px;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}

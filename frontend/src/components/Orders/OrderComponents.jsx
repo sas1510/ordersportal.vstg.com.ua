@@ -1,3 +1,4 @@
+import CalculationStatusLabel from "./CalculationStatusLabel";
 import OrderFilesModal from "./OrderFilesModal";
 // ================= CalculationItem.jsx (Final Optimization) =================
 import React, { useState, useCallback, useMemo, useEffect } from "react";
@@ -40,7 +41,7 @@ export const CalculationItem = React.memo(
     const [pendingRefusal, setPendingRefusal] = useState(null);
     const displayedComment = pendingRefusal && calc.message === pendingRefusal.previousMessage
       ? pendingRefusal.message
-      : calc.message;
+      : calc.message?.trim() || calc.sourceComment?.trim();
 
     const windowsIcon = "/assets/icons/WindowsIconCalc.png";
     const listCalcIcon = "/assets/icons/ListCalcIcon.png";
@@ -137,10 +138,9 @@ export const CalculationItem = React.memo(
       );
     }, [calc.orders]);
 
-    const openStatusHistory = (event, status) => {
+    const openStatusHistory = (event) => {
       event.stopPropagation();
       const ids = orderList
-        .filter((order) => !status || String(order.status || "").trim() === String(status).trim())
         .map((order) => order.idGuid || order.number);
       const sameHistory = expanded
         && ids.length === historyOrderIds.size
@@ -610,8 +610,7 @@ const statusPanelClass = (() => {
                     }}
                     className={`row gap-3 left  calc-status ${getStatusClass(status)}`}
                   >
-                    <div>{t(`statuses.${status}`, status)}</div>
-                    <div>({count})</div>
+                    <CalculationStatusLabel status={status} count={count} orders={calc.orders} label={t(`statuses.${status}`, status)} />
                   </div>
                 ))
               ) : (
@@ -670,6 +669,7 @@ const statusPanelClass = (() => {
           onClose={() => setIsCommentsOpen(false)}
           baseTransactionGuid={calc.applicationGuid || calc.id}
           transactionTypeId={1}
+          sourceComment={calc.sourceComment}
           manager={isBackoffice ? calc.dealerId : calc.manager}
         />
         )}

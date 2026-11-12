@@ -1442,7 +1442,7 @@ const CustomerBillsPage = () => {
   }
 
   return (
-    <div className="portal-body">
+    <div className="portal-body customer-bills-page">
       <div className="max-w-[1334px] mx-auto ">
         <div className="customer-bills-header">
           <h1 className="page-title">{t("bills.title")}</h1>

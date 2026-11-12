@@ -20,3 +20,161 @@ body.dark-theme .reconcile-page{--rc-text:#fafaf9;--rc-muted:#d6d3d1;--rc-surfac
 /* Dealer links remain plain text in both themes. */
 body.dark-theme .reconcile-page .reconcile-link{background:transparent;color:var(--rc-link)}body.dark-theme .reconcile-page .reconcile-link:hover{background:transparent;color:var(--rc-text)}
 
+
+.reconcile-application-group {
+  margin-top: 16px;
+  padding: 12px;
+  border-inline-start: 4px solid var(--reconcile-group-accent);
+  background: color-mix(in srgb, var(--reconcile-group-accent) 9%, transparent);
+}
+.reconcile-application-group--formed { --reconcile-group-accent: #5ca960; }
+.reconcile-application-group--new { --reconcile-group-accent: #e6a843; }
+.reconcile-application-group > h3 { margin: 0 0 8px; font-weight: 700; }
+
+.reconcile-application-group {
+  border-radius: 10px;
+  padding: clamp(12px, 2vw, 20px);
+  border: 1px solid color-mix(in srgb, var(--reconcile-group-accent) 45%, transparent);
+  border-inline-start-width: 4px;
+}
+.reconcile-application-group > h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--reconcile-group-accent) 35%, transparent);
+}
+.reconcile-group-count {
+  border-radius: 999px;
+  padding: 3px 12px;
+  background: var(--reconcile-group-accent);
+  color: #172018;
+  font-variant-numeric: tabular-nums;
+}
+
+.reconcile-registered-today > td { background: color-mix(in srgb, #5ca960 16%, transparent); }
+.reconcile-today-label { display: block; margin-top: 4px; font-weight: 600; }
+
+.reconcile-stage-breakdown {
+  grid-column: 1 / -1;
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid var(--rc-border);
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.reconcile-page .reconcile-quantity-mismatch {
+  background-color: rgba(231, 156, 47, 0.25);
+  box-shadow: inset 0 -2px #e79c2f;
+  font-weight: 700;
+}
+
+.reconcile-dialog .reconcile-dealer-path {
+  margin: 4px 0 12px;
+  color: var(--rc-muted);
+  font-size: 13px;
+}
+.reconcile-dialog h3 { margin: 12px 0 6px; }
+.reconcile-dialog .reconcile-application { margin-block: 6px; }
+.reconcile-dialog .reconcile-application summary {
+  padding: 8px 12px;
+  gap: 6px 12px;
+}
+.reconcile-dialog .reconcile-application-body { padding: 10px 12px; }
+.reconcile-dialog .reconcile-application-metrics { margin-block: 6px 12px; }
+.reconcile-dialog .reconcile-application-metrics > div { padding: 8px; }
+
+/* Compact report layout, shared by the overview and dealer details. */
+.reconcile-page h1 { font-size: clamp(21px, 2vw, 28px); margin: 3px 0 6px; }
+.reconcile-page h2 { font-size: 17px; margin-bottom: 8px; }
+.reconcile-page p { margin-block: 6px; line-height: 1.45; }
+.reconcile-eyebrow { font-size: 12px; }
+.reconcile-panel { padding: 12px; margin-block: 10px; box-shadow: none; }
+.reconcile-controls, .reconcile-toolbar { gap: 8px; }
+.reconcile-controls label { gap: 4px; font-size: 13px; }
+.reconcile-page input, .reconcile-page select { min-height: 38px; padding: 5px 8px; }
+.reconcile-page button { padding: 5px 10px; }
+.reconcile-page .reconcile-generate { min-width: 0; min-height: 38px; font-size: 14px; box-shadow: none; }
+.reconcile-toolbar { margin-block: 8px; }
+.reconcile-toolbar>span { flex: 1 1 340px; }
+.reconcile-result-summary { font-size: 14px; }
+.reconcile-stages { gap: 8px; margin-block: 10px; }
+.reconcile-stages article { padding: 10px; }
+.reconcile-stages h3 { min-height: 0; margin-bottom: 5px; }
+.reconcile-stages strong { font-size: 24px; }
+.reconcile-stages small { display: inline; margin: 0; }
+.reconcile-stages article>span { font-size: 14px; }
+.reconcile-stages article>span b { font-size: 17px; }
+.reconcile-comparison { gap: 7px; margin-block: 10px; }
+.reconcile-comparison>div>div { margin-top: 3px; }
+.reconcile-comparison i { height: 12px; }
+.reconcile-page th, .reconcile-page td { padding: 6px 8px; vertical-align: middle; }
+.reconcile-page tbody tr:hover { background: var(--rc-soft); }
+.reconcile-page .reconcile-link { padding: 2px 0; }
+.reconcile-application { margin-block: 5px; }
+.reconcile-application summary { min-height: 44px; padding: 8px 12px; gap: 6px 10px; }
+.reconcile-application-title { font-size: 14px; }
+.reconcile-application-title small { margin-top: 1px; }
+.reconcile-document-state { padding: 2px 6px; }
+.reconcile-application-brief { font-size: 13px; }
+.reconcile-application-body { padding: 10px; }
+.reconcile-application-metrics { gap: 6px; margin-bottom: 8px; }
+.reconcile-application-metrics>div { padding: 7px; }
+.reconcile-application-metrics dd { margin-top: 2px; font-size: 19px; }
+.reconcile-status-group, .reconcile-pagination { margin-block: 8px; }
+.reconcile-page .reconcile-application-search { gap: 4px; margin-block: 8px; }
+@media (min-width: 701px) {
+  .reconcile-page { max-width: none; padding-inline: 10px; }
+  .reconcile-page button { min-height: 34px; }
+  .reconcile-page .reconcile-link { min-height: 28px; }
+  .reconcile-application-brief { flex: 0 1 auto; }
+}
+@media (max-width: 700px) {
+  .reconcile-page .reconcile-generate { min-height: 44px; }
+  .reconcile-application summary { padding-right: 42px; }
+  .reconcile-toolbar>span { line-height: 1.35; }
+}
+
+.reconcile-columns { margin: 10px 0; padding: 10px; border: 1px solid var(--rc-border); }
+.reconcile-columns figcaption { font-size: 14px; font-weight: 700; }
+.reconcile-columns ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.reconcile-columns li { display: grid; grid-template-rows: auto 76px 1fr; gap: 4px; text-align: center; font-size: 12px; line-height: 1.35; }
+.reconcile-columns strong { font-size: 17px; font-variant-numeric: tabular-nums; }
+.reconcile-column-track { display: flex; align-items: end; justify-content: center; border-bottom: 1px solid var(--rc-border); }
+.reconcile-column-track span { display: block; width: min(60%, 76px); }
+
+.reconcile-page {
+  --rc-accent: #436321;
+  --rc-soft: #eff2e8;
+  --rc-border: #c9cebf;
+}
+body.dark-theme .reconcile-page {
+  --rc-accent: #c4dc83;
+  --rc-surface: #2b2e28;
+  --rc-soft: #373d30;
+  --rc-border: #646e59;
+  --rc-link: #d4e7ae;
+}
+.reconcile-page h1 { font-weight: 800; }
+.reconcile-eyebrow, .reconcile-columns figcaption { color: var(--rc-accent); }
+.reconcile-page .reconcile-generate,
+body.dark-theme .reconcile-page .reconcile-generate:not(:disabled) {
+  background: #c4dc83;
+  color: #242c18;
+  border-color: #c4dc83;
+}
+.reconcile-page .reconcile-generate:not(:disabled):hover { background: #d7e9a7; }
+.reconcile-status-grid { display: grid; gap: 10px; }
+.reconcile-status-grid > .reconcile-panel { margin-block: 0; }
+.reconcile-columns { background: var(--rc-soft); }
+.reconcile-columns .reconcile-new { background: #87946d; }
+.reconcile-columns .reconcile-linked { background: #cb9146; }
+.reconcile-columns .reconcile-confirmed { background: #83a842; }
+.reconcile-page thead th { color: var(--rc-accent); }
+.reconcile-page .reconcile-document-state { color: var(--rc-accent); }
+@media (min-width: 1100px) {
+  .reconcile-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

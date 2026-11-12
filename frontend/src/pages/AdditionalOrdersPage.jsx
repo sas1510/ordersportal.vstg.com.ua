@@ -609,7 +609,7 @@ const AdditionalOrders = () => {
 
           <ul className="buttons">
             <li
-              className="btn-add-calc !min-h-[65px]"
+              data-after-sales-display="flex" className="btn-add-calc !min-h-[65px]"
               onClick={() => setIsNewOrderModalOpen(true)}
             >
                 <img 

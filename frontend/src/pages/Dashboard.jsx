@@ -10,16 +10,9 @@ const ProductionStatisticsPage = lazy(() => import("./ProductionStatisticsPage")
 
 const formatNumber = new Intl.NumberFormat("uk-UA");
 
-function MyOrdersOverview() {
+function MyOrdersOverview({ dateFrom, dateTo, monthStart, monthControls }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
-  const now = new Date();
-  const monthOffset = now.getDate() === 1 ? -1 : 0;
-  const monthStart = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + monthOffset + 1, 0);
-  const formatDate = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  const dateFrom = formatDate(monthStart);
-  const dateTo = formatDate(monthEnd);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -52,7 +45,10 @@ function MyOrdersOverview() {
   return <main className="dealer-reports-page">
     <section className="dealer-reports-hero">
       <div><h1>Основні показники</h1><p>Аналітика за {monthStart.toLocaleDateString("uk-UA", { month: "long", year: "numeric" })}.</p></div>
-      <Link className="dealer-reports-link" to="/orders">До замовлень →</Link>
+      <div className="dashboard-summary-actions">
+        {monthControls}
+        <Link className="dealer-reports-link" to="/orders">До замовлень →</Link>
+      </div>
     </section>
     {error ? <p className="dealer-reports-state is-error" role="alert">Не вдалося завантажити аналітику.</p>
       : !data ? <p className="dealer-reports-state" role="status">Завантажуємо аналітику…</p>
@@ -75,11 +71,31 @@ function MyOrdersOverview() {
 
 export default function Dashboard({ variant = "classic" }) {
   const { isDealer, isBackoffice, role, user } = useAuthGetRole();
+  const [year, month, day] = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Kyiv' })
+    .format(new Date()).split('-').map(Number);
+  const [offset, setOffset] = useState(() => day <= 4 ? -1 : 0);
   if (!isDealer && !isBackoffice) return null;
 
+  const monthStart = new Date(year, month - 1 + offset, 1);
+  const monthEnd = new Date(year, month + offset, 0);
+  const datePrefix = monthStart.getFullYear() + '-' + String(monthStart.getMonth() + 1).padStart(2, '0');
+  const dateFrom = datePrefix + '-01';
+  const dateTo = datePrefix + '-' + monthEnd.getDate();
+  const monthControls = <div className="dashboard-month-controls" role="group" aria-label="Місяць дашборда">
+    <button type="button" aria-pressed={offset === -1} onClick={() => setOffset(-1)}>Попередній місяць</button>
+    <button type="button" aria-pressed={offset === 0} onClick={() => setOffset(0)}>Поточний місяць</button>
+  </div>;
+  const profileMonths = Array.from({ length: month }, (_, index) => {
+    const start = new Date(year, index, 1);
+    const end = new Date(year, index + 1, 0);
+    const prefix = start.getFullYear() + '-' + String(start.getMonth() + 1).padStart(2, '0');
+    return { from: prefix + '-01', to: prefix + '-' + end.getDate(), label: start.toLocaleDateString('uk-UA', { month: 'short' }) };
+  });
+  const periodProps = { dashboardPeriod: { from: dateFrom, to: dateTo }, monthControls, profileMonths };
+
   const overview = isDealer
-    ? (hasFinanceAccess(user) ? <ProductionStatisticsPage summaryOnly summaryVariant={variant} summaryPeriod="dashboard-month" /> : <MyOrdersOverview />)
-    : <ProductionStatisticsPage portfolio allDealers={role === "admin"} summaryVariant={variant} summaryPeriod="dashboard-month" />;
+    ? (hasFinanceAccess(user) ? <ProductionStatisticsPage summaryOnly summaryVariant={variant} key={dateFrom} {...periodProps} /> : <MyOrdersOverview key={dateFrom} {...{ dateFrom, dateTo, monthStart, monthControls }} />)
+    : <ProductionStatisticsPage portfolio allDealers={role === "admin"} summaryVariant={variant} key={dateFrom} {...periodProps} />;
 
   return <>
     {overview}

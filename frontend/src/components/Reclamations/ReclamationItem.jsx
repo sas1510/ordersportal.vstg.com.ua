@@ -98,7 +98,7 @@ export const ReclamationItem = ({
 //     }
 //   };
 
-  const { role, isReadOnly } = useAuthGetRole();
+  const { role, isReadOnly } = useAuthGetRole({ afterSales: true });
 
   const isCustomer = ["customer", "dealer", "internal_dealer"].includes(role);
 
@@ -347,7 +347,7 @@ export const ReclamationItem = ({
         >
 
           <img
-            src={deleteIcon}
+            data-after-sales-display="inline-block" src={deleteIcon}
             style={{ display: isReadOnly ? "none" : undefined }}
             alt={t("reclamation.delete")}
             className={`transition-all ${

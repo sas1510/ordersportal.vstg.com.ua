@@ -294,7 +294,7 @@ export const ReclamationItemMobile = ({
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]); 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const { role, isReadOnly } = useAuthGetRole();
+  const { role, isReadOnly } = useAuthGetRole({ afterSales: true });
 
   if (!reclamation) {
     return null;
@@ -475,7 +475,7 @@ export const ReclamationItemMobile = ({
       )}
       
       <img 
-        src={deleteIcon}
+        data-after-sales-display="inline-block" src={deleteIcon}
             style={{ display: isReadOnly ? "none" : undefined }} 
         alt={t("reclamation.delete")}
         onClick={handleDeleteClick}

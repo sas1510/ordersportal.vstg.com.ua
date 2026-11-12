@@ -2099,3 +2099,16 @@ body.dark-theme .payments-table .mini-card {
     vertical-align: middle;
   }
 }
+
+/* Cash flow fills the page instead of the legacy 1334px container. */
+.payments-body,
+.payments-body .table-wrapper,
+.payments-body .payments-table {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  box-sizing: border-box;
+}
+@media (min-width: 1051px) {
+  .payments-body .payments-table { min-width: 0; table-layout: fixed; }
+}

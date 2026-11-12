@@ -26,3 +26,119 @@
 @media (prefers-reduced-motion: reduce) {
   .route-content-spinner { animation: none; }
 }
+
+/* Shared page geometry: full width, with card and form padding preserved. */
+.portal-page-content { display: contents; }
+.portal-layout-full-width [class~="max-w-[1334px]"],
+.portal-layout-full-width .content-summary > .by-month-pagination-wrapper {
+  max-width: none !important;
+  width: 100% !important;
+  margin-inline: 0 !important;
+}
+.portal-page-content > :is(main, .portal-body, .production-design, .dashboard-v2, .dealer-reports-page, .orders-report, [class$="-page"], [class*="max-w-"]) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  box-sizing: border-box;
+}
+.portal-layout-full-width .dashboard-v2 > :is(.dashboard-v2__intro, .production-design, .dealer-reports-page),
+.portal-page-content .orders-report > .orders-report__panel {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+.portal-page-content .portal-body > :is(.content-summary, .content-wrapper) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-inline: 0 !important;
+}
+
+.portal-layout-full-width [data-portal-header] {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+/* Small page gutters; the header remains edge to edge. */
+.portal-page-content {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding-inline: 0;
+  box-sizing: border-box;
+}
+@media (max-width: 720px) {
+  .portal-page-content { padding-inline: 0; }
+}
+
+.portal-page-content .production-design {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  box-sizing: border-box;
+}
+
+.portal-page-content .payments-body {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  box-sizing: border-box;
+}
+
+.portal-page-content .customer-bills-page {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  box-sizing: border-box;
+}
+
+/* Bills start below the header instead of centering vertically. */
+.portal-page-content .portal-body.customer-bills-page {
+  justify-content: flex-start;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 100px;
+  height: auto;
+  min-height: 100%;
+}
+@media (max-width: 720px) {
+  .portal-page-content .portal-body.customer-bills-page { padding-top: 70px; }
+}
+
+/* Mobile finance menu follows the dealer profile submenu styling. */
+.mobile-side-menu .finance-profile-submenu {
+  width: 75%;
+  margin: 8px auto;
+  border: 0 !important;
+  border-radius: 2px;
+  overflow: hidden;
+  background: #fff !important;
+}
+.mobile-side-menu .finance-profile-submenu a {
+  display: block;
+  padding: 8px 24px;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 700;
+  color: #44403e !important;
+  border-bottom: 1px dotted #b4d947 !important;
+}
+.mobile-side-menu .finance-profile-submenu a:last-child { border-bottom: 0 !important; }
+body.dark-theme .mobile-side-menu .finance-profile-submenu { background: #4c4644 !important; }
+body.dark-theme .mobile-side-menu .finance-profile-submenu a { color: #9fd3ff !important; border-color: #b4d947 !important; }
+.mobile-side-menu .finance-profile-submenu a:hover { background: #6b98bf !important; color: #fff !important; }
+
+.mobile-side-menu .finance-profile-submenu a {
+  transition: background-color .15s ease, color .15s ease;
+}
+body .mobile-side-menu .finance-profile-submenu a:hover,
+body.dark-theme .mobile-side-menu .finance-profile-submenu a:hover,
+body .mobile-side-menu .finance-profile-submenu a:focus-visible,
+body.dark-theme .mobile-side-menu .finance-profile-submenu a:focus-visible {
+  background-color: #6b98bf !important;
+  color: #fff !important;
+}
+
+.portal-page-content .users-page-wrapper { padding-left: 5px !important; padding-right: 5px !important; box-sizing: border-box; }

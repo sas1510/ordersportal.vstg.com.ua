@@ -29,9 +29,11 @@ const CommentsModal = ({
   baseTransactionGuid,
   transactionTypeId,
   manager,
+  sourceComment,
 }) => {
   const { t, i18n } = useTranslation();
   const [comments, setComments] = useState([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
   const commentsEndRef = useRef(null);
@@ -62,6 +64,7 @@ const CommentsModal = ({
         },
       });
       setComments(res.data || []);
+      setHistoryLoaded(true);
     } catch  {
       addNotification(t("commentsModal.errors.fetchHistory"), "error");
     }
@@ -146,6 +149,7 @@ const CommentsModal = ({
 
   useEffect(() => {
     if (isOpen && baseTransactionGuid && transactionTypeId) {
+      setHistoryLoaded(false);
       fetchCurrentUser();
       fetchHistory();
       connectWS();
@@ -216,7 +220,13 @@ const CommentsModal = ({
         </div>
 
         <div className="comments-modal-body">
-          {comments.length === 0 ? (
+          {comments.length === 0 && historyLoaded && sourceComment?.trim() ? (
+            <ul className="comments-list">
+              <li className="comments-item comment-left">
+                <div className="comments-text">{sourceComment.trim()}</div>
+              </li>
+            </ul>
+          ) : comments.length === 0 ? (
             <div className="comments-no-comments">{t("commentsModal.noMessages")}</div>
           ) : (
             <ul className="comments-list">
@@ -247,7 +257,7 @@ const CommentsModal = ({
           )}
         </div>
 
-        <div className="comments-form-container">
+        <div className="comments-form-container" data-after-sales-display={["2", "3"].includes(String(transactionTypeId)) ? "block" : undefined}>
           <div className="textarea-wrapper">
             <textarea
              placeholder={t("commentsModal.placeholder")}

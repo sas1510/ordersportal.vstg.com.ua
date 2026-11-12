@@ -32,10 +32,10 @@ export default React.memo(function OrderItemSummaryDesktop({
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
   const { addNotification } = useNotification();
-  const { isAdmin, isBackoffice, isManager, isReadOnly } = useAuthGetRole();
+  const { isAdmin, isBackoffice, isManager, isReadOnly, canManageAfterSales } = useAuthGetRole();
   const canViewFinance = hasFinanceAccess();
-  const canConfirmOrder = !isBackoffice || isManager || isAdmin;
-  const canPayOrder = !isBackoffice || isManager || isAdmin;
+  const canConfirmOrder = !isReadOnly && (!isBackoffice || isManager || isAdmin);
+  const canPayOrder = !isReadOnly && (!isBackoffice || isManager || isAdmin);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
@@ -163,7 +163,7 @@ export default React.memo(function OrderItemSummaryDesktop({
     return state;
   }, [order?.status, debtAmount, getButtonState, isSketchOrder, isSketchConfirmed]);
 
-  const hasActionButtons = !isReadOnly && (isSketchOrder
+  const hasActionButtons = (!isSketchOrder && canManageAfterSales && (buttonState.reorder || buttonState.claim)) || !isReadOnly && (isSketchOrder
     ? canConfirmOrder && buttonState.confirm
     : (canConfirmOrder && buttonState.confirm) || (canPayOrder && canViewFinance && buttonState.pay) || buttonState.reorder || buttonState.claim);
 
@@ -702,7 +702,7 @@ export default React.memo(function OrderItemSummaryDesktop({
                     </div>
                   </button>)}
 
-                  {canViewFinance && buttonState.pay && (<button
+                  {!isReadOnly && canViewFinance && buttonState.pay && (<button
                     type="button"
                     className={`column align-center button bg-WS---DarkGreen order-action-button order-action-button--pay ${debtAmount <= 0 ? "order-action-button--paid" : ""} ${
                       debtAmount > 0 && (!buttonState.pay || !canViewFinance)
@@ -753,40 +753,12 @@ export default React.memo(function OrderItemSummaryDesktop({
           )}
         </div>}
 
-        {/* FAST ORDER */}
-        <div
-          className="summary-item items-center justify-center"
-          title={
-            dateDiffStatus
-              ? t("order_mobile.fast_order.fast")
-              : t("order_mobile.fast_order.slow")
-          }
-          style={{
-            cursor: isSketchOrder ? "default" : "pointer",
-          }}
-        >
-          <div className="flex flex-col items-center justify-center gap-1 text-center font-size-24 w-full">
-            <span className="fast-order-text order-fast-label block max-w-[65px] text-[10px] font-medium leading-tight break-words">
-              Швидке оформлення
-            </span>
 
-            {dateDiffStatus !== null && (
-              <img
-                src={speedIcon}
-                alt="Speed Icon"
-                style={{
-                  width: "24px",
-                  height: "24px",
-                }}
-                className={`shrink-0 order-fast-icon ${
-                  dateDiffStatus
-                    ? "order-fast-icon--positive"
-                    : "order-fast-icon--negative"
-                }`}
-              />
-            )}
-          </div>
-        </div>
+        {!isSketchOrder && <div className="summary-item order-fast-final" title={dateDiffStatus ? t("order_mobile.fast_order.fast") : t("order_mobile.fast_order.slow")}>
+          <span className="order-fast-label">{t("order_mobile.fast_order.title_1")}<br />{t("order_mobile.fast_order.title_2")}</span>
+          {dateDiffStatus !== null && <img src={speedIcon} alt="" className={`order-fast-icon ${dateDiffStatus ? "order-fast-icon--positive" : "order-fast-icon--negative"}`} />}
+        </div>}
+
       </div>
 
       {!isSketchOrder && isExpanded && (

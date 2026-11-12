@@ -47,3 +47,17 @@ test("due-today readiness is not flagged even with an imminent delivery", () => 
   assert.equal(report.risks.length, 0);
   assert.equal(report.deliveries.length, 1);
 });
+
+test("deliveries include all of today in Kyiv and every future day, excluding past dates", () => {
+  const orders = [
+    { number: "past", plannedDeliveryDateTime: "2026-11-11T21:59:59Z" },
+    { number: "today", plannedDeliveryDateTime: "2026-11-11T22:00:00Z" },
+    { number: "future", plannedDeliveryDateTime: "2026-12-15T10:00:00Z" },
+    { number: "invalid", plannedDeliveryDateTime: "invalid" },
+  ];
+  const now = Date.parse("2026-11-12T14:00:00Z");
+  for (const period of [undefined, {dateFrom: "2026-08-15", dateTo: "2026-11-12"}]) {
+    const report = buildOperationalReport([{ orders }], now, period);
+    assert.deepEqual(report.deliveries.map(order => order.number), ["today", "future"]);
+  }
+});

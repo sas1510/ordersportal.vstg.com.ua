@@ -9,7 +9,7 @@ const rows = [
 assert.equal(summarizeReconciliation(rows).conversion, 80);
 assert.equal(summarizeReconciliation(rows).onPortal, 2);
 assert.equal('independentApplicationConstructions' in summarizeReconciliation(rows), false);
-assert.equal(summarizeReconciliation(rows).difference, 6);
+assert.equal(summarizeReconciliation(rows).applicationConstructionsWithOrders, 0);
 assert.equal(filterReconciliation(rows, { region: '', search: 'ПОРТАЛЬНА' }).length, 1);
 assert.equal(summarizeReconciliation(filterReconciliation(rows, { region: 'Філіал', newAccount: true, search: '' })).linkedConstructions, 10);
 assert.equal(summarizeReconciliation([]).conversion, 0);
@@ -17,8 +17,9 @@ console.log('Dealer portal constructions: dates, alias search, filters, conversi
 
 const docs = [{ guid: 'A', stateGuid: 'P', state: 'Подтверждено', constructions: 3 }, { guid: 'B', stateGuid: 'W', state: 'Ждем оплати', constructions: 2 }];
 assert.equal(statusBreakdown([...docs, docs[0]]).reduce((sum, row) => sum + row.constructions, 0), 5);
-const actual = summarizeReconciliation([{ ...rows[0], applicationDetails: [docs[0]], cohortOrders: docs, orders: docs, applicationsWithOrders: 1, confirmedLinkedOrders: 1, confirmedLinkedConstructions: 3 }]);
+const actual = summarizeReconciliation([{ ...rows[0], applicationDetails: [{ ...docs[0], orders: docs }], cohortOrders: docs, orders: docs, applicationsWithOrders: 1, confirmedLinkedOrders: 1, confirmedLinkedConstructions: 3 }]);
 assert.equal(actual.confirmedLinkedConstructions, 3);
+assert.equal(actual.applicationConstructionsWithOrders, 3);
 assert.equal(actual.orderStatuses.reduce((sum, row) => sum + row.documents, 0), 2);
 console.log('Document status quantities and unique GUID status totals passed');
 
@@ -45,3 +46,4 @@ const branchOnly = filterReconciliation(groupedDealers, { group: 'Філіали
 assert.equal(branchOnly.length, 1);
 assert.equal(summarizeReconciliation(branchOnly).periodOrderStatuses[0].constructions, 4);
 assert.equal(filterReconciliation(groupedDealers, { group: 'Дилера', contractor: 'B', region: '', search: '' }).length, 0);
+

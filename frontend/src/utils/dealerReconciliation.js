@@ -18,6 +18,9 @@ export function statusBreakdown(documents) {
   }
   return [...buckets.values()].sort((a, b) => b.documents - a.documents || a.name.localeCompare(b.name, 'uk-UA'));
 }
+export function constructionsWithOrders(applications) {
+  return applications.reduce((sum, app) => sum + (app.orders.length ? app.constructions : 0), 0);
+}
 export function summarizeReconciliation(rows) {
   const totals = Object.fromEntries([...reportMetrics, 'dealers', 'onPortal'].map(f => [f, 0]));
   for (const row of rows) {
@@ -25,7 +28,7 @@ export function summarizeReconciliation(rows) {
     if (row.newAccount) totals.onPortal++;
     for (const field of reportMetrics) totals[field] += row[field] || 0;
   }
-  totals.difference = totals.applicationConstructions - totals.linkedConstructions;
+  totals.applicationConstructionsWithOrders = rows.reduce((sum, row) => sum + constructionsWithOrders(row.applicationDetails || []), 0);
   totals.conversion = totals.applications ? Math.round(1000 * totals.convertedApplications / totals.applications) / 10 : 0;
   totals.withoutOrders = totals.applications - totals.applicationsWithOrders;
   totals.applicationStatuses = statusBreakdown(rows.flatMap(row => row.applicationDetails || []));

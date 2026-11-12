@@ -155,23 +155,9 @@ function toDate(value) {
   return date && !Number.isNaN(date.getTime()) ? date : null;
 }
 
-function getCalculationProcessingHours(calculation) {
-  const calculationDate = toDate(calculation.dateRaw);
-  const firstOrderDate = (Array.isArray(calculation.orders) ? calculation.orders : [])
-    .map(function (order) { return toDate(order.createDate || order.dateRaw); })
-    .filter(Boolean)
-    .sort(function (first, second) { return first - second; })[0];
-
-  if (!calculationDate || !firstOrderDate || firstOrderDate < calculationDate) {
-    return null;
-  }
-
-  return (firstOrderDate.getTime() - calculationDate.getTime()) / 3600000;
-}
-
 function getOrderProcessingHours(calculation, order) {
   const calculationDate = toDate(calculation.dateRaw);
-  const orderDate = toDate(order?.createDate || order?.dateRaw);
+  const orderDate = toDate(order?.createDate);
   if (!calculationDate || !orderDate || orderDate < calculationDate) {
     return null;
   }
@@ -288,6 +274,7 @@ function buildManagerKpi(calculations, managerName) {
       .map(function (order) {
         const processingHours = getOrderProcessingHours(calculation, order);
         return processingHours === null ? null : {
+          orderKey: order.guid || order.id || order.number || null,
           number: order.number || calculation.number || "Без номера",
           dealer: calculation.dealer || "Без дилера",
           processingHours,
@@ -295,9 +282,13 @@ function buildManagerKpi(calculations, managerName) {
       })
       .filter(Boolean);
   }).sort(function (a, b) { return a.processingHours - b.processingHours; });
-  const processedHours = source
-    .map(getCalculationProcessingHours)
-    .filter(function (value) { return value !== null; });
+  const seenOrders = new Set();
+  const processedHours = processedOrders.filter(function (order) {
+    if (!order.orderKey) return true;
+    if (seenOrders.has(order.orderKey)) return false;
+    seenOrders.add(order.orderKey);
+    return true;
+  }).map(function (order) { return order.processingHours; });
   const backlog = source.filter(function (calculation) {
     const ordersInCalculation = Array.isArray(calculation.orders) ? calculation.orders : [];
     return (!ordersInCalculation.length && calculationReportStatus(calculation) === "Очікуємо підтвердження") || ordersInCalculation.some(function (order) {
@@ -491,8 +482,20 @@ export default function OrdersReportDashboardPage({ home = false }) {
   const [dateFrom, setDateFrom] = useState(() => restoredPeriod?.dateFrom || currentMonthStart());
   const [dateTo, setDateTo] = useState(() => restoredPeriod?.dateTo || dateInput(new Date()));
 
+  const [operationalEnd, setOperationalEnd] = useState(() => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Kyiv" }).format(new Date()));
+  const [operationalStart, setOperationalStart] = useState(() => {
+    const [year, month] = operationalEnd.split("-").map(Number);
+    const calendarStart = Date.UTC(year, month - 3, 1);
+    const minimumStart = Date.parse(operationalEnd) - 89 * 86400000;
+    return new Date(Math.min(calendarStart, minimumStart)).toISOString().slice(0, 10);
+  });
+  const reportFrom = viewMode === "operations" ? operationalStart : dateFrom;
+  const reportTo = viewMode === "operations" ? operationalEnd : dateTo;
+  const operationalPeriodTooShort = viewMode === "operations" && Date.parse(reportTo) - Date.parse(reportFrom) < 89 * 86400000;
+
   const [calculations, setCalculations] = useState([]);
   const [operationalCalculations, setOperationalCalculations] = useState([]);
+  const [dealerActivity, setDealerActivity] = useState([]);
   const reportRequest = useRef(null);
   useEffect(() => () => reportRequest.current?.abort(), []);
   const [loading, setLoading] = useState(true);
@@ -536,8 +539,11 @@ export default function OrdersReportDashboardPage({ home = false }) {
   );
 
   const loadStatusReport = useCallback(async () => {
-    if ((!dateFrom || !dateTo || dateFrom > dateTo)) {
-      setError("Вкажіть коректний період звітності.");
+    if (!reportFrom || !reportTo || reportFrom > reportTo || operationalPeriodTooShort) {
+      reportRequest.current?.abort();
+      setLoading(false);
+      setProcessingGroupsLoading(false);
+      setError(operationalPeriodTooShort ? "Виберіть період щонайменше 90 днів включно." : "Вкажіть коректний період звітності.");
       return;
     }
 
@@ -552,8 +558,9 @@ export default function OrdersReportDashboardPage({ home = false }) {
       const response = await axiosInstance.get("/order/get_orders_info_all/", {
         signal: controller.signal,
         params: {
-          date_from: dateFrom,
-          date_to: dateTo,
+          date_from: reportFrom,
+          date_to: reportTo,
+          ...(viewMode === "operations" ? { operational: 1, dealer_group: appliedDealerGroup } : {}),
           ...((["kpi", "operations"].includes(viewMode) ? kpiScopeUserId : viewMode === "statuses" ? statusScopeUserId : "")
             ? { scope_user_id: ["kpi", "operations"].includes(viewMode) ? kpiScopeUserId : statusScopeUserId }
             : {}),
@@ -563,21 +570,23 @@ export default function OrdersReportDashboardPage({ home = false }) {
         throw new Error();
       }
       const all = response.data?.data?.calculation || [];
-      const period = inReportPeriod(all, dateFrom, dateTo);
+      const period = inReportPeriod(all, reportFrom, reportTo);
       setCalculations(period);
-      setOperationalCalculations(period);
+      setOperationalCalculations(all);
+      setDealerActivity(response.data?.data?.dealer_activity || []);
       setProcessingGroupCalculations(Object.fromEntries(KPI_PROCESSING_GROUPS.map((group) => [group.key, period.filter((calc) => belongsToDealerGroup(calc, group.dealerGroup))])));
       setProcessingGroupsError("");
     } catch (requestError) {
       if (controller.signal.aborted) return;
       setCalculations([]);
       setOperationalCalculations([]);
+      setDealerActivity([]);
       setProcessingGroupCalculations({});
       setError(requestError.response?.data?.error || "Не вдалося завантажити дані звіту.");
     } finally {
       if (!controller.signal.aborted) { setLoading(false); setProcessingGroupsLoading(false); }
     }
-  }, [dateFrom, dateTo, kpiScopeUserId, statusScopeUserId, viewMode]);
+  }, [reportFrom, reportTo, operationalPeriodTooShort, kpiScopeUserId, statusScopeUserId, viewMode, appliedDealerGroup]);
 
 
   const loadDealerReports = useCallback(async () => {
@@ -1081,6 +1090,7 @@ export default function OrdersReportDashboardPage({ home = false }) {
           <div>
             <h1>Звіти за замовленнями</h1>
           </div>
+          {role === "admin" && <Link className="dealer-reports-link" to="/statistics/portal-daily">Перейти до денного звіту</Link>}
           {home && <Link className="dealer-reports-link" to="/statistics">Перейти до аналітики</Link>}
           <div className="orders-dashboard__total" hidden={viewMode === "operations"}>
             <span>{dashboardTotalLabel}</span>
@@ -1106,11 +1116,11 @@ export default function OrdersReportDashboardPage({ home = false }) {
 
           <label className="orders-dashboard__filter orders-dashboard__filter--date">
             Від
-            <input type="date" value={dateFrom} max={dateTo} onChange={(event) => setDateFrom(event.target.value)} />
+            <input type="date" value={reportFrom} max={reportTo} onChange={(event) => (viewMode === "operations" ? setOperationalStart : setDateFrom)(event.target.value)} />
           </label>
           <label className="orders-dashboard__filter orders-dashboard__filter--date">
             До
-            <input type="date" value={dateTo} min={dateFrom} onChange={(event) => setDateTo(event.target.value)} />
+            <input type="date" value={reportTo} min={reportFrom} onChange={(event) => (viewMode === "operations" ? setOperationalEnd : setDateTo)(event.target.value)} />
           </label>
           {isAdmin && <label className="orders-dashboard__filter orders-dashboard__filter--dealer">
             Дилер
@@ -1126,14 +1136,14 @@ export default function OrdersReportDashboardPage({ home = false }) {
           <button
             type="button"
             onClick={function () {
-              saveOrderReportPeriod({ mode: "period", year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
+              if (viewMode !== "operations") saveOrderReportPeriod({ mode: "period", year: dateFrom.slice(0, 4), month: 0, dateFrom, dateTo });
               if (viewMode === "dealers") {
                 loadDealerReports();
                 return;
               }
               loadStatusReport();
             }}
-            disabled={viewMode === "dealers" ? dealerReportsLoading : loading}
+            disabled={viewMode === "dealers" ? dealerReportsLoading : loading || operationalPeriodTooShort}
           >
             <FaSearch />
             {viewMode === "dealers"
@@ -1145,7 +1155,7 @@ export default function OrdersReportDashboardPage({ home = false }) {
         {viewMode === "dealers" && <p className="operational-report-hint"><strong>Які замовлення враховано:</strong> без вибору групи — лише зі станом 1С «Подтверждено». Вони можуть бути у виробництві, готовими або відвантаженими — це окремі етапи виконання. При виборі групи «Дилери», «Філіали» або «Наша фірма» використовується ширший набір статусів, тому змінюються також правила підрахунку показників.</p>}
         {viewMode === "kpi" && <p className="operational-report-hint">KPI за датою заявки: {dateFrom} — {dateTo}. Фільтри періоду застосовуються до всіх показників цієї вкладки.</p>}
         {viewMode === "operations" ? (
-          <OperationalReport dateFrom={dateFrom} dateTo={dateTo} data={operationalCalculations} loading={loading} error={error} dealerGroup={appliedDealerGroup} dealerGuid={dealerGuid} />
+          <OperationalReport activity={dealerActivity} dateFrom={operationalStart} dateTo={operationalEnd} data={operationalCalculations} loading={loading} error={error} dealerGroup={appliedDealerGroup} dealerGuid={dealerGuid} />
         ) : viewMode === "statuses" ? (
           <>
             {error ? <p className="orders-dashboard__error">{error}</p> : null}
@@ -1254,9 +1264,9 @@ export default function OrdersReportDashboardPage({ home = false }) {
               {showGroupedKpi ? <>
                 {isSuperAdmin && !selectedProcessingGroupKey ? (
                   <article className={"orders-dashboard__kpi-card orders-dashboard__kpi-card--summary is-processing is-clickable" + (processingDetailsScope === "selection" ? " is-details-open" : "")} role="button" tabIndex={0} onClick={function () { openProcessingDetails("selection"); }} onKeyDown={function (event) { if (event.key === "Enter" || event.key === " ") openProcessingDetails("selection"); }}>
-                    <span className="orders-dashboard__kpi-label">Загалом · середній час обробки</span>
+                    <span className="orders-dashboard__kpi-label">Загалом · середній час оформлення замовлення</span>
                     <strong className="orders-dashboard__kpi-value">{loading || !selectedManagerKpi.processedCount ? "—" : formatHours(selectedManagerKpi.averageProcessingHours)}</strong>
-                    <span className="orders-dashboard__kpi-hint">Усі типи · {formatNumber(selectedManagerKpi.processedCount)} заявок із замовленням</span>
+                    <span className="orders-dashboard__kpi-hint">Усі типи · {formatNumber(selectedManagerKpi.processedCount)} замовлень у розрахунку</span>
                     <button type="button" className="orders-dashboard__details-trigger" onClick={function (event) { event.stopPropagation(); openProcessingDetails("selection"); }}>Детальніше</button>
                   </article>
                 ) : null}
@@ -1265,9 +1275,9 @@ export default function OrdersReportDashboardPage({ home = false }) {
                 return (
                   <Fragment key={group.name}>
                     <article className={"orders-dashboard__kpi-card is-processing is-clickable" + (processingDetailsScope === group.key ? " is-details-open" : "")} role="button" tabIndex={0} aria-expanded={processingDetailsScope === group.key} onClick={function () { openProcessingDetails(group.key); }} onKeyDown={function (event) { if (event.key === "Enter" || event.key === " ") openProcessingDetails(group.key); }}>
-                      <span className="orders-dashboard__kpi-label">{group.name} · середній час обробки</span>
+                      <span className="orders-dashboard__kpi-label">{group.name} · середній час оформлення замовлення</span>
                       <strong className="orders-dashboard__kpi-value">{isLoading || !group.processedCount ? "—" : formatHours(group.averageProcessingHours)}</strong>
-                      <span className="orders-dashboard__kpi-hint">За {formatNumber(group.processedCount)} заявками із замовленням</span>
+                      <span className="orders-dashboard__kpi-hint">За {formatNumber(group.processedCount)} замовленнями</span>
                       <button type="button" className="orders-dashboard__details-trigger" onClick={function (event) { event.stopPropagation(); openProcessingDetails(group.key); }}>Детальніше</button>
                     </article>
                     <article className="orders-dashboard__kpi-card is-backlog">
@@ -1289,9 +1299,9 @@ export default function OrdersReportDashboardPage({ home = false }) {
               })}</> : (
                 <>
                   <article className={"orders-dashboard__kpi-card is-processing is-clickable" + (processingDetailsScope === "selection" ? " is-details-open" : "")} role="button" tabIndex={0} aria-expanded={processingDetailsScope === "selection"} onClick={function () { openProcessingDetails("selection"); }} onKeyDown={function (event) { if (event.key === "Enter" || event.key === " ") openProcessingDetails("selection"); }}>
-                    <span className="orders-dashboard__kpi-label">{selectedKpiDealerName ? selectedKpiDealerName + " · середній час обробки" : "Середній час обробки"}</span>
+                    <span className="orders-dashboard__kpi-label">{selectedKpiDealerName ? selectedKpiDealerName + " · середній час оформлення замовлення" : "Середній час оформлення замовлення"}</span>
                     <strong className="orders-dashboard__kpi-value">{formatHours(selectedManagerKpi.averageProcessingHours)}</strong>
-                    <span className="orders-dashboard__kpi-hint">За {formatNumber(selectedManagerKpi.processedCount)} заявками із замовленням</span>
+                    <span className="orders-dashboard__kpi-hint">За {formatNumber(selectedManagerKpi.processedCount)} замовленнями</span>
                     <button type="button" className="orders-dashboard__details-trigger" onClick={function (event) { event.stopPropagation(); openProcessingDetails("selection"); }}>Детальніше</button>
                   </article>
                   <article className="orders-dashboard__kpi-card is-backlog">
@@ -1388,7 +1398,7 @@ export default function OrdersReportDashboardPage({ home = false }) {
                 {processingGroupsError ? <p className="orders-dashboard__error">{processingGroupsError}</p> : null}
                 <section className="orders-dashboard__charts-grid orders-dashboard__charts-grid--kpi">
                   <article className="dealer-reports-panel orders-dashboard__chart-panel">
-                    <div className="dealer-reports-panel__header"><h3>Середній час обробки</h3></div>
+                    <div className="dealer-reports-panel__header"><h3>Середній час оформлення замовлення</h3></div>
                     <div className="orders-dashboard__chart-wrap">
                       {processingGroupsLoading ? <div className="orders-dashboard__chart-empty">Завантаження даних…</div> : visibleProcessingGroupKpis.some(function (item) { return item.processedCount > 0; }) ? (
                         <ResponsiveContainer width="100%" height={320}>
@@ -1789,6 +1799,7 @@ export default function OrdersReportDashboardPage({ home = false }) {
     </main>
   );
 }
+
 
 
 

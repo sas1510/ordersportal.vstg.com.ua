@@ -169,7 +169,7 @@ export const AdditionalOrderItem = ({
 
         {/* 2. Кількість конструкцій */}
         <div
-          className="summary-item row w-8 no-wrap"
+          className="summary-item row w-8 no-wrap additional-order-constructions"
           title="Кількість конструкцій в дозамовленні"
         >
            <img 

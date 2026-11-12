@@ -111,3 +111,57 @@ class InternalDealerAccessTests(SimpleTestCase):
         with patch("users.dealer_preview.dealer_owns_document", return_value=False):
             with self.assertRaises(PermissionDenied):
                 enforce_internal_dealer_readonly(request, self.user)
+
+    def test_internal_role_can_create_after_sales_documents_only(self):
+        self.user.user_id_1C = bytes.fromhex('9B5A90B11C14DEB211F058083DC6E0BC')
+        for path in ("/api/additional_orders/save_additional_order/", "/api/complaints/create_complaints/"):
+            enforce_internal_dealer_readonly(self.factory.post(path, {}), self.user)
+        for path in ("/api/calculations/create/", "/api/payments/make_payment_from_advance/", "/api/users/1/"):
+            with self.subTest(path=path), self.assertRaises(PermissionDenied):
+                enforce_internal_dealer_readonly(self.factory.post(path, {}), self.user)
+
+    def test_internal_role_cannot_delete_another_dealers_after_sales_document(self):
+        self.user.user_id_1C = bytes.fromhex('9B5A90B11C14DEB211F058083DC6E0BC')
+        request = self.factory.delete("/api/complaints/delete_complaint/11111111-1111-1111-1111-111111111111/")
+        with patch('django.db.connection') as connection:
+            cursor = connection.cursor.return_value.__enter__.return_value
+            cursor.fetchone.return_value = None
+            with self.assertRaises(PermissionDenied):
+                enforce_internal_dealer_readonly(request, self.user)
+            self.assertEqual(cursor.execute.call_args.args[1][1], self.user.user_id_1C)
+            cursor.fetchone.return_value = (b'x' * 16,)
+            enforce_internal_dealer_readonly(request, self.user)
+
+    def test_internal_role_confirmation_requires_owned_after_sales_order(self):
+        self.user.user_id_1C = bytes.fromhex('9B5A90B11C14DEB211F058083DC6E0BC')
+        request = self.factory.post('/api/orders/11111111-1111-1111-1111-111111111111/confirm/', {})
+        with patch('django.db.connection') as connection, patch('utils.contractor.ensure_order_action_access', return_value=None):
+            cursor = connection.cursor.return_value.__enter__.return_value
+            cursor.fetchone.return_value = None
+            with self.assertRaises(PermissionDenied):
+                enforce_internal_dealer_readonly(request, self.user)
+            cursor.fetchone.return_value = (b'x' * 16,)
+            enforce_internal_dealer_readonly(request, self.user)
+            self.assertIn('ЗаказПокупателяПретензия', cursor.execute.call_args.args[0])
+
+    def test_internal_role_chat_permission_is_limited_to_claims_and_additional_orders(self):
+        from chat.consumers.consumers import internal_dealer_chat_readonly
+        self.user.user_id_1C = bytes.fromhex('9B5A90B11C14DEB211F058083DC6E0BC')
+        self.assertFalse(internal_dealer_chat_readonly(self.user, '2'))
+        self.assertFalse(internal_dealer_chat_readonly(self.user, '3'))
+        self.assertTrue(internal_dealer_chat_readonly(self.user, '1'))
+        self.user.user_id_1C = b'x' * 16
+        self.assertFalse(internal_dealer_chat_readonly(self.user, '2'))
+
+
+    def test_after_sales_creation_is_available_for_every_internal_contractor(self):
+        for owner in (b'x' * 16, b'y' * 16):
+            self.user.user_id_1C = owner
+            for path in ('/api/complaints/create_complaints/', '/api/additional_orders/save_additional_order/'):
+                enforce_internal_dealer_readonly(self.factory.post(path, {}), self.user)
+
+    def test_after_sales_access_requires_an_assigned_contractor(self):
+        from .internal_dealer import internal_dealer_after_sales_access
+        self.user.user_id_1C = None
+        self.assertFalse(internal_dealer_after_sales_access(self.user))
+

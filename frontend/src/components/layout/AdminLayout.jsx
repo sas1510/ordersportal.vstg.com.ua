@@ -8,7 +8,7 @@ import PullToRefresh from "./PullToRefresh";
 const AdminLayout = () => {
   const { user } = useContext(RoleContext);
   return (
-  <div style={styles.layout}>
+  <div className="portal-layout-full-width" style={styles.layout}>
     {/* Обгортка хедера з високим z-index та фіксацією */}
     <div 
       ref={(el) => {

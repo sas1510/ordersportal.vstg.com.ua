@@ -1,3 +1,4 @@
+import OrderSearchAllDates from '../components/Orders/OrderSearchAllDates';
 import { orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import OrderMonthPicker, { OrderFilterYear } from "../components/Orders/OrderMonthPicker";
 import React, {
@@ -1071,7 +1072,7 @@ const AdminPortalOriginal = () => {
   }
 
   return (
-    <div className="column portal-body">
+    <div className="column portal-body portal-orders-page">
       <div
         className="content-summary row w-100"
         style={{ justifyContent: "center" }}
@@ -1372,7 +1373,7 @@ const AdminPortalOriginal = () => {
               </div>
             )}
 
-            <div className="search-wrapper relative text-base">
+            <OrderSearchAllDates matchCount={filteredItems.length} loading={loading || reloading} number={filter.name} data={calculationsData} selection={filter} onSelection={setFilter} onResults={setCalculationsData}>
               <input
                 type="text"
                 className="search-orders w-full pl-10 pr-4 py-2 border rounded-md"
@@ -1391,12 +1392,7 @@ const AdminPortalOriginal = () => {
                 />
               )}
 
-              <img
-                src={searchIcon}
-                alt=""
-                className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50"
-              />
-            </div>
+            </OrderSearchAllDates>
 
 
 

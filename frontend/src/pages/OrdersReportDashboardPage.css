@@ -197,6 +197,7 @@ body.dark-theme .orders-dashboard__filters label { color: #c3d0d9; }
 body.dark-theme .orders-dashboard__filters input,
 body.dark-theme .orders-dashboard__filters select { border-color: #637786; background: #1f2a33; color: #fff; }
 body.dark-theme .orders-dashboard__view-switcher { border-color: #5c7383; }
+.orders-dashboard .orders-dashboard__view-switcher { border-bottom: 2px solid #B4D947; }
 body.dark-theme .orders-dashboard__view-switcher button { border-right-color: #5c7383; background: #24303a; color: #cfe4ef; }
 body.dark-theme .orders-dashboard__card { background: transparent; }
 body.dark-theme .orders-dashboard__summary,

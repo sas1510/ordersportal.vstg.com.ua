@@ -1295,6 +1295,8 @@ def get_all_users_view(request):
 
     try:
         users = CustomUser.objects.select_related("branch").all()
+        if str(admin_user.username).casefold() != "admin":
+            users = users.exclude(username__iexact="admin")
         accessible_contractors = set()
 
         if requester_role in {"branch_manager", "branches_director"}:

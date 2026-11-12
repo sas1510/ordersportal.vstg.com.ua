@@ -12,7 +12,7 @@ const DealerLayout = () => {
   const { user } = useContext(RoleContext);
   const delegated = Boolean(dealerPreviewToken());
   return (
-  <div style={styles.layout}>
+  <div className="portal-layout-full-width" style={styles.layout}>
     {/* Змінюємо absolute на fixed */}
     <div 
   ref={(el) => {

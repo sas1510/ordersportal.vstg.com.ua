@@ -1,0 +1,19 @@
+
+.dealer-login-page { min-height:100%; padding:0 5px 32px; box-sizing:border-box; color:var(--text-color); }
+.dealer-login-shell { width:100%; max-width:980px; margin:0 auto; }
+.dealer-login-heading { padding:20px 24px; border-left:4px solid #b4d947; background:var(--card-background-soft,#f6f7f2); margin-bottom:18px; }
+.dealer-login-heading h1 { margin:0 0 7px; font-size:28px; font-weight:700; }
+.dealer-login-heading p { margin:0; color:var(--text-muted-color); line-height:1.45; }
+.dealer-login-panels { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr)); gap:18px; align-items:start; }
+.dealer-login-card { padding:24px; border:1px solid var(--border-color); border-radius:5px; background:var(--card-background,#fff); }
+.dealer-login-card h2 { margin:0 0 20px; font-size:21px; font-weight:700; }
+.dealer-login-label, .dealer-login-card label { display:block; margin-bottom:7px; font-size:14px; font-weight:600; }
+.dealer-login-card select { width:100%; min-height:42px; margin-top:7px; padding:8px 12px; border:1px solid var(--input-border); border-radius:4px; background:var(--input-bg); color:var(--input-text); }
+.dealer-login-button { display:flex; align-items:center; justify-content:center; width:100%; min-height:42px; margin-top:20px; padding:9px 15px; border:0; border-radius:4px; background:#b4d947; color:#293413; font-size:15px; font-weight:700; cursor:pointer; transition:background .15s; }
+.dealer-login-button:hover:not(:disabled) { background:#a5cd32; }
+.dealer-login-button:disabled { background:#8d9380; color:#fff; opacity:.65; cursor:default; }
+.dealer-login-error { margin-top:16px; padding:12px 16px; border-left:3px solid #dc755a; background:#dc755a18; color:var(--text-color); }
+body.dark-theme .dealer-login-heading { background:#514c46; }
+body.dark-theme .dealer-login-card { background:#5e5750; border-color:#82796f; }
+body.dark-theme .dealer-login-heading p { color:#e1dcd5; }
+@media(max-width:720px) { .dealer-login-heading,.dealer-login-card { padding:18px 16px; } .dealer-login-heading h1 { font-size:24px; } }

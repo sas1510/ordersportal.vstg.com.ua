@@ -112,3 +112,10 @@ body.dark-theme .additional-order-item img[src$="MoneyCalcIcon.png"] {
   body.dark-theme .reclamation-item .text-danger,
   body.dark-theme .additional-order-item .text-danger { color: #ef4444 !important; }
 }
+
+.additional-order-item .additional-order-constructions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

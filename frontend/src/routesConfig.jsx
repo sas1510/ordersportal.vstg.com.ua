@@ -34,6 +34,7 @@ const PaymentStatusV2 = lazy(() => import("./pages/PaymentStatusV2"));
 const PaymentsPage = lazy(() => import("./pages/PaymentsPage"));
 
 const CustomerBillsPage = lazy(() => import("./pages/CustomerBillsPage"));
+const CustomerBillItems = lazy(() => import("./pages/CustomerBillItems"));
 const AdminPortalOriginal = lazy(() => import("./pages/AdminOrderPage"));
 const AdminReclamationPortal = lazy(() => import("./pages/AdminReclamationPortal"));
 const WDSCodesTable = lazy(() => import("./pages/WDSCodesTable"));
@@ -44,6 +45,7 @@ const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const NotificationPage = lazy(() => import("./pages/NotificationPage"));
 const ManagerQrDropdown = lazy(() => import("./pages/ManagerQrDropdown"));
 const BonusPage = lazy(() => import("./pages/BonusPage"));
+const PortalDailyReportPage = lazy(() => import("./pages/PortalDailyReportPage"));
 const DealerReconciliationPage = lazy(() => import("./pages/DealerReconciliationPage"));
 const DealerReportsPage = lazy(() => import("./pages/DealerReportsPage"));
 const AnnouncementsPage = lazy(() => import("./pages/AnnouncementsPage"));
@@ -55,6 +57,7 @@ const AudioCalculationTestPage = lazy(() => import("./pages/MeasurementTestPage"
 export const adminRoutes = [
   { path: "integration-test/audio", element: <AudioCalculationTestPage /> },
   { path: "dealer-login", element: <DealerLoginPage /> },
+  { path: "/statistics/portal-daily", element: <PortalDailyReportPage /> },
   { path: "/statistics/reconciliation", element: <DealerReconciliationPage /> },
   { path: "zamir", element: <ZamirPage /> },
   { path: "integration-test/measurement", element: <MeasurementTestPage /> },
@@ -91,6 +94,7 @@ export const adminRoutes = [
   // { path: "payment", element: <PaymentsPage /> },
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
+  { path: "finance/invoices", element: <CustomerBillItems /> },
   { path: "admin-additional-order", element: <AdminAdditionalOrders /> },
   { path: "admin-order", element: <AdminPortalOriginal /> },
   { path: "admin-reclamation", element: <AdminReclamationPortal /> },
@@ -109,6 +113,7 @@ export const adminRoutes = [
 ];
 
 const managerBlockedRoutePaths = new Set([
+  "/statistics/portal-daily",
   "/statistics/reconciliation",
   "integration-test/measurement",
   "integration-test/audio",
@@ -127,6 +132,7 @@ export const managerRoutes = adminRoutes.filter(
 );
 
 const branchLeaderBlockedRoutePaths = new Set([
+  "/statistics/portal-daily",
   "/statistics/reconciliation",
   "integration-test/measurement",
   "files/add",
@@ -163,6 +169,7 @@ export const dealerRoutes = [
   { path: "payment", element: <PaymentsPage /> },
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
+  { path: "finance/invoices", element: <CustomerBillItems /> },
   { path: "promo-wds-codes", element: <WDSCodesTable /> },
   { path: "bonus", element: <BonusPage /> },
   // { path: "edit-addresses", element: <DealerAddressesPage /> },

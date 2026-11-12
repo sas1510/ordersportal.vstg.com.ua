@@ -1011,3 +1011,16 @@ body.dark-theme  .homepage-icon-beige {
 }
 .hero-video-bg { opacity: 0; transition: opacity .3s ease; }
 .hero-video-bg.hero-video-bg--playing { opacity: 1; }
+
+/* Company information stays inside the shared page gutters. */
+.portal-page-content .homepage-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.portal-page-content .homepage-container *,
+.portal-page-content .homepage-container *::before,
+.portal-page-content .homepage-container *::after {
+  box-sizing: border-box;
+}

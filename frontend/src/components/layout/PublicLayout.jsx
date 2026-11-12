@@ -5,7 +5,7 @@ import RouteContent from "../ui/RouteContent";
 
 export default function PublicLayout() {
   return (
-    <div style={styles.layout}>
+    <div className="portal-layout-full-width" style={styles.layout}>
 
       <div style={styles.headerWrapper}>
         <HeaderWithoutAuth />

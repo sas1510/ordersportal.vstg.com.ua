@@ -79,7 +79,7 @@ const WDSCodesTable = () => {
 
   return (
     <div className="portal-body" style={{justifyContent: 'center'}} >
-      <div className="max-w-[1334px] mx-auto ">
+      <div className="max-w-[1334px] mx-auto wds-page-content">
         <div className="customer-bills-header">
           <h1 className="page-title" style={{ marginTop: "10px" }}>
             <FaPercent className="icon" />

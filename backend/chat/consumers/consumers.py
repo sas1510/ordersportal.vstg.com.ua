@@ -1,4 +1,4 @@
-from users.internal_dealer import internal_dealer_is_readonly
+from users.internal_dealer import internal_dealer_is_readonly, internal_dealer_after_sales_access
 # import json
 # from channels.generic.websocket import AsyncWebsocketConsumer
 # from channels.db import database_sync_to_async
@@ -387,7 +387,7 @@ def _hex_1c_user_to_guid(value):
 HARDCODED_DUPLICATE_MANAGER_BIN = guid_to_1c_bin(HARDCODED_DUPLICATE_MANAGER_GUID)
 
 
-def internal_dealer_chat_readonly(user):
+def internal_dealer_chat_readonly(user, transaction_type=None):
     if getattr(user, "role", None) != "internal_dealer":
         return False
     if getattr(user, "pk", None) is not None:
@@ -395,7 +395,7 @@ def internal_dealer_chat_readonly(user):
         user = CustomUser.objects.get(pk=user.pk)
         if not user.is_active:
             return True
-    return internal_dealer_is_readonly(user)
+    return internal_dealer_is_readonly(user) and not (internal_dealer_after_sales_access(user) and str(transaction_type) in {"2", "3"})
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -500,8 +500,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.contractor_bin = None
             self.contractor_guid = getattr(self.user, 'user_id_1C', None)
 
-        self.internal_readonly = await database_sync_to_async(internal_dealer_chat_readonly)(self.user)
         self.chat_id = self.scope['url_route']['kwargs']['chat_id']
+        self.internal_readonly = await database_sync_to_async(internal_dealer_chat_readonly)(self.user, str(getattr(self, "chat_id", "")).split("_", 1)[0])
         if self.scope.get("dealer_preview_actor") or getattr(self.user, "role", None) == "internal_dealer":
             try:
                 transaction_type, document_guid = self.chat_id.split("_", 1)
@@ -569,7 +569,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
 
     async def receive(self, text_data):
-        if await database_sync_to_async(internal_dealer_chat_readonly)(self.user):
+        if await database_sync_to_async(internal_dealer_chat_readonly)(self.user, str(getattr(self, "chat_id", "")).split("_", 1)[0]):
             await self.send_error("Read-only access")
             return
         try:
@@ -1016,6 +1016,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def send_error(self, message):
         await self.send(text_data=json.dumps({'type': 'error', 'message': message}))
         
+
 
 
 

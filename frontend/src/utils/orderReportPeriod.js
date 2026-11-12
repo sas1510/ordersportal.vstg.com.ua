@@ -7,6 +7,21 @@ const periodKey = () => {
 };
 const validDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "");
 
+const kyivDay = (day = new Date()) => new Intl.DateTimeFormat("sv-SE", {
+  timeZone: "Europe/Kyiv",
+}).format(day);
+
+function refreshSavedPeriod(saved) {
+  const today = kyivDay();
+  const yesterday = kyivDay(new Date(Date.now() - 86400000));
+  const followsToday = saved.followsToday === true
+    || (saved.savedOn === undefined && saved.mode === "period" && saved.dateTo === yesterday);
+  if (saved.mode !== "period" || !followsToday || saved.dateTo >= today) return saved;
+  const refreshed = { ...saved, dateTo: today, followsToday: true, savedOn: today };
+  try { sessionStorage.setItem(periodKey(), JSON.stringify(refreshed)); } catch { /* Storage may be unavailable. */ }
+  return refreshed;
+}
+
 export function readOrderReportPeriod(search = window.location.search) {
   const query = new URLSearchParams(search);
   const dateFrom = query.get("date_from");
@@ -20,7 +35,7 @@ export function readOrderReportPeriod(search = window.location.search) {
     const saved = JSON.parse(sessionStorage.getItem(periodKey()));
     if (saved && validDate(saved.dateFrom) && validDate(saved.dateTo) && saved.dateFrom <= saved.dateTo) {
       // Aggregate pages have no all-year month option; preserve the full range instead.
-      return saved.mode === "year" && !saved.month ? { ...saved, mode: "period" } : saved;
+      return saved.mode === "year" && !saved.month ? { ...saved, mode: "period" } : refreshSavedPeriod(saved);
     }
   } catch { /* Storage may be unavailable. */ }
   return null;
@@ -28,7 +43,7 @@ export function readOrderReportPeriod(search = window.location.search) {
 
 export function saveOrderReportPeriod(period) {
   if (!validDate(period.dateFrom) || !validDate(period.dateTo) || period.dateFrom > period.dateTo) return;
-  try { sessionStorage.setItem(periodKey(), JSON.stringify(period)); } catch { /* Keep the current page usable. */ }
+  try { sessionStorage.setItem(periodKey(), JSON.stringify({ ...period, savedOn: kyivDay(), followsToday: period.mode === "period" && period.dateTo === kyivDay() })); } catch { /* Keep the current page usable. */ }
 }
 
 export function orderMonthPeriod(year, month) {

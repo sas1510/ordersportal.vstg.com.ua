@@ -1,3 +1,4 @@
+import OrderPdfViewer from './OrderPdfViewer';
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import axiosInstance from "../../api/axios";
@@ -262,9 +263,11 @@ const OrderFilesModal = ({
     try {
       const { blob, response } = await fetchFileBlob(fileItem);
 
+      const previewKind = getPreviewKind(fileItem.fileName, blob.type, fileItem.type);
       if (isPreviewableFile(fileItem.fileName, fileItem.type, blob.type)) {
-        const nextPreviewUrl = window.URL.createObjectURL(blob);
-        const previewKind = getPreviewKind(fileItem.fileName, blob.type, fileItem.type);
+        const previewBlob = previewKind === "pdf" && blob.type !== "application/pdf" ? blob.slice(0, blob.size, "application/pdf") : blob;
+        const nextPreviewUrl = window.URL.createObjectURL(previewBlob);
+
 
         if (previewUrl) {
           window.URL.revokeObjectURL(previewUrl);
@@ -274,6 +277,7 @@ const OrderFilesModal = ({
         setPreviewFile({
           ...fileItem,
           previewKind,
+          pdfBlob: previewKind === "pdf" ? previewBlob : null,
           contentType: blob.type || response.headers["content-type"] || "",
         });
         setPreviewText("");
@@ -295,7 +299,7 @@ const OrderFilesModal = ({
       document.body.appendChild(downloadLink);
       downloadLink.click();
       downloadLink.remove();
-      window.URL.revokeObjectURL(objectUrl);
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 60000);
     } catch (error) {
       console.error("File action error:", error);
       addNotification(t("orders.downloadFileError"), "error");
@@ -323,6 +327,9 @@ const OrderFilesModal = ({
   }, [previewFile, previewImages, currentImageIndex, downloadingFileGuid]);
 
   const handleOpenFileInNewWindow = async (fileItem) => {
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && getPreviewKind(fileItem.fileName, "", fileItem.type) === "pdf") {
+      return handleFileAction(fileItem);
+    }
     const openedWindow = window.open("", "_blank");
     if (!openedWindow) {
       addNotification(
@@ -409,7 +416,7 @@ const OrderFilesModal = ({
     }
 
     if (previewFile.previewKind === "pdf") {
-      return <iframe src={previewUrl} title={previewFile.fileName} className="file-preview-frame" />;
+      return <OrderPdfViewer key={previewUrl} url={previewUrl} blob={previewFile.pdfBlob} title={previewFile.fileName} />;
     }
 
     if (previewFile.previewKind === "text") {

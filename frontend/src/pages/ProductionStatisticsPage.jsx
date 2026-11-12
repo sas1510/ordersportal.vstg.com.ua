@@ -388,6 +388,7 @@ function ProductionRingCard({
   averageProductionDays,
   delayedPercent,
   delayedCount,
+  averageDelayDays,
   notFinishedCount,
   totalOrders,
   onSelectStatus,
@@ -527,7 +528,7 @@ function ProductionRingCard({
           {formatPercent(delayedPercent)}
         </strong>
 
-        <small>{formatNumber(delayedCount)} {t("production_statistics.order")}</small>
+        <small>{formatNumber(delayedCount)} {t("production_statistics.order")}{averageDelayDays != null && <><br />{t("production_statistics.average")} {formatDays(averageDelayDays)} дн.</>}</small>
       </button>
 
       {/* У виробництві */}
@@ -557,7 +558,68 @@ function ProductionRingCard({
   );
 }
 
-export default function ProductionStatisticsPage({ portfolio = false, allDealers = false, summaryOnly = portfolio, summaryVariant = "classic", summaryPeriod = "month" }) {
+function DashboardProfileChart({ months, portfolio, dealerGuid }) {
+  const [rows, setRows] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadMonth({ from, to, label }) {
+      const { data } = await axiosInstance.get('/production-unified-analytics/', {
+        params: { date_from: from, date_to: to, ...(portfolio ? { portfolio: 1 } : { contractor_guid: dealerGuid }) },
+        signal: controller.signal,
+        timeout: 60000,
+      });
+      const totals = new Map();
+      let count = 0;
+      for (const item of data.profile_systems ?? []) {
+        if (!['Вікна 76 мм', 'Двері 76 мм'].includes(resolveProfileSystemGroup(item.profile_system))) continue;
+        count += Number(item.total_constructions) || 0;
+        const currency = item.currency || 'грн';
+        totals.set(currency, (totals.get(currency) || 0) + (Number(item.total_sum) || 0));
+      }
+      return { from, label, count, totals };
+    }
+    async function loadYear() {
+      const result = [];
+      for (let index = 0; index < months.length && !controller.signal.aborted; index += 3) {
+        result.push(...await Promise.all(months.slice(index, index + 3).map(loadMonth)));
+      }
+      return result;
+    }
+    loadYear().then(result => {
+      if (!controller.signal.aborted) setRows(result);
+    }).catch(() => {
+      if (!controller.signal.aborted) setFailed(true);
+    });
+    return () => controller.abort();
+  }, [months, portfolio, dealerGuid]);
+
+  const maxCount = Math.max(1, ...(rows ?? []).map(row => row.count));
+  const maxByCurrency = new Map();
+  for (const row of rows ?? []) {
+    for (const [currency, sum] of row.totals) {
+      maxByCurrency.set(currency, Math.max(1, maxByCurrency.get(currency) ?? 0, sum));
+    }
+  }
+
+  return <article className="dashboard-profile-chart">
+    <div className="production-design__eyebrow">Система 76 мм · {months[0].from.slice(0, 4)}</div>
+    {rows && <div className="dashboard-profile-chart__legend"><span>Конструкції</span><span>Сума</span></div>}
+    {failed ? <small>Не вдалося завантажити дані.</small> : !rows ? <small role="status">Завантажуємо…</small> : <div className="dashboard-profile-chart__columns">{rows.map(row => (
+      <div key={row.from} className={row.count === maxCount && row.count > 0 ? "dashboard-profile-chart__column is-best-month" : "dashboard-profile-chart__column"}>
+        <div className="dashboard-profile-chart__track">
+          <i title={row.label + ' · Конструкції: ' + formatNumber(row.count)} style={{ height: 100 * row.count / maxCount + '%' }} />
+          {[...row.totals].map(([currency, sum]) => <i key={currency} className="dashboard-profile-chart__amount" title={row.label + ' · Сума: ' + formatCurrency(sum, currency)} style={{ height: 100 * sum / maxByCurrency.get(currency) + '%' }} />)}
+        </div>
+        <strong title={row.count === maxCount && row.count > 0 ? "Найбільше конструкцій за рік" : undefined}>{row.label}</strong>
+        <span>{formatNumber(row.count)} констр.</span>
+        <span>{[...row.totals].map(([currency, sum]) => formatCurrency(sum, currency)).join(' · ') || '—'}</span>
+      </div>
+    ))}</div>}
+  </article>;
+}
+
+export default function ProductionStatisticsPage({ portfolio = false, allDealers = false, summaryOnly = portfolio, summaryVariant = "classic", summaryPeriod = "month", dashboardPeriod, monthControls, profileMonths }) {
   const { t, i18n } = useTranslation();
   const getProductionStatusLabel = (status) => {
     const key = {
@@ -572,18 +634,15 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const summaryMonthOffset = summaryPeriod === "dashboard-month" && now.getDate() === 1 ? -1 : 0;
-  const summaryMonthStart = new Date(now.getFullYear(), now.getMonth() + summaryMonthOffset, 1);
-  const summaryMonthEnd = new Date(now.getFullYear(), now.getMonth() + summaryMonthOffset + 1, 0);
 
   const { dealerGuid, setDealerGuid, isAdmin, isLoading: dealerContextLoading } =
     useDealerContext({ defaultAll: portfolio, allowGroups: true });
-  const dealerGroup = dealerGroupForSelection(dealerGuid) || "";
-  const aggregateDealers = (portfolio && !dealerGuid) || (isAdmin && isAggregateDealerSelection(dealerGuid));
+  const dealerGroup = portfolio ? "" : dealerGroupForSelection(dealerGuid) || "";
+  const aggregateDealers = portfolio || (isAdmin && isAggregateDealerSelection(dealerGuid));
   const loadDealerDetails = !summaryOnly;
   const [savedPeriod] = useState(() => readOrderReportPeriod());
-  const initialFrom = summaryOnly ? savedPeriod?.dateFrom || formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 0, 1) : summaryMonthStart) : queryParams.get("date_from") || savedPeriod?.dateFrom || formatDateInput(monthStart);
-  const initialTo = summaryOnly ? savedPeriod?.dateTo || formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 11, 31) : summaryMonthEnd) : queryParams.get("date_to") || savedPeriod?.dateTo || formatDateInput(monthEnd);
+  const initialFrom = dashboardPeriod?.from || (summaryOnly ? savedPeriod?.dateFrom || formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 0, 1) : monthStart) : queryParams.get("date_from") || savedPeriod?.dateFrom || formatDateInput(monthStart));
+  const initialTo = dashboardPeriod?.to || (summaryOnly ? savedPeriod?.dateTo || formatDateInput(summaryPeriod === "year" ? new Date(now.getFullYear(), 11, 31) : monthEnd) : queryParams.get("date_to") || savedPeriod?.dateTo || formatDateInput(monthEnd));
   const requestedDealerGuid = queryParams.get("contractor_guid") || "";
   const pageRootRef = useRef(null);
   const orderDetailsRef = useRef(null);
@@ -623,10 +682,10 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
   });
 
   useEffect(() => {
-    if (!dealerContextLoading && isAdmin && requestedDealerGuid) {
+    if (!portfolio && !dealerContextLoading && isAdmin && requestedDealerGuid) {
       setDealerGuid(requestedDealerGuid);
     }
-  }, [dealerContextLoading, isAdmin, requestedDealerGuid, setDealerGuid]);
+  }, [dealerContextLoading, isAdmin, portfolio, requestedDealerGuid, setDealerGuid]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -1495,7 +1554,10 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
           <h1>{summaryOnly ? t("production_statistics.key_metrics", { defaultValue: "\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u043f\u043e\u043a\u0430\u0437\u043d\u0438\u043a\u0438" }) : t("production_statistics.title")}</h1>
           <p>{portfolio && !allDealers ? t("production_statistics.assigned_dealers", { defaultValue: "\u0423\u0441\u0456 \u0437\u0430\u043a\u0440\u0456\u043f\u043b\u0435\u043d\u0456 \u0434\u0438\u043b\u0435\u0440\u0438" }) : t("production_statistics.subtitle")}</p>
         </div>
-        {summaryOnly && analyticsLink}
+        {summaryOnly && <div className="dashboard-summary-actions">
+          {monthControls}
+          {analyticsLink}
+        </div>}
         {!summaryOnly && <div className="production-design__filters">
           <div className="production-design__filters-stack">
             {isAdmin && !portfolio ? <div className="production-design__dealer"><span>{t("production_statistics.dealer")}</span><DealerSelectWithAll showGroupFilter unifiedGroupSelection group={dealerGroup} value={dealerGroup ? "__ALL__" : dealerGuid} onChange={setDealerGuid} /></div> : null}
@@ -1519,7 +1581,7 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
       ) : null}
 
       {!error && !loading && (hasData || (aggregateDealers && dashboardData)) ? <>
-        {summaryVariant === "v2" ? <DashboardV2Metrics meta={meta} averageRows={averageCheckCurrencyRows} period={`${formatDate(searchParams.from, i18n.language)} — ${formatDate(searchParams.to, i18n.language)}`} inTimePercent={topInTimePercent} delayedPercent={topDelayedPercent} averageProductionDays={inTimeProductionDays.overallAverage} onSelectStatus={handleRingStatusClick} /> : <section className="production-design__kpi">
+        {summaryVariant === "v2" ? <DashboardV2Metrics meta={meta} averageRows={averageCheckCurrencyRows} period={`${formatDate(searchParams.from, i18n.language)} — ${formatDate(searchParams.to, i18n.language)}`} inTimePercent={topInTimePercent} delayedPercent={topDelayedPercent} averageProductionDays={inTimeProductionDays.overallAverage} onSelectStatus={handleRingStatusClick} /> : <section className={profileMonths ? "production-design__kpi dashboard-kpi-with-profile" : "production-design__kpi"}>
           <article className="production-design__average-card">
             <div className="production-design__eyebrow">{t("production_statistics.average_check")}</div>
             <strong className="production-design__average-value production-design__average-value--currencies">
@@ -1558,11 +1620,13 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
   </span>
 </div>
           </article>
-          <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} onSelectStatus={handleRingStatusClick} />
+          <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} averageDelayDays={dashboardPeriod ? meta.avg_delay_days : null} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} onSelectStatus={handleRingStatusClick} />
           <div className="production-design__summary-stack">
             <article><div className="production-design__eyebrow">{t("production_statistics.turnover")}</div><strong className="production-design__currency-total"><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" /><span>{(meta.currency_totals?.length ? meta.currency_totals : [{ currency: "грн", total_sum: meta.total_sum }]).map((item) => <b key={item.currency}>{formatCurrency(item.total_sum, item.currency)}</b>)}</span></strong><span>{t("production_statistics.turnover_hint")}</span></article>
-            <article><div className="production-design__eyebrow">{t("production_statistics.average_delay")}</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>{t("production_statistics.max_delay", { days: formatDays(meta.max_delay_days) })}</span></article>
+            {profileMonths && <DashboardProfileChart months={profileMonths} portfolio={aggregateDealers} dealerGuid={aggregateDealers ? undefined : dealerGuid} />}
+            {!profileMonths && <article><div className="production-design__eyebrow">{t("production_statistics.average_delay")}</div><strong><AppIcon name="AverageWaitingIcon" className="w-[33px] h-[30px]" />{formatDays(meta.avg_delay_days)} дн.</strong><span>{t("production_statistics.max_delay", { days: formatDays(meta.max_delay_days) })}</span></article>}
           </div>
+
         </section>}
 
         {loadDealerDetails ? <>

@@ -11,7 +11,7 @@ export default function HeaderWithoutAuth() {
   const currentLogo = theme === "dark" ? logoDark : logo;
 
   return (
-        <header className="w-[calc(100%-20px)]  flex flex-col items-center bg-transparent z-50 font-['Inter'] mx-[10px]">
+        <header data-portal-header className="w-full flex flex-col items-center bg-transparent z-50 font-['Inter']">
       
 
       <div className="w-full max-w-[1334px]  h-2 md:h-[12px]  bg-[#B4D947] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />

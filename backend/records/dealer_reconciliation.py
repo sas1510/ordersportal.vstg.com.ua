@@ -2,7 +2,8 @@
 import calendar
 import json
 from collections import Counter, defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 ROOT='0XBCF9002590633C1711E468B2F15C13FC'
@@ -41,7 +42,7 @@ def _rows(cursor):
     names=[col[0] for col in cursor.description]
     return [dict(zip(names,row)) for row in cursor.fetchall()]
 
-def query_parts(seed):
+def query_parts(seed, daily=False):
     calls=sorted(set(seed['calls']) | set(seed['additional_dealers']))
     ids=' UNION ALL '.join('SELECT CAST(%s AS BINARY(16)) AS GUID' for _ in calls)
     cte=f''';WITH CallIDs AS ({ids}), ContractorTree AS (
@@ -66,9 +67,16 @@ def query_parts(seed):
     ), OrdersPeriod AS (
       SELECT Z.Ссылка AS OrderGUID,Z.Контрагент AS DealerGUID,LTRIM(RTRIM(Z.Номер)) AS OrderNumber,
         CASE WHEN YEAR(Z.Дата)>=3753 THEN DATEADD(YEAR,-2000,Z.Дата) ELSE Z.Дата END AS OrderDate, Z.БВ_КоличествоКонструкций AS Constructions, Z.БВ_СостояниеЗаказа AS StateGUID,
-        OS.Наименование AS StateName, Z.Проведен AS Posted
+        OS.Наименование AS StateName, Z.Проведен AS Posted, UM.Наименование AS OrderManager,
+        CASE WHEN YEAR(H.FirstStatusDate)>=3753 THEN DATEADD(YEAR,-2000,H.FirstStatusDate) ELSE H.FirstStatusDate END AS FirstStatusDate
       FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] Z JOIN Scope S ON S.GUID=Z.Контрагент AND S.IsGroup=0x01
       LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.БВ_СостоянияЗаказов] OS ON OS.Ссылка=Z.БВ_СостояниеЗаказа
+      OUTER APPLY (
+        SELECT TOP (1) R.Период AS FirstStatusDate,R.Менеджер AS ManagerGUID
+        FROM [oknastyle_biV2].[dbo].[РегистрыСведений.ПП_ПричиныПереоформления] R
+        WHERE R.Заказ=Z.Ссылка AND YEAR(R.Период)>2001 ORDER BY R.Период
+      ) H
+      LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.Пользователи] UM ON UM.Ссылка=H.ManagerGUID
       WHERE (CASE WHEN YEAR(Z.Дата)>=3753 THEN DATEADD(YEAR,-2000,Z.Дата) ELSE Z.Дата END)>=%s
         AND (CASE WHEN YEAR(Z.Дата)>=3753 THEN DATEADD(YEAR,-2000,Z.Дата) ELSE Z.Дата END)<%s
         AND Z.Организация=%s AND Z.ПометкаУдаления=0x00
@@ -80,7 +88,7 @@ def query_parts(seed):
         SUM(CASE WHEN NULLIF(LTRIM(RTRIM(U.OldPortalId)),N'') IS NOT NULL THEN 1 ELSE 0 END) AS OldAccounts
       FROM Scope S LEFT JOIN [portal_db].[dbo].[User] U ON U.UserId1C=S.GUID AND U.Role=N'customer'
       WHERE S.IsGroup=0x01 group by S.GUID,S.Name,S.FolderPath,S.RootGUID,S.ReportGroup OPTION(MAXRECURSION 100)'''
-    orders='SELECT OrderGUID,DealerGUID,OrderNumber,OrderDate,Constructions,StateGUID,StateName,Posted FROM OrdersPeriod OPTION(MAXRECURSION 100)'
+    orders='SELECT OrderGUID,DealerGUID,OrderNumber,OrderDate,Constructions,StateGUID,StateName,Posted,FirstStatusDate,OrderManager FROM OrdersPeriod OPTION(MAXRECURSION 100)'
     applications='''SELECT A._IDRRef AS ApplicationGUID,A._Fld44859RRef AS DealerGUID,A._Number AS ApplicationNumber,
         CASE WHEN YEAR(A._Date_Time)>=3753 THEN DATEADD(YEAR,-2000,A._Date_Time) ELSE A._Date_Time END AS ApplicationDate,
         A._Fld44861 AS Constructions,A._Fld44966_RRRef AS AuthorGUID,A._Fld44966_RTRef AS AuthorType,A._Fld44862RRef AS StateGUID,A._Posted AS Posted
@@ -99,17 +107,39 @@ def query_parts(seed):
       JOIN [oknastyle].[dbo].[_Document44856] A ON A._IDRRef=Z._Fld6205_RRRef
         AND Z._Fld6205_TYPE=0x08 AND Z._Fld6205_RTRef=0x0000AF38 AND A._Marked=0x00 AND A._Fld44859RRef=O.DealerGUID
     ) SELECT OrderGUID,DealerGUID,ApplicationGUID FROM Links OPTION(MAXRECURSION 100)'''
+    if daily:
+        daily_scope = """), DailyApplications AS (
+          SELECT A._IDRRef AS GUID FROM [oknastyle].[dbo].[_Document44856] A
+          CROSS JOIN (SELECT CAST(%s AS date) AS PeriodStart, CAST(%s AS date) AS PeriodEnd) D
+          WHERE A._Marked=0x00 AND (
+            (A._Date_Time>=D.PeriodStart AND A._Date_Time<D.PeriodEnd)
+            OR (A._Date_Time>=DATEADD(year,2000,D.PeriodStart) AND A._Date_Time<DATEADD(year,2000,D.PeriodEnd))
+          )
+        ), DailyOrderIDs AS (
+          SELECT L._Fld44865RRef AS GUID
+          FROM DailyApplications A JOIN [oknastyle].[dbo].[_Document44856_VT44863] L ON L._Document44856_IDRRef=A.GUID
+          UNION
+          SELECT Z._IDRRef
+          FROM DailyApplications A JOIN [oknastyle].[dbo].[_Document381] Z ON Z._Fld6205_RRRef=A.GUID
+          WHERE Z._Marked=0x00 AND Z._Fld6205_TYPE=0x08 AND Z._Fld6205_RTRef=0x0000AF38
+        ), OrdersPeriod AS ("""
+        cte=cte.replace('), OrdersPeriod AS (',daily_scope)
+        cte=cte.replace(' Z JOIN Scope S', ' Z JOIN DailyOrderIDs I ON I.GUID=Z.Ссылка JOIN Scope S')
+        applications=applications.replace(' A JOIN Scope S', ' A JOIN DailyApplications D ON D.GUID=A._IDRRef JOIN Scope S')
     return cte,directory,orders,links,applications,calls
 
-def fetch_facts(seed,activity,end):
+def fetch_facts(seed,activity,end,daily=False,start=None):
     from django.db import connections
-    cte,directory,orders,links,applications,calls=query_parts(seed)
+    cte,directory,orders,links,applications,calls=query_parts(seed,daily)
     binary=lambda value: bytes.fromhex(value[2:])
     params=[binary(g) for g in calls]+[binary(ROOT),binary(ROOT),binary(BRANCH),binary(ROOT),activity,end+timedelta(days=1),binary(ORG)]
+    if daily:
+        params[len(calls)+4:len(calls)+4]=[(start or end)-timedelta(days=1),end+timedelta(days=1)]
     results=[]
     with connections['default'].cursor() as cursor:
         for query in (directory,orders,links,applications):
-            extra=[activity,end+timedelta(days=1)] if query==applications else []
+            application_start = min(activity, (start or end)-timedelta(days=1)) if daily else activity
+            extra=[application_start,end+timedelta(days=1)] if query==applications else []
             cursor.execute(cte+query,params+extra)
             results.append(_rows(cursor))
     return results
@@ -155,11 +185,11 @@ def _document(row,kind,state_labels):
     if not label:
         label='Не вказано' if not state.replace('0X','').strip('0') else 'Невідомий стан ('+state+')'
     return {'guid':key(row[prefix+'GUID']),'number':str(row[prefix+'Number']).strip(),
-        'date':str(row[prefix+'Date'])[:10],'constructions':qty(row['Constructions']),
+        'date':str(row[prefix+'Date'])[:10],'manager':str(row.get('OrderManager') or '').strip(),'constructions':qty(row['Constructions']),
         'stateGuid':state,'state':label,'confirmed':not is_app and state==STATE,
         'posted':key(row.get('Posted')) in ('0X01','TRUE','1')}
 
-def assemble_report(directory,orders,links,applications,seed,start,end,activity):
+def assemble_report(directory,orders,links,applications,seed,start,end,activity,daily=False):
     dealers={key(row['DealerGUID']):row for row in directory}
     missing=(set(seed['calls'])|set(seed['additional_dealers']))-set(dealers)
     if missing:
@@ -171,7 +201,8 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity)
             raise ValueError('Суперечливі дані замовлення за GUID.')
         if activity.isoformat()<=str(row['OrderDate'])[:10]<=end.isoformat():
             unique[guid]=row
-    apps={key(row['ApplicationGUID']):row for row in applications if activity.isoformat()<=str(row['ApplicationDate'])[:10]<=end.isoformat()}
+    application_start = min(activity, start-timedelta(days=1)) if daily else activity
+    apps={key(row['ApplicationGUID']):row for row in applications if application_start.isoformat()<=str(row['ApplicationDate'])[:10]<=end.isoformat()}
     linked=defaultdict(set)
     for link in links:
         ag,og=key(link['ApplicationGUID']),key(link['OrderGUID'])
@@ -187,11 +218,27 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity)
     for g,o in unique.items(): order_dealers[key(o['DealerGUID'])].append(g)
     for g,a in new_apps.items():
         if str(a['ApplicationDate'])[:10]>=start.isoformat(): app_dealers[key(a['DealerGUID'])][g]=a
+    overnight = []
+    previous_pending = []
+    if daily:
+        for guid, app in new_apps.items():
+            next_day = date.fromisoformat(str(app['ApplicationDate'])[:10]) + timedelta(days=1)
+            if str(app['ApplicationDate'])[:10] == (start-timedelta(days=1)).isoformat() and not linked[guid]:
+                previous_pending.append({**_document(app, 'application', labels), 'dealerGuid': key(app['DealerGUID']),
+                    'dealer': str(dealers[key(app['DealerGUID'])]['DealerName']).strip(), 'orders': []})
+            if start <= next_day <= end:
+                related = [order_docs[og] for og in sorted(linked[guid])
+                           if str(unique[og].get('FirstStatusDate') or unique[og]['OrderDate'])[:10] == next_day.isoformat()]
+                if related:
+                    overnight.append({**_document(app, 'application', labels),
+                        'dealerGuid': key(app['DealerGUID']), 'dealer': str(dealers[key(app['DealerGUID'])]['DealerName']).strip(),
+                        'orders': [{**order, 'createdAt': str(unique[order['guid']].get('FirstStatusDate') or unique[order['guid']]['OrderDate'])} for order in related]})
     rows=[]
     for guid,dealer in dealers.items():
         calls=seed['calls'].get(guid)
         recent=order_dealers[guid]
-        if not calls and not recent and not app_dealers[guid] and guid not in seed['additional_dealers']:
+        has_previous = daily and any(app['dealerGuid'] == guid for app in previous_pending)
+        if not calls and not recent and not app_dealers[guid] and not has_previous and guid not in seed['additional_dealers']:
             continue
         registered=bool(dealer.get('NewAccounts') or guid in seed['registered'] or dealer.get('OldAccounts') or guid in seed['old_accounts'])
         selected=[order_docs[g] for g in recent if order_docs[g]['date']>=start.isoformat()]
@@ -202,7 +249,23 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity)
         app_details=[]
         for ag,a in period_apps.items():
             related=[order_docs[og] for og in sorted(linked[ag])]
+            created = a['ApplicationDate']
+            order_dates = [unique[og].get('FirstStatusDate') for og in linked[ag]]
+            last_order = max((when for when in order_dates if isinstance(when, datetime)), default=None)
+            processing_minutes = (
+                (last_order - created).total_seconds() / 60
+                if isinstance(created, datetime) and last_order is not None and last_order >= created
+                else None
+            )
             app_details.append({**_document(a,'application',labels),'orders':related,
+                'processingMinutes': processing_minutes,
+                'orderProcessingMinutes': {
+                    og: (unique[og].get('FirstStatusDate') - created).total_seconds() / 60
+                    for og in linked[ag]
+                    if isinstance(created, datetime)
+                    and isinstance(unique[og].get('FirstStatusDate'), datetime)
+                    and unique[og].get('FirstStatusDate') >= created
+                },
                 'orderCount':len(related),'orderStatuses':status_breakdown(related),
                 'orderConstructions':sum(o['constructions'] for o in related),
                 'confirmedOrderConstructions':sum(o['constructions'] for o in related if o['confirmed'])})
@@ -221,22 +284,61 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity)
             'cohortOrders':cohort,'applicationDetails':sorted(app_details,key=lambda a:(a['date'],a['number'],a['guid']))}
         rows.append(row)
     rows.sort(key=lambda row:(row['region'],row['name']))
-    return {'rows':rows,'regions':[{'name':name,**summarize([row for row in rows if row['region']==name])} for name in sorted({row['region'] for row in rows})],
+    return {'rows':rows,**({'overnightApplications': overnight, 'previousDayPendingApplications': previous_pending} if daily else {}),'regions':[{'name':name,**summarize([row for row in rows if row['region']==name])} for name in sorted({row['region'] for row in rows})],
         'totals':summarize(rows),'period':{'from':start.isoformat(),'to':end.isoformat(),'activityFrom':activity.isoformat()},
         'rulesVersion':seed['reviewed_at'],'orderScope':'all_states','confirmedState':STATE,
         'applicationEntity':'Заявка / прорахунок','statusAsOf':'generation_time'}
 
-def build_report(start,end,activity):
+def build_report(start,end,activity,daily=False):
     from django.utils import timezone
     seed=seed_data()
-    report=assemble_report(*fetch_facts(seed,activity,end),seed,start,end,activity)
+    facts=fetch_facts(seed,activity,end,daily=True,start=start) if daily else fetch_facts(seed,activity,end)
+    report=assemble_report(*facts,seed,start,end,activity,daily=daily)
+    if daily:
+        from .daily_portal_movements import fetch_auto_refusals
+        report['autoRefusedOrders'] = fetch_auto_refusals(seed, start, end)
+        present = {row['guid'] for row in report['rows']}
+        directory = {key(row['DealerGUID']): row for row in facts[0]}
+        for document in report['autoRefusedOrders']:
+            guid = document['dealerGuid']
+            if guid not in present:
+                dealer = directory[guid]
+                report['rows'].append({'guid': guid, 'name': document['dealer'],
+                    'region': 'Чернівецька область' if guid == RUTA else str(dealer['ReportGroup']).strip(),
+                    'path': dealer['FolderPath'], 'aliases': [], 'newAccount': True, 'callList': False,
+                    **{metric: 0 for metric in METRICS}, 'orders': [], 'cohortOrders': [], 'applicationDetails': []})
+                present.add(guid)
     from .dealer_groups import dealer_group_map, normalized_contractor
     classes=dealer_group_map(report['rows'],'guid')
     for row in report['rows']:
         row['dealerGroup']=classes.get(normalized_contractor(row['guid']),'Інше')
+    from users.models import CustomUser
+    from users.dealer_preview import DEALER_ROLES
+
+    kyiv = ZoneInfo('Europe/Kyiv')
+    today = timezone.now().astimezone(kyiv).date()
+    accounts = CustomUser.objects.filter(role__in=DEALER_ROLES, user_id_1C__isnull=False)
+    registered = set()
+    new_today = set()
+    for guid, joined in accounts.values_list('user_id_1C', 'date_joined').order_by('date_joined'):
+        dealer = key(guid)
+        if not dealer or dealer in registered:
+            continue
+        registered.add(dealer)
+        if joined.astimezone(kyiv).date() == today:
+            new_today.add(dealer)
+    for row in report['rows']:
+        row['registeredToday'] = key(row['guid']) in new_today
     report['generatedAt']=timezone.now().isoformat()
     return report
 
 def filter_report(report,region='',search='',dealer_group='',contractor=''):
     rows=[row for row in report['rows'] if row.get('dealerGroup') != 'Експорт' and (not dealer_group or row.get('dealerGroup')==dealer_group) and (not contractor or row['guid']==contractor) and (not region or row['region']==region) and (not search or search.casefold() in ' '.join([row['name'],row['guid'],*row['aliases']]).casefold())]
-    return {**report,'rows':rows,'totals':summarize(rows),'regions':[{'name':name,**summarize([row for row in rows if row['region']==name])} for name in sorted({row['region'] for row in rows})]}
+    result = {**report,'rows':rows,'totals':summarize(rows),'regions':[{'name':name,**summarize([row for row in rows if row['region']==name])} for name in sorted({row['region'] for row in rows})]}
+    if 'overnightApplications' in report:
+        from .daily_portal_movements import movement_summary
+        allowed = {row['guid'] for row in rows}
+        for field in ('overnightApplications', 'previousDayPendingApplications', 'autoRefusedOrders'):
+            result[field] = [doc for doc in report.get(field, []) if doc.get('dealerGuid') in allowed]
+        result['dailyMovements'] = movement_summary(result)
+    return result

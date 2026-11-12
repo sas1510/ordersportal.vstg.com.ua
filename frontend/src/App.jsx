@@ -1,3 +1,4 @@
+import { isRiminiDealer } from "./utils/dealerCapabilities";
 import React, { lazy, useContext, useEffect, useMemo } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { RoleContext } from "./context/RoleContext";
@@ -65,6 +66,7 @@ const routeTitlePatterns = [
   ["/promo-wds-codes", "route_titles.promo_wds"],
   ["/finance/payment", "route_titles.payment"],
   ["/finance/customer-bills", "route_titles.customer_bills"],
+  ["/finance/invoices", "route_titles.customer_bills"],
   ["/statistics", "route_titles.analytics"],
   ["/finance/cash-flow", "route_titles.cash_flow"],
   ["/edit-addresses", "route_titles.edit_addresses"],
@@ -231,6 +233,7 @@ function AppRoutes() {
       "/payment",
       "/finance/cash-flow",
       "/finance/customer-bills",
+      "/finance/invoices",
     ]);
     routes = routes.filter(({ path }) => !financePaths.has("/" + path));
   }
@@ -238,6 +241,10 @@ function AppRoutes() {
   //   LayoutComponent = AdminLayout;
   //   routes = managerRoutes;
   // }
+
+if (isDealerRole(normalizedRole) && isRiminiDealer(user)) {
+  routes = routes.filter(route => route.path.replace(/^\//, "") !== "finance/invoices");
+}
 
 if (normalizedRole === "internal_dealer" && user?.internal_dealer_can_edit !== true) {
   routes = routes.map((route) => ["zamir", "constructor", "change-password"].includes(route.path)

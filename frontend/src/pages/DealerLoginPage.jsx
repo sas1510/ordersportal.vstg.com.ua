@@ -1,3 +1,4 @@
+import "./DealerLoginPage.css";
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
 import axiosInstance from "../api/axios";
 import { RoleContext } from "../context/RoleContext";
@@ -71,15 +72,23 @@ export default function DealerLoginPage() {
 
 
   return (
-    <section className="mx-auto w-full max-w-xl p-6" style={{ paddingTop: headerHeight + 24 }}>
+    <section className="dealer-login-page" style={{ paddingTop: headerHeight + 24 }}>
+      <div className="dealer-login-shell">
+      <header className="dealer-login-heading">
       <h1 className="text-2xl font-bold">Увійти як дилер</h1>
-      <p className="my-3">Вибери дилера. Його кабінет відкриється в окремій вкладці.</p>
+      <p>Відкрий кабінет потрібного дилера в окремій вкладці.</p>
+      </header>
+      <div className="dealer-login-panels">
+      <div className="dealer-login-card">
+      <h2>Кабінет дилера</h2>
+      <label className="dealer-login-label">Дилер</label>
       <DealerSelectWithAll dealerPreview value={dealerGuid} onChange={setDealerGuid} allowAll={false} placeholder="Вибрати дилера" />
-      <button type="button" className="orders-expand-all-button mt-4" disabled={!dealerGuid || previewPending} onClick={() => startPreview()}>
+      <button type="button" className="dealer-login-button" disabled={!dealerGuid || previewPending} onClick={() => startPreview()}>
         {previewPending ? "Відкриваємо…" : "Увійти як дилер"}
       </button>
+      </div>
       {canPreviewStaff && (
-        <div className="mt-6 border-t border-current pt-4">
+        <div className="dealer-login-card">
           <h2 className="text-xl font-bold">Переглянути як працівник</h2>
           <label className="my-3 block">
             Роль
@@ -95,10 +104,12 @@ export default function DealerLoginPage() {
               {staff.filter((person) => roleOf(person) === staffRole).map((person) => <option key={person.id} value={person.id}>{person.full_name || person.username}</option>)}
             </select>
           </label>
-          <button type="button" className="orders-expand-all-button" disabled={!staffId || previewPending} onClick={() => startPreview(true)}>Відкрити перегляд</button>
+          <button type="button" className="dealer-login-button" disabled={!staffId || previewPending} onClick={() => startPreview(true)}>Відкрити перегляд</button>
         </div>
       )}
-      {previewError && <p role="alert" className="mt-3 text-red-600">{previewError}</p>}
+      </div>
+      {previewError && <p role="alert" className="dealer-login-error">{previewError}</p>}
+      </div>
     </section>
   );
 }

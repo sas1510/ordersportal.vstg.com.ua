@@ -33,7 +33,7 @@ export default function RouteContent() {
       <span className="route-content-spinner" aria-hidden="true" />
       <span>Завантаження сторінки…</span>
     </div>}>
-      <Outlet />
+      <div className="portal-page-content"><Outlet /></div>
     </Suspense>
   </PageErrorBoundary>;
 }

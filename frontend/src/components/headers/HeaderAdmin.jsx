@@ -1,6 +1,7 @@
 // import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { useState, useRef, useEffect, useContext } from "react";
-// import { useMediaQuery } from "react-responsive";
+// import useHeaderLayout from "../../hooks/useHeaderLayout";
+import "./HeaderLayout.css";
 // import { AuthContext } from "../../context/AuthContext";
 // import HeaderUserProfile from "./HeaderUserProfile";
 // import "./HeaderAdmin.css";
@@ -89,7 +90,7 @@
 //     >
 //       <Link to={link.to} className="menu-link">
 //         <span className={`icon ${link.icon}`}></span>
-//         <span>{link.title}</span>
+//         <span>{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span>
 //       </Link>
 //     </li>
 //   ));
@@ -135,7 +136,7 @@
 //               )}
 //             </li>
 
-//             <li ref={settingsRef}>
+//             <li ref={settingsRef} data-header-settings="true">
 //               <button
 //                 className="menu-link"
 //                 onClick={() => {
@@ -303,7 +304,8 @@
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
-import { useMediaQuery } from "react-responsive";
+import useHeaderLayout from "../../hooks/useHeaderLayout";
+import "./HeaderLayout.css";
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../context/AuthContext";
 import axiosInstance from "../../api/axios";
@@ -346,7 +348,7 @@ export default function HeaderAdmin() {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const closeComparison = useCallback(() => setComparisonOpen(false), []);
   const { isAdmin, isManager, role } = useAuthGetRole();
-  const isMobile = useMediaQuery({ maxWidth: 1460 });
+  const { headerRef, isMobile } = useHeaderLayout();
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useContext(AuthContext);
@@ -365,18 +367,20 @@ export default function HeaderAdmin() {
     { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor' },
     ...((isAdmin || isManager) ? [{ title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir' }] : []),
     { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
-    { title: t('nav.faq'), to: '/faq' },
-  ], [t, isAdmin, isManager]);
+    ...(role !== 'admin' ? [{ title: t('nav.faq'), to: '/faq' }] : []),
+  ], [t, isAdmin, isManager, role]);
 
   const FINANCE_SUBMENU = useMemo(() => [
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
     { title: t('nav.finance_analytics'), to: "/statistics" },
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
+    { title: 'Рахунки', to: '/finance/invoices' },
   ], [t]);
 
   const SETTINGS_SUBMENU = useMemo(() => {
     if (isAdmin) {
       return [
+          ...(role === 'admin' ? [{ title: t('nav.faq'), to: '/faq' }] : []),
           { title: "Увійти як дилер", to: "/dealer-login" },
           { title: t('nav.settings_users'), to: "/users-list" },
           { title: t('nav.settings_tg_manager'), to: "/manager-qr" },
@@ -421,7 +425,6 @@ export default function HeaderAdmin() {
 
   const exitIcon = "/assets/icons/exit-icon.png";
   const closeIcon = "/assets/icons/CloseButton.png";
-  const profileIcon = "/assets/icons/ProfileIconSubMenu.png";
   const polygonIcon = "/assets/icons/PolygonOpenProfileSubmenu.png";
 
   const loadMaintenanceState = useCallback(async () => {
@@ -508,52 +511,54 @@ export default function HeaderAdmin() {
     : "bg-[#B4D947] text-[#44403E] hover:bg-[#a6ca42]";
 
   return (
-    <header data-portal-header className="w-[calc(100%-20px)] mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
+    <header ref={headerRef} data-portal-header className="portal-header-layout header-admin-layout w-[calc(100%-20px)] mx-[10px] flex flex-col items-center bg-transparent z-50 font-['Inter']">
       <div className="w-full max-w-[1334px] h-2 md:h-[12px] rounded-t-sm" style={{ backgroundColor: 'var(--header-decorative)' }} />
 
      
-      <div className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
+      <div data-header-row className="w-full max-w-[1334px] h-12 md:h-[70px] flex items-center shadow-lg relative" style={{ backgroundColor: 'var(--header-bg)' }}>
         
 
         <Link to="/dashboard" className="ml-[8px] max-[1261px]:ml-[6px] flex-shrink-0 mr-2 max-[1261px]:mr-[4px]">
-          <img src={currentLogo} alt="Вікна Стиль" className="h-[38px] max-[1261px]:h-[36px] w-auto" />
+          <img src={currentLogo} alt="Вікна Стиль" className="h-[38px] w-auto" />
         </Link>
 
         {!isMobile ? (
           <>
 
-            <nav className="flex h-full min-w-0 flex-1">
+            <nav className="header-desktop-nav flex h-full min-w-0 flex-1">
               <ul className="flex h-full w-full items-center">
                 {NAV_LINKS.map((link) => (
                   <li
-                    key={link.to}
+                    key={link.to} data-header-item={link.to}
                     className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0"
                   >
                     <Link
                       to={link.to}
-                      className={`h-full w-full flex items-center justify-center px-[2px] ${link.primary ? "text-[13px]" : "text-[12px]"} font-bold leading-tight transition-all text-center shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
+                      data-header-primary={link.primary || undefined}
+                      className={`h-full w-full flex items-center justify-center px-[2px] ${link.primary ? "text-[clamp(14px,0.8vw,15px)] [color:#fff!important] [-webkit-text-fill-color:#fff!important]" : "text-[12px]"} font-bold leading-tight transition-all text-center shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
                         location.pathname.startsWith(link.to) 
                           ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
                           : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                       }`}
                     >
-                      {link.icon && <link.icon aria-hidden="true" className="w-[14px] h-[14px] shrink-0 mr-[2px]" />}
-                      {link.title}
+                      {link.icon && <link.icon aria-hidden="true" className={`w-[14px] h-[14px] shrink-0 mr-[2px] ${link.primary ? "text-[#B4D947]" : ""}`} />}
+                      {link.primary ? <span className="header-nav-underline">{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span> : <span className={link.to === "/promo-wds-codes" || link.to === "/files" ? "header-two-line-label" : undefined}>{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span>}
                     </Link>
                   </li>
                 ))}
                 
 
-                <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={financeRef}>
+                <li className="h-full relative flex-1 min-w-max flex items-center border-r border-gray-300/30 last:border-r-0" ref={financeRef} data-header-finance="true">
                   <button 
+                    data-header-primary="true"
                     onClick={() => { setShowFinanceMenu(!showFinanceMenu); setShowSettings(false); }}
-                    className={`w-full h-full px-[2px] text-[14px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
+                    className={`w-full h-full px-[2px] text-[clamp(14px,0.8vw,15px)] [color:#fff!important] [-webkit-text-fill-color:#fff!important] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
                       showFinanceMenu || location.pathname.includes("/finance")
                         ? "bg-[var(--header-accent)] text-[var(--header-active-text)] shadow-inner"
                         : "bg-gradient-to-b from-white/5 to-black/5 text-[var(--header-text)] hover:bg-[var(--header-profile-bg)] hover:text-[var(--header-accent)]"
                     }`}
                   >
-                    {t('nav.finance_short')} ▾
+                    <span className="whitespace-nowrap header-nav-underline">{t('nav.finance_short')}</span> ▾
                   </button>
                   {showFinanceMenu && (
                     <ul className="absolute top-[calc(100%)] left-0  bg-white shadow-xl py-2 z-[1001]">
@@ -581,7 +586,7 @@ export default function HeaderAdmin() {
                 )}
 
                 {SETTINGS_SUBMENU.length > 0 && (
-                  <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={settingsRef}>
+                  <li className="h-full relative flex-1 flex items-center border-r border-gray-300/30 last:border-r-0" ref={settingsRef} data-header-settings="true">
                     <button 
                       onClick={() => { setShowSettings(!showSettings); setShowFinanceMenu(false); }}
                       className={`w-full h-full px-[2px] text-[12px] font-bold flex items-center justify-center gap-[2px] leading-tight transition-all shadow-[0_2px_4px_rgba(0,0,0,0.1)] active:translate-y-[1px] active:shadow-none ${
@@ -616,7 +621,7 @@ export default function HeaderAdmin() {
               <div 
                 className="h-full flex flex-col justify-center border-l border-r border-gray-200 relative min-w-[190px] max-w-[220px]"
                 style={{ backgroundColor: 'var(--header-profile-bg)' }}
-                ref={profileRef}
+                ref={profileRef} data-header-profile="true"
               >
                 <button
                   className="h-full w-full focus:outline-none transition-colors hover:bg-gray-200"
@@ -736,7 +741,7 @@ export default function HeaderAdmin() {
                           <span className={`transition-transform ${showFinanceMenu ? 'rotate-180' : ''}`}>▼</span>
                         </button>
                         {showFinanceMenu && (
-                          <div className="mobile-side-menu-submenu bg-[#F9FFE6]/50 mx-[5%] rounded-lg mb-2">
+                          <div className="mobile-side-menu-submenu finance-profile-submenu bg-[#F9FFE6]/50 mx-[5%] rounded-lg mb-2">
                             {FINANCE_SUBMENU.map((sub) => (
                               <Link key={sub.to} to={sub.to} className="block py-3 px-[10%] text-lg font-semibold text-[#44403E] border-b border-dashed border-gray-200 last:border-0">
                                 {sub.title}
@@ -851,3 +856,8 @@ export default function HeaderAdmin() {
     </header>
   );
 }
+
+
+
+
+

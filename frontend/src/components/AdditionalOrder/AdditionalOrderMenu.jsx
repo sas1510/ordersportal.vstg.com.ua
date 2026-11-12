@@ -68,12 +68,12 @@ export const AdditionalOrderMenu = ({ calc, _onEdit, onDelete }) => {
     setIsDeleteModalOpen(true);
   };
 
-  const { isReadOnly } = useAuthGetRole();
+  const { isReadOnly } = useAuthGetRole({ afterSales: true });
   if (isReadOnly) return null;
   return (
     <div className="summary-item small row no-wrap gap-10 align-center" onClick={(e) => e.stopPropagation()}>
       <img
-        src={deleteIcon}
+        data-after-sales-display="inline-block" src={deleteIcon}
         alt="Видалити"
         title={
         managerAssigned

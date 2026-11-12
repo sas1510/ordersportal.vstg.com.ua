@@ -27,9 +27,11 @@ export function RoleProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    document.body.classList.toggle("internal-dealer-readonly", role === "internal_dealer" && user?.internal_dealer_can_edit !== true);
-    return () => document.body.classList.remove("internal-dealer-readonly");
-  }, [role, user?.internal_dealer_can_edit]);
+    const readOnly = role === "internal_dealer" && user?.internal_dealer_can_edit !== true;
+    document.body.classList.toggle("internal-dealer-readonly", readOnly);
+    document.body.classList.toggle("internal-dealer-after-sales", readOnly);
+    return () => document.body.classList.remove("internal-dealer-readonly", "internal-dealer-after-sales", "rimini-after-sales");
+  }, [role, user]);
 
   const updateRole = (newRole) => {
     const normalizedRole = normalizeRole(newRole);

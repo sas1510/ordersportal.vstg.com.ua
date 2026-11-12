@@ -25,7 +25,7 @@ def start_dealer_preview(request):
         if nested or not is_primary_admin(request.user):
             raise PermissionDenied("Доступно лише головному адміністратору.")
         if request.method == "GET":
-            users = CustomUser.objects.filter(Q(is_superuser=False) | Q(username="admin_test"), is_active=True, role__in=STAFF_PREVIEW_ROLES).exclude(pk=request.user.pk)
+            users = CustomUser.objects.filter(Q(is_superuser=False) | Q(username="admin_test"), is_active=True, role__in=STAFF_PREVIEW_ROLES).exclude(pk=request.user.pk).exclude(username__iexact="admin")
             return Response(list(users.order_by("full_name", "username").values("id", "full_name", "username", "role")))
         try:
             staff_id = int(request.data.get("staff_id"))

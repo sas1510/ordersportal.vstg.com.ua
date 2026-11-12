@@ -2547,3 +2547,8 @@ body.dark-theme .batch-payment-sticky-anchor {
 .pp-value-wrapper strong { font-size: 14px; }
 .pp-currency { font-size: 11px !important; margin-left: 4px; }
 .pp-badges strong { font-size: 13px; }
+
+.batch-payment-inline { row-gap: 3px; padding-block: 4px; }
+.batch-payment-summary-row,
+.batch-payment-hint-inline { margin-block: 0; line-height: 1.15; }
+.content-filter-payment { padding-left: 5px; box-sizing: border-box; }

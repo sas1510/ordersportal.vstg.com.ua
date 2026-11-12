@@ -1,3 +1,4 @@
+import OrderPdfViewer from './OrderPdfViewer';
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../../api/axios.js";
 import { useNotification } from "../../hooks/useNotification";
@@ -19,6 +20,35 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdf, setPdf] = useState(null);
+  const [pdfError, setPdfError] = useState(false);
+
+  useEffect(() => {
+    setPdfFile(null);
+  }, [isOpen, orderGuid]);
+
+  useEffect(() => {
+    setPdf(null);
+    setPdfError(false);
+    if (!isOpen || !pdfFile) return;
+    const controller = new AbortController();
+    let objectUrl;
+    const path = `/orders/${orderGuid}/files/${pdfFile.fileGuid}/download_calc/?filename=${encodeURIComponent(pdfFile.fileName)}`;
+    axiosInstance.get(path, { responseType: 'blob', signal: controller.signal }).then(({ data }) => {
+      if (controller.signal.aborted) return;
+      const blob = data.slice(0, data.size, "application/pdf");
+      objectUrl = URL.createObjectURL(blob);
+      setPdf({ blob, url: objectUrl });
+    }).catch(() => {
+      if (!controller.signal.aborted) setPdfError(true);
+    });
+    return () => {
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [isOpen, orderGuid, pdfFile]);
 
   // 1. Завантаження списку файлів прорахунку за новим ендпоінтом get_calc_files
   useEffect(() => {
@@ -64,7 +94,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
       link.click();
       
       link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+      window.setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 60000);
     } catch (error) {
       console.error("File download error:", error);
       addNotification("Помилка під час завантаження файлу", "error");
@@ -72,6 +102,10 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
   };
 
   const handleOpenFileInNewWindow = async (fileItem) => {
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && /\.pdf$/i.test(fileItem.fileName)) {
+      setPdfFile(fileItem);
+      return;
+    }
     const openedWindow = window.open("", "_blank");
     if (!openedWindow) {
       addNotification(
@@ -147,7 +181,15 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
 
         {/* Тіло модалки */}
         <div className="preview-modal-body">
-          {loading ? (
+          {pdfFile ? (
+            <>
+              <button type="button" onClick={() => setPdfFile(null)}>До списку файлів</button>
+              <p>{pdfFile.fileName}</p>
+              {pdfError ? <p role="alert">Не вдалося завантажити PDF.</p>
+                : pdf ? <OrderPdfViewer key={pdf.url} url={pdf.url} blob={pdf.blob} title={pdfFile.fileName} />
+                : <p role="status">Завантажуємо PDF…</p>}
+            </>
+          ) : loading ? (
             <div className="preview-loading-box">
               <FaSpinner className="spinner-animation" size={30} />
               <p>Завантаження...</p>
@@ -181,7 +223,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                             <button
                               className="file-action-btn"
                               onClick={() => handleOpenFileInNewWindow(file)}
-                              title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+                              title={/\.pdf$/i.test(file.fileName) ? "Переглянути PDF" : t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
                             >
                               <FaExternalLinkAlt />
                             </button>
@@ -217,7 +259,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                             <button
                               className="file-action-btn"
                               onClick={() => handleOpenFileInNewWindow(file)}
-                              title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+                              title={/\.pdf$/i.test(file.fileName) ? "Переглянути PDF" : t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
                             >
                               <FaExternalLinkAlt />
                             </button>
@@ -253,7 +295,7 @@ const OrderFilesPreviewModal = ({ isOpen, onClose, orderGuid, orderNumber }) => 
                             <button
                               className="file-action-btn"
                               onClick={() => handleOpenFileInNewWindow(file)}
-                              title={t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
+                              title={/\.pdf$/i.test(file.fileName) ? "Переглянути PDF" : t("orders.filesPreview.open_in_new_window", { defaultValue: "Відкрити у новому вікні" })}
                             >
                               <FaExternalLinkAlt />
                             </button>

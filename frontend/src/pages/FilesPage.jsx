@@ -459,7 +459,7 @@ const FilesPage = () => {
           </div>
         </div>
       ) : (
-        <div className="column gap-4 max-w-[1334px] items-center justify-center  w-[calc(100%-20px)] ">
+        <div className="column gap-4 max-w-[1334px] items-center justify-center w-full technical-documents-list">
           {filteredFiles.map((file) => (
             <div
               key={file.id}

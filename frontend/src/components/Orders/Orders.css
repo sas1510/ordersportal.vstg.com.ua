@@ -425,16 +425,7 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 
 .order-grid{
     display:grid;
-    grid-template-columns:
-        30px     /* іконка */
-        133px    /* номер */
-        75px     /* конструкції */
-        80px     /* файли */
-        135px    /* сума */
-        135px    /* борг */
-        120px    /* статус */
-        215px    /* кнопки */
-        70px;    /* швидке */
+    grid-template-columns: 30px 133px 75px 80px 135px 135px 120px 215px 70px;    
     align-items:center;
     width: calc(100%);
 }
@@ -442,16 +433,7 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 @media (max-width: 1360px) {
   .order-grid{
     display:grid;
-    grid-template-columns:
-        30px     /* іконка */
-        133px    /* номер */
-        70px     /* конструкції */
-        70px     /* файли */
-        140px    /* сума */
-        140px    /* борг */
-        120px    /* статус */
-        215px    /* кнопки */
-        34px;    /* швидке */
+    grid-template-columns: 30px 133px 70px 70px 140px 140px 120px 215px 70px;    
     align-items:center;
     width: calc(100%);
 }
@@ -464,16 +446,7 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 @media (max-width: 1315px) {
   .order-grid{
     display:grid;
-    grid-template-columns:
-        30px     /* іконка */
-        133px    /* номер */
-        70px     /* конструкції */
-        70px     /* файли */
-        133px    /* сума */
-        133px    /* борг */
-        120px    /* статус */
-        215px    /* кнопки */
-        34px;    /* швидке */
+    grid-template-columns: 30px 133px 70px 70px 133px 133px 120px 215px 70px;    
     align-items:center;
     width: calc(100%);
 }
@@ -482,16 +455,7 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 @media (max-width: 1300px) and (min-width: 1260px) {
   .order-grid{
     display:grid;
-    grid-template-columns:
-        30px     /* іконка */
-        133px    /* номер */
-        70px     /* конструкції */
-        48px     /* файли */
-        128px    /* сума */
-        128px    /* борг */
-        120px    /* статус */
-        215px    /* кнопки */
-        34px;    /* швидке */
+    grid-template-columns: 30px 133px 70px 48px 128px 128px 120px 215px 70px;    
     align-items:center;
     width: calc(100%);
   }
@@ -504,16 +468,7 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 @media (max-width: 1260px) {
 .order-grid{
     display:grid;
-    grid-template-columns:
-        30px     /* іконка */
-        133px    /* номер */
-        70px     /* конструкції */
-        75px     /* файли */
-        140px    /* сума */
-        140px    /* борг */
-        120px    /* статус */
-        215px    /* кнопки */
-        34px;    /* швидке */
+    grid-template-columns: 30px 133px 70px 75px 140px 140px 120px 215px 70px;    
     align-items:center;
     width: calc(100%);
 }
@@ -665,9 +620,7 @@ body.dark-theme .calc-item-soft .order-fast-icon--negative {
 }
 .order-grid--readonly > * { min-width: 0; }
 .calc-item-aligned .order-grid.order-grid--readonly {
-  grid-template-columns:
-    30px 165px minmax(70px, 0.8fr) minmax(70px, 0.8fr)
-    minmax(125px, 1.4fr) minmax(125px, 1.4fr) minmax(240px, 2.2fr) 70px;
+  grid-template-columns: 30px 165px minmax(70px, 0.8fr) minmax(70px, 0.8fr) minmax(125px, 1.4fr) minmax(125px, 1.4fr) minmax(240px, 2.2fr) 70px;
 }
 .calc-item-aligned .order-grid--readonly > * {
   min-width: 0;
@@ -785,7 +738,7 @@ body.dark-theme .order-item > .separator-border {
   .calc-item-aligned .order-grid--readonly .order-summary-debt-text { font-size: 13px; overflow-wrap: anywhere; }
 }
 @container (max-width: 650px) {
-  .calc-item-aligned .order-grid.order-grid--readonly { grid-template-columns: 25px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); row-gap: 6px; }
+  .calc-item-aligned .order-grid.order-grid--readonly { grid-template-columns: 25px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 45px; row-gap: 6px; }
 }
 
 /* Keep totals readable; reserve flexible space for the status instead. */
@@ -829,3 +782,51 @@ body.dark-theme .order-item > .separator-border {
 .calc-item-aligned .calc-money-summary > .flex { gap: 3px; }
 .calc-item-aligned .calc-money-summary .calc-summary-icon--money { margin-right: 0; }
 .calc-item-aligned .calc-money-summary > .flex > .flex-col { align-items: flex-start; text-align: left; }
+
+.calc-status-panel > .calc-status-icon { display:none; }
+.calculation-status-label { display:flex; flex-direction:column; align-items:flex-start; gap:3px; min-width:0; text-align:left; }
+.calculation-status-label__title { display:flex; align-items:center; gap:6px; line-height:1.25; }
+.calculation-status-label__title > svg { width:17px; height:17px; flex-shrink:0; }
+.calculation-status-label__dates { display:block; font-size:10px; line-height:1.25; font-weight:400; opacity:.92; white-space:normal; }
+.calculation-status-label__dates > span { display:block; }
+.calc-status-panel .calc-status { white-space:normal; }
+
+.calc-status-panel .calc-status-icon { display:none; }
+.calc-status-panel .calculation-status-label__dates { font-size:10px; line-height:1.15; }
+.calc-status-panel .calculation-status-label { gap:2px; }
+
+/* Ready: yellow background with white lettering. */
+.calc-status-panel.calc-status-panel--ready { background:#d9b91b; color:#fff; }
+.calc-status-panel.calc-status-panel--ready .calc-status,
+.calc-status-panel.calc-status-panel--ready .calc-status *,
+.calc-status-panel.calc-status-panel--ready .calculation-status-label,
+.calc-status-panel.calc-status-panel--ready .calculation-status-label * {
+  color:#fff !important;
+}
+.calc-status-panel--ready .calculation-status-label__dates { opacity:1; }
+
+@media (min-width: 1500px) {
+  .order-item-summary.order-grid:not(.order-grid--readonly) {
+    width:100%;
+    grid-template-columns: 30px minmax(133px,1.2fr) minmax(75px,.7fr) minmax(80px,.7fr) minmax(135px,1.1fr) minmax(135px,1.1fr) minmax(120px,1.2fr) minmax(215px,1.7fr) 170px;
+  }
+  .order-item-summary.order-grid:not(.order-grid--readonly) > * { min-width:0; }
+}
+
+
+/* Keep processing speed centered in the final column. */
+.order-fast-final.summary-item { display:flex; flex-direction:column; align-items:center !important; justify-content:center !important; justify-self:stretch; align-self:stretch; min-width:0; gap:3px; padding:4px 0; text-align:center !important; }
+.order-fast-final .order-fast-label { display:block; width:100%; text-align:center; font-size:9px; line-height:1.2; }
+.order-fast-final .order-fast-icon { width:24px !important; height:24px !important; object-fit:contain; margin:0 auto !important; flex-shrink:0; }
+
+/* On wide screens, use the free space immediately after the action buttons. */
+@media (min-width: 1600px) {
+  .order-item-summary.order-grid > .order-fast-final { transform: none; }
+}
+
+
+
+
+.calculation-status-label__title > svg.order-confirmed-check { width:22px; height:22px; }
+.calc-status-panel .calculation-status-label__title > svg.order-confirmed-check,
+.calc-status-panel .calculation-status-label__title > svg.order-confirmed-check path { color:#22c55e !important; fill:#22c55e !important; }

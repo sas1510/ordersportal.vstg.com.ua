@@ -16,8 +16,9 @@ export function overdueProduction(order, now = Date.now()) {
   return { deadline, daysLate, isDueToday, delayBucket: daysLate > 7 ? "Понад 7 днів" : daysLate >= 4 ? "4–7 днів" : daysLate >= 1 ? "1–3 дні" : "Без прострочення" };
 }
 
-export function buildOperationalReport(calculations, now = Date.now()) {
+export function buildOperationalReport(calculations, now = Date.now(), period) {
   const day = 86400000;
+  const kyivDay = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Kyiv" });
   const dealers = new Map();
   const deliveries = [], risks = [];
   const seen = new Set();
@@ -40,10 +41,8 @@ export function buildOperationalReport(calculations, now = Date.now()) {
       const item = { ...order, dealer: dealer.name, dealerId: key, calculation: calc.number || "" };
       const rawDelivery = order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime;
       const delivery = rawDelivery ? Date.parse(rawDelivery) : NaN;
-      if (Number.isFinite(delivery) && delivery >= now - day && delivery <= now + 7 * day) {
-        const currentDay = new Date(now).toLocaleDateString("en-CA", { timeZone: "Europe/Kyiv" });
-        const deliveryDay = new Date(delivery).toLocaleDateString("en-CA", { timeZone: "Europe/Kyiv" });
-        if (deliveryDay >= currentDay) deliveries.push({ ...item, delivery });
+      if (Number.isFinite(delivery) && kyivDay.format(delivery) >= kyivDay.format(now)) {
+        deliveries.push({ ...item, delivery });
       }
       const overdue = overdueProduction(order, now);
       const completed = ["Готовий", "Відвантажений", "Відвантажено", "Закритий"].includes(order.status);

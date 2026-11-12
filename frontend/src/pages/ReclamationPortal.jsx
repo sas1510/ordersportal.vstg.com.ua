@@ -583,7 +583,7 @@ const ReclamationPortal = () => {
                                 <div className="text-center text-[15px] text-white font-bold font-['Inter'] uppercase">Правила прийому рекламацій</div>
                             </a>
                         </li>
-                        <li className=" btn-add-calc" onClick={() => setIsNewReclamationModalOpen(true)}>
+                        <li data-after-sales-display="flex" className=" btn-add-calc" onClick={() => setIsNewReclamationModalOpen(true)}>
                            <img 
                                 src={plusIcon} 
                                 alt="+" 

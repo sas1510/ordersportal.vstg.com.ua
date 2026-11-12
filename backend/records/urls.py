@@ -1,3 +1,4 @@
+from .order_search import order_search_targets
 from .measurement_order_target import measurement_order_target
 from .settlement_views import delivery_settlements
 # api/urls.py
@@ -31,6 +32,7 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 
 urlpatterns = [
+    path("order/search-targets/", order_search_targets),
     path("order/measurement-target/", measurement_order_target),
     path("delivery-settlements/", delivery_settlements),
     path('dealer-reconciliation/', dealer_reconciliation, name='dealer-reconciliation'),

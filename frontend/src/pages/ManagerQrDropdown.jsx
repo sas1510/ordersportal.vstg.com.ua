@@ -150,7 +150,7 @@ export default function PortalManagersPage() {
   if (error) return <div className="portal-body text-danger">{error}</div>;
 
   return (
-    <div className="portal-body">
+    <div className="portal-body manager-tg-page">
 
     <div className="max-w-[1334px] mx-auto ">
       <div className="panel shadow-sm mt-10">

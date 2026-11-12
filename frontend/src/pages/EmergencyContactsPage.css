@@ -390,3 +390,52 @@ body.dark-theme .emergency-btn-confirm:hover {
   font-size: 18px;
   cursor: pointer;
 }
+/* Lighter contact directory, consistent with the portal's warm palette. */
+.emergency-portal-body {
+  box-sizing: border-box;
+  padding-inline: 5px;
+}
+.emergency-portal-body .emergency-contact-item {
+  border-radius: 5px;
+  border: 1px solid #c9c2b9;
+  padding: 18px 20px;
+  box-shadow: 0 2px 6px #00000012;
+}
+.emergency-portal-body .emergency-contact-item:hover {
+  transform: none;
+  border-color: #95b345;
+  box-shadow: 0 3px 10px #0000001a;
+}
+body.dark-theme .emergency-portal-body {
+  background: #57514c;
+  color: #fff;
+}
+body.dark-theme .emergency-portal-body .emergency-contact-item {
+  background: #e8e2da;
+  color: #302d29;
+  border-color: #cfc6bb;
+  box-shadow: 0 2px 8px #00000018;
+}
+body.dark-theme .emergency-portal-body .emergency-contact-item:hover {
+  background: #f1ece5;
+  border-color: #a4bf63;
+}
+body.dark-theme .emergency-portal-body .emergency-text-info {
+  color: #315d7d;
+  font-size: 18px;
+  font-weight: 700;
+}
+body.dark-theme .emergency-portal-body .emergency-text-grey {
+  color: #504b45 !important;
+}
+.emergency-portal-body .emergency-button-call {
+  background: #b4d947;
+  color: #293413;
+  margin-bottom: 0;
+  padding: 9px 16px;
+  border-radius: 4px;
+}
+.emergency-portal-body .emergency-button-call:hover { background: #a6cc35; transform: none; }
+@media (max-width: 720px) {
+  .emergency-portal-body .emergency-contact-item { padding: 14px 12px; }
+}

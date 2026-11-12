@@ -1,0 +1,51 @@
+.order-search-all-dates { margin: 4px 0 2px; }
+.order-search-all-dates form { margin: 0; }
+.order-search-all-dates .order-search-all-dates__icon {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px 0 0 4px;
+  background: transparent;
+  color: #b4d947;
+  font-size: 18px;
+  cursor: pointer;
+}
+.order-search-all-dates .order-search-all-dates__icon:hover:not(:disabled) { background: #b4d94718; }
+.order-search-all-dates .order-search-all-dates__icon:disabled { color: #888; cursor: default; }
+.order-search-all-dates button:focus-visible { outline: 2px solid #6b98bf; outline-offset: 3px; }
+.order-search-all-dates__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.order-search-all-dates__status > span { padding: 2px 6px; border: 1px solid #8b956c; border-radius: 3px; }
+.order-search-all-dates .order-search-all-dates__reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 3px 5px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.order-search-all-dates__error { margin: 6px 0 0; font-size: 12px; line-height: 1.4; color: #b83b24; }
+body.dark-theme .order-search-all-dates__error { color: #ffad99; }
+.order-search-all-dates__spinner { animation: order-search-all-dates-spin 1s linear infinite; }
+@keyframes order-search-all-dates-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .order-search-all-dates__spinner { animation: none; }
+}

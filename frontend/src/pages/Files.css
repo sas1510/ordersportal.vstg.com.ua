@@ -775,3 +775,5 @@ body.dark-theme .button.file-resource-edit-button {
   outline: 2px solid #567a2c;
   outline-offset: 2px;
 }
+
+.technical-documents-list { padding-inline: 5px; box-sizing: border-box; }

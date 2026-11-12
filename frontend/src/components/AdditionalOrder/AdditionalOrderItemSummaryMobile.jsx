@@ -28,8 +28,8 @@ export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid
   const [isFilesModalOpen, setIsFilesModalOpen] = useState(false);
   const { addNotification } = useNotification();
   const locale = i18n.language;
-  const { user, isReadOnly } = useAuthGetRole();
-  const canViewFinance = hasFinanceAccess(user);
+  const { user, isReadOnly, isGeneralReadOnly } = useAuthGetRole({ afterSales: true });
+  const canViewFinance = hasFinanceAccess(user) && !isGeneralReadOnly;
 
 
   const debtAmount = useMemo(() => {
@@ -108,7 +108,7 @@ export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid
   const handleConfirmOrder = async () => {
     try {
       const response = await axiosInstance.post(
-        `/additional-orders/${order.guid}/confirm/`,
+        `/orders/${order.guid}/confirm/`,
       );
       if (response.status === 200 || response.status === 204) {
         addNotification(t('order_mobile.notifications.order_confirmed', { number: order.number }), "success");
@@ -348,3 +348,4 @@ export default function AdditionalOrderItemSummaryMobile({ order, contractorGuid
     </div>
   );
 }
+
