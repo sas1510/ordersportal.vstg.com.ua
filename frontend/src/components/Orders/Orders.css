@@ -830,3 +830,11 @@ body.dark-theme .order-item > .separator-border {
 .calculation-status-label__title > svg.order-confirmed-check { width:22px; height:22px; }
 .calc-status-panel .calculation-status-label__title > svg.order-confirmed-check,
 .calc-status-panel .calculation-status-label__title > svg.order-confirmed-check path { color:#22c55e !important; fill:#22c55e !important; }
+
+/* Give files and recipient names more room on large displays. */
+@media (min-width: 1500px) {
+  .calc-item-aligned > .item-summary { grid-template-columns: minmax(140px,1.2fr) minmax(85px,.8fr) minmax(85px,.8fr) minmax(145px,1.2fr) minmax(210px,1.7fr) minmax(220px,1.5fr) auto; }
+  .calc-item-aligned.calc-item--no-summary-status > .item-summary { grid-template-columns: minmax(140px,1.2fr) minmax(85px,.8fr) minmax(85px,.8fr) minmax(145px,1.3fr) minmax(210px,1.8fr) auto; }
+  .calc-files-recipient > .column { width:100%; min-width:0; margin-right:0; }
+  .calc-files-recipient .dealer-wrap { max-width:100%; overflow-wrap:break-word; }
+}

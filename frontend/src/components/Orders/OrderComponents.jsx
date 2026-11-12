@@ -501,7 +501,7 @@ const statusPanelClass = (() => {
           </div>
           )}
 
-          <div className="summary-item row w-12 no-wrap">
+          <div className="summary-item calc-files-recipient row no-wrap">
             <div
               className="column gap-1 align-start mr-3"
             
