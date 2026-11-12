@@ -838,3 +838,9 @@ body.dark-theme .order-item > .separator-border {
   .calc-files-recipient > .column { width:100%; min-width:0; margin-right:0; }
   .calc-files-recipient .dealer-wrap { max-width:100%; overflow-wrap:break-word; }
 }
+
+/* Keep files and recipient aligned between calculation cards. */
+@media (min-width: 1151px) {
+  .calc-item:not(.calc-item-aligned) > .item-summary > .calc-files-recipient { flex:0 0 210px; width:210px; min-width:210px; max-width:210px; justify-content:flex-start; box-sizing:border-box; }
+  .calc-files-recipient > .column { width:100%; min-width:0; margin-right:0; align-items:flex-start; }
+}
