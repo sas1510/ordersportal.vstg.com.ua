@@ -994,6 +994,8 @@ def get_orders_by_period_and_contractor(
                     or row.get("CalcNumber")
                     or ""
                 ),
+                "oneCNumber": row.get("CalcNumber") or "",
+                "dealerNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "webNumber": (
                     row.get("CalcDealerNumber")
                     or row.get("WebNumber")
@@ -1249,6 +1251,8 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             calcs_dict[calc_id] = {
                 "id": calc_id,
                 "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("CalcNumber") or "",
+                "oneCNumber": row.get("CalcNumber") or "",
+                "dealerNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date, 
@@ -1575,7 +1579,7 @@ def api_get_orders(request):
             ]
         data = [
             calc for calc in data
-            if any(normalized_number(calc.get(field)) == wanted for field in ("number", "webNumber", "clientOrderNumber"))
+            if any(normalized_number(calc.get(field)) == wanted for field in ("number", "oneCNumber", "dealerNumber", "webNumber", "clientOrderNumber"))
             or any(normalized_number(order.get("number")) == wanted for order in calc.get("orders", []))
         ]
 
@@ -3062,7 +3066,9 @@ def orders_view_all_by_month(request):
                             or row.get("OrderNumber")
                             or ""
                         ),
-                        "webNumber": (
+                        "oneCNumber": row.get("CalcNumber") or "",
+                "dealerNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
+                "webNumber": (
                             row.get("CalcDealerNumber")
                             or row.get("WebNumber")
                             or row.get("OrderNumber")
