@@ -840,7 +840,7 @@ body.dark-theme .order-item > .separator-border {
 }
 
 /* Keep files and recipient aligned between calculation cards. */
-@media (min-width: 1151px) {
+@media (min-width: 1400px) {
   .calc-item:not(.calc-item-aligned) > .item-summary > .calc-files-recipient { flex:0 0 210px; width:210px; min-width:210px; max-width:210px; justify-content:flex-start; box-sizing:border-box; }
   .calc-files-recipient > .column { width:100%; min-width:0; margin-right:0; align-items:flex-start; }
 }
@@ -854,7 +854,7 @@ body.dark-theme .order-item > .separator-border {
 }
 
 /* Use consistent columns instead of distributing gaps by text length. */
-@media (min-width:1200px) {
+@media (min-width:1400px) {
  .calc-item:not(.calc-item-aligned) > .item-summary { display:grid !important; grid-template-columns:135px 70px 65px 120px minmax(95px,1fr) 175px 170px 45px; gap:0; align-items:stretch; }
  .calc-item:not(.calc-item-aligned) > .item-summary > * { width:auto !important; min-width:0 !important; max-width:none !important; box-sizing:border-box; }
  .calc-item:not(.calc-item-aligned) > .item-summary > .calc-files-recipient { padding-left:6px; }
