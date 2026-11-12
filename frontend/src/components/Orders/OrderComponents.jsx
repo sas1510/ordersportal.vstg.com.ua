@@ -1,4 +1,4 @@
-import { calculationNumber } from "../../utils/calculationNumber";
+import { calculationNumber, calculationDealerNumber } from "../../utils/calculationNumber";
 import CalculationStatusLabel from "./CalculationStatusLabel";
 import OrderFilesModal from "./OrderFilesModal";
 // ================= CalculationItem.jsx (Final Optimization) =================
@@ -52,6 +52,7 @@ export const CalculationItem = React.memo(
     const recipientIcon = "/assets/icons/RecipientIcon.png";
     const { isBackoffice, isReadOnly, role } = useAuthGetRole();
     const displayNumber = calculationNumber(calc, role);
+    const dealerNumber = calculationDealerNumber(calc, role);
 
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
@@ -353,7 +354,8 @@ const statusPanelClass = (() => {
       {/* <span className="text-[10px] text-grey leading-none">Дата </span> */}
       <span className="text-[10px] text-grey leading-none">{calc.clientOrderNumber ? t("calc.client_order_number", { defaultValue: "Номер замовлення клієнта" }) : calc.isOrderOnly ? t("order_mobile.labels.order_number", { defaultValue: "Номер замовлення" }) : t("portal_calc.ui.calculation_number")}</span>
       <div className="text-[13px] text-bold text-WS---DarkGrey mt-0.5 calc-primary-text">
-        № {displayNumber} 
+        № {displayNumber}
+        {dealerNumber && <span className="calc-dealer-number">№ дилера: {dealerNumber}</span>} 
       </div>
       {calc.fromMeasurement && calc.measurementUrl && <a
         href={calc.measurementUrl} target="_blank" rel="noopener noreferrer"

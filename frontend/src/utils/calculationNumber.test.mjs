@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { calculationNumber } from "./calculationNumber.js";
-const calc = { number: "D12", oneCNumber: "C34", dealerNumber: "D12" };
-for (const role of ["admin", "manager", "region_manager", "regionalManager"]) assert.equal(calculationNumber(calc, role), "C34 (D12)");
-for (const role of ["dealer", "internal_dealer", "branch_manager"]) assert.equal(calculationNumber(calc, role), "D12");
-assert.equal(calculationNumber({...calc, oneCNumber: ""}, "admin"), "D12");
-assert.equal(calculationNumber({...calc, dealerNumber: "C34"}, "admin"), "C34");
-assert.equal(calculationNumber({...calc, isOrderOnly: true}, "admin"), "D12");
-console.log("Calculation number role and fallback checks passed");
+import { calculationNumber, calculationDealerNumber } from "./calculationNumber.js";
+const calc={number:"45-12345",oneCNumber:"000113708",dealerNumber:"8204"};
+for(const role of ["admin","manager","region_manager","regionalManager"]) { assert.equal(calculationNumber(calc,role),"000113708"); assert.equal(calculationDealerNumber(calc,role),"8204"); }
+assert.equal(calculationNumber(calc,"dealer"),"45-12345");
+assert.equal(calculationDealerNumber(calc,"dealer"),"");
+assert.equal(calculationDealerNumber({...calc,dealerNumber:"",webNumber:"45-12345"},"admin"),"");
+assert.equal(calculationDealerNumber({...calc,isOrderOnly:true},"admin"),"");
+console.log("Role-specific calculation and dealer number checks passed");

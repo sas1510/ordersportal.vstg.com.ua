@@ -995,7 +995,7 @@ def get_orders_by_period_and_contractor(
                     or ""
                 ),
                 "oneCNumber": row.get("CalcNumber") or "",
-                "dealerNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
+                "dealerNumber": row.get("CalcDealerNumber") or "",
                 "webNumber": (
                     row.get("CalcDealerNumber")
                     or row.get("WebNumber")
@@ -1252,7 +1252,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
                 "id": calc_id,
                 "number": row.get("CalcDealerNumber") or row.get("ClientOrderNumber") or row.get("CalcNumber") or "",
                 "oneCNumber": row.get("CalcNumber") or "",
-                "dealerNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
+                "dealerNumber": row.get("CalcDealerNumber") or "",
                 "webNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
                 "dateRaw": calculation_date,
                 "date": calculation_date, 
@@ -3067,7 +3067,7 @@ def orders_view_all_by_month(request):
                             or ""
                         ),
                         "oneCNumber": row.get("CalcNumber") or "",
-                "dealerNumber": row.get("CalcDealerNumber") or row.get("WebNumber") or "",
+                "dealerNumber": row.get("CalcDealerNumber") or "",
                 "webNumber": (
                             row.get("CalcDealerNumber")
                             or row.get("WebNumber")

@@ -595,6 +595,8 @@ const PortalOriginal = () => {
     const foundCalculation = calculationsData.find((calc) => {
       const calculationNumber = String(
         calc.number || "",
+        calc.oneCNumber || "",
+        calc.dealerNumber || "",
       ).toLowerCase();
 
       const dealerName = String(
@@ -777,6 +779,8 @@ const PortalOriginal = () => {
         items = items.filter((calc) => {
           const calculationNumber = String(
             calc.number || "",
+        calc.oneCNumber || "",
+        calc.dealerNumber || "",
           ).toLowerCase();
 
           const dealerName = String(

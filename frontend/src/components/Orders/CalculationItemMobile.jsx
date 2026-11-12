@@ -1,4 +1,4 @@
-import { calculationNumber } from "../../utils/calculationNumber";
+import { calculationNumber, calculationDealerNumber } from "../../utils/calculationNumber";
 import CalculationStatusLabel from "./CalculationStatusLabel";
 import OrderFilesModal from "./OrderFilesModal";
 // ================= CalculationItemMobile.jsx (Final Optimization) =================
@@ -54,6 +54,7 @@ export const CalculationItemMobile = React.memo(
     const deleteIcon  = "/assets/icons/DeleteIcon.png";
     const { isBackoffice, isReadOnly, role } = useAuthGetRole();
     const displayNumber = calculationNumber(calc, role);
+    const dealerNumber = calculationDealerNumber(calc, role);
 
     const isDealerRecipient = useMemo(() => {
       if (!calc.recipient || !calc.dealer) return false;
@@ -336,6 +337,7 @@ export const CalculationItemMobile = React.memo(
         title={"№ " + displayNumber}
       >
         № {displayNumber}
+        {dealerNumber && <span className="calc-dealer-number">№ дилера: {dealerNumber}</span>}
       </div>
       {calc.fromMeasurement && calc.measurementUrl && <a
         href={calc.measurementUrl} target="_blank" rel="noopener noreferrer"

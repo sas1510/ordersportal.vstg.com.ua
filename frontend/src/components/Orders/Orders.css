@@ -844,3 +844,5 @@ body.dark-theme .order-item > .separator-border {
   .calc-item:not(.calc-item-aligned) > .item-summary > .calc-files-recipient { flex:0 0 210px; width:210px; min-width:210px; max-width:210px; justify-content:flex-start; box-sizing:border-box; }
   .calc-files-recipient > .column { width:100%; min-width:0; margin-right:0; align-items:flex-start; }
 }
+
+.calc-dealer-number { display:block; font-size:11px; font-weight:400; line-height:1.3; margin-top:3px; overflow-wrap:anywhere; }

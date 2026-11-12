@@ -435,6 +435,7 @@ const AdminPortalOriginal = () => {
         result = result.filter(
           (calc) =>
             String(calc.measurementNumber || "").toLowerCase().includes(query) ||
+            [calc.oneCNumber, calc.dealerNumber].some(value => String(value || "").toLowerCase().includes(query)) ||
             String(calc.number || "")
               .toLowerCase()
               .includes(query) ||
