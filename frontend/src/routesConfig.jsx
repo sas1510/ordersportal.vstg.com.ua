@@ -1,3 +1,4 @@
+const VisicomTestPage = lazy(() => import("./pages/VisicomTestPage"));
 import { lazy } from "react";
 const DashboardV2 = lazy(() => import("./pages/DashboardV2"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -34,7 +35,6 @@ const PaymentStatusV2 = lazy(() => import("./pages/PaymentStatusV2"));
 const PaymentsPage = lazy(() => import("./pages/PaymentsPage"));
 
 const CustomerBillsPage = lazy(() => import("./pages/CustomerBillsPage"));
-const CustomerBillItems = lazy(() => import("./pages/CustomerBillItems"));
 const AdminPortalOriginal = lazy(() => import("./pages/AdminOrderPage"));
 const AdminReclamationPortal = lazy(() => import("./pages/AdminReclamationPortal"));
 const WDSCodesTable = lazy(() => import("./pages/WDSCodesTable"));
@@ -55,6 +55,7 @@ const DealerLoginPage = lazy(() => import("./pages/DealerLoginPage"));
 const AudioCalculationTestPage = lazy(() => import("./pages/MeasurementTestPage").then((module) => ({ default: module.AudioCalculationTestPage })));
 
 export const adminRoutes = [
+  { path: "integration-test/visicom", element: <VisicomTestPage /> },
   { path: "integration-test/audio", element: <AudioCalculationTestPage /> },
   { path: "dealer-login", element: <DealerLoginPage /> },
   { path: "/statistics/portal-daily", element: <PortalDailyReportPage /> },
@@ -94,7 +95,6 @@ export const adminRoutes = [
   // { path: "payment", element: <PaymentsPage /> },
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
-  { path: "finance/invoices", element: <CustomerBillItems /> },
   { path: "admin-additional-order", element: <AdminAdditionalOrders /> },
   { path: "admin-order", element: <AdminPortalOriginal /> },
   { path: "admin-reclamation", element: <AdminReclamationPortal /> },
@@ -113,6 +113,7 @@ export const adminRoutes = [
 ];
 
 const managerBlockedRoutePaths = new Set([
+  "integration-test/visicom",
   "/statistics/portal-daily",
   "/statistics/reconciliation",
   "integration-test/measurement",
@@ -132,6 +133,7 @@ export const managerRoutes = adminRoutes.filter(
 );
 
 const branchLeaderBlockedRoutePaths = new Set([
+  "integration-test/visicom",
   "/statistics/portal-daily",
   "/statistics/reconciliation",
   "integration-test/measurement",
@@ -169,7 +171,6 @@ export const dealerRoutes = [
   { path: "payment", element: <PaymentsPage /> },
 
   { path: "finance/customer-bills", element: <CustomerBillsPage /> },
-  { path: "finance/invoices", element: <CustomerBillItems /> },
   { path: "promo-wds-codes", element: <WDSCodesTable /> },
   { path: "bonus", element: <BonusPage /> },
   // { path: "edit-addresses", element: <DealerAddressesPage /> },

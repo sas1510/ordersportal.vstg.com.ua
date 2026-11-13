@@ -1,0 +1,11 @@
+.visicom-test-page {max-width:1100px;margin:16px auto;padding:20px;color:var(--text-color,inherit);background:var(--card-bg,#343230);border:1px solid #85939a;border-radius:8px;}
+.visicom-test-page form {display:flex;gap:12px;align-items:end;margin:16px 0;flex-wrap:wrap;}
+.visicom-test-page label {display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px;}
+.visicom-test-page input {width:100%;padding:10px;color:#202020;background:#fff;border:1px solid #6d7d85;border-radius:4px;}
+.visicom-test-page button {padding:10px 14px;background:#b4d947;color:#202020;border:1px solid #698126;border-radius:4px;cursor:pointer;}
+.visicom-test-page button:disabled {opacity:.6;cursor:wait;}
+.visicom-test-page [role=alert] {color:#ffb49c;}
+.visicom-test-page li {margin:6px 0;}
+.visicom-test-map {height:450px;width:100%;border-radius:6px;}
+.visicom-test-page pre {white-space:pre-wrap;overflow-wrap:anywhere;}
+@media(max-width:600px){.visicom-test-page{margin:8px;padding:12px;}.visicom-test-page form{display:block;}.visicom-test-page form button{margin-top:8px;}.visicom-test-map{height:340px;}}

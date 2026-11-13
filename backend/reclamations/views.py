@@ -415,7 +415,7 @@ def get_complaint_series_by_order(request, order_number):
                     }
                 })
                 raise PermissionError("API key user has no UserId1C")
-        elif role in ("dealer", "customer"):
+        elif role in ("dealer", "customer", "internal_dealer"):
             contractor_bin = getattr(user, "user_id_1C", None)
             if not contractor_bin:
                 logger.warning(f"Access denied: User {user.id} ({role}) has no contractor assigned", extra={
@@ -511,7 +511,7 @@ def get_order_delivery_address(request, order_number):
 
     try:
         contractor_bin = None
-        if is_1c or role in ("dealer", "customer"):
+        if is_1c or role in ("dealer", "customer", "internal_dealer"):
             contractor_bin = getattr(user, "user_id_1C", None)
             if not contractor_bin:
                 raise PermissionError("User has no contractor assigned")
@@ -708,6 +708,19 @@ class ReclamationViewSet(viewsets.ViewSet):
             if isinstance(result.get("results"), list) and len(result["results"]) > 0:
       
                 reclamation_guid = result["results"][0].get("ReclamationGUID")
+
+            results = result.get("results") if isinstance(result, dict) else None
+            outcome = results[0] if isinstance(results, list) and results and isinstance(results[0], dict) else {}
+            if outcome.get("success") is not True or not reclamation_guid:
+                message = outcome.get("error") or outcome.get("message") or (
+                    "1С не створила рекламацію та не повернула причину відмови. "
+                    "Перевірте журнал реєстрації 1С за час цієї спроби."
+                )
+                logger.warning("CreateReclamation was not confirmed by 1C")
+                return Response(
+                    {"success": False, "error": str(message)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             contractor_bin = guid_to_1c_bin(contractor_guid)
      

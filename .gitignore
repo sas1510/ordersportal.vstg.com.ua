@@ -51,3 +51,10 @@ staticfiles/
 
 .codex/.codex/
 .codex/
+
+# Local deployment archives, scratch files and runtime state
+/tmp/
+*.tar
+*.tar.gz
+/backend/records/views.before-*.py
+/backend/celerybeat-schedule*

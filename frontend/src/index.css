@@ -501,3 +501,18 @@ body.internal-dealer-readonly.internal-dealer-after-sales .order-action-button--
 body.internal-dealer-readonly.internal-dealer-after-sales .order-action-button--claim {
   display: inline-flex !important;
 }
+
+/* Arbitrary font utilities need a sans-serif fallback when the webfont is unavailable. */
+[class*="font-"][class*="Inter"] { font-family: Inter, Arial, sans-serif; }
+[class*="font-"][class*="Lato"] { font-family: Inter, Arial, sans-serif; }
+
+@font-face { font-family: Inter; font-style:normal; font-weight:100 900; font-display:swap; src:url('/assets/fonts/inter/InterVariable.woff2') format('woff2'); }
+@font-face { font-family: Inter; font-style:italic; font-weight:100 900; font-display:swap; src:url('/assets/fonts/inter/InterVariable-Italic.woff2') format('woff2'); }
+
+
+/* Apply portal typography while preserving glyph fonts used by icons. */
+html,
+body,
+body *:not([class^="icon-"]):not([class*=" icon-"]):not([class*="fa-"]):not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.material-icons):not(.material-icons-outlined):not(.material-symbols-outlined) {
+  font-family: Inter, Arial, sans-serif !important;
+}

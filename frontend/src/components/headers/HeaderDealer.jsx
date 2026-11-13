@@ -672,7 +672,6 @@ export default function HeaderDealer() {
     { title: t('nav.finance_analytics'), to: '/statistics' },
     canViewFinance && { title: t('nav.finance_cash_flow'), to: '/finance/cash-flow' },
     canViewFinance && { title: t('nav.finance_bills'), to: '/finance/customer-bills' },
-    canViewFinance && !isRiminiDealer(user) && { title: 'Рахунки', to: '/finance/invoices' },
   ].filter(Boolean), [t, canViewFinance, user]);
   const isFinanceActive = FINANCE_SUBMENU.some((item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`));
 

@@ -3448,11 +3448,18 @@ def download_order_file(request, order_guid, file_guid):
     return _download_order_file_content(request, order_guid, file_guid)
 
 def safe_float(v):
+    import math
     try:
-        return float(v)
-    except (TypeError, ValueError):
+        number = float(v.strip().replace(",", ".") if isinstance(v, str) else v)
+        return number if math.isfinite(number) else None
+    except (TypeError, ValueError, OverflowError):
         return None
 
+
+def coordinate_text(value):
+    from decimal import Decimal
+    number = safe_float(value)
+    return format(Decimal(str(number)), 'f') if number is not None else None
 
 
 def build_address_name(addr: dict | None) -> str:
@@ -3613,8 +3620,8 @@ def build_1c_payload(
             "addressGUID": None,
             "addressName": address_name,
             "addressCoordinates": {
-                "lat": safe_float(client_address.get("lat")),
-                "lng": safe_float(client_address.get("lng")),
+                "lat": coordinate_text(client_address.get("lat")),
+                "lng": coordinate_text(client_address.get("lng")),
             },
             "addressAdditionalInfo": client_address.get("note", "") or "",
         }
@@ -3721,8 +3728,8 @@ def build_1c_update_payload(
             "addressGUID": None,
             "addressName": address_name,
             "addressCoordinates": {
-                "lat": safe_float(client_address.get("lat")),
-                "lng": safe_float(client_address.get("lng")),
+                "lat": coordinate_text(client_address.get("lat")),
+                "lng": coordinate_text(client_address.get("lng")),
             },
             "addressAdditionalInfo": client_address.get("note", "") or "",
         }

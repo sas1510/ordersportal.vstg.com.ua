@@ -1,3 +1,4 @@
+from .visicom_test import visicom_test_geocode, visicom_order_config, visicom_order_geocode
 from .order_search import order_search_targets
 from .measurement_order_target import measurement_order_target
 from .settlement_views import delivery_settlements
@@ -32,6 +33,9 @@ create_calculation = CreateCalculationViewSet.as_view({
 
 
 urlpatterns = [
+    path("integrations/visicom/orders/config/", visicom_order_config),
+    path("integrations/visicom/orders/geocode/", visicom_order_geocode),
+    path("integrations/visicom-test/geocode/", visicom_test_geocode),
     path("order/search-targets/", order_search_targets),
     path("order/measurement-target/", measurement_order_target),
     path("delivery-settlements/", delivery_settlements),

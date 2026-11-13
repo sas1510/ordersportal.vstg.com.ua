@@ -26,7 +26,7 @@
 //   const isManager = ["manager", "region_manager", "admin"].includes(role);
 
 //   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
-// //   const [claimDate, setClaimDate] = useState("");
+//   const [claimDate, setClaimDate] = useState("");
 //   const [reasonLink, setReasonLink] = useState("");
 //   const [solutionLink, setSolutionLink] = useState("");
 //   const [description, setDescription] = useState("");

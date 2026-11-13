@@ -337,7 +337,7 @@ export const CalculationItemMobile = React.memo(
         title={"№ " + displayNumber}
       >
         № {displayNumber}
-        {dealerNumber && <span className="calc-dealer-number">№ дилера: {dealerNumber}</span>}
+        {dealerNumber && <span className="calc-dealer-number">№ {dealerNumber}</span>}
       </div>
       {calc.fromMeasurement && calc.measurementUrl && <a
         href={calc.measurementUrl} target="_blank" rel="noopener noreferrer"

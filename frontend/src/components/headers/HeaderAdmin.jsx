@@ -374,7 +374,6 @@ export default function HeaderAdmin() {
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
     { title: t('nav.finance_analytics'), to: "/statistics" },
     { title: t('nav.finance_bills'), to: "/finance/customer-bills" },
-    { title: 'Рахунки', to: '/finance/invoices' },
   ], [t]);
 
   const SETTINGS_SUBMENU = useMemo(() => {

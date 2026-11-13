@@ -40,11 +40,4 @@
     if (!ready) showProblem('STARTUP_TIMEOUT', true);
   }, 15000);
 
-  // A remotely loaded font must not block the initial screen or application.
-  var font = document.createElement('link');
-  font.rel = 'stylesheet';
-  font.media = 'print';
-  font.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap';
-  font.onload = function () { font.media = 'all'; };
-  document.head.appendChild(font);
 }());

@@ -355,7 +355,7 @@ const statusPanelClass = (() => {
       <span className="text-[10px] text-grey leading-none">{calc.clientOrderNumber ? t("calc.client_order_number", { defaultValue: "Номер замовлення клієнта" }) : calc.isOrderOnly ? t("order_mobile.labels.order_number", { defaultValue: "Номер замовлення" }) : t("portal_calc.ui.calculation_number")}</span>
       <div className="text-[13px] text-bold text-WS---DarkGrey mt-0.5 calc-primary-text">
         № {displayNumber}
-        {dealerNumber && <span className="calc-dealer-number">№ дилера: {dealerNumber}</span>} 
+        {dealerNumber && <span className="calc-dealer-number">№ {dealerNumber}</span>} 
       </div>
       {calc.fromMeasurement && calc.measurementUrl && <a
         href={calc.measurementUrl} target="_blank" rel="noopener noreferrer"

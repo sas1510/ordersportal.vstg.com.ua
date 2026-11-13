@@ -1,3 +1,4 @@
+import { extractAddressCoordinates } from "../../utils/addressCoordinates";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axiosInstance from "../../api/axios.js";
 import { useNotification } from "../../hooks/useNotification";
@@ -120,30 +121,7 @@ const NewCalculationModal = ({
     setSubmitError(null);
   }, [isOpen, initialCalculation, t]);
 
-  const extractCoordinates = (addressObj) => {
-    if (!addressObj) return null;
-    let lat = null;
-    let lng = null;
-
-    if (typeof addressObj.Coordinates === "string") {
-      const [latStr, lngStr] = addressObj.Coordinates.split(",");
-      lat = parseFloat(latStr);
-      lng = parseFloat(lngStr);
-    }
-
-    lat = lat ?? addressObj.Latitude ?? addressObj.lat;
-    lng = lng ?? addressObj.Longitude ?? addressObj.lng;
-
-    if (
-      Number.isFinite(lat) &&
-      Number.isFinite(lng) &&
-      lat !== 0 &&
-      lng !== 0
-    ) {
-      return { lat, lng };
-    }
-    return null;
-  };
+  const extractCoordinates = extractAddressCoordinates;
 
   const checkAddressCoordinates = (addressObj) => {
     const coords = extractCoordinates(addressObj);

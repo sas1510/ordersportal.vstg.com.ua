@@ -1,3 +1,9 @@
+import { exactVisicomAddress } from "../../utils/visicomAddress";
+import { Icon } from "leaflet";
+import markerIconUrl from "leaflet/dist/images/marker-icon.png";
+import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
+import { getVisicomSessionKey, setVisicomSessionKey, searchVisicom, reverseVisicom, visicomConfig } from "../../utils/visicomOrders";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   MapContainer,
@@ -13,6 +19,15 @@ import { useNotification } from "../../hooks/useNotification";
 import { useTranslation } from "react-i18next";
 
 const DEFAULT_CENTER = [48.3794, 31.1656];
+const deliveryMarkerIcon = new Icon({
+  iconUrl: markerIconUrl,
+  iconRetinaUrl: markerIconRetinaUrl,
+  shadowUrl: markerShadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 
 const isValidPhoneUA = (phone) => {
@@ -39,16 +54,8 @@ const formatPhoneInput = (value) => {
 };
 
 
-function ClickHandler({ onSelect, onAddressFound, language }) {
-  useMapEvents({
-    async click(e) {
-      const coords = [e.latlng.lat, e.latlng.lng];
-      onSelect(coords);
-
-      const address = await reverseGeocode(coords[0], coords[1], language);
-      onAddressFound(address);
-    },
-  });
+function ClickHandler({ onPoint }) {
+  useMapEvents({ click(event) { onPoint(event.latlng); } });
   return null;
 }
 
@@ -59,20 +66,6 @@ function MapViewUpdater({ center, zoom }) {
   }, [center, zoom, map]);
   return null;
 }
-
-
-const reverseGeocode = async (lat, lon, language = "uk") => {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-      { headers: { "Accept-Language": language } },
-    );
-    const data = await res.json();
-    return data?.display_name || "";
-  } catch {
-    return "";
-  }
-};
 
 
 const buildAddressFromForm = (f) =>
@@ -97,6 +90,21 @@ const isLatinAddress = (address) => {
 
 const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   const { addNotification } = useNotification();
+  const [tileKey, setTileKey] = useState(getVisicomSessionKey());
+  const [keyInput, setKeyInput] = useState("");
+  const [geocodeReady, setGeocodeReady] = useState(!!getVisicomSessionKey());
+  const [mapError, setMapError] = useState("");
+  const searchRequest = useRef(null);
+  const reverseRequest = useRef(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    visicomConfig(controller.signal).then(config => {
+      setTileKey(config.tile_key || getVisicomSessionKey());
+      setGeocodeReady(config.geocode_configured || !!getVisicomSessionKey());
+    }).catch(error => { if (!controller.signal.aborted) setMapError(error.response?.data?.error || "Не вдалося отримати налаштування Visicom."); });
+    return () => { controller.abort(); clearTimeout(debounceRef.current); searchRequest.current?.abort(); reverseRequest.current?.abort(); };
+  }, []);
+
   const { t, i18n } = useTranslation();
   const currentLang = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
@@ -152,26 +160,42 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
   );
 
 
+  const selectSuggestion = suggestion => {
+    clearTimeout(debounceRef.current);
+    searchRequest.current?.abort();
+    reverseRequest.current?.abort();
+    setMapError("");
+    setFormAddr(previous => ({...previous, ...Object.fromEntries(Object.entries(suggestion.fields || {}).filter(([,value]) => value))}));
+    setSelectedCoords([suggestion.lat, suggestion.lon]);
+    setMapDisplayName(suggestion.display_name);
+    setSearch(suggestion.display_name);
+    setSuggestions([]);
+    setIsPreciseLocation(true);
+    setShowDragHint(false);
+  };
+
   const triggerSearch = (query) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    searchRequest.current?.abort();
     if (!query || query.length < 3) {
       setSuggestions([]);
       return;
     }
 
+    searchRequest.current?.abort();
+    if (!geocodeReady) { setMapError("Підключіть ключ Visicom для пошуку адреси."); return; }
     debounceRef.current = setTimeout(async () => {
-      const params = new URLSearchParams({
-        q: query,
-        format: "json",
-        limit: 5,
-        ...(addressLanguage === "en" ? {} : { countrycodes: "ua" }),
-      });
-
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?${params}`,
-        { headers: { "Accept-Language": addressLanguage } },
-      );
-      setSuggestions(await res.json());
+      const controller = new AbortController(); searchRequest.current = controller;
+      setMapError("");
+      try {
+        const results = await searchVisicom(query, addressLanguage, controller.signal);
+        if (!controller.signal.aborted) {
+          const exact = exactVisicomAddress(results, query);
+          if (exact) selectSuggestion(exact);
+          else setSuggestions(results);
+          if (!results.length) setMapError("Адресу не знайдено. Спробуйте уточнити населений пункт або знайти без номера будинку.");
+        }
+      } catch(error) { if (!controller.signal.aborted) { setSuggestions([]); setMapError(error.response?.data?.error || "Не вдалося виконати пошук Visicom."); } }
     }, 400);
   };
 
@@ -196,11 +220,20 @@ const handleFindOnMap = () => {
     setIsPreciseLocation(true);
   };
 
-  const handleMarkerDrag = async (e) => {
-    const { lat, lng } = e.target.getLatLng();
+  const handleMapPoint = async ({lat, lng}) => {
+    searchRequest.current?.abort();
+    setSuggestions([]);
+    setMapError("");
     setSelectedCoords([lat, lng]);
-    const address = await reverseGeocode(lat, lng, addressLanguage);
-    onAddressUpdateFromMap(address);
+    reverseRequest.current?.abort();
+    const controller = new AbortController(); reverseRequest.current = controller;
+    try {
+      const result = await reverseVisicom(lat, lng, addressLanguage, controller.signal);
+      if (!controller.signal.aborted) {
+        onAddressUpdateFromMap(result?.display_name || buildAddressFromForm(formAddr));
+        if (!result) setMapError("Адресу біля вибраної точки не знайдено. Перевірте заповнені поля адреси.");
+      }
+    } catch(error) { if (!controller.signal.aborted) setMapError(error.response?.data?.error || "Не вдалося визначити адресу Visicom."); }
   };
 
 
@@ -316,6 +349,11 @@ const handleSave = () => {
           </div>
 
   
+          {(!tileKey || !geocodeReady) && <div className="client-address-visicom-key">
+            <label>Ключ Visicom для локального тестування<input type="password" autoComplete="off" value={keyInput} onChange={event => setKeyInput(event.target.value)} /></label>
+            <button type="button" disabled={!keyInput.trim()} onClick={() => { setVisicomSessionKey(keyInput); setTileKey(keyInput.trim()); setGeocodeReady(true); setKeyInput(""); setMapError(""); }}>Підключити Visicom</button>
+          </div>}
+          {mapError && <p role="alert" className="warning">{mapError}</p>}
           <div className="search-container">
             <input
               className="search-input client-address-search"
@@ -333,14 +371,7 @@ const handleSave = () => {
                   <div
                     key={s.place_id}
                     className="suggestion-item"
-                    onClick={() => {
-                      setSelectedCoords([+s.lat, +s.lon]);
-                      setMapDisplayName(s.display_name);
-                      setSearch(s.display_name);
-                      setSuggestions([]);
-                      setIsPreciseLocation(true);
-                      setShowDragHint(false);
-                    }}
+                    onClick={() => selectSuggestion(s)}
                   >
                     {s.display_name}
                   </div>
@@ -349,30 +380,28 @@ const handleSave = () => {
             )}
           </div>
 
-          {showDragHint && <div className="warning">{t("clientAddressModal.dragHint")}</div>}
+
 
           {/* ===== MAP ===== */}
           <div className="map-holder-modal">
-            <MapContainer
+            {tileKey && <MapContainer
+              key={tileKey}
               center={DEFAULT_CENTER}
               zoom={6}
               style={{ height: "300px", borderRadius: "8px" }}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer url={"https://tms{s}.visicom.ua/2.0.0/planet3/base/{z}/{x}/{y}.png?key=" + encodeURIComponent(tileKey)} subdomains="123" tms maxZoom={19} attribution={'Дані карт © АТ «<a href="https://api.visicom.ua/">Візіком</a>»'} eventHandlers={{tileerror: () => setMapError("Не вдалося завантажити карту Visicom. Перевірте доступ ключа до Tiles.")}} />
               <MapViewUpdater center={selectedCoords} />
-              <ClickHandler
-                onSelect={setSelectedCoords}
-                onAddressFound={onAddressUpdateFromMap}
-                language={addressLanguage}
-              />
+              <ClickHandler onPoint={handleMapPoint} />
               {selectedCoords && (
                 <Marker
                   position={selectedCoords}
+                  icon={deliveryMarkerIcon}
                   draggable
-                  eventHandlers={{ dragend: handleMarkerDrag }}
+                  eventHandlers={{ dragend: event => handleMapPoint(event.target.getLatLng()) }}
                 />
               )}
-            </MapContainer>
+            </MapContainer>}
           </div>
         </div>
 
@@ -390,5 +419,8 @@ const handleSave = () => {
 };
 
 export default ClientAddressModal;
+
+
+
 
 
