@@ -138,25 +138,25 @@ export default function PortalDailyReportPage() {
           <h2>Основні показники</h2>
           <dl className="reconcile-application-metrics">
             {[
-              ['К-сть дилерів, які подали заявки', submissions.total.dealers, () => true, 'dealers'],
-              ['К-сть заявок, поданих дилерами', submissions.total.applications, () => true, 'applications'],
-              ['К-сть конструкцій у заявках', totals.applicationConstructions, app => app.constructions > 0, 'appConstructions'],
-              ['К-сть неоформлених заявок', totals.withoutOrders, app => !app.orders.length, 'unformed'],
-              ['К-сть заявок в обробці', processingApplications.applications, app => processingApplications.guids.has(app.guid), 'processing'],
+              ['Кількість дилерів, які подали заявки', submissions.total.dealers, () => true, 'dealers'],
+              ['Кількість заявок, поданих дилерами', submissions.total.applications, () => true, 'applications'],
+              ['Кількість конструкцій у заявках', totals.applicationConstructions, app => app.constructions > 0, 'appConstructions'],
+              ['Кількість неоформлених заявок', totals.withoutOrders, app => !app.orders.length, 'unformed'],
+              ['Кількість заявок в обробці', processingApplications.applications, app => processingApplications.guids.has(app.guid), 'processing'],
               [averageOrderLabel, averageOrderTime === null ? '—' : averageOrderTime + ' хв', () => true, 'average'],
-              ['К-сть оформлених замовлень', formedOrders.length, () => true, 'orders'],
-              ['К-сть конструкцій у замовленнях', totals.linkedConstructions, () => true, 'orderConstructions'],
-              ['К-сть підтверджених замовлень', totals.confirmedLinkedOrders, () => true, 'confirmedOrders'],
-              ['К-сть конструкцій у підтверджених замовленнях', totals.confirmedLinkedConstructions, () => true, 'confirmedConstructions'],
+              ['Кількість оформлених замовлень', formedOrders.length, () => true, 'orders'],
+              ['Кількість конструкцій у замовленнях', totals.linkedConstructions, () => true, 'orderConstructions'],
+              ['Кількість підтверджених замовлень', totals.confirmedLinkedOrders, () => true, 'confirmedOrders'],
+              ['Кількість конструкцій у підтверджених замовленнях', totals.confirmedLinkedConstructions, () => true, 'confirmedConstructions'],
             ].map(([label, value, filter = () => true, metricKey]) => (
-              <div key={label} className={label === averageOrderLabel || label === overnightLabel || label === "К-сть дилерів, які подали заявки" ? undefined : "daily-screen-metric"}>
+              <div key={label} className={label === averageOrderLabel || label === overnightLabel || label === "Кількість дилерів, які подали заявки" ? undefined : "daily-screen-metric"}>
                 <dt>{label}</dt><dd><button type="button" className="daily-metric" aria-expanded={detail?.label === label} aria-controls={detail?.label === label ? 'daily-metric-details' : undefined} onClick={() => setDetail(current => current?.label === label ? null : { label, filter, metricKey })} aria-label={label + " · " + value}>{value}</button></dd>
               </div>
             ))}
           </dl>
         </section>
         {detail && <dialog ref={dialog} id="daily-metric-details" className="reconcile-dialog daily-metric-details" aria-labelledby="daily-detail-title" onClose={() => setDetail(null)}><button className="reconcile-close" type="button" onClick={() => dialog.current.close()}>Закрити</button>
-          <h2 id="daily-detail-title">{detailModel ? detailModel.title : <>{detail.label} · {detail.kind === 'orders' ? matches.length : detail.label === 'К-сть оформлених замовлень' ? formedOrders.length : matches.length} {detail.kind === 'orders' || detail.label === refusedLabel || detail.label === 'К-сть оформлених замовлень' ? 'замовлень' : 'заявок'}</>}</h2>
+          <h2 id="daily-detail-title">{detailModel ? detailModel.title : <>{detail.label} · {detail.kind === 'orders' ? matches.length : detail.label === 'Кількість оформлених замовлень' ? formedOrders.length : matches.length} {detail.kind === 'orders' || detail.label === refusedLabel || detail.label === 'Кількість оформлених замовлень' ? 'замовлень' : 'заявок'}</>}</h2>
           {detailModel ? <DailyMetricDetails model={detailModel} /> : detail.kind === "orders" ? <div className="reconcile-scroll"><table>
             <thead><tr><th>Дилер</th><th>№ замовлення</th><th>Дата замовлення</th><th>Статус</th><th>Конструкцій</th><th>Заявки</th><th>Менеджер</th></tr></thead>
             <tbody>{matches.map(order => <tr key={order.guid}>
