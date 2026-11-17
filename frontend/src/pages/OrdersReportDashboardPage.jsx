@@ -1043,20 +1043,6 @@ export default function OrdersReportDashboardPage({ home = false }) {
     });
   }, [activeRegions]);
 
-  const statusTotal = Object.values(grouped).reduce(function (sum, orders) {
-    return sum + orders.length;
-  }, 0);
-  const dashboardTotal = viewMode === "dealers"
-    ? Number(activeDealerTotals.dealers_count || 0)
-    : viewMode === "kpi"
-      ? selectedManagerKpi.calculations
-      : statusTotal;
-  const dashboardTotalLabel = viewMode === "dealers"
-    ? "Дилерів у звіті"
-    : viewMode === "kpi"
-      ? "Заявок у KPI"
-      : "Потребують уваги";
-
   useEffect(function () {
     const firstAvailable = STATUSES.find(function (item) {
       return (grouped[item.status] || []).length > 0;
@@ -1091,11 +1077,7 @@ export default function OrdersReportDashboardPage({ home = false }) {
             <h1>Звіти за замовленнями</h1>
           </div>
           {role === "admin" && <Link className="dealer-reports-link" to="/statistics/portal-daily">Перейти до денного звіту</Link>}
-          {home && <Link className="dealer-reports-link" to="/statistics">Перейти до аналітики</Link>}
-          <div className="orders-dashboard__total" hidden={viewMode === "operations"}>
-            <span>{dashboardTotalLabel}</span>
-            <strong>{dashboardTotal}</strong>
-          </div>
+
         </div>
 
         <div className="orders-dashboard__filters">
