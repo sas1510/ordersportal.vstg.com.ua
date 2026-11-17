@@ -282,7 +282,7 @@ DECLARE @NextEndDate DATE = DATEADD(DAY, 1, @EndDate);
         [WST\WST].[oknastyle].[dbo].[_Document488_VT10534] AS OPP
         WITH
         (
-            INDEX(_Documen488_VT10534_ByField10583_RR),
+            INDEX(_Document488_VT10534_ByFieldFld10575_RR),
             FORCESEEK
         )
         ON OPP._Fld10575_TYPE = @OrderDocType

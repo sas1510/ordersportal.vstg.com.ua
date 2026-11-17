@@ -7,6 +7,8 @@ from django.db import ProgrammingError
 logger = logging.getLogger(__name__)
 OPTIONAL_INDEX = "NonClusteredIndex_20260525_164829"
 STANDARD_INDEX = "_InfoRg30529_ByDims30626_RTRR"
+PRODUCTION_INDEX = "_Documen488_VT10534_ByField10583_RR"
+PRODUCTION_STANDARD_INDEX = "_Document488_VT10534_ByFieldFld10575_RR"
 PARAMETERS = {
     "GetOrdersMonthWithCalculations8": "@RequesterUserID int=%s, @DateFrom date=%s, @DateTo date=%s, @DealerGroup nvarchar(20)=%s",
     "GetOrdersMonthWithCalculations9": "@RequesterUserID int=%s, @DateFrom date=%s, @DateTo date=%s, @DealerGroup nvarchar(20)=%s",
@@ -19,9 +21,9 @@ def build_compatible_sql(name, definition):
     if name not in PARAMETERS:
         raise ValueError("Unsupported order procedure")
     parts = re.split(r"^\s*AS\s*$", definition, maxsplit=1, flags=re.I | re.M)
-    if len(parts) != 2 or OPTIONAL_INDEX not in parts[1]:
+    if len(parts) != 2 or not any(index in parts[1] for index in (OPTIONAL_INDEX, PRODUCTION_INDEX)):
         raise ValueError("Order procedure does not contain the expected optional index")
-    body = parts[1].replace(OPTIONAL_INDEX, STANDARD_INDEX)
+    body = parts[1].replace(OPTIONAL_INDEX, STANDARD_INDEX).replace(PRODUCTION_INDEX, PRODUCTION_STANDARD_INDEX)
     # mssql-django rewrites uppercase GROUP BY parameters and literal percent signs.
     body = re.sub(r"\bGROUP\s+BY\b", "group by", body, flags=re.I)
     return "DECLARE " + PARAMETERS[name] + ";\n" + body.replace("%", "%%")
@@ -35,7 +37,7 @@ def execute_orders_sql(cursor, sql, params):
     # Never apply a date-range signature to the legacy @Year query.
     if len(params) != PARAMETERS[name].count("%s"):
         return cursor.execute(sql, params)
-    key = "orders:optional-index-fallback:" + name
+    key = "orders:standard-index-fallback:v2:" + name
     compatible = cache.get(key)
     if compatible:
         return cursor.execute(compatible, params)
@@ -43,7 +45,7 @@ def execute_orders_sql(cursor, sql, params):
         return cursor.execute(sql, params)
     except ProgrammingError as exc:
         message = str(exc)
-        if OPTIONAL_INDEX not in message or "308" not in message:
+        if not any(index in message for index in (OPTIONAL_INDEX, PRODUCTION_INDEX)) or "308" not in message:
             raise
         cursor.execute("SELECT OBJECT_DEFINITION(OBJECT_ID(%s))", ["dbo." + name])
         row = cursor.fetchone()
