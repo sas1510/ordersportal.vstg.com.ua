@@ -9,6 +9,7 @@ from records.order_sql_compat import PRODUCTION_INDEX, PRODUCTION_STANDARD_INDEX
 def alter_definition(definition):
     if PRODUCTION_INDEX not in definition:
         raise ValueError('Missing expected index hint')
+    definition = re.sub(r'\A(?:\s+|--[^\n]*(?:\n|$)|/\*.*?\*/)*', '', definition, flags=re.S)
     updated, count = re.subn(r'\A(\s*)CREATE\s+(?:OR\s+ALTER\s+)?PROC(?:EDURE)?\b', r'\1ALTER PROCEDURE', definition, count=1, flags=re.I)
     if not count and not re.match(r'\A\s*ALTER\s+PROC(?:EDURE)?\b', definition, re.I):
         raise ValueError('Unexpected procedure definition')

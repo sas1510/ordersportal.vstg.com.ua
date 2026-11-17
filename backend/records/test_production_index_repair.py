@@ -18,3 +18,7 @@ class ProductionIndexRepairTests(SimpleTestCase):
         repaired = build_compatible_sql('GetOrdersMonthWithCalculations9', original)
         self.assertIn(PRODUCTION_STANDARD_INDEX, repaired)
         self.assertNotIn(PRODUCTION_INDEX, repaired)
+
+    def test_leading_comments_are_accepted(self):
+        original = f'/* Report */\n-- header\nCREATE PROCEDURE dbo.Example\nAS SELECT * FROM X WITH (INDEX({PRODUCTION_INDEX}))'
+        self.assertTrue(alter_definition(original).startswith('ALTER PROCEDURE'))
