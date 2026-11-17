@@ -1,8 +1,9 @@
+import { useDeliveryBadge } from "../../hooks/useDeliveryBadge";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FaTruck, FaFilePdf } from "react-icons/fa";
 import axios from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
-import { getDeliveryRows, sortDeliveryDates } from "../../utils/deliveryRows";
+import { getDeliveryRows, sortDeliveryDates, mergeDeliveryRows } from "../../utils/deliveryRows";
 import "./Deliveries.css";
 import DeliveryNotice from "./DeliveryNotice";
 
@@ -26,12 +27,18 @@ export function useDeliveries(calculations, observationCalculations = calculatio
       return orders.length ? [{ ...calc, orders }] : [];
     });
   }, [enabled, calculations, selectedRows]);
-  return { enabled, setEnabled, date, setDate, dates, rows: selectedRows, filteredCalculations, observations };
+  const badgeOrders = useMemo(() => rows.flatMap(({ order }) => {
+    const orderGuid = order.idGuid || order.guid;
+    return /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(orderGuid || "")
+      ? [{ orderGuid, delivery: order.plannedDeliveryDateTime || order.PlannedDeliveryDateTime }] : [];
+  }), [rows]);
+  return { enabled, setEnabled, date, setDate, dates, rows: selectedRows, filteredCalculations, observations, badgeOrders };
 }
 
-export function DeliveriesControl({ delivery }) {
+export function DeliveriesControl({ delivery, loadAdditional }) {
   const [open, setOpen] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const hasUnread = useDeliveryBadge(delivery.badgeOrders, open);
   const [busy, setBusy] = useState(false);
   const [includeAmounts, setIncludeAmounts] = useState(true);
   const ref = useRef(null);
@@ -45,7 +52,9 @@ export function DeliveriesControl({ delivery }) {
   const download = async () => {
     setBusy(true);
     try {
-      const response = await axios.post("/deliveries-pdf/", { include_amounts: includeAmounts, rows: delivery.rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", ...(includeAmounts ? { amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" } : {}) })) }, { responseType: "blob" });
+      const rows = loadAdditional ? mergeDeliveryRows(delivery.rows, await loadAdditional(delivery.date)) : delivery.rows;
+      if (!rows.length) { addNotification("Немає доставок для друку за вибраний період.", "info"); return; }
+      const response = await axios.post("/deliveries-pdf/", { include_amounts: includeAmounts, rows: rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", ...(includeAmounts ? { amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" } : {}) })) }, { responseType: "blob" });
       const url = URL.createObjectURL(response.data);
       const link = document.createElement("a"); link.href = url; link.download = `Доставки_${delivery.date || "усі-дати"}.pdf`; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -54,7 +63,7 @@ export function DeliveriesControl({ delivery }) {
   };
   return <div className="deliveries-control" ref={ref}>
     {SHOW_DELIVERY_NOTICES && <DeliveryNotice observations={delivery.observations} />}
-    <button type="button" className={`orders-expand-all-button deliveries-button${delivery.enabled ? " active" : ""}`} aria-expanded={open} onClick={() => setOpen(!open)}><FaTruck />Доставки</button>
+    <button type="button" className={`orders-expand-all-button deliveries-button${delivery.enabled ? " active" : ""}`} aria-expanded={open} aria-label={hasUnread ? "Доставки — нова дата доставки" : "Доставки"} onClick={() => setOpen(!open)}><FaTruck />Доставки{hasUnread && <span className="delivery-unread-dot" aria-hidden="true" />}</button>
     {delivery.enabled && <button type="button" className="deliveries-reset" title="Зняти фільтр доставок" aria-label="Зняти фільтр доставок" onClick={() => { delivery.setEnabled(false); delivery.setDate(""); setOpen(false); setDateOpen(false); }}>×</button>}
     {open && <div className="deliveries-settings">
       <label><input type="checkbox" checked={delivery.enabled} onChange={(event) => delivery.setEnabled(event.target.checked)} />Показувати доставки</label>
@@ -65,8 +74,7 @@ export function DeliveriesControl({ delivery }) {
         </div>}
       </div>
       <label><input type="checkbox" checked={includeAmounts} onChange={(event) => setIncludeAmounts(event.target.checked)} />Друкувати суми</label>
-      <button type="button" onClick={download} disabled={busy || !delivery.rows.length}><FaFilePdf />{busy ? "Формування…" : "Завантажити PDF"}</button>
-      <small>{delivery.rows.length} замовлень у поточному списку</small>
+      <button type="button" onClick={download} disabled={busy || (!loadAdditional && !delivery.rows.length)}><FaFilePdf />{busy ? "Формування…" : "Завантажити PDF"}</button>
     </div>}
   </div>;
 }

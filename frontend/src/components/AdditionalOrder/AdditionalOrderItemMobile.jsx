@@ -1,5 +1,5 @@
 // ================= CalculationItem.jsx =================
-import React, { useStateб, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import AdditionalOrderItemSummaryMobile from "./AdditionalOrderItemSummaryMobile";
 import { formatMoney, formatMoney2 } from "../../utils/formatMoney";
 import CommentsModal from "../Orders/CommentsModal";
@@ -12,11 +12,14 @@ import { useTranslation } from "react-i18next";
 
 export const AdditionalOrderItemMobile = ({
   calc,
+  isExpanded,
+  onToggle,
   onDelete,
   onEdit,
   onMarkAsRead,
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const expanded = isExpanded ?? localExpanded;
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]);
   const {t, i18n} = useTranslation();
@@ -33,7 +36,10 @@ export const AdditionalOrderItemMobile = ({
 
 
   // const writerGuid = user?.user_id_1c;
-  const toggleExpanded = () => setExpanded((prev) => !prev);
+  const toggleExpanded = () => {
+    if (onToggle) onToggle();
+    else setLocalExpanded(previous => !previous);
+  };
 
   const handleDelete = async () => {
     if (onDelete) await onDelete(calc.id);

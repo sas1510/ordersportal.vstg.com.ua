@@ -1,3 +1,6 @@
+import DailyMetricDetails from "../components/Orders/DailyMetricDetails";
+import { dailyMetricDetails } from "../utils/dailyMetricDetails";
+import { dailyApplicationSummary } from "../utils/dailyApplicationSummary";
 import reportLogo from '../assets/icons/logo-vst.svg';
 import { useEffect, useRef, useState } from 'react';
 import axios from '../api/axios';
@@ -9,7 +12,6 @@ const zone = 'Europe/Kyiv';
 const dayFormat = new Intl.DateTimeFormat('sv-SE', { timeZone: zone });
 const timeFormat = new Intl.DateTimeFormat('uk-UA', { timeZone: zone, dateStyle: 'long', timeStyle: 'medium' });
 const clockFormat = new Intl.DateTimeFormat("uk-UA", { timeZone: zone, hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
-const processingStatus = "0XA267AAA90D55301D4E455425612DA59E";
 
 const orderStatusLabels = {
   'Подтверждено': 'Підтверджені',
@@ -60,10 +62,11 @@ export default function PortalDailyReportPage() {
 
   const totals = report?.totals;
 
-  const applications = report?.rows.flatMap(row => row.applicationDetails.map(app => ({
-    ...app,
-    dealer: row.name,
-  }))) ?? [];
+  const submissions = dailyApplicationSummary(report?.rows || []);
+  const applications = submissions.applications;
+  const formedOrders = submissions.formedOrders;
+  const newApplications = submissions.groups[0];
+  const processingApplications = submissions.groups[1];
   const orderTimes = new Map();
   for (const app of applications) {
     for (const [guid, minutes] of Object.entries(app.orderProcessingMinutes ?? {})) {
@@ -73,20 +76,19 @@ export default function PortalDailyReportPage() {
   const averageOrderTime = orderTimes.size
     ? Math.round([...orderTimes.values()].reduce((sum, minutes) => sum + minutes, 0) / orderTimes.size)
     : null;
-  const averageOrderLabel = 'Середній час оформлення замовлення';
+  const averageOrderLabel = 'Середній час до оформлення замовлення';
 
   const mismatches = applications.filter(app => app.orders.length > 0 && app.constructions !== app.orderConstructions);
-  const processingWithoutPostedOrders = applications.filter(app =>
-    app.stateGuid === processingStatus && !app.orders.some(order => order.posted)
-  );
 
-  const newProcessingApplications = processingWithoutPostedOrders.filter(app => app.orders.length === 0);
+
   const overnightLabel = "Подані вчора — оформлені сьогодні";
   const overnight = report?.overnightApplications ?? [];
   const pendingLabel = 'З учора без замовлень';
   const refusedLabel = 'Автовідхилено за період';
   const movement = report?.dailyMovements;
-  const matches = detail ? (detail.label === overnightLabel ? overnight : detail.label === pendingLabel ? report.previousDayPendingApplications ?? [] : detail.label === refusedLabel ? report.autoRefusedOrders ?? [] : applications.filter(detail.filter)) : [];
+  const detailModel = detail && (detail.metricKey || detail.kind === "orders") ? dailyMetricDetails(detail, submissions, orderTimes) : null;
+  const matches = detailModel ? detailModel.rows : detail ? (detail.kind === "orders" ? formedOrders.filter(order => detail.statusGuid === undefined || String(order.stateGuid || "").toUpperCase() === detail.statusGuid) : detail.label === overnightLabel ? overnight : detail.label === pendingLabel ? report.previousDayPendingApplications ?? [] : detail.label === refusedLabel ? report.autoRefusedOrders ?? [] : applications.filter(detail.filter)) : [];
+
   const newApplicationConstructions = applications.reduce((sum, app) => sum + (app.orders.length === 0 ? app.constructions : 0), 0);
 
   async function downloadPdf() {
@@ -136,25 +138,33 @@ export default function PortalDailyReportPage() {
           <h2>Основні показники</h2>
           <dl className="reconcile-application-metrics">
             {[
-              ['Дилери із заявками', report.rows.filter(row => row.applications > 0).length],
-              ['Заявки / прорахунки', totals.applications],
-              ['Конструкції в заявках', totals.applicationConstructions, app => app.constructions > 0],
-              ['Заявки без замовлень', totals.withoutOrders, app => !app.orders.length],
-              [averageOrderLabel, averageOrderTime === null ? '—' : averageOrderTime + ' хв', app => Object.entries(app.orderProcessingMinutes ?? {}).some(([guid, minutes]) => orderTimes.get(guid) === minutes)],
-              ['Пов’язані замовлення', totals.linkedOrders, app => app.orders.length > 0],
-              ['Конструкції в замовленнях', totals.linkedConstructions, app => app.orders.some(order => order.constructions > 0)],
-              ['Підтверджені замовлення', totals.confirmedLinkedOrders, app => app.orders.some(order => order.confirmed)],
-              ['Конструкції в підтверджених замовленнях', totals.confirmedLinkedConstructions, app => app.orders.some(order => order.confirmed && order.constructions > 0)],
-            ].map(([label, value, filter = () => true]) => (
-              <div key={label} className={label === averageOrderLabel || label === overnightLabel || label === "Дилери із заявками" ? undefined : "daily-screen-metric"}>
-                <dt>{label}</dt><dd><button type="button" className="daily-metric" aria-expanded={detail?.label === label} aria-controls={detail?.label === label ? 'daily-metric-details' : undefined} onClick={() => setDetail(current => current?.label === label ? null : { label, filter })} aria-label={label + " · " + value}>{value}</button></dd>
+              ['Дилери, які подали заявки', submissions.total.dealers, () => true, 'dealers'],
+              ['Заявки, подані дилерами', submissions.total.applications, () => true, 'applications'],
+              ['Конструкції в заявках', totals.applicationConstructions, app => app.constructions > 0, 'appConstructions'],
+              ['Неоформлені заявки', totals.withoutOrders, app => !app.orders.length, 'unformed'],
+              ['Заявки в обробці', processingApplications.applications, app => processingApplications.guids.has(app.guid), 'processing'],
+              [averageOrderLabel, averageOrderTime === null ? '—' : averageOrderTime + ' хв', () => true, 'average'],
+              ['Кількість оформлених замовлень', formedOrders.length, () => true, 'orders'],
+              ['Конструкції в замовленнях', totals.linkedConstructions, () => true, 'orderConstructions'],
+              ['Підтверджені замовлення', totals.confirmedLinkedOrders, () => true, 'confirmedOrders'],
+              ['Конструкції в підтверджених замовленнях', totals.confirmedLinkedConstructions, () => true, 'confirmedConstructions'],
+            ].map(([label, value, filter = () => true, metricKey]) => (
+              <div key={label} className={label === averageOrderLabel || label === overnightLabel || label === "Дилери, які подали заявки" ? undefined : "daily-screen-metric"}>
+                <dt>{label}</dt><dd><button type="button" className="daily-metric" aria-expanded={detail?.label === label} aria-controls={detail?.label === label ? 'daily-metric-details' : undefined} onClick={() => setDetail(current => current?.label === label ? null : { label, filter, metricKey })} aria-label={label + " · " + value}>{value}</button></dd>
               </div>
             ))}
           </dl>
         </section>
         {detail && <dialog ref={dialog} id="daily-metric-details" className="reconcile-dialog daily-metric-details" aria-labelledby="daily-detail-title" onClose={() => setDetail(null)}><button className="reconcile-close" type="button" onClick={() => dialog.current.close()}>Закрити</button>
-          <h2 id="daily-detail-title">{detail.label} · {matches.length} {detail.label === refusedLabel ? 'замовлень' : 'заявок'}</h2>
-          {detail.label === refusedLabel ? <div className="reconcile-scroll"><table>
+          <h2 id="daily-detail-title">{detailModel ? detailModel.title : <>{detail.label} · {detail.kind === 'orders' ? matches.length : detail.label === 'Кількість оформлених замовлень' ? formedOrders.length : matches.length} {detail.kind === 'orders' || detail.label === refusedLabel || detail.label === 'Кількість оформлених замовлень' ? 'замовлень' : 'заявок'}</>}</h2>
+          {detailModel ? <DailyMetricDetails model={detailModel} /> : detail.kind === "orders" ? <div className="reconcile-scroll"><table>
+            <thead><tr><th>Дилер</th><th>№ замовлення</th><th>Дата замовлення</th><th>Статус</th><th>Конструкцій</th><th>Заявки</th><th>Менеджер</th></tr></thead>
+            <tbody>{matches.map(order => <tr key={order.guid}>
+              <td>{order.dealer}</td><td>{order.number}</td><td>{order.date}</td>
+              <td>{orderStatusLabels[order.state] ?? order.state}</td><td>{order.constructions}</td>
+              <td>{order.applications.map(app => app.number).join(", ") || "—"}</td><td>{order.manager || "—"}</td>
+            </tr>)}</tbody>
+          </table></div> : detail.label === refusedLabel ? <div className="reconcile-scroll"><table>
             <thead><tr><th>Дилер</th><th>Замовлення</th><th>Конструкцій</th><th>Заявки</th><th>Дата відхилення</th><th>Менеджер</th><th>Причина</th></tr></thead>
             <tbody>{matches.map(order => <tr key={order.guid}><td>{order.dealer}</td><td>{order.number}</td><td>{order.constructions}</td><td>{order.applications.map(app => app.number + ' · ' + app.date.slice(0, 10)).join(', ')}</td><td>{order.events.map(event => event.date).join(', ')}</td><td>{[...new Set(order.events.map(event => event.manager || '—'))].join(', ')}</td><td>{[...new Set(order.events.map(event => event.reason))].join('; ')}</td></tr>)}</tbody>
           </table></div> : <div className="reconcile-scroll">
@@ -171,11 +181,15 @@ export default function PortalDailyReportPage() {
           {!matches.length && <p>Документів за цим показником немає.</p>}
         </dialog>}
         <section className="reconcile-panel daily-screen-status">
-          <h2>Пов’язані замовлення за статусами</h2>
+          <h2>Оформлені замовлення за статусами</h2>
           <table>
             <thead><tr><th scope="col">Статус</th><th scope="col">Замовлень</th><th scope="col">Конструкцій</th></tr></thead>
-            <tbody>{totals.orderStatuses.map(row => <tr key={row.guid}><td>{orderStatusLabels[row.name] ?? row.name}</td><td>{row.documents}</td><td>{row.constructions}</td></tr>)}</tbody>
-            <tfoot><tr><th scope="row">Усього</th><td>{totals.linkedOrders}</td><td>{totals.linkedConstructions}</td></tr></tfoot>
+            <tbody>{submissions.formedOrderStatuses.map(row => <tr key={row.guid}>
+              <td><button type="button" className="daily-metric" aria-haspopup="dialog" onClick={() => setDetail({ kind: "orders", statusGuid: row.guid, label: orderStatusLabels[row.name] ?? row.name })}>{orderStatusLabels[row.name] ?? row.name}</button></td>
+              <td><button type="button" className="daily-metric" aria-haspopup="dialog" aria-label={"Замовлення: " + (orderStatusLabels[row.name] ?? row.name)} onClick={() => setDetail({ kind: "orders", statusGuid: row.guid, label: orderStatusLabels[row.name] ?? row.name })}>{row.documents}</button></td>
+              <td>{row.constructions}</td>
+            </tr>)}</tbody>
+            <tfoot><tr><th scope="row">Усього</th><td>{formedOrders.length}</td><td>{formedOrders.reduce((sum, order) => sum + Number(order.constructions || 0), 0)}</td></tr></tfoot>
           </table>
         </section>
         <section className="reconcile-panel daily-screen-status">
@@ -189,37 +203,31 @@ export default function PortalDailyReportPage() {
             </tr>)}</tbody>
           </table></div> : <p>Розбіжностей серед заявок із замовленнями немає.</p>}
         </section>
-        <section className="reconcile-panel daily-screen-status">
-          <h2>Заявки в обробці без проведених замовлень · {processingWithoutPostedOrders.length}</h2>
-          {processingWithoutPostedOrders.length ? <div className="reconcile-scroll"><table>
-            <thead><tr><th>Дилер</th><th>№ заявки</th><th>Конструкцій</th><th>Що видно у звіті</th><th>Пов’язані замовлення</th></tr></thead>
-            <tbody>{processingWithoutPostedOrders.map(app => <tr key={app.guid}>
-              <td>{app.dealer}</td><td>{app.number}</td><td>{app.constructions}</td>
-              <td>{app.orders.length ? 'Пов’язані замовлення не проведені' : 'Пов’язаних замовлень немає'}</td>
-              <td>{app.orders.map(order => order.number).join(', ') || '—'}</td>
-            </tr>)}</tbody>
-          </table></div> : <p>Таких заявок немає.</p>}
-        </section>
+
       </>}
       {report && <div className="daily-print-details">
         <section className="daily-print-flow" aria-label="Розподіл заявок">
           <div className="daily-print-root"><strong>{totals.applications}</strong> заявок · <strong>{totals.applicationConstructions}</strong> конструкцій</div>
           <div className="daily-print-branches">
-            <section className="daily-print-new">
-              <h3>Неопрацьовані заявки</h3>
-              <p><strong>{totals.withoutOrders}</strong> заявок · <strong>{newApplicationConstructions}</strong> конструкцій</p>
-              <p>Без пов’язаних замовлень</p>
-              <p>З них в обробці · <strong>{newProcessingApplications.length}</strong> заявок · <strong>{newProcessingApplications.reduce((sum, app) => sum + app.constructions, 0)}</strong> конструкцій</p>
-            </section>
+            <div className="daily-print-pending-group">
+              <section className="daily-print-new">
+                <h3>Неоформлені заявки</h3>
+                <p><strong>{newApplications.applications}</strong> заявок · <strong>{newApplications.constructions}</strong> конструкцій · <strong>{newApplications.dealers}</strong> дилерів</p>
+              </section>
+              <section className="daily-print-new daily-print-processing">
+                <h3>Заявки в обробці</h3>
+                <p><strong>{processingApplications.applications}</strong> заявок · <strong>{processingApplications.constructions}</strong> конструкцій · <strong>{processingApplications.dealers}</strong> дилерів</p>
+              </section>
+            </div>
             <section className="daily-print-formed">
-              <h3>Оформлені заявки</h3>
+              <h3>Заявки із замовленнями</h3>
               <p><strong>{totals.applicationsWithOrders}</strong> заявок · <strong>{totals.applicationConstructions - newApplicationConstructions}</strong> конструкцій у заявках</p>
-              <p><strong>{totals.linkedOrders}</strong> замовлень · <strong>{totals.linkedConstructions}</strong> конструкцій</p>
+              <p><strong>{formedOrders.length}</strong> замовлень · <strong>{formedOrders.reduce((sum, order) => sum + Number(order.constructions || 0), 0)}</strong> конструкцій</p>
               <section className="daily-print-chart">
-                <h4>Розбивка замовлень за статусами</h4>
-                {[...totals.orderStatuses].sort((a, b) => (b.documents ?? 0) - (a.documents ?? 0)).map(row => <div key={row.guid}>
+                <h4>Оформлені замовлення за статусами</h4>
+                {[...submissions.formedOrderStatuses].sort((a, b) => (b.documents ?? 0) - (a.documents ?? 0)).map(row => <div key={row.guid}>
                   <span>{orderStatusLabels[row.name] ?? row.name}</span>
-                  <span className="daily-print-bar" aria-hidden="true"><i style={{ width: 100 * (row.documents ?? 0) / Math.max(1, ...totals.orderStatuses.map(status => status.documents ?? 0)) + "%" }} /></span>
+                  <span className="daily-print-bar" aria-hidden="true"><i style={{ width: 100 * (row.documents ?? 0) / Math.max(1, ...submissions.formedOrderStatuses.map(status => status.documents ?? 0)) + "%" }} /></span>
                   <span>{row.documents ?? 0} зам. · {row.constructions ?? 0} констр.</span>
                 </div>)}
               </section>

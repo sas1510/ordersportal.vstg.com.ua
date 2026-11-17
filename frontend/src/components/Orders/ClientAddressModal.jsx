@@ -1,3 +1,4 @@
+import { useModalDraft } from "../../hooks/useModalDraft";
 import { exactVisicomAddress } from "../../utils/visicomAddress";
 import { Icon } from "leaflet";
 import markerIconUrl from "leaflet/dist/images/marker-icon.png";
@@ -88,7 +89,12 @@ const isLatinAddress = (address) => {
 };
 
 
-const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
+const ClientAddressModal = ({ initialValue, onClose, onSave, draftKey = null }) => {
+  useEffect(() => {
+    const handleEscape = event => { if (event.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
   const { addNotification } = useNotification();
   const [tileKey, setTileKey] = useState(getVisicomSessionKey());
   const [keyInput, setKeyInput] = useState("");
@@ -173,6 +179,18 @@ const ClientAddressModal = ({ initialValue, onClose, onSave }) => {
     setIsPreciseLocation(true);
     setShowDragHint(false);
   };
+
+  const {ready:clientDraftReady, error: clientDraftError, clear: clearClientDraft} = useModalDraft({
+    key:draftKey, open:true,
+    value:{formAddr,clientContact,selectedCoords,mapDisplayName,search,isPreciseLocation},
+    hasContent:Boolean(Object.values(formAddr).some(Boolean) || Object.values(clientContact).some(Boolean) || selectedCoords || search),
+    onRestore:saved=>{
+      if (saved.formAddr) setFormAddr(saved.formAddr);
+      if (saved.clientContact) setClientContact(saved.clientContact);
+      setSelectedCoords(saved.selectedCoords || null);setMapDisplayName(saved.mapDisplayName || "");
+      setSearch(saved.search || "");setIsPreciseLocation(Boolean(saved.isPreciseLocation));
+    },
+  });
 
   const triggerSearch = (query) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -259,6 +277,7 @@ const handleSave = () => {
       return;
     }
 
+    clearClientDraft();
     onSave({
       text: mapDisplayName || buildAddressFromForm(formAddr),
       lat: selectedCoords?.[0] ?? null,
@@ -274,7 +293,7 @@ const handleSave = () => {
   };
 
   return (
-    <div className="new-calc-modal-overlay" onClick={onClose}>
+    <div className="new-calc-modal-overlay" onClick={(event) => event.stopPropagation()}>
       <div
         className="new-calc-modal-window"
         onClick={(e) => e.stopPropagation()}
@@ -289,7 +308,7 @@ const handleSave = () => {
           </div>
         </div>
 
-        <div className="new-calc-modal-body">
+        <div className="new-calc-modal-body" style={{visibility:clientDraftReady ? "visible" : "hidden"}}>
   
           <div className="client-address-form">
             <h4 className="section-title">{t("clientAddressModal.contactSection")}</h4>
@@ -353,6 +372,7 @@ const handleSave = () => {
             <label>Ключ Visicom для локального тестування<input type="password" autoComplete="off" value={keyInput} onChange={event => setKeyInput(event.target.value)} /></label>
             <button type="button" disabled={!keyInput.trim()} onClick={() => { setVisicomSessionKey(keyInput); setTileKey(keyInput.trim()); setGeocodeReady(true); setKeyInput(""); setMapError(""); }}>Підключити Visicom</button>
           </div>}
+          {clientDraftError && <p role="alert" className="warning">Не вдалося зберегти чернетку адреси в браузері.</p>}
           {mapError && <p role="alert" className="warning">{mapError}</p>}
           <div className="search-container">
             <input
@@ -406,10 +426,10 @@ const handleSave = () => {
         </div>
 
         <div className="new-calc-modal-footer">
-          <button className="new-calc-btn-cancel" onClick={onClose}>
+          <button className="new-calc-btn-cancel" onClick={() => { clearClientDraft(); onClose(); }}>
             <FaTimes /> {t("clientAddressModal.cancel")}
           </button>
-          <button className="new-calc-btn-save" onClick={handleSave}>
+          <button className="new-calc-btn-save" onClick={handleSave} disabled={!clientDraftReady}>
             <FaSave /> {t("clientAddressModal.save")}
           </button>
         </div>
@@ -419,6 +439,7 @@ const handleSave = () => {
 };
 
 export default ClientAddressModal;
+
 
 
 

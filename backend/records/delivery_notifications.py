@@ -117,3 +117,40 @@ def mark_delivery_notifications_shown(request):
         return Response({"error": "Некоректний список сповіщень."}, status=400)
     updated = DeliveryNotificationReceipt.objects.filter(user=request.user, pk__in=ids, notify=True, shown_at__isnull=True).update(shown_at=timezone.now())
     return Response({"marked": updated})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def check_delivery_badge(request):
+    """Persist unread dates from the current authorized page, without popups."""
+    rows = request.data.get("orders")
+    if not isinstance(rows, list) or len(rows) > 10000:
+        return Response({"error": "Некоректний список доставок."}, status=400)
+    try:
+        normalized = [normalize_delivery(item) for item in rows]
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return Response({"error": "Некоректна дата доставки."}, status=400)
+    today = timezone.now().astimezone(ZoneInfo("Europe/Kyiv")).date().isoformat()
+    pending = set()
+    for item in normalized:
+        if not item or not item["delivery"] or item["delivery"][:10] < today:
+            continue
+        receipt, _ = DeliveryNotificationReceipt.objects.get_or_create(
+            user=request.user, order_guid=item["orderGuid"], delivery_key=item["delivery"],
+            defaults={"notify": True},
+        )
+        if receipt.shown_at is None:
+            pending.add(receipt.pk)
+    return Response({"ids": sorted(pending)})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def read_delivery_badge(request):
+    ids = request.data.get("ids")
+    if not isinstance(ids, list) or len(ids) > 10000 or any(type(value) is not int or value <= 0 for value in ids):
+        return Response({"error": "Некоректний список доставок."}, status=400)
+    updated = DeliveryNotificationReceipt.objects.filter(
+        user=request.user, pk__in=ids, shown_at__isnull=True,
+    ).update(shown_at=timezone.now())
+    return Response({"marked": updated})

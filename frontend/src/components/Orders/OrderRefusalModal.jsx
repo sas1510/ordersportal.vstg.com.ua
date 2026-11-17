@@ -1,3 +1,5 @@
+import { modalDraftKey, modalDrafts } from "../../utils/modalDrafts";
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axiosInstance, { getAccessToken } from "../../api/axios";
 import { useNotification } from "../../hooks/useNotification";
@@ -100,6 +102,7 @@ export default function OrderRefusalModal({
 }) {
   const { t } = useTranslation();
   const { addNotification } = useNotification();
+  const {user:draftUser} = useAuthGetRole();
   const [selectedOrderGuids, setSelectedOrderGuids] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const firstCheckboxRef = useRef(null);
@@ -183,6 +186,8 @@ export default function OrderRefusalModal({
         "success",
       );
 
+      const keys = [modalDraftKey(draftUser,"calculation",calculationGuid),modalDraftKey(draftUser,"comment",`1_${calculationGuid}`)].filter(Boolean);
+      await Promise.all(keys.flatMap(key => [modalDrafts.remove(key),modalDrafts.remove(key+":client-address")]).map(task=>task.catch(()=>{})));
       onSubmitted?.(refusalMessage);
       onClose();
     } catch {

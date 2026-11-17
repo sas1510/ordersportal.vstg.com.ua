@@ -67,6 +67,7 @@ class MessageCreateSerializer(serializers.Serializer):
 
 
 class CalculationCreateSerializer(serializers.Serializer):
+    duplicate_zkz_confirmed = serializers.BooleanField(required=False, default=False)
     contractor_guid = serializers.UUIDField(required=False, allow_null=True)
     order_number = serializers.CharField(required=False, allow_blank=True, default="")
     items_count = serializers.IntegerField(min_value=1)

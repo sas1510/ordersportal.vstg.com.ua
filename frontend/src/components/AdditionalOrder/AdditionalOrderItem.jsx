@@ -13,6 +13,8 @@ import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 
 export const AdditionalOrderItem = ({
   calc,
+  isExpanded,
+  onToggle,
   onDelete,
   onEdit,
   onMarkAsRead,
@@ -21,8 +23,12 @@ export const AdditionalOrderItem = ({
   const additionalOrder = calc;
   const {t, i18n} = useTranslation();
   const locale = i18n.language;
-  const [expanded, setExpanded] = useState(false);
-  const toggleExpanded = () => setExpanded((prev) => !prev);
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const expanded = isExpanded ?? localExpanded;
+  const toggleExpanded = () => {
+    if (onToggle) onToggle();
+    else setLocalExpanded(previous => !previous);
+  };
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [_selectedComments, setSelectedComments] = useState([]);
 

@@ -45,3 +45,59 @@ body.dark-theme .deliveries-settings select { background: #45433f; color: #e5e9e
 .deliveries-settings .deliveries-date-options button:hover, .deliveries-settings .deliveries-date-options button:focus-visible, .deliveries-settings .deliveries-date-options button[aria-checked="true"] { background: #89b3d8; color: #203447; }
 body.dark-theme .deliveries-date-options, body.dark-theme .deliveries-settings .deliveries-date-trigger { background: #45433f; color: #e5e9ed; }
 body.dark-theme .deliveries-date-options button { color: #e5e9ed; }
+
+.service-deliveries-control { margin: 6px 0; flex-shrink: 0; }
+.service-deliveries-control .deliveries-settings { left: 0; right: auto; }
+.service-deliveries-control .deliveries-button { min-height: 30px; padding: 5px 9px; display: flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #7199ba; border-radius: 7px; background: #89b3d8; color: #172d40; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+.service-deliveries-control .deliveries-button.active { background: #b4d947; color: #293614; }
+
+.additional-deliveries-control { margin: 0 0 12px; }
+.additional-deliveries-control .deliveries-control { width: 100%; align-items: stretch; }
+.additional-deliveries-control .deliveries-button { flex: 1; min-width: 0; min-height: 40px; margin: 0; padding: 9px 12px; font-size: 14px; border-radius: 5px; }
+.additional-deliveries-control .deliveries-reset { height: auto; min-height: 40px; width: 30px; border-radius: 5px; }
+.additional-deliveries-control .deliveries-settings { top: calc(100% + 4px); width: 100%; max-width: 100%; box-sizing: border-box; }
+
+.buttons > .reclamation-tools-row { display: flex; align-items: stretch; gap: 6px; width: 100%; }
+.reclamation-tools-row .btn-reclamation-rules { flex: 1; min-width: 0; min-height: 50px; margin: 0; padding: 6px; display: flex; align-items: center; justify-content: center; }
+.reclamation-tools-row .btn-reclamation-rules > div { font-size: 12px; line-height: 1.3; }
+.reclamation-deliveries-control { flex: 0 0 auto; display: flex; }
+.reclamation-deliveries-control .deliveries-control { align-items: stretch; }
+.reclamation-deliveries-control .deliveries-button { min-height: 50px; margin: 0; padding: 7px 9px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #7199ba; border-radius: 5px; background: #89b3d8; color: #172d40; font-size: 12px; font-weight: 700; }
+.reclamation-deliveries-control .deliveries-button.active { background: #b4d947; color: #293614; }
+.reclamation-deliveries-control .deliveries-reset { min-height: 50px; }
+.reclamation-deliveries-control .deliveries-settings { top: calc(100% + 4px); right: 0; left: auto; }
+.reclamation-deliveries-control .deliveries-button { padding-inline: 6px; gap: 4px; font-size: 11px; }
+.reclamation-deliveries-control .deliveries-button svg { width: 11px; height: 11px; }
+
+.reclamation-list-controls { margin: 0 0 10px; flex-shrink: 0; }
+.reclamation-list-controls > .orders-expand-all-button,
+.reclamation-list-controls .deliveries-button { min-height: 34px; margin: 0; padding: 6px 9px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #7199ba; border-radius: 5px; background: #89b3d8; color: #172d40; font-size: 12px; font-weight: 700; }
+.reclamation-list-controls .deliveries-button.active { background: #b4d947; color: #293614; }
+.reclamation-list-controls .deliveries-control { align-items: stretch; }
+.reclamation-list-controls .deliveries-settings { top: calc(100% + 4px); }
+.reclamation-list-controls .deliveries-reset { min-height: 34px; }
+
+.reclamation-sidebar .btn-reclamation-rules { min-height: 42px; margin-top: 4px; margin-bottom: 4px; padding-inline: 8px; }
+.reclamation-sidebar .btn-reclamation-rules > div { font-size: 15px; line-height: normal; }
+.reclamation-sidebar .btn-add-calc { height: 36px; margin-top: 4px; margin-bottom: 4px; padding-inline: 10px; gap: 6px; }
+.reclamation-sidebar .btn-add-calc > div { font-size: 16px; }
+.reclamation-sidebar .reclamation-list-controls { gap: 4px; margin-bottom: 5px; }
+.reclamation-sidebar .reclamation-list-controls > .orders-expand-all-button,
+.reclamation-sidebar .reclamation-list-controls .deliveries-button { min-height: 28px; padding: 4px 6px; font-size: 11px; gap: 4px; }
+.reclamation-sidebar .reclamation-list-controls .deliveries-reset { min-height: 28px; }
+
+.additional-list-controls { gap: 4px; margin: 0 0 5px; flex-shrink: 0; }
+.additional-list-controls > .orders-expand-all-button,
+.additional-list-controls .deliveries-button { min-height: 28px; margin: 0; padding: 4px 6px; display: flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid #7199ba; border-radius: 5px; background: #89b3d8; color: #172d40; font-size: 11px; font-weight: 700; }
+.additional-list-controls .deliveries-button.active { background: #b4d947; color: #293614; }
+.additional-list-controls .deliveries-control { align-items: stretch; }
+.additional-list-controls .deliveries-reset { min-height: 28px; }
+.additional-list-controls .deliveries-settings { top: calc(100% + 4px); }
+
+.additional-orders-sidebar .buttons { margin: 0; padding: 0; }
+.additional-orders-sidebar .btn-add-calc { margin-top: 4px; margin-bottom: 4px; }
+.additional-orders-sidebar .additional-list-controls { margin-top: 0; margin-bottom: 4px; gap: 4px; }
+.additional-orders-sidebar .filter > div { padding-top: 12px; }
+
+.deliveries-button { position: relative; }
+.delivery-unread-dot { position: absolute; top: 1px; right: 1px; width: 9px; height: 9px; box-sizing: border-box; border-radius: 50%; background: #75c52b; border: 1px solid #fff; box-shadow: none; pointer-events: none; }

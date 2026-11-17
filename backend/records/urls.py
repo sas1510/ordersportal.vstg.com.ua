@@ -1,3 +1,4 @@
+from .zkz_duplicates import check_zkz_duplicates
 from .visicom_test import visicom_test_geocode, visicom_order_config, visicom_order_geocode
 from .order_search import order_search_targets
 from .measurement_order_target import measurement_order_target
@@ -12,7 +13,7 @@ from .zamir_sso import ZamirTicketView, ZamirProfileView
 from .deliveries_pdf import deliveries_pdf
 from .dealer_reconciliation_views import dealer_reconciliation
 from .zkz_search import find_order_for_zkz
-from .delivery_notifications import check_delivery_notifications, mark_delivery_notifications_shown
+from .delivery_notifications import check_delivery_notifications, mark_delivery_notifications_shown, check_delivery_badge, read_delivery_badge
 from . import views  # РџРµСЂРµРєРѕРЅР°Р№С‚РµСЃСЏ, С‰Рѕ С–РјРїРѕСЂС‚ РєРѕСЂРµРєС‚РЅРёР№
 from .views import get_user_notifications, get_notifications_count, mark_notifications_as_read,  order_files_view, download_order_file, CreateCalculationViewSet, get_dealer_addresses, wds_codes_by_contractor, get_messages, download_calculation_file, confirm_order, DeleteCalculationView, mark_single_notification_as_read, get_calc_files, download_calc, send_support_notification_to_telegram, send_faq_expert_request, telegram_webhook, get_support_chat_history, get_support_chat_attachment, download_support_chat_attachment, support_large_video_upload, mark_support_chat_as_read, UpdateCalculationView, confirm_order_by_number, get_all_manager_list
 from .views import ProductionStatisticsView, DealerDetailedStatisticsView, DealerFullAnalyticsView, OrdersDealerStatisticsView, PartnerDebtsView, ProductionTimelinessByContractorView, ProductionUnifiedAnalyticsView, PortalDealerComparisonAnalyticsView, PortalAccessibleDealerReportsView
@@ -79,8 +80,11 @@ urlpatterns = [
     path('complaints/get_reclamation_info_all/', views.complaints_view_all_by_month, name='get_reclamation_info_all'),
     path('order/get_orders_info_all/', views.orders_view_all_by_month, name='get_orders_info_all'),
     path("pdf-amount-extract/", extract_pdf_amount),
+    path("calculations/check-zkz-duplicates/", check_zkz_duplicates),
     path("deliveries-pdf/", deliveries_pdf),
     path("orders/zkz-search/", find_order_for_zkz),
+    path("delivery-notifications/badge/", check_delivery_badge),
+    path("delivery-notifications/read/", read_delivery_badge),
     path("delivery-notifications/check/", check_delivery_notifications),
     path("delivery-notifications/shown/", mark_delivery_notifications_shown),
     path("order/<str:order_guid>/files/", order_files_view),

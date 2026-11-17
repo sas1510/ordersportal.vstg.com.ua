@@ -1,3 +1,4 @@
+import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 ﻿import React, { 
@@ -52,6 +53,7 @@ function formatApiData(data) {
         return {
             id: item.ComplaintNumber,
             number: item.ClaimOrderNumber,
+            orders: [{ number: item.ClaimOrderNumber, idGuid: item.DeliveryOrderGuid, plannedDeliveryDateTime: item.PlannedDeliveryDateTime, status: item.StatusName, count: null, amount: null, paid: null, currency: item.Currency }],
             actNumber: item.ComplaintNumber,
             hasUnreadMessages: item.HasUnreadMessages,
             guid : item.ComplaintGuid,
@@ -128,6 +130,24 @@ const ReclamationPortal = () => {
     const [visibleItemsCount, setVisibleItemsCount] = useState(ITEMS_PER_LOAD);
 
     const [expandedReclamation, setExpandedReclamation] = useState(null);
+  const [allReclamationsExpanded, setAllReclamationsExpanded] = useState(false);
+  const [collapsedReclamations, setCollapsedReclamations] = useState(() => new Set());
+  const isReclamationExpanded = (id) => allReclamationsExpanded ? !collapsedReclamations.has(id) : expandedReclamation === id;
+  const toggleReclamation = (id) => {
+    if (allReclamationsExpanded) {
+      setCollapsedReclamations(previous => {
+        const next = new Set(previous);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+      });
+    } else setExpandedReclamation(previous => previous === id ? null : id);
+  };
+  const toggleAllReclamations = () => {
+    setAllReclamationsExpanded(previous => !previous);
+    setCollapsedReclamations(new Set());
+    setExpandedReclamation(null);
+  };
+
     const [expandedIssue, setExpandedIssue] = useState(null);
 
 
@@ -433,8 +453,9 @@ const ReclamationPortal = () => {
     /* --------------------------------------------------------
      *  Pagination
      * -------------------------------------------------------- */
-    const currentItems = sortedItems.slice(0, visibleItemsCount);
-    const remaining = sortedItems.length - visibleItemsCount;
+    const delivery = useDeliveries(sortedItems);
+  const currentItems = delivery.filteredCalculations.slice(0, visibleItemsCount);
+    const remaining = delivery.filteredCalculations.length - visibleItemsCount;
 
     const canLoadMore = remaining > 0;
     const loadAmount = Math.min(ITEMS_PER_LOAD, remaining);
@@ -526,7 +547,7 @@ const ReclamationPortal = () => {
 
 
                 {/* SIDEBAR */}
-                <div className={`content-filter column ${isSidebarOpen ? 'open' : 'closed'}`}>
+                <div className={`content-filter column reclamation-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
 
 
                     {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
@@ -572,7 +593,7 @@ const ReclamationPortal = () => {
 
 
                     <ul className="buttons">
-                        <li>
+                        <li >
                             <a
                                 className="btn-reclamation-rules"
                                 href={reclamationRulesPdf}
@@ -582,6 +603,7 @@ const ReclamationPortal = () => {
                                 {/* <span className="text-[16px] font-bold leading-none">PDF</span> */}
                                 <div className="text-center text-[15px] text-white font-bold font-['Inter'] uppercase">Правила прийому рекламацій</div>
                             </a>
+                        
                         </li>
                         <li data-after-sales-display="flex" className=" btn-add-calc" onClick={() => setIsNewReclamationModalOpen(true)}>
                            <img 
@@ -594,6 +616,14 @@ const ReclamationPortal = () => {
                         </li>
                     </ul>
 
+
+<div className="orders-list-controls reclamation-list-controls">
+            <button type="button" className="orders-expand-all-button" aria-expanded={allReclamationsExpanded} onClick={toggleAllReclamations}>
+              <span aria-hidden="true">{allReclamationsExpanded ? "⌃" : "⌄"}</span>
+              {allReclamationsExpanded ? "Згорнути всі" : "Розгорнути всі"}
+            </button>
+            <DeliveriesControl delivery={delivery} />
+          </div>
                     {/* Status Filters */}
                     {/* <ul className="filter column align-center">
                         <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
@@ -717,7 +747,7 @@ const ReclamationPortal = () => {
                                     {t('reclamation.common.try_again')}
                                 </button>
                             </div>
-                        ) : sortedItems.length === 0 ? (
+                        ) : delivery.filteredCalculations.length === 0 ? (
                     
                             <div className="no-data column align-center h-100">
                                 <div className="font-size-24 text-grey">{t("reclamation.no-data")}</div>
@@ -730,10 +760,8 @@ const ReclamationPortal = () => {
                                     <ReclamationItemMobile
                                         key={reclamation.id}
                                         reclamation={reclamation}
-                                        isExpanded={expandedReclamation === reclamation.id}
-                                        onToggle={() => setExpandedReclamation(
-                                            expandedReclamation === reclamation.id ? null : reclamation.id
-                                        )}
+                                        isExpanded={isReclamationExpanded(reclamation.id)}
+                                        onToggle={() => toggleReclamation(reclamation.id)}
                                         expandedIssueId={expandedIssue}
                                         onIssueToggle={(id) =>
                                             setExpandedIssue(expandedIssue === id ? null : id)
@@ -745,10 +773,8 @@ const ReclamationPortal = () => {
                                     <ReclamationItem
                                         key={reclamation.id}
                                         reclamation={reclamation}
-                                        isExpanded={expandedReclamation === reclamation.id}
-                                        onToggle={() => setExpandedReclamation(
-                                            expandedReclamation === reclamation.id ? null : reclamation.id
-                                        )}
+                                        isExpanded={isReclamationExpanded(reclamation.id)}
+                                        onToggle={() => toggleReclamation(reclamation.id)}
                                         expandedIssueId={expandedIssue}
                                         onIssueToggle={(id) =>
                                             setExpandedIssue(expandedIssue === id ? null : id)
@@ -781,13 +807,13 @@ const ReclamationPortal = () => {
                         )}
 
                       
-                        {!canLoadMore && sortedItems.length > ITEMS_PER_LOAD && (
+                        {!canLoadMore && delivery.filteredCalculations.length > ITEMS_PER_LOAD && (
                             <div className="row justify-content-center text-grey" style={{
                                 marginTop: '10px',
                                 marginBottom: '10px'
                             }}>
-                                {t('reclamation.common.all_loaded', { total: sortedItems.length })}
-                                {/* Всі рекламації завантажено ({sortedItems.length}) */}
+                                {t('reclamation.common.all_loaded', { total: delivery.filteredCalculations.length })}
+                                {/* Всі рекламації завантажено ({delivery.filteredCalculations.length}) */}
                             </div>
                         )}
 

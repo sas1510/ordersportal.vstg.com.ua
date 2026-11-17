@@ -632,7 +632,7 @@
       "selected_total": "Обрано на суму",
       "remaining": "Залишок авансу",
       "selected_count": "Обрані на оплату",
-      "pay_selected": "Оплатити всі",
+      "pay_selected": "Оплатити вибрані",
       "processing": "Оплата...",
       "select_short": "Обрано",
       "amount_short": "Сума",
@@ -1441,3 +1441,4 @@
     "all_statuses": "усіх статусів"
   }
 }
+

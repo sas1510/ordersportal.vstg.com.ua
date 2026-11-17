@@ -1,3 +1,6 @@
+import { zkzDuplicateWarning } from "../../utils/zkzDuplicateWarning";
+import { useModalDraft } from "../../hooks/useModalDraft";
+import { modalDraftKey, modalDrafts } from "../../utils/modalDrafts";
 import { extractAddressCoordinates } from "../../utils/addressCoordinates";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axiosInstance from "../../api/axios.js";
@@ -32,6 +35,7 @@ const NewCalculationModal = ({
   const isEditMode = Boolean(initialCalculation?.id);
   const [orderNumber, setOrderNumber] = useState("");
   const [file, setFile] = useState(null);
+  const [duplicateCheck, setDuplicateCheck] = useState({});
   const [fileName, setFileName] = useState(t("orders.newOrderModal.error_message_2"));
   const [itemsCount, setItemsCount] = useState(1);
   const [comment, setComment] = useState("");
@@ -69,8 +73,10 @@ const NewCalculationModal = ({
   // 📸 Стейт для зберігання масиву обраних фотографій
   const [photos, setPhotos] = useState([]);
 
-  const { isBackoffice } = useAuthGetRole();
+  const { isBackoffice, user: draftUser } = useAuthGetRole();
   const isManager = isBackoffice;
+  const restoredAddressRef = useRef(null);
+  const draftKey = modalDraftKey(draftUser, "calculation", initialCalculation?.id || "new");
   const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "uk")
     .toLowerCase()
     .split("-")[0];
@@ -119,7 +125,24 @@ const NewCalculationModal = ({
     setFileTouched(false);
     setPhotosTouched(false);
     setSubmitError(null);
-  }, [isOpen, initialCalculation, t]);
+  }, [isOpen, draftKey]);
+
+  const {ready: draftReady, error: draftError, persist: persistDraft, clear: clearDraft} = useModalDraft({
+    key: draftKey, open: isOpen,
+    value: {orderNumber, file, fileName, itemsCount, comment, dealerId, addressGuid, dealerCoords, addressMode, customAddress, photos, idempotencyKey:idempotencyKeyRef.current,
+      orderNumberTouched, itemsCountTouched, commentTouched, addressTouched, fileTouched, photosTouched},
+    hasContent: Boolean(orderNumber || file || comment || photos.length || dealerId || addressTouched || itemsCount !== 1),
+    onRestore: saved => {
+      idempotencyKeyRef.current = saved.idempotencyKey || null;
+      setOrderNumber(saved.orderNumber || ""); setFile(saved.file || null); setFileName(saved.fileName || t("orders.newOrderModal.error_message_2"));
+      setItemsCount(saved.itemsCount ?? 1); setComment(saved.comment || ""); setDealerId(saved.dealerId || "");
+      restoredAddressRef.current = saved.addressGuid || null;
+      setAddressGuid(saved.addressGuid || ""); setDealerCoords(saved.dealerCoords || null); setAddressMode(saved.addressMode || "dealer");
+      setCustomAddress(saved.customAddress || {text:"",lat:null,lng:null}); setPhotos(saved.photos || []);
+      setOrderNumberTouched(!!saved.orderNumberTouched); setItemsCountTouched(!!saved.itemsCountTouched); setCommentTouched(!!saved.commentTouched);
+      setAddressTouched(!!saved.addressTouched); setFileTouched(!!saved.fileTouched); setPhotosTouched(!!saved.photosTouched);
+    },
+  });
 
   const extractCoordinates = extractAddressCoordinates;
 
@@ -220,13 +243,15 @@ const NewCalculationModal = ({
           a.IsDefault === "\u0001" || a.IsDefault === 1 || a.IsDefault === true,
       );
 
+      const restoredAddress = translatedAddresses.find(address => address.AddressKindGUID === restoredAddressRef.current);
       const preselectedAddress =
-        initialAddressByGuid ||
+        restoredAddress || initialAddressByGuid ||
         initialAddressByText ||
         def ||
         (translatedAddresses.length === 1 ? translatedAddresses[0] : null);
 
       if (preselectedAddress) {
+        restoredAddressRef.current = null;
         setAddressGuid(preselectedAddress.AddressKindGUID);
         const coords = checkAddressCoordinates(preselectedAddress);
         setDealerCoords(coords);
@@ -264,20 +289,20 @@ const NewCalculationModal = ({
 
   useEffect(() => {
     const handleEsc = (event) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && !isClientAddressModalOpen) onClose();
     };
     if (isOpen) window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isClientAddressModalOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !draftReady) return;
     if (isManager) {
       if (dealerId) loadAddresses(dealerId);
     } else {
       loadAddresses();
     }
-  }, [isOpen, dealerId, isManager, resolvedLanguage]);
+  }, [isOpen, dealerId, isManager, resolvedLanguage, draftReady]);
 
   const handleAddressSelect = (addr) => {
     setAddressGuid(addr.AddressKindGUID);
@@ -288,6 +313,21 @@ const NewCalculationModal = ({
   };
 
   const isDealerAddressDefault = (guid) => addresses.find((address) => address.AddressKindGUID === guid)?.IsDefault !== false;
+
+  useEffect(() => {
+    setDuplicateCheck({});
+    if (!isOpen || isEditMode || !draftReady || !file?.name?.toLowerCase().endsWith(".zkz") || (isManager && !dealerId)) return;
+    const controller = new AbortController();
+    setDuplicateCheck({ loading: true });
+    axiosInstance.post("/calculations/check-zkz-duplicates/", {
+      file_name: file.name, file_size: file.size, ...(isManager ? { contractor_guid: dealerId } : {}),
+    }, { signal: controller.signal }).then(({ data }) => {
+      if (!controller.signal.aborted) setDuplicateCheck(data);
+    }).catch(() => {
+      if (!controller.signal.aborted) setDuplicateCheck({ error: "Не вдалося перевірити файл. Перевірку буде повторено перед створенням." });
+    });
+    return () => controller.abort();
+  }, [isOpen, isEditMode, draftReady, file, isManager, dealerId]);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
@@ -350,6 +390,13 @@ const NewCalculationModal = ({
   };
 
   const handleCloseWithReset = () => {
+    persistDraft();
+    resetForm();
+    onClose();
+  };
+  const discardDraft = () => {
+    clearDraft();
+    if (draftKey) modalDrafts.remove(draftKey + ":client-address").catch(() => {});
     resetForm();
     onClose();
   };
@@ -459,6 +506,17 @@ const NewCalculationModal = ({
     setLoading(true);
 
     try {
+      let duplicateConfirmed = false;
+      if (!isEditMode && file?.name?.toLowerCase().endsWith(".zkz")) {
+        const { data: check } = await axiosInstance.post("/calculations/check-zkz-duplicates/", {
+          file_name: file.name, file_size: file.size, ...(isManager ? { contractor_guid: dealerId } : {}),
+        });
+        setDuplicateCheck(check);
+        if (check.matches?.length || check.unchecked?.length) {
+          if (!window.confirm(zkzDuplicateWarning(check) + "\n\nУсе одно створити повторну заявку?")) return;
+          duplicateConfirmed = true;
+        }
+      }
       // 1. Конвертуємо основний файл розрахунку
       const mainFileBase64 = file
         ? await fileToBase64(file)
@@ -571,6 +629,8 @@ const NewCalculationModal = ({
         };
       }
 
+      if (duplicateConfirmed) payload.duplicate_zkz_confirmed = true;
+
       const endpoint = isEditMode
         ? `/calculations/${initialCalculation.id}/update/`
         : "/calculations/create/";
@@ -578,6 +638,7 @@ const NewCalculationModal = ({
       if (!isEditMode && !idempotencyKeyRef.current) {
         idempotencyKeyRef.current = window.crypto?.randomUUID?.() || (Date.now().toString() + "-" + Math.random().toString());
       }
+      await persistDraft({idempotencyKey:idempotencyKeyRef.current});
       const response = await axiosInstance.post(
         endpoint,
         payload,
@@ -597,10 +658,17 @@ const NewCalculationModal = ({
           : t("orders.newOrderModal.order_created", { orderNumber: orderNumber }),
         "success",
       );
+      clearDraft();
+      if (draftKey) modalDrafts.remove(draftKey + ":client-address").catch(() => {});
       onSave?.(response.data);
       resetForm();
       onClose();
     } catch (error) {
+      if (error.response?.data?.code === "duplicate_zkz") {
+        setDuplicateCheck(error.response.data);
+        addNotification("Знайдено можливу повторну заявку. Перевірте попередження біля файлу.", "warning");
+        return;
+      }
       console.error(error);
 
       addNotification(
@@ -648,8 +716,9 @@ const NewCalculationModal = ({
 
   return (
     <>
-      <div className="new-calc-modal-overlay" onClick={onClose}>
+      <div className="new-calc-modal-overlay" onClick={(event) => event.stopPropagation()}>
         <div className="new-calc-modal-window" onClick={(e) => e.stopPropagation()}>
+          {draftError && <p role="alert" className="warning">Не вдалося зберегти чернетку в браузері. Не оновлюйте сторінку до збереження.</p>}
           <div className="new-calc-modal-border-top">
             <div className="new-calc-modal-header">
               <span className="icon icon-calculator" />
@@ -662,7 +731,7 @@ const NewCalculationModal = ({
             </div>
           </div>
 
-          <div className="new-calc-modal-body">
+          <div className="new-calc-modal-body" style={{visibility:draftReady ? "visible" : "hidden"}}>
             <form className="new-calc-form" onSubmit={handleSubmit}>
              <label className="new-calc-label">
                 <div className="new-calc-label-row new-calc-label-row--order-number">
@@ -871,6 +940,13 @@ const NewCalculationModal = ({
                     className="new-calc-input-number"
                   />
                 </label>
+                {!isEditMode && (duplicateCheck.loading || duplicateCheck.error || duplicateCheck.matches?.length > 0 || duplicateCheck.unchecked?.length > 0) && (
+                  <div className={`new-calc-duplicate-warning${duplicateCheck.loading ? " is-checking" : ""}`} role={duplicateCheck.loading ? "status" : "alert"} title={duplicateCheck.loading ? undefined : duplicateCheck.error || zkzDuplicateWarning(duplicateCheck)}>
+                    {!duplicateCheck.loading && <strong>Зверніть увагу: </strong>}
+                    <span>{duplicateCheck.loading ? "Перевіряємо .zkz серед заявок за останні 7 днів…" : duplicateCheck.error || zkzDuplicateWarning(duplicateCheck)}</span>
+                  </div>
+                )}
+
               </div>
 
               {/* 📸 2. НОВИЙ БЛОК: Завантаження додаткових фотографій */}
@@ -925,10 +1001,10 @@ const NewCalculationModal = ({
           </div>
 
           <div className="new-calc-modal-footer">
-            <button className="new-calc-btn-cancel" onClick={handleCloseWithReset}>
+            <button className="new-calc-btn-cancel" onClick={discardDraft}>
               <FaTimes /> {t("orders.newOrderModal.cancel")}
             </button>
-            <button type="button" className="new-calc-btn-save" onClick={handleSubmit} disabled={loading}>
+            <button type="button" className="new-calc-btn-save" onClick={handleSubmit} disabled={loading || !draftReady}>
               <FaSave /> {loading
                 ? isEditMode
                   ? t("orders.newOrderModal.updating")
@@ -941,6 +1017,7 @@ const NewCalculationModal = ({
 
       {isClientAddressModalOpen && (
         <ClientAddressModal
+          draftKey={draftKey ? draftKey + ":client-address" : null}
           initialValue={{ ...customAddress, contractor_guid: dealerId }}
           contractorGuid={dealerId}
           onClose={() => setIsClientAddressModalOpen(false)}
@@ -956,3 +1033,4 @@ const NewCalculationModal = ({
 };
 
 export default NewCalculationModal;
+

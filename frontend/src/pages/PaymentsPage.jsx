@@ -1231,7 +1231,7 @@ export default function PaymentsPage() {
                     >
                       {batchSubmitting
                         ? t("payments_page.batch.processing", "Оплата...")
-                        : t("payments_page.batch.pay_selected", "Оплатити всі")}
+                        : t("payments_page.batch.pay_selected", "Оплатити вибрані")}
                     </button>
                   </>
                 )}
@@ -1515,4 +1515,5 @@ export default function PaymentsPage() {
     </div>
   );
 }
+
 

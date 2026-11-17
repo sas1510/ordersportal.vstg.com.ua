@@ -1,3 +1,4 @@
+import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import { DEALER_REPORT_GROUP_OPTIONS, dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
@@ -55,6 +56,7 @@ function formatApiData(data) {
       id: item.ComplaintNumber,
       guid: item.ComplaintGuid,
       number: item.ClaimOrderNumber,
+            orders: [{ number: item.ClaimOrderNumber, idGuid: item.DeliveryOrderGuid, plannedDeliveryDateTime: item.PlannedDeliveryDateTime, status: item.StatusName, count: null, amount: null, paid: null, currency: item.Currency }],
       actNumber: item.ComplaintNumber,
 
       numberWEB: item.NumberWEB,
@@ -137,6 +139,24 @@ const AdminReclamationPortal = () => {
 
   const [loading, setLoading] = useState(true);
   const [expandedReclamation, setExpandedReclamation] = useState(null);
+  const [allReclamationsExpanded, setAllReclamationsExpanded] = useState(false);
+  const [collapsedReclamations, setCollapsedReclamations] = useState(() => new Set());
+  const isReclamationExpanded = (id) => allReclamationsExpanded ? !collapsedReclamations.has(id) : expandedReclamation === id;
+  const toggleReclamation = (id) => {
+    if (allReclamationsExpanded) {
+      setCollapsedReclamations(previous => {
+        const next = new Set(previous);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+      });
+    } else setExpandedReclamation(previous => previous === id ? null : id);
+  };
+  const toggleAllReclamations = () => {
+    setAllReclamationsExpanded(previous => !previous);
+    setCollapsedReclamations(new Set());
+    setExpandedReclamation(null);
+  };
+
   const [expandedIssue, setExpandedIssue] = useState(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -455,8 +475,9 @@ const AdminReclamationPortal = () => {
     [filteredItems],
   );
 
-  const itemsToShow = sortedItems.slice(0, visibleItemsCount);
-  const showLoadMoreButton = sortedItems.length > visibleItemsCount;
+  const delivery = useDeliveries(sortedItems);
+  const itemsToShow = delivery.filteredCalculations.slice(0, visibleItemsCount);
+  const showLoadMoreButton = delivery.filteredCalculations.length > visibleItemsCount;
 
 
   if (loading || reloading || dealerChanging) {
@@ -542,7 +563,7 @@ const AdminReclamationPortal = () => {
 
  
         <div
-          className={`content-filter column ${isSidebarOpen ? "open" : "closed"}`}
+          className={`content-filter column reclamation-sidebar ${isSidebarOpen ? "open" : "closed"}`}
         >
       
           {isSidebarOpen &&<div className="sidebar-header row ai-center jc-space-between">
@@ -612,7 +633,7 @@ const AdminReclamationPortal = () => {
           )}
 
           <ul className="buttons">
-            <li>
+            <li >
               <a
                 className="btn-reclamation-rules"
                 href={reclamationRulesPdf}
@@ -622,8 +643,10 @@ const AdminReclamationPortal = () => {
                 {/* <span className="text-[16px] font-bold leading-none">PDF</span> */}
                 <div className="text-center text-white text-[15px] font-bold font-['Inter'] uppercase">Правила прийому рекламацій</div>
               </a>
-            </li>
+            
+                        </li>
           </ul>
+          
 
 
 
@@ -653,6 +676,13 @@ const AdminReclamationPortal = () => {
           )}
 
 
+<div className="orders-list-controls reclamation-list-controls">
+            <button type="button" className="orders-expand-all-button" aria-expanded={allReclamationsExpanded} onClick={toggleAllReclamations}>
+              <span aria-hidden="true">{allReclamationsExpanded ? "⌃" : "⌄"}</span>
+              {allReclamationsExpanded ? "Згорнути всі" : "Розгорнути всі"}
+            </button>
+            <DeliveriesControl delivery={delivery} />
+          </div>
           <ul className="filter column align-center h-full overflow-hidden">
                               <div
                                     className="
@@ -751,12 +781,8 @@ const AdminReclamationPortal = () => {
                   <ReclamationItemMobile
                     key={r.id}
                     reclamation={r}
-                    isExpanded={expandedReclamation === r.id}
-                    onToggle={() =>
-                      setExpandedReclamation(
-                        expandedReclamation === r.id ? null : r.id,
-                      )
-                    }
+                    isExpanded={isReclamationExpanded(r.id)}
+                    onToggle={() => toggleReclamation(r.id)}
                     expandedIssueId={expandedIssue}
                     onIssueToggle={setExpandedIssue}
                   />
@@ -764,12 +790,8 @@ const AdminReclamationPortal = () => {
                   <ReclamationItem
                     key={r.id}
                     reclamation={r}
-                    isExpanded={expandedReclamation === r.id}
-                    onToggle={() =>
-                      setExpandedReclamation(
-                        expandedReclamation === r.id ? null : r.id,
-                      )
-                    }
+                    isExpanded={isReclamationExpanded(r.id)}
+                    onToggle={() => toggleReclamation(r.id)}
                     expandedIssueId={expandedIssue}
                     onIssueToggle={setExpandedIssue}
                   />

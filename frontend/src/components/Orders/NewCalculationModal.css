@@ -687,3 +687,21 @@ body.dark-theme .address-dropdown-item:hover {
     font-size: 12px;
     line-height: 1.5;
 }
+
+.new-calc-duplicate-warning {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  color: #b42318;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.new-calc-duplicate-warning > strong { display: inline; font-size: inherit; font-weight: 600; color: inherit; }
+.new-calc-duplicate-warning > span { color: inherit; white-space: pre-line; }
+body.dark-theme .new-calc-duplicate-warning { color: #f2aaaa; }
+.new-calc-duplicate-warning.is-checking,
+body.dark-theme .new-calc-duplicate-warning.is-checking { color: inherit; opacity: .75; }

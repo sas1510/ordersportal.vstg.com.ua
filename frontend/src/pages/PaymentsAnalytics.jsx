@@ -4,11 +4,7 @@ import { useTranslation } from "react-i18next";
 export default function PaymentsAnalytics({ groups, formatCurrency, showDebtDetails }) {
   const { t } = useTranslation();
   if (!groups.length) return null;
-  const usage = total => ["Debt", "InWorkDebt", "Summa", "BezPeredOplaty"].reduce((sum, key) => sum + Number(total[key] || 0), 0);
   const metrics = [
-    ["debt_limit", ({total}) => Number(total.CustomerLimit || 0)],
-    ["overlimit", ({total}) => total.CustomerLimit > 0 ? Math.max(0, usage(total) - total.CustomerLimit) : 0, null, true],
-    ["limit_usage", ({total}) => total.CustomerLimit > 0 ? Number(total.LimitUsage ?? Math.min(total.CustomerLimit, usage(total))) : 0],
     ["no_prepayment", ({total}) => Number(total.BezPeredOplaty || 0), "no_prepayment"],
     ["underfunded", ({analytics}) => analytics.underfundedDebtTotal, "nedoavans"],
     ["in_work_debt", ({analytics}) => analytics.inWorkDebtTotal, "in_work"],
@@ -18,7 +14,7 @@ export default function PaymentsAnalytics({ groups, formatCurrency, showDebtDeta
     ["debt_over_ten_days", ({total}) => Number(total.DebtMoreTen || 0), "critical", true],
   ];
   return <div className="analytics-container analytics-currencies">
-    {[metrics.slice(0,5), metrics.slice(5)].map((row, index) => <React.Fragment key={index}>
+    {[metrics.slice(0,4), metrics.slice(4)].map((row, index) => <React.Fragment key={index}>
       {index > 0 && <div className="analytics-divider" />}
       <div className={index ? "analytics-row-bottom" : "analytics-row-top"}>
         {row.map(([key, valueOf, detail, danger]) => <div className="analytics-card" key={key}>
@@ -36,3 +32,4 @@ export default function PaymentsAnalytics({ groups, formatCurrency, showDebtDeta
     </React.Fragment>)}
   </div>;
 }
+

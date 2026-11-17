@@ -633,7 +633,7 @@
       "selected_total": "Selected amount",
       "remaining": "Advance balance",
       "selected_count": "Selected",
-      "pay_selected": "Pay all",
+      "pay_selected": "Pay selected",
       "processing": "Paying...",
       "select_short": "Selected",
       "amount_short": "Amount",
@@ -1442,3 +1442,4 @@
     "all_statuses": "all statuses"
   }
 }
+

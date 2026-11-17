@@ -236,3 +236,12 @@ body.dark-theme .portal-daily-report.daily-pdf-export {
 
 
 
+
+
+.daily-print-pending-group { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.daily-print-pending-group > section { break-inside: avoid; }
+
+.daily-metric-explanation { margin: 8px 0 12px; }
+.daily-metric-details .daily-counted-column,
+.daily-metric-details td.daily-counted-value { background: rgba(149, 193, 31, .14); }
+.daily-metric-details td > span { white-space: pre-line; }

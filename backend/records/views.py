@@ -1,3 +1,5 @@
+from .zkz_duplicates import uploaded_zkz_identity, find_zkz_duplicates
+from .service_deliveries import attach_service_deliveries
 from .posted_orders import mark_posted_orders
 from .order_sql_compat import execute_orders_sql
 from pathlib import Path
@@ -727,7 +729,8 @@ def execute_stored_procedure(contractor_bin, year):
             [contractor_bin, year]
         )
         columns = [c[0] for c in cursor.description]
-        return [dict(zip(columns, r)) for r in cursor.fetchall()]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+    return attach_service_deliveries(rows)
 
 
 @api_view(["GET"])
@@ -1715,7 +1718,8 @@ def execute_additional_orders_procedure(contractor_bin, year):
             [contractor_bin, year]
         )
         columns = [c[0] for c in cursor.description]
-        return [dict(zip(columns, r)) for r in cursor.fetchall()]
+        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
+    return attach_service_deliveries(rows)
 
 
 def _is_all_additional_order_status(value):
@@ -1950,6 +1954,7 @@ def additional_orders_view(request):  # Синхронна обгортка дл
                             "id": r.get("ClaimOrderNumber") or number,
                             "number": r.get("ClaimOrderNumber") or "",
                             "guid": bin_to_guid_1c(r.get("OrderGUID")) or "",
+                            "plannedDeliveryDateTime": r.get("PlannedDeliveryDateTime"),
                             "dateRaw": clean_date(r.get("ClaimOrderDate")),
                             "date": clean_date(r.get("ClaimOrderDate")),
                             "status": status,
@@ -2468,6 +2473,7 @@ def get_additional_orders_info_all(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
+        attach_service_deliveries(raw_rows)
         raw_rows = filter_report_dealer_group(exclude_export_dealers(raw_rows, 'CustomerID'), dealer_group, 'CustomerID')
 
         sql_duration = time.time() - start_time
@@ -2554,6 +2560,7 @@ def get_additional_orders_info_all(request):
                     "orders": [
                         {
                             "guid": bin_to_guid_1c(row.get("OrderGUID")) or "",
+                            "plannedDeliveryDateTime": row.get("PlannedDeliveryDateTime"),
                             "id": row.get("ClaimOrderNumber") or complaint_number,
                             "number": row.get("ClaimOrderNumber") or "",
                             "dateRaw": claim_order_date,
@@ -2744,6 +2751,7 @@ def complaints_view_all_by_month(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
+        attach_service_deliveries(raw_rows)
         raw_rows = filter_report_dealer_group(exclude_export_dealers(raw_rows, 'CustomerLink'), dealer_group, 'CustomerLink')
             
         sql_duration = time.time() - start_time
@@ -4018,6 +4026,7 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+
         file = data.get("file") or {}
         photos = data.get("photos", []) 
 
@@ -4118,6 +4127,24 @@ class CreateCalculationViewSet(viewsets.ViewSet):
                         {"error": "This calculation request is already being processed"},
                         status=status.HTTP_409_CONFLICT,
                     )
+
+        def reject_duplicate(body, status_code):
+            if idempotency_record:
+                idempotency_record.status = "failed"
+                idempotency_record.last_error = body.get("error", "")
+                idempotency_record.save(update_fields=["status", "last_error", "updated_at"])
+            return Response(body, status=status_code)
+
+        try:
+            identity = uploaded_zkz_identity(data.get("file") or {})
+            if identity and not data.get("duplicate_zkz_confirmed"):
+                duplicates = find_zkz_duplicates(contractor_bin, *identity)
+                if duplicates["matches"] or duplicates["unchecked"]:
+                    return reject_duplicate({"code": "duplicate_zkz", "error": "Перевірте можливу повторну заявку.", **duplicates}, 409)
+        except ValueError as exc:
+            return reject_duplicate({"error": str(exc)}, 400)
+        except Exception:
+            return reject_duplicate({"error": "Не вдалося перевірити дублювання .zkz. Спробуйте ще раз."}, 503)
 
         try:
             result = self._send_to_1c(payload)

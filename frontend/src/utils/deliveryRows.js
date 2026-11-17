@@ -22,9 +22,22 @@ export function getDeliveryRows(calculations, now = Date.now(), period = "future
     if (period === "future" && delivery.getTime() < now) return [];
     if (period === "past" && delivery.getTime() >= now) return [];
     if (delivery.getTime() < now && dayKey(delivery) < earliestDay) return [];
-    const key = order.idGuid || order.number;
+    const key = order.idGuid || order.guid || order.number;
     if (!key || seen.has(key)) return [];
     seen.add(key);
     return [{ order, calc, day: dayKey(delivery), time, timestamp: delivery.getTime() }];
   })).sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export function mergeDeliveryRows(rows, extra) {
+  const guids = new Set();
+  const numbers = new Set();
+  return [...rows, ...extra].filter(row => {
+    const guid = row.order.idGuid || row.order.guid;
+    const number = row.order.number;
+    if ((guid && guids.has(guid)) || (number && numbers.has(number))) return false;
+    if (guid) guids.add(guid);
+    if (number) numbers.add(number);
+    return true;
+  }).sort((a, b) => a.timestamp - b.timestamp);
 }

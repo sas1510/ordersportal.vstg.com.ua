@@ -1,3 +1,4 @@
+import { useDeliveries, DeliveriesControl } from "../components/Orders/Deliveries";
 import ServiceOrderDateFilter from "../components/Orders/ServiceOrderDateFilter";
 import { getWithOrderReportPeriod, orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 ﻿import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -44,7 +45,16 @@ const AdditionalOrders = () => {
   const [selectedYear, setSelectedYear] = useState(() => restoredPeriod?.year || String(new Date().getFullYear()));
   const getPeriodData = useCallback((endpoint, config) => getWithOrderReportPeriod(axiosInstance, endpoint, config, sharedPeriod), [sharedPeriod]); 
   const [loading, setLoading] = useState(true);
-  const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null); 
+  const [expandedAdditionalOrder, setExpandedAdditionalOrder] = useState(null);
+  const [allAdditionalOrdersExpanded, setAllAdditionalOrdersExpanded] = useState(false);
+  const [collapsedAdditionalOrders, setCollapsedAdditionalOrders] = useState(() => new Set());
+  const isAdditionalOrderExpanded = (id) => allAdditionalOrdersExpanded ? !collapsedAdditionalOrders.has(id) : expandedAdditionalOrder === id;
+  const toggleAllAdditionalOrders = () => {
+    setAllAdditionalOrdersExpanded(previous => !previous);
+    setCollapsedAdditionalOrders(new Set());
+    setExpandedAdditionalOrder(null);
+  };
+ 
   const [expandedOrder, setExpandedOrder] = useState(null);
 //   const [isModalOpen, setIsModalOpen] = useState(false);
   // const [showDealerModal, setShowDealerModal] = useState(false); // Р’РёРґР°Р»РµРЅРѕ
@@ -412,19 +422,27 @@ const AdditionalOrders = () => {
     );
   }, [filter, additionalOrdersData, getFilteredItems]);
 
-  const toggleAdditionalOrder = (id) =>
-    setExpandedAdditionalOrder(expandedAdditionalOrder === id ? null : id); 
+  const toggleAdditionalOrder = (id) => {
+    if (allAdditionalOrdersExpanded) {
+      setCollapsedAdditionalOrders(previous => {
+        const next = new Set(previous);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+      });
+    } else setExpandedAdditionalOrder(previous => previous === id ? null : id);
+  }; 
   const toggleOrder = (id) =>
     setExpandedOrder(expandedOrder === id ? null : id);
 
 
-  const itemsToDisplay = sortedItems.slice(0, displayLimit);
+  const delivery = useDeliveries(sortedItems);
+  const itemsToDisplay = delivery.filteredCalculations.slice(0, displayLimit);
 
-  const showLoadMoreButton = sortedItems.length > displayLimit;
+  const showLoadMoreButton = delivery.filteredCalculations.length > displayLimit;
 
   const nextLoadCount = Math.min(
     initialLimit,
-    sortedItems.length - displayLimit,
+    delivery.filteredCalculations.length - displayLimit,
   );
 
   const location = useLocation();
@@ -562,7 +580,7 @@ const AdditionalOrders = () => {
                 />
                 )}
                   <div
-                    className={`content-filter   column ${isSidebarOpen ? "open" : "closed"}`}
+                    className={`content-filter column additional-orders-sidebar ${isSidebarOpen ? "open" : "closed"}`}
                   >
                     {isSidebarOpen &&
                     <div className="sidebar-header row ai-center jc-space-between min-[1260px]:!hidden">
@@ -623,6 +641,13 @@ const AdditionalOrders = () => {
             </li>
           </ul>
 
+<div className="orders-list-controls additional-list-controls">
+            <button type="button" className="orders-expand-all-button" aria-expanded={allAdditionalOrdersExpanded} onClick={toggleAllAdditionalOrders}>
+              <span aria-hidden="true">{allAdditionalOrdersExpanded ? "⌃" : "⌄"}</span>
+              {allAdditionalOrdersExpanded ? "Згорнути всі" : "Розгорнути всі"}
+            </button>
+            <DeliveriesControl delivery={delivery} />
+          </div>
           {/* <ul className="filter column align-center">
               <div className="min-[1260px]:w-72 min-[1260px]:bg-[#6B98BF] min-[1260px]:shadow-sm min-[1260px]:py-[26px] 
               min-[1260px]:rounded-tl-[5px] min-[1260px]:rounded-tr-[20px] 
@@ -709,7 +734,7 @@ const AdditionalOrders = () => {
                   {t("additional_order.states.try_again")}
                 </button>
               </div>
-            ) : sortedItems.length === 0 ? (
+            ) : delivery.filteredCalculations.length === 0 ? (
           
               <div className="no-data column align-center h-100">
                 <div className="font-size-24 text-grey">
@@ -723,7 +748,7 @@ const AdditionalOrders = () => {
                   <AdditionalOrderItemMobile 
                     key={additionalOrder.id}
                     calc={additionalOrder} 
-                    isExpanded={expandedAdditionalOrder === additionalOrder.id}
+                    isExpanded={isAdditionalOrderExpanded(additionalOrder.id)}
                     onToggle={() => toggleAdditionalOrder(additionalOrder.id)}
                     expandedOrderId={expandedOrder}
                     onOrderToggle={toggleOrder}
@@ -736,7 +761,7 @@ const AdditionalOrders = () => {
                   <AdditionalOrderItem 
                     key={additionalOrder.id}
                     calc={additionalOrder} 
-                    isExpanded={expandedAdditionalOrder === additionalOrder.id}
+                    isExpanded={isAdditionalOrderExpanded(additionalOrder.id)}
                     onToggle={() => toggleAdditionalOrder(additionalOrder.id)}
                     expandedOrderId={expandedOrder}
                     onOrderToggle={toggleOrder}
@@ -779,11 +804,11 @@ const AdditionalOrders = () => {
                   className="icon icon-loop2"
                   style={{ marginRight: "10px" }}
                 ></span>
-               {t("additional_order.states.load_more", { count: nextLoadCount, total: sortedItems.length - displayLimit })}
+               {t("additional_order.states.load_more", { count: nextLoadCount, total: delivery.filteredCalculations.length - displayLimit })}
               </button>
             </div>
           )}
-          {!showLoadMoreButton && sortedItems.length > initialLimit && (
+          {!showLoadMoreButton && delivery.filteredCalculations.length > initialLimit && (
             <div
               className="row jc-center text-grey"
               style={{
@@ -792,7 +817,7 @@ const AdditionalOrders = () => {
                 justifyContent: "center",
               }}
             >
-              {t("additional_order.states.all_loaded", { total: sortedItems.length })}
+              {t("additional_order.states.all_loaded", { total: delivery.filteredCalculations.length })}
             </div>
           )}
         </div>

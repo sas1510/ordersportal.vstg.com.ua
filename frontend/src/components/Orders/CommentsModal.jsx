@@ -1,3 +1,6 @@
+import { useModalDraft } from "../../hooks/useModalDraft";
+import { modalDraftKey } from "../../utils/modalDrafts";
+import { useAuthGetRole } from "../../hooks/useAuthGetRole";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axiosInstance, { dealerPreviewToken, getAccessToken } from "../../api/axios";
 import { FaRegCommentDots, FaPaperPlane } from "react-icons/fa";
@@ -42,6 +45,14 @@ const CommentsModal = ({
 
   const { addNotification } = useNotification();
   const chatId = `${transactionTypeId}_${baseTransactionGuid}`;
+  const {user: draftUser} = useAuthGetRole();
+  const draftKey = baseTransactionGuid ? modalDraftKey(draftUser, "comment", chatId) : null;
+  const {ready: commentDraftReady, error: draftError, clear: clearCommentDraft} = useModalDraft({
+    key:draftKey, open:isOpen, value:newComment, hasContent:Boolean(newComment.trim()),
+    onRestore:saved=>setNewComment(typeof saved === "string" ? saved : ""),
+  });
+  useEffect(()=>{setNewComment("");},[draftKey, isOpen]);
+
 
   const fetchCurrentUser = useCallback(async () => {
     try {
@@ -186,6 +197,7 @@ const CommentsModal = ({
         }),
       );
 
+      clearCommentDraft();
       setNewComment("");
 
       const textarea = document.querySelector(".textarea-wrapper textarea");
@@ -203,7 +215,7 @@ const CommentsModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="comments-modal-overlay" onClick={onClose}>
+    <div className="comments-modal-overlay" onClick={(event) => event.stopPropagation()}>
       <div
         className="comments-modal-window"
         onClick={(e) => e.stopPropagation()}
@@ -257,11 +269,13 @@ const CommentsModal = ({
           )}
         </div>
 
+        {draftError && <p role="alert">Не вдалося зберегти чернетку коментаря в браузері.</p>}
         <div className="comments-form-container" data-after-sales-display={["2", "3"].includes(String(transactionTypeId)) ? "block" : undefined}>
           <div className="textarea-wrapper">
             <textarea
              placeholder={t("commentsModal.placeholder")}
               value={newComment}
+              disabled={!commentDraftReady}
               onChange={(e) => {
                 setNewComment(e.target.value);
                 e.target.style.height = "auto";
@@ -290,3 +304,4 @@ const CommentsModal = ({
 };
 
 export default CommentsModal;
+

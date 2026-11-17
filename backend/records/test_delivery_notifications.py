@@ -105,6 +105,7 @@ class AdditionalDeliveryNotificationTests(SimpleTestCase):
 
     @patch("records.delivery_notifications.additional_delivery_notifications")
     def test_70_delivery_is_included_even_without_displayed_orders(self, additional):
+        self.enterContext(patch("records.delivery_notifications.timezone.now", return_value=datetime(2026, 10, 12, tzinfo=timezone.utc)))
         additional.return_value = [{"orderGuid": "cde510b7-0af5-11e3-99cd-002590633bb3", "number": "70-12345", "delivery": "2026-11-05T12:30:00"}]
         request = APIRequestFactory().post("/check/", {"orders": []}, format="json")
         force_authenticate(request, user=SimpleNamespace(is_authenticated=True, role="customer"))

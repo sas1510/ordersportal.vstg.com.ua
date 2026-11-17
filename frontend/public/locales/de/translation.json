@@ -633,7 +633,7 @@
       "selected_total": "Ausgewählter Betrag",
       "remaining": "Vorschussrest",
       "selected_count": "Ausgewählt",
-      "pay_selected": "Alle bezahlen",
+      "pay_selected": "Ausgewählte bezahlen",
       "processing": "Wird bezahlt...",
       "select_short": "Ausgewählt",
       "amount_short": "Betrag",
@@ -1442,3 +1442,4 @@
     "all_statuses": "alle Status"
   }
 }
+

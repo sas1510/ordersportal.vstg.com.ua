@@ -1,3 +1,4 @@
+import { loadAdditionalDeliveryRows } from "../utils/additionalDeliveryPdf";
 import OrderSearchAllDates from '../components/Orders/OrderSearchAllDates';
 import { useAuthGetRole } from "../hooks/useAuthGetRole";
 import { orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
@@ -1384,7 +1385,9 @@ const PortalOriginal = () => {
                   : "Розгорнути всі"}
               </span>
             </button>
-            <DeliveriesControl delivery={delivery} />
+            <DeliveriesControl delivery={delivery} loadAdditional={(date) => loadAdditionalDeliveryRows({ year: appliedDateFilter.year,
+      dateFrom: appliedDateFilter.mode === "period" ? appliedDateFilter.dateFrom : undefined,
+      dateTo: appliedDateFilter.mode === "period" ? appliedDateFilter.dateTo : undefined, search: filter.name, status: filter.status, month: filter.month }, date)} />
             </div>
 
             <ul className="filter column align-center h-full overflow-hidden">

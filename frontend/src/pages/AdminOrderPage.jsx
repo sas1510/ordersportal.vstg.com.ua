@@ -1,3 +1,4 @@
+import { loadAdditionalDeliveryRows } from "../utils/additionalDeliveryPdf";
 import OrderSearchAllDates from '../components/Orders/OrderSearchAllDates';
 import { orderMonthPeriod, readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
 import OrderMonthPicker, { OrderFilterYear } from "../components/Orders/OrderMonthPicker";
@@ -1455,7 +1456,12 @@ const AdminPortalOriginal = () => {
                   : "Розгорнути всі"}
               </span>
             </button>
-            <DeliveriesControl delivery={delivery} />
+            <DeliveriesControl delivery={delivery} loadAdditional={(date) => loadAdditionalDeliveryRows({ aggregate: isAllDealers, contractor: !isAllDealers ? dealerGuid : undefined,
+      dealerGroup: isAllDealers ? appliedDealerGroup : undefined,
+      year: isAllDealers ? selectedYear : appliedSingleDealerYear,
+      dateFrom: isAllDealers ? appliedDateFrom : appliedSingleDealerMode === "period" ? appliedSingleDealerDateFrom : undefined,
+      dateTo: isAllDealers ? appliedDateTo : appliedSingleDealerMode === "period" ? appliedSingleDealerDateTo : undefined,
+      search: filter.name, status: filter.status, month: filter.month }, date)} />
             </div>
 
             <ul className="filter column align-center h-full overflow-hidden">
