@@ -5,15 +5,22 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, transaction
 from records.order_sql_compat import PRODUCTION_INDEX, PRODUCTION_STANDARD_INDEX
 
+INDEX_REPLACEMENTS = {
+    PRODUCTION_INDEX: PRODUCTION_STANDARD_INDEX,
+    "_Documen488_VT10534_ByField10578_RR": "_Document488_VT10534_ByFieldFld10540_RR",
+}
+
 
 def alter_definition(definition):
-    if PRODUCTION_INDEX not in definition:
+    if not any(old in definition for old in INDEX_REPLACEMENTS):
         raise ValueError('Missing expected index hint')
     definition = re.sub(r'\A(?:\s+|--[^\n]*(?:\n|$)|/\*.*?\*/)*', '', definition, flags=re.S)
     updated, count = re.subn(r'\A(\s*)CREATE\s+(?:OR\s+ALTER\s+)?PROC(?:EDURE)?\b', r'\1ALTER PROCEDURE', definition, count=1, flags=re.I)
     if not count and not re.match(r'\A\s*ALTER\s+PROC(?:EDURE)?\b', definition, re.I):
         raise ValueError('Unexpected procedure definition')
-    return updated.replace(PRODUCTION_INDEX, PRODUCTION_STANDARD_INDEX)
+    for old, new in INDEX_REPLACEMENTS.items():
+        updated = updated.replace(old, new)
+    return updated
 
 
 class Command(BaseCommand):
@@ -25,10 +32,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT i.name FROM [WST\\WST].[oknastyle].sys.indexes i JOIN [WST\\WST].[oknastyle].sys.tables t ON i.object_id=t.object_id WHERE t.name=%s AND i.name=%s AND i.is_disabled=0", ['_Document488_VT10534', PRODUCTION_STANDARD_INDEX])
-            if not cursor.fetchone():
-                raise CommandError('Replacement index is missing or disabled')
-            cursor.execute("SELECT s.name,o.name,m.definition,m.uses_ansi_nulls,m.uses_quoted_identifier FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id JOIN sys.schemas s ON s.schema_id=o.schema_id WHERE o.type='P' AND m.definition LIKE %s", ['%' + PRODUCTION_INDEX + '%'])
+            for replacement in INDEX_REPLACEMENTS.values():
+                cursor.execute("SELECT i.name FROM [WST\\WST].[oknastyle].sys.indexes i JOIN [WST\\WST].[oknastyle].sys.tables t ON i.object_id=t.object_id WHERE t.name=%s AND i.name=%s AND i.is_disabled=0", ['_Document488_VT10534', replacement])
+                if not cursor.fetchone():
+                    raise CommandError('Replacement index is missing or disabled')
+            cursor.execute("SELECT s.name,o.name,m.definition,m.uses_ansi_nulls,m.uses_quoted_identifier FROM sys.sql_modules m JOIN sys.objects o ON o.object_id=m.object_id JOIN sys.schemas s ON s.schema_id=o.schema_id WHERE o.type='P' AND (m.definition LIKE %s OR m.definition LIKE %s)", ['%' + old + '%' for old in INDEX_REPLACEMENTS])
             procedures = cursor.fetchall()
         for schema, name, definition, ansi, quoted in procedures:
             alter_definition(definition)
@@ -51,7 +59,7 @@ class Command(BaseCommand):
                     cursor.execute('SET ANSI_NULLS ' + ('ON' if ansi else 'OFF'))
                     cursor.execute('SET QUOTED_IDENTIFIER ' + ('ON' if quoted else 'OFF'))
                     cursor.execute(alter_definition(definition))
-                cursor.execute("SELECT COUNT(*) FROM sys.sql_modules WHERE definition LIKE %s", ['%' + PRODUCTION_INDEX + '%'])
+                cursor.execute("SELECT COUNT(*) FROM sys.sql_modules WHERE definition LIKE %s OR definition LIKE %s", ['%' + old + '%' for old in INDEX_REPLACEMENTS])
                 if cursor.fetchone()[0]:
                     raise CommandError('Old index references remain; rolling back')
         self.stdout.write(self.style.SUCCESS(f'Repaired {len(procedures)} procedures; backups: {backup}'))

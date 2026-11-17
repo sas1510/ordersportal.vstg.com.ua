@@ -22,3 +22,7 @@ class ProductionIndexRepairTests(SimpleTestCase):
     def test_leading_comments_are_accepted(self):
         original = f'/* Report */\n-- header\nCREATE PROCEDURE dbo.Example\nAS SELECT * FROM X WITH (INDEX({PRODUCTION_INDEX}))'
         self.assertTrue(alter_definition(original).startswith('ALTER PROCEDURE'))
+
+    def test_service_order_index_uses_production_order_reference(self):
+        original = 'CREATE PROCEDURE dbo.Example\nAS SELECT * FROM X WITH (INDEX(_Documen488_VT10534_ByField10578_RR))'
+        self.assertIn('INDEX(_Document488_VT10534_ByFieldFld10540_RR)', alter_definition(original))
