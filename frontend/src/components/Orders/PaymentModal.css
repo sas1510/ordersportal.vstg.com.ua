@@ -12,6 +12,8 @@
 
 /* ===== Window ===== */
 .pay-modal-window {
+  display: flex;
+  flex-direction: column;
   background: #fff;
   width: 420px;
   max-width: 90%;
@@ -20,10 +22,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   animation: scaleIn 0.25s ease;
   max-height: 85vh;
+  max-height: 85dvh;
 }
 
 /* ===== Header ===== */
 .pay-modal-header {
+  flex-shrink: 0;
   background: linear-gradient(90deg, #1da8df, #22c1e8);
   color: #fff;
   padding: 16px 20px;
@@ -54,6 +58,10 @@
 
 /* ===== Body ===== */
 .pay-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 20px;
 }
 
@@ -112,6 +120,7 @@
 
 /* ===== Footer ===== */
 .pay-modal-footer {
+  flex-shrink: 0;
   padding: 16px;
   display: flex;
   justify-content: center;
