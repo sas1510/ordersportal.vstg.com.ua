@@ -1283,7 +1283,7 @@ BEGIN
     INTO #ProducedItems
     FROM #OrderIDs O
     INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488_VT10534] P
-        WITH (INDEX(_Documen488_VT10534_ByField10583_RR), FORCESEEK)
+        WITH (INDEX(_Document488_VT10534_ByFieldFld10575_RR), FORCESEEK)
         ON P._Fld10575_TYPE = @OrderDocType AND P._Fld10575_RTRef = @OrderDocRTRef
        AND P._Fld10575_RRRef = O.OrderID
     INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488] D ON D._IDRRef = P._Document488_IDRRef

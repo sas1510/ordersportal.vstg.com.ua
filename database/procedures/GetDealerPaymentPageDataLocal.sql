@@ -150,7 +150,7 @@ BEGIN
     INTO #ProdReports
     FROM #CustomerOrders AS CO
     INNER JOIN [WST\WST].[oknastyle].[dbo].[_Document488_VT10534] AS OPP
-        WITH (INDEX(_Documen488_VT10534_ByField10583_RR), FORCESEEK)
+        WITH (INDEX(_Document488_VT10534_ByFieldFld10575_RR), FORCESEEK)
         ON OPP._Fld10575_TYPE = @OrderDocType
        AND OPP._Fld10575_RTRef = @OrderDocRTRef
        AND OPP._Fld10575_RRRef = CO.OrderID
