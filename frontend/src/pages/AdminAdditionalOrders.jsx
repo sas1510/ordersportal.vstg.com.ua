@@ -44,7 +44,6 @@ const AdminAdditionalOrders = () => {
   const { isBackoffice } = useAuthGetRole();
   const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
   const [additionalOrdersData, setAdditionalOrdersData] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState(null);
@@ -226,7 +225,6 @@ const AdminAdditionalOrders = () => {
         } else if (isAdmin && !dealerGuid) {
      
           setAdditionalOrdersData([]);
-          setFilteredItems([]);
           setLoading(false);
           return;
         }
@@ -249,23 +247,13 @@ const AdminAdditionalOrders = () => {
           setAdditionalOrdersData(allOrders);
 
 
-          setFilteredItems(
-            getFilteredItems(
-              filter.status,
-              filter.month,
-              filter.name,
-              allOrders,
-            ),
-          );
         } else {
           setAdditionalOrdersData([]);
-          setFilteredItems([]);
         }
       } catch (error) {
         if (error.name !== "CanceledError") {
           // console.error("РџРѕРјРёР»РєР° Р·Р°РїРёС‚Сѓ:", error);
           setAdditionalOrdersData([]);
-          setFilteredItems([]);
         }
       } finally {
         if (!signal.aborted) {
@@ -321,9 +309,6 @@ const AdminAdditionalOrders = () => {
 
         setAdditionalOrdersData(formatted);
        
-        setFilteredItems(
-          getFilteredItems(filter.status, filter.month, filter.name, formatted),
-        );
         setDisplayLimit(initialLimit);
       } else {
         setError(t("additiona_order.errors.server_error"));
@@ -335,59 +320,17 @@ const AdminAdditionalOrders = () => {
     } finally {
       setReloading(false);
     }
-  }, [buildRequestParams, cancelAll, dealerGuid, shouldRefetchOnMonthChange, filter, getFilteredItems, register]);
+  }, [buildRequestParams, cancelAll, dealerGuid, shouldRefetchOnMonthChange, getPeriodData, register]);
 
 
   const handleFilterClick = (statusKey) => {
     setFilter((prev) => ({ ...prev, status: statusKey }));
-    setFilteredItems(
-      getFilteredItems(
-        statusKey,
-        filter.month,
-        filter.name,
-        additionalOrdersData,
-      ),
-    );
-    setDisplayLimit(initialLimit);
-  };
-
-  const handleMonthClick = (month) => {
-    setSharedPeriod(null);
-
-    if (isAggregateDealerSelection(dealerGuid) && month === 0) return;
-
-    const newMonth =
-      filter.month === month
-        ? isAggregateDealerSelection(dealerGuid)
-          ? month
-          : 0 
-        : month;
-
-    saveOrderReportPeriod(orderMonthPeriod(selectedYear, newMonth));
-    setFilter((prev) => ({ ...prev, month: newMonth }));
-
-
-    if (!isAggregateDealerSelection(dealerGuid)) {
-      setFilteredItems(
-        getFilteredItems(
-          filter.status,
-          newMonth,
-          filter.name,
-          additionalOrdersData,
-        ),
-      );
-    }
-
-
     setDisplayLimit(initialLimit);
   };
 
   const handleSearchChange = (e) => {
     const name = e.target.value;
     setFilter((prev) => ({ ...prev, name }));
-    setFilteredItems(
-      getFilteredItems(filter.status, filter.month, name, additionalOrdersData),
-    );
     setDisplayLimit(initialLimit);
   };
 
@@ -396,9 +339,6 @@ const AdminAdditionalOrders = () => {
       prev.map((o) => (o.id === id ? { ...o, hasUnreadMessages: false } : o)),
     );
 
-    setFilteredItems((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, hasUnreadMessages: false } : o)),
-    );
   }, []);
 
 
@@ -406,9 +346,6 @@ const AdminAdditionalOrders = () => {
 
   const handleClearSearch = () => {
     setFilter((prev) => ({ ...prev, name: "" }));
-    setFilteredItems(
-      getFilteredItems(filter.status, filter.month, "", additionalOrdersData),
-    );
     setDisplayLimit(initialLimit);
   };
 
@@ -416,15 +353,11 @@ const AdminAdditionalOrders = () => {
 
   const handleDeleteAdditionalOrder = useCallback((id) => {
     setAdditionalOrdersData((prev) => prev.filter((ord) => ord.id !== id));
-    setFilteredItems((prev) => prev.filter((ord) => ord.id !== id));
     setDisplayLimit(initialLimit);
   }, []);
 
   const handleUpdateAdditionalOrder = useCallback((updated) => {
     setAdditionalOrdersData((prev) =>
-      prev.map((o) => (o.id === updated.id ? updated : o)),
-    );
-    setFilteredItems((prev) =>
       prev.map((o) => (o.id === updated.id ? updated : o)),
     );
   }, []);
@@ -495,10 +428,10 @@ const AdminAdditionalOrders = () => {
 
 
   const sortedItems = useMemo(() => {
-    return [...filteredItems].sort(
+    return getFilteredItems(filter.status, filter.month, filter.name, additionalOrdersData).sort(
       (a, b) => new Date(b.dateRaw).getTime() - new Date(a.dateRaw).getTime(),
     );
-  }, [filteredItems]);
+  }, [getFilteredItems, filter.status, filter.month, filter.name, additionalOrdersData]);
 
   const toggleAdditionalOrder = (id) => {
     if (allAdditionalOrdersExpanded) {
@@ -579,6 +512,7 @@ const AdminAdditionalOrders = () => {
               saveOrderReportPeriod(period);
             }}
             onMonth={(year, month) => {
+              setDisplayLimit(initialLimit);
               setSharedPeriod(null);
               setSelectedYear(String(year));
               setFilter(prev => ({ ...prev, month }));
