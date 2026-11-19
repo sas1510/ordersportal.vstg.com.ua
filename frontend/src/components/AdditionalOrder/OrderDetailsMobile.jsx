@@ -335,7 +335,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
   }, [parseDate]);
 
   // --- 4. Статуси етапів ---
-  const productionDate = order.factStartProduction || order.factProductionMax;
+  const productionDate = order.productionOrderDate || order.factStartProduction || order.factProductionMax;
   const plannedProductionDate = order.planProduction || order.planProductionMax;
   const readyDate = order.factReady || order.factReadyMax;
 

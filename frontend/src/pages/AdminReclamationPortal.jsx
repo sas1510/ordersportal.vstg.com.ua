@@ -121,7 +121,6 @@ const AdminReclamationPortal = () => {
   const selectedDealerGroup = isSuperAdmin ? dealerGroupForSelection(dealerGuid) : null;
 
   const [reclamationsData, setReclamationsData] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
 
   const [restoredPeriod] = useState(() => readOrderReportPeriod());
   const [filter, setFilter] = useState({
@@ -263,7 +262,6 @@ const AdminReclamationPortal = () => {
 
     if (isAdmin && !dealerGuid) {
       setReclamationsData([]);
-      setFilteredItems([]);
       setLoading(false);
       return;
     }
@@ -293,20 +291,10 @@ const AdminReclamationPortal = () => {
 
         const raw = formatApiData(res.data?.data || []);
         setReclamationsData(raw);
-        setFilteredItems(
-          getFilteredItems(
-            filter.status,
-            filter.month,
-            filter.name,
-            filter.compensation,
-            raw,
-          ),
-        );
       } catch (err) {
         if (err.name !== "CanceledError") {
           // console.error(err);
           setReclamationsData([]);
-          setFilteredItems([]);
         }
       } finally {
           setLoading(false);
@@ -383,83 +371,23 @@ const AdminReclamationPortal = () => {
 
   const handleStatusClick = (status) => {
     setFilter((prev) => ({ ...prev, status }));
-    setFilteredItems(
-      getFilteredItems(
-        status,
-        filter.month,
-        filter.name,
-        filter.compensation,
-      ),
-    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
     if (isMobile) setIsSidebarOpen(false); 
-  };
-
-  const handleMonthClick = (month) => {
-    setSharedPeriod(null);
-    if (isAggregateDealerSelection(dealerGuid) && month === 0) return;
-
-    const newMonth =
-      filter.month === month
-        ? isAggregateDealerSelection(dealerGuid)
-          ? month
-          : 0
-        : month;
-
-    saveOrderReportPeriod(orderMonthPeriod(selectedYear, newMonth));
-    setFilter((prev) => ({ ...prev, month: newMonth }));
-
-    if (!isAggregateDealerSelection(dealerGuid)) {
-      setFilteredItems(
-        getFilteredItems(
-          filter.status,
-          newMonth,
-          filter.name,
-          filter.compensation,
-        ),
-      );
-    }
-
-    setVisibleItemsCount(ITEMS_PER_LOAD);
   };
 
   const handleSearchChange = (e) => {
     const name = e.target.value;
     setFilter((prev) => ({ ...prev, name }));
-    setFilteredItems(
-      getFilteredItems(
-        filter.status,
-        filter.month,
-        name,
-        filter.compensation,
-      ),
-    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
   };
 
   const handleClearSearch = () => {
     setFilter((prev) => ({ ...prev, name: "" }));
-    setFilteredItems(
-      getFilteredItems(
-        filter.status,
-        filter.month,
-        "",
-        filter.compensation,
-      ),
-    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
   };
 
   const handleCompensationFilterClick = (compensation) => {
     setFilter((prev) => ({ ...prev, compensation }));
-    setFilteredItems(
-      getFilteredItems(
-        filter.status,
-        filter.month,
-        filter.name,
-        compensation,
-      ),
-    );
     setVisibleItemsCount(ITEMS_PER_LOAD);
     if (isMobile) {
       setIsSidebarOpen(false);
@@ -469,10 +397,10 @@ const AdminReclamationPortal = () => {
 
   const sortedItems = useMemo(
     () =>
-      [...filteredItems].sort(
+      getFilteredItems(filter.status, filter.month, filter.name, filter.compensation).sort(
         (a, b) => new Date(b.dateRaw) - new Date(a.dateRaw),
       ),
-    [filteredItems],
+    [getFilteredItems, filter.status, filter.month, filter.name, filter.compensation],
   );
 
   const delivery = useDeliveries(sortedItems);

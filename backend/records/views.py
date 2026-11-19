@@ -1708,6 +1708,7 @@ def api_get_orders(request):
 
 @sync_to_async
 def execute_additional_orders_procedure(contractor_bin, year):
+    from .additional_production_dates import attach_additional_production_dates
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -1719,7 +1720,7 @@ def execute_additional_orders_procedure(contractor_bin, year):
         )
         columns = [c[0] for c in cursor.description]
         rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
-    return attach_service_deliveries(rows)
+    return attach_service_deliveries(attach_additional_production_dates(rows))
 
 
 def _is_all_additional_order_status(value):
@@ -1968,6 +1969,7 @@ def additional_orders_view(request):  # Синхронна обгортка дл
                             "organizationName": r.get("OrganizationName"),
                             "planProduction": clean_date(r.get("DateLaunched")),
                             "factStartProduction": clean_date(r.get("DateTransferredToWarehouse")),
+                            "productionOrderDate": clean_date(r.get("ProductionOrderDate")),
                             "factReady": clean_date(r.get("ProducedDate")),
                             "currency": r.get("Currency"),
                         }
@@ -2473,6 +2475,8 @@ def get_additional_orders_info_all(request):
             )
             unique_rows[row_key] = row
         raw_rows = list(unique_rows.values())
+        from .additional_production_dates import attach_additional_production_dates
+        attach_additional_production_dates(raw_rows)
         attach_service_deliveries(raw_rows)
         raw_rows = filter_report_dealer_group(exclude_export_dealers(raw_rows, 'CustomerID'), dealer_group, 'CustomerID')
 
@@ -2576,6 +2580,7 @@ def get_additional_orders_info_all(request):
                             "organizationName": row.get("OrganizationName"),
                             "planProduction": date_launched,
                             "factStartProduction": date_transferred,
+                            "productionOrderDate": clean_date_stub(row.get("ProductionOrderDate")),
                             "factReady": produced_date,
                             "currency": row.get("Currency"),
                         }
