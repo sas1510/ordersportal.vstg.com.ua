@@ -36,37 +36,43 @@ class MeasurementFailureAlertTests(SimpleTestCase):
     def text(self):
         return self.alert.call_args.args[0]
 
-    def test_non_dealer_is_rejected_and_reported_before_create(self):
+    def assert_fallback_succeeds(self, data=None):
+        with patch('records.measurement_auth.connection') as database, \
+             patch('records.measurement_orders.record_measurement_notification') as notify:
+            database.cursor.return_value.__enter__.return_value.fetchall.return_value = [(b'2' * 16,)]
+            response, create = self.call(
+                data, upstream=Response({
+                    'success': True,
+                    'calculation_guid': '8cd8d97c-d217-11f1-9cfa-4cd98f08e56d',
+                }, status=201),
+            )
+        self.assertEqual(response.status_code, 201)
+        self.assertIsNone(response.data['portal_user_id'])
+        create.assert_called_once()
+        notify.assert_called_once()
+        actor = notify.call_args.args[0].user
+        self.assertEqual(actor.user_id_1C, b'2' * 16)
+        self.assertEqual(actor.full_name, 'Дилер Портал')
+        self.alert.assert_not_called()
+
+    def test_non_dealer_uses_fallback(self):
         self.user.role = 'manager'
-        response, create = self.call()
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('Ви не дилер', self.text())
-        self.assertIn('78', self.text()); self.assertIn('zamir-8', self.text())
-        create.assert_not_called()
+        self.assert_fallback_succeeds()
 
-    def test_dealer_without_contractor_is_reported(self):
+    def test_dealer_without_contractor_uses_fallback(self):
         self.user.user_id_1C = None
-        response, create = self.call()
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('UserId1C', self.text()); create.assert_not_called()
+        self.assert_fallback_succeeds()
 
-    def test_missing_user_id_is_reported(self):
-        response, create = self.call({'order_number': 'zamir-8'})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('Не передано коректний ID', self.text())
-        create.assert_not_called()
+    def test_missing_user_id_uses_fallback(self):
+        self.assert_fallback_succeeds({'order_number': 'zamir-8'})
 
-    def test_nonexistent_user_is_reported(self):
+    def test_nonexistent_user_uses_fallback(self):
         self.query.side_effect = CustomUser.DoesNotExist
-        response, create = self.call()
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('не знайдено', self.text()); create.assert_not_called()
+        self.assert_fallback_succeeds()
 
-    def test_expired_access_is_reported(self):
+    def test_expired_access_uses_fallback(self):
         self.user.expire_date = timezone.now() - timedelta(seconds=1)
-        response, create = self.call()
-        self.assertEqual(response.status_code, 403)
-        self.assertIn('Термін доступу', self.text()); create.assert_not_called()
+        self.assert_fallback_succeeds()
 
     def test_invalid_key_is_reported_without_reading_untrusted_identifiers(self):
         response, create = self.call({'user_id': 999999, 'order_number': 'secret-order'}, key='secret-key')
@@ -81,7 +87,6 @@ class MeasurementFailureAlertTests(SimpleTestCase):
         self.assertIn('HTTP: 502', self.text()); self.assertNotIn('secret', self.text())
 
     def test_same_failure_is_grouped_for_five_minutes(self):
-        self.user.role = 'manager'
         self.call(); self.call()
         self.alert.assert_called_once()
 

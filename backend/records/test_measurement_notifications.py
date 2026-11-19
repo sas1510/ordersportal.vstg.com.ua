@@ -41,6 +41,16 @@ class MeasurementNotificationTests(SimpleTestCase):
         self.assertTrue(self.item.response_body['success'])
 
     @patch('records.measurement_notifications.requests.post')
+    @patch('records.measurement_notifications.manager_telegram_id', return_value=111)
+    def test_fallback_notifies_only_the_1c_manager(self, manager, post):
+        self.item.response_body['_measurement_telegram']['manager_only'] = True
+        post.return_value = SimpleNamespace(status_code=200, json=lambda: {'ok': True})
+        self.assertEqual(send_measurement_order_notification.run(1), 'sent')
+        manager.assert_called_once_with(str(self.item.contractor_guid))
+        post.assert_called_once()
+        self.assertEqual(post.call_args.kwargs['json']['chat_id'], 111)
+
+    @patch('records.measurement_notifications.requests.post')
     @patch('records.measurement_notifications.manager_telegram_id', return_value=COPY_CHAT_ID)
     def test_copy_is_not_duplicated_if_manager_is_copy_recipient(self, manager, post):
         post.return_value=SimpleNamespace(status_code=200,json=lambda:{'ok': True})

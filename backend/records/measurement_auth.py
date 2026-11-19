@@ -2,16 +2,38 @@ import secrets
 from collections.abc import Mapping
 
 from django.conf import settings
+from django.db import connection
 from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed, PermissionDenied, ValidationError
+from rest_framework.exceptions import APIException, AuthenticationFailed, ValidationError
 from users.models import CustomUser
+
+
+class MeasurementFallbackUnavailable(APIException):
+    status_code = 503
+    default_detail = 'Контрагента «Дилер Портал» не знайдено в 1С.'
 
 
 class MeasurementIntegrationUser:
     is_authenticated = True
     pk = None
-    user_id_1C = None
+    full_name = 'Дилер Портал'
+
+    def __init__(self, source_user_id=None):
+        self.measurement_source_user_id = source_user_id
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT TOP (2) Ссылка
+                FROM [oknastyle_biV2].[dbo].[Справочники.Контрагенты]
+                WHERE Код = %s AND Наименование = %s AND ПометкаУдаления = 0x00
+                """,
+                ['000046216', self.full_name],
+            )
+            rows = cursor.fetchall()
+        if len(rows) != 1:
+            raise MeasurementFallbackUnavailable()
+        self.user_id_1C = bytes(rows[0][0])
 
 
 class MeasurementApiKeyAuthentication(BaseAuthentication):
@@ -36,16 +58,16 @@ class MeasurementApiKeyAuthentication(BaseAuthentication):
         try:
             user = CustomUser.objects.get(pk=user_id, is_active=True)
         except CustomUser.DoesNotExist:
-            raise PermissionDenied('Користувач недоступний для створення замовлення.')
+            return MeasurementIntegrationUser(user_id), '1C_API_KEY'
         expires = user.expire_date
         if expires:
             if timezone.is_naive(expires):
                 expires = timezone.make_aware(expires)
             if expires <= timezone.now():
-                raise PermissionDenied('Термін доступу користувача завершився.')
+                return MeasurementIntegrationUser(user_id), '1C_API_KEY'
         can_submit = str(user.role or '').strip().lower() in {'dealer', 'customer'} or (
             user.role == "internal_dealer" and user.internal_dealer_can_edit
         )
-        if not can_submit:
-            raise PermissionDenied('Ви не дилер. Створення заявки недоступне.')
+        if not can_submit or not user.user_id_1C:
+            return MeasurementIntegrationUser(user_id), '1C_API_KEY'
         return user, '1C_API_KEY'

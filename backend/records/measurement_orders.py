@@ -62,7 +62,8 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
         except (ValueError, TypeError, AttributeError):
             raise serializers.ValidationError({'Idempotency-Key': 'Потрібен UUID. Повторний запит надсилайте з тим самим UUID.'})
         # Keep independent callers from sharing cached responses with each other.
-        return str(uuid.uuid5(uuid.NAMESPACE_URL, f'measurement-order:{self.get_one_c_url()}:{request.user.pk}:{key}'))
+        source_id = getattr(request.user, 'measurement_source_user_id', request.user.pk)
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, f'measurement-order:{self.get_one_c_url()}:{source_id}:{key}'))
 
     def resolve_creation_contractor(self, request):
         contractor = request.user.user_id_1C
@@ -81,7 +82,7 @@ class MeasurementOrderViewSet(CreateCalculationViewSet):
 
     @extend_schema(
         summary='Створення заявки із замірника (PDF)',
-        description='X-API-KEY інтеграції з MEASUREMENT_API_KEY та Idempotency-Key (UUID) обов’язкові. user_id — необов’язковий внутрішній ID дилера з portal_db.dbo.User. PDF необов’язковий, до 20 МіБ; до 10 фото по 10 МіБ. audio — один файл або до 10 голосових по 30 МіБ. Створює прорахунок у 1С.',
+        description='X-API-KEY інтеграції з MEASUREMENT_API_KEY та Idempotency-Key (UUID) обов’язкові. user_id — необов’язковий внутрішній ID дилера з portal_db.dbo.User. За відсутності активного дилера заявка оформлюється на «Дилер Портал». PDF необов’язковий, до 20 МіБ; до 10 фото по 10 МіБ. audio — один файл або до 10 голосових по 30 МіБ. Створює прорахунок у 1С.',
         request=MeasurementOrderSerializer,
         responses={201: dict, 400: dict, 401: dict, 403: dict, 409: dict, 502: dict},
         tags=['measurement'],

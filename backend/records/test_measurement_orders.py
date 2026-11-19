@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
-from rest_framework.exceptions import AuthenticationFailed, PermissionDenied, ValidationError
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.response import Response
 
 from .measurement_auth import MeasurementApiKeyAuthentication
@@ -96,12 +96,22 @@ class MeasurementOrderTests(SimpleTestCase):
             lookup.assert_called_once_with(pk=78, is_active=True)
 
     @override_settings(MEASUREMENT_API_KEY='integration-test')
-    def test_staff_cannot_be_mistaken_for_a_contractor(self):
-        request = SimpleNamespace(headers={'X-API-KEY': 'integration-test'}, data={'user_id': 78})
+    def test_staff_and_unregistered_users_use_the_fallback_contractor(self):
         user = SimpleNamespace(role='manager', expire_date=None, user_id_1C=b'1' * 16)
-        with patch('records.measurement_auth.CustomUser.objects.get', return_value=user):
-            with self.assertRaises(PermissionDenied):
-                MeasurementApiKeyAuthentication().authenticate(request)
+        for supplied_id, lookup_result in [(78, user), (79, None), (None, None)]:
+            request = SimpleNamespace(headers={'X-API-KEY': 'integration-test'}, data={'user_id': supplied_id})
+            with patch('records.measurement_auth.CustomUser.objects.get') as lookup, \
+                 patch('records.measurement_auth.connection') as database:
+                if lookup_result is None:
+                    from users.models import CustomUser
+                    lookup.side_effect = CustomUser.DoesNotExist
+                else:
+                    lookup.return_value = lookup_result
+                database.cursor.return_value.__enter__.return_value.fetchall.return_value = [(b'2' * 16,)]
+                actor, auth = MeasurementApiKeyAuthentication().authenticate(request)
+                self.assertEqual(actor.user_id_1C, b'2' * 16)
+                self.assertEqual(actor.measurement_source_user_id, supplied_id)
+                self.assertEqual(auth, '1C_API_KEY')
 
     def test_replay_key_is_required_and_scoped_to_user(self):
         view = MeasurementOrderViewSet()
@@ -146,13 +156,15 @@ class MeasurementOrderTests(SimpleTestCase):
 
 
     @override_settings(MEASUREMENT_API_KEY='integration-test')
-    def test_all_staff_roles_are_forbidden_from_submitting_orders(self):
+    def test_staff_roles_use_fallback_instead_of_their_own_1c_account(self):
         for role in ['admin', 'manager', 'region_manager', 'branch_manager', 'branches_director', 'director']:
             user = SimpleNamespace(pk=123, role=role, expire_date=None, user_id_1C=b'1' * 16)
             request = SimpleNamespace(headers={'X-API-KEY': 'integration-test'}, data={'user_id': 123})
-            with patch('records.measurement_auth.CustomUser.objects.get', return_value=user):
-                with self.assertRaisesMessage(PermissionDenied, 'Ви не дилер. Створення заявки недоступне.'):
-                    MeasurementApiKeyAuthentication().authenticate(request)
+            with patch('records.measurement_auth.CustomUser.objects.get', return_value=user), \
+                 patch('records.measurement_auth.connection') as database:
+                database.cursor.return_value.__enter__.return_value.fetchall.return_value = [(b'2' * 16,)]
+                actor, _ = MeasurementApiKeyAuthentication().authenticate(request)
+                self.assertEqual(actor.user_id_1C, b'2' * 16)
 
 
     def test_idempotency_results_are_isolated_by_destination(self):

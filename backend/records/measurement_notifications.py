@@ -37,6 +37,7 @@ def record_measurement_notification(request, calculation_guid, key):
         if STATE_KEY not in body:
             body[STATE_KEY] = {
                 'status': 'pending', 'deliveries': {},
+                'manager_only': request.user.pk is None,
                 'contractor_guid': bin_to_guid_1c(bytes(request.user.user_id_1C)),
                 'payload': {
                     'user_id': request.user.pk,
@@ -94,7 +95,8 @@ def send_measurement_order_notification(notification_id):
         manager = manager_telegram_id(state['contractor_guid'])
     except Exception as exc:
         logger.warning('Measurement Telegram manager lookup failed: notification=%s error_type=%s', item.pk, type(exc).__name__)
-    recipients = list(dict.fromkeys(value for value in [manager, COPY_CHAT_ID] if value))
+    copy_chat = None if state.get('manager_only') else COPY_CHAT_ID
+    recipients = list(dict.fromkeys(value for value in [manager, copy_chat] if value))
     token = (os.getenv('NOTIFICATION_TELEGRAM_BOT_TOKEN')
              or getattr(settings, 'NOTIFICATION_TELEGRAM_BOT_TOKEN', '')
              or getattr(settings, 'BOT_TOKEN', '')
