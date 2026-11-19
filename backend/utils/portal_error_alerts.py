@@ -63,6 +63,21 @@ def enqueue_alert(text):
         logger.warning("Portal error Telegram alert queue is full")
 
 
+def report_calculation_connection_failure():
+    """Notify the configured chat about an unavailable 1C calculation service."""
+    if not (getattr(settings, "PORTAL_ERROR_TELEGRAM_BOT_TOKEN", "")
+            and getattr(settings, "PORTAL_ERROR_TELEGRAM_CHAT_ID", "")):
+        return
+    try:
+        if cache.add("portal-error-alert:1c-calculation-connection", True, timeout=300):
+            enqueue_alert(
+                "🚨 Не вдалося створити прорахунок\n"
+                "Портал не зміг з’єднатися з HTTP-сервісом 1С."
+            )
+    except Exception:
+        logger.warning("1C calculation connection alert could not be queued")
+
+
 def report_error(request, exc_info=None):
     if getattr(request, "_portal_error_reported", False):
         return getattr(request, "_portal_error_id", None)

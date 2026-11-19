@@ -3951,6 +3951,9 @@ class CreateCalculationViewSet(viewsets.ViewSet):
         except ValidationError:
             raise
         except requests.exceptions.RequestException as exc:
+            from utils.portal_error_alerts import report_calculation_connection_failure
+
+            report_calculation_connection_failure()
             one_c_response = getattr(exc, "response", None)
             response_status = getattr(one_c_response, "status_code", None)
             response_text = (getattr(one_c_response, "text", "") or "")[:2000]
