@@ -335,24 +335,28 @@ export default React.memo(function OrderDetailsMobile({ order }) {
   }, [parseDate]);
 
   // --- 4. Статуси етапів ---
-  const productionStatus = useMemo(() => {
-    const status = getDateStatus(order.planProductionMax, order.factProductionMax);
-    const isPending = !order.factProductionMax && !order.planProductionMax;
-    const displayDate = order.factProductionMax 
+  const productionDate = order.factStartProduction || order.factProductionMax;
+  const plannedProductionDate = order.planProduction || order.planProductionMax;
+  const readyDate = order.factReady || order.factReadyMax;
 
-      ? formatDateHumanShorter(order.factProductionMax, locale) 
-      : order.planProductionMax 
-        ? `${t("order_mobile.statuses.plan")}: ${formatDateHumanShorter(order.planProductionMax, locale)}` 
+  const productionStatus = useMemo(() => {
+    const status = getDateStatus(plannedProductionDate, productionDate);
+    const isPending = !productionDate && !plannedProductionDate;
+    const displayDate = productionDate
+
+      ? formatDateHumanShorter(productionDate, locale)
+      : plannedProductionDate
+        ? `${t("order_mobile.statuses.plan")}: ${formatDateHumanShorter(plannedProductionDate, locale)}`
         : t("order_mobile.statuses.no_data");
     return { status, displayDate, isPending };
-  }, [order.factProductionMax, order.planProductionMax, getDateStatus]);
+  }, [productionDate, plannedProductionDate, getDateStatus]);
 
   const readyStatus = useMemo(() => {
-    if (!order.factReadyMax && order.dateDelay) {
+    if (!readyDate && order.dateDelay) {
       return { icon: "text-WS---DarkRed", bg: "bg-WS---DarkRed-Light", isDelayed: true };
     }
-    return getDateStatus(order.planReadyMax, order.factReadyMax);
-  }, [order.planReadyMax, order.factReadyMax, order.dateDelay, getDateStatus]);
+    return getDateStatus(order.planReadyMax, readyDate);
+  }, [order.planReadyMax, readyDate, order.dateDelay, getDateStatus]);
 
   const deliveryStatus = useMemo(() => {
     return getDateStatus(order.planDelivery, order.realizationDate);
@@ -439,7 +443,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
           </li>
 
           {/* 4. Виробництво */}
-          <li className={(!order.factReadyMax && !order.dateDelay) ? "is-pending" : ""}>
+          <li className={(!readyDate && !order.dateDelay) ? "is-pending" : ""}>
            <div className="border-between-order"/>
             <div className={`icon ${productionStatus.status.icon}`}>
               <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -500,7 +504,7 @@ export default React.memo(function OrderDetailsMobile({ order }) {
             <div className="badge">
               <div className="badge-title">{readyStatus.isDelayed ? t("order_mobile.steps.delay") : t("order_mobile.steps.readiness")}</div>
               <div className={`badge-content ${readyStatus.bg}`}>
-                {order.factReadyMax ? formatDateHumanShorter(order.factReadyMax, locale) : (order.dateDelay ? formatDateHumanShorter(order.dateDelay, locale) : t("order_mobile.statuses.not_ready"))}
+                {readyDate ? formatDateHumanShorter(readyDate, locale) : (order.dateDelay ? formatDateHumanShorter(order.dateDelay, locale) : t("order_mobile.statuses.not_ready"))}
               </div>
             </div>
           </li>

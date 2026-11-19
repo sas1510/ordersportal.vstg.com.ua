@@ -303,12 +303,16 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
   const paymentIsDue = paymentDue > 0;
 
 
+  const productionDate = order.factStartProduction || order.factProductionMax;
+  const plannedProductionDate = order.planProduction || order.planProductionMax;
+  const readyDate = order.factReady || order.factReadyMax;
+
   const productionStatus = useMemo(() => {
-    const factDate = order.factProductionMax;
-    const planDate = order.planProductionMax;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) <= today;
+    const factDate = productionDate;
+    const planDate = plannedProductionDate;
+    const tomorrow = new Date();
+    tomorrow.setHours(24, 0, 0, 0);
+    const factDateHasArrived = Boolean(factDate) && parseDate(factDate) < tomorrow;
     const status = getDateStatus(planDate, factDateHasArrived ? factDate : null);
     const isPending = !factDateHasArrived && !planDate; 
 
@@ -317,7 +321,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
     ) : planDate ? (
       <div className="plan-block">
         <div className="plan-name">{t("order_mobile.statuses.plan")}:</div>
-        <div>{t("order_mobile.statuses.from")} {formatDateHumanShorter(order.planProductionMin, locale)}</div>
+        <div>{t("order_mobile.statuses.from")} {formatDateHumanShorter((order.planProductionMin || plannedProductionDate), locale)}</div>
         <div className="plan-dates">{t("order_mobile.statuses.to")} {formatDateHumanShorter(planDate, locale)}</div>
       </div>
     ) : (
@@ -327,15 +331,15 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
     );
     return { status, displayDate, isPending };
   }, [
-    order.factProductionMax,
-    order.planProductionMax,
-    order.planProductionMin,
+    productionDate,
+    plannedProductionDate,
+    (order.planProductionMin || plannedProductionDate),
     getDateStatus,
   ]);
 
   // Готовність
   const readyStatus = useMemo(() => {
-    const isDelayed = !order.factReadyMax && order.dateDelay;
+    const isDelayed = !readyDate && order.dateDelay;
 
 
     if (isDelayed) {
@@ -346,8 +350,8 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
       };
     }
 
-    return getDateStatus(order.planReadyMax, order.factReadyMax);
-  }, [order.planReadyMax, order.factReadyMax, order.dateDelay, getDateStatus]);
+    return getDateStatus(order.planReadyMax, readyDate);
+  }, [order.planReadyMax, readyDate, order.dateDelay, getDateStatus]);
 
   // Доставка
   const deliveryStatus = useMemo(() => {
@@ -498,7 +502,7 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
           </li>
 
           {/* Готовність */}
-          <li className={(!order.factReadyMax && !order.dateDelay) ? "is-pending" : ""}>
+          <li className={(!readyDate && !order.dateDelay) ? "is-pending" : ""}>
             <div className={`icon ${readyStatus.icon}`}>
               <svg width="25" height="24" viewBox="0 0 25 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clip-path="url(#clip0_1_710)">
@@ -529,8 +533,8 @@ export default React.memo(function OrderDetailsDesktop({ order }) {
                 {readyStatus.isDelayed ? t("order_mobile.steps.delay"): t("order_mobile.steps.readiness")}
               </div>
               <div className={`badge-content ${readyStatus.bg}`}>
-                {order.factReadyMax
-                  ? formatDateHumanShorter(order.factReadyMax, locale)
+                {readyDate
+                  ? formatDateHumanShorter(readyDate, locale)
                   : order.dateDelay
                     ? formatDateHumanShorter(order.dateDelay, locale)
                     : t("order_mobile.statuses.not_ready")}
