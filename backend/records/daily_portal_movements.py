@@ -22,8 +22,11 @@ def fetch_auto_refusals(seed, start, end):
       WHERE ST.Наименование=%s AND Z.Организация=%s AND Z.ПометкаУдаления=0x00
         AND Z.Номер NOT LIKE N'33-%%' AND Z.Номер NOT LIKE N'34-%%'
         AND Z.Номер NOT LIKE N'70-%%' AND Z.Номер NOT LIKE N'71-%%'
-        AND (CASE WHEN YEAR(H.Период)>=3753 THEN DATEADD(YEAR,-2000,H.Период) ELSE H.Период END)>=%s
-        AND (CASE WHEN YEAR(H.Период)>=3753 THEN DATEADD(YEAR,-2000,H.Период) ELSE H.Период END)<%s
+        AND (
+          (H.Период >= %s AND H.Период < %s)
+          OR (H.Период >= DATEADD(YEAR,2000,CAST(%s AS date))
+              AND H.Период < DATEADD(YEAR,2000,CAST(%s AS date)))
+        )
     ), History AS (
       SELECT H.Заказ,H.Период,H.Состояние,H.ПричинаПереоформления_S,H.Менеджер,
         LAG(H.Состояние) OVER(PARTITION BY H.Заказ ORDER BY H.Период) AS PreviousState
@@ -55,7 +58,7 @@ def fetch_auto_refusals(seed, start, end):
     approved = sorted(g for g, value in seed['sources'].items() if value['source'] == 'new')
     # Only pre-reviewed new-portal orders may substitute for portal author metadata.
     query = query.replace('APPROVED_IDS', ','.join('0x'+binary(g).hex() for g in approved) or 'NULL')
-    params += [AUTO_REFUSAL, binary(ORG), start, end+timedelta(days=1), AUTO_REFUSAL, start, end+timedelta(days=1)]
+    params += [AUTO_REFUSAL, binary(ORG), start, end+timedelta(days=1), start, end+timedelta(days=1), AUTO_REFUSAL, start, end+timedelta(days=1)]
     with connections['default'].cursor() as cursor:
         cursor.execute(cte+query, params)
         facts = _rows(cursor)
