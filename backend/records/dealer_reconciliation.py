@@ -132,6 +132,8 @@ def query_parts(seed, daily=False):
         filters = order_cte.index("Z.Организация=%s", where)
         cte = before + "), OrdersPeriod AS (" + order_cte[:where] + "      WHERE " + order_cte[filters:]
         applications=applications.replace(' A JOIN Scope S', ' A JOIN DailyApplications D ON D.GUID=A._IDRRef JOIN Scope S')
+        # DailyApplications already restricts both stored date formats to this cohort.
+        applications = applications.split("        AND (CASE", 1)[0] + " OPTION(MAXRECURSION 100)"
     return cte,directory,orders,links,applications,calls
 
 def fetch_facts(seed,activity,end,daily=False,start=None):
@@ -145,7 +147,7 @@ def fetch_facts(seed,activity,end,daily=False,start=None):
     with connections['default'].cursor() as cursor:
         for query in (directory,orders,links,applications):
             application_start = min(activity, (start or end)-timedelta(days=1)) if daily else activity
-            extra=[application_start,end+timedelta(days=1)] if query==applications else []
+            extra=[application_start,end+timedelta(days=1)] if query==applications and not daily else []
             cursor.execute(cte+query,params+extra)
             results.append(_rows(cursor))
     return results

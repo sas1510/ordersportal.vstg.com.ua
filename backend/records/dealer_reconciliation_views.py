@@ -41,7 +41,18 @@ def dealer_reconciliation(request):
                 return Response({'detail':'Спочатку сформуйте звіт.'},status=400)
             start,end,activity=parse_period(request.GET,timezone.localdate())
             if request.GET.get('daily')=='1':
-                report=build_report(start,end,activity,daily=True)
+                daily_key = f'daily:v2:{start}:{end}:{activity}'
+                try:
+                    report = cache.get(daily_key)
+                except Exception:
+                    logger.warning('Daily report cache read failed')
+                    report = None
+                if report is None:
+                    report = build_report(start,end,activity,daily=True)
+                    try:
+                        cache.set(daily_key, report, timeout=30)
+                    except Exception:
+                        logger.warning('Daily report cache write failed')
             else:
                 report=build_report(start,end,activity)
             token=uuid4().hex
