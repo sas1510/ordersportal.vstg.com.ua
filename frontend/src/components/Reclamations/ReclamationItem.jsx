@@ -1,3 +1,5 @@
+import ComplaintFilesButton from "./ComplaintFilesButton";
+import ReclamationAmounts from "./ReclamationAmounts";
 import React, { useState, useRef, useEffect } from "react";
 
 // import { formatMoney } from "../../utils/formatMoney";
@@ -253,7 +255,7 @@ export const ReclamationItem = ({
           <span className="icon icon-tools2 font-size-22 text-success"></span>
         </div> */}
 
-        <div className="summary-item row no-wrap !pl-0 " style={{ flexBasis: "20%" }}>
+        <div className="summary-item row no-wrap !pl-0 " style={{ flexBasis: "14%" }}>
           <div className="column !pl-0 w-full pr-3">
             <div className="text-base text-bold w-full text-WS---DarkGrey border-bottom">
               № {reclamation.orderNumber}
@@ -266,15 +268,10 @@ export const ReclamationItem = ({
 
         {/* 2. Статус (основний) */}
 
-        {/* 3. Сума (якщо є фінансова оцінка рекламації) */}
-        {/*                 <div className="summary-item row no-wrap" style={{ flexBasis: '15%' }} title="Орієнтовна вартість">
-                    <span className="icon icon-coin-dollar font-size-24 text-info"></span>
-                    <div className="column">
-                        <div className="font-size-18 text-info border-bottom">**{formatMoney(reclamation.amount)}**</div>
-                        <div className="font-size-14 text-grey">Вартість</div>
-                    </div>
-                </div>
-                 */}
+        {reclamation.guid && <div className="summary-item row no-wrap reclamation-files-cell">
+          <ComplaintFilesButton key={reclamation.guid} guid={reclamation.guid} count={reclamation.fileCount} />
+        </div>}
+        <div className="summary-item reclamation-amounts-cell"><ReclamationAmounts reclamation={reclamation} /></div>
 
 <div className="summary-item expandable row w-25 align-start space-between !pt-0" >
 
@@ -296,7 +293,7 @@ export const ReclamationItem = ({
       }}
       title={t("reclamation.comment_history")}
     >
-      <div className="w-full text-[14px] leading-tight line-clamp-2">
+      <div className="w-full text-[14px] leading-tight line-clamp-2 reclamation-summary-comment">
         {reclamation.message || reclamation.firstMessage || t("reclamation.no_comments")}
       </div>
     </div>
@@ -315,7 +312,7 @@ export const ReclamationItem = ({
                     name="UserIcon"
                     className="w-[17px] h-[20px] text-dark shrink-0 mr-0.5"
                   />
-              <span className="text-dark leading-snug font-['Inter']">
+              <span className="reclamation-summary-dealer text-dark leading-snug font-['Inter']">
                 {reclamation.dealer}
               </span>
             </div>

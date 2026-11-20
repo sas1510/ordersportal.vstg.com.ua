@@ -375,3 +375,19 @@
   border-color: #fff;
   transform: scale(1.1); /* Трохи виділяємо активну */
 }
+
+.complaint-gallery { flex-direction: column; width: min(960px, calc(100vw - 24px)); max-width: none; max-height: 90vh; margin: 0; padding: 12px; border: 1px solid #524e4a; border-radius: 14px; background: #242220; color: #fff; }
+.complaint-gallery__counter { align-self: flex-start; padding: 4px 8px; color: #d9eaa7; font-size: 14px; font-weight: 600; }
+.complaint-gallery .photo-modal-close { top: 8px; right: 8px; z-index: 6; }
+.complaint-gallery .photo-modal-content-my { display: grid; place-items: center; width: 100%; min-height: 140px; margin: 8px 0; border-radius: 8px; background: #151413; }
+.complaint-gallery .photo-modal-content-my :is(img, video) { display: block; max-width: 100%; max-height: 62vh; object-fit: contain; }
+.complaint-gallery .photo-nav { width: 36px; height: 36px; }
+.complaint-gallery .photo-nav-prev { left: 14px; }
+.complaint-gallery .photo-nav-next { right: 14px; }
+.complaint-gallery .photo-modal-thumbs { position: static; transform: none; max-width: 100%; overflow-x: auto; border-radius: 6px; }
+.complaint-gallery .photo-thumb { flex: 0 0 44px; width: 44px; height: 36px; font-size: 12px; }
+.complaint-gallery .photo-thumb.active { border-color: #b4d947; }
+
+.complaint-gallery__zoom { align-self: flex-start; margin: 2px 8px; padding: 3px 9px; border: 1px solid #888; border-radius: 4px; }
+.complaint-gallery .photo-modal-content-my.is-zoomed { display: block; overflow: auto; max-height: 62vh; }
+.complaint-gallery .photo-modal-content-my.is-zoomed img { width: 200%; max-width: none; max-height: none; height: auto; }

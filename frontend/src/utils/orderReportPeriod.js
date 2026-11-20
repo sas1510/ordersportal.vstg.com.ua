@@ -11,18 +11,18 @@ const kyivDay = (day = new Date()) => new Intl.DateTimeFormat("sv-SE", {
   timeZone: "Europe/Kyiv",
 }).format(day);
 
-function refreshSavedPeriod(saved) {
+function refreshSavedPeriod(saved, storage) {
   const today = kyivDay();
   const yesterday = kyivDay(new Date(Date.now() - 86400000));
   const followsToday = saved.followsToday === true
     || (saved.savedOn === undefined && saved.mode === "period" && saved.dateTo === yesterday);
   if (saved.mode !== "period" || !followsToday || saved.dateTo >= today) return saved;
   const refreshed = { ...saved, dateTo: today, followsToday: true, savedOn: today };
-  try { sessionStorage.setItem(periodKey(), JSON.stringify(refreshed)); } catch { /* Storage may be unavailable. */ }
+  try { storage.setItem(periodKey(), JSON.stringify(refreshed)); } catch { /* Storage may be unavailable. */ }
   return refreshed;
 }
 
-export function readOrderReportPeriod(search = window.location.search) {
+export function readOrderReportPeriod(search = window.location.search, { persistent = false } = {}) {
   const query = new URLSearchParams(search);
   const dateFrom = query.get("date_from");
   const dateTo = query.get("date_to");
@@ -32,18 +32,27 @@ export function readOrderReportPeriod(search = window.location.search) {
   const year = query.get("year");
   if (/^\d{4}$/.test(year || "")) return orderMonthPeriod(year, 0);
   try {
-    const saved = JSON.parse(sessionStorage.getItem(periodKey()));
+    const key = periodKey();
+    const useLocal = persistent && !sessionStorage.getItem("dealerPreviewToken");
+    const localValue = useLocal ? localStorage.getItem(key) : null;
+    const storage = localValue !== null ? localStorage : sessionStorage;
+    const saved = JSON.parse(localValue ?? storage.getItem(key));
     if (saved && validDate(saved.dateFrom) && validDate(saved.dateTo) && saved.dateFrom <= saved.dateTo) {
       // Aggregate pages have no all-year month option; preserve the full range instead.
-      return saved.mode === "year" && !saved.month ? { ...saved, mode: "period" } : refreshSavedPeriod(saved);
+      return saved.mode === "year" && !saved.month ? { ...saved, mode: "period" } : refreshSavedPeriod(saved, storage);
     }
   } catch { /* Storage may be unavailable. */ }
   return null;
 }
 
-export function saveOrderReportPeriod(period) {
+export function saveOrderReportPeriod(period, { persistent = false } = {}) {
   if (!validDate(period.dateFrom) || !validDate(period.dateTo) || period.dateFrom > period.dateTo) return;
-  try { sessionStorage.setItem(periodKey(), JSON.stringify({ ...period, savedOn: kyivDay(), followsToday: period.mode === "period" && period.dateTo === kyivDay() })); } catch { /* Keep the current page usable. */ }
+  try {
+    const key = periodKey();
+    const value = JSON.stringify({ ...period, savedOn: kyivDay(), followsToday: period.mode === "period" && period.dateTo === kyivDay() });
+    sessionStorage.setItem(key, value);
+    if (persistent && !sessionStorage.getItem("dealerPreviewToken")) localStorage.setItem(key, value);
+  } catch { /* Keep the current page usable. */ }
 }
 
 export function orderMonthPeriod(year, month) {
@@ -57,6 +66,12 @@ export function orderMonthPeriod(year, month) {
 
 export async function getWithOrderReportPeriod(client, endpoint, config, period) {
   if (!period) return client.get(endpoint, config);
+  if (endpoint.includes("/complaints/")) {
+    const params = { ...config.params, date_from: period.dateFrom, date_to: period.dateTo };
+    delete params.year;
+    delete params.month;
+    return client.get(endpoint, { ...config, params });
+  }
   const monthly = endpoint.endsWith("_all/");
   const startYear = Number(period.dateFrom.slice(0, 4));
   const endYear = Number(period.dateTo.slice(0, 4));

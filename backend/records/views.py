@@ -606,7 +606,7 @@ def translate_portal_message_for_view(
 #     try:
 #         year = int(year_raw) if year_raw else None
 #     except (ValueError, TypeError):
-#         return Response({"error": "Рік має бути числом"}, status=400)
+#         return Response({"error": "Вкажіть коректний рік або період до 366 днів"}, status=400)
 
     
 #     # logger.info(f"Fetching complaints from 1C", extra={
@@ -721,16 +721,36 @@ from asgiref.sync import async_to_sync, sync_to_async
 
 
 # 1. Асинхронна обгортка для збереженої процедури 1С
+def complaint_request_period(params):
+    start, end = params.get("date_from"), params.get("date_to")
+    if start is None and end is None:
+        return None
+    first, last = date.fromisoformat(start or ""), date.fromisoformat(end or "")
+    if not 0 <= (last - first).days <= 366:
+        raise ValueError("Некоректний період рекламацій. Максимум 366 днів.")
+    return first, last
+
+
+def complaint_rows_in_period(rows, period):
+    if not period:
+        return rows
+    first, last = (day.isoformat() for day in period)
+    return [row for row in rows if first <= str(clean_date(row.get("ComplaintDate") or row.get("DateInWork")) or "")[:10] <= last]
+
+
 @sync_to_async
-def execute_stored_procedure(contractor_bin, year):
+def execute_stored_procedure(contractor_bin, year, period=None):
+    years = range(period[0].year, period[1].year + 1) if period else (year,)
+    rows = []
     with connection.cursor() as cursor:
-        cursor.execute(
-            "EXEC dbo.GetComplaintsFull @User1C_ID=%s, @Year=%s",
-            [contractor_bin, year]
-        )
-        columns = [c[0] for c in cursor.description]
-        rows = [dict(zip(columns, r)) for r in cursor.fetchall()]
-    return attach_service_deliveries(rows)
+        for report_year in years:
+            cursor.execute(
+                "EXEC dbo.GetComplaintsFull @User1C_ID=%s, @Year=%s",
+                [contractor_bin, report_year],
+            )
+            columns = [c[0] for c in cursor.description]
+            rows.extend(dict(zip(columns, values)) for values in cursor.fetchall())
+    return attach_service_deliveries(complaint_rows_in_period(rows, period))
 
 
 @api_view(["GET"])
@@ -769,14 +789,15 @@ def complaints_view(request):  # Знову синхронна для DRF
 
         year_raw = request.GET.get("year")
         try:
-            year = int(year_raw) if year_raw else None
+            period = complaint_request_period(request.GET)
+            year = int(year_raw) if year_raw and not period else None
         except (ValueError, TypeError):
-            return {"error": "Рік має бути числом", "status_code": 400}
+            return {"error": "Вкажіть коректний рік або період до 366 днів", "status_code": 400}
 
         # Виклик збереженої процедури 1С
         try:
             sql_start = time.time()
-            rows = await execute_stored_procedure(contractor_bin, year)
+            rows = await execute_stored_procedure(contractor_bin, year, period)
             sql_duration = time.time() - sql_start
         except Exception as e:
             logger.error(f"SQL Execution Error (GetComplaintsFull): {str(e)}", exc_info=True)
@@ -2677,25 +2698,23 @@ def complaints_view_all_by_month(request):
 
     year_str = request.GET.get("year")
     month_str = request.GET.get("month")
-
-    if not year_str or not month_str:
-        return JsonResponse(
-            {"error": "year and month are required"},
-            status=400,
-        )
-
     try:
-        year = int(year_str)
-        month = int(month_str)
-
-        if not 1 <= month <= 12:
-            raise ValueError
-
+        period = complaint_request_period(request.GET)
+        if period:
+            first, last = period
+            months = [
+                divmod(index, 12) for index in
+                range(first.year * 12 + first.month - 1, last.year * 12 + last.month)
+            ]
+            months = [(year, month + 1) for year, month in months]
+            year, month = months[0]
+        else:
+            year, month = int(year_str), int(month_str)
+            if not 1 <= month <= 12:
+                raise ValueError("Invalid month")
+            months = [(year, month)]
     except (TypeError, ValueError):
-        return JsonResponse(
-            {"error": "Invalid year or month"},
-            status=400,
-        )
+        return JsonResponse({"error": "Invalid year, month or date range"}, status=400)
 
     requester_user_id = request.user.id
     dealer_group = requested_dealer_group(request)
@@ -2722,26 +2741,27 @@ def complaints_view_all_by_month(request):
     try:
         raw_rows = []
         with connection.cursor() as cursor:
-            for scoped_requester_id in scope_requester_ids:
-                cursor.execute(
-                    """
-                    EXEC [dbo].[GetComplaintsFull_ByMonth_2]
-                        @RequesterUserID = %s,
-                        @Year = %s,
-                        @Month = %s
-                    """,
-                    [
-                        scoped_requester_id,
-                        year,
-                        month,
-                    ],
-                )
+            for query_year, query_month in months:
+                for scoped_requester_id in scope_requester_ids:
+                    cursor.execute(
+                        """
+                        EXEC [dbo].[GetComplaintsFull_ByMonth_2]
+                            @RequesterUserID = %s,
+                            @Year = %s,
+                            @Month = %s
+                        """,
+                        [
+                            scoped_requester_id,
+                            query_year,
+                            query_month,
+                        ],
+                    )
 
-                columns = [col[0] for col in cursor.description]
-                raw_rows.extend(
-                    dict(zip(columns, values))
-                    for values in cursor.fetchall()
-                )
+                    columns = [col[0] for col in cursor.description]
+                    raw_rows.extend(
+                        dict(zip(columns, values))
+                        for values in cursor.fetchall()
+                    )
 
         unique_rows = {}
         for row in raw_rows:
@@ -2755,7 +2775,7 @@ def complaints_view_all_by_month(request):
                 str(row.get("CustomerLink") or ""),
             )
             unique_rows[row_key] = row
-        raw_rows = list(unique_rows.values())
+        raw_rows = complaint_rows_in_period(list(unique_rows.values()), period)
         attach_service_deliveries(raw_rows)
         raw_rows = filter_report_dealer_group(exclude_export_dealers(raw_rows, 'CustomerLink'), dealer_group, 'CustomerLink')
             

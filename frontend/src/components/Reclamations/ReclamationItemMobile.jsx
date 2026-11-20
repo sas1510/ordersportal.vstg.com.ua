@@ -1,3 +1,5 @@
+import ComplaintFilesButton from "./ComplaintFilesButton";
+import ReclamationAmounts from "./ReclamationAmounts";
 // import React, { useState } from "react";
 // import axiosInstance from "../../api/axios";
 // import { formatMoney } from "../../utils/formatMoney";
@@ -231,7 +233,7 @@
 //               {expanded ? "Приховати деталі" : `Показати деталі`}
 //             </span>
 //             <span
-//               className={`icon ${expanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}
+//               className={`icon ${expanded ? "icon-chevron-up" : "icon-chevron-down"} text-[9px] leading-none text-grey`}
 //             ></span>
 //           </div>
 //         </div>
@@ -431,7 +433,7 @@ export const ReclamationItemMobile = ({
     <div className="basis-2/5 flex flex-col justify-center items-start pr-2 border-right shrink-0">
       <div className="flex flex-col w-full text-start gap-[6px] no-wrap">
         <div className="text-base font-bold w-full text-start pb-1 text-WS---DarkGrey border-bottom leading-tight no-wrap">
-          № {reclamation.id}
+          № {reclamation.orderNumber || reclamation.id}
         </div>
         <div className="text-xs pt-0.5 text-start text-WS---DarkGrey no-wrap">
           {formatDateHumanShorter_full(reclamation.dateRaw, locale)}
@@ -454,7 +456,7 @@ export const ReclamationItemMobile = ({
   <div className="flex items-center gap-1 pt-0.5 text-WS---DarkGrey w-full ">
 
     <AppIcon name="ProfileReclamation" className="w-4 h-4 shrink-0 mr-1" />
-    <span className="text-[13px]  text-WS---DarkGrey truncate leading-tight">
+    <span className="reclamation-summary-dealer text-[13px] text-WS---DarkGrey truncate leading-tight">
       {reclamation.dealer || "-"}
     </span>
   </div>
@@ -490,6 +492,11 @@ export const ReclamationItemMobile = ({
     </div>
   </div>
 
+  <div className="reclamation-mobile-finance w-full border-bottom pb-1 mb-1">
+    <ReclamationAmounts reclamation={reclamation} />
+  <ComplaintFilesButton key={reclamation.guid} guid={reclamation.guid} count={reclamation.fileCount} />
+  </div>
+
  <div 
   className="flex flex-col w-full h-full rounded pb-2 border-bottom" 
   style={{ flex: "2 1 0%", minWidth: 0 }}
@@ -509,7 +516,7 @@ export const ReclamationItemMobile = ({
     }}
     title={t("reclamation.comment_history")}
   >
-    <div className="w-full text-[13px] leading-tight text-gray-700 line-clamp-2">
+    <div className="w-full text-[13px] leading-tight text-gray-700 line-clamp-2 reclamation-summary-comment">
       {reclamation.message || reclamation.firstMessage || t("reclamation.no_comments")}
     </div>
   </div>
@@ -528,8 +535,8 @@ export const ReclamationItemMobile = ({
 
         <div className="flex justify-center mt-1.5 pb-0.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-WS---DarkBlue font-bold border-b-[2px] border-WS---DarkBlue font-['Inter'] font-size-11">{expanded ? t('reclamation.common.hide') : t('reclamation.common.details')}</span>
-            <span className={`icon ${expanded ? "icon-chevron-up" : "icon-chevron-down"} font-size-12 text-grey`}></span>
+            <span className="text-WS---DarkBlue font-semibold border-b border-WS---DarkBlue font-['Inter'] text-[10px] leading-tight">{expanded ? t('reclamation.common.hide') : t('reclamation.common.details')}</span>
+            <span className={`icon ${expanded ? "icon-chevron-up" : "icon-chevron-down"} text-[9px] leading-none text-grey`}></span>
           </div>
         </div>
       </div>

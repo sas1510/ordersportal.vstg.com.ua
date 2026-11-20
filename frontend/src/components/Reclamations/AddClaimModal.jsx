@@ -504,6 +504,7 @@ export default function AddClaimModal({
   const isManager = isBackoffice;
 
   const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
+  const normalizedOrderNumber = orderNumber.trim();
   const [orderDeliveryAddress, setOrderDeliveryAddress] = useState("");
   const [manualDeliveryAddress, setManualDeliveryAddress] = useState("");
   const [deliveryAddressMode, setDeliveryAddressMode] = useState("order");
@@ -628,7 +629,7 @@ export default function AddClaimModal({
   }, [fetchSolutions]);
 
   const fetchSeries = useCallback(async () => {
-    if (!orderNumber) {
+    if (!normalizedOrderNumber) {
       setSeriesOptions([]);
       setSelectedSeries([]);
       setOrderNotFound(false);
@@ -643,7 +644,7 @@ export default function AddClaimModal({
     }
     setFetchErrors((p) => ({ ...p, series: null }));
     try {
-      const res = await axiosInstance.get(`/complaints/get_series/${orderNumber}/`, {
+      const res = await axiosInstance.get(`/complaints/get_series/${encodeURIComponent(normalizedOrderNumber)}/`, {
         params: isManager ? { contractor: dealerId } : undefined,
       });
       if (!res.data?.series?.length) {
@@ -660,14 +661,13 @@ export default function AddClaimModal({
       setOrderNotFound(false);
       setFetchErrors((p) => ({ ...p, series: t("add_claim.errors.series") }));
     }
-  }, [dealerId, isManager, orderNumber, t]);
+  }, [dealerId, isManager, normalizedOrderNumber, t]);
 
   useEffect(() => {
     fetchSeries();
   }, [fetchSeries]);
 
   const fetchDeliveryAddress = useCallback(async () => {
-    const normalizedOrderNumber = orderNumber.trim();
     if (!normalizedOrderNumber) {
       setOrderDeliveryAddress("");
       setFetchErrors((previous) => ({ ...previous, address: null }));
@@ -693,7 +693,7 @@ export default function AddClaimModal({
         address: t("add_claim.errors.address"),
       }));
     }
-  }, [dealerId, isManager, orderNumber, t]);
+  }, [dealerId, isManager, normalizedOrderNumber, t]);
 
   useEffect(() => {
     fetchDeliveryAddress();
@@ -771,7 +771,7 @@ export default function AddClaimModal({
 
       const payload = {
         ...(isManager && dealerId && { contractor_guid: dealerId }),
-        order_number: orderNumber.trim(),
+        order_number: normalizedOrderNumber,
         order_GUID: initialOrderGUID,
         order_delivery_address: (deliveryAddressMode === "order" ? orderDeliveryAddress : manualDeliveryAddress).trim(),
         order_define_date: claimDate,

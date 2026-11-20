@@ -55,6 +55,7 @@ function formatApiData(data) {
     return {
       id: item.ComplaintNumber,
       guid: item.ComplaintGuid,
+      fileCount: item.ComplaintFileCount,
       number: item.ClaimOrderNumber,
             orders: [{ number: item.ClaimOrderNumber, idGuid: item.DeliveryOrderGuid, plannedDeliveryDateTime: item.PlannedDeliveryDateTime, status: item.StatusName, count: null, amount: null, paid: null, currency: item.Currency }],
       actNumber: item.ComplaintNumber,
@@ -70,13 +71,15 @@ function formatApiData(data) {
       determinationDate: item.DeterminationDateText || null,
       readyDate: normalizePortalDate(item.BorderReturnDate),
       producedDate: item.ProducedDate,
+            customerOrderDate: normalizePortalDate(item.CustomerOrderDate),
+            productionOrderDate: normalizePortalDate(item.ProductionOrderDate),
       soldDate: item.SoldDate,
       debtCorrectionDate: normalizePortalDate(item.DebtCorrectionDate),
       returnDate: normalizePortalDate(item.ReturnDate),
 
       status: statusKey,
-      problem: item.ComplaintReasonName || item.IssueName,
-      complaintReasonName: item.ComplaintReasonName || item.IssueName || null,
+      problem: item.IssueName,
+      complaintReasonName: item.ComplaintReasonName || null,
       resolution: item.SolutionName || null,
       description: item.ParsedDescription,
 
@@ -122,7 +125,7 @@ const AdminReclamationPortal = () => {
 
   const [reclamationsData, setReclamationsData] = useState([]);
 
-  const [restoredPeriod] = useState(() => readOrderReportPeriod());
+  const [restoredPeriod] = useState(() => readOrderReportPeriod(undefined, { persistent: true }));
   const [filter, setFilter] = useState({
     status: "Всі",
     month: restoredPeriod?.month || 0,
@@ -257,6 +260,9 @@ const AdminReclamationPortal = () => {
     [isAdmin, dealerGuid],
   );
 
+  const requestMonth = !sharedPeriod && shouldRefetchOnMonthChange ? filter.month || currentMonth : null;
+  const requestYear = sharedPeriod ? null : selectedYear;
+
   useEffect(() => {
     cancelAll();
 
@@ -275,11 +281,11 @@ const AdminReclamationPortal = () => {
 
       try {
         let endpoint = RECLAMATIONS_API_URL;
-        const params = { year: selectedYear, ...(selectedDealerGroup ? { dealer_group: selectedDealerGroup } : {}) };
+        const params = { year: requestYear, ...(selectedDealerGroup ? { dealer_group: selectedDealerGroup } : {}) };
 
         if (isAdmin && isAggregateDealerSelection(dealerGuid)) {
           endpoint = RECLAMATIONS_API_ALL_URL;
-          params.month = filter.month || currentMonth;
+          params.month = requestMonth;
         } else {
           params.contractor = dealerGuid;
         }
@@ -290,26 +296,30 @@ const AdminReclamationPortal = () => {
         });
 
         const raw = formatApiData(res.data?.data || []);
-        setReclamationsData(raw);
+        if (!controller.signal.aborted) setReclamationsData(raw);
       } catch (err) {
-        if (err.name !== "CanceledError") {
+        if (!controller.signal.aborted && err.name !== "CanceledError") {
           // console.error(err);
           setReclamationsData([]);
         }
       } finally {
+        if (!controller.signal.aborted) {
           setLoading(false);
           setDealerChanging(false);
           setVisibleItemsCount(ITEMS_PER_LOAD);
         }
+        }
     };
 
     loadData();
+    return () => controller.abort();
   }, [
-    selectedYear,
+    requestYear,
     getPeriodData,
     dealerGuid,
     isAdmin,
-    shouldRefetchOnMonthChange ? filter.month : null,
+    requestMonth,
+    selectedDealerGroup,
   ]);
 
 
@@ -358,7 +368,7 @@ const AdminReclamationPortal = () => {
       if (isComplaintCompensated(item)) {
         summary.compensated += 1;
         summary.compensatedAmount += Number(
-          item.compensationAmount ?? item.debtCorrectionAmount ?? 0,
+          item.debtCorrectionAmount ?? 0,
         );
       } else {
         summary.uncompensated += 1;
@@ -465,13 +475,13 @@ const AdminReclamationPortal = () => {
               setSelectedYear(period.year);
               setSharedPeriod(period);
               setFilter(prev => ({ ...prev, month: 0 }));
-              saveOrderReportPeriod(period);
+              saveOrderReportPeriod(period, { persistent: true });
             }}
             onMonth={(year, month) => {
               setSharedPeriod(null);
               setSelectedYear(String(year));
               setFilter(prev => ({ ...prev, month }));
-              saveOrderReportPeriod(orderMonthPeriod(year, month));
+              saveOrderReportPeriod(orderMonthPeriod(year, month), { persistent: true });
             }}
           />
         </div>

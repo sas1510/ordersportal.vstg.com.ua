@@ -14,7 +14,7 @@ class ServiceDeliveryTests(TestCase):
     def test_scoped_posted_routes_and_unmatched(self, connection):
         cursor = MagicMock()
         connection.cursor.return_value.__enter__.return_value = cursor
-        cursor.fetchall.side_effect = [[(bytes.fromhex("9ceb4cd98f08e56d11f17090c0521afa"), "70-123", datetime(2026, 11, 17, 12))], [("70-123", 2, 100, "грн", "Подтверждено")]]
+        cursor.fetchall.side_effect = [[(bytes.fromhex("9ceb4cd98f08e56d11f17090c0521afa"), "70-123", datetime(2026, 11, 17, 12))], [("70-123", 2, 100, "грн", "Подтверждено", bytes.fromhex("9ceb4cd98f08e56d11f17090c0521afa"), datetime(2026, 11, 16))]]
         rows = [{"ClaimOrderNumber": "70-123"}, {"ClaimOrderNumber": "71-456"}]
         attach_service_deliveries(rows)
         sql, params = cursor.execute.call_args_list[0].args

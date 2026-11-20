@@ -57,6 +57,7 @@ function formatApiData(data) {
             actNumber: item.ComplaintNumber,
             hasUnreadMessages: item.HasUnreadMessages,
             guid : item.ComplaintGuid,
+            fileCount: item.ComplaintFileCount,
             numberWEB: item.NumberWEB,
             orderNumber: item.OrderNumber,
             organization: item.OrganizationName,
@@ -68,13 +69,15 @@ function formatApiData(data) {
             determinationDate: item.DeterminationDateText || null,
             readyDate: normalizePortalDate(item.BorderReturnDate),
             producedDate: item.ProducedDate,
+            customerOrderDate: normalizePortalDate(item.CustomerOrderDate),
+            productionOrderDate: normalizePortalDate(item.ProductionOrderDate),
             soldDate: item.SoldDate,
             debtCorrectionDate: normalizePortalDate(item.DebtCorrectionDate),
             returnDate: normalizePortalDate(item.ReturnDate),
 
             status: statusKey,
             problem:  item.IssueName,
-            complaintReasonName: item.ComplaintReasonName || item.IssueName || null,
+            complaintReasonName: item.ComplaintReasonName || null,
             resolution: item.SolutionName || null,
             description: item.ParsedDescription,
 
@@ -384,7 +387,7 @@ const ReclamationPortal = () => {
             data.forEach(r => {
                 if (isComplaintCompensated(r)) {
                     summary.compensated++;
-                    summary.compensatedAmount += Number(r.compensationAmount ?? r.debtCorrectionAmount ?? 0);
+                    summary.compensatedAmount += Number(r.debtCorrectionAmount ?? 0);
                 } else {
                     summary.uncompensated++;
                 }

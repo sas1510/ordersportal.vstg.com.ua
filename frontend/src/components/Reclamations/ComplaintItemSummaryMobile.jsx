@@ -1,3 +1,4 @@
+import ComplaintFacts from "./ComplaintFacts";
 // import React, { useEffect, useState, useCallback } from "react";
 // import { useTheme } from "../../hooks/useTheme";
 // import { ImageIcon, Video } from "lucide-react";
@@ -345,7 +346,8 @@
 //                       <span role="img" aria-label="play">
                         
 //                       </span>
-//                       <span className="truncate">{file.File_FileName}</span>
+//                       <span aria-hidden="true" className="complaint-media__play">▶</span>
+//                    <span className="truncate">{file.File_FileName}</span>
 //                     </button>
 //                   ))}
 //                 </div>
@@ -370,14 +372,9 @@
 // export { ComplaintItemDetailViewMobile };
 
 
-import React, { useEffect, useState, useCallback } from "react";
 import { useTheme } from "../../hooks/useTheme";
-import { ImageIcon, Video } from "lucide-react";
-import axiosInstance from "../../api/axios";
-import PhotoModal from "./PhotoModal";
 import { formatDate, formatDateTimeShort } from "../../utils/formatters";
 import { formatMoney2 } from "../../utils/formatMoney";
-import { useNotification } from "../../hooks/useNotification";
 import { useTranslation } from "react-i18next";
 
 const MobileInfoRow = ({ label, value, highlight, colors }) => {
@@ -441,20 +438,10 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
   };
 
   const c = theme === "dark" ? colorsSet.dark : colorsSet.light;
-  const { addNotification } = useNotification();
   const locale = i18n.language;
 
-  const [files, setFiles] = useState([]);
-  const [photoIndex, setPhotoIndex] = useState(0);
-  const [photoOpen, setPhotoOpen] = useState(false);
-  const [photoUrls, setPhotoUrls] = useState([]);
-  const [isMediaLoading, setIsMediaLoading] = useState(false);
 
-  const isImage = (name) => /\.(jpg|jpeg|png|webp)$/i.test(name);
-  const isVideo = (name) => /\.(mp4|webm|ogg)$/i.test(name);
 
-  const imageFiles = files.filter((f) => isImage(f.File_FileName));
-  const videoFiles = files.filter((f) => isVideo(f.File_FileName));
 
   const icons = {
     main: "/assets/icons/MainReclamationIcon.png",
@@ -543,224 +530,7 @@ const ComplaintItemDetailViewMobile = ({ complaint }) => {
     },
   ].filter((item) => item?.value);
 
-  const loadFiles = useCallback(async () => {
-    if (!complaint?.guid) return;
-    try {
-      const res = await axiosInstance.get(`/complaints/${complaint.guid}/files/`);
-      setFiles(res.data.files || []);
-    } catch (err) {
-      addNotification(t("complaints.detail.errors.load_media_fail"), "warning");
-    }
-  }, [complaint?.guid, addNotification, t]);
-
-  useEffect(() => { loadFiles(); }, [loadFiles]);
-
-  const getSecureUrl = useCallback(async (file) => {
-    try {
-      const res = await axiosInstance.post("/complaints/media-token/", { file_guid: file.File_GUID });
-      return `${window.location.origin}/api/complaints/${complaint.guid}/files/preview/?filename=${encodeURIComponent(file.File_FileName)}&token=${encodeURIComponent(res.data.token)}`;
-    } catch (e) { return null; }
-  }, [complaint?.guid]);
-
-  const handleVideoClick = async (file) => {
-    const url = await getSecureUrl(file);
-    if (!url) return; 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    if (isIOS) {
-      window.location.href = url;
-    } else {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const handlePhotoClick = async (index) => {
-    setIsMediaLoading(true);
-    const urls = await Promise.all(imageFiles.map(file => getSecureUrl(file)));
-    const validUrls = urls.filter(u => u !== null);
-    if (validUrls.length > 0) {
-      setPhotoUrls(validUrls);
-      setPhotoIndex(index);
-      setPhotoOpen(true);
-    }
-    setIsMediaLoading(false);
-  };
-
-  return (
-    <div className="w-full font-['Inter',_sans-serif] text-WS---DarkGrey ">
-      <div className="flex flex-col gap-4">
-        
-        {/* Main Info */}
-        <section>
-          <div className="flex items-center gap-2 mb-2">
-            <img src={icons.main} className="mr-1" alt="" />
-            <h3 className="font-bold text-[16px] whitespace-nowrap">{t("complaints.detail.main_info")}</h3>
-            <div style={{ flex: 1, marginLeft: "8px", height: "2px", backgroundColor: "#44403E", opacity: 0.8, transform: "translateY(4px)" }} />
-          </div>
-          <div className="flex flex-col">
-            <MobileInfoRow label={t("complaints.detail.number")} value={complaint.number} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.act_number")} value={complaint.actNumber} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.order_number")} value={complaint.orderNumber} colors={c} />
-            <MobileInfoRow label={t("complaints.detail.organization")} value={complaint.organization} colors={c} />
-          </div>
-        </section>
-
-        {complaintMetaRows.length > 0 && (
-          <section>
-            <div className="flex items-center gap-2 mb-2">
-              <span
-                className="inline-block mr-2 w-[12px] h-[12px] rounded-full shrink-0"
-                style={{ backgroundColor: "#b4d947" }}
-              />
-              <h3 className="font-bold text-[16px] whitespace-nowrap">{t("complaints.detail.complaint_meta")}</h3>
-              <div style={{ flex: 1, marginLeft: "8px", height: "2px", backgroundColor: "#44403E", opacity: 0.8, transform: "translateY(4px)" }} />
-            </div>
-            <div className="flex flex-col">
-              {complaintMetaRows.map((item) => (
-                <MobileInfoRow key={item.key} label={item.label} value={item.value} highlight={item.highlight} colors={c} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Series */}
-        <section>
-          <div className="flex items-center gap-2 mb-2">
-            <img src={icons.main} className="mr-1" alt="" />
-            <h3 className="font-bold text-[16px] whitespace-nowrap">{t("complaints.detail.series")}</h3>
-            <div style={{ flex: 1, marginLeft: "8px", height: "2px", backgroundColor: "#44403E", opacity: 0.8, transform: "translateY(4px)" }} />
-          </div>
-          <div className="flex flex-col">
-            {/* ВИПРАВЛЕНО: додана перевірка на переклад */}
-            <MobileInfoRow value={complaint.series && complaint.series !== "Не вказано" ? complaint.series : t("complaints.detail.not_specified")} colors={c} />
-          </div>
-        </section>
-
-        {/* Dates */}
-        {dateRows.length > 0 && (
-        <section>
-          <div className="flex items-center gap-2 mb-2">
-            <img src={icons.dates} className="mr-1" alt="" />
-            <h3 className="font-bold text-[16px] whitespace-nowrap">{t("complaints.detail.dates")}</h3>
-            <div style={{ flex: 1, marginLeft: "8px", height: "2px", backgroundColor: "#44403E", opacity: 0.8, transform: "translateY(4px)" }} />
-          </div>
-          <div className="flex flex-col">
-            {dateRows.map((item) => (
-              <MobileInfoRow key={item.key} label={item.label} value={item.value} colors={c} />
-            ))}
-          </div>
-        </section>
-        )}
-
-        {/* Manager */}
-        <section className="border-t-[2px]  pt-3" style={{ borderColor: "rgb(68, 64, 62)" }}>
-          <div className="flex items-center gap-2 mb-1">
-            <img src={icons.manager} className="mr-1" alt="" />
-            <h3 className="font-bold text-[16px]">{t("complaints.detail.manager")}</h3>
-          </div>
-          {/* ВИПРАВЛЕНО: додано переклад */}
-          <p className="text-[14px] text-gray-600 pl-7">
-            {complaint.manager && complaint.manager !== "Не вказано" ? complaint.manager : t("complaints.detail.not_specified")}
-          </p>
-        </section>
-
-        {/* Description */}
-        <section className="border-t-[2px]  pt-3"  style={{ borderColor: "rgb(68, 64, 62)" }}>
-          <h3 className="font-bold text-[16px] mb-1">{t("complaints.detail.description_title")}</h3>
-          {/* ВИПРАВЛЕНО: додано переклад */}
-          <p className="text-[14px] leading-relaxed text-gray-700 pl-2">
-            {complaint.description && complaint.description !== "Не вказано" ? complaint.description : t("complaints.detail.not_specified")}
-          </p>
-        </section>
-
-        {/* Problem / Resolution */}
-        <div className="flex flex-col gap-2">
-          {complaint.problem && (
-           <div className="p-3 rounded" style={{ backgroundColor: c.sectionBgProblem }}>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center">
-                <img src={icons.problem} className="mr-2" alt="" />
-                <h4 className="font-bold text-[#BA523B] text-[14px] leading-none">{t("complaints.detail.problem_title")}</h4>
-              </div>
-              <p className="text-[13px] text-WS---DarkGrey leading-relaxed">{complaint.problem}</p>
-            </div>
-          </div>
-          )}
-          {complaint.resolution && (
-            <div className="p-3 rounded mt-2" style={{ backgroundColor: c.sectionBgResolution }}>
-              <div className="flex flex-col gap-1"> 
-                <div className="flex items-center">
-                  <img src={icons.success} className="mr-2" alt="" />
-                  <h4 className="font-bold text-[#516C00] text-[16px] leading-none">{t("complaints.detail.resolution_title")}</h4>
-                </div>
-                <p className="text-[13px] text-WS---DarkGrey leading-relaxed">{complaint.resolution}</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Media */}
-        <div className="space-y-3">
-          {imageFiles.length > 0 && (
-            <div className="py-2">
-              <div className="flex items-center gap-1.5 mb-3">
-                <img src={icons.photo} alt="" className="mr-1" />
-                <h3 className="text-base font-bold" style={{ color: c.text }}>
-                  {t("complaints.detail.photo")} ({imageFiles.length}) {isMediaLoading && "..."}
-                </h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {imageFiles.map((file, idx) => (
-                  <div
-                    key={file.File_GUID}
-                    className={`relative w-[70px] h-[70px] bg-gray-100 overflow-hidden flex flex-col items-center justify-center hover:opacity-80 transition-opacity cursor-pointer border ${isMediaLoading ? "cursor-wait opacity-50" : ""}`}
-                    onClick={() => !isMediaLoading && handlePhotoClick(idx)}
-                  >
-                    <ImageIcon size={24} className="text-gray-400 mb-1" />
-                    <span className="text-[10px] text-gray-500 text-center px-1 truncate w-full">
-                      {file.File_FileName}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {videoFiles.length > 0 && (
-            <div className="rounded py-1">
-              <div className="flex items-center gap-1.5 mb-2">
-                <img src={icons.photo} alt="" className="mr-1" />
-                <h3 className="text-base font-bold" style={{ color: c.text }}>
-                  {t("complaints.detail.video")} ({videoFiles.length})
-                </h3>
-              </div>
-              <div className="flex flex-col gap-2">
-                {videoFiles.map((file) => (
-                  <button
-                    key={file.File_GUID}
-                    onClick={() => handleVideoClick(file)}
-                    className="flex items-center gap-2 p-2 rounded hover:bg-black/5 text-sm transition-colors text-left"
-                    style={{ color: c.highlight, border: `1px solid ${c.border}` }}
-                  >
-                    <span className="truncate">{file.File_FileName}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {photoOpen && (
-        <PhotoModal
-          isOpen={photoOpen}
-          onClose={() => setPhotoOpen(false)}
-          photos={photoUrls}
-          currentIndex={photoIndex}
-          setCurrentIndex={setPhotoIndex}
-        />
-      )}
-    </div>
-  );
+  return <ComplaintFacts mobile complaint={complaint} dateRows={dateRows} metaRows={complaintMetaRows} />;
 };
 
 export { ComplaintItemDetailViewMobile };
