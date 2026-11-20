@@ -1,6 +1,6 @@
 from .zkz_duplicates import uploaded_zkz_identity, find_zkz_duplicates
 from .service_deliveries import attach_service_deliveries
-from .posted_orders import mark_posted_orders
+from .posted_orders import mark_posted_orders, posted_order_quantities
 from .order_sql_compat import execute_orders_sql
 from pathlib import Path
 from .calculation_metadata import attach_calculation_metadata
@@ -1095,6 +1095,7 @@ def get_orders_by_period_and_contractor(
             "authorName": (row.get("CalcAuthorName") or "") if internal_dealer else "",
             "authorGuid": (row.get("CalcAuthor_GUID") or "") if internal_dealer else "",
             "number": order_number or "",
+            "additionalItemsQuantity": row.get("AdditionalItemsQuantity", 0),
             "linkedOrderNumber": row.get("LinkedOrderNumber") or None,
             "dateRaw": order_date,
             "date": order_date,
@@ -1315,6 +1316,7 @@ def get_orders_by_year_and_contractor(year: int, contractor_id: str):
             "idGuid": row.get("OrderID_GUID"),
             # "id": row.get("OrderID"),
             "number": row.get("OrderNumber") or "",
+            "additionalItemsQuantity": row.get("AdditionalItemsQuantity", 0),
             "linkedOrderNumber": row.get("LinkedOrderNumber") or None,
             "dateRaw": row.get("OrderDate"),
             "date": row.get("OrderDate"),
@@ -3181,6 +3183,7 @@ def orders_view_all_by_month(request):
                     "id": row.get("OrderID"),
                     "idGuid": row.get("OrderID_GUID"),
                     "number": row.get("OrderNumber") or "",
+                    "additionalItemsQuantity": row.get("AdditionalItemsQuantity", 0),
                     "dateRaw": row.get("OrderDate"),
                     "date": row.get("OrderDate"),
                     "status": (
@@ -6489,8 +6492,11 @@ class ProductionTimelinessByContractorView(APIView):
             _normalize_production_timeliness_summary(row) for row in summary_rows
         ]
         orders = [_normalize_production_timeliness_order(row) for row in orders_rows]
+        order_ids = sorted({guid_to_1c_bin(str(order["order_id"])) for order in orders if order["order_id"]})
+        total_additional_items = sum(posted_order_quantities(order_ids).values())
 
         totals = {
+            "total_additional_items": total_additional_items,
             "orders_count": sum(item["orders_count"] for item in summary),
             "in_time_count": sum(item["in_time_count"] for item in summary),
             "delayed_count": sum(item["delayed_count"] for item in summary),

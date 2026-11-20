@@ -1,3 +1,4 @@
+import ServiceMenu from "./ServiceMenu";
 import { isRiminiDealer } from "../../utils/dealerCapabilities";
 // import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
@@ -605,7 +606,7 @@ import "./HeaderLayout.css";
 
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
+import { Fragment, useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 import useHeaderLayout from "../../hooks/useHeaderLayout";
 import "./HeaderLayout.css";
 import { AuthContext } from "../../context/AuthContext";
@@ -666,6 +667,9 @@ export default function HeaderDealer() {
     { title: 'Конструктор', mobileTitle: 'Конструктор', to: '/constructor', icon: DoorOpen },
     { title: t('nav.measurements', { defaultValue: 'Замірник' }), mobileTitle: t('nav.measurements', { defaultValue: 'Замірник' }), to: '/zamir', icon: Ruler },
   ], [t]);
+
+  const serviceLinks = NAV_LINKS.filter(link => ['/complaints', '/additional-orders'].includes(link.to));
+  const mainLinks = NAV_LINKS.filter(link => !['/complaints', '/additional-orders'].includes(link.to));
 
   const FINANCE_SUBMENU = useMemo(() => [
     canViewFinance && { title: t('nav.payment'), to: '/payment' },
@@ -937,7 +941,8 @@ export default function HeaderDealer() {
           <>
             <nav className="header-desktop-nav flex h-full min-w-0 flex-1">
               <ul className="flex h-full w-full items-center">
-                {NAV_LINKS.map((link) => (
+                {mainLinks.map((link) => (
+                  <Fragment key={link.to}>
                     <li 
                       key={link.to} data-header-item={link.to} 
                       style={link.to === '/zamir' ? { flex: '0 0 80px' } : undefined}
@@ -962,7 +967,10 @@ export default function HeaderDealer() {
                         {link.primary ? <span className="[-webkit-text-stroke:0.3px_#B4D947] [paint-order:stroke_fill]">{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span> : <span className={link.to === "/promo-wds-codes" || link.to === "/files" ? "header-two-line-label" : undefined}>{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span>}
                       </Link>
                     </li>
-                  ))}
+
+                  {link === mainLinks[0] && <ServiceMenu links={serviceLinks} variant="dealer" />}
+                  </Fragment>
+                ))}
                 
                 {FINANCE_SUBMENU.length > 0 && <li 
   className="h-full relative flex-1 min-w-max flex items-center border-r border-gray-300/30 last:border-r-0" 
@@ -1139,10 +1147,11 @@ export default function HeaderDealer() {
 
         <div className="flex-grow overflow-y-auto w-full">
           <nav className="flex flex-col w-full">
-            {NAV_LINKS.map((link) => {
+            {mainLinks.map((link) => {
               const isActive = location.pathname === link.to;
 
               return (
+                <Fragment key={link.to}>
                 <div key={link.to} className="relative w-full group">
                   <Link
                     to={link.to}
@@ -1159,6 +1168,8 @@ export default function HeaderDealer() {
 
                   <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />
                 </div>
+                {link === mainLinks[0] && <ServiceMenu links={serviceLinks} mobile onNavigate={() => setMobileMenuOpen(false)} />}
+                </Fragment>
               );
             })}
 

@@ -1,3 +1,4 @@
+import AdditionalItemsMetric from "./AdditionalItemsMetric";
 // ================= OrderItemSummary.jsx =================
 import React, { useCallback, useMemo, useState, useEffect } from "react";
 import OrderDetailsDesktop from "./OrderDetailsDesktop";
@@ -552,12 +553,13 @@ export default React.memo(function OrderItemSummaryDesktop({
         <div className="summary-item flex items-center justify-center" style={{
     cursor: isSketchOrder ? "default" : "pointer",
   }}>
-          <div className="column items-center w-full h-full">
-            <span className="text-[10px] text-grey leading-none mb-2 mt-1">
+    <div className="order-quantities order-quantities--compact">
+      <div className="order-quantity-metric">
+            <span className="order-quantity-label text-grey">
               {t("order_mobile.labels.constructions")}
             </span>
 
-            <div className="row gap-2 align-center">
+            <div className="order-quantity-value">
               <AppIcon
                 name="windows"
                 className="order-summary-icon w-[25px] h-[25px] shrink-0"
@@ -568,6 +570,8 @@ export default React.memo(function OrderItemSummaryDesktop({
               </div>
             </div>
           </div>
+      <AdditionalItemsMetric orders={[order]} compact />
+    </div>
         </div>
 
         {/* FILES */}

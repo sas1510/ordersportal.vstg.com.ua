@@ -17,6 +17,7 @@ export default function ComplexityDonut({
   colors,
   centerLabel,
   centerUnit,
+  centerContent,
   showLegend = true,
   showLabels = true,
   hoverScale = true,
@@ -436,32 +437,36 @@ export default function ComplexityDonut({
             height: `${centerBadgeSize}px`,
           }}
         >
-          <div className="badge-label">
-            {centerLabel || "Всього за рік"}
-          </div>
+          {centerLabel !== "" && (
+            <div className="badge-label">{centerLabel || "Всього за рік"}</div>
+          )}
 
-          <div className="badge-main-row">
-            {centerIconName ? (
-              <span
-                className="badge-icon"
-                style={{
-                  width: `${centerIconWidth}px`,
-                  height: `${centerIconHeight}px`,
-                  flexBasis: `${centerIconWidth}px`,
-                }}
-              >
-                <AppIcon name={centerIconName} />
-              </span>
-            ) : null}
+          {centerContent ?? (
+            <>
+              <div className="badge-main-row">
+                {centerIconName ? (
+                  <span
+                    className="badge-icon"
+                    style={{
+                      width: `${centerIconWidth}px`,
+                      height: `${centerIconHeight}px`,
+                      flexBasis: `${centerIconWidth}px`,
+                    }}
+                  >
+                    <AppIcon name={centerIconName} />
+                  </span>
+                ) : null}
 
-            <strong className="badge-value">
-              {displayedValue.toLocaleString("uk-UA")}
-            </strong>
-          </div>
+                <strong className="badge-value">
+                  {displayedValue.toLocaleString("uk-UA")}
+                </strong>
+              </div>
 
-          <div className="badge-unit">
-            {centerUnit || "одиниць"}
-          </div>
+              <div className="badge-unit">
+                {centerUnit || "одиниць"}
+              </div>
+            </>
+          )}
         </div>
       ) : null}
 

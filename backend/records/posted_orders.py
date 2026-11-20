@@ -13,15 +13,35 @@ def mark_posted_orders(rows):
         except (ValueError, TypeError, AttributeError):
             return None
     identities = sorted({value for row in rows if (value := key(row))})
-    posted = set()
+    posted = posted_order_quantities(identities)
+    for row in rows:
+        order_id = key(row)
+        row['_posted_order'] = order_id in posted
+        row['AdditionalItemsQuantity'] = posted.get(order_id, 0)
+    return enrich_calculation_dealer_numbers(rows)
+
+
+def posted_order_quantities(identities):
+    posted = {}
     with connection.cursor() as cursor:
         for offset in range(0, len(identities), 500):
             batch = identities[offset:offset + 500]
-            cursor.execute('SELECT Ссылка FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] WHERE Проведен=0x01 AND ПометкаУдаления=0x00 AND Ссылка IN (' + ','.join(['%s'] * len(batch)) + ')', batch)
-            posted.update(bytes(row[0]) for row in cursor.fetchall())
-    for row in rows:
-        row['_posted_order'] = key(row) in posted
-    return enrich_calculation_dealer_numbers(rows)
+            placeholders = ",".join("%s" for _ in batch)
+            cursor.execute("""
+                SELECT O.Ссылка, SUM(COALESCE(T.Количество, 0))
+                FROM [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя] O
+                LEFT JOIN [oknastyle_biV2].[dbo].[Документы.ЗаказПокупателя.Товары] T
+                  ON T.Ссылка = O.Ссылка AND T.Номенклатура IN (
+                    SELECT N.Ссылка
+                    FROM [oknastyle_biV2].[dbo].[Справочники.Номенклатура] N
+                    WHERE N.Наименование LIKE N'%%Допы (ВС)%%'
+                  )
+                WHERE O.Проведен=0x01 AND O.ПометкаУдаления=0x00
+                  AND O.Ссылка IN (""" + placeholders + """)
+                group by O.Ссылка
+                """, batch)
+            posted.update((bytes(guid), float(quantity or 0)) for guid, quantity in cursor.fetchall())
+    return posted
 
 
 def enrich_calculation_dealer_numbers(rows):

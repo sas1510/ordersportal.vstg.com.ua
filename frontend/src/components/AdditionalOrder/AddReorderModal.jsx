@@ -22,6 +22,7 @@ export default function AddReorderModal({
   const { isBackoffice } = useAuthGetRole();
   const { dealerGuid } = useDealerContext();
   const [orderNumber, setOrderNumber] = useState("");
+  const normalizedOrderNumber = orderNumber.trim();
   const [noOrder, setNoOrder] = useState(false);
   const [nomenclature, setNomenclature] = useState([]);
   const [reasons, setReasons] = useState([]);
@@ -165,7 +166,7 @@ export default function AddReorderModal({
     try {
       const response = await axiosInstance.get("/additional_orders/delivery-address/", {
         params: {
-          order_number: noOrder ? "" : orderNumber.trim(),
+          order_number: noOrder ? "" : normalizedOrderNumber,
           contractor_guid: contractorGuid || resolvedInitialContractorGuid || "",
         },
       });
@@ -173,7 +174,7 @@ export default function AddReorderModal({
     } catch {
       setOrderDeliveryAddress("");
     }
-  }, [isOpen, noOrder, orderNumber, contractorGuid, resolvedInitialContractorGuid]);
+  }, [isOpen, noOrder, normalizedOrderNumber, contractorGuid, resolvedInitialContractorGuid]);
 
   useEffect(() => {
     fetchDeliveryAddress();
@@ -198,7 +199,7 @@ export default function AddReorderModal({
     e.preventDefault();
     if (saving) return;
     const formData = {
-      orderNumber: noOrder ? null : orderNumber,
+      orderNumber: noOrder ? null : normalizedOrderNumber,
       noOrder,
       nomenclatureLink: selectedItem,
       quantity: Number(quantity),
@@ -343,7 +344,7 @@ export default function AddReorderModal({
             <button
               type="submit"
               className="reorder-btn-save"
-              disabled={loading || saving || (!noOrder && !orderNumber) || (isBackoffice && !contractorGuid)}
+              disabled={loading || saving || (!noOrder && !normalizedOrderNumber) || (isBackoffice && !contractorGuid)}
             >
               {loading || saving ? <FaSpinner className="spinner" /> : <FaPlus />} {t("reorder_modal.btn_save")}
             </button>

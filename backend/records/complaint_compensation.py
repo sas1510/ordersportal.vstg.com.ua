@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.db import connection
 
 
-RESOLVED_REASON_CODES = {"00614", "01262", "01116", "00814"}
+RESOLVED_REASON_CODES = {"00614", "01262", "01116", "00814", "01178"}
 
 
 def attach_complaint_compensation(rows):

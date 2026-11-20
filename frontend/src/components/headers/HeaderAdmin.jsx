@@ -1,3 +1,4 @@
+import ServiceMenu from "./ServiceMenu";
 // import { Link, useLocation, useNavigate } from "react-router-dom";
 // import { useState, useRef, useEffect, useContext } from "react";
 // import useHeaderLayout from "../../hooks/useHeaderLayout";
@@ -303,7 +304,7 @@ import "./HeaderLayout.css";
 
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
+import { Fragment, useState, useRef, useEffect, useContext, useCallback, useMemo } from "react";
 import useHeaderLayout from "../../hooks/useHeaderLayout";
 import "./HeaderLayout.css";
 import { useTranslation } from 'react-i18next';
@@ -369,6 +370,9 @@ export default function HeaderAdmin() {
     { title: 'Звіти', mobileTitle: 'Звіти за замовленнями', to: '/orders-report' },
     ...(role !== 'admin' ? [{ title: t('nav.faq'), to: '/faq' }] : []),
   ], [t, isAdmin, isManager, role]);
+
+  const serviceLinks = NAV_LINKS.filter(link => ['/admin-reclamation', '/admin-additional-order'].includes(link.to));
+  const mainLinks = NAV_LINKS.filter(link => !['/admin-reclamation', '/admin-additional-order'].includes(link.to));
 
   const FINANCE_SUBMENU = useMemo(() => [
     { title: t('nav.finance_cash_flow'), to: "/finance/cash-flow" },
@@ -526,7 +530,8 @@ export default function HeaderAdmin() {
 
             <nav className="header-desktop-nav flex h-full min-w-0 flex-1">
               <ul className="flex h-full w-full items-center">
-                {NAV_LINKS.map((link) => (
+                {mainLinks.map((link) => (
+                  <Fragment key={link.to}>
                   <li
                     key={link.to} data-header-item={link.to}
                     className="h-full flex-1 flex items-center border-r border-gray-300/30 last:border-r-0"
@@ -544,6 +549,9 @@ export default function HeaderAdmin() {
                       {link.primary ? <span className="header-nav-underline">{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span> : <span className={link.to === "/promo-wds-codes" || link.to === "/files" ? "header-two-line-label" : undefined}>{link.to === "/files" ? <span className="header-materials-two-lines">{link.title.split(/\s+/).map((word, index) => <span key={index} style={{ display: "block" }}>{word}</span>)}</span> : link.title}</span>}
                     </Link>
                   </li>
+
+                  {link === mainLinks[0] && <ServiceMenu links={serviceLinks} variant="admin" />}
+                  </Fragment>
                 ))}
                 
 
@@ -714,7 +722,8 @@ export default function HeaderAdmin() {
                   {/* Скрол-зоні меню */}
                   <div className="flex-grow overflow-y-auto w-full">
                     <nav className="flex flex-col w-full">
-                      {NAV_LINKS.map((link) => (
+            {mainLinks.map((link) => (
+                        <Fragment key={link.to}>
                         <div key={link.to} className="relative w-full">
                           <Link
                             to={link.to}
@@ -727,6 +736,9 @@ export default function HeaderAdmin() {
                           </Link>
                           <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dashed border-[#B4D947]" />
                         </div>
+
+                        {link === mainLinks[0] && <ServiceMenu links={serviceLinks} mobile onNavigate={() => setMobileMenuOpen(false)} />}
+                        </Fragment>
                       ))}
 
 

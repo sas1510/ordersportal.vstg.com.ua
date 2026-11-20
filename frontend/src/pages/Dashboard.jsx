@@ -10,7 +10,7 @@ const ProductionStatisticsPage = lazy(() => import("./ProductionStatisticsPage")
 
 const formatNumber = new Intl.NumberFormat("uk-UA");
 
-function MyOrdersOverview({ dateFrom, dateTo, monthStart, monthControls }) {
+function MyOrdersOverview({ dateFrom, dateTo, monthControls }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
 
@@ -44,7 +44,7 @@ function MyOrdersOverview({ dateFrom, dateTo, monthStart, monthControls }) {
 
   return <main className="dealer-reports-page">
     <section className="dealer-reports-hero">
-      <div><h1>Основні показники</h1><p>Аналітика за {monthStart.toLocaleDateString("uk-UA", { month: "long", year: "numeric" })}.</p></div>
+      <div><h1>Основні показники</h1><p>Період: {dateFrom.split("-").reverse().join(".")} — {dateTo.split("-").reverse().join(".")}.</p></div>
       <div className="dashboard-summary-actions">
         {monthControls}
         <Link className="dealer-reports-link" to="/orders">До замовлень →</Link>
@@ -73,14 +73,14 @@ export default function Dashboard({ variant = "classic" }) {
   const { isDealer, isBackoffice, role, user } = useAuthGetRole();
   const [year, month, day] = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Kyiv' })
     .format(new Date()).split('-').map(Number);
-  const [offset, setOffset] = useState(() => day <= 4 ? -1 : 0);
+  const [offset, setOffset] = useState(0);
   if (!isDealer && !isBackoffice) return null;
 
   const monthStart = new Date(year, month - 1 + offset, 1);
   const monthEnd = new Date(year, month + offset, 0);
   const datePrefix = monthStart.getFullYear() + '-' + String(monthStart.getMonth() + 1).padStart(2, '0');
   const dateFrom = datePrefix + '-01';
-  const dateTo = datePrefix + '-' + monthEnd.getDate();
+  const dateTo = datePrefix + '-' + String(offset === 0 ? day : monthEnd.getDate()).padStart(2, '0');
   const monthControls = <div className="dashboard-month-controls" role="group" aria-label="Місяць дашборда">
     <button type="button" aria-pressed={offset === -1} onClick={() => setOffset(-1)}>Попередній місяць</button>
     <button type="button" aria-pressed={offset === 0} onClick={() => setOffset(0)}>Поточний місяць</button>
@@ -89,7 +89,7 @@ export default function Dashboard({ variant = "classic" }) {
     const start = new Date(year, index, 1);
     const end = new Date(year, index + 1, 0);
     const prefix = start.getFullYear() + '-' + String(start.getMonth() + 1).padStart(2, '0');
-    return { from: prefix + '-01', to: prefix + '-' + end.getDate(), label: start.toLocaleDateString('uk-UA', { month: 'short' }) };
+    return { from: prefix + '-01', to: prefix + '-' + String(index === month - 1 ? day : end.getDate()).padStart(2, '0'), label: start.toLocaleDateString('uk-UA', { month: 'short' }) };
   });
   const periodProps = { dashboardPeriod: { from: dateFrom, to: dateTo }, monthControls, profileMonths };
 

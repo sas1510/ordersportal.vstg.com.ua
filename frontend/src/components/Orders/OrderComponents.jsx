@@ -1,3 +1,4 @@
+import AdditionalItemsMetric from "./AdditionalItemsMetric";
 import { calculationNumber, calculationDealerNumber } from "../../utils/calculationNumber";
 import CalculationStatusLabel from "./CalculationStatusLabel";
 import OrderFilesModal from "./OrderFilesModal";
@@ -367,14 +368,14 @@ const statusPanelClass = (() => {
 </div>
 
 <div
-  className="summary-item calc-metric !gap-0 flex min-w-0 flex-col w-8 !p-0 overflow-hidden"
+  className="summary-item calc-metric calc-summary-orders !gap-0 flex min-w-0 flex-col w-8 !p-0 overflow-hidden"
   style={{
     minWidth: "78px",
     flex: "0 0 78px",
   }}
   title={t("portal_calc.ui.orders")}
 >
-  <span className="text-grey text-[10px] mt-0.5">
+  <span className="order-quantity-label text-grey">
     {t("portal_calc.ui.orders")}
   </span>
 
@@ -414,16 +415,18 @@ const statusPanelClass = (() => {
 </div>
 
 <div
-  className="summary-item calc-metric flex flex-col w-8"
+  className="summary-item calc-metric calc-summary-quantities flex flex-col w-8"
        title={t("portal_calc.ui.constructions")}
 >
 
-  <span className="text-grey text-[10px] mb-1">
+    <div className="order-quantities">
+      <div className="order-quantity-metric">
+  <span className="order-quantity-label text-grey">
     {t("portal_calc.ui.constructions")}
   </span>
   
 
-  <div className="flex items-center">
+  <div className="order-quantity-value">
                   <img 
                   src={windowsIcon} 
      
@@ -434,6 +437,9 @@ const statusPanelClass = (() => {
       {calc.constructionsQTY}
     </div>
   </div>
+      </div>
+      <AdditionalItemsMetric orders={calc.orders} />
+    </div>
 </div>
 
           {/* <div

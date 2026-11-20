@@ -1697,9 +1697,9 @@
 .production-ring-card--figma
   .production-ring-card__figma-metric--not-finished {
   top: 187px;
-  left: 487px;
+  right: 20px;
 
-  width: 151px;
+  width: 180px;
   min-height: 82px;
 
   color: #aeaeae;
@@ -2952,7 +2952,7 @@
     bottom: 22px;
     left: auto;
     top: auto;
-    width: 142px;
+    width: 154px;
   }
 
   .production-ring-card--figma .production-ring-card__figma-line {
@@ -3728,4 +3728,49 @@
   .production-design__summary-stack article > .production-design__currency-total {
     font-size: clamp(20px, 5vw, 26px);
   }
+}
+
+.production-design .production-design__counts {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.production-design__count-item small { font-size: clamp(10px, .8vw, 14px); }
+.production-design__count-value b { font-size: clamp(18px, 1.75vw, 32px); }
+
+.production-design .production-design__count-item small {
+  font-size: clamp(10px, .65vw, 12px);
+}
+.production-design .production-design__count-value { align-items: center; gap: 5px; }
+.production-design .production-design__count-value svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+.production-design .production-design__count-value b {
+  font-size: clamp(17px, 1.3vw, 25px);
+  white-space: nowrap;
+}
+
+.production-ring-card__center-counts {
+  display: grid;
+  gap: 3px;
+  color: #44403e;
+  font-size: 12px;
+  line-height: 1.2;
+  text-align: center;
+}
+.production-ring-card__center-counts > span {
+  display: grid;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.production-ring-card__center-counts b {
+  font-size: 18px;
+  line-height: 1;
+}
+.production-ring-card__work-counts {
+  font-size: min(.72em, 22px);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

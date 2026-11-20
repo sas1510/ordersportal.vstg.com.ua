@@ -1,3 +1,4 @@
+import { FaBoxOpen } from "react-icons/fa";
 import { dealerGroupForSelection, isAggregateDealerSelection } from "../utils/dealerReportGroups";
 import DashboardV2Metrics from "./DashboardV2Metrics";
 import { readOrderReportPeriod, saveOrderReportPeriod } from "../utils/orderReportPeriod";
@@ -391,6 +392,8 @@ function ProductionRingCard({
   averageDelayDays,
   notFinishedCount,
   totalOrders,
+  totalConstructions,
+  notFinishedConstructions,
   onSelectStatus,
 }) {
   const { t, i18n } = useTranslation();
@@ -404,9 +407,7 @@ function ProductionRingCard({
 
   const inTimeValue = Number(inTimeCount || 0);
   const delayedValue = Number(delayedCount || 0);
-  const notFinishedValue = Number(notFinishedCount || 0);
 
-  const completedOrders = inTimeValue + delayedValue;
 
   const statusData = [
     {
@@ -423,9 +424,6 @@ function ProductionRingCard({
 
   const statusColors = statusData.map((item) => item.color);
 
-  const displayedTotal =
-    Number(totalOrders || 0) ||
-    completedOrders + notFinishedValue;
 
   const selectSection = (sectionName) => {
     setSelectedSection(sectionName);
@@ -476,10 +474,13 @@ function ProductionRingCard({
         <ComplexityDonut
           data={statusData}
           colors={statusColors}
-          centerLabel={t("production_statistics.total")}
-          centerUnit={t("production_statistics.order")}
-          centerValue={displayedTotal}
-          centerIconName="listCalc"
+          centerLabel=""
+          centerContent={
+            <div className="production-ring-card__center-counts">
+              <span><b>{formatNumber(totalOrders ?? 0)}</b><span>{t("production_statistics.orders").toLocaleLowerCase(i18n.language)}</span></span>
+              <span><b>{formatNumber(totalConstructions ?? 0)}</b><span>{t("production_statistics.constructions").toLocaleLowerCase(i18n.language)}</span></span>
+            </div>
+          }
           showLegend={false}
           showLabels={false}
           showTooltip={false}
@@ -549,10 +550,12 @@ function ProductionRingCard({
             <AppIcon name="InFactoryIcon" />
           </span>
 
-          {formatNumber(notFinishedCount)}
+          <span className="production-ring-card__work-counts">
+            {formatNumber(notFinishedCount)} / {formatNumber(notFinishedConstructions)}
+          </span>
         </strong>
 
-        <small>{formatNumber(notFinishedCount)} {t("production_statistics.order")}</small>
+        <small>{t("production_statistics.orders")} / {t("production_statistics.constructions")}</small>
       </button>
     </div>
   );
@@ -805,6 +808,9 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
 
   const summary = dashboardData?.summary || [];
   const orders = dashboardData?.orders || [];
+  const notFinishedConstructions = orders.reduce((total, order) => (
+    order.production_status === "У виробництві" ? total + (Number(order.constructions_count) || 0) : total
+  ), 0);
   const meta = dashboardData?.meta || {};
   const completedTopOrdersCount = Number(meta.in_time_count || 0) + Number(meta.delayed_count || 0);
   const topInTimePercent = completedTopOrdersCount > 0 ? (Number(meta.in_time_count || 0) / completedTopOrdersCount) * 100 : 0;
@@ -1618,9 +1624,16 @@ export default function ProductionStatisticsPage({ portfolio = false, allDealers
       <b>{formatNumber(meta.total_constructions)}</b>
     </div>
   </span>
+  <span className="production-design__count-item">
+    <small>Допів</small>
+    <div className="production-design__count-value">
+      <FaBoxOpen aria-hidden="true" />
+      <b>{meta.total_additional_items == null ? "—" : meta.total_additional_items.toLocaleString("uk-UA", { maximumFractionDigits: 3 })}</b>
+    </div>
+  </span>
 </div>
           </article>
-          <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} averageDelayDays={dashboardPeriod ? meta.avg_delay_days : null} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} onSelectStatus={handleRingStatusClick} />
+          <ProductionRingCard inTimePercent={topInTimePercent} inTimeCount={meta.in_time_count} averageProductionDays={inTimeProductionDays.overallAverage} delayedPercent={topDelayedPercent} delayedCount={meta.delayed_count} averageDelayDays={dashboardPeriod ? meta.avg_delay_days : null} notFinishedCount={meta.not_finished_count} totalOrders={meta.orders_count} totalConstructions={meta.total_constructions} notFinishedConstructions={notFinishedConstructions} onSelectStatus={handleRingStatusClick} />
           <div className="production-design__summary-stack">
             <article><div className="production-design__eyebrow">{t("production_statistics.turnover")}</div><strong className="production-design__currency-total"><AppIcon name="money" className="w-[30px] h-[27px] color-[#9FD3FF]" /><span>{(meta.currency_totals?.length ? meta.currency_totals : [{ currency: "грн", total_sum: meta.total_sum }]).map((item) => <b key={item.currency}>{formatCurrency(item.total_sum, item.currency)}</b>)}</span></strong><span>{t("production_statistics.turnover_hint")}</span></article>
             {profileMonths && <DashboardProfileChart months={profileMonths} portfolio={aggregateDealers} dealerGuid={aggregateDealers ? undefined : dealerGuid} />}

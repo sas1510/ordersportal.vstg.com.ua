@@ -1,3 +1,4 @@
+import AdditionalItemsMetric from "./AdditionalItemsMetric";
 import { calculationNumber, calculationDealerNumber } from "../../utils/calculationNumber";
 import CalculationStatusLabel from "./CalculationStatusLabel";
 import OrderFilesModal from "./OrderFilesModal";
@@ -452,10 +453,10 @@ export const CalculationItemMobile = React.memo(
 </div>
 
 
-<div className="flex items-stretch justify-between mb-3 w-full min-h-[70px] border-bottom pb-1">
+<div className="calc-mobile-totals mb-3 w-full min-h-[70px] border-bottom pb-1">
   
 
-<div className="basis-1/5 flex min-w-0 flex-col items-center justify-center overflow-hidden border-right">
+<div className="calc-mobile-order-cell flex min-w-0 flex-col items-center overflow-hidden border-right">
   {orderNumbers.length === 0 ? (
     <div className="flex items-center gap-2">
       <img src={listCalcIcon} className="mr-1 calc-summary-icon" alt="" />
@@ -495,23 +496,28 @@ export const CalculationItemMobile = React.memo(
     </div>
   )}
 
-  <span className="text-grey text-[10px]">
+  <span className="order-quantity-label text-grey">
     {t("portal_calc.ui.orders")}
   </span>
 </div>
 
-  <div className="basis-1/5 flex flex-col items-center justify-center border-right">
-    <div className="flex items-center gap-2">
+  <div className="calc-mobile-quantity-cell flex min-w-0 items-center justify-center border-right">
+    <div className="order-quantities order-quantities--mobile">
+      <div className="order-quantity-metric">
+    <div className="order-quantity-value">
       <img src={windowsIcon} className="align-center mr-2 calc-summary-icon" alt="" />
       <span className="font-size-24 font-bold text-WS---DarkBlue">
         {calc.constructionsQTY}
       </span>
     </div>
-    <span className="text-grey text-[10px] mt-1">{t("portal_calc.ui.constructions")}</span>
+    <span className="order-quantity-label text-grey">{t("portal_calc.ui.constructions")}</span>
+      </div>
+      <AdditionalItemsMetric orders={calc.orders} />
+    </div>
   </div>
 
 
-  <div className="flex items-center pl-3 flex-[2.5]">
+  <div className="calc-mobile-money flex min-w-0 items-center">
     
     <img src={moneyCalcIcon} className="mr-1 calc-summary-icon calc-summary-icon--money-green" alt="" />
     

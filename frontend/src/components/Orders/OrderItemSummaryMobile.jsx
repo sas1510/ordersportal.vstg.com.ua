@@ -1,3 +1,4 @@
+import AdditionalItemsMetric from "./AdditionalItemsMetric";
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 
 import ConfirmModal from "./ConfirmModal";
@@ -458,10 +459,10 @@ export default React.memo(function OrderItemSummaryMobile({
         
       >
 
-        <div className="flex items-stretch justify-between mb-1 w-full gap-3  pb-1 border-bottom ">
+        <div className="order-mobile-summary-head mb-1 w-full pb-1 border-bottom">
           
 
-          <div className="flex flex-[2] items-center pr-1  border-right shrink-0">
+          <div className="order-mobile-summary-number flex min-w-0 items-center border-right">
              <img src={listCalcIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
             <div className="flex  flex-col gap-[6px] no-wrap w-full">
   
@@ -484,18 +485,23 @@ export default React.memo(function OrderItemSummaryMobile({
             </div>
           </div>
 
-            <div className="flex flex-col items-center pt-2 justify-center pr-2 border-right flex-1">
-              <div className="flex items-center gap-2 no-wrap">
+            <div className="order-mobile-summary-quantities flex items-center border-right">
+    <div className="order-quantities order-quantities--mobile">
+      <div className="order-quantity-metric">
+              <div className="order-quantity-value">
                 <img src={windowsIcon} className="align-center mr-2 calc-summary-icon"  alt="" />
                 <span className="font-size-24 font-bold text-WS---DarkBlue">
                   {order.count}
                 </span>
               </div>
-              <span className="text-grey text-[10px] mt-1">{t("order_mobile.labels.constructions")}</span>
+              <span className="order-quantity-label text-grey">{t("order_mobile.labels.constructions")}</span>
+      </div>
+      <AdditionalItemsMetric orders={[order]} />
+    </div>
             </div>
 
             <div 
-              className="order-files-delivery flex-1"
+              className="order-files-delivery order-mobile-summary-files"
 
             >
        
