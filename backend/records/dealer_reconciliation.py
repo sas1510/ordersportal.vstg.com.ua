@@ -125,6 +125,12 @@ def query_parts(seed, daily=False):
         ), OrdersPeriod AS ("""
         cte=cte.replace('), OrdersPeriod AS (',daily_scope)
         cte=cte.replace(' Z JOIN Scope S', ' Z JOIN DailyOrderIDs I ON I.GUID=Z.Ссылка JOIN Scope S')
+        # DailyOrderIDs already limits orders to the selected application cohort.
+        # Keep later orders so historical submission reports show current conversion.
+        before, order_cte = cte.split("), OrdersPeriod AS (", 1)
+        where = order_cte.index("      WHERE (CASE")
+        filters = order_cte.index("Z.Организация=%s", where)
+        cte = before + "), OrdersPeriod AS (" + order_cte[:where] + "      WHERE " + order_cte[filters:]
         applications=applications.replace(' A JOIN Scope S', ' A JOIN DailyApplications D ON D.GUID=A._IDRRef JOIN Scope S')
     return cte,directory,orders,links,applications,calls
 
@@ -134,7 +140,7 @@ def fetch_facts(seed,activity,end,daily=False,start=None):
     binary=lambda value: bytes.fromhex(value[2:])
     params=[binary(g) for g in calls]+[binary(ROOT),binary(ROOT),binary(BRANCH),binary(ROOT),activity,end+timedelta(days=1),binary(ORG)]
     if daily:
-        params[len(calls)+4:len(calls)+4]=[(start or end)-timedelta(days=1),end+timedelta(days=1)]
+        params[len(calls)+4:len(calls)+6]=[(start or end)-timedelta(days=1),end+timedelta(days=1)]
     results=[]
     with connections['default'].cursor() as cursor:
         for query in (directory,orders,links,applications):
@@ -196,10 +202,12 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
         raise ValueError('Не знайдено контрагентів продзвону за GUID: '+', '.join(sorted(missing)))
     unique={}
     for row in orders:
+        if daily:
+            row = {**row, 'OrderDate': row.get('FirstStatusDate') or row['OrderDate']}
         guid=key(row['OrderGUID'])
         if guid in unique and unique[guid]!=row:
             raise ValueError('Суперечливі дані замовлення за GUID.')
-        if activity.isoformat()<=str(row['OrderDate'])[:10]<=end.isoformat():
+        if daily or activity.isoformat()<=str(row['OrderDate'])[:10]<=end.isoformat():
             unique[guid]=row
     application_start = min(activity, start-timedelta(days=1)) if daily else activity
     apps={key(row['ApplicationGUID']):row for row in applications if application_start.isoformat()<=str(row['ApplicationDate'])[:10]<=end.isoformat()}
@@ -215,7 +223,9 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
     order_docs={g:{**_document(o,'order',labels),'newPortal':g in portal_orders} for g,o in unique.items()}
     order_dealers=defaultdict(list)
     app_dealers=defaultdict(dict)
-    for g,o in unique.items(): order_dealers[key(o['DealerGUID'])].append(g)
+    for g,o in unique.items():
+        if activity.isoformat() <= str(o['OrderDate'])[:10] <= end.isoformat():
+            order_dealers[key(o['DealerGUID'])].append(g)
     for g,a in new_apps.items():
         if str(a['ApplicationDate'])[:10]>=start.isoformat(): app_dealers[key(a['DealerGUID'])][g]=a
     overnight = []
@@ -223,7 +233,9 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
     if daily:
         for guid, app in new_apps.items():
             next_day = date.fromisoformat(str(app['ApplicationDate'])[:10]) + timedelta(days=1)
-            if str(app['ApplicationDate'])[:10] == (start-timedelta(days=1)).isoformat() and not linked[guid]:
+            if str(app['ApplicationDate'])[:10] == (start-timedelta(days=1)).isoformat() and not any(
+                str(unique[og]['OrderDate'])[:10] <= end.isoformat() for og in linked[guid]
+            ):
                 previous_pending.append({**_document(app, 'application', labels), 'dealerGuid': key(app['DealerGUID']),
                     'dealer': str(dealers[key(app['DealerGUID'])]['DealerName']).strip(), 'orders': []})
             if start <= next_day <= end:
@@ -249,6 +261,8 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
         app_details=[]
         for ag,a in period_apps.items():
             related=[order_docs[og] for og in sorted(linked[ag])]
+            if daily:
+                related = [{**order, 'createdAt': str(unique[order['guid']]['OrderDate'])} for order in related]
             created = a['ApplicationDate']
             order_dates = [unique[og].get('FirstStatusDate') for og in linked[ag]]
             last_order = max((when for when in order_dates if isinstance(when, datetime)), default=None)
