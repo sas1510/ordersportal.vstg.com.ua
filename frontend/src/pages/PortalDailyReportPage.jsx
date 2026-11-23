@@ -86,8 +86,23 @@ export default function PortalDailyReportPage() {
   const pendingLabel = 'З учора без замовлень';
   const refusedLabel = 'Автовідхилено за період';
   const movement = report?.dailyMovements;
-  const detailModel = detail && (detail.metricKey || detail.kind === "orders") ? dailyMetricDetails(detail, submissions, orderTimes) : null;
-  const matches = detailModel ? detailModel.rows : detail ? (detail.kind === "orders" ? formedOrders.filter(order => detail.statusGuid === undefined || String(order.stateGuid || "").toUpperCase() === detail.statusGuid) : detail.label === overnightLabel ? overnight : detail.label === pendingLabel ? report.previousDayPendingApplications ?? [] : detail.label === refusedLabel ? report.autoRefusedOrders ?? [] : applications.filter(detail.filter)) : [];
+  const detailModel = detail && (detail.metricKey || (detail.kind === "orders" && !detail.rows)) ? dailyMetricDetails(detail, submissions, orderTimes) : null;
+  const showPostingCoverage = ["unposted", "deleted"].includes(detail?.postingGroup);
+  const postingLabels = {
+    unposted: "Усі непроведені",
+    deleted: "Усі позначені на видалення",
+    mixed: "Непроведені та позначені на видалення",
+    partial: "Частково проведені",
+  };
+  const postingGroups = Object.keys(postingLabels).map(key => ({ key, rows: [] }));
+  const postingState = order => order.markedForDeletion ? "deleted" : order.posted ? "posted" : "unposted";
+  for (const app of applications) {
+    const states = new Set(app.orders.map(postingState));
+    if (!states.size || (states.size === 1 && states.has("posted"))) continue;
+    const key = states.has("posted") ? "partial" : states.size > 1 ? "mixed" : states.values().next().value;
+    postingGroups.find(group => group.key === key).rows.push(app);
+  }
+  const matches = detail?.rows ?? (detailModel ? detailModel.rows : detail ? (detail.kind === "orders" ? formedOrders.filter(order => detail.statusGuid === undefined || String(order.stateGuid || "").toUpperCase() === detail.statusGuid) : detail.label === overnightLabel ? overnight : detail.label === pendingLabel ? report.previousDayPendingApplications ?? [] : detail.label === refusedLabel ? report.autoRefusedOrders ?? [] : applications.filter(detail.filter)) : []);
 
   const newApplicationConstructions = applications.reduce((sum, app) => sum + (app.orders.length === 0 ? app.constructions : 0), 0);
 
@@ -141,7 +156,7 @@ export default function PortalDailyReportPage() {
               ['Кількість дилерів, які подали заявки', submissions.total.dealers, () => true, 'dealers'],
               ['Кількість заявок, поданих дилерами', submissions.total.applications, () => true, 'applications'],
               ['Кількість конструкцій у заявках', totals.applicationConstructions, app => app.constructions > 0, 'appConstructions'],
-              ['Кількість неоформлених заявок', totals.withoutOrders, app => !app.orders.length, 'unformed'],
+              ['К-сть неоформлених заявок', newApplications.applications, app => newApplications.guids.has(app.guid), 'unformed'],
               ['Кількість заявок в обробці', processingApplications.applications, app => processingApplications.guids.has(app.guid), 'processing'],
               [averageOrderLabel, averageOrderTime === null ? '—' : averageOrderTime + ' хв', () => true, 'average'],
               ['Кількість оформлених замовлень', formedOrders.length, () => true, 'orders'],
@@ -155,24 +170,45 @@ export default function PortalDailyReportPage() {
             ))}
           </dl>
         </section>
+        <section className="reconcile-panel daily-screen-status">
+          <h2>Заявки з непроведеними або позначеними на видалення замовленнями</h2>
+          <table>
+            <thead><tr><th>Стан замовлень у заявці</th><th>Заявок</th></tr></thead>
+            <tbody>{postingGroups.map(group => <tr key={group.key}>
+              <th scope="row">{postingLabels[group.key]}</th>
+              <td><button type="button" className="daily-metric" onClick={() => setDetail({ label: postingLabels[group.key], rows: group.rows, showApplicationComment: true, showOrderStates: true, showOrderComments: true })}>{group.rows.length}</button></td>
+            </tr>)}</tbody>
+          </table>
+        </section>
         {detail && <dialog ref={dialog} id="daily-metric-details" className="reconcile-dialog daily-metric-details" aria-labelledby="daily-detail-title" onClose={() => setDetail(null)}><button className="reconcile-close" type="button" onClick={() => dialog.current.close()}>Закрити</button>
           <h2 id="daily-detail-title">{detailModel ? detailModel.title : <>{detail.label} · {detail.kind === 'orders' ? matches.length : detail.label === 'Кількість оформлених замовлень' ? formedOrders.length : matches.length} {detail.kind === 'orders' || detail.label === refusedLabel || detail.label === 'Кількість оформлених замовлень' ? 'замовлень' : 'заявок'}</>}</h2>
           {detailModel ? <DailyMetricDetails model={detailModel} /> : detail.kind === "orders" ? <div className="reconcile-scroll"><table>
-            <thead><tr><th>Дилер</th><th>№ замовлення</th><th>Дата замовлення</th><th>Статус</th><th>Конструкцій</th><th>Заявки</th><th>Менеджер</th></tr></thead>
+            <thead><tr><th>Дилер</th><th>№ замовлення</th><th>Дата замовлення</th><th>Статус</th>{detail.rows && <><th>Хто встановив статус</th><th>Коментар з 1С</th></>}<th>Конструкцій</th><th>Заявки</th>{detail.showApplicationComment && <th>Коментар до заявки</th>}<th>Менеджер</th></tr></thead>
             <tbody>{matches.map(order => <tr key={order.guid}>
               <td>{order.dealer}</td><td>{order.number}</td><td>{order.date}</td>
-              <td>{orderStatusLabels[order.state] ?? order.state}</td><td>{order.constructions}</td>
-              <td>{order.applications.map(app => app.number).join(", ") || "—"}</td><td>{order.manager || "—"}</td>
+              <td>{orderStatusLabels[order.state] ?? order.state}{!order.posted && !order.markedForDeletion && order.hasServiceNoteComment && <><br /><small>Службова в коментарі</small></>}</td>{detail.rows && <><td>{order.lastStatusManager || "—"}</td><td style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{order.orderComment || "—"}</td></>}<td>{order.constructions}</td>
+              <td>{order.applications.map(app => app.number).join(", ") || "—"}</td>{detail.showApplicationComment && <td>{order.applications.filter(app => app.comment).map(app => <div key={app.guid} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{app.number} · {app.comment}</div>)}</td>}<td>{order.manager || "—"}</td>
             </tr>)}</tbody>
           </table></div> : detail.label === refusedLabel ? <div className="reconcile-scroll"><table>
             <thead><tr><th>Дилер</th><th>Замовлення</th><th>Конструкцій</th><th>Заявки</th><th>Дата відхилення</th><th>Менеджер</th><th>Причина</th></tr></thead>
             <tbody>{matches.map(order => <tr key={order.guid}><td>{order.dealer}</td><td>{order.number}</td><td>{order.constructions}</td><td>{order.applications.map(app => app.number + ' · ' + app.date.slice(0, 10)).join(', ')}</td><td>{order.events.map(event => event.date).join(', ')}</td><td>{[...new Set(order.events.map(event => event.manager || '—'))].join(', ')}</td><td>{[...new Set(order.events.map(event => event.reason))].join('; ')}</td></tr>)}</tbody>
           </table></div> : <div className="reconcile-scroll">
             <table>
-              <thead><tr><th>Дилер</th><th>№ заявки / дата подання</th><th>Конструкцій у заявці</th><th>Пов’язані замовлення</th><th>Менеджер</th><th>{detail.label === averageOrderLabel ? "Час оформлення за замовленнями" : "Час до останнього замовлення"}</th></tr></thead>
+              <thead><tr><th>Дилер</th><th>№ заявки / дата подання</th>{detail.rows && <th>Статус заявки в 1С</th>}{detail.showApplicationComment && <th>Коментар до заявки</th>}<th>Конструкцій у заявці</th><th>Пов’язані замовлення</th>{detail.showOrderComments && <th>Коментарі до замовлень з 1С</th>}{showPostingCoverage && <th>Замовлень у цьому стані</th>}<th>Менеджер</th><th>{detail.label === averageOrderLabel ? "Час оформлення за замовленнями" : "Час до останнього замовлення"}</th></tr></thead>
               <tbody>{matches.map(app => <tr key={app.guid}>
-                <td>{app.dealer}</td><td>{app.number}<br />{app.date}</td><td>{app.constructions}</td>
-                <td>{app.orders.map(order => order.number + (order.createdAt ? ' · ' + order.createdAt : '')).join(', ') || '—'}</td>
+                <td>{app.dealer}</td><td>{app.number}<br />{app.date}</td>{detail.rows && <td>{app.state || "—"}</td>}{detail.showApplicationComment && <td style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{app.applicationComment}</td>}<td>{app.constructions}</td>
+                <td>{detail.showOrderStates ? app.orders.map(order => <div key={order.guid} style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{order.number} · {{posted:"Проведено", unposted:"Непроведено", deleted:"Позначено на видалення"}[postingState(order)]} · {orderStatusLabels[order.state] ?? order.state}{!detail.showOrderComments && order.orderComment && <><br />{order.orderComment}</>}</div>) : app.orders.map(order => order.number + (order.createdAt ? ' · ' + order.createdAt : '')).join(', ') || '—'}</td>
+                {detail.showOrderComments && <td style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                  {app.orders.filter(order => postingState(order) !== "posted" && order.orderComment)
+                    .map(order => <div key={order.guid}>{order.number} · {order.orderComment}</div>)}
+                </td>}
+                {showPostingCoverage && (() => {
+                  const total = app.orders.length;
+                  const matching = app.orders.filter(order => detail.postingGroup === "deleted"
+                    ? order.markedForDeletion
+                    : !order.markedForDeletion && !order.posted).length;
+                  return <td>{matching === total ? "Усі" : "Частина"} · {matching} з {total}</td>;
+                })()}
                 <td>{[...new Set(app.orders.map(order => order.manager).filter(Boolean))].join(', ') || '—'}</td>
                 <td>{detail.label === averageOrderLabel ? app.orders.filter(order => Number.isFinite(app.orderProcessingMinutes?.[order.guid]) && orderTimes.get(order.guid) === app.orderProcessingMinutes[order.guid]).map(order => order.number + ' · ' + Math.round(app.orderProcessingMinutes[order.guid]) + ' хв').join(', ') : Number.isFinite(app.processingMinutes) ? Math.round(app.processingMinutes) + ' хв' : '—'}</td>
               </tr>)}</tbody>
@@ -191,6 +227,25 @@ export default function PortalDailyReportPage() {
             </tr>)}</tbody>
             <tfoot><tr><th scope="row">Усього</th><td>{formedOrders.length}</td><td>{formedOrders.reduce((sum, order) => sum + Number(order.constructions || 0), 0)}</td></tr></tfoot>
           </table>
+        </section>
+        <section className="reconcile-panel daily-movements">
+          <h2>Рух заявок за період</h2>
+          {movement ? <div className="daily-movement-grid">
+            <article><h3>{refusedLabel}</h3>
+              <button type="button" className="daily-metric" onClick={() => setDetail({ label: refusedLabel })}>{movement.autoRefused.orders} замовлень · {movement.autoRefused.orderConstructions} конструкцій</button>
+              <p>{movement.autoRefused.applications} пов’язаних заявок · {movement.autoRefused.applicationConstructions} конструкцій у заявках</p>
+              {movement.autoRefused.reasons.map(reason => <p key={reason.name}>{reason.name}: {reason.orders}</p>)}
+            </article>
+            <article><h3>{overnightLabel}</h3>
+              <button type="button" className="daily-metric" onClick={() => setDetail({ label: overnightLabel })}>{movement.overnight.applications} заявок · {movement.overnight.applicationConstructions} конструкцій</button>
+              <p>{movement.overnight.orders} замовлень · {movement.overnight.orderConstructions} конструкцій у замовленнях</p>
+            </article>
+            <article><h3>{pendingLabel}</h3>
+              <button type="button" className="daily-metric" onClick={() => setDetail({ label: pendingLabel })}>{movement.previousDayPending.applications} заявок · {movement.previousDayPending.applicationConstructions} конструкцій</button>
+              {!!report.previousDayPendingApplications?.length && <ul className="daily-carryover-list">{report.previousDayPendingApplications.map(app => <li key={app.guid}><strong>№ {app.number}</strong> · {app.dealer} · {app.constructions} констр.</li>)}</ul>}
+            </article>
+          </div> : <p role="status">Оновіть звіт, щоб завантажити рух заявок.</p>}
+
         </section>
         <section className="reconcile-panel daily-screen-status">
           <h2>Розбіжності в конструкціях · {mismatches.length}</h2>
@@ -211,7 +266,7 @@ export default function PortalDailyReportPage() {
           <div className="daily-print-branches">
             <div className="daily-print-pending-group">
               <section className="daily-print-new">
-                <h3>Неоформлені заявки</h3>
+                <h3>К-сть неоформлених заявок</h3>
                 <p><strong>{newApplications.applications}</strong> заявок · <strong>{newApplications.constructions}</strong> конструкцій · <strong>{newApplications.dealers}</strong> дилерів</p>
               </section>
               <section className="daily-print-new daily-print-processing">
@@ -237,25 +292,7 @@ export default function PortalDailyReportPage() {
 
       </div>}
       {report && <>
-        <section className="reconcile-panel daily-movements">
-          <h2>Рух заявок за період</h2>
-          {movement ? <div className="daily-movement-grid">
-            <article><h3>{refusedLabel}</h3>
-              <button type="button" className="daily-metric" onClick={() => setDetail({ label: refusedLabel })}>{movement.autoRefused.orders} замовлень · {movement.autoRefused.orderConstructions} конструкцій</button>
-              <p>{movement.autoRefused.applications} пов’язаних заявок · {movement.autoRefused.applicationConstructions} конструкцій у заявках</p>
-              {movement.autoRefused.reasons.map(reason => <p key={reason.name}>{reason.name}: {reason.orders}</p>)}
-            </article>
-            <article><h3>{overnightLabel}</h3>
-              <button type="button" className="daily-metric" onClick={() => setDetail({ label: overnightLabel })}>{movement.overnight.applications} заявок · {movement.overnight.applicationConstructions} конструкцій</button>
-              <p>{movement.overnight.orders} замовлень · {movement.overnight.orderConstructions} конструкцій у замовленнях</p>
-            </article>
-            <article><h3>{pendingLabel}</h3>
-              <button type="button" className="daily-metric" onClick={() => setDetail({ label: pendingLabel })}>{movement.previousDayPending.applications} заявок · {movement.previousDayPending.applicationConstructions} конструкцій</button>
-              {!!report.previousDayPendingApplications?.length && <ul className="daily-carryover-list">{report.previousDayPendingApplications.map(app => <li key={app.guid}><strong>№ {app.number}</strong> · {app.dealer} · {app.constructions} констр.</li>)}</ul>}
-            </article>
-          </div> : <p role="status">Оновіть звіт, щоб завантажити рух заявок.</p>}
 
-        </section>
 
       </>}
     </main>

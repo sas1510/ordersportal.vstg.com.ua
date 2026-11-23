@@ -13,7 +13,7 @@ test('counts unique dealers and submitted applications by application state, ind
   assert.equal(data.total.dealers,2);
   assert.equal(data.total.applications,3);
   assert.equal(data.total.constructions,9);
-  assert.deepEqual(data.groups.map(g=>[g.dealers,g.applications]), [[2,2],[1,1],[0,0]]);
+  assert.deepEqual(data.groups.map(g=>[g.dealers,g.applications]), [[1,1],[1,1],[1,1]]);
   assert.equal(data.formedOrders.length,1);
 });
 

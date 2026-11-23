@@ -40,6 +40,14 @@
 @media print {
 }
 
+.portal-daily-report .daily-metric-details {
+  box-sizing: border-box;
+  width: min(1480px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+}
+.portal-daily-report .daily-metric-details .reconcile-scroll {
+  overflow-x: auto;
+}
 .portal-daily-report .daily-metric-details::backdrop { background: #0009; }
 body.dark-theme .portal-daily-report .daily-metric { background: transparent; color: var(--rc-accent); }
 .portal-daily-report .daily-metric { font-size: inherit; }

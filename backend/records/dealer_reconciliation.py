@@ -108,6 +108,23 @@ def query_parts(seed, daily=False):
         AND Z._Fld6205_TYPE=0x08 AND Z._Fld6205_RTRef=0x0000AF38 AND A._Marked=0x00 AND A._Fld44859RRef=O.DealerGUID
     ) SELECT OrderGUID,DealerGUID,ApplicationGUID FROM Links OPTION(MAXRECURSION 100)'''
     if daily:
+        cte = cte.replace("Z.Проведен AS Posted,", "Z.Проведен AS Posted, Z.ПометкаУдаления AS MarkedForDeletion, Z.Комментарий AS OrderComment,")
+        cte = cte.replace(" AND Z.ПометкаУдаления=0x00", "")
+        orders = orders.replace("Posted,FirstStatusDate", "Posted,MarkedForDeletion,OrderComment,FirstStatusDate")
+        links = links.replace(" AND Z._Marked=0x00", "").replace(" AND A._Fld44859RRef=O.DealerGUID", "")
+        cte = cte.replace("UM.Наименование AS OrderManager,", "UM.Наименование AS OrderManager, LM.Наименование AS LastStatusManager,")
+        cte = cte.replace("      WHERE (CASE WHEN YEAR(Z.Дата)", """
+      OUTER APPLY (
+        SELECT TOP (1) R.Менеджер AS ManagerGUID
+        FROM [oknastyle_biV2].[dbo].[РегистрыСведений.ПП_ПричиныПереоформления] R
+        WHERE (Z.Проведен=0x00 OR Z.ПометкаУдаления=0x01)
+          AND R.Заказ=Z.Ссылка AND R.Состояние=Z.БВ_СостояниеЗаказа
+          AND YEAR(R.Период)>2001
+        ORDER BY R.Период DESC, R.__Repl_ID__ DESC
+      ) L
+      LEFT JOIN [oknastyle_biV2].[dbo].[Справочники.Пользователи] LM ON LM.Ссылка=L.ManagerGUID
+      WHERE (CASE WHEN YEAR(Z.Дата)""", 1)
+        orders = orders.replace("FirstStatusDate,OrderManager", "FirstStatusDate,OrderManager,LastStatusManager")
         daily_scope = """), DailyApplications AS (
           SELECT A._IDRRef AS GUID FROM [oknastyle].[dbo].[_Document44856] A
           CROSS JOIN (SELECT CAST(%s AS date) AS PeriodStart, CAST(%s AS date) AS PeriodEnd) D
@@ -121,16 +138,17 @@ def query_parts(seed, daily=False):
           UNION
           SELECT Z._IDRRef
           FROM DailyApplications A JOIN [oknastyle].[dbo].[_Document381] Z ON Z._Fld6205_RRRef=A.GUID
-          WHERE Z._Marked=0x00 AND Z._Fld6205_TYPE=0x08 AND Z._Fld6205_RTRef=0x0000AF38
+          WHERE Z._Fld6205_TYPE=0x08 AND Z._Fld6205_RTRef=0x0000AF38
         ), OrdersPeriod AS ("""
         cte=cte.replace('), OrdersPeriod AS (',daily_scope)
-        cte=cte.replace(' Z JOIN Scope S', ' Z JOIN DailyOrderIDs I ON I.GUID=Z.Ссылка JOIN Scope S')
+        cte=cte.replace(' Z JOIN Scope S ON S.GUID=Z.Контрагент AND S.IsGroup=0x01', ' Z JOIN DailyOrderIDs I ON I.GUID=Z.Ссылка')
         # DailyOrderIDs already limits orders to the selected application cohort.
         # Keep later orders so historical submission reports show current conversion.
         before, order_cte = cte.split("), OrdersPeriod AS (", 1)
         where = order_cte.index("      WHERE (CASE")
         filters = order_cte.index("Z.Организация=%s", where)
         cte = before + "), OrdersPeriod AS (" + order_cte[:where] + "      WHERE " + order_cte[filters:]
+        applications = applications.replace("A._Posted AS Posted", "A._Posted AS Posted, A._Fld44860 AS ApplicationComment")
         applications=applications.replace(' A JOIN Scope S', ' A JOIN DailyApplications D ON D.GUID=A._IDRRef JOIN Scope S')
         # DailyApplications already restricts both stored date formats to this cohort.
         applications = applications.split("        AND (CASE", 1)[0] + " OPTION(MAXRECURSION 100)"
@@ -194,8 +212,12 @@ def _document(row,kind,state_labels):
         label='Не вказано' if not state.replace('0X','').strip('0') else 'Невідомий стан ('+state+')'
     return {'guid':key(row[prefix+'GUID']),'number':str(row[prefix+'Number']).strip(),
         'date':str(row[prefix+'Date'])[:10],'manager':str(row.get('OrderManager') or '').strip(),'constructions':qty(row['Constructions']),
-        'stateGuid':state,'state':label,'confirmed':not is_app and state==STATE,
-        'posted':key(row.get('Posted')) in ('0X01','TRUE','1')}
+        'stateGuid':state,'state':label,'confirmed':not is_app and state==STATE and key(row.get('MarkedForDeletion')) not in ('0X01','TRUE','1'),
+        'posted':key(row.get('Posted')) in ('0X01','TRUE','1'),
+        'markedForDeletion':key(row.get('MarkedForDeletion')) in ('0X01','TRUE','1'),
+        'lastStatusManager':str(row.get('LastStatusManager') or '').strip(),
+        'hasServiceNoteComment':'службова' in str(row.get('OrderComment') or '').casefold(),
+        'orderComment':str(row.get('OrderComment') or '').strip() if not is_app and (key(row.get('Posted')) not in ('0X01','TRUE','1') or key(row.get('MarkedForDeletion')) in ('0X01','TRUE','1')) else ''}
 
 def assemble_report(directory,orders,links,applications,seed,start,end,activity,daily=False):
     dealers={key(row['DealerGUID']):row for row in directory}
@@ -216,7 +238,7 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
     linked=defaultdict(set)
     for link in links:
         ag,og=key(link['ApplicationGUID']),key(link['OrderGUID'])
-        if ag in apps and og in unique and key(apps[ag]['DealerGUID'])==key(unique[og]['DealerGUID']):
+        if ag in apps and og in unique and (daily or key(apps[ag]['DealerGUID'])==key(unique[og]['DealerGUID'])):
             linked[ag].add(og)
     approved={g for g,v in seed['sources'].items() if v['source']=='new' and g in unique and v['dealer']==key(unique[g]['DealerGUID'])}
     new_apps={g:a for g,a in apps.items() if (key(a['AuthorGUID'])==key(a['DealerGUID']) and key(a['AuthorType'])=='0X0000007A') or linked[g]&approved}
@@ -266,7 +288,7 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
             if daily:
                 related = [{**order, 'createdAt': str(unique[order['guid']]['OrderDate'])} for order in related]
             created = a['ApplicationDate']
-            order_dates = [unique[og].get('FirstStatusDate') for og in linked[ag]]
+            order_dates = [unique[og].get('FirstStatusDate') for og in linked[ag] if not order_docs[og]['markedForDeletion']]
             last_order = max((when for when in order_dates if isinstance(when, datetime)), default=None)
             processing_minutes = (
                 (last_order - created).total_seconds() / 60
@@ -274,11 +296,13 @@ def assemble_report(directory,orders,links,applications,seed,start,end,activity,
                 else None
             )
             app_details.append({**_document(a,'application',labels),'orders':related,
+                'applicationComment':str(a.get('ApplicationComment') or '').strip(),
                 'processingMinutes': processing_minutes,
                 'orderProcessingMinutes': {
                     og: (unique[og].get('FirstStatusDate') - created).total_seconds() / 60
                     for og in linked[ag]
-                    if isinstance(created, datetime)
+                    if not order_docs[og]['markedForDeletion']
+                    and isinstance(created, datetime)
                     and isinstance(unique[og].get('FirstStatusDate'), datetime)
                     and unique[og].get('FirstStatusDate') >= created
                 },
