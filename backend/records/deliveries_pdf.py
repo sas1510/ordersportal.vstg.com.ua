@@ -21,6 +21,13 @@ def construction_total(rows):
     return sum((Decimal(str(row.get("count") or "0")) for row in rows), Decimal(0))
 
 
+def additional_quantity_text(value):
+    if value is None:
+        return "—"
+    number = format(value, "f")
+    return (number.rstrip("0").rstrip(".") if "." in number else number).replace(".", ",")
+
+
 def money_text(value, currency):
     if value is None:
         return "—"
@@ -67,15 +74,16 @@ def build_deliveries_pdf(rows, include_amounts=True):
         groups.setdefault(row["day"], []).append(row)
     for day, items in groups.items():
         story.append(Paragraph(".".join(reversed(day.split("-"))), heading))
-        headers = ["Час", "Замовлення", "Прорахунок", "Констр.", "Дилер"] + (["Сума замовлення", "Оплачено", "Борг"] if include_amounts else [])
+        headers = ["Час", "Замовлення", "Прорахунок", "Констр.", "Допи", "Дилер"] + (["Сума замовлення", "Оплачено", "Борг"] if include_amounts else [])
         data = [[Paragraph(text, style) for text in headers]]
         for item in items:
-            cells = [str(item.get(key, "")) for key in ["time", "number", "calculation", "count", "dealer"]]
+            cells = [str(item.get(key, "")) for key in ["time", "number", "calculation", "count"]]
+            cells.extend([additional_quantity_text(item.get("additional_quantity")), str(item.get("dealer", ""))])
             if include_amounts:
                 cells.extend(money_text(item.get(key), item.get("currency", "")) for key in ["amount", "paid", "debt"])
             data.append([Paragraph(escape(cell), style) for cell in cells])
-        data.append([Paragraph("Разом за дату", style), "", "", Paragraph(str(construction_total(items)), style), ""] + (["", "", ""] if include_amounts else []))
-        widths = [35, 65, 65, 42, 113, 72, 72, 71] if include_amounts else [40, 80, 95, 42, 278]
+        data.append([Paragraph("Разом за дату", style), "", "", Paragraph(str(construction_total(items)), style), "", ""] + (["", "", ""] if include_amounts else []))
+        widths = [35, 62, 60, 42, 48, 85, 68, 68, 67] if include_amounts else [40, 80, 95, 42, 55, 223]
         table = Table(data, colWidths=widths, repeatRows=1, hAlign="LEFT")
         table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#edf2f5")), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("LINEBELOW", (0, 0), (-1, -1), .3, colors.HexColor("#ccd5dc")), ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6)]))
         table.setStyle(TableStyle([("SPAN", (0, -1), (2, -1)), ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#edf2f5"))]))
@@ -126,6 +134,12 @@ def deliveries_pdf(request):
                 if not numeric_count.is_finite() or numeric_count < 0 or numeric_count != numeric_count.to_integral_value() or numeric_count > 1000000:
                     raise ValueError("Invalid construction count")
                 count = str(int(numeric_count))
+            raw_quantity = row.get("additional_quantity")
+            quantity = Decimal(str(raw_quantity)) if raw_quantity not in (None, "") else None
+            if quantity is not None:
+                if not quantity.is_finite() or abs(quantity) > Decimal("1000000000000"):
+                    raise ValueError("Invalid additional items quantity")
+                quantity = quantity.quantize(Decimal("0.000000000001"))
             financial = {}
             for key in ["amount", "paid"]:
                 raw_value = row.get(key)
@@ -136,7 +150,7 @@ def deliveries_pdf(request):
             financial["debt"] = max(Decimal(0), financial["amount"] - financial["paid"]) if all(value is not None for value in financial.values()) else None
             currency = str(row.get("currency") or "").strip()[:20]
             currency = {"грн": "UAH", "грн.": "UAH", "€": "EUR", "$": "USD"}.get(currency.lower(), currency.upper())
-            clean.append({"day": day, "time": hour, "count": count, "currency": currency, **financial, **{key: str(row.get(key, ""))[:500] for key in ["number", "dealer", "calculation"]}})
+            clean.append({"day": day, "time": hour, "count": count, "additional_quantity": quantity, "currency": currency, **financial, **{key: str(row.get(key, ""))[:500] for key in ["number", "dealer", "calculation"]}})
     except (TypeError, ValueError, KeyError, InvalidOperation):
         return Response({"error": "Некоректні дані доставок."}, status=400)
     try:

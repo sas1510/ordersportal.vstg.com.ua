@@ -54,7 +54,7 @@ export function DeliveriesControl({ delivery, loadAdditional }) {
     try {
       const rows = loadAdditional ? mergeDeliveryRows(delivery.rows, await loadAdditional(delivery.date)) : delivery.rows;
       if (!rows.length) { addNotification("Немає доставок для друку за вибраний період.", "info"); return; }
-      const response = await axios.post("/deliveries-pdf/", { include_amounts: includeAmounts, rows: rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", ...(includeAmounts ? { amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" } : {}) })) }, { responseType: "blob" });
+      const response = await axios.post("/deliveries-pdf/", { include_amounts: includeAmounts, rows: rows.map(({ order, calc, day, time }) => ({ day, time, number: order.number, calculation: calc.number || calc.webNumber || "", dealer: calc.dealer || "", count: order.count ?? "", additional_quantity: order.additionalItemsQuantity ?? null, ...(includeAmounts ? { amount: order.amount ?? null, paid: order.paid ?? null, currency: order.currency || "" } : {}) })) }, { responseType: "blob" });
       const url = URL.createObjectURL(response.data);
       const link = document.createElement("a"); link.href = url; link.download = `Доставки_${delivery.date || "усі-дати"}.pdf`; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
