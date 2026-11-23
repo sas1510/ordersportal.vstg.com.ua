@@ -477,8 +477,8 @@ function ProductionRingCard({
           centerLabel=""
           centerContent={
             <div className="production-ring-card__center-counts">
-              <span><b>{formatNumber(totalOrders ?? 0)}</b><span>{t("production_statistics.orders").toLocaleLowerCase(i18n.language)}</span></span>
-              <span><b>{formatNumber(totalConstructions ?? 0)}</b><span>{t("production_statistics.constructions").toLocaleLowerCase(i18n.language)}</span></span>
+              <span><b><AppIcon name="listCalc" aria-hidden="true" />{formatNumber(totalOrders ?? 0)}</b><span>{t("production_statistics.orders").toLocaleLowerCase(i18n.language)}</span></span>
+              <span><b><AppIcon name="windows" aria-hidden="true" />{formatNumber(totalConstructions ?? 0)}</b><span>{t("production_statistics.constructions").toLocaleLowerCase(i18n.language)}</span></span>
             </div>
           }
           showLegend={false}

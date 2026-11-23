@@ -1168,7 +1168,7 @@ export default function HeaderDealer() {
 
                   <div className="absolute bottom-0 left-[5%] right-[5%] border-t border-dotted border-[#B4D947]" />
                 </div>
-                {link === mainLinks[0] && <ServiceMenu links={serviceLinks} mobile onNavigate={() => setMobileMenuOpen(false)} />}
+                {link === mainLinks[0] && <ServiceMenu links={serviceLinks} mobile variant="dealer" onNavigate={() => setMobileMenuOpen(false)} />}
                 </Fragment>
               );
             })}

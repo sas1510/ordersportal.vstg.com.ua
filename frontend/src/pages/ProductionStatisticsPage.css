@@ -3753,22 +3753,36 @@
 
 .production-ring-card__center-counts {
   display: grid;
-  gap: 3px;
+  gap: 5px;
   color: #44403e;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
   text-align: center;
 }
+
 .production-ring-card__center-counts > span {
   display: grid;
   gap: 1px;
-  white-space: nowrap;
 }
 
 .production-ring-card__center-counts b {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   font-size: 18px;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
+  white-space: nowrap;
 }
+
+/* Chart renderer sizing also matches SVGs inside the center badge. */
+.production-ring-card--figma .production-ring-card__center-counts b > svg {
+  flex: 0 0 16px;
+  width: 16px !important;
+  height: 16px !important;
+}
+
 .production-ring-card__work-counts {
   font-size: min(.72em, 22px);
   font-variant-numeric: tabular-nums;
